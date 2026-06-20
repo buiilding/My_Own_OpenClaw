@@ -52,7 +52,7 @@ Current runtime note:
 - backend-owned grounded helper tools such as `grounded_mouse_action` and
   `grounded_scroll_action` may be model-visible, but they are not
   local-runtime executable manifest entries; backend preparation rewrites them
-  to the executable Python sidecar tools before dispatch
+  to the executable local-runtime Python tools before dispatch
 
 ## Policy and Filtering
 

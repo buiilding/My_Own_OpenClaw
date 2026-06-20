@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Python Tool Labels
+
+- Finding: debug, browser, sidecar-tool, and backend bridge docs still used
+  Python sidecar tool labels for local error-code, entrypoint, result-model, and
+  executable-tool wording.
+- Change: routed those labels through local-runtime Python tool/result wording
+  while preserving concrete `frontend/src/main/python` paths and current
+  `tests/sidecar` validation routes.
+- Validation: focused modular docs boundary test, docs listing, exact active
+  Python-sidecar-tool stale-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, executable behavior,
+  tool schemas, JSON-RPC/daemon payloads, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
 ### 2026-06-20 Import-Boundary Code-Owner Labels
 
 - Finding: architecture, ADR, getting-started, automation, frontend main,

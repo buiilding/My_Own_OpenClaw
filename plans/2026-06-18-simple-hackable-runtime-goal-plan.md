@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime Python tool-label slice by routing
+  debug, browser, sidecar-tool, and backend bridge docs through local-runtime
+  Python tool/result wording instead of Python sidecar tool labels. The slice
+  preserved concrete `frontend/src/main/python` paths and current
+  `tests/sidecar` validation routes. Validation covered the focused modular
+  docs boundary test, docs listing, exact active Python-sidecar-tool stale-label
+  scan, and diff check. No migration required; runtime code, executable
+  behavior, tool schemas, JSON-RPC/daemon payloads, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 - 2026-06-20: completed an import-boundary code-owner label slice by routing
   architecture, ADR, getting-started, automation, frontend main, frontend
   inventory, sidecar workflow, backend service, review, and triage docs through

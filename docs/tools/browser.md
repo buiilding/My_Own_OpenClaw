@@ -27,7 +27,7 @@ For browser changes that can cross schema, local-runtime execution, local-runtim
 - Backend schema: `backend/src/tools/browser/*`
 - Backend remote tool: `backend/src/tools/remote_tools/browser.py`
 - local-runtime Python browser adapter: `frontend/src/main/python/tools/browser/browser_use_engine.py`
-- Python sidecar tool entrypoint: `frontend/src/main/python/tools/browser/browser_tool.py`
+- local-runtime Python tool entrypoint: `frontend/src/main/python/tools/browser/browser_tool.py`
 - Shared browser contract: `frontend/src/main/python/windie_shared/browser_contract*`
 - Renderer browser UI: `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`
 - Main bridge mapping: `frontend/src/main/sidecar/local_runtime*.cjs`

@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: architecture, ADR, getting-started, automation,
-  frontend main, frontend inventory, sidecar workflow, backend service, review,
-  and triage docs now route import-boundary code-owner labels through desktop
-  client/local-runtime Python code wording instead of desktop client/Python
-  sidecar code or Python sidecar code labels.
+- Latest completed slice: debug, browser, sidecar-tool, and backend bridge docs
+  now route local error-code, entrypoint, result-model, and executable-tool
+  wording through local-runtime Python tool/result labels instead of Python
+  sidecar tool labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -245,6 +244,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Local-Runtime Python Tool Labels
+
+- Finding: debug, browser, sidecar-tool, and backend bridge docs still used
+  Python sidecar tool labels for local error-code, entrypoint, result-model, and
+  executable-tool wording.
+- Change: routed those labels through local-runtime Python tool/result wording
+  while preserving concrete `frontend/src/main/python` paths and current
+  `tests/sidecar` validation routes.
+- Validation: focused modular docs boundary test, docs listing, exact active
+  Python-sidecar-tool stale-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, executable behavior,
+  tool schemas, JSON-RPC/daemon payloads, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
 
 ### 2026-06-20 Browser Adapter And Import-Rule Labels
 

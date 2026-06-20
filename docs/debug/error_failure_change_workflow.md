@@ -138,7 +138,7 @@ Read:
 
 Edit:
 
-- concrete Python sidecar tool for domain-specific error codes and messages.
+- concrete local-runtime Python tool for domain-specific error codes and messages.
 - `tools/result.py` only if the shared ToolResult contract changes.
 - `tools/registry.py` only if result contract enforcement changes.
 - Electron/renderer result handling only if bridge envelope changes.
