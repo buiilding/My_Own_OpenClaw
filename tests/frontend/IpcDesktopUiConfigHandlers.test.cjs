@@ -2,7 +2,11 @@
  * Covers desktop UI config IPC handler behavior in the frontend test suite.
  */
 
+const fs = require('fs/promises');
+const path = require('path');
+
 const {
+  createDesktopUiConfigHandlersRuntime,
   registerDesktopUiConfigHandlers,
 } = require('../../frontend/src/main/ipc/ipc_desktop_ui_config_handlers.cjs');
 
@@ -77,5 +81,62 @@ describe('desktop UI config IPC handlers', () => {
       'CommandOrControl+Alt+.',
     );
     expect(persistDesktopUiConfigToDisk).toHaveBeenCalledWith(config);
+  });
+
+  test('runtime registers config handlers with late shortcut setter resolution', async () => {
+    const handlers = {};
+    const ipcMain = {
+      handle: jest.fn((channel, handler) => {
+        handlers[channel] = handler;
+      }),
+    };
+    const latest = { current: null };
+    const setGlobalAgentStopShortcutAccelerator = jest.fn();
+    const getGlobalAgentStopShortcutAcceleratorSetter = jest.fn(
+      () => setGlobalAgentStopShortcutAccelerator,
+    );
+    const runtime = createDesktopUiConfigHandlersRuntime({
+      loadCachedDesktopUiConfigFromDisk: jest.fn(async () => ({ model_mode: 'runtime' })),
+      persistDesktopUiConfigToDisk: jest.fn(async (config) => ({ success: true, config })),
+      isValidConfigPayload: (config) => Boolean(config) && typeof config === 'object',
+      applyShortcutStatusFallbackToConfig: (config) => ({
+        ...config,
+        global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
+      }),
+      getLatestDesktopUiConfig: () => latest.current,
+      setLatestDesktopUiConfig: (config) => {
+        latest.current = config;
+      },
+      getGlobalAgentStopShortcutAcceleratorSetter,
+    });
+
+    runtime.register({ ipcMain });
+
+    await expect(handlers['load-frontend-config']()).resolves.toEqual({
+      model_mode: 'runtime',
+      global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
+    });
+
+    expect(getGlobalAgentStopShortcutAcceleratorSetter).toHaveBeenCalledTimes(1);
+    expect(setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith(
+      'CommandOrControl+Shift+Escape',
+    );
+  });
+
+  test('ipc.cjs registers desktop UI config handlers through the runtime wrapper', async () => {
+    const mainSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+    const helperSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_ui_config_handlers.cjs'),
+      'utf8',
+    );
+
+    expect(mainSource).toContain('createDesktopUiConfigHandlersRuntime({');
+    expect(mainSource).toContain('desktopUiConfigHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('registerDesktopUiConfigHandlers({');
+    expect(helperSource).toContain('function createDesktopUiConfigHandlersRuntime');
+    expect(helperSource).toContain('return registerDesktopUiConfigHandlers({');
   });
 });

@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move desktop UI config load/save handler dependency wiring into
+  `createDesktopUiConfigHandlersRuntime(...)`, preserving
+  `load-frontend-config`, `save-frontend-config`, shortcut fallback, latest
+  config cache updates, and config persistence. No migration required.
 - main/ipc: move extension and MCP registry handler dependency wiring into
   `createExtensionMcpHandlersRuntime(...)`, preserving extension listing,
   MCP listing, MCP enablement persistence, SDK MCP registration refresh, and

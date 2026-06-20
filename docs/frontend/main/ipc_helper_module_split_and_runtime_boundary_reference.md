@@ -670,6 +670,9 @@ Owns desktop UI config IPC handler registration while preserving the legacy
 renderer wire channel names:
 
 - `registerDesktopUiConfigHandlers`
+- exposes `createDesktopUiConfigHandlersRuntime(...)` so `ipc.cjs` composes
+  config load/save, validation, persistence, latest-cache, shortcut fallback,
+  and initialize-time shortcut setter dependencies once
 - `load-frontend-config`
 - `save-frontend-config`
 - shortcut fallback application while keeping the latest config cache in

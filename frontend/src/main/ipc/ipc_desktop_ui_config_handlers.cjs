@@ -35,6 +35,39 @@ function registerDesktopUiConfigHandlers({
   });
 }
 
+function createDesktopUiConfigHandlersRuntime({
+  loadCachedDesktopUiConfigFromDisk,
+  persistDesktopUiConfigToDisk,
+  isValidConfigPayload,
+  applyShortcutStatusFallbackToConfig,
+  getLatestDesktopUiConfig,
+  setLatestDesktopUiConfig,
+  setGlobalAgentStopShortcutAccelerator,
+  getGlobalAgentStopShortcutAcceleratorSetter,
+} = {}) {
+  function register({ ipcMain } = {}) {
+    const resolvedSetGlobalAgentStopShortcutAccelerator =
+      typeof getGlobalAgentStopShortcutAcceleratorSetter === 'function'
+        ? getGlobalAgentStopShortcutAcceleratorSetter()
+        : setGlobalAgentStopShortcutAccelerator;
+    return registerDesktopUiConfigHandlers({
+      ipcMain,
+      loadCachedDesktopUiConfigFromDisk,
+      persistDesktopUiConfigToDisk,
+      isValidConfigPayload,
+      applyShortcutStatusFallbackToConfig,
+      getLatestDesktopUiConfig,
+      setLatestDesktopUiConfig,
+      setGlobalAgentStopShortcutAccelerator: resolvedSetGlobalAgentStopShortcutAccelerator,
+    });
+  }
+
+  return {
+    register,
+  };
+}
+
 module.exports = {
+  createDesktopUiConfigHandlersRuntime,
   registerDesktopUiConfigHandlers,
 };

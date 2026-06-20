@@ -100,7 +100,7 @@ const {
   createDesktopUiConfigCache,
 } = require('./ipc/ipc_desktop_ui_config_cache.cjs');
 const {
-  registerDesktopUiConfigHandlers,
+  createDesktopUiConfigHandlersRuntime,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
   createExtensionMcpHandlersRuntime,
@@ -593,6 +593,16 @@ const extensionMcpHandlersRuntime = createExtensionMcpHandlersRuntime({
   ensureAgent,
   mcpClientInfo: () => ipcHostCopyRuntime.getMcpClientInfo(),
 });
+const desktopUiConfigHandlersRuntime = createDesktopUiConfigHandlersRuntime({
+  loadCachedDesktopUiConfigFromDisk,
+  persistDesktopUiConfigToDisk,
+  isValidConfigPayload,
+  applyShortcutStatusFallbackToConfig,
+  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
+  setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
+  getGlobalAgentStopShortcutAcceleratorSetter:
+    () => hostOptionState.getSetGlobalAgentStopShortcutAccelerator(),
+});
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -900,17 +910,7 @@ function initializeIpc(win, options = {}) {
     log,
   });
 
-  registerDesktopUiConfigHandlers({
-    ipcMain,
-    loadCachedDesktopUiConfigFromDisk,
-    persistDesktopUiConfigToDisk,
-    isValidConfigPayload,
-    applyShortcutStatusFallbackToConfig,
-    getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
-    setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
-    setGlobalAgentStopShortcutAccelerator:
-      hostOptionState.getSetGlobalAgentStopShortcutAccelerator(),
-  });
+  desktopUiConfigHandlersRuntime.register({ ipcMain });
 
   extensionMcpHandlersRuntime.register({ ipcMain });
 

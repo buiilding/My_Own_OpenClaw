@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Desktop UI Config Handler Runtime Boundary
+
+- Finding: `ipc_desktop_ui_config_handlers.cjs` owned desktop UI config
+  load/save channel bodies, but `initializeIpc(...)` still passed config disk
+  load, persistence, validation, shortcut fallback, latest-cache, and
+  initialize-time shortcut setter dependencies directly when registering the
+  handlers.
+- Change: added `createDesktopUiConfigHandlersRuntime(...)` so the desktop UI
+  config helper owns reusable handler dependency composition while
+  `initializeIpc(...)` only registers the already-composed runtime with
+  `ipcMain`. The global stop shortcut setter remains resolved at registration
+  time so initialize options are preserved.
+- Validation: focused desktop-config coverage verifies runtime registration,
+  late shortcut setter resolution, load fallback/cache behavior, save
+  persistence behavior, and source guards keep direct desktop-config handler
+  dependency wiring out of `initializeIpc(...)`.
+- Compatibility: no migration required. `load-frontend-config` and
+  `save-frontend-config` channel names, config validation, shortcut fallback
+  application, latest desktop UI config cache updates, persistence/redaction
+  behavior, stored config shape, renderer IPC, credentials, permissions,
+  provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Extension MCP Handler Runtime Boundary
 
 - Finding: `ipc_extension_mcp_handlers.cjs` owned extension and MCP registry

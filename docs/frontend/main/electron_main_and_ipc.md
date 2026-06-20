@@ -104,6 +104,9 @@ Responsibilities:
   `ipc_backend_connection_gate_state.cjs` plus `ipc_settings_sync_runtime.cjs`.
 - Broadcasts connection status to all renderer windows.
 - Uploads artifacts over HTTP endpoint and injects returned references.
+- Delegates desktop UI config load/save handler registration to a focused
+  helper runtime while config cache, persistence, and shortcut fallback stay in
+  their owning main-process runtimes.
 - Delegates client session snapshot and transcript-session sync channel
   registration to a focused helper runtime while keeping Agent SDK host session
   state in `ipc.cjs`.
