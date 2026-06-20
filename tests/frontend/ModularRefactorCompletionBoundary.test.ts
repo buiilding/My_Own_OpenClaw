@@ -743,12 +743,14 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/development/agent_runtime_ownership_and_change_routing.md'),
       read('docs/development/extensions.md'),
       read('docs/development/tool_development.md'),
+      read('docs/README.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/sidecar_tool_change_workflow.md'),
       read('docs/frontend/sidecar/README.md'),
       read('docs/frontend/sidecar/sidecar_daemon_runtime_reference.md'),
       read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
       read('docs/frontend/sidecar/tool_catalog_and_execution_model.md'),
+      read('docs/frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md'),
       read('docs/gateway/websocket_connection_lifecycle.md'),
       read('docs/getting-started/docs_directory.md'),
       read('docs/getting-started/docs_hub.md'),
@@ -923,6 +925,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('local-runtime exposed-tool registry backed by Python sidecar modules');
     expect(toolRoutingDocText).toContain('local-runtime exposed-tool parity backed by `frontend/src/main/python/tools/registry.py`');
     expect(toolRoutingDocText).toContain('live backend catalog and local-runtime exposed-tool set backed by Python sidecar modules');
+    expect(toolRoutingDocText).toContain('parity tests against local-runtime exposed tools');
+    expect(toolRoutingDocText).toContain('live local-runtime exposed set backed by the Python registry');
+    expect(toolRoutingDocText).toContain('local-runtime exposed tool set backed by the Python sidecar registry');
     expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
@@ -983,7 +988,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar parity tests');
     expect(toolRoutingDocText).not.toContain('sidecar exposed-tool registry');
     expect(toolRoutingDocText).not.toContain('sidecar exposed-tool parity');
+    expect(toolRoutingDocText).not.toContain('sidecar exposed tools');
+    expect(toolRoutingDocText).not.toContain('live sidecar exposed set');
     expect(toolRoutingDocText).not.toContain('Python sidecar exposed-tool set');
+    expect(toolRoutingDocText).not.toContain('Python sidecar exposed set');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');

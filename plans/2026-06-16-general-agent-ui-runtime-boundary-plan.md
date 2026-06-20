@@ -16001,3 +16001,18 @@ Each completed slice should report:
   injection, local-runtime launch behavior, storage paths, credentials,
   permissions, hosted backend URLs, provider policy, and IPC payloads are
   unchanged.
+
+### 2026-06-20 Exposed-tool parity docs route cleanup
+
+- Finding: after the backend registry docs moved to local-runtime exposed-tool
+  parity wording, the docs hub, tool schema checklist, and Python registry
+  reference still described parity against a sidecar exposed tool/set surface.
+- Change: routed those remaining labels through the local-runtime exposed tool
+  surface backed by Python sidecar modules, and extended the modular docs guard
+  to cover the hub, policy checklist, and registry reference.
+- Validation: focused modular docs boundary test, stale sidecar-exposed wording
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Tool names, schemas, executable
+  registry behavior, SDK/main dispatch, Python sidecar modules, storage,
+  credentials, permissions, provider policy, hosted URLs, and IPC payloads are
+  unchanged.

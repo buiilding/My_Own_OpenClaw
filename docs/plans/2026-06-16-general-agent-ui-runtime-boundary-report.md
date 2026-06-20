@@ -5800,3 +5800,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   WindieOS launch/test aliases. Env support, host skin injection, local-runtime
   launch behavior, storage paths, credentials, permissions, hosted backend
   URLs, provider policy, and IPC payloads are unchanged.
+- Exposed-tool parity docs now finish routing docs hub, tool schema checklist,
+  and Python registry reference wording through the local-runtime exposed tool
+  surface backed by Python sidecar modules. Tool names, schemas, executable
+  registry behavior, SDK/main dispatch, Python sidecar modules, storage,
+  credentials, permissions, provider policy, hosted URLs, and IPC payloads are
+  unchanged.

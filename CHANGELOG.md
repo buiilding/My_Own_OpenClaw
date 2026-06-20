@@ -71,6 +71,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/ops: list generic `AGENT_*` local-runtime env vars as the primary
   reusable contract in the runtime configuration matrix, with `WINDIE_*`
   documented as WindieOS launch aliases. No migration required.
+- docs/tools: finish routing exposed-tool parity wording through the
+  local-runtime exposed tool surface backed by Python sidecar modules. No
+  migration required.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from

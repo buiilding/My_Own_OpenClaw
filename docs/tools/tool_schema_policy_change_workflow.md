@@ -204,7 +204,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 ## Review Checklist
 
-- Tool name is consistent across backend catalog, remote tool class, Python sidecar exposed set, Python sidecar registry, SDK/main tests, docs, and prompt transparency expectations.
+- Tool name is consistent across backend catalog, remote tool class, local-runtime exposed tool set backed by the Python sidecar registry, SDK/main tests, docs, and prompt transparency expectations.
 - Client manifest entries are accepted or rejected for explicit reasons, and rejected entries do not silently disappear from diagnostics.
 - Built-in client-local tool names use accepted client schemas as the final
   provider-visible local schema. Backend catalog specs are fallback/default

@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for sidecar ToolRegistry internals: exposed-tool parity contract, import-time registration behavior, execute_tool dispatch path, and native ToolResult enforcement."
+summary: "Deep reference for local-runtime Python ToolRegistry internals: exposed-tool parity contract, import-time registration behavior, execute_tool dispatch path, and native ToolResult enforcement."
 read_when:
-  - When adding/removing sidecar tools or changing backend remote schema exposure lists.
+  - When adding/removing local-runtime Python tools or changing backend remote schema exposure lists.
   - When debugging invalid tool return formats or unexpected `Tool not found` failures.
 title: "Tool Registry Exposed Schema and Result Contract Reference"
 ---
@@ -40,7 +40,7 @@ Current exposed set includes:
 Wrapper artifact note:
 
 - repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` schemas
-- those wrapper names are not present in `frontend/src/main/python/tools/registry.py` and are not part of the live sidecar exposed set
+- those wrapper names are not present in `frontend/src/main/python/tools/registry.py` and are not part of the live local-runtime exposed set backed by the Python registry
 
 Parity guard:
 
