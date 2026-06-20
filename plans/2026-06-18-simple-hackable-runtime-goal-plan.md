@@ -353,6 +353,16 @@ For each completed slice, record:
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
 
+- 2026-06-20: completed a local tool channel executor-label slice by routing
+  the channel guide and routing matrix through SDK/main local-runtime execution
+  and local-runtime Python executor wording instead of making the token-auth
+  sidecar daemon the canonical executor. Validation covered the focused modular
+  docs boundary test, docs listing, exact stale channel-executor phrase scan,
+  and diff check. No migration required; tool execution routing, daemon HTTP
+  endpoints, tool-result payloads, renderer display projections, IPC channels,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.
+
 - 2026-06-20: aligned the renderer app-runtime inventory with the live
   `desktopStreamPhaseRuntime.js` state/rule facade and added a renderer
   boundary guard against the stale `desktopStreamPhaseRuntime.ts` filename.

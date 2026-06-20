@@ -53,6 +53,10 @@ All notable changes to WindieOS will be documented in this file.
 - docs/runtime: route Python executable, JSON-RPC failure, daemon stderr, and
   lifecycle/readiness labels through local-runtime Python process wording
   instead of sidecar-process owner labels. No migration required.
+- docs/channels: route local tool channel and routing-matrix executor labels
+  through SDK/main local-runtime execution and local-runtime Python executor
+  wording instead of making the sidecar daemon the canonical executor. No
+  migration required.
 - docs/runtime: route platform, operations, doctor, protocol-error, and
   development workflow sidecar-process labels through local-runtime startup or
   host-status wording while keeping the packaged Python sidecar entrypoint

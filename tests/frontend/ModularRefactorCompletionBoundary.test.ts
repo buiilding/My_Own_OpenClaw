@@ -1477,6 +1477,11 @@ describe('modular sdk refactor completion boundary', () => {
         'active sidecar daemon',
         'Python sidecar process lifecycle/readiness',
         'sidecar process/request failures',
+        'The canonical local executor is the token-auth sidecar daemon',
+        'After local execution through the Python sidecar daemon',
+        'SDK/main local runtime -> Electron local adapter -> Python sidecar daemon',
+        'SDK/main local runtime executes via Python sidecar daemon',
+        'SDK/main local-runtime path and Python sidecar executor',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

@@ -55,11 +55,12 @@ Common local channels:
 
 Renderer code should call the typed IPC bridge instead of raw Electron APIs.
 
-## Sidecar Daemon Boundary
+## Local-Runtime Python Daemon Boundary
 
-The canonical local executor is the token-auth sidecar daemon. Electron main
-passes desktop launch options to `AgentClient`; the SDK starts or reuses the
-daemon and local execution uses daemon HTTP endpoints such as `/execute-tool`.
+The canonical local executor is SDK/main local-runtime execution. The current
+concrete executor is a token-auth Python daemon: Electron main passes desktop
+launch options to `AgentClient`, the SDK starts or reuses the daemon, and local
+execution uses daemon HTTP endpoints such as `/execute-tool`.
 
 The older line-oriented JSON-RPC process remains for local memory/service IPC while those services are being carried behind the daemon boundary. It is intentionally separate from hosted backend HTTP/WebSocket contracts.
 
@@ -84,14 +85,14 @@ Read next:
 
 ## Tool Result Return Path
 
-After local execution through the Python sidecar daemon, the SDK/main local runtime returns results to the backend
-using the normal `/ws` tool-result path. The renderer receives SDK display rows
-for chat/transcript/overlay state from that local execution path. Backend
-ingests local results for model/history continuation only; it does not echo
-local `tool-result` messages back to the UI as `tool-output` events.
+After local-runtime Python execution, the SDK/main local runtime returns results
+to the backend using the normal `/ws` tool-result path. The renderer receives
+SDK display rows for chat/transcript/overlay state from that local execution
+path. Backend ingests local results for model/history continuation only; it does
+not echo local `tool-result` messages back to the UI as `tool-output` events.
 
 The desktop `ChatProvider` is a display consumer. Backend tool-call execution
-belongs to the SDK/main local-runtime path and Python sidecar executor.
+belongs to the SDK/main local-runtime path and local-runtime Python executor.
 
 Result path rules:
 

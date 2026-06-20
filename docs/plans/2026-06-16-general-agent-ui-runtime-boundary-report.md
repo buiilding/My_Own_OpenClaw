@@ -3154,6 +3154,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   channels, storage, credentials, permissions, hosted backend URLs, and provider
   policy are unchanged.
 
+### 2026-06-20 Local Tool Channel Executor Labels
+
+- Finding: local tool channel docs still described the token-auth sidecar daemon
+  as the canonical local executor and the channel matrix routed tool-result
+  ingress directly through a Python sidecar daemon step.
+- Change: routed the public channel wording through SDK/main local-runtime
+  execution and local-runtime Python executor labels while preserving the Python
+  daemon as the current concrete implementation detail.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  channel-executor phrase scan, and diff check.
+- Compatibility: no migration required. Tool execution routing, daemon HTTP
+  endpoints, tool-result payloads, renderer display projections, IPC channels,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-19 Backend Agent-Definition Default-Policy Wording Boundary
 
 - Worktree contained a separate debug diagnostic/process-health wording slice
