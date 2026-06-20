@@ -200,7 +200,7 @@ describe('Agent SDK client behavior', () => {
         id: 'plugin-1',
         prompt_layers: [{ id: 'plugin-layer', type: 'plugin', content: 'Plugin prompt.' }],
       }],
-      workspacePath: '/tmp/windie-project',
+      workspacePath: '/tmp/project-alpha',
       operatingSystem: 'macOS',
     });
 
@@ -242,7 +242,7 @@ describe('Agent SDK client behavior', () => {
       skills: [expect.objectContaining({ id: 'skill-1' })],
       runtime: {
         operating_system: 'macOS',
-        workspace_path: '/tmp/windie-project',
+        workspace_path: '/tmp/project-alpha',
       },
       metadata: {
         client_capability_revision: expect.stringMatching(/^cap_/),

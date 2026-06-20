@@ -18385,3 +18385,20 @@ Each completed slice should report:
   SDK commands, Electron main handler registration, hosted WebSocket transport,
   storage, credentials, permissions, local-runtime behavior, hosted backend
   URLs, and provider policy are unchanged.
+
+### 2026-06-20 Agent SDK neutral project query fixtures
+
+- Finding: generic Agent SDK tests had already removed production endpoints and
+  product-named workspace fixtures, but two remaining sample values still used
+  a WindieOS-flavored project path and web-search query.
+- Change: switched those Agent SDK fixture values to neutral project path/query
+  samples and extended the modular SDK fixture guard so the retired sample path
+  and query stay out of Agent SDK tests.
+- Validation: focused Agent SDK client test, focused Agent SDK conversation
+  runtime test, focused modular boundary test, exact retired fixture scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. SDK builder payload keys, native
+  web-search projection behavior, rehydrate snapshots, package names, legacy
+  compatibility guards, browser scope metadata, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and local-runtime behavior
+  are unchanged.

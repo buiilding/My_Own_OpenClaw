@@ -344,10 +344,14 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(sdkTestText).not.toContain('/work/WindieOS');
     expect(sdkTestText).not.toContain('/Windieos_workspace/');
+    expect(sdkTestText).not.toContain('/tmp/windie-project');
+    expect(sdkTestText).not.toContain('windieos docs');
     expect(sdkTestText).not.toContain("workspaceName: 'WindieOS'");
     expect(sdkTestText).not.toContain("workspace_name: 'WindieOS'");
     expect(sdkTestText).toContain('/work/project-alpha');
+    expect(sdkTestText).toContain('/tmp/project-alpha');
     expect(sdkTestText).toContain('/Users/dev/workspaces/project-alpha');
+    expect(sdkTestText).toContain('project docs');
     expect(sdkTestText).toContain("workspaceName: 'Project Alpha'");
   });
 

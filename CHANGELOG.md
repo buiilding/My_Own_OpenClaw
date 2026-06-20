@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sdk: use neutral project workspace and web-search query samples in
+  Agent SDK coverage instead of WindieOS-flavored fixture data. No migration
+  required.
+
 - docs/architecture: replace the frontend SDK fan-out debt note's revived
   backend-bridge wording with direct backend relay wording. No migration
   required.

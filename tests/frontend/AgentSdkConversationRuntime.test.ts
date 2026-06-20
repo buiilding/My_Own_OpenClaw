@@ -2110,14 +2110,14 @@ describe('Agent SDK conversation runtime core', () => {
       toolName: 'web_search',
       requestId: 'req-search-1',
       correlationId: 'corr-search-1',
-      query: 'windieos docs',
+      query: 'project docs',
     });
     const secondProgress = event('tool_progress', {
       text: 'Searched example.com',
       toolName: 'web_search',
       requestId: 'req-search-1',
       correlationId: 'corr-search-1',
-      query: 'windieos docs',
+      query: 'project docs',
       url: 'https://example.com/docs',
     });
 
@@ -2172,7 +2172,7 @@ describe('Agent SDK conversation runtime core', () => {
             id: 'native-web-search:turn-1:req-search-1',
             name: 'web_search',
             arguments: {
-              query: 'windieos docs',
+              query: 'project docs',
               count: 2,
             },
           },
@@ -2208,7 +2208,7 @@ describe('Agent SDK conversation runtime core', () => {
         tool_calls: [{
           id: 'call-search-real',
           name: 'web_search',
-          arguments: { query: 'windieos docs' },
+          arguments: { query: 'project docs' },
         }],
       }),
       event('tool_progress', {
