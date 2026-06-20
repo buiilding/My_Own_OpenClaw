@@ -11,10 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `5ec84ade3` (`test(renderer): neutralize continuity metadata fixtures`)
-- Latest completed slice: backend raw user-query sanitization desktop-context
-  fixtures now use neutral active-window samples instead of WindieOS-flavored
-  fixture data.
+- Latest inspected plan checkpoint: `f8f22f400` (`test(backend): neutralize user query context fixtures`)
+- Latest completed slice: local-runtime window manager, system-state, and MCP
+  structured-result fixtures now use neutral window-title samples instead of
+  WindieOS-flavored fixture data.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -77,8 +77,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   conversation continuity search metadata fixtures now use neutral project
   samples while preserving SDK metadata-to-dashboard row projection. Backend raw
   user-query sanitization desktop-context fixtures now use neutral active-window
-  samples while preserving strict `<user_query>` extraction semantics. Preload
-  SDK-command validation
+  samples while preserving strict `<user_query>` extraction semantics.
+  Local-runtime window manager, system-state, and MCP structured-result fixtures
+  now use neutral window-title samples while preserving matching, fallback, and
+  raw-result preservation behavior. Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,

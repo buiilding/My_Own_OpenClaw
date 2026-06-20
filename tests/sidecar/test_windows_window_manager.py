@@ -12,7 +12,7 @@ class _FakeUser32:
         self.foreground_hwnd = 101
         self.iconic_windows = set()
         self.titles = {
-            101: "WindieOS Dashboard",
+            101: "Project Alpha Dashboard",
             202: "Target Chrome Window",
         }
         self.attach_calls = []

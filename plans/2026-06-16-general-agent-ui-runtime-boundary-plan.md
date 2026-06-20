@@ -18512,3 +18512,19 @@ Each completed slice should report:
   fallback behavior, prompt content shape, stored history fields, IPC/WebSocket
   contracts, storage, credentials, permissions, hosted backend URLs, provider
   policy, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Local-runtime window title fixture neutrality
+
+- Finding: local-runtime Linux/Windows window manager, system-state fallback,
+  and MCP structured-result preservation tests still used WindieOS-flavored
+  window titles as arbitrary open-window fixture data.
+- Change: switched those window-title samples to neutral `Project Alpha` values
+  and extended the modular boundary guard so the retired product-shaped window
+  titles stay out of local-runtime window/system fixtures.
+- Validation: focused sidecar window manager, system-state, MCP structured
+  result, modular boundary, exact retired fixture scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Window matching, activation,
+  foreground verification, active-window fallback, MCP raw result preservation,
+  JSON-RPC payload shape, storage, credentials, permissions, hosted backend
+  URLs, provider policy, and renderer/backend behavior are unchanged.

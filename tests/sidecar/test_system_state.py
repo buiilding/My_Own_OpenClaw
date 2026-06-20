@@ -207,11 +207,15 @@ async def test_clipboard_preview_replaces_newlines_and_truncates(monkeypatch):
 @pytest.mark.asyncio
 async def test_active_window_linux_uses_xlib_fallback_when_xdotool_unavailable(monkeypatch):
     monkeypatch.setattr(system_state_module, "_get_active_window_linux_xdotool", lambda: None)
-    monkeypatch.setattr(system_state_module, "_get_active_window_linux_xlib", lambda: "WindieOS")
+    monkeypatch.setattr(
+        system_state_module,
+        "_get_active_window_linux_xlib",
+        lambda: "Project Alpha Notes",
+    )
 
     result = await system_state_module._get_active_window_linux()
 
-    assert result == "WindieOS"
+    assert result == "Project Alpha Notes"
 
 
 @pytest.mark.asyncio

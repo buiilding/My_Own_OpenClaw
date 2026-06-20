@@ -203,7 +203,7 @@ class FakeStructuredMcpClient(FakeMcpClient):
         return {
             "content": [{"type": "text", "text": "Found 1 window(s)."}],
             "structuredContent": {
-                "windows": [{"window_id": 1045, "title": "WindieOS"}]
+                "windows": [{"window_id": 1045, "title": "Project Alpha Notes"}]
             },
         }
 
@@ -836,7 +836,9 @@ async def test_sidecar_daemon_preserves_mcp_structured_content():
     assert registration.status == 200
     mcp_result = {
         "content": [{"type": "text", "text": "Found 1 window(s)."}],
-        "structuredContent": {"windows": [{"window_id": 1045, "title": "WindieOS"}]},
+        "structuredContent": {
+            "windows": [{"window_id": 1045, "title": "Project Alpha Notes"}]
+        },
     }
     assert json.loads(execution.text) == {
         "success": True,

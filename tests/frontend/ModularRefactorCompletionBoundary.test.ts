@@ -408,6 +408,21 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('You are in Project Alpha.');
   });
 
+  test('local-runtime window tests keep window title fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/sidecar/test_linux_window_manager.py'),
+      read('tests/sidecar/test_windows_window_manager.py'),
+      read('tests/sidecar/test_system_state.py'),
+      read('tests/sidecar/test_sidecar_daemon.py'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('"title": "WindieOS"');
+    expect(source).not.toContain('"WindieOS Dashboard"');
+    expect(source).not.toContain('lambda: "WindieOS"');
+    expect(source).toContain('Project Alpha Notes');
+    expect(source).toContain('Project Alpha Dashboard');
+  });
+
   test('backend workspace context tests keep workspace fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/backend/test_query_execution_inputs.py'),

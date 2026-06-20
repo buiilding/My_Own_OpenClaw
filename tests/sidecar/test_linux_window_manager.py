@@ -54,7 +54,7 @@ def test_switch_to_window_activates_best_match_window(monkeypatch):
                 "title": "High Heel Shoe Keychain Crystal Purse Car Key Chain Bag Decorative Alloy Keyring at Amazon Women\u2019s Clothing store - Google Chrome",
                 "hwnd": "3001",
             },
-            {"title": "WindieOS", "hwnd": "3002"},
+            {"title": "Project Alpha Notes", "hwnd": "3002"},
         ],
     )
 
@@ -79,7 +79,7 @@ def test_switch_to_window_returns_false_when_no_match(monkeypatch):
     monkeypatch.setattr(
         manager,
         "get_windows",
-        lambda: [{"title": "WindieOS", "hwnd": "4001"}],
+        lambda: [{"title": "Project Alpha Notes", "hwnd": "4001"}],
     )
 
     result = manager.switch_to_window("Unmatched Title")
