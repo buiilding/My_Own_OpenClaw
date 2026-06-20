@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route backend registry parity labels through backend/local-runtime
+  exposed-tool wording and describe backend-declared built-ins as locally
+  executable requirements instead of backend client-executable tool names. No
+  migration required.
 - docs/runtime: route transcript RPC, prompt/tool boundary, IPC protocol
   matrix, launch-path, screenshot, channel, and code-surface labels through
   SDK/main local-runtime dispatch and local-runtime bridge wording instead of

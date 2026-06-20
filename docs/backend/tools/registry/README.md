@@ -1,8 +1,8 @@
 ---
-summary: "Backend tools registry docs sub-hub for remote tool registration, schema cache/canonicalization behavior, and backend/client-local exposed-tool parity contracts."
+summary: "Backend tools registry docs sub-hub for remote tool registration, schema cache/canonicalization behavior, and backend/local-runtime exposed-tool parity contracts."
 read_when:
   - When adding/removing backend remote tools or changing schema declaration generation behavior.
-  - When debugging schema cache drift, missing function declarations, or backend/client-local tool-name contract mismatches.
+  - When debugging schema cache drift, missing function declarations, or backend/local-runtime tool-name contract mismatches.
 title: "Backend Tools Registry Docs Hub"
 ---
 

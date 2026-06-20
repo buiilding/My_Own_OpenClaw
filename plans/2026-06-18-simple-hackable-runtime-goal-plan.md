@@ -3802,3 +3802,11 @@ For each completed slice, record:
   the existing general runtime-boundary plan, and recent commits around
   local-runtime naming, renderer app-runtime facades, SDK runtime helper
   naming, and endpoint/config boundary cleanup.
+- 2026-06-20: completed a backend tool-registry parity wording slice by routing
+  backend registry hub/reference labels through backend/local-runtime
+  exposed-tool parity and describing backend-declared built-ins as local-runtime
+  executable requirements instead of backend client-executable names.
+  Validation: focused modular docs boundary test, exact stale phrase scan, docs
+  listing, and diff checks. No migration required; no runtime code, tool name,
+  schema, client manifest, IPC payload, storage, credential, permission, hosted
+  URL, or provider-policy behavior changed.

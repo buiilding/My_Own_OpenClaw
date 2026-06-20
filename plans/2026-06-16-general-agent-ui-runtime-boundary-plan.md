@@ -16528,3 +16528,19 @@ Each completed slice should report:
   entrypoint arguments, backend URLs, environment-variable precedence,
   trailing-slash normalization, SDK dispatch, storage, credentials,
   permissions, hosted backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 Backend/local-runtime parity wording
+
+- Finding: backend registry hub/reference summaries and the local-runtime bridge
+  guide still framed executable parity as backend/client-local or backend
+  client-executable ownership, which blurred the current split between backend
+  model-facing schema/policy and local-runtime executable authority.
+- Change: routed the parity labels through backend/local-runtime exposed-tool
+  wording, described backend-declared built-ins as locally executable
+  requirements, and extended the modular docs guard against the retired phrases.
+- Validation: focused modular docs boundary test, exact stale phrase scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Runtime code, tool names, schemas,
+  client manifests, local-runtime execution, Python sidecar modules, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, and provider
+  policy are unchanged.

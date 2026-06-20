@@ -78,7 +78,8 @@ Policy is applied to:
 Tool names expected by backend schemas, SDK/main local-runtime dispatch, and
 Python sidecar adapters must remain synchronized.
 
-The local runtime explicitly tracks backend client-executable built-in tool names in:
+The local runtime explicitly tracks backend-declared built-in tool names that
+must remain locally executable in:
 
 - `frontend/src/main/python/tools/manifest.py:LOCAL_RUNTIME_BUILTIN_TOOL_NAMES`
 

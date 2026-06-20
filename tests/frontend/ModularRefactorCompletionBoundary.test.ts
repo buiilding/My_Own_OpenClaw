@@ -980,6 +980,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('live local-runtime exposed set backed by the Python registry');
     expect(toolRoutingDocText).toContain('local-runtime exposed tool set backed by the local-runtime executable registry');
     expect(toolRoutingDocText).toContain('local-runtime executable registry contains `browser`');
+    expect(toolRoutingDocText).toContain('backend/local-runtime tool-name parity contracts');
+    expect(toolRoutingDocText).not.toContain('backend client-executable built-in tool names');
+    expect(toolRoutingDocText).not.toContain('backend/client-local tool-name parity contracts');
+    expect(toolRoutingDocText).not.toContain('backend/client-local exposed-tool parity tests');
     expect(toolAuthoringRegistryDocText).toContain('not local-runtime executable actions');
     expect(toolAuthoringRegistryDocText).toContain('For built-in local-runtime executable tools');
     expect(toolAuthoringRegistryDocText).toContain('local-runtime executable registry');

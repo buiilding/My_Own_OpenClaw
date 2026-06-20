@@ -332,7 +332,7 @@ contracts.
 - [**Agent System**](architecture/agent_system.md) - Agent orchestrator and execution flow
 - [**Tool System**](architecture/tool_system.md) - Tool execution architecture and development
 - [**Backend Tools Docs Hub**](backend/tools/README.md) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for SDK/main local-runtime tools
-- [**Backend Tools Registry Docs Hub**](backend/tools/registry/README.md) - Sub-hub for remote tool registration, canonical schema caching, and backend/client-local tool-name parity contracts
+- [**Backend Tools Registry Docs Hub**](backend/tools/registry/README.md) - Sub-hub for remote tool registration, canonical schema caching, and backend/local-runtime tool-name parity contracts
 - [**Backend Browser Tools Docs Hub**](backend/tools/browser/README.md) - Sub-hub for browser remote schema surface and OpenClaw compatibility-field boundaries
 - [**Backend Browser Schema Docs Hub**](backend/tools/browser/schema/README.md) - Sub-hub for BrowserControlArgs schema layering, compatibility-field mixins, and backend/local-runtime validation boundary mapping
 - [**Backend Tools Policy Docs Hub**](backend/tools/policy/README.md) - Sub-hub for interaction allowlist + dev tool-selection filtering and mouse method startup gating semantics

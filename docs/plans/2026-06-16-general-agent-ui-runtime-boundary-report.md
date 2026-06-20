@@ -6197,3 +6197,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executable schemas, client manifests, backend tool schemas, IPC payloads,
   storage, credentials, permissions, hosted backend URLs, and provider policy
   are unchanged.
+- Backend tool registry docs now route parity labels through
+  backend/local-runtime exposed-tool wording, and the local-runtime bridge guide
+  describes backend-declared built-ins as locally executable requirements
+  instead of backend client-executable names. Runtime code, tool names, schemas,
+  client manifests, local-runtime execution, Python sidecar modules, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, and provider
+  policy are unchanged.
