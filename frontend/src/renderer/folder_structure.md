@@ -2,7 +2,7 @@
 
 ## Overview
 
-The renderer process is the React-based UI layer of the Electron desktop application. It handles user interactions, displays chat messages, manages voice/wakeword detection, renders tool-call/tool-output projections, and communicates with the main process via IPC. Local tool execution is owned by the SDK local runtime and implemented below that boundary by the Python sidecar, not the renderer. The architecture follows a feature-based organization with clear separation between UI components, business logic (hooks), and infrastructure services.
+The renderer process is the React-based UI layer of the Electron desktop application. It handles user interactions, displays chat messages, manages voice/wakeword detection, renders tool-call/tool-output projections, and communicates with the main process via IPC. Local tool execution is owned by the SDK local runtime and implemented below that boundary by local-runtime Python, not the renderer. The architecture follows a feature-based organization with clear separation between UI components, business logic (hooks), and infrastructure services.
 
 ---
 
@@ -348,7 +348,7 @@ frontend/src/renderer/
        └─> Return exactly one tool-result or tool-bundle-result to backend
            ↓
 3. LOCAL-RUNTIME EXECUTION
-   └─> SDK local runtime invokes the Python sidecar daemon
+   └─> SDK local runtime invokes the local-runtime Python daemon
        ├─> Execute filesystem/shell/browser/computer-use/MCP/plugin tools
        └─> Return normalized local result to SDK runtime
            ↓
@@ -494,7 +494,7 @@ frontend/src/renderer/
 
 15. **Window Management**: Linux-only chat-pill hide modules avoid screenshot self-capture; Windows/macOS rely on phase-driven Electron content protection for protected overlays rather than capture-time hide/show behavior; chat box overlay is click-through by default
 
-16. **Memory Storage**: SDK-shaped memory runtime commands and SDK-owned invalidation events; Python sidecar RPC names stay below the SDK/local-runtime boundary
+16. **Memory Storage**: SDK-shaped memory runtime commands and SDK-owned invalidation events; local-runtime Python RPC names stay below the SDK/local-runtime boundary
 
 17. **Config Filtering**: Renderer only manages subset of config (model_mode, selected_model_id, speech_mode_enabled, wakeword flags, etc.)
 
@@ -591,7 +591,7 @@ App
 
 Renderer does not execute local tools or return backend tool results. It renders
 SDK display projections and runtime phase state. Electron main hosts the SDK
-runtime, resolves the SDK local runtime backed by the Python sidecar, and
+runtime, resolves the SDK local runtime backed by local-runtime Python, and
 returns exactly one `tool-result` or `tool-bundle-result` to the hosted backend.
 
 ### Computer-Use Tool Projections

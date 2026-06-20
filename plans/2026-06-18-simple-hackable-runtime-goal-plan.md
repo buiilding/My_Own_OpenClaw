@@ -275,6 +275,23 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a source-map local-runtime Python implementation label
+  slice by routing renderer, local-runtime Python, and development folder maps
+  through local-runtime Python implementation wording instead of Python sidecar
+  owner labels. Validation: focused modular docs boundary test, exact stale
+  source-map label scan, docs listing, and diff checks. No migration required;
+  no runtime code, source path, test path, daemon filename, JSON-RPC payload,
+  IPC payload, storage, credential, permission, hosted URL, provider-policy, or
+  trust-boundary behavior changed.
+- 2026-06-20: completed a platform setup local-runtime Python environment
+  label slice by routing the backend/frontend setup guide through
+  local-runtime Python environment/dependency/interpreter wording instead of
+  mixed local-runtime/sidecar setup and dependency labels. Validation:
+  focused modular docs boundary test, docs listing, exact stale platform setup
+  label scan, and diff checks. No migration required; no runtime code, venv
+  path, dependency file, Electron launch behavior, `WINDIE_PYTHON_PATH`
+  behavior, tool execution, IPC payload, storage, credential, permission,
+  hosted URL, provider-policy, or trust-boundary behavior changed.
 - 2026-06-20: completed a public-route local-runtime Python label slice by
   routing README install/resolution copy, hosted API rules, tool-schema payload
   rejection, source-map ownership, transcript RPC diagrams, and install

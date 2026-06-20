@@ -31,7 +31,7 @@ WindieOS/
 │       ├── services/              # OCR, vision, artifacts, token, TTS, VM run services
 │       ├── sdk/                   # backend SDK route/tool context helpers
 │       └── core/                  # config, validation, logging, events, interfaces
-├── frontend/                      # Electron desktop app, React renderer, Python sidecar
+├── frontend/                      # Electron desktop app, React renderer, local-runtime Python implementation
 │   └── src/
 │       ├── main/                  # Electron main, IPC, direct Agent SDK host wiring, local-runtime bridge
 │       ├── main/python/           # local-runtime Python implementation: tools, memory, browser, system
@@ -43,7 +43,7 @@ WindieOS/
 │   └── windie-sdk-python/         # Python SDK client package
 ├── tests/
 │   ├── backend/                   # backend route, agent, provider, tool, service tests
-│   ├── sidecar/                   # Python sidecar and local tool tests
+│   ├── sidecar/                   # local-runtime Python and local tool tests
 │   ├── frontend/                  # Electron/main/renderer contract tests
 │   └── sdk/                       # SDK runtime, transport, projection, store tests
 ├── docs/                          # agent-facing docs, runtime maps, workflows, references

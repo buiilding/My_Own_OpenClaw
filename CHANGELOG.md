@@ -35,6 +35,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route renderer, local-runtime Python, and development source
+  maps through local-runtime Python implementation wording instead of Python
+  sidecar owner labels. No migration required.
+- docs(getting-started): route platform setup Python environment labels through
+  local-runtime Python wording instead of mixed local-runtime/sidecar wording.
+  No migration required.
 - docs(runtime): route public install, hosted API, tool rejection, source-map,
   and troubleshooting labels through local-runtime Python wording instead of
   Python sidecar/sidecar route labels. No migration required.

@@ -44,7 +44,7 @@ frontend/src/
 │   ├── ipc.cjs        # IPC bridge
 │   ├── wakeword_bridge.cjs  # Wakeword service bridge
 │   ├── local_runtime_bridge.cjs  # Local runtime bridge
-│   └── python/        # Python sidecar
+│   └── python/        # Local-runtime Python implementation
 │       ├── local_backend.py  # Local-runtime Python service
 │       ├── core/      # Core utilities
 │       ├── tools/     # Tool implementations

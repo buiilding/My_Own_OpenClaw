@@ -12,7 +12,7 @@ This guide sets up:
 - Backend Python environment (Python 3.11)
 - Backend dependencies from `backend/requirements.txt` (`backend/requirements_mac.txt` on macOS)
 - CUDA-aware Torch + ONNX Runtime GPU verification for OCR workloads
-- Local runtime sidecar Python environment from `frontend/src/main/python/requirements.txt`
+- Local-runtime Python environment from `frontend/src/main/python/requirements.txt`
 - Frontend Node dependencies and dev/electron launch checks
 
 ## 1) Backend setup (all platforms)
@@ -126,9 +126,9 @@ timeout 15s python -m backend.src.main
 
 If CUDA still falls back to CPU, your NVIDIA driver is likely older than the CUDA runtime expected by installed wheels; update driver and reinstall the matching torch/onnxruntime-gpu versions.
 
-## 3) Local runtime sidecar Python setup
+## 3) Local-runtime Python setup
 
-Create a second Python 3.11 environment for sidecar dependencies:
+Create a second Python 3.11 environment for local-runtime Python dependencies:
 
 ```bash
 python3.11 -m venv .venv-sidecar311
@@ -170,7 +170,7 @@ npm install
 <windie> start dev
 ```
 
-To force Electron dev to use the sidecar Python 3.11 environment:
+To force Electron dev to use the local-runtime Python 3.11 environment:
 
 ```bash
 WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python <windie> start dev
@@ -224,7 +224,7 @@ WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python xvfb-r
 <windie> start backend
 ```
 
-2. Start the desktop dev loop (`<windie> start dev`) with `WINDIE_PYTHON_PATH` set to the sidecar Python 3.11 interpreter.
+2. Start the desktop dev loop (`<windie> start dev`) with `WINDIE_PYTHON_PATH` set to the local-runtime Python 3.11 interpreter.
 4. Confirm frontend reaches backend websocket/API (default backend URL in this repo is typically `http://localhost:8765`).
 
 ## 6) Platform notes

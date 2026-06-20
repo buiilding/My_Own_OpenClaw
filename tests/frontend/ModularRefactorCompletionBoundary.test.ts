@@ -296,6 +296,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/web/web_surface_matrix.md'),
       read('docs/web/landing_page.md'),
       read('docs/getting-started/installation.md'),
+      read('docs/getting-started/platform_setup_backend_frontend.md'),
       read('docs/getting-started/docs_directory.md'),
       read('docs/help/doctor_checklist.md'),
       read('docs/install/uninstall_reinstall_reset.md'),
@@ -361,8 +362,14 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Python sidecar implementation');
     expect(docText).not.toContain('sidecar runtime packaging');
     expect(docText).not.toContain('client, sidecar, and SDKs');
+    expect(docText).not.toContain('Electron desktop app, React renderer, Python sidecar');
     expect(docText).not.toContain('Install sidecar dependencies');
     expect(docText).not.toContain('sidecar Python resolution');
+    expect(docText).not.toContain('Local runtime sidecar Python environment');
+    expect(docText).not.toContain('Local runtime sidecar Python setup');
+    expect(docText).not.toContain('environment for sidecar dependencies');
+    expect(docText).not.toContain('sidecar Python 3.11 environment');
+    expect(docText).not.toContain('sidecar Python 3.11 interpreter');
     expect(docText).not.toContain('Python sidecar for hosted API calls');
     expect(docText).not.toContain('System prompt sent to frontend');
     expect(docText).not.toContain('Tool schemas sent to frontend');
@@ -1663,6 +1670,13 @@ describe('modular sdk refactor completion boundary', () => {
         'Core backend, desktop local-runtime, and Python sidecar implementation files',
         'Python sidecar implementation tests',
         'Python sidecar implementation code import backend',
+        'Local Runtime Python Sidecar Folder Structure',
+        'local-runtime Python sidecar provides',
+        'Python Sidecar Runtime Flow',
+        'Sidecar receives content + embedding',
+        'SDK local runtime invokes the Python sidecar daemon',
+        'Python sidecar RPC names stay',
+        'SDK local runtime backed by the Python sidecar',
         'Python Sidecar Folder Topology',
         'sidecar package import surfaces',
         'sidecar package public exports',

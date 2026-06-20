@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: public install, hosted API, tool rejection,
-  source-map, transcript, and troubleshooting route docs now describe
-  local-runtime Python ownership instead of Python sidecar/sidecar route labels,
-  with focused docs boundary guards against those retired phrases.
+- Latest completed slice: source maps and platform setup docs now describe
+  local-runtime Python implementation/setup ownership instead of Python
+  sidecar or mixed local-runtime/sidecar labels, with focused docs boundary
+  guards against those retired phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +244,39 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Source-Map Local-Runtime Python Implementation Labels
+
+- Finding: renderer, local-runtime Python, and development source-map docs
+  still described implementation ownership as Python sidecar/sidecar labels in
+  folder titles, overview copy, local execution flow, memory RPC notes, and
+  repository maps.
+- Change: routed those labels through local-runtime Python implementation
+  wording while preserving concrete `sidecar_daemon.py`, `frontend/src/main/python`,
+  and `tests/sidecar` paths where they remain real source or test names.
+- Validation: focused modular docs boundary test, exact stale source-map label
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, source paths, test paths,
+  daemon filenames, JSON-RPC payloads, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
+### 2026-06-20 Platform Setup Local-Runtime Python Environment Labels
+
+- Finding: the backend/frontend platform setup guide still described the
+  first-read Python setup path with mixed local-runtime/sidecar Python
+  environment and dependency/interpreter labels even though the reusable setup
+  owner is local-runtime Python.
+- Change: routed the setup guide through local-runtime Python
+  environment/dependency/interpreter wording while preserving the existing
+  `.venv-sidecar311` compatibility path, requirements file, and
+  `WINDIE_PYTHON_PATH` behavior.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  platform setup label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, venv paths, dependency
+  files, Electron launch behavior, environment variables, tool execution, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Public Route Local-Runtime Python Labels
 

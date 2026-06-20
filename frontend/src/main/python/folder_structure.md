@@ -1,8 +1,8 @@
-# Local Runtime Python Sidecar Folder Structure
+# Local Runtime Python Implementation Folder Structure
 
 ## Overview
 
-The local-runtime Python sidecar provides local tool execution, memory management, system state collection, and wakeword detection for the Electron desktop application. The SDK-owned local runtime starts `sidecar_daemon.py`, then sends JSON-RPC 2.0 envelopes to the daemon HTTP `/rpc` endpoint.
+The local-runtime Python implementation provides local tool execution, memory management, system state collection, and wakeword detection for the Electron desktop application. The SDK-owned local runtime starts `sidecar_daemon.py`, then sends JSON-RPC 2.0 envelopes to the daemon HTTP `/rpc` endpoint.
 
 ---
 
@@ -65,7 +65,7 @@ frontend/src/main/python/
 
 ## Data Flow
 
-### Python Sidecar Runtime Flow
+### Local-Runtime Python Implementation Flow
 
 ```
 1. SDK LOCAL RUNTIME
@@ -129,7 +129,7 @@ frontend/src/main/python/
            ↓
 2. SDK-PROVIDED EMBEDDING
    └─> SDK calls backend /api/embeddings/
-       └─> Sidecar receives content + embedding via store_memory_by_embedding
+       └─> Local-runtime Python receives content + embedding via store_memory_by_embedding
            ↓
 3. STORAGE
    ├─> Episodic Memory

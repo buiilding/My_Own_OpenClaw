@@ -120,6 +120,39 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Source-Map Local-Runtime Python Implementation Labels
+
+- Finding: renderer, local-runtime Python, and development source-map docs
+  still described implementation ownership as Python sidecar/sidecar labels in
+  folder titles, overview copy, local execution flow, memory RPC notes, and
+  repository maps.
+- Change: routed those labels through local-runtime Python implementation
+  wording while preserving concrete `sidecar_daemon.py`, `frontend/src/main/python`,
+  and `tests/sidecar` paths where they remain real source or test names.
+- Validation: focused modular docs boundary test, exact stale source-map label
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, source paths, test paths,
+  daemon filenames, JSON-RPC payloads, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
+### 2026-06-20 Platform Setup Local-Runtime Python Environment Labels
+
+- Finding: the backend/frontend platform setup guide still described the
+  first-read Python setup path with mixed local-runtime/sidecar Python
+  environment and dependency/interpreter labels even though the reusable setup
+  owner is local-runtime Python.
+- Change: routed the setup guide through local-runtime Python
+  environment/dependency/interpreter wording while preserving the existing
+  `.venv-sidecar311` compatibility path, requirements file, and
+  `WINDIE_PYTHON_PATH` behavior.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  platform setup label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, venv paths, dependency
+  files, Electron launch behavior, environment variables, tool execution, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Public Route Local-Runtime Python Labels
 
 - Finding: README, web surface, tool-schema, source-map, transcript reference,
