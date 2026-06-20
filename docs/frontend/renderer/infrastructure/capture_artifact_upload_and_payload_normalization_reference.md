@@ -26,7 +26,7 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/RuntimeEndpointStore.test.ts`
 - `tests/frontend/ArtifactImageUtils.test.ts`
-- `tests/frontend/WindieSdkConversationRuntime.test.ts`
+- `tests/frontend/AgentSdkConversationRuntime.test.ts`
 - `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs`
 
 ## Screenshot Invocation and Display-Bounds Injection
@@ -230,7 +230,7 @@ before backend relay:
 
 - query screenshot requests are sent as SDK resources, not renderer captures
 
-`tests/frontend/WindieSdkConversationRuntime.test.ts` and `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs` verify:
+`tests/frontend/AgentSdkConversationRuntime.test.ts` and `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs` verify:
 
 - envelope type + payload key contracts for single-tool and bundle sends
 - single computer-use tools merge one post-action screenshot into tool result data

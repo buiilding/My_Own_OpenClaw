@@ -40,8 +40,8 @@ flowchart LR
 | Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | sidecar `read_file` behavior and SDK runtime tests |
 | Attachment-only send is blocked | Composer outgoing payload builder | `desktopMessageInputRuntime.js`, `MessageInput.jsx` | `DesktopMessageInputRuntime.test.js`, `MessageInput.test.jsx` |
 | Send failure clears text or attachment previews | Composer draft lifecycle | `useChatComposerDraft.js`, `MessageInput.jsx` | `ChatComposerDraft.test.jsx`, `MessageInput.test.jsx` |
-| SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `desktopChatSendPayloadRuntime.ts`, `desktopChatSendPreparationRuntime.ts`, `ConversationRuntime.ts` | `DesktopChatSendPayloadRuntime.test.ts`, `ChatMessageSender.test.tsx`, `WindieSdkConversationRuntime.test.ts` |
-| Uploaded image has wrong content type or URL | SDK artifact resolver | `DefaultTurnResourceResolvers.ts`, `ArtifactImageUtils.ts` | `WindieSdkConversationRuntime.test.ts`, artifact tests |
+| SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `desktopChatSendPayloadRuntime.ts`, `desktopChatSendPreparationRuntime.ts`, `ConversationRuntime.ts` | `DesktopChatSendPayloadRuntime.test.ts`, `ChatMessageSender.test.tsx`, `AgentSdkConversationRuntime.test.ts` |
+| Uploaded image has wrong content type or URL | SDK artifact resolver | `DefaultTurnResourceResolvers.ts`, `ArtifactImageUtils.ts` | `AgentSdkConversationRuntime.test.ts`, artifact tests |
 | Query sends only one of multiple images | SDK clipboard image resources | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts` | `ChatMessageSender.test.tsx`, SDK runtime tests |
 | Electron query payload drops attachment resources | Main query IPC runtime and SDK enrichment | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | `IpcQueryRuntime.test.cjs`, `AgentSdkContextEnrichment.test.ts` |
 | Backend receives refs but model gets no image | Backend query input resolution | `backend/src/api/services/query_execution_support/query_execution_inputs.py` | `tests/backend/test_query_execution_inputs.py`, artifact route/store tests |
@@ -111,11 +111,11 @@ Clipboard image IPC trust boundary:
 | File picker image/readable bucketing | `cd frontend && npm run test -- MessageInput FileAttachmentUtils` |
 | Outgoing composer payload shape | `cd frontend && npm run test -- DesktopMessageInputRuntime MessageInput` |
 | Sender payload normalization | `cd frontend && npm run test -- DesktopChatSendPayloadRuntime DesktopChatSendStateRuntime` |
-| Sender upload/query payload path | `cd frontend && npm run test -- ChatMessageSender WindieSdkConversationRuntime RuntimeEndpointStore ArtifactImageUtils` |
+| Sender upload/query payload path | `cd frontend && npm run test -- ChatMessageSender AgentSdkConversationRuntime RuntimeEndpointStore ArtifactImageUtils` |
 | Main-process query payload normalization | `cd frontend && npm run test -- IpcQueryRuntime` |
 | Backend screenshot/query input resolution | `./scripts/python-in-env backend pytest tests/backend/test_query_execution_inputs.py` |
 | Artifact route/store behavior | `./scripts/python-in-env backend pytest tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py` |
-| Replay/message image rendering | `<windie> test frontend -- DesktopMessageScreenshotRuntime WindieSdkConversationRuntime` |
+| Replay/message image rendering | `<windie> test frontend -- DesktopMessageScreenshotRuntime AgentSdkConversationRuntime` |
 | Clipboard copy IPC | `cd frontend && npm run test -- IpcClipboardImageHandler` |
 | Docs-only attachment workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 

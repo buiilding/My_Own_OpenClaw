@@ -281,7 +281,7 @@ cd frontend
 ```
 tests/frontend/
 ├── ChatStore.test.ts
-├── WindieSdkConversationRuntime.test.ts
+├── AgentSdkConversationRuntime.test.ts
 ├── MessageInput.test.jsx
 └── landing/LandingPage.test.jsx
 ```

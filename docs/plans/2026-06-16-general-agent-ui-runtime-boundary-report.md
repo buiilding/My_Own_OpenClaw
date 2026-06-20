@@ -7385,3 +7385,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   backend behavior, SDK websocket flow, local-runtime tool-result return,
   conversation storage, credentials, permissions, hosted backend URLs, and
   provider policy are unchanged; no migration is required.
+- The SDK conversation runtime focused test now lives at
+  `tests/frontend/AgentSdkConversationRuntime.test.ts`, with active validation
+  docs and package-boundary references routed to the generic Agent SDK runtime
+  route. Runtime code, SDK conversation runtime behavior, event normalization,
+  display/rehydrate projections, tool coordination, transcript storage, backend
+  payload shapes, credentials, permissions, hosted backend URLs, and provider
+  policy are unchanged; no migration is required.

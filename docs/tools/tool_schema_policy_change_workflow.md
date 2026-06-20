@@ -198,7 +198,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 | policy/profile/capability visibility | `./scripts/python-in-env backend pytest tests/backend/test_tool_policy.py tests/backend/test_tool_selection.py tests/backend/test_provider_health_policy.py` |
 | parser/preparation validation | `./scripts/python-in-env backend pytest tests/backend/test_tool_preparer.py tests/backend/test_interaction_tool_call_bridge.py` plus backend-tool validation tests |
 | local-runtime executable tool | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py` plus tool-specific local-runtime Python tests |
-| SDK/main dispatch/result envelope | focused `cd frontend && npm run test -- WindieSdkClient WindieSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` tests |
+| SDK/main dispatch/result envelope | focused `cd frontend && npm run test -- WindieSdkClient AgentSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` tests |
 | bundle/result/history | backend result/bundle/history tests plus SDK/main bundle execution tests |
 | docs-only tool workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 

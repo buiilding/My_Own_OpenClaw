@@ -233,7 +233,7 @@ Validate:
 | Electron websocket/settings/local-runtime failures | `<windie> test frontend -- IpcMainBridge LocalRuntimeBridge` |
 | Preload/IPC validation | `<windie> test frontend -- IpcBridgeValidation` |
 | Local-runtime ToolResult/registry | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_tool_result.py tests/sidecar/test_tool_registry.py` |
-| SDK tool execution failure and renderer persistence | `<windie> test frontend -- WindieSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolCallMessageState` |
+| SDK tool execution failure and renderer persistence | `<windie> test frontend -- AgentSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolCallMessageState` |
 | Docs-only error changes | `<windie> docs list`, `git diff --check`, and focused Markdown link check over touched docs |
 
 ## Review Checklist

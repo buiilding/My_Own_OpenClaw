@@ -142,6 +142,6 @@ Focused tests:
 
 ```bash
 <windie> test backend tests/backend/test_browser_remote_tool.py -q
-<windie> test frontend -- WindieSdkClient WindieSdkConversationRuntime
+<windie> test frontend -- WindieSdkClient AgentSdkConversationRuntime
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py -q
 ```

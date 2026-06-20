@@ -50,7 +50,7 @@ When behavior changes in these areas, add or update tests in the same PR:
 - SDK/local-runtime stale-turn/correlation/late-result guards:
   - `tests/frontend/DesktopChatStreamEventRuntime.test.ts`
   - `tests/frontend/ChatStreamToolHandlers.test.ts`
-  - `tests/frontend/WindieSdkConversationRuntime.test.ts`
+  - `tests/frontend/AgentSdkConversationRuntime.test.ts`
   - `tests/frontend/WindieSdkPackageBoundary.test.ts`
 - capture hide/restore overlap and platform policy:
   - `tests/frontend/LocalRuntimeWindowVisibility.test.cjs`

@@ -309,6 +309,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureText).not.toContain('sidecar-backed SDK store');
     expect(architectureText).not.toContain('SDK desktop agent');
     expect(architectureText).not.toContain(`SDK desktop-${'agent'}`);
+    await expect(pathExists('tests/frontend/AgentSdkConversationRuntime.test.ts')).resolves.toBe(true);
+    await expect(pathExists('tests/frontend/WindieSdkConversationRuntime.test.ts')).resolves.toBe(false);
     await expect(pathExists('tests/frontend/AgentSdkMockBackendE2E.test.ts')).resolves.toBe(true);
     await expect(pathExists('tests/frontend/WindieSdkMockBackendE2E.test.ts')).resolves.toBe(false);
     await expect(pathExists('tests/frontend/AgentSdkFileConversationStore.test.ts')).resolves.toBe(true);
@@ -555,7 +557,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK tool coordinator uses request ids');
     expect(docText).toContain('renderer stream tracking uses `turn_ref` + stream phase');
     expect(docText).toContain(
-      'WindieSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolCallMessageState',
+      'AgentSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolCallMessageState',
     );
     expect(docText).toContain('SDK stream projection consumption, tool display');
     expect(docText).toContain('SDK projection event type, tool display state');

@@ -85,7 +85,7 @@ Validate:
 
 ```bash
 <windie> test backend tests/backend/test_remote_tool_contract.py tests/backend/test_tool_result_handler.py -q
-<windie> test frontend -- WindieSdkConversationRuntime WindieSdkClient RendererToolResultBoundary ToolOutputContent
+<windie> test frontend -- AgentSdkConversationRuntime WindieSdkClient RendererToolResultBoundary ToolOutputContent
 <windie> test sidecar tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q
 ```
 
@@ -114,7 +114,7 @@ Validate:
 
 ```bash
 <windie> test backend tests/backend/test_coordinate_scaling.py tests/backend/test_ocr_coordinate_resolver.py tests/backend/test_vision_coordinates.py -q
-<windie> test frontend -- LocalRuntimeWindowVisibility.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts
+<windie> test frontend -- LocalRuntimeWindowVisibility.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx AgentSdkConversationRuntime.test.ts
 <windie> test sidecar tests/sidecar/test_screenshot_tool.py -q
 ```
 

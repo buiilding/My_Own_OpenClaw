@@ -39,10 +39,10 @@ the platform `scripts/python-in-env` wrapper, so do not manually activate conda 
 | Overlay windows/phases | `<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseHandler.test.cjs WindowVisibilityRuntime.test.cjs` |
 | Minimal chat pill hit-testing and dragging | `<windie> test frontend -- ChatBoxOverlayMouseIgnore.test.jsx ChatBoxPillLayout.test.js ChatPillSessionFlow.test.ts` |
 | Renderer chat stream | `<windie> test frontend -- DesktopChatStreamEventRuntime.test.ts DesktopChatStreamMessageUpdateRuntime.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx ConversationRuntimeProjectionStream.test.ts` |
-| SDK conversation runtime and stop flow | `<windie> test frontend -- WindieSdkConversationRuntime.test.ts DesktopRuntimeTransport.test.ts DesktopLiveTurnRuntimeClient.test.ts IpcMainBridge.lifecycle.test.cjs AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js DesktopStopTurnRuntime.test.js` |
+| SDK conversation runtime and stop flow | `<windie> test frontend -- AgentSdkConversationRuntime.test.ts DesktopRuntimeTransport.test.ts DesktopLiveTurnRuntimeClient.test.ts IpcMainBridge.lifecycle.test.cjs AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js DesktopStopTurnRuntime.test.js` |
 | Renderer dashboard/settings | `<windie> test frontend -- DashboardShell.test.jsx DashboardSidebar.test.jsx ModelsSection.test.jsx SettingsSection.test.jsx` |
 | Permissions/onboarding | `<windie> test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx DesktopOnboardingSlideshow.test.jsx` |
-| Artifacts/screenshots | `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts LocalRuntimeExecuteToolRuntime.test.cjs` |
+| Artifacts/screenshots | `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx AgentSdkConversationRuntime.test.ts LocalRuntimeExecuteToolRuntime.test.cjs` |
 | Voice/wakeword | `<windie> test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts` |
 | Local-runtime Python protocol/tools | `<windie> test sidecar -- tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q` |
 | Sidecar filesystem/shell | `<windie> test sidecar -- tests/sidecar/test_read_file_tool.py tests/sidecar/test_replace_tool.py tests/sidecar/test_shell_process_tool.py -q` |
@@ -56,7 +56,7 @@ Run tests on both sides of the boundary when a payload crosses processes.
 | Contract | Run |
 | --- | --- |
 | Backend model-facing tool schema and local-runtime executable tools | `<windie> test backend -- tests/backend/test_remote_tool_contract.py -q` plus `<windie> test sidecar -- tests/sidecar/test_shared_tool_schema_parity.py -q` |
-| SDK result envelope and renderer tool display | `<windie> test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `<windie> test frontend -- WindieSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolOutputContent` |
+| SDK result envelope and renderer tool display | `<windie> test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `<windie> test frontend -- AgentSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolOutputContent` |
 | Response overlay phase names | `<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
 | Transcript/replay/display rows | `<windie> test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |
 | Artifact refs and URLs | `<windie> test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs` |

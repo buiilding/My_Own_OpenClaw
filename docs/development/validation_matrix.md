@@ -69,8 +69,8 @@ Local runtime / local-runtime Python implementation:
 Frontend:
 
 - `tests/frontend/WindieSdkClient.test.ts`
-- `tests/frontend/WindieSdkConversationRuntime.test.ts`
-- `tests/frontend/WindieSdkConversationRuntime.test.ts`
+- `tests/frontend/AgentSdkConversationRuntime.test.ts`
+- `tests/frontend/AgentSdkConversationRuntime.test.ts`
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`

@@ -18126,3 +18126,22 @@ Each completed slice should report:
   SDK websocket flow, local-runtime tool-result return, conversation storage,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
+
+### 2026-06-20 Conversation runtime test route rename
+
+- Finding: the SDK conversation runtime test imports `SdkConversationRuntime`,
+  SDK projections, stream-event projection, and tool coordination helpers, but
+  the focused test route and active validation docs still used the
+  product-branded `WindieSdkConversationRuntime` filename.
+- Change: renamed the focused test to
+  `tests/frontend/AgentSdkConversationRuntime.test.ts`, updated active docs and
+  package-boundary references, restored historical report entries that recorded
+  old validation commands, and extended the modular route guard so the generic
+  path exists while the retired branded path stays absent.
+- Validation: focused Agent SDK conversation runtime test, SDK package boundary
+  test, modular docs boundary test, exact old-route scan, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Runtime code, SDK conversation runtime
+  behavior, event normalization, display/rehydrate projections, tool
+  coordination, transcript storage, backend payload shapes, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.

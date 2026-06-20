@@ -22,7 +22,7 @@ Validate:
 
 ```bash
 cd frontend
-<windie> test frontend -- WindieSdkConversationRuntime.test.ts ModularRefactorCompletionBoundary.test.ts
+<windie> test frontend -- AgentSdkConversationRuntime.test.ts ModularRefactorCompletionBoundary.test.ts
 ```
 
 ## Conversation Appears In Dashboard But Replay Is Wrong
@@ -38,7 +38,7 @@ Validate:
 
 ```bash
 cd frontend
-<windie> test frontend -- WindieSdkConversationRuntime ConversationReplayActions DesktopConversationReplayRuntime
+<windie> test frontend -- AgentSdkConversationRuntime ConversationReplayActions DesktopConversationReplayRuntime
 ```
 
 ## Tool Rows Lose Linkage After Rehydrate
@@ -54,7 +54,7 @@ Validate:
 
 ```bash
 <windie> test backend tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py -q
-<windie> test frontend -- WindieSdkConversationRuntime.test.ts DesktopConversationReplayRuntime.test.js
+<windie> test frontend -- AgentSdkConversationRuntime.test.ts DesktopConversationReplayRuntime.test.js
 ```
 
 ## Search Finds Old Or Wrong Memory

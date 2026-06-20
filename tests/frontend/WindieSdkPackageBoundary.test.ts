@@ -63,7 +63,7 @@ describe('@windie/sdk package boundary', () => {
   test('SDK package tests import the package source directly', () => {
     const sdkTestFiles = [
       'tests/frontend/WindieSdkClient.test.ts',
-      'tests/frontend/WindieSdkConversationRuntime.test.ts',
+      'tests/frontend/AgentSdkConversationRuntime.test.ts',
       'tests/frontend/AgentSdkFileConversationStore.test.ts',
       'tests/frontend/AgentSdkMockBackendE2E.test.ts',
     ];
