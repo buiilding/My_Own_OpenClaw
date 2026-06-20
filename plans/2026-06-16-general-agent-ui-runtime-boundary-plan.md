@@ -18544,3 +18544,21 @@ Each completed slice should report:
   active workspace name derivation, workspace selection requests, storage,
   credentials, hosted backend URLs, provider policy, backend behavior, and
   local-runtime behavior are unchanged.
+
+### 2026-06-20 Unicode repair fixture neutrality
+
+- Finding: local-runtime unicode sanitizer and renderer stream-update tests
+  exercised generic mojibake and lone-surrogate normalization, but their sample
+  active-document text still used WindieOS identity as arbitrary repaired
+  content.
+- Change: switched those unicode/mojibake repair fixture values to neutral
+  `Project Alpha` document text and extended the modular boundary guard so the
+  retired product-shaped repair samples stay out of generic runtime
+  normalization coverage.
+- Validation: focused sidecar unicode sanitizer test, focused renderer desktop
+  stream message update runtime test, focused modular boundary test, exact
+  retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Unicode repair behavior,
+  lone-surrogate replacement, stream-update payload shape, tool schema payload
+  mapping, IPC/RPC contracts, storage, credentials, permissions, hosted backend
+  URLs, provider policy, and product skin behavior are unchanged.

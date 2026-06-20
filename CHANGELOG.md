@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/runtime: use neutral project text in unicode/mojibake repair coverage
+  instead of WindieOS-flavored active-document fixture data. No migration
+  required.
+
 - tests/renderer: use neutral selected-workspace samples in chat and settings
   workspace UI coverage instead of WindieOS-flavored project paths. No
   migration required.

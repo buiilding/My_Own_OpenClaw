@@ -435,6 +435,18 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('Project Alpha Dashboard');
   });
 
+  test('unicode repair tests keep text fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/sidecar/test_unicode_sanitizer.py'),
+      read('tests/frontend/DesktopChatStreamMessageUpdateRuntime.test.ts'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('Active: â€œWindieOS â€” README');
+    expect(source).not.toContain('Active: “WindieOS — README”');
+    expect(source).toContain('Active: â€œProject Alpha â€” README');
+    expect(source).toContain('Active: “Project Alpha — README”');
+  });
+
   test('backend workspace context tests keep workspace fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/backend/test_query_execution_inputs.py'),

@@ -79,10 +79,10 @@ describe('desktopChatStreamMessageUpdateRuntime', () => {
     });
 
     expect(buildSystemPromptUpdate({
-      content: 'Active: â€œWindieOS â€” READMEâ€\u009d',
+      content: 'Active: â€œProject Alpha â€” READMEâ€\u009d',
       tool_schemas: [],
     })).toEqual({
-      content: 'Active: “WindieOS — README”',
+      content: 'Active: “Project Alpha — README”',
       toolSchemas: [],
     });
 

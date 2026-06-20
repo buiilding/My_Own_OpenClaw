@@ -48,5 +48,5 @@ def test_sanitize_surrogates_recursively_replaces_invalid_codepoints():
 
 
 def test_repair_common_mojibake_repairs_quotes_and_dash():
-    repaired = repair_common_mojibake("Active: â€œWindieOS â€” READMEâ€\u009d")
-    assert repaired == "Active: “WindieOS — README”"
+    repaired = repair_common_mojibake("Active: â€œProject Alpha â€” READMEâ€\u009d")
+    assert repaired == "Active: “Project Alpha — README”"

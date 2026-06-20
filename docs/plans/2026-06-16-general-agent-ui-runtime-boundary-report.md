@@ -11,10 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `05c538775` (`test(sidecar): neutralize window title fixtures`)
-- Latest completed slice: renderer chat and settings workspace UI fixtures now
-  use neutral selected-workspace paths instead of WindieOS-flavored project
-  paths.
+- Latest inspected plan checkpoint: `f34779797` (`test(renderer): neutralize workspace ui fixtures`)
+- Latest completed slice: unicode/mojibake repair fixtures now use neutral
+  project document text instead of WindieOS-flavored active-document samples.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -83,6 +82,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   raw-result preservation behavior. Renderer chat and settings workspace UI
   fixtures now use neutral selected-workspace paths while preserving active
   workspace name derivation, permission request, and workspace update behavior.
+  Unicode/mojibake repair fixtures now use neutral project document text while
+  preserving quote, dash, and lone-surrogate normalization behavior across the
+  local-runtime sanitizer and renderer stream-update normalizer.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7554,3 +7556,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   workspace metadata persistence, revision storage, IPC/RPC payload contracts,
   credentials, permissions, hosted backend URLs, provider policy, and
   renderer/SDK behavior are unchanged; no migration is required.
+- Unicode/mojibake repair fixture samples now use neutral `Project Alpha`
+  active-document text instead of WindieOS-flavored sample data. Unicode repair
+  behavior, lone-surrogate replacement, stream-update payload shape, tool schema
+  payload mapping, IPC/RPC contracts, storage, credentials, permissions, hosted
+  backend URLs, provider policy, and product skin behavior are unchanged; no
+  migration is required.
