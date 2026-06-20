@@ -1,5 +1,5 @@
 /**
- * Classifies backend settings-update failures for renderer runtime consumers.
+ * Classifies settings-update failures for renderer runtime consumers.
  */
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';

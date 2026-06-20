@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Renderer Settings-Update Failure Classifier Wording
+
+- Finding: the shared renderer settings-update failure classifier and its
+  focused test still described the helper as matching backend
+  settings-update failures, even though the module is a renderer runtime
+  classifier consumed by settings-event normalization and stream error
+  suppression.
+- Change: reworded the module description and test name through renderer
+  runtime event failure classification while preserving the exact
+  backend-emitted failure substring contract.
+- Validation: passed focused settings-update classifier test, renderer settings
+  runtime boundary test, stale backend-owned classifier wording scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. Event payloads, settings error text,
+  save-status behavior, stream error suppression, IPC, backend handlers,
+  storage, credentials, permissions, provider policy, and hosted URLs are
+  unchanged.
+
 ### 2026-06-20 Renderer Provider API-Key Prop Contract Boundary
 
 - Finding: the dashboard provider API-key prop-type module still enumerated

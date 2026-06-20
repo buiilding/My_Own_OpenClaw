@@ -8,7 +8,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime';
 
 describe('desktopSettingsUpdateErrorRuntime', () => {
-  test('matches backend settings-update failure text', () => {
+  test('matches settings-update failure text from runtime events', () => {
     expect(isSettingsUpdateErrorText('Failed to update settings: write failed')).toBe(true);
     expect(isSettingsUpdateErrorText('Database timeout')).toBe(false);
     expect(isSettingsUpdateErrorText(null)).toBe(false);

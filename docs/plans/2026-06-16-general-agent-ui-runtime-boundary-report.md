@@ -193,8 +193,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   through renderer app runtime clients.
   Renderer dashboard provider API-key prop contracts are now provider-id
   agnostic, keeping WindieOS provider identifiers in renderer skin config.
+  Renderer settings-update failure classifier wording now reflects renderer
+  runtime event ownership while preserving the backend-emitted failure text
+  contract.
 
 ## Inspection Log
+
+### 2026-06-20 Renderer Settings-Update Failure Classifier Wording
+
+- Finding: the renderer settings-update failure classifier and its focused test
+  still described the helper as matching backend settings-update failures,
+  even though the shared classifier belongs to renderer runtime event handling.
+- Change: reworded the module description and test name through renderer
+  runtime event failure classification while preserving the exact
+  backend-emitted failure substring contract.
+- Validation: passed focused settings-update classifier test, renderer settings
+  runtime boundary test, stale backend-owned classifier wording scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. Event payloads, settings error text,
+  save-status behavior, stream error suppression, IPC, backend handlers,
+  storage, credentials, permissions, provider policy, and hosted URLs are
+  unchanged.
 
 ### 2026-06-20 Renderer Provider API-Key Prop Contract Boundary
 

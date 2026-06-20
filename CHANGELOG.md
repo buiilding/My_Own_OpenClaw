@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: describe shared settings-update failure classification as
+  renderer runtime ownership instead of backend-owned wording while preserving
+  the backend-emitted failure text contract. No migration required.
 - frontend/renderer: make dashboard provider API-key prop contracts provider-id
   agnostic so WindieOS provider identifiers stay in renderer skin config. No
   migration required.
