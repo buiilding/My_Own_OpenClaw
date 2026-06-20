@@ -65,6 +65,9 @@ const {
   createBackendMessageObserverRegistry,
 } = require('./ipc/ipc_backend_message_observers.cjs');
 const {
+  createIpcStatusPayloads,
+} = require('./ipc/ipc_status_payloads.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -269,6 +272,20 @@ const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 const backendMessageObserverRegistry = createBackendMessageObserverRegistry({
   log,
+});
+const ipcStatusPayloads = createIpcStatusPayloads({
+  getState: () => ({
+    currentUserId,
+    currentConversationRef,
+    currentServerUserId,
+    currentSessionId,
+    isConnected,
+  }),
+  getRuntimeEndpointSnapshot: () => ({
+    runtimeWsUrl: backendEndpointState.getWsUrl(),
+    runtimeHttpUrl: backendEndpointState.getHttpUrl(),
+  }),
+  getGlobalAgentStopShortcutStatus,
 });
 const agentRuntimeLifecycle = createAgentRuntimeLifecycle({
   startAgent,
@@ -671,13 +688,7 @@ function refreshEnabledMcpServersAfterStartup(config) {
 }
 
 function buildIpcStatusPayload(connected) {
-  return {
-    isConnected: connected,
-    userId: currentUserId,
-    runtimeWsUrl: backendEndpointState.getWsUrl(),
-    runtimeHttpUrl: backendEndpointState.getHttpUrl(),
-    globalAgentStopShortcutStatus: getGlobalAgentStopShortcutStatus(),
-  };
+  return ipcStatusPayloads.buildIpcStatusPayload(connected);
 }
 
 function buildConversationEventFromBackendEvent(event, options = {}) {
@@ -944,18 +955,8 @@ function initializeIpc(win, options = {}) {
 
   registerClientSessionHandlers({
     ipcMain,
-    getClientSessionState: () => ({
-      currentUserId,
-      currentConversationRef,
-      currentServerUserId,
-      currentSessionId,
-      isConnected,
-      globalAgentStopShortcutStatus: getGlobalAgentStopShortcutStatus(),
-    }),
-    getRuntimeEndpointSnapshot: () => ({
-      runtimeWsUrl: backendEndpointState.getWsUrl(),
-      runtimeHttpUrl: backendEndpointState.getHttpUrl(),
-    }),
+    getClientSessionState: () => ipcStatusPayloads.getClientSessionState(),
+    getRuntimeEndpointSnapshot: () => ipcStatusPayloads.getRuntimeEndpointSnapshot(),
     setTranscriptSessionState: ({
       currentConversationRef: nextConversationRef,
       currentUserId: nextUserId,
@@ -1137,16 +1138,7 @@ function registerBackendMessageObserver(observer) {
 }
 
 function getBackendConnectionState() {
-  return {
-    isConnected,
-    userId: currentUserId,
-    sessionId: currentSessionId,
-    serverUserId: currentServerUserId,
-    conversationRef: currentConversationRef,
-    backendWsUrl: backendEndpointState.getWsUrl(),
-    backendHttpUrl: backendEndpointState.getHttpUrl(),
-    globalAgentStopShortcutStatus: getGlobalAgentStopShortcutStatus(),
-  };
+  return ipcStatusPayloads.getBackendConnectionState();
 }
 
 function isPlainObject(value) {

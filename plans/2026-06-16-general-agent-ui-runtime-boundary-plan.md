@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main IPC Status Payload Boundary
+
+- Finding: `ipc.cjs` still shaped three related status payloads inline: renderer
+  `ipc-status`, client-session state, and exported backend connection state,
+  each combining connection booleans, current identity/session/conversation
+  values, runtime endpoint URLs, and global stop shortcut status.
+- Change: added `ipc_status_payloads.cjs` to own status payload construction.
+  `ipc.cjs` now supplies live state and endpoint accessors while delegating
+  field naming and normalization to the helper.
+- Validation: focused status payload coverage for renderer status, client
+  session snapshots, backend connection snapshots, missing-state normalization,
+  shortcut status propagation, URL alias fields, and a boundary guard that keeps
+  direct endpoint URL payload shaping out of `ipc.cjs`.
+- Compatibility: no migration required. Renderer `ipc-status` payloads,
+  client-session handler payloads, `getBackendConnectionState()` output,
+  shortcut status projection, storage, credentials, permissions, hosted URLs,
+  provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Backend Message Observer Boundary
 
 - Finding: `ipc.cjs` still owned backend-message observer storage and fan-out

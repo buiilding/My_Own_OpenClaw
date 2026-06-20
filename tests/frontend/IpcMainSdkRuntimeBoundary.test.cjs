@@ -85,6 +85,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_backend_message_observers.cjs'),
       'utf8',
     );
+    const statusPayloadsSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_status_payloads.cjs'),
+      'utf8',
+    );
     expect(source).toContain('createElectronAgentClientRuntime({');
     expect(source).not.toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
@@ -165,6 +169,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('for (const observer of backendMessageObservers)');
     expect(backendMessageObserversSource).toContain('const observers = new Set();');
     expect(backendMessageObserversSource).toContain('for (const observer of observers)');
+    expect(source).toContain('createIpcStatusPayloads({');
+    expect(source).not.toContain('backendWsUrl: backendEndpointState.getWsUrl()');
+    expect(source).not.toContain('globalAgentStopShortcutStatus: getGlobalAgentStopShortcutStatus()');
+    expect(statusPayloadsSource).toContain('backendWsUrl: endpoints.runtimeWsUrl || null');
+    expect(statusPayloadsSource).toContain('runtimeWsUrl: endpoints.runtimeWsUrl || null');
     const wakeCall = agentWakeupRuntimeSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
     expect(wakeCall).toContain('name: getSdkAgentName()');

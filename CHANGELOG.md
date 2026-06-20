@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move IPC status, client-session, and backend connection payload
+  shaping into `ipc_status_payloads.cjs`, preserving runtime URL fields,
+  user/session/conversation fields, connection state, and global stop shortcut
+  status projection. No migration required.
 - main/ipc: move backend message observer registration and fan-out into
   `ipc_backend_message_observers.cjs`, preserving invalid-payload ignoring,
   observer exception isolation, unsubscribe behavior, and test reset cleanup.

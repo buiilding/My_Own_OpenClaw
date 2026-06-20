@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, `ipc_agent_runtime_lifecycle.cjs`, `ipc_agent_sdk_runtime_commands.cjs`, or `ipc_backend_message_observers.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, `ipc_agent_runtime_lifecycle.cjs`, `ipc_agent_sdk_runtime_commands.cjs`, `ipc_backend_message_observers.cjs`, or `ipc_status_payloads.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -51,6 +51,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_agent_runtime_lifecycle.cjs`
 - `frontend/src/main/ipc/ipc_agent_sdk_runtime_commands.cjs`
 - `frontend/src/main/ipc/ipc_backend_message_observers.cjs`
+- `frontend/src/main/ipc/ipc_status_payloads.cjs`
 - `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
@@ -208,6 +209,19 @@ Owns backend-message observer registration and fan-out for Electron main:
 - ignores non-object backend event payloads
 - isolates observer exceptions and logs them without stopping remaining fan-out
 - returns unsubscribe callbacks and clears observer state during test shutdown
+
+### `ipc_status_payloads.cjs`
+
+Owns Electron-main status payload shaping:
+
+- builds renderer `ipc-status` payloads with connection state, current user,
+  runtime websocket/http URLs, and global stop shortcut status
+- builds client-session snapshots with current user, server user, session,
+  conversation, connection, and shortcut status fields
+- builds exported backend connection snapshots with backend URL aliases used by
+  main-process callers
+- keeps endpoint/status field naming in one helper while `ipc.cjs` supplies
+  live host state
 
 ### `ipc_direct_wake_up_agent_adapter.cjs`
 
@@ -624,6 +638,10 @@ generic `to-backend` router or direct chat query IPC handlers.
 33. backend-message observer registration and fan-out, including invalid payload
     ignoring, observer exception isolation, unsubscribe callbacks, and test
     reset cleanup, delegates to `ipc_backend_message_observers.cjs`.
+34. IPC status, client-session, and backend connection payload shaping,
+    including runtime URL fields, user/session/conversation fields, connection
+    state, and global stop shortcut status projection, delegates to
+    `ipc_status_payloads.cjs`.
 
 ## Drift Hotspots
 

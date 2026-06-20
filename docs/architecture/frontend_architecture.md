@@ -322,8 +322,9 @@ Primary modules:
     assembly to `ipc_agent_wakeup_runtime.cjs`, keeps active adapter lifecycle
     state in `ipc_agent_runtime_lifecycle.cjs`, routes direct SDK command
     execution through `ipc_agent_sdk_runtime_commands.cjs`, keeps backend-message
-    observer fan-out in `ipc_backend_message_observers.cjs`, and uses the
-    returned `agent.conversation(...)` runtime for sends and stream projection.
+    observer fan-out in `ipc_backend_message_observers.cjs`, shapes status
+    payloads through `ipc_status_payloads.cjs`, and uses the returned
+    `agent.conversation(...)` runtime for sends and stream projection.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle
     disconnect, typed sends, local tool coordination, sidecar startup/reuse,
     display rows, and current-turn projection to the SDK runtime.
