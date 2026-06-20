@@ -50,6 +50,9 @@ const {
   handleAgentBackendCloseEvent,
 } = require('./ipc/ipc_agent_backend_close_runtime.cjs');
 const {
+  handleAgentBackendEventRuntime,
+} = require('./ipc/ipc_agent_backend_event_runtime.cjs');
+const {
   createElectronAgentClient: createElectronAgentClientRuntime,
 } = require('./ipc/ipc_electron_agent_client_factory.cjs');
 const {
@@ -760,52 +763,37 @@ function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
 }
 
 function handleAgentBackendEvent(rendererData) {
-  const activeContext = activeQueryContext;
-  if (
-    rendererData
-    && typeof rendererData === 'object'
-    && rendererData.type === 'query-accepted'
-    && activeContext
-    && typeof rendererData.turn_ref === 'string'
-    && rendererData.turn_ref === activeContext.queryMessageId
-  ) {
-    activeContext.accepted = true;
-  }
-  ipcEventReplayState.appendForActiveTurn(rendererData);
-  noteBackendTraffic(`message:${rendererData?.type || 'unknown'}`);
-  backendMessageObserverRegistry.notify(rendererData);
-  processBackendMessageData(rendererData, {
-    setCurrentSessionId: (value) => {
-      currentSessionId = value;
+  return handleAgentBackendEventRuntime(rendererData, {
+    getActiveQueryContext: () => activeQueryContext,
+    setActiveQueryContext: (value) => {
+      activeQueryContext = value;
     },
-    setCurrentServerUserId: (value) => {
-      currentServerUserId = value;
+    appendForActiveTurn: (event) => ipcEventReplayState.appendForActiveTurn(event),
+    clearEventReplayState: () => ipcEventReplayState.clear(),
+    noteBackendTraffic,
+    notifyBackendMessageObservers: (event) => backendMessageObserverRegistry.notify(event),
+    processBackendMessageData,
+    processBackendMessageDeps: {
+      setCurrentSessionId: (value) => {
+        currentSessionId = value;
+      },
+      setCurrentServerUserId: (value) => {
+        currentServerUserId = value;
+      },
+      setCurrentConversationRef: (value) => {
+        currentConversationRef = value;
+      },
+      resolveSettingsSync: (msgId, wasSuccessful) => settingsSyncRuntime.resolveAck(
+        msgId,
+        wasSuccessful,
+      ),
+      setResponseOverlayPhase,
+      getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+      broadcastToRenderers,
+      traceBackendEvent: (data) => electronMainTraceLogger.traceBackendEvent(data),
+      log,
     },
-    setCurrentConversationRef: (value) => {
-      currentConversationRef = value;
-    },
-    resolveSettingsSync: (msgId, wasSuccessful) => settingsSyncRuntime.resolveAck(
-      msgId,
-      wasSuccessful,
-    ),
-    setResponseOverlayPhase,
-    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-    broadcastToRenderers,
-    traceBackendEvent: (data) => electronMainTraceLogger.traceBackendEvent(data),
-    log,
   });
-
-  if (
-    activeQueryContext
-    && rendererData
-    && typeof rendererData === 'object'
-    && typeof rendererData.turn_ref === 'string'
-    && rendererData.turn_ref === activeQueryContext.queryMessageId
-    && (rendererData.type === 'streaming-complete' || rendererData.type === 'error')
-  ) {
-    activeQueryContext = null;
-    ipcEventReplayState.clear();
-  }
 }
 
 function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {

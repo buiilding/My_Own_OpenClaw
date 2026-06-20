@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Backend Event Relay Boundary
+
+- Finding: connection open/close/fallback and backend close cleanup had moved
+  into helpers, but `ipc.cjs` still owned live backend event relay bookkeeping:
+  marking active queries accepted, appending replay events, noting backend
+  traffic, notifying backend-message observers, forwarding to
+  `processBackendMessageData(...)`, and clearing replay/context on matching
+  terminal events.
+- Change: added `ipc_agent_backend_event_runtime.cjs` to own Agent SDK backend
+  event relay bookkeeping. `ipc.cjs` now injects active-query accessors, replay
+  state, traffic/observer hooks, host state setters, settings ack resolution,
+  overlay phase controls, renderer fan-out, tracing, and logging.
+- Validation: focused backend-event runtime coverage for active-turn matching,
+  `query-accepted` marking, replay/traffic/observer/processor forwarding,
+  terminal context and replay clearing, stale terminal preservation, invalid
+  event compatibility, and a boundary guard that keeps event-type bookkeeping
+  out of `ipc.cjs`.
+- Compatibility: no migration required. Backend event payloads, replay timing,
+  active query acceptance/terminal behavior, settings ack resolution, overlay
+  phase updates, renderer fan-out, storage, credentials, permissions, hosted
+  URLs, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Install Auth Identity Boundary
 
 - Finding: install registration, disk validation, and bearer-header construction

@@ -324,7 +324,8 @@ Primary modules:
     execution through `ipc_agent_sdk_runtime_commands.cjs`, keeps backend-message
     observer fan-out in `ipc_backend_message_observers.cjs`, shapes status
     payloads through `ipc_status_payloads.cjs`, shapes install-auth identity
-    through `ipc_install_auth_identity_runtime.cjs`, and uses the returned
+    through `ipc_install_auth_identity_runtime.cjs`, routes backend event relay
+    bookkeeping through `ipc_agent_backend_event_runtime.cjs`, and uses the returned
     `agent.conversation(...)` runtime for sends and stream projection.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle
     disconnect, typed sends, local tool coordination, sidecar startup/reuse,

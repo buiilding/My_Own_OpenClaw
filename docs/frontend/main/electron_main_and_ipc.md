@@ -78,7 +78,8 @@ Responsibilities:
   execution through `ipc_agent_sdk_runtime_commands.cjs`, keeps backend-message
   observer fan-out in `ipc_backend_message_observers.cjs`, shapes status payloads
   through `ipc_status_payloads.cjs`, shapes install-auth identity through
-  `ipc_install_auth_identity_runtime.cjs`, and delegates backend websocket
+  `ipc_install_auth_identity_runtime.cjs`, routes backend event relay bookkeeping
+  through `ipc_agent_backend_event_runtime.cjs`, and delegates backend websocket
   construction, SDK local-runtime bootstrap, envelope sends, close,
   reconnect primitives, display rows, and current-turn projection to the SDK.
 - Tracks backend session context (`userId`, `sessionId`, `conversation_ref`).

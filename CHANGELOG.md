@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK backend event relay bookkeeping into
+  `ipc_agent_backend_event_runtime.cjs`, preserving active query accepted-state
+  marking, replay append/clear behavior, backend traffic labels, observer
+  notification, and `processBackendMessageData(...)` forwarding. No migration
+  required.
 - main/ipc: move install-auth identity normalization and SDK `installAuth`
   option shaping into `ipc_install_auth_identity_runtime.cjs`, preserving
   token/user/install trimming, server-user fallback initialization, and
