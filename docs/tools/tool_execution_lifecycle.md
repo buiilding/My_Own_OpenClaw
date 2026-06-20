@@ -10,7 +10,7 @@ title: "Tool Execution Lifecycle"
 
 # Tool Execution Lifecycle
 
-WindieOS tools run through a distributed pipeline. The backend owns model-facing schema and loop semantics; the SDK runtime owns local dispatch, backend result return, normalized tool events, and display/rehydrate projections; the local runtime owns executable desktop actions through the Python sidecar implementation.
+WindieOS tools run through a distributed pipeline. The backend owns model-facing schema and loop semantics; the SDK runtime owns local dispatch, backend result return, normalized tool events, and display/rehydrate projections; the local runtime owns executable desktop actions through the local-runtime Python implementation.
 
 The SDK tool execution source of truth is
 `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, called from the
@@ -52,7 +52,7 @@ event router.
 | Local-runtime dispatch event | Backend API | `backend/src/api/processing/formatters/actions/*`, `backend/src/api/schemas/outgoing.py` |
 | SDK runtime execution | SDK runtime | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` |
 | Electron host bridge | Electron main | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
-| Local execution | Local runtime, currently backed by Python sidecar tool implementations | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |
+| Local execution | Local runtime, currently backed by local-runtime Python tool implementations | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |
 | Result ingress | Backend API | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**` |
 | Result formatting/history | Backend agent | `backend/src/agent/tools/processing/**`, `backend/src/agent/history/**` |
 
@@ -142,7 +142,7 @@ without reviving the old Electron-only screenshot materializer.
 | Model emits invalid args | backend schema, provider projection, parser recovery | [Tool Contracts](tool_contracts.md), [Backend Tools Docs Hub](../backend/tools/README.md) |
 | Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or SDK local-runtime client | [Windie Client Runtime](../sdk/windie_client_runtime.md) |
 | Backend tool event is missing request or bundle ids | SDK runtime malformed-event handling | SDK should store `runtime_error` with `reason: "malformed_tool_event"` and avoid invoking the local executor without a result id |
-| SDK runtime invokes tool but local runtime says missing tool | Local-runtime registry/exposed-name parity backed by Python sidecar implementation | [Tool Catalog Matrix](tool_catalog_matrix.md), [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
+| SDK runtime invokes tool but local runtime says missing tool | Local-runtime registry/exposed-name parity backed by local-runtime Python implementation | [Tool Catalog Matrix](tool_catalog_matrix.md), [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
 | Local execution succeeds but model never sees result | result envelope/request id/waiting storage | [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md) |
 | Local tool output is stored as `deliveryFailed` | SDK transport/result delivery | SDK runtime should also append a turn error so UI/debug state does not treat the tool wait as completed successfully |
 | Tool output appears in UI but rehydrate breaks later | transcript/history shaping | [Memory Hub](../memory/README.md), [Backend History](../backend/agent/history/README.md) |

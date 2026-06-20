@@ -32,7 +32,7 @@ agent may ask for, while local-runtime/provider routes decide where work execute
 Open-source client distributions should assume:
 
 - the SDK calls this backend over HTTP/WebSocket
-- the local runtime performs local execution through the current Python sidecar implementation
+- the local runtime performs local execution through the current local-runtime Python implementation
 - end users are not expected to run backend services themselves just to use OCR, prediction, or hosted agent features
 
 ## Core Runtime Refactors (2026-02-11)

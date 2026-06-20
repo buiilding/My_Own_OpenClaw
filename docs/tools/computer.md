@@ -9,7 +9,7 @@ title: "Computer Use Screenshot and Control Tools"
 
 # Computer Use Screenshot and Control Tools
 
-Computer tools are local-execution tools. The backend owns the model-facing intent and coordinate preparation; the local runtime owns actual mouse, keyboard, screenshot, scroll, and window operations through the Python sidecar implementation.
+Computer tools are local-execution tools. The backend owns the model-facing intent and coordinate preparation; the local runtime owns actual mouse, keyboard, screenshot, scroll, and window operations through the local-runtime Python implementation.
 
 ## Tool Surface
 

@@ -15,7 +15,7 @@ WindieOS uses a multi-layered communication architecture with:
   implementation
 - WebSocket and HTTP between the client runtime and the backend control plane
 
-The default product topology is remote-first: the app and SDK talk to the hosted backend for orchestration and perception, while the local runtime performs local execution on the user's computer through its Python sidecar implementation.
+The default product topology is remote-first: the app and SDK talk to the hosted backend for orchestration and perception, while the local runtime performs local execution on the user's computer through its local-runtime Python implementation.
 
 ## Communication Layers
 

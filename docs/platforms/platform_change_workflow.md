@@ -120,7 +120,7 @@ Do not use this owner for:
 
 ## Python Sidecar Platform Changes
 
-The local runtime owns host OS automation and local tool execution through the current Python sidecar implementation. It should expose normalized tool results back to Electron, not leak OS-specific command details into the renderer.
+The local runtime owns host OS automation and local tool execution through the current local-runtime Python implementation. It should expose normalized tool results back to Electron, not leak OS-specific command details into the renderer.
 
 Primary files:
 

@@ -1614,6 +1614,15 @@ describe('modular sdk refactor completion boundary', () => {
         'SDK/main local-runtime dispatch, Python sidecar implementation',
         'local-runtime execution, Python sidecar adapters',
         'process startup and reuse, Python sidecar implementation',
+        'local execution through the current Python sidecar implementation',
+        "local execution on the user's computer through its Python sidecar implementation",
+        'Python sidecar implementation does local work',
+        'The Python sidecar implementation returns local tool results',
+        'desktop actions through the Python sidecar implementation',
+        'Local runtime, currently backed by Python sidecar tool implementations',
+        'Local-runtime registry/exposed-name parity backed by Python sidecar implementation',
+        'window operations through the Python sidecar implementation',
+        'host OS automation and local tool execution through the current Python sidecar implementation',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

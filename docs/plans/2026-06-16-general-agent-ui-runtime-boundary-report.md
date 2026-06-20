@@ -12,12 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: first-read SDK runtime diagrams, install topology
-  copy, docs hub summaries, browser route labels, routing quick cards, system
-  architecture flow steps, tool lifecycle steps, and compact docs-directory
-  labels now route local execution through local-runtime Python
-  implementation/executor wording instead of Python sidecar execution/backing
-  route-owner labels.
+- Latest completed slice: public architecture data-flow, communication,
+  backend overview, computer-tool, platform, and tool-lifecycle docs now route
+  local action ownership through local-runtime Python implementation/executor
+  wording instead of Python sidecar execution/backing route-owner labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -246,6 +244,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Tool Data-Flow Local-Runtime Python Labels
+
+- Finding: public architecture data-flow, communication, backend overview,
+  computer-tool, platform, and tool-lifecycle docs still described local
+  action ownership through Python sidecar implementation/backing labels.
+- Change: routed those labels through local-runtime Python implementation and
+  local-runtime Python tool/executor wording while preserving concrete
+  `frontend/src/main/python` paths.
+- Validation: focused modular docs boundary test, docs listing, exact
+  stale tool data-flow label scan, and diff check.
+- Compatibility: no migration required. Runtime code, local tool execution,
+  JSON-RPC/daemon payloads, IPC payloads, tool-result envelopes, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
 
 ### 2026-06-20 First-Read Local-Runtime Execution Flow Labels
 

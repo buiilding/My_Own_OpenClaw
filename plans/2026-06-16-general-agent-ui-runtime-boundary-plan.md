@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Tool Data-Flow Local-Runtime Python Labels
+
+- Finding: public architecture data-flow, communication, backend overview,
+  computer-tool, platform, and tool-lifecycle docs still described local
+  action ownership through Python sidecar implementation/backing labels.
+- Change: routed those labels through local-runtime Python implementation and
+  local-runtime Python tool/executor wording while preserving concrete
+  `frontend/src/main/python` paths.
+- Validation: focused modular docs boundary test, docs listing, exact
+  stale tool data-flow label scan, and diff check.
+- Compatibility: no migration required. Runtime code, local tool execution,
+  JSON-RPC/daemon payloads, IPC payloads, tool-result envelopes, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 ### 2026-06-20 First-Read Local-Runtime Execution Flow Labels
 
 - Finding: the README SDK runtime diagram, install topology copy, docs hub

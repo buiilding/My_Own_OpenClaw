@@ -23,7 +23,7 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 | session/conversation identity | backend plus SDK conversation runtime | backend history, SDK projections, local-runtime transcript/memory, renderer display | keep `user_id`, `session_id`, `conversation_ref`, and turn ids aligned |
 | model/provider settings | backend config/session policy; SDK model-selection contract; renderer stores user-facing subset | provider factory, model list UI, prompt construction | renderer should not persist backend-owned provider internals or keys; desktop query-time model patches are built through the SDK model-selection helper; conversation-scoped SDK model changes append `settings_updated` events for runtime state/debug but do not become display or rehydrate history |
 | model-facing tool schema | backend | LLM provider adapters, parser validation, transparency events | desktop client/Python sidecar code must not import backend schema code |
-| executable local tool implementation | local runtime | SDK tool coordinator, Electron main bridge, backend result ingestion, renderer display projection | backend sees results, Python sidecar implementation does local work |
+| executable local tool implementation | local runtime | SDK tool coordinator, Electron main bridge, backend result ingestion, renderer display projection | backend sees results, local-runtime Python implementation does local work |
 | stream event phase | backend event producer plus SDK runtime reducer | chat UI, response overlay, tool coordinator, transcript projections | stale-turn filtering belongs at consumer boundaries |
 | normalized conversation events | SDK runtime | desktop, CLI, custom UI, store adapters, backend rehydrate projection | UI messages are projections, not storage truth |
 | transcript queue | SDK store adapter and local-runtime local store during migration | dashboard replay, memory indexing, backend rehydrate | visible transcript is not the same as backend history |
@@ -41,7 +41,7 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 4. Backend agent loop builds prompt/tool context and streams events.
 5. SDK normalizes backend events into conversation events.
 6. SDK tool coordinator dispatches local tool calls to local-runtime execution.
-7. The Python sidecar implementation returns local tool results to the SDK coordinator.
+7. The local-runtime Python implementation returns local tool results to the SDK coordinator.
 8. SDK returns tool results to backend and appends normalized tool-output events.
 9. Backend ingests tool results, commits history, and continues or completes.
 10. UI renders SDK display projections while rehydrate snapshots are generated from the same normalized events.
