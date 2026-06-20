@@ -83,4 +83,21 @@ describe('renderer api client boundary', () => {
     expect(source).toContain("export * from '../../../../../packages/windie-sdk-js/src';");
     expect(source).not.toContain(`${retiredProductType} as AgentModelSelection`);
   });
+
+  test('renderer architecture docs do not restore deleted api client or app-import sdk facade labels', async () => {
+    const docs = await Promise.all([
+      fs.readFile(path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'), 'utf8'),
+      fs.readFile(path.resolve(__dirname, '../../docs/planning/windieos_mobile_app_plan.md'), 'utf8'),
+      fs.readFile(path.join(rendererRoot, 'folder_structure.md'), 'utf8'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('legacy renderer\n  `infrastructure/api/client.ts` bridge has been removed');
+    expect(docText).toContain('SDK runtime and hosted transport facade');
+    expect(docText).toContain('Renderer SDK facade for hosted transport wrappers and runtime contracts');
+    expect(docText).not.toContain('Developer-facing backend SDK transport wrapper');
+    expect(docText).not.toContain('Renderer SDK facade for hosted transport wrappers, runtime contracts, and app imports');
+    expect(docText).not.toContain('`renderer/infrastructure/api/client.ts` remains');
+    expect(docText).not.toContain('typed backend command emitter');
+  });
 });

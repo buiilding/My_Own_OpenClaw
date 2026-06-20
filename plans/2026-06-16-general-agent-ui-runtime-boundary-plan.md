@@ -15915,3 +15915,22 @@ Each completed slice should report:
   string, local-runtime readiness handling, tab snapshots, credentials,
   permissions, hosted backend URLs, provider policy, storage, and local-runtime
   behavior are unchanged.
+
+### 2026-06-20 Renderer SDK facade source-map label cleanup
+
+- Finding: current renderer architecture/source-map docs still described the
+  deleted `infrastructure/api/client.ts` as an active typed backend command
+  emitter and described `agentSdkClient.ts` as an app-import route even though
+  feature/app code now reaches SDK and Electron behavior through runtime
+  facades.
+- Change: updated renderer architecture, renderer folder structure, and the
+  mobile extraction plan to route renderer callers through app-runtime clients
+  and describe `agentSdkClient.ts` as the SDK runtime/hosted transport facade.
+  Added renderer API boundary coverage so the stale ApiClient and app-import
+  facade wording does not return.
+- Validation: focused renderer API boundary Jest coverage, stale wording scans,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, SDK exports, IPC
+  channels, hosted backend URLs, settings/model payloads, credentials,
+  permissions, storage, provider policy, and local-runtime behavior are
+  unchanged.

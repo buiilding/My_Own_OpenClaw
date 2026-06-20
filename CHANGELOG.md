@@ -55,6 +55,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route browser-session diagnostics through the SDK runtime
   command contract instead of importing the full renderer SDK facade. No
   migration required.
+- docs/renderer: update renderer architecture and source-map labels so the
+  deleted ApiClient stays retired and `agentSdkClient` is described as the SDK
+  runtime/hosted transport facade, not an app-import route. No migration
+  required.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from

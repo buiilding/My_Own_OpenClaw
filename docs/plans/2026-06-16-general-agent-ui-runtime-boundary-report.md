@@ -5771,3 +5771,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `diagnostics.append` command string, readiness handling, tab snapshots,
   credentials, permissions, hosted backend URLs, provider policy, storage, and
   local-runtime behavior are unchanged.
+- Renderer architecture/source-map docs now keep the deleted
+  `infrastructure/api/client.ts` retired and describe `agentSdkClient.ts` as
+  the SDK runtime/hosted transport facade rather than an app-import route.
+  Runtime code, SDK exports, IPC channels, hosted backend URLs,
+  settings/model payloads, credentials, permissions, storage, provider policy,
+  and local-runtime behavior are unchanged.

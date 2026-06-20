@@ -53,7 +53,7 @@ frontend/src/
 │   ├── features/dashboard                 # Sidebar, memory/models/settings/usage/search panels
 │   ├── features/voice                     # Voice mode + wakeword capture hooks
 │   └── infrastructure                     # API/IPC/transcript/tool-exec/audio services
-│       └── api/agentSdkClient.ts          # Developer-facing backend SDK transport wrapper for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
+│       └── api/agentSdkClient.ts          # SDK runtime and hosted transport facade for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
 └── landing/                               # Marketing/landing surface
 ```
 
@@ -73,7 +73,20 @@ Current runtime behavior also relies on these explicit seams:
   screenshot/display/artifact shaping in
   `sidecar/local_runtime_execute_tool_runtime.cjs`.
 - **Renderer browser-session control is now runtime-backed**: renderer-side browser session UX should read local runtime readiness from the shared IPC status surface and consume shared browser-session/local-runtime stores rather than issuing ad hoc per-component browser polling directly from UI components. `localRuntimeStatusStore` owns the initial `get-local-runtime-status` bootstrap plus `local-runtime-status` event subscription, app feature code reaches it through `DesktopLocalRuntimeStatusRuntimeClient`, and `browserSessionStore` owns browser status sync, tab normalization, and shared polling cadence for all subscribers.
-- **Renderer now has two distinct API clients by boundary**: `renderer/infrastructure/api/client.ts` remains the app-internal Electron IPC bridge for settings and model listing commands that have not moved to SDK transport calls, while `renderer/infrastructure/api/agentSdkClient.ts` exposes the SDK runtime surface used by CLI/custom UI clients and first-party Electron facades. Feature code should reach the Electron bridge through app runtime facades such as `app/runtime/desktopLiveTurnRuntimeClient.ts`, `app/runtime/desktopSettingsRuntimeClient.ts`, `app/runtime/desktopConversationContinuityService.ts`, and `app/runtime/desktopConversationLibraryClient.js`. Desktop-specific adapters are allowed behind SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`; the app facades may use lower-level SDK modules, but renderer feature code should not reimplement SDK conversation, tool-routing, rehydrate, compaction, or projection semantics.
+- **Renderer API access is facade-owned by boundary**: the legacy renderer
+  `infrastructure/api/client.ts` bridge has been removed. Feature code reaches
+  Electron IPC and SDK-shaped commands through app runtime facades such as
+  `app/runtime/desktopLiveTurnRuntimeClient.ts`,
+  `app/runtime/desktopSettingsRuntimeClient.ts`,
+  `app/runtime/desktopConversationContinuityService.ts`, and
+  `app/runtime/desktopConversationLibraryClient.js`.
+  `renderer/infrastructure/api/agentSdkClient.ts` exposes the SDK runtime
+  surface used by hosted transport wrappers, SDK conversation/runtime contracts,
+  and first-party Electron facades. Desktop-specific adapters are allowed behind
+  SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`; the
+  app facades may use lower-level SDK modules, but renderer feature code should
+  not reimplement SDK conversation, tool-routing, rehydrate, compaction, or
+  projection semantics.
 - **Tool identity normalization is SDK-owned**: renderer chat display helpers may
   map SDK projections into `ChatMessage` state, but request/provider/bundle
   identity precedence for tool-call and tool-output rows comes from the SDK
@@ -503,7 +516,8 @@ Primary modules:
 ### Shared Infrastructure
 
 - `infrastructure/ipc/bridge.ts`: typed channel wrappers over preload API.
-- `infrastructure/api/client.ts`: typed backend command emitter.
+- `infrastructure/api/agentSdkClient.ts`: SDK runtime and hosted transport
+  facade used by renderer-owned adapters, not feature modules directly.
 - `app/runtime/desktopConversationContinuityService.ts` and `app/runtime/desktopConversationLibraryClient.js`: replay, rehydrate, list/load/delete/search through the SDK `LocalRuntimeConversationStore` via the desktop conversation store factory.
 - `app/runtime/desktopTranscriptSessionRuntimeClient.ts`: active transcript conversation/user identity facade.
 - `features/chat/session/useRendererConversationSessionInfo.js`: merged renderer current-session reader for user-facing surfaces.
