@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Connection Event Runtime Boundary
+
+- Finding: `ipc_agent_connection_events.cjs` owned open/error/message and
+  backend fallback behavior, but `ipc.cjs` rebuilt the connection and endpoint
+  dependency bags every time a backend lifecycle callback fired.
+- Change: added `createAgentConnectionEventsRuntime(...)` so
+  `ipc_agent_connection_events.cjs` owns the reusable connection/fallback
+  runtime while `ipc.cjs` injects host state setters, trace/log callbacks,
+  endpoint state, and close handling once during composition.
+- Validation: focused connection-event coverage verifies runtime dependency
+  reuse for open and fallback events, preserves pure event helper behavior, and
+  guards `ipc.cjs` against reintroducing per-event helper dependency bags.
+- Compatibility: no migration required. Backend websocket lifecycle callbacks,
+  connection status broadcasts, settings reset, overlay idle transition, replay
+  clearing, endpoint fallback selection, renderer IPC channels, storage,
+  credentials, permissions, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main Image Interaction Handler Boundary
 
 - Finding: `initializeIpc` registered clipboard image copy and image context

@@ -4,6 +4,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const {
+  createAgentConnectionEventsRuntime,
   handleAgentBackendFallbackEvent,
   handleAgentConnectionEvent,
   resolveBackendFallbackIndex,
@@ -149,7 +150,36 @@ describe('ipc_agent_connection_events', () => {
     expect(deps.advanceToNextBackendEndpoint).toHaveBeenCalledTimes(1);
   });
 
-  test('ipc.cjs delegates connection event and fallback bodies to the helper module', async () => {
+  test('runtime reuses injected dependencies for connection and fallback events', () => {
+    const deps = {
+      ...createConnectionDeps(),
+      getEndpointCandidates: jest.fn(() => [
+        { wsUrl: 'wss://primary.test/ws', httpUrl: 'https://primary.test' },
+        { wsUrl: 'wss://fallback.test/ws', httpUrl: 'https://fallback.test' },
+      ]),
+      setActiveBackendEndpoint: jest.fn(),
+      advanceToNextBackendEndpoint: jest.fn(),
+      getCurrentEndpoint: jest.fn(() => ({ wsUrl: 'wss://fallback.test/ws' })),
+    };
+    const runtime = createAgentConnectionEventsRuntime(deps);
+
+    runtime.handleConnection({
+      type: 'open',
+      handshake: { user_id: 'server-user' },
+    });
+    runtime.handleBackendFallback({
+      httpUrl: 'https://fallback.test',
+    });
+
+    expect(deps.setCurrentServerUserId).toHaveBeenCalledWith('server-user');
+    expect(deps.broadcastConnectionStatus).toHaveBeenCalledWith(true);
+    expect(deps.setActiveBackendEndpoint).toHaveBeenCalledWith(1);
+    expect(deps.log).toHaveBeenCalledWith(
+      'Primary backend unavailable. Falling back to wss://fallback.test/ws.',
+    );
+  });
+
+  test('ipc.cjs delegates connection event and fallback bodies to the helper runtime', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
       'utf8',
@@ -159,10 +189,16 @@ describe('ipc_agent_connection_events', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('handleAgentConnectionEvent(event');
-    expect(mainSource).toContain('handleAgentBackendFallbackEvent(endpointPayload');
+    expect(mainSource).toContain('createAgentConnectionEventsRuntime({');
+    expect(mainSource).toContain('agentConnectionEventsRuntime.handleConnection(event)');
+    expect(mainSource).toContain(
+      'agentConnectionEventsRuntime.handleBackendFallback(endpointPayload)',
+    );
+    expect(mainSource).not.toContain('handleAgentConnectionEvent(event');
+    expect(mainSource).not.toContain('handleAgentBackendFallbackEvent(endpointPayload');
     expect(mainSource).not.toContain("event.type === 'open'");
     expect(mainSource).not.toContain("candidate.wsUrl === endpointPayload.wsUrl");
+    expect(helperSource).toContain('createAgentConnectionEventsRuntime');
     expect(helperSource).toContain("event.type === 'open'");
     expect(helperSource).toContain("candidate.wsUrl === endpointPayload.wsUrl");
   });

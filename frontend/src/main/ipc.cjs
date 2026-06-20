@@ -43,8 +43,7 @@ const {
   createMcpRefreshRuntime,
 } = require('./ipc/ipc_mcp_refresh_runtime.cjs');
 const {
-  handleAgentBackendFallbackEvent,
-  handleAgentConnectionEvent,
+  createAgentConnectionEventsRuntime,
 } = require('./ipc/ipc_agent_connection_events.cjs');
 const {
   handleAgentBackendCloseEvent,
@@ -413,6 +412,30 @@ const installAuthRuntime = createInstallAuthRuntime({
   clearInstallAuthStateFromDisk,
   log,
 });
+const agentConnectionEventsRuntime = createAgentConnectionEventsRuntime({
+  getCurrentUserId: () => installAuthIdentityRuntime.getCurrentUserId(),
+  setCurrentServerUserId: (value) => {
+    backendSessionState.setServerUserId(value);
+  },
+  setConnected: (value) => {
+    backendConnectionGateState.setConnected(value);
+  },
+  setFirstQuery: (value) => {
+    backendConnectionGateState.setFirstQuery(value);
+  },
+  traceBackendConnection: (data) => electronMainTraceLogger.traceBackendConnection(data),
+  resetSettingsSyncState,
+  setResponseOverlayPhase,
+  clearEventReplayState: () => ipcEventReplayState.clear(),
+  logMainRuntime,
+  log,
+  broadcastConnectionStatus,
+  handleAgentBackendClose,
+  getEndpointCandidates: () => backendEndpointState.getCandidates(),
+  setActiveBackendEndpoint,
+  advanceToNextBackendEndpoint,
+  getCurrentEndpoint: () => backendEndpointState.getEndpoint(),
+});
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -491,37 +514,11 @@ function resolveWorkspacePathForAgent(payload = {}) {
 }
 
 function handleAgentConnection(event = {}) {
-  return handleAgentConnectionEvent(event, {
-    getCurrentUserId: () => installAuthIdentityRuntime.getCurrentUserId(),
-    setCurrentServerUserId: (value) => {
-      backendSessionState.setServerUserId(value);
-    },
-    setConnected: (value) => {
-      backendConnectionGateState.setConnected(value);
-    },
-    setFirstQuery: (value) => {
-      backendConnectionGateState.setFirstQuery(value);
-    },
-    traceBackendConnection: (data) => electronMainTraceLogger.traceBackendConnection(data),
-    resetSettingsSyncState,
-    setResponseOverlayPhase,
-    clearEventReplayState: () => ipcEventReplayState.clear(),
-    logMainRuntime,
-    log,
-    broadcastConnectionStatus,
-    handleAgentBackendClose,
-  });
+  return agentConnectionEventsRuntime.handleConnection(event);
 }
 
 function handleAgentBackendFallback(endpointPayload = {}) {
-  return handleAgentBackendFallbackEvent(endpointPayload, {
-    getEndpointCandidates: () => backendEndpointState.getCandidates(),
-    setActiveBackendEndpoint,
-    advanceToNextBackendEndpoint,
-    getCurrentEndpoint: () => backendEndpointState.getEndpoint(),
-    logMainRuntime,
-    log,
-  });
+  return agentConnectionEventsRuntime.handleBackendFallback(endpointPayload);
 }
 
 function resolveRuntimeConversationRef(input = {}) {

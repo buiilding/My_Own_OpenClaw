@@ -656,6 +656,9 @@ Owns Electron-main MCP refresh orchestration:
 
 Owns Electron-main Agent SDK backend connection event adaptation:
 
+- exposes `createAgentConnectionEventsRuntime(...)` so `ipc.cjs` injects host
+  setters, trace/log callbacks, endpoint state, and close handling once at
+  composition time
 - maps SDK backend open events into main-process session state callbacks,
   settings-sync reset, overlay idle transition, replay reset, diagnostics, and
   renderer connection-status broadcast
@@ -826,9 +829,9 @@ generic `to-backend` router or direct chat query IPC handlers.
     conversation trace rows delegates to `ipc_main_process_trace_runtime.cjs`.
 31. MCP latest-config refresh and startup enabled-server refresh gating delegate
     to `ipc_mcp_refresh_runtime.cjs`.
-32. Agent SDK backend connection open/error/message event adaptation and
-    backend fallback endpoint selection delegate to
-    `ipc_agent_connection_events.cjs`.
+32. Agent SDK backend connection open/error/message event adaptation,
+    runtime dependency injection, and backend fallback endpoint selection
+    delegate to `ipc_agent_connection_events.cjs`.
 33. Agent SDK backend close cleanup, including interrupted active-query event
     synthesis, replay reset, overlay idle fallback, session reset, and
     disconnect status broadcast, delegates to

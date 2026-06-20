@@ -72,7 +72,10 @@ Guard:
 - skips new connection if existing socket is `OPEN` or `CONNECTING`
 - resolves `ensureConnected(...)` waiters only after the handshake has been sent
 
-Open event adaptation lives in `ipc_agent_connection_events.cjs`. On open:
+Open event adaptation lives in the `createAgentConnectionEventsRuntime(...)`
+instance from `ipc_agent_connection_events.cjs`. `ipc.cjs` injects the
+main-process state setters, trace/log callbacks, endpoint state, and close
+handler once when composing the IPC runtime. On open:
 
 1. mark connected in `ipc_backend_connection_gate_state.cjs`
 2. reset first-query/settings-sync flags for this connection

@@ -319,8 +319,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('[Main][SDK] local_runtime_ready reason=');
     expect(agentRuntimeLifecycleSource).toContain('[Main][SDK] local_runtime_ensure_start reason=');
     expect(agentRuntimeLifecycleSource).toContain('[Main][SDK] local_runtime_ready reason=');
-    expect(source).toContain('handleAgentConnectionEvent(event');
-    expect(source).toContain('handleAgentBackendFallbackEvent(endpointPayload');
+    expect(source).toContain('createAgentConnectionEventsRuntime({');
+    expect(source).toContain('agentConnectionEventsRuntime.handleConnection(event)');
+    expect(source).toContain('agentConnectionEventsRuntime.handleBackendFallback(endpointPayload)');
     expect(source).not.toContain('[Main][Backend] connected user=');
     expect(source).not.toContain("event.type === 'open'");
     expect(agentConnectionEventSource).toContain('[Main][Backend] connected user=');

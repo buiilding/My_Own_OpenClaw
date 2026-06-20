@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK backend connection and fallback dependency wiring
+  into `createAgentConnectionEventsRuntime(...)`, preserving open/close/error
+  adaptation, settings reset, overlay idle transition, replay clearing,
+  renderer status broadcast, and endpoint fallback behavior. No migration
+  required.
 - main/ipc: move shared image IPC registration and trusted artifact-origin
   callback wiring into `ipc_image_interaction_handlers.cjs`, preserving
   clipboard image copy, native image context menu copy, backend artifact-origin

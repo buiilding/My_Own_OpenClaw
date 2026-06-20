@@ -104,7 +104,23 @@ function handleAgentBackendFallbackEvent(endpointPayload = {}, deps = {}) {
   log(`Primary backend unavailable. Falling back to ${endpoint.wsUrl}.`);
 }
 
+function createAgentConnectionEventsRuntime(deps = {}) {
+  function handleConnection(event = {}) {
+    return handleAgentConnectionEvent(event, deps);
+  }
+
+  function handleBackendFallback(endpointPayload = {}) {
+    return handleAgentBackendFallbackEvent(endpointPayload, deps);
+  }
+
+  return {
+    handleBackendFallback,
+    handleConnection,
+  };
+}
+
 module.exports = {
+  createAgentConnectionEventsRuntime,
   handleAgentBackendFallbackEvent,
   handleAgentConnectionEvent,
   resolveBackendFallbackIndex,
