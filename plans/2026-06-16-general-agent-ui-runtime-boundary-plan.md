@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 First-Read Architecture Local-Runtime Labels
+
+- Finding: first-read architecture and communication-flow docs still presented
+  the local Python sidecar as a peer runtime in overview text instead of naming
+  the local-runtime owner and Python implementation.
+- Change: routed the architecture hub, communication overview, and development
+  source-map line through local-runtime Python implementation wording, and
+  added modular docs guards for the retired first-read phrases.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  first-read phrase scan, and diff check.
+- Compatibility: no migration required. Runtime code, process startup, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and local-runtime behavior are unchanged.
+
 ### 2026-06-20 Packaged Local-Runtime Launch Labels
 
 - Finding: packaging, install, runtime-path, browser adapter, platform

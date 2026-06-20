@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a first-read architecture local-runtime label slice by
+  routing the architecture hub, communication overview, and development
+  source-map line through local-runtime Python implementation wording instead
+  of presenting the Python sidecar as a peer runtime owner. Validation covered
+  the focused modular docs boundary test, docs listing, exact stale first-read
+  phrase scan, and diff check. No migration required; runtime code, process
+  startup, IPC payloads, storage, credentials, permissions, hosted backend URLs,
+  provider policy, and local-runtime behavior are unchanged.
+
 - 2026-06-20: completed a packaged/local-runtime launch wording slice by
   routing packaging, install troubleshooting, runtime-path, browser adapter,
   platform validation, and auth-state docs through local-runtime startup or

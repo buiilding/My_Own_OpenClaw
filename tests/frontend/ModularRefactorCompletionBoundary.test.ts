@@ -1482,6 +1482,10 @@ describe('modular sdk refactor completion boundary', () => {
         'SDK/main local runtime -> Electron local adapter -> Python sidecar daemon',
         'SDK/main local runtime executes via Python sidecar daemon',
         'SDK/main local-runtime path and Python sidecar executor',
+        'preload bridge, local Python sidecar, wakeword subprocess',
+        'SDK local-runtime RPC between the desktop app and the local Python sidecar',
+        'the sidecar performs local execution on the user',
+        'main/python/           # local Python sidecar: tools, memory, browser, system',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

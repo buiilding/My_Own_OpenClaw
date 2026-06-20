@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: route first-read architecture, communication-flow, and
+  source-map sidecar labels through local-runtime Python implementation wording
+  instead of presenting the Python sidecar as a peer runtime owner. No
+  migration required.
 - docs/planning: route the mobile baseline tool-execution line through SDK
   local-runtime execution backed by the Python sidecar implementation instead
   of presenting the local Python sidecar as a parallel runtime target. No

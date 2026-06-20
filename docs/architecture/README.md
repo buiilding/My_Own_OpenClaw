@@ -11,7 +11,7 @@ title: "Architecture Hub"
 
 # Architecture Hub
 
-Start here for system-level design work. WindieOS is split across a hosted backend, Electron main process, React renderer, preload bridge, local Python sidecar, wakeword subprocess, VM worker mode, and hosted gateway/origin services.
+Start here for system-level design work. WindieOS is split across a hosted backend, Electron main process, React renderer, preload bridge, local-runtime Python implementation, wakeword subprocess, VM worker mode, and hosted gateway/origin services.
 
 ## Architecture Pages
 
