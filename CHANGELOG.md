@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move current-conversation backend connection composition into
+  `ipc_agent_runtime_lifecycle.cjs`, keeping `ipc.cjs` from rebuilding
+  `ensureConnected(...)` payloads with the active conversation ref and default
+  connect timeout. No migration required.
 - main/ipc: move main stop-target dependency composition into
   `createMainStopTargetRuntime(...)`, keeping live current-turn, pending-turn,
   active conversation, SDK stop, and overlay completion wiring out of

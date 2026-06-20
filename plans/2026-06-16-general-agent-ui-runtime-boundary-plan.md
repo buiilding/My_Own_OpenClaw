@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Runtime Current Connection Boundary
+
+- Finding: `ipc_agent_runtime_lifecycle.cjs` owned active Agent SDK adapter
+  lifecycle and raw `ensureConnected(...)` routing, but `ipc.cjs` still rebuilt
+  the current backend-connection payload by pairing reason/timeout inputs with
+  the active conversation ref for every ensure call.
+- Change: added `ensureCurrentBackendConnection(...)` to the lifecycle runtime
+  and injected the active conversation-ref getter plus default connect timeout
+  at composition time. `ipc.cjs` now delegates its public
+  `ensureBackendConnection(...)` wrapper to the lifecycle helper.
+- Validation: focused lifecycle coverage verifies lazy current conversation-ref
+  reads, default and override timeout behavior, active adapter
+  `ensureConnected(...)` payloads, and source guards that keep direct
+  conversation-ref payload assembly out of `ipc.cjs`.
+- Compatibility: no migration required. Backend connection readiness,
+  connection timeout defaults, current conversation-ref forwarding, settings
+  sync/query/MCP callers, renderer IPC channels, storage, credentials,
+  permissions, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Stop Target Runtime Composition Boundary
 
 - Finding: `ipc_stop_target_runtime.cjs` owned stop target selection and SDK

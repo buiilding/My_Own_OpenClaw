@@ -8,6 +8,8 @@ function createAgentRuntimeLifecycle(deps = {}) {
     getAgentClient,
     getAgentClientIfInitialized = () => null,
     logMainRuntime = () => {},
+    getCurrentConversationRef = () => null,
+    defaultBackendConnectTimeoutMs = undefined,
   } = deps;
   let activeAgent = null;
   let pendingAgentStartPromise = null;
@@ -77,6 +79,17 @@ function createAgentRuntimeLifecycle(deps = {}) {
     });
   }
 
+  function ensureCurrentBackendConnection(
+    reason = 'request',
+    timeoutMs = defaultBackendConnectTimeoutMs,
+  ) {
+    return ensureBackendConnection({
+      reason,
+      timeoutMs,
+      conversationRef: getCurrentConversationRef(),
+    });
+  }
+
   function reset({ closeActiveAgent = false } = {}) {
     pendingAgentStartPromise = null;
     if (closeActiveAgent) {
@@ -94,6 +107,7 @@ function createAgentRuntimeLifecycle(deps = {}) {
     ensureAgentLocalRuntime,
     isBackendRuntimeConnected,
     ensureBackendConnection,
+    ensureCurrentBackendConnection,
     reset,
   };
 }

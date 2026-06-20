@@ -125,6 +125,34 @@ describe('ipc_agent_runtime_lifecycle', () => {
     });
   });
 
+  test('ensures backend connection with the current conversation ref and default timeout', async () => {
+    const agent = {
+      ensureConnected: jest.fn(async () => true),
+    };
+    let currentConversationRef = 'conv-current';
+    const lifecycle = createAgentRuntimeLifecycle({
+      startAgent: jest.fn(async () => agent),
+      getAgentClient: jest.fn(),
+      getCurrentConversationRef: () => currentConversationRef,
+      defaultBackendConnectTimeoutMs: 10000,
+    });
+
+    await expect(lifecycle.ensureCurrentBackendConnection('query')).resolves.toBe(true);
+    currentConversationRef = 'conv-later';
+    await expect(lifecycle.ensureCurrentBackendConnection('retry', 2500)).resolves.toBe(true);
+
+    expect(agent.ensureConnected).toHaveBeenNthCalledWith(1, {
+      reason: 'query',
+      timeoutMs: 10000,
+      conversationRef: 'conv-current',
+    });
+    expect(agent.ensureConnected).toHaveBeenNthCalledWith(2, {
+      reason: 'retry',
+      timeoutMs: 2500,
+      conversationRef: 'conv-later',
+    });
+  });
+
 
   test('reset clears the active agent and can close it', async () => {
     const agent = { close: jest.fn() };
@@ -154,11 +182,15 @@ describe('ipc_agent_runtime_lifecycle', () => {
     expect(mainSource).not.toContain('let activeAgent');
     expect(mainSource).not.toContain('let pendingAgentStartPromise');
     expect(mainSource).not.toContain('pendingAgentStartPromise = startAgent({');
-    expect(mainSource).toContain('agentRuntimeLifecycle.ensureBackendConnection({');
+    expect(mainSource).toContain('agentRuntimeLifecycle.ensureCurrentBackendConnection(reason, timeoutMs)');
+    expect(mainSource).not.toContain('agentRuntimeLifecycle.ensureBackendConnection({');
+    expect(mainSource).not.toContain('conversationRef: backendSessionState.getConversationRef()');
     expect(mainSource).not.toContain('agent.ensureConnected({');
     expect(helperSource).toContain('let activeAgent = null;');
     expect(helperSource).toContain('let pendingAgentStartPromise = null;');
     expect(helperSource).toContain('pendingAgentStartPromise = startAgent({');
     expect(helperSource).toContain('agent.ensureConnected({');
+    expect(helperSource).toContain('function ensureCurrentBackendConnection');
+    expect(helperSource).toContain('conversationRef: getCurrentConversationRef()');
   });
 });

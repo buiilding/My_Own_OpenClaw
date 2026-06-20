@@ -389,6 +389,8 @@ const agentRuntimeLifecycle = createAgentRuntimeLifecycle({
   getAgentClient,
   getAgentClientIfInitialized: () => agentClientLifecycle.getAgentClientIfInitialized(),
   logMainRuntime,
+  getCurrentConversationRef: () => backendSessionState.getConversationRef(),
+  defaultBackendConnectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
 });
 const {
   sendQueryThroughAgentSdkRuntime,
@@ -915,11 +917,7 @@ function isBackendRuntimeConnected() {
 }
 
 async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
-  return agentRuntimeLifecycle.ensureBackendConnection({
-    reason,
-    timeoutMs,
-    conversationRef: backendSessionState.getConversationRef(),
-  });
+  return agentRuntimeLifecycle.ensureCurrentBackendConnection(reason, timeoutMs);
 }
 
 async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {

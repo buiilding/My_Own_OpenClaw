@@ -427,8 +427,12 @@ describe('main ipc sdk runtime boundary', () => {
     expect(agentRuntimeLifecycleSource).toContain('pendingAgentStartPromise = startAgent({');
     expect(source).not.toContain('[Main][SDK] local_runtime_ensure_start reason=');
     expect(source).not.toContain('[Main][SDK] local_runtime_ready reason=');
-    expect(source).toContain('agentRuntimeLifecycle.ensureBackendConnection({');
+    expect(source).toContain('agentRuntimeLifecycle.ensureCurrentBackendConnection(reason, timeoutMs)');
+    expect(source).not.toContain('agentRuntimeLifecycle.ensureBackendConnection({');
+    expect(source).not.toContain('conversationRef: backendSessionState.getConversationRef()');
     expect(source).not.toContain('agent.ensureConnected({');
+    expect(agentRuntimeLifecycleSource).toContain('function ensureCurrentBackendConnection');
+    expect(agentRuntimeLifecycleSource).toContain('conversationRef: getCurrentConversationRef()');
     expect(agentRuntimeLifecycleSource).toContain('agent.ensureConnected({');
     expect(agentRuntimeLifecycleSource).toContain('[Main][SDK] local_runtime_ensure_start reason=');
     expect(agentRuntimeLifecycleSource).toContain('[Main][SDK] local_runtime_ready reason=');

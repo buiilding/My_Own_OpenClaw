@@ -257,8 +257,9 @@ Owns Electron-main active Agent SDK adapter lifecycle state:
   adapter fallback
 - routes `AgentClient.localRuntime(...)` ensure calls with start/ready/failure
   logging
-- routes active adapter `ensureConnected(...)` calls with the current
-  conversation ref supplied by `ipc.cjs`
+- routes active adapter `ensureConnected(...)` calls, including
+  `ensureCurrentBackendConnection(...)` composition for current conversation-ref
+  lookup and default connect timeout
 - resets active adapter state for tests and closes the adapter when requested
 
 ### `ipc_agent_sdk_runtime_commands.cjs`
