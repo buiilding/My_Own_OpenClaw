@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move in-memory install-auth identity storage into
+  `ipc_install_auth_identity_runtime.cjs`, preserving install auth
+  normalization, current user status/query wiring, server-user fallback,
+  transcript-session user updates, SDK wake-up `installAuth` shaping, and test
+  reset behavior. No migration required.
 - main/ipc: move backend connected and first-query gate state into
   `ipc_backend_connection_gate_state.cjs`, preserving connection status
   snapshots, settings-sync gating, query context mode transitions, open/close

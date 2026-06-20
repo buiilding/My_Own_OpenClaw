@@ -10,23 +10,16 @@ const {
 
 function createIdentityRuntime(initialState = {}) {
   const state = {
-    currentInstallToken: null,
-    currentUserId: null,
-    currentInstallId: null,
     currentServerUserId: null,
-    ...initialState,
   };
+  const {
+    currentServerUserId = null,
+    ...identityInitialState
+  } = initialState;
+  state.currentServerUserId = currentServerUserId;
   const runtime = createInstallAuthIdentityRuntime({
-    getState: () => state,
-    setInstallToken: (value) => {
-      state.currentInstallToken = value;
-    },
-    setInstallId: (value) => {
-      state.currentInstallId = value;
-    },
-    setCurrentUserId: (value) => {
-      state.currentUserId = value;
-    },
+    initialState: identityInitialState,
+    getCurrentServerUserId: () => state.currentServerUserId,
     setCurrentServerUserId: (value) => {
       state.currentServerUserId = value;
     },
@@ -66,12 +59,12 @@ describe('ipc_install_auth_identity_runtime', () => {
       installId: 'install-1',
     });
 
-    expect(state).toEqual({
-      currentInstallToken: 'token-1',
-      currentUserId: 'user-1',
-      currentInstallId: 'install-1',
-      currentServerUserId: 'user-1',
+    expect(runtime.getCurrentState()).toEqual({
+      installToken: 'token-1',
+      userId: 'user-1',
+      installId: 'install-1',
     });
+    expect(state.currentServerUserId).toBe('user-1');
   });
 
   test('does not overwrite an existing server-issued user id', () => {
@@ -114,6 +107,31 @@ describe('ipc_install_auth_identity_runtime', () => {
     expect(runtime.buildDesktopInstallAuth()).toBeUndefined();
   });
 
+  test('updates current user independently and resets owned identity state', () => {
+    const { runtime } = createIdentityRuntime({
+      currentInstallToken: 'token-1',
+      currentUserId: 'user-1',
+      currentInstallId: 'install-1',
+    });
+
+    runtime.setCurrentUserId('user-2');
+    expect(runtime.getCurrentUserId()).toBe('user-2');
+    expect(runtime.getCurrentState()).toEqual({
+      installToken: 'token-1',
+      userId: 'user-2',
+      installId: 'install-1',
+    });
+
+    runtime.reset();
+    expect(runtime.getCurrentUserId()).toBeNull();
+    expect(runtime.getCurrentState()).toEqual({
+      installToken: null,
+      userId: null,
+      installId: null,
+    });
+    expect(runtime.buildDesktopInstallAuth()).toBeUndefined();
+  });
+
   test('ipc.cjs delegates install identity normalization and SDK auth shaping to the helper', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -125,9 +143,17 @@ describe('ipc_install_auth_identity_runtime', () => {
     );
 
     expect(mainSource).toContain('createInstallAuthIdentityRuntime({');
+    expect(mainSource).toContain('installAuthIdentityRuntime.getCurrentUserId()');
+    expect(mainSource).toContain('installAuthIdentityRuntime.setCurrentUserId(');
+    expect(mainSource).not.toContain('let currentUserId = null');
+    expect(mainSource).not.toContain('let currentInstallId = null');
+    expect(mainSource).not.toContain('let currentInstallToken = null');
     expect(mainSource).not.toContain('const installToken = typeof state.installToken');
     expect(mainSource).not.toContain('autoRegister: false');
     expect(helperSource).toContain('const installToken = typeof state.installToken');
+    expect(helperSource).toContain('let currentInstallToken = initialState.currentInstallToken');
+    expect(helperSource).toContain('let currentUserId = initialState.currentUserId');
+    expect(helperSource).toContain('let currentInstallId = initialState.currentInstallId');
     expect(helperSource).toContain('autoRegister: false');
   });
 });

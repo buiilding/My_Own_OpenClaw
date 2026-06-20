@@ -21,20 +21,28 @@ function normalizeInstallAuthState(state) {
 
 function createInstallAuthIdentityRuntime(deps = {}) {
   const {
-    getState = () => ({}),
-    setInstallToken = () => {},
-    setInstallId = () => {},
-    setCurrentUserId = () => {},
+    initialState = {},
+    getCurrentServerUserId = () => null,
     setCurrentServerUserId = () => {},
   } = deps;
+  let currentInstallToken = initialState.currentInstallToken || null;
+  let currentUserId = initialState.currentUserId || null;
+  let currentInstallId = initialState.currentInstallId || null;
 
   function getCurrentState() {
-    const state = getState();
     return {
-      installToken: state.currentInstallToken || null,
-      userId: state.currentUserId || null,
-      installId: state.currentInstallId || null,
+      installToken: currentInstallToken || null,
+      userId: currentUserId || null,
+      installId: currentInstallId || null,
     };
+  }
+
+  function getCurrentUserId() {
+    return currentUserId;
+  }
+
+  function setCurrentUserId(userId) {
+    currentUserId = userId;
   }
 
   function applyInstallAuthState(state) {
@@ -42,10 +50,10 @@ function createInstallAuthIdentityRuntime(deps = {}) {
     if (!normalized) {
       return null;
     }
-    setInstallToken(normalized.installToken);
-    setInstallId(normalized.installId);
-    setCurrentUserId(normalized.userId);
-    if (!getState().currentServerUserId) {
+    currentInstallToken = normalized.installToken;
+    currentInstallId = normalized.installId;
+    currentUserId = normalized.userId;
+    if (!getCurrentServerUserId()) {
       setCurrentServerUserId(normalized.userId);
     }
     return normalized;
@@ -64,10 +72,19 @@ function createInstallAuthIdentityRuntime(deps = {}) {
     };
   }
 
+  function reset() {
+    currentInstallToken = null;
+    currentUserId = null;
+    currentInstallId = null;
+  }
+
   return {
-    getCurrentState,
     applyInstallAuthState,
     buildDesktopInstallAuth,
+    getCurrentState,
+    getCurrentUserId,
+    reset,
+    setCurrentUserId,
   };
 }
 

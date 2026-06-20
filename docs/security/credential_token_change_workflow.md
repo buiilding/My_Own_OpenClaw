@@ -98,10 +98,13 @@ failure, not silent local identity invention.
 3. Backend stores only the token hash.
 4. Electron main normalizes and persists `{ installToken, userId, installId }` in `install-auth.json` under the app user-data directory.
    On POSIX platforms, saves and valid loads harden the file to owner read/write only and the containing user-data directory to owner-only access.
-5. Main process HTTP clients attach `Authorization: Bearer <installToken>`.
-6. Backend middleware authenticates `/api/*` paths except install registration.
-7. Middleware sets `request.state.install_identity` and request-local auth context.
-8. Route handlers use authenticated identity where ownership matters.
+5. `ipc_install_auth_identity_runtime.cjs` owns the in-memory install token,
+   install id, and client user id used by main-process status/query/wake-up
+   wiring.
+6. Main process HTTP clients attach `Authorization: Bearer <installToken>`.
+7. Backend middleware authenticates `/api/*` paths except install registration.
+8. Middleware sets `request.state.install_identity` and request-local auth context.
+9. Route handlers use authenticated identity where ownership matters.
 
 If this flow fails, avoid editing route handlers first. Check token persistence, header construction, middleware enablement, and `app.state.install_auth_service` wiring.
 

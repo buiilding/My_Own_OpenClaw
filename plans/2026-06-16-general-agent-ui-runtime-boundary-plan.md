@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Install Auth Identity State Boundary
+
+- Finding: `ipc_install_auth_identity_runtime.cjs` owned install-auth
+  normalization and SDK `installAuth` option shaping, but `ipc.cjs` still owned
+  mutable install token, install id, and current client user id storage
+  directly.
+- Change: moved in-memory install-auth identity storage into
+  `ipc_install_auth_identity_runtime.cjs`. `ipc.cjs` now consumes current-user
+  accessors for status, connection, backend close, query, SDK command,
+  automated-query, and transcript-session-sync wiring while the backend session
+  helper remains the server-user owner.
+- Validation: focused install-auth identity coverage for normalization,
+  server-user fallback preservation, SDK auth option shaping, current-user
+  updates, reset behavior, and boundary guards that keep mutable install/client
+  identity storage out of `ipc.cjs`.
+- Compatibility: no migration required. `install-auth.json` shape, install
+  bearer headers, client-session/status snapshots, query identity fields,
+  transcript-session user updates, SDK wake-up auth options, renderer IPC
+  channels, backend event payloads, storage, credentials, permissions, hosted
+  URLs, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Backend Connection Gate Boundary
 
 - Finding: `ipc.cjs` still owned mutable backend connected and first-query gate

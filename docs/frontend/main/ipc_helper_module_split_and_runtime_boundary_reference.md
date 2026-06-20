@@ -312,13 +312,16 @@ Owns Electron-main status payload shaping:
 
 ### `ipc_install_auth_identity_runtime.cjs`
 
-Owns Electron-main install-auth identity shaping:
+Owns Electron-main install-auth identity state and shaping:
 
+- stores the current install token, install id, and client user id
 - normalizes and trims install token, user id, and install id values before
-  applying them to main-process host state
-- initializes the server-user fallback from the install user only when the
-  backend has not supplied a server user id yet
+  applying them to owned main-process host state
+- initializes the server-user fallback in `ipc_backend_session_state.cjs` only
+  when the backend has not supplied a server user id yet
 - exposes the current install-auth state to `ipc_install_auth_runtime.cjs`
+- exposes current-user accessors for status, connection, backend close, query,
+  SDK command, automated-query, and transcript-session-sync wiring
 - builds the SDK wake-up `installAuth` option with `autoRegister: false`
 
 ### `ipc_direct_wake_up_agent_adapter.cjs`
@@ -840,9 +843,10 @@ generic `to-backend` router or direct chat query IPC handlers.
     including runtime URL fields, user/session/conversation fields, connection
     state, and global stop shortcut status projection, delegates to
     `ipc_status_payloads.cjs`.
-46. install-auth identity normalization and SDK wake-up auth option shaping,
-    including token/user/install trimming, server-user fallback initialization,
-    and `autoRegister: false`, delegates to
+46. install-auth identity state, normalization, and SDK wake-up auth option
+    shaping, including current client user, token/user/install trimming,
+    server-user fallback initialization, reset behavior, and
+    `autoRegister: false`, delegates to
     `ipc_install_auth_identity_runtime.cjs`.
 
 ## Drift Hotspots

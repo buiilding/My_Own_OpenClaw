@@ -77,7 +77,7 @@ Responsibilities:
   uses the returned `agent.conversation(...)` runtime, routes SDK command
   execution through `ipc_agent_sdk_runtime_commands.cjs`, keeps backend-message
   observer fan-out in `ipc_backend_message_observers.cjs`, shapes status payloads
-  through `ipc_status_payloads.cjs`, shapes install-auth identity through
+  through `ipc_status_payloads.cjs`, keeps install-auth identity state through
   `ipc_install_auth_identity_runtime.cjs`, routes backend event relay bookkeeping
   through `ipc_agent_backend_event_runtime.cjs`, applies response-overlay phase
   side effects through `ipc_response_overlay_phase_runtime.cjs`, resolves Agent

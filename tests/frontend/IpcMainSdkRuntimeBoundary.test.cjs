@@ -243,8 +243,14 @@ describe('main ipc sdk runtime boundary', () => {
     expect(appDiagnosticsRuntimeSource).toContain('[AppDiagnostics] failed to persist');
     expect(source).toContain('createInstallAuthIdentityRuntime({');
     expect(source).not.toContain('const installToken = typeof state.installToken');
+    expect(source).not.toContain('let currentUserId = null');
+    expect(source).not.toContain('let currentInstallId = null');
+    expect(source).not.toContain('let currentInstallToken = null');
     expect(source).not.toContain('autoRegister: false');
     expect(installAuthIdentitySource).toContain('const installToken = typeof state.installToken');
+    expect(installAuthIdentitySource).toContain('let currentInstallToken = initialState.currentInstallToken');
+    expect(installAuthIdentitySource).toContain('let currentUserId = initialState.currentUserId');
+    expect(installAuthIdentitySource).toContain('let currentInstallId = initialState.currentInstallId');
     expect(installAuthIdentitySource).toContain('autoRegister: false');
     const wakeCall = agentWakeupRuntimeSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');

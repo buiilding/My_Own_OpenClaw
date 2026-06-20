@@ -270,9 +270,6 @@ const BACKEND_CONNECT_TIMEOUT_MS = 10000;
 const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
 const ipcHostCopyRuntime = createIpcHostCopyRuntime();
 let rendererWindows = new Set();
-let currentUserId = null;
-let currentInstallId = null;
-let currentInstallToken = null;
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 let setAgentLoopStopShortcutEnabled = null;
@@ -305,9 +302,15 @@ const ipcEventReplayState = createIpcEventReplayState();
 const backendMessageObserverRegistry = createBackendMessageObserverRegistry({
   log,
 });
+const installAuthIdentityRuntime = createInstallAuthIdentityRuntime({
+  getCurrentServerUserId: () => backendSessionState.getServerUserId(),
+  setCurrentServerUserId: (value) => {
+    backendSessionState.setServerUserId(value);
+  },
+});
 const ipcStatusPayloads = createIpcStatusPayloads({
   getState: () => ({
-    currentUserId,
+    currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
     ...backendSessionState.getSnapshot(),
     isConnected: backendConnectionGateState.getConnected(),
   }),
@@ -400,26 +403,6 @@ const mcpRefreshRuntime = createMcpRefreshRuntime({
   isTest: () => process.env.NODE_ENV === 'test',
   log,
 });
-const installAuthIdentityRuntime = createInstallAuthIdentityRuntime({
-  getState: () => ({
-    currentInstallToken,
-    currentUserId,
-    currentInstallId,
-    currentServerUserId: backendSessionState.getServerUserId(),
-  }),
-  setInstallToken: (value) => {
-    currentInstallToken = value;
-  },
-  setInstallId: (value) => {
-    currentInstallId = value;
-  },
-  setCurrentUserId: (value) => {
-    currentUserId = value;
-  },
-  setCurrentServerUserId: (value) => {
-    backendSessionState.setServerUserId(value);
-  },
-});
 const installAuthRuntime = createInstallAuthRuntime({
   getCurrentState: () => installAuthIdentityRuntime.getCurrentState(),
   applyInstallAuthState: (state) => installAuthIdentityRuntime.applyInstallAuthState(state),
@@ -492,9 +475,7 @@ function resetBackendSessionState() {
 
 function resetIpcProcessStateForTests() {
   backendConnectionGateState.reset();
-  currentUserId = null;
-  currentInstallId = null;
-  currentInstallToken = null;
+  installAuthIdentityRuntime.reset();
   backendSessionState.reset();
   activeQueryContextState.reset();
   desktopUiConfigCache.reset();
@@ -513,7 +494,7 @@ function resolveWorkspacePathForAgent(payload = {}) {
 
 function handleAgentConnection(event = {}) {
   return handleAgentConnectionEvent(event, {
-    getCurrentUserId: () => currentUserId,
+    getCurrentUserId: () => installAuthIdentityRuntime.getCurrentUserId(),
     setCurrentServerUserId: (value) => {
       backendSessionState.setServerUserId(value);
     },
@@ -771,7 +752,7 @@ function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
     setActiveQueryContext: (value) => activeQueryContextState.set(value),
     getCurrentSessionId: () => backendSessionState.getSessionId(),
     getCurrentServerUserId: () => backendSessionState.getServerUserId(),
-    getCurrentUserId: () => currentUserId,
+    getCurrentUserId: () => installAuthIdentityRuntime.getCurrentUserId(),
     getQueryEventsCopy: () => ipcHostCopyRuntime.getQueryEvents(),
     buildQueryInterrupted,
     handleAgentBackendEvent,
@@ -894,7 +875,7 @@ function initializeIpc(win, options = {}) {
       currentUserId: nextUserId,
     }) => {
       backendSessionState.setConversationRef(nextConversationRef);
-      currentUserId = nextUserId;
+      installAuthIdentityRuntime.setCurrentUserId(nextUserId);
     },
     broadcastToRenderers,
   });
@@ -948,7 +929,7 @@ function initializeIpc(win, options = {}) {
   } = createChatQueryHandlers({
     getState: () => ({
       ...backendSessionState.getSnapshot(),
-      currentUserId,
+      currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
       isFirstQuery: backendConnectionGateState.getFirstQuery(),
     }),
     setCurrentConversationRef: (conversationRef) => {
@@ -1009,7 +990,7 @@ function initializeIpc(win, options = {}) {
       getState: () => ({
         currentConversationRef: backendSessionState.getConversationRef(),
         currentSessionId: backendSessionState.getSessionId(),
-        currentUserId,
+        currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
         isConnected: backendConnectionGateState.getConnected(),
         agent: agentRuntimeLifecycle.getActiveAgent(),
       }),
@@ -1088,7 +1069,7 @@ const automatedQueryDispatcher = createAutomatedQueryDispatcher({
   ),
   sendQueryThroughAgentSdkRuntime,
   getState: () => ({
-    currentUserId,
+    currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
     isFirstQuery: backendConnectionGateState.getFirstQuery(),
   }),
   setCurrentConversationRef: (conversationRef) => {
