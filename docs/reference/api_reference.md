@@ -21,7 +21,7 @@ The intended SDK split is:
 SDK consumers should not need to start a local runtime process just to use hosted OCR or prediction routes.
 
 The canonical TypeScript SDK surface is the standalone `@windie/sdk` package in
-`packages/windie-sdk-js`. The desktop and sidecar trees expose first-class
+`packages/windie-sdk-js`. The desktop and local-runtime Python trees expose first-class
 package entrypoints for their runtime boundary:
 
 - `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` (TypeScript app entrypoint)

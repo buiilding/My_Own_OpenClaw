@@ -17,7 +17,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 | Main SDK runtime host + settings gate | `frontend/src/main/ipc.cjs`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `main/ipc_runtime_helpers.cjs`, `main/ipc_renderer_windows.cjs`, `main/ipc_query_broadcast.cjs` | `main/backend_endpoints.cjs`, `main/ipc_query_events.cjs`, `main/ipc_query_runtime.cjs` | local-runtime tool implementation modules |
 | SDK local-runtime bridge | `frontend/src/main/sidecar/local_runtime*.cjs` | `main/runtime_paths.cjs`, mapper/util modules | renderer store logic |
 | Preload boundary | `frontend/src/preload.js` | renderer IPC bridge wrapper | main business logic edits |
-| Renderer app/provider composition | `renderer/app/**`, `renderer/components/**` | `renderer/infrastructure/ipc/*` | sidecar protocol files |
+| Renderer app/provider composition | `renderer/app/**`, `renderer/components/**` | `renderer/infrastructure/ipc/*` | local-runtime protocol files |
 | Renderer chat/tool UX runtime | `renderer/features/chat/**` | SDK conversation-event normalization, `renderer/app/runtime/desktopChatStreamIngressRuntime.ts` | main overlay bounds logic |
 | Renderer dashboard/settings/voice | `renderer/features/{dashboard,settings,voice}/**` | provider contexts + transcript infra | local execution logic |
 | Renderer infra services | `renderer/infrastructure/{api,ipc,audio,services,transcript}/**` | main IPC handlers + local-runtime RPC contracts | landing page modules |

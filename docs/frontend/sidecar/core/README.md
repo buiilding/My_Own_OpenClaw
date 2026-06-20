@@ -2,7 +2,7 @@
 summary: "Local-runtime core docs sub-hub for JSON-RPC protocol/error semantics, stdout framing, backend URL resolution, remote semantic clients, and shared executor lifecycle backed by Python sidecar implementations."
 read_when:
   - When changing `frontend/src/main/python/core/*` modules.
-  - When debugging sidecar protocol parse/dispatch failures, stdout framing, or remote semantic client connectivity.
+  - When debugging local-runtime protocol parse/dispatch failures, stdout framing, or remote semantic client connectivity.
 title: "Local-Runtime Core Docs Hub"
 ---
 

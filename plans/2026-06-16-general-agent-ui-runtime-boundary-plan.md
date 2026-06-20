@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Protocol and Route Labels
+
+- Finding: performance, packaging, ownership-decision, system-state,
+  protocol-surface, API-reference, source-map, and Python implementation
+  workflow docs still used public `sidecar JSON-RPC`, `main/sidecar route`,
+  `sidecar response`, `sidecar API`, `sidecar protocol`, or sidecar-tree
+  labels for reusable local-runtime routes and contracts.
+- Change: reworded those labels through local-runtime JSON-RPC,
+  local-runtime backend-config, SDK/main local-runtime dispatch, and
+  local-runtime Python wording while preserving Python sidecar references where
+  the docs point at concrete implementation modules, stdout framing, process
+  names, or sidecar pytest coverage.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale route/protocol/API phrase scan, docs listing, and diff check.
+- Compatibility: no migration required. JSON-RPC method names, params, daemon
+  endpoints, IPC channels, SDK/main dispatch, packaged runtime paths, backend
+  endpoint injection, storage, credentials, permissions, provider policy,
+  hosted URLs, and local-runtime behavior are unchanged.
+
 ### 2026-06-20 Local-Runtime Startup and Request Labels
 
 - Finding: install troubleshooting, operations, frontend architecture,

@@ -168,13 +168,13 @@ Current runtime note:
 ## Test-Backed Anchors
 
 - `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
-  - `get-system-state` returns `null` when sidecar response is unsuccessful
+  - `get-system-state` returns `null` when the local-runtime response is unsuccessful
 - `tests/frontend/IpcMainBridge.query.test.cjs`
   - query payload falls back to `<active_window>Unknown</active_window>` when system-state fetch fails
 
 ## Drift Hotspots
 
-1. changing Python sidecar response shape (`{ success, data }`) without main unwrapping updates breaks renderer consumers.
+1. changing local-runtime JSON-RPC response shape (`{ success, data }`) without main unwrapping updates breaks renderer consumers.
 2. changing default values (`Unknown`, `<error>`, `[]`) can alter prompt XML and downstream model behavior.
 3. platform dependency loss (`xdotool`, `pyautogui`, `pyperclip`, `pywin32`, `AppKit`) silently degrades capture quality unless logs are monitored.
 4. Linux fuzzy matching thresholds in window switching are safety-sensitive; loosened thresholds risk wrong-window activation.

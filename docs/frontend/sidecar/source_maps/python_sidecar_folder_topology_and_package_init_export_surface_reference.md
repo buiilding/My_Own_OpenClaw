@@ -20,14 +20,14 @@ narrative for the Python local-runtime implementation boundaries.
 
 It documents:
 
-- two sidecar service entrypoints (`local_backend.py`, `wakeword_service.py`)
+- two local-runtime Python service entrypoints (`local_backend.py`, `wakeword_service.py`)
 - `core/`, `memory/`, and `tools/` package roles
 - transport/protocol flow (JSON-RPC line protocol and wakeword binary framing)
 - memory storage pipeline (SQLite + FAISS + SDK-provided embeddings and backend semantic APIs)
 
 Maintenance rule:
 
-- if sidecar folder ownership or service flows change, update this source map in the same change set
+- if local-runtime Python folder ownership or service flows change, update this source map in the same change set
 
 ## Sidecar Package `__init__` Surface Contract
 
@@ -54,7 +54,7 @@ entrypoint for external callers.
 
 ## Refactor Safety Checklist
 
-When moving sidecar modules:
+When moving local-runtime Python modules:
 
 1. update `folder_structure.md` topology narrative
 2. preserve or intentionally migrate live `__init__.py` exports

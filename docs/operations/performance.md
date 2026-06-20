@@ -50,8 +50,8 @@ read_when:
 - **Lazier browser startup path**: browser tool runtime imports are now deferred until first browser tool execution instead of sidecar boot.
 - **No duplicate FAISS read at startup**: `LocalMemoryStore` no longer performs redundant sync+async FAISS index reads during initialization.
 - **Safer/lighter startup vector sync**: `LocalMemoryStore` now ensures FAISS indices exist before embedding backfill and skips FAISS disk writes when startup sync made no vector changes.
-- **Lean screenshot transport over sidecar JSON-RPC**: sidecar screenshot tool now returns temp file refs, and Electron main uploads those files to backend artifacts (`screenshot_ref`) before renderer tool handling, removing huge inline base64 JSON lines from the sidecar stdout hot path.
-- **Large JSON-line parse off main thread**: Electron main now routes oversized sidecar JSON-RPC lines (>=128KB) through worker-thread JSON parsing and drains them through a serialized queue, reducing main-thread parse spikes.
+- **Lean screenshot transport over local-runtime JSON-RPC**: the Python sidecar screenshot implementation now returns temp file refs, and Electron main uploads those files to backend artifacts (`screenshot_ref`) before renderer tool handling, removing huge inline base64 JSON lines from the Python stdout hot path.
+- **Large JSON-line parse off main thread**: Electron main now routes oversized local-runtime JSON-RPC lines (>=128KB) through worker-thread JSON parsing and drains them through a serialized queue, reducing main-thread parse spikes.
 
 ## Tips
 

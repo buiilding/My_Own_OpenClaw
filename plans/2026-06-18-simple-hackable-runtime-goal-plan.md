@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed performance, packaging, ownership-decision,
+  system-state, protocol-surface, API-reference, source-map, and Python
+  implementation workflow labels through local-runtime JSON-RPC,
+  local-runtime backend-config, SDK/main local-runtime dispatch, and
+  local-runtime Python wording instead of public `sidecar JSON-RPC`,
+  `main/sidecar route`, `sidecar response`, `sidecar API`, `sidecar protocol`,
+  and sidecar-tree owner labels. Validation covered the modular docs boundary
+  guard, docs search, related commit search, stale route/protocol/API phrase
+  scan, docs listing, and diff check. No migration required; JSON-RPC method
+  names, params, daemon endpoints, IPC channels, SDK/main dispatch, packaged
+  runtime paths, backend endpoint injection, storage, credentials, permissions,
+  provider policy, hosted URLs, and local-runtime behavior are unchanged.
+
 - 2026-06-20: routed install troubleshooting, operations, frontend
   architecture, local-runtime JSON-RPC protocol, Python implementation
   workflow, platform, and README index labels through local-runtime

@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route performance, packaging, ownership-decision, system-state,
+  protocol-surface, and source-map wording through local-runtime JSON-RPC,
+  backend-config, and local-runtime Python labels instead of sidecar
+  route/API/protocol/response owner labels. No migration required.
 - docs/tools: route ADR 005, tool contract entrypoint, and local-runtime
   backend-config wording through local-runtime dispatch and remote request
   contracts instead of sidecar-owned execution/request labels. No migration

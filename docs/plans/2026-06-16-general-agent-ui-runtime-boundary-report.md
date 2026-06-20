@@ -12,11 +12,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: install, operations, frontend architecture,
-  local-runtime JSON-RPC protocol, Python implementation workflow, platform,
-  and README index docs now use local-runtime startup/request wording instead
-  of public sidecar-startup/request owner labels while preserving concrete
-  Python sidecar implementation references.
+- Latest completed slice: performance, packaging, ownership-decision,
+  system-state, protocol-surface, API-reference, source-map, and Python
+  implementation workflow docs now use local-runtime JSON-RPC,
+  local-runtime backend-config, SDK/main local-runtime dispatch, and
+  local-runtime Python wording instead of public sidecar route/API/protocol
+  owner labels while preserving concrete Python sidecar implementation
+  references.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
