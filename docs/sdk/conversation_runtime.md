@@ -484,8 +484,8 @@ Responsibility split:
   continuity orchestration.
 - Electron owns local IPC, local-runtime-backed persistence, and renderer wiring.
 - Local runtime owns durable rows, ordering, list/search/title/delete queries,
-  and SQLite/FAISS mechanics; the current desktop implementation is backed by
-  the Python sidecar.
+  and SQLite/FAISS mechanics; the current desktop implementation remains behind
+  the local-runtime boundary.
 - SDK local-runtime clients own the raw local-runtime event subscription surface.
   Electron hosts classify local events such as `conversation-title-updated` at
   the main-process boundary and broadcast public invalidations such as

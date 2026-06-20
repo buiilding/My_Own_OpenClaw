@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 SDK Active Sidecar Wording Boundary
+
+- Finding: active SDK docs still used sidecar-facing wording for OCR/vision
+  local process requirements, a legacy implementation-specific env alias, and
+  the current desktop implementation behind conversation-store persistence.
+- Change: reworded those SDK docs through local-runtime process and
+  implementation-specific alias language, while leaving concrete sidecar paths
+  and test commands outside the public SDK contract docs unchanged.
+- Validation: passed focused SDK docs boundary test, docs listing, active SDK
+  sidecar wording scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK APIs, local-runtime
+  daemon behavior, discovery payloads, persisted conversation rows, OCR/vision
+  routes, IPC channels, storage, credentials, permissions, provider policy, and
+  hosted URLs are unchanged.
+
 ### 2026-06-20 SDK Local Runtime Daemon Docs Boundary
 
 - Finding: `docs/sdk/windie_client_runtime.md` still described the generic

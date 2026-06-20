@@ -751,7 +751,8 @@ Non-Electron SDK hosts can override that behavior with:
   `AgentClient`. Node and Python SDK hosts that rely on an environment override
   use `AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT`; legacy
   `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT` remains supported, while the older
-  sidecar-named env override is not part of the SDK local-runtime contract.
+  implementation-specific env override is not part of the SDK local-runtime
+  contract.
   The SDK does not guess WindieOS repository paths for the daemon. Hosts must
   pass `autoLocalRuntime.command`, pass `autoLocalRuntime.daemonScript`, or set
   `AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT`.

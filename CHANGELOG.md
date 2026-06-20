@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/docs: remove remaining sidecar-facing active wording from SDK runtime,
+  conversation, and OCR/vision docs so public SDK contracts route through
+  local-runtime processes and implementation-specific env aliases. No migration
+  required.
 - sdk/docs: route the `AgentClient` local-runtime options reference through a
   configured daemon command/script instead of naming the desktop sidecar script
   or repo sidecar launcher args in the reusable SDK contract. No migration

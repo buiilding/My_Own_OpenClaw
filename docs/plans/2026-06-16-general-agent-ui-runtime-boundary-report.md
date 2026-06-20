@@ -194,6 +194,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 SDK Active Sidecar Wording Boundary
+
+- Finding: SDK docs still exposed sidecar-facing active contract wording for
+  OCR/vision process requirements, an older implementation-specific env alias,
+  and the current desktop conversation-store implementation detail.
+- Change: changed those references to local-runtime process,
+  implementation-specific alias, and local-runtime boundary wording, and
+  extended the modular SDK docs guard for the retired active phrases.
+- Validation: passed focused SDK docs boundary test, docs listing, active SDK
+  sidecar wording scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK APIs, local-runtime
+  daemon behavior, discovery payloads, persisted conversation rows, OCR/vision
+  routes, IPC channels, storage, credentials, permissions, provider policy, and
+  hosted URLs are unchanged.
+
 ### 2026-06-20 SDK Local Runtime Daemon Docs Boundary
 
 - Finding: the SDK runtime reference still described the reusable

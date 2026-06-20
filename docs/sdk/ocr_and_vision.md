@@ -8,7 +8,7 @@ title: "OCR and Vision SDK"
 
 # OCR and Vision SDK
 
-SDK OCR and vision routes expose backend-owned perception capabilities for developer tooling. They should not require a local Electron app or sidecar process.
+SDK OCR and vision routes expose backend-owned perception capabilities for developer tooling. They should not require a local Electron app or local-runtime process.
 
 ## Route Families
 

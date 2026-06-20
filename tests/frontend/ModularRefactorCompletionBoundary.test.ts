@@ -239,6 +239,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(apiReferenceText).toContain('local runtime process just to use hosted OCR or prediction routes');
     expect(sdkDocText).not.toContain('sidecar runtime client');
     expect(sdkDocText).not.toContain('sidecar daemon');
+    expect(sdkDocText).not.toContain('sidecar process');
+    expect(sdkDocText).not.toContain('sidecar-named env');
     expect(sdkDocText).not.toContain('sidecar_daemon.py');
     expect(sdkDocText).not.toContain('scripts/python-in-env sidecar python');
     expect(sdkDocText).not.toContain('sidecar tool manifest');
@@ -252,6 +254,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('runnable sidecar plugin');
     expect(sdkDocText).not.toContain('sidecar local tool implementation');
     expect(sdkDocText).not.toContain('Use sidecar tools for local machine control');
+    expect(sdkDocText).not.toContain('backed by\n  the Python sidecar');
     expect(sdkDocText).not.toContain('raw backend');
     expect(sdkDocText).not.toContain('raw-backend');
     expect(apiReferenceText).not.toContain('local backend process just to use hosted OCR or prediction routes');
