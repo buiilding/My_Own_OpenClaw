@@ -82,7 +82,7 @@ Added/expanded in WindieOS:
 - `desktop/`: user-visible desktop surface docs for dashboard, chat pill, response overlay, onboarding/permissions, voice, artifacts, and artifact-change workflow routing.
 - `debug/`: OpenClaw-style debug docs for logs, observability-change routing, error/failure change routing, diagnostic flags, endpoint/network checks, process health, trace flags, symptom playbooks, and test selection.
 - `channels/`: OpenClaw-style channel docs for desktop chat, websocket transport and event-contract change routing, voice/audio workflows, local-runtime tool execution, SDK clients, and VM run control routing.
-- `nodes/`: runtime process/service docs mapping WindieOS's current hosted backend, Electron desktop, renderer, preload, Python sidecar, wakeword, VM worker, and Cloudflare/origin nodes, while keeping mobile/edge and one-agent-per-VM nodes marked as planned.
+- `nodes/`: runtime process/service docs mapping WindieOS's current hosted backend, Electron desktop, renderer, preload, local-runtime Python, wakeword, VM worker, and Cloudflare/origin nodes, while keeping mobile/edge and one-agent-per-VM nodes marked as planned.
 - `security/`: top-level security docs for hosted auth, IPC isolation, validation, credential/token change workflows, credentials/tokens, permissions/local authority, tool authority, local execution, and multi-user risks.
 - `plugins/`: current plugin-like extension docs for tools, providers, SDK routes, local-runtime actions, renderer features, and future plugin-system boundaries.
 - `browser/`: dedicated browser automation docs for launch/profile isolation, change workflow routing, action dispatch, session UI, files, and troubleshooting.

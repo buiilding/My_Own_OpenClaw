@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(nodes): route runtime-node, transcript-storage, desktop-local-execution,
+  workflow, link-label, debug, tool-catalog, development, mobile-planning, and
+  concept docs through local-runtime Python implementation wording. No
+  migration required.
 - docs(browser): route browser adapter, Browser Use handler, browser file,
   source-map export, ownership, and platform tool labels through local-runtime
   Python wording. No migration required.

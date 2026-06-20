@@ -274,7 +274,7 @@ If you add backend-only tools, document the wiring point in the same PR.
    `backend/src/tools/tool_catalog.py` and the concrete
    `backend/src/tools/remote_tools/<domain>.py` module.
 2. For built-in local-runtime executable tools, confirm the tool is listed in
-   `frontend/src/main/python/tools/manifest.py`, the current Python sidecar
+   `frontend/src/main/python/tools/manifest.py`, the current local-runtime Python
    implementation manifest.
 3. For local-runtime plugin tools, confirm `plugin.json` has `schema` and
    `entrypoint`.
@@ -292,5 +292,5 @@ If you add backend-only tools, document the wiring point in the same PR.
 
 See also:
 - [Tool System](../architecture/tool_system.md)
-- [Python Sidecar](../architecture/python_sidecar.md)
+- [Local-Runtime Python Implementation](../architecture/python_sidecar.md)
 - [API Reference](../reference/api_reference.md)

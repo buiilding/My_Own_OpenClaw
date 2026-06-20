@@ -41,4 +41,4 @@ WindieOS is not only a chat UI. It is a set of desktop surfaces coordinated by E
 
 ## Rule
 
-Keep product-surface behavior separated from transport and local execution. UI state belongs in renderer/app providers and feature stores; window/permission/process behavior belongs in Electron main; local tool execution is reached through the SDK local-runtime contract and implemented by the Python sidecar.
+Keep product-surface behavior separated from transport and local execution. UI state belongs in renderer/app providers and feature stores; window/permission/process behavior belongs in Electron main; local tool execution is reached through the SDK local-runtime contract and implemented by local-runtime Python.

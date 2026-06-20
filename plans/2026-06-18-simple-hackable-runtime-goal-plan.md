@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a runtime-node local-runtime Python label slice by
+  routing runtime-node, transcript replay, desktop, concept, docs-hub,
+  workflow, architecture link-label, tool-development, platform, debug,
+  tool-catalog, agent-architecture, and mobile-planning docs through
+  local-runtime Python implementation wording instead of Python sidecar
+  node/subprocess/test/storage labels. The slice preserved concrete
+  `frontend/src/main/python`, `tests/sidecar`, and Python subprocess details
+  while extending the modular docs guard against the retired phrases.
+  Validation covered the focused modular docs boundary test, docs listing,
+  exact stale runtime-node label scan, and diff checks. No migration required;
+  runtime code, transcript storage, local-runtime process behavior, tool
+  execution, JSON-RPC/daemon payloads, IPC payloads, storage files,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
 - 2026-06-20: completed a browser/platform local-runtime Python label slice by
   routing browser workflow/hub, browser automation stack, storage persistence,
   source-map export, runtime ownership, and platform workflow docs through

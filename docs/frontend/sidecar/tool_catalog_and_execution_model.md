@@ -101,7 +101,7 @@ Current runtime boundary:
   - tool name must exist in the in-memory registry
   - `args` must be an object
   - args are deep-copied before tool invocation
-- no wrapper-envelope validation path exists in the current Python sidecar
+- no wrapper-envelope validation path exists in the current local-runtime Python
   registry implementation
 - runtime argument enforcement is therefore owned by the concrete tool implementation, not by a sidecar wrapper router
 

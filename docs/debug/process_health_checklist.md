@@ -73,7 +73,7 @@ First checks:
 - local-runtime stderr forwarding,
 - bundled runtime path in packaged app,
 - `frontend/src/main/python/local_backend.py`,
-- focused Python sidecar pytest for the failing tool.
+- focused local-runtime Python pytest for the failing tool.
 
 ## Wakeword Service
 

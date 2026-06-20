@@ -25,7 +25,7 @@ Start here for system-level design work. WindieOS is split across a hosted backe
 - [Communication Flow](communication_flow.md)
 - [Backend Architecture](backend_architecture.md)
 - [Frontend Architecture](frontend_architecture.md)
-- [Python Sidecar](python_sidecar.md)
+- [Local-Runtime Python Implementation](python_sidecar.md)
 - [Agent System](agent_system.md)
 - [Tool System](tool_system.md)
 - [LLM Integration](llm_integration.md)

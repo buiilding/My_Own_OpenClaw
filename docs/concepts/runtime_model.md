@@ -22,7 +22,7 @@ server-owned while machine control stays local to the user's computer.
 | Electron main process | Window lifecycle, overlay surfaces, SDK-runtime adaptation, local config, permission probes, SDK local-runtime host/status context | `frontend/src/main` |
 | React renderer | Dashboard, chat UI, minimal pill, response overlay, settings, permissions, voice controls, and tool-result projections | `frontend/src/renderer` |
 | Preload | Strict renderer IPC exposure and channel allowlist | `frontend/src/preload.js` |
-| Local runtime | Local executable tools, browser automation, shell/filesystem/computer actions, local memory, system state, wakeword service. Current implementation: Python sidecar. | `frontend/src/main/python` |
+| Local runtime | Local executable tools, browser automation, shell/filesystem/computer actions, local memory, system state, wakeword service. Current implementation: local-runtime Python. | `frontend/src/main/python` |
 
 ## Boundary Rules
 

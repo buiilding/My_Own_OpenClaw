@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Runtime Node Local-Runtime Python Labels
+
+- Finding: runtime-node, transcript replay, desktop, concept, docs-hub,
+  workflow, architecture link-label, tool-development, platform, debug,
+  tool-catalog, agent-architecture, and mobile-planning docs still used Python
+  sidecar node/subprocess/test/storage labels where the reusable owner is the
+  local runtime and the concrete implementation is local-runtime Python.
+- Change: routed node tables, transcript storage validation labels, desktop
+  local-execution copy, runtime model copy, docs-hub links, sidecar workflow
+  ownership copy, architecture link labels, debug trace copy, tool-catalog
+  registry copy, agent-architecture guidance, and mobile planning constraints
+  through local-runtime Python implementation wording while preserving concrete
+  `frontend/src/main/python`, `tests/sidecar`, and Python subprocess details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  runtime-node label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, transcript storage,
+  local-runtime process behavior, tool execution, JSON-RPC/daemon payloads, IPC
+  payloads, storage files, credentials, permissions, hosted backend URLs,
+  provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Browser and Platform Local-Runtime Python Labels
 
 - Finding: browser workflow/hub, local-runtime browser automation stack,

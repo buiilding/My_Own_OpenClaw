@@ -1321,7 +1321,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Summarizer Watermark and Conversation Batch Reference');
     expect(docText).toContain('Frontend Main/Renderer/Contracts/Local-Runtime Hubs');
     expect(docText).toContain('Local-Runtime Python Implementation Change Workflow');
-    expect(docText).toContain('Local-runtime implementation node (Python sidecar)');
+    expect(docText).toContain('Local-runtime Python implementation node');
     expect(docText).toContain('SDK/main local runtime owns local executable authority');
     expect(docText).toContain('behind SDK local-runtime ownership');
     const runtimeConfigMatrix = await read('docs/operations/runtime_configuration_matrix.md');
@@ -2632,6 +2632,18 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar Browser Use engine adapter',
         'Python sidecar Browser Use handler bindings',
         'Python sidecar computer tools and platform adapter',
+        'Local-runtime implementation node (Python sidecar)',
+        'sidecar pytest coverage',
+        'preload, Python sidecar',
+        'Python sidecar subprocess',
+        'focused Python sidecar pytest',
+        'the Python sidecar implements the current SQLite backing store',
+        'Sidecar transcript storage/list/window/delete',
+        'Sidecar conversation search',
+        'implemented by the Python sidecar',
+        'Current implementation: Python sidecar',
+        'the Python sidecar is the current concrete implementation',
+        '[Python Sidecar]',
         'Python sidecar unit test for the executable tool',
         'Python sidecar computer implementations',
         'Python sidecar scoped host bridge',

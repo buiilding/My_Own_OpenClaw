@@ -2,7 +2,7 @@
 summary: "Desktop and local-runtime node guide for Electron main, renderer, preload, local-runtime Python implementation, wakeword subprocess, and local-tool ownership."
 read_when:
   - When changing local desktop behavior, renderer/main IPC, local-runtime JSON-RPC, local tools, wakeword, permissions, overlays, or transcript projection.
-  - When debugging a failure that crosses UI, Electron main, preload, Python sidecar, or OS permissions.
+  - When debugging a failure that crosses UI, Electron main, preload, local-runtime Python, or OS permissions.
 title: "Desktop and Local Runtime Node"
 ---
 
@@ -13,7 +13,7 @@ The desktop node is not one process. It is a small local runtime cluster:
 - Electron main process
 - one or more renderer processes
 - preload bridge injected into renderer windows
-- Python sidecar subprocess
+- local-runtime Python subprocess
 - optional wakeword subprocess
 
 Keep these nodes separate when developing. They run on the user's machine, but each owns a different trust boundary.
@@ -128,7 +128,7 @@ For a desktop/local-runtime bug, identify the last successful boundary:
 | IPC or preload channel | preload allowlist parity and main IPC tests |
 | main-process window/overlay behavior | main overlay/window tests |
 | local-runtime JSON-RPC mapping | local-runtime Python JSON-RPC protocol tests and main bridge mapper tests |
-| local-runtime tool implementation | focused Python sidecar pytest for the tool |
+| local-runtime tool implementation | focused local-runtime Python pytest for the tool |
 | backend-visible local tool contract | backend remote-tool/schema tests plus local-runtime executable parity tests |
 | wakeword service or bridge | wakeword bridge/service tests and voice hook tests |
 

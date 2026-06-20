@@ -8,11 +8,11 @@ title: "Local-Runtime Python Implementation Change Workflow"
 
 # Local-Runtime Python Implementation Change Workflow
 
-Use this workflow when behavior is implemented by the Python sidecar behind the
+Use this workflow when behavior is implemented by local-runtime Python behind the
 local-runtime boundary. The local runtime owns local-machine actions and local
 data services: executable tools, browser automation, local memory
 storage/search, system state, platform adapters, wakeword service protocol,
-backend URL clients, and JSON-RPC method handling. The Python sidecar provides
+backend URL clients, and JSON-RPC method handling. Local-runtime Python provides
 the current concrete implementation for those surfaces.
 
 The local-runtime Python implementation is not the model-facing policy owner. Backend
@@ -126,7 +126,7 @@ When changing platform adapters or system state:
 
 Before committing sidecar work:
 
-- Did the change belong to Python sidecar rather than backend policy, Electron main orchestration, or renderer projection?
+- Did the change belong to local-runtime Python rather than backend policy, Electron main orchestration, or renderer projection?
 - Did JSON-RPC and Electron bridge payloads stay explicit and tested when they changed?
 - Did packaged runtime dependencies and source-mode imports stay separated?
 - Did local authority boundaries remain clear for filesystem, shell, browser, screenshot, input, and window operations?

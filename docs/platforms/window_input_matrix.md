@@ -55,4 +55,4 @@ Window and input behavior spans Electron main and the local runtime. Electron ow
 - [Platform Permission Matrix](permission_matrix.md)
 - [Screenshot and Overlay Policy](screenshot_overlay_policy.md)
 - [Desktop and Local Runtime Node](../nodes/desktop_and_sidecar_node.md)
-- [Python Sidecar](../architecture/python_sidecar.md)
+- [Local-Runtime Python Implementation](../architecture/python_sidecar.md)

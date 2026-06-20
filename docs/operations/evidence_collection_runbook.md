@@ -42,11 +42,11 @@ Next action:
 | Main websocket | close code, first handshake payload shape, bearer token presence, backend logs | [WebSocket Connection Lifecycle](../gateway/websocket_connection_lifecycle.md) |
 | Electron main | endpoint candidates, token registration state, websocket state, local-runtime bridge readiness | Electron logs, `frontend/src/main/app/backend_endpoints.cjs`, `WINDIE_LOG_FILE=<path>` |
 | Renderer | visible state, active conversation/session, SDK projection event type, tool display state | focused frontend test or browser/devtools observation |
-| Local-runtime Python implementation | JSON-RPC method, stderr, tool result payload, remote client URL | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG`, focused Python sidecar pytest target |
+| Local-runtime Python implementation | JSON-RPC method, stderr, tool result payload, remote client URL | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG`, focused local-runtime Python pytest target |
 | Packaged app | package type, runtime path, install location, local app state, packaged log | reinstall runbook, `~/windieos-packaged-run.log` on macOS helper path |
 | VM worker | worker env, heartbeat route status, assignment payload, run timeline | `/api/runs/*`, `WINDIE_VM_*`, runs API key |
 | Provider | provider id/model id, credential presence, health/circuit state, provider error | provider-specific backend tests and docs |
-| Permissions/platform | OS, permission probe result, actual privileged operation result | permission matrix, platform notes, Python sidecar platform tests |
+| Permissions/platform | OS, permission probe result, actual privileged operation result | permission matrix, platform notes, local-runtime Python platform tests |
 
 ## Trace Flags
 

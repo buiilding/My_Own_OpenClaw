@@ -36,7 +36,7 @@ WindieOS is currently desktop-first and Electron-coupled:
 Mobile blockers from this baseline:
 
 - No Electron main/preload/IPC layer on mobile.
-- No portable way to run the current Python sidecar subprocess model on iOS/Android.
+- No portable way to run the current local-runtime Python subprocess model on iOS/Android.
 - No desktop window overlay/hotkey model on mobile.
 - Current backend CORS defaults only allow `http://localhost:5173` (`backend/src/main.py`).
 - Memory browsing/deletion UI currently depends on SDK local-runtime-backed

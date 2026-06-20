@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: browser workflow, browser hub, browser automation
-  stack, storage, source-map, ownership, and platform docs now route Browser
-  Use adapter, browser action, browser file, tool export, tool implementation,
-  and platform-tool labels through local-runtime Python wording, with a focused
-  docs boundary guard against those retired phrases.
+- Latest completed slice: runtime-node, transcript replay, desktop, concept,
+  docs-hub, workflow, architecture link-label, platform, debug, tool-catalog,
+  agent-architecture, and mobile-planning routes now describe the
+  local-runtime Python implementation node instead of Python sidecar owner
+  labels, with a focused docs boundary guard against those retired phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -245,6 +245,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Runtime Node Local-Runtime Python Labels
+
+- Finding: runtime-node, transcript replay, desktop, concept, docs-hub,
+  workflow, architecture link-label, tool-development, platform, debug,
+  tool-catalog, agent-architecture, and mobile-planning docs still used Python
+  sidecar node/subprocess/test/storage labels where the reusable owner is the
+  local runtime and the concrete implementation is local-runtime Python.
+- Change: routed node tables, transcript storage validation labels, desktop
+  local-execution copy, runtime model copy, docs-hub links, sidecar workflow
+  ownership copy, architecture link labels, debug trace copy, tool-catalog
+  registry copy, agent-architecture guidance, and mobile planning constraints
+  through local-runtime Python implementation wording while preserving concrete
+  `frontend/src/main/python`, `tests/sidecar`, and Python subprocess details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  runtime-node label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, transcript storage,
+  local-runtime process behavior, tool execution, JSON-RPC/daemon payloads, IPC
+  payloads, storage files, credentials, permissions, hosted backend URLs,
+  provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Browser and Platform Local-Runtime Python Labels
 

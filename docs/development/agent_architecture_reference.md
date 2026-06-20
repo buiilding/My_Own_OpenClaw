@@ -234,7 +234,7 @@ SDK ownership rules:
 - Keep Electron-specific window, IPC, screenshot, permissions, and app lifecycle
   code in Electron main or renderer facades behind SDK interfaces.
 - Keep local execution and local storage mechanics behind the local-runtime
-  boundary; the SDK coordinates and normalizes the current Python sidecar
+  boundary; the SDK coordinates and normalizes the current local-runtime Python
   implementation.
 - Keep backend model/provider/prompt/tool-policy decisions in the backend; the
   SDK reports local capability but does not grant backend capability.
@@ -255,7 +255,7 @@ WindieOS frontend has four live runtimes:
   IPC handlers, endpoint diagnostics, permission prompts, direct Agent SDK
   startup, sidecar supervision, wakeword supervision, screenshots, and platform
   policy.
-- Local runtime owns local authority through the current Python sidecar
+- Local runtime owns local authority through the current local-runtime Python
   implementation: filesystem, shell/process, computer use, browser mechanics,
   local memory, system state, and wakeword subprocess code.
 

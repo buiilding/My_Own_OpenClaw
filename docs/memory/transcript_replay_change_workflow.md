@@ -31,7 +31,7 @@ flowchart LR
 
 - SDK projection/runtime code owns visible chat projection, local replay snapshots, and the rehydrate payload assembled from stored conversation events.
 - Electron main owns IPC/RPC mapping and identity sync between windows. It should not interpret chat semantics beyond normalizing bridge payload keys and forwarding session updates.
-- The SDK local-runtime store owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs; the Python sidecar implements the current SQLite backing store.
+- The SDK local-runtime store owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs; local-runtime Python implements the current SQLite backing store.
 - Backend rehydrate owns conversion from stored transcript entries into
   model-compatible backend history. It normalizes current transcript
   projections and rejects missing or stale tool linkage instead of repairing or
@@ -110,8 +110,8 @@ flowchart LR
 | Dashboard resume actions | `<windie> test frontend -- ConversationReplayActions DashboardConversationLoad DesktopConversationStore UseDashboardConversations` |
 | Rehydrate payload construction | `<windie> test frontend -- WindieSdkConversationRuntime ConversationContinuityService DesktopConversationReplayRuntime` |
 | Backend rehydrate normalization/linkage/transparency | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py tests/backend/test_rehydrate_transparency_resolution.py` |
-| Sidecar transcript storage/list/window/delete | `./scripts/python-in-env sidecar pytest tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py tests/sidecar/test_local_store_delete_cleanup.py` |
-| Sidecar conversation search | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py` |
+| Local-runtime transcript storage/list/window/delete | `./scripts/python-in-env sidecar pytest tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py tests/sidecar/test_local_store_delete_cleanup.py` |
+| Local-runtime conversation search | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py` |
 | Docs-only transcript workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 ## Debug Playbooks
