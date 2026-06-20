@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move backend connected and first-query gate state into
+  `ipc_backend_connection_gate_state.cjs`, preserving connection status
+  snapshots, settings-sync gating, query context mode transitions, open/close
+  mutations, and test reset behavior. No migration required.
 - main/ipc: move cached backend session identity into
   `ipc_backend_session_state.cjs`, preserving inbound session/user/conversation
   updates, reconnect reset behavior, query context fallback, status snapshots,

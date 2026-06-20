@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Backend Connection Gate Boundary
+
+- Finding: `ipc.cjs` still owned mutable backend connected and first-query gate
+  booleans directly after connection event adaptation, backend close cleanup,
+  settings sync, status payloads, query handlers, and automated query dispatch
+  had moved to focused helpers.
+- Change: added `ipc_backend_connection_gate_state.cjs` to own the backend
+  transport connected flag, first-query context gate, snapshot, and reset
+  accessors. `ipc.cjs` now injects those accessors into status payloads,
+  settings sync, global shortcut status rebroadcasts, connection open, backend
+  close, query handlers, SDK command handlers, automated-query dispatch, and
+  test shutdown paths.
+- Validation: focused backend connection gate state coverage for independent
+  connected/first-query storage, snapshot shape, reset behavior, and boundary
+  guards that keep mutable gate storage out of `ipc.cjs`.
+- Compatibility: no migration required. Connection status payload shapes,
+  first-query settings sync behavior, query initial/sequential context
+  transitions, renderer IPC channels, backend event payloads, storage,
+  credentials, permissions, hosted URLs, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Main Backend Session State Boundary
 
 - Finding: `ipc.cjs` still owned mutable backend session identity directly,

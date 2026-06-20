@@ -74,7 +74,7 @@ Guard:
 
 Open event adaptation lives in `ipc_agent_connection_events.cjs`. On open:
 
-1. mark `isConnected=true`
+1. mark connected in `ipc_backend_connection_gate_state.cjs`
 2. reset first-query/settings-sync flags for this connection
 3. reset overlay phase to `idle`
 4. clear turn replay buffer
@@ -84,7 +84,7 @@ Open event adaptation lives in `ipc_agent_connection_events.cjs`. On open:
 
 Close cleanup lives in `ipc_agent_backend_close_runtime.cjs`. On close:
 
-1. mark disconnected
+1. mark disconnected in `ipc_backend_connection_gate_state.cjs`
 2. clear pending settings ACK waiters
 3. clear backend session context (`session_id`, server `user_id`, `conversation_ref`)
 4. set overlay phase `idle`
@@ -95,15 +95,17 @@ Close cleanup lives in `ipc_agent_backend_close_runtime.cjs`. On close:
 
 ## Identity and Session Context Tracking
 
-`ipc.cjs` tracks multiple IDs:
+`ipc.cjs` composes multiple identity/state owners:
 
 - `currentUserId`: client-side user id sent in outbound messages
-- `currentServerUserId`: server-echoed user id from inbound backend events
-- `currentSessionId`: backend session id
-- `currentConversationRef`: last seen backend conversation ref
+- `ipc_backend_session_state.cjs`: server-echoed user id, backend session id,
+  and last seen backend conversation ref
+- `ipc_backend_connection_gate_state.cjs`: backend transport connected flag and
+  first-query gate
 
-Inbound backend messages update these fields opportunistically before typed
-renderer side-channel fan-out and SDK conversation projection fan-out.
+Inbound backend messages update backend session identity opportunistically
+before typed renderer side-channel fan-out and SDK conversation projection
+fan-out.
 
 ## Renderer Fan-Out Contract
 

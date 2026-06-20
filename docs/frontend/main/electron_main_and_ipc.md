@@ -86,7 +86,9 @@ Responsibilities:
   app-diagnostic append failure handling through
   `ipc_app_diagnostics_runtime.cjs`, keeps active query context state in
   `ipc_active_query_context.cjs`, keeps backend session identity in
-  `ipc_backend_session_state.cjs`, projects replayed backend events through
+  `ipc_backend_session_state.cjs`, keeps backend connection/first-query gate
+  state in `ipc_backend_connection_gate_state.cjs`, projects replayed backend
+  events through
   `ipc_conversation_event_projection.cjs`, keeps cached desktop UI config in
   `ipc_desktop_ui_config_cache.cjs`, keeps live-turn cache state in
   `ipc_live_turn_state.cjs`, keeps cached AgentClient lifecycle in
@@ -95,7 +97,8 @@ Responsibilities:
   reconnect primitives, display rows, and current-turn projection to the SDK.
 - Injects backend session context (`userId`, `sessionId`, `conversation_ref`)
   from `ipc_backend_session_state.cjs`.
-- Gates first query on settings synchronization ACK.
+- Gates first query on settings synchronization ACK using
+  `ipc_backend_connection_gate_state.cjs` plus `ipc_settings_sync_runtime.cjs`.
 - Broadcasts connection status to all renderer windows.
 - Uploads artifacts over HTTP endpoint and injects returned references.
 - Delegates client session snapshot and transcript-session sync channel

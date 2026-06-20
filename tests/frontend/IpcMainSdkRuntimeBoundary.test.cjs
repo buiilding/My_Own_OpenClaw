@@ -137,6 +137,13 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_backend_session_state.cjs'),
       'utf8',
     );
+    const backendConnectionGateStateSource = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/main/ipc/ipc_backend_connection_gate_state.cjs',
+      ),
+      'utf8',
+    );
     expect(source).toContain('createElectronAgentClientRuntime({');
     expect(source).not.toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
@@ -272,6 +279,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(backendSessionStateSource).toContain('let currentSessionId = initialSessionId;');
     expect(backendSessionStateSource).toContain('let currentServerUserId = initialServerUserId;');
     expect(backendSessionStateSource).toContain('let currentConversationRef = initialConversationRef;');
+    expect(source).toContain('createBackendConnectionGateState()');
+    expect(source).not.toContain('let isConnected = false');
+    expect(source).not.toContain('let isFirstQuery = true');
+    expect(backendConnectionGateStateSource).toContain('let isConnected = initialConnected;');
+    expect(backendConnectionGateStateSource).toContain('let isFirstQuery = initialFirstQuery;');
     expect(source).toContain('createResponseOverlayPhaseRuntime({');
     expect(source).toContain('responseOverlayPhaseRuntime.setResponseOverlayPhase(phase, source, metadata)');
     expect(source).not.toContain("action: 'set-phase'");

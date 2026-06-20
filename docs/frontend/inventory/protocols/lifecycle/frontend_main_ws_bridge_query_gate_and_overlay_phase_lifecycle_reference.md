@@ -18,6 +18,8 @@ title: "Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Referen
 Lifecycle contract sources:
 
 - Main websocket bridge/state machine: `frontend/src/main/ipc.cjs`
+- Connection/query-gate state:
+  `frontend/src/main/ipc/ipc_backend_connection_gate_state.cjs`
 - Settings-sync ACK gate helpers: `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - Query payload enrichment: `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - Query send-failure event context: `frontend/src/main/ipc/ipc_query_events.cjs`
@@ -58,10 +60,11 @@ Lifecycle implication: channel ownership drift is now a split-runtime problem, n
 
 ## Main Bridge State Model
 
-Persistent main-process bridge state in `ipc.cjs`:
+Persistent main-process bridge state composed by `ipc.cjs`:
 
-- Connection/session: `ws`, `isConnected`, `currentUserId`, `currentSessionId`, `currentServerUserId`, `currentConversationRef`
-- Query mode: `isFirstQuery`
+- Connection/session: backend connection gate state, `currentUserId`, and
+  backend session identity state
+- Query mode: backend connection gate first-query state
 - Settings gate: `latestDesktopUiConfig`, `hasAttemptedInitialSettingsSync`, `pendingSettingsSyncPromise`, `pendingSettingsSyncs`
 - Overlay phase: `responseOverlayPhase` with allowed literals:
   - `idle`
@@ -80,8 +83,8 @@ Persistent main-process bridge state in `ipc.cjs`:
 
 On open:
 
-1. `isConnected = true`
-2. `isFirstQuery = true`
+1. backend connection gate state sets connected `true`
+2. backend connection gate state sets first-query `true`
 3. settings gate reset (`resetSettingsSyncState()`)
 4. overlay phase forced to `idle`
 5. `currentUserId` generated from OS username (sanitized) or UUID fallback
@@ -115,7 +118,7 @@ For each inbound backend frame:
 
 On close:
 
-1. `isConnected = false`
+1. backend connection gate state sets connected `false`
 2. settings gate reset
 3. backend session context reset
 4. overlay phase -> `idle`

@@ -59,6 +59,9 @@ const {
   createBackendSessionState,
 } = require('./ipc/ipc_backend_session_state.cjs');
 const {
+  createBackendConnectionGateState,
+} = require('./ipc/ipc_backend_connection_gate_state.cjs');
+const {
   buildConversationEventFromBackendEvent,
 } = require('./ipc/ipc_conversation_event_projection.cjs');
 const {
@@ -267,8 +270,6 @@ const BACKEND_CONNECT_TIMEOUT_MS = 10000;
 const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
 const ipcHostCopyRuntime = createIpcHostCopyRuntime();
 let rendererWindows = new Set();
-let isConnected = false;
-let isFirstQuery = true;
 let currentUserId = null;
 let currentInstallId = null;
 let currentInstallToken = null;
@@ -284,6 +285,7 @@ const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const activeQueryContextState = createActiveQueryContextState();
 const backendSessionState = createBackendSessionState();
+const backendConnectionGateState = createBackendConnectionGateState();
 const desktopUiConfigCache = createDesktopUiConfigCache({
   isValidConfigPayload,
 });
@@ -307,7 +309,7 @@ const ipcStatusPayloads = createIpcStatusPayloads({
   getState: () => ({
     currentUserId,
     ...backendSessionState.getSnapshot(),
-    isConnected,
+    isConnected: backendConnectionGateState.getConnected(),
   }),
   getRuntimeEndpointSnapshot: () => ({
     runtimeWsUrl: backendEndpointState.getWsUrl(),
@@ -343,7 +345,7 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
   setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
   loadCachedDesktopUiConfig: () => loadCachedDesktopUiConfigFromDisk(),
-  isConnected: () => isConnected,
+  isConnected: () => backendConnectionGateState.getConnected(),
   isBackendRuntimeConnected,
   ensureBackendConnection,
   updateSettings: (payload) => updateSettingsThroughAgentSdkRuntime(payload),
@@ -376,7 +378,7 @@ const globalStopShortcutConfigRuntime = createGlobalStopShortcutConfigRuntime({
   getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
   persistDesktopUiConfigToDisk,
   broadcastConnectionStatus: (connected) => broadcastConnectionStatus(connected),
-  isConnected: () => isConnected,
+  isConnected: () => backendConnectionGateState.getConnected(),
 });
 const mainProcessTraceRuntime = createMainProcessTraceRuntime({
   ensureAgent,
@@ -489,8 +491,7 @@ function resetBackendSessionState() {
 }
 
 function resetIpcProcessStateForTests() {
-  isConnected = false;
-  isFirstQuery = true;
+  backendConnectionGateState.reset();
   currentUserId = null;
   currentInstallId = null;
   currentInstallToken = null;
@@ -517,10 +518,10 @@ function handleAgentConnection(event = {}) {
       backendSessionState.setServerUserId(value);
     },
     setConnected: (value) => {
-      isConnected = value;
+      backendConnectionGateState.setConnected(value);
     },
     setFirstQuery: (value) => {
-      isFirstQuery = value;
+      backendConnectionGateState.setFirstQuery(value);
     },
     traceBackendConnection: (data) => electronMainTraceLogger.traceBackendConnection(data),
     resetSettingsSyncState,
@@ -648,7 +649,9 @@ async function ensureAgentLocalRuntime({ reason = 'local-runtime' } = {}) {
 }
 
 function isBackendRuntimeConnected() {
-  return agentRuntimeLifecycle.isBackendRuntimeConnected(isConnected);
+  return agentRuntimeLifecycle.isBackendRuntimeConnected(
+    backendConnectionGateState.getConnected(),
+  );
 }
 
 async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
@@ -759,7 +762,7 @@ function handleAgentBackendEvent(rendererData) {
 function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
   return handleAgentBackendCloseEvent({ closeReason, shouldReconnect }, {
     setConnected: (value) => {
-      isConnected = value;
+      backendConnectionGateState.setConnected(value);
     },
     markInferenceContextsStale: () => agentRuntimeLifecycle.getActiveAgent()?.markInferenceContextsStale?.(),
     resetSettingsSyncState,
@@ -794,7 +797,7 @@ function shutdownIpcForTests() {
   syncSdkLiveTurnSurfaceIntent = null;
   agentWebSocketImpl = null;
   installAuthRuntime.reset();
-  isConnected = false;
+  backendConnectionGateState.setConnected(false);
   mcpRefreshRuntime.reset();
   liveTurnState.resetPendingTurn();
   agentClientLifecycle.shutdownAndReset();
@@ -946,14 +949,14 @@ function initializeIpc(win, options = {}) {
     getState: () => ({
       ...backendSessionState.getSnapshot(),
       currentUserId,
-      isFirstQuery,
+      isFirstQuery: backendConnectionGateState.getFirstQuery(),
     }),
     setCurrentConversationRef: (conversationRef) => {
       backendSessionState.setConversationRef(conversationRef);
     },
     setActiveQueryContext: (queryContext) => activeQueryContextState.set(queryContext),
     setFirstQuery: (nextValue) => {
-      isFirstQuery = nextValue;
+      backendConnectionGateState.setFirstQuery(nextValue);
     },
     attachAgentDefinitionContext: (payload) => preserveSdkTurnInputFields(
       buildBackendQueryPayload(attachAgentDefinitionContext(payload)),
@@ -1007,7 +1010,7 @@ function initializeIpc(win, options = {}) {
         currentConversationRef: backendSessionState.getConversationRef(),
         currentSessionId: backendSessionState.getSessionId(),
         currentUserId,
-        isConnected,
+        isConnected: backendConnectionGateState.getConnected(),
         agent: agentRuntimeLifecycle.getActiveAgent(),
       }),
       ensureAgent,
@@ -1086,13 +1089,13 @@ const automatedQueryDispatcher = createAutomatedQueryDispatcher({
   sendQueryThroughAgentSdkRuntime,
   getState: () => ({
     currentUserId,
-    isFirstQuery,
+    isFirstQuery: backendConnectionGateState.getFirstQuery(),
   }),
   setCurrentConversationRef: (conversationRef) => {
     backendSessionState.setConversationRef(conversationRef);
   },
   setFirstQuery: (nextValue) => {
-    isFirstQuery = nextValue;
+    backendConnectionGateState.setFirstQuery(nextValue);
   },
   uuidGenerator: uuidv4,
   log,
