@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/debug: route debug traces, failure routing, incident/evidence runbooks,
+  security hub, filesystem/shell, MCP, tool-development, computer-tool,
+  platform, and tool-schema workflow labels through local-runtime Python
+  implementation wording instead of Python sidecar implementation/backing
+  route-owner labels. No migration required.
 - docs/tools: route public architecture data-flow, communication, backend
   overview, reference, mobile-planning, platform, computer-tool,
   tool-lifecycle, tool-registry, local-memory, inventory, docs-hub, and

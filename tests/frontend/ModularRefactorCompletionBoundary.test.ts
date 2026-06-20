@@ -1296,7 +1296,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime readiness');
     expect(docText).toContain('local-runtime diagnostic status');
     expect(docText).toContain('Local-runtime Python implementation');
-    expect(docText).toContain('SDK/main local-runtime dispatch or Python sidecar implementation');
+    expect(docText).toContain('SDK/main local-runtime dispatch or local-runtime Python implementation');
     expect(docText).toContain('Local-Runtime Browser Chrome Docs Hub');
     expect(docText).toContain('Local-Runtime System-State Docs Hub');
     expect(docText).toContain('Local-Runtime System-State Platform Docs Hub');
@@ -1619,9 +1619,20 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar implementation does local work',
         'The Python sidecar implementation returns local tool results',
         'desktop actions through the Python sidecar implementation',
+        'through the Python sidecar implementation',
         'backed by the Python sidecar implementation',
+        'local-runtime executable implementation backed by the Python sidecar',
         'Local runtime, currently backed by Python sidecar tool implementations',
         'Local-runtime registry/exposed-name parity backed by Python sidecar implementation',
+        'SDK local-runtime contracts plus the current Python sidecar implementation',
+        'local-runtime executable registry/tool implementation backed by Python sidecar modules',
+        'The local runtime executes local actions through the Python sidecar implementation',
+        'SDK/main local-runtime dispatch or Python sidecar implementation',
+        'Electron bridge, or Python sidecar implementation',
+        "local runtime's Python sidecar implementation",
+        'Python sidecar provides the current concrete local tool implementations',
+        'actual local machine actions through the Python sidecar implementation',
+        'Add the Python sidecar implementation and register it',
         'window operations through the Python sidecar implementation',
         'host OS automation and local tool execution through the current Python sidecar implementation',
       ].filter((needle) => source.includes(needle));

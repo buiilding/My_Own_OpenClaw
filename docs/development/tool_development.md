@@ -16,7 +16,7 @@ runtime contract, and the desktop local-runtime executor:
 - Backend validates client-provided manifests, applies policy/provider
   projection, owns backend remote tools, and owns request correlation.
 - The desktop local runtime executes local tools against the local machine
-  through the current Python sidecar implementation.
+  through the current local-runtime Python implementation.
 
 This guide documents the current tool API and registration flow.
 
@@ -190,7 +190,7 @@ For built-ins, update `frontend/src/main/python/tools/registry.py`:
 For plugin tools, do not edit built-in registry files. Add `schema` and the
 Python `entrypoint` to `plugins/<id>/plugin.json`; Electron main
 forwards the schema manifest and the local runtime loads the executable
-entrypoint through the Python sidecar implementation.
+entrypoint through the local-runtime Python implementation.
 The entrypoint must return a native `tools.result.ToolResult`.
 The plugin package must include:
 

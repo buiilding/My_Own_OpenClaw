@@ -13,7 +13,7 @@ Computer tools are local-execution tools. The backend owns the model-facing inte
 
 ## Tool Surface
 
-| Tool | Backend name | Python sidecar implementation |
+| Tool | Backend name | Local-runtime Python implementation |
 | --- | --- | --- |
 | Mouse actions | `mouse_control` | `frontend/src/main/python/tools/computer/mouse_tool.py` |
 | Keyboard actions | `keyboard_control` | `frontend/src/main/python/tools/computer/keyboard_tool.py` |

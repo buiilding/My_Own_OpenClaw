@@ -14,7 +14,7 @@ WindieOS tool execution crosses four layers:
 1. Backend exposes model-facing tool schemas and receives tool results.
 2. SDK runtime interprets streamed tool-call events and builds backend result envelopes.
 3. Electron main hosts SDK desktop adapters and supplies host context to the SDK local runtime.
-4. The local runtime executes local actions through the Python sidecar implementation and returns simple executable results.
+4. The local runtime executes local actions through the local-runtime Python implementation and returns simple executable results.
 
 Do not make the sidecar import backend schemas. Keep parity in explicit tests and docs.
 
@@ -33,7 +33,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Step | What to inspect | Why |
 | --- | --- | --- |
 | 1. Decide model-facing behavior | `backend/src/tools` and [Tool Catalog Matrix](../tools/tool_catalog_matrix.md) | The backend owns what the model can request. |
-| 2. Decide executable payload | `frontend/src/main/python/tools` and local-runtime executable registry docs | The local runtime owns what can actually run locally; the executable registry documents the current Python sidecar implementation. |
+| 2. Decide executable payload | `frontend/src/main/python/tools` and local-runtime executable registry docs | The local runtime owns what can actually run locally; the executable registry documents the current local-runtime Python implementation. |
 | 3. Map backend call to local execution | SDK `ToolExecutionCoordinator`, Electron SDK tool router, and Electron local-runtime bridge | Tool-call shape must become a local-runtime executable action without losing ids, artifacts, or display context. |
 | 4. Normalize result envelope | SDK result envelope builder, backend tool-result handler, Python sidecar tool result models | Backend history needs consistent success/error output. |
 | 5. Add validation | Backend schema tests, SDK/main tool-coordinator tests, Python sidecar tool tests | Drift is caught by producer and consumer tests, not imports. |

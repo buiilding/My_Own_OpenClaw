@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a debug/runbook local-runtime Python label slice by
+  routing debug traces, failure routing, incident/evidence runbooks, security
+  hub, filesystem/shell, MCP, tool-development, computer-tool, platform, and
+  tool-schema workflow docs through local-runtime Python implementation wording
+  instead of Python sidecar implementation/backing route-owner labels.
+  Validation covered the focused modular docs boundary test, docs listing,
+  exact stale debug/runbook/development/tool-workflow label scan, and diff
+  check. No migration required; runtime code, local tool execution,
+  JSON-RPC/daemon payloads, IPC payloads, tool-result envelopes, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 - 2026-06-20: completed a tool data-flow local-runtime Python label slice by
   routing public architecture data-flow, communication, backend overview,
   reference, mobile-planning, computer-tool, platform, tool-lifecycle, and

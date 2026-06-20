@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Debug Runbook Local-Runtime Python Labels
+
+- Finding: debug traces, failure routing, incident/evidence runbooks, security
+  hub, filesystem/shell, MCP, tool-development, computer-tool, platform, and
+  tool-schema workflow docs still routed local execution or tool implementation
+  labels through Python sidecar implementation/backing wording.
+- Change: routed those labels through local-runtime Python implementation
+  wording while preserving concrete Python implementation paths and tests.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  debug/runbook/development/tool-workflow label scan, and diff check.
+- Compatibility: no migration required. Runtime code, local tool execution,
+  JSON-RPC/daemon payloads, IPC payloads, tool-result envelopes, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 ### 2026-06-20 Tool Data-Flow Local-Runtime Python Labels
 
 - Finding: public architecture data-flow, communication, backend overview,

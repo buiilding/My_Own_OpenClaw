@@ -11,7 +11,7 @@ title: "Filesystem and Shell Change Workflow"
 
 This workflow routes changes to WindieOS local file and terminal tools. Use it when the symptom is an agent-visible tool problem rather than a general backend, renderer, or platform issue.
 
-The key boundary is simple: the backend owns model-facing tool names, descriptions, JSON schemas, tool policy, and tool-result ingestion. The Agent SDK runtime and Electron main relay requests and add host-local execution context. The renderer displays tool projections. The local runtime owns local execution authority, path resolution, atomic file mutation, process sessions, shell output formatting, and executable result payloads through the current Python sidecar implementation.
+The key boundary is simple: the backend owns model-facing tool names, descriptions, JSON schemas, tool policy, and tool-result ingestion. The Agent SDK runtime and Electron main relay requests and add host-local execution context. The renderer displays tool projections. The local runtime owns local execution authority, path resolution, atomic file mutation, process sessions, shell output formatting, and executable result payloads through the current local-runtime Python implementation.
 
 ## Runtime Path
 

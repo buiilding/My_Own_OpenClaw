@@ -56,7 +56,7 @@ the replacement runtime behavior is local-runtime shell execution with Linux
 `pkexec` prompt routing.
 
 Current behavior is simpler: local `run_shell_command` executes through the
-local runtime's Python sidecar implementation, and on Linux a leading
+local-runtime Python implementation, and on Linux a leading
 `sudo ...` command is rewritten to `pkexec bash -lc ...` so the OS owns the
 authentication prompt. Searches for removed sudo auth mode behavior should
 route to this page and the local-runtime shell reference below.

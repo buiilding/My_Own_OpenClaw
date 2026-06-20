@@ -27,7 +27,7 @@ Use this when the issue affects a real user path, hosted endpoint, packaged inst
 | REST `401` after install registration | Install auth/token propagation | Verify token cache and backend auth DB; avoid disabling auth as a first fix. |
 | Websocket `1008` at connect | Backend handshake/auth/schema or Electron headers | Fix handshake/token/schema; collect backend close reason. |
 | Query stream starts then errors provider-side | Provider runtime/config | Fail over model/provider if available; patch provider request/stream handling. |
-| Tool event appears but no local action | SDK/main local-runtime dispatch, Electron bridge, or Python sidecar implementation | Validate tool result path and local-runtime JSON-RPC before changing backend schema. |
+| Tool event appears but no local action | SDK/main local-runtime dispatch, Electron bridge, or local-runtime Python implementation | Validate tool result path and local-runtime JSON-RPC before changing backend schema. |
 | Packaged app only | Packaging/runtime/env | Use local reinstall and packaged smoke run; source app evidence is not enough. |
 | One OS only | Platform adapter or permission | Use platform-specific docs and tests; do not generalize behavior across OSes. |
 | VM run stuck | Runs API/worker control plane | Inspect run timeline, worker heartbeat, runs key, and active run cap. |

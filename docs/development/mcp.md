@@ -21,7 +21,7 @@ mcps/
 
 Electron main reads `mcp.json` for dashboard/config presentation and forwards
 enabled server specs to the SDK local runtime. The local runtime starts
-configured stdio servers through the Python sidecar implementation, discovers
+configured stdio servers through the local-runtime Python implementation, discovers
 `tools/list`, registers discovered tools into the executable local tool
 registry, and executes `tools/call` when the model invokes an MCP-backed tool.
 
@@ -138,7 +138,7 @@ That exposes `local_memory__search`.
    permissions.
 5. Electron main sends enabled server specs to the SDK local runtime.
 6. The local runtime starts each enabled MCP server over stdio through the
-   Python sidecar implementation.
+   local-runtime Python implementation.
 7. The local runtime sends MCP `initialize` and `notifications/initialized`.
 8. The local runtime calls `tools/list`.
 9. Discovered tools are registered as executable local-runtime tools and

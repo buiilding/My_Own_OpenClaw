@@ -12,12 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: public architecture data-flow, communication,
-  backend overview, reference, mobile-planning, computer-tool, platform,
-  tool-lifecycle, tool-registry, local-memory, inventory, docs-hub, and
-  local-runtime Python sub-hub docs now route local action ownership/backing
-  through local-runtime Python implementation/executor wording instead of
-  Python sidecar execution/backing route-owner labels.
+- Latest completed slice: debug traces, failure routing, incident/evidence
+  runbooks, security hub, filesystem/shell, MCP, tool-development,
+  computer-tool, platform, and tool-schema workflow docs now route local
+  execution/tool implementation labels through local-runtime Python
+  implementation wording instead of Python sidecar implementation/backing
+  route-owner labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -246,6 +246,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Debug Runbook Local-Runtime Python Labels
+
+- Finding: debug traces, failure routing, incident/evidence runbooks, security
+  hub, filesystem/shell, MCP, tool-development, computer-tool, platform, and
+  tool-schema workflow docs still routed local execution or tool implementation
+  labels through Python sidecar implementation/backing wording.
+- Change: routed those labels through local-runtime Python implementation
+  wording while preserving concrete Python implementation paths and tests.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  debug/runbook/development/tool-workflow label scan, and diff check.
+- Compatibility: no migration required. Runtime code, local tool execution,
+  JSON-RPC/daemon payloads, IPC payloads, tool-result envelopes, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
 
 ### 2026-06-20 Tool Data-Flow Local-Runtime Python Labels
 
