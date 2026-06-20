@@ -933,6 +933,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar local transcript DB');
     expect(docText).not.toContain('backend schema, sidecar registry, renderer result handling');
     expect(docText).not.toContain('routes it to the sidecar');
+    expect(docText).not.toContain('routes local calls to the sidecar');
+    expect(docText).not.toContain('Plugin tools execute in the Python sidecar');
+    expect(docText).not.toContain('| Sidecar built-in tools |');
     expect(docText).not.toContain('sidecar registry dispatch');
     expect(docText).not.toContain('SDK main-runtime migration');
     expect(docText).not.toContain('Tool result reaches frontend but model does not continue');
@@ -1092,7 +1095,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');
-    expect(localRuntimePayloadDocText).toContain('Python sidecar `ToolResult`');
+    expect(localRuntimePayloadDocText).toContain('local-runtime Python `ToolResult`');
     expect(localRuntimePayloadDocText).not.toContain('Frontend/sidecar must not import');
     expect(localRuntimePayloadDocText).not.toContain('Sidecar `ToolResult`');
     expect(localRuntimePayloadDocText).not.toContain('the sidecar execute another');
@@ -1564,6 +1567,14 @@ describe('modular sdk refactor completion boundary', () => {
         'screenshot sidecar returns',
         'after sidecar screenshot tool execution',
         'Python sidecar local-runtime implementation',
+        'Python sidecar is executor',
+        'Python sidecar JSON-RPC dispatcher',
+        'Python sidecar `ToolResult` dict',
+        'Python sidecar JSON-RPC stdout/stderr',
+        'Python sidecar JSON-RPC protocol tests',
+        'corrupting Python sidecar JSON-RPC stdout',
+        'Python sidecar JSON-RPC availability',
+        'Python sidecar browser adapter',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;
@@ -2520,6 +2531,9 @@ describe('modular sdk refactor completion boundary', () => {
         'The sidecar calls `tools/list`',
         'executable sidecar local tools',
         'routes it to the sidecar',
+        'routes local calls to the sidecar',
+        'Plugin tools execute in the Python sidecar',
+        '| Sidecar built-in tools |',
         'The sidecar sends MCP `tools/call`',
         'backend bridge logic',
         'Tool runtime services',

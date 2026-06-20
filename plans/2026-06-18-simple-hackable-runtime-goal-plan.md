@@ -275,18 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
-- 2026-06-20: completed a local-runtime screenshot materialization label slice
-  by routing screenshot materialization, backend tool-turn validation,
-  observability routing, and system-state JSON-RPC docs through local-runtime
-  screenshot tool, local-runtime Python screenshot/computer test, and
-  local-runtime Python implementation wording instead of sidecar
-  screenshot/test/implementation route-owner labels. Validation covered the
-  focused modular docs boundary test, docs listing, exact stale
-  screenshot/materialization phrase scan, and diff check. No migration
-  required; runtime code, screenshot capture, artifact materialization,
-  JSON-RPC payloads, IPC payloads, tool-result envelopes, storage,
-  credentials, permissions, hosted backend URLs, provider policy, and trust
-  boundaries are unchanged.
+- 2026-06-20: completed a local-runtime JSON-RPC and plugin route-label slice
+  by routing agent-visible pipeline, browser workflow/tool docs, debug observability,
+  node routing, and plugin hub docs through local-runtime Python JSON-RPC,
+  local-runtime Python browser adapter, SDK/main local-runtime plugin dispatch,
+  and local-runtime Python protocol-test wording instead of Python-side or
+  sidecar executor/adapter/plugin/stdout route-owner labels. Validation covered
+  the focused modular docs boundary test, docs listing, exact stale
+  JSON-RPC/plugin route-label scan, and diff check. No migration required;
+  runtime code, JSON-RPC payloads, IPC payloads, browser action behavior,
+  plugin execution, tool-result envelopes, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
 
 - 2026-06-20: completed a local-runtime JSON-RPC route-label slice by routing
   local-runtime JSON-RPC reference/workflow, lifecycle read hints,

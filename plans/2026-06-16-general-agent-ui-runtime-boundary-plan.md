@@ -120,21 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
-### 2026-06-20 Local-Runtime Screenshot Materialization Labels
+### 2026-06-20 Local-Runtime JSON-RPC and Plugin Route Labels
 
-- Finding: screenshot materialization, backend tool-turn validation,
-  observability routing, and system-state JSON-RPC docs still used sidecar
-  screenshot/test/implementation labels for reusable local-runtime paths.
-- Change: routed those references through local-runtime screenshot tool,
-  local-runtime Python screenshot/computer test, and local-runtime Python
-  implementation wording while preserving concrete Python sidecar paths where
-  the docs point to implementation modules.
+- Finding: agent-visible pipeline, browser workflow/tool docs, debug observability, node
+  routing, and plugin hub docs still used Python-side or sidecar
+  executor/adapter/plugin/stdout labels for reusable local-runtime paths.
+- Change: routed those references through local-runtime Python JSON-RPC,
+  local-runtime Python browser adapter, SDK/main local-runtime plugin dispatch,
+  and local-runtime Python protocol-test wording while preserving concrete
+  Python sidecar paths where the docs point to implementation modules.
 - Validation: focused modular docs boundary test, docs listing, exact stale
-  screenshot/materialization phrase scan, and diff check.
-- Compatibility: no migration required. Runtime code, screenshot capture,
-  artifact materialization, JSON-RPC payloads, IPC payloads, tool-result
-  envelopes, storage, credentials, permissions, hosted backend URLs, provider
-  policy, and trust boundaries are unchanged.
+  JSON-RPC/plugin route-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, JSON-RPC payloads, IPC
+  payloads, browser action behavior, plugin execution, tool-result envelopes,
+  storage, credentials, permissions, hosted backend URLs, provider policy, and
+  trust boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime JSON-RPC Route Labels
 

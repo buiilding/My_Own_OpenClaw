@@ -35,9 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- docs/runtime: route screenshot materialization and observability test labels
-  through local-runtime screenshot/tool wording instead of sidecar screenshot
-  route-owner labels. No migration required.
+- docs/runtime: route JSON-RPC executor, browser adapter, observability, node
+  debug, and plugin-tool labels through local-runtime Python and SDK/main
+  local-runtime wording instead of sidecar route-owner labels. No migration
+  required.
 - docs/frontend: route local-runtime JSON-RPC and lifecycle workflow labels
   through local-runtime daemon/Python process wording instead of sidecar daemon
   route-owner labels. No migration required.

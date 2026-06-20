@@ -18,10 +18,10 @@ WindieOS has three first-class repo-level contribution roots:
 | A built-in WindieOS tool | Core backend, desktop local-runtime, and Python sidecar implementation files | [Tool Development](../development/tool_development.md) |
 | A provider | `backend/src/llm/providers`, model catalog/config | [Providers Hub](../providers/README.md) |
 
-Plugin tools execute in the Python sidecar. Electron main only discovers plugin
-schemas for the client manifest and routes local calls to the sidecar. Do not
-add Electron-main `registerTool` handlers or lifecycle hooks for local plugin
-tools.
+Plugin tools execute through the local-runtime Python implementation. Electron
+main only discovers plugin schemas for the client manifest and routes local
+calls through SDK/main local-runtime dispatch. Do not add Electron-main
+`registerTool` handlers or lifecycle hooks for local plugin tools.
 
 ## Current Extension Surfaces
 
@@ -31,7 +31,7 @@ tools.
 | Prompt skills | `skills/<id>/SKILL.md` | [Extension Convention](../development/extensions.md#skills) |
 | MCP integrations | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
 | Backend model-facing tools | `backend/src/tools`, `backend/src/sdk` | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
-| Sidecar built-in tools | `frontend/src/main/python/tools` | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), [Tool Development](../development/tool_development.md) |
+| Local-runtime built-in tools | `frontend/src/main/python/tools` | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), [Tool Development](../development/tool_development.md) |
 | Renderer feature modules | `frontend/src/renderer/features` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
 
 ## Rules

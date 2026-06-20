@@ -40,7 +40,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 | Browser session header/status UI | Renderer browser session store and chat control | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`, `frontend/src/renderer/app/runtime/desktopBrowserSessionRuntimeClient.js`, `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx` | `tests/frontend/ChatBrowserSessionControl.test.jsx` | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Browser permission/readiness/onboarding | Electron permission service and settings UI | `frontend/src/main/permissions/permission_service_browser.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx` | frontend permission/settings tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 | Browser file or download behavior | Local runtime browser file store backed by Python sidecar Browser Use adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | Python sidecar browser tool/action tests | [Browser Troubleshooting](browser_troubleshooting.md) |
-| Browser execution bridge timeout/result shape | SDK local-runtime bridge and Python sidecar browser adapter | `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs` | SDK client/runtime tests, browser/session tests | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
+| Browser execution bridge timeout/result shape | SDK local-runtime bridge and local-runtime Python browser adapter | `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs` | SDK client/runtime tests, browser/session tests | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 
 ## End-to-End Action Flow
 
@@ -256,7 +256,7 @@ Validate:
 | `click` or `input` hits wrong element | fresh snapshot, role-ref disambiguation, action executor locator resolution | Python sidecar snapshot/ref/action executor |
 | snapshot misses interactive elements | DOM/AX collection, ref registry, snapshot limit, page load timing | Python sidecar enhanced CDP pipeline |
 | browser files land in the wrong path | file-store root, relative path resolution, upload/read action payload | local-runtime browser file store |
-| browser action hangs at desktop bridge | SDK/main execute-tool timeout, Python sidecar JSON-RPC availability, action runtime hang | SDK/main local-runtime dispatch or Python sidecar browser adapter |
+| browser action hangs at desktop bridge | SDK/main execute-tool timeout, local-runtime Python JSON-RPC availability, action runtime hang | SDK/main local-runtime dispatch or local-runtime Python browser adapter |
 
 ## Validation Matrix
 

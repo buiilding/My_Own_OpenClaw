@@ -26,7 +26,7 @@ For browser changes that can cross schema, local-runtime execution, Python sidec
 
 - Backend schema: `backend/src/tools/browser/*`
 - Backend remote tool: `backend/src/tools/remote_tools/browser.py`
-- Python sidecar browser adapter: `frontend/src/main/python/tools/browser/browser_use_engine.py`
+- local-runtime Python browser adapter: `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - Python sidecar tool entrypoint: `frontend/src/main/python/tools/browser/browser_tool.py`
 - Shared browser contract: `frontend/src/main/python/windie_shared/browser_contract*`
 - Renderer browser UI: `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`

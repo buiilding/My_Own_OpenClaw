@@ -116,7 +116,7 @@ For a desktop/local-runtime bug, identify the last successful boundary:
 - UI action happened: renderer event handler fired.
 - IPC bridge accepted the channel: preload and main handler are registered.
 - main/SDK local runtime mapped the request: payload shape matches bridge mapper.
-- local-runtime request was sent: Python sidecar JSON-RPC stdout/stderr framing is clean.
+- local-runtime request was sent: local-runtime Python JSON-RPC stdout/stderr framing is clean.
 - local-runtime tool ran: registry has the tool and returns a result or structured error.
 - result came back: renderer persisted/displayed it and sent backend tool-result if needed.
 
@@ -127,7 +127,7 @@ For a desktop/local-runtime bug, identify the last successful boundary:
 | renderer stream/tool state | renderer chat hook/store and SDK/local-runtime projection tests |
 | IPC or preload channel | preload allowlist parity and main IPC tests |
 | main-process window/overlay behavior | main overlay/window tests |
-| local-runtime JSON-RPC mapping | Python sidecar JSON-RPC protocol tests and main bridge mapper tests |
+| local-runtime JSON-RPC mapping | local-runtime Python JSON-RPC protocol tests and main bridge mapper tests |
 | local-runtime tool implementation | focused Python sidecar pytest for the tool |
 | backend-visible local tool contract | backend remote-tool/schema tests plus local-runtime executable parity tests |
 | wakeword service or bridge | wakeword bridge/service tests and voice hook tests |

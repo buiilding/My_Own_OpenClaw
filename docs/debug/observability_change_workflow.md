@@ -9,7 +9,7 @@ title: "Observability Change Workflow"
 
 # Observability Change Workflow
 
-Use this workflow before adding logs or diagnostic flags. Observability should prove which runtime owns a failure without creating always-on noise, leaking secrets, or corrupting Python sidecar JSON-RPC stdout.
+Use this workflow before adding logs or diagnostic flags. Observability should prove which runtime owns a failure without creating always-on noise, leaking secrets, or corrupting local-runtime Python JSON-RPC stdout.
 
 ## Fast Owner Map
 
