@@ -53,6 +53,9 @@ const {
   handleAgentBackendEventRuntime,
 } = require('./ipc/ipc_agent_backend_event_runtime.cjs');
 const {
+  createActiveQueryContextState,
+} = require('./ipc/ipc_active_query_context.cjs');
+const {
   createElectronAgentClient: createElectronAgentClientRuntime,
 } = require('./ipc/ipc_electron_agent_client_factory.cjs');
 const {
@@ -263,7 +266,6 @@ let currentInstallToken = null;
 let currentSessionId = null;
 let currentServerUserId = null;
 let currentConversationRef = null;
-let activeQueryContext = null;
 let latestDesktopUiConfig = null;
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
@@ -277,6 +279,7 @@ let latestPendingTurn = null;
 let desktopLocalRuntimeLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
+const activeQueryContextState = createActiveQueryContextState();
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const responseOverlayPhaseRuntime = createResponseOverlayPhaseRuntime({
   responseOverlayPhaseState,
@@ -495,7 +498,7 @@ function resetIpcProcessStateForTests() {
   currentSessionId = null;
   currentServerUserId = null;
   currentConversationRef = null;
-  activeQueryContext = null;
+  activeQueryContextState.reset();
   latestDesktopUiConfig = null;
   globalStopShortcutConfigRuntime.reset();
   installAuthRuntime.reset();
@@ -739,10 +742,8 @@ function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
 
 function handleAgentBackendEvent(rendererData) {
   return handleAgentBackendEventRuntime(rendererData, {
-    getActiveQueryContext: () => activeQueryContext,
-    setActiveQueryContext: (value) => {
-      activeQueryContext = value;
-    },
+    getActiveQueryContext: () => activeQueryContextState.get(),
+    setActiveQueryContext: (value) => activeQueryContextState.set(value),
     appendForActiveTurn: (event) => ipcEventReplayState.appendForActiveTurn(event),
     clearEventReplayState: () => ipcEventReplayState.clear(),
     noteBackendTraffic,
@@ -779,10 +780,8 @@ function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
     markInferenceContextsStale: () => agentRuntimeLifecycle.getActiveAgent()?.markInferenceContextsStale?.(),
     resetSettingsSyncState,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-    getActiveQueryContext: () => activeQueryContext,
-    setActiveQueryContext: (value) => {
-      activeQueryContext = value;
-    },
+    getActiveQueryContext: () => activeQueryContextState.get(),
+    setActiveQueryContext: (value) => activeQueryContextState.set(value),
     getCurrentSessionId: () => currentSessionId,
     getCurrentServerUserId: () => currentServerUserId,
     getCurrentUserId: () => currentUserId,
@@ -976,9 +975,7 @@ function initializeIpc(win, options = {}) {
     setCurrentConversationRef: (conversationRef) => {
       currentConversationRef = conversationRef;
     },
-    setActiveQueryContext: (queryContext) => {
-      activeQueryContext = queryContext;
-    },
+    setActiveQueryContext: (queryContext) => activeQueryContextState.set(queryContext),
     setFirstQuery: (nextValue) => {
       isFirstQuery = nextValue;
     },

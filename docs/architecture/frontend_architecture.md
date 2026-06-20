@@ -331,7 +331,8 @@ Primary modules:
     conversation refs through `ipc_runtime_conversation_ref.cjs`, reads
     app-skin host copy through `ipc_host_copy_runtime.cjs`, routes
     app-diagnostic append failure handling through
-    `ipc_app_diagnostics_runtime.cjs`, keeps cached
+    `ipc_app_diagnostics_runtime.cjs`, keeps active query context state in
+    `ipc_active_query_context.cjs`, keeps cached
     AgentClient lifecycle in `ipc_agent_client_lifecycle.cjs`, and uses the returned
     `agent.conversation(...)` runtime for sends and stream projection.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle

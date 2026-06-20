@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move active query context state into
+  `ipc_active_query_context.cjs`, preserving query-send setup, backend-event
+  accepted/terminal mutation, backend-close interruption lookup, and test reset
+  behavior. No migration required.
 - main/ipc: move IPC-facing app diagnostic append error handling into
   `ipc_app_diagnostics_runtime.cjs`, preserving direct diagnostic event append,
   failure logging, and stable `{ stored: false, reason }` failure results. No

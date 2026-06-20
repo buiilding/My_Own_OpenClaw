@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Active Query Context Boundary
+
+- Finding: `ipc.cjs` still owned mutable active query context storage directly,
+  even though query-send setup, backend event accepted/terminal mutation, and
+  backend close interruption synthesis now flow through focused helpers.
+- Change: added `ipc_active_query_context.cjs` to own the active query context
+  state holder. `ipc.cjs` now passes get/set/reset accessors into query send,
+  backend event relay, backend close cleanup, and test reset paths while
+  keeping event semantics in their existing owners.
+- Validation: focused active-query state coverage for initial context storage,
+  set, null/undefined clearing, reset behavior, and boundary guards that keep
+  mutable active-query storage out of `ipc.cjs`; existing backend event,
+  backend close, query, and SDK runtime boundary tests exercise the integration.
+- Compatibility: no migration required. Query send setup, accepted-state
+  marking, terminal cleanup, interrupted query synthesis, renderer IPC
+  channels, backend event payloads, storage, credentials, permissions, hosted
+  URLs, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main App Diagnostics Runtime Boundary
 
 - Finding: `ipc.cjs` still owned IPC-facing app diagnostic append error
