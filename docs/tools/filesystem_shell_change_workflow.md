@@ -171,7 +171,7 @@ If a listed test file has moved, search by the test stem before adding a new tes
 2. If relative, inspect selected workspace context before changing filesystem code.
 3. Inspect pagination inputs: `offset`, `limit`, and file type.
 4. Inspect binary/PDF handling and extraction notes in `read_file_tool.py`.
-5. Add a sidecar test for the exact path-resolution or pagination case.
+5. Add a local-runtime Python test for the exact path-resolution or pagination case.
 
 ### Replace edits too much or not enough
 

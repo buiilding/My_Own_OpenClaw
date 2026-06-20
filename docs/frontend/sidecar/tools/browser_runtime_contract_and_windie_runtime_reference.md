@@ -77,7 +77,7 @@ If the runtime starts requiring additional optional modules, update:
 - local-runtime Python requirements/runtime requirements
 - feature-pack marker detection
 - browser tool docs
-- focused sidecar tests
+- focused local-runtime Python tests
 
 ## Maintainer Notes
 

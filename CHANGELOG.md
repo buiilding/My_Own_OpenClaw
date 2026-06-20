@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(validation): route CLI, workflow, security, release, and tool
+  validation labels through local-runtime Python wording instead of sidecar
+  test-owner labels while preserving concrete command names. No migration
+  required.
 - docs(platform): route platform validation, window/input, and computer-tool
   reference labels through local-runtime Python wording instead of sidecar test,
   probe, input-control, and tool owner labels. No migration required.

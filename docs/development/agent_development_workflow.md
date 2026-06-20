@@ -81,7 +81,7 @@ Keep each patch around one behavior boundary:
 
 - schema plus parser tests
 - IPC channel plus bridge tests
-- local-runtime executable plus sidecar tests
+- local-runtime executable plus local-runtime Python tests
 - renderer UI state plus renderer tests
 - docs-only routing update plus docs listing/link checks
 
@@ -92,7 +92,7 @@ Widen only when the boundary requires it, for example a tool schema change that 
 Choose the narrowest meaningful command first, then widen if the change has broad impact:
 
 - backend: `./scripts/python-in-env backend python -m pytest <backend-test-or-path>`
-- sidecar: `./scripts/python-in-env sidecar python -m pytest <sidecar-test-or-path>`
+- local-runtime Python: `./scripts/python-in-env sidecar python -m pytest <sidecar-test-or-path>`
 - frontend: `<windie> test frontend -- path/to/test`
 - docs: `<windie> docs list`
 

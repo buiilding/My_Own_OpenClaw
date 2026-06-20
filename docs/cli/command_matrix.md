@@ -20,7 +20,7 @@ tables below use `<windie>` for the active platform shim.
 | Command | Purpose |
 | --- | --- |
 | `<windie> status` | Concise repo/runtime health. |
-| `<windie> status --all` | Backend, frontend, sidecar, docs, and dependency summary. |
+| `<windie> status --all` | Backend, frontend, local-runtime Python, docs, and dependency summary. |
 | `<windie> status --json` | Machine-readable status output. |
 | `<windie> doctor` | Local diagnostic pass. |
 | `<windie> doctor --fix` | Safe repairs only. |
@@ -65,9 +65,9 @@ tables below use `<windie>` for the active platform shim.
 | Command | Purpose |
 | --- | --- |
 | `<windie> test backend [pytest args...]` | Run backend pytest. |
-| `<windie> test sidecar [pytest args...]` | Run sidecar pytest. |
+| `<windie> test sidecar [pytest args...]` | Run local-runtime Python pytest. |
 | `<windie> test frontend [jest args...]` | Run frontend Jest CI tests. |
-| `<windie> test all` | Run backend, sidecar, and frontend tests. |
+| `<windie> test all` | Run backend, local-runtime Python, and frontend tests. |
 | `<windie> test pick <area>` | Print or run test-selection presets. |
 | `<windie> docs list` | List docs front matter and `read_when` hints. |
 | `<windie> docs check` | Run docs listing plus whitespace checks. |

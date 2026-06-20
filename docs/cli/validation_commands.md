@@ -1,7 +1,7 @@
 ---
-summary: "Validation command guide for choosing WindieOS docs, backend, sidecar, frontend, lint, typecheck, packaging, and focused test commands."
+summary: "Validation command guide for choosing WindieOS docs, backend, local-runtime Python, frontend, lint, typecheck, packaging, and focused test commands."
 read_when:
-  - When deciding which validation command to run for a docs, backend, sidecar, frontend, IPC, tool, provider, packaging, or config change.
+  - When deciding which validation command to run for a docs, backend, local-runtime Python, frontend, IPC, tool, provider, packaging, or config change.
   - When reporting validation in a final summary or PR description.
 title: "Validation Commands"
 ---
@@ -22,8 +22,8 @@ PowerShell and `./scripts/python-in-env.sh` on Unix-like shells.
 | docs front matter and read hints | `<windie> docs list` |
 | whitespace in changed files | `git diff --check` |
 | backend tests | `<windie> test backend` |
-| sidecar tests | `<windie> test sidecar` |
-| backend + sidecar + frontend CI when dependencies exist | `<windie> test all` |
+| local-runtime Python tests | `<windie> test sidecar` |
+| backend + local-runtime Python + frontend CI when dependencies exist | `<windie> test all` |
 | frontend Jest CI | `<windie> test frontend` |
 | frontend lint | `cd frontend && npm run lint` |
 | frontend typecheck | `cd frontend && npm run typecheck` |

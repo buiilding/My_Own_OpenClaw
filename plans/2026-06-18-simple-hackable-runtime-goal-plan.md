@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a validation local-runtime Python test-label slice by
+  routing CLI command docs, workflow matrices, release/security docs,
+  dashboard guidance, and tool workflows away from sidecar test/pytest owner
+  labels. Preserved concrete `<windie> test sidecar`, `python-in-env sidecar`,
+  `tests/sidecar`, and `sidecar-runtime` command/path details. Validation:
+  focused modular docs boundary test, exact stale validation-label scan, docs
+  listing, and diff checks. No migration required.
+
 - 2026-06-20: completed a platform local-runtime Python validation-label slice
   by routing platform validation, window/input, and computer-tool reference
   docs away from sidecar platform-test, shell-probe, switching-logic,

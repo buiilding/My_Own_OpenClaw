@@ -46,7 +46,7 @@ The release path has two different jobs:
 3. **Inspect the source roots.** Start with the roots in the owner map before broad searches. For runtime failures, inspect path resolution and local-runtime launch code before package metadata.
 4. **Edit the producer first.** Fix package scripts, runtime assembly, endpoint resolution, or reinstall cleanup at the owner layer before adding consumer-side tolerance.
 5. **Update platform-specific paths explicitly.** If behavior differs by OS, update the matching OS helper, smoke script, platform doc, and validation notes.
-6. **Run source validation when source code changed.** Use focused frontend/sidecar tests for runtime path, endpoint, wakeword, browser, and local-runtime bridge changes.
+6. **Run source validation when source code changed.** Use focused frontend/local-runtime Python tests for runtime path, endpoint, wakeword, browser, and local-runtime bridge changes.
 7. **Run packaged validation on the target OS.** Build the bundled runtime, package the app, install or mount it, launch the installed app, and execute one local-runtime-backed action.
 8. **Update release docs only for release behavior.** Keep local reinstall notes separate from signing, notarization, tag, and artifact publication behavior.
 

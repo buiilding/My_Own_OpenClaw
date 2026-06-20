@@ -78,7 +78,7 @@ must not mark shell execution granted.
 | Onboarding permission actions | `tests/frontend/AppPermissionGate.test.jsx`, `tests/frontend/useOnboardingPermissionActions.test.jsx` |
 | Permission grant effects | `tests/frontend/permissionGrantEffects.test.js` |
 | Linux sudo prompt behavior | `tests/sidecar/test_shell_process_tool.py` |
-| Platform permission adapters | `tests/sidecar/test_macos_automation_permission.py`, platform-specific sidecar tests |
+| Platform permission adapters | `tests/sidecar/test_macos_automation_permission.py`, platform-specific local-runtime Python tests |
 
 ## Related Docs
 

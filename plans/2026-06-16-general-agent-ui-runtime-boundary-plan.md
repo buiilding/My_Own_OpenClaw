@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Validation Local-Runtime Python Test Labels
+
+- Finding: CLI command docs, workflow matrices, release/security docs,
+  dashboard guidance, and tool workflows still used sidecar test/pytest labels
+  for validation whose reusable owner is local-runtime Python.
+- Change: routed those validation labels through local-runtime Python wording
+  while preserving concrete `<windie> test sidecar`, `python-in-env sidecar`,
+  `tests/sidecar`, and `sidecar-runtime` command/path details.
+- Validation: focused modular docs boundary test, exact stale validation-label
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, CLI command names, test
+  paths, packaged runtime build target, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
 ### 2026-06-20 Platform Local-Runtime Python Validation Labels
 
 - Finding: platform validation, window/input, and computer-tool reference docs

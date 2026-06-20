@@ -135,7 +135,7 @@ Use the narrowest test set for the changed boundary:
 - SDK/main local-runtime tests for backend tool-call routing/result projection changes
 - renderer chat-stream tests for display-only event behavior
 - main-process IPC/local-runtime bridge tests for channel mapping changes
-- sidecar pytest tests for executable local tool behavior
+- local-runtime Python pytest tests for executable local tool behavior
 - parity tests when backend schema and local-runtime executable payloads must stay aligned
 
 Run `<windie> docs list` after docs updates.

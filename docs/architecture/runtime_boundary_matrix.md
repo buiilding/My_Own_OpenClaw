@@ -30,7 +30,7 @@ Use this architecture-level matrix before searching broadly. It is intentionally
 | --- | --- |
 | backend schema/event | backend contract tests plus renderer consumer tests when UI consumes it |
 | Electron IPC/preload | IPC allowlist and channel parity tests |
-| local-runtime tool | sidecar pytest and backend/local-runtime parity tests for model-visible tools |
+| local-runtime tool | local-runtime Python pytest and backend/local-runtime parity tests for model-visible tools |
 | platform capture/overlay | frontend overlay/window policy tests |
 | hosted route/auth | backend route/auth tests and gateway docs examples |
 | VM runs | backend runs service/routes plus frontend VM worker tests |

@@ -51,7 +51,7 @@ envelope orchestration.
 ## Change Sequence
 
 1. **Classify the local-runtime Python surface.** Decide whether the implementation owner is JSON-RPC protocol, method handler, tool registry, specific tool family, memory runtime, browser runtime, platform adapter, backend config client, or wakeword service.
-2. **Check Electron bridge ownership.** If renderer/main payload mapping changes, read [Main Process Change Workflow](../main/main_process_change_workflow.md) and update bridge tests with sidecar tests.
+2. **Check Electron bridge ownership.** If renderer/main payload mapping changes, read [Main Process Change Workflow](../main/main_process_change_workflow.md) and update bridge tests with local-runtime Python tests.
 3. **Keep local-runtime implementation and model-facing contracts aligned deliberately.** For tool changes, read [Local-Runtime Tool Change Workflow](../sidecar_tool_change_workflow.md) before touching backend schemas.
 4. **Update the owner module first.** Fix registry/method/tool/storage/platform code at the owner layer before adding tolerance in callers.
 5. **Normalize errors at the boundary.** Convert local exceptions into local-runtime result errors or JSON-RPC errors with useful but non-secret messages.

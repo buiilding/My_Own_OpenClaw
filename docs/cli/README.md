@@ -20,7 +20,7 @@ surface. The command tables below use `<windie>` for the active platform shim.
 | Command | Purpose |
 | --- | --- |
 | `<windie> status` | Show concise repo and runtime health. |
-| `<windie> status --all` | Show backend, frontend, sidecar, docs, and dependency summary. |
+| `<windie> status --all` | Show backend, frontend, local-runtime Python, docs, and dependency summary. |
 | `<windie> doctor` | Run the local diagnostic pass. |
 | `<windie> doctor --deep --json` | Run slower probes and emit coding-agent friendly JSON. |
 | `<windie> diagnostics paths` | List app diagnostic paths. |
@@ -47,9 +47,9 @@ surface. The command tables below use `<windie>` for the active platform shim.
 | `<windie> logs sidecar` | Compatibility alias for local-runtime daemon logs. |
 | `<windie> logs backend --remote --host windie-prod` | Tail remote backend logs through the guarded backend log command. |
 | `<windie> test backend` | Run backend tests. |
-| `<windie> test sidecar` | Run sidecar tests. |
+| `<windie> test sidecar` | Run local-runtime Python tests. |
 | `<windie> test frontend` | Run frontend Jest CI tests. |
-| `<windie> test all` | Run backend, sidecar, and frontend validation. |
+| `<windie> test all` | Run backend, local-runtime Python, and frontend validation. |
 | `<windie> docs list` | List docs with front matter and read hints. |
 | `<windie> docs check` | Run docs listing plus whitespace checks. |
 | `<windie> docs search <query>` | Search local docs by path, title, summary, `read_when` hints, and headings; exact phrase and all-term matches rank highest. |

@@ -347,7 +347,7 @@ Likely code:
 - `backend/src/services/screen_grounding/**`
 - `backend/src/agent/tools/preparation/*`
 
-Validate platform-specific frontend tests, sidecar computer-tool tests, and backend OCR/coordinate-preparation tests. Linux is the only OS that should hide WindieOS overlay surfaces for screenshot capture.
+Validate platform-specific frontend tests, local-runtime Python computer-tool tests, and backend OCR/coordinate-preparation tests. Linux is the only OS that should hide WindieOS overlay surfaces for screenshot capture.
 
 ### Change Browser Automation
 

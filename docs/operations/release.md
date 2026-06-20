@@ -31,7 +31,7 @@ This guide describes a safe, repeatable release process for WindieOS.
 From the repo root:
 
 - Backend tests: `<windie> test backend`
-- Sidecar tests: `<windie> test sidecar`
+- Local-runtime Python tests: `<windie> test sidecar`
 - Frontend tests: `<windie> test frontend`
 - Frontend lint: `cd frontend && npm run lint`
 - Frontend build: `<windie> build frontend`
