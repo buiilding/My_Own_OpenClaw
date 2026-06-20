@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move cached desktop UI config state into
+  `ipc_desktop_ui_config_cache.cjs`, preserving raw internal access,
+  validated cloned snapshots for exported callers, settings/startup/handler
+  cache updates, and test reset behavior. No migration required.
 - main/ipc: move backend-event to SDK conversation-event projection for
   late-window replay into `ipc_conversation_event_projection.cjs`, preserving
   invalid envelope rejection, SDK normalizer behavior, scoped error fallback

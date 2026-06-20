@@ -21,6 +21,7 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config_cache.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
 - `frontend/src/main/ipc/ipc_global_stop_shortcut_config_runtime.cjs`
 
@@ -116,8 +117,8 @@ Behavior:
 Behavior:
 
 - renderer saves preserve the main-owned `agent_enabled_mcp_servers` allowlist
-  from the latest in-memory config, or from disk when the latest cache has not
-  hydrated that key yet
+  from the latest in-memory config held by `ipc_desktop_ui_config_cache.cjs`,
+  or from disk when the latest cache has not hydrated that key yet
 - explicit MCP enablement toggles disable that preservation so the toggle result
   is the persisted source of truth
 - provider secrets are redacted before the disk save helper is called

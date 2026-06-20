@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Desktop UI Config Cache Boundary
+
+- Finding: desktop UI config disk I/O, persistence semantics, handler
+  registration, settings sync, and startup hydration already used focused
+  helpers, but `ipc.cjs` still owned the mutable latest desktop UI config cache
+  and public snapshot getter inline.
+- Change: added `ipc_desktop_ui_config_cache.cjs` to own raw cache storage,
+  validated cloned snapshots for exported callers, and reset behavior. `ipc.cjs`
+  now injects cache accessors into settings sync, config persistence, startup
+  hydration, config handlers, MCP registry, global shortcut fallback, workspace
+  resolution, and agent-definition context.
+- Validation: focused cache coverage for raw storage, cloned valid snapshots,
+  invalid payload snapshot rejection, reset behavior, and boundary guards that
+  keep mutable desktop UI config storage out of `ipc.cjs`.
+- Compatibility: no migration required. Desktop UI config file shape and path,
+  renderer config channels, settings sync payloads, MCP enablement
+  preservation, shortcut fallback persistence, workspace resolution,
+  agent-definition context, storage, credentials, permissions, hosted URLs,
+  provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Conversation Event Projection Boundary
 
 - Finding: `ipc.cjs` still imported the SDK backend event normalizer directly

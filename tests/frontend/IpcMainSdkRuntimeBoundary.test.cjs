@@ -77,6 +77,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_conversation_event_projection.cjs'),
       'utf8',
     );
+    const desktopUiConfigCacheSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_ui_config_cache.cjs'),
+      'utf8',
+    );
     const electronAgentClientFactorySource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs'),
       'utf8',
@@ -144,7 +148,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(directWakeUpAdapterSource).toContain('buildConversationTerminalStatus(event, workspacePath)');
     expect(directWakeUpAdapterSource).toContain('setLatestCurrentTurnProjection(snapshot.currentTurn || null)');
     expect(directWakeUpAdapterSource).toContain('pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)');
-    expect(source).toContain('resolveWorkspacePathForAgentPayload(payload, latestDesktopUiConfig)');
+    expect(source).toContain('resolveWorkspacePathForAgentPayload(payload, desktopUiConfigCache.getRaw())');
     expect(source).not.toContain('event.payload?.error');
     expect(source).not.toContain('payload?.workspace_path');
     expect(source).not.toContain('payload?.workspacePath');
@@ -289,6 +293,12 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('let activeQueryContext = null');
     expect(source).not.toContain('activeQueryContext =');
     expect(activeQueryContextSource).toContain('let activeQueryContext = initialContext;');
+    expect(source).toContain('createDesktopUiConfigCache({');
+    expect(source).toContain('desktopUiConfigCache.getRaw()');
+    expect(source).toContain('desktopUiConfigCache.getSnapshot()');
+    expect(source).not.toContain('let latestDesktopUiConfig = null');
+    expect(source).not.toContain('latestDesktopUiConfig = config');
+    expect(desktopUiConfigCacheSource).toContain('let latestDesktopUiConfig = initialConfig;');
     expect(source).toContain('buildConversationEventFromBackendEvent(event');
     expect(source).not.toContain('normalizeBackendEventToConversationEvent');
     expect(conversationEventProjectionSource).toContain('normalizeBackendEventToConversationEvent');

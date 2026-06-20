@@ -86,6 +86,9 @@ const {
   createIpcHostCopyRuntime,
 } = require('./ipc/ipc_host_copy_runtime.cjs');
 const {
+  createDesktopUiConfigCache,
+} = require('./ipc/ipc_desktop_ui_config_cache.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -266,7 +269,6 @@ let currentInstallToken = null;
 let currentSessionId = null;
 let currentServerUserId = null;
 let currentConversationRef = null;
-let latestDesktopUiConfig = null;
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 let setAgentLoopStopShortcutEnabled = null;
@@ -280,6 +282,9 @@ let desktopLocalRuntimeLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const activeQueryContextState = createActiveQueryContextState();
+const desktopUiConfigCache = createDesktopUiConfigCache({
+  isValidConfigPayload,
+});
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const responseOverlayPhaseRuntime = createResponseOverlayPhaseRuntime({
   responseOverlayPhaseState,
@@ -334,10 +339,8 @@ const {
   log,
 });
 const settingsSyncRuntime = createIpcSettingsSyncRuntime({
-  getLatestDesktopUiConfig: () => latestDesktopUiConfig,
-  setLatestDesktopUiConfig: (config) => {
-    latestDesktopUiConfig = config;
-  },
+  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
+  setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
   loadCachedDesktopUiConfig: () => loadCachedDesktopUiConfigFromDisk(),
   isConnected: () => isConnected,
   isBackendRuntimeConnected,
@@ -357,10 +360,8 @@ const {
   persistDesktopUiConfigToDisk,
   preserveMainOwnedDesktopUiConfigFields,
 } = createDesktopUiConfigPersistenceRuntime({
-  getLatestDesktopUiConfig: () => latestDesktopUiConfig,
-  setLatestDesktopUiConfig: (config) => {
-    latestDesktopUiConfig = config;
-  },
+  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
+  setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
   loadDesktopUiConfigFromDiskSync,
   redactDesktopUiConfigProviderSecrets,
   saveDesktopUiConfigToDisk,
@@ -371,7 +372,7 @@ const {
 });
 const globalStopShortcutConfigRuntime = createGlobalStopShortcutConfigRuntime({
   isValidConfigPayload,
-  getLatestDesktopUiConfig: () => latestDesktopUiConfig,
+  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
   persistDesktopUiConfigToDisk,
   broadcastConnectionStatus: (connected) => broadcastConnectionStatus(connected),
   isConnected: () => isConnected,
@@ -499,7 +500,7 @@ function resetIpcProcessStateForTests() {
   currentServerUserId = null;
   currentConversationRef = null;
   activeQueryContextState.reset();
-  latestDesktopUiConfig = null;
+  desktopUiConfigCache.reset();
   globalStopShortcutConfigRuntime.reset();
   installAuthRuntime.reset();
   mcpRefreshRuntime.reset();
@@ -511,7 +512,7 @@ function resetIpcProcessStateForTests() {
 }
 
 function resolveWorkspacePathForAgent(payload = {}) {
-  return resolveWorkspacePathForAgentPayload(payload, latestDesktopUiConfig);
+  return resolveWorkspacePathForAgentPayload(payload, desktopUiConfigCache.getRaw());
 }
 
 function handleAgentConnection(event = {}) {
@@ -854,9 +855,7 @@ function initializeIpc(win, options = {}) {
     loadCachedDesktopUiConfigFromDisk,
     isValidConfigPayload,
     applyShortcutStatusFallbackToConfig,
-    setLatestDesktopUiConfig: (config) => {
-      latestDesktopUiConfig = config;
-    },
+    setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
     setGlobalAgentStopShortcutAccelerator,
     setAgentLoopStopShortcutEnabled,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
@@ -871,10 +870,8 @@ function initializeIpc(win, options = {}) {
     persistDesktopUiConfigToDisk,
     isValidConfigPayload,
     applyShortcutStatusFallbackToConfig,
-    getLatestDesktopUiConfig: () => latestDesktopUiConfig,
-    setLatestDesktopUiConfig: (config) => {
-      latestDesktopUiConfig = config;
-    },
+    getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
+    setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
     setGlobalAgentStopShortcutAccelerator,
   });
 
@@ -1063,10 +1060,7 @@ function registerRendererWindow(win) {
 }
 
 function getLatestDesktopUiConfig() {
-  if (!isValidConfigPayload(latestDesktopUiConfig)) {
-    return null;
-  }
-  return { ...latestDesktopUiConfig };
+  return desktopUiConfigCache.getSnapshot();
 }
 
 function registerBackendMessageObserver(observer) {
@@ -1083,7 +1077,7 @@ function appendAppDiagnostic(input = {}) {
 
 function attachAgentDefinitionContext(payload) {
   return attachAgentDefinitionContextRuntime(payload, {
-    latestDesktopUiConfig,
+    latestDesktopUiConfig: desktopUiConfigCache.getRaw(),
     platformName: process.platform,
     buildAgentDefinition,
     isDefaultAgentDefinition,

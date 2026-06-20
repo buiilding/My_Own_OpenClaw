@@ -86,7 +86,8 @@ Responsibilities:
   app-diagnostic append failure handling through
   `ipc_app_diagnostics_runtime.cjs`, keeps active query context state in
   `ipc_active_query_context.cjs`, projects replayed backend events through
-  `ipc_conversation_event_projection.cjs`, keeps cached AgentClient lifecycle in
+  `ipc_conversation_event_projection.cjs`, keeps cached desktop UI config in
+  `ipc_desktop_ui_config_cache.cjs`, keeps cached AgentClient lifecycle in
   `ipc_agent_client_lifecycle.cjs`, and delegates backend websocket
   construction, SDK local-runtime bootstrap, envelope sends, close,
   reconnect primitives, display rows, and current-turn projection to the SDK.

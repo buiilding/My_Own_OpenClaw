@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_conversation_event_projection.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_response_overlay_phase_runtime.cjs`, `ipc_host_copy_runtime.cjs`, `ipc_app_diagnostics_runtime.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_agent_backend_event_runtime.cjs`, `ipc_active_query_context.cjs`, `ipc_runtime_conversation_ref.cjs`, `ipc_agent_client_lifecycle.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, `ipc_agent_runtime_lifecycle.cjs`, `ipc_agent_sdk_runtime_commands.cjs`, `ipc_backend_message_observers.cjs`, `ipc_status_payloads.cjs`, or `ipc_install_auth_identity_runtime.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_conversation_event_projection.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_response_overlay_phase_runtime.cjs`, `ipc_host_copy_runtime.cjs`, `ipc_app_diagnostics_runtime.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_cache.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_agent_backend_event_runtime.cjs`, `ipc_active_query_context.cjs`, `ipc_runtime_conversation_ref.cjs`, `ipc_agent_client_lifecycle.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, `ipc_agent_runtime_lifecycle.cjs`, `ipc_agent_sdk_runtime_commands.cjs`, `ipc_backend_message_observers.cjs`, `ipc_status_payloads.cjs`, or `ipc_install_auth_identity_runtime.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -42,6 +42,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config_cache.cjs`
 - `frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
@@ -506,6 +507,16 @@ Owns persisted desktop UI config disk I/O:
 - `saveDesktopUiConfigToDisk` with tmp-write + rename replacement
 - the persisted filename remains `frontend-config.json` for compatibility
 
+### `ipc_desktop_ui_config_cache.cjs`
+
+Owns the Electron-main cached desktop UI config value:
+
+- stores raw config for settings sync, startup hydration, MCP registry, global
+  shortcut fallback, workspace resolution, and agent-definition context
+- returns cloned validated snapshots for exported main-process callers
+- resets cached config during test shutdown/reset
+- keeps mutable desktop UI config storage out of the `ipc.cjs` relay root
+
 ### `ipc_desktop_ui_config_persistence_runtime.cjs`
 
 Owns Electron-main desktop UI config persistence semantics around the disk I/O helper:
@@ -528,7 +539,7 @@ renderer wire channel names:
 - `load-frontend-config`
 - `save-frontend-config`
 - shortcut fallback application while keeping the latest config cache in
-  `ipc.cjs` through injected getters/setters
+  `ipc_desktop_ui_config_cache.cjs` through injected getters/setters
 
 ### `ipc_global_stop_shortcut_config_runtime.cjs`
 
@@ -701,8 +712,9 @@ generic `to-backend` router or direct chat query IPC handlers.
 18. IPC-facing app diagnostic append failure handling, including append
     forwarding, diagnostic path logging, and stable failure results, delegates
     to `ipc_app_diagnostics_runtime.cjs`.
-19. desktop UI config disk I/O delegates to `ipc_desktop_ui_config.cjs`, while
-    MCP allowlist preservation, save redaction, latest-cache updates, and
+19. desktop UI config disk I/O delegates to `ipc_desktop_ui_config.cjs`, cached
+    config state delegates to `ipc_desktop_ui_config_cache.cjs`, and MCP
+    allowlist preservation, save redaction, latest-cache updates, and
     enablement diagnostics delegate to
     `ipc_desktop_ui_config_persistence_runtime.cjs`.
 20. SDK-shaped renderer command handler registration delegates to
