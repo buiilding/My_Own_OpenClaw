@@ -18199,3 +18199,22 @@ Each completed slice should report:
   conversation-store behavior, local-runtime store RPC payloads, transcript
   storage, credentials, permissions, hosted backend URLs, and provider policy
   are unchanged.
+
+### 2026-06-20 SDK private-exports test route rename
+
+- Finding: the SDK private-exports test validates removed product compatibility
+  modules and private helper boundaries under the real `@windie/sdk` package,
+  but the focused route still used the product-branded
+  `WindieSdkPrivateExports` filename even though current SDK public surfaces are
+  Agent-named.
+- Change: renamed the focused test to
+  `tests/frontend/AgentSdkPrivateExports.test.cjs` and extended the modular
+  route guard so the generic path exists while the retired branded route stays
+  absent. The assertions still construct Windie-prefixed names where they are
+  intentionally verifying removed compatibility modules.
+- Validation: focused Agent SDK private-exports test, modular docs boundary
+  test, exact old-route scan, docs listing, and diff checks.
+- Compatibility: no migration required. Public SDK exports, private CJS helper
+  boundaries, removed compatibility-module assertions, package name, runtime
+  behavior, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.

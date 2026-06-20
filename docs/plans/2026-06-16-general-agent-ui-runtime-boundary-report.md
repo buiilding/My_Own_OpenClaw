@@ -7412,3 +7412,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   APIs, conversation-store behavior, local-runtime store RPC payloads,
   transcript storage, credentials, permissions, hosted backend URLs, and
   provider policy are unchanged; no migration is required.
+- The SDK private-exports focused test now lives at
+  `tests/frontend/AgentSdkPrivateExports.test.cjs`, with the retired
+  `WindieSdkPrivateExports` route guarded absent. Public SDK exports, private
+  CJS helper boundaries, removed compatibility-module assertions, package name,
+  runtime behavior, credentials, permissions, hosted backend URLs, and provider
+  policy are unchanged; no migration is required.
