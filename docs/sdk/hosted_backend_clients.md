@@ -1,14 +1,14 @@
 ---
-summary: "Hosted backend client guide for WindieOS TypeScript and Python SDK wrappers over artifacts, SDK HTTP routes, and websocket query transport."
+summary: "Hosted backend client guide for TypeScript and Python SDK wrappers over artifacts, SDK HTTP routes, and websocket query transport."
 read_when:
   - When changing SDK client transport behavior.
-  - When integrating external tooling with hosted WindieOS backend APIs.
+  - When integrating external tooling with hosted backend APIs.
 title: "Hosted Backend Clients"
 ---
 
 # Hosted Backend Clients
 
-WindieOS includes transport-only SDK clients for hosted backend APIs and
+The SDK includes transport-only clients for hosted backend APIs and
 agent-runtime SDK surfaces for local desktop operators. Direct hosted route
 clients are useful for artifacts and SDK HTTP routes. Agent sessions should use
 `AgentClient.wakeUp(...)`, not a raw websocket helper.

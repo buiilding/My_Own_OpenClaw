@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS SDK HTTP routes and hosted clients across backend route models, service helpers, TypeScript/Python clients, artifacts, OCR/vision, and tests."
+summary: "Workflow for changing hosted SDK HTTP routes and hosted clients across backend route models, service helpers, TypeScript/Python clients, artifacts, OCR/vision, and tests."
 read_when:
   - When adding or changing `/api/sdk/*` routes or hosted SDK client methods.
   - When changing SDK OCR, vision, prompt-preview, query-plan, models, tool-schema, or artifact behavior.

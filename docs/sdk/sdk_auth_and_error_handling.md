@@ -1,5 +1,5 @@
 ---
-summary: "Auth, endpoint, and error-handling guide for WindieOS hosted SDK routes, artifacts, websocket query transport, TypeScript client, and Python client."
+summary: "Auth, endpoint, and error-handling guide for hosted SDK routes, artifacts, websocket query transport, TypeScript client, and Python client."
 read_when:
   - When changing SDK client auth headers, endpoint selection, error surfaces, artifact access, or websocket query transport.
   - When debugging SDK 401/422/503 failures, artifact fetch failures, or hosted client websocket connection issues.

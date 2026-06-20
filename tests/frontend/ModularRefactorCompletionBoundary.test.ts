@@ -226,6 +226,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/sdk/conversation_runtime.md'),
       read('docs/sdk/hosted_backend_clients.md'),
       read('docs/sdk/sdk_auth_and_error_handling.md'),
+      read('docs/sdk/sdk_route_change_workflow.md'),
       read('docs/sdk/tool_authoring.md'),
     ]);
     const sdkDocText = sdkDocs.join('\n');
@@ -261,6 +262,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('backed by\n  the Python sidecar');
     expect(sdkDocText).not.toContain('raw backend');
     expect(sdkDocText).not.toContain('raw-backend');
+    expect(sdkDocText).not.toContain('WindieOS hosted SDK routes');
+    expect(sdkDocText).not.toContain('WindieOS SDK HTTP routes');
+    expect(sdkDocText).not.toContain('WindieOS SDK docs cover');
+    expect(sdkDocText).not.toContain('WindieOS TypeScript and Python SDK wrappers');
     expect(apiReferenceText).not.toContain('local backend process just to use hosted OCR or prediction routes');
     expect(architectureText).not.toContain('sidecar-backed storage');
     expect(architectureText).not.toContain('sidecar-backed SDK store');

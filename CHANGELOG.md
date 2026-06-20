@@ -50,6 +50,9 @@ All notable changes to WindieOS will be documented in this file.
   `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS` while preserving the generic
   `AGENT_*` key precedence and existing compatibility aliases. No migration
   required.
+- docs/sdk: reword active SDK hub/auth/route/hosted-client summaries so the
+  reusable SDK contract is described as hosted backend and Agent SDK guidance
+  instead of stale WindieOS-specific SDK-route framing. No migration required.
 - renderer/sdk: remove the retired renderer `agentSdkClient.ts` SDK re-export
   facade; renderer app-runtime contracts now import the SDK package directly
   and active docs route hosted TypeScript client work to `packages/windie-sdk-js`.

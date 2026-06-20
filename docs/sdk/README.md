@@ -1,5 +1,5 @@
 ---
-summary: "SDK hub for WindieOS hosted backend clients, SDK routes, query planning, tracing, artifacts, OCR, vision, and tool authoring."
+summary: "SDK hub for hosted backend clients, SDK routes, query planning, tracing, artifacts, OCR, vision, and tool authoring."
 read_when:
   - When integrating with WindieOS programmatically.
   - When changing SDK clients, SDK routes, or hosted developer-facing APIs.
@@ -8,7 +8,7 @@ title: "SDK Hub"
 
 # SDK Hub
 
-WindieOS SDK docs cover the canonical client runtime for hosted backend access,
+Agent SDK docs cover the canonical client runtime for hosted backend access,
 SDK local-runtime execution, and client-side conversation state. Electron, future
 CLIs, custom UIs, and SDK users should share this runtime instead of owning
 separate backend websocket loops, replay logic, or tool-result routing.

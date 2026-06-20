@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 SDK Docs Hosted Contract Wording
+
+- Finding: active SDK docs had already moved most body copy to hosted backend,
+  Python SDK, and local-runtime labels, but frontmatter and opening prose still
+  framed the reusable SDK contract as WindieOS hosted SDK routes or WindieOS SDK
+  wrappers.
+- Change: reworded the SDK hub, auth/error, route workflow, and hosted-client
+  docs to describe hosted backend and Agent SDK guidance, and extended the
+  modular SDK docs boundary guard to reject the stale WindieOS-specific
+  SDK-route phrases.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  phrase scan across `docs/sdk`, and diff checks.
+- Compatibility: no migration required. Runtime code, package names, hosted
+  routes, SDK exports, env aliases, credentials, permissions, storage, provider
+  policy, IPC payloads, and local execution behavior are unchanged.
+
 ### 2026-06-20 SDK Runtime Env Compatibility Map
 
 - Finding: SDK runtime env fallback arrays preserved the required `WINDIE_*`
