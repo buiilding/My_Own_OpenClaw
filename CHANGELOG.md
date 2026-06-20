@@ -14,6 +14,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- docs/renderer: restore the renderer folder-structure source-map line for
+  `desktopToolGhostRuntime.ts` so the debug tool-ghost runtime entry no longer
+  carries literal mojibake placeholders. No migration required.
 - main/ipc: import the private SDK backend-event normalizer from its transport
   owner module instead of the SDK package root, preserving the root export
   boundary while restoring query bridge normalization. No migration required.

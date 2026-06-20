@@ -17959,3 +17959,18 @@ Each completed slice should report:
   `ManagedAgentSession`, `createManagedAgentSession`, websocket payloads,
   hosted backend URLs, credentials, permissions, local-runtime behavior,
   storage, and provider policy are unchanged.
+
+### 2026-06-20 Renderer folder structure tool-ghost line cleanup
+
+- Finding: `frontend/src/renderer/folder_structure.md` listed
+  `desktopToolGhostRuntime.ts` with literal `???` placeholders in the tree
+  prefix, leaving the renderer runtime source map visibly corrupted for the
+  debug tool-ghost timing facade.
+- Change: restored the tree prefix for the `desktopToolGhostRuntime.ts` entry
+  and added a modular docs guard so the literal placeholder prefix does not
+  return.
+- Validation: focused modular docs boundary test, exact placeholder scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Runtime code, renderer behavior, IPC
+  channels, SDK contracts, storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.

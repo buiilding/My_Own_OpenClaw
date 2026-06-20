@@ -7323,3 +7323,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   hosted backend URLs, credentials, permissions, local-runtime behavior,
   storage, and provider policy are unchanged; no migration is required for
   public callers.
+- The renderer folder-structure source map now restores the
+  `desktopToolGhostRuntime.ts` tree entry instead of carrying literal `???`
+  placeholders. Runtime code, renderer behavior, IPC channels, SDK contracts,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged; no migration is required.

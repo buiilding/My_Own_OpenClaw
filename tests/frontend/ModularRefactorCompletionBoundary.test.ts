@@ -624,6 +624,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('renderer transcript/history side-effect handlers consume SDK conversation');
     expect(docText).toContain('agent display name');
     expect(docText).toContain('3. LOCAL-RUNTIME EXECUTION');
+    expect(docText).not.toContain('???   ???   ?????????');
     expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('SDK agent-runtime');
     expect(docText).not.toContain('SDK agent runtime concern');
