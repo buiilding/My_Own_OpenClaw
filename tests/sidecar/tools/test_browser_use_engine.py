@@ -99,6 +99,16 @@ def test_browser_runtime_source_copy_uses_local_runtime_terms() -> None:
     assert "SDK/" + "sidecar " + "restarts" not in sources
 
 
+def test_browser_extract_docs_match_deterministic_runtime_path() -> None:
+    repo_root = Path(__file__).resolve().parents[3]
+    browser_control_doc = (
+        repo_root / "docs" / "browser" / "browser_control.md"
+    ).read_text(encoding="utf-8")
+
+    assert "deterministic markdown/focused-excerpt path" in browser_control_doc
+    assert "WINDIE_BROWSER_USE_EXTRACTION_" not in browser_control_doc
+
+
 def test_extract_response_data_rejects_non_object_data() -> None:
     with pytest.raises(BrowserActionError, match="non-object data"):
         _extract_response_data({"success": True, "data": "done"})

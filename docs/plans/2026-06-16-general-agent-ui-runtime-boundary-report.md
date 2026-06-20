@@ -5784,3 +5784,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   display-row projection, SDK exports, IPC command strings, persisted
   transcript data, credentials, permissions, hosted backend URLs, provider
   policy, storage, and local-runtime behavior are unchanged.
+- Browser extraction docs now match the active local-runtime adapter: `extract`
+  is documented as Browser Use HTML plus deterministic markdown/focused-excerpt
+  processing instead of a Windie-specific Browser Use extraction model env
+  requirement. Browser action schemas, CLI invocation, dedicated CDP/profile
+  behavior, tool outputs, storage, credentials, permissions, hosted backend
+  URLs, provider policy, and IPC payloads are unchanged.

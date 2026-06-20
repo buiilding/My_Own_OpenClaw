@@ -15951,3 +15951,19 @@ Each completed slice should report:
   row projection, SDK exports, IPC command strings, persisted transcript data,
   credentials, permissions, hosted backend URLs, provider policy, storage, and
   local-runtime behavior are unchanged.
+
+### 2026-06-20 Browser extraction runtime docs cleanup
+
+- Finding: browser control docs still required Windie-specific Browser Use
+  extraction-model env vars even though the active local-runtime adapter now
+  reads page HTML through Browser Use and uses the deterministic markdown /
+  focused-excerpt extraction path.
+- Change: removed the stale extraction provider/model env requirement from the
+  browser control reference and added a Browser Use engine guard so the doc
+  keeps naming the deterministic local-runtime extraction path.
+- Validation: focused Browser Use engine pytest coverage, exact stale env scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Browser action schemas, Browser Use
+  CLI invocation, dedicated CDP/profile behavior, tool outputs, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and IPC
+  payloads are unchanged.

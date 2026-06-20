@@ -180,8 +180,7 @@ Extract options (Browser Use semantics):
 - `start_from_char`: continue extraction from a character offset for long pages (`0` default).
 - `output_schema`: optional structured-output hint passed to Browser Use extract.
 
-Extract returns focused page text in `output` plus extraction metadata.
-Runtime requirement: configure extraction LLM via Windie provider/model (`WINDIE_BROWSER_USE_EXTRACTION_PROVIDER` + `WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID`) or set explicit Browser Use model-name override (`WINDIE_BROWSER_USE_EXTRACTION_MODEL`, for example `openai_gpt_4o_mini`).
+Extract returns focused page text in `output` plus extraction metadata. The local-runtime adapter reads page HTML through Browser Use and applies the deterministic markdown/focused-excerpt path, so extraction does not require a Browser Use model override.
 
 ### 5. Click
 
