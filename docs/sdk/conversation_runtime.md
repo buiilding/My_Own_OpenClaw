@@ -19,7 +19,7 @@ instead of privately shaping transcript, replay, tool, and compaction state.
 External app authors normally use `AgentClient.wakeUp(...)` and
 `agent.conversation(...)`. The built-in Electron desktop is a first-party SDK
 host, so its app runtime facades may use lower-level SDK runtime pieces such as
-conversation-runtime factories, managed backend sessions, and tool coordination
+conversation-runtime factories, managed hosted sessions, and tool coordination
 modules. The boundary rule is that Electron must not reimplement those SDK
 semantics separately, and Electron-only adapters must remain isolated behind
 SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`.

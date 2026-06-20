@@ -1,12 +1,12 @@
 ﻿/**
- * Covers Agent SDK managed backend session behavior in the frontend test suite.
+ * Covers Agent SDK managed websocket session behavior in the frontend test suite.
  */
 
 import { EventEmitter } from 'events';
 
 import {
-  createManagedBackendSession,
-} from '../../packages/windie-sdk-js/src/transport/ManagedBackendSession';
+  createManagedWebSocketSession,
+} from '../../packages/windie-sdk-js/src/transport/ManagedWebSocketSession';
 
 class FakeSocket extends EventEmitter {
   readyState = 0;
@@ -33,7 +33,7 @@ class ThrowingSocket extends FakeSocket {
   }
 }
 
-describe('ManagedBackendSession', () => {
+describe('ManagedWebSocketSession', () => {
   beforeEach(() => {
     jest.useRealTimers();
   });
@@ -41,7 +41,7 @@ describe('ManagedBackendSession', () => {
   test('owns handshake, typed sends, and backend event parsing', async () => {
     const socket = new FakeSocket();
     const onEvent = jest.fn();
-    const session = createManagedBackendSession({
+    const session = createManagedWebSocketSession({
       createSocket: () => socket,
       createMessageId: () => 'msg-1',
       getUserId: () => 'user-1',
@@ -82,7 +82,7 @@ describe('ManagedBackendSession', () => {
 
   test('rejects sends without an open socket or user id', async () => {
     const socket = new FakeSocket();
-    const session = createManagedBackendSession({
+    const session = createManagedWebSocketSession({
       createSocket: () => socket,
       getUserId: () => null,
       buildHandshake: () => ({ type: 'handshake' }),
@@ -102,7 +102,7 @@ describe('ManagedBackendSession', () => {
       const beforeConnect = jest.fn(async () => {});
       const onClose = jest.fn();
       const onSocketChange = jest.fn();
-      const session = createManagedBackendSession({
+      const session = createManagedWebSocketSession({
         createSocket: () => sockets.shift() as FakeSocket,
         reconnectIntervalMs: 25,
         createMessageId: () => 'msg-1',
@@ -139,7 +139,7 @@ describe('ManagedBackendSession', () => {
     const firstSocket = new FakeSocket();
     const secondSocket = new FakeSocket();
     const onFallback = jest.fn();
-    const session = createManagedBackendSession({
+    const session = createManagedWebSocketSession({
       createSocket: jest.fn()
         .mockReturnValueOnce(firstSocket)
         .mockReturnValueOnce(secondSocket),
@@ -169,7 +169,7 @@ describe('ManagedBackendSession', () => {
         throw new Error('handshake build failed');
       })
       .mockReturnValueOnce({ type: 'handshake', user_id: 'user-1' });
-    const session = createManagedBackendSession({
+    const session = createManagedWebSocketSession({
       createSocket,
       getUserId: () => 'user-1',
       buildHandshake,
@@ -201,7 +201,7 @@ describe('ManagedBackendSession', () => {
     const socket = new ThrowingSocket();
     const onHandshakeError = jest.fn();
     const onSocketChange = jest.fn();
-    const session = createManagedBackendSession({
+    const session = createManagedWebSocketSession({
       createSocket: () => socket,
       getUserId: () => 'user-1',
       buildHandshake: () => ({ type: 'handshake', user_id: 'user-1' }),

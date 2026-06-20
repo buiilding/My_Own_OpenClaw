@@ -73,6 +73,8 @@ describe('@windie/sdk private helper exports', () => {
     expect(rootModule.createAgentBackendTransport).toBeUndefined();
     expect(rootModule.ManagedBackendSession).toBeUndefined();
     expect(rootModule.createManagedBackendSession).toBeUndefined();
+    expect(rootModule.ManagedWebSocketSession).toBeUndefined();
+    expect(rootModule.createManagedWebSocketSession).toBeUndefined();
   });
 
   test('sidecar store compatibility module is removed', () => {

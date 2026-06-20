@@ -1,13 +1,13 @@
 "use strict";
 /**
- * Provides managed backend agent session transport for the TypeScript SDK runtime.
+ * Provides managed hosted agent session transport for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ManagedAgentSession = void 0;
 exports.createManagedAgentSession = createManagedAgentSession;
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const AgentSession_js_1 = require("./AgentSession.js");
-const ManagedBackendSession_js_1 = require("./ManagedBackendSession.js");
+const ManagedWebSocketSession_js_1 = require("./ManagedWebSocketSession.js");
 const BackendSocketFactory_js_1 = require("./BackendSocketFactory.js");
 const backendPayloadContract_js_1 = require("./backendPayloadContract.js");
 function resolveEndpointWsUrl(endpoint) {
@@ -26,7 +26,7 @@ class ManagedAgentSession {
         this.activeEndpointIndex = 0;
         this.endpoints = normalizeEndpoints(options);
         const WebSocketImpl = (0, AgentSession_js_1.resolveWebSocketImplementation)(options.WebSocketImpl);
-        this.session = (0, ManagedBackendSession_js_1.createManagedBackendSession)({
+        this.session = (0, ManagedWebSocketSession_js_1.createManagedWebSocketSession)({
             createSocket: () => {
                 const endpoint = this.currentEndpoint();
                 return (0, BackendSocketFactory_js_1.createAgentBackendSocket)({

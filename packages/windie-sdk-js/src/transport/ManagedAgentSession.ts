@@ -1,5 +1,5 @@
 /**
- * Provides managed backend agent session transport for the TypeScript SDK runtime.
+ * Provides managed hosted agent session transport for the TypeScript SDK runtime.
  */
 
 import {
@@ -20,9 +20,9 @@ import {
   type AgentSessionRuntime,
 } from './AgentSession.js';
 import {
-  createManagedBackendSession,
-  type ManagedBackendSession,
-} from './ManagedBackendSession.js';
+  createManagedWebSocketSession,
+  type ManagedWebSocketSession,
+} from './ManagedWebSocketSession.js';
 import { createAgentBackendSocket } from './BackendSocketFactory.js';
 import { filterBackendPayload } from './backendPayloadContract.js';
 
@@ -95,12 +95,12 @@ export class ManagedAgentSession implements AgentSessionRuntime {
   private readonly listeners = new Map<AgentSessionEventName, Set<AgentSessionListener<unknown>>>();
   private readonly endpoints: ManagedAgentBackendEndpoint[];
   private activeEndpointIndex = 0;
-  private readonly session: ManagedBackendSession;
+  private readonly session: ManagedWebSocketSession;
 
   constructor(options: ManagedAgentSessionOptions) {
     this.endpoints = normalizeEndpoints(options);
     const WebSocketImpl = resolveWebSocketImplementation(options.WebSocketImpl);
-    this.session = createManagedBackendSession({
+    this.session = createManagedWebSocketSession({
       createSocket: () => {
         const endpoint = this.currentEndpoint();
         return createAgentBackendSocket({

@@ -1,10 +1,10 @@
 "use strict";
 /**
- * Provides the managed backend session module for the TypeScript SDK runtime.
+ * Provides the managed websocket session module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ManagedBackendSession = void 0;
-exports.createManagedBackendSession = createManagedBackendSession;
+exports.ManagedWebSocketSession = void 0;
+exports.createManagedWebSocketSession = createManagedWebSocketSession;
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const AgentSession_js_1 = require("./AgentSession.js");
 const DEFAULT_RECONNECT_INTERVAL_MS = 1000;
@@ -40,7 +40,7 @@ function isOpenSocket(socket) {
 function isConnectingSocket(socket) {
     return getReadyState(socket) === 0;
 }
-class ManagedBackendSession {
+class ManagedWebSocketSession {
     constructor(options) {
         this.options = options;
         this.socket = null;
@@ -70,7 +70,7 @@ class ManagedBackendSession {
             return;
         }
         if (this.isOpen() || this.isConnecting()) {
-            this.options.log?.('Agent SDK managed backend session already open or connecting.');
+            this.options.log?.('Agent SDK managed websocket session already open or connecting.');
             return;
         }
         const nextSocket = this.options.createSocket();
@@ -205,7 +205,7 @@ class ManagedBackendSession {
     }
     sendMessage(type, payload = {}, messageId = null) {
         if (!this.isOpen() || !this.socket) {
-            this.options.log?.('Cannot send message: Agent SDK managed backend session is not connected.');
+            this.options.log?.('Cannot send message: Agent SDK managed websocket session is not connected.');
             return null;
         }
         const userId = this.options.getUserId();
@@ -264,7 +264,7 @@ class ManagedBackendSession {
         this.intentionalCloseReason = reason;
         this.clearReconnectTimer();
         this.clearIdleDisconnectTimer();
-        this.rejectConnectWaiters(new Error('Agent SDK managed backend session closed.'));
+        this.rejectConnectWaiters(new Error('Agent SDK managed websocket session closed.'));
         const current = this.socket;
         this.socket = null;
         this.handshakeCompleted = false;
@@ -333,7 +333,7 @@ class ManagedBackendSession {
         }, delayMs);
     }
 }
-exports.ManagedBackendSession = ManagedBackendSession;
-function createManagedBackendSession(options) {
-    return new ManagedBackendSession(options);
+exports.ManagedWebSocketSession = ManagedWebSocketSession;
+function createManagedWebSocketSession(options) {
+    return new ManagedWebSocketSession(options);
 }

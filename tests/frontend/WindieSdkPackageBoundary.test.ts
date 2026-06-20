@@ -216,8 +216,12 @@ describe('@windie/sdk package boundary', () => {
 
   test('exports generic backend socket factory helpers', () => {
     const source = fs.readFileSync(
-      path.resolve(__dirname, '../../packages/windie-sdk-js/src/transport/ManagedBackendSession.ts'),
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/transport/ManagedWebSocketSession.ts'),
       'utf8',
+    );
+    const retiredManagedBackendSessionPath = path.resolve(
+      __dirname,
+      '../../packages/windie-sdk-js/src/transport/ManagedBackendSession.ts',
     );
     class FakeWebSocket {
       constructor(readonly url: string) {}
@@ -228,6 +232,9 @@ describe('@windie/sdk package boundary', () => {
     };
 
     expect(source).not.toContain('ManagedBackendSocketFactory');
+    expect(source).not.toContain('ManagedBackendSession');
+    expect(source).not.toContain('createManagedBackendSession');
+    expect(fs.existsSync(retiredManagedBackendSessionPath)).toBe(false);
     expect(createAgentBackendSocket(options)).toBeInstanceOf(FakeWebSocket);
   });
 

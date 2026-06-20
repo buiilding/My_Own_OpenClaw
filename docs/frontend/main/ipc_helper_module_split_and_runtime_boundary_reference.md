@@ -151,7 +151,7 @@ Owns VM automated-query dispatch orchestration:
   query dispatch dependencies once and exports `sendAutomatedQuery(...)` as a
   thin runtime call
 - validates assigned-run query options through `prepareAutomatedQueryPayload`
-- connects the managed backend session for `automated-query`
+- connects the SDK managed hosted session for `automated-query`
 - waits for initial settings sync and any pending settings ACK
 - builds the enriched query payload through `buildQueryPayload`
 - attaches agent-definition context

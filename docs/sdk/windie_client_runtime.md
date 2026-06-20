@@ -69,9 +69,9 @@ Ownership rules:
   adapters use the runtime-named factory directly.
   `BackendSocketFactory.ts` exposes
   `createAgentBackendSocket` and `AgentBackendSocketOptions`.
-  The lower-level `ManagedBackendSession.ts` implementation is private to the
+  The lower-level `ManagedWebSocketSession.ts` implementation is private to the
   SDK transport package; the package root exposes the agent-shaped managed
-  session instead of a backend-named lifecycle class.
+  session instead of a websocket-lifecycle class.
   `ManagedAgentSession.ts` is the canonical managed
   hosted session module through `ManagedAgentBackendEndpoint`,
   `ManagedAgentSessionOptions`, `ManagedAgentSession`, and

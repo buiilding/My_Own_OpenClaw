@@ -47,7 +47,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Query send from UI | `renderer/features/chat/hooks/useChatMessageSender.ts` |
 | Renderer runtime call | `renderer/app/runtime/desktopLiveTurnRuntimeClient.ts` |
 | Main relay and gating | `main/ipc.cjs`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` |
-| Backend websocket send | SDK managed backend session -> backend `/ws` |
+| Backend websocket send | SDK managed hosted session -> backend `/ws` |
 | Stream event return | backend `/ws` -> SDK conversation runtime -> renderer `windie:conversation-event` + `windie:current-turn` |
 | Renderer stream integration | `renderer/features/chat/hooks/useChatStream.ts` + `chatStore.ts` |
 
@@ -55,12 +55,12 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 
 | Phase | Module ownership |
 | --- | --- |
-| Tool-call event detected | SDK managed backend session |
+| Tool-call event detected | SDK managed hosted session |
 | Tool execution orchestration | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | SDK local runtime | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` |
 | Local-runtime request dispatch | SDK local runtime provider plus `main/sidecar/local_runtime_bridge.cjs` RPC mappers |
 | Local-runtime tool execution | `main/python/tools/registry.py` + domain tool modules |
-| Result normalization + send | SDK tool coordinator -> managed backend session -> backend `tool-result` |
+| Result normalization + send | SDK tool coordinator -> managed hosted session -> backend `tool-result` |
 
 ### Voice + Wakeword Path
 

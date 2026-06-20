@@ -67,6 +67,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).not.toContain('sendSdkRuntimeCommand');
     expect(ipcSource).not.toContain(`get${retiredProductName('SdkRuntime')}`);
     expect(ipcSource).not.toContain('createManagedBackendSession');
+    expect(ipcSource).not.toContain('createManagedWebSocketSession');
     expect(ipcSource).not.toContain('routeSdkToolEventToLocalRuntime');
     expect(ipcSource).not.toContain('executeLocalTool:');
     const wakeCall = agentWakeupRuntimeSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] ?? '';
@@ -128,6 +129,7 @@ describe('modular sdk refactor completion boundary', () => {
       'SdkConversationRuntime',
       'createConversationRuntime',
       'ManagedBackendSession',
+      'ManagedWebSocketSession',
       'ToolExecutionCoordinator',
       'DesktopConversationStoreAdapter',
       'DesktopLiveTurnRuntimeClient',

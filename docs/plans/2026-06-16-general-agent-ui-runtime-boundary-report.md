@@ -7317,3 +7317,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   capability-negotiation plans, tool schemas, IPC channels, storage,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
+- The private SDK managed websocket lifecycle helper is now named
+  `ManagedWebSocketSession`, with `ManagedAgentSession` remaining the public
+  managed hosted-session API. Public SDK root exports, websocket payloads,
+  hosted backend URLs, credentials, permissions, local-runtime behavior,
+  storage, and provider policy are unchanged; no migration is required for
+  public callers.

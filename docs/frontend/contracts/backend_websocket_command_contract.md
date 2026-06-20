@@ -14,7 +14,7 @@ title: "Backend WebSocket Command Contract"
 - `backend/src/api/contracts/incoming_message_contract.json`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
-- `packages/windie-sdk-js/src/transport/ManagedBackendSession.ts`
+- `packages/windie-sdk-js/src/transport/ManagedWebSocketSession.ts`
 
 ## Envelope Context
 

@@ -324,6 +324,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toMatch(/require\(['"].*agent_host\.cjs['"]\)/);
     expect(source).not.toContain(`create${retiredProductName('SdkMainRuntime')}`);
     expect(source).not.toContain('createManagedBackendSession');
+    expect(source).not.toContain('createManagedWebSocketSession');
     expect(source).not.toContain('sendSdkRuntimeCommand');
     expect(source).not.toContain('executeLocalTool:');
     expect(source).not.toContain('sendQueryToBackend');

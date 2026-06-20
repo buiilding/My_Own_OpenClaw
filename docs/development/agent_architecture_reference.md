@@ -169,7 +169,7 @@ Key entry points:
   `packages/windie-sdk-js/src/runtime/AgentClient.ts`,
   `packages/windie-sdk-js/src/runtime/Agent.ts`,
   `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`,
-  `packages/windie-sdk-js/src/transport/ManagedBackendSession.ts`,
+  `packages/windie-sdk-js/src/transport/ManagedWebSocketSession.ts`,
   `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
 - Electron main: `frontend/src/main/index.cjs`, `frontend/src/main/ipc.cjs`,
   `frontend/src/main/ipc/ipc_query_runtime.cjs`,
@@ -214,7 +214,7 @@ Key TypeScript SDK surfaces:
   helper for an existing conversation.
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`: reusable
   conversation command/runtime surface over a store and backend transport.
-- `packages/windie-sdk-js/src/transport/ManagedBackendSession.ts`: hosted
+- `packages/windie-sdk-js/src/transport/ManagedWebSocketSession.ts`: hosted
   backend websocket lifecycle, typed query/stop/rehydrate/settings/model sends,
   backend event fan-out, and tool-result return.
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`: desktop client/local-runtime
@@ -267,7 +267,7 @@ MessageInput / chat hook
   -> SDK ConversationRuntime command
   -> SDK-shaped windie:invoke command
   -> Electron main query payload builder
-  -> AgentClient.wakeUp(...) + agent.conversation(...) managed backend session
+  -> AgentClient.wakeUp(...) + agent.conversation(...) managed hosted session
   -> backend agent loop
 ```
 

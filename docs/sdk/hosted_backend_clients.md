@@ -85,8 +85,8 @@ generic agent-session contracts such as `AgentSessionRuntime`,
 prefer the generic names because the hosted websocket transport is an Agent SDK
 runtime concern rather than renderer skin state.
 The lower-level managed websocket implementation is private to the SDK transport
-package; package-root callers should not import `ManagedBackendSession` or
-`createManagedBackendSession`.
+package; package-root callers should not import `ManagedWebSocketSession` or
+`createManagedWebSocketSession`.
 The older `createAgentBackendTransport` compatibility alias has been removed so
 host adapters use the runtime-named factory directly.
 Hosts that inject a transport into `createConversationRuntime(...)` should type
@@ -94,7 +94,7 @@ that adapter as `AgentRuntimeTransport`. The older `BackendTransport`
 compatibility type has been removed so new app-builder code sees one reusable
 conversation-runtime transport name.
 
-`AgentClient.wakeUp(...)` can run on the SDK managed backend session. A host may
+`AgentClient.wakeUp(...)` can run on the SDK managed hosted session. A host may
 pass backend endpoints and lifecycle hooks to the client when it needs endpoint
 fallback, connection status, or idle-close policy:
 

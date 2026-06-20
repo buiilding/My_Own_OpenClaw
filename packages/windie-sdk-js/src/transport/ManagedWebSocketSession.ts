@@ -1,12 +1,12 @@
 /**
- * Provides the managed backend session module for the TypeScript SDK runtime.
+ * Provides the managed websocket session module for the TypeScript SDK runtime.
  */
 
 import { isBackendEvent, type BackendEvent } from '../events/backendEvents.js';
 import type { JsonRecord } from '../conversation/types.js';
 import { createMessageId, type WebSocketLike } from './AgentSession.js';
 
-export type ManagedBackendSessionOptions = {
+export type ManagedWebSocketSessionOptions = {
   createSocket: () => WebSocketLike;
   buildHandshake: () => Promise<JsonRecord> | JsonRecord;
   getUserId: () => string | null | undefined;
@@ -84,7 +84,7 @@ function isConnectingSocket(socket: WebSocketLike | null): boolean {
   return getReadyState(socket) === 0;
 }
 
-export class ManagedBackendSession {
+export class ManagedWebSocketSession {
   private socket: WebSocketLike | null = null;
   private detachSocketListeners: Array<() => void> = [];
   private shouldMaintainConnection = false;
@@ -97,7 +97,7 @@ export class ManagedBackendSession {
   private readonly connectTimeoutMs: number;
   private readonly idleDisconnectTimeoutMs: number;
 
-  constructor(private readonly options: ManagedBackendSessionOptions) {
+  constructor(private readonly options: ManagedWebSocketSessionOptions) {
     this.reconnectIntervalMs = options.reconnectIntervalMs ?? DEFAULT_RECONNECT_INTERVAL_MS;
     this.connectTimeoutMs = options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS;
     this.idleDisconnectTimeoutMs = options.idleDisconnectTimeoutMs ?? DEFAULT_IDLE_DISCONNECT_TIMEOUT_MS;
@@ -121,7 +121,7 @@ export class ManagedBackendSession {
       return;
     }
     if (this.isOpen() || this.isConnecting()) {
-      this.options.log?.('Agent SDK managed backend session already open or connecting.');
+      this.options.log?.('Agent SDK managed websocket session already open or connecting.');
       return;
     }
 
@@ -275,7 +275,7 @@ export class ManagedBackendSession {
 
   sendMessage(type: string, payload: JsonRecord = {}, messageId: string | null = null): string | null {
     if (!this.isOpen() || !this.socket) {
-      this.options.log?.('Cannot send message: Agent SDK managed backend session is not connected.');
+      this.options.log?.('Cannot send message: Agent SDK managed websocket session is not connected.');
       return null;
     }
     const userId = this.options.getUserId();
@@ -343,7 +343,7 @@ export class ManagedBackendSession {
     this.intentionalCloseReason = reason;
     this.clearReconnectTimer();
     this.clearIdleDisconnectTimer();
-    this.rejectConnectWaiters(new Error('Agent SDK managed backend session closed.'));
+    this.rejectConnectWaiters(new Error('Agent SDK managed websocket session closed.'));
     const current = this.socket;
     this.socket = null;
     this.handshakeCompleted = false;
@@ -420,6 +420,6 @@ export class ManagedBackendSession {
   }
 }
 
-export function createManagedBackendSession(options: ManagedBackendSessionOptions): ManagedBackendSession {
-  return new ManagedBackendSession(options);
+export function createManagedWebSocketSession(options: ManagedWebSocketSessionOptions): ManagedWebSocketSession {
+  return new ManagedWebSocketSession(options);
 }

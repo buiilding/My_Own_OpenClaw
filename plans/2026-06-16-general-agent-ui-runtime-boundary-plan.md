@@ -17943,3 +17943,19 @@ Each completed slice should report:
 - Compatibility: no migration required. SDK APIs, mock backend behavior,
   example websocket flow, install-auth payload shape, storage, credentials,
   permissions, hosted backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 SDK managed websocket private transport rename
+
+- Finding: the SDK public managed hosted-session boundary had already narrowed
+  to `ManagedAgentSession`, but its private websocket lifecycle helper still
+  used the backend-shaped `ManagedBackendSession` module/class/factory names.
+- Change: renamed the private helper to `ManagedWebSocketSession`, switched
+  `ManagedAgentSession` internals to call `createManagedWebSocketSession`,
+  renamed the focused helper test, and updated active SDK/frontend docs and
+  boundary guards so the old private backend-shaped module cannot return.
+- Validation: focused SDK managed websocket/session boundary tests, SDK package
+  build, exact stale active-surface scan, docs listing, and diff checks.
+- Compatibility: no migration required. Public SDK root exports,
+  `ManagedAgentSession`, `createManagedAgentSession`, websocket payloads,
+  hosted backend URLs, credentials, permissions, local-runtime behavior,
+  storage, and provider policy are unchanged.

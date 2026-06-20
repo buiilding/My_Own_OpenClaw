@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/transport: rename the private managed backend websocket lifecycle module
+  to `ManagedWebSocketSession` and keep `ManagedAgentSession` as the public
+  managed hosted-session API. No public package-root API or storage migration
+  required.
 - examples: replace production WindieOS endpoint, concrete provider/model, and
   Windie-specific CLI copy in public SDK examples with neutral hosted
   backend/provider/model placeholders and primary `AGENT_*` env names. No
