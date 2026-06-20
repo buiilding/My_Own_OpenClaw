@@ -206,8 +206,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Electron main backend endpoint resolution now names its reusable generic
   fallback configuration as endpoint defaults while WindieOS hosted URLs stay
   injected by host skin.
+  Electron main backend parse and error-event diagnostics now use generic
+  agent-backend wording consistently with connection/close logs.
 
 ## Inspection Log
+
+### 2026-06-20 Main Agent Backend Error Log Wording
+
+- Finding: Electron main connection/runtime helpers already used generic
+  agent-backend wording for connect and close diagnostics, but backend parse
+  and error-event logs still said plain `backend`, making the desktop host
+  diagnostic layer read less like an Agent SDK host.
+- Change: updated those Electron main diagnostics to `agent backend` wording
+  and extended focused IPC/main boundary tests to keep the generic wording.
+- Validation: passed focused connection-event, runtime-helper, and main
+  host-skin boundary tests, stale plain-backend error-log scan, docs listing,
+  and diff check.
+- Compatibility: no migration required. Backend websocket event names, SDK
+  backend event normalization, settings ACK failure resolution, renderer
+  side-channel fan-out, storage, credentials, permissions, provider policy,
+  local-runtime routing, and hosted URLs are unchanged.
 
 ### 2026-06-20 Main Backend Endpoint Default Naming Boundary
 

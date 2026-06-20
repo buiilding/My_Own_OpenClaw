@@ -101,7 +101,7 @@ describe('ipc_agent_connection_events', () => {
     expect(deps.logMainRuntime).toHaveBeenCalledWith('[Main][Backend] message_error message="bad json"');
     expect(deps.log).toHaveBeenCalledWith('WebSocket error: socket exploded');
     expect(deps.log).toHaveBeenCalledWith('Error sending handshake: bad handshake');
-    expect(deps.log).toHaveBeenCalledWith('Error parsing message from backend: bad json');
+    expect(deps.log).toHaveBeenCalledWith('Error parsing message from agent backend: bad json');
   });
 
   test('resolves fallback endpoint indices from websocket and HTTP endpoint aliases', () => {

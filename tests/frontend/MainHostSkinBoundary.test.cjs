@@ -17,6 +17,7 @@ const runtimeModePath = path.join(mainRoot, 'app/runtime_mode.cjs');
 const vmWorkerRuntimePath = path.join(mainRoot, 'app/vm_worker_runtime.cjs');
 const mainProcessBootstrapRuntimePath = path.join(mainRoot, 'app/main_process_bootstrap_runtime.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
+const ipcRuntimeHelpersPath = path.join(mainRoot, 'ipc/ipc_runtime_helpers.cjs');
 const ipcAgentConnectionEventsPath = path.join(mainRoot, 'ipc/ipc_agent_connection_events.cjs');
 const ipcAgentBackendCloseRuntimePath = path.join(mainRoot, 'ipc/ipc_agent_backend_close_runtime.cjs');
 const ipcHostRuntimeConfigPath = path.join(mainRoot, 'ipc/ipc_host_runtime_config.cjs');
@@ -735,13 +736,18 @@ describe('main host skin/config boundary', () => {
 
   test('main backend connection logs use generic agent-backend wording', () => {
     const mainSource = fs.readFileSync(mainIpcPath, 'utf8');
+    const runtimeHelpersSource = fs.readFileSync(ipcRuntimeHelpersPath, 'utf8');
     const connectionEventSource = fs.readFileSync(ipcAgentConnectionEventsPath, 'utf8');
     const backendCloseSource = fs.readFileSync(ipcAgentBackendCloseRuntimePath, 'utf8');
-    const source = `${mainSource}\n${connectionEventSource}\n${backendCloseSource}`;
+    const source = `${mainSource}\n${runtimeHelpersSource}\n${connectionEventSource}\n${backendCloseSource}`;
 
     expect(connectionEventSource).toContain('Successfully connected to agent backend through Agent SDK runtime.');
     expect(backendCloseSource).toContain('Disconnected from agent backend. Attempting to reconnect...');
     expect(backendCloseSource).toContain('Disconnected from agent backend');
+    expect(connectionEventSource).toContain('Error parsing message from agent backend');
+    expect(connectionEventSource).not.toContain('Error parsing message from backend');
+    expect(source).toContain('Error from agent backend');
+    expect(source).not.toContain('Error from backend');
     expect(source).not.toContain('Python backend');
   });
 

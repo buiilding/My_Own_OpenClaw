@@ -5,6 +5,7 @@
 const {
   SCRIPTED_PROVIDER_MODEL,
   isScriptedProviderDevModelEnabled,
+  processBackendMessageData,
   withScriptedDevModel,
 } = require('../../frontend/src/main/ipc/ipc_runtime_helpers.cjs');
 const {
@@ -60,5 +61,28 @@ describe('ipc_runtime_helpers scripted provider augmentation', () => {
     };
 
     expect(withScriptedDevModel(event, { AGENT_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(event);
+  });
+
+  test('logs backend error events with generic agent-backend wording', () => {
+    const deps = {
+      setCurrentSessionId: jest.fn(),
+      setCurrentServerUserId: jest.fn(),
+      setCurrentConversationRef: jest.fn(),
+      resolveSettingsSync: jest.fn(),
+      setResponseOverlayPhase: jest.fn(),
+      getResponseOverlayPhase: jest.fn(() => 'idle'),
+      broadcastToRenderers: jest.fn(),
+      log: jest.fn(),
+    };
+
+    processBackendMessageData({
+      id: 'settings-1',
+      type: 'error',
+      payload: { message: 'settings failed' },
+    }, deps);
+
+    expect(deps.log).toHaveBeenCalledWith('Error from agent backend: settings failed');
+    expect(deps.log).not.toHaveBeenCalledWith(expect.stringContaining('Error from backend'));
+    expect(deps.resolveSettingsSync).toHaveBeenCalledWith('settings-1', false);
   });
 });

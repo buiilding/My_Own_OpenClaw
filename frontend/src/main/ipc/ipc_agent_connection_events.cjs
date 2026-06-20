@@ -70,7 +70,7 @@ function handleAgentConnectionEvent(event = {}, deps = {}) {
   if (event.type === 'message-error') {
     traceBackendConnection(event);
     logMainRuntime(`[Main][Backend] message_error message=${stringifyErrorMessage(event.error)}`);
-    log(`Error parsing message from backend: ${event.error}`);
+    log(`Error parsing message from agent backend: ${event.error}`);
   }
 }
 

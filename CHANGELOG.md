@@ -35,6 +35,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/logs: use generic agent-backend wording for Electron main backend parse
+  and event error diagnostics. No migration required.
 - main/endpoints: rename generic backend endpoint default internals away from
   hosted-backend wording while keeping WindieOS hosted defaults supplied by the
   host skin. No migration required.

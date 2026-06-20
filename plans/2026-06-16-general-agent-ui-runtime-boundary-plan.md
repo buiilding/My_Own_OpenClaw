@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Backend Error Log Wording
+
+- Finding: Electron main connection/runtime helpers already used generic
+  agent-backend wording for connect and close diagnostics, but backend parse
+  and error-event logs still said plain `backend`, making the desktop host
+  diagnostic layer read less like an Agent SDK host.
+- Change: updated those Electron main diagnostics to `agent backend` wording
+  and extended focused IPC/main boundary tests to keep the generic wording.
+- Validation: passed focused connection-event, runtime-helper, and main
+  host-skin boundary tests, stale plain-backend error-log scan, docs listing,
+  and diff check.
+- Compatibility: no migration required. Backend websocket event names, SDK
+  backend event normalization, settings ACK failure resolution, renderer
+  side-channel fan-out, storage, credentials, permissions, provider policy,
+  local-runtime routing, and hosted URLs are unchanged.
+
 ### 2026-06-20 Main Backend Endpoint Default Naming Boundary
 
 - Finding: `backend_endpoints.cjs` was already generic and received WindieOS

@@ -248,7 +248,7 @@ function processBackendMessageData(data, {
   }
   // Only log errors or important message types
   if (rendererData?.type === 'error') {
-    log(`Error from backend: ${rendererData.payload?.message || 'Unknown error'}`);
+    log(`Error from agent backend: ${rendererData.payload?.message || 'Unknown error'}`);
   }
   if (rendererData?.type === 'settings-updated' && rendererData.id) {
     resolveSettingsSync(rendererData.id, true);
