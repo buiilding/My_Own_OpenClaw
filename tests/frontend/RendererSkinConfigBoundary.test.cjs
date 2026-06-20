@@ -22,6 +22,7 @@ const storageSettingsPath = path.join(rendererRoot, 'app/skin/storageSettings.js
 const appearanceSettingsPath = path.join(rendererRoot, 'app/skin/appearanceSettings.js');
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
 const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/components/sections');
+const providerApiKeysPropTypesPath = path.join(dashboardSectionsRoot, 'providerApiKeysPropTypes.js');
 const configFilterPath = path.join(rendererRoot, 'app/runtime/desktopRendererConfigFilterRuntime.js');
 const configStoragePath = path.join(rendererRoot, 'app/runtime/desktopRendererConfigStorageRuntime.js');
 const applyAppearanceThemePath = path.join(rendererRoot, 'app/applyAppearanceTheme.js');
@@ -222,6 +223,7 @@ describe('renderer skin/config boundary', () => {
   test('provider credential defaults live in renderer skin config', () => {
     const configFacadeSource = fs.readFileSync(skinConfigFacadePath, 'utf8');
     const providerSkinSource = fs.readFileSync(providerCredentialSettingsPath, 'utf8');
+    const providerPropTypesSource = fs.readFileSync(providerApiKeysPropTypesPath, 'utf8');
     const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
     const apiKeysSource = fs.readFileSync(
       path.join(dashboardSectionsRoot, 'providerApiKeys.js'),
@@ -231,6 +233,13 @@ describe('renderer skin/config boundary', () => {
     expect(configFacadeSource).toContain("from './providerCredentialSettings'");
     expect(providerSkinSource).toContain('DEFAULT_PROVIDER_API_KEYS');
     expect(providerSkinSource).toContain('PROVIDER_API_KEY_SPECS');
+    expect(providerPropTypesSource).toContain('PropTypes.objectOf(providerApiKeyEntryPropType)');
+    expect(providerPropTypesSource).not.toContain('openai: providerApiKeyEntryPropType');
+    expect(providerPropTypesSource).not.toContain('anthropic: providerApiKeyEntryPropType');
+    expect(providerPropTypesSource).not.toContain('kimi_coding: providerApiKeyEntryPropType');
+    expect(providerPropTypesSource).not.toContain('google: providerApiKeyEntryPropType');
+    expect(providerPropTypesSource).not.toContain('openrouter: providerApiKeyEntryPropType');
+    expect(providerPropTypesSource).not.toContain('mistral: providerApiKeyEntryPropType');
     expect(configStorageSource).toContain('desktopRuntimeConfig');
     expect(configStorageSource).not.toContain('providerCredentialSettings');
     expect(apiKeysSource).toContain('desktopRuntimeConfig');

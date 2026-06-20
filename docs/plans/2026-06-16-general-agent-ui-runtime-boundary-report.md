@@ -191,8 +191,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   client.
   Renderer dashboard shell main-window target and user snapshot IPC now route
   through renderer app runtime clients.
+  Renderer dashboard provider API-key prop contracts are now provider-id
+  agnostic, keeping WindieOS provider identifiers in renderer skin config.
 
 ## Inspection Log
+
+### 2026-06-20 Renderer Provider API-Key Prop Contract Boundary
+
+- Finding: the dashboard provider API-key prop contract still enumerated
+  WindieOS provider ids, duplicating provider identity that already belongs to
+  the renderer skin/config facade.
+- Change: changed the provider API-key prop contract to an object-of provider
+  entry shape and added a renderer skin/config boundary guard against
+  reintroducing hardcoded provider ids in the prop-type module.
+- Validation: passed focused renderer skin/config boundary test, dashboard
+  model/API-key section test, source stale provider-id prop-type scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. Provider API-key config shape,
+  renderer normalization, credential redaction, storage, IPC, backend settings,
+  provider policy, permissions, and hosted URLs are unchanged.
 
 ### 2026-06-20 SDK Active Sidecar Wording Boundary
 

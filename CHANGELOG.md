@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: make dashboard provider API-key prop contracts provider-id
+  agnostic so WindieOS provider identifiers stay in renderer skin config. No
+  migration required.
 - backend/docs: describe token-count and tool-schemas formatter outputs as
   consumed by SDK/renderer typed message guards instead of frontend schema
   guards. No migration required.

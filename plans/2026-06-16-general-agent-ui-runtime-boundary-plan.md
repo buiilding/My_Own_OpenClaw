@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Renderer Provider API-Key Prop Contract Boundary
+
+- Finding: the dashboard provider API-key prop-type module still enumerated
+  WindieOS provider ids, even though provider credential defaults and display
+  specs now live in the renderer skin/config facade.
+- Change: replaced the hardcoded provider-id shape with a provider-id agnostic
+  object contract and extended the renderer skin/config boundary test to keep
+  provider identifiers in `providerCredentialSettings.js`.
+- Validation: passed focused renderer skin/config boundary test, dashboard
+  model/API-key section test, source stale provider-id prop-type scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. Provider API-key config shape,
+  renderer normalization, credential redaction, storage, IPC, backend settings,
+  provider policy, permissions, and hosted URLs are unchanged.
+
 ### 2026-06-20 Backend Formatter Typed Consumer Wording
 
 - Finding: the token-count/tool-schemas formatter reference still described
