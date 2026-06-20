@@ -176,6 +176,9 @@ backend wire payload. Conversation-scoped permission traces read only
 `_trace` object. Removed snake_case helper aliases such as `conversation_ref`
 and `turn_ref` are ignored, so callers using those fields fall back to app
 diagnostics instead of conversation trace rows.
+`ipc_main_process_trace_runtime.cjs` owns the final routing decision: idle
+permission probes write app diagnostics, while probes with both conversation
+and turn context write hidden SDK `trace_event` conversation rows.
 
 ## Preload/Channel Boundary
 

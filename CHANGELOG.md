@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move main-process trace event routing into
+  `ipc_main_process_trace_runtime.cjs`, preserving idle permission-probe app
+  diagnostics and conversation-scoped SDK trace events while keeping `ipc.cjs`
+  as dependency wiring. No migration required.
 - main/ipc: move global stop shortcut status normalization and fallback config
   persistence into `ipc_global_stop_shortcut_config_runtime.cjs`, keeping
   native shortcut registration in `agent_stop_shortcut_runtime.cjs` and stop

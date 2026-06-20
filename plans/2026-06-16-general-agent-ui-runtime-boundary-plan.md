@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Process Trace Runtime Boundary
+
+- Finding: permission IPC already sanitized probe/request trace context before
+  calling Electron main, but `ipc.cjs` still owned the final routing rule that
+  sends idle permission probes to app diagnostics while writing
+  conversation-scoped events through the SDK `TraceRecorder`.
+- Change: added `ipc_main_process_trace_runtime.cjs` to own main-process trace
+  event routing, input trimming, positive-duration normalization, missing
+  context rejection, and hidden SDK `trace_event` creation. `ipc.cjs` now
+  injects `ensureAgent`, app diagnostics, `TraceRecorder`, and the SDK event
+  factory.
+- Validation: focused main-process trace runtime coverage for idle
+  permission-probe app diagnostics, missing conversation/turn rejection,
+  conversation-scoped SDK trace events, scalar normalization, and a boundary
+  guard that keeps trace routing out of `ipc.cjs`.
+- Compatibility: no migration required. Permission probe IPC channels, trace
+  path names, app diagnostics storage, hidden conversation `trace_event` shape,
+  storage, credentials, permissions, hosted URLs, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Main Global Stop Shortcut Config Runtime Boundary
 
 - Finding: native global shortcut registration already lived in

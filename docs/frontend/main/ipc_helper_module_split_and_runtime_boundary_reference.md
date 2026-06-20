@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, or `ipc_global_stop_shortcut_config_runtime.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, or `ipc_main_process_trace_runtime.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -42,6 +42,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
 - `frontend/src/main/ipc/ipc_global_stop_shortcut_config_runtime.cjs`
+- `frontend/src/main/ipc/ipc_main_process_trace_runtime.cjs`
 - `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
@@ -355,6 +356,17 @@ Owns Electron-main global stop shortcut status/config adaptation:
   saved
 - broadcasts connection/status snapshots after shortcut status changes
 
+### `ipc_main_process_trace_runtime.cjs`
+
+Owns Electron-main trace event routing:
+
+- routes idle permission-probe events without conversation context into app
+  diagnostics
+- rejects non-permission trace events that lack conversation or turn context
+- writes conversation-scoped trace events through the SDK `TraceRecorder` and
+  hidden `trace_event` conversation events
+- keeps trace input string/duration sanitization out of the IPC relay root
+
 ### SDK-Shaped Conversation Commands
 
 `ipc_agent_sdk_command_handlers.cjs` owns the strict `windie:invoke` command
@@ -482,6 +494,8 @@ generic `to-backend` router or direct chat query IPC handlers.
     delegates to `ipc_agent_definition_context.cjs`.
 24. global stop shortcut status projection and fallback desktop UI config
     persistence delegate to `ipc_global_stop_shortcut_config_runtime.cjs`.
+25. main-process trace event routing for app diagnostics versus SDK
+    conversation trace rows delegates to `ipc_main_process_trace_runtime.cjs`.
 
 ## Drift Hotspots
 

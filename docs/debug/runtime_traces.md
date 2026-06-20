@@ -222,7 +222,8 @@ App diagnostic paths:
   duration, and short errors without selected filesystem paths. If a caller
   explicitly supplies both `conversationRef` and `turnRef`, the same sanitized
   path may be written as a hidden conversation `trace_event` because it is then
-  part of a real user turn.
+  part of a real user turn. `ipc_main_process_trace_runtime.cjs` owns this
+  app-diagnostic versus conversation-trace routing in Electron main.
 - `mcp.discovery`: local-runtime MCP discovery and stdio initialization,
   including sanitized command basename, argument summary, timeout phase,
   elapsed time, stderr tail, and short spawn/request errors.

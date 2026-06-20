@@ -37,6 +37,9 @@ const {
   createGlobalStopShortcutConfigRuntime,
 } = require('./ipc/ipc_global_stop_shortcut_config_runtime.cjs');
 const {
+  createMainProcessTraceRuntime,
+} = require('./ipc/ipc_main_process_trace_runtime.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -288,6 +291,13 @@ const globalStopShortcutConfigRuntime = createGlobalStopShortcutConfigRuntime({
   persistDesktopUiConfigToDisk,
   broadcastConnectionStatus: (connected) => broadcastConnectionStatus(connected),
   isConnected: () => isConnected,
+});
+const mainProcessTraceRuntime = createMainProcessTraceRuntime({
+  ensureAgent,
+  appendAppDiagnostic,
+  permissionProbeDiagnosticsPath: PERMISSION_PROBE_DIAGNOSTICS_PATH,
+  TraceRecorder,
+  createConversationEvent,
 });
 const installAuthRuntime = createInstallAuthRuntime({
   getCurrentState: () => ({
@@ -1258,58 +1268,7 @@ async function sendWakewordDetectedThroughAgentSdkRuntime(payload = {}) {
 }
 
 async function appendMainProcessTraceEvent(input = {}) {
-  const path = normalizeOptionalString(input.path);
-  const conversationRef = normalizeOptionalString(input.conversationRef);
-  const turnRef = normalizeOptionalString(input.turnRef);
-  if (path === PERMISSION_PROBE_DIAGNOSTICS_PATH && (!conversationRef || !turnRef)) {
-    return appendAppDiagnostic({
-      path,
-      stage: normalizeOptionalString(input.stage) || 'unknown',
-      status: normalizeOptionalString(input.status) || 'succeeded',
-      runtime: normalizeOptionalString(input.runtime) || 'electron-main',
-      requestId: normalizeOptionalString(input.requestId),
-      durationMs: normalizePositiveInteger(input.durationMs),
-      data: isPlainObject(input.data) ? input.data : {},
-      error: input.error,
-    });
-  }
-  if (!conversationRef) {
-    return { stored: false, reason: 'missing_conversation_ref' };
-  }
-  if (!turnRef) {
-    return { stored: false, reason: 'missing_turn_ref' };
-  }
-  const agent = await ensureAgent({
-    reason: 'main-process-trace',
-    conversationRef,
-  });
-  const recorder = new TraceRecorder({
-    conversationRef,
-    turnRef,
-    runtime: input.runtime || 'electron-main',
-    emit: async (payload) => {
-      await agent.appendConversationEvent(createConversationEvent({
-        type: 'trace_event',
-        conversationRef,
-        turnRef,
-        source: 'ui',
-        payload,
-      }));
-    },
-  });
-  const payload = await recorder.record({
-    path,
-    stage: input.stage,
-    status: input.status,
-    runtime: input.runtime || 'electron-main',
-    requestId: input.requestId,
-    startedAt: input.startedAt,
-    endedAt: input.endedAt,
-    durationMs: input.durationMs,
-    data: input.data,
-    error: input.error,
-  });
-  return { stored: true, traceId: payload.traceId, spanId: payload.spanId };
+  return mainProcessTraceRuntime.appendMainProcessTraceEvent(input);
 }
 
 function resolveMainStopTarget() {
@@ -1364,14 +1323,6 @@ function getBackendConnectionState() {
 
 function isPlainObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
-function normalizePositiveInteger(value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return undefined;
-  }
-  const normalized = Math.floor(value);
-  return normalized > 0 ? normalized : undefined;
 }
 
 function appendAppDiagnostic(input = {}) {
