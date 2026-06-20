@@ -203,9 +203,10 @@ SDK runtime backend send helpers:
 
 Outbound websocket payload filtering is owned by the SDK managed agent session
 through its default `filterBackendPayload(...)` normalizer. Electron main keeps
-its own `ipc_backend_payload_contract.cjs` filter for direct main-process
-payloads such as settings sync, while query sends shape backend payload fields
-through `ipc_query_runtime.cjs` before entering the SDK command path.
+`ipc_backend_payload_contract.cjs` only as a compatibility facade over that SDK
+contract for direct main-process payloads such as settings sync, while query
+sends shape backend payload fields through `ipc_query_runtime.cjs` before
+entering the SDK command path.
 
 ## Query Send Failure Synthesis
 

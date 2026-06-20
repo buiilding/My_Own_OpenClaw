@@ -12,8 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: local demo memory seed conversations now use generic
-  demo provider/model metadata instead of real hosted-provider IDs.
+- Latest completed slice: Electron main `ipc_backend_payload_contract.cjs` now
+  delegates to the SDK backend payload contract instead of duplicating a
+  websocket allowlist.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -239,9 +240,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   through SDK/renderer consumers. Channel local-tool docs and troubleshooting
   maps now route local execution through SDK/main local-runtime and
   local-runtime Python executor wording instead of Python sidecar
-  executor/daemon route-owner labels.
+  executor/daemon route-owner labels. Electron main direct backend payload
+  filtering now delegates to the SDK backend payload contract through a thin
+  facade instead of carrying a second websocket allowlist.
 
 ## Inspection Log
+
+### 2026-06-20 Main Backend Payload Contract Facade
+
+- Finding: `frontend/src/main/ipc/ipc_backend_payload_contract.cjs` duplicated
+  the SDK backend payload allowlist and still allowed raw query `screenshot`
+  even though the backend and SDK websocket contracts require artifact-backed
+  `screenshot_ref` and `screenshot_refs`.
+- Change: collapsed the main module into a compatibility facade over
+  `packages/windie-sdk-js/cjs/transport/backendPayloadContract.js`, keeping
+  direct main-process payload filtering on the SDK-owned contract while leaving
+  query-specific field shaping in `ipc_query_runtime.cjs`.
+- Validation: focused backend websocket contract tests assert the main filter
+  is the SDK function and that the main facade does not carry duplicate
+  allowlist constants.
+- Compatibility: no migration required. Backend payload keys, IPC channels,
+  settings sync, query artifact refs, storage, credentials, permissions,
+  hosted URLs, provider policy, and local-runtime execution are unchanged.
 
 ### 2026-06-20 Local Demo Seed Provider Metadata Cleanup
 

@@ -14,6 +14,9 @@ const {
 const {
   filterBackendPayload,
 } = require('../../frontend/src/main/ipc/ipc_backend_payload_contract.cjs');
+const {
+  filterBackendPayload: sdkFilterBackendPayload,
+} = require('../../packages/windie-sdk-js/cjs/transport/backendPayloadContract.js');
 
 class FakeSocket extends EventEmitter {
   constructor(url = 'ws://backend.test/ws', options = {}) {
@@ -236,6 +239,19 @@ describe('backend-to-sdk websocket incoming contract', () => {
       expect(filtered).not.toHaveProperty('renderer_only_extra');
       assertPayloadMatchesContract(type, filtered);
     }
+  });
+
+  test('main outbound payload filter is a thin SDK contract facade', () => {
+    const mainContractSource = fs.readFileSync(
+      path.join(__dirname, '../../frontend/src/main/ipc/ipc_backend_payload_contract.cjs'),
+      'utf8',
+    );
+
+    expect(filterBackendPayload).toBe(sdkFilterBackendPayload);
+    expect(mainContractSource).toContain('packages/windie-sdk-js/cjs/transport/backendPayloadContract.js');
+    expect(mainContractSource).not.toContain('BACKEND_PAYLOAD_KEYS_BY_TYPE');
+    expect(mainContractSource).not.toContain('PROVIDER_API_KEY_KEYS');
+    expect(mainContractSource).not.toContain('CAPTURE_META_KEYS');
   });
 
   test('sdk outbound payload allowlist matches backend incoming contract keys', () => {

@@ -17549,6 +17549,24 @@ Each completed slice should report:
   credentials, permissions, provider policy, hosted URLs, and IPC payloads are
   unchanged.
 
+### 2026-06-20 Main backend payload contract facade
+
+- Finding: Electron main still duplicated the SDK backend websocket payload
+  allowlist in `ipc_backend_payload_contract.cjs`, including the stale raw
+  query `screenshot` key that the SDK/backend contract had already removed in
+  favor of artifact-backed `screenshot_ref` and `screenshot_refs`.
+- Change: collapsed the main module into a compatibility facade over
+  `packages/windie-sdk-js/cjs/transport/backendPayloadContract.js`, keeping
+  direct main-process settings sync on the SDK-owned filter while leaving
+  query-specific field shaping in `ipc_query_runtime.cjs`.
+- Validation: focused backend websocket contract tests assert the main facade
+  is the SDK function and that duplicate allowlist constants stay out of the
+  main module.
+- Compatibility: no migration required. Backend payload keys, IPC channel
+  names, settings sync behavior, query artifact refs, storage, credentials,
+  permissions, hosted URLs, provider policy, and local-runtime execution are
+  unchanged.
+
 ### 2026-06-20 Web client integration ApiClient label cleanup
 
 - Finding: the web client integration matrix still pointed the TypeScript

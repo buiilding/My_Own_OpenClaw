@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/sdk: collapse Electron main `ipc_backend_payload_contract.cjs` into a
+  thin facade over the SDK backend payload contract so websocket command
+  allowlists have one owner. No migration required.
 - testing/data-seed: use generic demo provider/model metadata in mock memory
   conversations instead of real hosted-provider IDs. No migration required.
 - sdk/projections: keep synthetic provider-native `web_search` rehydrate rows

@@ -170,8 +170,9 @@ owns SDK command envelope dispatch for query/settings/model commands:
 
 The SDK managed agent session filters known command payloads through
 contract-backed allowlists before websocket send. Electron main direct payloads
-use `ipc_backend_payload_contract.cjs`, and query sends use
-`ipc_query_runtime.cjs` for query-specific backend field shaping.
+use `ipc_backend_payload_contract.cjs` as a facade over the SDK contract, and
+query sends use `ipc_query_runtime.cjs` for query-specific backend field
+shaping.
 
 Purpose: keep websocket payload aligned to backend schema-supported fields.
 
