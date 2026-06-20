@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: stop duplicating attachment filenames as camelCase metadata
+  during chat send preparation; the renderer still keeps top-level
+  `attachmentFilenames` for UI state and sends canonical `attachment_filenames`
+  metadata to the SDK/runtime boundary. No migration required.
 - docs(validation): route CLI, workflow, security, release, and tool
   validation labels through local-runtime Python wording instead of sidecar
   test-owner labels while preserving concrete command names. No migration

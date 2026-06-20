@@ -298,7 +298,7 @@ export async function prepareDesktopChatSend({
     workspacePath: workspaceBinding.workspacePath || null,
   });
   const metadata = attachmentFilenames.length > 0
-    ? { attachmentFilenames, attachment_filenames: attachmentFilenames }
+    ? { attachment_filenames: attachmentFilenames }
     : null;
 
   return {

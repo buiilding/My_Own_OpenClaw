@@ -523,7 +523,6 @@ describe('useChatMessageSender', () => {
       filename: 'clipboard-image.png',
       required: true,
     }], {
-      attachmentFilenames: ['clipboard-image.png'],
       attachment_filenames: ['clipboard-image.png'],
     });
     expectOptimisticUserMessage('Please inspect this image', ['clipboard-image.png']);
@@ -564,7 +563,6 @@ describe('useChatMessageSender', () => {
         required: true,
       },
     ], {
-      attachmentFilenames: ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
       attachment_filenames: ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
     });
     expectOptimisticUserMessage(
@@ -611,7 +609,6 @@ describe('useChatMessageSender', () => {
       filename: 'notes.txt',
       required: true,
     }], {
-      attachmentFilenames: ['notes.txt'],
       attachment_filenames: ['notes.txt'],
     });
 
@@ -659,7 +656,6 @@ describe('useChatMessageSender', () => {
       filename: 'private.txt',
       required: true,
     }], {
-      attachmentFilenames: ['private.txt'],
       attachment_filenames: ['private.txt'],
     });
     expectOptimisticUserMessage('Summarize the attached file', ['private.txt']);

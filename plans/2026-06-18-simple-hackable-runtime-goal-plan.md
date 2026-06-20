@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a renderer attachment metadata shape cleanup by
+  removing the duplicate camelCase `attachmentFilenames` copy from prepared
+  user-message metadata while preserving top-level renderer attachment state
+  and canonical `attachment_filenames` metadata at the SDK/runtime boundary.
+  Validation: focused chat sender and renderer chat-runtime boundary tests,
+  exact duplicate-shape scan, docs listing, and diff checks. No migration
+  required.
+
 - 2026-06-20: completed a validation local-runtime Python test-label slice by
   routing CLI command docs, workflow matrices, release/security docs,
   dashboard guidance, and tool workflows away from sidecar test/pytest owner

@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Renderer Attachment Metadata Shape Cleanup
+
+- Finding: `desktopChatSendPreparationRuntime.ts` still wrote attachment
+  filenames into user-message metadata twice, as both camelCase
+  `attachmentFilenames` and backend-wire `attachment_filenames`, even though
+  the UI already carries `attachmentFilenames` as top-level renderer state and
+  the SDK/runtime boundary uses `attachment_filenames`.
+- Change: removed the duplicate camelCase metadata copy from prepared chat
+  turns, kept the top-level renderer attachment filenames and canonical
+  metadata field, and added boundary coverage so the duplicate metadata object
+  does not return.
+- Validation: focused chat sender and renderer chat-runtime boundary tests,
+  exact duplicate-shape scan, docs listing, and diff checks.
+- Compatibility: no migration required. Visible chat attachment state, SDK
+  command names, `attachment_filenames` metadata, resources, IPC payload shape,
+  storage, credentials, permissions, hosted backend URLs, provider policy, and
+  trust boundaries are unchanged.
+
 ### 2026-06-20 Validation Local-Runtime Python Test Labels
 
 - Finding: CLI command docs, workflow matrices, release/security docs,
