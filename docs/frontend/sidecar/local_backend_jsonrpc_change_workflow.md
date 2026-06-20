@@ -10,7 +10,7 @@ title: "Local Runtime JSON-RPC Change Workflow"
 
 Use this workflow when a change crosses the Electron main process into
 `frontend/src/main/python/local_backend.py`. The active desktop bridge sends
-JSON-RPC envelopes through the SDK local runtime provider to the sidecar daemon
+JSON-RPC envelopes through the SDK local runtime provider to the local-runtime daemon
 `/rpc` endpoint. That boundary covers local tool execution, memory operations,
 system-state collection, browser runtime setup, and a small set of local
 permission/runtime utility calls.
@@ -173,10 +173,10 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | --- | --- |
 | Renderer says invalid invoke channel | SDK command allowlist, preload channel injection, renderer facade call site |
 | SDK local-runtime call runs but Python JSON-RPC method is not found | SDK local-runtime method name, `LocalRuntimeService._initialize_methods`, method name spelling |
-| Python sidecar returns `INVALID_PARAMS` | SDK local-runtime params, handler signature, params object shape |
+| local-runtime Python returns `INVALID_PARAMS` | SDK local-runtime params, handler signature, params object shape |
 | Request times out | local-runtime readiness, long-running handler, timeout policy, stuck tool/browser/memory call |
-| Python sidecar process exits and requests fail | stderr logs, runtime dependency warnings, packaged local-runtime launch target |
-| JSON parse errors in main | Python stdout pollution, non-JSON output, partial/large response parsing |
+| local-runtime Python process exits and requests fail | stderr logs, runtime dependency warnings, packaged local-runtime launch target |
+| JSON parse errors in main | local-runtime stdout pollution, non-JSON output, partial/large response parsing |
 | Method works in source but fails packaged | runtime dependency packaging, `AGENT_PACKAGED_APP` / `WINDIE_PACKAGED_APP`, feature-pack availability, Python path resolution |
 | Memory command maps wrong user/conversation | SDK local-runtime store params, fallback keys, Python memory handler defaults |
 | Tool result shape differs from renderer expectation | `ToolResult`, local tool runtime normalization, screenshot materialization wrapper |

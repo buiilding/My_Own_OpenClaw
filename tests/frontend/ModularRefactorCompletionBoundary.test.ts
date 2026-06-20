@@ -1520,6 +1520,11 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar screenshot result included',
         'sidecar screenshot data handling',
         'owns sidecar screenshot invocation',
+        'sidecar screenshot tool execution',
+        'screenshot sidecar returns',
+        'sidecar screenshot/computer tests',
+        'Python sidecar screenshot tests',
+        'Python sidecar local-runtime implementation',
         'tool execution orchestration from UI',
         'Patching sidecar service logic for renderer state race conditions',
         '`sidecar-event` title updates',
@@ -1544,6 +1549,15 @@ describe('modular sdk refactor completion boundary', () => {
         'Did the local runtime start the Python sidecar daemon',
         'sidecar daemon fails to start',
         'same sidecar daemon contract',
+        'between Electron and Python sidecar',
+        'to the sidecar daemon `/rpc` endpoint',
+        'provider to the sidecar daemon',
+        'Python sidecar returns `INVALID_PARAMS`',
+        'Python sidecar process exits and requests fail',
+        'Python stdout pollution',
+        'cannot reach the Python sidecar daemon',
+        'without sidecar dispatch',
+        'sidecar daemon client/lifecycle ownership',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime JSON-RPC Route Labels
+
+- Finding: local-runtime JSON-RPC reference/workflow, lifecycle read hints,
+  backend-tool lane notes, and runtime ownership routing still used sidecar
+  daemon or Python sidecar process labels for reusable local-runtime
+  route-owner behavior.
+- Change: routed those labels through local-runtime daemon, local-runtime
+  Python process/stdout/validation, local-runtime dispatch, and
+  local-runtime daemon client/lifecycle wording while preserving concrete
+  Python sidecar implementation tests and paths.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  JSON-RPC route-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, JSON-RPC endpoints,
+  request/response envelopes, daemon startup, timeout policy, backend tool
+  dispatch behavior, IPC payloads, storage, credentials, permissions, hosted
+  backend URLs, provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Public Tool-System Local-Runtime Executor Labels
 
 - Finding: public tool-system, node matrix, help, and API/reference docs still

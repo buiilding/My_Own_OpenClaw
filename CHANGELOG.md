@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route local-runtime JSON-RPC and lifecycle workflow labels
+  through local-runtime daemon/Python process wording instead of sidecar daemon
+  route-owner labels. No migration required.
 - docs/runtime: route public tool-system, node matrix, help, and API/reference
   daemon labels through local-runtime Python executor/daemon wording instead
   of presenting the Python sidecar daemon as the public local tool owner. No

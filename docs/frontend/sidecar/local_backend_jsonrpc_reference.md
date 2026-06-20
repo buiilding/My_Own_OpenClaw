@@ -2,14 +2,14 @@
 summary: "Local-runtime JSON-RPC reference for SDK daemon-backed local-runtime calls: request envelope, registered methods, removed direct chat/memory IPC mappings, and timeout/error semantics."
 read_when:
   - When adding/changing local-runtime JSON-RPC methods or SDK local-runtime callers.
-  - When debugging execute_tool, removed search-memory text-query calls, embedding-backed memory search, or chat-event persistence failures between Electron and Python sidecar.
+  - When debugging execute_tool, removed search-memory text-query calls, embedding-backed memory search, or chat-event persistence failures between Electron and local-runtime Python.
 title: "Local Runtime JSON-RPC Reference"
 ---
 
 # Local Runtime JSON-RPC Reference
 
 Electron bridge helpers use the SDK local runtime provider. The SDK sends
-JSON-RPC envelopes to the sidecar daemon `/rpc` endpoint, and the daemon
+JSON-RPC envelopes to the local-runtime daemon `/rpc` endpoint, and the daemon
 dispatches them through `LocalRuntimeService.protocol.handle_request(...)`.
 
 ## Core Modules

@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime JSON-RPC route-label slice by routing
+  local-runtime JSON-RPC reference/workflow, lifecycle read hints,
+  backend-tool lane notes, and runtime ownership routing through
+  local-runtime daemon, local-runtime Python process/stdout/validation,
+  local-runtime dispatch, and local-runtime daemon client/lifecycle wording
+  instead of sidecar daemon or Python sidecar process route-owner labels.
+  Validation covered the focused modular docs boundary test, docs listing,
+  exact stale JSON-RPC route-label scan, and diff check. No migration required;
+  runtime code, JSON-RPC endpoints, request/response envelopes, daemon startup,
+  timeout policy, backend tool dispatch behavior, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 - 2026-06-20: completed a public tool-system local-runtime executor label
   slice by routing public tool-system, node matrix, help, and API/reference
   docs through local-runtime Python executor/daemon and local-runtime daemon

@@ -195,7 +195,7 @@ Tool calls are sent by the agent tool sender. Execution now has two lanes:
 Backend lane additions:
 
 1. The sender resolves the tool implementation from the backend registry
-2. Backend-executed tools run without sidecar dispatch
+2. Backend-executed tools run without local-runtime dispatch
 3. Results are staged directly in session pending-results storage
 4. Tool-output history continues through the normal orchestration path
 
