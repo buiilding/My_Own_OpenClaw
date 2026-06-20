@@ -16050,3 +16050,19 @@ Each completed slice should report:
   clients, SDK commands, IPC channels, hosted backend URLs, settings/model
   payloads, credentials, permissions, storage, provider policy, and
   local-runtime behavior are unchanged.
+
+### 2026-06-20 Web search manifest boundary wording
+
+- Finding: the backend-owned `web_search` guide still said no sidecar manifest
+  entry enables the tool, even though the current boundary is backend
+  provider/model policy and credentials versus client/local-runtime manifests
+  for executable local tools.
+- Change: reworded the configuration note to say no renderer setting or
+  client/local-runtime manifest entry enables `web_search`, and extended the
+  modular docs guard against the retired sidecar-manifest wording.
+- Validation: focused modular docs boundary test, exact stale sidecar-manifest
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Backend web-search policy,
+  provider-native search routing, Brave configuration, SDK/renderer projection,
+  client manifests, local-runtime executable tools, credentials, storage, IPC
+  channels, and hosted URLs are unchanged.

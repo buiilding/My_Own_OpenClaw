@@ -5818,3 +5818,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   commands, IPC channels, hosted backend URLs, settings/model payloads,
   credentials, permissions, storage, provider policy, and local-runtime behavior
   are unchanged.
+- Web-search docs now clarify that backend-owned `web_search` is enabled by
+  backend provider/model policy and credentials, not renderer settings or
+  client/local-runtime manifests. Backend web-search policy, provider-native
+  search routing, Brave configuration, SDK/renderer projection, client
+  manifests, local-runtime executable tools, credentials, storage, IPC channels,
+  and hosted URLs are unchanged.

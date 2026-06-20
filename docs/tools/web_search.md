@@ -72,8 +72,9 @@ Primary configuration surfaces:
 - `brave_search.api_key_env`
 - `BRAVE_SEARCH_API_KEY`
 
-No renderer setting or sidecar manifest entry enables this tool. The backend
-resolves availability from provider/model capability plus policy and credentials.
+No renderer setting or client/local-runtime manifest entry enables this tool.
+The backend resolves availability from provider/model capability plus policy and
+credentials.
 
 ## Validation
 

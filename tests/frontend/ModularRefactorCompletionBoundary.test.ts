@@ -1793,6 +1793,7 @@ describe('modular sdk refactor completion boundary', () => {
         'frontend/sidecar-authored executable',
         'frontend sidecar executor',
         'Frontend sidecar (execution)',
+        'sidecar manifest entry enables this tool',
         'Core backend/frontend/sidecar tool files',
         'Frontend Tool Schema Source of Truth',
         'frontend-config atomic',
