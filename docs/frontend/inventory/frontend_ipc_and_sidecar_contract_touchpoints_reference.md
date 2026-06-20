@@ -67,7 +67,7 @@ This reference maps renderer, Electron main, SDK local-runtime, local-runtime Py
 
 1. Keep IPC channel constants single-sourced in `frontend/src/renderer/infrastructure/ipc/channels.ts`.
 2. Keep renderer backend event guards in sync with backend outgoing schema changes.
-3. Keep tool args parity between backend tool schemas and local-runtime executable schemas through explicit parity tests before production; do not make desktop client/Python sidecar code import backend modules to avoid drift.
+3. Keep tool args parity between backend tool schemas and local-runtime executable schemas through explicit parity tests before production; do not make desktop client/local-runtime Python code import backend modules to avoid drift.
 4. Update docs in both `docs/frontend/inventory` and `docs/backend/inventory` on contract changes.
 
 ## Related Docs

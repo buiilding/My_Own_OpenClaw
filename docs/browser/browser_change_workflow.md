@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS browser automation across backend schema, shared contract, local-runtime execution, Python sidecar Browser Use adapters, CDP launch, Electron bridge, renderer browser session readiness UI, files, and tests."
+summary: "Workflow for changing WindieOS browser automation across backend schema, shared contract, local-runtime execution, local-runtime Python Browser Use adapters, CDP launch, Electron bridge, renderer browser session readiness UI, files, and tests."
 read_when:
   - When adding, removing, renaming, or changing browser actions, browser schemas, CDP launch behavior, browser profile isolation, snapshots, refs, extraction, browser files, downloads, browser session readiness, or session controls.
   - When debugging browser actions that parse in the backend but fail in local-runtime validation, browser UI state that is stale, wrong-profile launches, CDP connection failures, snapshot/ref drift, or browser-local file path issues.
@@ -8,7 +8,7 @@ title: "Browser Change Workflow"
 
 # Browser Change Workflow
 
-Use this workflow when a browser change could cross the backend model-facing tool, shared browser contract, local-runtime browser execution, Python sidecar Browser Use adapters, Electron tool bridge, renderer browser controls, or browser-owned file/profile state.
+Use this workflow when a browser change could cross the backend model-facing tool, shared browser contract, local-runtime browser execution, local-runtime Python Browser Use adapters, Electron tool bridge, renderer browser controls, or browser-owned file/profile state.
 
 WindieOS currently adapts its canonical browser tool contract to the maintained Browser Use CLI daemon through the Python sidecar. WindieOS owns the agent loop, policy, transport, and result normalization; Browser Use owns browser sessions, CDP/Playwright action mechanics, DOM state, element indexes, and daemon lifecycle. Future extension auto-attach remains a separate design boundary covered by [ADR 004](../adr/004-browser-extension-auto-attach.md).
 
@@ -39,7 +39,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 | Snapshot text and Browser Use element indexes | Local runtime browser adapter backed by Python sidecar Browser Use engine | `frontend/src/main/python/tools/browser/browser_use_engine.py` | `tests/sidecar/tools/test_browser_use_engine.py` | [Browser Action Surface](browser_action_surface.md) |
 | Browser session header/status UI | Renderer browser session store and chat control | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`, `frontend/src/renderer/app/runtime/desktopBrowserSessionRuntimeClient.js`, `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx` | `tests/frontend/ChatBrowserSessionControl.test.jsx` | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Browser permission/readiness/onboarding | Electron permission service and settings UI | `frontend/src/main/permissions/permission_service_browser.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx` | frontend permission/settings tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
-| Browser file or download behavior | Local runtime browser file store backed by Python sidecar Browser Use adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | Python sidecar browser tool/action tests | [Browser Troubleshooting](browser_troubleshooting.md) |
+| Browser file or download behavior | Local runtime browser file store backed by local-runtime Python Browser Use adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | local-runtime Python browser tool/action tests | [Browser Troubleshooting](browser_troubleshooting.md) |
 | Browser execution bridge timeout/result shape | SDK local-runtime bridge and local-runtime Python browser adapter | `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs` | SDK client/runtime tests, browser/session tests | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 
 ## End-to-End Action Flow
@@ -57,7 +57,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 10. Browser Use performs CDP/Playwright work and the Python sidecar normalizes the result into a `ToolResult`.
 11. SDK/main relays the result back to the backend tool-result path and renderer receives display projections.
 
-If a payload parses in the backend but fails in local runtime, compare the shared contract import path, backend schema wrapper, local-runtime validation entrypoint, and Python sidecar Browser Use adapter support before changing renderer code.
+If a payload parses in the backend but fails in local runtime, compare the shared contract import path, backend schema wrapper, local-runtime validation entrypoint, and local-runtime Python Browser Use adapter support before changing renderer code.
 
 ## Change Paths
 

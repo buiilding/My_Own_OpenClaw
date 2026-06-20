@@ -1,7 +1,7 @@
 ---
 summary: "Backend tool surface that is schema-driven and dispatched through SDK/main local-runtime execution, including policy filtering and local-runtime parity constraints."
 read_when:
-  - When adding/removing tools across backend, SDK/main local-runtime dispatch, and Python sidecar adapters.
+  - When adding/removing tools across backend, SDK/main local-runtime dispatch, and local-runtime Python adapters.
   - When changing tool allowlist or agent capability behavior.
 title: "Local-Runtime Tool Bridge and Policy"
 ---
@@ -41,7 +41,7 @@ Backend exports remote tool classes for schemas/capabilities such as:
 - read_file, replace
 - browser
 
-These map through SDK/main local-runtime dispatch to Python sidecar adapter
+These map through SDK/main local-runtime dispatch to local-runtime Python adapter
 implementations in `frontend/src/main/python/tools/*`.
 
 Current runtime note:
@@ -76,7 +76,7 @@ Policy is applied to:
 ## Cross-Layer Contract Rule
 
 Tool names expected by backend schemas, SDK/main local-runtime dispatch, and
-Python sidecar adapters must remain synchronized.
+Local-runtime Python adapters must remain synchronized.
 
 The local runtime explicitly tracks backend-declared built-in tool names that
 must remain locally executable in:

@@ -8,7 +8,7 @@ title: "Local-Runtime Browser Docs Hub"
 
 # Local-Runtime Browser Docs Hub
 
-Current browser tool execution routes through `frontend/src/main/python/tools/browser/browser_use_engine.py`, which adapts canonical browser payloads to the official `browser-use[cli]` package. The sidecar browser adapter owns runtime validation, Chrome/CDP launch policy, local tool transport, browser-local files, and result normalization; Browser Use owns browser/session mechanics.
+Current browser tool execution routes through `frontend/src/main/python/tools/browser/browser_use_engine.py`, which adapts canonical browser payloads to the official `browser-use[cli]` package. The local-runtime Python browser adapter owns runtime validation, Chrome/CDP launch policy, local tool transport, browser-local files, and result normalization; Browser Use owns browser/session mechanics.
 
 ## Deep Pages
 

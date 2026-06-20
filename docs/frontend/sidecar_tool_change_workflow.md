@@ -3,7 +3,7 @@ summary: "Workflow for changing WindieOS local-runtime tools across backend mode
 read_when:
   - When adding, changing, or debugging a local executable tool.
   - When a model-visible tool call reaches the SDK runtime but fails in local-runtime execution.
-  - When deciding whether a tool change belongs to backend schema, SDK dispatch, Electron bridge, or Python sidecar code.
+  - When deciding whether a tool change belongs to backend schema, SDK dispatch, Electron bridge, or local-runtime Python code.
 title: "Local-Runtime Tool Change Workflow"
 ---
 
@@ -16,7 +16,7 @@ WindieOS tool execution crosses four layers:
 3. Electron main hosts SDK desktop adapters and supplies host context to the SDK local runtime.
 4. The local runtime executes local actions through the local-runtime Python implementation and returns simple executable results.
 
-Do not make the sidecar import backend schemas. Keep parity in explicit tests and docs.
+Do not make local-runtime Python import backend schemas. Keep parity in explicit tests and docs.
 
 ## Ownership Map
 

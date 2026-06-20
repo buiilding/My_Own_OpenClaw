@@ -76,7 +76,7 @@ Backend tool catalog/policy
   -> backend tool-call events
   -> SDK tool coordination
   -> SDK local runtime client
-  -> local-runtime executable manifest/registry backed by Python sidecar code
+  -> local-runtime executable manifest/registry backed by local-runtime Python code
   -> local tool result
   -> SDK tool-result return
   -> backend history

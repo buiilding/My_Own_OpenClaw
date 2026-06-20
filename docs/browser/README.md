@@ -2,20 +2,20 @@
 summary: "Browser automation hub for WindieOS dedicated browser runtime, action dispatch, snapshots, session UI, files, downloads, and troubleshooting."
 read_when:
   - When changing browser automation, browser session UI, dedicated browser launch, CDP snapshots, browser files, or browser tests.
-  - When debugging browser tool failures across backend, renderer, Electron main, local-runtime execution, and Python sidecar adapters.
+  - When debugging browser tool failures across backend, renderer, Electron main, local-runtime execution, and local-runtime Python adapters.
 title: "Browser Hub"
 ---
 
 # Browser Hub
 
-WindieOS browser automation is a first-class local tool path. The backend exposes the model-facing browser tool, while the local runtime executes that contract through the Python sidecar Browser Use adapter. WindieOS owns the agent loop and policy; Browser Use owns browser automation mechanics.
+WindieOS browser automation is a first-class local tool path. The backend exposes the model-facing browser tool, while the local runtime executes that contract through the local-runtime Python Browser Use adapter. WindieOS owns the agent loop and policy; Browser Use owns browser automation mechanics.
 
 ## Browser Pages
 
 - [Browser Control](browser_control.md) documents the current action surface.
 - [How to Run Browser Control](browser_control_run.md) covers source-run setup and manual smoke checks.
 - [Browser Change Workflow](browser_change_workflow.md) routes browser changes across backend schema, shared contract, local-runtime execution, local-runtime Python adapters, CDP launch, Electron bridge, renderer controls, files, and tests.
-- [Dedicated Browser Runtime](dedicated_browser_runtime.md) maps CDP launch, profile isolation, local-runtime dispatch, Python sidecar adapters, and browser file storage.
+- [Dedicated Browser Runtime](dedicated_browser_runtime.md) maps CDP launch, profile isolation, local-runtime dispatch, local-runtime Python adapters, and browser file storage.
 - [Browser Action Surface](browser_action_surface.md) maps actions to runtime handlers, snapshot refs, extraction, tab control, and file helpers.
 - [Browser Troubleshooting](browser_troubleshooting.md) maps symptoms to code roots and focused tests.
 

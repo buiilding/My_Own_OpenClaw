@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: bundled Python packaging, source-map, and reference
-  docs now route packaged process, bytecode, package topology, validation, and
-  local-tool exercise labels through local-runtime Python wording instead of
-  Sidecar runtime/process or Python sidecar route-owner labels while preserving
-  current `sidecar-runtime` command names.
+- Latest completed slice: architecture, ADR, getting-started, automation,
+  frontend main, frontend inventory, sidecar workflow, backend service, review,
+  and triage docs now route import-boundary code-owner labels through desktop
+  client/local-runtime Python code wording instead of desktop client/Python
+  sidecar code or Python sidecar code labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -245,6 +245,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Browser Adapter And Import-Rule Labels
+
+- Finding: browser hub, workflow, ADR, backend bridge, routing, and
+  local-runtime browser docs still described Browser Use adapter ownership as
+  Python sidecar adapter wording, and cross-runtime parity docs still used
+  Python sidecar code or sidecar import wording for backend-import rules.
+- Change: routed those labels through local-runtime Python adapter/code wording
+  and updated the focused modular docs boundary expectations.
+- Validation: focused modular docs boundary test, docs listing, exact active
+  browser-adapter/import-rule stale-label scans, and diff check.
+- Compatibility: no migration required. Browser runtime code, action schemas,
+  Browser Use invocation, local file behavior, JSON-RPC/daemon payloads, IPC
+  payloads, permissions, storage, credentials, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime Python Implementation Labels
 

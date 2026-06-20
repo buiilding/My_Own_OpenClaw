@@ -35,6 +35,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route import-boundary code-owner labels through
+  desktop client/local-runtime Python code wording instead of desktop
+  client/Python sidecar code labels. No migration required.
+- docs(runtime): route Browser Use adapter and backend-import parity labels
+  through local-runtime Python wording instead of Python sidecar adapter/code
+  wording. No migration required.
 - docs(runtime): route Python sidecar implementation labels in architecture,
   memory, workflow, and tool-catalog docs through local-runtime Python
   implementation wording. No migration required.

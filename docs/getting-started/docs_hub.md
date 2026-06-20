@@ -18,7 +18,7 @@ WindieOS has four hard runtime boundaries:
 - The renderer owns desktop UI presentation, conversation projection display, settings views, dashboard surfaces, voice UI, and user interaction state.
 - The local runtime owns local tool execution, browser automation, filesystem/shell/computer actions, local memory storage, system state, and wakeword subprocess authority; the Python sidecar is the current concrete implementation for those local capabilities.
 
-Desktop host, renderer, and Python sidecar code must not import backend code for parity. Keep parity in explicit contracts, generated schemas, and tests.
+Desktop host, renderer, and local-runtime Python code must not import backend code for parity. Keep parity in explicit contracts, generated schemas, and tests.
 
 ## Agent Workflow
 

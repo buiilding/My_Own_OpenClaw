@@ -34,9 +34,9 @@ Main process code is a trust boundary. It receives renderer requests through pre
 - Renderer components must not call Electron APIs directly. Renderer access goes through preload and the typed IPC bridge.
 - Preload must stay allowlist-driven by `frontend/src/shared/ipcChannels.json`; do not expose broad `ipcRenderer` handles.
 - Main process should not implement business logic that belongs to backend agent/session/model code.
-- Main process should not execute local tools directly. It should adapt host context and transport executable requests through the SDK local-runtime bridge, with Python sidecar code remaining the concrete local executor.
+- Main process should not execute local tools directly. It should adapt host context and transport executable requests through the SDK local-runtime bridge, with local-runtime Python code remaining the concrete local executor.
 - Main process owns native windows and platform side effects. Renderer should consume normalized state/events, not decide window flags, display placement, capture-time hiding, or OS permissions.
-- Packaged mode must not fall back to source-only paths for sidecar code or Python runtime.
+- Packaged mode must not fall back to source-only paths for local-runtime Python code or runtime.
 - VM worker mode should not accidentally create overlay windows, tray icons, or hotkeys meant for the interactive desktop app.
 
 ## Change Sequence

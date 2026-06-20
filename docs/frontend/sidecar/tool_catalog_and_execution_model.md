@@ -1,7 +1,7 @@
 ---
 summary: "Local-runtime Python tool catalog and execution model, including local-runtime registry dispatch backed by Python modules, schema-definition boundaries, and result normalization."
 read_when:
-  - When adding/changing local-runtime tool implementations backed by Python sidecar code.
+  - When adding/changing local-runtime tool implementations backed by local-runtime Python code.
   - When debugging local-runtime tool output shape or backend compatibility.
 title: "Local-Runtime Tool Catalog and Execution Model"
 ---

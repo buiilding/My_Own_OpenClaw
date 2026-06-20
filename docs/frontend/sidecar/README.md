@@ -1,7 +1,7 @@
 ---
 summary: "Local-runtime Python implementation docs sub-hub for the sidecar daemon, tool catalog execution model, memory pipeline, and browser automation stack."
 read_when:
-  - When changing local-runtime JSON-RPC methods backed by Python sidecar code, tool implementations, or memory summarization behavior.
+  - When changing local-runtime JSON-RPC methods backed by local-runtime Python code, tool implementations, or memory summarization behavior.
   - When debugging renderer->main->local-runtime bridge failures or browser automation runtime issues.
 title: "Local Runtime Python Implementation Docs Hub"
 ---

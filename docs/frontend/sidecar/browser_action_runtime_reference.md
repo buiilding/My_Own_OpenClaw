@@ -21,7 +21,7 @@ title: "Browser Action Runtime Reference"
 
 - Browser tool entrypoint accepts only object args and requires `action`.
 - Browser actions route through `BrowserUseEngineRuntime`.
-- The sidecar browser adapter owns runtime validation, removed-alias rejection, Chrome/CDP launch policy, local file helpers, and result normalization.
+- The local-runtime Python browser adapter owns runtime validation, removed-alias rejection, Chrome/CDP launch policy, local file helpers, and result normalization.
 - Browser Use owns daemon/session mechanics, DOM state extraction, numeric element indexes, interactions, screenshots, tabs, and browser recovery behavior.
 - Removed aliases are blocked by the shared browser schema and do not reach runtime execution.
 - `connect` always targets the WindieOS dedicated localhost CDP endpoint.

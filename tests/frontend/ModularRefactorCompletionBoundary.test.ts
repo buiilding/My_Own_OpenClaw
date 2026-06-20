@@ -314,7 +314,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime hosted helper services');
     expect(docText).toContain('local runtime-backed tool');
     expect(docText).toContain('local-runtime executed');
-    expect(docText).toContain('local-runtime browser execution, Python sidecar adapters');
+    expect(docText).toContain('local-runtime browser execution, local-runtime Python adapters');
     expect(docText).toContain('Local-Runtime Python Docs');
     expect(docText).toContain('bundled local-runtime Python packaging');
     expect(docText).toContain('System prompt emitted for SDK/renderer transparency display');
@@ -1045,7 +1045,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolPolicyValidationDocText).toContain('confirm the local-runtime built-in tool set');
     expect(toolPolicyValidationDocText).toContain('executable registry registration');
     expect(toolPolicyValidationDocText).toContain('Local runtime / local-runtime Python implementation:');
-    expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
+    expect(toolRoutingDocText).toContain('Local-runtime Python adapters must remain synchronized');
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
     expect(toolRoutingDocText).not.toContain('dispatches to the sidecar');
@@ -1462,7 +1462,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Backend-Local Runtime Browser Schema Parity');
     expect(docText).toContain('backend/local-runtime parity');
     expect(docText).toContain('local-runtime browser execution');
-    expect(docText).toContain('Python sidecar Browser Use adapters');
+    expect(docText).toContain('local-runtime Python Browser Use adapters');
     expect(docText).toContain('local-runtime Python browser adapter');
     expect(docText).toContain('Local-Runtime Browser State');
     expect(docText).toContain('dedicated browser runtime');
@@ -1693,6 +1693,15 @@ describe('modular sdk refactor completion boundary', () => {
         'the Python sidecar modules own',
         'Python sidecar-backed',
         'Python sidecar implementations',
+        'desktop client/Python sidecar code',
+        'Desktop host, renderer, and Python sidecar code',
+        'Python sidecar code owns concrete executable implementations',
+        'backed by Python sidecar code',
+        'Do not make the sidecar import backend schemas',
+        'Do not import backend code into sidecar to mirror model-facing schemas',
+        'Renderer, Electron main, and Python sidecar code',
+        'desktop client or Python sidecar code',
+        'Desktop client and Python sidecar code',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

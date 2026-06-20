@@ -35,7 +35,7 @@ Use the desktop client/local-runtime manifest pipeline for built-in local tools.
 Current rules:
 
 - the desktop client/local-runtime manifest pipeline owns built-in local tool
-  schemas, while Python sidecar code owns concrete executable implementations
+  schemas, while local-runtime Python code owns concrete executable implementations
 - Electron consumes `frontend/src/main/generated/builtin_tool_manifest.json`
 - the generated manifest is produced from `frontend/src/main/python/tools/manifest.py`
 - built-in manifest entries keep `schema` for backend validation/capability
@@ -45,7 +45,7 @@ Current rules:
   provider adaptation, capability narrowing, and backend-native tools
 - backend validates tool arguments only for backend-executed tools; local
   tool payload validation belongs to the SDK/main local execution path
-- desktop client/local-runtime and sidecar code do not import backend code
+- desktop client/local-runtime Python code does not import backend code
 - drift prevention uses explicit parity tests and generated/shared contracts
 
 ## Alternatives Considered

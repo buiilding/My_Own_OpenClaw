@@ -14,7 +14,7 @@ Use this before committing non-trivial changes. The checklist is meant to catch 
 
 - Is the edited layer the producer of the behavior?
 - Did the change cross backend, Electron main, renderer, preload, sidecar, or hosted API boundaries?
-- Did any desktop client or Python sidecar code start depending on backend Python imports?
+- Did any desktop client or local-runtime Python code start depending on backend Python imports?
 - Did a future/planned concept leak into stable docs as current behavior?
 
 ## Contracts

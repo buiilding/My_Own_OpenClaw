@@ -2,7 +2,7 @@
 summary: "Workflow for changing WindieOS local-runtime Python implementation behavior across JSON-RPC methods, local tools, memory services, browser automation, platform adapters, backend config, system state, and wakeword service boundaries."
 read_when:
   - When changing `frontend/src/main/python`, local-runtime JSON-RPC methods, local tool registry behavior, memory storage/search/summarization, browser runtime internals, system-state probes, platform adapters, backend URL resolution, or wakeword service framing.
-  - When a local tool, memory, browser, wakeword, system-state, or local-runtime startup failure could belong to Electron main bridge, Python sidecar code, backend-hosted APIs, or renderer projection.
+  - When a local tool, memory, browser, wakeword, system-state, or local-runtime startup failure could belong to Electron main bridge, local-runtime Python code, backend-hosted APIs, or renderer projection.
 title: "Local-Runtime Python Implementation Change Workflow"
 ---
 
@@ -40,7 +40,7 @@ envelope orchestration.
 
 ## Boundary Rules
 
-- Do not import backend code into sidecar to mirror model-facing schemas. Use explicit sidecar argument models and parity tests.
+- Do not import backend code into local-runtime Python to mirror model-facing schemas. Use explicit local-runtime Python argument models and parity tests.
 - Do not add renderer UI state or Electron window decisions to Python code. Return normalized data; let renderer/main own presentation/native orchestration.
 - Do not make sidecar depend on conda, source checkout paths, or system Python in packaged mode. Runtime dependencies belong in `frontend/src/main/python/requirements.runtime.txt` and packaging docs.
 - Keep JSON-RPC results serializable and explicit: return success/error envelopes instead of leaking tracebacks or unserializable objects to Electron main.

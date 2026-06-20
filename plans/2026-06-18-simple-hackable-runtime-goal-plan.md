@@ -275,6 +275,34 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed an import-boundary code-owner label slice by routing
+  architecture, ADR, getting-started, automation, frontend main, frontend
+  inventory, sidecar workflow, backend service, review, and triage docs through
+  desktop client/local-runtime Python code wording instead of desktop
+  client/Python sidecar code or Python sidecar code labels. The slice kept
+  concrete Python sidecar implementation/process details where they identify
+  the daemon, current implementation, command names, or file paths, and added a
+  focused modular docs boundary guard against reintroducing the stale code-owner
+  labels. Validation covered the focused modular docs boundary test, docs
+  listing, exact stale import-boundary code-owner label scan, and diff check.
+  No migration required; runtime code, executable behavior, tool schemas,
+  JSON-RPC/daemon payloads, IPC payloads, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
+
+- 2026-06-20: completed a browser adapter/import-rule label slice by routing
+  browser hub, workflow, ADR, backend bridge, routing, local-runtime browser
+  docs, and cross-runtime backend-import parity rules through local-runtime
+  Python adapter/code wording instead of Python sidecar adapter/code wording.
+  The slice preserved Browser Use invocation, concrete
+  `frontend/src/main/python` implementation paths, and current browser action
+  behavior while updating the modular docs boundary expectations. Validation
+  covered the focused modular docs boundary test, docs listing, exact active
+  browser-adapter/import-rule stale-label scans, and diff check. No migration
+  required; browser runtime code, action schemas, Browser Use invocation, local
+  file behavior, JSON-RPC/daemon payloads, IPC payloads, permissions, storage,
+  credentials, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
 - 2026-06-20: completed a local-runtime Python implementation-label slice by
   routing Python sidecar architecture, memory, workflow, and tool-catalog docs
   through local-runtime Python implementation wording instead of Python sidecar

@@ -31,7 +31,7 @@ chat component until the producer and relay contracts are identified.
   schemas or construct model-facing websocket messages.
 - The hosted backend owns websocket message validation, query handler dispatch,
   agent/session execution, stream formatting, and final completion semantics.
-- Renderer, Electron main, and Python sidecar code must not import backend modules to gain schema
+- Renderer, Electron main, and local-runtime Python code must not import backend modules to gain schema
   parity. Keep parity in contracts, tests, and explicit payload normalization.
 - `screenshot_url`, `attachment_context`, `attachment_filenames`, and
   `memory_retrieval_enabled` are frontend relay metadata. Only fields explicitly

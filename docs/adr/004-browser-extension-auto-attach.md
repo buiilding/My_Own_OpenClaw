@@ -17,7 +17,7 @@ Proposed. Current implementation remains dedicated browser control through local
 WindieOS browser automation currently relies on a dedicated browser runtime:
 
 - dedicated browser profile
-- Python sidecar Browser Use adapter
+- local-runtime Python Browser Use adapter
 - desktop CDP launch/connect flow
 - strict backend/local-runtime browser action schema
 - explicit browser availability/permission checks
@@ -31,7 +31,7 @@ Do not treat extension auto-attach as current browser behavior.
 Current behavior:
 
 - keep dedicated browser runtime and profile ownership
-- use Browser Use through the Python sidecar adapter
+- use Browser Use through the local-runtime Python adapter
 - prefer installed Chrome/Chromium-family browsers through the fixed detection priority
 - keep browser action execution in the local-runtime browser stack
 

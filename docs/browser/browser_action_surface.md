@@ -8,7 +8,7 @@ title: "Browser Action Surface"
 
 # Browser Action Surface
 
-The browser action surface starts at the backend model-facing `browser` tool and executes through SDK/main local-runtime dispatch into `BrowserUseEngineRuntime`, a Python sidecar adapter over the maintained Browser Use CLI daemon.
+The browser action surface starts at the backend model-facing `browser` tool and executes through SDK/main local-runtime dispatch into `BrowserUseEngineRuntime`, a local-runtime Python adapter over the maintained Browser Use CLI daemon.
 
 ## Schema And Dispatch
 

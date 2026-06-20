@@ -423,7 +423,7 @@ contracts.
 - [**Backend Tools Processing Hub**](backend/tools/processing/README.md) - Sub-hub for history-facing post-execution processing (transform, synthetic error creation, and bundle-aware commit behavior)
 - [**Browser Control**](browser/browser_control.md) - Browser automation architecture and tool behavior
 - [**Browser Change Workflow**](browser/browser_change_workflow.md) - Browser action/schema/CDP/session/file change workflow across backend, local-runtime execution, local-runtime Python adapters, Electron, renderer, and tests
-- [**Local-Runtime Browser Automation Stack**](frontend/sidecar/browser_automation_stack.md) - Renderer->main->local-runtime browser execution and CDP orchestration details backed by Python sidecar adapters
+- [**Local-Runtime Browser Automation Stack**](frontend/sidecar/browser_automation_stack.md) - Renderer->main->local-runtime browser execution and CDP orchestration details backed by local-runtime Python adapters
 - [**Local-Runtime Browser Action Runtime**](frontend/sidecar/browser_action_runtime_reference.md) - Browser Use CLI adapter action surface, payload rules, and timeout/error-code behavior
 - [**Local-Runtime Browser Docs Hub**](frontend/sidecar/browser/README.md) - Sub-hub for Browser Use CLI adapter and result normalization contracts
 - [**Local-Runtime Browser Contracts Docs Hub**](frontend/sidecar/browser/contracts/README.md) - Sub-hub for local-runtime browser action schemas and validation boundary semantics
