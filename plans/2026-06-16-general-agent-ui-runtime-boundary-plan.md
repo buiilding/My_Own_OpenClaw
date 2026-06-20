@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main IPC Process Reset Runtime Boundary
+
+- Finding: `ipc.cjs` still owned the reset checklist for settings sync,
+  backend session state, live-turn state, traces, renderer windows, backend
+  observers, install auth, MCP refresh, pending turns, and Agent SDK lifecycle
+  cleanup.
+- Change: added `ipc_process_reset_runtime.cjs` to own grouped reset helpers
+  plus test shutdown orchestration. `ipc.cjs` now keeps stable wrapper function
+  names for injected dependencies while delegating reset order to the helper.
+- Validation: focused reset-runtime coverage verifies backend session reset
+  grouping, the full shutdown cleanup order, and a source guard that keeps
+  Agent SDK lifecycle shutdown calls out of `ipc.cjs`.
+- Compatibility: no migration required. Reconnect cleanup, test shutdown
+  semantics, renderer IPC channels, settings/session/cache reset behavior,
+  storage, credentials, permissions, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Main Agent Connection Event Runtime Boundary
 
 - Finding: `ipc_agent_connection_events.cjs` owned open/error/message and

@@ -46,6 +46,9 @@ const {
   createAgentConnectionEventsRuntime,
 } = require('./ipc/ipc_agent_connection_events.cjs');
 const {
+  createIpcProcessResetRuntime,
+} = require('./ipc/ipc_process_reset_runtime.cjs');
+const {
   handleAgentBackendCloseEvent,
 } = require('./ipc/ipc_agent_backend_close_runtime.cjs');
 const {
@@ -436,6 +439,25 @@ const agentConnectionEventsRuntime = createAgentConnectionEventsRuntime({
   advanceToNextBackendEndpoint,
   getCurrentEndpoint: () => backendEndpointState.getEndpoint(),
 });
+const ipcProcessResetRuntime = createIpcProcessResetRuntime({
+  settingsSyncRuntime,
+  backendSessionState,
+  liveTurnState,
+  currentTurnTraceLogger,
+  electronMainTraceLogger,
+  backendConnectionGateState,
+  installAuthIdentityRuntime,
+  activeQueryContextState,
+  desktopUiConfigCache,
+  globalStopShortcutConfigRuntime,
+  installAuthRuntime,
+  mcpRefreshRuntime,
+  hostOptionState,
+  rendererWindowRegistry,
+  backendMessageObserverRegistry,
+  agentClientLifecycle,
+  agentRuntimeLifecycle,
+});
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -484,29 +506,15 @@ function getGlobalAgentStopShortcutStatus() {
 }
 
 function resetSettingsSyncState() {
-  settingsSyncRuntime.reset();
+  ipcProcessResetRuntime.resetSettingsSyncState();
 }
 
 function resetBackendSessionState() {
-  backendSessionState.reset();
-  liveTurnState.reset();
-  currentTurnTraceLogger.reset();
-  electronMainTraceLogger.reset();
+  ipcProcessResetRuntime.resetBackendSessionState();
 }
 
 function resetIpcProcessStateForTests() {
-  backendConnectionGateState.reset();
-  installAuthIdentityRuntime.reset();
-  backendSessionState.reset();
-  activeQueryContextState.reset();
-  desktopUiConfigCache.reset();
-  globalStopShortcutConfigRuntime.reset();
-  installAuthRuntime.reset();
-  mcpRefreshRuntime.reset();
-  liveTurnState.reset();
-  hostOptionState.reset();
-  currentTurnTraceLogger.reset();
-  electronMainTraceLogger.reset();
+  ipcProcessResetRuntime.resetIpcProcessStateForTests();
 }
 
 function resolveWorkspacePathForAgent(payload = {}) {
@@ -758,17 +766,7 @@ function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
 }
 
 function shutdownIpcForTests() {
-  resetSettingsSyncState();
-  resetBackendSessionState();
-  resetIpcProcessStateForTests();
-  rendererWindowRegistry.reset();
-  backendMessageObserverRegistry.reset();
-  installAuthRuntime.reset();
-  backendConnectionGateState.setConnected(false);
-  mcpRefreshRuntime.reset();
-  liveTurnState.resetPendingTurn();
-  agentClientLifecycle.shutdownAndReset();
-  agentRuntimeLifecycle.reset({ closeActiveAgent: true });
+  ipcProcessResetRuntime.shutdownIpcForTests();
 }
 
 function initializeIpc(win, options = {}) {

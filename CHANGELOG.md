@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move IPC process reset orchestration into
+  `ipc_process_reset_runtime.cjs`, preserving settings/session/cache reset
+  grouping, renderer-window and backend-observer cleanup, install auth and MCP
+  refresh reset behavior, pending-turn cleanup, and Agent SDK lifecycle
+  shutdown behavior. No migration required.
 - main/ipc: move Agent SDK backend connection and fallback dependency wiring
   into `createAgentConnectionEventsRuntime(...)`, preserving open/close/error
   adaptation, settings reset, overlay idle transition, replay clearing,
