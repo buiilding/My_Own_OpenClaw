@@ -78,12 +78,14 @@ Responsibilities:
   uses the returned `agent.conversation(...)` runtime, routes SDK command
   execution through `ipc_agent_sdk_runtime_commands.cjs`, keeps backend-message
   observer fan-out in `ipc_backend_message_observers.cjs`, shapes status payloads
-  through `ipc_status_payloads.cjs`, keeps install-auth identity state through
-  `ipc_install_auth_identity_runtime.cjs`, routes backend event relay bookkeeping
-  through `ipc_agent_backend_event_runtime.cjs`, applies response-overlay phase
-  side effects through `ipc_response_overlay_phase_runtime.cjs`, resolves Agent
-  SDK runtime conversation refs through the `ipc_runtime_conversation_ref.cjs`
-  fallback wrapper,
+  and broadcasts connection status through `ipc_status_payloads.cjs`, composes
+  install-auth identity/registration context through
+  `ipc_install_auth_context_runtime.cjs`, routes backend event relay
+  bookkeeping through `ipc_agent_backend_event_runtime.cjs`, applies
+  response-overlay phase side effects through
+  `ipc_response_overlay_phase_runtime.cjs`, resolves Agent SDK runtime
+  conversation refs through the `ipc_runtime_conversation_ref.cjs` fallback
+  wrapper,
   reads app-skin host copy through `ipc_host_copy_runtime.cjs`, routes
   app-diagnostic append failure handling through
   `ipc_app_diagnostics_runtime.cjs`, keeps active query context state in
@@ -103,7 +105,7 @@ Responsibilities:
   from `ipc_backend_session_state.cjs`.
 - Gates first query on settings synchronization ACK using
   `ipc_backend_connection_gate_state.cjs` plus `ipc_settings_sync_runtime.cjs`.
-- Broadcasts connection status to all renderer windows.
+- Broadcasts connection status through `ipc_status_payloads.cjs`.
 - Uploads artifacts over HTTP endpoint and injects returned references.
 - Delegates startup install-auth/config/shortcut hydration to a focused helper
   runtime while the owning state runtimes receive the hydrated values.
@@ -117,8 +119,8 @@ Responsibilities:
   focused helper runtime while diagnostics runtimes keep normalization and
   redaction.
 - Delegates pending renderer turn relay registration to a focused helper while
-  `ipc.cjs` keeps the latest pending-turn cache used by stop/current-turn
-  cleanup through the helper's runtime wrapper.
+  `ipc_live_turn_state.cjs` stores the latest pending-turn cache used by
+  stop/current-turn cleanup through the helper's runtime wrapper.
 - Delegates renderer chat query/stop handler construction to a focused helper
   runtime while `initializeIpc(...)` supplies per-window lookup and overlay
   pre-capture callbacks.
@@ -138,8 +140,8 @@ Responsibilities:
   layers, and host OS/workspace facts before calling the SDK builder; its
   runtime wrapper owns the latest-config/platform/SDK-builder injection.
 - Delegates extension and MCP registry channel registration to a focused helper
-  runtime while `ipc.cjs` keeps the Agent SDK host state and MCP startup
-  refresh helpers.
+  runtime while `ipc.cjs` supplies Agent SDK host state and
+  `ipc_mcp_refresh_runtime.cjs` owns MCP startup/latest-config refresh helpers.
 
 Split boundary:
 

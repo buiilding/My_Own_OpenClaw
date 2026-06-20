@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/main: align first-read Electron main docs with the current helper owners
+  for status broadcasts, install-auth context, pending-turn cache storage, and
+  MCP refresh. No migration required.
 - docs/main: refresh the frontend architecture main-composition row now that
   backend endpoint, install-auth context, and status broadcast ownership live in
   focused helpers. No migration required.

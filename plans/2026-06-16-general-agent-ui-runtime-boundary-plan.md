@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Electron Main First-Read Helper Ownership Wording
+
+- Finding: first-read Electron main docs still said `ipc.cjs` kept
+  install-auth identity state, the latest pending-turn cache, and MCP startup
+  refresh helpers directly, even though those responsibilities now live in the
+  install-auth context, live-turn/pending-turn state, and MCP refresh helpers.
+- Change: updated `electron_main_and_ipc.md` and the frontend architecture
+  overview to route status broadcasts, install-auth context, pending-turn cache
+  storage, and MCP startup/latest-config refresh through their current helper
+  owners.
+- Validation: focused modular docs boundary guard rejects the retired
+  first-read ownership phrases.
+- Compatibility: no migration required. Runtime code, IPC payloads, MCP
+  refresh behavior, pending-turn cleanup, install-auth state, storage,
+  credentials, permissions, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Frontend Architecture Main Composition Debt Wording
 
 - Finding: the frontend architecture migration-status table still said future
