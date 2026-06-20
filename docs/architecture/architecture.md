@@ -87,7 +87,7 @@ This is not the primary open-source SDK contract. The default client contract is
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │  Main Process (Node.js)                              │  │
 │  │  - IPC Bridge (ipc.cjs)                              │  │
-│  │  - WebSocket Client                                  │  │
+│  │  - Agent SDK host                                    │  │
 │  │  - Wakeword Bridge                                    │  │
 │  │  - Local Runtime Daemon (sidecar_daemon.py)            │  │
 │  └──────────────────────────────────────────────────────┘  │
@@ -131,7 +131,9 @@ This is not the primary open-source SDK contract. The default client contract is
 
 #### Main Process (Node.js)
 - **IPC Bridge**: Secure communication between renderer and main
-- **WebSocket Client**: Connection to the hosted backend
+- **Agent SDK Host**: Starts and adapts the SDK runtime that owns hosted
+  backend websocket transport, conversation projection, and local-runtime
+  coordination
 - **VM Worker Runtime**: Optional heartbeat/assignment relay loop for `/api/runs/*` when `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` are enabled
 - **Wakeword Bridge**: Python subprocess management for wakeword detection
 - **Local Runtime Daemon**: SDK-owned sidecar daemon for tool execution, system
@@ -173,9 +175,9 @@ This is not the primary open-source SDK contract. The default client contract is
    ↓
 4. Message sent via IpcBridge → Main Process
    ↓
-5. Main Process builds complete message with system state and local-runtime memory search results
+5. Electron main resolves host context and invokes the Agent SDK runtime
    ↓
-6. Main Process → WebSocket → Backend
+6. Agent SDK runtime -> WebSocket -> Backend
    ↓
 7. Backend validates message (`backend/src/api/schemas/incoming.py`)
    ↓

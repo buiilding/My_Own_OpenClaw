@@ -133,7 +133,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   fan-out instead of the retired generic `to-backend`/`from-backend` relay.
   Settings lifecycle docs now route renderer settings saves through the
   SDK-shaped `settings.update` command and Electron main settings-sync runtime
-  instead of a removed renderer `to-backend` relay.
+  instead of a removed renderer `to-backend` relay. The system architecture
+  overview now describes Electron main as the Agent SDK host and routes the
+  backend websocket hop through the Agent SDK runtime instead of a direct main
+  WebSocket-client path.
 
   Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
   Python sidecar method, handler, daemon, protocol, memory, and tool validation
@@ -4996,6 +4999,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   keys, `frontend-config.json`, `windie:invoke`, backend `update-settings`
   payloads, ACK IDs, settings events, credentials, permissions, provider policy,
   hosted URLs, and local execution behavior are unchanged.
+
+### 2026-06-20 Architecture Agent SDK Host Overview Boundary
+
+- Finding: the system architecture overview still listed Electron main as a
+  direct `WebSocket Client` and showed user queries flowing from `Main Process`
+  to `WebSocket` to backend, while the current host boundary is Electron main
+  invoking the Agent SDK runtime and the SDK owning hosted backend websocket
+  transport plus conversation projection.
+- Change: updated the overview diagram, main-process responsibility list, and
+  user-query flow so Electron main resolves host context and invokes the Agent
+  SDK runtime, while the Agent SDK runtime owns the websocket hop to backend.
+- Validation: extended the architecture docs boundary guard to require Agent
+  SDK host/runtime wording and reject the retired direct WebSocket-client
+  architecture phrases.
+- Compatibility: no migration required. Runtime code, IPC channels, SDK
+  commands, backend websocket payloads, projection events, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
 
 ## Remaining Findings
 

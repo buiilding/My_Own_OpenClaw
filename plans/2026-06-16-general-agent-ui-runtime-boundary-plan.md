@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Architecture Agent SDK Host Overview Boundary
+
+- Finding: the system architecture overview still listed Electron main as a
+  direct `WebSocket Client` and showed user queries flowing from `Main Process`
+  to `WebSocket` to backend, even though Electron main now hosts the Agent SDK
+  runtime and the SDK owns backend websocket transport plus conversation
+  projection.
+- Change: updated the overview diagram, main-process responsibility list, and
+  user-query flow so Electron main resolves host context and invokes the Agent
+  SDK runtime, while the Agent SDK runtime owns the websocket hop to backend.
+- Validation: extended the architecture docs boundary guard to require Agent
+  SDK host/runtime wording and reject the retired direct WebSocket-client
+  architecture phrases.
+- Compatibility: no migration required. Runtime code, IPC channels, SDK
+  commands, backend websocket payloads, projection events, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Settings Sync SDK Command Docs Boundary
 
 - Finding: the settings lifecycle reference still described renderer settings

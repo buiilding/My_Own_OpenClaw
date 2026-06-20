@@ -513,11 +513,16 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(docText).toContain('`windie:invoke`: Renderer -> Electron main SDK command bridge');
     expect(docText).toContain('`windie:conversation-event`: SDK-normalized conversation side-effect events');
+    expect(docText).toContain('Agent SDK Host');
+    expect(docText).toContain('Agent SDK runtime -> WebSocket -> Backend');
     expect(docText).toMatch(/typed\s+backend side-channel event fan-out/);
     expect(docText).not.toContain('`to-backend`: Renderer');
     expect(docText).not.toContain('`from-backend`: Backend');
     expect(docText).not.toContain('**`from-backend`**');
     expect(docText).not.toContain('Receive messages from backend and local query-mirror events');
+    expect(docText).not.toContain('WebSocket Client');
+    expect(docText).not.toContain('Main Process -> WebSocket -> Backend');
+    expect(docText).not.toContain('Main Process → WebSocket → Backend');
   });
 
   test('local runtime conversation store keeps diagnostic collection naming generic', async () => {

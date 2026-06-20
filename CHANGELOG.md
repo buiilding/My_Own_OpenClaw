@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: finish routing the system architecture overview through
+  the Electron Agent SDK host by replacing remaining direct WebSocket-client
+  and main-to-websocket query-flow wording. No migration required.
 - docs/settings: describe renderer settings sync as SDK-shaped
   `settings.update` command dispatch through Electron main plus the Agent SDK
   runtime-owned backend `update-settings` ACK gate, removing stale `to-backend`
