@@ -5103,6 +5103,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Remaining Findings
 
+- Websocket event first-read docs now route renderer-visible backend stream
+  output through Agent SDK normalization/projection and typed Electron fan-out
+  channels instead of the retired generic Electron/main rebroadcast or
+  `from-backend` model.
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.
 - Main process composition root, permission services, query event builders, SDK agent name, tray tooltip, MCP client identity, layer-log prefixes, bundled wakeword/sidecar reinstall guidance, local browser warmup, and OAuth callback copy now read related product copy from a host skin. Fresh inspection found WindieOS product naming only in `main_host_skin.cjs` under `frontend/src/main`.
 - Main-private log guard, renderer-console attachment, pending collapse, and

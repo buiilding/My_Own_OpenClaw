@@ -8,7 +8,7 @@ title: "WebSocket Event Reference"
 
 # WebSocket Event Reference
 
-WindieOS uses one canonical streamed-event vocabulary for backend formatter output and renderer chat consumption. Electron main rebroadcasts backend websocket messages to renderer windows on `from-backend`. For a development workflow, read [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md).
+WindieOS uses one canonical streamed-event vocabulary for backend formatter output, Agent SDK normalization/projection, typed Electron fan-out channels, and renderer chat consumption. Main no longer exposes a generic `from-backend` renderer channel for backend websocket messages. For a development workflow, read [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md).
 
 ## Canonical Event Families
 
@@ -63,7 +63,7 @@ SDK runtime adapters treat non-empty `replacement_history_entries` as the signal
 | Symptom | Check |
 | --- | --- |
 | backend produces event but websocket sends nothing | formatter spec, required fields, outgoing schema |
-| DevTools shows event but UI ignores it | renderer typed event guard or dedicated parser |
+| DevTools shows event but UI ignores it | SDK typed event guard/projection, typed fan-out channel, or dedicated renderer parser |
 | tool card renders but tool does not execute | SDK main-runtime tool router, `skip_local_execution` metadata, local-runtime bridge |
 | event updates the wrong chat | `conversation_ref` and active transcript session state |
 | token display absent | backend `token-count` event and renderer token-count handler |

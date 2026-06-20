@@ -54,7 +54,7 @@ The shared channel registry is the naming source of truth, but it is not a handl
 | Wakeword/audio bridge | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | voice hooks, wakeword supervisor, Python wakeword subprocess | `tests/frontend/WakewordBridge.test.cjs`, `tests/frontend/WakewordBridgeRuntime.test.cjs`, `tests/frontend/voice/WakewordDetectionHook.test.ts` |
 | Desktop UI config and model/settings sync | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | app config provider, settings tabs, model settings | `tests/frontend/AppConfigProvider*.test.tsx`, `tests/frontend/IpcSettingsSync.test.cjs`, settings tests |
 
-When a symptom spans rows, start at the producer row. For example, if a renderer listener receives malformed backend stream data, inspect the backend event producer and Electron rebroadcast path before adding renderer-only fallback parsing.
+When a symptom spans rows, start at the producer row. For example, if a renderer listener receives malformed backend stream data, inspect the backend event producer, Agent SDK normalization/projection path, and typed Electron fan-out channel before adding renderer-only fallback parsing.
 
 ## Channel Type Decision
 

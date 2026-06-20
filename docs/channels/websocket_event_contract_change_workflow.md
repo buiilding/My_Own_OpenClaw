@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS websocket event contracts across backend streaming events, formatter specs, outgoing schemas, Electron rebroadcast, SDK event normalization, renderer stream handlers, and tests."
+summary: "Workflow for changing WindieOS websocket event contracts across backend streaming events, formatter specs, outgoing schemas, SDK projection, typed Electron fan-out, renderer stream handlers, and tests."
 read_when:
   - When adding, renaming, formatting, removing, or consuming a backend websocket event.
   - When changing event payload fields, formatter behavior, outgoing schemas, SDK backend-event guards, `windie:conversation-event` routing, chat stream handlers, SDK/local-runtime tool events, token usage events, prompt transparency events, or audio side-channel payloads.
@@ -9,9 +9,9 @@ title: "WebSocket Event Contract Change Workflow"
 
 # WebSocket Event Contract Change Workflow
 
-Use this workflow before changing any event that crosses the backend websocket boundary. WindieOS uses a shared event vocabulary between backend formatter output, Electron main rebroadcast, SDK backend-event normalization, and renderer consumers. A change that touches only one side usually becomes a silent bug: the backend emits an event that formatter skips, schema validation rejects, the SDK typed guard ignores, the SDK normalizer fails to project, or the chat stream handler drops as stale.
+Use this workflow before changing any event that crosses the backend websocket boundary. WindieOS uses a shared event vocabulary between backend formatter output, the Agent SDK backend transport, SDK backend-event normalization/projection, typed Electron fan-out channels, and renderer consumers. A change that touches only one side usually becomes a silent bug: the backend emits an event that formatter skips, schema validation rejects, the SDK typed guard ignores, the SDK normalizer fails to project, the typed fan-out channel does not publish, or the chat stream handler drops as stale.
 
-The core rule is: update the producer, formatter, outgoing schema, transport rebroadcast, SDK event guard/normalizer, renderer consumer, and tests as one contract.
+The core rule is: update the producer, formatter, outgoing schema, SDK transport/projection, typed fan-out channel, renderer consumer, and tests as one contract.
 
 ## Fast Owner Map
 
@@ -20,7 +20,7 @@ The core rule is: update the producer, formatter, outgoing schema, transport reb
 | add or rename a backend streamed event | backend event contract | `backend/src/core/events/streaming_events.py`, `backend/src/core/types/enums.py`, `backend/src/api/contracts/formatter_specs.py` | [Streaming and Events](../concepts/streaming_and_events.md), [Streaming Event to Formatter and Outgoing Contract Alignment Reference](../backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md) | `tests/backend/test_events.py`, `tests/backend/test_formatter_specs_contract.py`, `tests/backend/test_api_contract_registry.py` |
 | change outgoing payload shape | backend formatter and outgoing schema | `backend/src/api/processing/formatters/*`, `backend/src/api/schemas/outgoing.py`, `backend/src/api/contracts/message_types.py` | [Formatter Dispatch and Schema Alignment Reference](../backend/api/processing/formatter_dispatch_and_schema_alignment_reference.md), [Formatter Validation and Contract-Test Matrix Reference](../backend/api/processing/formatters/formatter_validation_and_contract_test_matrix_reference.md) | `tests/backend/test_formatters.py`, `tests/backend/test_response_formatter.py`, `tests/backend/test_outgoing_schema_contract.py` |
 | event is produced but websocket sends nothing | backend formatter required-field guard or spec registration | formatter spec, formatter class, event dataclass | [Base Formatter Guard Utilities and Skip Semantics Reference](../backend/api/processing/formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md) | formatter tests for skipped vs emitted cases |
-| event reaches Electron main but renderer ignores it | renderer typed event guard, SDK normalizer, or dedicated parser | `packages/windie-sdk-js/src/events/backendEvents.ts`, `packages/windie-sdk-js/src/transport/backendEventNormalizer.ts`, `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`, audio parser when relevant | [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](../frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md) | `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`, `tests/frontend/WindieSdkConversationRuntime.test.ts`, event-specific frontend tests |
+| event reaches the Agent SDK host but renderer ignores it | renderer typed event guard, SDK normalizer/projection, typed fan-out channel, or dedicated parser | `packages/windie-sdk-js/src/events/backendEvents.ts`, `packages/windie-sdk-js/src/transport/backendEventNormalizer.ts`, `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`, audio parser when relevant | [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](../frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md) | `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`, `tests/frontend/WindieSdkConversationRuntime.test.ts`, event-specific frontend tests |
 | chat text, thinking, terminal, or error state behaves wrong | renderer chat stream handlers | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/*`, `frontend/src/renderer/app/runtime/desktopChatStream*.ts` | [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md), [Frontend Chat Stream and Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md) | `tests/frontend/ChatStream*.test.ts`, `tests/frontend/StreamPhaseState.test.js` |
 | tool-call, tool-output, or tool-bundle event changes | backend tool formatter plus SDK conversation/tool runtime and renderer display consumers | backend tool formatters, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, renderer tool message utilities | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) | backend tool formatter/result tests plus SDK conversation-runtime and renderer display tests |
 | prompt transparency event changes | backend prompt/event presenter plus SDK display/rehydrate projection consumers | `backend/src/agent/llm/event_presenter.py`, prompt events/formatters, SDK conversation projections, backend rehydrate transparency resolution | [Prompt Context Change Workflow](../backend/llm/prompts/prompt_context_change_workflow.md) | prompt/event tests plus SDK projection and backend rehydrate transparency tests |
@@ -34,9 +34,10 @@ The core rule is: update the producer, formatter, outgoing schema, transport reb
 - `formatter_specs.py` owns the event class plus canonical event type plus formatter class mapping.
 - `message_types.py` and `schemas/outgoing.py` own outgoing websocket type constants and payload validation.
 - Formatter classes own payload shaping and required-field skip behavior.
-- Electron main receives backend websocket messages, forwards SDK conversation
-  events on `windie:conversation-event`, and may also update overlay phase based
-  on event type.
+- Electron main hosts the Agent SDK runtime, forwards SDK conversation events
+  on `windie:conversation-event`, publishes SDK projection snapshots on
+  `windie:rows`, `windie:status`, and `windie:current-turn`, and may also update
+  overlay phase based on event type.
 - SDK `packages/windie-sdk-js/src/events/backendEvents.ts` owns typed backend
   websocket event acceptance. Events outside that set are ignored by typed SDK
   consumers.
@@ -75,7 +76,7 @@ The core rule is: update the producer, formatter, outgoing schema, transport reb
 ## Change Event Routing or Filtering
 
 1. Preserve correlation fields at the backend formatter layer.
-2. Confirm Electron main rebroadcasts the event and does not swallow it as a special case.
+2. Confirm the Agent SDK host publishes the event through the expected SDK projection or typed side-channel and does not swallow it as a special case.
 3. Update SDK `isBackendEvent(...)` only for typed backend websocket events.
 4. Update SDK normalization and consumer coverage for every typed chat event.
 5. Update active conversation and turn guards when event ownership depends on `conversation_ref` or `turn_ref`.
@@ -127,7 +128,7 @@ Tool events are both UI state and SDK runtime execution requests.
 ### Event Updates Wrong Conversation
 
 - Confirm backend formatter attaches `conversation_ref` and `turn_ref`.
-- Confirm Electron main does not overwrite conversation context with stale fallback.
+- Confirm the Agent SDK host does not overwrite conversation context with stale fallback.
 - Confirm renderer transcript session sync has the active conversation ref.
 - Confirm chat stream conversation and turn guards are applied before state updates.
 

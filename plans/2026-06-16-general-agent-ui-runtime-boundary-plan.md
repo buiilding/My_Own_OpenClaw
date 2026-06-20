@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Websocket Event SDK Fan-Out Docs Boundary
+
+- Finding: the runtime node matrix, streaming/event reference docs, IPC
+  workflow, and websocket event workflow still described backend stream event
+  delivery as an Electron/main rebroadcast or `from-backend` path, even though
+  the live boundary is Agent SDK backend transport, SDK normalization/projection,
+  and typed Electron fan-out channels.
+- Change: updated first-read event-routing docs to identify SDK projections,
+  typed backend side-channel events, and the Agent SDK host as the current
+  contract path for renderer-visible backend events, and marked the generic
+  `from-backend` backend websocket route as removed.
+- Validation: extended the modular runtime-routing docs guard to read the
+  websocket and IPC workflows, require SDK projection/fan-out wording, and
+  reject the retired main-rebroadcast phrases.
+- Compatibility: no migration required. Runtime code, IPC channel names,
+  backend websocket payloads, SDK projection events, typed side-channel events,
+  storage, credentials, permissions, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 IPC Workflow SDK Relay Drift Boundary
 
 - Finding: the IPC change workflow still told agents to debug backend relay

@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/events: route websocket event-contract debugging through Agent SDK
+  normalization/projection and typed Electron fan-out instead of the retired
+  generic main rebroadcast model. No migration required.
 - docs/ipc: route backend relay drift debugging through `windie:invoke`, typed
   SDK/backend-event fan-out, and Agent SDK backend transport instead of a
   removed non-chat `to-backend` path. No migration required.
