@@ -2,7 +2,11 @@
  * Covers ipc artifact handlers. behavior in the frontend test suite.
  */
 
+const fs = require('fs/promises');
+const path = require('path');
+
 const {
+  createArtifactHandlersRuntime,
   registerArtifactHandlers,
 } = require('../../frontend/src/main/ipc/ipc_artifact_handlers.cjs');
 
@@ -87,5 +91,51 @@ describe('ipc_artifact_handlers', () => {
       success: false,
       error: 'install auth unavailable',
     });
+  });
+
+  test('runtime registers handlers with injected backend and auth dependencies', async () => {
+    const handlers = {};
+    const ipcMain = {
+      handle: jest.fn((channel, handler) => {
+        handlers[channel] = handler;
+      }),
+    };
+    const runtime = createArtifactHandlersRuntime({
+      uploadArtifact: jest.fn(async (payload) => ({ success: true, uploaded: payload })),
+      fetchArtifactImage: jest.fn(async (payload) => ({ success: true, fetched: payload })),
+      ensureInstallAuthState: jest.fn(async () => undefined),
+      getBackendHttpUrl: jest.fn(() => 'https://runtime.windieos.test'),
+      buildInstallAuthHeaders: jest.fn(() => ({ Authorization: 'Bearer runtime-token' })),
+    });
+
+    runtime.register({ ipcMain });
+
+    await expect(handlers['upload-artifact'](null, {
+      base64: 'runtime-image',
+    })).resolves.toEqual({
+      success: true,
+      uploaded: {
+        base64: 'runtime-image',
+        backendHttpUrl: 'https://runtime.windieos.test',
+        headers: { Authorization: 'Bearer runtime-token' },
+      },
+    });
+  });
+
+  test('ipc.cjs registers artifact handlers through the runtime wrapper', async () => {
+    const mainSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+    const helperSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_artifact_handlers.cjs'),
+      'utf8',
+    );
+
+    expect(mainSource).toContain('createArtifactHandlersRuntime({');
+    expect(mainSource).toContain('artifactHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('registerArtifactHandlers({');
+    expect(helperSource).toContain('function createArtifactHandlersRuntime');
+    expect(helperSource).toContain('return registerArtifactHandlers({');
   });
 });

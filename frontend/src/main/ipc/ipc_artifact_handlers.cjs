@@ -33,6 +33,30 @@ function registerArtifactHandlers({
   });
 }
 
+function createArtifactHandlersRuntime({
+  uploadArtifact,
+  fetchArtifactImage,
+  ensureInstallAuthState,
+  getBackendHttpUrl,
+  buildInstallAuthHeaders,
+} = {}) {
+  function register({ ipcMain } = {}) {
+    return registerArtifactHandlers({
+      ipcMain,
+      uploadArtifact,
+      fetchArtifactImage,
+      ensureInstallAuthState,
+      getBackendHttpUrl,
+      buildInstallAuthHeaders,
+    });
+  }
+
+  return {
+    register,
+  };
+}
+
 module.exports = {
+  createArtifactHandlersRuntime,
   registerArtifactHandlers,
 };

@@ -115,6 +115,9 @@ Responsibilities:
 - Delegates renderer chat query/stop handler construction to a focused helper
   runtime while `initializeIpc(...)` supplies per-window lookup and overlay
   pre-capture callbacks.
+- Delegates artifact upload/fetch handler registration to a focused helper
+  runtime while the composition root supplies current backend URL and
+  install-auth header callbacks.
 - Delegates direct wake-up agent adapter behavior to a focused helper that owns
   `agent.conversation(...)` runtime handles, SDK event fan-out, inference
   context rehydration, replay invalidation, and MCP refresh forwarding; the

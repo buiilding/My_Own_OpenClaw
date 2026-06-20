@@ -171,7 +171,7 @@ const {
   fetchArtifactImage,
 } = require('./ipc/ipc_artifact_fetch.cjs');
 const {
-  registerArtifactHandlers,
+  createArtifactHandlersRuntime,
 } = require('./ipc/ipc_artifact_handlers.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
@@ -549,6 +549,13 @@ const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
     traceRendererQuery: (input) => electronMainTraceLogger.traceRendererQuery(input),
   },
 });
+const artifactHandlersRuntime = createArtifactHandlersRuntime({
+  uploadArtifact,
+  fetchArtifactImage,
+  ensureInstallAuthState,
+  getBackendHttpUrl: () => backendEndpointState.getHttpUrl(),
+  buildInstallAuthHeaders,
+});
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -895,14 +902,7 @@ function initializeIpc(win, options = {}) {
     broadcastToRenderers,
   });
 
-  registerArtifactHandlers({
-    ipcMain,
-    uploadArtifact,
-    fetchArtifactImage,
-    ensureInstallAuthState,
-    getBackendHttpUrl: () => backendEndpointState.getHttpUrl(),
-    buildInstallAuthHeaders,
-  });
+  artifactHandlersRuntime.register({ ipcMain });
 
   registerImageInteractionHandlers({
     ipcMain,

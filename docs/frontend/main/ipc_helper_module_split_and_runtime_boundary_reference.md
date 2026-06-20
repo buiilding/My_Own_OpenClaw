@@ -787,6 +787,9 @@ Owns artifact IPC handler registration:
 
 - `upload-artifact`
 - `fetch-artifact-image`
+- exposes `createArtifactHandlersRuntime(...)` so `ipc.cjs` composes
+  artifact upload/fetch, install-auth refresh, backend URL, and auth-header
+  dependencies once
 - upload requests receive the current backend HTTP URL and install-auth headers
 - protected image fetches refresh install auth before calling
   `ipc_artifact_fetch.cjs`

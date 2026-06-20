@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move artifact upload/fetch handler dependency wiring into
+  `createArtifactHandlersRuntime(...)`, preserving `upload-artifact` and
+  `fetch-artifact-image` channel behavior, install-auth refresh, backend URL
+  selection, auth headers, and structured fetch errors. No migration required.
 - main/ipc: move renderer chat query/stop handler dependency wiring into
   `createChatQueryHandlerRuntime(...)`, preserving SDK-shaped
   `conversation.send` / `conversation.stop` behavior, settings gates,

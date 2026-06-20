@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Artifact Handler Runtime Boundary
+
+- Finding: `ipc_artifact_handlers.cjs` owned artifact upload/fetch IPC
+  behavior, but `initializeIpc(...)` still passed artifact upload/fetch,
+  install-auth refresh, backend URL, and auth-header dependencies directly when
+  registering the handlers.
+- Change: added `createArtifactHandlersRuntime(...)` so the artifact helper
+  owns reusable handler dependency composition while `initializeIpc(...)`
+  only registers the already-composed runtime with `ipcMain`.
+- Validation: focused artifact-handler coverage verifies the runtime registers
+  handlers with injected backend/auth callbacks and source guards keep direct
+  artifact handler dependency wiring out of `initializeIpc(...)`.
+- Compatibility: no migration required. `upload-artifact` and
+  `fetch-artifact-image` channel names, upload payload enrichment, protected
+  fetch install-auth refresh, backend URL selection, auth headers, structured
+  fetch errors, renderer IPC, storage, credentials, permissions, provider
+  policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Chat Query Handler Runtime Boundary
 
 - Finding: `ipc_chat_query_handlers.cjs` owned renderer chat query and stop
