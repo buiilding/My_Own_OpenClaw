@@ -200,7 +200,7 @@ Local tool runtime nuances:
 - `transcript-session-sync`: normalized transcript session sync snapshots via
   `ipc_client_session_handlers.cjs`
 - `ipc-status`: websocket connection + endpoint status payload
-- `local-runtime-status`: local SDK sidecar process/readiness status
+- `local-runtime-status`: SDK local-runtime process/readiness status
 - `response-overlay-phase`: phase transitions (`idle`, `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`, `complete`, `error`)
 - `backend-settings-event`: model/settings ACK and settings-error events
 - `agent-capability-event`: client tool manifest and remote tool catalog events

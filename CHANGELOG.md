@@ -35,10 +35,17 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/debug: route the Stream Event Trace owner table through SDK
+  backend-event handling, main renderer fan-out, and renderer
+  SDK-normalized conversation-event consumption instead of relay-only stream
+  wording. No migration required.
 - docs/debug: route logging, diagnostic flags, process-health, runtime-trace,
   observability, tool-development, evidence-collection, and docs-index debug
   labels through local-runtime Python wording instead of sidecar debug labels.
   No migration required.
+- docs/frontend: route IPC status, extension tool routing, local-memory title,
+  and mobile parity risk labels through SDK/local-runtime wording instead of
+  sidecar owner labels. No migration required.
 - docs/runtime: route platform, operations, doctor, protocol-error, and
   development workflow sidecar-process labels through local-runtime startup or
   host-status wording while keeping the packaged Python sidecar entrypoint

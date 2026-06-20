@@ -58,9 +58,9 @@ Behavior:
 
 ## Conversation Titles
 
-The sidecar stores and lists conversation titles, including manually updated
-titles. Hosted title generation belongs to the SDK/backend route path, not to a
-sidecar remote title client.
+The local-runtime memory store lists conversation titles, including manually
+updated titles. Hosted title generation belongs to the SDK/backend route path,
+not to a Python implementation remote-title client.
 
 ## Periodic Summarizer
 

@@ -209,7 +209,7 @@ is required for desktop-control integrations such as CUA Driver.
    `client_tool_manifest`.
 4. The backend validates and policy-projects the client manifest.
 5. Local plugin tool calls route through SDK local-runtime execution to the
-   Python sidecar-backed tool registry.
+   local-runtime executable tool registry backed by Python modules.
 6. MCP tool calls route through the MCP runtime.
 
 ## Validation

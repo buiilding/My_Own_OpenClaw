@@ -181,6 +181,37 @@ Each completed slice should report:
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
 
+### 2026-06-20 Stream Trace SDK Route
+
+- Finding: the debug Stream Event Trace table still described Electron main as
+  an event relay and renderer stream hooks as direct before/after event
+  handlers, which obscured the current SDK-owned backend-event handling and
+  SDK-normalized renderer conversation-event consumption path.
+- Change: routed the trace table through SDK backend-event handling, main
+  renderer fan-out, and renderer SDK conversation-event consumption, with a
+  modular docs guard against the retired relay-only wording.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  stream-trace route scan, and diff check.
+- Compatibility: no migration required. Runtime code, websocket events, IPC
+  channels, SDK projections, renderer state, storage, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 Local-Runtime Status and Memory Labels
+
+- Finding: IPC contract, extension authoring, local-memory title, and mobile
+  planning docs still used sidecar owner labels for local-runtime status,
+  executable tool routing, title storage, and mobile memory-parity risks.
+- Change: routed those public labels through SDK local-runtime readiness,
+  local-runtime executable registry, local-runtime memory storage, and
+  SDK/backend hosted title generation wording while preserving Python
+  implementation details where they identify concrete modules.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  sidecar owner-label scan, and diff check.
+- Compatibility: no migration required. IPC channels, status payloads, tool
+  registry behavior, title storage, memory retrieval, SDK/backend title
+  generation routes, credentials, permissions, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-20 Renderer App-Runtime Inventory Filename
 
 - Finding: the renderer transport command reference listed

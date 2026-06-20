@@ -102,9 +102,9 @@ embedding space.
 
 ## Conversation-Title Boundary
 
-Transcript title storage and manual title updates remain sidecar-local. Hosted
-title generation belongs to the SDK/backend route path, not to a sidecar remote
-title client.
+Transcript title storage and manual title updates remain local-runtime memory
+store responsibilities. Hosted title generation belongs to the SDK/backend route
+path, not to a Python implementation remote-title client.
 
 ## Search Execution Model
 

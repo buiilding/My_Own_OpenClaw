@@ -314,6 +314,24 @@ For each completed slice, record:
   storage, credentials, permissions, hosted backend URLs, and provider policy
   are unchanged.
 
+- 2026-06-20: completed a stream-trace SDK route slice by routing the debug
+  Stream Event Trace table through SDK backend-event handling, main renderer
+  fan-out, and renderer SDK conversation-event consumption instead of
+  relay-only stream wording. Validation covered the focused modular docs
+  boundary test, docs listing, exact stale stream-trace route scan, and diff
+  check. No migration required; runtime code, websocket events, IPC channels,
+  SDK projections, renderer state, storage, credentials, permissions, hosted
+  backend URLs, and provider policy are unchanged.
+
+- 2026-06-20: completed a local-runtime status/memory label slice by routing IPC
+  status, extension executable-tool routing, local-memory title storage, and
+  mobile memory-parity risk labels through SDK/local-runtime wording instead of
+  sidecar owner labels. Validation covered the focused modular docs boundary
+  test, docs listing, exact stale owner-label scan, and diff check. No migration
+  required; IPC channels, status payloads, tool registry behavior, title
+  storage, memory retrieval, SDK/backend title generation routes, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.
+
 - 2026-06-20: aligned the renderer app-runtime inventory with the live
   `desktopStreamPhaseRuntime.js` state/rule facade and added a renderer
   boundary guard against the stale `desktopStreamPhaseRuntime.ts` filename.

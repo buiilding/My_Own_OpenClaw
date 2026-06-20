@@ -250,10 +250,12 @@ Acceptance criteria:
 1. Risk: Attempting full desktop parity too early delays launch.
 - Mitigation: ship companion scope first, then add capability-gated features.
 
-2. Risk: Backend/sidecar coupling causes protocol drift for mobile.
+2. Risk: Backend/local-runtime contract coupling causes protocol drift for
+   mobile.
 - Mitigation: capability negotiation + server-side schema filtering in Phase 2.
 
-3. Risk: Memory UX regressions because memory is currently sidecar-local.
+3. Risk: Memory UX regressions because memory is currently local-runtime
+   storage.
 - Mitigation: move history/memory retrieval to backend APIs before promising parity.
 
 4. Risk: Voice/wakeword complexity across mobile OS restrictions.

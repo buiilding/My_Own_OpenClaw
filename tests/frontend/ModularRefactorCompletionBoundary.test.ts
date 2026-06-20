@@ -398,12 +398,18 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime conversation_events rows');
     expect(docText).toContain('local-runtime event store path');
     expect(docText).toContain('returns sanitized search metadata');
+    expect(docText).toContain('SDK backend-event handling and main fan-out');
+    expect(docText).toContain('Renderer SDK conversation-event consumption');
+    expect(docText).toContain('SDK-normalized conversation events, current-turn projections');
     expect(docText).not.toContain('sidecar-backed');
     expect(docText).not.toContain('canonical sidecar events');
     expect(docText).not.toContain('canonical sidecar chat-event log');
     expect(docText).not.toContain('canonical sidecar `conversation_events`');
     expect(docText).not.toContain('sidecar event store path');
     expect(docText).not.toContain('sidecar transcript storage');
+    expect(docText).not.toContain('Electron relay | `frontend/src/main/ipc.cjs`');
+    expect(docText).not.toContain('Backend receive and renderer broadcast logs');
+    expect(docText).not.toContain('Before/after event handling and workspace state');
   });
 
   test('renderer runtime docs describe local tool execution through SDK local runtime', async () => {
@@ -1461,6 +1467,11 @@ describe('modular sdk refactor completion boundary', () => {
         'Local Runtime Sidecar',
         'Sidecar registry',
         'Sidecar Method Registry',
+        'local SDK sidecar process/readiness status',
+        'Local SDK sidecar process/readiness status',
+        'Python sidecar-backed tool registry',
+        'sidecar-local',
+        'sidecar remote title client',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

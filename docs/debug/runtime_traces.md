@@ -359,14 +359,14 @@ Inspect a single trace timeline with:
 
 ## Stream Event Trace
 
-Use this when the backend sends events but the UI displays stale, missing, or duplicated content.
+Use this when the backend sends events but the UI displays stale, missing, or duplicated content. Keep the route through SDK-owned backend-event handling and renderer SDK-normalized conversation-event consumption instead of treating Electron main as a second stream normalizer.
 
 | Layer | Code root | What to inspect |
 | --- | --- | --- |
 | Backend formatter | `backend/src/api/processing/formatters`, `backend/src/api/contracts` | Event type and payload shape. |
 | Websocket route | `backend/src/api/routes/websocket` | Incoming query, task ownership, outgoing event stream. |
-| Electron relay | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs` | Backend receive and renderer broadcast logs. |
-| Renderer stream | `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | Before/after event handling and workspace state. |
+| SDK backend-event handling and main fan-out | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc/ipc_agent_backend_event_runtime.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs` | SDK-normalized conversation events, current-turn projections, and main renderer-window fan-out. |
+| Renderer SDK conversation-event consumption | `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`, `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | SDK conversation-event dispatch, stale-turn filtering, stream tracking, and workspace state. |
 
 Enable:
 

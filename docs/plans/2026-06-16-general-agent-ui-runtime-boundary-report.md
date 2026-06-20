@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: logging, diagnostic flags, process-health,
-  runtime-trace, and docs-index debug labels now use local-runtime Python
-  wording instead of sidecar debug labels.
+- Latest completed slice: the debug Stream Event Trace table now routes stream
+  debugging through SDK backend-event handling, main renderer fan-out, and
+  renderer SDK conversation-event consumption instead of relay-only stream
+  wording.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -3121,6 +3122,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   traces, IPC, credentials, local runtime execution, provider policy, backend
   APIs, and storage are unchanged.
 
+### 2026-06-20 Local-Runtime Status and Memory Labels
+
+- Finding: IPC contract, extension authoring, local-memory title, and mobile
+  planning docs still used sidecar owner labels for local-runtime status,
+  executable tool routing, title storage, and mobile memory-parity risks.
+- Change: routed those public labels through SDK local-runtime readiness,
+  local-runtime executable registry, local-runtime memory storage, and
+  SDK/backend hosted title generation wording while preserving Python
+  implementation details where they identify concrete modules.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  sidecar owner-label scan, and diff check.
+- Compatibility: no migration required. IPC channels, status payloads, tool
+  registry behavior, title storage, memory retrieval, SDK/backend title
+  generation routes, credentials, permissions, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-19 Backend Agent-Definition Default-Policy Wording Boundary
 
 - Worktree contained a separate debug diagnostic/process-health wording slice
@@ -6220,3 +6237,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   labels. Runtime code, log sinks, stderr behavior, diagnostic flags, process
   startup, IPC payloads, storage, credentials, permissions, hosted backend URLs,
   and provider policy are unchanged.
+- The debug Stream Event Trace table now routes stream debugging through SDK
+  backend-event handling, main renderer fan-out, and renderer SDK
+  conversation-event consumption instead of relay-only stream wording. Runtime
+  code, websocket events, IPC channels, SDK projections, renderer state,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.
