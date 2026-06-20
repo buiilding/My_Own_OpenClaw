@@ -18,6 +18,7 @@ const vmWorkerRuntimePath = path.join(mainRoot, 'app/vm_worker_runtime.cjs');
 const mainProcessBootstrapRuntimePath = path.join(mainRoot, 'app/main_process_bootstrap_runtime.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
 const ipcAgentConnectionEventsPath = path.join(mainRoot, 'ipc/ipc_agent_connection_events.cjs');
+const ipcAgentBackendCloseRuntimePath = path.join(mainRoot, 'ipc/ipc_agent_backend_close_runtime.cjs');
 const desktopRuntimeChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_runtime_channels.cjs');
 const retiredDesktopAgentChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_agent_channels.cjs');
 const ipcRendererWindowsPath = path.join(mainRoot, 'ipc/ipc_renderer_windows.cjs');
@@ -705,11 +706,12 @@ describe('main host skin/config boundary', () => {
   test('main backend connection logs use generic agent-backend wording', () => {
     const mainSource = fs.readFileSync(mainIpcPath, 'utf8');
     const connectionEventSource = fs.readFileSync(ipcAgentConnectionEventsPath, 'utf8');
-    const source = `${mainSource}\n${connectionEventSource}`;
+    const backendCloseSource = fs.readFileSync(ipcAgentBackendCloseRuntimePath, 'utf8');
+    const source = `${mainSource}\n${connectionEventSource}\n${backendCloseSource}`;
 
     expect(connectionEventSource).toContain('Successfully connected to agent backend through Agent SDK runtime.');
-    expect(mainSource).toContain('Disconnected from agent backend. Attempting to reconnect...');
-    expect(mainSource).toContain('Disconnected from agent backend');
+    expect(backendCloseSource).toContain('Disconnected from agent backend. Attempting to reconnect...');
+    expect(backendCloseSource).toContain('Disconnected from agent backend');
     expect(source).not.toContain('Python backend');
   });
 

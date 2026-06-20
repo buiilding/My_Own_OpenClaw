@@ -1,7 +1,7 @@
 ---
 summary: "Electron main SDK websocket relay reference for handshake, typed renderer fan-out, per-connection settings ACK gating, and query send-failure synthesis."
 read_when:
-  - When changing `ipc.cjs` websocket lifecycle, `ipc_agent_connection_events.cjs` handshake identity handling, or reconnection behavior.
+  - When changing `ipc.cjs` websocket lifecycle, `ipc_agent_connection_events.cjs` handshake identity handling, `ipc_agent_backend_close_runtime.cjs` close cleanup, or reconnection behavior.
   - When debugging first-query settings drift, missing backend sends, or inconsistent renderer relay context fields.
 title: "WebSocket Handshake and Settings Sync Reference"
 ---
@@ -13,6 +13,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 - SDK runtime: `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`
 - Electron adapter: `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_agent_connection_events.cjs`
+- `frontend/src/main/ipc/ipc_agent_backend_close_runtime.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
@@ -81,7 +82,7 @@ Open event adaptation lives in `ipc_agent_connection_events.cjs`. On open:
 6. send backend `handshake` message with the desktop host operating-system label (`macOS` / `Windows` / `Linux`)
 7. broadcast `ipc-status` to renderer windows
 
-Close cleanup is still delegated back to `ipc.cjs` because interrupted active-query cleanup currently depends on relay-root session state. On close:
+Close cleanup lives in `ipc_agent_backend_close_runtime.cjs`. On close:
 
 1. mark disconnected
 2. clear pending settings ACK waiters

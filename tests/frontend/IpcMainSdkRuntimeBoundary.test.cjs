@@ -61,6 +61,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_connection_events.cjs'),
       'utf8',
     );
+    const agentBackendCloseRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_backend_close_runtime.cjs'),
+      'utf8',
+    );
     expect(source).toContain('new AgentClient({');
     expect(source).toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
@@ -140,6 +144,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain("event.type === 'open'");
     expect(agentConnectionEventSource).toContain('[Main][Backend] connected user=');
     expect(agentConnectionEventSource).toContain("event.type === 'open'");
+    expect(source).toContain('handleAgentBackendCloseEvent({ closeReason, shouldReconnect }');
+    expect(source).not.toContain('Active query interrupted by backend disconnect');
+    expect(agentBackendCloseRuntimeSource).toContain('Active query interrupted by backend disconnect');
     expect(source).not.toContain(`${retiredProductPrefix} SDK runtime`);
     expect(source).not.toContain(`${retiredProductName('Client')} wakeUp runtime started`);
     expect(source).not.toContain(`Failed to send query through ${retiredProductName('Agent')}`);

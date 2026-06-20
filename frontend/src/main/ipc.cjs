@@ -47,6 +47,9 @@ const {
   handleAgentConnectionEvent,
 } = require('./ipc/ipc_agent_connection_events.cjs');
 const {
+  handleAgentBackendCloseEvent,
+} = require('./ipc/ipc_agent_backend_close_runtime.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -859,47 +862,29 @@ function handleAgentBackendEvent(rendererData) {
 }
 
 function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
-  isConnected = false;
-  activeAgent?.markInferenceContextsStale?.();
-  resetSettingsSyncState();
-  const activePhase = responseOverlayPhaseState.getPhase();
-  const hadInterruptedQuery = Boolean(
-    activeQueryContext
-    && (
-      activePhase === 'awaiting-first-chunk'
-      || activePhase === 'streaming'
-      || activePhase === 'tool-call'
-      || activePhase === 'tool-output'
-    ),
-  );
-  if (hadInterruptedQuery) {
-    const interruptedEvent = buildQueryInterrupted({
-      queryMessageId: activeQueryContext.queryMessageId,
-      conversationRef: activeQueryContext.conversationRef,
-      currentSessionId,
-      currentServerUserId,
-      currentUserId,
-      accepted: activeQueryContext.accepted,
-      copy: ipcHostCopy.queryEvents,
-    });
-    log(
-      `Active query interrupted by backend disconnect `
-      + `(turn_ref=${activeQueryContext.queryMessageId}, `
-      + `accepted=${activeQueryContext.accepted ? 'true' : 'false'}).`,
-    );
-    handleAgentBackendEvent(interruptedEvent);
-    activeQueryContext = null;
-  } else {
-    setResponseOverlayPhase('idle', 'ws-close');
-  }
-  resetBackendSessionState();
-  ipcEventReplayState.clear();
-  if (shouldReconnect) {
-    log('Disconnected from agent backend. Attempting to reconnect...');
-  } else {
-    log(`Disconnected from agent backend (${closeReason || 'idle'}).`);
-  }
-  broadcastConnectionStatus(false);
+  return handleAgentBackendCloseEvent({ closeReason, shouldReconnect }, {
+    setConnected: (value) => {
+      isConnected = value;
+    },
+    markInferenceContextsStale: () => activeAgent?.markInferenceContextsStale?.(),
+    resetSettingsSyncState,
+    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+    getActiveQueryContext: () => activeQueryContext,
+    setActiveQueryContext: (value) => {
+      activeQueryContext = value;
+    },
+    getCurrentSessionId: () => currentSessionId,
+    getCurrentServerUserId: () => currentServerUserId,
+    getCurrentUserId: () => currentUserId,
+    getQueryEventsCopy: () => ipcHostCopy.queryEvents,
+    buildQueryInterrupted,
+    handleAgentBackendEvent,
+    setResponseOverlayPhase,
+    resetBackendSessionState,
+    clearEventReplayState: () => ipcEventReplayState.clear(),
+    log,
+    broadcastConnectionStatus,
+  });
 }
 
 function shutdownIpcForTests() {

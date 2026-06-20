@@ -132,6 +132,10 @@ The SDK `ContextEnrichmentPipeline.ts` then renders model-facing `content` with 
 - on send failure, builds and emits an SDK `turn_error` conversation event
   from `buildQuerySendFailure(...)` context without backend-wire normalization
 - on send failure, clears replay buffer so stale optimistic events are not replayed after reconnect
+- on backend close during active response phases,
+  `ipc_agent_backend_close_runtime.cjs` builds an interrupted SDK-shaped query
+  event from `buildQueryInterrupted(...)`, routes it through the backend-event
+  relay, and clears replay/session state
 
 ## SDK Context Enrichment Internals
 

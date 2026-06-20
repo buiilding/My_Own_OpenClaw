@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Backend Close Runtime Boundary
+
+- Finding: connection open/error/fallback adaptation had moved out of
+  `ipc.cjs`, but backend close cleanup still lived inline in the relay root:
+  it marked inference contexts stale, classified active response phases,
+  synthesized interrupted query events, reset session/replay state, and
+  broadcast disconnected status.
+- Change: added `ipc_agent_backend_close_runtime.cjs` to own Agent SDK backend
+  close cleanup. `ipc.cjs` now injects mutable session/query state, overlay
+  state, replay clearing, query-event builders, and renderer status broadcast.
+- Validation: focused close-runtime coverage for interruptible phase
+  classification, interrupted event synthesis, idle close overlay reset, replay
+  reset, disconnect logging, status broadcast, and a boundary guard that keeps
+  the interruption policy out of `ipc.cjs`.
+- Compatibility: no migration required. SDK close callbacks, reconnect
+  behavior, interrupted query event shape, renderer IPC status snapshots,
+  overlay phase names, replay behavior, storage, credentials, permissions,
+  hosted URLs, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Agent Connection Event Adapter Boundary
 
 - Finding: `AgentClient.wakeUp(...)` and the direct wake-up adapter already
