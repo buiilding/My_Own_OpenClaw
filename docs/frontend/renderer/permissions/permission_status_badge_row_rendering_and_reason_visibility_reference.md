@@ -14,7 +14,7 @@ title: "Permission Status Badge Rendering Reference"
 - `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
 - `frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
-- `frontend/src/renderer/styles/CloneMemoryModels.css`
+- `frontend/src/renderer/styles/DashboardPanelSurfaces.css`
 
 ## Current Presentation Layer
 

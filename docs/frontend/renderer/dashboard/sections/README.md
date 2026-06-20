@@ -18,5 +18,5 @@ title: "Dashboard Sections Docs Hub"
 
 - [Renderer Dashboard Docs Hub](../README.md)
 - [Dashboard Shell Docs Hub](../shell/README.md)
-- [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](../../settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
+- [Settings Section Tabs and Wakeword Toggle Runtime Reference](../../settings/sections/settings_section_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Renderer Config Filter, Storage, and Provider Merge Runtime Reference](../../settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)

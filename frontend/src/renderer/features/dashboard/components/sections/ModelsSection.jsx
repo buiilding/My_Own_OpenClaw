@@ -162,18 +162,18 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
   }, []);
 
   return (
-    <div className="clone-model-panel">
-      <div className="clone-panel-close-row">
+    <div className="dashboard-panel-surface">
+      <div className="dashboard-panel-close-row">
         <button
           type="button"
-          className="clone-panel-close"
+          className="dashboard-panel-close"
           onClick={onClose}
           aria-label="Close models"
         >
           <X size={18} />
         </button>
       </div>
-      <div className="clone-panel-header">
+      <div className="dashboard-panel-header">
         <h1>Models</h1>
         <p>
           {activeProviderView
@@ -182,15 +182,15 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
         </p>
       </div>
 
-      <div className="clone-panel-body clone-model-body">
+      <div className="dashboard-panel-body model-surface-body">
         {modelResetWarning ? (
-          <div className="clone-panel-warning">{modelResetWarning}</div>
+          <div className="dashboard-panel-warning">{modelResetWarning}</div>
         ) : null}
 
         {providerCards.length === 0 ? (
-          <div className="clone-empty-state">No models available for the current mode.</div>
+          <div className="dashboard-empty-state">No models available for the current mode.</div>
         ) : !activeProviderView ? (
-          <div className="clone-model-provider-list">
+          <div className="model-surface-provider-list">
             {providerCards.map((providerCard) => (
               <ProviderCard
                 key={providerCard.provider}
@@ -205,13 +205,13 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
             ))}
           </div>
         ) : modelCards.length === 0 ? (
-          <div className="clone-empty-state">No models available for this provider.</div>
+          <div className="dashboard-empty-state">No models available for this provider.</div>
         ) : (
           <>
-            <div className="clone-model-provider-toolbar">
+            <div className="model-surface-provider-toolbar">
               <button
                 type="button"
-                className="clone-model-provider-back"
+                className="model-surface-provider-back"
                 onClick={() => {
                   setActiveProviderView(null);
                   setHoveredModel(null);
@@ -221,10 +221,10 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
                 <ArrowLeft size={14} />
                 <span>Providers</span>
               </button>
-              <p className="clone-model-provider-meta">{activeProviderView}</p>
+              <p className="model-surface-provider-meta">{activeProviderView}</p>
             </div>
 
-            <div className="clone-model-list">
+            <div className="model-surface-list">
               {modelCards.map((model) => {
                 const isSelected = model.id === selectedModelId && model.provider === selectedProvider;
                 const modelHoverKey = `${model.provider}-${model.id}`;

@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/dashboard: rename the shared memory/models/usage/MCP panel stylesheet
+  and class prefixes to generic dashboard panel surface names, and update the
+  settings docs route away from the retired settings-tabs wording. No migration
+  required.
 - renderer/settings: rename the settings surface stylesheet, class prefix, and
   toggle control to generic renderer UI names so dashboard settings no longer
   carry the legacy clone surface naming. No migration required.
@@ -2707,7 +2711,7 @@ All notable changes to WindieOS will be documented in this file.
   manifest module only exposes the manifest builder consumed by MCP/client setup.
 - frontend/renderer: delete the unimported legacy `PermissionOnboarding.css`
   and `SettingsPanel.css` stylesheets now that onboarding uses
-  `FrontendOnboarding.css` and dashboard settings use clone/dashboard styles.
+  `FrontendOnboarding.css` and dashboard settings use dashboard panel styles.
 - frontend/renderer: delete the unused `ArtifactUploader` renderer upload
   module, remove its orphan screenshot debug helper, and keep artifact URL
   coverage on `BackendEndpointStore`.
@@ -2738,7 +2742,7 @@ All notable changes to WindieOS will be documented in this file.
   websocket handshake path and route removed post-handshake schema-sync queries
   to the SDK agent definition contract.
 - docs/frontend: align dashboard shell/style references with the current
-  `DashboardShell.css`, `CloneMemoryModels.css`, `SettingsSurface.css`, and
+  `DashboardShell.css`, `DashboardPanelSurfaces.css`, `SettingsSurface.css`, and
   `FrontendOnboarding.css` ownership after stale renderer styles were removed.
 - docs/sdk: route SDK websocket typing and removed `ws.d.ts` ambient
   declaration queries to the WindieClient runtime contract.
@@ -6467,7 +6471,7 @@ Includes the last 300 commits on `main`.
 - refactor(backend-session-state): split `ConversationHistory` message-construction and message-type normalization helpers into `backend/src/agent/session/message_builders.py`, reducing `state.py` below 500 LOC while preserving behavior.
 - test(backend-image-dimensions): add parser edge-case coverage for invalid PNG/JPEG payloads (short/non-IHDR PNG headers, invalid JPEG segment lengths, and SOS-before-SOF streams).
 - test(backend-model-config): add invariant coverage for online/thinking model catalogs and schema-field helpers (subset/uniqueness/default-field semantics).
-- refactor(frontend-styles): dedupe `CloneMemoryModels.css` icon style blocks for provider/model cards via shared selectors; preserves visuals while reducing clone noise.
+- refactor(frontend-styles): dedupe `DashboardPanelSurfaces.css` icon style blocks for provider/model cards via shared selectors; preserves visuals while reducing clone noise.
 - refactor(backend-formatters): simplify formatter spec registration imports by routing through `backend.src.api.processing.formatters` module aliases instead of per-formatter class imports; preserves dispatch mapping and reduces duplication.
 - refactor(sidecar-remote-clients): extract shared backend HTTP session/request/error handling into `RemoteApiClientBase`; rewire semantic/title clients to use the shared path without changing payload/exception contracts.
 - refactor(frontend-main-sudo-auth): dedupe `agent_sudo_access_handler` process execution by introducing a shared command-output runner for `pkexec`/`sudo -n` flows; preserve error/cancel semantics and add startup-error regression coverage.

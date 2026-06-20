@@ -61,7 +61,7 @@ title: "Frontend Renderer Docs Hub"
 - [Latest Visible Assistant Reply Turn-Boundary and Allowed-Type Contract Reference](chat/presentation/latest_visible_assistant_reply_turn_boundary_and_allowed_type_contract_reference.md)
 - [Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Report Contract Reference](chat/presentation/response_overlay/fixed_response_pill_height_scroll_and_visibility_rereport_contract_reference.md)
 - [Tool Ghost Cursor Markup and Label A11y Contract Reference](chat/presentation/response_overlay/tool_ghost_cursor_markup_and_label_a11y_contract_reference.md)
-- [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
+- [Settings Section Tabs and Wakeword Toggle Runtime Reference](settings/sections/settings_section_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Model Settings Change Workflow](settings/model_settings_change_workflow.md)
 - [Renderer Config Filter, Storage, and Provider Merge Runtime Reference](settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
 - [Transcript Session and Rehydrate Reference](transcript_session_and_rehydrate_reference.md)

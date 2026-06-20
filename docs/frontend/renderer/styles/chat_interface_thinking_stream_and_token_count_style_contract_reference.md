@@ -81,7 +81,7 @@ Composer structure:
 - top text row: `.message-input-top-row` + multiline `.message-input`
 - bottom action row: `.message-input-bottom-row` with utility + send/stop controls
 - dropdown menus use `.message-dropdown-menu` classes
-- non-empty width constrained to clone-like max width; empty-state composer is centered variant
+- non-empty width constrained to the dashboard chat max width; empty-state composer is centered variant
 
 ## Thinking Stream Overflow Contract (`ThinkingDisplay.css` + component)
 

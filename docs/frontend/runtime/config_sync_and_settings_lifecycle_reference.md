@@ -249,5 +249,5 @@ If settings revert unexpectedly:
 - `docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md`
 - `docs/frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md`
 - `docs/frontend/renderer/settings/README.md`
-- `docs/frontend/renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md`
+- `docs/frontend/renderer/settings/sections/settings_section_tabs_and_wakeword_toggle_runtime_reference.md`
 - `docs/frontend/renderer/settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md`

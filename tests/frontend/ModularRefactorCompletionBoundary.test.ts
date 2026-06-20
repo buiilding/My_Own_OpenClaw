@@ -460,7 +460,7 @@ describe('modular sdk refactor completion boundary', () => {
     const source = (
       await Promise.all([
         read(
-          'docs/frontend/renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md',
+          'docs/frontend/renderer/settings/sections/settings_section_tabs_and_wakeword_toggle_runtime_reference.md',
         ),
         read('docs/frontend/renderer/settings/settings_surface_change_workflow.md'),
       ])
@@ -1325,7 +1325,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/renderer/settings/README.md',
       'docs/frontend/renderer/settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md',
       'docs/frontend/renderer/settings/model_settings_change_workflow.md',
-      'docs/frontend/renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md',
+      'docs/frontend/renderer/settings/sections/settings_section_tabs_and_wakeword_toggle_runtime_reference.md',
       'docs/frontend/renderer/app_startup_vm_mode_and_permission_onboarding_runtime_reference.md',
       'docs/planning/windieos_self_edit_config_plan.md',
       'docs/planning/windieos_cli_os_control_plan.md',

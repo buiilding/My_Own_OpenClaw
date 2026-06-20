@@ -1166,7 +1166,7 @@ describe('windie docs index', () => {
       'global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md',
     );
 
-    expect(findDocs('DashboardShell css CloneMemoryModels DesktopOnboarding')[0].path).toBe(
+    expect(findDocs('DashboardShell css DashboardPanelSurfaces DesktopOnboarding')[0].path).toBe(
       expectedPath,
     );
     expect(findDocs('ChatGptDashboardShell css removed')[0].path).toBe(expectedPath);

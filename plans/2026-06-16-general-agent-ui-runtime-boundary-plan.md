@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Renderer Dashboard Panel Surface Naming Boundary
+
+- Finding: the root renderer dashboard panel stylesheet and shared class tokens
+  still used legacy clone names for memory, model, usage, and MCP panels, and
+  the settings docs route still used clone-tabs wording after the settings
+  surface itself moved to generic names.
+- Change: renamed `CloneMemoryModels.css` to `DashboardPanelSurfaces.css`,
+  moved shared scaffold classes to `dashboard-panel-*`, memory details to
+  `memory-surface-*`, model/provider details to `model-surface-*`, and renamed
+  the settings section reference route to
+  `settings_section_tabs_and_wakeword_toggle_runtime_reference.md`.
+- Validation: focused renderer skin/config and docs-index tests guard the new
+  dashboard panel stylesheet, class prefixes, and docs route while keeping the
+  retired clone panel stylesheet and class tokens out of renderer source.
+- Compatibility: no migration required. Dashboard memory, model, usage, MCP,
+  API-key, and settings behavior, CSS load order, renderer routing, IPC
+  channels, storage keys, credentials, permissions, provider policy, hosted
+  URLs, and local execution behavior are unchanged.
+
 ### 2026-06-20 Renderer Settings Surface Naming Boundary
 
 - Finding: dashboard settings presentation still used the legacy

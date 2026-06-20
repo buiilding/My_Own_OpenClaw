@@ -171,7 +171,7 @@ Settings section:
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/*`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
-- [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](../settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
+- [Settings Section Tabs and Wakeword Toggle Runtime Reference](../settings/sections/settings_section_tabs_and_wakeword_toggle_runtime_reference.md)
 
 Usage section:
 

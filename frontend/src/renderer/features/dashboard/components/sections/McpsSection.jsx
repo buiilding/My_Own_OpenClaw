@@ -62,22 +62,22 @@ function McpsSection({ onClose = () => {} }) {
   }, []);
 
   return (
-    <div className="clone-model-panel">
-      <div className="clone-panel-close-row">
+    <div className="dashboard-panel-surface">
+      <div className="dashboard-panel-close-row">
         <button
           type="button"
-          className="clone-panel-close"
+          className="dashboard-panel-close"
           onClick={onClose}
           aria-label="Close MCPs"
         >
           <X size={18} />
         </button>
       </div>
-      <div className="clone-panel-header">
+      <div className="dashboard-panel-header">
         <h1>MCPs</h1>
         <p>Manage local protocol integrations.</p>
       </div>
-      <div className="clone-panel-body">
+      <div className="dashboard-panel-body">
         <div className="settings-surface-row settings-surface-row-rich settings-surface-row-action">
           <div>
             <span>Servers</span>
@@ -100,9 +100,9 @@ function McpsSection({ onClose = () => {} }) {
         ) : null}
 
         {isLoading ? (
-          <div className="clone-empty-state">Loading MCP servers...</div>
+          <div className="dashboard-empty-state">Loading MCP servers...</div>
         ) : registry.mcps.length === 0 ? (
-          <div className="clone-empty-state">No MCP servers configured.</div>
+          <div className="dashboard-empty-state">No MCP servers configured.</div>
         ) : (
           <div className="settings-surface-layer-list">
             {registry.mcps.map((server) => {

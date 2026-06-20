@@ -120,24 +120,24 @@ function MemorySection({ onClose = () => {} }) {
   }, []);
 
   return (
-    <div className="clone-memory-panel">
-      <div className="clone-panel-close-row">
+    <div className="memory-surface-panel">
+      <div className="dashboard-panel-close-row">
         <button
           type="button"
-          className="clone-panel-close"
+          className="dashboard-panel-close"
           onClick={onClose}
           aria-label={memoryPanelSkin.closeLabel}
         >
           <X size={18} />
         </button>
       </div>
-      <div className="clone-panel-header">
+      <div className="dashboard-panel-header">
         <h1>{memoryPanelSkin.title}</h1>
         <p>{memoryPanelSkin.subtitle}</p>
       </div>
 
-      <div className="clone-panel-body">
-        <div className="clone-memory-type-row">
+      <div className="dashboard-panel-body">
+        <div className="memory-surface-type-row">
           {MEMORY_TYPES.map((type) => {
             const Icon = type.icon;
             const isActive = activeType === type.id;
@@ -147,7 +147,7 @@ function MemorySection({ onClose = () => {} }) {
               <button
                 key={type.id}
                 type="button"
-                className={`clone-memory-type-btn${isActive ? ' active' : ''}`}
+                className={`memory-surface-type-btn${isActive ? ' active' : ''}`}
                 onClick={() => {
                   setActiveType(type.id);
                   setExpandedItemId(null);
@@ -155,22 +155,22 @@ function MemorySection({ onClose = () => {} }) {
               >
                 <Icon size={14} />
                 <span>{type.label}</span>
-                <span className="clone-memory-type-count">{count}</span>
+                <span className="memory-surface-type-count">{count}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="clone-memory-retrieval-row">
-          <div className="clone-memory-retrieval-copy">
-            <p className="clone-memory-retrieval-title">
+        <div className="memory-surface-retrieval-row">
+          <div className="memory-surface-retrieval-copy">
+            <p className="memory-surface-retrieval-title">
               {memoryRetrievalEnabled
                 ? memoryPanelSkin.retrievalStateLabel.enabled
                 : memoryPanelSkin.retrievalStateLabel.disabled}
             </p>
           </div>
           <label
-            className={`clone-memory-retrieval-toggle${memoryRetrievalEnabled ? ' checked' : ''}`.trim()}
+            className={`memory-surface-retrieval-toggle${memoryRetrievalEnabled ? ' checked' : ''}`.trim()}
           >
             <input
               type="checkbox"
@@ -178,15 +178,15 @@ function MemorySection({ onClose = () => {} }) {
               checked={memoryRetrievalEnabled}
               onChange={handleMemoryRetrievalToggle}
             />
-            <span className="clone-memory-retrieval-toggle-thumb" />
+            <span className="memory-surface-retrieval-toggle-thumb" />
           </label>
         </div>
 
-        <div className="clone-memory-toolbar">
+        <div className="memory-surface-toolbar">
           <p>{activeTypeInfo.description}</p>
 
-          <div className="clone-memory-toolbar-actions">
-            <div className="clone-memory-search">
+          <div className="memory-surface-toolbar-actions">
+            <div className="memory-surface-search">
               <Search size={14} />
               <input
                 value={searchQuery}
@@ -202,13 +202,13 @@ function MemorySection({ onClose = () => {} }) {
           </div>
         </div>
 
-        <div className="clone-memory-list">
+        <div className="memory-surface-list">
           {isLoading ? (
-            <div className="clone-empty-state">{memoryPanelSkin.loadingLabel}</div>
+            <div className="dashboard-empty-state">{memoryPanelSkin.loadingLabel}</div>
           ) : loadError ? (
-            <div className="clone-empty-state error">{loadError}</div>
+            <div className="dashboard-empty-state error">{loadError}</div>
           ) : filteredMemories.length === 0 ? (
-            <div className="clone-empty-state">
+            <div className="dashboard-empty-state">
               <div className="icon-wrap">
                 <MessageSquare size={18} />
               </div>

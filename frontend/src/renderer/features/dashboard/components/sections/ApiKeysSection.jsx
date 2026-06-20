@@ -30,10 +30,10 @@ function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
   };
 
   return (
-    <section className="clone-model-api-keys" data-testid="models-api-keys-section">
+    <section className="model-surface-api-keys" data-testid="models-api-keys-section">
       <button
         type="button"
-        className="clone-model-api-keys-toggle"
+        className="model-surface-api-keys-toggle"
         onClick={() => setExpanded((current) => !current)}
         aria-expanded={expanded}
         aria-controls="models-api-keys-content"
@@ -43,18 +43,18 @@ function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
       </button>
 
       {expanded ? (
-        <div id="models-api-keys-content" className="clone-model-api-keys-content">
+        <div id="models-api-keys-content" className="model-surface-api-keys-content">
           {PROVIDER_API_KEY_SPECS.map((provider) => {
             const value = normalizedProviderApiKeys[provider.id] || { enabled: false, api_key: '' };
             return (
-              <div key={provider.id} className="clone-model-api-provider-row">
-                <div className="clone-model-api-provider-head">
-                  <div className="clone-model-api-provider-title-wrap">
+              <div key={provider.id} className="model-surface-api-provider-row">
+                <div className="model-surface-api-provider-head">
+                  <div className="model-surface-api-provider-title-wrap">
                     <h3>{provider.title}</h3>
                     <p>{provider.description}</p>
                   </div>
 
-                  <label className={`clone-model-api-toggle${value.enabled ? ' checked' : ''}`.trim()}>
+                  <label className={`model-surface-api-toggle${value.enabled ? ' checked' : ''}`.trim()}>
                     <input
                       type="checkbox"
                       checked={value.enabled}
@@ -63,13 +63,13 @@ function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
                         updateProviderApiKeys(provider.id, { enabled: event.target.checked });
                       }}
                     />
-                    <span className="clone-model-api-toggle-thumb" />
+                    <span className="model-surface-api-toggle-thumb" />
                   </label>
                 </div>
 
                 <input
                   type="password"
-                  className="clone-model-api-input"
+                  className="model-surface-api-input"
                   value={value.api_key}
                   onChange={(event) => {
                     updateProviderApiKeys(provider.id, { api_key: event.target.value });

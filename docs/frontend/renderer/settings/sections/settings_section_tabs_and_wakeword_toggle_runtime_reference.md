@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for current clone-style SettingsSection runtime: general/memory tab routing, wakeword/STT controls, tool-log visibility, and local destructive reset actions."
+summary: "Deep reference for current settings-surface runtime: general/memory tab routing, wakeword/STT controls, tool-log visibility, and local destructive reset actions."
 read_when:
   - When changing `SettingsSection.jsx` tab layout, initial-tab behavior, or close controls.
   - When debugging wakeword/wakeword-STT settings payloads, retired agent-sudo settings references, or settings tab routing.
@@ -21,7 +21,7 @@ title: "Settings Section General + Memory Tabs Runtime Reference"
 
 ## Panel and Tab Surface
 
-`SettingsSection` is a clone-style two-column panel:
+`SettingsSection` is a settings-surface two-column panel:
 
 - left sidebar tab list
 - right content pane

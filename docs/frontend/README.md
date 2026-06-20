@@ -115,7 +115,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [MessageInput Clipboard Image and Voice Submit Reference](renderer/chat/presentation/message_input_clipboard_image_and_voice_submit_reference.md)
 - [Data-URL Image Parsing and Attachment Payload Contract Reference](renderer/chat/presentation/data_url_image_parsing_and_attachment_payload_contract_reference.md)
 - [Thinking Display Overflow, Message List Class Assembly, and Token Count Formatting Reference](renderer/chat/presentation/thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
-- [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
+- [Settings Section Tabs and Wakeword Toggle Runtime Reference](renderer/settings/sections/settings_section_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Frontend Model Settings Change Workflow](renderer/settings/model_settings_change_workflow.md)
 - [Permission Onboarding Gate and Manifest Version Runtime Reference](renderer/permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Permission Store Action Liveness and Active Consumer Map Reference](renderer/permissions/permission_store_action_liveness_and_active_consumer_map_reference.md)

@@ -19,7 +19,7 @@ import '../styles/theme.css';
 import './skin/desktopRuntimeSkin.css';
 import '../styles/ChatInterface.css';
 import '../styles/DashboardShell.css';
-import '../styles/CloneMemoryModels.css';
+import '../styles/DashboardPanelSurfaces.css';
 import '../styles/DesktopOnboarding.css';
 import '../styles/accessibility.css';
 

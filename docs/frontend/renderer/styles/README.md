@@ -28,7 +28,7 @@ title: "Frontend Renderer Styles Docs Hub"
 - `frontend/src/renderer/styles/ChatBoxResponseOverlay.css`
 - `frontend/src/renderer/styles/DashboardShell.css`
 - `frontend/src/renderer/styles/ChatInterface.css`
-- `frontend/src/renderer/styles/CloneMemoryModels.css`
+- `frontend/src/renderer/styles/DashboardPanelSurfaces.css`
 - `frontend/src/renderer/styles/SettingsSurface.css`
 - `frontend/src/renderer/styles/ErrorBoundary.css`
 - `frontend/src/renderer/styles/DesktopOnboarding.css`

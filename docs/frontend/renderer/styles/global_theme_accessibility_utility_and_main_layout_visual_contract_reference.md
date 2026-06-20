@@ -15,7 +15,7 @@ This page documents:
 - `frontend/src/renderer/styles/accessibility.css`
 - `frontend/src/renderer/styles/ChatInterface.css`
 - `frontend/src/renderer/styles/DashboardShell.css`
-- `frontend/src/renderer/styles/CloneMemoryModels.css`
+- `frontend/src/renderer/styles/DashboardPanelSurfaces.css`
 - `frontend/src/renderer/styles/SettingsSurface.css`
 - `frontend/src/renderer/styles/DesktopOnboarding.css`
 - `frontend/src/renderer/app/App.jsx`
@@ -96,13 +96,13 @@ Responsive behavior:
 ## Import/Load Contract (`App.jsx`)
 
 `App.jsx` imports `theme.css`, `ChatInterface.css`, `DashboardShell.css`,
-`CloneMemoryModels.css`, `DesktopOnboarding.css`, and `accessibility.css` at root.
+`DashboardPanelSurfaces.css`, `DesktopOnboarding.css`, and `accessibility.css` at root.
 
-`CloneMemoryModels.css` owns clone-style modal panel visuals for:
+`DashboardPanelSurfaces.css` owns shared dashboard panel visuals for:
 
 - `MemorySection` (episodic/semantic/procedural tabs and memory cards)
 - `ModelsSection` (hover-expanding model cards)
-- `UsageSection` placeholder panels that reuse the clone/dashboard panel visual language
+- `UsageSection` placeholder panels that reuse the dashboard panel visual language
 
 `SettingsSurface.css` is section-scoped through `SettingsSection.jsx`, not a root
 `App.jsx` import. It owns settings tab and control visuals while the dashboard

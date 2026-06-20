@@ -1,5 +1,5 @@
 ---
-summary: "Renderer settings sections docs sub-hub for current clone-style settings panel routing and general-tab control ownership."
+summary: "Renderer settings sections docs sub-hub for current settings-surface panel routing and general-tab control ownership."
 read_when:
   - When changing `SettingsSection.jsx` tab structure, close behavior, or general-tab controls.
   - When debugging which settings controls write AppConfig patches versus local-only UI state and shared permission store actions.
@@ -11,7 +11,7 @@ title: "Renderer Settings Sections Docs Hub"
 ## Deep Pages
 
 - [Settings Surface Change Workflow](../settings_surface_change_workflow.md)
-- [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
+- [Settings Section Tabs and Wakeword Toggle Runtime Reference](settings_section_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Permission Onboarding Gate and Manifest Version Runtime Reference](../../permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 
 ## Related Pages

@@ -17,34 +17,34 @@ function MemoryItem({
   onDelete,
 }) {
   return (
-    <div className="clone-memory-item">
+    <div className="memory-surface-item">
       <div
-        className="clone-memory-item-header"
+        className="memory-surface-item-header"
         onClick={() => {
           onToggleExpand();
         }}
       >
-        <button type="button" className="clone-memory-expand-btn" aria-label={expanded ? 'Collapse' : 'Expand'}>
+        <button type="button" className="memory-surface-expand-btn" aria-label={expanded ? 'Collapse' : 'Expand'}>
           {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </button>
 
-        <div className="clone-memory-item-main">
-          <div className="clone-memory-item-title-row">
-            <h4 className="clone-memory-item-title">{memory.title}</h4>
+        <div className="memory-surface-item-main">
+          <div className="memory-surface-item-title-row">
+            <h4 className="memory-surface-item-title">{memory.title}</h4>
           </div>
 
-          <div className="clone-memory-item-meta-row">
+          <div className="memory-surface-item-meta-row">
             {type === 'episodic' ? (
               <>
                 <span>{memory.date}</span>
-                <span className="clone-memory-separator">·</span>
+                <span className="memory-surface-separator">·</span>
                 <span>{memory.tokens} tokens</span>
               </>
             ) : null}
 
             {type === 'semantic' ? (
               <>
-                <span className={`clone-memory-confidence ${memory.confidence === 'High' ? 'high' : 'medium'}`}>
+                <span className={`memory-surface-confidence ${memory.confidence === 'High' ? 'high' : 'medium'}`}>
                   {memory.confidence}
                 </span>
                 <span>{memory.source}</span>
@@ -57,8 +57,8 @@ function MemoryItem({
           </div>
         </div>
 
-        <div className="clone-memory-item-actions">
-          <button type="button" className="clone-memory-action-btn delete" onClick={(event) => {
+        <div className="memory-surface-item-actions">
+          <button type="button" className="memory-surface-action-btn delete" onClick={(event) => {
             event.stopPropagation();
             onDelete();
           }} aria-label="Delete">
@@ -68,8 +68,8 @@ function MemoryItem({
       </div>
 
       {expanded ? (
-        <div className="clone-memory-item-body">
-          <p className="clone-memory-item-detail">{memory.detail}</p>
+        <div className="memory-surface-item-body">
+          <p className="memory-surface-item-detail">{memory.detail}</p>
         </div>
       ) : null}
     </div>

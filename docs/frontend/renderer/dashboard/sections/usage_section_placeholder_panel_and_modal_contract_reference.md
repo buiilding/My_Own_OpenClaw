@@ -13,7 +13,7 @@ title: "Usage Section Placeholder Panel and Modal Contract Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
-- `frontend/src/renderer/styles/CloneMemoryModels.css`
+- `frontend/src/renderer/styles/DashboardPanelSurfaces.css`
 - `tests/frontend/DashboardShell.test.jsx`
 
 ## Surface Ownership Contract
@@ -38,10 +38,10 @@ Expected invariant:
 
 `UsageSection` renders the same panel scaffold classes used by model-style sections:
 
-- root: `clone-model-panel`
-- header wrapper: `clone-panel-header`
-- body wrapper: `clone-panel-body`
-- placeholder body text: `clone-empty-state`
+- root: `dashboard-panel-surface`
+- header wrapper: `dashboard-panel-header`
+- body wrapper: `dashboard-panel-body`
+- placeholder body text: `dashboard-empty-state`
 
 Rendered copy today:
 
@@ -49,7 +49,7 @@ Rendered copy today:
 - subtitle: `Track usage activity and limits.`
 - empty state: `Usage insights will appear here.`
 
-Because classes are shared, style changes in `CloneMemoryModels.css` can alter usage panel appearance without touching `UsageSection.jsx`.
+Because classes are shared, style changes in `DashboardPanelSurfaces.css` can alter usage panel appearance without touching `UsageSection.jsx`.
 
 ## Test-Backed Behavior
 
@@ -74,7 +74,7 @@ When replacing placeholder content with real usage telemetry:
 ## Drift Hotspots
 
 1. Adding internal section fetches without documenting ownership can duplicate shell-level state and regress modal close behavior.
-2. Replacing shared classes without checking `CloneMemoryModels.css` can unintentionally diverge panel styling from models/memory surfaces.
+2. Replacing shared classes without checking `DashboardPanelSurfaces.css` can unintentionally diverge panel styling from models/memory surfaces.
 3. Removing `usageOpen` from shell exclusivity flow can leave stacked modals open.
 
 ## Related Pages

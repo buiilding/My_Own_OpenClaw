@@ -16,28 +16,28 @@ export function ProviderCard({ provider, count, isSelected, onSelect }) {
   return (
     <button
       type="button"
-      className={`clone-model-provider-card${isSelected ? ' selected' : ''}`}
+      className={`model-surface-provider-card${isSelected ? ' selected' : ''}`}
       onClick={() => onSelect(provider)}
       aria-label={`Show ${provider} models`}
     >
-      <div className="clone-model-provider-card-head">
-        <div className="clone-model-provider-id-wrap">
-          <div className={`clone-model-provider-icon-wrap${isSelected ? ' selected' : ''}`}>
+      <div className="model-surface-provider-card-head">
+        <div className="model-surface-provider-id-wrap">
+          <div className={`model-surface-provider-icon-wrap${isSelected ? ' selected' : ''}`}>
             <Layers size={16} />
           </div>
-          <div className="clone-model-provider-title-wrap">
+          <div className="model-surface-provider-title-wrap">
             <h3>{provider}</h3>
             <p>{count} model{count === 1 ? '' : 's'}</p>
           </div>
         </div>
 
-        <div className="clone-model-provider-state-wrap">
+        <div className="model-surface-provider-state-wrap">
           {isSelected ? (
-            <div className="clone-model-selected-dot">
+            <div className="model-surface-selected-dot">
               <Check size={12} />
             </div>
           ) : null}
-          <ChevronRight size={16} className="clone-model-chevron hovered" />
+          <ChevronRight size={16} className="model-surface-chevron hovered" />
         </div>
       </div>
     </button>
@@ -55,21 +55,21 @@ export function ModelCard({ model, isSelected, isHovered, onSelect, onHover }) {
   return (
     <button
       type="button"
-      className={`clone-model-card${isSelected ? ' selected' : ''}${isHovered ? ' hovered' : ''}`}
+      className={`model-surface-card${isSelected ? ' selected' : ''}${isHovered ? ' hovered' : ''}`}
       onMouseEnter={() => onHover(model.id)}
       onMouseLeave={() => onHover(null)}
       onClick={() => onSelect(model)}
     >
-      <div className="clone-model-card-head">
-        <div className="clone-model-id-wrap">
-          <div className={`clone-model-icon-wrap${isSelected ? ' selected' : ''}`}>
+      <div className="model-surface-card-head">
+        <div className="model-surface-id-wrap">
+          <div className={`model-surface-icon-wrap${isSelected ? ' selected' : ''}`}>
             <Zap size={16} />
           </div>
-          <div className="clone-model-title-wrap">
-            <div className="clone-model-title-row">
+          <div className="model-surface-title-wrap">
+            <div className="model-surface-title-row">
               <h3>{model.displayName || model.id}</h3>
               {model.badge ? (
-                <span className={`clone-model-badge${model.badge === 'Recommended' ? ' recommended' : ''}`}>
+                <span className={`model-surface-badge${model.badge === 'Recommended' ? ' recommended' : ''}`}>
                   {model.badge}
                 </span>
               ) : null}
@@ -78,36 +78,36 @@ export function ModelCard({ model, isSelected, isHovered, onSelect, onHover }) {
           </div>
         </div>
 
-        <div className="clone-model-state-wrap">
+        <div className="model-surface-state-wrap">
           {isSelected ? (
-            <div className="clone-model-selected-dot">
+            <div className="model-surface-selected-dot">
               <Check size={12} />
             </div>
           ) : null}
-          <ChevronRight size={16} className={`clone-model-chevron${isHovered ? ' hovered' : ''}`} />
+          <ChevronRight size={16} className={`model-surface-chevron${isHovered ? ' hovered' : ''}`} />
         </div>
       </div>
 
-      <div className={`clone-model-details${isHovered ? ' expanded' : ''}`} aria-hidden={!isHovered}>
-        <div className="clone-model-details-inner">
-          <div className="clone-model-details-content">
-            <p className="clone-model-description">{model.description}</p>
-            <div className="clone-model-metrics-row">
-              <div className="clone-model-metric">
+      <div className={`model-surface-details${isHovered ? ' expanded' : ''}`} aria-hidden={!isHovered}>
+        <div className="model-surface-details-inner">
+          <div className="model-surface-details-content">
+            <p className="model-surface-description">{model.description}</p>
+            <div className="model-surface-metrics-row">
+              <div className="model-surface-metric">
                 <DollarSign size={14} />
                 <div>
                   <span>Input</span>
                   <strong>{model.inputPrice}</strong>
                 </div>
               </div>
-              <div className="clone-model-metric">
+              <div className="model-surface-metric">
                 <DollarSign size={14} />
                 <div>
                   <span>Output</span>
                   <strong>{model.outputPrice}</strong>
                 </div>
               </div>
-              <div className="clone-model-metric">
+              <div className="model-surface-metric">
                 <Clock size={14} />
                 <div>
                   <span>Latency</span>
@@ -116,7 +116,7 @@ export function ModelCard({ model, isSelected, isHovered, onSelect, onHover }) {
               </div>
             </div>
 
-            <div className="clone-model-strengths">
+            <div className="model-surface-strengths">
               {model.strengths.map((strength) => (
                 <span key={`${model.id}-${strength}`}>{strength}</span>
               ))}

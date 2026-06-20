@@ -13,6 +13,7 @@ const skinConfigFacadePath = path.join(rendererRoot, 'app/skin/desktopRuntimeCon
 const skinCssFacadePath = path.join(rendererRoot, 'app/skin/desktopRuntimeSkin.css');
 const skinCssPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.css');
 const dashboardShellCssPath = path.join(rendererRoot, 'styles/DashboardShell.css');
+const dashboardPanelSurfacesCssPath = path.join(rendererRoot, 'styles/DashboardPanelSurfaces.css');
 const settingsSurfaceCssPath = path.join(rendererRoot, 'styles/SettingsSurface.css');
 const modelSelectionDefaultsPath = path.join(rendererRoot, 'app/skin/modelSelectionDefaults.js');
 const providerCredentialSettingsPath = path.join(rendererRoot, 'app/skin/providerCredentialSettings.js');
@@ -38,6 +39,13 @@ const retiredDesktopAgentClassName = (suffix) => `Desktop${'Agent'}${suffix}`;
 const retiredSettingsCssFile = `Clone${'Settings'}.css`;
 const retiredSettingsClassPrefix = `clone-${'settings'}`;
 const retiredSettingsToggleName = `Clone${'Toggle'}`;
+const retiredDashboardPanelsCssFile = `Clone${'Memory'}Models.css`;
+const retiredDashboardPanelClassTokens = [
+  `clone-${'memory'}`,
+  `clone-${'model'}`,
+  `clone-${'panel'}`,
+  `clone-${'empty'}`,
+];
 
 describe('renderer skin/config boundary', () => {
   test('WindieOS product strings for settings live in the renderer skin', () => {
@@ -116,6 +124,33 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain(retiredSettingsCssFile);
       expect(source).not.toContain(retiredSettingsClassPrefix);
       expect(source).not.toContain(retiredSettingsToggleName);
+    }
+  });
+
+  test('dashboard panel source uses generic renderer UI naming', () => {
+    const sourcePaths = [
+      dashboardPanelSurfacesCssPath,
+      appPath,
+      path.join(dashboardSectionsRoot, 'MemorySection.jsx'),
+      path.join(dashboardSectionsRoot, 'MemoryItem.jsx'),
+      path.join(dashboardSectionsRoot, 'ModelsSection.jsx'),
+      path.join(dashboardSectionsRoot, 'UsageSection.jsx'),
+      path.join(dashboardSectionsRoot, 'McpsSection.jsx'),
+      path.join(dashboardSectionsRoot, 'ApiKeysSection.jsx'),
+      path.join(dashboardSectionsRoot, 'modelCards.jsx'),
+    ];
+    const sources = sourcePaths.map((sourcePath) => fs.readFileSync(sourcePath, 'utf8'));
+
+    expect(fs.existsSync(dashboardPanelSurfacesCssPath)).toBe(true);
+    expect(fs.existsSync(path.join(rendererRoot, 'styles', retiredDashboardPanelsCssFile))).toBe(false);
+    expect(sources.join('\n')).toContain('dashboard-panel');
+    expect(sources.join('\n')).toContain('memory-surface');
+    expect(sources.join('\n')).toContain('model-surface');
+    for (const source of sources) {
+      expect(source).not.toContain(retiredDashboardPanelsCssFile);
+      for (const retiredToken of retiredDashboardPanelClassTokens) {
+        expect(source).not.toContain(retiredToken);
+      }
     }
   });
 
