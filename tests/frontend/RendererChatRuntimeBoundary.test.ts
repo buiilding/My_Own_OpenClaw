@@ -2227,6 +2227,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('desktopChatMessageTypes');
     expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
     expect(chatStoreSource).not.toContain('export interface ChatMessage');
+    expect(chatStoreSource).not.toContain('SdkCurrentTurnProjection');
     await expect(fs.stat(sourceChannelPath)).rejects.toThrow();
   });
 });

@@ -5746,3 +5746,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   use `ManagedAgentSession` / `createManagedAgentSession`. No storage, websocket
   payload, IPC, credential, permission, provider-policy, renderer, or
   local-runtime migration is required.
+- Renderer chat store current-turn state now uses the runtime
+  `CurrentTurnProjection` contract directly instead of a store-local
+  `SdkCurrentTurnProjection` alias. The state shape, SDK projection payloads,
+  IPC channels, persisted transcript data, credentials, permissions, hosted
+  backend URLs, provider policy, and local-runtime behavior are unchanged.

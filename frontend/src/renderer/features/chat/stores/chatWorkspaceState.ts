@@ -2,10 +2,10 @@
  * Provides the chat workspace state module for the renderer UI.
  */
 
+import type { CurrentTurnProjection } from '../../../app/runtime/desktopConversationRuntimeContracts';
 import type {
   ChatMessage,
   PendingTurn,
-  SdkCurrentTurnProjection,
   StreamTracking,
   TokenCounts,
 } from './chatStore';
@@ -34,7 +34,7 @@ export interface ChatWorkspaceState {
   } | null;
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
-  currentTurnProjection: SdkCurrentTurnProjection | null;
+  currentTurnProjection: CurrentTurnProjection | null;
   pendingTurn: PendingTurn | null;
 }
 
@@ -48,7 +48,7 @@ interface ChatWorkspaceStoreSnapshot {
   compactionDebugInfo?: ChatWorkspaceState['compactionDebugInfo'];
   tokenCounts?: TokenCounts | null;
   streamTracking?: StreamTracking;
-  currentTurnProjection?: SdkCurrentTurnProjection | null;
+  currentTurnProjection?: CurrentTurnProjection | null;
   pendingTurn?: PendingTurn | null;
 }
 

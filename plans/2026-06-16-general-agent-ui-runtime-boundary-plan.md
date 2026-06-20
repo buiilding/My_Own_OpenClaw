@@ -15849,3 +15849,18 @@ Each completed slice should report:
   provider-policy, renderer, or local-runtime migration required. Package-root
   SDK callers should use `ManagedAgentSession` or `createManagedAgentSession`;
   direct internal-module tests remain on the lower-level implementation.
+
+### 2026-06-20 Renderer current-turn store type alias cleanup
+
+- Finding: `chatStore.ts` exported `SdkCurrentTurnProjection` as a direct alias
+  for the renderer runtime `CurrentTurnProjection` contract, and
+  `chatWorkspaceState.ts` imported that alias back from the store despite the
+  runtime facade already owning the projection type.
+- Change: removed the store-local SDK-named alias, typed chat store/workspace
+  current-turn fields directly as `CurrentTurnProjection`, and added a renderer
+  boundary guard so the alias does not return.
+- Validation: focused chat-store and renderer runtime boundary Jest coverage,
+  docs listing, exact stale-alias scan, and diff checks.
+- Compatibility: no migration required. Runtime projections, store state shape,
+  IPC payloads, persisted transcript data, credentials, permissions, hosted
+  backend URLs, provider policy, and local-runtime behavior are unchanged.

@@ -59,8 +59,6 @@ export interface StreamTracking {
   lastError: string | null;
 }
 
-export type SdkCurrentTurnProjection = CurrentTurnProjection;
-
 export interface PendingTurn {
   conversationRef: string;
   turnRef: string;
@@ -110,9 +108,9 @@ interface ChatState {
   compactionDebugInfo: ChatWorkspaceState['compactionDebugInfo'];
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
-  currentTurnProjection: SdkCurrentTurnProjection | null;
+  currentTurnProjection: CurrentTurnProjection | null;
   pendingTurn: PendingTurn | null;
-  latestCurrentTurnProjection: SdkCurrentTurnProjection | null;
+  latestCurrentTurnProjection: CurrentTurnProjection | null;
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
   registerTurnConversationRef: (turnRef: string, conversationRef: string | null | undefined) => void;
@@ -140,7 +138,7 @@ interface ChatState {
   ) => void;
   setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
   setCurrentTurnProjection: (
-    currentTurnProjection: SdkCurrentTurnProjection | null,
+    currentTurnProjection: CurrentTurnProjection | null,
     conversationRef?: string | null,
   ) => void;
   acceptPendingTurn: (pendingTurn: PendingTurn) => void;
@@ -151,13 +149,13 @@ interface ChatState {
     input?: {
       conversationRef?: string | null;
       turnRef?: string | null;
-      currentTurnProjection?: SdkCurrentTurnProjection | null;
+      currentTurnProjection?: CurrentTurnProjection | null;
       stoppedAt?: string | null;
     } | null,
   ) => void;
   applyPendingTurnBroadcast: (action: DesktopPendingTurnBroadcastAction) => void;
   setLatestCurrentTurnProjection: (
-    currentTurnProjection: SdkCurrentTurnProjection | null,
+    currentTurnProjection: CurrentTurnProjection | null,
   ) => void;
   updateStreamTracking: (
     updater: (current: StreamTracking) => StreamTracking,
@@ -312,7 +310,7 @@ function normalizePendingTurn(value: unknown): PendingTurn | null {
 
 function shouldCurrentTurnClearPendingTurn(
   pendingTurn: PendingTurn | null,
-  currentTurnProjection: SdkCurrentTurnProjection | null,
+  currentTurnProjection: CurrentTurnProjection | null,
 ): boolean {
   if (!pendingTurn || !currentTurnProjection) {
     return false;
@@ -338,7 +336,7 @@ function shouldCurrentTurnClearPendingTurn(
 }
 
 function doesCurrentTurnProjectionMatch(
-  currentTurnProjection: SdkCurrentTurnProjection | null,
+  currentTurnProjection: CurrentTurnProjection | null,
   input?: { conversationRef?: string | null; turnRef?: string | null } | null,
 ): boolean {
   if (!currentTurnProjection || !input) {
