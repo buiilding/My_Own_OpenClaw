@@ -82,7 +82,8 @@ Responsibilities:
   through `ipc_agent_backend_event_runtime.cjs`, applies response-overlay phase
   side effects through `ipc_response_overlay_phase_runtime.cjs`, resolves Agent
   SDK runtime conversation refs through `ipc_runtime_conversation_ref.cjs`,
-  keeps cached AgentClient lifecycle in `ipc_agent_client_lifecycle.cjs`, and delegates backend websocket
+  reads app-skin host copy through `ipc_host_copy_runtime.cjs`, keeps cached
+  AgentClient lifecycle in `ipc_agent_client_lifecycle.cjs`, and delegates backend websocket
   construction, SDK local-runtime bootstrap, envelope sends, close,
   reconnect primitives, display rows, and current-turn projection to the SDK.
 - Tracks backend session context (`userId`, `sessionId`, `conversation_ref`).

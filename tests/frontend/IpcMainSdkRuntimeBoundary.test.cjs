@@ -105,6 +105,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_status_payloads.cjs'),
       'utf8',
     );
+    const hostCopyRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_host_copy_runtime.cjs'),
+      'utf8',
+    );
     const installAuthIdentitySource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_install_auth_identity_runtime.cjs'),
       'utf8',
@@ -194,6 +198,14 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('globalAgentStopShortcutStatus: getGlobalAgentStopShortcutStatus()');
     expect(statusPayloadsSource).toContain('backendWsUrl: endpoints.runtimeWsUrl || null');
     expect(statusPayloadsSource).toContain('runtimeWsUrl: endpoints.runtimeWsUrl || null');
+    expect(source).toContain('createIpcHostCopyRuntime()');
+    expect(source).toContain('ipcHostCopyRuntime.getSdkAgentName()');
+    expect(source).toContain('ipcHostCopyRuntime.getMcpClientInfo()');
+    expect(source).toContain('ipcHostCopyRuntime.getQueryEvents()');
+    expect(source).not.toContain('const DEFAULT_IPC_HOST_COPY = Object.freeze');
+    expect(source).not.toContain('ipcHostCopy.identity');
+    expect(source).not.toContain('ipcHostCopy.queryEvents');
+    expect(hostCopyRuntimeSource).toContain('const DEFAULT_IPC_HOST_COPY = Object.freeze');
     expect(source).toContain('createInstallAuthIdentityRuntime({');
     expect(source).not.toContain('const installToken = typeof state.installToken');
     expect(source).not.toContain('autoRegister: false');

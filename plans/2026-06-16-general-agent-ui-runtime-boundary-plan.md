@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Host Copy Runtime Boundary
+
+- Finding: `ipc.cjs` still owned generic Electron agent-host copy defaults and
+  app-skin copy normalization directly, including SDK agent name, MCP client
+  identity, and query-event fallback copy.
+- Change: added `ipc_host_copy_runtime.cjs` to own generic host-copy defaults,
+  section-level host-skin normalization, and SDK/MCP/query-event accessors.
+  `ipc.cjs` keeps the existing `configureIpcHostCopyRuntime(...)` handoff while
+  consuming helper accessors.
+- Validation: focused host-copy runtime coverage for generic defaults,
+  app-skin configuration, independent fallback behavior, and a source guard
+  that keeps host-copy defaults out of `ipc.cjs`; existing main host skin
+  boundary coverage now points at the helper as the generic owner.
+- Compatibility: no migration required. SDK agent name, MCP client identity,
+  query failure/interruption copy, host-skin handoff from `main/index.cjs`,
+  renderer IPC channels, storage, credentials, permissions, hosted URLs,
+  provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Response Overlay Phase Runtime Boundary
 
 - Finding: `ipc.cjs` still owned response-overlay phase application side

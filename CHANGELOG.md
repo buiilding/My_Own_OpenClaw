@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move generic Electron agent-host copy defaults and host-skin copy
+  normalization into `ipc_host_copy_runtime.cjs`, preserving SDK agent name,
+  MCP client identity, query event copy, and `configureIpcHostCopyRuntime(...)`
+  app-skin handoff behavior. No migration required.
 - main/ipc: move response-overlay phase application side effects into
   `ipc_response_overlay_phase_runtime.cjs`, preserving chat-pill phase tracing,
   phase-state application/broadcast, global stop shortcut gating, and backend

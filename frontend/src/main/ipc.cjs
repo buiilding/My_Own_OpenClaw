@@ -77,6 +77,9 @@ const {
   createIpcStatusPayloads,
 } = require('./ipc/ipc_status_payloads.cjs');
 const {
+  createIpcHostCopyRuntime,
+} = require('./ipc/ipc_host_copy_runtime.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -248,17 +251,7 @@ const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 const BACKEND_CONNECT_TIMEOUT_MS = 10000;
 const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
-const DEFAULT_IPC_HOST_COPY = Object.freeze({
-  identity: Object.freeze({
-    sdkAgentName: 'Desktop Agent',
-    mcpClientInfo: Object.freeze({
-      name: 'Desktop Runtime',
-      version: '0.0.0',
-    }),
-  }),
-  queryEvents: Object.freeze({}),
-});
-let ipcHostCopy = DEFAULT_IPC_HOST_COPY;
+const ipcHostCopyRuntime = createIpcHostCopyRuntime();
 let rendererWindows = new Set();
 let isConnected = false;
 let isFirstQuery = true;
@@ -390,7 +383,7 @@ const mcpRefreshRuntime = createMcpRefreshRuntime({
   countMcpEnabledServersInConfig,
   ensureAgent,
   refreshMcpServersForConfig,
-  getMcpClientInfo: () => ipcHostCopy.identity.mcpClientInfo,
+  getMcpClientInfo: () => ipcHostCopyRuntime.getMcpClientInfo(),
   isTest: () => process.env.NODE_ENV === 'test',
   log,
 });
@@ -561,14 +554,7 @@ function configureIpcHostRuntime(config = {}) {
 }
 
 function configureIpcHostCopyRuntime(copy = {}) {
-  ipcHostCopy = {
-    identity: copy.identity && typeof copy.identity === 'object'
-      ? copy.identity
-      : DEFAULT_IPC_HOST_COPY.identity,
-    queryEvents: copy.queryEvents && typeof copy.queryEvents === 'object'
-      ? copy.queryEvents
-      : DEFAULT_IPC_HOST_COPY.queryEvents,
-  };
+  ipcHostCopyRuntime.configure(copy);
 }
 
 function createElectronAgentClient() {
@@ -604,7 +590,7 @@ async function startAgent({ reason = 'request', workspacePath = null } = {}) {
     resolveWorkspacePathForAgent,
     getAgentClient,
     buildDesktopInstallAuth,
-    getSdkAgentName: () => ipcHostCopy.identity.sdkAgentName,
+    getSdkAgentName: () => ipcHostCopyRuntime.getSdkAgentName(),
     isTest: () => process.env.NODE_ENV === 'test',
     getEnabledMcpServerSpecsForConfig,
     getDesktopUiConfigForMcpRegistry,
@@ -629,7 +615,7 @@ async function startAgent({ reason = 'request', workspacePath = null } = {}) {
       resolveWorkspacePathForAgent,
       handleAgentBackendEvent,
       refreshMcpServersForConfig,
-      getMcpClientInfo: () => ipcHostCopy.identity.mcpClientInfo,
+      getMcpClientInfo: () => ipcHostCopyRuntime.getMcpClientInfo(),
     }),
     appendIpcBridgeDiagnostic,
     log,
@@ -794,7 +780,7 @@ function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
     getCurrentSessionId: () => currentSessionId,
     getCurrentServerUserId: () => currentServerUserId,
     getCurrentUserId: () => currentUserId,
-    getQueryEventsCopy: () => ipcHostCopy.queryEvents,
+    getQueryEventsCopy: () => ipcHostCopyRuntime.getQueryEvents(),
     buildQueryInterrupted,
     handleAgentBackendEvent,
     setResponseOverlayPhase,
@@ -908,7 +894,7 @@ function initializeIpc(win, options = {}) {
     persistDesktopUiConfigToDisk,
     getDesktopUiConfigForMcpRegistry,
     ensureAgent,
-    mcpClientInfo: ipcHostCopy.identity.mcpClientInfo,
+    mcpClientInfo: ipcHostCopyRuntime.getMcpClientInfo(),
   });
 
   registerClientSessionHandlers({
@@ -1026,7 +1012,7 @@ function initializeIpc(win, options = {}) {
       broadcastQuerySendFailureRuntime,
       buildQuerySendFailure: (input) => buildQuerySendFailure({
         ...input,
-        copy: ipcHostCopy.queryEvents,
+        copy: ipcHostCopyRuntime.getQueryEvents(),
       }),
       traceRendererQuery: (input) => electronMainTraceLogger.traceRendererQuery(input),
     },

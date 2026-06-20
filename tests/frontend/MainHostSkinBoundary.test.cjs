@@ -288,6 +288,10 @@ describe('main host skin/config boundary', () => {
   test('query event builders keep product copy in the host skin', () => {
     const source = fs.readFileSync(ipcQueryEventsPath, 'utf8');
     const ipcSource = fs.readFileSync(mainIpcPath, 'utf8');
+    const hostCopyRuntimeSource = fs.readFileSync(
+      path.join(mainRoot, 'ipc/ipc_host_copy_runtime.cjs'),
+      'utf8',
+    );
     const indexSource = fs.readFileSync(indexPath, 'utf8');
 
     expect(source).toContain('copy.sendFailure');
@@ -295,10 +299,14 @@ describe('main host skin/config boundary', () => {
     expect(indexSource).toContain('configureIpcHostCopyRuntime({');
     expect(indexSource).toContain('identity: mainHostSkin.identity');
     expect(indexSource).toContain('queryEvents: mainHostSkin.queryEvents');
-    expect(ipcSource).toContain('DEFAULT_IPC_HOST_COPY');
-    expect(ipcSource).toContain('ipcHostCopy.identity.sdkAgentName');
-    expect(ipcSource).toContain('ipcHostCopy.identity.mcpClientInfo');
-    expect(ipcSource).toContain('ipcHostCopy.queryEvents');
+    expect(ipcSource).toContain('createIpcHostCopyRuntime()');
+    expect(ipcSource).toContain('ipcHostCopyRuntime.getSdkAgentName()');
+    expect(ipcSource).toContain('ipcHostCopyRuntime.getMcpClientInfo()');
+    expect(ipcSource).toContain('ipcHostCopyRuntime.getQueryEvents()');
+    expect(hostCopyRuntimeSource).toContain('DEFAULT_IPC_HOST_COPY');
+    expect(hostCopyRuntimeSource).toContain('sdkAgentName');
+    expect(hostCopyRuntimeSource).toContain('mcpClientInfo');
+    expect(hostCopyRuntimeSource).toContain('queryEvents');
     expect(ipcSource).not.toContain('mainHostSkin.identity');
     expect(ipcSource).not.toContain('mainHostSkin.queryEvents');
     expect(source).not.toContain('WindieOS');
@@ -568,6 +576,10 @@ describe('main host skin/config boundary', () => {
     const skinSource = fs.readFileSync(skinPath, 'utf8');
     const launchSource = fs.readFileSync(localRuntimeLaunchOptionsPath, 'utf8');
     const ipcSource = fs.readFileSync(mainIpcPath, 'utf8');
+    const agentClientFactorySource = fs.readFileSync(
+      path.join(mainRoot, 'ipc/ipc_electron_agent_client_factory.cjs'),
+      'utf8',
+    );
 
     expect(skinSource).toContain("backendHttpUrl: 'WINDIE_BACKEND_HTTP_URL'");
     expect(skinSource).toContain("backendAuthStatePath: 'WINDIE_BACKEND_AUTH_STATE_PATH'");
@@ -589,7 +601,8 @@ describe('main host skin/config boundary', () => {
     expect(ipcSource).toContain('daemonEntrypoint: options.localRuntimeDaemonEntrypoint');
     expect(ipcSource).not.toContain('mainHostSkin.localRuntime.env');
     expect(ipcSource).not.toContain('mainHostSkin.localRuntime.daemonEntrypoint');
-    expect(ipcSource).toContain('userDataRoot: appUserDataRoot()');
+    expect(agentClientFactorySource).toContain('resolveUserDataRoot = appUserDataRoot');
+    expect(agentClientFactorySource).toContain('userDataRoot: resolveUserDataRoot()');
     expect(launchSource).not.toContain("'sidecar_daemon.py'");
     expect(launchSource).not.toContain('WINDIE_BACKEND_HTTP_URL');
     expect(launchSource).not.toContain('WINDIE_LOCAL_RUNTIME_SOURCE_PATH');
