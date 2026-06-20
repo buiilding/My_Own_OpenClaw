@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/voice: route wakeword troubleshooting and renderer voice references
+  through the local-runtime wakeword helper backed by the Python service instead
+  of naming the sidecar service as the direct owner. No migration required.
 - docs/channels: route dashboard and minimal-pill chat entries through renderer
   SDK commands, the Electron Agent SDK host, and Agent SDK backend transport
   instead of shortcutting directly from Electron IPC to backend `/ws`. No

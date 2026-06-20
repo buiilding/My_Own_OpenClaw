@@ -2125,9 +2125,11 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/desktop/voice_and_wakeword.md'),
       read('docs/frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md'),
       read('docs/frontend/renderer/infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md'),
+      read('docs/frontend/renderer/voice_capture_and_wakeword_controller_reference.md'),
       read('docs/frontend/renderer/voice/README.md'),
       read('docs/frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md'),
       read('docs/getting-started/docs_hub.md'),
+      read('docs/help/triage_routes.md'),
       read('docs/nodes/runtime_node_matrix.md'),
       read('docs/README.md'),
     ]);
@@ -2136,6 +2138,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Renderer Voice Capture');
     expect(docText).toContain('Electron Wakeword Bridge');
     expect(docText).toContain('local-runtime wakeword helper');
+    expect(docText).toContain('local-runtime wakeword helper backed by the Python service');
     expect(docText).toContain('typed `audio-chunk` side-channel');
     expect(docText).toContain('DesktopAudioRuntimeClient');
     expect(docText).not.toContain('Frontend Voice Capture');
@@ -2144,6 +2147,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Python sidecar owns wakeword model bootstrap');
     expect(docText).not.toContain('Electron bridge to the sidecar wakeword service');
     expect(docText).not.toContain('renderer microphone chunks -> Electron main -> Python sidecar wakeword service');
+    expect(docText).not.toContain('wakeword path: renderer -> Electron IPC -> main wakeword bridge -> Python wakeword service');
+    expect(docText).not.toContain('wakeword chunks do not reach sidecar');
+    expect(docText).not.toContain('microphone chunk framing into sidecar');
+    expect(docText).not.toContain('sidecar wakeword service, backend transcription');
     expect(docText).not.toContain('Local Runtime Sidecar Wakeword Bridge and Audio Framing Reference');
     expect(docText).not.toContain('Sidecar wakeword service:');
     expect(docText).not.toContain('Electron main relays them to renderer through `from-backend`');

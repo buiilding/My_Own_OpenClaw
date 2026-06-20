@@ -142,6 +142,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   routing matrix now route dashboard and minimal-pill chat through renderer SDK
   commands, the Electron Agent SDK host, and Agent SDK backend transport
   instead of shortcutting directly from Electron IPC to backend `/ws`.
+  Wakeword route docs now name the local-runtime wakeword helper as the
+  boundary backed by the Python service implementation instead of routing
+  failures directly to the sidecar service.
 
   Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
   Python sidecar method, handler, daemon, protocol, memory, and tool validation
@@ -5057,6 +5060,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Compatibility: no migration required. Runtime code, IPC channel names,
   `windie:invoke` command names, backend websocket payloads, SDK projection
   events, storage, credentials, permissions, provider policy, hosted URLs, and
+  local execution behavior are unchanged.
+
+### 2026-06-20 Wakeword Local-Runtime Helper Route Docs Boundary
+
+- Finding: renderer voice, voice/audio workflow, runtime-node, and triage docs
+  still routed wakeword chunks or failures directly to the sidecar/Python
+  wakeword service, even though the reusable boundary is the local-runtime
+  wakeword helper backed by the Python service implementation.
+- Change: reworded those docs to put renderer capture through
+  `DesktopVoiceRuntimeClient`, Electron wakeword bridge framing, and the
+  local-runtime wakeword helper, while preserving the Python wakeword service
+  as the current concrete implementation and test target.
+- Validation: extended the voice routing boundary guard to read the renderer
+  voice reference and triage docs, require local-runtime wakeword helper
+  wording, and reject retired direct sidecar-service route phrases.
+- Compatibility: no migration required. Runtime code, wakeword IPC channels,
+  subprocess framing, backend wakeword activation messages, renderer voice
+  state, storage, credentials, permissions, provider policy, hosted URLs, and
   local execution behavior are unchanged.
 
 ## Remaining Findings

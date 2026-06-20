@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Wakeword Local-Runtime Helper Route Docs Boundary
+
+- Finding: renderer voice, voice/audio workflow, runtime-node, and triage docs
+  still routed wakeword chunks or failures directly to the sidecar/Python
+  wakeword service, even though the reusable boundary is the local-runtime
+  wakeword helper backed by the Python service implementation.
+- Change: reworded those docs to put renderer capture through
+  `DesktopVoiceRuntimeClient`, Electron wakeword bridge framing, and the
+  local-runtime wakeword helper, while preserving the Python wakeword service
+  as the current concrete implementation and test target.
+- Validation: extended the voice routing boundary guard to read the renderer
+  voice reference and triage docs, require local-runtime wakeword helper
+  wording, and reject retired direct sidecar-service route phrases.
+- Compatibility: no migration required. Runtime code, wakeword IPC channels,
+  subprocess framing, backend wakeword activation messages, renderer voice
+  state, storage, credentials, permissions, provider policy, hosted URLs, and
+  local execution behavior are unchanged.
+
 ### 2026-06-20 Channel Chat SDK Transport Map Boundary
 
 - Finding: the first-read channels hub still summarized dashboard and

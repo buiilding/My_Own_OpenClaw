@@ -40,7 +40,9 @@ Renderer runs two independent voice paths:
 They share microphone primitives but have different transport paths:
 
 - transcription path: renderer -> desktop voice runtime facade -> transcription gateway WebSocket (`<backend>/ws/transcription`)
-- wakeword path: renderer -> Electron IPC -> main wakeword bridge -> Python wakeword service
+- wakeword path: renderer -> `DesktopVoiceRuntimeClient` -> Electron
+  wakeword bridge -> local-runtime wakeword helper backed by the Python
+  wakeword service
 
 Backend ownership detail:
 
@@ -178,7 +180,7 @@ Wakeword capture path:
 
 - convert mic frames Float32 -> PCM16
 - send ArrayBuffer via `DesktopVoiceRuntimeClient.sendWakewordAudioChunk(...)`
-- main process handles service transport details
+- main process handles the local-runtime wakeword helper transport details
 
 Detection guardrails:
 

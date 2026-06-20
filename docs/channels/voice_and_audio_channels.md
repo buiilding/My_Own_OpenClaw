@@ -123,7 +123,7 @@ Wakeword changes:
 
 - renderer wakeword controller tests
 - main-process wakeword bridge tests
-- sidecar wakeword service framing tests
+- local-runtime wakeword helper and Python wakeword service framing tests
 
 Dictation changes:
 
