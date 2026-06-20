@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: active SDK hub/auth/route/hosted-client docs now
-  describe hosted backend and Agent SDK guidance instead of stale
-  WindieOS-specific SDK-route framing.
+- Latest completed slice: reusable SDK examples now use neutral hosted
+  endpoint, install-token, agent-name, provider, and model placeholders instead
+  of production WindieOS endpoint/token and concrete GPT/OpenAI model ids.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -179,7 +179,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   keeping alias support out of SDK orchestration call sites. Active SDK
   hub/auth/route/hosted-client docs now route reusable SDK contract wording
   through hosted backend and Agent SDK labels instead of WindieOS-specific
-  SDK-route framing.
+  SDK-route framing. Reusable SDK examples now use neutral hosted endpoint,
+  install-token, agent-name, provider, and model placeholders instead of
+  production WindieOS endpoint/token and concrete GPT/OpenAI model ids.
   Renderer message-send preparation now routes send-surface chatbox restore
   through a renderer app runtime window client instead of invoking the window
   IPC channel directly.

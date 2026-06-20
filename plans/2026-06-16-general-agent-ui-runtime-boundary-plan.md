@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 SDK Docs Provider Example Neutralization
+
+- Finding: reusable SDK runtime and hosted-client examples still used the
+  production WindieOS backend URL, Windie token env example, Windie agent/app
+  names, and concrete GPT/OpenAI model ids even though provider policy and
+  product identity belong to backend/provider docs and host skin/config.
+- Change: replaced those examples with neutral hosted endpoint, install-token,
+  host-supplied agent-name, provider, and model placeholders, and extended the
+  modular SDK docs guard to reject production endpoint, Windie token, and GPT
+  model example values in the SDK docs set.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  endpoint/token/provider/model example scan across `docs/sdk`, and diff
+  checks.
+- Compatibility: no migration required. Runtime code, package names, hosted
+  routes, SDK exports, env aliases, credentials, permissions, storage, provider
+  policy, IPC payloads, and local execution behavior are unchanged.
+
 ### 2026-06-20 SDK Docs Hosted Contract Wording
 
 - Finding: active SDK docs had already moved most body copy to hosted backend,

@@ -266,6 +266,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('WindieOS SDK HTTP routes');
     expect(sdkDocText).not.toContain('WindieOS SDK docs cover');
     expect(sdkDocText).not.toContain('WindieOS TypeScript and Python SDK wrappers');
+    expect(sdkDocText).not.toContain('https://api.windieos.com');
+    expect(sdkDocText).not.toContain('WINDIE_INSTALL_TOKEN');
+    expect(sdkDocText).not.toContain('gpt-5.4');
+    expect(sdkDocText).not.toContain('modelProvider: "openai"');
+    expect(sdkDocText).not.toContain("model_provider: 'openai'");
     expect(apiReferenceText).not.toContain('local backend process just to use hosted OCR or prediction routes');
     expect(architectureText).not.toContain('sidecar-backed storage');
     expect(architectureText).not.toContain('sidecar-backed SDK store');

@@ -36,13 +36,13 @@ subscribe to the returned conversation runtime:
 import { AgentClient } from '@windie/sdk';
 
 const client = new AgentClient({
-  backendUrl: 'https://api.windieos.com',
+  backendUrl: 'https://backend.example.com',
   backendSession: 'managed',
-  installToken: process.env.WINDIE_INSTALL_TOKEN,
+  installToken: process.env.AGENT_INSTALL_TOKEN,
 });
 
 const agent = await client.wakeUp({
-  name: 'My Windie App',
+  name: 'My Agent App',
   workspacePath: '/path/to/workspace',
   builtins: 'default',
 });
@@ -65,7 +65,7 @@ WindieOS app needs during normal operation:
 
 ```ts
 await agent.ensureConnected();
-await agent.updateSettings({ model_provider: 'openai' });
+await agent.updateSettings({ model_provider: 'hosted-provider' });
 await agent.requestModelList();
 await conversation.rehydrateMessages({ conversation_ref, messages, rehydrate_mode: 'replace' });
 await conversation.compactHistory({ force: false, payload: { conversation_ref } });
@@ -101,7 +101,7 @@ fallback, connection status, or idle-close policy:
 ```ts
 const client = new AgentClient({
   backendEndpoints: [
-    { backendUrl: 'https://api.windieos.com' },
+    { backendUrl: 'https://backend.example.com' },
     { backendUrl: 'http://127.0.0.1:8000' },
   ],
   backendSession: 'managed',

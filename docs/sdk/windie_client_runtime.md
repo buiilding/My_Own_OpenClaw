@@ -175,13 +175,13 @@ conversation projection:
 import { AgentClient } from "@windie/sdk";
 
 const client = new AgentClient({
-  backendUrl: "https://api.windieos.com",
+  backendUrl: "https://backend.example.com",
   backendSession: "managed",
-  installToken: process.env.WINDIE_INSTALL_TOKEN
+  installToken: process.env.AGENT_INSTALL_TOKEN
 });
 
 const agent = await client.wakeUp({
-  name: "WindieOS",
+  name: "Desktop Agent",
   workspacePath: "/Users/me/project",
   builtins: "default"
 });
@@ -212,7 +212,7 @@ const client = new AgentClient({
 
 const agent = await client.wakeUp({
   installAuth: buildDesktopInstallAuth(),
-  name: 'WindieOS',
+  name: mainHostSkin.identity.sdkAgentName,
   workspacePath: activeWorkspacePath,
   builtins: 'default',
   localToolLifecycle: electronToolSurfaceLifecycle,
@@ -288,7 +288,7 @@ tool-result return.
 import { AgentClient, agentBuiltins, moduleTool } from "@windie/sdk";
 
 const client = new AgentClient({
-  backendUrl: "https://api.windieos.com"
+  backendUrl: "https://backend.example.com"
 });
 
 const simpleAgent = await client.wakeUp({
@@ -302,8 +302,8 @@ const agent = await client.wakeUp({
   workspacePath: "/Users/me/project",
   builtins: ["filesystem", "shell"],
   model: {
-    modelProvider: "openai",
-    modelId: "gpt-5.4@@gpt-5-4-medium-thinking",
+    modelProvider: "hosted-provider",
+    modelId: "hosted-model-balanced",
     modelMode: "online",
     interactionMode: "agent"
   },
@@ -347,8 +347,8 @@ await conversation.editAndResend({
 await conversation.rehydrate();
 
 await agent.setModel({
-  modelProvider: "openai",
-  modelId: "gpt-5.4@@gpt-5-4-high-thinking",
+  modelProvider: "hosted-provider",
+  modelId: "hosted-model-deep",
   modelMode: "online",
   interactionMode: "agent"
 });
@@ -356,8 +356,8 @@ await agent.setModel({
 for await (const event of conversation.stream({
   text: "Run the test command with this model and report progress.",
   model: {
-    modelProvider: "openai",
-    modelId: "gpt-5.4@@gpt-5-4-high-thinking"
+    modelProvider: "hosted-provider",
+    modelId: "hosted-model-deep"
   }
 })) {
   if (event.type === "conversation_event" && event.event.type === "assistant_delta") {
@@ -383,8 +383,8 @@ for await (const event of agent.stream("Run the test command and report progress
 
 await agent.ask("Use the fast model for this one-shot query.", {
   model: {
-    modelProvider: "openai",
-    modelId: "gpt-5.4@@gpt-5-4-none-thinking",
+    modelProvider: "hosted-provider",
+    modelId: "hosted-model-fast",
     interactionMode: "chat"
   }
 });
