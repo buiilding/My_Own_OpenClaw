@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Platform Local-Runtime Python Validation Labels
+
+- Finding: platform validation, window/input, and computer-tool reference docs
+  still used sidecar platform-test, shell-probe, switching-logic,
+  computer-tool, input-control, and log-line labels even though the reusable
+  owner is local-runtime Python platform/input execution.
+- Change: routed those labels through local-runtime Python wording while
+  preserving concrete `frontend/src/main/python/tools/computer`,
+  `tests/sidecar`, `python-in-env sidecar`, `<windie> test sidecar`, and
+  `<windie> build sidecar-runtime` command details.
+- Validation: focused modular docs boundary test, exact stale platform-label
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, OS window/input
+  behavior, Python test paths, command names, packaged runtime build target,
+  IPC payloads, storage, credentials, permissions, hosted backend URLs,
+  provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Memory Replay Conversation Store Labels
 
 - Finding: transcript replay, renderer transcript, and conversation identity

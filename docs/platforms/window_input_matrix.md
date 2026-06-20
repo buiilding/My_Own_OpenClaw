@@ -44,10 +44,10 @@ Window and input behavior spans Electron main and the local runtime. Electron ow
 
 1. Confirm the failing operation is WindieOS window policy or host-window control.
 2. For WindieOS windows, inspect Electron main logs and platform policy modules.
-3. For host-window discovery, run the sidecar platform tests or a focused sidecar shell probe.
+3. For host-window discovery, run the local-runtime Python platform tests or a focused local-runtime Python shell probe.
 4. On Linux, verify `xdotool` or `ydotool` availability before editing fuzzy match logic.
 5. On macOS, verify Accessibility and System Events permissions before editing AppKit code.
-6. On Windows, verify the PowerShell probe and foreground-window wait behavior before changing sidecar switching logic.
+6. On Windows, verify the PowerShell probe and foreground-window wait behavior before changing local-runtime Python switching logic.
 
 ## Related Docs
 

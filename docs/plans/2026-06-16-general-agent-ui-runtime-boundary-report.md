@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: architecture and reference docs now route
-  tool-system routing, backend endpoint failure, ownership decisions, storage
-  RPC, ToolResult validation, and RPC drift labels through
-  local-runtime/local-runtime Python wording instead of sidecar route/default
-  labels, while keeping concrete implementation details intact.
+- Latest completed slice: platform validation, window/input, and computer-tool
+  reference docs now route platform-test, shell-probe, switching-logic,
+  computer-tool, input-control, and log-line labels through local-runtime
+  Python wording instead of sidecar owner labels, while keeping concrete
+  command, source, and test paths intact.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -245,6 +245,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Platform Local-Runtime Python Validation Labels
+
+- Finding: platform validation, window/input, and computer-tool reference docs
+  still used sidecar platform-test, shell-probe, switching-logic,
+  computer-tool, input-control, and log-line labels even though the reusable
+  owner is local-runtime Python platform/input execution.
+- Change: routed those labels through local-runtime Python wording while
+  preserving concrete `frontend/src/main/python/tools/computer`,
+  `tests/sidecar`, `python-in-env sidecar`, `<windie> test sidecar`, and
+  `<windie> build sidecar-runtime` command details.
+- Validation: focused modular docs boundary test, exact stale platform-label
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, OS window/input
+  behavior, Python test paths, command names, packaged runtime build target,
+  IPC payloads, storage, credentials, permissions, hosted backend URLs,
+  provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Memory Replay Conversation Store Labels
 

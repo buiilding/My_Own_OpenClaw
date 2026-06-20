@@ -2,7 +2,7 @@
 summary: "Validation matrix for WindieOS platform changes across permissions, screenshots, overlays, local input, display affinity, packaging, and installed-app smoke checks."
 read_when:
   - When choosing tests for a macOS, Windows, or Linux platform change.
-  - When validating a platform fix that touches Electron main, renderer overlays, sidecar computer tools, permissions, or packaging scripts.
+  - When validating a platform fix that touches Electron main, renderer overlays, local-runtime Python computer tools, permissions, or packaging scripts.
   - When collecting evidence for an OS-specific bug report.
 title: "Platform Validation Matrix"
 ---
@@ -21,8 +21,8 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 | docs whitespace and patch hygiene | `git diff --check` |
 | frontend focused tests | `cd frontend && npm run test -- <pattern>` |
 | frontend CI suite | `<windie> test frontend` |
-| sidecar focused tests | `./scripts/python-in-env sidecar pytest <path>` |
-| sidecar suite | `<windie> test sidecar` |
+| local-runtime Python focused tests | `./scripts/python-in-env sidecar pytest <path>` |
+| local-runtime Python suite | `<windie> test sidecar` |
 | bundled Python runtime build | `<windie> build sidecar-runtime` |
 | macOS package | `<windie> package mac` |
 | Windows package | `<windie> package win` |
@@ -30,7 +30,7 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 
 ## Automated Test Matrix
 
-| Changed surface | Frontend tests | Sidecar tests | Notes |
+| Changed surface | Frontend tests | Local-runtime Python tests | Notes |
 | --- | --- | --- | --- |
 | content protection | `tests/frontend/WindowPlatformPolicy.test.cjs`, `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` | not applicable | Covers Electron main policy and screenshot-capture leases; smoke screenshot capture on target OS when capture behavior changed. |
 | screenshot visibility bridge | `tests/frontend/LocalRuntimeWindowVisibility.test.cjs` | `tests/sidecar/test_screenshot_tool.py` | Use when screenshots include WindieOS surfaces or capture bounds are wrong. |
@@ -38,10 +38,10 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 | display affinity and multi-monitor targeting | `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/DisplayQueryHandler.test.cjs` | `tests/sidecar/test_screenshot_tool.py` | Include manual multi-monitor capture check if the bug was monitor-specific. |
 | permission probe or grant | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/permissionStore.test.js` | platform-specific local-runtime Python tool test if execution depends on the grant | Use real OS manual checks for grant flows. Mocks only prove routing. |
 | onboarding permission UI | `tests/frontend/useOnboardingPermissionActions.test.jsx`, `tests/frontend/AppPermissionGate.test.jsx`, `tests/frontend/permissionGrantEffects.test.js` | not applicable | Use with permission-service tests so UI and authority do not drift. |
-| sidecar mouse control | not applicable unless renderer tool dispatch changed | `tests/sidecar/test_mouse_tool.py` | Manual pointer movement may be required for OS-level confidence. |
-| sidecar keyboard control | not applicable unless renderer tool dispatch changed | `tests/sidecar/test_keyboard_tool.py` | Validate permission handling before changing key synthesis. |
-| sidecar scroll control | not applicable unless renderer tool dispatch changed | `tests/sidecar/test_scroll_tool.py`, `tests/sidecar/test_scroll_config.py` | Include app-focus manual check if scrolling target changed. |
-| sidecar window manager | not applicable unless UI consumes active-window labels | `tests/sidecar/test_macos_window_manager.py`, `tests/sidecar/test_windows_window_manager.py`, `tests/sidecar/test_linux_window_manager.py`, `tests/sidecar/test_platform_module_selection.py` | Keep platform module selection deterministic. |
+| local-runtime Python mouse control | not applicable unless renderer tool dispatch changed | `tests/sidecar/test_mouse_tool.py` | Manual pointer movement may be required for OS-level confidence. |
+| local-runtime Python keyboard control | not applicable unless renderer tool dispatch changed | `tests/sidecar/test_keyboard_tool.py` | Validate permission handling before changing key synthesis. |
+| local-runtime Python scroll control | not applicable unless renderer tool dispatch changed | `tests/sidecar/test_scroll_tool.py`, `tests/sidecar/test_scroll_config.py` | Include app-focus manual check if scrolling target changed. |
+| local-runtime Python window manager | not applicable unless UI consumes active-window labels | `tests/sidecar/test_macos_window_manager.py`, `tests/sidecar/test_windows_window_manager.py`, `tests/sidecar/test_linux_window_manager.py`, `tests/sidecar/test_platform_module_selection.py` | Keep platform module selection deterministic. |
 | packaged bundled Python runtime | frontend package build and smoke helper | target OS local-runtime smoke through installed app | Source tests do not prove installed Python runtime isolation. |
 
 ## Manual Smoke Checks
@@ -65,7 +65,7 @@ For OS-specific failures, collect enough evidence to separate policy bugs from e
 - relevant permission status from onboarding/settings.
 - Electron main log lines for permission, overlay, capture, or local-runtime startup.
 - renderer console lines for surface orchestrator, overlay phase, or permission UI.
-- sidecar log lines for computer tool or window manager execution.
+- local-runtime Python log lines for computer tool or window manager execution.
 - exact command or user flow that triggered the failure.
 - screenshot or short screen recording when the issue is visual.
 - focused tests run and the first failing assertion.

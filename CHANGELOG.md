@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(platform): route platform validation, window/input, and computer-tool
+  reference labels through local-runtime Python wording instead of sidecar test,
+  probe, input-control, and tool owner labels. No migration required.
 - docs(memory): route remaining transcript replay and conversation identity
   test/debug labels through local-runtime Python conversation-store wording
   instead of sidecar conversation labels. No migration required.

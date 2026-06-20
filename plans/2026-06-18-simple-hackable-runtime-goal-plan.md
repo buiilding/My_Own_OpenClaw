@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a platform local-runtime Python validation-label slice
+  by routing platform validation, window/input, and computer-tool reference
+  docs away from sidecar platform-test, shell-probe, switching-logic,
+  computer-tool, input-control, and log-line owner labels. Preserved concrete
+  `frontend/src/main/python/tools/computer`, `tests/sidecar`,
+  `python-in-env sidecar`, `<windie> test sidecar`, and
+  `<windie> build sidecar-runtime` command details. Validation: focused
+  modular docs boundary test, exact stale platform-label scan, docs listing,
+  and diff checks. No migration required.
+
 - 2026-06-20: completed a memory replay conversation-store label slice by
   routing transcript replay, renderer transcript, and conversation identity
   docs through local-runtime Python conversation-store, transcript, handler,

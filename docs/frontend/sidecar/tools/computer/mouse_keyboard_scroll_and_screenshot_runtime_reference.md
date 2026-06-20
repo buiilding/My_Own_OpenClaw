@@ -1,14 +1,14 @@
 ---
-summary: "Deep reference for sidecar computer tools covering action-level argument contracts, pyautogui execution semantics, OS-aware scroll normalization, and screenshot encoding behavior."
+summary: "Deep reference for local-runtime Python computer tools covering action-level argument contracts, pyautogui execution semantics, OS-aware scroll normalization, and screenshot encoding behavior."
 read_when:
-  - When changing sidecar computer-tool action names, argument fields, or result payload structure.
+  - When changing local-runtime Python computer-tool action names, argument fields, or result payload structure.
   - When debugging pyautogui dependency failures, hotkey safety blocks, scroll amount inconsistencies, or screenshot capture overhead.
 title: "Mouse, Keyboard, Scroll, and Screenshot Runtime Reference"
 ---
 
 # Mouse, Keyboard, Scroll, and Screenshot Runtime Reference
 
-This page documents sidecar computer tools as implemented in:
+This page documents local-runtime Python computer tools as implemented in:
 
 - `frontend/src/main/python/tools/computer/mouse_tool.py`
 - `frontend/src/main/python/tools/computer/keyboard_tool.py`
