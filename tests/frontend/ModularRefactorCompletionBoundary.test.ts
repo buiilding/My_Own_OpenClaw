@@ -1936,6 +1936,8 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar remains tool executor',
         'sidecar JSON-RPC call behind',
         'When adding/changing sidecar JSON-RPC methods',
+        'daemon-backed sidecar calls',
+        'sidecar startup failure',
         'frontend/sidecar code import backend modules',
         'frontend/sidecar code must never import backend code',
         'Client-local runtime and sidecar code must not import',
