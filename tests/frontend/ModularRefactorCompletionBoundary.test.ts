@@ -1242,7 +1242,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime bridge readiness');
     expect(docText).toContain('local-runtime readiness');
     expect(docText).toContain('local-runtime diagnostic status');
-    expect(docText).toContain('Local-runtime Python sidecar');
+    expect(docText).toContain('Local-runtime Python implementation');
     expect(docText).toContain('SDK/main local-runtime dispatch or Python sidecar implementation');
     expect(docText).toContain('Local-Runtime Browser Chrome Docs Hub');
     expect(docText).toContain('Local-Runtime System-State Docs Hub');
@@ -2358,6 +2358,7 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar startup owns local execution variables',
         'local-runtime Python sidecar process',
         'local-runtime Python sidecar',
+        'Local-runtime Python sidecar',
         'Local-Runtime Python Sidecar',
         'sidecar stderr handling',
         'Prevents sidecar browser feature-pack auto-install',

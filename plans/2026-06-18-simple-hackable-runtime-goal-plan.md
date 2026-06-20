@@ -305,8 +305,9 @@ For each completed slice, record:
   URLs, and provider policy are unchanged.
 
 - 2026-06-20: completed a local-runtime debug-label slice by routing logging,
-  diagnostic flags, process-health, runtime-trace, and docs-index labels
-  through local-runtime Python wording instead of sidecar debug labels.
+  diagnostic flags, process-health, runtime-trace, observability,
+  tool-development, evidence-collection, and docs-index labels through
+  local-runtime Python wording instead of sidecar debug labels.
   Validation covered the focused modular docs boundary test, docs listing, exact
   stale debug-label scan, and diff check. No migration required; runtime code,
   log sinks, stderr behavior, diagnostic flags, process startup, IPC payloads,

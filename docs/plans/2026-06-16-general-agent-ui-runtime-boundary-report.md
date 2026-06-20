@@ -3106,13 +3106,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Worktree contained debug diagnostic/process-health wording edits when the
   backend schema pass resumed after compaction; the related observability page
   was inspected after the stale stdout scan found the same owner label there.
-- Finding: diagnostic flags, observability, and process-health docs still used
-  broad sidecar labels in metadata, headings, stdout rules, and readiness
-  checks where the owner-correct boundary is local-runtime Python sidecar
-  implementation detail.
-- Change: reworded those debug docs through local-runtime Python sidecar labels
-  and extended the modular debug-doc guard to cover the observability page plus
-  the retired sidecar-as-runtime summary/readiness phrases.
+- Finding: diagnostic flags, observability, process-health, tool-development,
+  and evidence-collection docs still used broad sidecar labels in metadata,
+  headings, stdout rules, runtime evidence, and readiness checks where the
+  owner-correct boundary is local-runtime Python and the Python sidecar remains
+  an implementation detail.
+- Change: reworded those debug docs through local-runtime Python labels and
+  extended the modular debug-doc guard to cover the observability and evidence
+  pages plus the retired sidecar-as-runtime summary/readiness phrases.
 - Validation: focused modular boundary test, docs listing, stale phrase scan,
   and diff checks.
 - Compatibility: no migration required. This is documentation and guard
