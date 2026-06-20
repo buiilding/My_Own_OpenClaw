@@ -65,10 +65,11 @@ Current runtime behavior also relies on these explicit seams:
 - **Local runtime bridge lifecycle is SDK-owned**:
   `sidecar/local_runtime_bridge.cjs` is the composition root for scoped host IPC
   registration and Electron-only helper behavior. Desktop launch facts are built
-  in `ipc.cjs`, passed into one shared `AgentClient` as `autoLocalRuntime`, and
-  exposed to bridge code only through SDK `getKnownLocalRuntime` /
-  `localRuntime({ reason })` resolvers. The SDK owns daemon startup/reuse, RPC
-  unwrapping, and tool execution transport. Electron keeps host-only
+  in `ipc_electron_agent_client_factory.cjs`, passed into one shared
+  `AgentClient` as `autoLocalRuntime`, and exposed to bridge code only through
+  SDK `getKnownLocalRuntime` / `localRuntime({ reason })` resolvers. The SDK
+  owns daemon startup/reuse, RPC unwrapping, and tool execution transport.
+  Electron keeps host-only
   screenshot/display/artifact shaping in
   `sidecar/local_runtime_execute_tool_runtime.cjs`.
 - **Renderer browser-session control is now runtime-backed**: renderer-side browser session UX should read local runtime readiness from the shared IPC status surface and consume shared browser-session/local-runtime stores rather than issuing ad hoc per-component browser polling directly from UI components. `localRuntimeStatusStore` owns the initial `get-local-runtime-status` bootstrap plus `local-runtime-status` event subscription, app feature code reaches it through `DesktopLocalRuntimeStatusRuntimeClient`, and `browserSessionStore` owns browser status sync, tab normalization, and shared polling cadence for all subscribers.

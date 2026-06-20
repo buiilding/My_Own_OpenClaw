@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Electron `AgentClient` constructor option shaping into
+  `ipc_electron_agent_client_factory.cjs`, including managed endpoint mapping,
+  SDK `autoLocalRuntime` launch-option wiring, test-mode local-runtime
+  disabling, and backend lifecycle callback attachment. No migration required.
 - main/ipc: move Agent SDK backend close cleanup into
   `ipc_agent_backend_close_runtime.cjs`, including interrupted active-query
   event synthesis, replay reset, overlay idle fallback, session reset, and

@@ -65,7 +65,13 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_backend_close_runtime.cjs'),
       'utf8',
     );
-    expect(source).toContain('new AgentClient({');
+    const electronAgentClientFactorySource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs'),
+      'utf8',
+    );
+    expect(source).toContain('createElectronAgentClientRuntime({');
+    expect(source).not.toContain('new AgentClient({');
+    expect(electronAgentClientFactorySource).toContain('new AgentClient({');
     expect(source).toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
     expect(source).toContain('client.wakeUp({');
@@ -96,10 +102,12 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain("generatedAgentDefinition.mode === 'windie_default'");
     expect(source).toContain('localToolLifecycle');
     expect(source).toContain('agentWebSocketImpl');
-    expect(source).toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
-    expect(source).not.toContain('autoSidecar: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
+    expect(source).not.toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
+    expect(electronAgentClientFactorySource).toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent({');
+    expect(electronAgentClientFactorySource).not.toContain('autoSidecar: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
     expect(source).toContain('desktopLocalRuntimeLaunchConfig');
-    expect(source).toContain('createDesktopLocalRuntimeLaunchPlan');
+    expect(source).not.toContain('createDesktopLocalRuntimeLaunchPlan');
+    expect(electronAgentClientFactorySource).toContain('createDesktopLocalRuntimeLaunchPlan');
     expect(source).not.toContain('buildDesktopAutoSidecarOptionsForAgent');
     expect(source).not.toContain('desktopAutoSidecarLaunchConfig');
     expect(source).not.toContain('createDesktopAutoSidecarLaunchPlan');
@@ -135,7 +143,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain("refreshMcpServersForLatestConfig('mcp-startup')");
     expect(mcpRefreshRuntimeSource).toContain("refreshMcpServersForLatestConfig('mcp-startup')");
     expect(source).toContain('[Main][SDK] client_initialized');
-    expect(source).toContain('[Main][SDK] creating_client backend=');
+    expect(source).not.toContain('[Main][SDK] creating_client backend=');
+    expect(electronAgentClientFactorySource).toContain('[Main][SDK] creating_client backend=');
     expect(source).toContain('[Main][SDK] local_runtime_ensure_start reason=');
     expect(source).toContain('[Main][SDK] local_runtime_ready reason=');
     expect(source).toContain('handleAgentConnectionEvent(event');

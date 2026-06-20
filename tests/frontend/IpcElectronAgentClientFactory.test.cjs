@@ -1,0 +1,161 @@
+/** @jest-environment node */
+
+const fs = require('fs/promises');
+const path = require('path');
+
+const {
+  buildDesktopLocalRuntimeLaunchOptionsForAgent,
+  buildDesktopLocalRuntimeOptions,
+  buildManagedBackendEndpoints,
+  createElectronAgentClient,
+} = require('../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
+
+function createEndpointState() {
+  return {
+    getHttpUrl: jest.fn(() => 'https://primary.test'),
+    getWsUrl: jest.fn(() => 'wss://primary.test/ws'),
+    getCandidates: jest.fn(() => [
+      {
+        httpUrl: 'https://primary.test',
+        wsUrl: 'wss://primary.test/ws',
+      },
+      {
+        httpBaseUrl: 'https://fallback.test',
+        wsUrl: 'wss://fallback.test/ws',
+        wsOrigin: 'https://origin.test',
+      },
+    ]),
+  };
+}
+
+describe('ipc_electron_agent_client_factory', () => {
+  test('builds managed backend endpoint options from endpoint state', () => {
+    expect(buildManagedBackendEndpoints(createEndpointState())).toEqual([
+      {
+        backendUrl: 'https://primary.test',
+        httpBaseUrl: 'https://primary.test',
+        wsUrl: 'wss://primary.test/ws',
+        wsOrigin: 'https://primary.test',
+      },
+      {
+        backendUrl: 'https://fallback.test',
+        httpBaseUrl: 'https://fallback.test',
+        wsUrl: 'wss://fallback.test/ws',
+        wsOrigin: 'https://origin.test',
+      },
+    ]);
+  });
+
+  test('builds desktop auto-local-runtime launch options through the launch plan owner', () => {
+    const WebSocketImpl = function TestSocket() {};
+    const createLaunchPlan = jest.fn(() => ({
+      ok: true,
+      options: { command: 'python', args: ['daemon.py'] },
+    }));
+
+    expect(buildDesktopLocalRuntimeLaunchOptionsForAgent({
+      desktopLocalRuntimeLaunchConfig: {
+        isPackaged: true,
+      },
+      backendHttpUrl: 'https://primary.test',
+      WebSocketImpl,
+      createLaunchPlan,
+      resolveUserDataRoot: () => 'C:/Users/test/AppData/Roaming/WindieOS',
+    })).toEqual({ command: 'python', args: ['daemon.py'] });
+
+    expect(createLaunchPlan).toHaveBeenCalledWith({
+      isPackaged: true,
+      backendEndpoints: {
+        httpUrl: 'https://primary.test',
+      },
+      userDataRoot: 'C:/Users/test/AppData/Roaming/WindieOS',
+      WebSocketImpl,
+    });
+  });
+
+  test('throws stable errors when desktop local-runtime launch options cannot be built', () => {
+    expect(() => buildDesktopLocalRuntimeLaunchOptionsForAgent({
+      createLaunchPlan: () => ({ ok: false, error: 'missing daemon' }),
+      resolveUserDataRoot: () => '/tmp/user-data',
+    })).toThrow('missing daemon');
+  });
+
+  test('disables auto-local-runtime startup in tests', () => {
+    expect(buildDesktopLocalRuntimeOptions({
+      isTest: true,
+    })).toEqual({ autoStartLocalRuntime: false });
+  });
+
+  test('creates an AgentClient with managed backend and host callbacks', () => {
+    const constructedOptions = [];
+    class FakeAgentClient {
+      constructor(options) {
+        constructedOptions.push(options);
+      }
+    }
+    const onBackendOpen = jest.fn();
+    const onBackendClose = jest.fn();
+    const onBackendError = jest.fn();
+    const onBackendHandshakeError = jest.fn();
+    const onBackendMessageError = jest.fn();
+    const onBackendSend = jest.fn();
+    const onBackendFallback = jest.fn();
+    const logMainRuntime = jest.fn();
+
+    createElectronAgentClient({
+      AgentClient: FakeAgentClient,
+      backendEndpointState: createEndpointState(),
+      reconnectIntervalMs: 1000,
+      connectTimeoutMs: 10000,
+      idleDisconnectTimeoutMs: 1800000,
+      onBackendOpen,
+      onBackendClose,
+      onBackendError,
+      onBackendHandshakeError,
+      onBackendMessageError,
+      onBackendSend,
+      onBackendFallback,
+      isTest: true,
+      logMainRuntime,
+    });
+
+    expect(constructedOptions).toHaveLength(1);
+    expect(constructedOptions[0]).toMatchObject({
+      backendUrl: 'https://primary.test',
+      httpBaseUrl: 'https://primary.test',
+      wsUrl: 'wss://primary.test/ws',
+      wsOrigin: 'https://primary.test',
+      backendSession: 'managed',
+      reconnectIntervalMs: 1000,
+      connectTimeoutMs: 10000,
+      idleDisconnectTimeoutMs: 1800000,
+      autoStartLocalRuntime: false,
+    });
+    expect(constructedOptions[0].backendEndpoints).toHaveLength(2);
+    expect(constructedOptions[0].onBackendOpen).toBe(onBackendOpen);
+    expect(constructedOptions[0].onBackendClose).toBe(onBackendClose);
+    expect(constructedOptions[0].onBackendError).toBe(onBackendError);
+    expect(constructedOptions[0].onBackendHandshakeError).toBe(onBackendHandshakeError);
+    expect(constructedOptions[0].onBackendMessageError).toBe(onBackendMessageError);
+    expect(constructedOptions[0].onBackendSend).toBe(onBackendSend);
+    expect(constructedOptions[0].onBackendFallback).toBe(onBackendFallback);
+    expect(logMainRuntime).toHaveBeenCalledWith('[Main][SDK] creating_client backend=https://primary.test');
+  });
+
+  test('ipc.cjs delegates AgentClient construction to the factory module', async () => {
+    const mainSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+    const factorySource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs'),
+      'utf8',
+    );
+
+    expect(mainSource).toContain('createElectronAgentClientRuntime({');
+    expect(mainSource).not.toContain('new AgentClient({');
+    expect(mainSource).not.toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
+    expect(factorySource).toContain('new AgentClient({');
+    expect(factorySource).toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent({');
+  });
+});

@@ -721,9 +721,10 @@ runtime through the same SDK manager. Electron main does not create a daemon
 HTTP client or a second local-runtime provider for the desktop daemon path.
 Instead, Electron computes desktop launch options (Python or packaged daemon
 command, args, cwd, environment, auth/permission paths, discovery path, and
-launch context), passes them as `autoLocalRuntime` to one shared `AgentClient`, and
-hands `client.getKnownLocalRuntime()` / `client.localRuntime({ reason })`
-resolvers to host IPC facades such as browser control and local-runtime status.
+launch context) in `ipc_electron_agent_client_factory.cjs`, passes them as
+`autoLocalRuntime` to one shared `AgentClient`, and hands
+`client.getKnownLocalRuntime()` / `client.localRuntime({ reason })` resolvers to
+host IPC facades such as browser control and local-runtime status.
 
 The SDK auto-local-runtime provider reads the daemon discovery file, validates launch
 context when one is provided, starts or reuses `sidecar_daemon.py`, owns

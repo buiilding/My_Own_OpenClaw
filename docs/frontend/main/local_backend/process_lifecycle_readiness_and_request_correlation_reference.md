@@ -11,6 +11,7 @@ title: "SDK-Owned Local-Runtime Readiness and Helper RPC Reference"
 ## Canonical Modules
 
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
+- `frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs`
 - `frontend/src/main/sidecar/local_runtime_launch_options.cjs`
 - `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
 - `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs`
@@ -25,11 +26,12 @@ title: "SDK-Owned Local-Runtime Readiness and Helper RPC Reference"
 
 ## Runtime Contract
 
-Electron main does not spawn `local_backend.py` as a standalone process. Desktop
-startup builds SDK `autoLocalRuntime` launch options, then `AgentClient.wakeUp()`
-or a bridge helper call resolves the SDK local runtime provider. The SDK starts
-or reuses `sidecar_daemon.py`, owns `AgentLocalRuntimeHttpClient`, and unwraps
-daemon `/rpc` JSON-RPC results.
+Electron main does not spawn `local_backend.py` as a standalone process.
+`ipc_electron_agent_client_factory.cjs` builds SDK `autoLocalRuntime` launch
+options during desktop startup, then `AgentClient.wakeUp()` or a bridge helper
+call resolves the SDK local runtime provider. The SDK starts or reuses
+`sidecar_daemon.py`, owns `AgentLocalRuntimeHttpClient`, and unwraps daemon
+`/rpc` JSON-RPC results.
 
 Electron main owns only host-side behavior:
 

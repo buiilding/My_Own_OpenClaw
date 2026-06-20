@@ -33,7 +33,10 @@ describe('modular sdk refactor completion boundary', () => {
   test('electron main uses AgentClient wakeUp instead of a desktop wrapper', async () => {
     const ipcSource = await read('frontend/src/main/ipc.cjs');
     const directWakeUpAdapterSource = await read('frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs');
-    expect(ipcSource).toContain('new AgentClient({');
+    const electronAgentClientFactorySource = await read('frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
+    expect(ipcSource).toContain('createElectronAgentClientRuntime({');
+    expect(ipcSource).not.toContain('new AgentClient({');
+    expect(electronAgentClientFactorySource).toContain('new AgentClient({');
     expect(ipcSource).toContain('client.wakeUp({');
     expect(ipcSource).toContain('createDirectWakeUpAgentAdapter({');
     expect(ipcSource).not.toContain('agent.conversation({');

@@ -50,6 +50,9 @@ const {
   handleAgentBackendCloseEvent,
 } = require('./ipc/ipc_agent_backend_close_runtime.cjs');
 const {
+  createElectronAgentClient: createElectronAgentClientRuntime,
+} = require('./ipc/ipc_electron_agent_client_factory.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -100,7 +103,6 @@ const {
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
-  appUserDataRoot,
 } = require('./diagnostics/app_diagnostics_store.cjs');
 const {
   appendIpcBridgeDiagnostic,
@@ -191,9 +193,6 @@ const {
 const {
   isAgentLoopStopShortcutPhase,
 } = require('./shortcuts/agent_stop_shortcut_runtime.cjs');
-const {
-  createDesktopLocalRuntimeLaunchPlan,
-} = require('./sidecar/local_runtime_launch_options.cjs');
 const {
   AgentClient,
   buildAgentDefinition,
@@ -522,36 +521,6 @@ function buildDesktopInstallAuth() {
   };
 }
 
-function buildManagedBackendEndpoints() {
-  return backendEndpointState.getCandidates().map(endpoint => ({
-    backendUrl: endpoint.httpUrl || endpoint.httpBaseUrl || endpoint.backendUrl,
-    httpBaseUrl: endpoint.httpUrl || endpoint.httpBaseUrl || endpoint.backendUrl,
-    wsUrl: endpoint.wsUrl,
-    wsOrigin: endpoint.wsOrigin || endpoint.httpUrl || endpoint.httpBaseUrl || endpoint.backendUrl,
-  }));
-}
-
-function buildDesktopLocalRuntimeLaunchOptionsForAgent() {
-  const plan = createDesktopLocalRuntimeLaunchPlan({
-    ...(desktopLocalRuntimeLaunchConfig || {}),
-    backendEndpoints: {
-      httpUrl: backendEndpointState.getHttpUrl(),
-    },
-    userDataRoot: appUserDataRoot(),
-    ...(agentWebSocketImpl ? { WebSocketImpl: agentWebSocketImpl } : {}),
-  });
-  if (plan.ok !== true) {
-    throw new Error(plan.error || 'Desktop local runtime launch is unavailable.');
-  }
-  return plan.options;
-}
-
-function buildDesktopLocalRuntimeOptions() {
-  return process.env.NODE_ENV === 'test'
-    ? { autoStartLocalRuntime: false }
-    : { autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent() };
-}
-
 function configureIpcHostRuntime(config = {}) {
   configureBackendEndpointRuntime(config.hostedBackend);
   backendEndpointState.refresh();
@@ -570,19 +539,14 @@ function configureIpcHostCopyRuntime(copy = {}) {
 }
 
 function createElectronAgentClient() {
-  logMainRuntime(`[Main][SDK] creating_client backend=${backendEndpointState.getHttpUrl()}`);
-  return new AgentClient({
-    backendUrl: backendEndpointState.getHttpUrl(),
-    httpBaseUrl: backendEndpointState.getHttpUrl(),
-    wsUrl: backendEndpointState.getWsUrl(),
-    wsOrigin: backendEndpointState.getHttpUrl(),
-    backendEndpoints: buildManagedBackendEndpoints(),
-    backendSession: 'managed',
+  return createElectronAgentClientRuntime({
+    AgentClient,
+    backendEndpointState,
+    desktopLocalRuntimeLaunchConfig,
+    WebSocketImpl: agentWebSocketImpl,
     reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
     connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
     idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
-    ...(agentWebSocketImpl ? { WebSocketImpl: agentWebSocketImpl } : {}),
-    ...buildDesktopLocalRuntimeOptions(),
     onBackendOpen: payload => handleAgentConnection({ type: 'open', ...payload }),
     onBackendClose: payload => handleAgentConnection({ type: 'close', ...payload }),
     onBackendError: payload => handleAgentConnection({ type: 'error', ...payload }),
@@ -592,6 +556,8 @@ function createElectronAgentClient() {
       activeAgent?.noteBackendTraffic?.(`send:${type}`);
     },
     onBackendFallback: endpoint => handleAgentBackendFallback(endpoint),
+    isTest: process.env.NODE_ENV === 'test',
+    logMainRuntime,
   });
 }
 

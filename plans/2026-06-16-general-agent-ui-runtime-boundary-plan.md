@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Electron Agent Client Factory Boundary
+
+- Finding: `ipc.cjs` still shaped `AgentClient` constructor options inline:
+  backend endpoint candidates, managed websocket URLs, SDK `autoLocalRuntime`
+  launch options, test-mode local-runtime disabling, and backend lifecycle
+  callback attachment all lived beside relay state.
+- Change: added `ipc_electron_agent_client_factory.cjs` to own Electron
+  `AgentClient` option shaping. `ipc.cjs` now keeps wake-up/install-auth/active
+  agent state while delegating constructor config, endpoint mapping, and
+  auto-local-runtime option building to the factory.
+- Validation: focused factory coverage for managed endpoint mapping,
+  auto-local-runtime launch-plan wiring, test-mode disabling, constructor
+  callback attachment, factory logging, and a boundary guard that keeps
+  `new AgentClient(...)` out of `ipc.cjs`.
+- Compatibility: no migration required. `AgentClient` constructor options,
+  SDK `autoLocalRuntime` shape, backend endpoint selection, websocket callback
+  behavior, local-runtime launch behavior, storage, credentials, permissions,
+  hosted URLs, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Agent Backend Close Runtime Boundary
 
 - Finding: connection open/error/fallback adaptation had moved out of
