@@ -5806,3 +5806,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   registry behavior, SDK/main dispatch, Python sidecar modules, storage,
   credentials, permissions, provider policy, hosted URLs, and IPC payloads are
   unchanged.
+- Web client integration docs now route public TypeScript clients to
+  `packages/windie-sdk-js`, app-internal Electron renderer requests to
+  app-runtime facades, and `agentSdkClient.ts` to first-party renderer SDK
+  facade wording. Runtime code, SDK exports, IPC channels, hosted backend URLs,
+  settings/model payloads, credentials, permissions, storage, provider policy,
+  and local-runtime behavior are unchanged.

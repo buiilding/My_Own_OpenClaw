@@ -62,6 +62,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route SDK-backed transcript store/projection adapters to
   the SDK package source directly, leaving `agentSdkClient` imports behind the
   app-runtime conversation contracts facade. No migration required.
+- docs/web: route public TypeScript clients to the SDK package and app-internal
+  Electron renderer requests to app-runtime facades instead of the retired
+  renderer ApiClient. No migration required.
 - docs/browser: remove stale Browser Use extraction model env guidance; `extract`
   now documents the deterministic local-runtime markdown/focused-excerpt path.
   No migration required.

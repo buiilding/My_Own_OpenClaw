@@ -16016,3 +16016,21 @@ Each completed slice should report:
   registry behavior, SDK/main dispatch, Python sidecar modules, storage,
   credentials, permissions, provider policy, hosted URLs, and IPC payloads are
   unchanged.
+
+### 2026-06-20 Web client integration ApiClient label cleanup
+
+- Finding: the web client integration matrix still pointed the TypeScript
+  hosted client row at the renderer `agentSdkClient` facade and listed an
+  Electron renderer `ApiClient`, even though the legacy renderer ApiClient is
+  deleted and non-Electron clients should import the SDK package.
+- Change: changed the public TypeScript client route to
+  `packages/windie-sdk-js`, routed Electron app-internal UI/runtime requests to
+  renderer app-runtime facades, documented `agentSdkClient.ts` as first-party
+  renderer infrastructure, and extended the renderer ApiClient boundary guard to
+  cover the web integration doc.
+- Validation: focused renderer ApiClient boundary test, stale ApiClient docs
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, SDK exports, IPC
+  channels, hosted backend URLs, settings/model payloads, credentials,
+  permissions, storage, provider policy, and local-runtime behavior are
+  unchanged.

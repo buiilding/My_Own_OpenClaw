@@ -14,10 +14,15 @@ WindieOS hosted clients talk directly to the backend. They do not use Electron I
 
 | Client | Current path | Use for | Not for |
 | --- | --- | --- | --- |
-| TypeScript hosted client | `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` | artifacts, SDK routes, websocket query transport | local runtime tools or Electron-only state |
+| TypeScript hosted client | `packages/windie-sdk-js` | artifacts, SDK routes, websocket query transport | Electron-only renderer state |
 | Python hosted client | `frontend/src/main/python/windie/sdk.py` | Python SDK hosted backend access | direct local desktop automation without local runtime tool path |
-| Electron renderer `ApiClient` | renderer infrastructure | app-internal UI/runtime requests | public browser SDK contract |
+| Electron renderer app-runtime facades | `frontend/src/renderer/app/runtime/*` | app-internal UI/runtime requests | public browser SDK contract |
 | VM worker runtime | `frontend/src/main/app/vm_worker_runtime.cjs` | `/api/runs/*` assignment/control and normal websocket dispatch | normal desktop user query routing |
+
+`frontend/src/renderer/infrastructure/api/agentSdkClient.ts` is the first-party
+Electron renderer SDK facade for hosted transport wrappers and runtime
+contracts. Non-Electron clients should import the SDK package instead of
+reaching into renderer infrastructure.
 
 ## Integration Checklist
 
