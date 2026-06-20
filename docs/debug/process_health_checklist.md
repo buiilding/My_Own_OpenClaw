@@ -47,13 +47,14 @@ First checks:
 Healthy signs:
 
 - providers mount without React error boundary fallback.
-- `from-backend` events are consumed by the expected listener.
+- SDK projection events and typed backend side-channel events are consumed by
+  the expected listener.
 - transcript session state has conversation/user identity before writes flush.
 
 First checks:
 
 - DevTools console,
-- renderer event type guard,
+- SDK backend-event type guard and typed renderer fan-out channel,
 - chat stream hook/store tests,
 - dashboard resume/rehydrate flow.
 

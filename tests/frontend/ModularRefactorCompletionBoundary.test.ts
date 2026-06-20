@@ -410,7 +410,9 @@ describe('modular sdk refactor completion boundary', () => {
     const runtimeBoundaryDocs = [
       'docs/architecture/frontend_architecture.md',
       'docs/concepts/streaming_and_events.md',
+      'docs/README.md',
       'docs/debug/README.md',
+      'docs/debug/process_health_checklist.md',
       'docs/debug/symptom_playbooks.md',
       'docs/development/agent_architecture_reference.md',
       'docs/channels/websocket_event_contract_change_workflow.md',
@@ -443,6 +445,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Agent SDK normalization/projection path, and typed Electron fan-out channel');
     expect(docText).toContain('SDK transport/projection, typed fan-out channel');
     expect(docText).toContain('Agent SDK runtime receives the hosted backend WebSocket event');
+    expect(docText).toContain('SDK projection events and typed backend side-channel events are consumed');
     expect(docText).toContain('3. LOCAL-RUNTIME EXECUTION');
     expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('SDK agent-runtime');
@@ -461,6 +464,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('transport rebroadcast');
     expect(docText).not.toContain('Electron main rebroadcast');
     expect(docText).not.toContain('Main process receives WebSocket event');
+    expect(docText).not.toContain('Which renderer modules consume each `from-backend` event type');
+    expect(docText).not.toContain('Sub-hub for `from-backend` event ingress typing boundaries');
+    expect(docText).not.toContain('Main-process rebroadcast path, typed event-guard limits');
+    expect(docText).not.toContain('`from-backend` events are consumed by the expected listener');
     expect(docText).not.toContain('3. SIDECAR EXECUTION');
     expect(docText).not.toContain('Frontend/sidecar owner');
     expect(docText).not.toContain('Frontend-owned payloads:');

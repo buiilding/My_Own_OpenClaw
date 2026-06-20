@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Event Docs Hub Typed Fan-Out Boundary
+
+- Finding: the docs hub summaries and process-health checklist still described
+  renderer event debugging through current `from-backend` event/listener
+  wording, even though generic `from-backend` relay has been removed and
+  renderer-visible backend output now arrives through SDK projections plus typed
+  side-channel events.
+- Change: updated docs hub route summaries and renderer health checks to point
+  at SDK conversation events, SDK projection snapshots, typed backend
+  side-channel events, and typed fan-out channels.
+- Validation: extended the runtime-routing docs guard to read the docs hub and
+  process-health checklist, require SDK projection/typed side-channel wording,
+  and reject the current-facing `from-backend` listener summaries.
+- Compatibility: no migration required. Runtime code, docs paths, IPC channel
+  names, backend websocket payloads, SDK projection events, typed side-channel
+  events, storage, credentials, permissions, provider policy, hosted URLs, and
+  local execution behavior are unchanged.
+
 ### 2026-06-20 Renderer Folder Streaming Receive Docs Boundary
 
 - Finding: the renderer folder-structure streaming response diagram still

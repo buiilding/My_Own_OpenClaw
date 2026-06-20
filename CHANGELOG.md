@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/events: update docs hub and process-health event-consumption guidance
+  to point at SDK projections and typed backend side-channel events instead of
+  current-facing `from-backend` listener wording. No migration required.
 - docs/renderer: route the renderer folder-structure streaming-response
   diagram through Agent SDK websocket receive and projection ownership instead
   of implying Electron main receives backend websocket events directly. No

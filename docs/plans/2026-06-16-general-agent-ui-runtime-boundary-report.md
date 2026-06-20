@@ -5103,6 +5103,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Remaining Findings
 
+- Docs hub and process-health event debugging copy now routes through SDK
+  projection events and typed backend side-channel events instead of
+  current-facing `from-backend` listener summaries.
 - Renderer folder-structure streaming response docs now show Agent SDK runtime
   websocket receive/projection ownership instead of Electron main directly
   receiving backend WebSocket events.
