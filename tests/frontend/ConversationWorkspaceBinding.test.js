@@ -28,21 +28,21 @@ describe('conversation workspace binding helpers', () => {
 
     expect(
       setConversationWorkspaceBinding(' conv-1 ', {
-        workspacePath: ' C:/Projects/WindieOS/ ',
+        workspacePath: ' C:/Projects/project-alpha/ ',
         workspaceName: '',
       }),
     ).toEqual({
-      workspacePath: 'C:/Projects/WindieOS/',
-      workspaceName: 'WindieOS',
+      workspacePath: 'C:/Projects/project-alpha/',
+      workspaceName: 'project-alpha',
     });
     expect(getConversationWorkspaceBinding('conv-1')).toEqual({
-      workspacePath: 'C:/Projects/WindieOS/',
-      workspaceName: 'WindieOS',
+      workspacePath: 'C:/Projects/project-alpha/',
+      workspaceName: 'project-alpha',
     });
     expect(JSON.parse(window.sessionStorage.getItem(STORAGE_KEY))).toEqual({
       'conv-1': {
-        workspacePath: 'C:/Projects/WindieOS/',
-        workspaceName: 'WindieOS',
+        workspacePath: 'C:/Projects/project-alpha/',
+        workspaceName: 'project-alpha',
       },
     });
   });

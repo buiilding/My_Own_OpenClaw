@@ -11,11 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `b2a5d3db5` (`docs(frontend): avoid backend bridge debt wording`)
-- Latest completed slice: the frontend architecture SDK event fan-out debt note
-  now warns against a direct backend relay, and remaining Agent SDK sample
-  project/query fixtures now use neutral values instead of WindieOS-flavored
-  fixture data.
+- Latest inspected plan checkpoint: `dc738220e` (`test(sdk): neutralize project query fixtures`)
+- Latest completed slice: remaining Agent SDK sample project/query fixtures now
+  use neutral values, and renderer desktop workspace runtime/binding fixtures
+  now use neutral project workspace samples instead of WindieOS-flavored fixture
+  data.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -65,8 +65,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   fan-out table now describes the remaining deletion condition as avoiding a
   direct backend relay rather than a revived backend bridge. Agent SDK
   workspace and native web-search query fixtures now use neutral project
-  samples while preserving package names and explicit legacy guards. Preload
-  SDK-command validation failures use generic Agent SDK wording while the
+  samples while preserving package names and explicit legacy guards. Renderer
+  desktop workspace runtime and conversation-binding fixtures now use neutral
+  project workspace samples while preserving the same value-normalization and
+  session-storage contracts. Preload SDK-command validation failures use
+  generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,
   and JS SDK public stream projections use generic fallback error wording when
@@ -7514,3 +7517,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   scope metadata, storage, credentials, permissions, hosted backend URLs,
   provider policy, and local-runtime behavior are unchanged; no migration is
   required.
+- Renderer desktop workspace runtime and conversation-binding fixture samples
+  now use neutral `project-alpha` workspace paths/names instead of
+  WindieOS-flavored sample data. Workspace update normalization, active
+  workspace presentation, value-level selection comparison, session-storage
+  binding keys, IPC channels, permissions, storage format, credentials, hosted
+  backend URLs, provider policy, and local-runtime behavior are unchanged; no
+  migration is required.

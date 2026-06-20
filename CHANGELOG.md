@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/renderer: use neutral project workspace samples in desktop workspace
+  runtime and conversation-binding coverage instead of WindieOS-flavored
+  fixture data. No migration required.
+
 - tests/sdk: use neutral project workspace and web-search query samples in
   Agent SDK coverage instead of WindieOS-flavored fixture data. No migration
   required.

@@ -43,34 +43,34 @@ describe('DesktopWorkspaceRuntimeClient', () => {
     expect(normalizeWorkspaceAccessUpdatedPayload({
       granted: true,
       source: 'workspace_picker',
-      workspacePath: '/repo/WindieOS/',
+      workspacePath: '/repo/project-alpha/',
     })).toEqual({
       granted: true,
       source: 'workspace_picker',
       isWorkspacePickerSelection: true,
-      workspaceName: 'WindieOS',
-      workspacePath: '/repo/WindieOS/',
+      workspaceName: 'project-alpha',
+      workspacePath: '/repo/project-alpha/',
       workspace: {
-        activeWorkspaceName: 'WindieOS',
-        activeWorkspacePath: '/repo/WindieOS/',
-        selectedPaths: ['/repo/WindieOS/'],
+        activeWorkspaceName: 'project-alpha',
+        activeWorkspacePath: '/repo/project-alpha/',
+        selectedPaths: ['/repo/project-alpha/'],
       },
     });
 
     expect(normalizeWorkspaceAccessUpdatedPayload({
       granted: true,
       source: 'startup_sync',
-      workspacePath: '/repo/WindieOS',
+      workspacePath: '/repo/project-alpha',
     })).toEqual({
       granted: true,
       source: 'startup_sync',
       isWorkspacePickerSelection: false,
-      workspaceName: 'WindieOS',
-      workspacePath: '/repo/WindieOS',
+      workspaceName: 'project-alpha',
+      workspacePath: '/repo/project-alpha',
       workspace: {
-        activeWorkspaceName: 'WindieOS',
-        activeWorkspacePath: '/repo/WindieOS',
-        selectedPaths: ['/repo/WindieOS'],
+        activeWorkspaceName: 'project-alpha',
+        activeWorkspacePath: '/repo/project-alpha',
+        selectedPaths: ['/repo/project-alpha'],
       },
     });
 
@@ -91,25 +91,25 @@ describe('DesktopWorkspaceRuntimeClient', () => {
   test('compares active workspace selections by value-level name and path', () => {
     expect(areActiveWorkspaceSelectionsEqual(
       {
-        activeWorkspaceName: 'WindieOS',
-        activeWorkspacePath: '/repo/WindieOS',
-        selectedPaths: ['/repo/WindieOS'],
+        activeWorkspaceName: 'Project Alpha',
+        activeWorkspacePath: '/repo/project-alpha',
+        selectedPaths: ['/repo/project-alpha'],
       },
       {
-        activeWorkspaceName: 'WindieOS',
-        activeWorkspacePath: '/repo/WindieOS',
-        selectedPaths: ['/repo/WindieOS', '/ignored'],
+        activeWorkspaceName: 'Project Alpha',
+        activeWorkspacePath: '/repo/project-alpha',
+        selectedPaths: ['/repo/project-alpha', '/ignored'],
       },
     )).toBe(true);
     expect(
       DesktopWorkspaceRuntimeClient.areActiveWorkspaceSelectionsEqual(
         {
-          activeWorkspaceName: 'WindieOS',
-          activeWorkspacePath: '/repo/WindieOS',
+          activeWorkspaceName: 'Project Alpha',
+          activeWorkspacePath: '/repo/project-alpha',
         },
         {
           activeWorkspaceName: 'frontend',
-          activeWorkspacePath: '/repo/WindieOS/frontend',
+          activeWorkspacePath: '/repo/project-alpha/frontend',
         },
       ),
     ).toBe(false);
@@ -125,17 +125,17 @@ describe('DesktopWorkspaceRuntimeClient', () => {
 
     expect(getActiveWorkspacePresentation(
       {
-        activeWorkspaceName: 'WindieOS',
-        activeWorkspacePath: '/repo/WindieOS',
-        selectedPaths: ['/repo/WindieOS'],
+        activeWorkspaceName: 'Project Alpha',
+        activeWorkspacePath: '/repo/project-alpha',
+        selectedPaths: ['/repo/project-alpha'],
       },
       {
         emptyWorkspaceText: 'No workspace selected.',
         updatedFallbackText: 'Workspace updated.',
       },
     )).toEqual({
-      pathText: '/repo/WindieOS',
-      updateSuccessMessage: 'Active workspace set to WindieOS.',
+      pathText: '/repo/project-alpha',
+      updateSuccessMessage: 'Active workspace set to Project Alpha.',
     });
 
     expect(DesktopWorkspaceRuntimeClient.getActiveWorkspacePresentation(null, {

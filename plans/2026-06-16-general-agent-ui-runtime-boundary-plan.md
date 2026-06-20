@@ -18402,3 +18402,21 @@ Each completed slice should report:
   compatibility guards, browser scope metadata, storage, credentials,
   permissions, hosted backend URLs, provider policy, and local-runtime behavior
   are unchanged.
+
+### 2026-06-20 Renderer workspace fixture neutrality
+
+- Finding: renderer desktop workspace runtime and conversation-binding tests
+  already exercised generic workspace value normalization, presentation, and
+  session-storage binding behavior, but their sample project folders still used
+  WindieOS-flavored names.
+- Change: switched those renderer workspace fixture values to neutral
+  `project-alpha` samples and extended the modular boundary guard so retired
+  product-shaped workspace samples stay out of the generic renderer workspace
+  tests.
+- Validation: focused desktop workspace runtime client test, focused
+  conversation workspace binding test, focused modular boundary test, exact
+  retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Workspace update normalization, active
+  workspace presentation, value-level selection comparison, session-storage
+  binding keys, IPC channels, permissions, storage format, credentials, hosted
+  backend URLs, provider policy, and local-runtime behavior are unchanged.

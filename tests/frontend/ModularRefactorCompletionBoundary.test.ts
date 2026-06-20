@@ -355,6 +355,21 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkTestText).toContain("workspaceName: 'Project Alpha'");
   });
 
+  test('renderer workspace runtime tests keep workspace fixtures product-neutral', async () => {
+    const workspaceTestText = await Promise.all([
+      read('tests/frontend/DesktopWorkspaceRuntimeClient.test.ts'),
+      read('tests/frontend/ConversationWorkspaceBinding.test.js'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(workspaceTestText).not.toContain('/repo/WindieOS');
+    expect(workspaceTestText).not.toContain('C:/Projects/WindieOS');
+    expect(workspaceTestText).not.toContain("activeWorkspaceName: 'WindieOS'");
+    expect(workspaceTestText).not.toContain("workspaceName: 'WindieOS'");
+    expect(workspaceTestText).toContain('/repo/project-alpha');
+    expect(workspaceTestText).toContain('C:/Projects/project-alpha');
+    expect(workspaceTestText).toContain("activeWorkspaceName: 'Project Alpha'");
+  });
+
   test('landing docs track desktop runtime and local runtime public copy', async () => {
     const landingDocs = await Promise.all([
       read('docs/frontend/landing/landing_page_runtime_and_content_reference.md'),
