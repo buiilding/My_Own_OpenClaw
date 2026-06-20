@@ -241,6 +241,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Public Tool-System Local-Runtime Executor Labels
+
+- Finding: public tool-system, node matrix, help, and API/reference docs still
+  presented the Python sidecar daemon as the local tool owner for SDK/main
+  local-runtime execution paths.
+- Change: routed those labels through local-runtime Python executor/daemon and
+  local-runtime daemon contract wording while preserving implementation docs
+  and concrete `sidecar_daemon.py` paths for Python-side debugging.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  public daemon-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK/main local-runtime
+  dispatch, Python executor behavior, JSON-RPC payloads, tool schemas,
+  storage, credentials, permissions, hosted backend URLs, provider policy, and
+  trust boundaries are unchanged.
+
 ### 2026-06-20 Frontend Inventory Local-Runtime Daemon Labels
 
 - Finding: frontend inventory, main-process, websocket, protocol, and renderer

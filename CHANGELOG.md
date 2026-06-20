@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route public tool-system, node matrix, help, and API/reference
+  daemon labels through local-runtime Python executor/daemon wording instead
+  of presenting the Python sidecar daemon as the public local tool owner. No
+  migration required.
 - docs/frontend: route inventory, main-process, websocket, protocol, and
   transcript sidecar-daemon labels through SDK-owned local-runtime daemon and
   local-runtime Python wording instead of sidecar-as-public-owner labels. No

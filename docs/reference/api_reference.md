@@ -430,7 +430,7 @@ Agent runtime notes:
 
 - TypeScript agent sessions should be created through `AgentClient.wakeUp(...)`.
 - Python agent sessions should use `AgentSdkClient.wake_up(...)`; local module
-  tools, plugins, and MCP servers are registered with the same sidecar daemon
+  tools, plugins, and MCP servers are registered with the same local-runtime daemon
   contract used by the TypeScript runtime.
 
 Shared image input shape:

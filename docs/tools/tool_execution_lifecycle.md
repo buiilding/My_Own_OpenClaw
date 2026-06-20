@@ -30,7 +30,7 @@ event router.
 6. Backend preparation resolves any high-level or grounded fields into executable payloads.
 7. Backend sends `tool-call` or `tool-bundle` websocket events to the SDK client.
 8. SDK runtime normalizes the tool event and routes the call through its local runtime client to the configured local executor.
-9. The local runtime invokes the Python sidecar daemon or JSON-RPC tool registry behind that local-executor boundary.
+9. The local runtime invokes the local-runtime Python executor or JSON-RPC tool registry behind that local-executor boundary.
 10. The Python sidecar executes the local action and returns a normalized `ToolResult`.
 11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend, appends a normalized `tool_output` or `tool_bundle_output` event with display content, and projects a display-only renderer `tool-output` event for both single calls and bundles. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
 12. Backend result receiver resolves the pending future.

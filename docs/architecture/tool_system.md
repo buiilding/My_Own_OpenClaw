@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-The Tool System enables WindieOS to interact with the computer through a set of specialized tools. Most tools are dispatched through the SDK/main local runtime into the Python sidecar daemon, while backend-owned tools such as `web_search` execute entirely in backend Python.
+The Tool System enables WindieOS to interact with the computer through a set of specialized tools. Most tools are dispatched through the SDK/main local runtime into the local-runtime Python executor, while backend-owned tools such as `web_search` execute entirely in backend Python.
 
 Current runtime note:
 
@@ -33,7 +33,7 @@ For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth
 | Desktop Client / Local Runtime                   |
 |  - Electron main: host bridge and dispatch       |
 |  - SDK runtime: ToolExecutionCoordinator         |
-|  - Python sidecar daemon: executable tools       |
+|  - Local-runtime Python executor: executable tools |
 |  - Renderer: result projections and display      |
 +--------------------------------------------------+
 ```
@@ -42,7 +42,7 @@ For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth
 
 ### Remote Tools (Local-Runtime Execution)
 
-Most tools are dispatched through the SDK/main local runtime into the Python sidecar daemon:
+Most tools are dispatched through the SDK/main local runtime into the local-runtime Python executor:
 
 - **Computer Control Tools**: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_window`, `wait`
 - **System/Filesystem Tools**: `run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`
@@ -188,8 +188,8 @@ Tool calls are sent by the agent tool sender. Execution now has two lanes:
 
 1. SDK runtime receives and normalizes the backend `tool-call` or `tool-bundle`.
 2. `ToolExecutionCoordinator` claims executable local events and calls the SDK local-runtime client.
-3. SDK local runtime routes the local call to the Python sidecar daemon/tool bridge, with Electron main supplying host context.
-4. Python sidecar executes the tool, including screenshot/system-state capture when required by the executable tool.
+3. SDK local runtime routes the local call to the local-runtime Python tool bridge, with Electron main supplying host context.
+4. The local-runtime Python implementation executes the tool, including screenshot/system-state capture when required by the executable tool.
 5. SDK runtime sends exactly one `tool-result` or `tool-bundle-result` back to backend and appends the normalized tool output event for display/projection.
 
 Backend lane additions:
@@ -253,7 +253,7 @@ class MyTool(Tool[MyToolArgs]):
 
 Client-local tools use backend catalog stubs for model-facing schema and
 policy, then dispatch executable payloads through the SDK/main local runtime
-into the Python sidecar daemon. Backend-owned remote tools such as `web_search`
+into the local-runtime Python executor. Backend-owned remote tools such as `web_search`
 stay in backend services and do not use the local-runtime Python executor.
 
 **Backend Catalog Stub** (`backend/src/tools/remote_tools/<domain>.py`, a

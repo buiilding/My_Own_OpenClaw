@@ -1535,6 +1535,15 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar daemon-backed local-runtime bridge',
         'sidecar daemon, which dispatches',
         'sidecar chat-event RPC names remain',
+        'through the SDK/main local runtime into the Python sidecar daemon',
+        'Python sidecar daemon: executable tools',
+        'routes the local call to the Python sidecar daemon/tool bridge',
+        'Python sidecar executes the tool',
+        'invokes the Python sidecar daemon',
+        '| local-runtime JSON-RPC | SDK `LocalRuntime` with Electron host context | Python sidecar daemon |',
+        'Did the local runtime start the Python sidecar daemon',
+        'sidecar daemon fails to start',
+        'same sidecar daemon contract',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

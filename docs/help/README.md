@@ -24,7 +24,7 @@ Start here for user-visible failures. If the issue is implementation-specific, f
 1. Is the failure in the hosted backend, Electron main, renderer, preload, or local runtime?
 2. Is the app running from source or packaged?
 3. Did the backend websocket connect and complete settings sync?
-4. Did the local runtime start the Python sidecar daemon and answer JSON-RPC?
+4. Did the local runtime start the local-runtime Python daemon and answer JSON-RPC?
 5. Is the missing capability hidden by provider health, permissions, or config?
 
 ## Related Docs

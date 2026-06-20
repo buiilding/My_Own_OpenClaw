@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a public tool-system local-runtime executor label
+  slice by routing public tool-system, node matrix, help, and API/reference
+  docs through local-runtime Python executor/daemon and local-runtime daemon
+  contract wording instead of presenting the Python sidecar daemon as the
+  public local tool owner. Validation covered the focused modular docs
+  boundary test, docs listing, exact stale public daemon-label scan, and diff
+  check. No migration required; runtime code, SDK/main local-runtime dispatch,
+  Python executor behavior, JSON-RPC payloads, tool schemas, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 - 2026-06-20: completed a frontend inventory local-runtime daemon label slice
   by routing inventory, main-process, websocket, protocol, and renderer
   transcript references through SDK-owned local-runtime daemon,
