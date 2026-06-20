@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a browser/platform local-runtime Python label slice by
+  routing browser workflow/hub, browser automation stack, storage persistence,
+  source-map export, runtime ownership, and platform workflow docs through
+  local-runtime Python Browser Use adapter, browser action, browser file-store,
+  handler, launcher, tool export, tool implementation, and computer-platform
+  wording instead of Python sidecar browser/action/launcher/handler,
+  sidecar-tool export, and platform-tool labels. The slice preserved concrete
+  Browser Use, `local_backend.py`, `frontend/src/main/python`, and
+  `tests/sidecar` references while extending the modular docs guard against the
+  retired phrases. Validation covered the focused modular docs boundary test,
+  docs listing, exact stale browser/platform label scan, and diff checks. No
+  migration required; runtime code, browser behavior, Browser Use invocation,
+  file-store behavior, platform adapters, tool schemas, JSON-RPC/daemon
+  payloads, IPC payloads, storage, credentials, permissions, hosted backend
+  URLs, provider policy, and trust boundaries are unchanged.
 - 2026-06-20: completed a local-runtime Python internals/backing-label slice by
   routing architecture, browser, voice/wakeword, debug, getting-started, memory,
   plugin, tool, filesystem/shell, permission, IPC, and lifecycle docs through

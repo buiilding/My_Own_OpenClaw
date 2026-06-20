@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: local-runtime internals, implementation-backing, and
-  wakeword/browser/tool docs now route remaining Python sidecar owner labels
-  through local-runtime Python wording, with a focused docs boundary guard
-  against those retired phrases.
+- Latest completed slice: browser workflow, browser hub, browser automation
+  stack, storage, source-map, ownership, and platform docs now route Browser
+  Use adapter, browser action, browser file, tool export, tool implementation,
+  and platform-tool labels through local-runtime Python wording, with a focused
+  docs boundary guard against those retired phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +245,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Browser and Platform Local-Runtime Python Labels
+
+- Finding: browser workflow/hub, local-runtime browser automation stack,
+  storage persistence, source-map export, runtime ownership, and platform
+  workflow docs still used Python sidecar browser/action/launcher/handler,
+  sidecar-tool export, and platform-tool labels where the reusable owner is
+  local-runtime Python implementation behind SDK/main dispatch.
+- Change: routed those labels through local-runtime Python Browser Use adapter,
+  browser action, browser file-store, handler, launcher, tool export, tool
+  implementation, and computer-platform wording while preserving concrete
+  Browser Use, `local_backend.py`, `frontend/src/main/python`, and
+  `tests/sidecar` references.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  browser/platform label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, browser behavior,
+  Browser Use invocation, file-store behavior, platform adapters, tool schemas,
+  JSON-RPC/daemon payloads, IPC payloads, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime Python Internals Labels
 

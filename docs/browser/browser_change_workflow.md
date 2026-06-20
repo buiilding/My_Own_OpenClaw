@@ -10,7 +10,7 @@ title: "Browser Change Workflow"
 
 Use this workflow when a browser change could cross the backend model-facing tool, shared browser contract, local-runtime browser execution, local-runtime Python Browser Use adapters, Electron tool bridge, renderer browser controls, or browser-owned file/profile state.
 
-WindieOS currently adapts its canonical browser tool contract to the maintained Browser Use CLI daemon through the Python sidecar. WindieOS owns the agent loop, policy, transport, and result normalization; Browser Use owns browser sessions, CDP/Playwright action mechanics, DOM state, element indexes, and daemon lifecycle. Future extension auto-attach remains a separate design boundary covered by [ADR 004](../adr/004-browser-extension-auto-attach.md).
+WindieOS currently adapts its canonical browser tool contract to the maintained Browser Use CLI daemon through local-runtime Python. WindieOS owns the agent loop, policy, transport, and result normalization; Browser Use owns browser sessions, CDP/Playwright action mechanics, DOM state, element indexes, and daemon lifecycle. Future extension auto-attach remains a separate design boundary covered by [ADR 004](../adr/004-browser-extension-auto-attach.md).
 
 ## Runtime Invariants
 
@@ -18,7 +18,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 - The shared Python browser contract is the schema source used by the backend
   remote browser tool and local-runtime validation backed by local-runtime
   Python adapters.
-- The local runtime owns browser tool execution; the current Python sidecar
+- The local runtime owns browser tool execution; the current local-runtime Python
   adapters own Browser Use invocation, browser-local file helpers, and WindieOS
   result normalization.
 - Browser Use owns Playwright/CDP objects, browser sessions, tabs, numeric element indexes, snapshots, and browser action mechanics.
@@ -54,7 +54,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 7. The local-runtime Python `ToolRegistry` resolves `"browser"` to `execute_browser`.
 8. `execute_browser` validates the payload with `BrowserControlArgs`.
 9. `BrowserUseEngineRuntime.execute()` maps the canonical action to Browser Use CLI daemon commands.
-10. Browser Use performs CDP/Playwright work and the Python sidecar normalizes the result into a `ToolResult`.
+10. Browser Use performs CDP/Playwright work and the local-runtime Python adapter normalizes the result into a `ToolResult`.
 11. SDK/main relays the result back to the backend tool-result path and renderer receives display projections.
 
 If a payload parses in the backend but fails in local runtime, compare the shared contract import path, backend schema wrapper, local-runtime validation entrypoint, and local-runtime Python Browser Use adapter support before changing renderer code.
@@ -86,7 +86,7 @@ Validate:
 - `BrowserUseEngineRuntime.execute()` covers the canonical runtime action set or returns explicit unsupported-action errors for Browser Use CLI gaps.
 - connected-page actions require an active browser session.
 - model-visible docs and prompt/tool-schema snapshots are updated when the visible schema changes.
-- Python sidecar browser registry tests skip only when Playwright itself is missing; WindieOS browser module import failures should fail collection.
+- Local-runtime Python browser registry tests skip only when Playwright itself is missing; WindieOS browser module import failures should fail collection.
 
 ### Change action payload fields
 
@@ -100,7 +100,7 @@ Edit:
 
 - shared contract model for type/default/validation changes.
 - shared schema builder if JSON schema shape changes.
-- Python sidecar browser handler if execution semantics change.
+- Local-runtime Python browser handler if execution semantics change.
 - backend tests if model-facing schema output changes.
 - renderer tests only for UI-triggered action payloads such as `connect`, `status`, `get_tabs`, `switch`, or `close`.
 
@@ -250,11 +250,11 @@ Validate:
 | Model never sees `browser` | tool policy/profile, model-visible schema, provider projection | backend tool catalog/policy |
 | Backend rejects browser payload | action literal, grouped schema, removed fields, model-facing parameters | shared contract/backend schema wrapper |
 | Backend accepts payload but local runtime rejects it | shared contract import drift, local-runtime validation entrypoint, runtime supported actions | shared contract or local-runtime validation |
-| `connect` launches wrong profile | CDP URL/port, profile path, Chrome launch args, extension-mode assumptions | Python sidecar Chrome launcher |
-| `connect` times out | executable detection, port already in use, `/json/version`, feature-pack deps | Python sidecar Chrome launcher/controller |
+| `connect` launches wrong profile | CDP URL/port, profile path, Chrome launch args, extension-mode assumptions | Local-runtime Python Chrome launcher |
+| `connect` times out | executable detection, port already in use, `/json/version`, feature-pack deps | Local-runtime Python Chrome launcher/controller |
 | `status` works but renderer shows disconnected | renderer polling snapshot, stale request id, result normalization | renderer browser session store |
-| `click` or `input` hits wrong element | fresh snapshot, role-ref disambiguation, action executor locator resolution | Python sidecar snapshot/ref/action executor |
-| snapshot misses interactive elements | DOM/AX collection, ref registry, snapshot limit, page load timing | Python sidecar enhanced CDP pipeline |
+| `click` or `input` hits wrong element | fresh snapshot, role-ref disambiguation, action executor locator resolution | Local-runtime Python snapshot/ref/action executor |
+| snapshot misses interactive elements | DOM/AX collection, ref registry, snapshot limit, page load timing | Local-runtime Python enhanced CDP pipeline |
 | browser files land in the wrong path | file-store root, relative path resolution, upload/read action payload | local-runtime browser file store |
 | browser action hangs at desktop bridge | SDK/main execute-tool timeout, local-runtime Python JSON-RPC availability, action runtime hang | SDK/main local-runtime dispatch or local-runtime Python browser adapter |
 
@@ -264,7 +264,7 @@ Validate:
 | --- | --- |
 | Backend browser schema/tool exposure | `./scripts/python-in-env backend pytest tests/backend/test_browser_remote_tool.py` |
 | Shared browser contract or local-runtime validation | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/tools/test_browser_use_engine_runtime.py` |
-| Python sidecar browser action | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py` |
+| Local-runtime Python browser action | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py` |
 | CDP launch/session lifecycle | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_chrome_launcher.py tests/sidecar/tools/test_chrome_detection.py tests/sidecar/tools/test_browser_use_engine.py` |
 | Snapshot/index behavior | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_use_engine.py` |
 | Renderer browser session UI | `<windie> test frontend -- ChatBrowserSessionControl.test.jsx` |

@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(browser): route browser adapter, Browser Use handler, browser file,
+  source-map export, ownership, and platform tool labels through local-runtime
+  Python wording. No migration required.
 - docs(runtime): route remaining local-runtime internals and implementation
   backing labels through local-runtime Python wording instead of Python sidecar
   owner labels. No migration required.

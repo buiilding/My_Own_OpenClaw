@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Browser and Platform Local-Runtime Python Labels
+
+- Finding: browser workflow/hub, local-runtime browser automation stack,
+  storage persistence, source-map export, runtime ownership, and platform
+  workflow docs still used Python sidecar browser/action/launcher/handler,
+  sidecar-tool export, and platform-tool labels where the reusable owner is
+  local-runtime Python implementation behind SDK/main dispatch.
+- Change: routed those labels through local-runtime Python Browser Use adapter,
+  browser action, browser file-store, handler, launcher, tool export, tool
+  implementation, and computer-platform wording while preserving concrete
+  Browser Use, `local_backend.py`, `frontend/src/main/python`, and
+  `tests/sidecar` references.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  browser/platform label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, browser behavior,
+  Browser Use invocation, file-store behavior, platform adapters, tool schemas,
+  JSON-RPC/daemon payloads, IPC payloads, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Local-Runtime Python Internals Labels
 
 - Finding: architecture, browser, voice/wakeword, debug, getting-started,

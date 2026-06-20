@@ -32,7 +32,7 @@ WindieOS browser automation is a first-class local tool path. The backend expose
 
 ## Development Rule
 
-Do not edit the renderer to compensate for local-runtime browser payload bugs. Start with [Browser Change Workflow](browser_change_workflow.md), verify the Python sidecar browser action result first, then the Electron bridge result, then the renderer session store.
+Do not edit the renderer to compensate for local-runtime browser payload bugs. Start with [Browser Change Workflow](browser_change_workflow.md), verify the local-runtime Python browser action result first, then the Electron bridge result, then the renderer session store.
 
 ## Focused Validation
 

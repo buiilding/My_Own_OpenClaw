@@ -42,7 +42,7 @@ browser-contract runtime code from concrete modules such as
 `tools.system.shell_tool`, `tools.browser.browser_tool`, and
 `windie_shared.browser_contract`.
 
-The retired `tools/memory` package no longer defines a sidecar tool export;
+The retired `tools/memory` package no longer defines a local-runtime Python tool export;
 local memory is handled through local-runtime JSON-RPC methods and memory
 runtime modules.
 

@@ -2,14 +2,14 @@
 summary: "End-to-end local-runtime browser tool implementation: IPC/JSON-RPC path, shared browser contract validation, Browser Use engine dispatch, and browser file/snapshot boundaries."
 read_when:
   - When changing local-runtime browser tool behavior, action routing, or CDP launch policy.
-  - When debugging browser connect/snapshot/action failures across Agent SDK runtime, Electron main, and Python sidecar.
+  - When debugging browser connect/snapshot/action failures across Agent SDK runtime, Electron main, and local-runtime Python.
 title: "Local-Runtime Browser Automation Stack"
 ---
 
 # Local-Runtime Browser Automation Stack
 
 WindieOS currently routes the canonical `browser` tool through local-runtime
-browser execution backed by a Python sidecar Browser Use engine adapter. The old
+browser execution backed by a local-runtime Python Browser Use engine adapter. The old
 first-party `WindieBrowserRuntime` and vendored `browser_use.browser` session
 runtime were removed from source; do not add new browser behavior to those
 retired paths.
@@ -20,7 +20,7 @@ Request path for browser actions:
 
 1. Agent SDK runtime routes a local browser tool call through the SDK local-runtime client.
 2. Electron main `local_runtime_bridge.cjs` sends JSON-RPC `execute_tool`.
-3. Python sidecar `local_backend.py` routes to `ToolRegistry.execute_tool("browser", args)`.
+3. Local-runtime Python `local_backend.py` routes to `ToolRegistry.execute_tool("browser", args)`.
 4. `tools/browser/browser_tool.py:execute_browser(...)` validates `BrowserControlArgs`.
 5. `BrowserUseEngineRuntime.execute(...)` maps the canonical action to a Browser Use CLI command or adapter-owned helper.
 6. Browser Use performs browser/session mechanics while the adapter normalizes action result data.
@@ -75,7 +75,7 @@ Canonical schema and runtime action coverage are shared through:
 - `frontend/src/main/python/windie_shared/browser_contract.py`
 - `backend/src/tools/browser/**`
 
-When adding/removing actions, update the shared contract, backend schema wrappers, local-runtime validation entrypoint, Python sidecar Browser Use handler bindings, and parity tests together.
+When adding/removing actions, update the shared contract, backend schema wrappers, local-runtime validation entrypoint, local-runtime Python Browser Use handler bindings, and parity tests together.
 
 Use [Browser Change Workflow](../../browser/browser_change_workflow.md) for the full owner map and validation matrix.
 

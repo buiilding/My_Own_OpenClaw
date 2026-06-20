@@ -42,7 +42,7 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 | Tool result futures and resolved-call storage | Backend tool runtime | `backend/src/agent/tools/waiting/storage/result_storage.py`, `backend/src/agent/tools/preparation/storage/resolved_call_storage.py` | `tests/backend/test_tool_result_storage.py`, `test_resolved_tool_call_storage.py` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Backend caches | Backend core infrastructure | `backend/src/core/infrastructure/cache*.py` | `tests/backend/test_cache_layer.py`, `test_cache_entry.py` | [Backend Core Cache Hub](../backend/core/cache/README.md) |
 | VM run control registry | Backend runs service | `backend/src/services/vm_run_control.py`, `backend/src/api/routes/runs/**` | `tests/backend/test_run_control_routes.py` | [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
-| Browser-local files | Python sidecar Browser Use engine adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | sidecar browser tool/action tests | [Browser Change Workflow](../browser/browser_change_workflow.md) |
+| Browser-local files | Local-runtime Python Browser Use engine adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | local-runtime Python browser tool/action tests | [Browser Change Workflow](../browser/browser_change_workflow.md) |
 | Permission state | Electron main and renderer permission store | `frontend/src/main/permissions/permission_state_store.cjs`, `frontend/src/renderer/features/permissions/**` | frontend permission tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 
 ## Ownership Rules
@@ -273,7 +273,7 @@ Validate:
 | VM run vanishes after backend restart | expected: VM run service is in-memory | backend run-control design, not renderer bug |
 | Tool wait hangs or leaks futures | result storage cleanup, request-id mismatch, bundle result handling | backend tool waiting storage |
 | Cache serves stale value | cache key namespace/TTL/negative cache behavior | backend cache store/manager |
-| Browser file lands outside expected root | browser file store env/root resolution | sidecar browser file store |
+| Browser file lands outside expected root | browser file store env/root resolution | local-runtime Python browser file store |
 
 ## Validation Matrix
 
