@@ -49,7 +49,7 @@ const {
   createIpcProcessResetRuntime,
 } = require('./ipc/ipc_process_reset_runtime.cjs');
 const {
-  handleAgentBackendCloseEvent,
+  createAgentBackendCloseRuntime,
 } = require('./ipc/ipc_agent_backend_close_runtime.cjs');
 const {
   createAgentBackendEventRuntime,
@@ -500,6 +500,27 @@ const agentBackendEventRuntime = createAgentBackendEventRuntime({
     log,
   },
 });
+const agentBackendCloseRuntime = createAgentBackendCloseRuntime({
+  setConnected: (value) => {
+    backendConnectionGateState.setConnected(value);
+  },
+  markInferenceContextsStale: () => agentRuntimeLifecycle.getActiveAgent()?.markInferenceContextsStale?.(),
+  resetSettingsSyncState,
+  getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+  getActiveQueryContext: () => activeQueryContextState.get(),
+  setActiveQueryContext: (value) => activeQueryContextState.set(value),
+  getCurrentSessionId: () => backendSessionState.getSessionId(),
+  getCurrentServerUserId: () => backendSessionState.getServerUserId(),
+  getCurrentUserId: () => installAuthIdentityRuntime.getCurrentUserId(),
+  getQueryEventsCopy: () => ipcHostCopyRuntime.getQueryEvents(),
+  buildQueryInterrupted,
+  handleAgentBackendEvent,
+  setResponseOverlayPhase,
+  resetBackendSessionState,
+  clearEventReplayState: () => ipcEventReplayState.clear(),
+  log,
+  broadcastConnectionStatus,
+});
 const ipcProcessResetRuntime = createIpcProcessResetRuntime({
   settingsSyncRuntime,
   backendSessionState,
@@ -894,27 +915,7 @@ function handleAgentBackendEvent(rendererData) {
 }
 
 function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
-  return handleAgentBackendCloseEvent({ closeReason, shouldReconnect }, {
-    setConnected: (value) => {
-      backendConnectionGateState.setConnected(value);
-    },
-    markInferenceContextsStale: () => agentRuntimeLifecycle.getActiveAgent()?.markInferenceContextsStale?.(),
-    resetSettingsSyncState,
-    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-    getActiveQueryContext: () => activeQueryContextState.get(),
-    setActiveQueryContext: (value) => activeQueryContextState.set(value),
-    getCurrentSessionId: () => backendSessionState.getSessionId(),
-    getCurrentServerUserId: () => backendSessionState.getServerUserId(),
-    getCurrentUserId: () => installAuthIdentityRuntime.getCurrentUserId(),
-    getQueryEventsCopy: () => ipcHostCopyRuntime.getQueryEvents(),
-    buildQueryInterrupted,
-    handleAgentBackendEvent,
-    setResponseOverlayPhase,
-    resetBackendSessionState,
-    clearEventReplayState: () => ipcEventReplayState.clear(),
-    log,
-    broadcastConnectionStatus,
-  });
+  return agentBackendCloseRuntime.handle({ closeReason, shouldReconnect });
 }
 
 function shutdownIpcForTests() {

@@ -746,6 +746,10 @@ Owns Electron-main Agent SDK backend connection event adaptation:
 
 Owns Electron-main Agent SDK backend close cleanup:
 
+- exposes `createAgentBackendCloseRuntime(...)` so `ipc.cjs` composes
+  connection state, active query state, response-overlay phase, session
+  identity, query interrupted-event builder, backend-event relay, session reset,
+  replay clear, logging, and status broadcast dependencies once
 - marks the SDK inference contexts stale and resets settings sync on close
 - classifies close-time active-query phases that should synthesize an
   interrupted SDK-shaped query event

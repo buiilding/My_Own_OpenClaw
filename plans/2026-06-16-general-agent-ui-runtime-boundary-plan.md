@@ -120,6 +120,29 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Backend Close Runtime Boundary
+
+- Finding: `ipc_agent_backend_close_runtime.cjs` owned SDK backend close
+  cleanup behavior, including active-query interruption synthesis, idle overlay
+  fallback, session reset, replay clearing, disconnect logging, and status
+  broadcast, but `handleAgentBackendClose(...)` in `ipc.cjs` still assembled
+  connection state, active-query state, response-overlay phase, session/user
+  identity, query interrupted-event, backend-event relay, reset, logging, and
+  broadcast dependencies for every close.
+- Change: added `createAgentBackendCloseRuntime(...)` so the backend-close
+  helper owns reusable cleanup dependency composition. `handleAgentBackendClose`
+  now delegates to the composed runtime with only the close reason and reconnect
+  flag.
+- Validation: focused backend-close runtime and main SDK boundary coverage
+  verifies wrapper close behavior, source guards that keep direct
+  `handleAgentBackendCloseEvent(...)` calls out of `handleAgentBackendClose`,
+  and unchanged low-level interrupted-query/idle-close cleanup behavior.
+- Compatibility: no migration required. Backend close payload fields,
+  active-query interruption synthesis, query interrupted-event shape, idle
+  overlay fallback, session reset, replay clearing, disconnect logging, status
+  broadcasts, renderer IPC, storage, credentials, permissions, provider policy,
+  and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Backend Event Runtime Boundary
 
 - Finding: `ipc_agent_backend_event_runtime.cjs` owned active-query accepted

@@ -4,6 +4,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const {
+  createAgentBackendCloseRuntime,
   handleAgentBackendCloseEvent,
   shouldInterruptActiveQueryOnClose,
 } = require('../../frontend/src/main/ipc/ipc_agent_backend_close_runtime.cjs');
@@ -119,6 +120,24 @@ describe('ipc_agent_backend_close_runtime', () => {
     expect(deps.broadcastConnectionStatus).toHaveBeenCalledWith(false);
   });
 
+  test('runtime wrapper handles backend close events through composed dependencies', () => {
+    const deps = createCloseDeps({
+      getResponseOverlayPhase: jest.fn(() => 'streaming'),
+      getActiveQueryContext: jest.fn(() => ({
+        queryMessageId: 'turn-1',
+        conversationRef: 'conv-1',
+        accepted: true,
+      })),
+    });
+    const runtime = createAgentBackendCloseRuntime(deps);
+
+    expect(runtime.handle({ shouldReconnect: true })).toEqual({ interrupted: true });
+
+    expect(deps.setConnected).toHaveBeenCalledWith(false);
+    expect(deps.handleAgentBackendEvent).toHaveBeenCalledWith({ type: 'error', turn_ref: 'turn-1' });
+    expect(deps.broadcastConnectionStatus).toHaveBeenCalledWith(false);
+  });
+
   test('ipc.cjs delegates backend close cleanup to the helper module', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -129,9 +148,12 @@ describe('ipc_agent_backend_close_runtime', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('handleAgentBackendCloseEvent({ closeReason, shouldReconnect }');
+    expect(mainSource).toContain('createAgentBackendCloseRuntime({');
+    expect(mainSource).toContain('agentBackendCloseRuntime.handle({ closeReason, shouldReconnect })');
+    expect(mainSource).not.toContain('handleAgentBackendCloseEvent({ closeReason, shouldReconnect }');
     expect(mainSource).not.toContain('Active query interrupted by backend disconnect');
     expect(mainSource).not.toContain("activePhase === 'streaming'");
+    expect(helperSource).toContain('function createAgentBackendCloseRuntime');
     expect(helperSource).toContain('Active query interrupted by backend disconnect');
     expect(helperSource).toContain("'streaming'");
   });

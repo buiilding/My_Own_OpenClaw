@@ -83,7 +83,18 @@ function handleAgentBackendCloseEvent(event = {}, deps = {}) {
   };
 }
 
+function createAgentBackendCloseRuntime(deps = {}) {
+  function handle(event = {}) {
+    return handleAgentBackendCloseEvent(event, deps);
+  }
+
+  return {
+    handle,
+  };
+}
+
 module.exports = {
+  createAgentBackendCloseRuntime,
   handleAgentBackendCloseEvent,
   shouldInterruptActiveQueryOnClose,
 };

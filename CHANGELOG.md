@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK backend-close cleanup dependency wiring into
+  `createAgentBackendCloseRuntime(...)`, preserving interrupted-query
+  synthesis, idle overlay fallback, session reset, replay clearing, disconnect
+  logging, and status broadcast behavior. No migration required.
 - main/ipc: move Agent SDK backend-event relay dependency wiring into
   `createAgentBackendEventRuntime(...)`, preserving active-query accepted and
   terminal cleanup, turn replay, backend traffic labels, observer fan-out, and

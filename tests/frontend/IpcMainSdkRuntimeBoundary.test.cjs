@@ -425,8 +425,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain("event.type === 'open'");
     expect(agentConnectionEventSource).toContain('[Main][Backend] connected user=');
     expect(agentConnectionEventSource).toContain("event.type === 'open'");
-    expect(source).toContain('handleAgentBackendCloseEvent({ closeReason, shouldReconnect }');
+    expect(source).toContain('createAgentBackendCloseRuntime({');
+    expect(source).toContain('agentBackendCloseRuntime.handle({ closeReason, shouldReconnect })');
+    expect(source).not.toContain('handleAgentBackendCloseEvent({ closeReason, shouldReconnect }');
     expect(source).not.toContain('Active query interrupted by backend disconnect');
+    expect(agentBackendCloseRuntimeSource).toContain('function createAgentBackendCloseRuntime');
     expect(agentBackendCloseRuntimeSource).toContain('Active query interrupted by backend disconnect');
     expect(source).toContain('createAgentBackendEventRuntime({');
     expect(source).toContain('agentBackendEventRuntime.handle(rendererData)');
