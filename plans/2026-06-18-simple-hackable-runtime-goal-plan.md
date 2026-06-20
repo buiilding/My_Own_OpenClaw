@@ -275,9 +275,10 @@ For each completed slice, record:
 
 ## Progress Notes
 
-- 2026-06-20: routed local-runtime JSON-RPC reference and Python
-  implementation workflow `summary`/`read_when` labels through local-runtime
-  method/startup wording instead of sidecar method/startup owner labels.
+- 2026-06-20: routed local-runtime JSON-RPC reference, Python implementation
+  workflow, frontend inventory, and source-map `summary`/`read_when` or
+  package-topology labels through local-runtime method/startup wording instead of sidecar
+  method/startup owner labels.
   Validation covered the modular docs boundary guard, docs search, related
   commit search, stale JSON-RPC label scan, docs listing, and diff check. No
   migration required; JSON-RPC method names, params, daemon endpoints, IPC

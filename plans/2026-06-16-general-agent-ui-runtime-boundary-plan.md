@@ -122,9 +122,9 @@ Each completed slice should report:
 
 ### 2026-06-20 Local-Runtime JSON-RPC Reference Labels
 
-- Finding: the local-runtime JSON-RPC reference and Python implementation
-  workflow still used sidecar method/startup labels in `summary` and
-  `read_when` text.
+- Finding: the local-runtime JSON-RPC reference, Python implementation
+  workflow, frontend inventory, and source-map doc still used sidecar
+  method/startup labels in `summary`, `read_when`, or package-topology text.
 - Change: routed those labels through local-runtime JSON-RPC method and
   startup wording while keeping Python sidecar implementation references where
   the docs point at concrete code.

@@ -43,8 +43,8 @@ browser-contract runtime code from concrete modules such as
 `windie_shared.browser_contract`.
 
 The retired `tools/memory` package no longer defines a sidecar tool export;
-local memory is handled through sidecar JSON-RPC methods and memory runtime
-modules.
+local memory is handled through local-runtime JSON-RPC methods and memory
+runtime modules.
 
 Local-runtime Python implementation and shared modules should not publish
 `__all__` wildcard export lists. Direct imports from owner modules keep package
