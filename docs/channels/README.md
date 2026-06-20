@@ -24,7 +24,7 @@ patching the wrong consumer.
 | Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> local-runtime wakeword helper backed by the Python subprocess | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Audio Channels](voice_and_audio_channels.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) |
-| Local tools | Computer, browser, filesystem, shell, memory | SDK/main local runtime -> Python sidecar executor | [Local Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
+| Local tools | Computer, browser, filesystem, shell, memory | SDK/main local runtime -> local-runtime Python executor | [Local Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
 | SDK clients | External programmatic clients | direct hosted HTTP + WebSocket | [Channel Routing Matrix](channel_routing_matrix.md), [SDK Hub](../sdk/README.md) |
 | VM runs | Hosted dashboard or worker execution | `/api/runs/*` HTTP control plane + backend `/ws` dispatch | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
 

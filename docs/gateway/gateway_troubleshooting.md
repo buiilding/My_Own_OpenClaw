@@ -23,7 +23,7 @@ Use this page to route hosted ingress failures before editing code.
 | `/api/runs/*` returns `401` | runs key | `x-windie-runs-key`, `WINDIE_RUNS_API_KEY` |
 | `/api/runs/` returns `409` | active run cap | active workspace runs, `WINDIE_VM_MAX_ACTIVE_RUNS_PER_WORKSPACE` |
 | health route is `unhealthy` | provider readiness | embedding/semantic provider config and logs |
-| SDK route succeeds but desktop tool fails | SDK local-runtime vs Python sidecar executor split | SDK local-runtime JSON-RPC/tool path |
+| SDK route succeeds but desktop tool fails | hosted SDK route vs SDK/main local-runtime executor split | SDK local-runtime JSON-RPC/tool path |
 
 ## Basic Checks
 

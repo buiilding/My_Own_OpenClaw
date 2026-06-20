@@ -275,6 +275,28 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a channel local-runtime executor-label slice by routing
+  channel maps, local-tool failure routing, gateway troubleshooting, and
+  browser-tool runtime split docs through SDK/main local-runtime routing and
+  local-runtime Python executor/daemon wording instead of Python sidecar
+  executor/daemon route-owner labels. Validation covered the focused modular
+  docs boundary test, docs listing, exact stale channel executor-label scan,
+  and diff check. No migration required; runtime code, tool execution,
+  JSON-RPC/daemon payloads, IPC payloads, browser action behavior, tool-result
+  envelopes, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
+- 2026-06-20: completed a first-read local-runtime authority label slice by
+  routing first-read, tool hub, operations security, and development
+  architecture docs through local-runtime authority, local-runtime execution,
+  local-runtime Python implementation, and local-runtime Python test wording
+  instead of Python sidecar or sidecar test route-owner shorthand. Validation
+  covered the focused modular docs boundary test, docs listing, exact stale
+  first-read/security/tool label scan, and diff check. No migration required;
+  runtime code, local tool execution, local storage, IPC payloads, tool schemas,
+  storage, credentials, permissions, hosted backend URLs, provider policy, and
+  trust boundaries are unchanged.
+
 - 2026-06-20: completed a local-runtime JSON-RPC and plugin route-label slice
   by routing agent-visible pipeline, browser workflow/tool docs, debug observability,
   node routing, and plugin hub docs through local-runtime Python JSON-RPC,

@@ -202,9 +202,9 @@ directly into a topic:
 | [Development](docs/development/contributing.md) | Contribution workflow, environment setup, tests, and tool development. |
 | [API Reference](docs/reference/api_reference.md) | Backend API and transport surfaces consumed by the client, local-runtime Python implementation, and SDKs. |
 
-The docs describe the Electron frontend, Python sidecar, browser-use runtime,
-local memory, backend agent loop, model providers, SDK/API surfaces, packaging,
-and operations.
+The docs describe the Electron desktop app, local-runtime Python implementation,
+browser-use runtime, local memory, backend agent loop, model providers, SDK/API
+surfaces, packaging, and operations.
 
 ## License
 

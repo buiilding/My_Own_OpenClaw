@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: route local-tool channel maps, gateway troubleshooting, and
+  browser-tool runtime split labels through SDK/main local-runtime and
+  local-runtime Python executor wording instead of Python sidecar
+  executor/daemon route-owner labels. No migration required.
+- docs/security: route first-read tool/security and development architecture
+  labels through local-runtime authority and local-runtime Python
+  implementation wording instead of Python sidecar route-owner shorthand. No
+  migration required.
 - docs/runtime: route JSON-RPC executor, browser adapter, observability, node
   debug, and plugin-tool labels through local-runtime Python and SDK/main
   local-runtime wording instead of sidecar route-owner labels. No migration

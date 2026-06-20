@@ -233,8 +233,9 @@ SDK ownership rules:
   plugin, and hosted-client experiences; interaction style is a client choice.
 - Keep Electron-specific window, IPC, screenshot, permissions, and app lifecycle
   code in Electron main or renderer facades behind SDK interfaces.
-- Keep local execution and local storage mechanics in the Python sidecar; the
-  SDK coordinates and normalizes that implementation.
+- Keep local execution and local storage mechanics behind the local-runtime
+  boundary; the SDK coordinates and normalizes the current Python sidecar
+  implementation.
 - Keep backend model/provider/prompt/tool-policy decisions in the backend; the
   SDK reports local capability but does not grant backend capability.
 - For SDK-authored agents, the client defines the active tool surface from

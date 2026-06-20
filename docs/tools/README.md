@@ -20,10 +20,10 @@ backend-owned remote tools and policy/projection, and SDK/main-process dispatch.
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md) follows a tool call from prompt exposure through SDK/main dispatch, local execution, result ingress, history, and loop continuation.
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) explains profiles, available/disabled tools, disabled capabilities, coordinate method gates, browser gating, and web-search exposure.
 - [Web Search Tool](web_search.md) covers backend-owned `web_search`, OpenAI native search, Gemini native grounding, Brave fallback, visibility policy, and result validation.
-- [Tool Troubleshooting](tool_troubleshooting.md) routes visibility, schema, dispatch, sidecar, result, artifact, and replay failures to the right owner.
+- [Tool Troubleshooting](tool_troubleshooting.md) routes visibility, schema, dispatch, local-runtime execution, result, artifact, and replay failures to the right owner.
 - [Computer Tools](computer.md) covers mouse, keyboard, screenshot, scroll, window switching, and local OS control.
 - [Browser Tool](browser.md) covers the dedicated browser runtime, browser action schemas, snapshots, and backend/local-runtime parity.
-- [Browser Change Workflow](../browser/browser_change_workflow.md) routes browser changes across backend schema, shared contract, local-runtime execution, Python sidecar adapters, CDP launch, Electron bridge, renderer controls, files, and tests.
+- [Browser Change Workflow](../browser/browser_change_workflow.md) routes browser changes across backend schema, shared contract, local-runtime execution, local-runtime Python adapters, CDP launch, Electron bridge, renderer controls, files, and tests.
 - [Filesystem and Shell Tools](filesystem_shell.md) covers `read_file`, `replace`, shell/process execution, and output formatting.
 - [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) routes file/shell changes across backend schema, SDK/main dispatch, Electron bridge argument shaping, local execution, sudo policy, sessions, results, and tests.
 
@@ -59,7 +59,7 @@ Local-runtime executable tools are registered in `frontend/src/main/python/tools
 7. Update local-runtime executable argument handling if the local payload changes.
 8. Update SDK/main tool routing and Electron bridge payload shaping if correlation, artifacts, screenshots, or bundle behavior changes.
 9. Update formatter/outgoing schemas if the visible stream event changes.
-10. Add or update backend, SDK/main, renderer, and sidecar tests for the changed boundary.
+10. Add or update backend, SDK/main, renderer, and local-runtime Python tests for the changed boundary.
 
 ## Deep Docs
 

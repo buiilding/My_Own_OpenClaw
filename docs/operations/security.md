@@ -22,7 +22,8 @@ This document describes **current** security-related behavior in the codebase.
 
 ## Tool Execution
 
-- Tool execution happens in the Python sidecar (`frontend/src/main/python/tools`).
+- Local-runtime tool execution uses the Python implementation under
+  `frontend/src/main/python/tools`.
 - Backend provides a `SecurityPolicy` model (`backend/src/core/security/policy.py`) with permissions, resource limits, and audit log entries. Review before enabling stricter enforcement.
 
 ## Secrets

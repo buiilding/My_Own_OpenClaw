@@ -1,5 +1,5 @@
 ---
-summary: "Local tool channel guide covering SDK/main local-runtime execution, local-runtime executors backed by the Python sidecar, display-only renderer events, and backend tool-result ingress."
+summary: "Local tool channel guide covering SDK/main local-runtime execution, local-runtime Python executors, display-only renderer events, and backend tool-result ingress."
 read_when:
   - When changing local tool execution, local-runtime daemon routing, renderer
     tool-call display behavior, shell/filesystem/browser/computer actions, or
@@ -10,7 +10,7 @@ title: "Local Tool Channels"
 
 # Local Tool Channels
 
-Local tools cross every WindieOS runtime boundary. The backend decides what the model can ask for, the SDK/main local-runtime path owns local execution routing and executable local machine action authority, and the Python sidecar provides the current concrete executors.
+Local tools cross every WindieOS runtime boundary. The backend decides what the model can ask for, the SDK/main local-runtime path owns local execution routing and executable local machine action authority, and the local-runtime Python implementation provides the current concrete executors.
 
 ## End-to-End Tool Channel
 
@@ -20,11 +20,11 @@ sequenceDiagram
     participant SDK as SDK/main local runtime
     participant Main as Electron main
     participant Renderer as Renderer display surfaces
-    participant Sidecar as Python sidecar daemon
+    participant LocalRuntimePython as Local-runtime Python daemon
 
     Backend->>SDK: /ws tool-call
-    SDK->>Sidecar: HTTP /execute-tool
-    Sidecar-->>SDK: tool result
+    SDK->>LocalRuntimePython: HTTP /execute-tool
+    LocalRuntimePython-->>SDK: tool result
     SDK->>Backend: /ws tool-result
     SDK->>Main: current-turn and display-row projections
     Main->>Renderer: windie:current-turn + windie:rows
@@ -38,7 +38,7 @@ sequenceDiagram
 | SDK/main local runtime | backend websocket ownership, local runtime startup/reuse, local tool-call routing, display-row projection, `tool-result` / `tool-bundle-result` return | `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` |
 | Renderer | projected tool-call display, transcript/chat state, and stale-turn display guards; no local execution for backend tool events | `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`, `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`, `frontend/src/renderer/infrastructure/transcript/*` |
 | Electron main | renderer IPC, direct `AgentClient.wakeUp(...)` customer wiring, desktop local-runtime launch option assembly, screenshot artifact upload, system-state bridge, SDK event fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
-| Python sidecar daemon | concrete executable tool implementations and dynamic tool registry behind the local-runtime boundary | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools/**`, `frontend/src/main/python/memory/**` |
+| Local-runtime Python daemon | concrete executable tool implementations and dynamic tool registry behind the local-runtime boundary | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools/**`, `frontend/src/main/python/memory/**` |
 
 ## Main IPC Channels
 
@@ -121,9 +121,9 @@ Read next:
 | Symptom | Owner to inspect |
 | --- | --- |
 | model never sees tool | backend tool schema/policy |
-| backend emits tool-call but no local action happens | SDK/main local-runtime routing or Python sidecar implementation |
+| backend emits tool-call but no local action happens | SDK/main local-runtime routing or local-runtime Python implementation |
 | tool card appears twice or looks duplicated | SDK display projection or renderer card rendering |
-| local-runtime tool returns error before action | local-runtime tool validation or Python sidecar executor |
+| local-runtime tool returns error before action | local-runtime tool validation or local-runtime Python executor |
 | action succeeds but model does not continue | tool-result ingress, request id, or history commit path |
 | screenshot path exists but image missing in chat | artifact upload/materialization path |
 

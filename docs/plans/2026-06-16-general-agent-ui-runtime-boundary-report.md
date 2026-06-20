@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: agent-visible pipeline, browser workflow/tool, debug
-  observability, node routing, and plugin hub docs now route JSON-RPC,
-  browser-adapter, plugin, and stdout/protocol-test labels through
-  local-runtime wording.
+- Latest completed slice: first-read, tool/security/development architecture,
+  channel maps, local-tool failure routing, gateway troubleshooting, and
+  browser-tool runtime split docs now route local execution through
+  local-runtime authority, SDK/main local-runtime, and local-runtime Python
+  implementation/executor wording instead of Python sidecar route-owner labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -238,9 +239,44 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   desktop client / SDK host UI instead of an Electron frontend UI.
   Provider/config workflows and API reference transparency docs now route
   settings through renderer-managed settings and prompt/schema transparency
-  through SDK/renderer consumers.
+  through SDK/renderer consumers. Channel local-tool docs and troubleshooting
+  maps now route local execution through SDK/main local-runtime and
+  local-runtime Python executor wording instead of Python sidecar
+  executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Channel Local-Runtime Executor Labels
+
+- Finding: channel maps, local-tool failure routing, gateway troubleshooting,
+  and browser-tool runtime split docs still described reusable local execution
+  routes through Python sidecar executor/daemon labels.
+- Change: routed those references through SDK/main local-runtime routing and
+  local-runtime Python executor/daemon wording while preserving concrete
+  `sidecar_daemon.py` and Python tool paths where implementation files are the
+  subject.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  channel executor-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, tool execution,
+  JSON-RPC/daemon payloads, IPC payloads, browser action behavior, tool-result
+  envelopes, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
+### 2026-06-20 First-Read Local-Runtime Authority Labels
+
+- Finding: first-read, tool hub, operations security, and development
+  architecture docs still used Python sidecar or sidecar test labels for
+  public tool execution, troubleshooting, and local storage/execution
+  ownership.
+- Change: routed those references through local-runtime authority,
+  local-runtime execution, local-runtime Python implementation, and
+  local-runtime Python test wording while preserving concrete Python
+  implementation paths.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  first-read/security/tool label scan, and diff check.
+- Compatibility: no migration required. Runtime code, local tool execution,
+  local storage, IPC payloads, tool schemas, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime JSON-RPC and Plugin Route Labels
 
