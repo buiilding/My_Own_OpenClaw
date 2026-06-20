@@ -45,7 +45,7 @@ frontend/src/
 │   ├── sidecar/                           # local runtime bridge, daemon manager, RPC transports, readiness, stop policy
 │   ├── surfaces/                          # BrowserWindow creation, overlays, surface state, window policy, display affinity
 │   ├── wakeword/                          # wakeword subprocess bridge and supervisor
-│   └── python/                            # Sidecar runtime (tools, memory, system, browser)
+│   └── python/                            # Local-runtime Python implementation (tools, memory, system, browser)
 ├── preload.js                             # Context-isolated channel allowlist bridge
 ├── renderer/
 │   ├── app/                               # App/provider composition + wakeword controller

@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed the frontend architecture source-tree label for
+  `frontend/src/main/python/` through `Local-runtime Python implementation
+  (tools, memory, system, browser)` instead of `Sidecar runtime (tools, memory,
+  system, browser)`. Validation covered the modular docs boundary guard, docs
+  search, related commit search, exact stale frontend tree-label scan, docs
+  listing, and diff check. No migration required; source paths, process launch,
+  JSON-RPC method names, tool schemas, SDK/main dispatch, IPC channels,
+  renderer display, storage, credentials, permissions, provider policy, hosted
+  URLs, and local-runtime behavior are unchanged.
+
 - 2026-06-20: replaced Windie-agent/WindieOS fixture copy in the local SDK mock
   backend's health metadata, system-prompt event, streamed/completion response,
   and startup log with generic Agent SDK mock-backend wording. Validation

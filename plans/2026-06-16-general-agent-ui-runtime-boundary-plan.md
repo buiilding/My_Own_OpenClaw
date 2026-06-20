@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Frontend Python Tree Local-Runtime Label
+
+- Finding: the frontend architecture source-tree still labeled
+  `frontend/src/main/python/` as `Sidecar runtime (tools, memory, system,
+  browser)`, making the Python implementation read like a peer public runtime
+  owner in the first architecture overview.
+- Change: renamed the tree label to `Local-runtime Python implementation
+  (tools, memory, system, browser)` and extended the modular architecture guard
+  so the retired sidecar-runtime tree label stays out of active docs.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, exact stale frontend tree-label scan, docs listing, and diff check.
+- Compatibility: no migration required. Source paths, process launch, JSON-RPC
+  method names, tool schemas, SDK/main dispatch, IPC channels, renderer
+  display, storage, credentials, permissions, provider policy, hosted URLs, and
+  local-runtime behavior are unchanged.
+
 ### 2026-06-20 Agent SDK Mock Backend Copy
 
 - Finding: the local SDK mock backend still returned Windie-agent/WindieOS copy

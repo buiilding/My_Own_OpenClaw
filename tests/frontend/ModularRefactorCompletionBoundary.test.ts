@@ -604,6 +604,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('before local execution');
     expect(docText).toContain('SDK/local-runtime conversation store owns durable conversation history');
     expect(docText).toContain('renderer app-runtime send facade plus the Electron main Agent SDK host');
+    expect(docText).toContain('Local-runtime Python implementation (tools, memory, system, browser)');
     expect(docText).not.toContain('main-to-sidecar behavior');
     expect(docText).not.toContain('SDK sidecar `/rpc` failures');
     expect(docText).not.toContain('depends on the sidecar');
@@ -611,6 +612,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar execution');
     expect(docText).not.toContain('before sidecar execution');
     expect(docText).not.toContain('local tool calls to the sidecar runtime');
+    expect(docText).not.toContain('Sidecar runtime (tools, memory, system, browser)');
     expect(docText).not.toContain('frontend + sidecar local store own conversation history');
     expect(docText).not.toContain('renderer API client');
   });

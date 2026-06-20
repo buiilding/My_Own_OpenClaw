@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: route the frontend source-tree `python/` label through
+  local-runtime Python implementation wording instead of a sidecar runtime
+  owner label. No migration required.
 - scripts/sdk: make the local mock backend response, health service, system
   prompt, and startup copy use generic Agent SDK wording instead of
   Windie-agent/WindieOS fixture labels. No migration required.
