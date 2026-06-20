@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `9472dee63` (`test(backend): neutralize config updater fixtures`)
-- Latest completed slice: create-extension scaffold tests now use neutral
-  contribution-root path samples instead of Windie-flavored fixtures.
+- Latest inspected plan checkpoint: `f7a331d32` (`test(extensions): neutralize scaffold path fixtures`)
+- Latest completed slice: main-window runtime tests now use neutral injected
+  icon path samples instead of WindieOS-flavored fixtures.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -109,6 +109,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   preserving DI config rebinding through current registry/context owners.
   Extension scaffold tests now use neutral contribution-root temp paths while
   preserving the Windie CLI command name and generated contribution layout.
+  Main-window runtime tests now use neutral injected icon paths while preserving
+  host-skin app icon filename coverage.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7640,3 +7642,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   skill front matter, manifest loading, permissions, credentials, IPC channels,
   local-runtime execution, hosted backend URLs, and provider policy are
   unchanged; no migration is required.
+- Main-window runtime tests now use neutral `/tmp/agent-icon.png` samples for
+  injected dashboard/tray icon resolver fixtures instead of
+  WindieOS-flavored icon path samples. Host-skin app icon filename coverage,
+  native-image fallback behavior, BrowserWindow/Tray options, permissions, IPC
+  channels, storage, hosted backend URLs, provider policy, and local-runtime
+  behavior are unchanged; no migration is required.

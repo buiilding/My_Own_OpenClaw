@@ -534,6 +534,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('/tmp/agent-contributions');
   });
 
+  test('main window runtime tests keep injected icon fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/MainWindowRuntime.test.cjs');
+
+    expect(source).not.toContain('/tmp/windieos.png');
+    expect(source).toContain('/tmp/agent-icon.png');
+  });
+
   test('backend user-query sanitization tests keep desktop context fixtures product-neutral', async () => {
     const source = await read('tests/backend/test_agent_executor_user_query_sanitization.py');
 

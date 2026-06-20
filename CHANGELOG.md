@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral injected icon path samples in main-window runtime
+  coverage instead of WindieOS-flavored fixture data. No migration required.
+
 - tests/frontend: use neutral contribution-root path samples in the
   create-extension scaffold coverage instead of Windie-flavored fixture data. No
   migration required.

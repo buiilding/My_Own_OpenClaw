@@ -653,13 +653,13 @@ describe('main_window_runtime createMainWindow', () => {
     const icon = { isEmpty: () => false };
     nativeImage.createFromPath.mockReturnValueOnce(icon);
     const { deps, BrowserWindow } = createDeps({
-      resolveAppIconPath: jest.fn(() => '/tmp/windieos.png'),
+      resolveAppIconPath: jest.fn(() => '/tmp/agent-icon.png'),
     });
 
     createMainWindow(deps);
 
     const options = BrowserWindow.mock.calls[0][0];
-    expect(nativeImage.createFromPath).toHaveBeenCalledWith('/tmp/windieos.png');
+    expect(nativeImage.createFromPath).toHaveBeenCalledWith('/tmp/agent-icon.png');
     expect(options.icon).toBe(icon);
   });
 
@@ -826,7 +826,7 @@ describe('main_window_runtime createTray', () => {
         },
         showMainWindow: jest.fn(),
         app: { quit: jest.fn(), isQuitting: false },
-        resolveTrayIconPath: jest.fn(() => '/tmp/windieos.png'),
+        resolveTrayIconPath: jest.fn(() => '/tmp/agent-icon.png'),
         warn: jest.fn(),
         ...overrides,
       },
@@ -844,7 +844,7 @@ describe('main_window_runtime createTray', () => {
     });
     createTray(deps);
 
-    expect(nativeImage.createFromPath).toHaveBeenCalledWith('/tmp/windieos.png');
+    expect(nativeImage.createFromPath).toHaveBeenCalledWith('/tmp/agent-icon.png');
     expect(deps.Tray).toHaveBeenCalledWith(icon);
     expect(tray.setToolTip).toHaveBeenCalledWith('WindieOS');
   });

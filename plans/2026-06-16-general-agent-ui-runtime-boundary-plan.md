@@ -18715,3 +18715,18 @@ Each completed slice should report:
   matter, manifest loading, permissions, credentials, IPC channels,
   local-runtime execution, hosted backend URLs, and provider policy are
   unchanged.
+
+### 2026-06-20 Main-window icon fixture neutrality
+
+- Finding: main-window runtime tests validate injected dashboard and tray icon
+  resolver wiring, but the arbitrary test image path still used a
+  WindieOS-flavored filename.
+- Change: switched those injected icon path fixtures to neutral
+  `/tmp/agent-icon.png` and added a modular boundary guard while preserving the
+  explicit host-skin app icon filename test.
+- Validation: focused main-window runtime and modular boundary tests; exact
+  retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Host-skin app icon filename coverage,
+  native-image fallback behavior, BrowserWindow/Tray options, permissions, IPC
+  channels, storage, hosted backend URLs, provider policy, and local-runtime
+  behavior are unchanged.
