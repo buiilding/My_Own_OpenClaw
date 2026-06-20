@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/renderer: use a neutral audio worklet blob URL sample in wakeword hook
+  coverage instead of WindieOS-flavored fixture data. No migration required.
+
 - tests/main: use neutral injected icon path samples in main-window runtime
   coverage instead of WindieOS-flavored fixture data. No migration required.
 

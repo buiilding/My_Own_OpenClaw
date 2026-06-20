@@ -383,7 +383,7 @@ describe('useWakewordDetection', () => {
           (window as any).AudioContext = jest.fn(() => fakeAudioContext);
           (window as any).webkitAudioContext = undefined;
           (globalThis as any).AudioWorkletNode = MockAudioWorkletNode;
-          (URL as any).createObjectURL = jest.fn(() => 'blob:windieos-audio-worklet');
+          (URL as any).createObjectURL = jest.fn(() => 'blob:agent-audio-worklet');
 
           const { rerender, unmount } = await renderEnabledHookAndEmitReady();
 

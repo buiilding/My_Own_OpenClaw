@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `f7a331d32` (`test(extensions): neutralize scaffold path fixtures`)
-- Latest completed slice: main-window runtime tests now use neutral injected
-  icon path samples instead of WindieOS-flavored fixtures.
+- Latest inspected plan checkpoint: `bdcab6585` (`test(main): neutralize icon path fixtures`)
+- Latest completed slice: wakeword hook tests now use a neutral audio worklet
+  blob URL sample instead of WindieOS-flavored fixture data.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -111,6 +111,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   preserving the Windie CLI command name and generated contribution layout.
   Main-window runtime tests now use neutral injected icon paths while preserving
   host-skin app icon filename coverage.
+  Wakeword hook tests now use a neutral audio worklet blob URL while preserving
+  renderer capture cleanup behavior.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7648,3 +7650,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   native-image fallback behavior, BrowserWindow/Tray options, permissions, IPC
   channels, storage, hosted backend URLs, provider policy, and local-runtime
   behavior are unchanged; no migration is required.
+- Wakeword hook tests now use neutral `blob:agent-audio-worklet` sample URLs
+  instead of WindieOS-flavored audio worklet blob fixtures. Renderer wakeword
+  capture cleanup, AudioWorklet setup, IPC channels, permissions, storage,
+  hosted backend URLs, provider policy, and local-runtime behavior are
+  unchanged; no migration is required.

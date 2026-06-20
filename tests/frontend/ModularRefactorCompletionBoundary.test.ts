@@ -541,6 +541,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('/tmp/agent-icon.png');
   });
 
+  test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/voice/WakewordDetectionHook.test.ts');
+
+    expect(source).not.toContain('blob:windieos-audio-worklet');
+    expect(source).toContain('blob:agent-audio-worklet');
+  });
+
   test('backend user-query sanitization tests keep desktop context fixtures product-neutral', async () => {
     const source = await read('tests/backend/test_agent_executor_user_query_sanitization.py');
 

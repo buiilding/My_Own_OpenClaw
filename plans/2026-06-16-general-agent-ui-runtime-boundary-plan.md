@@ -18730,3 +18730,17 @@ Each completed slice should report:
   native-image fallback behavior, BrowserWindow/Tray options, permissions, IPC
   channels, storage, hosted backend URLs, provider policy, and local-runtime
   behavior are unchanged.
+
+### 2026-06-20 Wakeword audio worklet fixture neutrality
+
+- Finding: renderer wakeword hook tests validate AudioWorklet cleanup on
+  repeated stop/unmount, but the mocked blob URL used a WindieOS-flavored
+  worklet name.
+- Change: switched the mocked worklet URL to neutral
+  `blob:agent-audio-worklet` and added a modular boundary guard for the retired
+  fixture.
+- Validation: focused wakeword hook and modular boundary tests; exact retired
+  fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Renderer wakeword capture cleanup,
+  AudioWorklet setup, IPC channels, permissions, storage, hosted backend URLs,
+  provider policy, and local-runtime behavior are unchanged.
