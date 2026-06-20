@@ -81,6 +81,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_runtime_conversation_ref.cjs'),
       'utf8',
     );
+    const responseOverlayPhaseRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_response_overlay_phase_runtime.cjs'),
+      'utf8',
+    );
     const agentWakeupRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs'),
       'utf8',
@@ -219,6 +223,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('const fromPayload = payload && typeof payload ===');
     expect(runtimeConversationRefSource).toContain('payload.conversation_ref');
     expect(runtimeConversationRefSource).toContain('input.conversation_ref || input.conversationRef');
+    expect(source).toContain('createResponseOverlayPhaseRuntime({');
+    expect(source).toContain('responseOverlayPhaseRuntime.setResponseOverlayPhase(phase, source, metadata)');
+    expect(source).not.toContain("action: 'set-phase'");
+    expect(responseOverlayPhaseRuntimeSource).toContain("action: 'set-phase'");
+    expect(responseOverlayPhaseRuntimeSource).toContain('isAgentLoopStopShortcutPhase(getPhase())');
     expect(source).not.toContain('[Main][SDK] creating_client backend=');
     expect(electronAgentClientFactorySource).toContain('[Main][SDK] creating_client backend=');
     expect(source).toContain('createAgentRuntimeLifecycle({');

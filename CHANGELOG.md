@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move response-overlay phase application side effects into
+  `ipc_response_overlay_phase_runtime.cjs`, preserving chat-pill phase tracing,
+  phase-state application/broadcast, global stop shortcut gating, and backend
+  idle-disconnect timer sync. No migration required.
 - main/ipc: move Agent SDK runtime conversation-ref resolution into
   `ipc_runtime_conversation_ref.cjs`, preserving nested transport
   `payload.conversation_ref`, direct snake_case/camelCase aliases, cached

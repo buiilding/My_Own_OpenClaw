@@ -325,9 +325,11 @@ Primary modules:
     observer fan-out in `ipc_backend_message_observers.cjs`, shapes status
     payloads through `ipc_status_payloads.cjs`, shapes install-auth identity
     through `ipc_install_auth_identity_runtime.cjs`, routes backend event relay
-    bookkeeping through `ipc_agent_backend_event_runtime.cjs`, resolves Agent
-    SDK runtime conversation refs through `ipc_runtime_conversation_ref.cjs`,
-    keeps cached AgentClient lifecycle in `ipc_agent_client_lifecycle.cjs`, and uses the returned
+    bookkeeping through `ipc_agent_backend_event_runtime.cjs`, applies
+    response-overlay phase side effects through
+    `ipc_response_overlay_phase_runtime.cjs`, resolves Agent SDK runtime
+    conversation refs through `ipc_runtime_conversation_ref.cjs`, keeps cached
+    AgentClient lifecycle in `ipc_agent_client_lifecycle.cjs`, and uses the returned
     `agent.conversation(...)` runtime for sends and stream projection.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle
     disconnect, typed sends, local tool coordination, sidecar startup/reuse,

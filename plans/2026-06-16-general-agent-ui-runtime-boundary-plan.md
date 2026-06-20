@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Response Overlay Phase Runtime Boundary
+
+- Finding: `ipc.cjs` still owned response-overlay phase application side
+  effects directly: chat-pill phase trace emission, phase-state apply/broadcast,
+  global stop shortcut gating from the current phase, and SDK backend
+  idle-disconnect timer sync.
+- Change: added `ipc_response_overlay_phase_runtime.cjs` to own the phase
+  application side-effect sequence. `ipc.cjs` now provides live window,
+  shortcut, broadcast, trace, and idle-sync adapters while the helper owns the
+  ordered phase application behavior.
+- Validation: focused runtime coverage for trace payloads, phase apply and
+  renderer broadcast, active/terminal stop-shortcut gating, idle timer sync,
+  lazy callback lookup after test reinitialization, and a boundary guard that
+  keeps phase side-effect policy out of `ipc.cjs`.
+- Compatibility: no migration required. Response-overlay phase names and
+  metadata, renderer IPC channels, stop shortcut activation phases, backend
+  idle-disconnect sync timing, window visibility policy, storage, credentials,
+  permissions, hosted URLs, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main Runtime Conversation Reference Boundary
 
 - Finding: `ipc.cjs` still owned Agent SDK runtime conversation-ref resolution,

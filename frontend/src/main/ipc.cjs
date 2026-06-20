@@ -202,6 +202,9 @@ const {
   createResponseOverlayPhaseState,
 } = require('./ipc/ipc_overlay_phase_state.cjs');
 const {
+  createResponseOverlayPhaseRuntime,
+} = require('./ipc/ipc_response_overlay_phase_runtime.cjs');
+const {
   createIpcEventReplayState,
 } = require('./ipc/ipc_event_replay_state.cjs');
 const {
@@ -280,6 +283,16 @@ let desktopLocalRuntimeLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
+const responseOverlayPhaseRuntime = createResponseOverlayPhaseRuntime({
+  responseOverlayPhaseState,
+  logChatPillMainTrace,
+  getApplyResponseOverlayPhase: () => applyResponseOverlayPhase,
+  getSetAgentLoopStopShortcutEnabled: () => setAgentLoopStopShortcutEnabled,
+  isAgentLoopStopShortcutPhase,
+  syncBackendIdleDisconnectTimer,
+  broadcastToRenderers,
+  log,
+});
 const ipcEventReplayState = createIpcEventReplayState();
 const backendMessageObserverRegistry = createBackendMessageObserverRegistry({
   log,
@@ -729,26 +742,7 @@ function broadcastToRenderers(channel, payload, sourceWebContents = null) {
 }
 
 function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
-  logChatPillMainTrace({
-    source: 'ipc',
-    action: 'set-phase',
-    phase,
-    correlationId: metadata?.correlation_id || null,
-    reason: source,
-  }, {
-    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-  });
-  responseOverlayPhaseState.setPhase(phase, source, metadata, {
-    onPhaseChange: applyResponseOverlayPhase,
-    broadcastToRenderers,
-    log,
-  });
-  if (typeof setAgentLoopStopShortcutEnabled === 'function') {
-    setAgentLoopStopShortcutEnabled(
-      isAgentLoopStopShortcutPhase(responseOverlayPhaseState.getPhase()),
-    );
-  }
-  syncBackendIdleDisconnectTimer(`phase:${phase}`);
+  responseOverlayPhaseRuntime.setResponseOverlayPhase(phase, source, metadata);
 }
 
 function handleAgentBackendEvent(rendererData) {
