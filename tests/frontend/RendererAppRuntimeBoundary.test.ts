@@ -408,6 +408,13 @@ describe('renderer app runtime boundary', () => {
       ),
       'utf8',
     );
+    const rendererStateWorkflowSource = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../docs/frontend/renderer/renderer_state_change_workflow.md',
+      ),
+      'utf8',
+    );
 
     expect(source).toContain('## Renderer App-Runtime Client Inventory');
     expect(source).toContain('Real SDK-command boundary');
@@ -420,6 +427,8 @@ describe('renderer app runtime boundary', () => {
     expect(source).toContain('desktopStorageRuntimeClient.js');
     expect(source).toContain('Do not delete a helper merely because it forwards');
     expect(source.match(/`desktopWorkspaceRuntimeClient\.ts` owns/g) || []).toHaveLength(1);
+    expect(rendererStateWorkflowSource).toContain('dispatch through desktop app-runtime facades and SDK-shaped command clients');
+    expect(rendererStateWorkflowSource).not.toContain('dispatch to existing IPC/backend clients');
     await expect(fs.stat(
       path.resolve(
         __dirname,

@@ -16034,3 +16034,19 @@ Each completed slice should report:
   channels, hosted backend URLs, settings/model payloads, credentials,
   permissions, storage, provider policy, and local-runtime behavior are
   unchanged.
+
+### 2026-06-20 Renderer state workflow dispatch wording
+
+- Finding: renderer state workflow docs still said renderer state owns dispatch
+  to existing IPC/backend clients, which preserved the retired direct backend
+  client model after renderer feature code moved behind app-runtime facades and
+  SDK-shaped command clients.
+- Change: routed that workflow wording through desktop app-runtime facades and
+  SDK-shaped command clients, and extended the renderer app-runtime boundary
+  guard to keep the old phrase out.
+- Validation: focused renderer app-runtime boundary test, exact stale phrase
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, renderer app-runtime
+  clients, SDK commands, IPC channels, hosted backend URLs, settings/model
+  payloads, credentials, permissions, storage, provider policy, and
+  local-runtime behavior are unchanged.

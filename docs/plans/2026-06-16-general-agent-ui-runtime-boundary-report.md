@@ -5812,3 +5812,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   facade wording. Runtime code, SDK exports, IPC channels, hosted backend URLs,
   settings/model payloads, credentials, permissions, storage, provider policy,
   and local-runtime behavior are unchanged.
+- Renderer state workflow docs now route dispatch ownership through desktop
+  app-runtime facades and SDK-shaped command clients instead of legacy
+  IPC/backend clients. Runtime code, renderer app-runtime clients, SDK
+  commands, IPC channels, hosted backend URLs, settings/model payloads,
+  credentials, permissions, storage, provider policy, and local-runtime behavior
+  are unchanged.
