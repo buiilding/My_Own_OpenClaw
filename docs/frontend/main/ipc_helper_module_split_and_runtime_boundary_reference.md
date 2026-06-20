@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_direct_wake_up_agent_adapter_deps.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_conversation_event_projection.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_response_overlay_phase_runtime.cjs`, `ipc_host_copy_runtime.cjs`, `ipc_host_option_state.cjs`, `ipc_app_diagnostics_runtime.cjs`, `ipc_renderer_windows.cjs`, `ipc_image_interaction_handlers.cjs`, `ipc_process_reset_runtime.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_cache.cjs`, `ipc_live_turn_state.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_agent_backend_event_runtime.cjs`, `ipc_active_query_context.cjs`, `ipc_backend_session_state.cjs`, `ipc_backend_connection_gate_state.cjs`, `ipc_runtime_conversation_ref.cjs`, `ipc_agent_client_lifecycle.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, `ipc_agent_runtime_lifecycle.cjs`, `ipc_agent_sdk_runtime_commands.cjs`, `ipc_backend_message_observers.cjs`, `ipc_status_payloads.cjs`, or `ipc_install_auth_identity_runtime.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_direct_wake_up_agent_adapter_deps.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_conversation_event_projection.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_response_overlay_phase_runtime.cjs`, `ipc_host_runtime_config.cjs`, `ipc_host_copy_runtime.cjs`, `ipc_host_option_state.cjs`, `ipc_app_diagnostics_runtime.cjs`, `ipc_renderer_windows.cjs`, `ipc_image_interaction_handlers.cjs`, `ipc_process_reset_runtime.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_cache.cjs`, `ipc_live_turn_state.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_agent_backend_event_runtime.cjs`, `ipc_active_query_context.cjs`, `ipc_backend_session_state.cjs`, `ipc_backend_connection_gate_state.cjs`, `ipc_runtime_conversation_ref.cjs`, `ipc_agent_client_lifecycle.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, `ipc_agent_runtime_lifecycle.cjs`, `ipc_agent_sdk_runtime_commands.cjs`, `ipc_backend_message_observers.cjs`, `ipc_status_payloads.cjs`, or `ipc_install_auth_identity_runtime.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -38,6 +38,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`
 - `frontend/src/main/ipc/ipc_response_overlay_phase_runtime.cjs`
+- `frontend/src/main/ipc/ipc_host_runtime_config.cjs`
 - `frontend/src/main/ipc/ipc_host_copy_runtime.cjs`
 - `frontend/src/main/ipc/ipc_host_option_state.cjs`
 - `frontend/src/main/ipc/ipc_app_diagnostics_runtime.cjs`
@@ -563,6 +564,16 @@ Owns Electron-main response-overlay phase application side effects:
   phase callbacks and renderer fan-out
 - updates global stop shortcut enablement from the current phase
 - syncs the SDK backend idle-disconnect timer after phase changes
+
+### `ipc_host_runtime_config.cjs`
+
+Owns IPC host skin/config fan-out:
+
+- `createIpcHostRuntimeConfig`: composes backend endpoint runtime and debug env
+  runtime configuration once for `ipc.cjs`
+- configures hosted backend defaults before debug env names so endpoint state is
+  refreshed before later runtime consumers inspect URLs
+- keeps `configureIpcHostRuntime(...)` as a thin exported main-process host API
 
 ### `ipc_host_copy_runtime.cjs`
 

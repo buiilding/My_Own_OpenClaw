@@ -25,6 +25,9 @@ const {
   createBackendEndpointRuntime,
 } = require('./ipc/ipc_backend_endpoint_state.cjs');
 const {
+  createIpcHostRuntimeConfig,
+} = require('./ipc/ipc_host_runtime_config.cjs');
+const {
   loadDesktopUiConfigFromDisk,
   loadDesktopUiConfigFromDiskSync,
   redactDesktopUiConfigProviderSecrets,
@@ -274,6 +277,10 @@ const backendEndpointState = createBackendEndpointRuntime({
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
   env: process.env,
+});
+const ipcHostRuntimeConfig = createIpcHostRuntimeConfig({
+  backendEndpointState,
+  configureDebugEnvRuntime,
 });
 const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 const BACKEND_RECONNECT_INTERVAL_MS = 1000;
@@ -840,8 +847,7 @@ function buildDesktopInstallAuth() {
 }
 
 function configureIpcHostRuntime(config = {}) {
-  backendEndpointState.configureHostedBackend(config.hostedBackend);
-  configureDebugEnvRuntime(config.debug);
+  ipcHostRuntimeConfig.configure(config);
 }
 
 function configureIpcHostCopyRuntime(copy = {}) {

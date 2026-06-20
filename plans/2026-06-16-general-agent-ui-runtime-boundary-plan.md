@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main IPC Host Runtime Config Boundary
+
+- Finding: `configureIpcHostRuntime(...)` kept WindieOS skin data out of
+  `ipc.cjs`, but the IPC composition root still knew each host config target:
+  hosted backend endpoint refresh and debug env runtime configuration.
+- Change: added `createIpcHostRuntimeConfig(...)` so host runtime configuration
+  fan-out is owned by a focused IPC helper. `ipc.cjs` now composes that helper
+  once and exports `configureIpcHostRuntime(...)` as a thin facade.
+- Validation: focused host-runtime config coverage verifies backend endpoint
+  configuration happens before debug env configuration, and source guards keep
+  direct hosted-backend/debug config fan-out out of `ipc.cjs`.
+- Compatibility: no migration required. Host skin injection, backend endpoint
+  defaults, endpoint refresh ordering, debug env names, AgentClient
+  construction, renderer IPC channels, storage, credentials, permissions,
+  provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Backend Endpoint Runtime Boundary
 
 - Finding: `ipc_backend_endpoint_state.cjs` owned endpoint candidates, active

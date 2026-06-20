@@ -19,6 +19,8 @@ const mainProcessBootstrapRuntimePath = path.join(mainRoot, 'app/main_process_bo
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
 const ipcAgentConnectionEventsPath = path.join(mainRoot, 'ipc/ipc_agent_connection_events.cjs');
 const ipcAgentBackendCloseRuntimePath = path.join(mainRoot, 'ipc/ipc_agent_backend_close_runtime.cjs');
+const ipcHostRuntimeConfigPath = path.join(mainRoot, 'ipc/ipc_host_runtime_config.cjs');
+const ipcHostOptionStatePath = path.join(mainRoot, 'ipc/ipc_host_option_state.cjs');
 const desktopRuntimeChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_runtime_channels.cjs');
 const retiredDesktopAgentChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_agent_channels.cjs');
 const ipcRendererWindowsPath = path.join(mainRoot, 'ipc/ipc_renderer_windows.cjs');
@@ -388,7 +390,11 @@ describe('main host skin/config boundary', () => {
     expect(debugEnvSource).toContain('configureDebugEnvRuntime');
     expect(indexSource).toContain('configureIpcHostRuntime({');
     expect(indexSource).toContain('debug: mainHostSkin.debug');
-    expect(mainIpcSource).toContain('configureDebugEnvRuntime(config.debug)');
+    expect(mainIpcSource).toContain('createIpcHostRuntimeConfig({');
+    expect(mainIpcSource).toContain('ipcHostRuntimeConfig.configure(config)');
+    expect(fs.readFileSync(ipcHostRuntimeConfigPath, 'utf8'))
+      .toContain('configureDebugEnvRuntime(config.debug)');
+    expect(mainIpcSource).not.toContain('configureDebugEnvRuntime(config.debug)');
     expect(mainIpcSource).not.toContain('configureDebugEnvRuntime(mainHostSkin.debug)');
     expect(genericDebugSources).not.toContain('WINDIE_DEBUG_');
     expect(genericDebugSources).not.toContain('WINDIE_DEV_UI');
@@ -482,6 +488,7 @@ describe('main host skin/config boundary', () => {
     const skinSource = fs.readFileSync(skinPath, 'utf8');
     const runtimePathsSource = fs.readFileSync(runtimePathsPath, 'utf8');
     const ipcSource = fs.readFileSync(mainIpcPath, 'utf8');
+    const hostOptionStateSource = fs.readFileSync(ipcHostOptionStatePath, 'utf8');
     const mainWindowSource = fs.readFileSync(mainWindowRuntimePath, 'utf8');
 
     expect(skinSource).toContain("pythonPath: 'WINDIE_PYTHON_PATH'");
@@ -493,7 +500,9 @@ describe('main host skin/config boundary', () => {
     expect(fs.readFileSync(indexPath, 'utf8')).toContain('runtimePaths: mainHostSkin.runtimePaths');
     expect(fs.readFileSync(indexPath, 'utf8')).toContain('localRuntimeDaemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint');
     expect(fs.readFileSync(indexPath, 'utf8')).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
-    expect(ipcSource).toContain('runtimePaths: options.runtimePaths');
+    expect(hostOptionStateSource).toContain('runtimePaths: options.runtimePaths');
+    expect(ipcSource).toContain('createIpcHostOptionState()');
+    expect(ipcSource).not.toContain('runtimePaths: options.runtimePaths');
     expect(ipcSource).not.toContain('runtimePaths: mainHostSkin.runtimePaths');
     expect(mainWindowSource).toContain('runtimePaths,');
     expect(mainWindowSource).not.toContain('mainHostSkin?.runtimePaths');
@@ -560,13 +569,15 @@ describe('main host skin/config boundary', () => {
     const utilsSource = fs.readFileSync(localRuntimeUtilsPath, 'utf8');
     const launchSource = fs.readFileSync(localRuntimeLaunchOptionsPath, 'utf8');
     const ipcSource = fs.readFileSync(mainIpcPath, 'utf8');
+    const hostOptionStateSource = fs.readFileSync(ipcHostOptionStatePath, 'utf8');
 
     expect(skinSource).toContain("verboseStderr: 'WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR'");
     expect(utilsSource).toContain("verboseStderr: 'AGENT_VERBOSE_LOCAL_RUNTIME_STDERR'");
     expect(utilsSource).toContain('resolveLocalRuntimeEnvConfig');
     expect(launchSource).toContain('localRuntimeEnv');
     expect(fs.readFileSync(indexPath, 'utf8')).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
-    expect(ipcSource).toContain('localRuntimeEnv: options.localRuntimeEnv');
+    expect(hostOptionStateSource).toContain('localRuntimeEnv: options.localRuntimeEnv');
+    expect(ipcSource).not.toContain('localRuntimeEnv: options.localRuntimeEnv');
     expect(ipcSource).not.toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
     expect(utilsSource).not.toContain('WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR');
     expect(launchSource).not.toContain('WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR');
@@ -576,6 +587,7 @@ describe('main host skin/config boundary', () => {
     const skinSource = fs.readFileSync(skinPath, 'utf8');
     const launchSource = fs.readFileSync(localRuntimeLaunchOptionsPath, 'utf8');
     const ipcSource = fs.readFileSync(mainIpcPath, 'utf8');
+    const hostOptionStateSource = fs.readFileSync(ipcHostOptionStatePath, 'utf8');
     const agentClientFactorySource = fs.readFileSync(
       path.join(mainRoot, 'ipc/ipc_electron_agent_client_factory.cjs'),
       'utf8',
@@ -597,8 +609,10 @@ describe('main host skin/config boundary', () => {
     expect(launchSource).toContain('resolveLocalRuntimeDaemonEnvConfig');
     expect(fs.readFileSync(indexPath, 'utf8')).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
     expect(fs.readFileSync(indexPath, 'utf8')).toContain('localRuntimeDaemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint');
-    expect(ipcSource).toContain('localRuntimeEnv: options.localRuntimeEnv');
-    expect(ipcSource).toContain('daemonEntrypoint: options.localRuntimeDaemonEntrypoint');
+    expect(hostOptionStateSource).toContain('localRuntimeEnv: options.localRuntimeEnv');
+    expect(hostOptionStateSource).toContain('daemonEntrypoint: options.localRuntimeDaemonEntrypoint');
+    expect(ipcSource).not.toContain('localRuntimeEnv: options.localRuntimeEnv');
+    expect(ipcSource).not.toContain('daemonEntrypoint: options.localRuntimeDaemonEntrypoint');
     expect(ipcSource).not.toContain('mainHostSkin.localRuntime.env');
     expect(ipcSource).not.toContain('mainHostSkin.localRuntime.daemonEntrypoint');
     expect(agentClientFactorySource).toContain('resolveUserDataRoot = appUserDataRoot');

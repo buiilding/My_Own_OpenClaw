@@ -103,12 +103,18 @@ describe('ipc_backend_endpoint_state', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_backend_endpoint_state.cjs'),
       'utf8',
     );
+    const hostConfigSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_host_runtime_config.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createBackendEndpointRuntime({');
-    expect(mainSource).toContain('backendEndpointState.configureHostedBackend(config.hostedBackend)');
+    expect(mainSource).toContain('createIpcHostRuntimeConfig({');
+    expect(mainSource).not.toContain('backendEndpointState.configureHostedBackend(config.hostedBackend)');
     expect(mainSource).not.toContain('createBackendEndpointState({');
     expect(mainSource).not.toContain('configureBackendEndpointRuntime(config.hostedBackend)');
     expect(helperSource).toContain('function createBackendEndpointRuntime');
     expect(helperSource).toContain('configureBackendEndpointRuntime(hostedBackend)');
+    expect(hostConfigSource).toContain('backendEndpointState.configureHostedBackend(config.hostedBackend)');
   });
 });

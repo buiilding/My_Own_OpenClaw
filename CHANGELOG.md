@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move IPC host runtime configuration fan-out into
+  `createIpcHostRuntimeConfig(...)`, keeping hosted backend endpoint refresh and
+  debug env configuration behind one helper while preserving the exported
+  `configureIpcHostRuntime(...)` API. No migration required.
 - main/ipc: wrap hosted backend endpoint configuration and candidate refresh in
   `createBackendEndpointRuntime(...)`, preserving active endpoint selection,
   fallback advancement, SDK runtime construction URLs, status payload URLs, and
