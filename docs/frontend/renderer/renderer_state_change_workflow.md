@@ -34,7 +34,7 @@ The goal is to fix the state owner, not the nearest component. If a malformed ba
 - Keep renderer fixes inside renderer modules when the bug is projection, display, selector, local persistence, or hook composition.
 - Do not add preload IPC channels for convenience. If renderer needs new main-process data, follow [IPC Change Workflow](../ipc_change_workflow.md).
 - Do not duplicate backend event correction in renderer if the backend payload is wrong. Update backend schema/formatter docs and tests instead.
-- Do not repair local-runtime tool payloads in chat components. Fix the Agent SDK tool router, the main bridge mapper, or Python sidecar executor depending on where the payload first becomes wrong.
+- Do not repair local-runtime tool payloads in chat components. Fix the Agent SDK tool router, the main bridge mapper, or local-runtime Python executor depending on where the payload first becomes wrong.
 - Do not put raw filesystem, shell, browser, or computer-use execution in renderer code. Backend tool execution belongs to the Agent SDK runtime and local-runtime bridge; renderer code renders projections only.
 - Keep store selectors narrow. High-frequency stream paths should mutate only the workspace and selector slices that need to update.
 - Keep transcript persistence separate from visual projection. A message card can render from transient state before a transcript row is durable.

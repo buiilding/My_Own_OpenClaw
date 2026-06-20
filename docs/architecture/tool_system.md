@@ -15,7 +15,7 @@ Current runtime note:
 - the live backend registry and the live local-runtime registry both use direct tool names such as `mouse_control` and `run_shell_command`
 - the repo also contains wrapper-shaped reference artifacts for `computer_use` and `system_use` under `model-facing/`, but those names are not registered by `backend/src/tools/registry.py` or `frontend/src/main/python/tools/registry.py`
 
-Client-local built-in tool schemas now flow through `client_tool_manifest`.
+Desktop client/local-runtime built-in tool schemas now flow through `client_tool_manifest`.
 For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth.md`.
 
 ## Architecture
@@ -54,7 +54,7 @@ This is the live remote tool surface today: 14 direct remote tools shared across
 Catalog-driven declaration contract:
 
 - backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-owned remote tools and backend policy
-- desktop client manifest builder `frontend/src/main/extensions/tool_manifest.cjs` is the source of truth for built-in client-local schemas
+- desktop client manifest builder `frontend/src/main/extensions/tool_manifest.cjs` is the source of truth for built-in desktop client/local-runtime schemas
 - plugin `schema` contributions are loaded by Electron main from `plugins/*/plugin.json`
 - plugin Python entrypoints are loaded by the sidecar from `plugins/*/plugin.json`
 - backend validates accepted/rejected client manifest entries before prompt construction
@@ -101,7 +101,7 @@ The backend:
 - Builds tool schemas and passes them to LiteLLM via native request params (`tools`, optional `tool_choice`, optional `parallel_tool_calls`)
 - Emits tool schemas as a transparency event (`tool-schemas`)
 - Resolves coordinates and screenshots with frame-local metadata (`capture_meta` + internal frame identity)
-- Waits for results from SDK/main local-runtime execution for client-local tools
+- Waits for results from SDK/main local-runtime execution for desktop client/local-runtime tools
 - Executes backend-owned tools directly when a tool declares backend execution
 - Augments provider-native web-search responses with normalized source/progress metadata
 - Keeps tool schemas focused on action/parameter contracts while placing cross-tool operational strategy (grounding, timing, verification, sequencing) in the global system prompt
@@ -249,9 +249,9 @@ class MyTool(Tool[MyToolArgs]):
         }
 ```
 
-### Client-Local Tool (Local-Runtime Execution)
+### Desktop Client/Local-Runtime Tool (Local-Runtime Execution)
 
-Client-local tools use backend catalog stubs for model-facing schema and
+Desktop client/local-runtime tools use backend catalog stubs for model-facing schema and
 policy, then dispatch executable payloads through the SDK/main local runtime
 into the local-runtime Python executor. Backend-owned remote tools such as `web_search`
 stay in backend services and do not use the local-runtime Python executor.
@@ -377,7 +377,7 @@ For tools using vision models:
 ### Screenshot Lifecycle
 
 1. **User Message**: Screenshot captured before sending (via useChatMessageSender) and uploaded via HTTP `/api/artifacts`
-2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution in the local-runtime path backed by Python sidecar modules and uploaded via HTTP `/api/artifacts`
+2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution in the local-runtime path backed by local-runtime Python modules and uploaded via HTTP `/api/artifacts`
    - **Individual Tools**: Screenshot captured **once** after tool execution completes
    - **Bundled Tools**: Screenshot captured **once** after all bundled tools execute (not after each tool)
    - Individual tools use `ensureAutoCapture(...)` for shared capture policy and fallback behavior.

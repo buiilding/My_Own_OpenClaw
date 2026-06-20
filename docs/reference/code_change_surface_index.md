@@ -95,7 +95,7 @@ If a change seems to belong to two rows, change the producer first and then upda
 | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` + `packages/windie-sdk-js/src/tools` | SDK-owned local tool dispatch, local-runtime routing, display projection, and result relay through the SDK conversation runtime | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), [Local Tool Channels](../channels/sidecar_and_tool_channels.md) |
 | `frontend/src/renderer/app/runtime` + `frontend/src/renderer/infrastructure/transcript` | SDK transcript projection, session state, pending message queues, and local-runtime-backed store adapters | [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md), [Transcript and Replay](../memory/transcript_and_replay.md), [Session and Transcript Reference](session_and_transcript_reference.md) |
 | `frontend/src/main/python/tools` | Local executable tool implementations | [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md), [Tools Hub](../tools/README.md) |
-| `frontend/src/main/python/memory` | Local-runtime memory storage and retrieval backed by Python sidecar modules | [Local Runtime Memory](../memory/sidecar_local_memory.md), [Memory Troubleshooting](../memory/memory_troubleshooting.md) |
+| `frontend/src/main/python/memory` | Local-runtime memory storage and retrieval backed by local-runtime Python modules | [Local Runtime Memory](../memory/sidecar_local_memory.md), [Memory Troubleshooting](../memory/memory_troubleshooting.md) |
 | `frontend/src/landing` | Public landing page implementation | [Landing Page Change Workflow](../web/landing_page_change_workflow.md), [Landing Page](../web/landing_page.md), [Web Surfaces](../web/README.md) |
 
 ## Test Selection

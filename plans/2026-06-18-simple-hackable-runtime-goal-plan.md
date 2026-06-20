@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime Python module-backing label slice by
+  routing architecture, tool, MCP, storage, memory, artifact, JSON-RPC,
+  reference, and developer docs through local-runtime Python modules and
+  desktop client/local-runtime schema wording instead of Python sidecar module
+  or generic client-local labels. Validation covered the focused modular docs
+  boundary test, docs listing, exact stale module-backing label scan, and diff
+  check. No migration required; runtime code, tool schemas,
+  client-manifest payloads, local storage files, JSON-RPC/daemon payloads, IPC
+  payloads, credentials, permissions, hosted backend URLs, provider policy, and
+  trust boundaries are unchanged.
+
 - 2026-06-20: completed a boundary-hub local-runtime Python label slice by
   routing getting-started, security, onboarding, IPC, observability,
   backend-tool, frontend inventory, system-state, architecture, and node hub

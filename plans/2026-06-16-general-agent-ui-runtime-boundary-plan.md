@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Python Module Backing Labels
+
+- Finding: architecture, tool, MCP, storage, memory, artifact, JSON-RPC,
+  reference, and developer docs still described current local-runtime storage,
+  registries, transcript stores, and executable paths as backed by Python
+  sidecar modules, and some schema docs still used generic client-local labels.
+- Change: routed implementation-backing labels through local-runtime Python
+  modules and clarified desktop client/local-runtime schema wording while
+  preserving concrete `frontend/src/main/python` paths and `tests/sidecar`
+  command names.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  module-backing label scan, and diff check.
+- Compatibility: no migration required. Runtime code, tool schemas,
+  client-manifest payloads, local storage files, JSON-RPC/daemon payloads, IPC
+  payloads, credentials, permissions, hosted backend URLs, provider policy, and
+  trust boundaries are unchanged.
+
 ### 2026-06-20 Boundary Hub Local-Runtime Python Labels
 
 - Finding: getting-started, security, onboarding, IPC, observability,

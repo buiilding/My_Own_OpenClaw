@@ -14,7 +14,7 @@ Use this workflow before changing backend tool-turn behavior. WindieOS has two t
 - Backend model-facing tools tell the LLM what it can request.
 - SDK/main local-runtime tools run local actions and return results.
 
-Client-local runtime and Python sidecar code must not import backend tool schema code for parity. Keep parity in docs and tests.
+Desktop client/local-runtime and local-runtime Python code must not import backend tool schema code for parity. Keep parity in docs and tests.
 
 ## Tool-Turn Path
 
@@ -50,7 +50,7 @@ Client-local runtime and Python sidecar code must not import backend tool schema
 - Tool visibility and schema policy belong in `backend/src/tools` and backend policy code.
 - Provider-specific tool-call normalization belongs in the provider or LLM stream processor, not the renderer.
 - Request ID generation, resolved-call state, and coordinate preparation belong in backend agent tool preparation.
-- Local execution belongs in SDK/main local-runtime adapters and Python sidecar implementations, except explicitly backend-executed SDK tools.
+- Local execution belongs in SDK/main local-runtime adapters and local-runtime Python implementations, except explicitly backend-executed SDK tools.
 - Tool-result websocket ingress belongs in backend API handlers.
 - Tool-result waiting, storage, and cleanup belong in backend tool orchestration.
 - Replay-safe history formatting belongs in backend history/result processing.
@@ -63,7 +63,7 @@ Client-local runtime and Python sidecar code must not import backend tool schema
 4. Preserve request ID and tool-call ID correlation across every stage.
 5. Keep `tool-call` before `tool-output` for synthetic and failed-tool paths.
 6. Keep backend-executed and SDK/main local-runtime lanes explicit.
-7. Update SDK/main local-runtime and sidecar tests if executable payloads change.
+7. Update SDK/main local-runtime and local-runtime Python tests if executable payloads change.
 8. Update tool contract docs and the changelog in the same commit.
 
 ## Tool Schema Changes

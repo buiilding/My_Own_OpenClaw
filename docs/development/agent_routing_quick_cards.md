@@ -34,7 +34,7 @@ Avoid: creating a second Electron path that renames and forwards SDK payloads wi
 
 ## Model-Visible Tool Schema
 
-Owner: backend schema and policy, with client-local manifest parity when the tool executes locally.
+Owner: backend schema and policy, with desktop client/local-runtime manifest parity when the tool executes locally.
 
 Start with [Tools Hub](../tools/README.md), [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), and [Tool Catalog Matrix](../tools/tool_catalog_matrix.md).
 

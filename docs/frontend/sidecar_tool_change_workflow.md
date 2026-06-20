@@ -25,7 +25,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Backend schema and policy | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/tools/tool_selection.py` | Model-visible tool names, descriptions, JSON schema, policy/profile filtering, tool-call history. |
 | SDK runtime dispatch | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` | Tool-call event consumption, bundle/single orchestration, backend result envelope, normalized tool-output events. |
 | Electron main bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_runtime*.cjs`, `packages/windie-sdk-js/src/runtime/Agent.ts` | SDK local-runtime host context, payload mapping, timeouts, display/window context. |
-| Local runtime implementation | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools` | Local-runtime JSON-RPC handlers backed by Python sidecar modules, local tool registry, filesystem/shell/computer/browser/system execution, and local memory RPCs. |
+| Local runtime implementation | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools` | Local-runtime JSON-RPC handlers backed by local-runtime Python modules, local tool registry, filesystem/shell/computer/browser/system execution, and local memory RPCs. |
 | Tests | `tests/backend`, `tests/frontend`, `tests/sidecar` | Contract, dispatch, execution, and result parity. |
 
 ## Add or Change a Tool

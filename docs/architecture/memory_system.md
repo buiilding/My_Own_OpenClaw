@@ -8,10 +8,10 @@ read_when:
 
 ## Overview
 
-Memory is owned by the **SDK local-runtime memory boundary**, not the backend. The current desktop implementation is backed by Python sidecar modules that store episodic and semantic memory locally using SQLite + FAISS, while SDK/local-runtime clients request embeddings, semantic summaries, and conversation titles from the backend over HTTP.
+Memory is owned by the **SDK local-runtime memory boundary**, not the backend. The current desktop implementation is backed by local-runtime Python modules that store episodic and semantic memory locally using SQLite + FAISS, while SDK/local-runtime clients request embeddings, semantic summaries, and conversation titles from the backend over HTTP.
 
 **Key locations:**
-- Local-runtime memory implementation (Python sidecar-backed): `frontend/src/main/python/memory/`
+- Local-runtime memory implementation (local-runtime Python-backed): `frontend/src/main/python/memory/`
 - Bulk destructive maintenance ops: `frontend/src/main/python/memory/admin.py`
 - Local-runtime JSON-RPC orchestration: `frontend/src/main/python/local_backend.py`
 - Embeddings API (backend): `backend/src/api/routes/memory/embeddings/router.py`
@@ -21,7 +21,7 @@ Memory is owned by the **SDK local-runtime memory boundary**, not the backend. T
 
 ```
 +--------------------------------------------------+
-| Local Runtime Memory (Python sidecar-backed)    |
+| Local Runtime Memory (local-runtime Python-backed)    |
 |  - LocalMemoryStore (SQLite + FAISS)            |
 |  - MemorySummarizer (semantic rollups)          |
 |  - LocalRuntimeService memory RPC handlers      |
@@ -247,7 +247,7 @@ Settings now exposes two destructive local-data actions:
 - `Nuke memory`: deletes user-local episodic interaction memory plus semantic memory, then rebuilds local indices so chat events remain intact.
 - `Nuke chats`: deletes chat-event history plus saved conversation titles so non-chat memory stays intact.
 
-These actions are user-scoped (`user_id`) and run through the local-runtime memory admin module/store boundary, currently backed by Python sidecar modules, not the backend FastAPI service. In hosted mode, that `user_id` is now a server-issued identity derived from the install token bootstrap flow rather than a client-chosen value.
+These actions are user-scoped (`user_id`) and run through the local-runtime memory admin module/store boundary, currently backed by local-runtime Python modules, not the backend FastAPI service. In hosted mode, that `user_id` is now a server-issued identity derived from the install token bootstrap flow rather than a client-chosen value.
 
 ## Prompt Injection Retrieval
 

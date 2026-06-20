@@ -34,7 +34,7 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 | `bundle_id` | string | backend bundled-tool dispatch | backend session pending-bundle registry | SDK bundle execution, `tool-bundle-result` ingress, bundle history | partial bundle results cannot be matched and backend may keep waiting |
 | `tool_call_id` | string | provider/tool parser or backend history staging | backend provider-history builder | provider replay, tool-output linkage, rehydrate repair | provider history can reject replay or attach output to the wrong assistant call |
 | `correlation_id` | string | SDK runtime, Electron bridge, or transcript writer | renderer transcript/tool UI projection | UI/tool execution correlation across live and stored rows | visible tool-call and tool-output rows become orphaned even if backend history is correct |
-| `message_index` | integer | SDK local-runtime conversation store | local-runtime transcript store backed by Python sidecar modules | ordered replay, dashboard pagination, semantic candidate windows | replay order, dashboard paging, and semantic windows become unstable |
+| `message_index` | integer | SDK local-runtime conversation store | local-runtime transcript store backed by local-runtime Python modules | ordered replay, dashboard pagination, semantic candidate windows | replay order, dashboard paging, and semantic windows become unstable |
 | `run_id` | string | `/api/runs/*` control plane | backend VM run control service | VM run status, assignment, event timeline, controls | hosted run state cannot be controlled or audited |
 
 ## Alias Policy

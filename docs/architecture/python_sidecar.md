@@ -188,7 +188,7 @@ Wakeword detection runs as a separate Python subprocess:
 - Core coverage:
   - `tests/sidecar/test_local_backend.py` (JSON-RPC handlers, tool execution, memory wiring)
   - `tests/sidecar/test_sidecar_daemon.py` (daemon HTTP status, tool manifest, execution, dynamic module/plugin/MCP registration, event-control channel, shutdown)
-  - `tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for client-local runtime imports)
+  - `tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for desktop client/local-runtime imports)
   - `tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)
 - Bridge regression coverage:
   - `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs` validates SDK local-runtime bootstrap and readiness/status transitions.

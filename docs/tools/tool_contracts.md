@@ -44,9 +44,9 @@ that tool.
 | Contract family | Model can see it? | Executed by | Producer | Backend responsibility | Drift check |
 | --- | --- | --- | --- | --- | --- |
 | backend remote tool | yes | backend service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No local-runtime executable parity is needed, but provider projection and policy still apply. |
-| client-local manifest tool | yes, after validation | local runtime executor or declared backend target for reserved tools | Electron/local-runtime `agent_definition.tools.client_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the local-runtime manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
+| desktop client/local-runtime manifest tool | yes, after validation | local runtime executor or declared backend target for reserved tools | Electron/local-runtime `agent_definition.tools.client_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the local-runtime manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
 | provider-native declaration | yes, provider-specific | provider/runtime adapter | backend provider projection | provider dialect, parser compatibility, policy pruning | Projection may change dialect, not semantics. |
-| local-executor-only helper | no until exposed | local executor | local-runtime executable registry backed by Python sidecar modules | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
+| local-executor-only helper | no until exposed | local executor | local-runtime executable registry backed by local-runtime Python modules | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
 | renderer display projection | no | renderer UI | stream/transcript consumers | none unless backend emits event contract | Display rows must not become the source of model-facing truth. |
 
 ## Client Tool Manifest Shape
@@ -66,7 +66,7 @@ Accepted tool entries normalize to:
 
 Rejected entries return `{name, reason}`. Treat rejection reasons as developer diagnostics, not model-facing prompt content.
 
-Client-local schemas are merged with backend registry schemas before policy filtering. Built-in local tool names use backend catalog specs for the final provider-visible schema, while their manifest entries prove executable capability and argument-resolution metadata. Dynamic client-local tools use their manifest `schema` as the accepted function schema. After merging, `ToolPolicy` and provider projection still decide the final model-visible shape.
+Desktop client/local-runtime schemas are merged with backend registry schemas before policy filtering. Built-in local tool names use backend catalog specs for the final provider-visible schema, while their manifest entries prove executable capability and argument-resolution metadata. Dynamic desktop client/local-runtime tools use their manifest `schema` as the accepted function schema. After merging, `ToolPolicy` and provider projection still decide the final model-visible shape.
 
 ## Contract Flow
 
@@ -77,7 +77,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
    handshake.
 4. Backend validates accepted/rejected manifest entries.
 5. Backend builds backend remote tool schemas from `backend/src/tools/tool_catalog.py` and remote tool classes.
-6. Prompt construction merges accepted dynamic client-local schemas with backend remote schemas; accepted built-in local tool names keep backend catalog specs.
+6. Prompt construction merges accepted dynamic desktop client/local-runtime schemas with backend remote schemas; accepted built-in local tool names keep backend catalog specs.
 7. Tool policy and provider/capability health narrow the exposed schema for the current session.
 8. Backend emits transparency for accepted/rejected manifest entries, final tool schemas, and active `client_prompt_layers`.
 9. The model emits a tool call.

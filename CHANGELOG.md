@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route local-runtime implementation backing labels through
+  local-runtime Python modules and desktop client/local-runtime schema wording
+  instead of Python sidecar module or generic client-local labels. No migration
+  required.
 - docs(boundaries): route getting-started, security, onboarding, IPC,
   observability, backend-tool, and node hub labels through local-runtime Python
   implementation wording instead of Python sidecar implementation boundary

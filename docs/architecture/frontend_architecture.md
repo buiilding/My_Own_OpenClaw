@@ -241,7 +241,7 @@ context, overlay, permission, and window behavior.
 
 Current ownership boundary:
 
-- SDK/local-runtime conversation store owns durable conversation history, replay state, workspace binding, and history browsing/search; Python sidecar modules back the current desktop store implementation
+- SDK/local-runtime conversation store owns durable conversation history, replay state, workspace binding, and history browsing/search; local-runtime Python modules back the current desktop store implementation
 - backend sessions are disposable inference state that may be rebuilt from the local transcript before a backend-dependent action
 - renderer transcript session state is the conversation authority for the currently selected chat
 - `chatStore.activeConversationRef` is a renderer projection/cache used for workspace-scoped UI state, stream routing, and turn fallback lookups; it is not a second user-facing source of truth

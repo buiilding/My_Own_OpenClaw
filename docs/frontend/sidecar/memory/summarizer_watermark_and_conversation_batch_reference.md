@@ -18,7 +18,7 @@ title: "Summarizer Watermark and Conversation Batch Reference"
 
 ## Runtime Purpose
 
-The local-runtime memory summarizer periodically converts episodic interaction rows into semantic memories while preventing duplicate summaries and uncontrolled background churn. It is currently backed by Python sidecar modules.
+The local-runtime memory summarizer periodically converts episodic interaction rows into semantic memories while preventing duplicate summaries and uncontrolled background churn. It is currently backed by local-runtime Python modules.
 
 Dev toggle:
 

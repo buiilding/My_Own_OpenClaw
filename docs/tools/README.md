@@ -29,7 +29,7 @@ backend-owned remote tools and policy/projection, and SDK/main-process dispatch.
 
 ## Current Tool Catalogs
 
-Client-local model-visible tools are supplied by the accepted client manifest. The backend catalog keeps backend-owned tools plus fallback/default entries:
+Desktop client/local-runtime model-visible tools are supplied by the accepted client manifest. The backend catalog keeps backend-owned tools plus fallback/default entries:
 
 - `mouse_control`
 - `keyboard_control`
@@ -46,7 +46,7 @@ Client-local model-visible tools are supplied by the accepted client manifest. T
 - `replace`
 - `browser`
 
-Local-runtime executable tools are registered in `frontend/src/main/python/tools/registry.py`. The local-runtime executable registry backed by Python sidecar modules intentionally mirrors only the executable local actions expected by accepted client-local schemas.
+Local-runtime executable tools are registered in `frontend/src/main/python/tools/registry.py`. The local-runtime executable registry backed by local-runtime Python modules intentionally mirrors only the executable local actions expected by accepted desktop client/local-runtime schemas.
 
 ## Change Path
 

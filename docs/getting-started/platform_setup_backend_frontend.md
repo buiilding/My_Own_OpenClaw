@@ -159,7 +159,7 @@ Dev/source run:
 3. Platform fallback command (`py` on Windows, `python3` on Linux/macOS).
 
 Set `WINDIE_PYTHON_PATH` explicitly during development to avoid accidental interpreter drift.
-The sidecar source runtime keeps its startup imports client-local, so
+The local-runtime Python source keeps its startup imports local to the desktop client/local-runtime boundary, so
 `<windie> start dev` from `frontend_jarvis` does not require the backend package
 to be installed into the frontend environment.
 

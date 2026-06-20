@@ -59,8 +59,8 @@ Current rules:
 
 ## Consequences
 
-- Tool docs must keep client-local schemas and backend-native schemas distinct.
-- Client-local built-in schema changes update the frontend Python manifest source, regenerate the JSON artifact, and update tests.
+- Tool docs must keep desktop client/local-runtime schemas and backend-native schemas distinct.
+- Built-in desktop client/local-runtime schema changes update the frontend Python manifest source, regenerate the JSON artifact, and update tests.
 - Backend-native tool changes still update backend schema/policy tests.
 - Manifest compatibility, trust, signing, and fallback behavior remain future hardening work.
 

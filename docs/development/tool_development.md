@@ -12,7 +12,7 @@ WindieOS tool calling is split across backend policy, the Agent SDK/local
 runtime contract, and the desktop local-runtime executor:
 
 - Agent SDK plus the desktop local-runtime host own model-facing schemas for
-  client-local tools.
+  desktop client/local-runtime tools.
 - Backend validates client-provided manifests, applies policy/provider
   projection, owns backend remote tools, and owns request correlation.
 - The desktop local runtime executes local tools against the local machine
@@ -56,7 +56,7 @@ Current runtime note:
 - the live backend and local-runtime implementation registries expose direct
   tool names only
 - the SDK/Electron desktop host sends `agent_definition.tools.client_manifest`
-  during websocket handshake so client-local tool schemas can be extended
+  during websocket handshake so desktop client/local-runtime tool schemas can be extended
   without editing backend schema code.
 - local-runtime plugin tools put model-facing JSON Schema files under
   `plugins/<id>/schemas/` and reference them as `schema` from

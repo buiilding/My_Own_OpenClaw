@@ -10,7 +10,7 @@ title: "Tool Catalog Matrix"
 
 WindieOS tools are registered in two places by design:
 
-- Desktop client/local-runtime manifest: source of truth for client-local
+- Desktop client/local-runtime manifest: source of truth for desktop client/local-runtime
   model-facing schemas and executable local actions.
 - Backend catalog: backend-owned tools plus fallback/default model-facing
   entries and tool policy owner.
@@ -64,8 +64,8 @@ Local-runtime executable owner:
 
 Parity tests should prove:
 
-- every accepted local tool expected by the local runtime exists in the local-runtime executable registry backed by Python sidecar modules
-- accepted client-local schemas remain model-facing when a client manifest supplies them
+- every accepted local tool expected by the local runtime exists in the local-runtime executable registry backed by local-runtime Python modules
+- accepted desktop client/local-runtime schemas remain model-facing when a client manifest supplies them
 - local results normalize into `ToolResult`
 - browser shared-contract schema stays aligned across backend and local runtime
 

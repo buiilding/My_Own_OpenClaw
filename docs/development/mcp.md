@@ -25,7 +25,7 @@ configured stdio servers through the local-runtime Python implementation, discov
 `tools/list`, registers discovered tools into the executable local tool
 registry, and executes `tools/call` when the model invokes an MCP-backed tool.
 
-The backend does not need MCP-specific tool code. It sees normal client-local
+The backend does not need MCP-specific tool code. It sees normal desktop client/local-runtime
 tools with `execution_target: "local_runtime"` and `argument_resolution:
 "passthrough"`, validates the manifest, and emits tool calls back to the
 frontend.
@@ -143,7 +143,7 @@ That exposes `local_memory__search`.
 8. The local runtime calls `tools/list`.
 9. Discovered tools are registered as executable local-runtime tools and
    exposed through the client tool manifest.
-10. Backend validates and projects the schemas like any other client-local tool.
+10. Backend validates and projects the schemas like any other desktop client/local-runtime tool.
 11. When the backend emits an MCP tool call, the SDK routes it to the local
     runtime like any other local tool.
 12. The local runtime sends MCP `tools/call`.
@@ -262,7 +262,7 @@ For normal MCP integrations, do not edit:
 - `frontend/src/main/extensions/extension_manifest.cjs`
 - `frontend/src/main/extensions/mcp_control.cjs`
 - backend tool registries
-- local-runtime executable tool registries backed by Python sidecar modules
+- local-runtime executable tool registries backed by local-runtime Python modules
 
 Edit those only when changing the WindieOS MCP platform itself.
 

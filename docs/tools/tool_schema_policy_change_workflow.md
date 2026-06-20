@@ -11,13 +11,13 @@ title: "Tool Schema and Policy Change Workflow"
 
 Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and local-runtime executable implementation backed by local-runtime Python.
 
-The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own client-local tool schemas and local executable authority; local-runtime Python provides the current concrete local tool implementations. Do not make the desktop client or local-runtime Python implementation import backend schemas to avoid drift. Keep parity explicit in tests and docs.
+The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own desktop client/local-runtime tool schemas and local executable authority; local-runtime Python provides the current concrete local tool implementations. Do not make the desktop client or local-runtime Python implementation import backend schemas to avoid drift. Keep parity explicit in tests and docs.
 
 ## Fast Owner Map
 
 | Change or symptom | First owner | Code roots | Start docs | Focused tests |
 | --- | --- | --- | --- | --- |
-| add or change a client-local runtime tool schema | Agent SDK/local-runtime manifest, then backend manifest envelope/policy checks | public `frontend/src/main/extensions/tool_manifest.cjs`; backend `backend/src/tools/client_manifest.py` | [Tool Contracts](tool_contracts.md) | manifest builder tests, backend manifest validation tests |
+| add or change a desktop client/local-runtime tool schema | Agent SDK/local-runtime manifest, then backend manifest envelope/policy checks | public `frontend/src/main/extensions/tool_manifest.cjs`; backend `backend/src/tools/client_manifest.py` | [Tool Contracts](tool_contracts.md) | manifest builder tests, backend manifest validation tests |
 | add, remove, or rename a model-visible remote tool | backend tool catalog | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/*` | [Tool Catalog Matrix](tool_catalog_matrix.md), [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](../backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md) | `tests/backend/test_remote_tool_contract.py`, `tests/backend/test_tool_registry_schema.py` |
 | change a tool argument schema or description | backend schema model and remote stub | `backend/src/tools/{computer,system,filesystem}/schemas.py`, browser `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/remote_tools/*`, `backend/src/tools/schema_fields.py` | [Tool Contracts](tool_contracts.md), [Backend Tools Contracts Hub](../backend/tools/contracts/README.md) | backend schema tests plus `tests/sidecar/test_shared_tool_schema_parity.py` when executable fields should match |
 | hide or expose tools by profile, interaction mode, disabled tools, capabilities, provider health, or browser toggle | backend policy | `backend/src/tools/tool_policy.py`, `backend/src/tools/agent_capability_policy.py`, `backend/src/tools/provider_health.py`, `backend/src/tools/tool_selection.py` | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md), [Tool Policy and Agent Capability Runtime Reference](../backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md) | `tests/backend/test_tool_policy.py`, `tests/backend/test_tool_selection.py`, `tests/backend/test_provider_health_policy.py` |
@@ -34,7 +34,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
   entries, client-manifest envelope/trust validation, visibility policy,
   provider projection, backend-executed tool argument validation, tool-result
   ingestion, and history conversion.
-- Agent SDK and the desktop local-runtime host own client-local schemas and local executable authority; local-runtime Python provides the current concrete local tool implementations.
+- Agent SDK and the desktop local-runtime host own desktop client/local-runtime schemas and local executable authority; local-runtime Python provides the current concrete local tool implementations.
 - SDK/main owns streamed tool-call consumption for execution, single/bundle local orchestration, and backend result envelope submission.
 - Renderer owns streamed tool-call/tool-output display projection and transcript rendering.
 - Electron main owns the local tool execution adapter, scoped renderer host
@@ -43,7 +43,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 - The local runtime owns local executable tool registry authority and actual local machine actions through the local-runtime Python implementation.
 - Backend-only tools such as `web_search` do not need local-runtime executable parity, but they still need policy and provider capability tests.
 - Local-runtime helper behavior implemented only inside the Python sidecar must not be model-visible until the backend catalog and policy deliberately expose it.
-- Exact schema parity is required only where accepted client-local model-facing args are also local-runtime executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.
+- Exact schema parity is required only where accepted desktop client/local-runtime model-facing args are also local-runtime executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.
 - Provider-native declarations may be added after canonical filtering, but policy must still prevent disabled grounded function schemas from leaking to the model.
 - Client manifest validation is partial and structural: accepted entries can be exposed while rejected entries are reported as diagnostics. Do not turn one rejected extension tool into a whole-session failure unless the websocket contract intentionally changes.
 - Client schemas own explicitly overridable built-in local tools. They must not add arbitrary backend execution targets.
@@ -54,7 +54,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 2. Each remote tool class exposes a class-level `build_tool_spec()` through its SDK `Tool` base.
 3. `ToolRegistry` registers catalog entries, stores prebuilt canonical tool specs, and registers backend-only tools such as `web_search`.
 4. `SchemaRegistry` validates and caches canonical function tool schemas.
-5. `client_tool_manifest` entries are structurally validated into accepted client-local function schemas or rejected diagnostics; accepted local tool schemas are not replaced by backend catalog schemas.
+5. `client_tool_manifest` entries are structurally validated into accepted desktop client/local-runtime function schemas or rejected diagnostics; accepted local tool schemas are not replaced by backend catalog schemas.
 6. Prompt construction merges accepted client schemas with backend registry schemas while avoiding unsupported duplicate names.
 7. `ToolPolicy` filters names and schemas by config, profile, available tools, disabled tools/capabilities, provider health, browser toggle, web-search availability, and agent capability policy.
 8. Provider projection can adapt the filtered schema set for provider-specific transports.
@@ -62,8 +62,8 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 
 ## Client Manifest Change Path
 
-1. Decide whether the tool is a client-local runtime tool, an override of an allowed built-in, or a backend remote tool.
-2. For client-local tools, define `name`, `description`, `schema`, `execution_target`, and `argument_resolution`.
+1. Decide whether the tool is a desktop client/local-runtime tool, an override of an allowed built-in, or a backend remote tool.
+2. For desktop client/local-runtime tools, define `name`, `description`, `schema`, `execution_target`, and `argument_resolution`.
 3. Keep the developer-authored extension field named `schema`; let backend validation normalize it into the flat function schema.
 4. Use `execution_target=local_runtime` unless the tool name is a reserved backend tool that the backend already knows how to execute.
 5. Use `argument_resolution=passthrough` when model args are executable as emitted.
@@ -79,7 +79,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 4. Backend sends `tool-call` or `tool-bundle` events to the SDK runtime with executable payloads and request ids.
 5. Agent SDK runtime dispatches local execution through Electron main.
 6. Electron main forwards the executable request to the SDK local runtime daemon/JSON-RPC bridge.
-7. Local-runtime executable registry backed by Python sidecar modules executes the local tool implementation and returns a normalized result.
+7. Local-runtime executable registry backed by local-runtime Python modules executes the local tool implementation and returns a normalized result.
 8. Agent SDK runtime submits `tool-result` or `tool-bundle-result` back to the backend.
 9. Backend transforms the result into model-facing history and resumes the loop.
 
@@ -103,7 +103,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 ## Change an Existing Tool Schema
 
 1. Find the model-facing owner from [Tool Catalog Matrix](tool_catalog_matrix.md).
-2. For client-local tools, edit the client/local-runtime manifest source first. For backend-executed tools, edit the backend Pydantic args model and remote tool first.
+2. For desktop client/local-runtime tools, edit the client/local-runtime manifest source first. For backend-executed tools, edit the backend Pydantic args model and remote tool first.
 3. Decide whether the local-runtime executable arguments must match:
    - exact parity local tools: update the client manifest and local-runtime executable schema together
    - grounded tools: update backend preparation so model-facing fields are stripped or resolved before dispatch
@@ -148,7 +148,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 ### Tool Is Missing from the Prompt
 
 - Confirm it exists in `backend/src/tools/tool_catalog.py` or is a backend-owned tool registered by `ToolRegistry`.
-- If it is client-local, confirm the websocket handshake supplied
+- If it is a desktop client/local-runtime tool, confirm the websocket handshake supplied
   `agent_definition.tools.client_manifest` and backend validation accepted the
   entry.
 - Confirm the tool class emits a canonical function tool spec.
@@ -206,7 +206,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 - Tool name is consistent across backend catalog, remote tool class, local-runtime exposed tool set backed by the local-runtime executable registry, SDK/main tests, docs, and prompt transparency expectations.
 - Client manifest entries are accepted or rejected for explicit reasons, and rejected entries do not silently disappear from diagnostics.
-- Built-in client-local tool names use accepted client schemas as the final
+- Built-in desktop client/local-runtime tool names use accepted client schemas as the final
   provider-visible local schema. Backend catalog specs are fallback/default
   entries, not replacements for accepted client manifests.
 - Backend model-facing args and local-runtime executable args are either exact-parity tested or intentionally different with preparation coverage.

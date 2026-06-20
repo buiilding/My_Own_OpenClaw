@@ -368,8 +368,8 @@ describe('modular sdk refactor completion boundary', () => {
     const memorySystem = await read('docs/architecture/memory_system.md');
 
     expect(memorySystem).toContain('SDK local-runtime memory boundary');
-    expect(memorySystem).toContain('Local-runtime memory implementation (Python sidecar-backed)');
-    expect(memorySystem).toContain('Local Runtime Memory (Python sidecar-backed)');
+    expect(memorySystem).toContain('Local-runtime memory implementation (local-runtime Python-backed)');
+    expect(memorySystem).toContain('Local Runtime Memory (local-runtime Python-backed)');
     expect(memorySystem).toContain('local-runtime memory implementation treats those errors as non-fatal');
     expect(memorySystem).toContain('passes embeddings to the local-runtime memory store');
     expect(memorySystem).toContain('local-runtime JSON-RPC envelope');
@@ -871,7 +871,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/architecture/backend_architecture.md'),
     ])).join('\n');
 
-    expect(docText).toContain('client-local runtime tool');
+    expect(docText).toContain('desktop client/local-runtime tool');
     expect(docText).toContain('local-runtime executable tool');
     expect(docText).toContain('local-runtime plugins under `plugins/*/plugin.json`');
     expect(docText).toContain('local-runtime plugin tools');
@@ -894,7 +894,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime registry dispatch backed by Python modules');
     expect(docText).toContain('backend/local-runtime contracts');
     expect(docText).toContain('SDK/main local-runtime migration');
-    expect(docText).toContain('local-runtime transcript store backed by Python sidecar modules');
+    expect(docText).toContain('local-runtime transcript store backed by local-runtime Python modules');
     expect(docText).toContain('SDK/main local-runtime dispatch, local-runtime executable registry implementation');
     expect(docText).toContain('Python sidecar tests for implementation parity');
     expect(docText).toContain('The local runtime owns local tool execution');
@@ -919,7 +919,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureOverviewText).toContain('Desktop Client / SDK Host');
     expect(architectureOverviewText).toContain('Sanitized message sent to SDK/renderer consumers');
     expect(architectureOverviewText).toContain('not enforced in the local-runtime Python implementation by default');
-    expect(architectureOverviewText).toContain('SDK local-runtime memory backed by Python sidecar modules');
+    expect(architectureOverviewText).toContain('SDK local-runtime memory backed by local-runtime Python modules');
     expect(runtimeTraceText).toContain('## Local-Runtime Python JSON-RPC Trace');
     expect(runtimeTraceText).toContain('Python sidecar protocol');
     expect(browserToolOverviewText).toContain('local-runtime execution, local-runtime Python adapters');
@@ -1010,21 +1010,21 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('local runtime owns executable desktop actions');
     expect(toolRoutingDocText).toContain('local runtime owns actual mouse');
     expect(toolRoutingDocText).toContain('concrete executable tool implementations and dynamic tool registry behind the local-runtime boundary');
-    expect(toolRoutingDocText).toContain('local-runtime host own client-local tool schemas and local executable authority');
+    expect(toolRoutingDocText).toContain('local-runtime host own desktop client/local-runtime tool schemas and local executable authority');
     expect(toolRoutingDocText).toContain('The local runtime owns what can actually run locally');
     expect(toolRoutingDocText).toContain('Local-runtime implementation payloads');
     expect(toolRoutingDocText).toContain('Local-runtime tool');
     expect(toolRoutingDocText).toContain('Local-Runtime Tool Catalog and Execution Model');
     expect(toolRoutingDocText).toContain('SDK/main local-runtime tool router');
     expect(toolRoutingDocText).toContain('executable local-runtime tool manifest');
-    expect(toolRoutingDocText).toContain('local-runtime executable registry backed by Python sidecar modules');
-    expect(toolRoutingDocText).toContain('local-runtime executable registry logs backed by Python sidecar modules');
+    expect(toolRoutingDocText).toContain('local-runtime executable registry backed by local-runtime Python modules');
+    expect(toolRoutingDocText).toContain('local-runtime executable registry logs backed by local-runtime Python modules');
     expect(toolRoutingDocText).toContain('local-runtime computer-control implementation');
     expect(toolRoutingDocText).toContain('local-runtime executable parity tests');
     expect(toolRoutingDocText).toContain('executable local-runtime arguments');
-    expect(toolRoutingDocText).toContain('local-runtime exposed-tool registry backed by Python sidecar modules');
+    expect(toolRoutingDocText).toContain('local-runtime exposed-tool registry backed by local-runtime Python modules');
     expect(toolRoutingDocText).toContain('local-runtime exposed-tool parity backed by `frontend/src/main/python/tools/registry.py`');
-    expect(toolRoutingDocText).toContain('live backend catalog and local-runtime exposed-tool set backed by Python sidecar modules');
+    expect(toolRoutingDocText).toContain('live backend catalog and local-runtime exposed-tool set backed by local-runtime Python modules');
     expect(toolRoutingDocText).toContain('parity tests against local-runtime exposed tools');
     expect(toolRoutingDocText).toContain('live local-runtime exposed set backed by the Python registry');
     expect(toolRoutingDocText).toContain('local-runtime exposed tool set backed by the local-runtime executable registry');
@@ -1033,11 +1033,14 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('backend client-executable built-in tool names');
     expect(toolRoutingDocText).not.toContain('backend/client-local tool-name parity contracts');
     expect(toolRoutingDocText).not.toContain('backend/client-local exposed-tool parity tests');
+    expect(toolRoutingDocText).not.toContain('client-local tool');
+    expect(toolRoutingDocText).not.toContain('client-local schema');
+    expect(toolRoutingDocText).not.toContain('client-local runtime');
     expect(toolAuthoringRegistryDocText).toContain('not local-runtime executable actions');
     expect(toolAuthoringRegistryDocText).toContain('For built-in local-runtime executable tools');
     expect(toolAuthoringRegistryDocText).toContain('local-runtime executable registry');
-    expect(toolAuthoringRegistryDocText).toContain('local-runtime executable registry backed by Python sidecar modules');
-    expect(toolAuthoringRegistryDocText).toContain('local-runtime executable tool registries backed by Python sidecar modules');
+    expect(toolAuthoringRegistryDocText).toContain('local-runtime executable registry backed by local-runtime Python modules');
+    expect(toolAuthoringRegistryDocText).toContain('local-runtime executable tool registries backed by local-runtime Python modules');
     expect(toolPolicyValidationDocText).toContain('confirm the local-runtime built-in tool set');
     expect(toolPolicyValidationDocText).toContain('executable registry registration');
     expect(toolPolicyValidationDocText).toContain('Local runtime / local-runtime Python implementation:');
@@ -1465,7 +1468,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('controlled browser session');
     expect(docText).toContain('dedicated browser Chrome/CDP startup policy');
     expect(docText).toContain('Desktop client/local-runtime manifest');
-    expect(docText).toContain('local-runtime executable registry backed by Python sidecar modules');
+    expect(docText).toContain('local-runtime executable registry backed by local-runtime Python modules');
     expect(docText).not.toContain('dedicated Windie browser runtime');
     expect(docText).not.toContain('Dedicated Windie browser navigation');
     expect(docText).not.toContain('Windie browser actions');
@@ -1684,6 +1687,11 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar implementation logs to stderr',
         'Add Python sidecar implementation + arg schema',
         'Python sidecar tool catalogs',
+        'backed by Python sidecar modules',
+        'Python sidecar modules back',
+        'the Python sidecar modules own',
+        'Python sidecar-backed',
+        'Python sidecar implementations',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

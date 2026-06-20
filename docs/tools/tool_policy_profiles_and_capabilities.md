@@ -55,7 +55,7 @@ treated as unavailable.
 
 ### Browser
 
-`browser` follows the same model-visible policy path as other client-local tools: it must be present in the accepted client manifest or backend catalog, and it can be narrowed by profiles, available tools, disabled tools, disabled capabilities, or provider-unavailable capabilities.
+`browser` follows the same model-visible policy path as other desktop client/local-runtime tools: it must be present in the accepted client manifest or backend catalog, and it can be narrowed by profiles, available tools, disabled tools, disabled capabilities, or provider-unavailable capabilities.
 
 Check:
 

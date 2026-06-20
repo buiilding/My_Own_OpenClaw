@@ -275,7 +275,7 @@ Screenshots are captured strategically at key points to provide visual context f
    ↓
 9. ToolExecutionCoordinator routes execution to the SDK local-runtime client
    ↓
-10. Tool dispatched through the SDK local-runtime bridge backed by Python sidecar modules
+10. Tool dispatched through the SDK local-runtime bridge backed by local-runtime Python modules
     ↓
 11. Local-runtime Python implementation executes tool
     ↓
@@ -382,7 +382,7 @@ Core runtime services live under `backend/src/services/`:
 - **Audit Logging**: Policy supports audit logs; wire-in is required for enforcement
 
 ### Data Security
-- **Local Memory Storage**: Conversation history and memory stored locally through SDK local-runtime memory backed by Python sidecar modules
+- **Local Memory Storage**: Conversation history and memory stored locally through SDK local-runtime memory backed by local-runtime Python modules
 - **LLM API Access**: User input and screenshots sent to LLM providers via internet APIs (required for AI functionality)
 - **Encryption**: No encryption-at-rest by default; rely on OS disk encryption for local data
 - **Access Control**: User-based isolation

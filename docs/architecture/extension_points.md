@@ -25,7 +25,7 @@ gates there.
 ## 2) Local-Runtime Python Tools
 
 Most OS-level tools execute through the SDK/main local-runtime boundary and are
-currently backed by Python sidecar modules:
+currently backed by local-runtime Python modules:
 
 - `frontend/src/main/python/tools/`
   - `filesystem/` (read/write/search)
@@ -33,7 +33,7 @@ currently backed by Python sidecar modules:
   - `system/` (stats/window/wait)
 
 These are executed through SDK/main local-runtime dispatch; Electron main owns
-the desktop host bridge and the Python sidecar modules own the current
+the desktop host bridge and local-runtime Python modules own the current
 implementation behavior.
 
 ## 3) LLM Providers
