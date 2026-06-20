@@ -57,7 +57,7 @@ When adding or changing a renderer-main channel:
 - Keep renderer channel constants in sync.
 - Use `invoke` for request/response or correlated work; use `send` only for fire-and-forget commands.
 - Register the main handler in the focused IPC module, not an unrelated module.
-- If Python is involved, update the local-runtime bridge mapper and sidecar JSON-RPC handler together.
+- If Python is involved, update the local-runtime bridge mapper and local-runtime JSON-RPC handler together.
 - Add registry/preload parity tests and handler/mapper tests.
 - Update the domain doc that owns the behavior, not only the IPC workflow.
 
@@ -79,7 +79,7 @@ When changing SDK local-runtime bridge behavior:
 - Keep request ids and readiness/error handling observable in main-process logs.
 - Do not parse or reinterpret model-facing backend tool schemas in main. The bridge maps executable payloads for local-runtime execution.
 - Keep screenshot/display/window helper shapes stable or update Python sidecar tests and docs together.
-- Add main bridge tests plus Python sidecar JSON-RPC/tool tests when payload shape changes.
+- Add main bridge tests plus Python sidecar JSON-RPC/tool tests when Python payload shape changes.
 
 ## Endpoint and Runtime Path Checklist
 
@@ -98,7 +98,7 @@ When changing endpoints or packaged paths:
 | Main query/backend relay | `cd frontend && npm run test -- IpcQueryRuntime IpcMainBridge` |
 | Overlay/window runtime | `cd frontend && npm run test -- MainWindow WindowVisibility Overlay SurfaceRuntime` |
 | Permission service/IPC | `cd frontend && npm run test -- PermissionService PermissionIpcRuntime permissionGrantEffects` |
-| Local runtime bridge | `cd frontend && npm run test -- LocalRuntimeBridge LocalRuntimeSupervisor` plus focused sidecar JSON-RPC tests when Python payloads change |
+| Local runtime bridge | `cd frontend && npm run test -- LocalRuntimeBridge LocalRuntimeSupervisor` plus focused local-runtime JSON-RPC tests when Python payloads change |
 | Wakeword bridge | `cd frontend && npm run test -- WakewordBridge WakewordSupervisor` plus sidecar wakeword tests when the Python service changes |
 | Runtime paths/packaged launch | `cd frontend && npm run test -- RuntimePaths` plus target OS package smoke |
 | Docs-only main workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |

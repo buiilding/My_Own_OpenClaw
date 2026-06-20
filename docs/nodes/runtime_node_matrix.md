@@ -46,7 +46,7 @@ This matrix maps WindieOS runtime nodes to the files and contracts an agent shou
 
 Examples:
 
-- A tool-call card appears but the OS action never runs: backend emitted a model-facing tool event; inspect SDK tool coordination, Electron main local-runtime bridge, then sidecar JSON-RPC and tool registry.
+- A tool-call card appears but the OS action never runs: backend emitted a model-facing tool event; inspect SDK tool coordination, Electron main local-runtime bridge, then local-runtime JSON-RPC and executable tool registry.
 - `/api/runs/*` creates a run but no agent work occurs: inspect backend run status, worker heartbeat assignment, `vm_worker_runtime.cjs`, then normal `/ws` dispatch.
 - Hosted `/api/*` returns `401`: inspect install auth middleware and frontend/SDK bearer-token propagation before changing route code.
 - Public `api.windieos.com` returns `502`: inspect Cloudflare/origin service state before changing FastAPI route handlers.

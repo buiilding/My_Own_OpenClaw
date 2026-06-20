@@ -2,7 +2,7 @@
 summary: "Reference for local-runtime bridge handler registration after removal of the direct chat/memory IPC mapper layer, plus test-backed host IPC/JSON-RPC contract invariants."
 read_when:
   - When adding/removing local-runtime `ipcMain.handle` channels.
-  - When debugging SDK local-runtime payload keys that do not map to sidecar JSON-RPC params.
+  - When debugging SDK local-runtime payload keys that do not map to local-runtime JSON-RPC params.
 title: "Local-Runtime RPC Handler Registry Reference"
 ---
 

@@ -238,6 +238,47 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Runtime Boundary Owner-Label Follow-Up
+
+- Finding: extension surface, install, release packaging, shared-schema,
+  browser validation, platform, and historical runtime-design docs still used
+  `sidecar runtime`, `backend/sidecar`, `sidecar boundary`, and
+  `main/sidecar` labels in places that describe reusable local-runtime
+  contracts or owner routing.
+- Change: reworded those docs through local-runtime browser execution,
+  backend/local-runtime schema parity, local-runtime Python build and
+  platform-adapter labels, and local-runtime HTTP/WebSocket boundaries while
+  preserving exact `sidecar-runtime` command names and Python sidecar paths
+  where they are implementation details.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, targeted stale runtime/boundary label scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. Command names, tool schemas, browser
+  action validation, JSON-RPC method names, IPC channels, SDK/main dispatch,
+  package scripts, storage, credentials, permissions, provider policy, hosted
+  URLs, and local-runtime behavior are unchanged.
+
+### 2026-06-20 IPC Local-Runtime JSON-RPC and Runtime Labels
+
+- Finding: IPC, memory, node, frontend inventory, main-process workflow,
+  browser schema, packaging, platform, extension, and runtime-adapter docs
+  still described public routing through `sidecar JSON-RPC` calls, params,
+  response shape, method-payload labels, or sidecar runtime/schema owner labels
+  even though SDK/main owns the local-runtime JSON-RPC and implementation
+  contract.
+- Change: reworded those paths through local-runtime JSON-RPC calls, params,
+  response shape, executable registry routing, local-runtime implementation
+  labels, and local-runtime build/adapter names while preserving Python
+  sidecar references only for implementation-backed tests and protocol details.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale sidecar JSON-RPC/runtime owner-label scans, docs listing, and
+  diff check.
+- Compatibility: no migration required. JSON-RPC method names, params, IPC
+  channels, SDK/main dispatch, transcript storage, executable tool registry,
+  packaging commands, platform adapter paths, storage, credentials,
+  permissions, provider policy, hosted URLs, and local-runtime behavior are
+  unchanged.
+
 ### 2026-06-20 Tool Request Local-Runtime Contract Labels
 
 - Finding: tool workflow, session/transcript, backend remote-tool,

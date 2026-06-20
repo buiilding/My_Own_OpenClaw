@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route extension, install, packaging, shared-schema, and
+  validation-boundary labels through local-runtime wording instead of sidecar
+  runtime, backend/sidecar, and main/sidecar owner labels. No migration
+  required.
+- docs/frontend: route IPC, memory, node, main-process RPC, browser schema,
+  packaging, platform, extension, and runtime-adapter docs through
+  local-runtime JSON-RPC and local-runtime implementation wording instead of
+  sidecar JSON-RPC/runtime owner labels. No migration required.
 - docs/tools: route backend remote-tool request correlation, payload parity,
   session transcript, extension-point, and cross-layer contract wording through
   local-runtime contracts instead of unqualified sidecar

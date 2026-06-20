@@ -32,7 +32,7 @@ Use the repo launchers:
 cd frontend && node --version
 ```
 
-Do not assume plain `python` has backend/sidecar dependencies.
+Do not assume plain `python` has backend or local-runtime test dependencies.
 
 ## Narrow Then Widen
 

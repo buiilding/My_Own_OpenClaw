@@ -275,6 +275,32 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed extension surface, install, release packaging,
+  shared-schema, browser validation, platform, and historical runtime-design
+  docs through local-runtime browser execution, backend/local-runtime schema
+  parity, local-runtime Python build and platform-adapter labels, and
+  local-runtime HTTP/WebSocket boundaries instead of `sidecar runtime`,
+  `backend/sidecar`, `sidecar boundary`, and `main/sidecar` owner labels.
+  Validation covered the modular docs boundary guard, docs search, related
+  commit search, targeted stale runtime/boundary label scan, docs listing, and
+  diff check. No migration required; command names, tool schemas, browser
+  action validation, JSON-RPC method names, IPC channels, SDK/main dispatch,
+  package scripts, storage, credentials, permissions, provider policy, hosted
+  URLs, and local-runtime behavior are unchanged.
+
+- 2026-06-20: routed IPC, memory, node, frontend inventory, main-process
+  workflow, browser schema, packaging, platform, extension, and runtime-adapter
+  docs through local-runtime JSON-RPC calls, params, response shape, executable
+  registry routing, local-runtime implementation labels, and local-runtime
+  build/adapter names instead of `sidecar JSON-RPC` and sidecar runtime/schema
+  owner labels. Validation covered the modular docs boundary guard, docs
+  search, related commit search, stale sidecar JSON-RPC/runtime owner-label
+  scans, docs listing, and diff check. No migration required; JSON-RPC method
+  names, params, IPC channels, SDK/main dispatch, transcript storage,
+  executable tool registry, packaging commands, platform adapter paths,
+  storage, credentials, permissions, provider policy, hosted URLs, and
+  local-runtime behavior are unchanged.
+
 - 2026-06-20: routed tool workflow, session/transcript, backend remote-tool,
   extension-point, and cross-layer contract wording through local-runtime
   executable actions, local-runtime JSON-RPC boundaries, local-runtime

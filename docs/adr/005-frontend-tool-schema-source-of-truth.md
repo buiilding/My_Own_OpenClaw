@@ -55,7 +55,7 @@ Current rules:
 | backend remains permanent sole source for all schemas | executable drift grew as sidecar tools evolved |
 | sidecar becomes sole source for all model-facing behavior | loses backend policy/provider context and hosted capability control |
 | frontend imports backend schema code | violates runtime boundary and breaks open-source client/backend separation |
-| backend imports sidecar runtime code | couples hosted backend to local desktop dependencies |
+| backend imports local-runtime Python implementation code | couples hosted backend to local desktop dependencies |
 
 ## Consequences
 

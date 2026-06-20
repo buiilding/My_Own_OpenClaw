@@ -195,7 +195,7 @@ Removed mapped chat/memory `ipcMain.handle` registrations:
   `store-chat-event`.
 - Renderer feature code reaches conversation and memory behavior through
   SDK-shaped `windie:invoke` commands. SDK local-runtime store code owns the
-  sidecar JSON-RPC calls behind that command boundary.
+  local-runtime JSON-RPC calls behind that command boundary.
 
 Notable behavior:
 

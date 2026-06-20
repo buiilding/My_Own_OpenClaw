@@ -55,12 +55,12 @@ Validation:
 - Main local-runtime bridge tests.
 - Sidecar tool schema/registry tests.
 
-### 4) Modify sidecar JSON-RPC method payload
+### 4) Modify local-runtime JSON-RPC method payload
 
 1. Update the Python JSON-RPC method signature in `main/python/local_backend.py`.
 2. Update method registration and validation path if needed.
 3. Update the SDK local-runtime caller or scoped host bridge that builds the
-   sidecar JSON-RPC params.
+   local-runtime JSON-RPC params.
 4. Update renderer invoker/client payload shape when the command contract
    changes.
 

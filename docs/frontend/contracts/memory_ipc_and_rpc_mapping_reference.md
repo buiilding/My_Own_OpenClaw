@@ -1,7 +1,7 @@
 ---
 summary: "Renderer/main/local-runtime memory and chat-event contract reference: SDK-shaped renderer commands, internal local-runtime JSON-RPC bridge handler mappings, response envelopes, and storage ownership."
 read_when:
-  - When changing memory-related SDK renderer commands, local-runtime bridge handler payloads, or sidecar JSON-RPC method contracts.
+  - When changing memory-related SDK renderer commands, local-runtime bridge handler payloads, or local-runtime JSON-RPC method contracts.
   - When debugging dashboard memory list/delete failures, chat history persistence issues, or embedding memory search mismatches.
 title: "Memory IPC and RPC Mapping Reference"
 ---
@@ -41,7 +41,7 @@ Chat history is stored in `conversation_events`, not as memory rows. Memory rows
 
 ## SDK Local-Runtime to JSON-RPC Method Map
 
-The SDK local-runtime store calls these sidecar JSON-RPC methods behind public
+The SDK local-runtime store calls these local-runtime JSON-RPC methods behind public
 SDK command names:
 
 - `conversation.append_event`

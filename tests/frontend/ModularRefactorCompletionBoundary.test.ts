@@ -1281,6 +1281,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar action adapter defaulting assumptions');
     expect(docText).not.toContain('backend/sidecar remote parity tests');
     expect(docText).not.toContain('compares backend and sidecar');
+    expect(docText).not.toContain('put local execution in sidecar JSON-RPC');
+    expect(docText).not.toContain('sidecar JSON-RPC response shape');
+    expect(docText).not.toContain('build sidecar JSON-RPC params');
+    expect(docText).not.toContain('owns the sidecar JSON-RPC calls');
+    expect(docText).not.toContain('Modify sidecar JSON-RPC method payload');
+    expect(docText).not.toContain('map to sidecar JSON-RPC params');
     expect(docText).not.toContain('Sidecar Tools Docs Hub');
     expect(docText).not.toContain('Sidecar Computer Tools Docs Hub');
     expect(docText).not.toContain('Sidecar System Tools Docs Hub');
@@ -1915,6 +1921,19 @@ describe('modular sdk refactor completion boundary', () => {
         'Sidecar runtime and shared modules',
         'sidecar browser runtime modules do not import',
         'sidecar runtime imports reach into backend packages',
+        'backend imports sidecar runtime code',
+        'backend browser schema + sidecar browser runtime',
+        'backend/sidecar browser schema parity',
+        'The shared backend/sidecar schema',
+        'sidecar boundary used by',
+        'Backend vs Sidecar Validation Split',
+        'backend/sidecar dependencies',
+        'Sidecar runtime requirement/build change',
+        'Sidecar runtime build:',
+        'macOS sidecar adapter',
+        'Electron + sidecar adapters',
+        'Main/sidecar boundary:',
+        'sidecar remains tool executor',
         'frontend/sidecar code import backend modules',
         'frontend/sidecar code must never import backend code',
         'Client-local runtime and sidecar code must not import',

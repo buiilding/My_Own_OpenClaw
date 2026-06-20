@@ -107,7 +107,7 @@ Start with the installed-app signal, not the dev app:
 | Package script/config docs only | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 | `frontend/package.json` package script change | `cd frontend && npm run release:check`, `<windie> build frontend`, target package command on target OS |
 | Runtime path resolver change | `cd frontend && npm run test -- RuntimePaths`, installed app smoke on target OS |
-| Sidecar runtime requirement/build change | `<windie> build sidecar-runtime`, `<windie> test sidecar`, target package command |
+| Local-runtime Python requirement/build change | `<windie> build sidecar-runtime`, `<windie> test sidecar`, target package command |
 | Backend endpoint packaged-default change | frontend endpoint tests, sidecar backend-config tests, installed app websocket smoke |
 | Reinstall helper change | run the matching helper on that OS; verify reset scope and launch logs |
 | Release workflow change | workflow syntax review, dry-run/manual dispatch reasoning, matching smoke helper, release doc update |

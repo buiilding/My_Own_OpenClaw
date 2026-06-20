@@ -119,7 +119,7 @@ Lifecycle:
 
 ## `process` Tool Actions
 
-The shared backend/sidecar schema constrains `action` to the closed set below;
+The shared backend/local-runtime schema constrains `action` to the closed set below;
 unknown action names are rejected during argument validation instead of being
 deferred to process-tool execution.
 

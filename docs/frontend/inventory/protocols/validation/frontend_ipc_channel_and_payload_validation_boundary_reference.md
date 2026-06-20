@@ -112,7 +112,7 @@ Role:
 
 Direct chat and memory IPC mapper fallbacks have been removed. Current
 validation belongs at the SDK command/facade boundary and in SDK local-runtime
-store calls that build sidecar JSON-RPC params.
+store calls that build local-runtime JSON-RPC params.
 
 Examples:
 

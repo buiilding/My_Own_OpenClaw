@@ -176,8 +176,8 @@ Removed direct chat/memory JSON-RPC bridge channels:
   `store-chat-event`, `replace-chat-conversation`, or
   `rewrite-chat-conversation-after-event`.
 - Conversation and memory user actions use SDK-shaped `windie:invoke`
-  commands; SDK local-runtime code owns the sidecar JSON-RPC calls behind that
-  boundary.
+  commands; SDK local-runtime code owns the local-runtime JSON-RPC calls behind
+  that boundary.
 
 Local tool runtime nuances:
 

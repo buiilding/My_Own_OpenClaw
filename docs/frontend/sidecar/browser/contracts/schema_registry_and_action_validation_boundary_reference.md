@@ -81,9 +81,9 @@ Runtime boundary layers:
 
 So schema acceptance means "canonical grouped browser payload"; execution can still fail for runtime reasons.
 
-## Backend vs Sidecar Validation Split
+## Backend vs Local-Runtime Validation Alignment
 
-There is no browser-specific backend/sidecar schema split anymore.
+There is no browser-specific backend/local-runtime schema split anymore.
 
 Practical rule:
 

@@ -22,7 +22,7 @@ flowchart LR
   Preload --> Main["ipcMain.handle/on owner"]
   Main --> MainHelper["Focused main helper module"]
   MainHelper --> LocalRuntimeBridge["Optional local runtime bridge helper"]
-  LocalRuntimeBridge --> Sidecar["Python sidecar JSON-RPC method"]
+  LocalRuntimeBridge --> Sidecar["local-runtime JSON-RPC method backed by Python sidecar"]
   Main --> Broadcast["Optional webContents.send broadcaster"]
   Broadcast --> RendererListener["Renderer IpcBridge.on cleanup"]
 ```
@@ -73,7 +73,7 @@ If a request/response needs correlation, use `invoke` or include an explicit id 
 | Does the renderer need a direct result? | Use `INVOKE_CHANNELS`. | Continue. |
 | Is the main process broadcasting state to multiple renderer windows? | Use `ON_CHANNELS`. | Continue. |
 | Is this a one-way command with no durable result and no required ordering with a later response? | Use `SEND_CHANNELS`. | Use `INVOKE_CHANNELS` with a structured result. |
-| Does the channel execute local OS/tool behavior? | Keep Electron main as the IPC security boundary and put local execution in sidecar JSON-RPC. | Keep the implementation in the owning Electron main helper. |
+| Does the channel execute local OS/tool behavior? | Keep Electron main as the IPC security boundary and put local execution behind local-runtime JSON-RPC. | Keep the implementation in the owning Electron main helper. |
 | Does the channel change model-facing behavior or backend query shape? | Update the backend/websocket contract docs and tests, not just Electron IPC docs. | Keep the change scoped to Electron IPC and adjacent renderer/sidecar consumers. |
 
 Prefer one focused channel over a generic "do-anything" channel. The preload allowlist is a security boundary, so broad channels must be justified by a narrow payload schema and tests that reject unsafe shapes at the owning runtime.
@@ -151,7 +151,7 @@ Before committing:
 | Sidecar tool call returns unexpected payload | Local-runtime bridge helper, SDK local-runtime caller, or Python JSON-RPC handler. |
 | Renderer receives Electron event-like data | `preload.js` listener wrapper is bypassed or a custom bridge leaked privileged fields. |
 | Multiple duplicate stream/status events after navigation | Renderer listener cleanup is missing or a provider re-registers listeners without unmount cleanup. |
-| Invoke hangs or times out only for local tools | Local-runtime readiness, request correlation, timeout policy, or sidecar JSON-RPC response shape. |
+| Invoke hangs or times out only for local tools | Local-runtime readiness, request correlation, timeout policy, or local-runtime JSON-RPC response shape. |
 | Screenshot/window IPC fails only on one OS | Platform window visibility, display affinity, content protection, or permission owner docs. |
 | Channel works in dev but not packaged app | `additionalArguments` registry injection, preload path, Electron Builder file inclusion, or main-process bootstrap order. |
 

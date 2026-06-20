@@ -66,7 +66,7 @@ Add mobile-native tools and richer memory/workflow features after capability neg
 Adopt a runtime-port pattern:
 
 - `shared-app-core`: platform-agnostic app logic (chat store, stream reducers, message formatting, event parsing).
-- `runtime-desktop`: Electron + sidecar adapters.
+- `runtime-desktop`: Electron + local-runtime adapters.
 - `runtime-mobile`: React Native adapters (WebSocket, storage, media capture, optional wakeword).
 
 Key rule:

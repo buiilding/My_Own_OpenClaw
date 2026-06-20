@@ -170,10 +170,10 @@ Contract normalization:
   - `correlation_id`, `attempt`, `max_attempts`, `recovery_stage`, `failure_reason`.
 - renderer listeners must tolerate absent metadata (backward compatible) and use it when present.
 
-Main/sidecar boundary:
+Main/local-runtime boundary:
 
 - main remains primitive executor for overlay/focus IPC requests.
-- sidecar remains tool executor/capture producer.
+- local runtime remains tool executor/capture producer.
 - renderer orchestrator is policy owner.
 
 ## Historical Invariants

@@ -20,7 +20,7 @@ WindieOS extensibility is code-owned, not plugin-manifest-owned. Use this matrix
 | Inference provider | capability router/adapter | `backend/src/core/inference`, `backend/src/core/interfaces`, `backend/src/services/ocr`, `backend/src/services/vision`, embedding services | provider health/circuit/tool-output tests |
 | Hosted SDK route | FastAPI SDK router + client wrappers | `backend/src/api/routes/sdk`, `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`, `frontend/src/main/python/windie/sdk.py` | backend route tests, TS/Python SDK client tests |
 | Artifact route/storage | artifact route and store | `backend/src/api/routes/artifacts`, `backend/src/services/artifacts` | upload/fetch/client tests |
-| Browser action | backend browser schema + sidecar browser runtime | `backend/src/tools/browser`, `frontend/src/main/python/tools/browser` | backend/sidecar browser schema parity and action tests |
+| Browser action | backend browser schema + local-runtime browser execution | `backend/src/tools/browser`, `frontend/src/main/python/tools/browser` | backend/local-runtime browser schema parity and action tests |
 | Renderer feature | feature module + provider/layout wiring | `frontend/src/renderer/features`, `frontend/src/renderer/app`, `frontend/src/renderer/infrastructure` | focused renderer tests |
 | Electron main runtime feature | main-process module and IPC/channel owner | `frontend/src/main`, `frontend/src/shared/ipcChannels.json`, preload/IPC docs | main-process IPC/lifecycle tests |
 

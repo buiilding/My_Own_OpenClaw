@@ -69,7 +69,7 @@ flowchart LR
 3. Trace the store path.
    - Chat stream handlers consume SDK conversation events and active-turn projections.
    - Desktop conversation store calls cross Electron main into the sidecar storage boundary.
-   - Main process maps payload keys before calling sidecar JSON-RPC.
+   - Main process maps payload keys before calling local-runtime JSON-RPC.
    - Sidecar `conversation.append_event` normalizes and stores rows in `LocalMemoryStore`.
 
 4. Preserve replay shape.
