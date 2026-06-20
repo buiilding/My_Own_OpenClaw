@@ -347,8 +347,13 @@ describe('main ipc sdk runtime boundary', () => {
     expect(backendMessageObserversSource).toContain('const observers = new Set();');
     expect(backendMessageObserversSource).toContain('for (const observer of observers)');
     expect(source).toContain('createIpcStatusPayloads({');
+    expect(source).toContain('ipcStatusPayloads.broadcastConnectionStatus(connected)');
+    expect(source).not.toContain("broadcastToRenderers('ipc-status'");
+    expect(source).not.toContain('function buildIpcStatusPayload(connected)');
     expect(source).not.toContain('backendWsUrl: backendEndpointState.getWsUrl()');
     expect(source).not.toContain('globalAgentStopShortcutStatus: getGlobalAgentStopShortcutStatus()');
+    expect(statusPayloadsSource).toContain("statusChannel = 'ipc-status'");
+    expect(statusPayloadsSource).toContain('broadcastToRenderers(statusChannel, buildIpcStatusPayload(connected))');
     expect(statusPayloadsSource).toContain('backendWsUrl: endpoints.runtimeWsUrl || null');
     expect(statusPayloadsSource).toContain('runtimeWsUrl: endpoints.runtimeWsUrl || null');
     expect(source).toContain('createIpcHostCopyRuntime()');

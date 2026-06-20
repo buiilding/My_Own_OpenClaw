@@ -364,6 +364,7 @@ const ipcStatusPayloads = createIpcStatusPayloads({
     runtimeHttpUrl: backendEndpointState.getHttpUrl(),
   }),
   getGlobalAgentStopShortcutStatus,
+  broadcastToRenderers,
 });
 const electronAgentClientFactoryRuntime = createElectronAgentClientFactoryRuntime({
   AgentClient,
@@ -447,7 +448,7 @@ const globalStopShortcutConfigRuntime = createGlobalStopShortcutConfigRuntime({
   isValidConfigPayload,
   getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
   persistDesktopUiConfigToDisk,
-  broadcastConnectionStatus: (connected) => broadcastConnectionStatus(connected),
+  broadcastConnectionStatus: (connected) => ipcStatusPayloads.broadcastConnectionStatus(connected),
   isConnected: () => backendConnectionGateState.getConnected(),
 });
 const mainProcessTraceRuntime = createMainProcessTraceRuntime({
@@ -487,7 +488,7 @@ const agentConnectionEventsRuntime = createAgentConnectionEventsRuntime({
   clearEventReplayState: () => ipcEventReplayState.clear(),
   logMainRuntime,
   log,
-  broadcastConnectionStatus,
+  broadcastConnectionStatus: (connected) => ipcStatusPayloads.broadcastConnectionStatus(connected),
   handleAgentBackendClose,
   getEndpointCandidates: () => backendEndpointState.getCandidates(),
   setActiveBackendEndpoint,
@@ -542,7 +543,7 @@ const agentBackendCloseRuntime = createAgentBackendCloseRuntime({
   resetBackendSessionState,
   clearEventReplayState: () => ipcEventReplayState.clear(),
   log,
-  broadcastConnectionStatus,
+  broadcastConnectionStatus: (connected) => ipcStatusPayloads.broadcastConnectionStatus(connected),
 });
 const ipcProcessResetRuntime = createIpcProcessResetRuntime({
   settingsSyncRuntime,
@@ -906,14 +907,6 @@ async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {
 
 function refreshEnabledMcpServersAfterStartup(config) {
   return mcpRefreshRuntime.refreshEnabledMcpServersAfterStartup(config);
-}
-
-function buildIpcStatusPayload(connected) {
-  return ipcStatusPayloads.buildIpcStatusPayload(connected);
-}
-
-function broadcastConnectionStatus(connected) {
-  broadcastToRenderers('ipc-status', buildIpcStatusPayload(connected));
 }
 
 async function sendSettingsUpdate(config, source = 'renderer') {

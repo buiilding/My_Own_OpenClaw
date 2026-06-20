@@ -7,6 +7,8 @@ function createIpcStatusPayloads(deps = {}) {
     getState = () => ({}),
     getRuntimeEndpointSnapshot = () => ({}),
     getGlobalAgentStopShortcutStatus = () => null,
+    broadcastToRenderers = null,
+    statusChannel = 'ipc-status',
   } = deps;
 
   function buildIpcStatusPayload(connected) {
@@ -48,7 +50,15 @@ function createIpcStatusPayloads(deps = {}) {
     };
   }
 
+  function broadcastConnectionStatus(connected) {
+    if (typeof broadcastToRenderers !== 'function') {
+      return;
+    }
+    broadcastToRenderers(statusChannel, buildIpcStatusPayload(connected));
+  }
+
   return {
+    broadcastConnectionStatus,
     buildIpcStatusPayload,
     getClientSessionState,
     getBackendConnectionState,

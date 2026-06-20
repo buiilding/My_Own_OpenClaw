@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main IPC Status Broadcast Boundary
+
+- Finding: `ipc_status_payloads.cjs` owned renderer status payload shape and
+  backend/client-session snapshots, but `ipc.cjs` still selected the
+  renderer-facing `ipc-status` channel and paired it with the built payload for
+  every connection status broadcast.
+- Change: moved `broadcastConnectionStatus(...)` into the status payload helper
+  with an injected renderer fan-out callback and helper-owned status channel
+  default. Main connection, backend-close, and shortcut-status paths now call
+  the composed helper instead of rebuilding the broadcast locally.
+- Validation: focused status-payload and main SDK runtime boundary tests verify
+  the channel/payload broadcast behavior and source guards that keep direct
+  `ipc-status` broadcast assembly out of `ipc.cjs`.
+- Compatibility: no migration required. Renderer `ipc-status` channel name,
+  payload fields, backend connection snapshots, client-session snapshots,
+  shortcut status projection, storage, credentials, permissions, provider
+  policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Install-Auth Context Runtime Boundary
 
 - Finding: install-auth identity normalization and cached/fresh install

@@ -400,12 +400,14 @@ Owns Electron-main status payload shaping:
 
 - builds renderer `ipc-status` payloads with connection state, current user,
   runtime websocket/http URLs, and global stop shortcut status
+- broadcasts renderer `ipc-status` updates through the injected renderer-window
+  fan-out callback and the helper-owned status channel default
 - builds client-session snapshots with current user, server user, session,
   conversation, connection, and shortcut status fields
 - builds exported backend connection snapshots with backend URL aliases used by
   main-process callers
-- keeps endpoint/status field naming in one helper while `ipc.cjs` supplies
-  live host state
+- keeps endpoint/status field naming and renderer status channel selection in
+  one helper while `ipc.cjs` supplies live host state and renderer fan-out
 
 ### `ipc_install_auth_identity_runtime.cjs`
 
@@ -1019,9 +1021,9 @@ generic `to-backend` router or direct chat query IPC handlers.
     ignoring, observer exception isolation, unsubscribe callbacks, and test
     reset cleanup, delegates to `ipc_backend_message_observers.cjs`.
 46. IPC status, client-session, and backend connection payload shaping,
-    including runtime URL fields, user/session/conversation fields, connection
-    state, and global stop shortcut status projection, delegates to
-    `ipc_status_payloads.cjs`.
+    including renderer `ipc-status` broadcast channel selection, runtime URL
+    fields, user/session/conversation fields, connection state, and global stop
+    shortcut status projection, delegates to `ipc_status_payloads.cjs`.
 47. install-auth identity normalization, including token/user/install
     trimming, server-user fallback initialization, reset behavior, and
     `autoRegister: false`, delegates to

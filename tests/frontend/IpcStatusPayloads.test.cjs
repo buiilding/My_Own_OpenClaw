@@ -8,6 +8,7 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_status_payloads.cjs');
 
 function createPayloads(overrides = {}) {
+  const broadcastToRenderers = jest.fn();
   return createIpcStatusPayloads({
     getState: () => ({
       currentUserId: 'user-1',
@@ -24,6 +25,7 @@ function createPayloads(overrides = {}) {
       requestedAccelerator: 'CommandOrControl+.',
       resolvedAccelerator: 'CommandOrControl+.',
     }),
+    broadcastToRenderers,
     ...overrides,
   });
 }
@@ -34,6 +36,24 @@ describe('ipc_status_payloads', () => {
 
     expect(payloads.buildIpcStatusPayload(false)).toEqual({
       isConnected: false,
+      userId: 'user-1',
+      runtimeWsUrl: 'ws://runtime/ws',
+      runtimeHttpUrl: 'http://runtime',
+      globalAgentStopShortcutStatus: {
+        requestedAccelerator: 'CommandOrControl+.',
+        resolvedAccelerator: 'CommandOrControl+.',
+      },
+    });
+  });
+
+  test('broadcasts renderer ipc status payloads through the configured channel', () => {
+    const broadcastToRenderers = jest.fn();
+    const payloads = createPayloads({ broadcastToRenderers });
+
+    payloads.broadcastConnectionStatus(true);
+
+    expect(broadcastToRenderers).toHaveBeenCalledWith('ipc-status', {
+      isConnected: true,
       userId: 'user-1',
       runtimeWsUrl: 'ws://runtime/ws',
       runtimeHttpUrl: 'http://runtime',
@@ -108,8 +128,13 @@ describe('ipc_status_payloads', () => {
     );
 
     expect(mainSource).toContain('createIpcStatusPayloads({');
+    expect(mainSource).toContain('ipcStatusPayloads.broadcastConnectionStatus(connected)');
+    expect(mainSource).not.toContain("broadcastToRenderers('ipc-status'");
+    expect(mainSource).not.toContain('function buildIpcStatusPayload(connected)');
     expect(mainSource).not.toContain('backendWsUrl: backendEndpointState.getWsUrl()');
     expect(mainSource).not.toContain('globalAgentStopShortcutStatus: getGlobalAgentStopShortcutStatus()');
+    expect(helperSource).toContain("statusChannel = 'ipc-status'");
+    expect(helperSource).toContain('broadcastToRenderers(statusChannel, buildIpcStatusPayload(connected))');
     expect(helperSource).toContain('backendWsUrl: endpoints.runtimeWsUrl || null');
     expect(helperSource).toContain('runtimeWsUrl: endpoints.runtimeWsUrl || null');
   });

@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move renderer `ipc-status` broadcast channel selection and payload
+  fan-out into `ipc_status_payloads.cjs`, leaving `ipc.cjs` to inject renderer
+  fan-out while preserving connection status payloads. No migration required.
 - main/ipc: compose install-auth identity, registration, SDK auth option, and
   bearer-header helpers through `ipc_install_auth_context_runtime.cjs`, keeping
   the IPC relay root from coordinating identity and registration runtimes
