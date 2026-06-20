@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: replace the stale renderer API-client overview entry with
+  runtime-client and SDK command facade ownership. No migration required.
+
 - docs/platform: describe Electron-owned window and screenshot policy through
   desktop app/app-owned surfaces instead of WindieOS-window ownership labels. No
   migration required.

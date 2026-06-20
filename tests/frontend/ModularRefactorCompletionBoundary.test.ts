@@ -796,8 +796,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('`windie:conversation-event`: SDK-normalized conversation side-effect events');
     expect(docText).toContain('Agent SDK Host');
     expect(docText).toContain('Agent SDK runtime -> WebSocket -> Backend');
+    expect(docText).toContain('Runtime Clients');
+    expect(docText).toContain('SDK command facades');
     expect(docText).toContain('Inspect `windie:invoke` SDK commands, typed SDK/backend-event fan-out');
     expect(docText).toMatch(/typed\s+backend side-channel event fan-out/);
+    expect(docText).not.toContain('**API Client**: Typed API client for backend communication');
     expect(docText).not.toContain('`to-backend`: Renderer');
     expect(docText).not.toContain('`from-backend`: Backend');
     expect(docText).not.toContain('**`from-backend`**');

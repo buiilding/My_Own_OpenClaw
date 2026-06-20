@@ -11,11 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `ea8050bff` (`test(sdk): neutralize workspace fixtures`)
-- Latest completed slice: Agent SDK workspace fixtures now use neutral project
-  samples, and platform docs now describe Electron-owned window/screenshot
-  policy through desktop app/app-owned surfaces instead of WindieOS-window
-  ownership labels.
+- Latest inspected plan checkpoint: `7d4072c92` (`docs(platform): use app-owned window wording`)
+- Latest completed slice: platform docs now describe Electron-owned
+  window/screenshot policy through desktop app/app-owned surfaces, and the
+  architecture overview now describes renderer runtime clients plus SDK command
+  facades instead of a renderer backend API client.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -57,9 +57,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral project metadata while preserving the same local-runtime store and
   projection contracts. Platform docs describe Electron-owned window and
   screenshot policy through desktop app/app-owned surfaces while keeping product
-  identity in skin/config. Preload SDK-command validation failures use generic
-  Agent SDK wording while the `window.windie` bridge contract remains stable.
-  Python SDK
+  identity in skin/config. The architecture overview routes renderer requests
+  through desktop runtime clients and SDK command facades instead of a stale
+  renderer backend API-client entry. Preload SDK-command validation failures use
+  generic Agent SDK wording while the `window.windie` bridge contract remains
+  stable. Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,
   and JS SDK public stream projections use generic fallback error wording when
   runtime errors omit a message. SDK local-runtime auto-start discovery and
@@ -7479,4 +7481,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   docs. Electron window policy, overlay behavior, screenshot
   hide/protect/restore flow, permission probes, IPC channels, storage,
   credentials, local-runtime platform adapters, hosted backend URLs, and
+  provider policy are unchanged; no migration is required.
+- The high-level architecture overview now lists renderer runtime clients and
+  SDK command facades instead of a stale renderer API-client backend
+  communication entry. Renderer runtime clients, IPC channels, SDK command
+  payloads, backend websocket transport, artifact URL helpers, storage,
+  credentials, permissions, local-runtime behavior, hosted backend URLs, and
   provider policy are unchanged; no migration is required.

@@ -18336,3 +18336,19 @@ Each completed slice should report:
   behavior, screenshot hide/protect/restore flow, permission probes, IPC
   channels, storage, credentials, local-runtime platform adapters, hosted
   backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 Architecture renderer runtime-client overview wording
+
+- Finding: the high-level architecture overview still listed a renderer
+  "API Client" for typed backend communication even though renderer requests now
+  move through desktop runtime clients, SDK command facades, Electron main, and
+  SDK-owned hosted transport rather than a renderer backend client.
+- Change: replaced the stale renderer API-client bullet with runtime-client and
+  SDK command facade wording, and extended the architecture boundary test so the
+  retired API-client phrase stays absent.
+- Validation: focused modular boundary test, exact stale renderer API-client
+  overview scan, docs listing, and diff checks.
+- Compatibility: no migration required. Renderer runtime clients, IPC channels,
+  SDK command payloads, backend websocket transport, artifact URL helpers,
+  storage, credentials, permissions, local-runtime behavior, hosted backend
+  URLs, and provider policy are unchanged.
