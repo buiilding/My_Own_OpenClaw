@@ -18284,3 +18284,20 @@ Each completed slice should report:
   locations, CLI test commands, local-runtime Python env selection, hosted SDK
   routes, credentials, permissions, IPC channels, storage, provider policy, and
   local execution are unchanged.
+
+### 2026-06-20 Agent SDK neutral hosted endpoint fixtures
+
+- Finding: the generic Agent SDK client behavior tests no longer depended on a
+  hardcoded hosted endpoint in SDK source, but many test fixtures still used
+  the production WindieOS API URL or product-flavored hosted endpoint hostnames.
+- Change: switched Agent SDK client test fixtures to neutral
+  `*.example.test` endpoints, including HTTP, websocket, managed fallback, SDK,
+  and legacy-env compatibility cases, and added a focused guard so retired
+  hosted fixture URLs stay out of the generic SDK client test.
+- Validation: focused Agent SDK client behavior test, focused Agent SDK package
+  boundary test, exact retired endpoint fixture scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. SDK source, route construction,
+  websocket fallback behavior, package names, environment variable names,
+  credentials, permissions, storage, provider policy, hosted backend contracts,
+  and local-runtime behavior are unchanged.

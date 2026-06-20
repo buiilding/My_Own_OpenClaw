@@ -11,11 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `083d69637` (`docs(extensions): neutralize scaffold artifact labels`)
-- Latest completed slice: generated extension scaffold artifacts now use
-  generic local-runtime plugin and prompt skill labels, and renderer voice docs
-  keep backend STT provider/model details behind the transcription gateway
-  boundary.
+- Latest inspected plan checkpoint: `d4969d168` (`docs(sdk): clarify python validation ownership`)
+- Latest completed slice: SDK route/auth docs now label Python validation rows
+  through Python SDK package ownership, and Agent SDK client fixtures now use
+  neutral hosted endpoint hosts instead of production WindieOS URLs or
+  product-flavored test hosts.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -51,8 +51,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   and managed endpoint configuration failures reject connection waiters
   immediately with generic endpoint wording. SDK-generated default agent IDs
   now use generic `agent-*` values while the existing backend mode remains
-  unchanged. Preload SDK-command validation failures use generic Agent SDK
-  wording while the `window.windie` bridge contract remains stable. Python SDK
+  unchanged. Agent SDK client fixtures now use neutral hosted endpoint hosts
+  while preserving the same hosted route construction, websocket fallback, and
+  environment compatibility coverage. Preload SDK-command validation failures
+  use generic Agent SDK wording while the `window.windie` bridge contract
+  remains stable. Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,
   and JS SDK public stream projections use generic fallback error wording when
   runtime errors omit a message. SDK local-runtime auto-start discovery and
@@ -7452,3 +7455,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   package code, test file locations, CLI test commands, local-runtime Python env
   selection, hosted SDK routes, credentials, permissions, IPC channels, storage,
   provider policy, and local execution are unchanged; no migration is required.
+- Agent SDK client behavior tests now use neutral hosted endpoint fixtures for
+  HTTP route construction, websocket sessions, managed fallback, SDK client, and
+  legacy-env compatibility coverage instead of production WindieOS URLs or
+  product-flavored test hosts. SDK source, hosted route construction, websocket
+  fallback behavior, package names, environment variable names, credentials,
+  permissions, storage, provider policy, hosted backend contracts, and
+  local-runtime behavior are unchanged; no migration is required.

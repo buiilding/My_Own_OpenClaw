@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sdk: use neutral hosted endpoint fixtures in Agent SDK client coverage
+  instead of production WindieOS URLs or product-flavored test hosts. No
+  migration required.
+
 - docs/sdk: clarify Python SDK validation rows as Python SDK package and
   remote-client coverage while preserving the current local-runtime Python test
   suite paths. No migration required.

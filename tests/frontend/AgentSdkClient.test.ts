@@ -150,7 +150,7 @@ describe('Agent SDK client behavior', () => {
 
     try {
       expect(() => new AgentHostedBackendClient({
-        httpBaseUrl: 'https://api.windieos.com',
+        httpBaseUrl: 'https://backend.example.test',
       })).toThrow('Agent SDK HTTP client requires a fetch implementation');
 
       expect(() => new AgentLocalRuntimeHttpClient({
@@ -296,7 +296,7 @@ describe('Agent SDK client behavior', () => {
     }));
 
     const client = new AgentHostedBackendClient({
-      httpBaseUrl: 'https://api.windieos.com/',
+      httpBaseUrl: 'https://backend.example.test/',
       fetchImpl: mockFetch,
     });
 
@@ -307,7 +307,7 @@ describe('Agent SDK client behavior', () => {
 
     expect(response.system_prompt).toBe('prompt');
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.windieos.com/api/sdk/system-prompt?user_id=dev-user&interaction_mode=agent',
+      'https://backend.example.test/api/sdk/system-prompt?user_id=dev-user&interaction_mode=agent',
       expect.objectContaining({ method: 'GET' }),
     );
   });
@@ -350,7 +350,7 @@ describe('Agent SDK client behavior', () => {
     } as unknown as SdkPromptPreviewRequest;
 
     const client = new AgentHostedBackendClient({
-      httpBaseUrl: 'https://api.windieos.com',
+      httpBaseUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
     });
 
@@ -373,7 +373,7 @@ describe('Agent SDK client behavior', () => {
       ],
     });
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.windieos.com/api/sdk/prompt-preview',
+      'https://backend.example.test/api/sdk/prompt-preview',
       expect.objectContaining({
         method: 'POST',
       }),
@@ -426,7 +426,7 @@ describe('Agent SDK client behavior', () => {
     } as unknown as SdkQueryPlanRequest;
 
     const client = new AgentHostedBackendClient({
-      httpBaseUrl: 'https://api.windieos.com',
+      httpBaseUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
     });
 
@@ -454,7 +454,7 @@ describe('Agent SDK client behavior', () => {
       messages: [],
     });
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.windieos.com/api/sdk/query-plan',
+      'https://backend.example.test/api/sdk/query-plan',
       expect.objectContaining({
         method: 'POST',
       }),
@@ -468,7 +468,7 @@ describe('Agent SDK client behavior', () => {
       .mockResolvedValueOnce(jsonResponse({ success: true, title: 'Filtered title' }) as any);
 
     const client = new AgentHostedBackendClient({
-      httpBaseUrl: 'https://api.windieos.com',
+      httpBaseUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
     });
 
@@ -498,7 +498,7 @@ describe('Agent SDK client behavior', () => {
 
     expect(mockFetch).toHaveBeenNthCalledWith(
       1,
-      'https://api.windieos.com/api/sdk/ocr/inspect',
+      'https://backend.example.test/api/sdk/ocr/inspect',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
@@ -510,7 +510,7 @@ describe('Agent SDK client behavior', () => {
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
       2,
-      'https://api.windieos.com/api/sdk/vision/locate-all',
+      'https://backend.example.test/api/sdk/vision/locate-all',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
@@ -522,7 +522,7 @@ describe('Agent SDK client behavior', () => {
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
       3,
-      'https://api.windieos.com/api/semantic/title',
+      'https://backend.example.test/api/semantic/title',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
@@ -539,11 +539,11 @@ describe('Agent SDK client behavior', () => {
       content_type: 'image/png',
       size_bytes: 128,
       sha256: 'abc123',
-      url: 'https://api.windieos.com/api/artifacts/shot.png',
+      url: 'https://backend.example.test/api/artifacts/shot.png',
     }));
 
     const client = new AgentHostedBackendClient({
-      httpBaseUrl: 'https://api.windieos.com',
+      httpBaseUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
     });
 
@@ -553,7 +553,7 @@ describe('Agent SDK client behavior', () => {
 
     expect(response.artifact_id).toBe('shot.png');
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.windieos.com/api/artifacts/',
+      'https://backend.example.test/api/artifacts/',
       expect.objectContaining({
         method: 'POST',
         body: expect.any(FormData),
@@ -567,7 +567,7 @@ describe('Agent SDK client behavior', () => {
       .mockResolvedValueOnce(jsonResponse({ success: true, title: 'Generated SDK title' }) as any);
 
     const client = new AgentHostedBackendClient({
-      httpBaseUrl: 'https://api.windieos.com',
+      httpBaseUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
     });
 
@@ -584,19 +584,19 @@ describe('Agent SDK client behavior', () => {
 
     expect(mockFetch).toHaveBeenNthCalledWith(
       1,
-      'https://api.windieos.com/api/artifacts/artifact-1',
+      'https://backend.example.test/api/artifacts/artifact-1',
       expect.objectContaining({ method: 'GET' }),
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
       2,
-      'https://api.windieos.com/api/semantic/title',
+      'https://backend.example.test/api/semantic/title',
       expect.objectContaining({ method: 'POST' }),
     );
   });
 
   test('does not expose the old direct websocket agent authoring surface', () => {
     const client = new AgentHostedBackendClient({
-      httpBaseUrl: 'https://api.windieos.com',
+      httpBaseUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
     });
 
@@ -611,7 +611,7 @@ describe('Agent SDK client behavior', () => {
       models: [{ id: 'gpt-5.4' }],
     }));
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
     });
 
@@ -619,7 +619,7 @@ describe('Agent SDK client behavior', () => {
 
     expect(response.models).toEqual([{ id: 'gpt-5.4' }]);
     const [url, init] = mockFetch.mock.calls[0];
-    if (String(url) !== 'https://api.windieos.com/api/sdk/models?user_id=dev-user') {
+    if (String(url) !== 'https://backend.example.test/api/sdk/models?user_id=dev-user') {
       throw new Error(`unexpected models URL: ${String(url)}`);
     }
     if (init?.method !== 'GET') {
@@ -634,7 +634,7 @@ describe('Agent SDK client behavior', () => {
       install_token: 'install-token-1',
     }));
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       installAuth: {
@@ -649,7 +649,7 @@ describe('Agent SDK client behavior', () => {
     await wakePromise;
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.windieos.com/api/install/register',
+      'https://backend.example.test/api/install/register',
       expect.objectContaining({ method: 'POST' }),
     );
     expect(socket.options).toMatchObject({
@@ -668,7 +668,7 @@ describe('Agent SDK client behavior', () => {
 
   test('AgentClient does not infer install registration from the hosted endpoint', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
     });
@@ -694,7 +694,7 @@ describe('Agent SDK client behavior', () => {
       install_token: 'install-token-1',
     }));
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       installAuth: {
@@ -715,7 +715,7 @@ describe('Agent SDK client behavior', () => {
     await wakePromise;
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.windieos.com/api/install/register',
+      'https://backend.example.test/api/install/register',
       expect.objectContaining({ method: 'POST' }),
     );
     expect(socket.options).toMatchObject({
@@ -735,7 +735,7 @@ describe('Agent SDK client behavior', () => {
       { status: 503, statusText: 'Service Unavailable' },
     ));
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       installAuth: {
@@ -755,7 +755,7 @@ describe('Agent SDK client behavior', () => {
       install_token: '',
     }));
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       installAuth: {
@@ -839,8 +839,28 @@ describe('Agent SDK client behavior', () => {
     expect(runtimeEnvCjsSource).toContain('Agent SDK backend URL is required');
     expect(sdkSource).toContain('AGENT_BACKEND_URL_REQUIRED_MESSAGE');
     expect(sdkCjsSource).toContain('AGENT_BACKEND_URL_REQUIRED_MESSAGE');
-    expect(sdkSource).not.toContain('https://api.windieos.com');
-    expect(sdkCjsSource).not.toContain('https://api.windieos.com');
+    expect(sdkSource).not.toContain(['https://api', 'windieos.com'].join('.'));
+    expect(sdkCjsSource).not.toContain(['https://api', 'windieos.com'].join('.'));
+  });
+
+  test('Agent SDK client tests use neutral hosted endpoint fixtures', async () => {
+    const testSource = await fsPromises.readFile(__filename, 'utf8');
+    const retiredFixtureUrls = [
+      ['https://api', 'windieos.com'].join('.'),
+      ['https://sdk', 'windie.test'].join('.'),
+      ['https://primary', 'windie.test'].join('.'),
+      ['https://fallback', 'windie.test'].join('.'),
+      ['https://legacy', 'windie.test'].join('.'),
+    ];
+
+    for (const fixtureUrl of retiredFixtureUrls) {
+      expect(testSource).not.toContain(fixtureUrl);
+    }
+    expect(testSource).toContain('https://backend.example.test');
+    expect(testSource).toContain('https://sdk.example.test');
+    expect(testSource).toContain('https://primary.example.test');
+    expect(testSource).toContain('https://fallback.example.test');
+    expect(testSource).toContain('https://legacy.example.test');
   });
 
   test('AgentClient source uses localRuntime for explicit local runtime clients', async () => {
@@ -900,7 +920,7 @@ describe('Agent SDK client behavior', () => {
     const previousApiKey = process.env.WINDIE_API_KEY;
     process.env.AGENT_BACKEND_URL = 'https://env.agent.test';
     process.env.AGENT_INSTALL_TOKEN = 'env-install-token';
-    process.env.WINDIE_BACKEND_URL = 'https://legacy.windie.test';
+    process.env.WINDIE_BACKEND_URL = 'https://legacy.example.test';
     process.env.WINDIE_API_KEY = 'legacy-install-token';
     try {
       mockFetch.mockResolvedValueOnce(jsonResponse({
@@ -962,7 +982,7 @@ describe('Agent SDK client behavior', () => {
     };
     const ensureLocalRuntime = jest.fn(async () => localRuntime);
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -983,7 +1003,7 @@ describe('Agent SDK client behavior', () => {
   test('wakeUp skips local runtime when memory, persistence, and local tools are disabled', async () => {
     const ensureLocalRuntime = jest.fn();
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1009,7 +1029,7 @@ describe('Agent SDK client behavior', () => {
     };
     const ensureLocalRuntime = jest.fn(async () => localRuntime);
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1043,7 +1063,7 @@ describe('Agent SDK client behavior', () => {
     };
     const ensureLocalRuntime = jest.fn(async () => localRuntime);
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1068,7 +1088,7 @@ describe('Agent SDK client behavior', () => {
     };
     const ensureLocalRuntime = jest.fn(async () => localRuntime);
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1110,7 +1130,7 @@ describe('Agent SDK client behavior', () => {
     };
     const ensureLocalRuntime = jest.fn(async () => localRuntime);
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1145,7 +1165,7 @@ describe('Agent SDK client behavior', () => {
 
   test('standalone localRuntime fails closed when auto-start is disabled and no runtime is configured', async () => {
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1165,7 +1185,7 @@ describe('Agent SDK client behavior', () => {
       rpc: jest.fn(async () => ({ success: true, data: {} })),
     };
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1238,7 +1258,7 @@ describe('Agent SDK client behavior', () => {
       }),
     };
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1306,7 +1326,7 @@ describe('Agent SDK client behavior', () => {
       rpc: jest.fn(async () => ({ success: true, data: { memories: {} } })),
     };
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1351,7 +1371,7 @@ describe('Agent SDK client behavior', () => {
       rewriteConversation: jest.fn(async () => undefined),
     };
     const client = new AgentClientClass({
-      backendUrl: 'https://sdk.windie.test',
+      backendUrl: 'https://sdk.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1382,7 +1402,7 @@ describe('Agent SDK client behavior', () => {
 
   test('agent.setModel sends a backend settings update with provider-safe model fields', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1556,7 +1576,7 @@ describe('Agent SDK client behavior', () => {
         content_type: 'text/plain',
         size_bytes: 4,
         sha256: 'abc',
-        url: 'https://api.windieos.com/api/artifacts/artifact-1',
+        url: 'https://backend.example.test/api/artifacts/artifact-1',
       }) as any)
       .mockResolvedValueOnce(jsonResponse({
         embedding: [0.1, 0.2, 0.3],
@@ -1575,7 +1595,7 @@ describe('Agent SDK client behavior', () => {
         embedding_space_version: 'test-space',
       }) as any);
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -1649,14 +1669,14 @@ describe('Agent SDK client behavior', () => {
 
   test('SDK transport creates websocket-backed agent sessions from backend URLs', async () => {
     const session = createAgentSession({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
       operatingSystem: 'macOS',
       agentDefinition: { id: 'transport-agent' },
     });
 
-    expect(FakeWebSocket.instances[0].url).toBe('wss://api.windieos.com/ws');
+    expect(FakeWebSocket.instances[0].url).toBe('wss://backend.example.test/ws');
     const openPromise = session.waitForOpen();
     FakeWebSocket.instances[0].emit('open', {});
     await openPromise;
@@ -1675,7 +1695,7 @@ describe('Agent SDK client behavior', () => {
 
   test('SDK backend transport exposes websocket model-list messages', async () => {
     const session = createAgentSession({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
       operatingSystem: 'macOS',
@@ -1700,7 +1720,7 @@ describe('Agent SDK client behavior', () => {
 
   test('SDK backend transport preserves agent tool manifest when query context supplies a partial agent definition', async () => {
     const session = createAgentSession({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
       operatingSystem: 'macOS',
@@ -1802,7 +1822,7 @@ describe('Agent SDK client behavior', () => {
 
   test('SDK backend transport only lets a non-empty query client manifest replace SDK tools', async () => {
     const session = createAgentSession({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
       operatingSystem: 'macOS',
@@ -1887,7 +1907,7 @@ describe('Agent SDK client behavior', () => {
 
   test('SDK backend transport exposes typed compaction and wakeword messages', async () => {
     const session = createAgentSession({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
       operatingSystem: 'macOS',
@@ -1926,7 +1946,7 @@ describe('Agent SDK client behavior', () => {
 
   test('SDK backend transport filters strict websocket command payloads', async () => {
     const session = createAgentSession({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
     });
@@ -2071,11 +2091,11 @@ describe('Agent SDK client behavior', () => {
     const onFallback = jest.fn();
     const client = new AgentClient({
       backendSession: 'managed',
-      backendUrl: 'https://primary.windie.test',
+      backendUrl: 'https://primary.example.test',
       fetchImpl: mockFetch,
       backendEndpoints: [
-        { backendUrl: 'https://primary.windie.test' },
-        { backendUrl: 'https://fallback.windie.test' },
+        { backendUrl: 'https://primary.example.test' },
+        { backendUrl: 'https://fallback.example.test' },
       ],
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'managed-user',
@@ -2089,13 +2109,13 @@ describe('Agent SDK client behavior', () => {
       builtins: 'none',
     });
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(FakeWebSocket.instances[0].url).toBe('wss://primary.windie.test/ws');
+    expect(FakeWebSocket.instances[0].url).toBe('wss://primary.example.test/ws');
 
     FakeWebSocket.instances[0].emit('error', new Error('primary unavailable'));
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(FakeWebSocket.instances[1].url).toBe('wss://fallback.windie.test/ws');
+    expect(FakeWebSocket.instances[1].url).toBe('wss://fallback.example.test/ws');
     expect(onFallback).toHaveBeenCalledWith(expect.objectContaining({
-      backendUrl: 'https://fallback.windie.test',
+      backendUrl: 'https://fallback.example.test',
     }));
 
     FakeWebSocket.instances[1].emit('open', {});
@@ -2160,7 +2180,7 @@ describe('Agent SDK client behavior', () => {
 
   test('wakeUp applies an initial model selection after handshake', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2199,7 +2219,7 @@ describe('Agent SDK client behavior', () => {
 
   test('agent.setModel validates SDK model selections before sending settings', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2224,7 +2244,7 @@ describe('Agent SDK client behavior', () => {
 
   test('agent.ask applies per-call model selections before sending the query', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2268,7 +2288,7 @@ describe('Agent SDK client behavior', () => {
 
   test('agent.ask renders attachment bodies into SDK-prepared content', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2306,7 +2326,7 @@ describe('Agent SDK client behavior', () => {
 
   test('agent.chat sends the SDK agent definition with each backend query', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2342,7 +2362,7 @@ describe('Agent SDK client behavior', () => {
 
   test('wakeUp defaults to no tool schemas for simple SDK chat agents', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2401,7 +2421,7 @@ describe('Agent SDK client behavior', () => {
       return jsonResponse({ ok: true }) as any;
     });
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2449,7 +2469,7 @@ describe('Agent SDK client behavior', () => {
       })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2493,7 +2513,7 @@ describe('Agent SDK client behavior', () => {
       })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2545,7 +2565,7 @@ describe('Agent SDK client behavior', () => {
       })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2583,7 +2603,7 @@ describe('Agent SDK client behavior', () => {
       listTools: jest.fn(async () => ({ version: 1, tools: [] })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2625,7 +2645,7 @@ describe('Agent SDK client behavior', () => {
       listTools: jest.fn(async () => ({ version: 1, tools: [mcpTool] })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2683,7 +2703,7 @@ describe('Agent SDK client behavior', () => {
       listTools: jest.fn(async () => ({ version: 1, tools: [mcpTool] })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2787,7 +2807,7 @@ describe('Agent SDK client behavior', () => {
     };
     const ensureLocalRuntime = jest.fn(async () => localRuntime);
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2843,7 +2863,7 @@ describe('Agent SDK client behavior', () => {
       shutdown: jest.fn(async () => undefined),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -2897,7 +2917,7 @@ describe('Agent SDK client behavior', () => {
       return jsonResponse({ ok: true, init }) as any;
     });
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -4041,7 +4061,7 @@ describe('Agent SDK client behavior', () => {
       })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -4135,7 +4155,7 @@ describe('Agent SDK client behavior', () => {
       })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -4219,7 +4239,7 @@ describe('Agent SDK client behavior', () => {
       })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -4446,7 +4466,7 @@ describe('Agent SDK client behavior', () => {
       })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -4617,7 +4637,7 @@ describe('Agent SDK client behavior', () => {
       })),
     };
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -4751,7 +4771,7 @@ describe('Agent SDK client behavior', () => {
 
   test('agent.stream surfaces backend errors with conversation routing fields', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -4817,7 +4837,7 @@ describe('Agent SDK client behavior', () => {
 
   test('agent exposes raw backend events only through an explicit debug listener', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -4871,7 +4891,7 @@ describe('Agent SDK client behavior', () => {
 
   test('agent.conversation exposes the SDK conversation runtime over the agent session', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -5094,7 +5114,7 @@ describe('Agent SDK client behavior', () => {
 
   test('agent.chat exposes a UI-facing session facade', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
@@ -5165,7 +5185,7 @@ describe('Agent SDK client behavior', () => {
 
   test('agent.chat defaults to the agent conversation ref', async () => {
     const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
+      backendUrl: 'https://backend.example.test',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
