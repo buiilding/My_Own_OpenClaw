@@ -196,8 +196,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer settings-update failure classifier wording now reflects renderer
   runtime event ownership while preserving the backend-emitted failure text
   contract.
+  Renderer voice transcription socket ready-state checks, close behavior, and
+  conditional protocol sends now live behind the desktop voice runtime client.
 
 ## Inspection Log
+
+### 2026-06-20 Renderer Voice Transcription Socket Lifecycle Boundary
+
+- Finding: `useVoiceMode` already delegated gateway creation, message dispatch,
+  and protocol sends to `DesktopVoiceRuntimeClient`, but still interpreted
+  socket ready-state, open checks, and close behavior directly in the hook.
+- Change: moved transcription socket active/open predicates, close, and
+  conditional start-over/audio sends into `DesktopVoiceRuntimeClient`; updated
+  the hook and voice reference docs to use those value-level runtime helpers.
+- Validation: passed focused voice runtime client test, renderer voice boundary
+  test, voice-mode hook test, docs listing, stale direct ready-state scan, and
+  diff check.
+- Compatibility: no migration required. Transcription gateway URL derivation,
+  payload framing, reconnect policy, utterance-end reset, audio capture,
+  wakeword IPC, backend transcription behavior, permissions, credentials,
+  storage, provider policy, and hosted URLs are unchanged.
 
 ### 2026-06-20 Renderer Settings-Update Failure Classifier Wording
 

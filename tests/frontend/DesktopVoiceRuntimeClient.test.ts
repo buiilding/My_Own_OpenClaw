@@ -184,6 +184,44 @@ describe('DesktopVoiceRuntimeClient', () => {
     expect(websocket.send).toHaveBeenNthCalledWith(2, '{"type":"start_over"}');
   });
 
+  test('owns transcription socket state, close, and conditional sends', () => {
+    const openWebsocket = {
+      readyState: WebSocket.OPEN,
+      send: jest.fn(),
+      close: jest.fn(),
+    } as unknown as WebSocket;
+    const closedWebsocket = {
+      readyState: WebSocket.CLOSED,
+      send: jest.fn(),
+      close: jest.fn(),
+    } as unknown as WebSocket;
+
+    expect(DesktopVoiceRuntimeClient.isTranscriptionWebSocketActive(openWebsocket)).toBe(true);
+    expect(DesktopVoiceRuntimeClient.isTranscriptionWebSocketActive(closedWebsocket)).toBe(false);
+    expect(DesktopVoiceRuntimeClient.isTranscriptionWebSocketOpen(openWebsocket)).toBe(true);
+    expect(DesktopVoiceRuntimeClient.isTranscriptionWebSocketOpen(closedWebsocket)).toBe(false);
+
+    DesktopVoiceRuntimeClient.sendTranscriptionStartOverIfOpen(openWebsocket);
+    DesktopVoiceRuntimeClient.sendTranscriptionStartOverIfOpen(closedWebsocket);
+
+    expect(openWebsocket.send).toHaveBeenCalledWith('{"type":"start_over"}');
+    expect(closedWebsocket.send).not.toHaveBeenCalled();
+
+    expect(
+      DesktopVoiceRuntimeClient.sendTranscriptionAudioMessageIfOpen(openWebsocket, 'audio'),
+    ).toBe(true);
+    expect(
+      DesktopVoiceRuntimeClient.sendTranscriptionAudioMessageIfOpen(closedWebsocket, 'audio'),
+    ).toBe(false);
+    expect(openWebsocket.send).toHaveBeenCalledWith('audio');
+    expect(closedWebsocket.send).not.toHaveBeenCalled();
+
+    DesktopVoiceRuntimeClient.closeTranscriptionWebSocket(openWebsocket);
+    DesktopVoiceRuntimeClient.closeTranscriptionWebSocket(null);
+
+    expect(openWebsocket.close).toHaveBeenCalledTimes(1);
+  });
+
   test('normalizes transcription gateway messages', () => {
     expect(
       DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(JSON.stringify({

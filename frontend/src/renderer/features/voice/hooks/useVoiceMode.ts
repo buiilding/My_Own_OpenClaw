@@ -82,10 +82,7 @@ export function useVoiceMode(
 
   // Connect to the desktop transcription gateway.
   const connectWebSocket = useCallback(() => {
-    if (
-      websocketRef.current
-      && websocketRef.current.readyState !== WebSocket.CLOSED
-    ) {
+    if (DesktopVoiceRuntimeClient.isTranscriptionWebSocketActive(websocketRef.current)) {
       return; // Already connecting or connected
     }
 
@@ -124,10 +121,7 @@ export function useVoiceMode(
               if (onUtteranceEndRef.current) {
                 onUtteranceEndRef.current();
               }
-              // Send start_over to reset Gateway session
-              if (ws.readyState === WebSocket.OPEN) {
-                DesktopVoiceRuntimeClient.sendTranscriptionStartOver(ws);
-              }
+              DesktopVoiceRuntimeClient.sendTranscriptionStartOverIfOpen(ws);
             },
             onTraceEvent: (traceEvent) => {
               logVoiceDebugTrace('voice-transcription-trace', {
@@ -246,7 +240,7 @@ export function useVoiceMode(
         sourceNode,
         chunkSize: 4096,
         onChunk: (inputData) => {
-          if (!isRecordingRef.current || !websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) {
+          if (!isRecordingRef.current) {
             return;
           }
 
@@ -254,7 +248,7 @@ export function useVoiceMode(
           const message = buildGatewayAudioMessage(int16Data, 16000);
 
           try {
-            DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage(websocketRef.current, message);
+            DesktopVoiceRuntimeClient.sendTranscriptionAudioMessageIfOpen(websocketRef.current, message);
           } catch (err) {
             console.error('[VoiceMode] Error sending audio:', err);
           }
@@ -333,10 +327,8 @@ export function useVoiceMode(
   const disconnectWebSocket = useCallback(() => {
     clearReconnectTimeout();
 
-    if (websocketRef.current) {
-      websocketRef.current.close();
-      websocketRef.current = null;
-    }
+    DesktopVoiceRuntimeClient.closeTranscriptionWebSocket(websocketRef.current);
+    websocketRef.current = null;
 
     setIsConnected(false);
     setClientId(null);

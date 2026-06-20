@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: move voice transcription socket ready-state, close, and
+  conditional protocol-send checks behind the desktop voice runtime client so
+  `useVoiceMode` stays on voice-session intent. No migration required.
 - frontend/renderer: describe shared settings-update failure classification as
   renderer runtime ownership instead of backend-owned wording while preserving
   the backend-emitted failure text contract. No migration required.

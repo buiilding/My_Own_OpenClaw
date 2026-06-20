@@ -43,7 +43,8 @@ Default endpoint:
 
 On connect:
 
-- open socket only when no current socket is connecting, open, or closing
+- `DesktopVoiceRuntimeClient.isTranscriptionWebSocketActive(...)` gates opening
+  a new socket when a current socket is connecting, open, or closing
 - send language payload:
 - `{"type":"set_langs","source_language":"en","target_language":"en"}`
 
@@ -55,8 +56,9 @@ Inbound message handling:
 - `realtime`: runtime client emits `(text, isFinal)` values using the
   `translation` fallback to `text`
 - `utterance_end`: runtime client emits an utterance-end callback; the hook
-  triggers the caller-owned session-end callback, then sends
-  `{"type":"start_over"}`
+  triggers the caller-owned session-end callback, then asks
+  `DesktopVoiceRuntimeClient.sendTranscriptionStartOverIfOpen(...)` to send
+  `{"type":"start_over"}` only when the socket is open
 - `trace_event` and unknown message diagnostics are routed through value-level
   callbacks so the hook does not switch on gateway protocol fields
 
@@ -94,7 +96,8 @@ Per audio callback:
 1. read Float32 mono channel data
 2. convert with `float32ToPcm16(...)`
 3. frame with `buildGatewayAudioMessage(...)`
-4. send binary payload through `DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage(...)`
+4. send binary payload through
+   `DesktopVoiceRuntimeClient.sendTranscriptionAudioMessageIfOpen(...)`
 
 ## Binary Framing Contract
 
@@ -118,7 +121,8 @@ Shutdown path (`stopAudioCapture` + `disconnectWebSocket`):
 - null `AudioWorkletNode.port.onmessage`
 - stop media tracks
 - close and null audio context
-- close websocket and clear client id/connected state
+- close websocket through `DesktopVoiceRuntimeClient.closeTranscriptionWebSocket(...)`
+  and clear client id/connected state
 - audio capture ref setter callbacks are stable across renders so normal voice
   status updates do not rebuild capture callbacks or encourage duplicate socket
   connection attempts

@@ -199,6 +199,18 @@ export const DesktopVoiceRuntimeClient = {
     return new WebSocket(gatewayUrl);
   },
 
+  isTranscriptionWebSocketActive(websocket: WebSocket | null | undefined): boolean {
+    return Boolean(websocket && websocket.readyState !== WebSocket.CLOSED);
+  },
+
+  isTranscriptionWebSocketOpen(websocket: WebSocket | null | undefined): websocket is WebSocket {
+    return Boolean(websocket && websocket.readyState === WebSocket.OPEN);
+  },
+
+  closeTranscriptionWebSocket(websocket: WebSocket | null | undefined): void {
+    websocket?.close();
+  },
+
   sendDefaultTranscriptionLanguage(websocket: WebSocket): void {
     websocket.send(SET_LANGUAGE_PAYLOAD);
   },
@@ -207,8 +219,25 @@ export const DesktopVoiceRuntimeClient = {
     websocket.send(START_OVER_PAYLOAD);
   },
 
+  sendTranscriptionStartOverIfOpen(websocket: WebSocket | null | undefined): void {
+    if (this.isTranscriptionWebSocketOpen(websocket)) {
+      this.sendTranscriptionStartOver(websocket);
+    }
+  },
+
   sendTranscriptionAudioMessage(websocket: WebSocket, message: Parameters<WebSocket['send']>[0]): void {
     websocket.send(message);
+  },
+
+  sendTranscriptionAudioMessageIfOpen(
+    websocket: WebSocket | null | undefined,
+    message: Parameters<WebSocket['send']>[0],
+  ): boolean {
+    if (!this.isTranscriptionWebSocketOpen(websocket)) {
+      return false;
+    }
+    this.sendTranscriptionAudioMessage(websocket, message);
+    return true;
   },
 
   normalizeTranscriptionGatewayMessage(rawData: unknown): DesktopTranscriptionGatewayEvent | null {
