@@ -35,6 +35,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move query-level agent-definition context attachment into
+  `ipc_agent_definition_context.cjs`, keeping `ipc.cjs` as wiring while a
+  focused helper gathers custom instructions, workspace AGENTS.md layers,
+  extension prompt layers, and host OS/workspace facts before calling the SDK
+  builder. Extension prompt layers are now loaded once on this path. No
+  migration required.
 - main/ipc: move the direct `AgentClient.wakeUp(...)` adapter into
   `ipc_direct_wake_up_agent_adapter.cjs`, including conversation-runtime handle
   caching, SDK event fan-out, inference-context rehydration, replay

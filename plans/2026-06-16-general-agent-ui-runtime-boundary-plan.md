@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Definition Context Boundary
+
+- Finding: `electron_agent_definition_inputs.cjs` owned the Electron input
+  collector and the SDK owned the final `agent_definition` contract, but
+  `ipc.cjs` still gathered custom instructions, workspace AGENTS.md layers,
+  extension prompt layers, host OS facts, and merge semantics inline before
+  attaching query-level agent definitions.
+- Change: added `ipc_agent_definition_context.cjs` to own query-level
+  agent-definition context attachment. `ipc.cjs` now injects cached desktop UI
+  config plus SDK builder predicates. The helper also prevents extension prompt
+  layers from being loaded twice when passing explicit layers into
+  `buildElectronAgentDefinitionInputs(...)`.
+- Validation: focused agent-definition context coverage for generated default
+  omission, generated/supplied merge semantics, custom-instruction trimming,
+  workspace AGENTS.md loading, extension prompt layer attachment, and host OS
+  mapping.
+- Compatibility: no migration required. Query payload field names,
+  `agent_definition` wire shape, supplied-definition merge rules, AGENTS.md
+  content forwarding, SDK builder contract, storage, credentials, permissions,
+  hosted URLs, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Direct Wake-Up Agent Adapter Boundary
 
 - Finding: `ipc.cjs` already used `AgentClient.wakeUp(...)` directly, but it

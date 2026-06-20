@@ -48,7 +48,6 @@ const {
 } = require('./ipc/ipc_install_auth_state.cjs');
 const {
   createInstallAuthRuntime,
-  resolveDesktopHostOperatingSystem,
 } = require('./ipc/ipc_install_auth_runtime.cjs');
 const {
   isValidConfigPayload,
@@ -74,6 +73,9 @@ const {
 const {
   createDirectWakeUpAgentAdapter,
 } = require('./ipc/ipc_direct_wake_up_agent_adapter.cjs');
+const {
+  attachAgentDefinitionContext: attachAgentDefinitionContextRuntime,
+} = require('./ipc/ipc_agent_definition_context.cjs');
 const {
   APP_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
@@ -127,10 +129,6 @@ const {
   initializeIpcStartupState,
 } = require('./ipc/ipc_startup_state.cjs');
 const {
-  resolveWorkspaceRepoInstructionPromptLayers,
-} = require('./app/repo_instruction_runtime.cjs');
-const {
-  loadExtensionSkillPromptLayers,
   loadPublicExtensionRegistry,
 } = require('./extensions/extension_manifest.cjs');
 const {
@@ -175,9 +173,6 @@ const {
 const {
   isAgentLoopStopShortcutPhase,
 } = require('./shortcuts/agent_stop_shortcut_runtime.cjs');
-const {
-  buildElectronAgentDefinitionInputs,
-} = require('./agent/electron_agent_definition_inputs.cjs');
 const {
   createDesktopLocalRuntimeLaunchPlan,
 } = require('./sidecar/local_runtime_launch_options.cjs');
@@ -1488,13 +1483,6 @@ function isPlainObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function cloneJsonObject(value) {
-  if (!isPlainObject(value)) {
-    return {};
-  }
-  return JSON.parse(JSON.stringify(value));
-}
-
 function normalizePositiveInteger(value) {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return undefined;
@@ -1512,80 +1500,13 @@ function appendAppDiagnostic(input = {}) {
   }
 }
 
-function mergeAgentDefinitionContext(generatedDefinition, suppliedDefinition) {
-  const supplied = cloneJsonObject(suppliedDefinition);
-  if (Object.keys(supplied).length === 0) {
-    return generatedDefinition;
-  }
-
-  const generated = cloneJsonObject(generatedDefinition);
-  return JSON.parse(JSON.stringify({
-    ...generated,
-    ...supplied,
-    system_prompt: isPlainObject(supplied.system_prompt)
-      ? supplied.system_prompt
-      : generated.system_prompt,
-    tools: isPlainObject(supplied.tools)
-      ? supplied.tools
-      : generated.tools,
-    runtime: {
-      ...(isPlainObject(generated.runtime) ? generated.runtime : {}),
-      ...(isPlainObject(supplied.runtime) ? supplied.runtime : {}),
-    },
-    prompt_layers: [
-      ...(Array.isArray(generated.prompt_layers) ? generated.prompt_layers : []),
-      ...(Array.isArray(supplied.prompt_layers) ? supplied.prompt_layers : []),
-    ],
-    agents_md: [
-      ...(Array.isArray(generated.agents_md) ? generated.agents_md : []),
-      ...(Array.isArray(supplied.agents_md) ? supplied.agents_md : []),
-    ],
-    skills: [
-      ...(Array.isArray(generated.skills) ? generated.skills : []),
-      ...(Array.isArray(supplied.skills) ? supplied.skills : []),
-    ],
-    plugins: [
-      ...(Array.isArray(generated.plugins) ? generated.plugins : []),
-      ...(Array.isArray(supplied.plugins) ? supplied.plugins : []),
-    ],
-  }));
-}
-
 function attachAgentDefinitionContext(payload) {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return payload;
-  }
-  const customInstructions = typeof latestDesktopUiConfig?.agent_custom_instructions === 'string'
-    ? latestDesktopUiConfig.agent_custom_instructions.trim()
-    : '';
-  const workspacePath = typeof payload.workspace_path === 'string'
-    ? payload.workspace_path.trim()
-    : '';
-  const agentsMd = workspacePath
-    ? resolveWorkspaceRepoInstructionPromptLayers(workspacePath)
-    : [];
-  const generatedAgentDefinition = buildAgentDefinition(buildElectronAgentDefinitionInputs({
-    includeToolManifest: false,
-    customInstructions,
-    promptLayers: loadExtensionSkillPromptLayers(),
-    agentsMd,
-    workspacePath,
-    operatingSystem: resolveDesktopHostOperatingSystem(process.platform),
-  }));
-  const suppliedAgentDefinition = isPlainObject(payload.agent_definition)
-    ? payload.agent_definition
-    : null;
-  if (isDefaultAgentDefinition(generatedAgentDefinition) && !suppliedAgentDefinition) {
-    return payload;
-  }
-
-  return {
-    ...payload,
-    agent_definition: mergeAgentDefinitionContext(
-      generatedAgentDefinition,
-      suppliedAgentDefinition,
-    ),
-  };
+  return attachAgentDefinitionContextRuntime(payload, {
+    latestDesktopUiConfig,
+    platformName: process.platform,
+    buildAgentDefinition,
+    isDefaultAgentDefinition,
+  });
 }
 
 const automatedQueryDispatcher = createAutomatedQueryDispatcher({

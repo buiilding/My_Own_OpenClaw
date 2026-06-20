@@ -2,6 +2,10 @@
  * Provides install-auth runtime orchestration for the Electron main process.
  */
 
+const {
+  resolveDesktopHostOperatingSystem,
+} = require('./ipc_desktop_host_os_runtime.cjs');
+
 function normalizeInstallAuthState(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return null;
@@ -24,21 +28,6 @@ function normalizeInstallToken(payload) {
     return '';
   }
   return typeof payload.installToken === 'string' ? payload.installToken.trim() : '';
-}
-
-function resolveDesktopHostOperatingSystem(platformName = process.platform) {
-  switch (platformName) {
-    case 'darwin':
-      return 'macOS';
-    case 'win32':
-      return 'Windows';
-    case 'linux':
-      return 'Linux';
-    default:
-      return typeof platformName === 'string' && platformName.trim().length > 0
-        ? platformName.trim()
-        : null;
-  }
 }
 
 function createInstallAuthRuntime({

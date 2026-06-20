@@ -49,6 +49,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs'),
       'utf8',
     );
+    const agentDefinitionContextSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_definition_context.cjs'),
+      'utf8',
+    );
     expect(source).toContain('new AgentClient({');
     expect(source).toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
@@ -70,7 +74,13 @@ describe('main ipc sdk runtime boundary', () => {
     expect(conversationStatusRuntimeSource).toContain('event.payload?.error');
     expect(workspacePathRuntimeSource).toContain('payload?.workspace_path');
     expect(workspacePathRuntimeSource).toContain('payload?.workspacePath');
-    expect(source).toContain('isDefaultAgentDefinition(generatedAgentDefinition)');
+    expect(source).toContain('attachAgentDefinitionContextRuntime(payload');
+    expect(source).not.toContain('resolveWorkspaceRepoInstructionPromptLayers(workspacePath)');
+    expect(source).not.toContain('loadExtensionSkillPromptLayers()');
+    expect(agentDefinitionContextSource).toContain('isDefaultAgentDefinition(generatedAgentDefinition)');
+    expect(agentDefinitionContextSource).toContain('resolveWorkspaceRepoInstructionPromptLayers(workspacePath)');
+    expect(agentDefinitionContextSource).toContain('loadExtensionSkillPromptLayers()');
+    expect(agentDefinitionContextSource).toContain('includeExtensionPromptLayers: false');
     expect(source).not.toContain("generatedAgentDefinition.mode === 'windie_default'");
     expect(source).toContain('localToolLifecycle');
     expect(source).toContain('agentWebSocketImpl');

@@ -65,6 +65,7 @@ Main modules:
 - `frontend/src/main/ipc/ipc_renderer_diagnostics_handlers.cjs`
 - `frontend/src/main/ipc/ipc_pending_turn_handlers.cjs`
 - `frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs`
+- `frontend/src/main/ipc/ipc_agent_definition_context.cjs`
 - `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
 - `frontend/src/main/agent/electron_agent_definition_inputs.cjs`
 
@@ -90,6 +91,9 @@ Responsibilities:
 - Delegates direct wake-up agent adapter behavior to a focused helper that owns
   `agent.conversation(...)` runtime handles, SDK event fan-out, inference
   context rehydration, replay invalidation, and MCP refresh forwarding.
+- Delegates query-level agent-definition context attachment to a focused helper
+  that gathers custom instructions, workspace AGENTS.md layers, extension prompt
+  layers, and host OS/workspace facts before calling the SDK builder.
 - Delegates extension and MCP registry channel registration to a focused helper
   while `ipc.cjs` keeps the Agent SDK host state and MCP startup refresh
   helpers.

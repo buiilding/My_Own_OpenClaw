@@ -21,6 +21,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
 - `frontend/src/main/ipc/ipc_install_auth_runtime.cjs`
 - `frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs`
+- `frontend/src/main/ipc/ipc_agent_definition_context.cjs`
 - `packages/windie-sdk-js/src/runtime/AgentClient.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
@@ -159,6 +160,18 @@ Owns the Electron-main adapter around a direct `AgentClient.wakeUp(...)` result:
   handles on clear/adapter close
 - refreshes MCP servers through the SDK local runtime with injected host client
   identity
+
+### `ipc_agent_definition_context.cjs`
+
+Owns Electron-main query-level agent-definition context attachment:
+
+- reads custom instructions from cached desktop UI config
+- resolves workspace `AGENTS.md` prompt layers for the query workspace
+- loads extension prompt layers once before calling
+  `buildElectronAgentDefinitionInputs(...)`
+- attaches host OS and workspace facts to SDK builder inputs
+- merges generated Electron context with a renderer-supplied
+  `agent_definition` without replacing generated arrays accidentally
 
 ### `ipc_backend_endpoint_state.cjs`
 
@@ -433,6 +446,10 @@ generic `to-backend` router or direct chat query IPC handlers.
     handle caching, SDK event fan-out, inference-context rehydration, replay
     invalidation, and MCP refresh forwarding delegate to
     `ipc_direct_wake_up_agent_adapter.cjs`.
+23. query-level Electron agent-definition context attachment, including
+    custom-instruction trimming, workspace `AGENTS.md` prompt layers, extension
+    prompt layers, host OS/workspace facts, and supplied-definition merging,
+    delegates to `ipc_agent_definition_context.cjs`.
 
 ## Drift Hotspots
 
