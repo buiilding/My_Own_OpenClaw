@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/sdk: reject removed `conversation_ref` aliases in direct Agent SDK
+  library methods while keeping backend-transport send/stop/rehydrate/compact
+  payloads on canonical snake_case fields. No migration required.
 - renderer/chat: stop duplicating attachment filenames as camelCase metadata
   during chat send preparation; the renderer still keeps top-level
   `attachmentFilenames` for UI state and sends canonical `attachment_filenames`

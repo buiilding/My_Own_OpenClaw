@@ -10,6 +10,23 @@ function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function isPlainObject(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function resolveSdkCommandConversationRef(input = {}) {
+  if (typeof input === 'string') {
+    return normalizeOptionalString(input);
+  }
+  if (!isPlainObject(input)) {
+    return null;
+  }
+  if (Object.prototype.hasOwnProperty.call(input, 'conversation_ref')) {
+    throw new Error('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+  }
+  return normalizeOptionalString(input.conversationRef);
+}
+
 function createDirectWakeUpAgentAdapter({
   agent,
   workspacePath = null,
@@ -307,9 +324,7 @@ function createDirectWakeUpAgentAdapter({
     listConversations: options => agent.listConversations(options),
     searchConversations: options => agent.searchConversations(options),
     deleteConversation: async (options = {}) => {
-      const deletedConversationRef = typeof options === 'string'
-        ? options
-        : (options?.conversationRef || options?.conversation_ref || null);
+      const deletedConversationRef = resolveSdkCommandConversationRef(options);
       await agent.deleteConversation(options);
       closeRuntimeHandle(deletedConversationRef);
     },
@@ -318,9 +333,7 @@ function createDirectWakeUpAgentAdapter({
       closeAllRuntimeHandles();
     },
     loadConversation: async (options = {}) => {
-      const loadConversationRef = typeof options === 'string'
-        ? options
-        : (options?.conversationRef || options?.conversation_ref || null);
+      const loadConversationRef = resolveSdkCommandConversationRef(options);
       const handle = getConversationRuntimeHandle(loadConversationRef);
       return reloadRuntimeSnapshot(handle);
     },
@@ -329,7 +342,8 @@ function createDirectWakeUpAgentAdapter({
       const event = options && typeof options === 'object' && 'event' in options
         ? options.event
         : options;
-      const appendConversationRef = resolveRuntimeConversationRef(event) || resolveRuntimeConversationRef(options);
+      const appendConversationRef = resolveSdkCommandConversationRef(event)
+        || resolveSdkCommandConversationRef(options);
       await agent.appendConversationEvent(options);
       if (appendConversationRef) {
         const handle = getConversationRuntimeHandle(appendConversationRef);
@@ -341,7 +355,8 @@ function createDirectWakeUpAgentAdapter({
       const plan = options && typeof options === 'object' && 'plan' in options
         ? options.plan
         : options;
-      const rewriteConversationRef = resolveRuntimeConversationRef(plan) || resolveRuntimeConversationRef(options);
+      const rewriteConversationRef = resolveSdkCommandConversationRef(plan)
+        || resolveSdkCommandConversationRef(options);
       await agent.rewriteConversation(options);
       if (rewriteConversationRef) {
         const handle = getConversationRuntimeHandle(rewriteConversationRef);
@@ -353,7 +368,8 @@ function createDirectWakeUpAgentAdapter({
       const snapshot = options && typeof options === 'object' && 'snapshot' in options
         ? options.snapshot
         : options;
-      const replayConversationRef = resolveRuntimeConversationRef(snapshot) || resolveRuntimeConversationRef(options);
+      const replayConversationRef = resolveSdkCommandConversationRef(snapshot)
+        || resolveSdkCommandConversationRef(options);
       await agent.replaceCompactedReplay(options);
       if (replayConversationRef) {
         const handle = getConversationRuntimeHandle(replayConversationRef);
@@ -362,11 +378,10 @@ function createDirectWakeUpAgentAdapter({
       }
     },
     prepareEditAndResend: async (options = {}) => {
-      const editConversationRef = resolveRuntimeConversationRef(options);
+      const editConversationRef = resolveSdkCommandConversationRef(options);
       const handle = getConversationRuntimeHandle(editConversationRef);
       const input = { ...options };
       delete input.conversationRef;
-      delete input.conversation_ref;
       delete input.revisionId;
       delete input.revision_id;
       delete input.store;
@@ -377,11 +392,10 @@ function createDirectWakeUpAgentAdapter({
       return prepared;
     },
     prepareRetryTurn: async (options = {}) => {
-      const retryConversationRef = resolveRuntimeConversationRef(options);
+      const retryConversationRef = resolveSdkCommandConversationRef(options);
       const handle = getConversationRuntimeHandle(retryConversationRef);
       const input = { ...options };
       delete input.conversationRef;
-      delete input.conversation_ref;
       delete input.revisionId;
       delete input.revision_id;
       delete input.store;
@@ -429,4 +443,5 @@ function createDirectWakeUpAgentAdapter({
 
 module.exports = {
   createDirectWakeUpAgentAdapter,
+  resolveSdkCommandConversationRef,
 };

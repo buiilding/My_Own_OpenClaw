@@ -454,6 +454,9 @@ Owns the Electron-main adapter around a direct `AgentClient.wakeUp(...)` result:
   commands
 - closes selected runtime handles on conversation delete and all runtime
   handles on clear/adapter close
+- rejects removed `conversation_ref` aliases for SDK library methods such as
+  conversation load/delete/replay/edit/retry while leaving backend-transport
+  send/stop/rehydrate/compact commands on canonical snake_case payload fields
 - refreshes MCP servers through the SDK local runtime with injected host client
   identity
 

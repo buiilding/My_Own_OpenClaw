@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+### 2026-06-20 Main Direct SDK Conversation Alias Cleanup
+
+- Finding: the direct Electron Agent SDK adapter still allowed a removed
+  `conversation_ref` alias on SDK library methods even though the main
+  `windie:invoke` SDK-command boundary rejects that shape.
+- Change: direct adapter SDK library methods now resolve conversation identity
+  from `conversationRef` only, while backend-transport send/stop/rehydrate and
+  compact commands continue to use canonical snake_case payload fields.
+- Validation: focused direct adapter tests, docs listing, stale alias scan, and
+  diff checks.
+- Compatibility: no migration required. Public renderer commands, backend
+  transport payloads, storage, credentials, permissions, hosted backend URLs,
+  provider policy, and local execution behavior are unchanged.
+
 - 2026-06-20: completed a renderer attachment metadata shape cleanup by
   removing the duplicate camelCase `attachmentFilenames` copy from prepared
   user-message metadata while preserving top-level renderer attachment state

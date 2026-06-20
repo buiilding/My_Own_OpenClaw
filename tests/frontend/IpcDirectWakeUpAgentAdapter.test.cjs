@@ -5,6 +5,7 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_desktop_runtime_channels.cjs');
 const {
   createDirectWakeUpAgentAdapter,
+  resolveSdkCommandConversationRef,
 } = require('../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs');
 
 function createRuntime(overrides = {}) {
@@ -205,7 +206,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     });
 
     await adapter.appendConversationEvent({
-      event: { conversation_ref: 'conv-replay', type: 'message' },
+      event: { conversationRef: 'conv-replay', type: 'message' },
     });
     await adapter.prepareRetryTurn({
       conversationRef: 'conv-replay',
@@ -215,12 +216,38 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     });
 
     expect(agent.appendConversationEvent).toHaveBeenCalledWith({
-      event: { conversation_ref: 'conv-replay', type: 'message' },
+      event: { conversationRef: 'conv-replay', type: 'message' },
     });
     expect(runtime.load).toHaveBeenCalled();
     expect(runtime.prepareRetryTurn).toHaveBeenCalledWith({
       turnRef: 'turn-1',
     });
+  });
+
+  test('SDK library conversation methods reject removed snake_case conversation aliases', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps: createDeps(),
+    });
+
+    expect(resolveSdkCommandConversationRef(' conv-sdk ')).toBe('conv-sdk');
+    expect(() => resolveSdkCommandConversationRef({ conversation_ref: 'conv-legacy' }))
+      .toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+
+    await expect(adapter.deleteConversation({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.loadConversation({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.appendConversationEvent({
+      event: { conversation_ref: 'conv-legacy', type: 'message' },
+    })).rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.prepareRetryTurn({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+
+    expect(agent.deleteConversation).not.toHaveBeenCalled();
+    expect(agent.appendConversationEvent).not.toHaveBeenCalled();
   });
 
   test('closes selected and all runtime handles when conversations are deleted or cleared', async () => {

@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: renderer chat send preparation no longer duplicates
-  attachment filenames into both camelCase and backend-wire user-message
-  metadata; UI state keeps top-level `attachmentFilenames` while the runtime
-  boundary carries canonical `attachment_filenames`.
+- Latest completed slice: Electron main direct Agent SDK adapter now rejects
+  removed `conversation_ref` aliases for SDK library methods while preserving
+  canonical snake_case backend-transport fields for send/stop/rehydrate/compact.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +243,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Main Direct SDK Conversation Alias Cleanup
+
+- Finding: `ipc_direct_wake_up_agent_adapter.cjs` still accepted
+  `conversation_ref` for SDK library methods such as conversation
+  load/delete/replay/edit/retry even though the `windie:invoke` SDK-command
+  boundary already requires `conversationRef` and rejects the removed alias.
+- Change: added a direct-adapter SDK conversation-ref resolver that rejects
+  `conversation_ref` for SDK library methods, kept backend-transport
+  send/stop/rehydrate/compact on canonical snake_case payload fields, and
+  updated focused adapter coverage.
+- Validation: focused direct adapter tests, docs listing, stale alias scan, and
+  diff checks.
+- Compatibility: no migration required. Renderer command payloads, backend
+  transport send/stop/rehydrate/compact shapes, SDK command names, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and local
+  execution behavior are unchanged.
 
 ### 2026-06-20 Renderer Attachment Metadata Shape Cleanup
 

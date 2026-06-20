@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Direct SDK Conversation Alias Cleanup
+
+- Finding: `ipc_direct_wake_up_agent_adapter.cjs` still accepted
+  `conversation_ref` for SDK library methods such as conversation
+  load/delete/replay/edit/retry even though the `windie:invoke` SDK-command
+  boundary already requires `conversationRef` and rejects the removed alias.
+- Change: added a direct-adapter SDK conversation-ref resolver that rejects
+  `conversation_ref` for SDK library methods, kept backend-transport
+  send/stop/rehydrate/compact on canonical snake_case payload fields, and
+  updated focused adapter coverage.
+- Validation: focused direct adapter tests, docs listing, stale alias scan, and
+  diff checks.
+- Compatibility: no migration required. Renderer command payloads, backend
+  transport send/stop/rehydrate/compact shapes, SDK command names, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Renderer Attachment Metadata Shape Cleanup
 
 - Finding: `desktopChatSendPreparationRuntime.ts` still wrote attachment
