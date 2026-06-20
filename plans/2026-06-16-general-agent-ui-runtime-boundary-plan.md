@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Architecture Tool System Local-Runtime Boundary
+
+- Finding: `docs/architecture/tool_system.md` still carried a Frontend
+  (Electron) diagram and frontend/sidecar owner labels for manifest source,
+  schema pairing, local validation, parity, screenshot lifecycle, and
+  resource-limit notes even though the active boundary is desktop
+  client/local-runtime plus backend policy.
+- Change: normalized the diagram to desktop client/local-runtime ownership,
+  reworded manifest, validation, parity, screenshot lifecycle, and
+  resource-limit labels through local-runtime wording, and extended the modular
+  tool-boundary guard for the architecture overview.
+- Validation: passed focused modular boundary test, docs listing, stale
+  tool-system owner scan, and diff check.
+- Compatibility: no migration required. Tool schemas, executable tool names,
+  manifests, SDK/main dispatch, Python sidecar modules, renderer display,
+  storage, credentials, permissions, provider policy, local-runtime routing,
+  and hosted URLs are unchanged.
+
 ### 2026-06-20 Architecture Extension-Point Tool Boundary
 
 - Finding: `docs/architecture/extension_points.md` still labeled OS-level

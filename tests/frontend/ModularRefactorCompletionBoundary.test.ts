@@ -791,6 +791,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/getting-started/docs_hub.md'),
     ])).join('\n');
     const runtimeTraceText = await read('docs/debug/runtime_traces.md');
+    const architectureToolSystemText = await read('docs/architecture/tool_system.md');
 
     expect(docText).toContain('client-local runtime tool');
     expect(docText).toContain('local-runtime executable tool');
@@ -820,6 +821,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Tool Policy or Local-Runtime Execution');
     expect(docText).toContain('Local-Runtime Python Tools');
     expect(docText).toContain('SDK/main local-runtime dispatch');
+    expect(architectureToolSystemText).toContain('Desktop Client / Local Runtime');
+    expect(architectureToolSystemText).toContain('desktop client manifest builder');
+    expect(architectureToolSystemText).toContain('local-runtime exposed-tool parity');
+    expect(architectureToolSystemText).toContain('desktop client/local-runtime and backend schema pairing');
     expect(runtimeTraceText).toContain('## Local-Runtime Python JSON-RPC Trace');
     expect(runtimeTraceText).toContain('Python sidecar protocol');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
@@ -852,6 +857,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Frontend Python Sidecar Tools');
     expect(docText).not.toContain('These are executed via IPC from the Electron main process');
     expect(docText).not.toContain('platform-specific main/sidecar adapters');
+    expect(architectureToolSystemText).not.toContain('Frontend (Electron)');
+    expect(architectureToolSystemText).not.toContain('live sidecar registry');
+    expect(architectureToolSystemText).not.toContain('sidecar exposed-tool set');
+    expect(architectureToolSystemText).not.toContain('frontend/local execution path');
+    expect(architectureToolSystemText).not.toContain('frontend/local runtime');
+    expect(architectureToolSystemText).not.toContain('sidecar/local-runtime path');
+    expect(architectureToolSystemText).not.toContain('not enforced in sidecar by default');
     expect(runtimeTraceText).not.toContain('## Sidecar JSON-RPC Trace');
     expect(runtimeTraceText).not.toContain('Sidecar executed a registered tool');
     expect(docText).not.toMatch(/(?<!Python )sidecar computer\/browser tool implementations/);

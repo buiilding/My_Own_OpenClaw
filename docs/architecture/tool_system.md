@@ -12,7 +12,7 @@ The Tool System enables WindieOS to interact with the computer through a set of 
 
 Current runtime note:
 
-- the live backend registry and the live sidecar registry both use direct tool names such as `mouse_control` and `run_shell_command`
+- the live backend registry and the live local-runtime registry both use direct tool names such as `mouse_control` and `run_shell_command`
 - the repo also contains wrapper-shaped reference artifacts for `computer_use` and `system_use` under `model-facing/`, but those names are not registered by `backend/src/tools/registry.py` or `frontend/src/main/python/tools/registry.py`
 
 Client-local built-in tool schemas now flow through `client_tool_manifest`.
@@ -21,49 +21,21 @@ For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│              Backend (Python)                   │
-│  ┌───────────────────────────────────────────┐  │
-│  │  ToolRegistry                              │  │
-│  │  - Tool Registration                       │  │
-│  │  - Schema Management                       │  │
-│  │  - Remote Tool Stubs                       │  │
-│  └───────────────────────────────────────────┘  │
-│              ↕                                    │
-│  ┌───────────────────────────────────────────┐  │
-│  │  ToolResultOrchestrator                    │  │
-│  │  - Result Waiting/Assembly                 │  │
-│  │  - Bundle/Single Handling                  │  │
-│  └───────────────────────────────────────────┘  │
-│              ↕                                    │
-│  ┌───────────────────────────────────────────┐  │
-│  │  ToolPreparer                              │  │
-│  │  - Screenshot Management                   │  │
-│  │  - OCR Coordination                        │  │
-│  │  - Coordinate Resolution                   │  │
-│  └───────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────┘
-              ↕ WebSocket
-┌─────────────────────────────────────────────────┐
-│            Frontend (Electron)                  │
-│  ┌───────────────────────────────────────────┐  │
-│  │  Main Process (IPC)                       │  │
-│  │  - Tool Request Routing                   │  │
-│  └───────────────────────────────────────────┘  │
-│              ↕ HTTP /rpc                         │
-│  ┌───────────────────────────────────────────┐  │
-│  │  Python Sidecar Daemon                    │  │
-│  │  - Tool Execution                         │  │
-│  │  - System State Capture                    │  │
-│  └───────────────────────────────────────────┘  │
-│              ↕ IPC (IpcBridge)                     │
-│  ┌───────────────────────────────────────────┐  │
-│  │  SDK Runtime / Electron Main               │  │
-│  │  - ToolExecutionCoordinator                │  │
-│  │  - Local runtime adapter                   │  │
-│  │  - Result envelopes / projections          │  │
-│  └───────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────┘
++--------------------------------------------------+
+| Backend (Python)                                 |
+|  - ToolRegistry: registration and schema cache   |
+|  - ToolResultOrchestrator: result assembly       |
+|  - ToolPreparer: screenshots/OCR/coordinates     |
++--------------------------------------------------+
+                 ^ WebSocket
+                 |
++--------------------------------------------------+
+| Desktop Client / Local Runtime                   |
+|  - Electron main: host bridge and dispatch       |
+|  - SDK runtime: ToolExecutionCoordinator         |
+|  - Python sidecar daemon: executable tools       |
+|  - Renderer: result projections and display      |
++--------------------------------------------------+
 ```
 
 ## Tool Types
@@ -77,18 +49,18 @@ Most tools are dispatched through the SDK/main local runtime into the Python sid
 - **Additional System Tools**: `open_app`, `process`
 - **Browser Tools**: `browser`
 
-This is the live remote tool surface today: 14 direct remote tools shared across the backend catalog and sidecar exposed-tool set.
+This is the live remote tool surface today: 14 direct remote tools shared across the backend catalog and local-runtime exposed-tool set.
 
 Catalog-driven declaration contract:
 
 - backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-owned remote tools and backend policy
-- frontend `frontend/src/main/extensions/tool_manifest.cjs` is the source of truth for built-in client-local schemas
+- desktop client manifest builder `frontend/src/main/extensions/tool_manifest.cjs` is the source of truth for built-in client-local schemas
 - plugin `schema` contributions are loaded by Electron main from `plugins/*/plugin.json`
 - plugin Python entrypoints are loaded by the sidecar from `plugins/*/plugin.json`
 - backend validates accepted/rejected client manifest entries before prompt construction
 - backend `tool_catalog.py` now builds canonical tool specs and remote stub classes together through one builder path; `ToolRegistry` consumes those prebuilt specs instead of deriving schemas from live tool instances
 - model visibility, declaration assembly, and runtime lookup all project from the same registered tool names
-- prompt-time filtering, parser whitelists, transparency payloads, and sidecar exposed-tool parity all consume the same direct tool names
+- prompt-time filtering, parser whitelists, transparency payloads, and local-runtime exposed-tool parity all consume the same direct tool names
 - typed agent capability policy can narrow the model-visible tool surface per effective user/session config without rebuilding the registry or restarting the backend
 - agent capability selection prunes tool names, fields, enums/defaults, and conditional branches without rewriting descriptions
 - browser now uses the same generic schema generation path as every other backend-exposed tool; there is no browser-only schema rewriter
@@ -99,7 +71,7 @@ Catalog-driven declaration contract:
 Boundary rule:
 
 - Desktop client and Python sidecar code must never import backend Python modules or depend on `backend.src.*` at runtime
-- frontend and backend schema pairing must stay import-independent across that boundary
+- desktop client/local-runtime and backend schema pairing must stay import-independent across that boundary
 - drift prevention comes from explicit backend-vs-sidecar schema parity tests run before production, not from cross-boundary runtime imports
 
 Wrapper reference artifact note:
@@ -185,7 +157,7 @@ LLM returns structured tool calls from the API response object (native tool-call
 
 Pre-dispatch model-shape validation notes:
 - backend argument validation applies to backend-executed tools only
-- local-executed payload shape is validated by the frontend/local execution path
+- local-executed payload shape is validated by the local-runtime execution path
 - backend preparation may still strip backend-only grounded fields before local dispatch
 
 Schema pairing rule:
@@ -202,7 +174,7 @@ Direct tool contract before execution:
 
 - model-facing tool names are already the execution-facing tool names
 - no wrapper-envelope normalization happens in parser, registry, or sidecar routing
-- each backend-executed direct tool validates through its backend schema; each local-executed direct tool validates in the frontend/local runtime
+- each backend-executed direct tool validates through its backend schema; each local-executed direct tool validates in the local runtime
 - unified `computer_use` and `system_use` wrapper names remain repo-local reference artifacts, not registered runtime tool names
 
 ### 3. Tool Execution
@@ -405,7 +377,7 @@ For tools using vision models:
 ### Screenshot Lifecycle
 
 1. **User Message**: Screenshot captured before sending (via useChatMessageSender) and uploaded via HTTP `/api/artifacts`
-2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution in the sidecar/local-runtime path and uploaded via HTTP `/api/artifacts`
+2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution in the local-runtime path backed by Python sidecar modules and uploaded via HTTP `/api/artifacts`
    - **Individual Tools**: Screenshot captured **once** after tool execution completes
    - **Bundled Tools**: Screenshot captured **once** after all bundled tools execute (not after each tool)
    - Individual tools use `ensureAutoCapture(...)` for shared capture policy and fallback behavior.
@@ -537,7 +509,7 @@ top-level `explanation` field when required by that tool's schema.
 
 - **Permission Model**: `SecurityPolicy` defines permissions, but local execution does not enforce them yet
 - **Sandboxing**: No executor abstraction is exposed; add a concrete isolated execution boundary only with an implemented strategy
-- **Resource Limits**: Limits are defined in `SecurityPolicy`, not enforced in sidecar by default
+- **Resource Limits**: Limits are defined in `SecurityPolicy`, not enforced in the local-runtime Python implementation by default
 - **Audit Logging**: Policy supports audit logs; wire-in is required for enforcement
 
 ### Tool Validation

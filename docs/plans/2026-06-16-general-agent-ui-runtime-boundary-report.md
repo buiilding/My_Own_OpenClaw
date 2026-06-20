@@ -214,8 +214,30 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   The architecture extension-points overview now routes local tool extension
   ownership through SDK/main local-runtime dispatch while keeping Python
   sidecar modules as implementation details.
+  The architecture tool-system overview now routes the diagram, manifest
+  source, schema pairing, local validation, parity, screenshot lifecycle, and
+  resource-limit labels through desktop client/local-runtime ownership while
+  keeping Python sidecar modules as implementation details.
 
 ## Inspection Log
+
+### 2026-06-20 Architecture Tool System Local-Runtime Boundary
+
+- Finding: `docs/architecture/tool_system.md` still carried a Frontend
+  (Electron) diagram and frontend/sidecar owner labels for manifest source,
+  schema pairing, local validation, parity, screenshot lifecycle, and
+  resource-limit notes even though the active boundary is desktop
+  client/local-runtime plus backend policy.
+- Change: normalized the diagram to desktop client/local-runtime ownership,
+  reworded manifest, validation, parity, screenshot lifecycle, and
+  resource-limit labels through local-runtime wording, and extended the modular
+  tool-boundary guard for the architecture overview.
+- Validation: passed focused modular boundary test, docs listing, stale
+  tool-system owner scan, and diff check.
+- Compatibility: no migration required. Tool schemas, executable tool names,
+  manifests, SDK/main dispatch, Python sidecar modules, renderer display,
+  storage, credentials, permissions, provider policy, local-runtime routing,
+  and hosted URLs are unchanged.
 
 ### 2026-06-20 Architecture Extension-Point Tool Boundary
 
