@@ -161,7 +161,33 @@ describe('renderer voice runtime boundary', () => {
     expect(source).toContain('Voice Mode (Desktop Voice Runtime Gateway)');
     expect(source).toContain('DesktopVoiceRuntimeClient');
     expect(source).toContain('backend owns STT provider policy');
+    expect(source).toContain('typed audio-chunk runtime events');
     expect(source).not.toContain('Voice Mode (Backend Transcription Gateway)');
     expect(source).not.toContain('WebSocket connection to backend `/ws/transcription`');
+    expect(source).not.toContain('TTS audio chunks from backend');
+  });
+
+  test('renderer voice docs keep backend provider policy behind the gateway boundary', async () => {
+    const rendererVoiceDocPaths = [
+      '../../docs/frontend/renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md',
+      '../../docs/frontend/renderer/voice_capture_and_wakeword_controller_reference.md',
+      '../../frontend/src/renderer/folder_structure.md',
+    ];
+    const docText = (
+      await Promise.all(
+        rendererVoiceDocPaths.map((docPath) =>
+          fs.readFile(path.resolve(__dirname, docPath), 'utf8'),
+        ),
+      )
+    ).join('\n');
+
+    expect(docText).toContain('provider-specific translation');
+    expect(docText).toContain('renderer-facing code treats provider/model config as backend-owned route');
+    expect(docText).not.toContain('WindieOS-local gateway protocol');
+    expect(docText).not.toContain('Nova-Voice');
+    expect(docText).not.toContain('OpenAI Realtime');
+    expect(docText).not.toContain('openai_realtime');
+    expect(docText).not.toContain('stt_provider=');
+    expect(docText).not.toContain('TTS audio chunks from backend');
   });
 });

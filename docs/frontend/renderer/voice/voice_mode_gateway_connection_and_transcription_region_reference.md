@@ -64,9 +64,12 @@ Inbound message handling:
 
 Runtime/provider boundary:
 
-- renderer speaks through the desktop voice runtime facade and one WindieOS-local gateway protocol only
-- backend proxies that protocol to Nova-Voice or translates it to OpenAI Realtime based on backend config
-- when OpenAI is selected, backend uses `openai_realtime_session_model` for the websocket URL and `openai_realtime_transcription_model` inside `session.update`
+- renderer speaks through the desktop voice runtime facade and the desktop
+  transcription gateway protocol only
+- backend owns provider selection, provider-specific session setup, and gateway
+  translation behind `/ws/transcription`
+- renderer-facing code treats provider/model config as backend-owned route
+  behavior, not hook or runtime state
 
 Reconnect policy:
 

@@ -168,7 +168,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   failures directly to the sidecar service. The IPC workflow now routes backend
   relay drift debugging through `windie:invoke`, typed SDK/backend-event
   fan-out, and Agent SDK backend transport instead of a removed non-chat
-  `to-backend` path.
+  `to-backend` path. Renderer voice docs now keep STT provider implementation
+  and model config details behind the backend transcription gateway, while the
+  renderer topology labels playback through typed audio runtime events.
 
   Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
   Python sidecar method, handler, daemon, protocol, memory, and tool validation
@@ -7424,3 +7426,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   payload keys, overlay phase metadata, renderer markdown/output normalization,
   IPC channels, storage, credentials, permissions, hosted backend URLs, and
   provider policy are unchanged; no migration is required.
+- Renderer voice/transcription docs now route provider selection, provider
+  session setup, and model config details through the backend-owned
+  `/ws/transcription` gateway boundary, while renderer topology describes
+  playback as typed `audio-chunk` runtime events. Transcription websocket
+  routes, provider selection, provider/model config, audio chunk event payloads,
+  renderer playback behavior, IPC channels, storage, credentials, permissions,
+  hosted backend URLs, and local-runtime behavior are unchanged; no migration
+  is required.

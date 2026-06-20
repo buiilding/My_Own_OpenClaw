@@ -201,7 +201,7 @@ frontend/src/renderer/
 ├── infrastructure/                        # Core infrastructure services
 │   │
 │   ├── audio/                            # Audio services
-│   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (TTS audio chunks from backend)
+│   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (typed audio-chunk runtime events)
 │   │
 │   ├── interaction/                      # Renderer interaction diagnostics
 │   │   └── rendererInteractionLogger.js # rendererInteractionLogger - capture-phase click/control-change logging and send-message traces
@@ -487,7 +487,7 @@ frontend/src/renderer/
 
 13. **Wakeword Detection**: local-runtime wakeword helper integration backed by the Python subprocess with audio chunk streaming
 
-14. **Audio Playback**: Queue-based audio player for TTS chunks from backend
+14. **Audio Playback**: Queue-based audio player for typed audio-chunk runtime events
 
 15. **Window Management**: Linux-only chat-pill hide modules avoid screenshot self-capture; Windows/macOS rely on phase-driven Electron content protection for protected overlays rather than capture-time hide/show behavior; chat box overlay is click-through by default
 

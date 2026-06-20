@@ -18233,3 +18233,20 @@ Each completed slice should report:
   phase metadata, renderer markdown/output normalization, IPC channels, storage,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
+
+### 2026-06-20 Renderer voice provider-policy doc boundary
+
+- Finding: renderer voice docs still named backend STT provider implementations,
+  provider config keys, and a WindieOS-local transcription protocol, while the
+  renderer topology also described playback as TTS chunks from backend rather
+  than typed audio runtime events.
+- Change: reworded renderer voice/transcription references through the desktop
+  voice runtime facade, backend-owned gateway translation, and typed
+  `audio-chunk` runtime events, and extended the renderer voice boundary guard
+  so provider-policy details stay out of renderer voice docs.
+- Validation: focused renderer voice runtime boundary test, exact stale
+  provider/playback wording scan, docs listing, and diff checks.
+- Compatibility: no migration required. Transcription websocket routes,
+  provider selection, provider/model config, audio chunk event payloads,
+  renderer playback behavior, IPC channels, storage, credentials, permissions,
+  hosted backend URLs, and local-runtime behavior are unchanged.

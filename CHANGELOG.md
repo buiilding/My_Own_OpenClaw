@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: route voice transcription provider details and playback
+  topology through the desktop voice/audio runtime boundary instead of naming
+  backend provider internals in renderer docs. No migration required.
 - sdk/main/renderer: clarify contract-module headers for SDK backend payload
   filtering, Electron overlay phases, and renderer LLM output rendering. No
   migration required.

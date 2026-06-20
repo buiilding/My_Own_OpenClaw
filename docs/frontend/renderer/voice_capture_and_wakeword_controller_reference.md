@@ -49,9 +49,10 @@ Backend ownership detail:
 - renderer never chooses the live STT provider
 - renderer obtains the gateway URL, socket factory, language payloads, inbound
   normalization, and inbound message dispatch through `DesktopVoiceRuntimeClient`
-- backend route `/ws/transcription` owns the app-facing protocol
-- backend config selects `stt_provider="nova"` (proxy to external Nova-Voice) or `stt_provider="openai"` (translate to OpenAI Realtime)
-- when `stt_provider="openai"`, backend connects with `openai_realtime_session_model` and sends `openai_realtime_transcription_model` in `session.update`
+- backend route `/ws/transcription` owns the app-facing protocol and
+  provider-specific translation
+- backend provider/model config stays in backend docs and tests; renderer
+  references stay limited to gateway contract and display behavior
 
 ## Config Ownership and Activation Gates
 
