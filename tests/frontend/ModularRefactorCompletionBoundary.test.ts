@@ -486,6 +486,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK backend-event handling and main fan-out');
     expect(docText).toContain('Renderer SDK conversation-event consumption');
     expect(docText).toContain('SDK-normalized conversation events, current-turn projections');
+    expect(docText).not.toContain('WindieOS SDK-backed transcript projections');
     expect(docText).not.toContain('sidecar-backed');
     expect(docText).not.toContain('canonical sidecar events');
     expect(docText).not.toContain('canonical sidecar chat-event log');

@@ -18024,3 +18024,19 @@ Each completed slice should report:
   behavior, JSON-RPC methods, executable tool schemas, Electron bridge IPC,
   storage, credentials, permissions, hosted backend URLs, and provider policy
   are unchanged.
+
+### 2026-06-20 Transcript replay SDK summary wording
+
+- Finding: the transcript replay workflow summary still described the reusable
+  projection/store path as "WindieOS SDK-backed transcript projections" even
+  though the active contract is SDK-backed transcript projection with WindieOS
+  as one desktop host.
+- Change: routed the workflow summary through generic SDK-backed transcript
+  projections and extended the modular docs guard against the retired branded
+  summary phrase.
+- Validation: focused modular docs boundary test, exact stale phrase scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, SDK projections,
+  transcript storage, backend rehydrate payloads, IPC channels,
+  local-runtime Python storage behavior, storage schemas, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.

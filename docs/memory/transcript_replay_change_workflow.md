@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS SDK-backed transcript projections, conversation replay, dashboard resume, backend rehydrate payloads, tool-row reconstruction, and related validation."
+summary: "Workflow for changing SDK-backed transcript projections, conversation replay, dashboard resume, backend rehydrate payloads, tool-row reconstruction, and related validation."
 read_when:
   - When changing SDK display projections, local conversation snapshots, dashboard conversation replay, or backend rehydrate payload construction.
   - When visible chat rows persist incorrectly, dashboard resume shows the wrong messages, replay loses tool rows, or backend context after resume does not match the stored transcript.

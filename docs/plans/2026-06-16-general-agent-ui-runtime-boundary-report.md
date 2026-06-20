@@ -7346,3 +7346,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime Python behavior, JSON-RPC methods, executable tool schemas,
   Electron bridge IPC, storage, credentials, permissions, hosted backend URLs,
   and provider policy are unchanged; no migration is required.
+- The transcript replay workflow summary now describes generic SDK-backed
+  transcript projections instead of a WindieOS-branded SDK projection label.
+  Runtime code, SDK projections, transcript storage, backend rehydrate payloads,
+  IPC channels, local-runtime Python storage behavior, storage schemas,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged; no migration is required.
