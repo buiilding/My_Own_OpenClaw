@@ -285,7 +285,7 @@ Run the focused MCP and registry tests after changing this runtime:
 
 ```bash
 cd frontend
-npm test -- --runTestsByPath ../tests/frontend/McpRuntime.test.cjs ../tests/frontend/ExtensionManifest.test.cjs ../tests/frontend/WindieSdkClient.test.ts --runInBand
+npm test -- --runTestsByPath ../tests/frontend/McpRuntime.test.cjs ../tests/frontend/ExtensionManifest.test.cjs ../tests/frontend/AgentSdkClient.test.ts --runInBand
 ```
 
 Also run backend client manifest tests when changing the shape sent to the

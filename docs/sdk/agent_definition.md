@@ -103,7 +103,7 @@ its client tool manifest, not a parallel main-process handshake helper. Add or
 debug handshake behavior through `agent_definition.tools.client_manifest`,
 `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`,
 `packages/windie-sdk-js/src/runtime/AgentClient.ts`, current
-`tests/frontend/WindieSdkClient.test.ts` coverage, and the backend agent
+`tests/frontend/AgentSdkClient.test.ts` coverage, and the backend agent
 definition validation path.
 
 ## Fields

@@ -39,7 +39,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 
 | Family | Backend owner | Client methods | Tests |
 | --- | --- | --- | --- |
-| OCR | `/api/sdk/ocr/*`, `run_ocr`, OCR ranking/overlay helpers | `client.ocr.*` | `tests/backend/test_sdk_routes.py`, OCR service tests, `tests/frontend/WindieSdkClient.test.ts` |
+| OCR | `/api/sdk/ocr/*`, `run_ocr`, OCR ranking/overlay helpers | `client.ocr.*` | `tests/backend/test_sdk_routes.py`, OCR service tests, `tests/frontend/AgentSdkClient.test.ts` |
 | Vision | `/api/sdk/vision/*`, vision locate/describe/overlay helpers | `client.vision.*` | SDK route tests, vision provider/service tests, client tests |
 | Prompt/debug | `/api/sdk/models`, `/tool-schemas`, `/tool-capabilities`, `/system-prompt`, `/prompt-preview`, `/query-plan` | `client.introspection.*`, `promptPreview`, `queryPlan` | SDK route tests, prompt/tool schema tests, client tests |
 | Artifacts | `/api/artifacts/*`, artifact source resolution, overlay upload | `client.artifacts.*`, `artifactUrl`, `uploadArtifact` | `tests/backend/test_artifact_routes.py`, `tests/frontend/RuntimeEndpointStore.test.ts`, client tests |
@@ -67,7 +67,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 | OCR route behavior | SDK route tests plus focused OCR service/provider tests |
 | Vision route behavior | SDK route tests plus focused vision service/provider tests |
 | SDK/backend wire contract | `./scripts/python-in-env backend pytest tests/backend/test_sdk_runtime_backend_contract.py -q`; skips only when Node/npm or `packages/windie-sdk-js/node_modules` are unavailable |
-| TypeScript client change | `<windie> test frontend -- WindieSdkClient` |
+| TypeScript client change | `<windie> test frontend -- AgentSdkClient` |
 | Python hosted client change | `./scripts/python-in-env sidecar pytest tests/sidecar/test_windie_sdk_client.py -q` |
 | Public route surface change | Docs-list plus focused Markdown link check for SDK/web/reference docs |
 

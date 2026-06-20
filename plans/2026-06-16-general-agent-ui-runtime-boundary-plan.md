@@ -18145,3 +18145,21 @@ Each completed slice should report:
   behavior, event normalization, display/rehydrate projections, tool
   coordination, transcript storage, backend payload shapes, credentials,
   permissions, hosted backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 SDK client test route rename
+
+- Finding: the main SDK client behavior test already imports and instantiates
+  `AgentClient`, `Agent`, `AgentHostedBackendClient`, SDK local-runtime
+  contracts, and Agent SDK helpers, but the focused test route and active
+  validation docs still used the product-branded `WindieSdkClient` filename.
+- Change: renamed the focused test to `tests/frontend/AgentSdkClient.test.ts`,
+  updated active validation docs and package-boundary references, preserved
+  Python SDK compatibility wording for the removed `WindieSdkClient` alias, and
+  extended the modular route guard so the generic path exists while the retired
+  branded path stays absent.
+- Validation: focused Agent SDK client test, SDK package-boundary test, modular
+  docs boundary test, exact old-route scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, SDK client behavior,
+  hosted backend route payloads, local-runtime daemon/tool contracts,
+  transcript storage, credentials, permissions, hosted backend URLs, provider
+  policy, and Python SDK compatibility assertions are unchanged.

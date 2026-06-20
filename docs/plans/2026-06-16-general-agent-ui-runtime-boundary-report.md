@@ -7392,3 +7392,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   display/rehydrate projections, tool coordination, transcript storage, backend
   payload shapes, credentials, permissions, hosted backend URLs, and provider
   policy are unchanged; no migration is required.
+- The SDK client behavior focused test now lives at
+  `tests/frontend/AgentSdkClient.test.ts`, with active validation docs and
+  package-boundary references routed to the generic Agent SDK client route.
+  Runtime code, SDK client behavior, hosted backend route payloads,
+  local-runtime daemon/tool contracts, transcript storage, credentials,
+  permissions, hosted backend URLs, provider policy, and Python SDK
+  compatibility assertions are unchanged; no migration is required.

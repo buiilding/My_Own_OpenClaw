@@ -85,7 +85,7 @@ Validate:
 
 ```bash
 <windie> test backend tests/backend/test_remote_tool_contract.py tests/backend/test_tool_result_handler.py -q
-<windie> test frontend -- AgentSdkConversationRuntime WindieSdkClient RendererToolResultBoundary ToolOutputContent
+<windie> test frontend -- AgentSdkConversationRuntime AgentSdkClient RendererToolResultBoundary ToolOutputContent
 <windie> test sidecar tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q
 ```
 

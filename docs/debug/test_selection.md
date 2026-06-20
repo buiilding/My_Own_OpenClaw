@@ -60,7 +60,7 @@ Run tests on both sides of the boundary when a payload crosses processes.
 | Response overlay phase names | `<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
 | Transcript/replay/display rows | `<windie> test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |
 | Artifact refs and URLs | `<windie> test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs` |
-| SDK HTTP/trace helpers | `<windie> test backend -- tests/backend/test_sdk_routes.py -q` plus `<windie> test frontend -- WindieSdkClient.test.ts` |
+| SDK HTTP/trace helpers | `<windie> test backend -- tests/backend/test_sdk_routes.py -q` plus `<windie> test frontend -- AgentSdkClient.test.ts` |
 | Frontend CLI command routing and formatter contracts | `<windie> test frontend -- WindieCli.test.cjs` plus `<windie> test backend -- tests/backend/test_formatter_specs_contract.py -q` |
 
 ## When To Run Full Suites
