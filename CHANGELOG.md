@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: rename the SDK file conversation store focused test to
+  `AgentSdkFileConversationStore.test.ts` and update active docs/package-boundary
+  references to the generic route. No migration required.
 - tests/frontend: rename the SDK model-selection focused test to
   `AgentSdkModelSelection.test.ts` so the test route matches the generic Agent
   SDK settings helper. No migration required.

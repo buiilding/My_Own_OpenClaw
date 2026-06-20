@@ -18091,3 +18091,21 @@ Each completed slice should report:
   patch behavior, backend settings payload keys, renderer settings behavior,
   IPC payloads, storage, credentials, permissions, hosted backend URLs, and
   provider policy are unchanged.
+
+### 2026-06-20 File conversation store test route rename
+
+- Finding: the SDK file conversation store test imports the generic
+  `FileConversationStore` and already describes Agent SDK store behavior, but
+  the focused test route and active package-boundary docs still used the
+  product-branded `WindieSdkFileConversationStore` filename.
+- Change: renamed the focused test to
+  `tests/frontend/AgentSdkFileConversationStore.test.ts`, updated active docs
+  and package-boundary references, and extended the modular route guard so the
+  generic path exists while the retired branded path stays absent.
+- Validation: focused Agent SDK file conversation store test, SDK package
+  boundary test, modular docs boundary test, exact old-route scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Runtime code, file conversation store
+  behavior, SDK package exports, display/rehydrate projections, storage schemas,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.

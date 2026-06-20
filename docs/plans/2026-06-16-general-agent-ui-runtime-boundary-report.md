@@ -7372,3 +7372,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   behavior, backend settings payload keys, renderer settings behavior, IPC
   payloads, storage, credentials, permissions, hosted backend URLs, and provider
   policy are unchanged; no migration is required.
+- The SDK file conversation store focused test now lives at
+  `tests/frontend/AgentSdkFileConversationStore.test.ts`, with active docs and
+  package-boundary references routed to the generic Agent SDK store route.
+  Runtime code, file conversation store behavior, SDK package exports,
+  display/rehydrate projections, storage schemas, credentials, permissions,
+  hosted backend URLs, and provider policy are unchanged; no migration is
+  required.
