@@ -1668,6 +1668,12 @@ describe('modular sdk refactor completion boundary', () => {
         '| Python sidecar | Local executable tools',
         'Python sidecar browser tests',
         'Python sidecar computer tests',
+        'desktop client or Python sidecar implementation code import',
+        'Python sidecar implementation import backend schemas',
+        'the Python sidecar implementation must not import',
+        'Python sidecar implementation performs the local action',
+        '| Python sidecar implementation | concrete implementation',
+        'preload, Python sidecar implementation, wakeword subprocess',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

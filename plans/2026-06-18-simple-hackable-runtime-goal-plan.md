@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed an import-boundary local-runtime Python label slice by
+  routing channel, security, runtime-model, tool-schema, and runtime-node docs
+  through local-runtime Python implementation wording instead of Python sidecar
+  implementation owner labels for import-boundary rules, schema parity, local
+  action execution, and node ownership. Validation covered the focused modular
+  docs boundary test, docs listing, exact stale import-boundary/node-owner label
+  scan, and diff check. No migration required; runtime code, schema contracts,
+  local-runtime process names, JSON-RPC/daemon payloads, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 - 2026-06-20: completed a source-map/reference local-runtime Python polish
   slice by routing residual source-map navigation, source-map deep page,
   configuration endpoint-policy, code-change owner table, and validation labels

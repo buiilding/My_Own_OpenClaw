@@ -35,7 +35,7 @@ patching the wrong consumer.
 - Use `/api/runs/*` only for VM worker assignment, run control, and run timeline events.
 - Use `/api/sdk/*` for hosted developer introspection and perception routes, not SDK local-runtime execution.
 - Use the SDK local-runtime path for local desktop control, browser actions, shell/filesystem tools, local memory, and system state.
-- Do not make desktop client or Python sidecar implementation code import
+- Do not make desktop client or local-runtime Python implementation code import
   backend modules to share channel schemas.
 
 ## Common Change Paths

@@ -1,5 +1,5 @@
 ---
-summary: "Desktop and local-runtime node guide for Electron main, renderer, preload, Python sidecar implementation, wakeword subprocess, and local-tool ownership."
+summary: "Desktop and local-runtime node guide for Electron main, renderer, preload, local-runtime Python implementation, wakeword subprocess, and local-tool ownership."
 read_when:
   - When changing local desktop behavior, renderer/main IPC, local-runtime JSON-RPC, local tools, wakeword, permissions, overlays, or transcript projection.
   - When debugging a failure that crosses UI, Electron main, preload, Python sidecar, or OS permissions.
@@ -25,7 +25,7 @@ Keep these nodes separate when developing. They run on the user's machine, but e
 | Electron main | native windows, overlay visibility, SDK-runtime adaptation, config persistence, install-token storage/transport, IPC handlers, local-runtime host/status context | React component state, backend route implementation, hosted backend websocket policy, local-runtime tool implementation internals |
 | Renderer | dashboard/chat/overlay UI, stream projection, transcript state, settings forms, voice UI, display-only tool state | direct filesystem/shell access, backend auth enforcement, native window authority, backend tool-result delivery |
 | Preload | narrow `window.ipc` bridge and channel allowlist | feature policy, backend schemas, broad Node.js access |
-| Python sidecar implementation | concrete implementation for local executable tools, local memory, browser runtime, system state, and shell/filesystem/computer actions behind SDK/main local runtime | reusable local-runtime authority, model-facing tool schemas, websocket route validation, renderer UI |
+| Local-runtime Python implementation | concrete implementation for local executable tools, local memory, browser runtime, system state, and shell/filesystem/computer actions behind SDK/main local runtime | reusable local-runtime authority, model-facing tool schemas, websocket route validation, renderer UI |
 | Wakeword service | model bootstrap and audio-frame detection | voice dictation transcription, generic local-runtime tools, backend TTS |
 
 ## Main Process Code Roots
@@ -78,7 +78,7 @@ sequenceDiagram
   participant Backend as Hosted backend
   participant SDK as SDK/main local runtime
   participant Renderer as Renderer
-  participant Sidecar as Python sidecar
+  participant Sidecar as Local-runtime Python
 
   Backend->>SDK: websocket tool-call event
   SDK->>Sidecar: local-runtime JSON-RPC execute-tool
@@ -92,7 +92,7 @@ Ownership rules:
 - The backend decides which model-facing tool is visible.
 - The SDK/main local runtime claims local tool calls, preserves correlation IDs, and returns exactly one result or failure to the backend.
 - Electron main hosts the local-runtime bridge and enforces request timeouts/window guards.
-- The Python sidecar implementation performs the local action and returns a normalized result.
+- The local-runtime Python implementation performs the local action and returns a normalized result.
 - The renderer displays SDK projections and does not initiate local execution.
 - The result must re-enter backend history through the websocket tool-result path.
 

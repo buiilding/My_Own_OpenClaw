@@ -246,6 +246,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Import-Boundary Local-Runtime Python Labels
+
+- Finding: channel, security, runtime-model, tool-schema, and runtime-node docs
+  still used Python sidecar implementation wording for import-boundary rules,
+  schema-parity guidance, local action execution, and node ownership labels.
+- Change: routed those labels through local-runtime Python implementation
+  wording while preserving literal Python sidecar subprocess references where
+  docs identify the current process implementation.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  import-boundary/node-owner label scan, and diff check.
+- Compatibility: no migration required. Runtime code, schema contracts,
+  local-runtime process names, JSON-RPC/daemon payloads, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 ### 2026-06-20 Source-Map Reference Local-Runtime Python Polish
 
 - Finding: source-map navigation, the source-map deep page, configuration

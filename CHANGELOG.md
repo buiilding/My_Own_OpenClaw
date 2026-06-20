@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route channel, security, runtime-model, tool-schema, and node
+  ownership import-boundary labels through local-runtime Python implementation
+  wording instead of Python sidecar implementation owner labels. No migration
+  required.
 - docs/reference: route source-map, config, and code-change ownership labels
   through local-runtime Python implementation wording instead of Python sidecar
   implementation route-owner labels. No migration required.

@@ -11,7 +11,7 @@ title: "Tool Schema and Policy Change Workflow"
 
 Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and local-runtime executable implementation backed by local-runtime Python.
 
-The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own client-local tool schemas and local executable authority; local-runtime Python provides the current concrete local tool implementations. Do not make the desktop client or Python sidecar implementation import backend schemas to avoid drift. Keep parity explicit in tests and docs.
+The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own client-local tool schemas and local executable authority; local-runtime Python provides the current concrete local tool implementations. Do not make the desktop client or local-runtime Python implementation import backend schemas to avoid drift. Keep parity explicit in tests and docs.
 
 ## Fast Owner Map
 
