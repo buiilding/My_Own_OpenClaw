@@ -35,6 +35,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- testing/data-seed: use generic demo provider/model metadata in mock memory
+  conversations instead of real hosted-provider IDs. No migration required.
 - sdk/projections: keep synthetic provider-native `web_search` rehydrate rows
   provider-neutral instead of labeling them as OpenAI-specific; backend docs
   still own provider mode selection. No migration required.

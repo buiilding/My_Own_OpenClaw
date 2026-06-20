@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+### 2026-06-20 Local Demo Seed Provider Metadata Cleanup
+
+- Finding: local demo memory seed conversations still used real provider/model
+  IDs as decorative metadata.
+- Change: replaced that metadata with generic demo provider/model IDs, updated
+  seed docs, and added local-runtime Python coverage to keep demo fixtures
+  provider-neutral.
+- Validation: focused local-runtime Python seed tests, exact provider/model
+  seed scan, docs listing, and diff checks.
+- Compatibility: no migration required. Seed schemas, cleanup behavior, row
+  shape, provider policy, credentials, permissions, IPC, storage paths, and
+  local execution behavior are unchanged.
+
 ### 2026-06-20 SDK Web Search Projection Provider Label Cleanup
 
 - Finding: synthetic provider-native `web_search` rows in SDK rehydrate

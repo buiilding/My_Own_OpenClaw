@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local Demo Seed Provider Metadata Cleanup
+
+- Finding: `dev_seed_mock_memory.py` is development/demo local data, but its
+  seeded conversation metadata still used real hosted-provider/model IDs even
+  though provider selection and model policy are backend-owned runtime details.
+- Change: changed the mock conversations to generic demo provider/model
+  metadata, documented the seed-data boundary, and added local-runtime Python
+  seed coverage so real provider IDs do not return to demo fixtures.
+- Validation: focused local-runtime Python seed tests, exact provider/model
+  seed scan, docs listing, and diff checks.
+- Compatibility: no migration required. The script remains development/demo
+  tooling only; SQLite schemas, cleanup semantics, inserted row shape, runtime
+  provider policy, hosted URLs, credentials, permissions, IPC payloads, storage
+  locations, and local execution behavior are unchanged.
+
 ### 2026-06-20 SDK Web Search Projection Provider Label Cleanup
 
 - Finding: SDK conversation projections still labeled synthetic provider-native

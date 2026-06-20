@@ -23,8 +23,8 @@ ENV_USER_ID = "WINDIE_USER_ID"
 MOCK_CONVERSATIONS: List[Dict[str, Any]] = [
     {
         "conversation_id": "conv_mock_cloud_budget",
-        "model_provider": "openai",
-        "model_id": "gpt-5",
+        "model_provider": "demo",
+        "model_id": "demo-planner",
         "messages": [
             {
                 "role": "user",
@@ -58,8 +58,8 @@ MOCK_CONVERSATIONS: List[Dict[str, Any]] = [
     },
     {
         "conversation_id": "conv_mock_interview_prep",
-        "model_provider": "anthropic",
-        "model_id": "claude-opus-4-1",
+        "model_provider": "demo",
+        "model_id": "demo-coach",
         "messages": [
             {
                 "role": "user",
@@ -93,8 +93,8 @@ MOCK_CONVERSATIONS: List[Dict[str, Any]] = [
     },
     {
         "conversation_id": "conv_mock_trip_planning",
-        "model_provider": "google",
-        "model_id": "gemini-2.5-pro",
+        "model_provider": "demo",
+        "model_id": "demo-travel",
         "messages": [
             {
                 "role": "user",

@@ -92,6 +92,8 @@ Chat-event rows include:
 - `conversation_id`, `event_type`, `role`, `content`, `timestamp`
 - `message_index`, `revision_id`, `metadata`, `attachments`, `event_payload`
 - metadata `record_kind='chat_event'`
+- generic demo `model_provider` / `model_id` values; production provider
+  selection and model policy remain backend-owned and are not seeded here
 
 Episodic memory rows include:
 

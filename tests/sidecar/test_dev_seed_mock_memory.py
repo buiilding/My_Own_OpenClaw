@@ -55,3 +55,21 @@ def test_target_user_ids_deduplicate_in_precedence_order(monkeypatch):
         dev_seed_mock_memory.DEFAULT_USER_ID,
         "same-user",
     ]
+
+
+def test_mock_conversations_use_generic_demo_model_metadata():
+    provider_values = {
+        conversation["model_provider"]
+        for conversation in dev_seed_mock_memory.MOCK_CONVERSATIONS
+    }
+    model_values = {
+        conversation["model_id"] for conversation in dev_seed_mock_memory.MOCK_CONVERSATIONS
+    }
+
+    assert provider_values == {"demo"}
+    assert model_values == {"demo-planner", "demo-coach", "demo-travel"}
+    assert not {"openai", "anthropic", "google"} & provider_values
+    assert all(
+        not model_id.startswith(("gpt-", "claude-", "gemini-"))
+        for model_id in model_values
+    )

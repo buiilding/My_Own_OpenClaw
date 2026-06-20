@@ -12,9 +12,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: SDK synthetic provider-native `web_search` rehydrate
-  rows now use provider-neutral display labels while backend docs retain
-  provider mode ownership.
+- Latest completed slice: local demo memory seed conversations now use generic
+  demo provider/model metadata instead of real hosted-provider IDs.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -243,6 +242,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Local Demo Seed Provider Metadata Cleanup
+
+- Finding: `dev_seed_mock_memory.py` is development/demo local data, but its
+  seeded conversation metadata still used real hosted-provider/model IDs even
+  though provider selection and model policy are backend-owned runtime details.
+- Change: changed the mock conversations to generic demo provider/model
+  metadata, documented the seed-data boundary, and added local-runtime Python
+  seed coverage so real provider IDs do not return to demo fixtures.
+- Validation: focused local-runtime Python seed tests, exact provider/model
+  seed scan, docs listing, and diff checks.
+- Compatibility: no migration required. The script remains development/demo
+  tooling only; SQLite schemas, cleanup semantics, inserted row shape, runtime
+  provider policy, hosted URLs, credentials, permissions, IPC payloads, storage
+  locations, and local execution behavior are unchanged.
 
 ### 2026-06-20 SDK Web Search Projection Provider Label Cleanup
 
