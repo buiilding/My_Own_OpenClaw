@@ -143,6 +143,56 @@ function createChatQueryHandlers({
   };
 }
 
+function createChatQueryHandlerRuntime({
+  getState,
+  setCurrentConversationRef,
+  setActiveQueryContext,
+  setFirstQuery,
+  attachAgentDefinitionContext,
+  ensureInstallAuthState,
+  isBackendRuntimeConnected,
+  ensureBackendConnection,
+  ensureInitialSettingsSync,
+  getPendingSettingsSyncPromise,
+  sendQueryThroughAgentSdkRuntime,
+  stopQueryThroughAgentSdkRuntime,
+  setResponseOverlayPhase,
+  resolvePreferredArtifactHttpUrl,
+  deps: baseDeps = {},
+} = {}) {
+  function createHandlers({
+    getWindows,
+    onBeforeOverlayQueryCapture,
+  } = {}) {
+    return createChatQueryHandlers({
+      getState,
+      setCurrentConversationRef,
+      setActiveQueryContext,
+      setFirstQuery,
+      attachAgentDefinitionContext,
+      ensureInstallAuthState,
+      isBackendRuntimeConnected,
+      ensureBackendConnection,
+      ensureInitialSettingsSync,
+      getPendingSettingsSyncPromise,
+      sendQueryThroughAgentSdkRuntime,
+      stopQueryThroughAgentSdkRuntime,
+      setResponseOverlayPhase,
+      resolvePreferredArtifactHttpUrl,
+      deps: {
+        ...baseDeps,
+        getWindows,
+        onBeforeOverlayQueryCapture,
+      },
+    });
+  }
+
+  return {
+    createHandlers,
+  };
+}
+
 module.exports = {
+  createChatQueryHandlerRuntime,
   createChatQueryHandlers,
 };

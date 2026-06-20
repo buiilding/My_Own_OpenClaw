@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Chat Query Handler Runtime Boundary
+
+- Finding: `ipc_chat_query_handlers.cjs` owned renderer chat query and stop
+  orchestration, but `initializeIpc(...)` still rebuilt the full query state,
+  settings, Agent SDK command, artifact URL, trace, display, and send-failure
+  dependency object when registering the SDK-shaped invoke bridge.
+- Change: added `createChatQueryHandlerRuntime(...)` so the chat query helper
+  owns reusable handler dependency composition while `initializeIpc(...)`
+  supplies only per-window lookup and overlay pre-capture callbacks.
+- Validation: focused chat-query coverage verifies the runtime composes base
+  dependencies with per-initialize hooks and source guards keep the large
+  dependency object out of `initializeIpc(...)`.
+- Compatibility: no migration required. `windie:invoke` command routing,
+  `conversation.send` / `conversation.stop` behavior, settings ACK gates,
+  artifact URL resolution, overlay pre-capture behavior, display affinity,
+  query tracing, send-failure broadcasts, renderer IPC channels, storage,
+  credentials, permissions, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main Runtime Conversation Ref Wiring Boundary
 
 - Finding: `ipc_runtime_conversation_ref.cjs` owned nested transport,

@@ -216,7 +216,7 @@ const {
   updateMcpServerEnablementForConfig,
 } = require('./extensions/mcp_control.cjs');
 const {
-  createChatQueryHandlers,
+  createChatQueryHandlerRuntime,
 } = require('./ipc/ipc_chat_query_handlers.cjs');
 const {
   registerAgentSdkInvokeHandler,
@@ -496,6 +496,58 @@ const agentDefinitionContextRuntime = createAgentDefinitionContextRuntime({
   platformName: process.platform,
   buildAgentDefinition,
   isDefaultAgentDefinition,
+});
+const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
+  getState: () => ({
+    ...backendSessionState.getSnapshot(),
+    currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
+    isFirstQuery: backendConnectionGateState.getFirstQuery(),
+  }),
+  setCurrentConversationRef: (conversationRef) => {
+    backendSessionState.setConversationRef(conversationRef);
+  },
+  setActiveQueryContext: (queryContext) => activeQueryContextState.set(queryContext),
+  setFirstQuery: (nextValue) => {
+    backendConnectionGateState.setFirstQuery(nextValue);
+  },
+  attachAgentDefinitionContext: (payload) => preserveSdkTurnInputFields(
+    buildBackendQueryPayload(attachAgentDefinitionContext(payload)),
+    payload,
+  ),
+  ensureInstallAuthState,
+  isBackendRuntimeConnected,
+  ensureBackendConnection,
+  ensureInitialSettingsSync,
+  getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
+  sendQueryThroughAgentSdkRuntime,
+  stopQueryThroughAgentSdkRuntime,
+  setResponseOverlayPhase,
+  resolvePreferredArtifactHttpUrl: () => resolvePreferredArtifactHttpUrl(
+    backendEndpointState.getHttpUrl(),
+    backendEndpointState.getCandidates(),
+  ),
+  deps: {
+    BrowserWindow,
+    screen,
+    runBeforeOverlayQueryCapture,
+    log,
+    prepareRendererQueryPayload,
+    resolveConversationRefFromPayload,
+    uuidGenerator: uuidv4,
+    logChatPillMainTrace,
+    setResponseOverlayPhase,
+    setActiveDisplayAffinity,
+    resolveActiveSurfaceDisplayAffinity,
+    broadcastToRenderers,
+    ipcEventReplayState,
+    buildQueryPayload,
+    broadcastQuerySendFailureRuntime,
+    buildQuerySendFailure: (input) => buildQuerySendFailure({
+      ...input,
+      copy: ipcHostCopyRuntime.getQueryEvents(),
+    }),
+    traceRendererQuery: (input) => electronMainTraceLogger.traceRendererQuery(input),
+  },
 });
 
 function buildInstallAuthHeaders() {
@@ -875,59 +927,9 @@ function initializeIpc(win, options = {}) {
   const {
     handleRendererChatQuery,
     handleRendererStopQuery,
-  } = createChatQueryHandlers({
-    getState: () => ({
-      ...backendSessionState.getSnapshot(),
-      currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
-      isFirstQuery: backendConnectionGateState.getFirstQuery(),
-    }),
-    setCurrentConversationRef: (conversationRef) => {
-      backendSessionState.setConversationRef(conversationRef);
-    },
-    setActiveQueryContext: (queryContext) => activeQueryContextState.set(queryContext),
-    setFirstQuery: (nextValue) => {
-      backendConnectionGateState.setFirstQuery(nextValue);
-    },
-    attachAgentDefinitionContext: (payload) => preserveSdkTurnInputFields(
-      buildBackendQueryPayload(attachAgentDefinitionContext(payload)),
-      payload,
-    ),
-    ensureInstallAuthState,
-    isBackendRuntimeConnected,
-    ensureBackendConnection,
-    ensureInitialSettingsSync,
-    getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
-    sendQueryThroughAgentSdkRuntime,
-    stopQueryThroughAgentSdkRuntime,
-    setResponseOverlayPhase,
-    resolvePreferredArtifactHttpUrl: () => resolvePreferredArtifactHttpUrl(
-      backendEndpointState.getHttpUrl(),
-      backendEndpointState.getCandidates(),
-    ),
-    deps: {
-      BrowserWindow,
-      screen,
-      runBeforeOverlayQueryCapture,
-      onBeforeOverlayQueryCapture: hostOptionState.getOnBeforeOverlayQueryCapture(),
-      log,
-      prepareRendererQueryPayload,
-      resolveConversationRefFromPayload,
-      uuidGenerator: uuidv4,
-      logChatPillMainTrace,
-      setResponseOverlayPhase,
-      getWindows,
-      setActiveDisplayAffinity,
-      resolveActiveSurfaceDisplayAffinity,
-      broadcastToRenderers,
-      ipcEventReplayState,
-      buildQueryPayload,
-      broadcastQuerySendFailureRuntime,
-      buildQuerySendFailure: (input) => buildQuerySendFailure({
-        ...input,
-        copy: ipcHostCopyRuntime.getQueryEvents(),
-      }),
-      traceRendererQuery: (input) => electronMainTraceLogger.traceRendererQuery(input),
-    },
+  } = chatQueryHandlerRuntime.createHandlers({
+    getWindows,
+    onBeforeOverlayQueryCapture: hostOptionState.getOnBeforeOverlayQueryCapture(),
   });
 
   registerAgentSdkInvokeHandler({

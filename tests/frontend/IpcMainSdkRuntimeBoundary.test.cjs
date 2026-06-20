@@ -45,6 +45,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_workspace_path_runtime.cjs'),
       'utf8',
     );
+    const chatQueryHandlersSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_chat_query_handlers.cjs'),
+      'utf8',
+    );
     const directWakeUpAdapterSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs'),
       'utf8',
@@ -185,6 +189,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('createAgentDefinitionContextRuntime({');
     expect(source).toContain('agentDefinitionContextRuntime.attach(payload)');
     expect(agentDefinitionContextSource).toContain('function createAgentDefinitionContextRuntime');
+    expect(source).toContain('createChatQueryHandlerRuntime({');
+    expect(source).toContain('chatQueryHandlerRuntime.createHandlers({');
+    expect(source).not.toContain('createChatQueryHandlers({');
+    expect(chatQueryHandlersSource).toContain('function createChatQueryHandlerRuntime');
+    expect(chatQueryHandlersSource).toContain('return createChatQueryHandlers({');
     expect(source).not.toContain('resolveWorkspaceRepoInstructionPromptLayers(workspacePath)');
     expect(source).not.toContain('loadExtensionSkillPromptLayers()');
     expect(agentDefinitionContextSource).toContain('isDefaultAgentDefinition(generatedAgentDefinition)');

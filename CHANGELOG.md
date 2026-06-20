@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move renderer chat query/stop handler dependency wiring into
+  `createChatQueryHandlerRuntime(...)`, preserving SDK-shaped
+  `conversation.send` / `conversation.stop` behavior, settings gates,
+  artifact URL resolution, overlay pre-capture, display affinity, query
+  tracing, and send-failure broadcasts. No migration required.
 - main/ipc: move Agent SDK runtime conversation-ref fallback wiring into
   `createRuntimeConversationRefRuntime(...)`, preserving nested transport
   precedence, direct snake_case/camelCase aliases, cached conversation fallback,

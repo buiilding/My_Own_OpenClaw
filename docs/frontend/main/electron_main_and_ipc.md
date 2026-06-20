@@ -112,6 +112,9 @@ Responsibilities:
 - Delegates pending renderer turn relay registration to a focused helper while
   `ipc.cjs` keeps the latest pending-turn cache used by stop/current-turn
   cleanup through the helper's runtime wrapper.
+- Delegates renderer chat query/stop handler construction to a focused helper
+  runtime while `initializeIpc(...)` supplies per-window lookup and overlay
+  pre-capture callbacks.
 - Delegates direct wake-up agent adapter behavior to a focused helper that owns
   `agent.conversation(...)` runtime handles, SDK event fan-out, inference
   context rehydration, replay invalidation, and MCP refresh forwarding; the

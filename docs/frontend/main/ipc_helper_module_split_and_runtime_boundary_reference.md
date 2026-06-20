@@ -17,6 +17,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_conversation_status_runtime.cjs`
 - `frontend/src/main/ipc/ipc_workspace_path_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
+- `frontend/src/main/ipc/ipc_chat_query_handlers.cjs`
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
 - `frontend/src/main/ipc/ipc_install_auth_runtime.cjs`
@@ -104,6 +105,18 @@ Owns query payload shaping helpers used by renderer query sends and automated VM
 - `prepareRendererQueryPayload` (attachment/memory toggle/conversation-ref normalization)
 - `buildQueryPayload` (backend query field filtering + authenticated user/conversation identity)
 - `prepareAutomatedQueryPayload` (automated query option normalization + validation)
+
+### `ipc_chat_query_handlers.cjs`
+
+Owns renderer chat query and stop handler construction:
+
+- exposes `createChatQueryHandlerRuntime(...)` so `ipc.cjs` composes query
+  state, Agent SDK command, settings, artifact URL, trace, display, and
+  send-failure dependencies once
+- accepts per-initialization window lookup and overlay pre-capture callbacks
+  from `initializeIpc(...)`
+- keeps renderer chat send/stop orchestration behind the SDK-shaped
+  `windie:invoke` command handler
 
 ### `ipc_conversation_status_runtime.cjs`
 
