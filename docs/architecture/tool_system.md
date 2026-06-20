@@ -81,7 +81,7 @@ Wrapper reference artifact note:
 
 ### Backend-Executed Tools
 
-Some logical tools are fulfilled entirely in the backend and never go through the sidecar. Current v1 support is `web_search`, but the execution path now depends on provider:
+Some logical tools are fulfilled entirely in the backend and never go through the local runtime. Current v1 support is `web_search`, but the execution path now depends on provider:
 
 - OpenAI-capable sessions do not expose backend `web_search` to the model. Instead, the main OpenAI Responses request includes native `web_search` directly, so the same agent turn performs the search without a second backend-owned LLM sub-call.
 - Gemini and Brave-backed sessions still expose logical backend `web_search`: the model emits a tool call, the backend fulfills it, and the UI renders the final tool-output result.

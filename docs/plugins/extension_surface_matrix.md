@@ -14,7 +14,7 @@ WindieOS extensibility is code-owned, not plugin-manifest-owned. Use this matrix
 | --- | --- | --- | --- |
 | Backend remote tool | backend tool catalog/registry and policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools`, `backend/src/tools/registry.py`, `backend/src/tools/tool_policy.py` | backend tool contract/schema/policy tests |
 | Backend SDK tool | SDK `Tool` and `ToolContext` | `backend/src/sdk/tool.py`, `backend/src/sdk/context.py`, `backend/src/tools/templates` | SDK tool contract tests |
-| Local-runtime executable tool | local-runtime executable registry and manifest-owned exposed tool names | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/manifest.py`, domain tool folders | Python sidecar implementation tests, parity tests |
+| Local-runtime executable tool | local-runtime executable registry and manifest-owned exposed tool names | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/manifest.py`, domain tool folders | local-runtime Python implementation tests, parity tests |
 | Backend-only tool | backend registry only | `backend/src/tools/registry.py`, domain implementation | backend tool tests and docs explaining no local-runtime executable parity |
 | LLM provider | provider factory + config + model catalog | `backend/src/llm/providers`, `backend/src/llm/providers/factory.py`, `backend/src/llm/models/models_config.py`, `backend/src/core/config` | provider factory/config/model-list/stream tests |
 | Inference provider | capability router/adapter | `backend/src/core/inference`, `backend/src/core/interfaces`, `backend/src/services/ocr`, `backend/src/services/vision`, embedding services | provider health/circuit/tool-output tests |

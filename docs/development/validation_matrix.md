@@ -55,7 +55,7 @@ Backend:
 - `tests/backend/test_browser_remote_tool.py`
 - `tests/backend/test_rehydrate_execution_service.py`
 
-Local runtime / Python sidecar implementation:
+Local runtime / local-runtime Python implementation:
 
 - `tests/sidecar/test_tool_registry.py`
 - `tests/sidecar/test_shared_tool_schema_parity.py`

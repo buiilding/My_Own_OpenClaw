@@ -275,6 +275,29 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a browser local-runtime adapter label slice by routing
+  browser control architecture and dedicated-browser runtime state docs through
+  SDK/main local-runtime dispatch and the local-runtime Python browser adapter
+  instead of Sidecar section, diagram, or actor labels. Validation covered the
+  focused modular docs boundary test, docs listing, exact stale browser-label
+  scan, and diff check. No migration required; browser action names, Browser
+  Use daemon behavior, CDP host/port policy, dedicated profile paths,
+  feature-pack installation, JSON-RPC/daemon payloads, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
+- 2026-06-20: completed a plugin/inventory local-runtime label slice by
+  routing plugin, extension, validation, browser, frontend inventory, and
+  tool-system docs through SDK local-runtime client, local-runtime Python
+  implementation, browser adapter wording, and backend-only tools not going
+  through the local runtime instead of sidecar client or Python sidecar
+  implementation route-owner labels. Validation covered the focused modular
+  docs boundary test, docs listing, exact stale plugin/browser/inventory label
+  scan, and diff check. No migration required; runtime
+  code, plugin loading, local tool execution, JSON-RPC/daemon payloads, IPC
+  payloads, tool-result envelopes, storage, credentials, permissions, hosted
+  backend URLs, provider policy, and trust boundaries are unchanged.
+
 - 2026-06-20: completed a debug/runbook local-runtime Python label slice by
   routing debug traces, failure routing, incident/evidence runbooks, security
   hub, filesystem/shell, MCP, tool-development, computer-tool, platform, and

@@ -58,9 +58,12 @@ If you change Browser Use session behavior, align:
 - docs/tests that assert Browser Use engine routing,
 - renderer status labels if the visible behavior changes.
 
-## Sidecar Runtime State
+## Local-Runtime Browser State
 
-The sidecar no longer stores live Playwright/CDP objects for normal browser tool execution. Browser Use owns that state in its daemon. WindieOS should keep only adapter state, Browser Use home/session settings, and normalized tool results.
+The local-runtime Python browser adapter no longer stores live Playwright/CDP
+objects for normal browser tool execution. Browser Use owns that state in its
+daemon. WindieOS should keep only adapter state, Browser Use home/session
+settings, and normalized tool results.
 
 ## Feature Packs
 

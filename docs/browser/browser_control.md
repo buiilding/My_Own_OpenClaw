@@ -16,7 +16,8 @@ Browser execution is routed through the maintained Browser Use CLI daemon via `f
 
 - WindieOS owns the model-facing `browser` tool schema, backend validation, agent loop, permissions, UI status, and result shape.
 - WindieOS owns the dedicated Chrome profile launch and CDP endpoint; Browser Use owns daemon session lifecycle after attaching, CDP/Playwright edge cases, DOM state extraction, numeric element indexes, click/input/scroll/upload/tab actions, screenshots, and daemon recovery.
-- The sidecar invokes Browser Use with `python -m browser_use.skill_cli.main` from the same Python environment.
+- The local-runtime Python browser adapter invokes Browser Use with
+  `python -m browser_use.skill_cli.main` from the same Python environment.
 - Browser Use daemon files live under `AGENT_BROWSER_USE_HOME`
   (`WINDIE_BROWSER_USE_HOME` in WindieOS launches) when set, otherwise under
   the WindieOS app data directory at `browser-use/`.
@@ -516,27 +517,18 @@ playwright install chromium
 
 ## Architecture
 
-```
-┌─────────────┐     WebSocket      ┌──────────────┐
-│   Backend   │◄──────────────────►│   Frontend   │
-│   (LLM)     │                    │  (Electron)  │
-└──────┬──────┘                    └──────┬───────┘
-       │                                   │ IPC
-       │                            ┌──────▼──────┐
-       │                            │   Sidecar   │
-       │                            │   (Python)  │
-       │                            └──────┬──────┘
-       │                                   │ Browser Use / CDP
-       │                            ┌──────▼──────┐
-       │                            │    Chrome   │
-       │                            │ (dedicated  │
-       │                            │  profile)   │
-       │                            └─────────────┘
+```text
+Backend model/tool policy
+  <-> SDK/main local-runtime dispatch
+    -> local-runtime Python browser adapter
+      -> Browser Use daemon
+        -> dedicated Chrome profile over localhost CDP
 ```
 
-- **Backend**: Exposes tool schema to LLM, orchestrates execution
-- **Sidecar**: Adapts browser actions to Browser Use and the dedicated CDP profile
-- **Chrome**: Dedicated profile controlled through localhost CDP
+- **Backend**: Exposes tool schema to the model and orchestrates model turns.
+- **SDK/main local runtime**: Dispatches local browser tool calls and returns normalized results.
+- **Local-runtime Python browser adapter**: Adapts browser actions to Browser Use and the dedicated CDP profile.
+- **Chrome**: Dedicated profile controlled through localhost CDP.
 
 ## Browser Support
 

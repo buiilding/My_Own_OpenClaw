@@ -12,12 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: debug traces, failure routing, incident/evidence
-  runbooks, security hub, filesystem/shell, MCP, tool-development,
-  computer-tool, platform, and tool-schema workflow docs now route local
-  execution/tool implementation labels through local-runtime Python
-  implementation wording instead of Python sidecar implementation/backing
-  route-owner labels.
+- Latest completed slice: browser control architecture and dedicated-browser
+  runtime state docs now route Browser Use invocation/state through SDK/main
+  local-runtime dispatch and the local-runtime Python browser adapter instead
+  of presenting Sidecar as the public browser runtime actor.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -246,6 +244,38 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Browser Local-Runtime Adapter Labels
+
+- Finding: browser control and dedicated-browser runtime docs still used
+  Sidecar section, diagram, and actor labels for Browser Use invocation and
+  browser runtime state.
+- Change: routed those labels through SDK/main local-runtime dispatch and the
+  local-runtime Python browser adapter, and replaced a box-drawing architecture
+  diagram with an ASCII ownership flow.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  browser-label scan, and diff check.
+- Compatibility: no migration required. Browser action names, Browser Use
+  daemon behavior, CDP host/port policy, dedicated profile paths, feature-pack
+  installation, JSON-RPC/daemon payloads, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
+### 2026-06-20 Plugin Inventory Local-Runtime Labels
+
+- Finding: plugin, extension, validation, browser, frontend inventory, and
+  tool-system docs still described built-in local tool changes, validation
+  sections, browser adapters, or tool execution clients through Python sidecar
+  implementation or sidecar SDK local-runtime labels.
+- Change: routed those labels through SDK local-runtime client,
+  local-runtime Python implementation, and backend-only tools not going through
+  the local runtime while preserving concrete `frontend/src/main/python` paths.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  plugin/browser/inventory label scan, and diff check.
+- Compatibility: no migration required. Runtime code, plugin loading, local
+  tool execution, JSON-RPC/daemon payloads, IPC payloads, tool-result
+  envelopes, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Debug Runbook Local-Runtime Python Labels
 

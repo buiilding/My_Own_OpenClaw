@@ -1,5 +1,5 @@
 ---
-summary: "Canonical WindieOS extension contribution package layout for plugin tool registration, repo-level local-runtime plugins, prompt skills, MCP server specs, ignored legacy extensions container behavior, and sidecar implementation boundaries."
+summary: "Canonical WindieOS extension contribution package layout for plugin tool registration, repo-level local-runtime plugins, prompt skills, MCP server specs, ignored legacy extensions container behavior, and local-runtime implementation boundaries."
 read_when:
   - When adding reusable client-side plugins, skills, or MCP integrations.
   - When registering plugin tools through `plugins/<id>/plugin.json`, schemas, and Python local-runtime entrypoints.
@@ -39,7 +39,7 @@ launches. Set one of these variables when using a separate contribution root.
 The loader does not infer contribution roots from the process working
 directory. Plugin tools are local-runtime tools:
 Electron main reads `plugin.json` for the model-facing client manifest, and the
-Python sidecar implementation loads the same `plugin.json` to execute the
+local-runtime Python implementation loads the same `plugin.json` to execute the
 declared Python entrypoints. Use this page for extension package, plugin, MCP,
 skills, and local-runtime tool contribution layout. Use the local-runtime
 local-runtime tools docs for built-in computer/system/filesystem/shell/browser
@@ -52,7 +52,7 @@ implementation behavior.
 | The model should call local Python code | `plugins/<id>/plugin.json`, `schemas/*.schema.json`, and `python/*.py`. |
 | The agent needs reusable instructions only | `skills/<id>/SKILL.md`. |
 | A protocol server should expose tools | `mcps/<id>/mcp.json`. |
-| A built-in WindieOS tool changes | Core backend, desktop local-runtime, and Python sidecar implementation files, not the contribution roots. |
+| A built-in WindieOS tool changes | Core backend, desktop local-runtime, and local-runtime Python implementation files, not the contribution roots. |
 
 The backend receives the final output as normal `client_tool_manifest` entries
 and prompt layers. The backend validates and projects those schemas but does not

@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/browser: route browser control architecture and Browser Use state labels
+  through SDK/main local-runtime dispatch and the local-runtime Python browser
+  adapter instead of presenting Sidecar as the public browser runtime actor.
+  No migration required.
+- docs/plugins: route plugin, extension, validation, browser, frontend
+  inventory, and backend-only tool docs through SDK/local-runtime and
+  local-runtime Python implementation wording instead of sidecar client or
+  Python sidecar implementation route-owner labels. No migration required.
 - tests/frontend: extend the modular docs boundary guard to reject stale MCP,
   plugin-entrypoint, and computer-tool table Python sidecar implementation
   owner labels. No migration required.
