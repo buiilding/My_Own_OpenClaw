@@ -1,5 +1,5 @@
 /**
- * Defines ipc overlay phase contract contracts for the Electron main process.
+ * Defines IPC overlay phase contracts for the Electron main process.
  */
 
 const responseOverlayPhaseContract = require('../../shared/response_overlay_phase_contract.json');

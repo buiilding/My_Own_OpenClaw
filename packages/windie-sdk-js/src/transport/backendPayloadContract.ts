@@ -1,5 +1,5 @@
 /**
- * Defines backend payload contract contracts for the TypeScript SDK runtime.
+ * Defines backend payload filtering for the TypeScript SDK runtime.
  */
 
 import type { JsonRecord } from '../conversation/types.js';

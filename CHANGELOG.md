@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/main/renderer: clarify contract-module headers for SDK backend payload
+  filtering, Electron overlay phases, and renderer LLM output rendering. No
+  migration required.
 - tests/frontend: rename the SDK private-exports focused test to
   `AgentSdkPrivateExports.test.cjs` while preserving coverage for removed
   Windie-prefixed compatibility modules. No migration required.

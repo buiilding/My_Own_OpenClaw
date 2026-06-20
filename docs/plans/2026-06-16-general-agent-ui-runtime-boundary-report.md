@@ -7418,3 +7418,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   CJS helper boundaries, removed compatibility-module assertions, package name,
   runtime behavior, credentials, permissions, hosted backend URLs, and provider
   policy are unchanged; no migration is required.
+- SDK, main, and renderer contract-module headers now name their owner-specific
+  jobs directly: SDK backend payload filtering, Electron main overlay phase
+  contracts, and renderer LLM output rendering contracts. Backend websocket
+  payload keys, overlay phase metadata, renderer markdown/output normalization,
+  IPC channels, storage, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged; no migration is required.

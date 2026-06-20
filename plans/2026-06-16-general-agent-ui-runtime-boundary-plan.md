@@ -18218,3 +18218,18 @@ Each completed slice should report:
   boundaries, removed compatibility-module assertions, package name, runtime
   behavior, credentials, permissions, hosted backend URLs, and provider policy
   are unchanged.
+
+### 2026-06-20 Contract module header ownership cleanup
+
+- Finding: three contract modules still used duplicated "contract contracts"
+  header wording, making existing boundaries harder to scan: SDK backend payload
+  filtering, Electron main overlay phases, and renderer LLM output rendering.
+- Change: clarified those headers in the TypeScript SDK source and checked-in
+  CJS output, the Electron main IPC overlay phase contract, and the renderer LLM
+  output contract without changing exported symbols or runtime logic.
+- Validation: focused backend websocket contract, overlay phase contract, LLM
+  output contract, docs listing, exact stale-header scan, and diff checks.
+- Compatibility: no migration required. Backend websocket payload keys, overlay
+  phase metadata, renderer markdown/output normalization, IPC channels, storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.

@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Defines backend payload contract contracts for the TypeScript SDK runtime.
+ * Defines backend payload filtering for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.filterBackendPayload = filterBackendPayload;
