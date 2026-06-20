@@ -146,9 +146,14 @@ describe('ipc_chat_query_handlers runtime', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_chat_query_handlers.cjs'),
       'utf8',
     );
+    const initializationSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createChatQueryHandlerRuntime({');
-    expect(mainSource).toContain('chatQueryHandlerRuntime.createHandlers({');
+    expect(mainSource).not.toContain('chatQueryHandlerRuntime.createHandlers({');
+    expect(initializationSource).toContain('chatQueryHandlerRuntime.createHandlers({');
     expect(mainSource).not.toContain('createChatQueryHandlers({');
     expect(helperSource).toContain('function createChatQueryHandlerRuntime');
     expect(helperSource).toContain('return createChatQueryHandlers({');

@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main IPC Initialization Runtime Boundary
+
+- Finding: earlier main IPC wrapper slices moved individual handler dependency
+  wiring out of `initializeIpc(...)`, but `ipc.cjs` still owned the
+  initialize-time sequence: endpoint refresh, host option application,
+  renderer-window reset/track, startup hydration, handler registration, chat
+  handler creation, and SDK invoke registration.
+- Change: added `createIpcInitializationRuntime(...)` so initialize-time
+  orchestration is owned by a focused helper. `initializeIpc(...)` now delegates
+  to the composed runtime while preserving the public export used by the main
+  window bootstrap.
+- Validation: focused initialization coverage verifies registration order,
+  default and injected window lookup behavior, and source guards that keep
+  startup/handler/SDK registration calls out of `ipc.cjs`.
+- Compatibility: no migration required. `initializeIpc(...)` option names,
+  endpoint refresh behavior, renderer window registration, startup hydration,
+  handler registration order, chat query/stop routing, SDK invoke routing,
+  renderer IPC channels, storage, credentials, permissions, provider policy,
+  and local execution behavior are unchanged.
+
 ### 2026-06-20 Main IPC Host Runtime Config Boundary
 
 - Finding: `configureIpcHostRuntime(...)` kept WindieOS skin data out of

@@ -124,9 +124,14 @@ describe('ipc image interaction handlers', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_image_interaction_handlers.cjs'),
       'utf8',
     );
+    const initializationSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createImageInteractionHandlersRuntime({');
-    expect(mainSource).toContain('imageInteractionHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('imageInteractionHandlersRuntime.register({ ipcMain })');
+    expect(initializationSource).toContain('imageInteractionHandlersRuntime.register({ ipcMain })');
     expect(mainSource).not.toContain('registerImageInteractionHandlers({');
     expect(mainSource).not.toContain('getTrustedImageOrigins: () => [');
     expect(helperSource).toContain('function createImageInteractionHandlersRuntime');

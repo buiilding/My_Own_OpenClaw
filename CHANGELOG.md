@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move `initializeIpc(...)` orchestration into
+  `createIpcInitializationRuntime(...)`, preserving endpoint refresh, host
+  option application, renderer-window reset/track, startup hydration, handler
+  registration order, chat handler creation, and SDK invoke registration.
+  No migration required.
 - main/ipc: move IPC host runtime configuration fan-out into
   `createIpcHostRuntimeConfig(...)`, keeping hosted backend endpoint refresh and
   debug env configuration behind one helper while preserving the exported

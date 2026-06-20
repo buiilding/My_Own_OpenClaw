@@ -97,9 +97,14 @@ describe('renderer diagnostics IPC handlers', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_renderer_diagnostics_handlers.cjs'),
       'utf8',
     );
+    const initializationSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createRendererDiagnosticsHandlersRuntime({');
-    expect(mainSource).toContain('rendererDiagnosticsHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('rendererDiagnosticsHandlersRuntime.register({ ipcMain })');
+    expect(initializationSource).toContain('rendererDiagnosticsHandlersRuntime.register({ ipcMain })');
     expect(mainSource).not.toContain('registerRendererDiagnosticsHandlers({');
     expect(mainSource).not.toContain("ipcMain.on('renderer-log'");
     expect(mainSource).not.toContain("ipcMain.on('live-surface-trace'");

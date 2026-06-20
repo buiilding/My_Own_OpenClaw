@@ -132,9 +132,14 @@ describe('desktop UI config IPC handlers', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_ui_config_handlers.cjs'),
       'utf8',
     );
+    const initializationSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createDesktopUiConfigHandlersRuntime({');
-    expect(mainSource).toContain('desktopUiConfigHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('desktopUiConfigHandlersRuntime.register({ ipcMain })');
+    expect(initializationSource).toContain('desktopUiConfigHandlersRuntime.register({ ipcMain })');
     expect(mainSource).not.toContain('registerDesktopUiConfigHandlers({');
     expect(helperSource).toContain('function createDesktopUiConfigHandlersRuntime');
     expect(helperSource).toContain('return registerDesktopUiConfigHandlers({');

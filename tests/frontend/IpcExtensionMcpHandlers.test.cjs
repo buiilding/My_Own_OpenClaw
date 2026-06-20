@@ -232,9 +232,14 @@ describe('extension and MCP IPC handlers', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs'),
       'utf8',
     );
+    const initializationSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createExtensionMcpHandlersRuntime({');
-    expect(mainSource).toContain('extensionMcpHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('extensionMcpHandlersRuntime.register({ ipcMain })');
+    expect(initializationSource).toContain('extensionMcpHandlersRuntime.register({ ipcMain })');
     expect(mainSource).not.toContain('registerExtensionMcpHandlers({');
     expect(mainSource).not.toContain("ipcMain.handle('list-agent-extensions'");
     expect(mainSource).not.toContain("ipcMain.handle('list-mcp-servers'");

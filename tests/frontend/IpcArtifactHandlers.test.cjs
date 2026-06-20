@@ -131,9 +131,14 @@ describe('ipc_artifact_handlers', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_artifact_handlers.cjs'),
       'utf8',
     );
+    const initializationSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createArtifactHandlersRuntime({');
-    expect(mainSource).toContain('artifactHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('artifactHandlersRuntime.register({ ipcMain })');
+    expect(initializationSource).toContain('artifactHandlersRuntime.register({ ipcMain })');
     expect(mainSource).not.toContain('registerArtifactHandlers({');
     expect(helperSource).toContain('function createArtifactHandlersRuntime');
     expect(helperSource).toContain('return registerArtifactHandlers({');

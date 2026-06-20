@@ -168,6 +168,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_host_option_state.cjs'),
       'utf8',
     );
+    const initializationRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
     const appDiagnosticsRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_app_diagnostics_runtime.cjs'),
       'utf8',
@@ -226,17 +230,22 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('agentDefinitionContextRuntime.attach(payload)');
     expect(agentDefinitionContextSource).toContain('function createAgentDefinitionContextRuntime');
     expect(source).toContain('createChatQueryHandlerRuntime({');
-    expect(source).toContain('chatQueryHandlerRuntime.createHandlers({');
+    expect(source).toContain('createIpcInitializationRuntime({');
+    expect(source).toContain('ipcInitializationRuntime.initialize(win, options)');
+    expect(source).not.toContain('chatQueryHandlerRuntime.createHandlers({');
+    expect(initializationRuntimeSource).toContain('chatQueryHandlerRuntime.createHandlers({');
     expect(source).not.toContain('createChatQueryHandlers({');
     expect(chatQueryHandlersSource).toContain('function createChatQueryHandlerRuntime');
     expect(chatQueryHandlersSource).toContain('return createChatQueryHandlers({');
     expect(source).toContain('createArtifactHandlersRuntime({');
-    expect(source).toContain('artifactHandlersRuntime.register({ ipcMain })');
+    expect(source).not.toContain('artifactHandlersRuntime.register({ ipcMain })');
+    expect(initializationRuntimeSource).toContain('artifactHandlersRuntime.register({ ipcMain })');
     expect(source).not.toContain('registerArtifactHandlers({');
     expect(artifactHandlersSource).toContain('function createArtifactHandlersRuntime');
     expect(artifactHandlersSource).toContain('return registerArtifactHandlers({');
     expect(source).toContain('createRendererDiagnosticsHandlersRuntime({');
-    expect(source).toContain('rendererDiagnosticsHandlersRuntime.register({ ipcMain })');
+    expect(source).not.toContain('rendererDiagnosticsHandlersRuntime.register({ ipcMain })');
+    expect(initializationRuntimeSource).toContain('rendererDiagnosticsHandlersRuntime.register({ ipcMain })');
     expect(source).not.toContain('registerRendererDiagnosticsHandlers({');
     expect(rendererDiagnosticsHandlersSource).toContain(
       'function createRendererDiagnosticsHandlersRuntime',
@@ -245,27 +254,32 @@ describe('main ipc sdk runtime boundary', () => {
       'return registerRendererDiagnosticsHandlers({',
     );
     expect(source).toContain('createImageInteractionHandlersRuntime({');
-    expect(source).toContain('imageInteractionHandlersRuntime.register({ ipcMain })');
+    expect(source).not.toContain('imageInteractionHandlersRuntime.register({ ipcMain })');
+    expect(initializationRuntimeSource).toContain('imageInteractionHandlersRuntime.register({ ipcMain })');
     expect(source).not.toContain('registerImageInteractionHandlers({');
     expect(imageInteractionHandlersSource).toContain('function createImageInteractionHandlersRuntime');
     expect(imageInteractionHandlersSource).toContain('return registerImageInteractionHandlers({');
     expect(source).toContain('createClientSessionHandlersRuntime({');
-    expect(source).toContain('clientSessionHandlersRuntime.register({ ipcMain })');
+    expect(source).not.toContain('clientSessionHandlersRuntime.register({ ipcMain })');
+    expect(initializationRuntimeSource).toContain('clientSessionHandlersRuntime.register({ ipcMain })');
     expect(source).not.toContain('registerClientSessionHandlers({');
     expect(clientSessionHandlersSource).toContain('function createClientSessionHandlersRuntime');
     expect(clientSessionHandlersSource).toContain('return registerClientSessionHandlers({');
     expect(source).toContain('createExtensionMcpHandlersRuntime({');
-    expect(source).toContain('extensionMcpHandlersRuntime.register({ ipcMain })');
+    expect(source).not.toContain('extensionMcpHandlersRuntime.register({ ipcMain })');
+    expect(initializationRuntimeSource).toContain('extensionMcpHandlersRuntime.register({ ipcMain })');
     expect(source).not.toContain('registerExtensionMcpHandlers({');
     expect(extensionMcpHandlersSource).toContain('function createExtensionMcpHandlersRuntime');
     expect(extensionMcpHandlersSource).toContain('return registerExtensionMcpHandlers({');
     expect(source).toContain('createDesktopUiConfigHandlersRuntime({');
-    expect(source).toContain('desktopUiConfigHandlersRuntime.register({ ipcMain })');
+    expect(source).not.toContain('desktopUiConfigHandlersRuntime.register({ ipcMain })');
+    expect(initializationRuntimeSource).toContain('desktopUiConfigHandlersRuntime.register({ ipcMain })');
     expect(source).not.toContain('registerDesktopUiConfigHandlers({');
     expect(desktopUiConfigHandlersSource).toContain('function createDesktopUiConfigHandlersRuntime');
     expect(desktopUiConfigHandlersSource).toContain('return registerDesktopUiConfigHandlers({');
     expect(source).toContain('createIpcStartupStateRuntime({');
-    expect(source).toContain('ipcStartupStateRuntime.initialize()');
+    expect(source).not.toContain('ipcStartupStateRuntime.initialize()');
+    expect(initializationRuntimeSource).toContain('ipcStartupStateRuntime.initialize()');
     expect(source).not.toContain('initializeIpcStartupState({');
     expect(startupStateSource).toContain('function createIpcStartupStateRuntime');
     expect(startupStateSource).toContain('return initializeIpcStartupState({');
@@ -457,7 +471,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('liveTurnState.getLatestPendingTurn()');
     expect(source).toContain('createPendingTurnRuntime({');
     expect(source).toContain('pendingTurnRuntime.clear(input)');
-    expect(source).toContain('pendingTurnRuntime.register({ ipcMain })');
+    expect(source).not.toContain('pendingTurnRuntime.register({ ipcMain })');
+    expect(initializationRuntimeSource).toContain('pendingTurnRuntime.register({ ipcMain })');
     expect(source).not.toContain('liveTurnState.setLatestPendingTurn(');
     expect(pendingTurnHandlersSource).toContain('function createPendingTurnRuntime');
     expect(pendingTurnHandlersSource).toContain('liveTurnState.setLatestPendingTurn(pendingTurn)');
@@ -515,10 +530,15 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_conversation_metadata_diagnostics_runtime.cjs'),
       'utf8',
     );
+    const initializationRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS');
     expect(mainSource).toContain('createAgentSdkInvokeHandlerRuntime({');
-    expect(mainSource).toContain('agentSdkInvokeHandlerRuntime.register({');
+    expect(mainSource).not.toContain('agentSdkInvokeHandlerRuntime.register({');
+    expect(initializationRuntimeSource).toContain('agentSdkInvokeHandlerRuntime.register({');
     expect(mainSource).toContain('invokeChannel: DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
     expect(mainSource).not.toContain('registerAgentSdkInvokeHandler({');
     expect(mainSource).not.toContain('ipcMain.handle(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');

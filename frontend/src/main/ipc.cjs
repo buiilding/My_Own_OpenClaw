@@ -210,6 +210,9 @@ const {
   createIpcStartupStateRuntime,
 } = require('./ipc/ipc_startup_state.cjs');
 const {
+  createIpcInitializationRuntime,
+} = require('./ipc/ipc_initialization_runtime.cjs');
+const {
   loadPublicExtensionRegistry,
 } = require('./extensions/extension_manifest.cjs');
 const {
@@ -767,6 +770,23 @@ const ipcStartupStateRuntime = createIpcStartupStateRuntime({
   onDesktopUiConfigLoaded: refreshEnabledMcpServersAfterStartup,
   log,
 });
+const ipcInitializationRuntime = createIpcInitializationRuntime({
+  ipcMain,
+  refreshBackendEndpoints,
+  hostOptionState,
+  rendererWindowRuntime,
+  trackRendererWindow,
+  ipcStartupStateRuntime,
+  desktopUiConfigHandlersRuntime,
+  extensionMcpHandlersRuntime,
+  clientSessionHandlersRuntime,
+  artifactHandlersRuntime,
+  imageInteractionHandlersRuntime,
+  rendererDiagnosticsHandlersRuntime,
+  pendingTurnRuntime,
+  chatQueryHandlerRuntime,
+  agentSdkInvokeHandlerRuntime,
+});
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -949,45 +969,7 @@ function shutdownIpcForTests() {
 }
 
 function initializeIpc(win, options = {}) {
-  refreshBackendEndpoints({
-    isPackaged: options.isPackaged === true,
-  });
-  hostOptionState.applyInitializeOptions(options);
-  const getWindows = typeof options.getWindows === 'function'
-    ? options.getWindows
-    : () => ({ mainWindow: win, chatWindow: null });
-  rendererWindowRuntime.reset();
-  trackRendererWindow(win);
-  ipcStartupStateRuntime.initialize();
-
-  desktopUiConfigHandlersRuntime.register({ ipcMain });
-
-  extensionMcpHandlersRuntime.register({ ipcMain });
-
-  clientSessionHandlersRuntime.register({ ipcMain });
-
-  artifactHandlersRuntime.register({ ipcMain });
-
-  imageInteractionHandlersRuntime.register({ ipcMain });
-
-  rendererDiagnosticsHandlersRuntime.register({ ipcMain });
-
-  pendingTurnRuntime.register({ ipcMain });
-
-  const {
-    handleRendererChatQuery,
-    handleRendererStopQuery,
-  } = chatQueryHandlerRuntime.createHandlers({
-    getWindows,
-    onBeforeOverlayQueryCapture: hostOptionState.getOnBeforeOverlayQueryCapture(),
-  });
-
-  agentSdkInvokeHandlerRuntime.register({
-    ipcMain,
-    handleRendererChatQuery,
-    handleRendererStopQuery,
-  });
-
+  ipcInitializationRuntime.initialize(win, options);
 }
 
 async function appendMainProcessTraceEvent(input = {}) {

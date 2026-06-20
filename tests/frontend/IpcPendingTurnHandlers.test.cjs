@@ -231,10 +231,15 @@ describe('pending turn IPC handlers', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_pending_turn_handlers.cjs'),
       'utf8',
     );
+    const initializationSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createPendingTurnRuntime({');
     expect(mainSource).toContain('pendingTurnRuntime.clear(input)');
-    expect(mainSource).toContain('pendingTurnRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('pendingTurnRuntime.register({ ipcMain })');
+    expect(initializationSource).toContain('pendingTurnRuntime.register({ ipcMain })');
     expect(mainSource).not.toContain('registerPendingTurnHandlers({');
     expect(mainSource).not.toContain('clearPendingTurnState({');
     expect(mainSource).not.toContain('ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');

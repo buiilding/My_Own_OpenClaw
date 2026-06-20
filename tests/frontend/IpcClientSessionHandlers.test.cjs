@@ -210,9 +210,14 @@ describe('client session IPC handlers', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_client_session_handlers.cjs'),
       'utf8',
     );
+    const initializationSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createClientSessionHandlersRuntime({');
-    expect(mainSource).toContain('clientSessionHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('clientSessionHandlersRuntime.register({ ipcMain })');
+    expect(initializationSource).toContain('clientSessionHandlersRuntime.register({ ipcMain })');
     expect(mainSource).not.toContain('registerClientSessionHandlers({');
     expect(mainSource).not.toContain("ipcMain.handle('get-client-user-id'");
     expect(mainSource).not.toContain("ipcMain.on('transcript-session-sync'");

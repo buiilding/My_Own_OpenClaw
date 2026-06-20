@@ -161,9 +161,14 @@ describe('ipc_startup_state', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_startup_state.cjs'),
       'utf8',
     );
+    const initializationSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createIpcStartupStateRuntime({');
-    expect(mainSource).toContain('ipcStartupStateRuntime.initialize()');
+    expect(mainSource).not.toContain('ipcStartupStateRuntime.initialize()');
+    expect(initializationSource).toContain('ipcStartupStateRuntime.initialize()');
     expect(mainSource).not.toContain('initializeIpcStartupState({');
     expect(helperSource).toContain('function createIpcStartupStateRuntime');
     expect(helperSource).toContain('return initializeIpcStartupState({');
