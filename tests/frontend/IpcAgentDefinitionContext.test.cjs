@@ -16,6 +16,7 @@ const {
 
 const {
   attachAgentDefinitionContext,
+  createAgentDefinitionContextRuntime,
   mergeAgentDefinitionContext,
 } = require('../../frontend/src/main/ipc/ipc_agent_definition_context.cjs');
 
@@ -145,5 +146,49 @@ describe('ipc_agent_definition_context', () => {
     } finally {
       await fs.promises.rm(repoRoot, { recursive: true, force: true });
     }
+  });
+
+  test('runtime attaches context using the latest injected desktop config', () => {
+    const configs = [
+      { agent_custom_instructions: ' First instructions. ' },
+      { agent_custom_instructions: ' Second instructions. ' },
+    ];
+    const buildAgentDefinition = jest.fn(input => ({
+      mode: 'default_plus_overrides',
+      system_prompt: input.customInstructions
+        ? { mode: 'replace', content: input.customInstructions }
+        : { mode: 'default' },
+    }));
+    const runtime = createAgentDefinitionContextRuntime({
+      getLatestDesktopUiConfig: jest.fn(() => configs.shift()),
+      platformName: 'linux',
+      buildAgentDefinition,
+      isDefaultAgentDefinition: () => false,
+    });
+
+    expect(runtime.attach({ text: 'first' }).agent_definition.system_prompt).toEqual({
+      mode: 'replace',
+      content: 'First instructions.',
+    });
+    expect(runtime.attach({ text: 'second' }).agent_definition.system_prompt).toEqual({
+      mode: 'replace',
+      content: 'Second instructions.',
+    });
+  });
+
+  test('ipc.cjs composes agent definition context through the runtime wrapper', async () => {
+    const mainSource = await fs.promises.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+    const helperSource = await fs.promises.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_definition_context.cjs'),
+      'utf8',
+    );
+
+    expect(mainSource).toContain('createAgentDefinitionContextRuntime({');
+    expect(mainSource).toContain('agentDefinitionContextRuntime.attach(payload)');
+    expect(mainSource).not.toContain('attachAgentDefinitionContextRuntime(payload');
+    expect(helperSource).toContain('function createAgentDefinitionContextRuntime');
   });
 });

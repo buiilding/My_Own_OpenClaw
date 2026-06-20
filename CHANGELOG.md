@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move query agent-definition context dependency wiring into
+  `createAgentDefinitionContextRuntime(...)`, preserving latest desktop config
+  custom instructions, platform facts, SDK builder/default checks, workspace
+  AGENTS.md layers, extension prompt layers, and supplied-definition merging.
+  No migration required.
 - main/ipc: move active Agent SDK adapter `ensureConnected(...)` routing into
   `ipc_agent_runtime_lifecycle.cjs`, preserving current conversation-ref
   forwarding, connection timeout behavior, first-query/settings gates, and

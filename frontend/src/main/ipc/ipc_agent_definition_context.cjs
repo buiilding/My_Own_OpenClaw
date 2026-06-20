@@ -114,7 +114,28 @@ function attachAgentDefinitionContext(payload, {
   };
 }
 
+function createAgentDefinitionContextRuntime({
+  getLatestDesktopUiConfig = () => null,
+  platformName = process.platform,
+  buildAgentDefinition,
+  isDefaultAgentDefinition,
+} = {}) {
+  function attach(payload) {
+    return attachAgentDefinitionContext(payload, {
+      latestDesktopUiConfig: getLatestDesktopUiConfig(),
+      platformName,
+      buildAgentDefinition,
+      isDefaultAgentDefinition,
+    });
+  }
+
+  return {
+    attach,
+  };
+}
+
 module.exports = {
   attachAgentDefinitionContext,
+  createAgentDefinitionContextRuntime,
   mergeAgentDefinitionContext,
 };

@@ -175,7 +175,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(conversationStatusRuntimeSource).toContain('event.payload?.error');
     expect(workspacePathRuntimeSource).toContain('payload?.workspace_path');
     expect(workspacePathRuntimeSource).toContain('payload?.workspacePath');
-    expect(source).toContain('attachAgentDefinitionContextRuntime(payload');
+    expect(source).toContain('createAgentDefinitionContextRuntime({');
+    expect(source).toContain('agentDefinitionContextRuntime.attach(payload)');
+    expect(agentDefinitionContextSource).toContain('function createAgentDefinitionContextRuntime');
     expect(source).not.toContain('resolveWorkspaceRepoInstructionPromptLayers(workspacePath)');
     expect(source).not.toContain('loadExtensionSkillPromptLayers()');
     expect(agentDefinitionContextSource).toContain('isDefaultAgentDefinition(generatedAgentDefinition)');

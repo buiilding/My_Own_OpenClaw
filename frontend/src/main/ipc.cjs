@@ -152,7 +152,7 @@ const {
   createDirectWakeUpAgentAdapterDepsRuntime,
 } = require('./ipc/ipc_direct_wake_up_agent_adapter_deps.cjs');
 const {
-  attachAgentDefinitionContext: attachAgentDefinitionContextRuntime,
+  createAgentDefinitionContextRuntime,
 } = require('./ipc/ipc_agent_definition_context.cjs');
 const {
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
@@ -481,6 +481,12 @@ const directWakeUpAgentAdapterDepsRuntime = createDirectWakeUpAgentAdapterDepsRu
   handleAgentBackendEvent,
   refreshMcpServersForConfig,
   getMcpClientInfo: () => ipcHostCopyRuntime.getMcpClientInfo(),
+});
+const agentDefinitionContextRuntime = createAgentDefinitionContextRuntime({
+  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
+  platformName: process.platform,
+  buildAgentDefinition,
+  isDefaultAgentDefinition,
 });
 
 function buildInstallAuthHeaders() {
@@ -994,12 +1000,7 @@ function appendAppDiagnostic(input = {}) {
 }
 
 function attachAgentDefinitionContext(payload) {
-  return attachAgentDefinitionContextRuntime(payload, {
-    latestDesktopUiConfig: desktopUiConfigCache.getRaw(),
-    platformName: process.platform,
-    buildAgentDefinition,
-    isDefaultAgentDefinition,
-  });
+  return agentDefinitionContextRuntime.attach(payload);
 }
 
 const automatedQueryDispatcher = createAutomatedQueryDispatcher({

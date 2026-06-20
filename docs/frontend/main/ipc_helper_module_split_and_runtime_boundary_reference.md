@@ -389,6 +389,9 @@ Owns Electron-main dependency construction for the direct wake-up adapter:
 
 Owns Electron-main query-level agent-definition context attachment:
 
+- exposes `createAgentDefinitionContextRuntime(...)` so `ipc.cjs` composes the
+  latest config reader, platform name, SDK builder, and default-definition
+  predicate once
 - reads custom instructions from cached desktop UI config
 - resolves workspace `AGENTS.md` prompt layers for the query workspace
 - loads extension prompt layers once before calling

@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Definition Context Runtime Boundary
+
+- Finding: `ipc_agent_definition_context.cjs` owned agent-definition context
+  generation and merging, but `ipc.cjs` still rebuilt the latest desktop config,
+  platform, SDK builder, and default-definition dependency object for every
+  query payload.
+- Change: added `createAgentDefinitionContextRuntime(...)` so
+  `ipc_agent_definition_context.cjs` owns the reusable attachment runtime while
+  `ipc.cjs` injects the current config reader, platform, SDK builder, and
+  default-definition predicate once during composition.
+- Validation: focused agent-definition coverage verifies the runtime uses the
+  latest injected config on each attach and source guards keep per-call
+  dependency wiring out of `ipc.cjs`.
+- Compatibility: no migration required. Custom instructions, workspace
+  `AGENTS.md` layers, extension prompt layers, host OS facts, SDK
+  `buildAgentDefinition(...)` behavior, supplied-definition merging, renderer
+  IPC channels, storage, credentials, permissions, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Main Agent Runtime Backend Connection Boundary
 
 - Finding: `ipc_agent_runtime_lifecycle.cjs` owned active Agent SDK adapter
