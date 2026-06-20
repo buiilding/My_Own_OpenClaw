@@ -23,7 +23,9 @@ the SDK-shaped query runtime:
    `global_agent_stop_shortcut` before sending backend `update-settings`
    payloads. This is local desktop state, not backend model/session config.
 4. `ipc_desktop_ui_config_handlers.cjs` and `ipc_startup_state.cjs` pass the
-   selected accelerator into `agent_stop_shortcut_runtime.cjs`.
+   selected accelerator into `agent_stop_shortcut_runtime.cjs`. Fallback
+   config persistence after native registration status updates is owned by
+   `ipc_global_stop_shortcut_config_runtime.cjs`.
 5. Electron main registers the accelerator only while an agent loop is active.
    When pressed, the runtime calls the current stop handler, which routes
    through `ipc_stop_target_runtime.cjs` into the active conversation/turn
@@ -57,6 +59,16 @@ for stop-from-anywhere behavior while another app has focus.
 Renderer components must not call `globalShortcut` directly. Main owns native
 registration and exposes state back to renderer through IPC status payloads.
 
+`frontend/src/main/ipc/ipc_global_stop_shortcut_config_runtime.cjs` owns the
+main-process status/config adapter around native registration:
+
+- normalizes native shortcut status into renderer-visible scalar fields
+- applies resolved fallback accelerators back into desktop UI config when the
+  native runtime found a working fallback
+- skips fallback persistence when registration failed or the fallback is
+  already saved
+- broadcasts updated IPC status snapshots after shortcut status changes
+
 `frontend/src/main/ipc/ipc_stop_target_runtime.cjs` owns the target-resolution
 rule for an already-registered stop action:
 
@@ -87,9 +99,10 @@ is imported by the runtime client and owner-level tests. Electron main uses
 
 ## Status Projection
 
-`ipc.cjs` includes `globalAgentStopShortcutStatus` in IPC status snapshots.
-Renderer providers consume this status to update Settings UI and persist
-fallback bindings.
+`ipc.cjs` includes the `ipc_global_stop_shortcut_config_runtime.cjs` status
+snapshot as `globalAgentStopShortcutStatus` in IPC status payloads. Renderer
+providers consume this status to update Settings UI and persist fallback
+bindings.
 
 Projected fields:
 
@@ -120,6 +133,7 @@ Focused tests:
 - `tests/frontend/SettingsSection.test.jsx`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
+- `tests/frontend/IpcGlobalStopShortcutConfigRuntime.test.cjs`
 - `tests/frontend/IpcStopTargetRuntime.test.cjs`
 - `tests/frontend/IpcStartupState.test.cjs`
 - `tests/frontend/IpcDesktopUiConfigHandlers.test.cjs`
@@ -127,7 +141,7 @@ Focused tests:
 Useful focused command:
 
 ```bash
-<windie> test frontend -- AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js SettingsSection.test.jsx AppConfigProvider.storageAndIpc.test.tsx IpcMainBridge.lifecycle.test.cjs IpcStartupState.test.cjs IpcDesktopUiConfigHandlers.test.cjs
+<windie> test frontend -- AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js SettingsSection.test.jsx AppConfigProvider.storageAndIpc.test.tsx IpcMainBridge.lifecycle.test.cjs IpcGlobalStopShortcutConfigRuntime.test.cjs IpcStartupState.test.cjs IpcDesktopUiConfigHandlers.test.cjs
 ```
 
 ## Related Docs

@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, or `ipc_desktop_ui_config_persistence_runtime.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, or `ipc_global_stop_shortcut_config_runtime.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -41,6 +41,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
+- `frontend/src/main/ipc/ipc_global_stop_shortcut_config_runtime.cjs`
 - `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
@@ -342,6 +343,18 @@ renderer wire channel names:
 - shortcut fallback application while keeping the latest config cache in
   `ipc.cjs` through injected getters/setters
 
+### `ipc_global_stop_shortcut_config_runtime.cjs`
+
+Owns Electron-main global stop shortcut status/config adaptation:
+
+- normalizes native shortcut runtime status before it is included in renderer
+  IPC status snapshots
+- applies successful fallback accelerators into desktop UI config for
+  persistence
+- skips fallback persistence when registration failed or the fallback is already
+  saved
+- broadcasts connection/status snapshots after shortcut status changes
+
 ### SDK-Shaped Conversation Commands
 
 `ipc_agent_sdk_command_handlers.cjs` owns the strict `windie:invoke` command
@@ -467,6 +480,8 @@ generic `to-backend` router or direct chat query IPC handlers.
     custom-instruction trimming, workspace `AGENTS.md` prompt layers, extension
     prompt layers, host OS/workspace facts, and supplied-definition merging,
     delegates to `ipc_agent_definition_context.cjs`.
+24. global stop shortcut status projection and fallback desktop UI config
+    persistence delegate to `ipc_global_stop_shortcut_config_runtime.cjs`.
 
 ## Drift Hotspots
 

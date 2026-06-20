@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Global Stop Shortcut Config Runtime Boundary
+
+- Finding: native global shortcut registration already lived in
+  `agent_stop_shortcut_runtime.cjs`, and stop target selection already lived in
+  `ipc_stop_target_runtime.cjs`, but `ipc.cjs` still normalized shortcut
+  status, kept the current shortcut status cache, applied resolved fallback
+  accelerators into desktop UI config, triggered fallback persistence, and
+  broadcast IPC status snapshots inline.
+- Change: added `ipc_global_stop_shortcut_config_runtime.cjs` to own
+  main-process shortcut status projection and fallback config persistence.
+  `ipc.cjs` now injects latest desktop UI config access, persistence, and
+  connection-status broadcast callbacks.
+- Validation: focused shortcut config runtime coverage for status
+  normalization, fallback config application, successful fallback persistence,
+  registration-failure/no-op cases, reset behavior, and a boundary guard that
+  keeps the status normalization out of `ipc.cjs`.
+- Compatibility: no migration required. Native shortcut registration,
+  supported accelerator catalog, `global_agent_stop_shortcut` config field,
+  IPC status field names, renderer fallback behavior, storage, credentials,
+  permissions, hosted URLs, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main Desktop UI Config Persistence Runtime Boundary
 
 - Finding: `ipc_desktop_ui_config.cjs` owned raw disk I/O and

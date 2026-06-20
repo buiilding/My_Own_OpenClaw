@@ -22,6 +22,7 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
+- `frontend/src/main/ipc/ipc_global_stop_shortcut_config_runtime.cjs`
 
 ## Config Ownership Boundary
 
@@ -48,6 +49,7 @@ Backend-owned speech/transcription runtime policy is intentionally excluded from
 - persisted in localStorage + main-process disk config
 - intentionally removed from backend `update-settings` payloads
 - may be rewritten locally when Electron fails to register the requested accelerator and main resolves a supported fallback
+  through `ipc_global_stop_shortcut_config_runtime.cjs`
 
 All outbound config updates use this boundary before settings runtime sync.
 
@@ -186,6 +188,10 @@ Renderer uses this to:
 - update renderer backend HTTP URL for artifact URL composition
 - trigger config re-sync when the runtime connection becomes ready
 - persist resolved global-stop fallback bindings back into local config and Settings UI when the requested accelerator is unavailable
+
+Electron main normalizes this shortcut status and persists successful fallback
+accelerators through `ipc_global_stop_shortcut_config_runtime.cjs`, not through
+backend settings sync.
 
 Renderer app-runtime clients normalize this host payload before feature code
 consumes it. `desktopClientSessionRuntimeClient` exposes app-config status

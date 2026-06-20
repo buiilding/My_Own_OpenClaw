@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move global stop shortcut status normalization and fallback config
+  persistence into `ipc_global_stop_shortcut_config_runtime.cjs`, keeping
+  native shortcut registration in `agent_stop_shortcut_runtime.cjs` and stop
+  target selection in `ipc_stop_target_runtime.cjs`. No migration required.
 - main/ipc: move desktop UI config MCP allowlist preservation, save
   redaction, latest-cache updates, and MCP enablement diagnostics into
   `ipc_desktop_ui_config_persistence_runtime.cjs` so `ipc.cjs` composes the

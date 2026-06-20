@@ -34,6 +34,9 @@ const {
   createDesktopUiConfigPersistenceRuntime,
 } = require('./ipc/ipc_desktop_ui_config_persistence_runtime.cjs');
 const {
+  createGlobalStopShortcutConfigRuntime,
+} = require('./ipc/ipc_global_stop_shortcut_config_runtime.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -233,7 +236,6 @@ let setGlobalAgentStopShortcutAccelerator = null;
 let localToolLifecycle = null;
 let syncSdkLiveTurnSurfaceIntent = null;
 let agentWebSocketImpl = null;
-let currentGlobalAgentStopShortcutStatus = null;
 let agentClient = null;
 let activeAgent = null;
 let pendingAgentStartPromise = null;
@@ -279,6 +281,13 @@ const {
   appendDiagnosticEvent,
   mcpEnablementDiagnosticsPath: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   log,
+});
+const globalStopShortcutConfigRuntime = createGlobalStopShortcutConfigRuntime({
+  isValidConfigPayload,
+  getLatestDesktopUiConfig: () => latestDesktopUiConfig,
+  persistDesktopUiConfigToDisk,
+  broadcastConnectionStatus: (connected) => broadcastConnectionStatus(connected),
+  isConnected: () => isConnected,
 });
 const installAuthRuntime = createInstallAuthRuntime({
   getCurrentState: () => ({
@@ -328,54 +337,8 @@ async function ensureInstallAuthState() {
   return installAuthRuntime.ensureInstallAuthState();
 }
 
-function normalizeGlobalAgentStopShortcutStatus(status) {
-  if (!status || typeof status !== 'object' || Array.isArray(status)) {
-    return null;
-  }
-
-  const normalizeAccelerator = (value) => {
-    if (typeof value !== 'string') {
-      return null;
-    }
-    const normalized = value.trim();
-    return normalized.length > 0 ? normalized : null;
-  };
-
-  const supportedAccelerators = Array.isArray(status.supportedAccelerators)
-    ? status.supportedAccelerators
-      .filter((value) => typeof value === 'string' && value.trim().length > 0)
-      .map((value) => value.trim())
-    : [];
-
-  return {
-    enabled: status.enabled === true,
-    requestedAccelerator: normalizeAccelerator(status.requestedAccelerator),
-    resolvedAccelerator: normalizeAccelerator(status.resolvedAccelerator),
-    registered: status.registered === true,
-    registeredAccelerator: normalizeAccelerator(status.registeredAccelerator),
-    registrationFailed: status.registrationFailed === true,
-    usingFallback: status.usingFallback === true,
-    supportedAccelerators,
-  };
-}
-
 function applyShortcutStatusFallbackToConfig(config) {
-  if (!isValidConfigPayload(config)) {
-    return config;
-  }
-  const resolvedAccelerator = currentGlobalAgentStopShortcutStatus?.resolvedAccelerator;
-  if (
-    currentGlobalAgentStopShortcutStatus?.registrationFailed === true
-    || typeof resolvedAccelerator !== 'string'
-    || !resolvedAccelerator
-    || config.global_agent_stop_shortcut === resolvedAccelerator
-  ) {
-    return config;
-  }
-  return {
-    ...config,
-    global_agent_stop_shortcut: resolvedAccelerator,
-  };
+  return globalStopShortcutConfigRuntime.applyShortcutStatusFallbackToConfig(config);
 }
 
 function refreshBackendEndpoints(options = {}) {
@@ -418,16 +381,11 @@ async function loadCachedDesktopUiConfigFromDisk() {
 }
 
 function updateGlobalAgentStopShortcutStatus(status) {
-  currentGlobalAgentStopShortcutStatus = normalizeGlobalAgentStopShortcutStatus(status);
+  globalStopShortcutConfigRuntime.updateGlobalAgentStopShortcutStatus(status);
+}
 
-  if (isValidConfigPayload(latestDesktopUiConfig)) {
-    const nextConfig = applyShortcutStatusFallbackToConfig(latestDesktopUiConfig);
-    if (nextConfig !== latestDesktopUiConfig) {
-      void persistDesktopUiConfigToDisk(nextConfig);
-    }
-  }
-
-  broadcastConnectionStatus(isConnected);
+function getGlobalAgentStopShortcutStatus() {
+  return globalStopShortcutConfigRuntime.getStatus();
 }
 
 function resetSettingsSyncState() {
@@ -455,7 +413,7 @@ function resetIpcProcessStateForTests() {
   currentConversationRef = null;
   activeQueryContext = null;
   latestDesktopUiConfig = null;
-  currentGlobalAgentStopShortcutStatus = null;
+  globalStopShortcutConfigRuntime.reset();
   installAuthRuntime.reset();
   pendingStartupMcpRefreshPromise = null;
   latestCurrentTurnProjection = null;
@@ -791,7 +749,7 @@ function buildIpcStatusPayload(connected) {
     userId: currentUserId,
     runtimeWsUrl: backendEndpointState.getWsUrl(),
     runtimeHttpUrl: backendEndpointState.getHttpUrl(),
-    globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
+    globalAgentStopShortcutStatus: getGlobalAgentStopShortcutStatus(),
   };
 }
 
@@ -1085,7 +1043,7 @@ function initializeIpc(win, options = {}) {
       currentServerUserId,
       currentSessionId,
       isConnected,
-      globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
+      globalAgentStopShortcutStatus: getGlobalAgentStopShortcutStatus(),
     }),
     getRuntimeEndpointSnapshot: () => ({
       runtimeWsUrl: backendEndpointState.getWsUrl(),
@@ -1400,7 +1358,7 @@ function getBackendConnectionState() {
     conversationRef: currentConversationRef,
     backendWsUrl: backendEndpointState.getWsUrl(),
     backendHttpUrl: backendEndpointState.getHttpUrl(),
-    globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
+    globalAgentStopShortcutStatus: getGlobalAgentStopShortcutStatus(),
   };
 }
 
