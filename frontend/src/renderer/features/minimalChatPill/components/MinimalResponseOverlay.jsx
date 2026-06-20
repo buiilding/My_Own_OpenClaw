@@ -11,8 +11,9 @@ import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScroll
 import MessageItem from '../../chat/components/message/MessageItem';
 import { resolveConversationToolSchemas } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import {
-  logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
+  logRendererResponseOverlayStateTrace,
+  logRendererResponseSurfaceRenderTrace,
   logRendererResponseSurfaceTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { RESPONSE_OVERLAY_LAYOUT } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
@@ -194,21 +195,19 @@ function MinimalResponseOverlay() {
     });
     if (lastLoggedSurfaceStateRef.current !== nextSurfaceStateSignature) {
       lastLoggedSurfaceStateRef.current = nextSurfaceStateSignature;
-      logRendererResponseSurfaceTrace({
-        source: 'renderer-response-overlay-state',
-        action: 'state-changed',
-        turn_id: currentTurnId || null,
+      logRendererResponseOverlayStateTrace({
+        turnRef: currentTurnId || null,
         phase: currentTurnProjection?.phase || 'idle',
-        is_visible: isVisible,
-        show_awaiting_reply: showAwaitingReply,
-        show_response: showResponse,
-        response_layout_mode: overlayLayoutMode,
-        visible_response_id: latestResponseOverlayEntryId || null,
-        response_entry_count: responseOverlayEntries.length,
-        active_response_text_length: activeResponseTextLength,
-        thinking_text_length: typeof thinkingText === 'string' ? thinkingText.length : 0,
-        is_sending: isSending,
-        message_count: messages.length,
+        isVisible,
+        showAwaitingReply,
+        showResponse,
+        responseLayoutMode: overlayLayoutMode,
+        visibleResponseId: latestResponseOverlayEntryId || null,
+        responseEntryCount: responseOverlayEntries.length,
+        activeResponseTextLength,
+        thinkingText,
+        isSending,
+        messageCount: messages.length,
       });
     }
     logRendererResponseSurfaceTrace({
@@ -223,14 +222,12 @@ function MinimalResponseOverlay() {
       showResponse,
       thinkingTextLength: typeof thinkingText === 'string' ? thinkingText.length : 0,
     });
-    logRendererChatPillTrace({
-      source: 'renderer-response-surface',
-      action: 'render',
-      turn_id: currentTurnId,
+    logRendererResponseSurfaceRenderTrace({
+      turnRef: currentTurnId,
       phase: currentTurnProjection?.phase || 'idle',
-      response_layout_mode: overlayLayoutMode,
-      show_response: showResponse,
-      show_awaiting_reply: showAwaitingReply,
+      responseLayoutMode: overlayLayoutMode,
+      showResponse,
+      showAwaitingReply,
     });
   }, [
     currentTurnId,

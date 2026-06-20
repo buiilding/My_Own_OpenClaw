@@ -135,6 +135,23 @@ Each completed slice should report:
   credentials, permissions, hosted backend URLs, provider policy, and trust
   boundaries are unchanged.
 
+### 2026-06-20 Renderer Response Overlay Trace Payload Boundary
+
+- Finding: `MinimalResponseOverlay.jsx` still assembled response-surface
+  diagnostics with snake_case fields such as `turn_id`, `is_visible`,
+  `show_awaiting_reply`, `response_layout_mode`, `is_sending`, and
+  `message_count` even though `desktopRendererTraceRuntime.ts` owns renderer
+  diagnostic field shaping.
+- Change: added response-overlay state and render trace payload normalization
+  to `desktopRendererTraceRuntime.ts`. The minimal response overlay now passes
+  value-level phase, visibility, response layout, entry counts, text length,
+  send state, and message-count inputs to trace-runtime helpers.
+- Validation: focused renderer app-runtime boundary coverage and stale
+  feature-code trace-field scan.
+- Compatibility: no migration required. Diagnostic log labels, trace gating,
+  response-surface console logging, workspace snapshot enrichment, renderer
+  state behavior, IPC payloads, storage, credentials, permissions, hosted URLs,
+  provider policy, and local execution behavior are unchanged.
 
 ### 2026-06-20 Frontend Local-Runtime Route Labels
 

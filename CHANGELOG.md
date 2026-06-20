@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/tracing: move minimal response-overlay state and render diagnostic
+  payload shaping into `desktopRendererTraceRuntime` so the overlay passes
+  value-level state instead of assembling snake_case trace fields directly. No
+  migration required.
 - docs(architecture): route remaining active architecture/reference sidecar
   routing, endpoint, storage, and ToolResult labels through local-runtime
   wording. No migration required.

@@ -235,6 +235,34 @@ describe('renderer app runtime boundary', () => {
     expect(minimalPillSource).not.toContain('message_count');
   });
 
+  test('response overlay trace payload shaping stays behind the app runtime facade', async () => {
+    const traceRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopRendererTraceRuntime.ts'),
+      'utf8',
+    );
+    const responseOverlaySource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/components/MinimalResponseOverlay.jsx'),
+      'utf8',
+    );
+
+    expect(traceRuntimeSource).toContain('buildRendererResponseOverlayStateTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererResponseOverlayStateTrace');
+    expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceRenderTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererResponseSurfaceRenderTrace');
+    expect(responseOverlaySource).toContain('logRendererResponseOverlayStateTrace');
+    expect(responseOverlaySource).toContain('logRendererResponseSurfaceRenderTrace');
+    expect(responseOverlaySource).not.toContain('turn_id');
+    expect(responseOverlaySource).not.toContain('is_visible');
+    expect(responseOverlaySource).not.toContain('show_awaiting_reply');
+    expect(responseOverlaySource).not.toContain('response_layout_mode');
+    expect(responseOverlaySource).not.toContain('visible_response_id');
+    expect(responseOverlaySource).not.toContain('response_entry_count');
+    expect(responseOverlaySource).not.toContain('active_response_text_length');
+    expect(responseOverlaySource).not.toContain('thinking_text_length');
+    expect(responseOverlaySource).not.toContain('is_sending');
+    expect(responseOverlaySource).not.toContain('message_count');
+  });
+
   test('response overlay phase contract stays behind the app runtime facade', async () => {
     const phaseRuntimeSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopResponseOverlayPhaseRuntime.js'),

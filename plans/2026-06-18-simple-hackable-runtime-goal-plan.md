@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a renderer response-overlay trace payload boundary
+  slice by moving minimal response-overlay state/render diagnostic field
+  shaping from `MinimalResponseOverlay.jsx` into
+  `desktopRendererTraceRuntime.ts`. The overlay now passes value-level phase,
+  visibility, response layout, entry-count, text-length, send-state, and
+  message-count inputs to trace-runtime helpers instead of assembling
+  `turn_id`, `is_visible`, `show_awaiting_reply`, `response_layout_mode`,
+  `is_sending`, or `message_count` directly. Validation: focused renderer
+  app-runtime boundary coverage and stale feature-code trace-field scan. No
+  migration required; diagnostic log labels, trace gating, response-surface
+  console logging, workspace snapshot enrichment, renderer state behavior, IPC
+  payloads, storage, credentials, permissions, hosted URLs, provider policy,
+  and local execution behavior are unchanged.
+
 - 2026-06-20: completed an architecture local-runtime route-label slice by
   routing tool-system routing, backend endpoint failure, ownership decision,
   storage RPC, ToolResult validation, and RPC drift docs through

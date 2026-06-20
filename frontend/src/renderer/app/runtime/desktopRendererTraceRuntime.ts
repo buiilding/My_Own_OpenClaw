@@ -53,6 +53,34 @@ export type RendererChatPillStateTraceValues = {
   messageCount?: unknown;
 };
 
+export type RendererResponseOverlayStateTraceValues = {
+  source?: string;
+  action?: string;
+  turnRef?: unknown;
+  phase?: unknown;
+  isVisible?: boolean;
+  showAwaitingReply?: boolean;
+  showResponse?: boolean;
+  responseLayoutMode?: unknown;
+  visibleResponseId?: unknown;
+  responseEntryCount?: unknown;
+  activeResponseTextLength?: unknown;
+  thinkingText?: unknown;
+  thinkingTextLength?: unknown;
+  isSending?: boolean;
+  messageCount?: unknown;
+};
+
+export type RendererResponseSurfaceRenderTraceValues = {
+  source?: string;
+  action?: string;
+  turnRef?: unknown;
+  phase?: unknown;
+  responseLayoutMode?: unknown;
+  showResponse?: boolean;
+  showAwaitingReply?: boolean;
+};
+
 let workspaceSnapshotResolver: RendererTraceWorkspaceSnapshotResolver | null = null;
 
 export function configureRendererTraceWorkspaceSnapshotResolver(
@@ -114,7 +142,10 @@ function traceNumberOrZero(value: unknown): number {
   return Number.isFinite(normalized) ? normalized : 0;
 }
 
-function traceTextLength(values: RendererResponseSurfaceSizeTraceValues): number | null {
+function traceTextLength(values: {
+  thinkingText?: unknown;
+  thinkingTextLength?: unknown;
+}): number | null {
   if (typeof values.thinkingTextLength === 'number' && Number.isFinite(values.thinkingTextLength)) {
     return values.thinkingTextLength;
   }
@@ -155,6 +186,33 @@ export function logRendererResponseSurfaceSizeTrace(
   values: RendererResponseSurfaceSizeTraceValues,
 ): void {
   logRendererResponseSurfaceTrace(buildRendererResponseSurfaceSizeTracePayload(values));
+}
+
+export function buildRendererResponseOverlayStateTracePayload(
+  values: RendererResponseOverlayStateTraceValues,
+): Record<string, unknown> {
+  return {
+    source: traceString(values.source) || 'renderer-response-overlay-state',
+    action: traceString(values.action) || 'state-changed',
+    turn_id: traceString(values.turnRef) || null,
+    phase: traceString(values.phase) || 'idle',
+    is_visible: values.isVisible === true,
+    show_awaiting_reply: values.showAwaitingReply === true,
+    show_response: values.showResponse === true,
+    response_layout_mode: traceString(values.responseLayoutMode) || 'hidden',
+    visible_response_id: traceString(values.visibleResponseId) || null,
+    response_entry_count: traceNumberOrZero(values.responseEntryCount),
+    active_response_text_length: traceNumberOrZero(values.activeResponseTextLength),
+    thinking_text_length: traceTextLength(values),
+    is_sending: values.isSending === true,
+    message_count: traceNumberOrZero(values.messageCount),
+  };
+}
+
+export function logRendererResponseOverlayStateTrace(
+  values: RendererResponseOverlayStateTraceValues,
+): void {
+  logRendererResponseSurfaceTrace(buildRendererResponseOverlayStateTracePayload(values));
 }
 
 function getRendererPlatform(): string | null {
@@ -212,6 +270,26 @@ export function logRendererChatPillStateTrace(
     buildRendererChatPillStateTracePayload(values),
     traceString(values.conversationRef) || null,
   );
+}
+
+export function buildRendererResponseSurfaceRenderTracePayload(
+  values: RendererResponseSurfaceRenderTraceValues,
+): Record<string, unknown> {
+  return {
+    source: traceString(values.source) || 'renderer-response-surface',
+    action: traceString(values.action) || 'render',
+    turn_id: traceString(values.turnRef) || null,
+    phase: traceString(values.phase) || 'idle',
+    response_layout_mode: traceString(values.responseLayoutMode) || 'hidden',
+    show_response: values.showResponse === true,
+    show_awaiting_reply: values.showAwaitingReply === true,
+  };
+}
+
+export function logRendererResponseSurfaceRenderTrace(
+  values: RendererResponseSurfaceRenderTraceValues,
+): void {
+  logRendererChatPillTrace(buildRendererResponseSurfaceRenderTracePayload(values));
 }
 
 export function logRendererLiveSurfaceTrace(
