@@ -1633,6 +1633,9 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar provides the current concrete local tool implementations',
         'actual local machine actions through the Python sidecar implementation',
         'Add the Python sidecar implementation and register it',
+        'configured stdio servers through the Python sidecar implementation',
+        'entrypoint through the Python sidecar implementation',
+        '| Tool | Backend name | Python sidecar implementation |',
         'window operations through the Python sidecar implementation',
         'host OS automation and local tool execution through the current Python sidecar implementation',
       ].filter((needle) => source.includes(needle));

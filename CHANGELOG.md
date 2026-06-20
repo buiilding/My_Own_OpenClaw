@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: extend the modular docs boundary guard to reject stale MCP,
+  plugin-entrypoint, and computer-tool table Python sidecar implementation
+  owner labels. No migration required.
 - docs/debug: route debug traces, failure routing, incident/evidence runbooks,
   security hub, filesystem/shell, MCP, tool-development, computer-tool,
   platform, and tool-schema workflow labels through local-runtime Python
