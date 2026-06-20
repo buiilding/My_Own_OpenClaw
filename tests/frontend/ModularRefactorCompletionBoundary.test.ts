@@ -225,6 +225,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/sdk/windie_client_runtime.md'),
       read('docs/sdk/conversation_runtime.md'),
       read('docs/sdk/hosted_backend_clients.md'),
+      read('docs/sdk/sdk_auth_and_error_handling.md'),
       read('docs/sdk/tool_authoring.md'),
     ]);
     const sdkDocText = sdkDocs.join('\n');
@@ -248,8 +249,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('Sidecar owns durable rows');
     expect(sdkDocText).not.toContain('sidecar-backed conversation');
     expect(sdkDocText).not.toContain('sidecar-backed default conversation store');
+    expect(sdkDocText).not.toContain('Sidecar-backed persistence');
     expect(sdkDocText).not.toContain('Electron sidecar-backed stores');
     expect(sdkDocText).not.toContain('sidecar-backed SDK store');
+    expect(sdkDocText).not.toContain('Sidecar/developer client configuration');
+    expect(sdkDocText).not.toContain('Sidecar remote clients');
     expect(sdkDocText).not.toContain('minimal sidecar module-tool');
     expect(sdkDocText).not.toContain('runnable sidecar plugin');
     expect(sdkDocText).not.toContain('sidecar local tool implementation');

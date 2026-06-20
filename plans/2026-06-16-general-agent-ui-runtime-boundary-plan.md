@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 SDK Auth and Persistence Label Cleanup
+
+- Finding: active SDK auth/error and conversation-runtime docs still used
+  sidecar-facing client and persistence labels in reusable SDK guidance even
+  though SDK docs now describe Python SDK clients and local-runtime-backed
+  store adapters.
+- Change: reworded those SDK docs to Python SDK / local-runtime labels and
+  tightened the modular docs boundary test so the stale sidecar-facing phrases
+  stay out of the SDK docs set.
+- Validation: focused modular refactor docs boundary test, docs listing, exact
+  stale phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, SDK exports, env
+  variables, storage, hosted routes, credentials, permissions, IPC payloads,
+  provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Local-Runtime Windie Env Alias Constant Boundary
 
 - Finding: local-runtime Python modules now prefer generic `AGENT_*` env names,

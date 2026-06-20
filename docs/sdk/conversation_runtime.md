@@ -192,7 +192,7 @@ Current ownership:
   stores, and display projection consumption.
 
 Live current-turn projection is emitted from the runtime's in-memory event
-sequence before durable store append completes. Sidecar-backed persistence is
+sequence before durable store append completes. Local-runtime-backed persistence is
 allowed to lag behind a streamed chunk, but it must not block the active
 assistant text, phase, tool events, or completion state used by dashboard,
 response overlay, and minimal chat pill surfaces.
