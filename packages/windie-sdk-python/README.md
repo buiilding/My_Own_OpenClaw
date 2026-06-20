@@ -8,7 +8,7 @@ The package installs as `windie-sdk` and imports as `windie`.
 from windie import AgentSdkClient
 
 client = AgentSdkClient(
-    backend_url="https://api.windieos.com",
+    backend_url="https://backend.example.com",
     default_user_id="dev-user",
 )
 

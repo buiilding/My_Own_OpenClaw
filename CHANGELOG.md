@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sdk: use neutral backend endpoint samples in the public Python SDK README
+  and package-boundary coverage instead of WindieOS hosted URL fixtures. No
+  migration required.
+
 - tests/sidecar: use a neutral Browser Use session sample while preserving
   legacy Windie browser env alias coverage. No migration required.
 

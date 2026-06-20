@@ -11,9 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `1b27fe997` (`test(renderer): neutralize wakeword worklet fixture`)
-- Latest completed slice: Browser Use engine tests now use a neutral legacy
-  session value while preserving Windie env alias coverage.
+- Latest inspected plan checkpoint: `a7ebf9c11` (`test(sidecar): neutralize browser use session fixture`)
+- Latest completed slice: public Python SDK package docs and package-boundary
+  tests now use neutral backend endpoint samples instead of the WindieOS hosted
+  URL.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -115,6 +116,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer capture cleanup behavior.
   Browser Use engine tests now keep legacy Windie env alias coverage while using
   neutral Browser Use session fixture values.
+  Public Python SDK package examples now use neutral explicit backend endpoint
+  samples while preserving the `windie-sdk` distribution and `windie` import.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7663,3 +7666,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   precedence, Browser Use CLI invocation, dedicated browser CDP behavior,
   permissions, storage, hosted backend URLs, provider policy, and local-runtime
   behavior are unchanged; no migration is required.
+- Public Python SDK package docs and package-boundary tests now use neutral
+  `https://backend.example.com` endpoint samples instead of the WindieOS hosted
+  URL. The `windie-sdk` distribution name, `windie` import package, explicit
+  backend URL contract, install auth behavior, websocket routing, local-runtime
+  startup, hosted backend URLs in product-owned docs/config, provider policy,
+  and permissions are unchanged; no migration is required.

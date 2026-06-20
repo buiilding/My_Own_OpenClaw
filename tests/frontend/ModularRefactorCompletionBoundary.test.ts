@@ -166,16 +166,19 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('public SDK README describes local runtime examples without sidecar-facing prose', async () => {
     const readme = await read('packages/windie-sdk-js/README.md');
+    const pythonReadme = await read('packages/windie-sdk-python/README.md');
 
     expect(readme).toContain('local-runtime execution');
     expect(readme).toContain('local-runtime module-tool registration');
     expect(readme).toContain('local-runtime plugin package registration');
     expect(readme).toContain('waking agents from external clients');
     expect(readme).toContain("backendUrl: 'https://backend.example.com'");
+    expect(pythonReadme).toContain('backend_url="https://backend.example.com"');
     expect(readme).toContain("modelProvider: 'hosted-provider'");
     expect(readme).toContain("modelId: 'other-hosted-model'");
     expect(readme).not.toContain('waking Windie agents');
     expect(readme).not.toContain('https://api.windieos.com');
+    expect(pythonReadme).not.toContain('https://api.windieos.com');
     expect(readme).not.toContain("modelProvider: 'openai'");
     expect(readme).not.toContain("modelId: 'gpt-5.4'");
     expect(readme).not.toContain("modelProvider: 'mistral'");
@@ -554,6 +557,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain('ENV_WINDIE_BROWSER_USE_SESSION, "windieos"');
     expect(source).not.toContain('_browser_use_session() == "windieos"');
     expect(source).toContain('ENV_WINDIE_BROWSER_USE_SESSION, "legacy-agent-session"');
+  });
+
+  test('Python SDK package boundary tests keep endpoint fixtures product-neutral', async () => {
+    const source = await read('tests/sidecar/test_windie_package_boundary.py');
+
+    expect(source).not.toContain('https://api.windieos.com');
+    expect(source).toContain('https://backend.example.com');
   });
 
   test('backend user-query sanitization tests keep desktop context fixtures product-neutral', async () => {

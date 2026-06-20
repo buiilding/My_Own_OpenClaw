@@ -18759,3 +18759,18 @@ Each completed slice should report:
   `AGENT_BROWSER_USE_*` precedence, Browser Use CLI invocation, dedicated
   browser CDP behavior, permissions, storage, hosted backend URLs, provider
   policy, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Python SDK package endpoint fixture neutrality
+
+- Finding: the public Python SDK package README and package-boundary test still
+  used the WindieOS hosted backend URL as arbitrary explicit `backend_url`
+  sample data even though the SDK boundary requires caller-provided endpoints.
+- Change: switched those samples to neutral `https://backend.example.com` values
+  and extended modular boundary coverage so the public Python package README and
+  package-boundary test stay endpoint-neutral.
+- Validation: focused Python SDK package-boundary and modular boundary tests;
+  exact retired endpoint scan, docs listing, and diff checks.
+- Compatibility: no migration required. The `windie-sdk` distribution name,
+  `windie` import package, explicit backend URL contract, install auth behavior,
+  websocket routing, local-runtime startup, hosted backend URLs in product-owned
+  docs/config, provider policy, and permissions are unchanged.

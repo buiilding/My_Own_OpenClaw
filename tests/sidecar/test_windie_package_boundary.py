@@ -25,12 +25,12 @@ def test_windie_package_exports_public_client():
     assert not hasattr(windie, "WindieSdkClient")
     assert not hasattr(windie, "WindieSdkAgentSession")
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
         auto_start_local_runtime=False,
     )
 
-    assert client.backend_url == "https://api.windieos.com"
+    assert client.backend_url == "https://backend.example.com"
     assert client.default_user_id == "dev-user"
 
 
