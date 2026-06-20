@@ -11,11 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `0fa830bee` (`docs(architecture): route renderer clients through sdk commands`)
-- Latest completed slice: the architecture overview now describes renderer
-  runtime clients plus SDK command facades, and the frontend runtime surface
-  matrix now names the Electron Agent SDK host instead of a main-process backend
-  bridge.
+- Latest inspected plan checkpoint: `79f400617` (`docs(frontend): name electron sdk host surface`)
+- Latest completed slice: the frontend runtime surface matrix now names the
+  Electron Agent SDK host, and the frontend architecture SDK event fan-out debt
+  note now warns against a direct backend relay instead of reviving backend
+  bridge terminology.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -61,9 +61,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   through desktop runtime clients and SDK command facades instead of a stale
   renderer backend API-client entry. The frontend runtime surface matrix names
   the Electron Agent SDK host and SDK local-runtime result delivery instead of
-  backend-bridge or sidecar-callback labels. Preload SDK-command validation
-  failures use generic Agent SDK wording while the `window.windie` bridge
-  contract remains stable. Python SDK
+  backend-bridge or sidecar-callback labels. The frontend architecture SDK
+  fan-out table now describes the remaining deletion condition as avoiding a
+  direct backend relay rather than a revived backend bridge. Preload SDK-command
+  validation failures use generic Agent SDK wording while the `window.windie`
+  bridge contract remains stable. Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,
   and JS SDK public stream projections use generic fallback error wording when
   runtime errors omit a message. SDK local-runtime auto-start discovery and
@@ -7497,3 +7499,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   gates, tool-result routing, local-runtime bridge behavior, storage,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged; no migration is required.
+- The frontend architecture SDK event fan-out row now warns against a direct
+  backend relay instead of a revived generic backend bridge. SDK event fan-out
+  channels, renderer SDK commands, Electron main handler registration, hosted
+  WebSocket transport, storage, credentials, permissions, local-runtime
+  behavior, hosted backend URLs, and provider policy are unchanged; no
+  migration is required.

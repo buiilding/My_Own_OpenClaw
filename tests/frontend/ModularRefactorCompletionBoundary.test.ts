@@ -2258,6 +2258,7 @@ describe('modular sdk refactor completion boundary', () => {
         'backward compatibility',
         'compatibility path',
         'Main process backend bridge',
+        'revived generic backend bridge',
         'SDK local runtime + sidecar callback wiring',
         'Frontend Tool Execution Service',
         'Electron Frontend',

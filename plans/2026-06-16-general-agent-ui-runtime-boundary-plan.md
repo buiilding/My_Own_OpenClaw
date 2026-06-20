@@ -18369,3 +18369,19 @@ Each completed slice should report:
   hosted WebSocket transport, settings ACK gates, tool-result routing,
   local-runtime bridge behavior, storage, credentials, permissions, hosted
   backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 Frontend architecture direct backend relay wording
+
+- Finding: the frontend architecture migration table already routed SDK event
+  fan-out through Electron main as a thin Agent SDK host, but its debt note
+  still warned against reviving a "generic backend bridge", keeping stale bridge
+  terminology in a current owner table.
+- Change: reworded that debt note to warn against a direct backend relay and
+  extended the modular inventory guard against the retired backend-bridge
+  wording.
+- Validation: focused modular boundary test, exact stale frontend architecture
+  phrase scan, docs listing, and diff checks.
+- Compatibility: no migration required. SDK event fan-out channels, renderer
+  SDK commands, Electron main handler registration, hosted WebSocket transport,
+  storage, credentials, permissions, local-runtime behavior, hosted backend
+  URLs, and provider policy are unchanged.
