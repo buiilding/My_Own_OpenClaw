@@ -163,6 +163,8 @@ High-level `agent.stop(...)` option objects accept `conversationRef` and
 `turnRef`; `AgentSessionRuntime.stopQuery(...)` uses the same camelCase input
 shape. Snake_case stop fields are reserved for backend transport payloads and
 are emitted only by SDK transport adapters.
+`ManagedAgentSession` reuses the same `AgentSession` stop-alias guard so
+managed and unmanaged hosted sessions do not keep separate compatibility checks.
 
 ## Desktop Host Startup
 

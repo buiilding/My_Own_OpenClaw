@@ -115,12 +115,7 @@ class ManagedAgentSession {
         }, payload.turnRef ?? undefined);
     }
     async stopQuery(input = null) {
-        if (input
-            && typeof input === 'object'
-            && (Object.prototype.hasOwnProperty.call(input, 'conversation_ref')
-                || Object.prototype.hasOwnProperty.call(input, 'turn_ref'))) {
-            throw new Error('AgentSession.stopQuery accepts conversationRef and turnRef; snake_case stop fields are not supported.');
-        }
+        (0, AgentSession_js_1.rejectRemovedStopInputAliases)(input);
         return this.sendBackendMessage('stop-query', {
             conversation_ref: input?.conversationRef ?? null,
             turn_ref: input?.turnRef ?? null,

@@ -10,6 +10,7 @@ exports.AgentSession = void 0;
 exports.resolveWebSocketImplementation = resolveWebSocketImplementation;
 exports.deriveWsUrl = deriveWsUrl;
 exports.createMessageId = createMessageId;
+exports.rejectRemovedStopInputAliases = rejectRemovedStopInputAliases;
 exports.buildAgentSessionHandshake = buildAgentSessionHandshake;
 exports.createAgentSession = createAgentSession;
 exports.createAgentRuntimeTransport = createAgentRuntimeTransport;

@@ -67,7 +67,7 @@ type AgentSessionEventMap = {
 type AgentSessionEventName = keyof AgentSessionEventMap;
 type AgentSessionListener<T> = (payload: T) => void;
 
-function rejectRemovedStopInputAliases(input: AgentStopInput | JsonRecord | null | undefined): void {
+export function rejectRemovedStopInputAliases(input: AgentStopInput | JsonRecord | null | undefined): void {
   if (!input || typeof input !== 'object') {
     return;
   }

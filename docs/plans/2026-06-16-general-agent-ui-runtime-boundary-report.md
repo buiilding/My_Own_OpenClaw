@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: Electron main direct Agent SDK adapter now rejects
-  removed `conversation_ref` aliases for SDK library methods while preserving
-  canonical snake_case backend-transport fields for send/stop/rehydrate/compact.
+- Latest completed slice: SDK managed agent sessions reuse the canonical
+  `AgentSession` stop-alias guard instead of carrying a second snake_case
+  compatibility check.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -243,6 +243,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 SDK Managed Stop Alias Guard Cleanup
+
+- Finding: `ManagedAgentSession.ts` reimplemented the same removed
+  `conversation_ref` / `turn_ref` stop-query rejection that `AgentSession.ts`
+  already owned, leaving two SDK transport authorities for one input contract.
+- Change: exported the `AgentSession` stop-alias guard from its transport owner
+  module, reused it from managed sessions, and kept the checked-in CJS output
+  aligned.
+- Validation: focused backend SDK websocket contract tests, docs listing, stale
+  inline managed-session alias-guard scan, and diff checks.
+- Compatibility: no migration required. Public stop-query errors, backend
+  `stop-query` payloads, SDK exports from the package root, websocket payloads,
+  storage, credentials, permissions, hosted backend URLs, provider policy, and
+  local execution behavior are unchanged.
 
 ### 2026-06-20 Main Direct SDK Conversation Alias Cleanup
 

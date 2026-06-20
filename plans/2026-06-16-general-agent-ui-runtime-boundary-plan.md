@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 SDK Managed Stop Alias Guard Cleanup
+
+- Finding: `ManagedAgentSession.ts` reimplemented the same removed
+  `conversation_ref` / `turn_ref` stop-query rejection that `AgentSession.ts`
+  already owned, leaving two SDK transport authorities for one input contract.
+- Change: exported the `AgentSession` stop-alias guard from its transport owner
+  module, reused it from managed sessions, and kept the checked-in CJS output
+  aligned.
+- Validation: focused backend SDK websocket contract tests, docs listing, stale
+  inline managed-session alias-guard scan, and diff checks.
+- Compatibility: no migration required. Public stop-query errors, backend
+  `stop-query` payloads, SDK exports from the package root, websocket payloads,
+  storage, credentials, permissions, hosted backend URLs, provider policy, and
+  local execution behavior are unchanged.
+
 ### 2026-06-20 Main Direct SDK Conversation Alias Cleanup
 
 - Finding: `ipc_direct_wake_up_agent_adapter.cjs` still accepted

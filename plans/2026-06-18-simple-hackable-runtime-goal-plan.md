@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+### 2026-06-20 SDK Managed Stop Alias Guard Cleanup
+
+- Finding: managed and unmanaged SDK hosted-session transports duplicated the
+  removed snake_case stop-query alias rejection.
+- Change: `ManagedAgentSession` now reuses the canonical `AgentSession`
+  stop-alias guard, with checked-in CJS output and focused source coverage
+  updated.
+- Validation: focused backend SDK websocket contract tests, docs listing, stale
+  inline managed-session alias-guard scan, and diff checks.
+- Compatibility: no migration required. Stop-query behavior, backend websocket
+  payloads, root SDK exports, storage, credentials, permissions, hosted backend
+  URLs, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Direct SDK Conversation Alias Cleanup
 
 - Finding: the direct Electron Agent SDK adapter still allowed a removed

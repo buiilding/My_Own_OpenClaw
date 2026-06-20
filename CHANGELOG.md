@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/transport: route managed agent-session stop alias rejection through the
+  shared `AgentSession` helper instead of duplicating the snake_case guard. No
+  migration required.
 - main/sdk: reject removed `conversation_ref` aliases in direct Agent SDK
   library methods while keeping backend-transport send/stop/rehydrate/compact
   payloads on canonical snake_case fields. No migration required.

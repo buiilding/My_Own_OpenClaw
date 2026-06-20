@@ -11,6 +11,7 @@ import type { JsonRecord } from '../conversation/types.js';
 import {
   deriveWsUrl,
   buildAgentSessionHandshake,
+  rejectRemovedStopInputAliases,
   resolveWebSocketImplementation,
   type WebSocketConstructor,
   type WebSocketLike,
@@ -196,16 +197,7 @@ export class ManagedAgentSession implements AgentSessionRuntime {
   }
 
   async stopQuery(input: AgentStopInput | null = null): Promise<string> {
-    if (
-      input
-      && typeof input === 'object'
-      && (
-        Object.prototype.hasOwnProperty.call(input, 'conversation_ref')
-        || Object.prototype.hasOwnProperty.call(input, 'turn_ref')
-      )
-    ) {
-      throw new Error('AgentSession.stopQuery accepts conversationRef and turnRef; snake_case stop fields are not supported.');
-    }
+    rejectRemovedStopInputAliases(input);
     return this.sendBackendMessage('stop-query', {
       conversation_ref: input?.conversationRef ?? null,
       turn_ref: input?.turnRef ?? null,

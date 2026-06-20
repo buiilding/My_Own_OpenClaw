@@ -242,6 +242,17 @@ describe('backend-to-sdk websocket incoming contract', () => {
     expect(extractSdkBackendPayloadKeysByType()).toEqual(expectedPayloadKeysByType());
   });
 
+  test('managed agent session reuses the AgentSession stop alias guard', () => {
+    const managedSource = fs.readFileSync(
+      path.join(__dirname, '../../packages/windie-sdk-js/src/transport/ManagedAgentSession.ts'),
+      'utf8',
+    );
+
+    expect(managedSource).toContain('rejectRemovedStopInputAliases(input);');
+    expect(managedSource).not.toContain("Object.prototype.hasOwnProperty.call(input, 'conversation_ref')");
+    expect(managedSource).not.toContain("Object.prototype.hasOwnProperty.call(input, 'turn_ref')");
+  });
+
   test('managed agent session sends canonical agent-definition handshake shape', async () => {
     const sockets = [];
     class FakeWebSocket extends FakeSocket {
@@ -314,6 +325,12 @@ describe('backend-to-sdk websocket incoming contract', () => {
 
     try {
       await session.stopQuery({ conversationRef: 'conv-1' });
+      await expect(session.stopQuery({
+        conversation_ref: 'legacy-conv',
+        turn_ref: 'legacy-turn',
+      })).rejects.toThrow(
+        'AgentSession.stopQuery accepts conversationRef and turnRef; snake_case stop fields are not supported.',
+      );
       await session.rehydrateConversation({
         conversation_ref: 'conv-1',
         messages: [{ role: 'user', content: 'hello' }],
