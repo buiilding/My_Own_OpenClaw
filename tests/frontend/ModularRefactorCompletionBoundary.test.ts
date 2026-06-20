@@ -599,6 +599,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK local-runtime bridge behavior');
     expect(docText).toContain('local tool calls to local-runtime execution');
     expect(docText).toContain('before local execution');
+    expect(docText).toContain('SDK/local-runtime conversation store owns durable conversation history');
+    expect(docText).toContain('renderer app-runtime send facade plus the Electron main Agent SDK host');
     expect(docText).not.toContain('main-to-sidecar behavior');
     expect(docText).not.toContain('SDK sidecar `/rpc` failures');
     expect(docText).not.toContain('depends on the sidecar');
@@ -606,6 +608,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar execution');
     expect(docText).not.toContain('before sidecar execution');
     expect(docText).not.toContain('local tool calls to the sidecar runtime');
+    expect(docText).not.toContain('frontend + sidecar local store own conversation history');
+    expect(docText).not.toContain('renderer API client');
   });
 
   test('architecture docs route renderer IPC through SDK commands and typed event fan-out', async () => {
@@ -668,6 +672,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/concepts/prompt_and_tool_context.md'),
       read('docs/concepts/safety_boundaries.md'),
       read('docs/debug/runtime_traces.md'),
+      read('docs/desktop/artifact_change_workflow.md'),
       read('docs/backend/agent/tool_turn_change_workflow.md'),
       read('docs/development/agent_architecture_reference.md'),
       read('docs/development/agent_routing_quick_cards.md'),
@@ -823,6 +828,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime MCP discovery');
     expect(docText).toContain('local-runtime MCP registration');
     expect(docText).toContain('local-runtime MCP `tools/call` execution');
+    expect(docText).toContain('Local-runtime Python tool implementation');
+    expect(docText).toContain('local-runtime transcript store backed by Python sidecar modules');
     expect(docText).toContain('Python sidecar tests for implementation parity');
     expect(docText).toContain('The local runtime owns local tool execution');
     expect(docText).toContain('Local runtime implementation');
@@ -868,6 +875,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('backend/renderer/sidecar change routing');
     expect(docText).not.toContain('Local Runtime Sidecar Hub');
     expect(docText).not.toContain('executable sidecar local tools');
+    expect(docText).not.toContain('Python sidecar local tool');
+    expect(docText).not.toContain('sidecar transcript store');
+    expect(docText).not.toContain('sidecar local transcript DB');
     expect(docText).not.toContain('routes it to the sidecar');
     expect(docText).not.toContain('Tool result reaches frontend but model does not continue');
     expect(docText).not.toContain('The sidecar sends MCP `tools/call`');

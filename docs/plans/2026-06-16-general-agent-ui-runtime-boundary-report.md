@@ -238,23 +238,48 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
-### 2026-06-20 API Reference Renderer Client Boundary Wording
+### 2026-06-20 Frontend Store and Domain Triage Boundary Wording
+
+- Finding: frontend architecture, domain triage, transcript, artifact, and
+  packaging docs still carried old labels such as frontend+sidecar local store,
+  renderer API client, sidecar transcript store, and Python sidecar local tool
+  where the active boundary is SDK/local-runtime conversation storage,
+  renderer app-runtime send/endpoint facades, Electron main Agent SDK host, and
+  local-runtime Python tool implementation.
+- Change: reworded those active docs through SDK/local-runtime conversation
+  store ownership, local-runtime transcript storage backed by Python sidecar
+  modules, renderer app-runtime send and endpoint/status clients, and
+  local-runtime Python tool implementation labels; extended modular and
+  renderer ApiClient boundary guards for the retired phrases.
+- Validation: focused modular docs boundary guard, renderer ApiClient boundary
+  guard, docs search, related commit search, active-doc stale owner-label scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Conversation events, transcript row
+  fields, artifact refs, packaging behavior, endpoint propagation, IPC
+  channels, SDK/main dispatch, renderer display, storage, credentials,
+  permissions, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
+### 2026-06-20 API Reference SDK/Main Tool Routing Wording
 
 - Finding: `docs/reference/api_reference.md` still contrasted hosted SDK
-  clients with a renderer `ApiClient` Electron IPC bridge even though that
-  bridge is deleted and first-party renderer code now reaches runtime/backend
-  behavior through app-runtime facades backed by the SDK facade.
+  clients with a renderer `ApiClient` Electron IPC bridge and described
+  websocket tool-call/tool-result traffic as frontend-owned execution even
+  though that bridge is deleted and first-party renderer code reaches
+  runtime/backend behavior through app-runtime facades, SDK/main local-runtime
+  dispatch, and SDK/renderer consumers.
 - Change: reworded the API reference around first-party Electron renderer
-  app-runtime facades and described SDK introspection as independent from the
-  desktop renderer UI, then extended the renderer ApiClient boundary guard to
-  cover the API reference.
+  app-runtime facades, described SDK introspection as independent from the
+  desktop renderer UI, and routed websocket client/server headings plus
+  tool-call/tool-result descriptions through SDK/main local-runtime dispatch and
+  SDK/renderer consumers.
 - Validation: focused renderer ApiClient boundary test, docs search, related
-  commit search, stale ApiClient/customer-facing frontend scan, docs listing,
+  commit search, stale ApiClient/frontend-owned execution scan, docs listing,
   and diff checks.
-- Compatibility: no migration required. SDK routes, websocket payloads, IPC
-  channels, renderer app-runtime facades, hosted transport behavior, storage,
-  credentials, permissions, provider policy, hosted URLs, and local execution
-  behavior are unchanged.
+- Compatibility: no migration required. SDK routes, websocket message types,
+  payload schemas, IPC channels, renderer app-runtime facades, hosted transport
+  behavior, SDK/main local-runtime dispatch, storage, credentials, permissions,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
 
 ### 2026-06-20 Diagnostics First-Triage Runtime Wording
 

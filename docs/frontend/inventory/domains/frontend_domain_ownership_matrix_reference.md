@@ -43,7 +43,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 
 ## Fast Triage Map
 
-- Query not reaching backend: start `main/ipc.cjs` + renderer API client.
+- Query not reaching backend: start with the renderer app-runtime send facade plus the Electron main Agent SDK host (`main/ipc.cjs`).
 - Event visible in main but not UI: start with SDK backend-event normalization, then `renderer/app/runtime/desktopChatStreamIngressRuntime.ts` and `useChatStream.ts` conversation-event dispatch.
 - Tool call issued but no result: start `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` + `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` + `main/python/tools/registry.py`.
 - Wakeword detected inconsistently: start `renderer/useWakewordDetection.ts` + `main/wakeword_bridge.cjs` + `main/python/wakeword_service.py`.

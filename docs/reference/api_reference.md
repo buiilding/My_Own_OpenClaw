@@ -32,7 +32,7 @@ These clients talk only to the public backend surfaces documented here:
 - HTTP: `/api/artifacts/*`, `/api/sdk/*`
 - WebSocket: `/ws`
 
-The renderer side exposes the TypeScript app client at `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`, while the sidecar exports `AgentSdkClient` from the public `windie` Python package.
+The Electron renderer app exposes the TypeScript SDK facade at `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`, while the Python package exports `AgentSdkClient` from `windie`.
 The hosted SDK clients are intentionally separate from the first-party Electron renderer app-runtime facades, which adapt SDK and hosted transport contracts for the desktop UI and IPC boundary.
 
 Backend message dispatch is handled by `MessageHandlerRegistry` in `backend/src/api/infrastructure/registry.py`.
@@ -1056,7 +1056,7 @@ All messages follow this structure:
 - Unknown top-level envelope fields are rejected.
 - Incoming schema source lives in `backend/src/api/schemas/` (`common.py`, `incoming.py`, `outgoing.py`) and production code imports that package directly.
 
-## Client Messages (Frontend → Backend)
+## Client Messages (SDK/Main -> Backend)
 
 ### Query Message
 
@@ -1300,7 +1300,7 @@ Request available LLM models.
 
 ### Tool Result Message
 
-Send tool execution result from frontend.
+Send a tool execution result from SDK/main local-runtime dispatch.
 
 **Type**: `tool-result`
 
@@ -1353,7 +1353,7 @@ For non-computer tools, omit `data.screenshot_ref` and `data.screenshot`.
 
 ### Tool Bundle Result Message
 
-Result of an atomic tool bundle executed on the frontend.
+Result of an atomic tool bundle executed through SDK/main local-runtime dispatch.
 
 **Type**: `tool-bundle-result`
 
@@ -1379,10 +1379,10 @@ Result of an atomic tool bundle executed on the frontend.
 ```
 
 `step_results` notes:
-- `status` convention from frontend bundle runner is `ok` / `error` (bundle-level `status` remains `success` / `partial_failure` / `failure`).
+- `status` convention from SDK/main bundle execution is `ok` / `error` (bundle-level `status` remains `success` / `partial_failure` / `failure`).
 - `output` may be a string or structured object.
 - additional per-step fields are allowed and preserved.
-- if a step succeeds without explicit `output`, frontend uses fallback text: `Tool <tool_name> executed successfully (no output)`.
+- if a step succeeds without explicit `output`, SDK/main result shaping uses fallback text: `Tool <tool_name> executed successfully (no output)`.
 - screenshot fields are omitted for bundles without computer-use actions.
 - when `system_state` is present, it uses `{ active_window, mouse_position }`.
 
@@ -1409,7 +1409,7 @@ Notify backend that wakeword was detected.
 }
 ```
 
-## Server Messages (Backend → Frontend)
+## Server Messages (Backend -> SDK/Renderer Consumers)
 
 ### Streaming Response Message
 
@@ -1465,7 +1465,7 @@ Base64 audio chunk emitted by backend TTS streaming.
 
 ### Tool Call Message
 
-Request tool execution from frontend.
+Request tool execution through SDK/main local-runtime dispatch.
 
 **Type**: `tool-call`
 
@@ -1850,7 +1850,7 @@ Atomic bundle of tools to execute together (replaces bundle_start + N tool-calls
 }
 ```
 
-**Description**: Single message containing all tools in a bundle. Frontend executes all tools sequentially and returns a single `tool-bundle-result` message.
+**Description**: Single message containing all tools in a bundle. SDK/main local-runtime dispatch executes all tools sequentially and returns a single `tool-bundle-result` message.
 
 **Example**:
 ```json

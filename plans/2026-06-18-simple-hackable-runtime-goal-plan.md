@@ -275,16 +275,32 @@ For each completed slice, record:
 
 ## Progress Notes
 
-- 2026-06-20: routed API reference client-boundary wording through the
-  first-party Electron renderer app-runtime facades instead of the deleted
-  renderer `ApiClient`, and described SDK introspection as independent from the
-  desktop renderer UI rather than a customer-facing frontend. This preserves
-  the public SDK/desktop split without changing runtime behavior. Validation
-  covered the renderer ApiClient boundary guard, docs search, related commit
-  search, stale wording scan, docs listing, and diff checks. No migration
-  required; SDK routes, websocket payloads, IPC channels, renderer app-runtime
-  facades, hosted transport behavior, storage, credentials, permissions,
-  provider policy, hosted URLs, and local execution behavior are unchanged.
+- 2026-06-20: routed frontend architecture, domain triage, transcript,
+  artifact, and packaging docs through SDK/local-runtime conversation store,
+  renderer app-runtime, Electron main Agent SDK host, and local-runtime Python
+  tool implementation ownership instead of frontend+sidecar local store,
+  renderer API client, sidecar transcript store, and Python sidecar local tool
+  labels. Validation covered the modular docs boundary guard, renderer
+  ApiClient boundary guard, docs search, related commit search, active-doc
+  stale owner-label scan, docs listing, and diff checks. No migration required;
+  conversation events, transcript row fields, artifact refs, packaging
+  behavior, endpoint propagation, IPC channels, SDK/main dispatch, renderer
+  display, storage, credentials, permissions, provider policy, hosted URLs, and
+  local execution behavior are unchanged.
+
+- 2026-06-20: routed API reference client-boundary and websocket tool
+  call/result wording through the first-party Electron renderer app-runtime
+  facades, SDK/main local-runtime dispatch, and SDK/renderer consumers instead
+  of the deleted renderer `ApiClient` and frontend-owned execution labels.
+  SDK introspection docs now describe independence from the desktop renderer UI
+  rather than a customer-facing frontend. This preserves the public SDK/desktop
+  split without changing runtime behavior. Validation covered the renderer
+  ApiClient boundary guard, docs search, related commit search, stale wording
+  scan, docs listing, and diff checks. No migration required; SDK routes,
+  websocket message types, payload schemas, IPC channels, renderer app-runtime
+  facades, hosted transport behavior, SDK/main local-runtime dispatch, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
 
 - 2026-06-20: aligned the diagnostics first-triage table with current runtime
   ownership so no-response debugging starts at the Electron main Agent SDK host
