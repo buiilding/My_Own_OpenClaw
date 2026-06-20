@@ -66,6 +66,43 @@ function registerExtensionMcpHandlers({
   ));
 }
 
+function createExtensionMcpHandlersRuntime({
+  loadPublicExtensionRegistry,
+  listMcpServersForConfig,
+  updateMcpServerEnablementForConfig,
+  getEnabledMcpServerSpecsForConfig,
+  refreshMcpServersForLatestConfig,
+  persistDesktopUiConfigToDisk,
+  getDesktopUiConfigForMcpRegistry,
+  ensureAgent,
+  mcpClientInfo,
+  isTest = process.env.NODE_ENV === 'test',
+} = {}) {
+  function register({ ipcMain } = {}) {
+    const resolvedMcpClientInfo = typeof mcpClientInfo === 'function'
+      ? mcpClientInfo()
+      : mcpClientInfo;
+    return registerExtensionMcpHandlers({
+      ipcMain,
+      loadPublicExtensionRegistry,
+      listMcpServersForConfig,
+      updateMcpServerEnablementForConfig,
+      getEnabledMcpServerSpecsForConfig,
+      refreshMcpServersForLatestConfig,
+      persistDesktopUiConfigToDisk,
+      getDesktopUiConfigForMcpRegistry,
+      ensureAgent,
+      mcpClientInfo: resolvedMcpClientInfo,
+      isTest,
+    });
+  }
+
+  return {
+    register,
+  };
+}
+
 module.exports = {
+  createExtensionMcpHandlersRuntime,
   registerExtensionMcpHandlers,
 };

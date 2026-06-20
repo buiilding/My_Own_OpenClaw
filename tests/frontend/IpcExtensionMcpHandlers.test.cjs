@@ -6,6 +6,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const {
+  createExtensionMcpHandlersRuntime,
   registerExtensionMcpHandlers,
 } = require('../../frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs');
 
@@ -179,6 +180,49 @@ describe('extension and MCP IPC handlers', () => {
     expect(deps.refreshMcpServersForLatestConfig).toHaveBeenCalledWith('mcp-refresh');
   });
 
+  test('runtime registers extension and MCP handlers with late client identity resolution', async () => {
+    const handlers = {};
+    const ipcMain = {
+      handle: jest.fn((channel, handler) => {
+        handlers[channel] = handler;
+      }),
+    };
+    const mcpClientInfo = jest.fn(() => ({ name: 'Runtime Host', version: 'late' }));
+    const updateMcpServerEnablementForConfig = jest.fn(async () => ({ success: true }));
+    const runtime = createExtensionMcpHandlersRuntime({
+      loadPublicExtensionRegistry: jest.fn(() => ({
+        contributionRoot: '/extensions',
+        plugins: [],
+        skills: [],
+        mcps: [],
+        extension_errors: [],
+      })),
+      listMcpServersForConfig: jest.fn(() => ({ mcps: [], mcp_errors: [] })),
+      updateMcpServerEnablementForConfig,
+      getEnabledMcpServerSpecsForConfig: jest.fn(() => []),
+      refreshMcpServersForLatestConfig: jest.fn(async () => ({ mcps: [] })),
+      persistDesktopUiConfigToDisk: jest.fn(async () => ({ success: true })),
+      getDesktopUiConfigForMcpRegistry: jest.fn(() => ({ agent_enabled_mcp_servers: [] })),
+      ensureAgent: jest.fn(),
+      mcpClientInfo,
+      isTest: true,
+    });
+
+    runtime.register({ ipcMain });
+
+    await expect(handlers['set-mcp-server-enabled'](null, {
+      id: 'mcp:runtime',
+      enabled: true,
+    })).resolves.toEqual({ success: true });
+
+    expect(mcpClientInfo).toHaveBeenCalledTimes(1);
+    expect(updateMcpServerEnablementForConfig).toHaveBeenCalledWith(expect.objectContaining({
+      clientInfo: { name: 'Runtime Host', version: 'late' },
+      serverId: 'mcp:runtime',
+      enabled: true,
+    }));
+  });
+
   test('ipc.cjs delegates extension and MCP channel bodies to the helper module', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -189,11 +233,15 @@ describe('extension and MCP IPC handlers', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('registerExtensionMcpHandlers({');
+    expect(mainSource).toContain('createExtensionMcpHandlersRuntime({');
+    expect(mainSource).toContain('extensionMcpHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('registerExtensionMcpHandlers({');
     expect(mainSource).not.toContain("ipcMain.handle('list-agent-extensions'");
     expect(mainSource).not.toContain("ipcMain.handle('list-mcp-servers'");
     expect(mainSource).not.toContain("ipcMain.handle('set-mcp-server-enabled'");
     expect(mainSource).not.toContain("ipcMain.handle('refresh-mcp-servers'");
+    expect(helperSource).toContain('function createExtensionMcpHandlersRuntime');
+    expect(helperSource).toContain('return registerExtensionMcpHandlers({');
     expect(helperSource).toContain("ipcMain.handle('list-agent-extensions'");
     expect(helperSource).toContain("ipcMain.handle('set-mcp-server-enabled'");
   });

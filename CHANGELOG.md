@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move extension and MCP registry handler dependency wiring into
+  `createExtensionMcpHandlersRuntime(...)`, preserving extension listing,
+  MCP listing, MCP enablement persistence, SDK MCP registration refresh, and
+  host-skin MCP client identity resolution. No migration required.
 - main/ipc: move client session snapshot and transcript-session sync handler
   dependency wiring into `createClientSessionHandlersRuntime(...)`, preserving
   `get-client-user-id`, `transcript-session-sync`, runtime endpoint snapshots,

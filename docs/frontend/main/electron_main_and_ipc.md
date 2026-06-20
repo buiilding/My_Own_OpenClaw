@@ -132,8 +132,8 @@ Responsibilities:
   layers, and host OS/workspace facts before calling the SDK builder; its
   runtime wrapper owns the latest-config/platform/SDK-builder injection.
 - Delegates extension and MCP registry channel registration to a focused helper
-  while `ipc.cjs` keeps the Agent SDK host state and MCP startup refresh
-  helpers.
+  runtime while `ipc.cjs` keeps the Agent SDK host state and MCP startup
+  refresh helpers.
 
 Split boundary:
 

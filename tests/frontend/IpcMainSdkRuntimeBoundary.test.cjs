@@ -68,6 +68,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_client_session_handlers.cjs'),
       'utf8',
     );
+    const extensionMcpHandlersSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs'),
+      'utf8',
+    );
     const directWakeUpAdapterSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs'),
       'utf8',
@@ -237,6 +241,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('registerClientSessionHandlers({');
     expect(clientSessionHandlersSource).toContain('function createClientSessionHandlersRuntime');
     expect(clientSessionHandlersSource).toContain('return registerClientSessionHandlers({');
+    expect(source).toContain('createExtensionMcpHandlersRuntime({');
+    expect(source).toContain('extensionMcpHandlersRuntime.register({ ipcMain })');
+    expect(source).not.toContain('registerExtensionMcpHandlers({');
+    expect(extensionMcpHandlersSource).toContain('function createExtensionMcpHandlersRuntime');
+    expect(extensionMcpHandlersSource).toContain('return registerExtensionMcpHandlers({');
     expect(source).not.toContain('resolveWorkspaceRepoInstructionPromptLayers(workspacePath)');
     expect(source).not.toContain('loadExtensionSkillPromptLayers()');
     expect(agentDefinitionContextSource).toContain('isDefaultAgentDefinition(generatedAgentDefinition)');

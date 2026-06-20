@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Extension MCP Handler Runtime Boundary
+
+- Finding: `ipc_extension_mcp_handlers.cjs` owned extension and MCP registry
+  channel bodies, but `initializeIpc(...)` still passed extension registry,
+  MCP config, persistence, Agent SDK refresh, ensure-agent, and host MCP client
+  identity dependencies directly when registering the handlers.
+- Change: added `createExtensionMcpHandlersRuntime(...)` so the extension/MCP
+  helper owns reusable handler dependency composition while `initializeIpc(...)`
+  only registers the already-composed runtime with `ipcMain`. The host-skin MCP
+  client identity remains resolved at registration time so configured copy is
+  preserved.
+- Validation: focused extension/MCP coverage verifies runtime registration,
+  late MCP client identity resolution, MCP enablement persistence inputs, SDK
+  MCP refresh behavior, and source guards keep direct extension/MCP handler
+  dependency wiring out of `initializeIpc(...)`.
+- Compatibility: no migration required. `list-agent-extensions`,
+  `list-mcp-servers`, `set-mcp-server-enabled`, and `refresh-mcp-servers`
+  channel names, extension registry merge behavior, MCP enablement persistence,
+  local-runtime resolution in non-test mode, SDK `registerMcps(...)` refresh,
+  MCP client identity, renderer IPC, storage, credentials, permissions,
+  provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Client Session Handler Runtime Boundary
 
 - Finding: `ipc_client_session_handlers.cjs` owned client-session snapshot and

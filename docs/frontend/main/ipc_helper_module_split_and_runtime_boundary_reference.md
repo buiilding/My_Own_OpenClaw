@@ -782,6 +782,9 @@ Owns extension and MCP IPC handler registration:
 - `list-mcp-servers`
 - `set-mcp-server-enabled`
 - `refresh-mcp-servers`
+- exposes `createExtensionMcpHandlersRuntime(...)` so `ipc.cjs` composes
+  extension registry, MCP config, persistence, Agent SDK refresh, and
+  host-skin MCP client identity dependencies once
 - extension listing combines public extension metadata with the current MCP
   registry snapshot
 - MCP enablement persists through desktop UI config with MCP allowlist

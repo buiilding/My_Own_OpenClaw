@@ -103,7 +103,7 @@ const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
-  registerExtensionMcpHandlers,
+  createExtensionMcpHandlersRuntime,
 } = require('./ipc/ipc_extension_mcp_handlers.cjs');
 const {
   createClientSessionHandlersRuntime,
@@ -582,6 +582,17 @@ const clientSessionHandlersRuntime = createClientSessionHandlersRuntime({
   },
   broadcastToRenderers,
 });
+const extensionMcpHandlersRuntime = createExtensionMcpHandlersRuntime({
+  loadPublicExtensionRegistry,
+  listMcpServersForConfig,
+  updateMcpServerEnablementForConfig,
+  getEnabledMcpServerSpecsForConfig,
+  refreshMcpServersForLatestConfig,
+  persistDesktopUiConfigToDisk,
+  getDesktopUiConfigForMcpRegistry,
+  ensureAgent,
+  mcpClientInfo: () => ipcHostCopyRuntime.getMcpClientInfo(),
+});
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -901,18 +912,7 @@ function initializeIpc(win, options = {}) {
       hostOptionState.getSetGlobalAgentStopShortcutAccelerator(),
   });
 
-  registerExtensionMcpHandlers({
-    ipcMain,
-    loadPublicExtensionRegistry,
-    listMcpServersForConfig,
-    updateMcpServerEnablementForConfig,
-    getEnabledMcpServerSpecsForConfig,
-    refreshMcpServersForLatestConfig,
-    persistDesktopUiConfigToDisk,
-    getDesktopUiConfigForMcpRegistry,
-    ensureAgent,
-    mcpClientInfo: ipcHostCopyRuntime.getMcpClientInfo(),
-  });
+  extensionMcpHandlersRuntime.register({ ipcMain });
 
   clientSessionHandlersRuntime.register({ ipcMain });
 
