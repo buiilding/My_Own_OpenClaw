@@ -79,7 +79,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 4. Backend sends `tool-call` or `tool-bundle` events to the SDK runtime with executable payloads and request ids.
 5. Agent SDK runtime dispatches local execution through Electron main.
 6. Electron main forwards the executable request to the SDK local runtime daemon/JSON-RPC bridge.
-7. Python sidecar registry executes the local tool implementation and returns a normalized result.
+7. Local-runtime executable registry backed by Python sidecar modules executes the local tool implementation and returns a normalized result.
 8. Agent SDK runtime submits `tool-result` or `tool-bundle-result` back to the backend.
 9. Backend transforms the result into model-facing history and resumes the loop.
 
@@ -204,7 +204,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 ## Review Checklist
 
-- Tool name is consistent across backend catalog, remote tool class, local-runtime exposed tool set backed by the Python sidecar registry, SDK/main tests, docs, and prompt transparency expectations.
+- Tool name is consistent across backend catalog, remote tool class, local-runtime exposed tool set backed by the local-runtime executable registry, SDK/main tests, docs, and prompt transparency expectations.
 - Client manifest entries are accepted or rejected for explicit reasons, and rejected entries do not silently disappear from diagnostics.
 - Built-in client-local tool names use accepted client schemas as the final
   provider-visible local schema. Backend catalog specs are fallback/default

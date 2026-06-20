@@ -96,8 +96,8 @@ The SDK-owned local runtime talks to `sidecar_daemon.py` over token-authenticate
 
 - `GET /health`: daemon liveness, generic `sidecar_daemon` service label, pid, and creation time.
 - `GET /status`: local runtime diagnostics, daemon metadata, registered tool
-  names, and the executable local-runtime tool manifest backed by the Python
-  sidecar registry.
+  names, and the executable local-runtime tool manifest backed by Python
+  registry modules.
 - `GET /tools`: executable local-runtime tool manifest for built-in and dynamic
   module/plugin/MCP tools.
 - `POST /tools/register-module`: register a Python module-path tool without restarting the daemon.

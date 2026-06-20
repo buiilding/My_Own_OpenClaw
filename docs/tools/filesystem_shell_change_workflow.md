@@ -144,7 +144,7 @@ If a listed test file has moved, search by the test stem before adding a new tes
 ### Tool is visible but does not run
 
 1. Confirm the backend schema includes the tool and the active policy profile exposes it.
-2. Check the streamed `tool-call` event reaches the SDK main-runtime tool router.
+2. Check the streamed `tool-call` event reaches the SDK/main local-runtime tool router.
 3. Check `AgentClient.wakeUp(...)` provides the SDK local runtime client and `agent.conversation(...)` dispatches the local runtime call through the SDK tool coordinator.
 4. Check `local_runtime_bridge.cjs` exposes `executeToolForBackend(...)`.
 5. Check `local_runtime_execute_tool_runtime.cjs` sends `execute_tool` with `tool_name` and normalized `args`.

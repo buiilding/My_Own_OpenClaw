@@ -576,7 +576,7 @@ async def test_tool_execution_flow():
 
 1. Create tool class inheriting from `Tool`
 2. Add the remote stub entry in `backend/src/tools/tool_catalog.py`
-3. Add built-in local-runtime implementation plus Python sidecar registry wiring, or add a
+3. Add built-in local-runtime implementation plus local-runtime executable registry wiring, or add a
    plugin Python entrypoint in `plugins/<id>/plugin.json`
 4. Keep `frontend/src/main/python/tools/manifest.py` in sync for
    LLM-callable built-in tools

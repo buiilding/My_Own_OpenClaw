@@ -35,9 +35,17 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route active tool troubleshooting and registry parity wording
+  through SDK/main local-runtime tool routing plus local-runtime executable
+  registry ownership backed by Python sidecar modules instead of SDK
+  main-runtime and Python sidecar registry owner labels. No migration required.
 - docs/main: route host-skin product identity wording through agent display
   name instead of SDK agent name labels in active architecture and IPC helper
   docs. No migration required.
+- docs/tools: route tool policy hidden-tool debugging, validation targets,
+  executable registry references, and SDK/main router troubleshooting through
+  local-runtime executable parity with Python sidecar implementation tests
+  instead of bare sidecar labels. No migration required.
 - docs/tools: route backend-only tool capability, tool authoring
   troubleshooting, MCP, and JSON-RPC workflow wording through local-runtime
   executable manifest/registry ownership instead of sidecar local action and

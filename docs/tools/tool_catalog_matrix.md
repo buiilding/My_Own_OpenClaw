@@ -64,7 +64,7 @@ Local-runtime executable owner:
 
 Parity tests should prove:
 
-- every accepted local tool expected by the local runtime exists in the Python sidecar registry
+- every accepted local tool expected by the local runtime exists in the local-runtime executable registry backed by Python sidecar modules
 - accepted client-local schemas remain model-facing when a client manifest supplies them
 - local results normalize into `ToolResult`
 - browser shared-contract schema stays aligned across backend and local runtime

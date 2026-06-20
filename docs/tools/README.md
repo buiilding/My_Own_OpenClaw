@@ -46,7 +46,7 @@ Client-local model-visible tools are supplied by the accepted client manifest. T
 - `replace`
 - `browser`
 
-Local-runtime executable tools are registered in `frontend/src/main/python/tools/registry.py`. The Python sidecar registry intentionally mirrors only the executable local actions expected by accepted client-local schemas.
+Local-runtime executable tools are registered in `frontend/src/main/python/tools/registry.py`. The local-runtime executable registry backed by Python sidecar modules intentionally mirrors only the executable local actions expected by accepted client-local schemas.
 
 ## Change Path
 

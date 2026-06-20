@@ -275,6 +275,30 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed active tool troubleshooting, websocket reference,
+  catalog, contract, architecture, and schema-policy docs through SDK/main
+  local-runtime tool routing plus local-runtime executable registry ownership
+  backed by Python sidecar modules instead of SDK main-runtime and Python
+  sidecar registry owner labels. Validation covered the modular docs boundary
+  guard, docs search, related commit search, stale SDK-main-runtime/Python-
+  sidecar-registry phrase scan, docs listing, and diff check. No migration
+  required; tool schemas, executable registry behavior, SDK/main dispatch,
+  JSON-RPC payloads, IPC channels, renderer display, storage, credentials,
+  permissions, provider policy, hosted URLs, and local-runtime behavior are
+  unchanged.
+
+- 2026-06-20: routed tool policy hidden-tool debugging, validation target
+  headings, executable registry references, and SDK/main router troubleshooting
+  through the local-runtime built-in tool set, executable registry registration,
+  and Python sidecar implementation tests instead of sidecar
+  `LOCAL_RUNTIME_BUILTIN_TOOL_NAMES`, bare `Sidecar:` labels, and Python
+  sidecar registry/router public-owner wording. Validation covered the modular
+  docs boundary guard, docs search, related commit search, stale sidecar
+  validation-label scan, docs listing, and diff check. No migration required;
+  tool policy, capability gates, executable registry behavior, SDK/main
+  dispatch, IPC channels, storage, credentials, permissions, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-20: routed active host-skin product identity wording through agent
   display name ownership instead of SDK agent name labels in architecture and
   IPC helper docs. Validation covered the modular docs boundary guard, docs

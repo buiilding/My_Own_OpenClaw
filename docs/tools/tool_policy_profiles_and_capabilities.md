@@ -124,7 +124,8 @@ Use this order:
    `agent_definition.tools` and the accepted client manifest.
 6. Check disabled capabilities and provider-unavailable capabilities.
 7. Check provider projection if the provider adds native declarations.
-8. If local execution is expected, confirm sidecar `LOCAL_RUNTIME_BUILTIN_TOOL_NAMES` and registry registration.
+8. If local execution is expected, confirm the local-runtime built-in tool set
+   (`LOCAL_RUNTIME_BUILTIN_TOOL_NAMES`) and executable registry registration.
 
 ## Debugging Unexpectedly Visible Tools
 
@@ -145,7 +146,7 @@ Backend:
 - `tests/backend/test_tool_registry_schema.py`
 - `tests/backend/test_web_search_tool.py`
 
-Sidecar:
+Local runtime / Python sidecar implementation:
 
 - `tests/sidecar/test_tool_registry.py`
 - `tests/sidecar/test_shared_tool_schema_parity.py`

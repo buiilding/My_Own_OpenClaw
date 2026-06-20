@@ -238,6 +238,45 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Tool Routing Registry Owner Wording
+
+- Finding: active tool troubleshooting, websocket reference, catalog, contract,
+  architecture, and schema-policy docs still used SDK main-runtime tool router
+  and Python sidecar registry labels in public routing/parity paths after the
+  owner boundary moved to SDK/main local-runtime dispatch plus local-runtime
+  executable registry ownership backed by Python sidecar modules.
+- Change: reworded those docs through SDK/main local-runtime tool routing and
+  local-runtime executable registry labels while preserving Python module paths
+  as implementation breadcrumbs, and extended the modular tool-routing guard for
+  the retired phrases.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale SDK-main-runtime/Python-sidecar-registry phrase scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. Tool schemas, executable registry
+  behavior, SDK/main dispatch, JSON-RPC payloads, IPC channels, renderer
+  display, storage, credentials, permissions, provider policy, hosted URLs, and
+  local-runtime behavior are unchanged.
+
+### 2026-06-20 Tool Policy and Registry Local-Runtime Labels
+
+- Finding: tool policy debugging still told readers to confirm sidecar
+  `LOCAL_RUNTIME_BUILTIN_TOOL_NAMES`, and tool policy plus validation matrix
+  target sections used a bare `Sidecar:` heading while active tool docs still
+  named the Python sidecar registry/router as the public owner even though the
+  public route is local-runtime executable parity backed by Python sidecar
+  implementation tests.
+- Change: reworded hidden-tool debugging through the local-runtime built-in
+  tool set and executable registry registration, renamed validation headings to
+  `Local runtime / Python sidecar implementation`, routed executable
+  registry/router references through local-runtime ownership, and extended the
+  modular docs guard over those active docs.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale sidecar validation-label scan, docs listing, and diff check.
+- Compatibility: no migration required. Tool policy, capability gates,
+  executable registry behavior, SDK/main dispatch, IPC channels, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Host Skin Agent Display Name Wording
 
 - Finding: active architecture and IPC helper docs still described host-skin

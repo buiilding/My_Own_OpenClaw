@@ -17,9 +17,9 @@ Use this page for symptom-to-owner routing. After identifying the owner, switch 
 | Tool not shown to model | backend tool policy/profile/provider health | [Tool Policy Profiles](tool_policy_profiles_and_capabilities.md) |
 | Tool schema missing fields | owning schema source or provider projection | client manifest source, `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/provider_projection.py` |
 | Model calls disabled coordinate method | backend method validation | `ToolPolicy.get_method_validation_errors()` |
-| Backend logs tool call but local runtime never runs it | websocket formatter/outgoing event or SDK main-runtime tool router | backend formatter tests, SDK/main runtime tests |
+| Backend logs tool call but local runtime never runs it | websocket formatter/outgoing event or SDK/main local-runtime tool router | backend formatter tests, SDK/main runtime tests |
 | SDK/main says unknown tool | local-runtime registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
-| Local runtime returns `Tool not found` | local-runtime implementation registration/import failure | Python sidecar registry logs and `tests/sidecar/test_tool_registry.py` |
+| Local runtime returns `Tool not found` | local-runtime implementation registration/import failure | local-runtime executable registry logs backed by Python sidecar modules and `tests/sidecar/test_tool_registry.py` |
 | Tool succeeds but no model continuation | backend waiting storage/result receiver | `backend/src/agent/tools/waiting/**` |
 | Tool result visible but future replay breaks | SDK projection, transcript adapter, or backend history shape | SDK conversation runtime docs, transcript adapter docs, and backend history docs |
 | Screenshot or artifact missing | renderer upload path, backend artifact route, endpoint resolution | [Artifacts and Attachments](../desktop/artifacts_and_attachments.md) |
@@ -65,7 +65,7 @@ Questions to answer:
 2. Did the Agent SDK runtime receive the matching event type?
 3. Did SDK/main construct the executable local-runtime payload with the expected args?
 4. Did Electron main route JSON-RPC to the Python sidecar process?
-5. Did the Python sidecar registry import the tool module lazily without import error?
+5. Did the local-runtime executable registry backed by Python sidecar modules import the tool module lazily without import error?
 6. Did the executable tool return a native `ToolResult`?
 
 Read:

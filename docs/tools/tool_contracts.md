@@ -45,7 +45,7 @@ with the arguments emitted for that tool.
 | backend remote tool | yes | backend service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No local-runtime executable parity is needed, but provider projection and policy still apply. |
 | client-local manifest tool | yes, after validation | local runtime executor or declared backend target for reserved tools | Electron/local-runtime `agent_definition.tools.client_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the local-runtime manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
 | provider-native declaration | yes, provider-specific | provider/runtime adapter | backend provider projection | provider dialect, parser compatibility, policy pruning | Projection may change dialect, not semantics. |
-| local-executor-only helper | no until exposed | local executor | Python sidecar registry | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
+| local-executor-only helper | no until exposed | local executor | local-runtime executable registry backed by Python sidecar modules | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
 | renderer display projection | no | renderer UI | stream/transcript consumers | none unless backend emits event contract | Display rows must not become the source of model-facing truth. |
 
 ## Client Tool Manifest Shape
