@@ -109,5 +109,5 @@ The root object includes no removed alias fields or compatibility-only fields.
 ## Related Pages
 
 - [Backend Browser Schema Docs Hub](README.md)
-- [Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference](backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
+- [Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference](backend_local_runtime_browser_schema_parity_and_validation_boundary_reference.md)
 - [Browser Remote Schema Surface Reference](../browser_remote_schema_surface_reference.md)

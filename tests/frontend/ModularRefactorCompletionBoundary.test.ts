@@ -1179,7 +1179,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/backend/README.md'),
       read('docs/backend/tools/README.md'),
       read('docs/backend/tools/browser/browser_remote_schema_surface_reference.md'),
-      read('docs/backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md'),
+      read('docs/backend/tools/browser/schema/backend_local_runtime_browser_schema_parity_and_validation_boundary_reference.md'),
       read('docs/browser/browser_action_surface.md'),
       read('docs/browser/browser_control.md'),
       read('docs/browser/browser_change_workflow.md'),

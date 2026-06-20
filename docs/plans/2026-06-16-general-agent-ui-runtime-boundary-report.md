@@ -194,6 +194,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Browser Schema Parity Route Filename Boundary
+
+- Finding: the browser schema parity reference had already been reworded to
+  backend/local-runtime ownership, but the filename and inbound links still
+  carried the old `backend_sidecar` route label.
+- Change: renamed the reference to
+  `backend_local_runtime_browser_schema_parity_and_validation_boundary_reference.md`
+  and updated the backend/browser/tool docs links plus the modular boundary
+  fixture so route names match the current owner wording.
+- Validation: passed focused browser docs boundary test, docs listing, stale
+  old-path/encoding scan, and diff check.
+- Compatibility: no migration required. Runtime code, browser schema loading,
+  local-runtime validation, model-facing schema emission, tool schemas, IPC,
+  storage, settings, credentials, permissions, provider policy, and hosted URLs
+  are unchanged.
+
 ### 2026-06-20 Main Scripted Provider Debug Env Boundary
 
 - Finding: `frontend/src/main/ipc/ipc_runtime_helpers.cjs` read

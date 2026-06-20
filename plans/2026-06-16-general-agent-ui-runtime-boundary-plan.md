@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Browser Schema Parity Route Filename Boundary
+
+- Finding: the browser schema parity page title and body already used
+  backend/local-runtime ownership, but the file path and all links still used
+  `backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md`.
+- Change: renamed the docs route to
+  `backend_local_runtime_browser_schema_parity_and_validation_boundary_reference.md`
+  and updated browser/backend/docs-hub links plus the modular boundary test
+  fixture to use the local-runtime path.
+- Validation: passed focused browser docs boundary test, docs listing, stale
+  old-path/encoding scan, and diff check.
+- Compatibility: no migration required. Runtime code, browser schema loading,
+  local-runtime validation, tool schemas, IPC channels, storage, settings,
+  credentials, permissions, provider policy, and hosted URLs are unchanged.
+
 ### 2026-06-20 Main Scripted Provider Debug Env Boundary
 
 - Finding: `ipc_runtime_helpers.cjs` appended the dev-only scripted model row

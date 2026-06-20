@@ -11,7 +11,7 @@ title: "Backend Browser Schema Docs Hub"
 ## Deep Pages
 
 - [Browser Control Unified Schema Reference](browser_control_unified_schema_reference.md)
-- [Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference](backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
+- [Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference](backend_local_runtime_browser_schema_parity_and_validation_boundary_reference.md)
 
 ## Related Pages
 

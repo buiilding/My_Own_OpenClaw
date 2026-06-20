@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/browser: rename the backend/local-runtime browser schema parity reference
+  path away from the stale `backend_sidecar` filename and update docs/test
+  routes to the local-runtime path. No migration required.
 - main/ipc: route the dev-only scripted provider model-picker flag through the
   generic debug-env runtime and WindieOS host skin instead of reading the
   `WINDIE_ENABLE_SCRIPTED_PROVIDER` env var directly in IPC helpers. No
