@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Backend Session State Boundary
+
+- Finding: `ipc.cjs` still owned mutable backend session identity directly,
+  even though connection events, backend-event processing, close cleanup,
+  status payloads, query handlers, stop-target resolution, and renderer-window
+  replay already received that state through injected dependencies.
+- Change: added `ipc_backend_session_state.cjs` to own cached backend
+  `session_id`, server `user_id`, and `conversation_ref` storage plus snapshot
+  and reset accessors. `ipc.cjs` now injects those accessors into status,
+  install-auth identity, connection, backend event, backend close, query,
+  automated-query, stop-target, and renderer-window sync paths.
+- Validation: focused backend session state coverage for independent field
+  storage, snapshot shape, reset behavior, and boundary guards that keep
+  mutable backend session cache storage out of `ipc.cjs`.
+- Compatibility: no migration required. Session/conversation status snapshot
+  shapes, inbound backend event payloads, query context fallback behavior,
+  reconnect reset semantics, stop-target priority, renderer IPC channels,
+  storage, credentials, permissions, hosted URLs, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Main Live Turn State Boundary
 
 - Finding: `ipc.cjs` still owned cached SDK current-turn projection and

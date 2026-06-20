@@ -50,9 +50,9 @@ Primary test sources:
 | State Field | Owner | Update triggers | Downstream consumers |
 |---|---|---|---|
 | `currentUserId` | `ipc.cjs` | websocket open -> generated/sanitized handshake identity | outbound backend envelopes (`user_id`), `ipc-status`, `get-client-user-id` |
-| `currentSessionId` | `ipc.cjs` | inbound backend events with `session_id` | synthetic local query context fields, renderer session info |
-| `currentServerUserId` | `ipc.cjs` | inbound backend events with `user_id` | synthetic local query context fields |
-| `currentConversationRef` | `ipc.cjs` | inbound backend events with `conversation_ref`; reset on reconnect close | query payload fallback when renderer omits conversation ref |
+| `currentSessionId` | `ipc_backend_session_state.cjs` | inbound backend events with `session_id` | synthetic local query context fields, renderer session info |
+| `currentServerUserId` | `ipc_backend_session_state.cjs` | inbound backend events with `user_id` | synthetic local query context fields |
+| `currentConversationRef` | `ipc_backend_session_state.cjs` | inbound backend events with `conversation_ref`; reset on reconnect close | query payload fallback when renderer omits conversation ref |
 | runtime endpoint snapshot (`BACKEND_URL`, `BACKEND_HTTP_URL`) | `ipc.cjs` | backend endpoint resolution during init | `get-client-user-id` payload, `ipc-status`, renderer artifact URL base sync |
 | transcript session `{conversationRef,userId}` | SDK transcript session runtime (`desktopTranscriptSessionRuntimeClient.ts`, `desktopTranscriptSessionInfoRuntimeClient.js`, `sessionInfoState.ts`) | `updateTranscriptSession(...)`, `setActiveConversationRef(...)` | SDK projection/store routing, pending flush eligibility, dashboard memory views |
 
@@ -72,7 +72,8 @@ On websocket open:
 
 ### Inbound Backend Message Updates
 
-Every parsed backend event can update cached context:
+Every parsed backend event can update cached context in
+`ipc_backend_session_state.cjs`:
 
 - `data.session_id` -> `currentSessionId`
 - `data.user_id` -> `currentServerUserId`

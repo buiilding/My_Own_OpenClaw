@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move cached backend session identity into
+  `ipc_backend_session_state.cjs`, preserving inbound session/user/conversation
+  updates, reconnect reset behavior, query context fallback, status snapshots,
+  install-auth server-user handoff, and stop-target fallback. No migration
+  required.
 - main/ipc: move cached SDK current-turn and renderer pending-turn state into
   `ipc_live_turn_state.cjs`, preserving late-window sync, pending-turn cleanup,
   stop-target selection, and test reset behavior. No migration required.

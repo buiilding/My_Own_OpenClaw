@@ -54,7 +54,9 @@ describe('ipc_runtime_conversation_ref', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('resolveRuntimeConversationRefValue(input, currentConversationRef)');
+    expect(mainSource).toContain(
+      'resolveRuntimeConversationRefValue(input, backendSessionState.getConversationRef())',
+    );
     expect(mainSource).not.toContain('function normalizeOptionalString(value)');
     expect(mainSource).not.toContain('const fromPayload = payload && typeof payload ===');
     expect(helperSource).toContain('function resolveRuntimeConversationRef');

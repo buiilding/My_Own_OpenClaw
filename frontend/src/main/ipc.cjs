@@ -56,6 +56,9 @@ const {
   createActiveQueryContextState,
 } = require('./ipc/ipc_active_query_context.cjs');
 const {
+  createBackendSessionState,
+} = require('./ipc/ipc_backend_session_state.cjs');
+const {
   buildConversationEventFromBackendEvent,
 } = require('./ipc/ipc_conversation_event_projection.cjs');
 const {
@@ -269,9 +272,6 @@ let isFirstQuery = true;
 let currentUserId = null;
 let currentInstallId = null;
 let currentInstallToken = null;
-let currentSessionId = null;
-let currentServerUserId = null;
-let currentConversationRef = null;
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 let setAgentLoopStopShortcutEnabled = null;
@@ -283,6 +283,7 @@ let desktopLocalRuntimeLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const activeQueryContextState = createActiveQueryContextState();
+const backendSessionState = createBackendSessionState();
 const desktopUiConfigCache = createDesktopUiConfigCache({
   isValidConfigPayload,
 });
@@ -305,9 +306,7 @@ const backendMessageObserverRegistry = createBackendMessageObserverRegistry({
 const ipcStatusPayloads = createIpcStatusPayloads({
   getState: () => ({
     currentUserId,
-    currentConversationRef,
-    currentServerUserId,
-    currentSessionId,
+    ...backendSessionState.getSnapshot(),
     isConnected,
   }),
   getRuntimeEndpointSnapshot: () => ({
@@ -404,7 +403,7 @@ const installAuthIdentityRuntime = createInstallAuthIdentityRuntime({
     currentInstallToken,
     currentUserId,
     currentInstallId,
-    currentServerUserId,
+    currentServerUserId: backendSessionState.getServerUserId(),
   }),
   setInstallToken: (value) => {
     currentInstallToken = value;
@@ -416,7 +415,7 @@ const installAuthIdentityRuntime = createInstallAuthIdentityRuntime({
     currentUserId = value;
   },
   setCurrentServerUserId: (value) => {
-    currentServerUserId = value;
+    backendSessionState.setServerUserId(value);
   },
 });
 const installAuthRuntime = createInstallAuthRuntime({
@@ -483,9 +482,7 @@ function resetSettingsSyncState() {
 }
 
 function resetBackendSessionState() {
-  currentSessionId = null;
-  currentServerUserId = null;
-  currentConversationRef = null;
+  backendSessionState.reset();
   liveTurnState.reset();
   currentTurnTraceLogger.reset();
   electronMainTraceLogger.reset();
@@ -497,9 +494,7 @@ function resetIpcProcessStateForTests() {
   currentUserId = null;
   currentInstallId = null;
   currentInstallToken = null;
-  currentSessionId = null;
-  currentServerUserId = null;
-  currentConversationRef = null;
+  backendSessionState.reset();
   activeQueryContextState.reset();
   desktopUiConfigCache.reset();
   globalStopShortcutConfigRuntime.reset();
@@ -519,7 +514,7 @@ function handleAgentConnection(event = {}) {
   return handleAgentConnectionEvent(event, {
     getCurrentUserId: () => currentUserId,
     setCurrentServerUserId: (value) => {
-      currentServerUserId = value;
+      backendSessionState.setServerUserId(value);
     },
     setConnected: (value) => {
       isConnected = value;
@@ -550,7 +545,7 @@ function handleAgentBackendFallback(endpointPayload = {}) {
 }
 
 function resolveRuntimeConversationRef(input = {}) {
-  return resolveRuntimeConversationRefValue(input, currentConversationRef);
+  return resolveRuntimeConversationRefValue(input, backendSessionState.getConversationRef());
 }
 
 function buildDesktopInstallAuth() {
@@ -657,14 +652,15 @@ function isBackendRuntimeConnected() {
 }
 
 async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
+  const conversationRef = backendSessionState.getConversationRef();
   const agent = await ensureAgent({
     reason,
-    conversationRef: currentConversationRef,
+    conversationRef,
   });
   return agent.ensureConnected({
     reason,
     timeoutMs,
-    conversationRef: currentConversationRef,
+    conversationRef,
   });
 }
 
@@ -701,7 +697,7 @@ function trackRendererWindow(win) {
     getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
     getReplayEvents: () => ipcEventReplayState.snapshot(),
     buildConversationEvent: (event) => buildConversationEventFromBackendEvent(event, {
-      fallbackConversationRef: currentConversationRef,
+      fallbackConversationRef: backendSessionState.getConversationRef(),
     }),
   });
 }
@@ -739,13 +735,13 @@ function handleAgentBackendEvent(rendererData) {
     processBackendMessageData,
     processBackendMessageDeps: {
       setCurrentSessionId: (value) => {
-        currentSessionId = value;
+        backendSessionState.setSessionId(value);
       },
       setCurrentServerUserId: (value) => {
-        currentServerUserId = value;
+        backendSessionState.setServerUserId(value);
       },
       setCurrentConversationRef: (value) => {
-        currentConversationRef = value;
+        backendSessionState.setConversationRef(value);
       },
       resolveSettingsSync: (msgId, wasSuccessful) => settingsSyncRuntime.resolveAck(
         msgId,
@@ -770,8 +766,8 @@ function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
     getActiveQueryContext: () => activeQueryContextState.get(),
     setActiveQueryContext: (value) => activeQueryContextState.set(value),
-    getCurrentSessionId: () => currentSessionId,
-    getCurrentServerUserId: () => currentServerUserId,
+    getCurrentSessionId: () => backendSessionState.getSessionId(),
+    getCurrentServerUserId: () => backendSessionState.getServerUserId(),
     getCurrentUserId: () => currentUserId,
     getQueryEventsCopy: () => ipcHostCopyRuntime.getQueryEvents(),
     buildQueryInterrupted,
@@ -894,7 +890,7 @@ function initializeIpc(win, options = {}) {
       currentConversationRef: nextConversationRef,
       currentUserId: nextUserId,
     }) => {
-      currentConversationRef = nextConversationRef;
+      backendSessionState.setConversationRef(nextConversationRef);
       currentUserId = nextUserId;
     },
     broadcastToRenderers,
@@ -948,14 +944,12 @@ function initializeIpc(win, options = {}) {
     handleRendererStopQuery,
   } = createChatQueryHandlers({
     getState: () => ({
-      currentConversationRef,
-      currentSessionId,
-      currentServerUserId,
+      ...backendSessionState.getSnapshot(),
       currentUserId,
       isFirstQuery,
     }),
     setCurrentConversationRef: (conversationRef) => {
-      currentConversationRef = conversationRef;
+      backendSessionState.setConversationRef(conversationRef);
     },
     setActiveQueryContext: (queryContext) => activeQueryContextState.set(queryContext),
     setFirstQuery: (nextValue) => {
@@ -1010,8 +1004,8 @@ function initializeIpc(win, options = {}) {
     handleRendererStopQuery,
     deps: {
       getState: () => ({
-        currentConversationRef,
-        currentSessionId,
+        currentConversationRef: backendSessionState.getConversationRef(),
+        currentSessionId: backendSessionState.getSessionId(),
         currentUserId,
         isConnected,
         agent: agentRuntimeLifecycle.getActiveAgent(),
@@ -1039,7 +1033,7 @@ function resolveMainStopTarget() {
   return resolveMainStopTargetRuntime({
     latestCurrentTurnProjection: liveTurnState.getLatestCurrentTurn(),
     latestPendingTurn: liveTurnState.getLatestPendingTurn(),
-    currentConversationRef,
+    currentConversationRef: backendSessionState.getConversationRef(),
   });
 }
 
@@ -1095,7 +1089,7 @@ const automatedQueryDispatcher = createAutomatedQueryDispatcher({
     isFirstQuery,
   }),
   setCurrentConversationRef: (conversationRef) => {
-    currentConversationRef = conversationRef;
+    backendSessionState.setConversationRef(conversationRef);
   },
   setFirstQuery: (nextValue) => {
     isFirstQuery = nextValue;

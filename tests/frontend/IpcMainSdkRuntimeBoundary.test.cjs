@@ -133,6 +133,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_install_auth_identity_runtime.cjs'),
       'utf8',
     );
+    const backendSessionStateSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_backend_session_state.cjs'),
+      'utf8',
+    );
     expect(source).toContain('createElectronAgentClientRuntime({');
     expect(source).not.toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
@@ -255,10 +259,19 @@ describe('main ipc sdk runtime boundary', () => {
     expect(agentClientLifecycleSource).toContain('let agentClient = null;');
     expect(agentClientLifecycleSource).toContain('agentClient = createAgentClient();');
     expect(agentClientLifecycleSource).toContain('[Main][SDK] client_initialized');
-    expect(source).toContain('resolveRuntimeConversationRefValue(input, currentConversationRef)');
+    expect(source).toContain(
+      'resolveRuntimeConversationRefValue(input, backendSessionState.getConversationRef())',
+    );
     expect(source).not.toContain('const fromPayload = payload && typeof payload ===');
     expect(runtimeConversationRefSource).toContain('payload.conversation_ref');
     expect(runtimeConversationRefSource).toContain('input.conversation_ref || input.conversationRef');
+    expect(source).toContain('createBackendSessionState()');
+    expect(source).not.toContain('let currentSessionId = null');
+    expect(source).not.toContain('let currentServerUserId = null');
+    expect(source).not.toContain('let currentConversationRef = null');
+    expect(backendSessionStateSource).toContain('let currentSessionId = initialSessionId;');
+    expect(backendSessionStateSource).toContain('let currentServerUserId = initialServerUserId;');
+    expect(backendSessionStateSource).toContain('let currentConversationRef = initialConversationRef;');
     expect(source).toContain('createResponseOverlayPhaseRuntime({');
     expect(source).toContain('responseOverlayPhaseRuntime.setResponseOverlayPhase(phase, source, metadata)');
     expect(source).not.toContain("action: 'set-phase'");
