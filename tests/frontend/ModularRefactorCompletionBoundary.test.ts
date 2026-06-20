@@ -666,6 +666,9 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/inventory/domains/frontend_domain_ownership_matrix_reference.md'),
       read('docs/frontend/inventory/frontend_full_functionality_inventory_reference.md'),
       read('docs/frontend/main/window_and_overlay_lifecycle.md'),
+      read('docs/frontend/main/display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md'),
+      read('docs/frontend/main/main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md'),
+      read('docs/frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md'),
       read('docs/frontend/main/main_process_change_workflow.md'),
       read('docs/frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md'),
       read('docs/frontend/main/local_backend/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md'),
@@ -693,6 +696,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Sidecar runtime (tools, memory, system, browser)');
     expect(docText).not.toContain('frontend + sidecar local store own conversation history');
     expect(docText).not.toContain('renderer API client');
+    expect(docText).not.toContain('visible WindieOS surfaces');
+    expect(docText).not.toContain('WindieOS surface');
+    expect(docText).not.toContain('WindieOS windows');
+    expect(docText).not.toContain('WindieOS overlay/main windows');
   });
 
   test('architecture docs route renderer IPC through SDK commands and typed event fan-out', async () => {

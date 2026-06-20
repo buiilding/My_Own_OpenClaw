@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: active SDK tool-authoring, query-planning, and
-  hosted-client docs now describe hosted backend, hosted SDK routes,
-  first-party desktop app, and renderer skin labels instead of
-  WindieOS-specific SDK capability wording.
+- Latest completed slice: generic Electron main window, overlay,
+  display-affinity, and query-capture docs now describe desktop app
+  surfaces/windows instead of WindieOS-specific surface wording.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -186,7 +185,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   SDK tool-authoring, query-planning, and hosted-client docs now route reusable
   capability wording through hosted backend, hosted SDK route, first-party
   desktop app, and renderer skin labels instead of WindieOS-specific SDK
-  capability wording.
+  capability wording. Generic Electron main window, overlay, display-affinity,
+  and query-capture docs now route app-owned surfaces through desktop app
+  surface/window wording instead of WindieOS-specific surface labels.
   Renderer message-send preparation now routes send-surface chatbox restore
   through a renderer app runtime window client instead of invoking the window
   IPC channel directly.

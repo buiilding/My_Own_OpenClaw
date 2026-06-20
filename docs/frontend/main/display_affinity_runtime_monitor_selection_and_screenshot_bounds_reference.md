@@ -98,7 +98,7 @@ Reset conditions:
 
 - backend/session reset in `ipc.cjs` intentionally does **not** clear active display affinity
 - active affinity persists across websocket/session resets and is replaced by the next explicit `setActiveDisplayAffinity(...)` update (query send or window-surface sync paths)
-- non-VM display-metrics listener now calls `syncVisibleSurfaceDisplayAffinity(...)` before overlay repositioning so monitor affinity follows whichever WindieOS surface is currently visible after display layout changes
+- non-VM display-metrics listener now calls `syncVisibleSurfaceDisplayAffinity(...)` before overlay repositioning so monitor affinity follows whichever desktop app surface is currently visible after display layout changes
 
 Stored state access:
 

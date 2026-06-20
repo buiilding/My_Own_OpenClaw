@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Window Surface Label Cleanup
+
+- Finding: generic Electron main window, overlay, display-affinity, and
+  query-capture docs still described app-owned windows and surfaces as
+  WindieOS surfaces/windows, even though product identity belongs to host skin
+  and main should read as a generic Electron agent host.
+- Change: reworded those docs through desktop app surface/window labels and
+  extended the modular frontend docs guard to cover the adjacent main window,
+  display-affinity, lifecycle, and overlay query-capture references.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  WindieOS window/surface phrase scan across `docs/frontend/main`, and diff
+  checks.
+- Compatibility: no migration required. Runtime code, IPC channels, window
+  visibility behavior, screenshot capture timing, display-affinity state,
+  storage, permissions, credentials, hosted routes, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 SDK Docs Hosted Capability Labels
 
 - Finding: active SDK tool-authoring, query-planning, and hosted-client docs

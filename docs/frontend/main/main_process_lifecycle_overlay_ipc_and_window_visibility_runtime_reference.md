@@ -44,7 +44,7 @@ Delegated runtime modules:
     - `createTray`
   - overlay renderer registration
 - display-metrics listener for overlay repositioning (non-VM mode only)
-  - listener syncs active display affinity from visible WindieOS surfaces via `syncVisibleSurfaceDisplayAffinity(...)` (chat first, dashboard second) before `positionChatWindow()` / `positionResponseWindow()`
+  - listener syncs active display affinity from visible desktop app surfaces via `syncVisibleSurfaceDisplayAffinity(...)` (chat first, dashboard second) before `positionChatWindow()` / `positionResponseWindow()`
 - global wakeword hotkey registration and toggle behavior (non-VM mode only)
 - app activation behavior (`create*Window` path when all windows closed, else `showMainWindow`)
 - app quit lifecycle:

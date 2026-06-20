@@ -59,6 +59,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/sdk: route tool-authoring, query-planning, and hosted-client control
   wording through hosted backend / first-party desktop app labels instead of
   WindieOS-specific SDK capability labels. No migration required.
+- docs/main: route generic Electron window, overlay, display-affinity, and
+  query-capture docs through desktop app surface/window labels instead of
+  WindieOS-specific surface wording. No migration required.
 - renderer/sdk: remove the retired renderer `agentSdkClient.ts` SDK re-export
   facade; renderer app-runtime contracts now import the SDK package directly
   and active docs route hosted TypeScript client work to `packages/windie-sdk-js`.

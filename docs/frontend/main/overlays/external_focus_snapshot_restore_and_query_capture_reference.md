@@ -2,7 +2,7 @@
 summary: "Deep reference for the current overlay query-capture blur/settle flow before query screenshot and system-state collection."
 read_when:
   - When changing `showChatWindow` focus behavior or overlay query capture timing.
-  - When debugging screenshots that capture WindieOS windows instead of target external apps.
+  - When debugging screenshots that capture desktop app windows instead of target external apps.
 title: "Overlay Query-Capture Blur and Settle Reference"
 ---
 
@@ -36,7 +36,7 @@ This hook is registered into IPC init as `onBeforeOverlayQueryCapture`.
 
 Intent:
 
-- reduce chance of capturing WindieOS overlay/main windows in screenshot query path
+- reduce chance of capturing desktop overlay/main windows in screenshot query path
 - give compositor/focus stack time to settle before system-state capture runs without trying to foreground another app
 
 ## Integration with Query Send Pipeline
@@ -46,7 +46,7 @@ Main process query relay flow calls the hook before capture-enriched query send 
 Coupled behavior:
 
 - overlay chat UI can remain visible without any cross-app focus handoff
-- query-time system state and screenshot capture are less likely to sample WindieOS windows as active
+- query-time system state and screenshot capture are less likely to sample desktop app windows as active
 
 ## Drift Hotspots
 
@@ -59,7 +59,7 @@ Coupled behavior:
 If overlay captures itself in screenshot path:
 
 1. verify `onBeforeOverlayQueryCapture` callback is wired in IPC init
-2. verify the visible WindieOS windows expose `blur()` and the hook is calling them
+2. verify the visible desktop app windows expose `blur()` and the hook is calling them
 3. verify the settle delay is still present in the hook path before capture continues
 
 If chatbox focus behavior regresses after toggle:

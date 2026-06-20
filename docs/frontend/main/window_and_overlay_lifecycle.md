@@ -120,7 +120,7 @@ Reposition triggers:
 
 - explicit `positionChatWindow()` and `positionResponseWindow()` calls
 - display metric change event (`screen.on('display-metrics-changed', ...)`)
-  - syncs stored active display affinity from visible WindieOS surfaces (`syncVisibleSurfaceDisplayAffinity`: chat first, then dashboard) before repositioning overlays
+  - syncs stored active display affinity from visible desktop app surfaces (`syncVisibleSurfaceDisplayAffinity`: chat first, then dashboard) before repositioning overlays
 - response resize IPC handler (`set-responsebox-size`)
 
 ## Overlay Phase Model
@@ -156,7 +156,7 @@ Visibility behavior:
 
 Overlay focus behavior is now the same on every desktop OS:
 
-- `prepareOverlayQueryCaptureFocus` only blurs WindieOS windows and waits `120ms`
+- `prepareOverlayQueryCaptureFocus` only blurs desktop app windows and waits `120ms`
 - there is no external-app snapshot/restore handoff path in the send/capture runtime
 - interactive tool-run focus prep still passes `skipDemotion=true`, so overlay prep avoids hide/show demotion flicker and relies on explicit click-through + non-focusable toggles
 - the pre-capture hook exists only to reduce self-capture interference before query screenshot/system-state collection
@@ -199,10 +199,10 @@ Tool-execution chat-pill lifecycle (SDK/main computer-use path):
 - shared response-overlay phase is now the only owner of active-loop interactivity: `awaiting-first-chunk|streaming|tool-call|tool-output` force chat/response overlays into click-through + non-focusable mode; outside active-loop phases the chat pill falls back to main-owned idle hit-testing that keeps transparent regions click-through until the renderer hover state says the pointer is over the visible pill shell
 - SDK/local-runtime tool-surface prep runs through Electron main before local execution; it shows the minimal pill with `focus: false` and `restoreResponseOverlay: true`, which hides a visible dashboard through the main window visibility runtime
 - renderer code remains display-only for backend tool events; it does not execute computer-use tools or own the dashboard-to-pill handoff
-- screenshot capture visibility prep now hides whichever WindieOS surface owns the capture:
+- screenshot capture visibility prep now hides whichever desktop app surface owns the capture:
   - `chatbox` for pill-originated capture
   - `main-window` for dashboard-originated capture
-  - `none` when no WindieOS surface is visible
+  - `none` when no desktop app surface is visible
 - restore is symmetric with prep: capture lifecycles use a dedicated `restore-surface-after-screenshot` IPC so the same hidden surface is restored with the correct contract
 - chat-pill restores through that IPC explicitly re-apply the response-overlay shell when the active overlay phase is still in the loop (`awaiting-first-chunk|streaming|tool-call|tool-output`), instead of reusing generic non-focusing `show-chatbox` behavior
 - dashboard capture prep now moves the main window off the visible desktop before hide and does not return until the dashboard is offscreen, minimized, or hidden, so screenshot execution no longer races the dashboard hide animation
@@ -212,7 +212,7 @@ Tool-execution chat-pill lifecycle (SDK/main computer-use path):
   capture-time hide/restore suppression for the pill/response overlay, and
   instead toggle Electron `setContentProtection(...)` only inside the SDK
   screenshot-capture lease
-- the shared renderer post-tool capture helper now owns the intentional pre-screenshot delay for screenshot/system-state collection on every OS, so capture timing is no longer tied to whether the platform screenshot-visibility runtime hides a WindieOS surface
+- the shared renderer post-tool capture helper now owns the intentional pre-screenshot delay for screenshot/system-state collection on every OS, so capture timing is no longer tied to whether the platform screenshot-visibility runtime hides a desktop app surface
 - response overlay renderer now listens to `response-overlay-visibility`; hide marks the cached frame as hidden and show forces a fresh `set-responsebox-size` report (including `compact_hover`) so typing-indicator compact hover offset is re-applied after capture hide/show cycles
 - debug tracing for these show/hide/resize transitions is now available in main under `WINDIE_DEBUG_STREAM_EVENTS=1` or `WINDIE_DEBUG_CHAT_PILL=1`
 
