@@ -1,8 +1,8 @@
 ---
 summary: "Local-runtime tools docs sub-hub for registry/exposure contracts plus computer, system, shell/process, and filesystem tool runtime semantics backed by local-runtime Python implementations."
 read_when:
-  - When changing sidecar tool registration/exposure behavior or tool result normalization semantics.
-  - When changing sidecar computer/system/filesystem/shell tool behavior or debugging runtime action failures.
+  - When changing local-runtime Python tool registration/exposure behavior or tool result normalization semantics.
+  - When changing local-runtime Python computer/system/filesystem/shell tool behavior or debugging runtime action failures.
 title: "Local-Runtime Tools Docs Hub"
 ---
 
@@ -27,9 +27,9 @@ title: "Local-Runtime Tools Docs Hub"
 
 ## Browser Tool Note
 
-The `browser` sidecar tool runs through `BrowserUseEngineRuntime`, which adapts
+The `browser` local-runtime Python tool runs through `BrowserUseEngineRuntime`, which adapts
 WindieOS canonical browser payloads to the maintained Browser Use CLI package.
-The sidecar no longer ships or routes browser actions through the retired
+The local runtime no longer ships or routes browser actions through the retired
 `WindieBrowserRuntime` or a vendored `browser_use.browser` session subtree.
 
 ## Manifest Note

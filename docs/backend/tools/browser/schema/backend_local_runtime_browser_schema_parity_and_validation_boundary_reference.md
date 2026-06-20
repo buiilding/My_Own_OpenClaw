@@ -57,7 +57,7 @@ When changing browser actions, verify four layers:
 
 1. backend-loaded shared contract action literals
 2. shared browser action catalog order (`BROWSER_ACTION_CONTRACTS`)
-3. sidecar tool validation and engine mapping (`browser_tool.py`, `browser_use_engine.py`)
+3. local-runtime Python tool validation and engine mapping (`browser_tool.py`, `browser_use_engine.py`)
 4. Browser Use runtime handler coverage
 
 ## Existing Parity Guards

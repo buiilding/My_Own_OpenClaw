@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(tools): route local-runtime tool registration, validation, and tooling
+  labels through local-runtime Python tool wording instead of sidecar tool
+  owner labels. No migration required.
 - docs(runtime): route local-runtime daemon/process labels through
   local-runtime Python daemon/process wording while preserving concrete
   `sidecar_daemon.py` names. No migration required.

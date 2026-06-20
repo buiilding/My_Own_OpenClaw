@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: debug, browser, sidecar-tool, and backend bridge docs
-  now route local error-code, entrypoint, result-model, and executable-tool
-  wording through local-runtime Python tool/result labels instead of Python
-  sidecar tool labels.
+- Latest completed slice: ADR alternatives, browser parity validation, platform
+  validation, overlay/surface workflows, local-runtime memory/tooling notes, and
+  local-runtime tool sub-hub read_when labels now route through local-runtime
+  Python tool wording instead of sidecar tool/tooling owner labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +244,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Local-Runtime Python Tool Registration Labels
+
+- Finding: ADR alternatives, browser parity validation, platform validation,
+  overlay/surface workflows, local-runtime memory/tooling notes, and
+  local-runtime tool sub-hub read_when labels still used sidecar tool/tooling
+  owner labels where the active owner is local-runtime Python tools.
+- Change: routed those labels through local-runtime Python tool wording while
+  preserving concrete `tests/sidecar` validation paths, browser implementation
+  filenames, and current local-runtime Python behavior.
+- Validation: focused modular docs boundary test, docs listing, exact active
+  sidecar-tool stale-label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, executable behavior,
+  tool schemas, JSON-RPC/daemon payloads, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
 
 ### 2026-06-20 Local-Runtime Python Daemon Labels
 

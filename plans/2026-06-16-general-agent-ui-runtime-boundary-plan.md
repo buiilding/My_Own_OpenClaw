@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Python Tool Registration Labels
+
+- Finding: ADR alternatives, browser parity validation, platform validation,
+  overlay/surface workflows, local-runtime memory/tooling notes, and
+  local-runtime tool sub-hub read_when labels still used sidecar tool/tooling
+  owner labels where the active owner is local-runtime Python tools.
+- Change: routed those labels through local-runtime Python tool wording while
+  preserving concrete `tests/sidecar` validation paths, browser implementation
+  filenames, and current local-runtime Python behavior.
+- Validation: focused modular docs boundary test, docs listing, exact active
+  sidecar-tool stale-label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, executable behavior,
+  tool schemas, JSON-RPC/daemon payloads, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
 ### 2026-06-20 Local-Runtime Python Daemon Labels
 
 - Finding: architecture, local-runtime daemon, local-runtime memory, and error

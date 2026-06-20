@@ -36,7 +36,7 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 | screenshot visibility bridge | `tests/frontend/LocalRuntimeWindowVisibility.test.cjs` | `tests/sidecar/test_screenshot_tool.py` | Use when screenshots include WindieOS surfaces or capture bounds are wrong. |
 | overlay phase state | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/OverlayPhaseIpcRuntime.test.cjs` | not applicable | Use when phase transitions change hide/protect/restore behavior. |
 | display affinity and multi-monitor targeting | `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/DisplayQueryHandler.test.cjs` | `tests/sidecar/test_screenshot_tool.py` | Include manual multi-monitor capture check if the bug was monitor-specific. |
-| permission probe or grant | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/permissionStore.test.js` | platform-specific sidecar tool test if execution depends on the grant | Use real OS manual checks for grant flows. Mocks only prove routing. |
+| permission probe or grant | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/permissionStore.test.js` | platform-specific local-runtime Python tool test if execution depends on the grant | Use real OS manual checks for grant flows. Mocks only prove routing. |
 | onboarding permission UI | `tests/frontend/useOnboardingPermissionActions.test.jsx`, `tests/frontend/AppPermissionGate.test.jsx`, `tests/frontend/permissionGrantEffects.test.js` | not applicable | Use with permission-service tests so UI and authority do not drift. |
 | sidecar mouse control | not applicable unless renderer tool dispatch changed | `tests/sidecar/test_mouse_tool.py` | Manual pointer movement may be required for OS-level confidence. |
 | sidecar keyboard control | not applicable unless renderer tool dispatch changed | `tests/sidecar/test_keyboard_tool.py` | Validate permission handling before changing key synthesis. |
@@ -87,7 +87,7 @@ Run broader validation when:
 
 - a shared helper changed under `frontend/src/main/platform`.
 - a permission manifest or IPC channel changed.
-- sidecar tool payloads or result shapes changed.
+- local-runtime Python tool payloads or result shapes changed.
 - packaged runtime search paths changed.
 - the change touches both renderer state and Electron native window behavior.
 - a failure could corrupt transcript, tool-result, or artifact state.

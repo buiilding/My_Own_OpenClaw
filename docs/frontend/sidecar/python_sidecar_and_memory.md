@@ -82,7 +82,7 @@ Defines Pydantic argument models and validation for:
 
 Current enforcement boundary:
 
-- schema models define canonical argument contracts shared by sidecar tooling/tests
+- schema models define canonical argument contracts shared by local-runtime Python tooling/tests
 - `ToolRegistry.execute_tool(...)` does not automatically instantiate all schema models before invocation
 - runtime guardrails are split between:
   - direct tool-name routing and caller-arg cloning in `tools/registry.py`

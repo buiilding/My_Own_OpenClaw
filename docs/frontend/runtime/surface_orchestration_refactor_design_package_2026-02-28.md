@@ -248,7 +248,7 @@ Phase 4 (tests + docs + hardening):
 
 ## Non-goals
 
-- No sidecar tool behavior changes.
+- No local-runtime Python tool behavior changes.
 - No backend query semantics changes.
 - No UX redesign of chat-pill/dashboard visuals.
 

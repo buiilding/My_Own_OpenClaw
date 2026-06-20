@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime Python tool-registration label slice by
+  routing ADR alternatives, browser parity validation, platform validation,
+  overlay/surface workflows, local-runtime memory/tooling notes, and
+  local-runtime tool sub-hub read_when labels through local-runtime Python tool
+  wording instead of sidecar tool/tooling owner labels. The slice preserved
+  concrete `tests/sidecar` validation paths, browser implementation filenames,
+  and current local-runtime Python behavior while extending the modular docs
+  boundary guard against stale sidecar-tool owner labels. Validation covered the
+  focused modular docs boundary test, docs listing, exact active sidecar-tool
+  stale-label scan, and diff checks. No migration required; runtime code,
+  executable behavior, tool schemas, JSON-RPC/daemon payloads, IPC payloads,
+  storage, credentials, permissions, hosted backend URLs, provider policy, and
+  trust boundaries are unchanged.
+
 - 2026-06-20: completed a local-runtime Python daemon-label slice by routing
   architecture, local-runtime daemon, local-runtime memory, and error routing
   docs through local-runtime Python daemon/process wording instead of local

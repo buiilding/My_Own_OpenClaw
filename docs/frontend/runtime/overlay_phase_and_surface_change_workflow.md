@@ -193,7 +193,7 @@ Renderer rules:
   resize churn.
 - Keep awaiting-to-response transitions non-animated in the minimal pill loop.
 - Tool ghost preview is display-only. Local tool execution remains in the SDK
-  runtime, Electron main bridge, and sidecar tools.
+  runtime, Electron main bridge, and local-runtime Python tools.
 
 ### 5. Inspect platform capture behavior
 
