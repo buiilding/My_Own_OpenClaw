@@ -506,9 +506,12 @@ describe('main ipc sdk runtime boundary', () => {
     );
 
     expect(mainSource).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS');
-    expect(mainSource).toContain('registerAgentSdkInvokeHandler({');
+    expect(mainSource).toContain('createAgentSdkInvokeHandlerRuntime({');
+    expect(mainSource).toContain('agentSdkInvokeHandlerRuntime.register({');
     expect(mainSource).toContain('invokeChannel: DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
+    expect(mainSource).not.toContain('registerAgentSdkInvokeHandler({');
     expect(mainSource).not.toContain('ipcMain.handle(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
+    expect(source).toContain('function createAgentSdkInvokeHandlerRuntime');
     expect(source).toContain('function registerAgentSdkInvokeHandler');
     expect(source).toContain('handleInvoke(event, payload');
     expect(mainSource).toContain('ensureAgent,');
@@ -559,6 +562,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(mainSource).not.toContain('handleAgentSdkInvoke(event, payload, { method');
     const sdkCommandModule = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
     expect(sdkCommandModule.buildAgentSdkCommandHandlers).toBeUndefined();
+    expect(typeof sdkCommandModule.createAgentSdkInvokeHandlerRuntime).toBe('function');
     expect(typeof sdkCommandModule.handleAgentSdkInvoke).toBe('function');
     expect(typeof sdkCommandModule.registerAgentSdkInvokeHandler).toBe('function');
 
@@ -599,6 +603,54 @@ describe('main ipc sdk runtime boundary', () => {
       payload: { userId: 'user-1' },
     })).resolves.toEqual({ ok: true, data: 'done' });
 
+    expect(handleInvoke).toHaveBeenCalledWith(
+      { sender: 'renderer' },
+      {
+        command: 'models.list',
+        payload: { userId: 'user-1' },
+      },
+      {
+        handleRendererChatQuery,
+        handleRendererStopQuery,
+        deps,
+      },
+    );
+  });
+
+  test('SDK invoke runtime wrapper composes registration dependencies once', async () => {
+    const {
+      createAgentSdkInvokeHandlerRuntime,
+    } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
+    const handlers = {};
+    const ipcMain = {
+      handle: jest.fn((channel, handler) => {
+        handlers[channel] = handler;
+      }),
+    };
+    const handleInvoke = jest.fn(async () => ({ ok: true, data: 'done' }));
+    const deps = {
+      getState: jest.fn(() => ({ currentUserId: 'user-1' })),
+    };
+    const handleRendererChatQuery = jest.fn();
+    const handleRendererStopQuery = jest.fn();
+    const runtime = createAgentSdkInvokeHandlerRuntime({
+      invokeChannel: 'windie:invoke',
+      deps,
+      handleInvoke,
+    });
+
+    runtime.register({
+      ipcMain,
+      handleRendererChatQuery,
+      handleRendererStopQuery,
+    });
+
+    await expect(handlers['windie:invoke']({ sender: 'renderer' }, {
+      command: 'models.list',
+      payload: { userId: 'user-1' },
+    })).resolves.toEqual({ ok: true, data: 'done' });
+
+    expect(ipcMain.handle).toHaveBeenCalledWith('windie:invoke', expect.any(Function));
     expect(handleInvoke).toHaveBeenCalledWith(
       { sender: 'renderer' },
       {

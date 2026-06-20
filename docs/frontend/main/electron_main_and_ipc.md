@@ -149,8 +149,8 @@ Split boundary:
 - `ipc.cjs` owns renderer-facing lifecycle orchestration and injects host state
   into focused IPC handler registration helpers.
 - `ipc_agent_sdk_command_handlers.cjs` owns the strict SDK command allowlist and
-  `windie:invoke` handler registration while receiving Electron-main state and
-  Agent SDK methods as injected dependencies.
+  `windie:invoke` handler registration runtime while receiving Electron-main
+  state and Agent SDK methods as injected dependencies.
 - `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.
 - helper modules own event processing, renderer-window fan-out, SDK terminal
   status projection, SDK workspace-path fallback resolution through a cached

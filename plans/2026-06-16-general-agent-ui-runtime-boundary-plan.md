@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main SDK Invoke Handler Runtime Boundary
+
+- Finding: `ipc_agent_sdk_command_handlers.cjs` owned the strict
+  `windie:invoke` command allowlist and low-level IPC registration helper, but
+  `initializeIpc(...)` still assembled backend session state, install identity,
+  settings gates, Agent SDK command functions, wakeword routing, diagnostics,
+  and the public invoke channel every time it registered the SDK command bridge.
+- Change: added `createAgentSdkInvokeHandlerRuntime(...)` so the SDK command
+  helper owns reusable `windie:invoke` dependency composition. `ipc.cjs`
+  composes host state and Agent SDK command functions once, and
+  `initializeIpc(...)` now supplies only the per-window chat/stop handlers.
+- Validation: focused main SDK boundary coverage verifies runtime wrapper
+  registration, payload forwarding through the strict command handler, source
+  guards that keep direct registration out of `initializeIpc(...)`, and
+  unchanged command allowlist ownership.
+- Compatibility: no migration required. The public `windie:invoke` IPC channel,
+  SDK command names and payload shapes, authenticated user checks, settings
+  synchronization gate, model-list and wakeword routing, diagnostics, renderer
+  IPC, storage, credentials, permissions, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Main IPC Startup State Runtime Boundary
 
 - Finding: `ipc_startup_state.cjs` owned startup install-auth/config/shortcut

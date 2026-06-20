@@ -219,7 +219,7 @@ const {
   createChatQueryHandlerRuntime,
 } = require('./ipc/ipc_chat_query_handlers.cjs');
 const {
-  registerAgentSdkInvokeHandler,
+  createAgentSdkInvokeHandlerRuntime,
 } = require('./ipc/ipc_agent_sdk_command_handlers.cjs');
 const {
   createRendererWindowRegistry,
@@ -547,6 +547,28 @@ const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
       copy: ipcHostCopyRuntime.getQueryEvents(),
     }),
     traceRendererQuery: (input) => electronMainTraceLogger.traceRendererQuery(input),
+  },
+});
+const agentSdkInvokeHandlerRuntime = createAgentSdkInvokeHandlerRuntime({
+  invokeChannel: DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE,
+  deps: {
+    getState: () => ({
+      currentConversationRef: backendSessionState.getConversationRef(),
+      currentSessionId: backendSessionState.getSessionId(),
+      currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
+      isConnected: backendConnectionGateState.getConnected(),
+      agent: agentRuntimeLifecycle.getActiveAgent(),
+    }),
+    ensureAgent,
+    resolveWorkspacePathForAgent,
+    sendSettingsUpdate,
+    requestModelListThroughAgentSdkRuntime,
+    isBackendRuntimeConnected,
+    ensureBackendConnection,
+    ensureInitialSettingsSync,
+    getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
+    sendWakewordDetectedThroughAgentSdkRuntime,
+    appendAppDiagnostic,
   },
 });
 const artifactHandlersRuntime = createArtifactHandlersRuntime({
@@ -934,30 +956,10 @@ function initializeIpc(win, options = {}) {
     onBeforeOverlayQueryCapture: hostOptionState.getOnBeforeOverlayQueryCapture(),
   });
 
-  registerAgentSdkInvokeHandler({
+  agentSdkInvokeHandlerRuntime.register({
     ipcMain,
-    invokeChannel: DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE,
     handleRendererChatQuery,
     handleRendererStopQuery,
-    deps: {
-      getState: () => ({
-        currentConversationRef: backendSessionState.getConversationRef(),
-        currentSessionId: backendSessionState.getSessionId(),
-        currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
-        isConnected: backendConnectionGateState.getConnected(),
-        agent: agentRuntimeLifecycle.getActiveAgent(),
-      }),
-      ensureAgent,
-      resolveWorkspacePathForAgent,
-      sendSettingsUpdate,
-      requestModelListThroughAgentSdkRuntime,
-      isBackendRuntimeConnected,
-      ensureBackendConnection,
-      ensureInitialSettingsSync,
-      getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
-      sendWakewordDetectedThroughAgentSdkRuntime,
-      appendAppDiagnostic,
-    },
   });
 
 }

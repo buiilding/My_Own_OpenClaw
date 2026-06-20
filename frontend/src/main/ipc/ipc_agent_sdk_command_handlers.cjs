@@ -457,7 +457,33 @@ function registerAgentSdkInvokeHandler({
   ));
 }
 
+function createAgentSdkInvokeHandlerRuntime({
+  invokeChannel,
+  deps,
+  handleInvoke = handleAgentSdkInvoke,
+} = {}) {
+  function register({
+    ipcMain,
+    handleRendererChatQuery,
+    handleRendererStopQuery,
+  } = {}) {
+    return registerAgentSdkInvokeHandler({
+      ipcMain,
+      invokeChannel,
+      handleRendererChatQuery,
+      handleRendererStopQuery,
+      deps,
+      handleInvoke,
+    });
+  }
+
+  return {
+    register,
+  };
+}
+
 module.exports = {
+  createAgentSdkInvokeHandlerRuntime,
   handleAgentSdkInvoke,
   registerAgentSdkInvokeHandler,
 };

@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move SDK-shaped `windie:invoke` command dependency wiring into
+  `createAgentSdkInvokeHandlerRuntime(...)`, preserving the public invoke
+  channel, strict command allowlist, settings gate, diagnostics, and Agent SDK
+  runtime command routing. No migration required.
 - main/ipc: move startup install-auth, cached desktop UI config, and shortcut
   hydration dependency wiring into `createIpcStartupStateRuntime(...)`,
   preserving fail-open hydration, shortcut fallback, MCP startup refresh, and
