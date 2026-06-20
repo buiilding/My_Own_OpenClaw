@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move install-auth identity normalization and SDK `installAuth`
+  option shaping into `ipc_install_auth_identity_runtime.cjs`, preserving
+  token/user/install trimming, server-user fallback initialization, and
+  `autoRegister: false` desktop wake-up auth behavior. No migration required.
 - main/ipc: move IPC status, client-session, and backend connection payload
   shaping into `ipc_status_payloads.cjs`, preserving runtime URL fields,
   user/session/conversation fields, connection state, and global stop shortcut

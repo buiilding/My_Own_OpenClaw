@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Install Auth Identity Boundary
+
+- Finding: install registration, disk validation, and bearer-header construction
+  already lived in `ipc_install_auth_runtime.cjs`, but `ipc.cjs` still trimmed
+  install identity values, applied them to host state, initialized the
+  server-user fallback, and built the SDK wake-up `installAuth` object inline.
+- Change: added `ipc_install_auth_identity_runtime.cjs` to own install-auth
+  identity normalization and SDK auth-option shaping. `ipc.cjs` now injects
+  host state setters/getters while the helper owns token/user/install trimming,
+  server-user fallback initialization, current-state projection, and
+  `autoRegister: false` desktop wake-up auth construction.
+- Validation: focused install-auth identity coverage for complete/incomplete
+  normalization, host-state application, server-user preservation, SDK
+  `installAuth` construction, missing-token behavior, and a boundary guard that
+  keeps install identity trimming and `autoRegister` shaping out of `ipc.cjs`.
+- Compatibility: no migration required. Persisted install-auth file shape,
+  bearer header behavior, install registration/validation, SDK wake-up auth
+  inputs, websocket identity behavior, storage, credentials, permissions,
+  hosted URLs, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main IPC Status Payload Boundary
 
 - Finding: `ipc.cjs` still shaped three related status payloads inline: renderer

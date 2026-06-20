@@ -87,6 +87,9 @@ const {
   createInstallAuthRuntime,
 } = require('./ipc/ipc_install_auth_runtime.cjs');
 const {
+  createInstallAuthIdentityRuntime,
+} = require('./ipc/ipc_install_auth_identity_runtime.cjs');
+const {
   isValidConfigPayload,
 } = require('./ipc/ipc_settings_sync.cjs');
 const {
@@ -366,13 +369,29 @@ const mcpRefreshRuntime = createMcpRefreshRuntime({
   isTest: () => process.env.NODE_ENV === 'test',
   log,
 });
-const installAuthRuntime = createInstallAuthRuntime({
-  getCurrentState: () => ({
-    installToken: currentInstallToken,
-    userId: currentUserId,
-    installId: currentInstallId,
+const installAuthIdentityRuntime = createInstallAuthIdentityRuntime({
+  getState: () => ({
+    currentInstallToken,
+    currentUserId,
+    currentInstallId,
+    currentServerUserId,
   }),
-  applyInstallAuthState,
+  setInstallToken: (value) => {
+    currentInstallToken = value;
+  },
+  setInstallId: (value) => {
+    currentInstallId = value;
+  },
+  setCurrentUserId: (value) => {
+    currentUserId = value;
+  },
+  setCurrentServerUserId: (value) => {
+    currentServerUserId = value;
+  },
+});
+const installAuthRuntime = createInstallAuthRuntime({
+  getCurrentState: () => installAuthIdentityRuntime.getCurrentState(),
+  applyInstallAuthState: (state) => installAuthIdentityRuntime.applyInstallAuthState(state),
   getEndpointCandidates: () => backendEndpointState.getCandidates(),
   setActiveBackendEndpoint,
   loadInstallAuthStateFromDisk,
@@ -382,29 +401,6 @@ const installAuthRuntime = createInstallAuthRuntime({
   clearInstallAuthStateFromDisk,
   log,
 });
-
-function applyInstallAuthState(state) {
-  if (!state || typeof state !== 'object') {
-    return null;
-  }
-  const installToken = typeof state.installToken === 'string' ? state.installToken.trim() : '';
-  const userId = typeof state.userId === 'string' ? state.userId.trim() : '';
-  const installId = typeof state.installId === 'string' ? state.installId.trim() : '';
-  if (!installToken || !userId || !installId) {
-    return null;
-  }
-  currentInstallToken = installToken;
-  currentInstallId = installId;
-  currentUserId = userId;
-  if (!currentServerUserId) {
-    currentServerUserId = userId;
-  }
-  return {
-    installToken,
-    userId,
-    installId,
-  };
-}
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -546,15 +542,7 @@ function resolveRuntimeConversationRef(input = {}) {
 }
 
 function buildDesktopInstallAuth() {
-  if (!currentInstallToken) {
-    return undefined;
-  }
-  return {
-    ...(currentUserId ? { userId: currentUserId } : {}),
-    ...(currentInstallId ? { installId: currentInstallId } : {}),
-    installToken: currentInstallToken,
-    autoRegister: false,
-  };
+  return installAuthIdentityRuntime.buildDesktopInstallAuth();
 }
 
 function configureIpcHostRuntime(config = {}) {
@@ -912,7 +900,7 @@ function initializeIpc(win, options = {}) {
   trackRendererWindow(win);
   initializeIpcStartupState({
     loadInstallAuthStateFromDisk,
-    applyInstallAuthState,
+    applyInstallAuthState: (state) => installAuthIdentityRuntime.applyInstallAuthState(state),
     loadCachedDesktopUiConfigFromDisk,
     isValidConfigPayload,
     applyShortcutStatusFallbackToConfig,
