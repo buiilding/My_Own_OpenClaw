@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Memory Replay Conversation Store Labels
+
+- Finding: transcript replay, renderer transcript, and conversation identity
+  docs still used sidecar chat-event handler, sidecar transcript tests,
+  sidecar conversation list/search/title tests, and sidecar write/read RPC
+  labels even though the reusable owner is SDK/local-runtime conversation
+  storage with local-runtime Python as the current implementation.
+- Change: routed those labels through local-runtime Python conversation-store,
+  transcript, handler, and RPC wording while preserving concrete
+  `conversation.append_event`, `tests/sidecar`, and `python-in-env sidecar`
+  command details.
+- Validation: focused modular docs boundary test, exact stale conversation
+  store-label scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, JSON-RPC method names,
+  database schema, conversation row shape, search SQL behavior, dashboard
+  replay, backend rehydrate payloads, IPC payloads, storage files, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
 ### 2026-06-20 Architecture Local-Runtime Route Labels
 
 - Finding: active architecture and reference docs still used sidecar routing,

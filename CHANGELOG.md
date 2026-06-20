@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(memory): route remaining transcript replay and conversation identity
+  test/debug labels through local-runtime Python conversation-store wording
+  instead of sidecar conversation labels. No migration required.
 - renderer/tracing: move minimal response-overlay state and render diagnostic
   payload shaping into `desktopRendererTraceRuntime` so the overlay passes
   value-level state instead of assembling snake_case trace fields directly. No

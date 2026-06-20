@@ -23,7 +23,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 | backend continues an old conversation or creates duplicate sessions | backend session registry/manager | `backend/src/agent/session/session_registry.py`, `backend/src/agent/session/manager.py`, `backend/src/agent/session/conversation_refs.py` | [Backend Session Runtime and Config Rewire Reference](../backend/agent/session_runtime_and_config_rewire_reference.md), [Session and Transcript Reference](../reference/session_and_transcript_reference.md) | `tests/backend/test_session_manager.py`, `tests/backend/test_session_registry.py`, `tests/backend/test_session_cleanup.py` |
 | stop-query cancels the wrong turn or wrong conversation | backend active query tracker plus renderer stop payload | `backend/src/agent/session/active_query_tracker.py`, `backend/src/api/handlers/stop_query.py`, renderer stop controls | [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md) | backend stop/query tests and SDK/renderer stream/stop tests |
 | stream chunks, tool rows, or completion events appear in the wrong chat | renderer active stream/conversation gate | `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`, stream hooks, transcript writer call sites | [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md), [Conversation Gate Reference](../frontend/renderer/chat/stream/conversation_gate_and_active_turn_filtering_reference.md) | `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`, `tests/frontend/ChatStream*.test.ts` |
-| visible transcript row does not persist or persists under wrong conversation | SDK projection store and local-runtime event store path | `packages/windie-sdk-js/src/stores`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `frontend/src/main/python/memory/local_store.py` | [Transcript and Replay](transcript_and_replay.md), [Transcript Session and Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md) | SDK/main projection tests, sidecar transcript tests |
+| visible transcript row does not persist or persists under wrong conversation | SDK projection store and local-runtime event store path | `packages/windie-sdk-js/src/stores`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `frontend/src/main/python/memory/local_store.py` | [Transcript and Replay](transcript_and_replay.md), [Transcript Session and Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md) | SDK/main projection tests, local-runtime Python transcript tests |
 | dashboard resume displays rows but backend forgets context | SDK rehydrate projection plus backend rehydrate service | `packages/windie-sdk-js/src/projections`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | [Memory Change Workflow](memory_change_workflow.md), [Backend History and Semantic Routes](backend_history_and_semantic_routes.md) | SDK rehydrate tests, `tests/backend/test_rehydrate_*.py` |
 | tool-call/tool-output linkage breaks after replay or rehydrate | SDK tool projection state plus backend rehydrate linkage/history | SDK tool projection files, `backend/src/api/services/rehydrate_tool_*`, `backend/src/agent/history/*` | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), [Backend History Tool-Call ID Staging Reference](../backend/agent/history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md) | SDK tool projection tests, `tests/backend/test_rehydrate_tool_linkage.py`, `tests/backend/test_conversation_history.py` |
 | conversation list/search/title/delete behavior drifts | local-runtime memory and dashboard views | `frontend/src/main/python/memory/conversation_*`, dashboard hooks, local conversation store | [Local Runtime Memory](sidecar_local_memory.md), [Memory Troubleshooting](memory_troubleshooting.md) | `tests/sidecar/test_conversation_*.py`, dashboard conversation tests |
@@ -115,7 +115,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 1. Update renderer transcript writer and local-runtime memory storage together when the persisted payload changes.
 2. Keep `conversation_ref`, `user_id`, role, message type, timestamp, and message index stable.
 3. Update dashboard list/search/title/delete consumers when storage fields or query ordering change.
-4. Validate frontend transcript/pending tests and sidecar conversation list/search/title tests.
+4. Validate frontend transcript/pending tests and local-runtime Python conversation list/search/title tests.
 
 ### Change Backend Session Registry Behavior
 
@@ -167,7 +167,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 | backend session registry/manager | `./scripts/python-in-env backend pytest tests/backend/test_session_manager.py tests/backend/test_session_registry.py tests/backend/test_session_cleanup.py` |
 | replay/rehydrate payload | `<windie> test frontend -- WindieSdkConversationRuntime ConversationReplayActions DesktopConversationReplayRuntime` |
 | backend rehydrate services | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py` |
-| sidecar conversation storage/list/search/title | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_*.py` |
+| local-runtime Python conversation storage/list/search/title | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_*.py` |
 | docs-only identity workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 ## Review Checklist
@@ -178,7 +178,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 - Renderer replay and backend rehydrate remain separate but use the same stored transcript facts.
 - Active stream filtering handles stale conversation, stale turn, terminal events, and missing identity deliberately.
 - Backend session cleanup clears conversation-scoped sessions without wiping unrelated active conversations for the same user.
-- Sidecar conversation list/search/title/delete behavior uses the same user/conversation keys as transcript writes.
+- Local-runtime Python conversation list/search/title/delete behavior uses the same user/conversation keys as transcript writes.
 - Tests cover both producer and consumer boundaries for any changed identity field.
 
 ## Related Docs

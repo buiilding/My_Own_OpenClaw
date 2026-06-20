@@ -1,7 +1,7 @@
 ---
 summary: "Renderer transcript runtime reference: session identity state, SDK-backed conversation storage, direct desktopConversationStore command bridge behavior, removed createConversationEvent import/use in the desktop store, removed ConversationReplayState.test.ts state path, removed desktop store write enrichment helpers, IPC storage contract, and dashboard conversation resume/rehydrate flow."
 read_when:
-  - When changing transcript session identity wiring, SDK display projection, desktopConversationStore command bridge behavior, or sidecar conversation-store payload shape.
+  - When changing transcript session identity wiring, SDK display projection, desktopConversationStore command bridge behavior, or local-runtime Python conversation-store payload shape.
   - When changing or searching for `desktopConversationLibraryClient.js`, conversation list/load/delete/search behavior, dashboard resume, or SDK-backed conversation library access.
   - When resolving stale references to removed desktop conversation-store write enrichment helpers, the removed `createConversationEvent` desktopConversationStore import, workspace metadata enrichment, broad screenshot attachment aliases, or renderer persistence reshaping.
   - When resolving stale references to removed `ConversationReplayState.test.ts`; replay state is now SDK conversation events plus current replay action, database integration, and tool-message projection tests.
@@ -120,7 +120,7 @@ Storage split:
   `compaction_applied` conversation events.
 
 Event write enrichment, local-runtime persistence payload shaping, and attachment
-storage belong to the SDK `LocalRuntimeConversationStore` plus the sidecar
+storage belong to the SDK `LocalRuntimeConversationStore` plus local-runtime
 write/read RPCs. Display and backend rehydrate snapshots come from the SDK
 projection path, and backend resume is triggered by the SDK continuity service
 rather than by dashboard or chat feature code.
@@ -212,7 +212,7 @@ If transcript rows never appear:
 
 1. verify transcript session has both `conversationRef` and `userId`
 2. verify `updateTranscriptSession(...)` runs after IPC status/backend events
-3. inspect sidecar `conversation.append_event` handling and SDK store calls
+3. inspect local-runtime Python `conversation.append_event` handling and SDK store calls
 
 If resumed conversation loses screenshot/tool linkage:
 

@@ -19,7 +19,7 @@ The core rule is: SDK local-runtime `conversation_events` rows are the canonical
 flowchart LR
     A["SDK conversation event"] --> B["desktop conversation store factory"]
     B --> C["Electron main memory RPC mapper"]
-    C --> D["sidecar chat event handler"]
+    C --> D["local-runtime Python chat event handler"]
     D --> E["local-runtime conversation_events rows"]
     E --> F["dashboard conversation list/search"]
     E --> G["SDK display/rehydrate projections"]
@@ -44,7 +44,7 @@ flowchart LR
 
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
-| User or assistant row appears in UI but is missing after restart | SDK store/display projection | `desktopConversationStore.ts`, `sdkDisplayChatMessageProjection.ts`, SDK conversation runtime/store | `DesktopConversationStore.test.ts`, `SdkDisplayChatMessageProjection.test.ts`, sidecar `conversation.append_event` tests |
+| User or assistant row appears in UI but is missing after restart | SDK store/display projection | `desktopConversationStore.ts`, `sdkDisplayChatMessageProjection.ts`, SDK conversation runtime/store | `DesktopConversationStore.test.ts`, `SdkDisplayChatMessageProjection.test.ts`, local-runtime Python `conversation.append_event` tests |
 | Tool call/output rows are missing or replay drops screenshot refs/attachment filenames | Renderer transcript tool message state, SDK display projection, and replay runtime shaping | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `sdkDisplayChatMessageProjection.ts`, `desktopConversationReplayRuntime.js` | `DesktopConversationReplayRuntime.test.js`, `SdkDisplayChatMessageProjection.test.ts`, backend linkage validation tests |
 | Transcript writes happen under the wrong conversation | Transcript session runtime and Electron sync | `transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionSyncPayload.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) |
 | Dashboard conversation list is missing, stale, or ordered wrong | Local-runtime conversation storage plus dashboard loader | `frontend/src/main/python/memory/chat_event_store.py`, `local_store.py`, dashboard conversation hooks | `tests/sidecar/test_chat_event_store.py`, `tests/frontend/DashboardConversationLoad.test.js` |
@@ -120,7 +120,7 @@ flowchart LR
 
 1. Confirm the row was emitted as an SDK conversation event.
 2. Confirm renderer IPC called the main memory bridge with the expected payload.
-3. Confirm sidecar `conversation.append_event` wrote a row with the expected user/conversation/message type.
+3. Confirm local-runtime Python `conversation.append_event` wrote a row with the expected user/conversation/message type.
 4. Confirm dashboard/list replay is querying the same user and conversation.
 5. Confirm SDK display projection maps the stored event into the expected chat row.
 

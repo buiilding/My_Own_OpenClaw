@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a memory replay conversation-store label slice by
+  routing transcript replay, renderer transcript, and conversation identity
+  docs through local-runtime Python conversation-store, transcript, handler,
+  and RPC wording instead of sidecar conversation/test labels. Validation:
+  focused modular docs boundary test, exact stale conversation store-label
+  scan, docs listing, and diff checks. No migration required; runtime code,
+  JSON-RPC method names, database schema, conversation row shape, search SQL
+  behavior, dashboard replay, backend rehydrate payloads, IPC payloads, storage
+  files, credentials, permissions, hosted backend URLs, provider policy, and
+  trust boundaries are unchanged.
+
 - 2026-06-20: completed a renderer response-overlay trace payload boundary
   slice by moving minimal response-overlay state/render diagnostic field
   shaping from `MinimalResponseOverlay.jsx` into
