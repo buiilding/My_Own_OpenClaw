@@ -7399,3 +7399,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime daemon/tool contracts, transcript storage, credentials,
   permissions, hosted backend URLs, provider policy, and Python SDK
   compatibility assertions are unchanged; no migration is required.
+- The SDK package-boundary focused test now lives at
+  `tests/frontend/AgentSdkPackageBoundary.test.ts`, with active validation docs
+  routed to the generic Agent SDK package-boundary route while the test still
+  describes the real `@windie/sdk` package name. Public SDK exports, package
+  name, runtime behavior, hosted backend payloads, local-runtime contracts,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged; no migration is required.

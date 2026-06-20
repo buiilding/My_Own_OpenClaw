@@ -18163,3 +18163,21 @@ Each completed slice should report:
   hosted backend route payloads, local-runtime daemon/tool contracts,
   transcript storage, credentials, permissions, hosted backend URLs, provider
   policy, and Python SDK compatibility assertions are unchanged.
+
+### 2026-06-20 SDK package-boundary test route rename
+
+- Finding: the SDK package-boundary test imports generic `Agent*` public
+  runtime symbols and already describes Agent SDK package-boundary behavior, but
+  the focused route still used the product-branded `WindieSdkPackageBoundary`
+  filename.
+- Change: renamed the focused test to
+  `tests/frontend/AgentSdkPackageBoundary.test.ts`, updated active validation
+  docs, and extended the modular route guard so the generic path exists while
+  the retired branded route stays absent. The suite still describes
+  `@windie/sdk` because that remains the npm package name under test.
+- Validation: focused Agent SDK package-boundary test, modular docs boundary
+  test, exact old-route scan, docs listing, and diff checks.
+- Compatibility: no migration required. Public SDK exports, package name,
+  runtime behavior, hosted backend payloads, local-runtime contracts,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.
