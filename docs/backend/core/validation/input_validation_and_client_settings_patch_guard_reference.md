@@ -92,6 +92,9 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 - non-dict input -> `ValidationError`
 - unknown keys are ignored with warning
 - validates known keys via `ClientSettingsPatch.model_validate`
+- `provider_api_keys` keeps only backend-supported provider ids from
+  `ProviderApiKeys` and only the `enabled`/`api_key` entry fields; unsupported
+  provider ids are ignored at the backend settings boundary
 - returns only explicitly provided valid keys (`exclude_unset=True`)
 
 Integration:

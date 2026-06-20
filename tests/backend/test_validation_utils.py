@@ -172,7 +172,12 @@ def test_validate_client_settings_patch_allows_subset_and_validates_values():
         "browser_automation_enabled": False,
         "include_query_screenshot": True,
         "provider_api_keys": {
-            "openai": {"enabled": True, "api_key": "sk-openai"},
+            "openai": {
+                "enabled": True,
+                "api_key": "sk-openai",
+                "renderer_only": True,
+            },
+            "future_provider": {"enabled": True, "api_key": "future"},
         },
         "provider_oauth": {
             "openai_codex": {
@@ -191,7 +196,9 @@ def test_validate_client_settings_patch_allows_subset_and_validates_values():
     assert validated["wakeword_stt_enabled"] is True
     assert validated["browser_automation_enabled"] is False
     assert validated["include_query_screenshot"] is True
-    assert validated["provider_api_keys"]["openai"]["enabled"] is True
+    assert validated["provider_api_keys"] == {
+        "openai": {"enabled": True, "api_key": "sk-openai"}
+    }
     assert "provider_oauth" not in validated
 
     with pytest.raises(ValidationError):

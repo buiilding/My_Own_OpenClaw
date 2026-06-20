@@ -82,6 +82,30 @@ function assertPayloadMatchesContract(type, payload) {
       allowExtra: toolsContract.extra === 'allow',
     });
   }
+
+  const providerApiKeysContract = payloadContract.nested?.provider_api_keys;
+  if (
+    providerApiKeysContract
+    && payload.provider_api_keys !== undefined
+    && payload.provider_api_keys !== null
+  ) {
+    assertAllowedKeys(
+      `${type}.payload.provider_api_keys`,
+      payload.provider_api_keys,
+      providerApiKeysContract.keys,
+      { allowExtra: providerApiKeysContract.extra === 'ignore' },
+    );
+    for (const [provider, entry] of Object.entries(payload.provider_api_keys)) {
+      if (!providerApiKeysContract.keys.includes(provider)) {
+        continue;
+      }
+      assertAllowedKeys(
+        `${type}.payload.provider_api_keys.${provider}`,
+        entry,
+        providerApiKeysContract.entry_keys,
+      );
+    }
+  }
 }
 
 async function createOpenSession() {
@@ -183,7 +207,7 @@ function extractSdkBackendPayloadKeysByType() {
     'utf8',
   );
   const startIndex = source.indexOf('const BACKEND_PAYLOAD_KEYS_BY_TYPE');
-  const endIndex = source.indexOf('const PROVIDER_API_KEY_KEYS');
+  const endIndex = source.indexOf('const PROVIDER_API_KEY_ENTRY_KEYS');
   expect(startIndex).toBeGreaterThanOrEqual(0);
   expect(endIndex).toBeGreaterThan(startIndex);
   const sourceBlock = source.slice(startIndex, endIndex);
@@ -252,6 +276,40 @@ describe('backend-to-sdk websocket incoming contract', () => {
     expect(mainContractSource).not.toContain('BACKEND_PAYLOAD_KEYS_BY_TYPE');
     expect(mainContractSource).not.toContain('PROVIDER_API_KEY_KEYS');
     expect(mainContractSource).not.toContain('CAPTURE_META_KEYS');
+  });
+
+  test('sdk outbound provider credential filter is provider-id agnostic', () => {
+    const filtered = filterBackendPayload('update-settings', {
+      provider_api_keys: {
+        openai: {
+          enabled: true,
+          api_key: 'sk-test',
+          renderer_only: true,
+        },
+        future_provider: {
+          enabled: true,
+          api_key: 'future',
+          renderer_only: true,
+        },
+        'bad provider': {
+          enabled: true,
+          api_key: 'bad',
+        },
+      },
+    });
+
+    expect(filtered).toEqual({
+      provider_api_keys: {
+        openai: {
+          enabled: true,
+          api_key: 'sk-test',
+        },
+        future_provider: {
+          enabled: true,
+          api_key: 'future',
+        },
+      },
+    });
   });
 
   test('sdk outbound payload allowlist matches backend incoming contract keys', () => {
@@ -449,6 +507,10 @@ describe('backend-to-sdk websocket incoming contract', () => {
           openai: {
             enabled: true,
             api_key: 'sk-test',
+          },
+          future_provider: {
+            enabled: true,
+            api_key: 'future',
           },
         },
       });

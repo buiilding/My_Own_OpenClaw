@@ -8,6 +8,7 @@ import asyncio
 import html
 import json
 import platform
+import re
 import tempfile
 import time
 from pathlib import Path
@@ -113,16 +114,8 @@ _BACKEND_UPDATE_SETTINGS_KEYS = {
     "provider_api_keys",
 }
 
-_PROVIDER_API_KEY_KEYS = {
-    "openai",
-    "anthropic",
-    "google",
-    "openrouter",
-    "mistral",
-    "kimi_coding",
-}
-
 _PROVIDER_API_KEY_ENTRY_KEYS = {"enabled", "api_key"}
+_PROVIDER_API_KEY_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 
 _CAPTURE_META_REQUIRED_NUMBER_KEYS = {
     "source_w",
@@ -153,15 +146,16 @@ def _filter_keys(payload: Any, allowed_keys: set[str]) -> dict[str, Any]:
     }
 
 
-def _filter_nested_map(
+def _filter_nested_record_entries(
     payload: Any,
-    allowed_map_keys: set[str],
     allowed_entry_keys: set[str],
 ) -> dict[str, Any]:
     if not isinstance(payload, dict):
         return {}
     filtered: dict[str, Any] = {}
-    for key in allowed_map_keys:
+    for key in payload:
+        if not isinstance(key, str) or not _PROVIDER_API_KEY_NAME_PATTERN.match(key):
+            continue
         entry = _filter_keys(payload.get(key), allowed_entry_keys)
         if entry:
             filtered[key] = entry
@@ -170,9 +164,8 @@ def _filter_nested_map(
 
 def _normalize_backend_settings_payload(config: dict[str, Any]) -> dict[str, Any]:
     payload = _filter_keys(config, _BACKEND_UPDATE_SETTINGS_KEYS)
-    provider_api_keys = _filter_nested_map(
+    provider_api_keys = _filter_nested_record_entries(
         payload.get("provider_api_keys"),
-        _PROVIDER_API_KEY_KEYS,
         _PROVIDER_API_KEY_ENTRY_KEYS,
     )
     if provider_api_keys:

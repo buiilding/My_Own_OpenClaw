@@ -208,7 +208,7 @@ class ProviderApiKeyEntry(BaseModel):
 class ProviderApiKeysPayload(BaseModel):
     """Client-provided per-provider API key overrides."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     openai: Optional[ProviderApiKeyEntry] = None
     anthropic: Optional[ProviderApiKeyEntry] = None

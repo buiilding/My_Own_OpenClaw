@@ -50,6 +50,7 @@ describe('ipc_settings_sync_runtime', () => {
       selected_model_id: 'model-1',
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-test' },
+        future_provider: { enabled: true, api_key: 'future' },
       },
     });
   });

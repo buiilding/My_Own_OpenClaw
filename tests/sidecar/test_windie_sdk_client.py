@@ -650,7 +650,11 @@ async def test_python_agent_update_settings_filters_backend_payload():
             "openai": {
                 "enabled": True,
                 "api_key": "sk-test",
-            }
+            },
+            "future_provider": {
+                "enabled": True,
+                "api_key": "future",
+            },
         },
     }
 

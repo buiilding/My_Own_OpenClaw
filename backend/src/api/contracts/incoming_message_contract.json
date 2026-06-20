@@ -67,6 +67,21 @@
         "agent_definition"
       ],
       "nested": {
+        "provider_api_keys": {
+          "extra": "ignore",
+          "keys": [
+            "openai",
+            "anthropic",
+            "google",
+            "openrouter",
+            "mistral",
+            "kimi_coding"
+          ],
+          "entry_keys": [
+            "enabled",
+            "api_key"
+          ]
+        },
         "tools": {
           "extra": "forbid",
           "keys": [

@@ -7,7 +7,7 @@ Provides Pydantic-based validation for all API inputs with consistent error hand
 import logging
 from typing import Any, Callable, Dict, Literal, Optional, Type, TypeVar
 from pydantic import BaseModel, ConfigDict, ValidationError as PydanticValidationError
-from backend.src.core.config.models import AppConfig
+from backend.src.core.config.models import AppConfig, ProviderApiKeys
 from backend.src.core.validation.settings_update_rules import (
     validate_settings_update_field,
 )
@@ -301,9 +301,31 @@ def validate_settings_update(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 # Client settings fields derived from ClientSettingsPatch schema.
 CLIENT_SETTINGS_PATCH_FIELDS = set(ClientSettingsPatch.model_fields.keys())
+CLIENT_PROVIDER_API_KEY_FIELDS = set(ProviderApiKeys.model_fields.keys())
+CLIENT_PROVIDER_API_KEY_ENTRY_FIELDS = {"enabled", "api_key"}
 
 
-def validate_client_settings_patch(settings: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def _normalize_client_provider_api_keys(value: Any) -> Dict[str, Dict[str, Any]]:
+    if not isinstance(value, dict):
+        return {}
+    normalized: Dict[str, Dict[str, Any]] = {}
+    for provider in sorted(CLIENT_PROVIDER_API_KEY_FIELDS):
+        entry = value.get(provider)
+        if not isinstance(entry, dict):
+            continue
+        normalized_entry = {
+            key: entry[key]
+            for key in CLIENT_PROVIDER_API_KEY_ENTRY_FIELDS
+            if key in entry and entry[key] is not None
+        }
+        if normalized_entry:
+            normalized[provider] = normalized_entry
+    return normalized
+
+
+def validate_client_settings_patch(
+    settings: Optional[Dict[str, Any]]
+) -> Dict[str, Any]:
     """
     Validate and filter client-provided settings overrides.
 
@@ -337,6 +359,15 @@ def validate_client_settings_patch(settings: Optional[Dict[str, Any]]) -> Dict[s
         raise ValidationError(f"Invalid client settings patch: {error_details}") from e
 
     validated = patch.model_dump(exclude_unset=True)
+
+    if "provider_api_keys" in validated:
+        provider_api_keys = _normalize_client_provider_api_keys(
+            validated.get("provider_api_keys")
+        )
+        if provider_api_keys:
+            validated["provider_api_keys"] = provider_api_keys
+        else:
+            validated.pop("provider_api_keys", None)
 
     for key in ("model_provider", "selected_model_id"):
         value = validated.get(key)

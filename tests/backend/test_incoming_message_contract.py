@@ -8,6 +8,8 @@ from backend.src.api.schemas.incoming import (
     CompactHistoryPayload,
     ListModelsPayload,
     LoadSettingsPayload,
+    ProviderApiKeyEntry,
+    ProviderApiKeysPayload,
     QueryPayload,
     RehydrateConversationPayload,
     StopQueryPayload,
@@ -16,6 +18,7 @@ from backend.src.api.schemas.incoming import (
     ToolManifestSettingsPayload,
     ToolResultData,
     ToolResultPayload,
+    UpdateSettingsMessage,
     UpdateSettingsPayload,
     WakewordDetectedPayload,
 )
@@ -76,4 +79,29 @@ def test_incoming_message_contract_records_intentional_nested_extra_allowance():
     assert contract["payloads"]["update-settings"]["nested"]["tools"] == {
         "extra": "forbid",
         "keys": _field_names(ToolManifestSettingsPayload),
+    }
+    assert contract["payloads"]["update-settings"]["nested"]["provider_api_keys"] == {
+        "extra": "ignore",
+        "keys": _field_names(ProviderApiKeysPayload),
+        "entry_keys": _field_names(ProviderApiKeyEntry),
+    }
+
+
+def test_update_settings_message_ignores_unknown_provider_credential_ids():
+    message = UpdateSettingsMessage(
+        id="settings-1",
+        type="update-settings",
+        user_id="user-1",
+        payload={
+            "provider_api_keys": {
+                "openai": {"enabled": True, "api_key": "sk-openai"},
+                "future_provider": {"enabled": True, "api_key": "future"},
+            }
+        },
+    )
+
+    assert message.payload.model_dump(exclude_none=True) == {
+        "provider_api_keys": {
+            "openai": {"enabled": True, "api_key": "sk-openai"},
+        }
     }

@@ -17567,6 +17567,25 @@ Each completed slice should report:
   permissions, hosted URLs, provider policy, and local-runtime execution are
   unchanged.
 
+### 2026-06-20 SDK provider credential map boundary
+
+- Finding: the TypeScript SDK and Python SDK client duplicated the backend
+  provider credential id list inside their `update-settings` payload filters,
+  so adding a hosted provider required SDK transport allowlist edits even
+  though provider policy and supported credential ids are backend-owned.
+- Change: changed SDK filtering to preserve any syntactically safe provider
+  credential key while still stripping unsupported entry fields, changed backend
+  incoming settings validation to ignore unsupported provider ids, and recorded
+  the `provider_api_keys` ignore-extra boundary in the incoming websocket
+  contract fixture.
+- Validation: focused SDK/backend websocket contract coverage, Python SDK
+  client settings coverage, and backend incoming/settings validation coverage.
+- Compatibility: no migration required. Existing provider ids, credential
+  entry fields, renderer settings persistence, IPC channels, hosted URLs,
+  storage, permissions, provider runtime selection, and local-runtime execution
+  are unchanged. Unsupported provider credential entries remain ignored by the
+  backend instead of becoming session config.
+
 ### 2026-06-20 Web client integration ApiClient label cleanup
 
 - Finding: the web client integration matrix still pointed the TypeScript

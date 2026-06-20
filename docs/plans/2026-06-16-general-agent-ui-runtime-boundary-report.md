@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: Electron main `ipc_backend_payload_contract.cjs` now
-  delegates to the SDK backend payload contract instead of duplicating a
-  websocket allowlist.
+- Latest completed slice: SDK provider credential filtering is provider-id
+  agnostic while backend validation remains the authority for supported
+  provider credential ids.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -242,9 +242,30 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime Python executor wording instead of Python sidecar
   executor/daemon route-owner labels. Electron main direct backend payload
   filtering now delegates to the SDK backend payload contract through a thin
-  facade instead of carrying a second websocket allowlist.
+  facade instead of carrying a second websocket allowlist. SDK provider
+  credential filtering now preserves syntactically safe provider ids while
+  backend validation owns the supported provider list and ignores unsupported
+  provider credential entries.
 
 ## Inspection Log
+
+### 2026-06-20 SDK Provider Credential Map Boundary
+
+- Finding: the TypeScript SDK and Python SDK client duplicated the backend
+  provider credential id list inside their `update-settings` payload filters,
+  which made provider policy a client transport concern.
+- Change: changed SDK filtering to preserve syntactically safe provider
+  credential keys while still stripping unsupported entry fields, changed
+  backend incoming settings validation to ignore unsupported provider ids, and
+  recorded the `provider_api_keys` ignore-extra boundary in the incoming
+  websocket contract fixture.
+- Validation: focused SDK/backend websocket contract coverage, Python SDK
+  client settings coverage, and backend incoming/settings validation coverage.
+- Compatibility: no migration required. Existing provider ids, credential
+  entry fields, renderer settings persistence, IPC channels, hosted URLs,
+  storage, permissions, provider runtime selection, and local-runtime execution
+  are unchanged. Unsupported provider credential entries remain ignored by the
+  backend instead of becoming session config.
 
 ### 2026-06-20 Main Backend Payload Contract Facade
 

@@ -57,15 +57,8 @@ const BACKEND_PAYLOAD_KEYS_BY_TYPE: Record<string, readonly string[]> = Object.f
   ]),
 });
 
-const PROVIDER_API_KEY_KEYS = Object.freeze([
-  'openai',
-  'anthropic',
-  'google',
-  'openrouter',
-  'mistral',
-  'kimi_coding',
-]);
 const PROVIDER_API_KEY_ENTRY_KEYS = Object.freeze(['enabled', 'api_key']);
+const PROVIDER_API_KEY_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
 const TOOL_SETTINGS_KEYS = Object.freeze(['mode', 'client_manifest']);
 const CAPTURE_META_KEYS = Object.freeze([
   'source_w',
@@ -107,16 +100,15 @@ function filterKeys(source: unknown, allowedKeys: readonly string[]): JsonRecord
   return filtered;
 }
 
-function filterNestedMap(
-  source: unknown,
-  allowedMapKeys: readonly string[],
-  allowedEntryKeys: readonly string[],
-): JsonRecord | null {
+function filterNestedRecordEntries(source: unknown, allowedEntryKeys: readonly string[]): JsonRecord | null {
   if (!isJsonRecord(source)) {
     return null;
   }
   const filtered: JsonRecord = {};
-  for (const key of allowedMapKeys) {
+  for (const key of Object.keys(source)) {
+    if (!PROVIDER_API_KEY_NAME_PATTERN.test(key)) {
+      continue;
+    }
     const entry = filterKeys(source[key], allowedEntryKeys);
     if (entry && Object.keys(entry).length > 0) {
       filtered[key] = entry;
@@ -164,7 +156,7 @@ function normalizeUpdateSettingsPayload(payload: JsonRecord): JsonRecord {
   } else {
     delete nextPayload.tools;
   }
-  const providerApiKeys = filterNestedMap(nextPayload.provider_api_keys, PROVIDER_API_KEY_KEYS, PROVIDER_API_KEY_ENTRY_KEYS);
+  const providerApiKeys = filterNestedRecordEntries(nextPayload.provider_api_keys, PROVIDER_API_KEY_ENTRY_KEYS);
   if (providerApiKeys) {
     nextPayload.provider_api_keys = providerApiKeys;
   } else {

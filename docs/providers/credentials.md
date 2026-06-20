@@ -31,7 +31,13 @@ Embedding vendor mode also defaults to `OPENAI_API_KEY`.
 
 ## Renderer-Managed Provider Overrides
 
-`ProviderApiKeys` in `backend/src/core/config/models.py` defines renderer-managed key overrides accepted through the client settings patch contract. Provider aliases normalize `gemini` to `google`. Kimi key overrides use the canonical config field `kimi_coding`; other Kimi spellings are unavailable for credential lookup.
+`ProviderApiKeys` in `backend/src/core/config/models.py` defines
+renderer-managed key overrides accepted through the client settings patch
+contract. SDK clients sanitize the credential map generically by provider-key
+syntax and entry shape, while backend validation decides which provider ids are
+supported and ignores unsupported provider entries. Provider aliases normalize
+`gemini` to `google`. Kimi key overrides use the canonical config field
+`kimi_coding`; other Kimi spellings are unavailable for credential lookup.
 
 Use these overrides only through the config/settings path. Do not bypass the backend config service.
 

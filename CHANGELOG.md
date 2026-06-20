@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/backend: make SDK `provider_api_keys` websocket filtering provider-id
+  agnostic while backend validation remains the authority for supported
+  provider credential IDs and ignores unsupported provider entries. No
+  migration required.
 - main/sdk: collapse Electron main `ipc_backend_payload_contract.cjs` into a
   thin facade over the SDK backend payload contract so websocket command
   allowlists have one owner. No migration required.
