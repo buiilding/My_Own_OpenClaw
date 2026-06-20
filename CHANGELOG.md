@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/debug: route logging, diagnostic flags, process-health, runtime-trace,
+  and docs-index debug labels through local-runtime Python wording instead of
+  sidecar debug labels. No migration required.
 - docs/runtime: route platform, operations, doctor, protocol-error, and
   development workflow sidecar-process labels through local-runtime startup or
   host-status wording while keeping the packaged Python sidecar entrypoint

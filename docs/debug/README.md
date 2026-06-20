@@ -28,7 +28,7 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 - [Diagnostic Flags](diagnostic_flags.md) maps backend, Electron, renderer, local-runtime Python, VM worker, and packaged-app debug flags.
 - [Runtime Traces](runtime_traces.md) covers stream, chat pill, screenshot, overlay, and local-runtime trace paths.
 - [Endpoint and Network Debugging](endpoint_and_network_debugging.md) routes hosted/local endpoint, websocket, install auth, Cloudflare, and local-runtime backend URL failures.
-- [Process Health Checklist](process_health_checklist.md) maps backend, Electron, renderer, local-runtime Python sidecar, wakeword, VM worker, and Cloudflare process health checks.
+- [Process Health Checklist](process_health_checklist.md) maps backend, Electron, renderer, local-runtime Python process, wakeword, VM worker, and Cloudflare process health checks.
 - [Symptom Playbooks](symptom_playbooks.md) maps common failures to code roots and validation.
 - [Test Selection](test_selection.md) maps changed subsystems to focused tests and full-suite commands.
 

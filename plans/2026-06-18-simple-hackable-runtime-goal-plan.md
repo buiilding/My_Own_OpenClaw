@@ -304,6 +304,15 @@ For each completed slice, record:
   entrypoints, IPC payloads, storage, credentials, permissions, hosted backend
   URLs, and provider policy are unchanged.
 
+- 2026-06-20: completed a local-runtime debug-label slice by routing logging,
+  diagnostic flags, process-health, runtime-trace, and docs-index labels
+  through local-runtime Python wording instead of sidecar debug labels.
+  Validation covered the focused modular docs boundary test, docs listing, exact
+  stale debug-label scan, and diff check. No migration required; runtime code,
+  log sinks, stderr behavior, diagnostic flags, process startup, IPC payloads,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.
+
 - 2026-06-20: aligned the renderer app-runtime inventory with the live
   `desktopStreamPhaseRuntime.js` state/rule facade and added a renderer
   boundary guard against the stale `desktopStreamPhaseRuntime.ts` filename.

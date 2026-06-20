@@ -528,7 +528,8 @@ Expected marker:
 ## Local-Runtime Python JSON-RPC Trace
 
 The current Python sidecar stdout is JSON-RPC only. Debug local-runtime Python
-RPC issues by combining Electron bridge logs with Python sidecar stderr logs.
+RPC issues by combining Electron bridge logs with local-runtime Python stderr
+logs.
 
 | Path | Code root |
 | --- | --- |

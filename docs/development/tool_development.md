@@ -157,7 +157,7 @@ class RemoteMyTool(RemoteToolBase, Tool[MyRemoteToolArgs]):
 
 ### 4. Implement local execution handler
 
-For a built-in tool, create the local-runtime Python sidecar implementation in
+For a built-in tool, create the local-runtime Python implementation in
 `frontend/src/main/python/tools/...`.
 
 ```python
@@ -286,7 +286,7 @@ If you add backend-only tools, document the wiring point in the same PR.
 
 1. Verify args model and local-runtime argument parsing match.
 2. Return structured `success/error` payloads.
-3. Check Python sidecar stderr logs and `tests/sidecar` coverage.
+3. Check local-runtime Python stderr logs and `tests/sidecar` coverage.
 
 ---
 

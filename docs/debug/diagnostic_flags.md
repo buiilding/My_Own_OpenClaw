@@ -1,7 +1,7 @@
 ---
 summary: "Diagnostic flag reference for WindieOS backend logs, Electron main traces, renderer URL traces, local-runtime Python stderr, VM worker mode, and packaged reinstall logging."
 read_when:
-  - When enabling the smallest useful debug signal for a backend, Electron, renderer, local-runtime Python sidecar process, overlay, stream, screenshot, or packaged-app failure.
+  - When enabling the smallest useful debug signal for a backend, Electron, renderer, local-runtime Python process, overlay, stream, screenshot, or packaged-app failure.
   - When adding, removing, or renaming diagnostic environment flags.
 title: "Diagnostic Flags"
 ---
@@ -57,7 +57,7 @@ WINDIE_DEBUG_IPC_STDOUT=1 <windie> start desktop
 WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
 ```
 
-## Local-Runtime Python Sidecar
+## Local-Runtime Python
 
 | Flag | Effect |
 | --- | --- |

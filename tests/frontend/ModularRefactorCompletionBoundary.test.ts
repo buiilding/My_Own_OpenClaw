@@ -1131,6 +1131,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/debug/process_health_checklist.md'),
       read('docs/debug/runtime_traces.md'),
       read('docs/debug/symptom_playbooks.md'),
+      read('docs/README.md'),
     ]);
     const docText = docs.join('\n');
 
@@ -1143,10 +1144,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime backend URL failures');
     expect(docText).toContain('Enable local-runtime Python debug');
     expect(docText).toContain('local-runtime Python stderr');
-    expect(docText).toContain('local-runtime Python sidecar');
+    expect(docText).toContain('local-runtime Python logs');
+    expect(docText).toContain('local-runtime Python process');
     expect(docText).toContain('local-runtime Python readiness');
     expect(docText).toContain('Python sidecar stdout is protocol traffic');
-    expect(docText).toContain('Local-Runtime Python Sidecar Logging Changes');
+    expect(docText).toContain('Local-Runtime Python Logging Changes');
     expect(docText).toContain('local-runtime screenshot capture');
     expect(docText).toContain('<windie> diagnostics paths');
     expect(docText).not.toContain('~/Library/Application Support/windieos/diagnostics/diagnostics.db');
@@ -1158,6 +1160,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Enable sidecar debug');
     expect(docText).not.toContain('renderer URL traces, sidecar stderr');
     expect(docText).not.toContain('renderer, sidecar, wakeword service');
+    expect(docText).not.toContain('Backend, Electron, renderer, sidecar');
+    expect(docText).not.toContain('renderer, sidecar, VM worker');
+    expect(docText).not.toContain('renderer, sidecar, wakeword');
+    expect(docText).not.toContain('sidecar browser feature-pack');
+    expect(docText).not.toContain('sidecar stderr handling');
+    expect(docText).not.toContain('Python sidecar stderr logs');
     expect(docText).not.toContain('packaged app, sidecar readiness');
     expect(docText).not.toContain('Sidecar stdout is protocol traffic');
     expect(docText).not.toContain('## Sidecar Logging Changes');
@@ -2348,6 +2356,13 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar says tool not found',
         'Python sidecar registry/schema/runtime',
         'Python sidecar startup owns local execution variables',
+        'local-runtime Python sidecar process',
+        'local-runtime Python sidecar',
+        'Local-Runtime Python Sidecar',
+        'sidecar stderr handling',
+        'Prevents sidecar browser feature-pack auto-install',
+        'local-runtime Python sidecar, wakeword service',
+        'Python sidecar stderr logs',
         'sidecar stderr logging or system metrics',
         '| Python sidecar runtime |',
         'The sidecar owns host OS automation',

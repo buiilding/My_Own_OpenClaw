@@ -1,9 +1,9 @@
 ---
-summary: "Workflow for adding or changing WindieOS logs, trace flags, diagnostic events, metrics, evidence collection, and debug gates across backend, Electron main, renderer, local-runtime Python sidecar, and packaged app runtimes."
+summary: "Workflow for adding or changing WindieOS logs, trace flags, diagnostic events, metrics, evidence collection, and debug gates across backend, Electron main, renderer, local-runtime Python, and packaged app runtimes."
 read_when:
   - When adding, removing, or renaming logs, trace flags, diagnostic events, metrics, or evidence collection paths.
   - When a bug needs new observability before a safe code fix can be made.
-  - When deciding where debug output belongs across backend, Electron main, renderer, local-runtime Python sidecar, packaged app, and hosted runtime boundaries.
+  - When deciding where debug output belongs across backend, Electron main, renderer, local-runtime Python, packaged app, and hosted runtime boundaries.
 title: "Observability Change Workflow"
 ---
 
@@ -19,9 +19,9 @@ Use this workflow before adding logs or diagnostic flags. Observability should p
 | backend security/trust-boundary metrics | backend observability service | `backend/src/core/observability`, trust-boundary parsers/enforcers | [Backend Trust-Boundary Metrics and Enforcement](../backend/core/observability/trust_boundary_metrics_and_enforcement_reference.md) | `tests/backend/test_trust_boundary_metrics.py` |
 | stream, websocket, or query event trace | backend formatter/transport plus Electron relay and SDK/renderer stream | `backend/src/api`, `frontend/src/main/ipc.cjs`, `frontend/src/renderer/features/chat` | [Runtime Traces](runtime_traces.md), [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md) | backend formatter/websocket tests plus SDK/renderer stream tests |
 | chat pill, response overlay, or screenshot trace | Electron main surface runtime and overlay phase handlers | `frontend/src/main/debug/chat_pill_trace_runtime.cjs`, `frontend/src/main/overlay_*`, `frontend/src/main/surfaces` | [Runtime Traces](runtime_traces.md), [Platform Change Workflow](../platforms/platform_change_workflow.md) | overlay/phase tests |
-| app startup, sidebar chat-list, browser session readiness, or non-turn diagnostics that must survive restart | Electron main app diagnostics store plus producer runtime | `frontend/src/main/diagnostics/app_diagnostics_store.cjs`, SDK/runtime producer, local-runtime Python sidecar producer | [Runtime Traces](runtime_traces.md), [Storage Persistence Change Workflow](../architecture/storage_persistence_change_workflow.md) | app diagnostics store tests plus focused producer tests |
+| app startup, sidebar chat-list, browser session readiness, or non-turn diagnostics that must survive restart | Electron main app diagnostics store plus producer runtime | `frontend/src/main/diagnostics/app_diagnostics_store.cjs`, SDK/runtime producer, local-runtime Python producer | [Runtime Traces](runtime_traces.md), [Storage Persistence Change Workflow](../architecture/storage_persistence_change_workflow.md) | app diagnostics store tests plus focused producer tests |
 | tool execution or tool screenshot debug output | SDK tool routing and local-runtime screenshot capture | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), [Runtime Traces](runtime_traces.md) | SDK tool/runtime tests, Python sidecar screenshot tests |
-| local-runtime stderr logging or system metrics | Python sidecar implementation | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/system_metrics.py`, Python sidecar implementation modules | [Logging](logging.md), [Process Health Checklist](process_health_checklist.md) | sidecar focused pytest, `tests/sidecar/test_system_metrics_and_watermark_state.py` |
+| local-runtime stderr logging or system metrics | local-runtime Python implementation | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/system_metrics.py`, Python sidecar implementation modules | [Logging](logging.md), [Process Health Checklist](process_health_checklist.md) | local-runtime Python focused pytest, `tests/sidecar/test_system_metrics_and_watermark_state.py` |
 | VM run event log or operations evidence | backend VM run control and operations runbooks | `backend/src/services/vm_run_control_support`, `docs/operations` | [Evidence Collection Runbook](../operations/evidence_collection_runbook.md), [Incident Triage Runbook](../operations/incident_triage_runbook.md) | `tests/backend/test_vm_run_control_event_log.py` |
 | packaged app log controls | reinstall helpers and Electron launch/runtime env | `<windie> reinstall <platform>`, `frontend/scripts/electron-launcher.cjs`, `frontend/src/main` | [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) | package smoke helpers and target OS manual checks |
 
@@ -101,9 +101,9 @@ Rules:
 - Include turn/request identifiers when tracing stream or tool events.
 - Avoid logging full user content unless the trace is explicitly developer-only and documented.
 
-## Local-Runtime Python Sidecar Logging Changes
+## Local-Runtime Python Logging Changes
 
-Use local-runtime Python sidecar logs for local JSON-RPC execution, local tools, memory, browser runtime, wakeword subprocesses, and system metrics.
+Use local-runtime Python logs for local JSON-RPC execution, local tools, memory, browser runtime, wakeword subprocesses, and system metrics.
 
 Primary files:
 
@@ -116,7 +116,7 @@ Primary files:
 
 Validation:
 
-- focused Python sidecar pytest for changed module.
+- focused local-runtime Python pytest for changed module.
 - Electron bridge tests when stderr forwarding changes.
 
 Rules:

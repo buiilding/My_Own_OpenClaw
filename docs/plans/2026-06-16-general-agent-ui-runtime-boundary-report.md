@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: packaged launch/path docs now use local-runtime
-  startup labels, persistent app diagnostics storage discovery points to
-  `<windie> diagnostics paths` instead of a platform-specific SQLite path, and
-  the Runtime Traces index label uses local-runtime trace wording.
+- Latest completed slice: logging, diagnostic flags, process-health,
+  runtime-trace, and docs-index debug labels now use local-runtime Python
+  wording instead of sidecar debug labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -6215,3 +6214,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   sidecar entrypoint explicit. Runtime code, packaged startup, local-runtime
   status payloads, Python entrypoints, IPC payloads, storage, credentials,
   permissions, hosted backend URLs, and provider policy are unchanged.
+- Logging, diagnostic flags, process-health, runtime-trace, and docs-index
+  debug labels now use local-runtime Python wording instead of sidecar debug
+  labels. Runtime code, log sinks, stderr behavior, diagnostic flags, process
+  startup, IPC payloads, storage, credentials, permissions, hosted backend URLs,
+  and provider policy are unchanged.

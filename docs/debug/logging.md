@@ -2,7 +2,7 @@
 summary: "WindieOS desktop logs and logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, layer log sink helpers such as ensureLogFile and resolveRendererVerboseLogFile, renderer interaction logger diagnostics and renderer interaction redaction, local-runtime stderr, renderer console traces, and packaged app log controls."
 read_when:
   - When desktop logs, layer logs, or runtime logs are missing, too noisy, or needed to isolate a bug.
-  - When changing logging setup, launch scripts, renderer interaction logger behavior, renderer interaction diagnostics redaction, sidecar stderr handling, or debug trace output.
+  - When changing logging setup, launch scripts, renderer interaction logger behavior, renderer interaction diagnostics redaction, local-runtime Python stderr handling, or debug trace output.
   - When resolving layer log sink helper references such as `ensureLogFile`, `resolveRendererVerboseLogFile`, renderer verbose logs, or `<windie> logs renderer --verbose`.
 title: "Logging"
 ---
@@ -191,7 +191,7 @@ The Python local runtime logs to stderr in `frontend/src/main/python/local_backe
 | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises local-runtime Python logs to DEBUG. Generic hosts should use `AGENT_LOCAL_RUNTIME_LOG_LEVEL`; `AGENT_SIDECAR_LOG_LEVEL` remains a compatibility alias. |
 | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=0` | Used by packaged reinstall flows to reduce local-runtime stderr noise. The generic Electron host helper defaults to `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR`; the WindieOS host skin maps the public Windie flag into that helper. |
 | `AGENT_ENABLE_SEMANTIC_SUMMARIZER=0` (`WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` in WindieOS launches) | Disables the local semantic summarizer for focused local-runtime debugging; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
-| `AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` (`WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` in WindieOS launches) | Prevents sidecar browser feature-pack auto-install while debugging runtime availability; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
+| `AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` (`WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` in WindieOS launches) | Prevents local-runtime browser feature-pack auto-install while debugging runtime availability; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
 
 Useful command:
 

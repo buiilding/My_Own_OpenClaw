@@ -23,9 +23,9 @@ contracts.
 - [**Debug Hub**](debug/README.md) - Logs, diagnostic flags, endpoint/network checks, process health, runtime traces, symptom playbooks, and test selection
 - [**Observability Change Workflow**](debug/observability_change_workflow.md) - Owner routing for logs, trace flags, metrics, diagnostic events, evidence collection, and debug gates
 - [**Error and Failure Change Workflow**](debug/error_failure_change_workflow.md) - Owner routing for backend exceptions, websocket/HTTP errors, IPC failures, local-runtime ToolResult failures, renderer error UI, retries, and sanitized logs
-- [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
+- [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, local-runtime, VM worker, and packaged-app debug flags
 - [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and local-runtime URL drift checks
-- [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
+- [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, local-runtime, wakeword, VM worker, and Cloudflare process triage
 - [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
 - [**Gateway Hub**](gateway/README.md) - Hosted backend ingress, FastAPI route assembly, websocket protocols, auth, health, and troubleshooting
 - [**WebSocket Connection Change Workflow**](gateway/websocket_connection_change_workflow.md) - Owner routing for main `/ws` handshake auth, identity binding, message validation, task limits, timeouts, handler dispatch, transport sends, and cleanup
@@ -151,12 +151,12 @@ contracts.
 - [**Voice and Wakeword**](desktop/voice_and_wakeword.md) - Wakeword bridge, voice capture, STT websocket, TTS chunks, and voice status UI
 - [**Artifact Change Workflow**](desktop/artifact_change_workflow.md) - Owner routing for screenshot attachments, artifact upload/fetch, query payloads, tool-result screenshots, replay, and SDK access
 - [**Artifacts and Attachments**](desktop/artifacts_and_attachments.md) - Screenshot artifact refs, upload/fetch paths, image rendering, and replay preservation
-- [**Logging**](debug/logging.md) - Backend, Electron, renderer, sidecar, and packaged app log controls
+- [**Logging**](debug/logging.md) - Backend, Electron, renderer, local-runtime, and packaged app log controls
 - [**Observability Change Workflow**](debug/observability_change_workflow.md) - Add or change logs, traces, metrics, and evidence without noisy defaults or secret leakage
-- [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
+- [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, local-runtime, VM worker, and packaged-app debug flags
 - [**Runtime Traces**](debug/runtime_traces.md) - Stream, chat pill, screenshot, local-runtime, and websocket trace routes
 - [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and local-runtime URL drift checks
-- [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
+- [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, local-runtime, wakeword, VM worker, and Cloudflare process triage
 - [**Symptom Playbooks**](debug/symptom_playbooks.md) - Failure-to-owner maps for backend, tools, screenshots, overlays, permissions, voice, and browser
 - [**Test Selection**](debug/test_selection.md) - Focused pytest/Jest commands by runtime and contract boundary
 - [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs local-runtime executable tool contract
@@ -164,7 +164,7 @@ contracts.
 - [**Tool Catalog Matrix**](tools/tool_catalog_matrix.md) - Model-visible tools mapped to backend schema owners, local-runtime executors, policy gates, and tests
 - [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, SDK/main local-runtime dispatch, Python sidecar implementation, result ingress, and history
 - [**Tool Policy Profiles and Capabilities**](tools/tool_policy_profiles_and_capabilities.md) - Tool profiles, available/disabled tools, coordinate methods, browser capability policy, and web-search exposure
-- [**Tool Troubleshooting**](tools/tool_troubleshooting.md) - Symptom-to-owner routing for visibility, schema, dispatch, sidecar, result, artifact, and replay failures
+- [**Tool Troubleshooting**](tools/tool_troubleshooting.md) - Symptom-to-owner routing for visibility, schema, dispatch, local execution, result, artifact, and replay failures
 - [**Computer Tools**](tools/computer.md) - Mouse, keyboard, screenshot, scroll, window, OCR, and vision grounding paths
 - [**Browser Tool**](tools/browser.md) - Dedicated browser runtime, schema parity, snapshots, and debugging
 - [**Browser Hub**](browser/README.md) - Dedicated browser launch, action surface, session UI, files, and troubleshooting

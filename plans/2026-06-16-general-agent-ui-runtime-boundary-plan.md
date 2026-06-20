@@ -166,6 +166,20 @@ Each completed slice should report:
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
 
+### 2026-06-20 Local-Runtime Debug Labels
+
+- Finding: logging, diagnostic flags, process-health, runtime-trace, and
+  docs-index debug labels still used sidecar wording for local-runtime Python
+  stderr, process health, browser feature-pack auto-install, and debug routes.
+- Change: routed those public labels through local-runtime Python wording and
+  extended the modular docs guard against the retired sidecar debug phrases.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  debug-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, log sinks, stderr
+  behavior, diagnostic flags, process startup, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-20 Renderer App-Runtime Inventory Filename
 
 - Finding: the renderer transport command reference listed

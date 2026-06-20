@@ -1,5 +1,5 @@
 ---
-summary: "Process health checklist for WindieOS backend, Electron main, renderer, local-runtime Python sidecar, wakeword service, VM worker, Cloudflare tunnel, and packaged app failures."
+summary: "Process health checklist for WindieOS backend, Electron main, renderer, local-runtime Python process, wakeword service, VM worker, Cloudflare tunnel, and packaged app failures."
 read_when:
   - When a WindieOS process exits, hangs, fails readiness, or appears healthy while another runtime cannot reach it.
   - When debugging startup, shutdown, packaged app, local-runtime Python readiness, wakeword, VM worker, or Cloudflare user-service issues.
@@ -58,7 +58,7 @@ First checks:
 - chat stream hook/store tests,
 - dashboard resume/rehydrate flow.
 
-## Local-Runtime Python Sidecar
+## Local-Runtime Python Process
 
 Healthy signs:
 
