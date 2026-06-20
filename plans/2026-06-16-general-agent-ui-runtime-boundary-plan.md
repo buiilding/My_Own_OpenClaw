@@ -17906,3 +17906,20 @@ Each completed slice should report:
   resolution, install auth, model-setting payloads, local-runtime startup,
   storage, credentials, permissions, hosted backend URLs, and provider policy
   are unchanged.
+
+### 2026-06-20 Main backend payload facade deletion
+
+- Finding: `frontend/src/main/ipc/ipc_backend_payload_contract.cjs` only
+  re-exported the SDK-owned backend payload filter, leaving an extra Electron
+  main compatibility facade after the settings sync path had a single
+  production consumer.
+- Change: deleted the facade, imported
+  `packages/windie-sdk-js/cjs/transport/backendPayloadContract.js` directly
+  from `ipc_settings_sync_runtime.cjs`, and updated websocket/IPC validation
+  docs and contract tests to describe the direct SDK contract import.
+- Validation: backend websocket contract test, exact stale facade reference
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Outbound payload filtering behavior,
+  settings sync payload shape, backend incoming contracts, SDK transport
+  contracts, IPC channels, storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.

@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: package SDK README examples now use neutral hosted
-  endpoint/provider/model placeholders instead of production WindieOS endpoint
-  and concrete provider/model IDs.
+- Latest completed slice: Electron main settings sync now imports the SDK
+  backend payload contract directly, and the forwarding
+  `ipc_backend_payload_contract.cjs` compatibility facade has been removed.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -27,7 +27,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   state, and SDK-owned local-runtime wording for the same owner boundaries. SDK
   package README examples now use `https://backend.example.com`,
   `hosted-provider`, and neutral model IDs while preserving the public
-  `AgentClient` flow and local-runtime setup example. SDK
+  `AgentClient` flow and local-runtime setup example. Electron main direct
+  settings sync payloads now use the SDK-owned `filterBackendPayload(...)`
+  contract directly instead of an extra main-process forwarding facade. SDK
   helper symbols that are not part of the public package boundary
   stay private behind higher-level runtime APIs, and renderer/main-private
   guard markers use generic desktop-agent naming. SDK internal diagnostics use

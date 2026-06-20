@@ -1057,8 +1057,8 @@ generic `to-backend` router or direct chat query IPC handlers.
 2. Bypassing `ipc_query_broadcast.cjs` for synthetic events can break sender-window exclusion behavior.
 3. Changing the SDK `filterBackendPayload(...)` allowlist without the generated
    backend contract check can leak unsupported payload keys or drop valid
-   command fields. Electron main should keep `ipc_backend_payload_contract.cjs`
-   as a facade, not a second allowlist.
+   command fields. Electron main should import the SDK contract directly, not
+   recreate a second allowlist.
 4. Mutating query-context envelope shape in broadcasters without matching `ipc_query_events.cjs` updates can desync renderer expectations.
 5. Changing replay turn gating (`appendForActiveTurn`) can replay stale-turn packets into newly registered windows.
 6. Duplicating transcript-session normalization logic outside `ipc_transcript_session_sync.cjs` can desync alias/null handling between channels.

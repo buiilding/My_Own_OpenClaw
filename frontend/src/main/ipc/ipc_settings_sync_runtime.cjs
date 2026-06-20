@@ -10,7 +10,7 @@ const {
 } = require('./ipc_settings_sync.cjs');
 const {
   filterBackendPayload,
-} = require('./ipc_backend_payload_contract.cjs');
+} = require('../../../../packages/windie-sdk-js/cjs/transport/backendPayloadContract.js');
 
 const MCP_ENABLED_CONFIG_KEY = 'agent_enabled_mcp_servers';
 

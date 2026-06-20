@@ -74,8 +74,7 @@ Outbound backend payload filters:
   `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`
   `filterBackendPayload(...)`.
 - Electron main direct payloads use
-  `frontend/src/main/ipc/ipc_backend_payload_contract.cjs` as a thin facade
-  over the SDK-owned `filterBackendPayload(...)`.
+  the SDK-owned `filterBackendPayload(...)` directly.
 - Query payloads are shaped before send by `ipc_query_runtime.cjs`.
 
 Reason:
@@ -144,7 +143,7 @@ High-risk drift points to monitor:
 |---|---|---|
 | preload channel allowlist gate | `frontend/src/preload.js` | unallowlisted channels never cross renderer->main boundary |
 | renderer development-time channel assertions | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | fail-fast on typos/drift in dev while production defers to preload policy |
-| outbound websocket payload normalization | `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | filters known backend command payloads through the SDK-owned contract allowlist before backend schema enforcement; main keeps only a compatibility facade |
+| outbound websocket payload normalization | `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | filters known backend command payloads through the SDK-owned contract allowlist before backend schema enforcement; main imports the SDK contract directly for direct payloads |
 | handshake user-id identity | `frontend/src/main/ipc/ipc_install_auth_state.cjs` + `AgentClient.wakeUp(...)` | sends authenticated install identity instead of synthetic OS username fallback |
 | query XML/context sanitization fallback | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | escapes XML-sensitive content and guarantees structured fallback blocks |
 | SDK local-runtime transforms | SDK local-runtime store/client code | canonical command-to-sidecar field mapping |

@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/sdk: remove the Electron main backend-payload compatibility facade and
+  import the SDK-owned `filterBackendPayload` contract directly from settings
+  sync. No migration required.
 - sdk/docs: replace production WindieOS endpoint and concrete provider/model
   examples in the package README with neutral hosted backend/provider/model
   placeholders. No migration required.

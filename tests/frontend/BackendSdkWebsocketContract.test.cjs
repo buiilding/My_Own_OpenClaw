@@ -13,9 +13,6 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_query_runtime.cjs');
 const {
   filterBackendPayload,
-} = require('../../frontend/src/main/ipc/ipc_backend_payload_contract.cjs');
-const {
-  filterBackendPayload: sdkFilterBackendPayload,
 } = require('../../packages/windie-sdk-js/cjs/transport/backendPayloadContract.js');
 
 class FakeSocket extends EventEmitter {
@@ -265,17 +262,22 @@ describe('backend-to-sdk websocket incoming contract', () => {
     }
   });
 
-  test('main outbound payload filter is a thin SDK contract facade', () => {
-    const mainContractSource = fs.readFileSync(
-      path.join(__dirname, '../../frontend/src/main/ipc/ipc_backend_payload_contract.cjs'),
+  test('main settings sync imports the SDK payload contract directly', () => {
+    const settingsSyncSource = fs.readFileSync(
+      path.join(__dirname, '../../frontend/src/main/ipc/ipc_settings_sync_runtime.cjs'),
       'utf8',
     );
 
-    expect(filterBackendPayload).toBe(sdkFilterBackendPayload);
-    expect(mainContractSource).toContain('packages/windie-sdk-js/cjs/transport/backendPayloadContract.js');
-    expect(mainContractSource).not.toContain('BACKEND_PAYLOAD_KEYS_BY_TYPE');
-    expect(mainContractSource).not.toContain('PROVIDER_API_KEY_KEYS');
-    expect(mainContractSource).not.toContain('CAPTURE_META_KEYS');
+    expect(fs.existsSync(
+      path.join(__dirname, '../../frontend/src/main/ipc/ipc_backend_payload_contract.cjs'),
+    )).toBe(false);
+    expect(settingsSyncSource).toContain(
+      'packages/windie-sdk-js/cjs/transport/backendPayloadContract.js',
+    );
+    expect(settingsSyncSource).not.toContain('./ipc_backend_payload_contract.cjs');
+    expect(settingsSyncSource).not.toContain('BACKEND_PAYLOAD_KEYS_BY_TYPE');
+    expect(settingsSyncSource).not.toContain('PROVIDER_API_KEY_KEYS');
+    expect(settingsSyncSource).not.toContain('CAPTURE_META_KEYS');
   });
 
   test('sdk outbound provider credential filter is provider-id agnostic', () => {
