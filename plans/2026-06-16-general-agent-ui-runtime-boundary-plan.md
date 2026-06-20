@@ -120,6 +120,29 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main IPC Startup State Runtime Boundary
+
+- Finding: `ipc_startup_state.cjs` owned startup install-auth/config/shortcut
+  hydration behavior, but `initializeIpc(...)` still passed install-auth
+  loading, desktop UI config loading, validation, shortcut fallback,
+  latest-cache, MCP startup refresh, overlay phase, and initialize-time
+  shortcut setter dependencies directly when hydrating startup state.
+- Change: added `createIpcStartupStateRuntime(...)` so the startup-state helper
+  owns reusable hydration dependency composition while `initializeIpc(...)`
+  only calls the already-composed runtime. Initialize-time shortcut callbacks
+  remain resolved when startup hydration runs so host options are preserved.
+- Validation: focused startup-state coverage verifies runtime initialization,
+  late shortcut callback resolution, install-auth hydration, cached config
+  fallback/cache behavior, stop-shortcut phase initialization, fail-open
+  hydration, and source guards keep direct startup dependency wiring out of
+  `initializeIpc(...)`.
+- Compatibility: no migration required. Install-auth cache loading,
+  `frontend-config.json` loading, desktop UI config validation, shortcut
+  fallback application, latest desktop UI config cache updates, MCP startup
+  refresh, global stop shortcut enablement, fail-open disk error behavior,
+  renderer IPC, storage, credentials, permissions, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Main Desktop UI Config Handler Runtime Boundary
 
 - Finding: `ipc_desktop_ui_config_handlers.cjs` owned desktop UI config

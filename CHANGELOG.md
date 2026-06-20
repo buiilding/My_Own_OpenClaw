@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move startup install-auth, cached desktop UI config, and shortcut
+  hydration dependency wiring into `createIpcStartupStateRuntime(...)`,
+  preserving fail-open hydration, shortcut fallback, MCP startup refresh, and
+  stop-shortcut phase initialization. No migration required.
 - main/ipc: move desktop UI config load/save handler dependency wiring into
   `createDesktopUiConfigHandlersRuntime(...)`, preserving
   `load-frontend-config`, `save-frontend-config`, shortcut fallback, latest

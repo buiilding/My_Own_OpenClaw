@@ -104,6 +104,8 @@ Responsibilities:
   `ipc_backend_connection_gate_state.cjs` plus `ipc_settings_sync_runtime.cjs`.
 - Broadcasts connection status to all renderer windows.
 - Uploads artifacts over HTTP endpoint and injects returned references.
+- Delegates startup install-auth/config/shortcut hydration to a focused helper
+  runtime while the owning state runtimes receive the hydrated values.
 - Delegates desktop UI config load/save handler registration to a focused
   helper runtime while config cache, persistence, and shortcut fallback stay in
   their owning main-process runtimes.

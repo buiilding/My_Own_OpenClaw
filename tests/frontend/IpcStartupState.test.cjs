@@ -3,8 +3,12 @@
  */
 
 const {
+  createIpcStartupStateRuntime,
   initializeIpcStartupState,
 } = require('../../frontend/src/main/ipc/ipc_startup_state.cjs');
+
+const fs = require('fs/promises');
+const path = require('path');
 
 function flushPromises() {
   return Promise.resolve().then(() => Promise.resolve());
@@ -118,5 +122,50 @@ describe('ipc_startup_state', () => {
 
     expect(deps.applyInstallAuthState).not.toHaveBeenCalled();
     expect(deps.setLatestDesktopUiConfig).not.toHaveBeenCalled();
+  });
+
+  test('runtime resolves initialize-time shortcut callbacks before hydration', async () => {
+    const deps = createDeps({
+      setGlobalAgentStopShortcutAccelerator: undefined,
+      setAgentLoopStopShortcutEnabled: undefined,
+    });
+    const setGlobalAgentStopShortcutAccelerator = jest.fn();
+    const setAgentLoopStopShortcutEnabled = jest.fn();
+    const getGlobalAgentStopShortcutAcceleratorSetter = jest.fn(
+      () => setGlobalAgentStopShortcutAccelerator,
+    );
+    const getAgentLoopStopShortcutEnabledSetter = jest.fn(
+      () => setAgentLoopStopShortcutEnabled,
+    );
+    const runtime = createIpcStartupStateRuntime({
+      ...deps,
+      getGlobalAgentStopShortcutAcceleratorSetter,
+      getAgentLoopStopShortcutEnabledSetter,
+    });
+
+    runtime.initialize();
+    await flushPromises();
+
+    expect(getGlobalAgentStopShortcutAcceleratorSetter).toHaveBeenCalledTimes(1);
+    expect(getAgentLoopStopShortcutEnabledSetter).toHaveBeenCalledTimes(1);
+    expect(setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith('CommandOrControl+.');
+    expect(setAgentLoopStopShortcutEnabled).toHaveBeenCalledWith(true);
+  });
+
+  test('ipc.cjs initializes startup state through the runtime wrapper', async () => {
+    const mainSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+    const helperSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_startup_state.cjs'),
+      'utf8',
+    );
+
+    expect(mainSource).toContain('createIpcStartupStateRuntime({');
+    expect(mainSource).toContain('ipcStartupStateRuntime.initialize()');
+    expect(mainSource).not.toContain('initializeIpcStartupState({');
+    expect(helperSource).toContain('function createIpcStartupStateRuntime');
+    expect(helperSource).toContain('return initializeIpcStartupState({');
   });
 });

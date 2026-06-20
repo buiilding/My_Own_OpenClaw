@@ -49,6 +49,53 @@ function initializeIpcStartupState({
   }
 }
 
+function createIpcStartupStateRuntime({
+  loadInstallAuthStateFromDisk,
+  applyInstallAuthState,
+  loadCachedDesktopUiConfigFromDisk,
+  isValidConfigPayload,
+  applyShortcutStatusFallbackToConfig,
+  setLatestDesktopUiConfig,
+  setGlobalAgentStopShortcutAccelerator,
+  getGlobalAgentStopShortcutAcceleratorSetter,
+  setAgentLoopStopShortcutEnabled,
+  getAgentLoopStopShortcutEnabledSetter,
+  getResponseOverlayPhase,
+  isAgentLoopStopShortcutPhase,
+  onDesktopUiConfigLoaded,
+  log,
+} = {}) {
+  function initialize() {
+    const resolvedSetGlobalAgentStopShortcutAccelerator =
+      typeof getGlobalAgentStopShortcutAcceleratorSetter === 'function'
+        ? getGlobalAgentStopShortcutAcceleratorSetter()
+        : setGlobalAgentStopShortcutAccelerator;
+    const resolvedSetAgentLoopStopShortcutEnabled =
+      typeof getAgentLoopStopShortcutEnabledSetter === 'function'
+        ? getAgentLoopStopShortcutEnabledSetter()
+        : setAgentLoopStopShortcutEnabled;
+    return initializeIpcStartupState({
+      loadInstallAuthStateFromDisk,
+      applyInstallAuthState,
+      loadCachedDesktopUiConfigFromDisk,
+      isValidConfigPayload,
+      applyShortcutStatusFallbackToConfig,
+      setLatestDesktopUiConfig,
+      setGlobalAgentStopShortcutAccelerator: resolvedSetGlobalAgentStopShortcutAccelerator,
+      setAgentLoopStopShortcutEnabled: resolvedSetAgentLoopStopShortcutEnabled,
+      getResponseOverlayPhase,
+      isAgentLoopStopShortcutPhase,
+      onDesktopUiConfigLoaded,
+      log,
+    });
+  }
+
+  return {
+    initialize,
+  };
+}
+
 module.exports = {
+  createIpcStartupStateRuntime,
   initializeIpcStartupState,
 };

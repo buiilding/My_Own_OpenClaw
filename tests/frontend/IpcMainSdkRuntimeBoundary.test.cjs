@@ -76,6 +76,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_ui_config_handlers.cjs'),
       'utf8',
     );
+    const startupStateSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_startup_state.cjs'),
+      'utf8',
+    );
     const directWakeUpAdapterSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs'),
       'utf8',
@@ -255,6 +259,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('registerDesktopUiConfigHandlers({');
     expect(desktopUiConfigHandlersSource).toContain('function createDesktopUiConfigHandlersRuntime');
     expect(desktopUiConfigHandlersSource).toContain('return registerDesktopUiConfigHandlers({');
+    expect(source).toContain('createIpcStartupStateRuntime({');
+    expect(source).toContain('ipcStartupStateRuntime.initialize()');
+    expect(source).not.toContain('initializeIpcStartupState({');
+    expect(startupStateSource).toContain('function createIpcStartupStateRuntime');
+    expect(startupStateSource).toContain('return initializeIpcStartupState({');
     expect(source).not.toContain('resolveWorkspaceRepoInstructionPromptLayers(workspacePath)');
     expect(source).not.toContain('loadExtensionSkillPromptLayers()');
     expect(agentDefinitionContextSource).toContain('isDefaultAgentDefinition(generatedAgentDefinition)');

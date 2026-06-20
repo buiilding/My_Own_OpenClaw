@@ -204,7 +204,7 @@ const {
   createAutomatedQueryDispatcher,
 } = require('./ipc/ipc_automated_query_dispatcher.cjs');
 const {
-  initializeIpcStartupState,
+  createIpcStartupStateRuntime,
 } = require('./ipc/ipc_startup_state.cjs');
 const {
   loadPublicExtensionRegistry,
@@ -603,6 +603,22 @@ const desktopUiConfigHandlersRuntime = createDesktopUiConfigHandlersRuntime({
   getGlobalAgentStopShortcutAcceleratorSetter:
     () => hostOptionState.getSetGlobalAgentStopShortcutAccelerator(),
 });
+const ipcStartupStateRuntime = createIpcStartupStateRuntime({
+  loadInstallAuthStateFromDisk,
+  applyInstallAuthState: (state) => installAuthIdentityRuntime.applyInstallAuthState(state),
+  loadCachedDesktopUiConfigFromDisk,
+  isValidConfigPayload,
+  applyShortcutStatusFallbackToConfig,
+  setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
+  getGlobalAgentStopShortcutAcceleratorSetter:
+    () => hostOptionState.getSetGlobalAgentStopShortcutAccelerator(),
+  getAgentLoopStopShortcutEnabledSetter:
+    () => hostOptionState.getSetAgentLoopStopShortcutEnabled(),
+  getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+  isAgentLoopStopShortcutPhase,
+  onDesktopUiConfigLoaded: refreshEnabledMcpServersAfterStartup,
+  log,
+});
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -894,21 +910,7 @@ function initializeIpc(win, options = {}) {
     : () => ({ mainWindow: win, chatWindow: null });
   rendererWindowRegistry.reset();
   trackRendererWindow(win);
-  initializeIpcStartupState({
-    loadInstallAuthStateFromDisk,
-    applyInstallAuthState: (state) => installAuthIdentityRuntime.applyInstallAuthState(state),
-    loadCachedDesktopUiConfigFromDisk,
-    isValidConfigPayload,
-    applyShortcutStatusFallbackToConfig,
-    setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
-    setGlobalAgentStopShortcutAccelerator:
-      hostOptionState.getSetGlobalAgentStopShortcutAccelerator(),
-    setAgentLoopStopShortcutEnabled: hostOptionState.getSetAgentLoopStopShortcutEnabled(),
-    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-    isAgentLoopStopShortcutPhase,
-    onDesktopUiConfigLoaded: refreshEnabledMcpServersAfterStartup,
-    log,
-  });
+  ipcStartupStateRuntime.initialize();
 
   desktopUiConfigHandlersRuntime.register({ ipcMain });
 
