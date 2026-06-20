@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Tool Validation Docs SDK Runtime Boundary
+
+- Finding: current-facing docs hub, evidence, validation, websocket event,
+  error/failure, inventory, and architecture guidance still routed tool runtime
+  checks through removed renderer ToolRunner state or test targets.
+- Change: updated those routes to use SDK/local-runtime coordination and
+  renderer tool display/persistence wording, and extended the modular docs
+  boundary guard to reject retired ToolRunner validation phrases while leaving
+  historical removed-helper references in dedicated reference docs.
+- Validation: passed focused frontend docs boundary test, docs listing, stale
+  phrase scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK event shapes,
+  local-runtime execution, IPC channels, transcript storage, settings,
+  credentials, permissions, provider policy, and hosted URLs are unchanged.
+
 ### 2026-06-20 Renderer Tool Runtime Docs Boundary
 
 - Finding: renderer/backend event and provider docs still used deleted renderer

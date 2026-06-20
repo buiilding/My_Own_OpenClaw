@@ -384,12 +384,19 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/channels/README.md'),
       read('docs/channels/sidecar_and_tool_channels.md'),
       read('docs/channels/channel_routing_matrix.md'),
+      read('docs/channels/websocket_event_contract_change_workflow.md'),
+      read('docs/cli/validation_commands.md'),
+      read('docs/debug/error_failure_change_workflow.md'),
+      read('docs/development/agent_architecture_reference.md'),
       read('docs/frontend/README.md'),
       read('docs/frontend/contracts/backend_event_consumer_matrix_reference.md'),
+      read('docs/frontend/inventory/frontend_full_functionality_inventory_reference.md'),
       read('docs/frontend/runtime/tool_execution_and_streaming.md'),
       read('docs/frontend/renderer/chat_stream_and_tool_execution_reference.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
+      read('docs/getting-started/docs_hub.md'),
+      read('docs/operations/evidence_collection_runbook.md'),
       read(
         'docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md',
       ),
@@ -406,6 +413,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain(
       'WindieSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolCallMessageState',
     );
+    expect(docText).toContain('SDK stream projection consumption, tool display');
+    expect(docText).toContain('SDK projection event type, tool display state');
+    expect(docText).toContain('SDK tool coordination');
     expect(docText).toContain('local runtime daemon startup/reuse');
     expect(docText).not.toContain('SDK desktop runtime');
     expect(docText).not.toContain('SDK agent runtime');
@@ -413,6 +423,14 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Tool runner/result dispatch');
     expect(docText).not.toContain('ChatProvider` tool runner');
     expect(docText).not.toContain('tool runner/transcript flags');
+    expect(docText).not.toContain('stream event consumption, tool runner');
+    expect(docText).not.toContain('tool runner state');
+    expect(docText).not.toContain('ToolRunnerHook.events.test.ts');
+    expect(docText).not.toContain('frontend `ToolRunner`');
+    expect(docText).not.toContain('Renderer tool failure UI/persistence');
+    expect(docText).not.toContain('ToolRunnerFailureContracts ToolExecutionResultDispatch ToolResultEnvelope');
+    expect(docText).not.toContain('chat stream + tool runner hooks');
+    expect(docText).not.toContain('websocket loop, tool runner');
     expect(docText).not.toContain('remaining endpoint/install-auth/session lifecycle wiring');
     expect(docText).not.toContain('keeps install-auth identity state through');
     expect(docText).not.toContain('ipc.cjs` keeps the latest pending-turn cache');

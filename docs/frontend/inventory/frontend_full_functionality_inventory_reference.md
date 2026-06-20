@@ -192,7 +192,7 @@ Functionality:
 - Uses provider-layer diff/merge guards to avoid redundant writes and stale config merges.
 - Maintains wakeword preference/suppression state.
 - Coordinates save-state callback from config updates into status context.
-- Boots chat stream + tool runner hooks at app scope.
+- Boots chat stream and SDK projection hooks at app scope.
 - Routes startup by VM-mode + desktop onboarding slideshow state only (no permission gate in `App.jsx`).
 - Leaves permission runtime to onboarding, focused settings surfaces, and permission store state.
 

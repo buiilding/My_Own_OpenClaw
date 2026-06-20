@@ -41,7 +41,7 @@ Next action:
 | Backend route/auth | HTTP status, response body, headers present, install token source | `curl -i`, [REST Route Auth Matrix](../gateway/rest_route_auth_matrix.md) |
 | Main websocket | close code, first handshake payload shape, bearer token presence, backend logs | [WebSocket Connection Lifecycle](../gateway/websocket_connection_lifecycle.md) |
 | Electron main | endpoint candidates, token registration state, websocket state, local-runtime bridge readiness | Electron logs, `frontend/src/main/app/backend_endpoints.cjs`, `WINDIE_LOG_FILE=<path>` |
-| Renderer | visible state, active conversation/session, event type, tool runner state | focused frontend test or browser/devtools observation |
+| Renderer | visible state, active conversation/session, SDK projection event type, tool display state | focused frontend test or browser/devtools observation |
 | Local-runtime Python sidecar | JSON-RPC method, stderr, tool result payload, remote client URL | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG`, focused Python sidecar pytest target |
 | Packaged app | package type, runtime path, install location, local app state, packaged log | reinstall runbook, `~/windieos-packaged-run.log` on macOS helper path |
 | VM worker | worker env, heartbeat route status, assignment payload, run timeline | `/api/runs/*`, `WINDIE_VM_*`, runs API key |

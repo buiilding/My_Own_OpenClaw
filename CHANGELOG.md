@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route current-facing tool validation and evidence commands
+  through SDK/local-runtime and renderer display tests instead of removed
+  renderer ToolRunner targets. No migration required.
 - docs/renderer: refresh tool-runtime docs so SDK tool coordination owns
   execution stale-turn handling while renderer docs describe display and
   transcript side effects. No migration required.

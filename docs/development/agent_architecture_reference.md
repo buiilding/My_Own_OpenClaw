@@ -290,7 +290,7 @@ backend model-visible tool call
   -> backend history
 ```
 
-Do not rebuild the chat transcript, websocket loop, tool runner, model sync,
+Do not rebuild the chat transcript, websocket loop, SDK tool coordination, model sync,
 rehydrate, compaction, or replay semantics directly in renderer feature code.
 Add or adjust renderer facades when UI needs a boundary, and move reusable
 runtime behavior into the SDK instead of adding another Electron-only bridge.

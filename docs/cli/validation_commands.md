@@ -49,13 +49,13 @@ Use `<python-in-env>` instead of manually activating conda:
 ```sh
 ./scripts/python-in-env.sh backend python -m pytest tests/backend/test_session_manager.py -q
 ./scripts/python-in-env.sh sidecar python -m pytest tests/sidecar/test_tool_registry.py -q
-<windie> test frontend -- ToolRunnerHook.events.test.ts
+<windie> test frontend -- WindieSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState
 ```
 
 ```powershell
 scripts\python-in-env.cmd backend python -m pytest tests/backend/test_session_manager.py -q
 scripts\python-in-env.cmd sidecar python -m pytest tests/sidecar/test_tool_registry.py -q
-<windie> test frontend -- ToolRunnerHook.events.test.ts
+<windie> test frontend -- WindieSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState
 ```
 
 Default env names:
