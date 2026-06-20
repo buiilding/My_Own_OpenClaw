@@ -52,6 +52,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route app-runtime SDK command/type consumers through
   `desktopConversationRuntimeContracts` instead of importing the renderer SDK
   facade directly. No migration required.
+- frontend/renderer: route browser-session diagnostics through the SDK runtime
+  command contract instead of importing the full renderer SDK facade. No
+  migration required.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from

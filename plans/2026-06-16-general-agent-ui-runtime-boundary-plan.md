@@ -15899,3 +15899,19 @@ Each completed slice should report:
   command strings, settings/model payloads, memory commands, conversation
   continuity, credentials, permissions, hosted backend URLs, provider policy,
   storage, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Renderer browser-session diagnostics command routing
+
+- Finding: `browserSessionStore.js` only needed the SDK diagnostics command
+  name, but imported the full renderer `agentSdkClient` facade for
+  `SDK_RUNTIME_COMMANDS.DIAGNOSTICS_APPEND`.
+- Change: routed the browser-session store to the SDK runtime-command contract
+  module directly and extended the chat runtime boundary guard so browser
+  session control keeps using the app-runtime client while the store avoids the
+  broad renderer SDK facade.
+- Validation: focused browser-session store/chat-boundary Jest coverage, direct
+  import scan, docs listing, and diff checks.
+- Compatibility: no migration required. Browser action IPC, diagnostics command
+  string, local-runtime readiness handling, tab snapshots, credentials,
+  permissions, hosted backend URLs, provider policy, storage, and local-runtime
+  behavior are unchanged.

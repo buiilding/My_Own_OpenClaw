@@ -5764,3 +5764,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   IPC command strings, settings/model payloads, memory commands, conversation
   continuity, credentials, permissions, hosted backend URLs, provider policy,
   storage, and local-runtime behavior are unchanged.
+- Renderer browser-session diagnostics now import the SDK runtime-command
+  contract module directly instead of the full renderer `agentSdkClient`
+  facade; chat feature code still reaches browser controls through
+  `desktopBrowserSessionRuntimeClient.js`. Browser action IPC, the
+  `diagnostics.append` command string, readiness handling, tab snapshots,
+  credentials, permissions, hosted backend URLs, provider policy, storage, and
+  local-runtime behavior are unchanged.
