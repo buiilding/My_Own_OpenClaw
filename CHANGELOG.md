@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral candidate backend endpoint fixtures in image
+  interaction handler coverage while preserving WindieOS hosted-default origin
+  assertions. No migration required.
+
 - docs/extensions: use generic contribution-root wording in extension scaffold
   `--dir` help and authoring docs while preserving the product-owned `<windie>`
   command. No migration required.

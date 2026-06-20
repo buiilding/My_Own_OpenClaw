@@ -18790,3 +18790,19 @@ Each completed slice should report:
   arguments, generated `plugins/` and `skills/` layout, local-runtime plugin
   manifests, prompt skills, MCP discovery, permissions, storage, hosted backend
   URLs, provider policy, and local-runtime execution are unchanged.
+
+### 2026-06-20 Image interaction candidate endpoint fixture neutrality
+
+- Finding: image interaction handler tests correctly covered the WindieOS
+  hosted-default artifact origin, but the arbitrary endpoint-candidate fixtures
+  also used WindieOS-shaped hostnames.
+- Change: switched candidate/runtime fixture hosts to neutral
+  `backend.example` values and added modular boundary coverage for the retired
+  candidate hostnames while preserving product-hosted default assertions.
+- Validation: focused image interaction handler and modular boundary tests;
+  exact retired candidate hostname scan, docs listing, and diff checks.
+- Compatibility: no migration required. Active WindieOS hosted-default origin
+  assertions, endpoint candidate selection behavior, clipboard image handler
+  registration, context menu handler registration, artifact trust policy,
+  install auth, permissions, storage, provider policy, and local-runtime
+  behavior are unchanged.

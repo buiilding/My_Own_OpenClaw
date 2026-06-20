@@ -11,16 +11,18 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `7497f09bf` (`docs(sdk): neutralize python package endpoint examples`)
-- Latest completed slice: extension scaffold `--dir` help and authoring docs now
-  use generic contribution-root wording while preserving the product-owned
-  `<windie>` command.
+- Latest inspected plan checkpoint: `18e861218` (`docs(extensions): neutralize scaffold dir help`)
+- Latest completed slice: image interaction handler tests now use neutral
+  candidate backend endpoint fixtures while preserving WindieOS hosted-default
+  origin coverage.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
   identity. Generated extension plugin artifacts and scaffold `--dir` help/docs
   use generic local-runtime contribution copy while the `<windie>` CLI command
-  remains product-owned.
+  remains product-owned. Image interaction handler tests use neutral candidate
+  backend endpoint fixtures while keeping WindieOS hosted-default origin
+  assertions in host-owned endpoint coverage.
   Renderer voice docs name the desktop voice/audio runtime contract and
   backend-owned transcription gateway boundary instead of embedding concrete STT
   provider policy. Renderer config reference docs now keep current OpenAI/GPT default
@@ -122,6 +124,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral Browser Use session fixture values.
   Public Python SDK package examples now use neutral explicit backend endpoint
   samples while preserving the `windie-sdk` distribution and `windie` import.
+  Image interaction handler tests now use neutral candidate backend endpoint
+  fixtures while preserving active WindieOS hosted-default origin coverage.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7682,3 +7686,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   layout, local-runtime plugin manifests, prompt skills, MCP discovery,
   permissions, storage, hosted backend URLs, provider policy, and local-runtime
   execution are unchanged; no migration is required.
+- Image interaction handler tests now use neutral candidate backend endpoint
+  fixtures for trusted-origin construction instead of WindieOS-shaped candidate
+  hostnames. The active WindieOS hosted-default origin assertions, endpoint
+  candidate selection behavior, clipboard image handler registration, context
+  menu handler registration, artifact trust policy, install auth, permissions,
+  storage, provider policy, and local-runtime behavior are unchanged; no
+  migration is required.

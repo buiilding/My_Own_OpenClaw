@@ -13,15 +13,15 @@ describe('ipc image interaction handlers', () => {
     expect(buildTrustedImageOrigins({
       getBackendHttpUrl: () => 'https://api.windieos.com',
       getBackendCandidates: () => [
-        { httpUrl: 'https://candidate-a.windieos.com' },
+        { httpUrl: 'https://candidate-a.backend.example.com' },
         { httpUrl: '' },
         {},
-        { httpUrl: 'https://candidate-b.windieos.com' },
+        { httpUrl: 'https://candidate-b.backend.example.com' },
       ],
     })).toEqual([
       'https://api.windieos.com',
-      'https://candidate-a.windieos.com',
-      'https://candidate-b.windieos.com',
+      'https://candidate-a.backend.example.com',
+      'https://candidate-b.backend.example.com',
     ]);
   });
 
@@ -44,7 +44,7 @@ describe('ipc image interaction handlers', () => {
       registerImageContextMenuHandler,
       getBackendHttpUrl: () => 'https://api.windieos.com',
       getBackendCandidates: () => [
-        { httpUrl: 'https://candidate.windieos.com' },
+        { httpUrl: 'https://candidate.backend.example.com' },
       ],
     });
 
@@ -64,11 +64,11 @@ describe('ipc image interaction handlers', () => {
     });
     expect(registerClipboardImageHandler.mock.calls[0][0].getTrustedImageOrigins()).toEqual([
       'https://api.windieos.com',
-      'https://candidate.windieos.com',
+      'https://candidate.backend.example.com',
     ]);
     expect(registerImageContextMenuHandler.mock.calls[0][0].getTrustedImageOrigins()).toEqual([
       'https://api.windieos.com',
-      'https://candidate.windieos.com',
+      'https://candidate.backend.example.com',
     ]);
   });
 
@@ -87,9 +87,9 @@ describe('ipc image interaction handlers', () => {
       nativeImage,
       registerClipboardImageHandler,
       registerImageContextMenuHandler,
-      getBackendHttpUrl: () => 'https://runtime.windieos.test',
+      getBackendHttpUrl: () => 'https://runtime.backend.example.test',
       getBackendCandidates: () => [
-        { httpUrl: 'https://candidate.windieos.test' },
+        { httpUrl: 'https://candidate.backend.example.test' },
       ],
     });
 
@@ -110,8 +110,8 @@ describe('ipc image interaction handlers', () => {
       getTrustedImageOrigins: expect.any(Function),
     });
     expect(registerClipboardImageHandler.mock.calls[0][0].getTrustedImageOrigins()).toEqual([
-      'https://runtime.windieos.test',
-      'https://candidate.windieos.test',
+      'https://runtime.backend.example.test',
+      'https://candidate.backend.example.test',
     ]);
   });
 

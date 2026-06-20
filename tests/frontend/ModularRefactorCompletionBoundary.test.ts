@@ -570,6 +570,18 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('https://backend.example.com');
   });
 
+  test('image interaction handler tests keep candidate endpoint fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/IpcImageInteractionHandlers.test.cjs');
+
+    expect(source).not.toContain('candidate-a.windieos.com');
+    expect(source).not.toContain('candidate-b.windieos.com');
+    expect(source).not.toContain('candidate.windieos.com');
+    expect(source).not.toContain('runtime.windieos.test');
+    expect(source).not.toContain('candidate.windieos.test');
+    expect(source).toContain('candidate-a.backend.example.com');
+    expect(source).toContain('runtime.backend.example.test');
+  });
+
   test('backend user-query sanitization tests keep desktop context fixtures product-neutral', async () => {
     const source = await read('tests/backend/test_agent_executor_user_query_sanitization.py');
 
