@@ -18,7 +18,7 @@ function usage() {
     '<windie> is bin\\windie.cmd on Windows PowerShell/CMD and bin/windie.sh on macOS/Linux.',
     '',
     'Options:',
-    '  --dir <path>       WindieOS repo/contribution root. Defaults to .',
+    '  --dir <path>       Contribution root. Defaults to .',
     '  --name <name>      Display name. Defaults to a title-cased plugin id',
     '  --tool <name>      Sample tool name. Defaults to sample_tool',
     '  --force            Allow writing into existing empty contribution folders',

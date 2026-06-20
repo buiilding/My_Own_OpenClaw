@@ -95,6 +95,19 @@ describe('create-windie-extension scaffold', () => {
     expect(output).not.toContain('Created Windie skill');
   });
 
+  test('prints generic contribution root help', () => {
+    const scriptPath = path.resolve(__dirname, '../../scripts/create-windie-extension.cjs');
+
+    const output = childProcess.execFileSync(
+      process.execPath,
+      [scriptPath, '--help'],
+      { encoding: 'utf8' },
+    );
+
+    expect(output).toContain('--dir <path>       Contribution root. Defaults to .');
+    expect(output).not.toContain('WindieOS repo/contribution root');
+  });
+
   test('parses command arguments', () => {
     expect(parseArgs([
       'repo-agent',

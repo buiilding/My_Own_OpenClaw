@@ -11,15 +11,16 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `a7ebf9c11` (`test(sidecar): neutralize browser use session fixture`)
-- Latest completed slice: public Python SDK package docs and package-boundary
-  tests now use neutral backend endpoint samples instead of the WindieOS hosted
-  URL.
+- Latest inspected plan checkpoint: `7497f09bf` (`docs(sdk): neutralize python package endpoint examples`)
+- Latest completed slice: extension scaffold `--dir` help and authoring docs now
+  use generic contribution-root wording while preserving the product-owned
+  `<windie>` command.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
-  identity. Generated extension plugin artifacts use generic local-runtime
-  contribution copy while the `<windie>` CLI command remains product-owned.
+  identity. Generated extension plugin artifacts and scaffold `--dir` help/docs
+  use generic local-runtime contribution copy while the `<windie>` CLI command
+  remains product-owned.
   Renderer voice docs name the desktop voice/audio runtime contract and
   backend-owned transcription gateway boundary instead of embedding concrete STT
   provider policy. Renderer config reference docs now keep current OpenAI/GPT default
@@ -110,6 +111,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   preserving DI config rebinding through current registry/context owners.
   Extension scaffold tests now use neutral contribution-root temp paths while
   preserving the Windie CLI command name and generated contribution layout.
+  Extension scaffold `--dir` help and authoring docs now refer to generic
+  contribution roots while preserving the Windie CLI command name and generated
+  contribution layout.
   Main-window runtime tests now use neutral injected icon paths while preserving
   host-skin app icon filename coverage.
   Wakeword hook tests now use a neutral audio worklet blob URL while preserving
@@ -7672,3 +7676,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   backend URL contract, install auth behavior, websocket routing, local-runtime
   startup, hosted backend URLs in product-owned docs/config, provider policy,
   and permissions are unchanged; no migration is required.
+- Extension scaffold `--dir` help and authoring docs now use generic
+  contribution-root wording instead of "WindieOS repo/contribution root". The
+  `<windie>` command, scaffold arguments, generated `plugins/` and `skills/`
+  layout, local-runtime plugin manifests, prompt skills, MCP discovery,
+  permissions, storage, hosted backend URLs, provider policy, and local-runtime
+  execution are unchanged; no migration is required.

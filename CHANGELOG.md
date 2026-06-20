@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/extensions: use generic contribution-root wording in extension scaffold
+  `--dir` help and authoring docs while preserving the product-owned `<windie>`
+  command. No migration required.
+
 - docs/sdk: use neutral backend endpoint samples in the public Python SDK README
   and package-boundary coverage instead of WindieOS hosted URL fixtures. No
   migration required.

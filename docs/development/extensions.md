@@ -80,7 +80,7 @@ skills/repo-agent/
   README.md
 ```
 
-Use `--dir <path>` to target another WindieOS repo/contribution root. The command refuses to
+Use `--dir <path>` to target another contribution root. The command refuses to
 overwrite existing contribution folders unless `--force` is passed and the
 target folders are empty.
 

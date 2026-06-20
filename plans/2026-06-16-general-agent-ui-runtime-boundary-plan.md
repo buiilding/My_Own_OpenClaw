@@ -18774,3 +18774,19 @@ Each completed slice should report:
   `windie` import package, explicit backend URL contract, install auth behavior,
   websocket routing, local-runtime startup, hosted backend URLs in product-owned
   docs/config, provider policy, and permissions are unchanged.
+
+### 2026-06-20 Extension scaffold contribution-root help neutrality
+
+- Finding: the extension scaffold CLI and authoring docs still described
+  `--dir` as a "WindieOS repo/contribution root" even though that option targets
+  a generic contribution root and the product-owned surface is the `<windie>`
+  command.
+- Change: switched scaffold help and extension authoring docs to generic
+  contribution-root wording and added focused scaffold plus modular boundary
+  coverage for the retired phrase.
+- Validation: focused extension scaffold and modular boundary tests; exact
+  retired help phrase scan, docs listing, and diff checks.
+- Compatibility: no migration required. The `<windie>` command, scaffold
+  arguments, generated `plugins/` and `skills/` layout, local-runtime plugin
+  manifests, prompt skills, MCP discovery, permissions, storage, hosted backend
+  URLs, provider policy, and local-runtime execution are unchanged.

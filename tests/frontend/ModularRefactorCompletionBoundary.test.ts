@@ -530,11 +530,15 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('extension scaffold tests keep contribution root fixtures product-neutral', async () => {
     const source = await read('tests/frontend/CreateWindieExtension.test.cjs');
+    const script = await read('scripts/create-windie-extension.cjs');
+    const docs = await read('docs/development/extensions.md');
 
     expect(source).not.toContain('windie-contribution-scaffold-');
     expect(source).not.toContain('/tmp/windieos');
     expect(source).toContain('agent-contribution-scaffold-');
     expect(source).toContain('/tmp/agent-contributions');
+    expect(`${script}\n${docs}`).not.toContain('WindieOS repo/contribution root');
+    expect(script).toContain('Contribution root. Defaults to .');
   });
 
   test('main window runtime tests keep injected icon fixtures product-neutral', async () => {
