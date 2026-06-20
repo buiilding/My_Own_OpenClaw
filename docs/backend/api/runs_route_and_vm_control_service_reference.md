@@ -190,7 +190,7 @@ Worker ack after query send to backend websocket path.
 
 ## Integration Contract with Frontend VM Worker
 
-Expected worker loop behavior (implemented in Electron main runtime):
+Expected worker loop behavior (implemented by the Electron main VM worker runtime):
 
 1. Poll `POST /workers/heartbeat`.
 2. If `assigned_run` present, dispatch query and ack `POST /worker-dispatched`.

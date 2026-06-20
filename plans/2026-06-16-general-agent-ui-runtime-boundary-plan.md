@@ -17870,3 +17870,21 @@ Each completed slice should report:
   provider credential payloads, provider/model settings, appearance defaults,
   IPC channels, hosted backend URLs, credentials, permissions, SDK contracts,
   and local-runtime behavior are unchanged.
+
+### 2026-06-20 Frontend inventory main-runtime labels
+
+- Finding: frontend inventory, renderer startup, backend runs, IPC protocol,
+  and local-runtime lifecycle docs still carried a few product-specific or
+  broad main-runtime labels: WindieOS windows for query capture, WindieOS
+  SDK-owned local-runtime daemon summary wording, generic Electron main runtime
+  VM-worker ownership, and main runtime session state.
+- Change: routed those labels through desktop app windows, SDK-owned
+  local-runtime lifecycle, Electron main VM worker runtime, and Electron main
+  session state, then widened the modular boundary guard to include the touched
+  docs and exact retired phrases.
+- Validation: focused modular docs boundary test, exact stale phrase scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Runtime code, VM worker behavior,
+  local-runtime startup, IPC channels, transcript session sync payloads,
+  window/overlay behavior, SDK contracts, storage, credentials, permissions,
+  hosted backend URLs, and provider policy are unchanged.

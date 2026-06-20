@@ -30,7 +30,7 @@ This matrix maps frontend capabilities to implementation files.
 | Overlay bounds and top-most helper runtime | `frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs`, `frontend/src/main/surfaces/overlay_bounds.cjs` | Positioning, fallback bounds, and always-on-top helpers. |
 | VM mode + worker bridge runtime | `frontend/src/main/app/runtime_mode.cjs`, `frontend/src/main/app/vm_worker_runtime.cjs` | Env-gated VM worker lifecycle, `/api/runs/*` heartbeat/dispatch/event relay, control command application. |
 | Main/chat visibility transitions | `frontend/src/main/surfaces/window_visibility_runtime.cjs`, `frontend/src/main/surfaces/overlay_visibility_handler.cjs` | Focus/hide/show policy across chat, response overlay, and main window. |
-| Overlay query-capture blur prep | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/ipc.cjs` | Blurs WindieOS windows and waits briefly before capture without restoring another app to foreground. |
+| Overlay query-capture blur prep | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/ipc.cjs` | Blurs desktop app windows and waits briefly before capture without restoring another app to foreground. |
 
 ## 2) Main IPC, Backend Relay, and Local-Runtime Bridge
 

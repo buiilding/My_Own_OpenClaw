@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS SDK-owned local-runtime daemon lifecycle, readiness status, helper RPC routing, packaged launch options, and renderer readiness consumers."
+summary: "Workflow for changing SDK-owned local-runtime daemon lifecycle, readiness status, helper RPC routing, packaged launch options, and renderer readiness consumers."
 read_when:
   - When changing desktop local-runtime daemon startup, shutdown, readiness status broadcasts, helper RPC routing, or packaged local-runtime Python launch options.
   - When debugging local-runtime startup failures, `local-runtime-status` drift, browser controls waiting forever, SDK local-runtime `/rpc` failures, or packaged local-runtime Python launch failures.

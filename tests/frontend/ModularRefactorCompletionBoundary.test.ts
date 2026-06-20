@@ -663,8 +663,12 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/architecture/tool_system.md'),
       read('docs/architecture/failure_domain_map.md'),
       read('docs/architecture/data_flow_and_state_ownership.md'),
+      read('docs/backend/api/runs_route_and_vm_control_service_reference.md'),
+      read('docs/frontend/inventory/frontend_capability_to_file_matrix_reference.md'),
       read('docs/frontend/inventory/domains/frontend_domain_ownership_matrix_reference.md'),
       read('docs/frontend/inventory/frontend_full_functionality_inventory_reference.md'),
+      read('docs/frontend/inventory/protocols/frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md'),
+      read('docs/frontend/main/local_backend/process_lifecycle_change_workflow.md'),
       read('docs/frontend/main/window_and_overlay_lifecycle.md'),
       read('docs/frontend/main/display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md'),
       read('docs/frontend/main/main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md'),
@@ -672,6 +676,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/main/main_process_change_workflow.md'),
       read('docs/frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md'),
       read('docs/frontend/main/local_backend/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md'),
+      read('docs/frontend/renderer/app_startup_onboarding_change_workflow.md'),
       read('docs/frontend/sidecar/local_backend_process_lifecycle_reference.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/renderer/infrastructure/conversation_transcript_loader_and_display_bounds_storage_reference.md'),
@@ -700,6 +705,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('WindieOS surface');
     expect(docText).not.toContain('WindieOS windows');
     expect(docText).not.toContain('WindieOS overlay/main windows');
+    expect(docText).not.toContain('Workflow for changing WindieOS SDK-owned local-runtime daemon lifecycle');
+    expect(docText).not.toContain('implemented in Electron main runtime');
+    expect(docText).not.toContain('| Electron main runtime |');
+    expect(docText).not.toContain('into main runtime state');
   });
 
   test('architecture docs route renderer IPC through SDK commands and typed event fan-out', async () => {

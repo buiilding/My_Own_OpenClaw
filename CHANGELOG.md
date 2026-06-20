@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route remaining inventory, VM-worker, and local-runtime
+  lifecycle labels through desktop app windows, Electron main VM worker, and
+  SDK-owned local-runtime wording instead of WindieOS/main-runtime labels. No
+  migration required.
 - docs/renderer: clarify that renderer config provider/model defaults are
   skin-supplied through `desktopRuntimeConfig`, and make the renderer-state
   workflow summary generic to the desktop renderer. No migration required.

@@ -39,7 +39,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `renderer-log` | `main/ipc/ipc_renderer_diagnostics_handlers.cjs` | Receives renderer log envelopes and forwards them into the Electron main logging path |
 | `live-surface-trace` | `main/ipc/ipc_renderer_diagnostics_handlers.cjs` | Receives renderer live-surface trace envelopes for deterministic surface diagnostics |
 | `windie:pending-turn` | `main/ipc/ipc_pending_turn_handlers.cjs` | Stores, broadcasts, replays, and clears renderer-composed pending user turns until SDK current-turn projection catches up |
-| `transcript-session-sync` | `main/ipc/ipc_client_session_handlers.cjs` | Syncs renderer transcript session/conversation/user identity into main runtime state and rebroadcasts normalized session snapshots |
+| `transcript-session-sync` | `main/ipc/ipc_client_session_handlers.cjs` | Syncs renderer transcript session/conversation/user identity into Electron main session state and rebroadcasts normalized session snapshots |
 | `move-chatbox-to` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Repositions chatbox overlay window |
 | `wakeword-audio-chunk` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` normalizes payload types) | Streams mic PCM chunks to wakeword subprocess |
 | `wakeword-enable` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` maps startup/status errors) | Enables wakeword detection / starts service if needed |
