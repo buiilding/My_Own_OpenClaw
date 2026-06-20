@@ -440,6 +440,8 @@ Owns Electron-main query-level agent-definition context attachment:
 
 Owns backend endpoint candidate state:
 
+- exposes `createBackendEndpointRuntime(...)` so `ipc.cjs` composes hosted
+  backend configuration, endpoint candidate resolution, and refresh behavior once
 - initializes from the default endpoint resolver
 - refreshes dev/customer/packaged endpoint candidates
 - tracks the active endpoint index

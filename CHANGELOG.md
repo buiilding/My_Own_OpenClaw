@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: wrap hosted backend endpoint configuration and candidate refresh in
+  `createBackendEndpointRuntime(...)`, preserving active endpoint selection,
+  fallback advancement, SDK runtime construction URLs, status payload URLs, and
+  artifact helper endpoint behavior. No migration required.
 - main/ipc: route IPC test shutdown renderer-window cleanup through
   `rendererWindowRuntime.reset()` inside `createIpcProcessResetRuntime(...)`
   so reset orchestration depends on the same composed renderer-window boundary

@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Backend Endpoint Runtime Boundary
+
+- Finding: `ipc_backend_endpoint_state.cjs` owned endpoint candidates, active
+  index, fallback advancement, and URL accessors, but `ipc.cjs` still paired
+  hosted backend runtime configuration with a manual endpoint-state refresh in
+  `configureIpcHostRuntime(...)`.
+- Change: added `createBackendEndpointRuntime(...)` so the endpoint helper owns
+  hosted backend configuration plus candidate refresh composition. `ipc.cjs`
+  now composes that runtime once and delegates host backend reconfiguration
+  through `backendEndpointState.configureHostedBackend(...)`.
+- Validation: focused endpoint-state coverage verifies configuration happens
+  before refresh and source guards keep direct endpoint-state construction and
+  hosted backend configuration calls out of `ipc.cjs`.
+- Compatibility: no migration required. Endpoint candidate order, active
+  endpoint selection, fallback advancement, SDK runtime construction URLs,
+  status payload URLs, artifact helper URLs, VM worker endpoint state, storage,
+  credentials, permissions, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main Process Reset Renderer Window Runtime Boundary
 
 - Finding: `createRendererWindowRuntime(...)` now owned renderer-window track,

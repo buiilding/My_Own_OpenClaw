@@ -22,7 +22,7 @@ const {
   isDebugFlagEnabled,
 } = require('./app/debug_env.cjs');
 const {
-  createBackendEndpointState,
+  createBackendEndpointRuntime,
 } = require('./ipc/ipc_backend_endpoint_state.cjs');
 const {
   loadDesktopUiConfigFromDisk,
@@ -269,7 +269,8 @@ const {
   summarizeCurrentTurn,
 } = require('./debug/live_surface_trace_runtime.cjs');
 
-const backendEndpointState = createBackendEndpointState({
+const backendEndpointState = createBackendEndpointRuntime({
+  configureBackendEndpointRuntime,
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
   env: process.env,
@@ -839,8 +840,7 @@ function buildDesktopInstallAuth() {
 }
 
 function configureIpcHostRuntime(config = {}) {
-  configureBackendEndpointRuntime(config.hostedBackend);
-  backendEndpointState.refresh();
+  backendEndpointState.configureHostedBackend(config.hostedBackend);
   configureDebugEnvRuntime(config.debug);
 }
 

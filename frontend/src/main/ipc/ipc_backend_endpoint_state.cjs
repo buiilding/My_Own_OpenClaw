@@ -59,6 +59,32 @@ function createBackendEndpointState({
   };
 }
 
+function createBackendEndpointRuntime({
+  configureBackendEndpointRuntime,
+  resolveBackendEndpointCandidates,
+  resolveBackendEndpoints,
+  env = process.env,
+}) {
+  const state = createBackendEndpointState({
+    resolveBackendEndpointCandidates,
+    resolveBackendEndpoints,
+    env,
+  });
+
+  function configureHostedBackend(hostedBackend) {
+    if (typeof configureBackendEndpointRuntime === 'function') {
+      configureBackendEndpointRuntime(hostedBackend);
+    }
+    return state.refresh();
+  }
+
+  return {
+    ...state,
+    configureHostedBackend,
+  };
+}
+
 module.exports = {
+  createBackendEndpointRuntime,
   createBackendEndpointState,
 };

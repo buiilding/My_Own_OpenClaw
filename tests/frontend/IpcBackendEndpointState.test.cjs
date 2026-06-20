@@ -3,8 +3,11 @@
  */
 
 const {
+  createBackendEndpointRuntime,
   createBackendEndpointState,
 } = require('../../frontend/src/main/ipc/ipc_backend_endpoint_state.cjs');
+const fs = require('fs/promises');
+const path = require('path');
 
 function createHarness() {
   const fallback = { wsUrl: 'ws://fallback/ws', httpUrl: 'http://fallback' };
@@ -66,5 +69,46 @@ describe('ipc_backend_endpoint_state', () => {
 
     expect(endpointState.refresh()).toEqual(fallback);
     expect(endpointState.getCandidates()).toEqual([]);
+  });
+
+  test('runtime configures hosted backend before refreshing endpoint candidates', () => {
+    const fallback = { wsUrl: 'ws://fallback/ws', httpUrl: 'http://fallback' };
+    const hosted = { wsUrl: 'wss://hosted/ws', httpUrl: 'https://hosted' };
+    const calls = [];
+    const runtime = createBackendEndpointRuntime({
+      configureBackendEndpointRuntime: jest.fn((hostedBackend) => {
+        calls.push(`configure:${hostedBackend.baseUrl}`);
+      }),
+      resolveBackendEndpoints: jest.fn(() => fallback),
+      resolveBackendEndpointCandidates: jest.fn(() => {
+        calls.push('refresh');
+        return [hosted];
+      }),
+    });
+
+    expect(runtime.configureHostedBackend({ baseUrl: 'https://hosted' })).toEqual(hosted);
+    expect(calls).toEqual([
+      'configure:https://hosted',
+      'refresh',
+    ]);
+    expect(runtime.getEndpoint()).toEqual(hosted);
+  });
+
+  test('ipc.cjs delegates hosted backend configuration to endpoint runtime', async () => {
+    const mainSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+    const helperSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_backend_endpoint_state.cjs'),
+      'utf8',
+    );
+
+    expect(mainSource).toContain('createBackendEndpointRuntime({');
+    expect(mainSource).toContain('backendEndpointState.configureHostedBackend(config.hostedBackend)');
+    expect(mainSource).not.toContain('createBackendEndpointState({');
+    expect(mainSource).not.toContain('configureBackendEndpointRuntime(config.hostedBackend)');
+    expect(helperSource).toContain('function createBackendEndpointRuntime');
+    expect(helperSource).toContain('configureBackendEndpointRuntime(hostedBackend)');
   });
 });
