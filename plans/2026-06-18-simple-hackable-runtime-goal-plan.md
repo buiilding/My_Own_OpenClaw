@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed local-runtime tool catalog and retired renderer
+  tool-result envelope docs through local-runtime registry dispatch backed by
+  Python modules, backend/local-runtime contracts, and SDK/main local-runtime
+  migration wording instead of sidecar registry dispatch, backend/sidecar
+  contracts, and SDK main-runtime labels. Validation covered the modular docs
+  boundary guard, docs search, related commit search, stale SDK-main-runtime/
+  sidecar-registry label scan, docs listing, and diff check. No migration
+  required; tool-result payload shape, SDK/main dispatch, local-runtime registry
+  behavior, JSON-RPC payloads, IPC channels, renderer display, storage,
+  credentials, permissions, provider policy, hosted URLs, and local-runtime
+  behavior are unchanged.
+
 - 2026-06-20: routed active tool troubleshooting, websocket reference,
   catalog, contract, architecture, and schema-policy docs through SDK/main
   local-runtime tool routing plus local-runtime executable registry ownership

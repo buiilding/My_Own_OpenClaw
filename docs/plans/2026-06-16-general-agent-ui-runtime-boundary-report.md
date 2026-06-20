@@ -238,6 +238,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Renderer Envelope and Tool Catalog Route Labels
+
+- Finding: local-runtime tool catalog and retired renderer tool-result envelope
+  docs still used sidecar registry dispatch, backend/sidecar contracts, and SDK
+  main-runtime migration labels after the active route moved to SDK/main
+  local-runtime execution and backend/local-runtime contracts.
+- Change: reworded those docs through local-runtime registry dispatch backed by
+  Python modules, backend/local-runtime contracts, and SDK/main local-runtime
+  migration wording, and expanded the modular docs guard to cover the retired
+  renderer envelope reference.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale SDK-main-runtime/sidecar-registry label scan, docs listing, and
+  diff check.
+- Compatibility: no migration required. Tool-result payload shape, SDK/main
+  dispatch, local-runtime registry behavior, JSON-RPC payloads, IPC channels,
+  renderer display, storage, credentials, permissions, provider policy, hosted
+  URLs, and local-runtime behavior are unchanged.
+
 ### 2026-06-20 Tool Routing Registry Owner Wording
 
 - Finding: active tool troubleshooting, websocket reference, catalog, contract,

@@ -1,8 +1,8 @@
 ---
-summary: "Retired renderer tool-result envelope reference explaining that tool-result payload construction now belongs to the Agent SDK runtime and backend/sidecar contracts."
+summary: "Retired renderer tool-result envelope reference explaining that tool-result payload construction now belongs to the Agent SDK runtime and backend/local-runtime contracts."
 read_when:
   - When you find old references to renderer tool-result envelope builders or renderer backend payload gating.
-  - When debugging `tool-result` or `tool-bundle-result` payload shape after the SDK main-runtime migration.
+  - When debugging `tool-result` or `tool-bundle-result` payload shape after the SDK/main local-runtime migration.
 title: "Retired Renderer Tool Result Envelope Reference"
 ---
 
