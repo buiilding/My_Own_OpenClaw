@@ -15983,3 +15983,21 @@ Each completed slice should report:
   names, model-facing tool exposure, local-runtime validation, Browser Use
   execution, storage, credentials, permissions, hosted backend URLs, provider
   policy, and IPC payloads are unchanged.
+
+### 2026-06-20 Local-runtime env configuration matrix ordering
+
+- Finding: the runtime configuration matrix still listed several WindieOS
+  `WINDIE_*` local-runtime environment keys as primary rows and described the
+  reusable `AGENT_*` names as generic host fallbacks, even though the active
+  local-runtime code now prefers `AGENT_*` and preserves WindieOS keys as launch
+  aliases.
+- Change: rewrote the local-runtime implementation variable rows to present
+  generic `AGENT_*` names as the reusable host contract, with `WINDIE_*`
+  documented as WindieOS launch/test aliases, and added a frontend docs-boundary
+  guard against the inverted fallback wording returning.
+- Validation: focused modular refactor boundary Jest coverage, stale fallback
+  wording scan, docs listing, and diff checks.
+- Compatibility: no migration required. Environment variable support, host skin
+  injection, local-runtime launch behavior, storage paths, credentials,
+  permissions, hosted backend URLs, provider policy, and IPC payloads are
+  unchanged.

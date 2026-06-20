@@ -1173,6 +1173,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-runtime implementation node (Python sidecar)');
     expect(docText).toContain('SDK/main local runtime owns local executable authority');
     expect(docText).toContain('behind SDK local-runtime ownership');
+    const runtimeConfigMatrix = await read('docs/operations/runtime_configuration_matrix.md');
+    expect(runtimeConfigMatrix).toContain(
+      '`AGENT_INTERACTIVE_WORKERS` (`WINDIE_INTERACTIVE_WORKERS` in WindieOS launches)',
+    );
+    expect(runtimeConfigMatrix).toContain(
+      'WindieOS launches preserve matching `WINDIE_BROWSER_*` aliases.',
+    );
+    expect(runtimeConfigMatrix).not.toContain('Generic host fallback: `AGENT_');
+    expect(runtimeConfigMatrix).not.toContain('Generic host fallbacks use matching `AGENT_');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('websocket state, sidecar readiness');

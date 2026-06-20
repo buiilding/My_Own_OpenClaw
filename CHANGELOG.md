@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 - tests/browser: rename the shared browser schema reconciliation guard away from
   Windie-owned lifecycle wording to local-runtime adapter actions. No migration
   required.
+- docs/ops: list generic `AGENT_*` local-runtime env vars as the primary
+  reusable contract in the runtime configuration matrix, with `WINDIE_*`
+  documented as WindieOS launch aliases. No migration required.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from

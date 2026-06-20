@@ -5795,3 +5795,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   schemas, model-facing exposure, local-runtime validation, Browser Use
   execution, storage, credentials, permissions, hosted backend URLs, provider
   policy, and IPC payloads are unchanged.
+- Runtime configuration docs now list generic `AGENT_*` local-runtime env vars
+  as the reusable host contract and document matching `WINDIE_*` keys as
+  WindieOS launch/test aliases. Env support, host skin injection, local-runtime
+  launch behavior, storage paths, credentials, permissions, hosted backend
+  URLs, provider policy, and IPC payloads are unchanged.
