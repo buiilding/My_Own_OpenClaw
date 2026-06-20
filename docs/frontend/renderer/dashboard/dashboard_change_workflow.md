@@ -18,7 +18,7 @@ the owner map before changing code.
 ## Boundary Rules
 
 - Dashboard is renderer-owned. It should not own backend websocket schemas,
-  sidecar storage internals, or provider runtime logic.
+  local-runtime memory storage internals, or provider runtime logic.
 - `DashboardShell` owns modal exclusivity, sidebar open/collapse state,
   dashboard-open animation, `main-window-open-target` routing, and panel
   composition.

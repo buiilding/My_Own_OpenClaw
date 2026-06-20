@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(memory): route transcript replay, dashboard, identity, and docs hub
+  storage labels through local-runtime transcript/memory storage wording
+  instead of sidecar storage owner labels. No migration required.
+- docs(architecture): route the remaining frontend architecture sidecar-method
+  label through local-runtime JSON-RPC method wording. No migration required.
 - docs(config): route backend config, configuration workflow, and docs-hub
   evidence labels through local-runtime env/local-runtime wording instead of
   sidecar env or sidecar evidence labels. No migration required.

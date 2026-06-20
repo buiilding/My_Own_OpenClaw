@@ -57,8 +57,8 @@ flowchart LR
 ## Change Sequence
 
 1. Identify the failing phase.
-   - Store: row crosses renderer IPC, Electron main, sidecar handler, and SQLite.
-   - List/search: dashboard asks sidecar for conversations.
+   - Store: row crosses renderer IPC, Electron main, local-runtime Python handler, and SQLite.
+   - List/search: dashboard asks local-runtime transcript storage for conversations.
    - Replay: stored rows become visible chat messages.
    - Rehydrate: stored rows become backend model history.
 
@@ -68,9 +68,9 @@ flowchart LR
 
 3. Trace the store path.
    - Chat stream handlers consume SDK conversation events and active-turn projections.
-   - Desktop conversation store calls cross Electron main into the sidecar storage boundary.
+   - Desktop conversation store calls cross Electron main into the local-runtime transcript storage boundary.
    - Main process maps payload keys before calling local-runtime JSON-RPC.
-   - Sidecar `conversation.append_event` normalizes and stores rows in `LocalMemoryStore`.
+   - Local-runtime Python `conversation.append_event` normalizes and stores rows in `LocalMemoryStore`.
 
 4. Preserve replay shape.
    - Stored transcript rows must reconstruct stable user, assistant, tool-call, tool-output, bundle, transparency, screenshot, and model metadata rows.
@@ -143,5 +143,5 @@ flowchart LR
 ### Conversation Search Finds the Wrong Rows
 
 1. Confirm the search command passes the intended `user_id`.
-2. Confirm sidecar search SQL filters by conversation and user.
+2. Confirm local-runtime Python search SQL filters by conversation and user.
 3. Confirm display projection does not merge rows from multiple conversations after search.

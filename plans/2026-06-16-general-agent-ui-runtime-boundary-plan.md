@@ -120,6 +120,38 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Transcript Storage Labels
+
+- Finding: transcript replay, memory identity, dashboard, docs hub, and docs
+  structure routes still used sidecar storage/handler/search/DB labels for
+  durable conversation rows where the reusable owner is local-runtime
+  transcript/memory storage and local-runtime Python is the current SQLite
+  implementation.
+- Change: routed those labels through local-runtime transcript storage,
+  local-runtime memory storage, and local-runtime Python handler/search wording
+  while preserving concrete `conversation.append_event`, `LocalMemoryStore`,
+  SQLite, dashboard replay, and backend rehydrate details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  storage label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, database schema,
+  conversation row shape, search SQL behavior, dashboard replay, backend
+  rehydrate payloads, IPC payloads, storage files, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
+
+### 2026-06-20 Frontend Architecture Local-Runtime Method Label
+
+- Finding: the frontend architecture doc still used "Sidecar method names" for
+  below-SDK implementation details where the active boundary is local-runtime
+  JSON-RPC.
+- Change: routed the sentence through local-runtime JSON-RPC method wording
+  while preserving the SDK-boundary and local store implementation-detail
+  guidance.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  method label scans, and diff checks.
+- Compatibility: no migration required. Runtime code, JSON-RPC method names,
+  IPC payloads, storage, credentials, permissions, hosted backend URLs,
+  provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Local-Runtime Python Handler Response Labels
 
 - Finding: system-state, IPC, local-runtime JSON-RPC, and local-runtime bridge

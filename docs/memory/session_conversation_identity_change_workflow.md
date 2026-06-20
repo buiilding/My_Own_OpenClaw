@@ -78,7 +78,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 - Do not treat missing `conversation_ref` as equivalent to a new chat. Backend `None` can mean default/latest conversation fallback.
 - Do not use `session_id` as a durable storage key for transcript rows, memory, dashboard resume, or VM runs.
 - Normalize camelCase and snake_case identity aliases at process boundaries, then use one internal shape.
-- Preserve `conversation_ref`, `turn_ref`, tool-call ids, request ids, and screenshots through renderer, Electron, sidecar, backend rehydrate, and backend history when a row can later be replayed.
+- Preserve `conversation_ref`, `turn_ref`, tool-call ids, request ids, and screenshots through renderer, Electron, local-runtime transcript storage, backend rehydrate, and backend history when a row can later be replayed.
 - Keep hidden replay-state rows and visible conversation rows in the same delete/lifecycle path.
 - When a change affects both dashboard and minimal chat pill, test both. They can be separate renderer windows with shared session sync.
 - When a hosted backend has authenticated identity, do not trust renderer-owned `user_id` for access control.
@@ -137,7 +137,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 
 ### Backend Continues Old Context After Resume
 
-- Confirm dashboard loaded the intended conversation rows from sidecar storage.
+- Confirm dashboard loaded the intended conversation rows from local-runtime transcript storage.
 - Confirm rehydrate payload contains the selected `conversation_ref`.
 - Confirm backend rehydrate service targeted the same conversation-scoped session.
 - Confirm tool-call/tool-output rows were repaired or pruned before provider history.

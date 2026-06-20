@@ -122,7 +122,7 @@ Added/expanded in WindieOS:
 - `security/`: security and trust-boundary routing docs; operations keeps deployment runbooks while this section maps enforcement owners.
 - `plugins/`: current source-owned extension surfaces and explicit future boundaries for marketplace/dynamic plugin work.
 - `browser/`: browser-specific runtime, action surface, and troubleshooting docs separate from generic tool docs.
-- `memory/`: memory and transcript docs that distinguish renderer persistence, sidecar storage, and backend active history.
+- `memory/`: memory and transcript docs that distinguish renderer persistence, local-runtime transcript storage, and backend active history.
 - `automation/`: current VM runs and worker control plane; future cron/webhook/durable scheduler docs stay in `planning/` until implemented.
 - `architecture/`: high-level conceptual architecture and cross-system flows.
 - `tools/`: first-class tool behavior, contracts, and runtime maps.

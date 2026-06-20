@@ -266,7 +266,7 @@ contracts.
 - [**Frontend Renderer Provider Hub**](frontend/renderer/providers/README.md) - Root app composition, view routing, and provider coordination internals
 - [**Frontend Renderer Error Boundary Contract**](frontend/renderer/providers/components/error_boundary_fallback_and_component_tree_crash_isolation_contract_reference.md) - Root-surface crash containment fallback UI and console logging semantics
 - [**Frontend Renderer Transcript Hub**](frontend/renderer/transcript/README.md) - desktop transcript projection runtime queues, session identity persistence rules, and session-event contracts
-- [**Transcript Replay Change Workflow**](memory/transcript_replay_change_workflow.md) - Cross-runtime owner map for visible transcript persistence, sidecar storage, dashboard replay, backend rehydrate, and validation
+- [**Transcript Replay Change Workflow**](memory/transcript_replay_change_workflow.md) - Cross-runtime owner map for visible transcript persistence, local-runtime transcript storage, dashboard replay, backend rehydrate, and validation
 - [**Frontend Transcript Type Contracts**](frontend/renderer/transcript/contracts/transcript_entry_type_contract_reference.md) - Shared transcript session identity and transparency field contracts
 - [**Frontend Entrypoint View Routing + Provider Stack**](frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md) - `view`-based root selection and per-surface `ChatProvider` capability flags
 - [**Frontend App Provider Coordinator + Save-Status Runtime**](frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md) - `AppConfig/AppStatus` bridge callback, shift-tab interaction-mode toggle, and config persistence guardrails

@@ -12,12 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: system-state, IPC, local-runtime JSON-RPC,
-  local-runtime bridge, configuration, and docs-hub routes now describe
-  local-runtime Python handler params, response envelopes, fallback/error
-  returns, system-state probe handling, and local-runtime env evidence instead
-  of sidecar handler/env owner labels, with a focused docs boundary guard
-  against those retired phrases.
+- Latest completed slice: transcript replay, memory identity, dashboard,
+  docs hub, and docs-structure routes now describe local-runtime
+  transcript/memory storage instead of sidecar storage/DB/search owner labels,
+  with a focused docs boundary guard against those retired phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -246,6 +244,38 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Local-Runtime Transcript Storage Labels
+
+- Finding: transcript replay, memory identity, dashboard, docs hub, and docs
+  structure routes still used sidecar storage/handler/search/DB labels for
+  durable conversation rows where the reusable owner is local-runtime
+  transcript/memory storage and local-runtime Python is the current SQLite
+  implementation.
+- Change: routed those labels through local-runtime transcript storage,
+  local-runtime memory storage, and local-runtime Python handler/search wording
+  while preserving concrete `conversation.append_event`, `LocalMemoryStore`,
+  SQLite, dashboard replay, and backend rehydrate details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  storage label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, database schema,
+  conversation row shape, search SQL behavior, dashboard replay, backend
+  rehydrate payloads, IPC payloads, storage files, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
+
+### 2026-06-20 Frontend Architecture Local-Runtime Method Label
+
+- Finding: the frontend architecture doc still used "Sidecar method names" for
+  below-SDK implementation details where the active boundary is local-runtime
+  JSON-RPC.
+- Change: routed the sentence through local-runtime JSON-RPC method wording
+  while preserving the SDK-boundary and local store implementation-detail
+  guidance.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  method label scans, and diff checks.
+- Compatibility: no migration required. Runtime code, JSON-RPC method names,
+  IPC payloads, storage, credentials, permissions, hosted backend URLs,
+  provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime Python Handler Response Labels
 

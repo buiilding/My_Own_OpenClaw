@@ -153,7 +153,7 @@ runtime. Renderer code must not call local-runtime JSON-RPC method names or remo
 aliases such as
 `clear-chat-history`, `clear-local-memory`, `list-chat-conversations`,
 `conversation_events`, or `conversation_revisions` for user-facing SDK concepts.
-Sidecar method names may still exist below the SDK boundary as
+Local-runtime JSON-RPC method names may still exist below the SDK boundary as
 local-runtime/store implementation details.
 
 Renderer app-runtime transport facades that implement SDK runtime interfaces

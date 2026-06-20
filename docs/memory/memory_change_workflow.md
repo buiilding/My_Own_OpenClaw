@@ -141,7 +141,7 @@ Validation:
 | --- | --- |
 | `userId` / `user_id` | Owner identity. Hosted backend should require authenticated identity where user-scoped work is performed, and request-body ids must match that identity. |
 | `sessionId` / `session_id` | Runtime session identity; do not use as durable conversation identity when `conversationRef` exists. |
-| `conversationRef` / `conversation_id` | Durable conversation/thread identity across transcript, replay, rehydrate, and sidecar storage. |
+| `conversationRef` / `conversation_id` | Durable conversation/thread identity across transcript, replay, rehydrate, and local-runtime transcript storage. |
 | `turn_ref` | Backend turn-scoped correlation for stream/tool events. |
 | tool call ids/request ids | Preserve through transcript, replay, rehydrate, local execution, and backend tool-result history. |
 
@@ -152,7 +152,7 @@ Do not invent new identifiers inside UI components. Use the transcript/session r
 | Failure | Avoid | Fix direction |
 | --- | --- | --- |
 | Missing dashboard row | Do not patch backend history | Check local-runtime transcript storage and dashboard query path. |
-| Backend loses context after reopening | Do not rewrite sidecar DB | Fix renderer rehydrate payload or backend rehydrate service. |
+| Backend loses context after reopening | Do not rewrite the local-runtime SQLite store | Fix renderer rehydrate payload or backend rehydrate service. |
 | Semantic fact is wrong | Do not edit raw transcript | Fix semanticization prompt/parser/source filtering or delete only derived semantic memory when intentional. |
 | Tool output appears without tool call | Do not hide the UI row | Fix tool linkage preservation in transcript or rehydrate repair. |
 | Embedding provider unavailable | Do not fail transcript writes | Keep durable writes non-fatal and surface search/semantic degradation. |

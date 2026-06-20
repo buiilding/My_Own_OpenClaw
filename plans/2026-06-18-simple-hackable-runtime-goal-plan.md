@@ -275,6 +275,24 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime transcript/memory storage label slice
+  by routing transcript replay, memory identity, dashboard, docs hub, and docs
+  structure routes through local-runtime transcript storage, local-runtime
+  memory storage, and local-runtime Python handler/search wording instead of
+  sidecar storage/handler/search/DB labels. Validation: focused modular docs
+  boundary test, docs listing, exact stale storage label scan, and diff checks.
+  No migration required; no runtime code, database schema, conversation row
+  shape, search SQL behavior, dashboard replay, backend rehydrate payload, IPC
+  payload, storage file, credential, permission, hosted URL, provider-policy, or
+  trust-boundary behavior changed.
+- 2026-06-20: completed a frontend architecture local-runtime JSON-RPC method
+  label slice by replacing the remaining "Sidecar method names" architecture
+  wording with local-runtime JSON-RPC method wording while preserving the SDK
+  boundary and local store implementation-detail guidance. Validation covered
+  the focused modular docs boundary test, docs listing, exact stale method
+  label scans, and diff checks. No migration required; no runtime code,
+  JSON-RPC method name, IPC payload, storage, credential, permission, hosted
+  URL, provider-policy, or trust-boundary behavior changed.
 - 2026-06-20: completed a configuration local-runtime env label slice by
   routing backend config guardrails, operations configuration validation, and
   docs-hub evidence labels through local-runtime env/local-runtime wording

@@ -88,7 +88,7 @@ Validation:
 1. Update dashboard section component(s).
 2. Update memory utility parsing/formatting helpers.
 3. Update transcript/memory invoke paths in API client + main bridge as needed.
-4. If sidecar storage logic changes, update memory store/summarizer modules.
+4. If local-runtime memory storage logic changes, update memory store/summarizer modules.
 
 Validation:
 
