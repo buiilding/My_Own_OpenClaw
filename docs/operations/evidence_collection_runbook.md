@@ -68,7 +68,7 @@ Use the narrowest flag that matches the failing boundary. Do not enable broad lo
 | Local health works, hosted health returns `502` | Cloudflare Tunnel or origin service reachability | [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md) |
 | Hosted health works, `/api/artifacts/*` returns `401` | Install auth propagation | [Hosted Backend Auth](hosted_backend_auth.md) |
 | Websocket closes `1008` before query | Handshake/auth/schema | [WebSocket Connection Lifecycle](../gateway/websocket_connection_lifecycle.md) |
-| Query streams but local tool fails | SDK/main local-runtime dispatch or local-runtime Python implementation | [Local-Runtime Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md) |
+| Query streams but local tool fails | SDK/main local-runtime dispatch or local-runtime Python implementation | [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md) |
 | Source app works but packaged app tool fails | Bundled runtime or packaged env | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md) |
 | Only Linux screenshot path flickers | Platform screenshot/overlay policy | [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md) |
 | Model missing from picker | Backend model catalog/list-models | [Model Catalog Change Workflow](../providers/model_catalog_change_workflow.md) |

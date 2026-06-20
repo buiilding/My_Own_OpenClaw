@@ -213,7 +213,7 @@ Local-runtime implementation owners:
 
 Start docs:
 
-- [Local-Runtime Tool Change Workflow](../../frontend/sidecar_tool_change_workflow.md)
+- [Local-Runtime Tool Change Workflow](../../frontend/local_runtime_tool_change_workflow.md)
 - [Local Tool Channels](../../channels/sidecar_and_tool_channels.md)
 - [Tool Execution Lifecycle](../../tools/tool_execution_lifecycle.md)
 
@@ -236,4 +236,4 @@ Start docs:
 - [Tool Execution Lifecycle](../../tools/tool_execution_lifecycle.md)
 - [Tool Contracts](../../tools/tool_contracts.md)
 - [Backend Tools Hub](../tools/README.md)
-- [Local-Runtime Tool Change Workflow](../../frontend/sidecar_tool_change_workflow.md)
+- [Local-Runtime Tool Change Workflow](../../frontend/local_runtime_tool_change_workflow.md)

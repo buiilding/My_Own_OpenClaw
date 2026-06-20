@@ -7334,3 +7334,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Runtime code, launch options, env precedence, local-runtime startup, storage,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged; no migration is required.
+- The local-runtime tool change workflow file now lives at
+  `docs/frontend/local_runtime_tool_change_workflow.md`, with cross-runtime
+  links updated away from the sidecar-facing path. Runtime code,
+  local-runtime Python implementation, backend tool schemas, SDK/main dispatch,
+  IPC channels, storage, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged; no migration is required.

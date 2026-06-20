@@ -26,7 +26,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 - [IPC Change Workflow](ipc_change_workflow.md)
 - [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md)
-- [Local-Runtime Tool Change Workflow](sidecar_tool_change_workflow.md)
+- [Local-Runtime Tool Change Workflow](local_runtime_tool_change_workflow.md)
 - [Local-Runtime Process Lifecycle Change Workflow](main/local_backend/process_lifecycle_change_workflow.md)
 - [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 

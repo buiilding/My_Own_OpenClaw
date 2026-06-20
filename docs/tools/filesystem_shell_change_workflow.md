@@ -117,7 +117,7 @@ flowchart LR
    - Update [Filesystem and Shell Tools](filesystem_shell.md) for user-facing behavior and high-level tool semantics.
    - Update [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) for current local-runtime Python read/edit internals.
    - Update [Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md) for current local-runtime Python shell/session internals.
-   - Update [Local-Runtime Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md) when the cross-runtime path changes.
+   - Update [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md) when the cross-runtime path changes.
    - Update [Tool Catalog Matrix](tool_catalog_matrix.md) and [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) when model-facing schema, policy, or visibility changes.
    - Update [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) if path authority, sudo behavior, workspace access, or local permission semantics change.
 
@@ -187,7 +187,7 @@ If a listed test file has moved, search by the test stem before adding a new tes
 - [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md)
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md)
 - [Tool Troubleshooting](tool_troubleshooting.md)
-- [Local-Runtime Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md)
+- [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md)
 - [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md)
 - [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md)
 - [Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md)

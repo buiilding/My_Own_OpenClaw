@@ -17989,3 +17989,20 @@ Each completed slice should report:
   host skin config, env precedence, local-runtime startup, storage,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
+
+### 2026-06-20 Local runtime tool workflow path rename
+
+- Finding: the local-runtime tool change workflow content and title had already
+  moved to local-runtime ownership, but the public docs path still used
+  `docs/frontend/sidecar_tool_change_workflow.md`, leaving cross-runtime routing
+  links with a sidecar-facing owner label.
+- Change: renamed the workflow to
+  `docs/frontend/local_runtime_tool_change_workflow.md` and updated backend,
+  tool, frontend, getting-started, operations, reference, and modular docs
+  guard links to the local-runtime path.
+- Validation: focused modular docs boundary test, exact old-path scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Runtime code, local-runtime Python
+  implementation, backend tool schemas, SDK/main dispatch, IPC channels,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.

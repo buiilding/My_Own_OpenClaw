@@ -132,7 +132,7 @@ Validate:
 
 Read:
 
-- [Local-Runtime Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md)
+- [Local-Runtime Tool Change Workflow](../frontend/local_runtime_tool_change_workflow.md)
 - [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 
