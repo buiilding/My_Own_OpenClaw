@@ -28,7 +28,7 @@ def test_resolve_browser_path_preserves_windie_browser_root_alias(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     legacy_root = tmp_path / ".windieos" / "browser"
-    monkeypatch.setenv(file_store.ENV_BROWSER_FILES_DIR, str(legacy_root))
+    monkeypatch.setenv(file_store.ENV_WINDIE_BROWSER_FILES_DIR, str(legacy_root))
 
     resolved = file_store.resolve_browser_path("notes/page.txt")
 
@@ -41,7 +41,7 @@ def test_resolve_browser_path_prefers_generic_browser_root_alias(
     generic_root = tmp_path / "generic"
     windie_root = tmp_path / "windie"
     monkeypatch.setenv(file_store.ENV_AGENT_BROWSER_FILES_DIR, str(generic_root))
-    monkeypatch.setenv(file_store.ENV_BROWSER_FILES_DIR, str(windie_root))
+    monkeypatch.setenv(file_store.ENV_WINDIE_BROWSER_FILES_DIR, str(windie_root))
 
     resolved = file_store.resolve_browser_path("notes/page.txt")
 

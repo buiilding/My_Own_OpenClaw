@@ -286,7 +286,7 @@ def test_resolve_local_runtime_log_level_defaults_to_warning(monkeypatch):
         local_backend_module.ENV_AGENT_LOCAL_RUNTIME_LOG_LEVEL, raising=False
     )
     monkeypatch.delenv(local_backend_module.ENV_AGENT_SIDECAR_LOG_LEVEL, raising=False)
-    monkeypatch.delenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, raising=False)
+    monkeypatch.delenv(local_backend_module.ENV_WINDIE_SIDECAR_LOG_LEVEL, raising=False)
 
     assert (
         local_backend_module._resolve_local_runtime_log_level()
@@ -295,7 +295,7 @@ def test_resolve_local_runtime_log_level_defaults_to_warning(monkeypatch):
 
 
 def test_resolve_local_runtime_log_level_accepts_valid_levels(monkeypatch):
-    monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "info")
+    monkeypatch.setenv(local_backend_module.ENV_WINDIE_SIDECAR_LOG_LEVEL, "info")
 
     assert (
         local_backend_module._resolve_local_runtime_log_level()
@@ -304,7 +304,7 @@ def test_resolve_local_runtime_log_level_accepts_valid_levels(monkeypatch):
 
 
 def test_resolve_local_runtime_log_level_prefers_generic_local_runtime_env(monkeypatch):
-    monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "debug")
+    monkeypatch.setenv(local_backend_module.ENV_WINDIE_SIDECAR_LOG_LEVEL, "debug")
     monkeypatch.setenv(local_backend_module.ENV_AGENT_SIDECAR_LOG_LEVEL, "error")
     monkeypatch.setenv(
         local_backend_module.ENV_AGENT_LOCAL_RUNTIME_LOG_LEVEL, "critical"
@@ -317,7 +317,7 @@ def test_resolve_local_runtime_log_level_prefers_generic_local_runtime_env(monke
 
 
 def test_resolve_local_runtime_log_level_preserves_agent_sidecar_alias(monkeypatch):
-    monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "debug")
+    monkeypatch.setenv(local_backend_module.ENV_WINDIE_SIDECAR_LOG_LEVEL, "debug")
     monkeypatch.setenv(local_backend_module.ENV_AGENT_SIDECAR_LOG_LEVEL, "error")
 
     assert (
@@ -327,7 +327,7 @@ def test_resolve_local_runtime_log_level_preserves_agent_sidecar_alias(monkeypat
 
 
 def test_resolve_local_runtime_log_level_falls_back_on_invalid_value(monkeypatch):
-    monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "verbose-ish")
+    monkeypatch.setenv(local_backend_module.ENV_WINDIE_SIDECAR_LOG_LEVEL, "verbose-ish")
 
     assert (
         local_backend_module._resolve_local_runtime_log_level()
@@ -350,12 +350,12 @@ def test_local_runtime_log_level_helper_uses_runtime_boundary_name():
 
 
 def test_local_runtime_feature_flags_prefer_agent_env(monkeypatch):
-    monkeypatch.setenv(local_backend_module.ENV_ENABLE_SEMANTIC_SUMMARIZER, "1")
+    monkeypatch.setenv(local_backend_module.ENV_WINDIE_ENABLE_SEMANTIC_SUMMARIZER, "1")
     monkeypatch.setenv(
-        local_backend_module.ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
+        local_backend_module.ENV_WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
         "1",
     )
-    monkeypatch.setenv(local_backend_module.ENV_PACKAGED_APP, "0")
+    monkeypatch.setenv(local_backend_module.ENV_WINDIE_PACKAGED_APP, "0")
     monkeypatch.setenv(
         local_backend_module.ENV_AGENT_ENABLE_SEMANTIC_SUMMARIZER,
         "0",
@@ -383,12 +383,12 @@ def test_local_runtime_feature_flags_support_windie_legacy_env(monkeypatch):
         raising=False,
     )
     monkeypatch.delenv(local_backend_module.ENV_AGENT_PACKAGED_APP, raising=False)
-    monkeypatch.setenv(local_backend_module.ENV_ENABLE_SEMANTIC_SUMMARIZER, "0")
+    monkeypatch.setenv(local_backend_module.ENV_WINDIE_ENABLE_SEMANTIC_SUMMARIZER, "0")
     monkeypatch.setenv(
-        local_backend_module.ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
+        local_backend_module.ENV_WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
         "0",
     )
-    monkeypatch.setenv(local_backend_module.ENV_PACKAGED_APP, "1")
+    monkeypatch.setenv(local_backend_module.ENV_WINDIE_PACKAGED_APP, "1")
 
     backend = LocalRuntimeService()
 
@@ -759,8 +759,7 @@ def test_find_available_browser_binary_prefers_system_browser_over_playwright_ca
     )
 
     assert (
-        path_key(backend._find_available_browser_binary())
-        == "/usr/bin/google-chrome"
+        path_key(backend._find_available_browser_binary()) == "/usr/bin/google-chrome"
     )
 
 
@@ -849,7 +848,7 @@ async def test_handle_get_status_without_store_or_registry():
 
 @pytest.mark.asyncio
 async def test_initialize_starts_memory_summarizer_when_enabled(monkeypatch):
-    monkeypatch.setenv(local_backend_module.ENV_ENABLE_SEMANTIC_SUMMARIZER, "1")
+    monkeypatch.setenv(local_backend_module.ENV_WINDIE_ENABLE_SEMANTIC_SUMMARIZER, "1")
 
     fake_store = DummyMemoryStoreInit()
     created_summarizers = []
@@ -877,7 +876,7 @@ async def test_initialize_starts_memory_summarizer_when_enabled(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_initialize_skips_memory_summarizer_when_disabled(monkeypatch):
-    monkeypatch.setenv(local_backend_module.ENV_ENABLE_SEMANTIC_SUMMARIZER, "0")
+    monkeypatch.setenv(local_backend_module.ENV_WINDIE_ENABLE_SEMANTIC_SUMMARIZER, "0")
 
     fake_store = DummyMemoryStoreInit()
     created = {"count": 0}
@@ -1468,13 +1467,13 @@ async def test_handle_conversation_replace_uses_atomic_store_replace():
                     "revision_id": "rev-next",
                     "turn_ref": None,
                     "tool_name": None,
-                        "correlation_id": None,
-                        "workspace_path": None,
-                        "workspace_name": None,
-                        "producer": None,
-                        "producer_event_id": None,
-                        "producer_sequence": None,
-                        "metadata": {},
+                    "correlation_id": None,
+                    "workspace_path": None,
+                    "workspace_name": None,
+                    "producer": None,
+                    "producer_event_id": None,
+                    "producer_sequence": None,
+                    "metadata": {},
                     "attachments": [],
                     "event_payload": {
                         "eventId": "evt-edited",

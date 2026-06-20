@@ -32,15 +32,17 @@ from tools.browser.file_store import (
 
 DEFAULT_SESSION_NAME = "desktop-agent"
 ENV_AGENT_BROWSER_USE_HOME = "AGENT_BROWSER_USE_HOME"
-ENV_BROWSER_USE_HOME = "WINDIE_BROWSER_USE_HOME"
+ENV_WINDIE_BROWSER_USE_HOME = "WINDIE_BROWSER_USE_HOME"
 ENV_AGENT_BROWSER_USE_SESSION = "AGENT_BROWSER_USE_SESSION"
-ENV_BROWSER_USE_SESSION = "WINDIE_BROWSER_USE_SESSION"
+ENV_WINDIE_BROWSER_USE_SESSION = "WINDIE_BROWSER_USE_SESSION"
 ENV_AGENT_BROWSER_USE_COMMAND_TIMEOUT_SECONDS = (
     "AGENT_BROWSER_USE_COMMAND_TIMEOUT_SECONDS"
 )
-ENV_BROWSER_USE_COMMAND_TIMEOUT_SECONDS = "WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS"
+ENV_WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS = (
+    "WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS"
+)
 ENV_AGENT_BROWSER_USE_CLI = "AGENT_BROWSER_USE_CLI"
-ENV_BROWSER_USE_CLI = "WINDIE_BROWSER_USE_CLI"
+ENV_WINDIE_BROWSER_USE_CLI = "WINDIE_BROWSER_USE_CLI"
 MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 RUNTIME_SOURCE = "browser_use.cli"
 HEADLESS_RECOVERY_TIMEOUT_SECONDS = 5.0
@@ -71,7 +73,7 @@ class BrowserActionError(Exception):
 
 
 def _browser_use_home() -> str:
-    configured = _env_first((ENV_AGENT_BROWSER_USE_HOME, ENV_BROWSER_USE_HOME))
+    configured = _env_first((ENV_AGENT_BROWSER_USE_HOME, ENV_WINDIE_BROWSER_USE_HOME))
     if configured:
         return str(Path(configured).expanduser())
     return str(app_user_data_root() / "browser-use")
@@ -79,19 +81,16 @@ def _browser_use_home() -> str:
 
 def _browser_use_session() -> str:
     return (
-        (
-            _env_first((ENV_AGENT_BROWSER_USE_SESSION, ENV_BROWSER_USE_SESSION))
-            or DEFAULT_SESSION_NAME
-        ).strip()
+        _env_first((ENV_AGENT_BROWSER_USE_SESSION, ENV_WINDIE_BROWSER_USE_SESSION))
         or DEFAULT_SESSION_NAME
-    )
+    ).strip() or DEFAULT_SESSION_NAME
 
 
 def _browser_use_timeout() -> float:
     raw = _env_first(
         (
             ENV_AGENT_BROWSER_USE_COMMAND_TIMEOUT_SECONDS,
-            ENV_BROWSER_USE_COMMAND_TIMEOUT_SECONDS,
+            ENV_WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS,
         )
     )
     if not raw:
@@ -103,7 +102,7 @@ def _browser_use_timeout() -> float:
 
 
 def _base_command() -> list[str]:
-    configured = _env_first((ENV_AGENT_BROWSER_USE_CLI, ENV_BROWSER_USE_CLI))
+    configured = _env_first((ENV_AGENT_BROWSER_USE_CLI, ENV_WINDIE_BROWSER_USE_CLI))
     if configured:
         return [configured]
     return [sys.executable, "-m", "browser_use.skill_cli.main"]
@@ -423,9 +422,9 @@ class BrowserUseEngineRuntime:
 
     def _has_running_dedicated_cdp_session(self) -> bool:
         state = self._read_session_state()
-        return self._is_live_session_state(state) and self._is_dedicated_cdp_session_state(
+        return self._is_live_session_state(
             state
-        )
+        ) and self._is_dedicated_cdp_session_state(state)
 
     async def _ensure_dedicated_cdp_target(self) -> str:
         cdp_url = await ensure_chrome_with_cdp(
@@ -476,7 +475,9 @@ class BrowserUseEngineRuntime:
             "--json",
         ]
         should_request_headed = (
-            headed if headed is not None else not self._has_running_dedicated_cdp_session()
+            headed
+            if headed is not None
+            else not self._has_running_dedicated_cdp_session()
         )
         if should_request_headed:
             command.append("--headed")

@@ -11,11 +11,11 @@ from typing import Optional
 
 _WORKSPACE_ACCESS_PERMISSION_ID = "filesystem_workspace_access"
 ENV_AGENT_PERMISSION_STATE_PATH = "AGENT_PERMISSION_STATE_PATH"
-ENV_PERMISSION_STATE_PATH = "WINDIE_PERMISSION_STATE_PATH"
+ENV_WINDIE_PERMISSION_STATE_PATH = "WINDIE_PERMISSION_STATE_PATH"
 
 
 def resolve_permission_state_path() -> Optional[Path]:
-    for env_name in (ENV_AGENT_PERMISSION_STATE_PATH, ENV_PERMISSION_STATE_PATH):
+    for env_name in (ENV_AGENT_PERMISSION_STATE_PATH, ENV_WINDIE_PERMISSION_STATE_PATH):
         raw_path = os.environ.get(env_name, "").strip()
         if raw_path:
             return Path(raw_path).expanduser()
@@ -34,11 +34,17 @@ def resolve_default_workspace_directory() -> Path:
             permissions = raw_state.get("permissions")
             if isinstance(permissions, dict):
                 workspace_entry = permissions.get(_WORKSPACE_ACCESS_PERMISSION_ID)
-                if isinstance(workspace_entry, dict) and workspace_entry.get("granted") is True:
+                if (
+                    isinstance(workspace_entry, dict)
+                    and workspace_entry.get("granted") is True
+                ):
                     selected_paths = workspace_entry.get("selected_paths")
                     if isinstance(selected_paths, list):
                         for selected_path in selected_paths:
-                            if not isinstance(selected_path, str) or not selected_path.strip():
+                            if (
+                                not isinstance(selected_path, str)
+                                or not selected_path.strip()
+                            ):
                                 continue
                             workspace_path = Path(selected_path).expanduser()
                             if workspace_path.exists() and workspace_path.is_dir():
@@ -47,7 +53,9 @@ def resolve_default_workspace_directory() -> Path:
     return Path.home()
 
 
-def resolve_workspace_path(raw_path: object) -> tuple[Optional[Path], Optional[str], Optional[str]]:
+def resolve_workspace_path(
+    raw_path: object,
+) -> tuple[Optional[Path], Optional[str], Optional[str]]:
     """
     Resolve a user-supplied file or directory path from the active workspace.
 

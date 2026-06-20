@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 ENV_AGENT_INTERACTIVE_WORKERS = "AGENT_INTERACTIVE_WORKERS"
 ENV_AGENT_BACKGROUND_WORKERS = "AGENT_BACKGROUND_WORKERS"
-ENV_INTERACTIVE_WORKERS = "WINDIE_INTERACTIVE_WORKERS"
-ENV_BACKGROUND_WORKERS = "WINDIE_BACKGROUND_WORKERS"
+ENV_WINDIE_INTERACTIVE_WORKERS = "WINDIE_INTERACTIVE_WORKERS"
+ENV_WINDIE_BACKGROUND_WORKERS = "WINDIE_BACKGROUND_WORKERS"
 
 _interactive_executor: Optional[ThreadPoolExecutor] = None
 _background_executor: Optional[ThreadPoolExecutor] = None
@@ -49,10 +49,14 @@ def _parse_worker_override(raw_value: Optional[str], default: int) -> int:
     try:
         parsed = int(raw_value.strip())
     except (TypeError, ValueError):
-        logger.warning("Invalid executor worker override '%s'; using %s", raw_value, default)
+        logger.warning(
+            "Invalid executor worker override '%s'; using %s", raw_value, default
+        )
         return default
     if parsed < 1:
-        logger.warning("Executor worker override must be >= 1 (got %s); using %s", parsed, default)
+        logger.warning(
+            "Executor worker override must be >= 1 (got %s); using %s", parsed, default
+        )
         return default
     return parsed
 
@@ -69,7 +73,9 @@ def _resolve_interactive_workers(max_workers: Optional[int]) -> int:
     if isinstance(max_workers, int) and max_workers > 0:
         return max_workers
     return _parse_worker_override(
-        _read_first_env((ENV_AGENT_INTERACTIVE_WORKERS, ENV_INTERACTIVE_WORKERS)),
+        _read_first_env(
+            (ENV_AGENT_INTERACTIVE_WORKERS, ENV_WINDIE_INTERACTIVE_WORKERS)
+        ),
         _default_interactive_workers(),
     )
 
@@ -78,7 +84,7 @@ def _resolve_background_workers(max_workers: Optional[int]) -> int:
     if isinstance(max_workers, int) and max_workers > 0:
         return max_workers
     return _parse_worker_override(
-        _read_first_env((ENV_AGENT_BACKGROUND_WORKERS, ENV_BACKGROUND_WORKERS)),
+        _read_first_env((ENV_AGENT_BACKGROUND_WORKERS, ENV_WINDIE_BACKGROUND_WORKERS)),
         _default_background_workers(),
     )
 
@@ -89,7 +95,9 @@ def get_interactive_executor(max_workers: Optional[int] = None) -> ThreadPoolExe
     with _executor_lock:
         if _interactive_executor is None:
             worker_count = _resolve_interactive_workers(max_workers)
-            logger.info("Initializing interactive executor with %s workers", worker_count)
+            logger.info(
+                "Initializing interactive executor with %s workers", worker_count
+            )
             _interactive_executor = ThreadPoolExecutor(
                 max_workers=worker_count,
                 thread_name_prefix="InteractiveWorker",
@@ -103,7 +111,9 @@ def get_background_executor(max_workers: Optional[int] = None) -> ThreadPoolExec
     with _executor_lock:
         if _background_executor is None:
             worker_count = _resolve_background_workers(max_workers)
-            logger.info("Initializing background executor with %s workers", worker_count)
+            logger.info(
+                "Initializing background executor with %s workers", worker_count
+            )
             _background_executor = ThreadPoolExecutor(
                 max_workers=worker_count,
                 thread_name_prefix="BackgroundWorker",

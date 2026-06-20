@@ -81,7 +81,7 @@ def test_clamp_and_read_env_int(monkeypatch):
 
 
 def test_resolve_job_ttl_prefers_agent_env(monkeypatch):
-    monkeypatch.setenv(registry.ENV_SHELL_JOB_TTL_SECONDS, "900")
+    monkeypatch.setenv(registry.ENV_WINDIE_SHELL_JOB_TTL_SECONDS, "900")
     monkeypatch.setenv(registry.ENV_AGENT_SHELL_JOB_TTL_SECONDS, "120")
 
     assert registry.resolve_job_ttl_seconds() == 120
@@ -89,7 +89,7 @@ def test_resolve_job_ttl_prefers_agent_env(monkeypatch):
 
 def test_resolve_job_ttl_supports_windie_legacy_env(monkeypatch):
     monkeypatch.delenv(registry.ENV_AGENT_SHELL_JOB_TTL_SECONDS, raising=False)
-    monkeypatch.setenv(registry.ENV_SHELL_JOB_TTL_SECONDS, "900")
+    monkeypatch.setenv(registry.ENV_WINDIE_SHELL_JOB_TTL_SECONDS, "900")
 
     assert registry.resolve_job_ttl_seconds() == 900
 

@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/env: name WindieOS local-runtime Python env compatibility constants
+  with `ENV_WINDIE_*` while keeping generic `AGENT_*` aliases primary and
+  preserving the existing `WINDIE_*` env variable support. No migration
+  required.
 - renderer/sdk: remove the retired renderer `agentSdkClient.ts` SDK re-export
   facade; renderer app-runtime contracts now import the SDK package directly
   and active docs route hosted TypeScript client work to `packages/windie-sdk-js`.

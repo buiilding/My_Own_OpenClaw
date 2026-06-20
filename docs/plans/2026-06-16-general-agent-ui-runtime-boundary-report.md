@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: retired renderer `agentSdkClient.ts` re-export
-  facade removed; app-runtime SDK contracts now import the SDK package
-  directly.
+- Latest completed slice: local-runtime Python WindieOS env compatibility
+  constants now use explicit `ENV_WINDIE_*` names while preserving existing
+  `WINDIE_*` env support and generic `AGENT_*` precedence.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -166,7 +166,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   directly from chat hooks and message-send utilities.
   Renderer chat stream debug utilities now route live-surface trace IPC through
   a renderer app runtime client instead of importing the trace send channel
-  directly.
+  directly. Local-runtime Python env compatibility constants now distinguish
+  generic `AGENT_*` primary names from legacy WindieOS aliases through internal
+  `ENV_WINDIE_*` constant names, with a guard to keep future Windie env aliases
+  explicit.
   Renderer message-send preparation now routes send-surface chatbox restore
   through a renderer app runtime window client instead of invoking the window
   IPC channel directly.

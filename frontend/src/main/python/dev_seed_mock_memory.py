@@ -16,9 +16,9 @@ from core.user_data_paths import app_user_data_root
 DEFAULT_USER_ID = "default_user"
 MOCK_SOURCE = "mock_seed_dashboard"
 ENV_AGENT_MOCK_USER_ID = "AGENT_MOCK_USER_ID"
-ENV_MOCK_USER_ID = "WINDIE_MOCK_USER_ID"
+ENV_WINDIE_MOCK_USER_ID = "WINDIE_MOCK_USER_ID"
 ENV_AGENT_USER_ID = "AGENT_USER_ID"
-ENV_USER_ID = "WINDIE_USER_ID"
+ENV_WINDIE_USER_ID = "WINDIE_USER_ID"
 
 MOCK_CONVERSATIONS: List[Dict[str, Any]] = [
     {
@@ -204,9 +204,9 @@ def _target_user_ids() -> List[str]:
     candidates = [
         DEFAULT_USER_ID,
         os.getenv(ENV_AGENT_MOCK_USER_ID),
-        os.getenv(ENV_MOCK_USER_ID),
+        os.getenv(ENV_WINDIE_MOCK_USER_ID),
         os.getenv(ENV_AGENT_USER_ID),
-        os.getenv(ENV_USER_ID),
+        os.getenv(ENV_WINDIE_USER_ID),
         os.getenv("USER"),
         os.getenv("USERNAME"),
         os.getenv("LOGNAME"),
@@ -241,7 +241,8 @@ def _ensure_column(
 
 def _ensure_episodic_schema(conn: sqlite3.Connection) -> None:
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS memories (
             id TEXT PRIMARY KEY,
             user_id TEXT NOT NULL,
@@ -262,7 +263,8 @@ def _ensure_episodic_schema(conn: sqlite3.Connection) -> None:
             model_provider TEXT,
             screenshot TEXT
         )
-        """)
+        """
+    )
     for column, definition in (
         ("is_semanticized", "INTEGER DEFAULT 0"),
         ("conversation_id", "TEXT"),
@@ -300,7 +302,8 @@ def _ensure_episodic_schema(conn: sqlite3.Connection) -> None:
 
 def _ensure_history_schema(conn: sqlite3.Connection) -> None:
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS conversation_events (
             id TEXT PRIMARY KEY,
             user_id TEXT NOT NULL,
@@ -324,8 +327,10 @@ def _ensure_history_schema(conn: sqlite3.Connection) -> None:
             event_payload TEXT NOT NULL,
             compaction_checkpoint TEXT
         )
-        """)
-    cursor.execute("""
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS conversation_revisions (
             user_id TEXT NOT NULL,
             conversation_id TEXT NOT NULL,
@@ -333,8 +338,10 @@ def _ensure_history_schema(conn: sqlite3.Connection) -> None:
             updated_at TEXT NOT NULL,
             PRIMARY KEY (user_id, conversation_id)
         )
-        """)
-    cursor.execute("""
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS conversations (
             user_id TEXT NOT NULL,
             conversation_id TEXT NOT NULL,
@@ -352,8 +359,10 @@ def _ensure_history_schema(conn: sqlite3.Connection) -> None:
             deleted_at TEXT,
             PRIMARY KEY (user_id, conversation_id)
         )
-        """)
-    cursor.execute("""
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS conversation_turns (
             user_id TEXT NOT NULL,
             conversation_id TEXT NOT NULL,
@@ -370,8 +379,10 @@ def _ensure_history_schema(conn: sqlite3.Connection) -> None:
             memory_retrieval_status TEXT,
             PRIMARY KEY (user_id, conversation_id, turn_ref)
         )
-        """)
-    cursor.execute("""
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS conversation_titles (
             user_id TEXT NOT NULL,
             conversation_id TEXT NOT NULL,
@@ -382,25 +393,33 @@ def _ensure_history_schema(conn: sqlite3.Connection) -> None:
             updated_at TEXT NOT NULL,
             PRIMARY KEY (user_id, conversation_id)
         )
-        """)
-    cursor.execute("""
+        """
+    )
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_conversation_events_order
         ON conversation_events(user_id, conversation_id, message_index, timestamp)
-        """)
-    cursor.execute("""
+        """
+    )
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_conversation_events_timestamp
         ON conversation_events(user_id, timestamp)
-        """)
-    cursor.execute("""
+        """
+    )
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_conversation_events_type
         ON conversation_events(user_id, conversation_id, event_type)
-        """)
+        """
+    )
     conn.commit()
 
 
 def _ensure_semantic_schema(conn: sqlite3.Connection) -> None:
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS memories (
             id TEXT PRIMARY KEY,
             user_id TEXT NOT NULL,
@@ -410,7 +429,8 @@ def _ensure_semantic_schema(conn: sqlite3.Connection) -> None:
             embedding_id INTEGER,
             created_at REAL DEFAULT (strftime('%s', 'now'))
         )
-        """)
+        """
+    )
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_id ON memories(user_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON memories(timestamp)")
     cursor.execute(
@@ -862,7 +882,9 @@ def main() -> int:
             chat_events_inserted = _insert_chat_event_rows(history_conn, user_id)
             episodic_inserted = _insert_episodic_rows(episodic_conn, user_id)
             semantic_inserted = _insert_semantic_rows(semantic_conn, user_id)
-            summary = _count_summary(history_conn, episodic_conn, semantic_conn, user_id)
+            summary = _count_summary(
+                history_conn, episodic_conn, semantic_conn, user_id
+            )
             per_user_summary[user_id] = summary
 
             aggregate_deleted["chat_event_rows"] += deleted_counts["chat_event_rows"]

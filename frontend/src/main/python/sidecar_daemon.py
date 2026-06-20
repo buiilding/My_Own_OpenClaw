@@ -33,11 +33,11 @@ DEFAULT_DISCOVERY_FILE = (
     Path(tempfile.gettempdir()) / "desktop-runtime" / "local-runtime-daemon.json"
 )
 ENV_AGENT_USER_DATA_DIR = "AGENT_USER_DATA_DIR"
-ENV_USER_DATA_DIR = "WINDIE_USER_DATA_DIR"
+ENV_WINDIE_USER_DATA_DIR = "WINDIE_USER_DATA_DIR"
 ENV_AGENT_APP_DIAGNOSTICS_DB = "AGENT_APP_DIAGNOSTICS_DB"
-ENV_APP_DIAGNOSTICS_DB = "WINDIE_APP_DIAGNOSTICS_DB"
+ENV_WINDIE_APP_DIAGNOSTICS_DB = "WINDIE_APP_DIAGNOSTICS_DB"
 ENV_AGENT_TEST_PLATFORM = "AGENT_TEST_PLATFORM"
-ENV_TEST_PLATFORM = "WINDIE_TEST_PLATFORM"
+ENV_WINDIE_TEST_PLATFORM = "WINDIE_TEST_PLATFORM"
 LOCAL_RUNTIME_TOKEN_HEADER = "x-agent-local-runtime-token"
 MCP_PROTOCOL_VERSION = "2024-11-05"
 MCP_DISCOVERY_DIAGNOSTICS_PATH = "mcp.discovery"
@@ -121,7 +121,9 @@ def first_env_value(*names: str) -> str:
 def reject_removed_keys(payload: dict[str, Any], keys: set[str], label: str) -> None:
     removed = sorted(key for key in keys if key in payload)
     if removed:
-        raise ValueError(f"{label} does not support removed field(s): {', '.join(removed)}")
+        raise ValueError(
+            f"{label} does not support removed field(s): {', '.join(removed)}"
+        )
 
 
 def sanitize_diagnostic_text(
@@ -207,11 +209,11 @@ def serialize_diagnostic_args(args: list[str]) -> str:
 
 
 def app_user_data_root() -> Path:
-    override = first_env_value(ENV_AGENT_USER_DATA_DIR, ENV_USER_DATA_DIR)
+    override = first_env_value(ENV_AGENT_USER_DATA_DIR, ENV_WINDIE_USER_DATA_DIR)
     if override:
         return Path(override)
     return resolve_app_user_data_root(
-        platform_name=first_env_value(ENV_AGENT_TEST_PLATFORM, ENV_TEST_PLATFORM)
+        platform_name=first_env_value(ENV_AGENT_TEST_PLATFORM, ENV_WINDIE_TEST_PLATFORM)
         or None,
         allow_windows_home_fallback=True,
         honor_xdg_config_home=True,
@@ -219,7 +221,9 @@ def app_user_data_root() -> Path:
 
 
 def diagnostics_database_path() -> Path:
-    override = first_env_value(ENV_AGENT_APP_DIAGNOSTICS_DB, ENV_APP_DIAGNOSTICS_DB)
+    override = first_env_value(
+        ENV_AGENT_APP_DIAGNOSTICS_DB, ENV_WINDIE_APP_DIAGNOSTICS_DB
+    )
     if override:
         return Path(override)
     return app_user_data_root() / "diagnostics" / "diagnostics.db"
@@ -288,7 +292,8 @@ def append_mcp_diagnostic_event(
             sanitized_data["shortError"] = message
             sanitized_data["errorCode"] = str(sanitized_error["code"])
         with sqlite3.connect(db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS diagnostic_events (
                   id TEXT PRIMARY KEY,
                   trace_id TEXT NOT NULL,
@@ -306,15 +311,20 @@ def append_mcp_diagnostic_event(
                   data TEXT,
                   error TEXT
                 )
-                """)
-            conn.execute("""
+                """
+            )
+            conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_diagnostic_events_path_time
                 ON diagnostic_events(path, timestamp)
-                """)
-            conn.execute("""
+                """
+            )
+            conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_diagnostic_events_trace
                 ON diagnostic_events(trace_id, timestamp)
-                """)
+                """
+            )
             conn.execute(
                 """
                 INSERT INTO diagnostic_events (
@@ -360,9 +370,8 @@ def build_mcp_execution_context(payload: dict[str, Any]) -> dict[str, Any]:
         },
         "MCP execution metadata",
     )
-    request_id = (
-        normalize_string(payload.get("request_id"))
-        or normalize_string(payload.get("correlation_id"))
+    request_id = normalize_string(payload.get("request_id")) or normalize_string(
+        payload.get("correlation_id")
     )
     tool_call_id = normalize_string(payload.get("tool_call_id"))
     correlation_id = normalize_string(payload.get("correlation_id"))
@@ -656,7 +665,9 @@ class McpStdioClient:
                 else:
                     future.set_result(message.get("result"))
         except Exception as exc:
-            error = RuntimeError(f"MCP stdout reader failed for {self.server.id}: {exc}")
+            error = RuntimeError(
+                f"MCP stdout reader failed for {self.server.id}: {exc}"
+            )
             self.emit_diagnostic(
                 stage="stdout_reader_failed",
                 status="failed",
@@ -1367,9 +1378,7 @@ class LocalRuntimeDaemon:
         try:
             execution_context = build_mcp_execution_context(normalize_object(payload))
         except ValueError as exc:
-            return web.json_response(
-                {"success": False, "error": str(exc)}, status=400
-            )
+            return web.json_response({"success": False, "error": str(exc)}, status=400)
         context_token = CURRENT_MCP_EXECUTION_CONTEXT.set(execution_context)
         try:
             result = await self.local_runtime._handle_execute_tool(
@@ -1378,7 +1387,9 @@ class LocalRuntimeDaemon:
             )
         finally:
             CURRENT_MCP_EXECUTION_CONTEXT.reset(context_token)
-        log_prefix, log_message = build_tool_execution_layer_log(tool_name, args, result)
+        log_prefix, log_message = build_tool_execution_layer_log(
+            tool_name, args, result
+        )
         emit_sidecar_layer_log(log_prefix, log_message)
         await self.emit_event(
             {

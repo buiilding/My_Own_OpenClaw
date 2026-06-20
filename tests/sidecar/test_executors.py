@@ -74,7 +74,7 @@ def test_configure_event_loop_default_executor_uses_interactive(monkeypatch):
 
 
 def test_interactive_executor_uses_env_override(monkeypatch):
-    monkeypatch.setenv(executors.ENV_INTERACTIVE_WORKERS, "5")
+    monkeypatch.setenv(executors.ENV_WINDIE_INTERACTIVE_WORKERS, "5")
 
     interactive = executors.get_interactive_executor()
 
@@ -82,7 +82,7 @@ def test_interactive_executor_uses_env_override(monkeypatch):
 
 
 def test_interactive_executor_prefers_agent_env_override(monkeypatch):
-    monkeypatch.setenv(executors.ENV_INTERACTIVE_WORKERS, "5")
+    monkeypatch.setenv(executors.ENV_WINDIE_INTERACTIVE_WORKERS, "5")
     monkeypatch.setenv(executors.ENV_AGENT_INTERACTIVE_WORKERS, "3")
 
     interactive = executors.get_interactive_executor()
@@ -91,7 +91,7 @@ def test_interactive_executor_prefers_agent_env_override(monkeypatch):
 
 
 def test_background_executor_supports_agent_env_override(monkeypatch):
-    monkeypatch.setenv(executors.ENV_BACKGROUND_WORKERS, "2")
+    monkeypatch.setenv(executors.ENV_WINDIE_BACKGROUND_WORKERS, "2")
     monkeypatch.setenv(executors.ENV_AGENT_BACKGROUND_WORKERS, "6")
 
     background = executors.get_background_executor()

@@ -24,9 +24,9 @@ from core.user_data_paths import app_user_data_root
 WAKEWORD_NAME = "hey_jarvis"
 DETECTION_THRESHOLD = 0.5
 ENV_AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
-ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
+ENV_WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
 ENV_AGENT_WAKEWORD_MODEL_DIR = "AGENT_WAKEWORD_MODEL_DIR"
-ENV_WAKEWORD_MODEL_DIR = "WINDIE_WAKEWORD_MODEL_DIR"
+ENV_WINDIE_WAKEWORD_MODEL_DIR = "WINDIE_WAKEWORD_MODEL_DIR"
 
 
 def _emit_status(status: str, message: str | None = None, **extra: Any) -> None:
@@ -98,7 +98,7 @@ def resolve_wakeword_model(openwakeword_mod: Any) -> Tuple[str, Optional[str]]:
 
 
 def resolve_wakeword_model_directory() -> Path:
-    for env_name in (ENV_AGENT_WAKEWORD_MODEL_DIR, ENV_WAKEWORD_MODEL_DIR):
+    for env_name in (ENV_AGENT_WAKEWORD_MODEL_DIR, ENV_WINDIE_WAKEWORD_MODEL_DIR):
         env_dir = os.environ.get(env_name, "").strip()
         if env_dir:
             return Path(env_dir).expanduser()
@@ -109,7 +109,7 @@ def resolve_wakeword_allow_runtime_download() -> bool:
     return _env_flag_enabled_any(
         (
             ENV_AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
-            ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
+            ENV_WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
         ),
         default=True,
     )
@@ -166,9 +166,15 @@ def ensure_models_available(
     allow_runtime_download: bool = True,
 ) -> bool:
     if model_path and Path(model_path).exists():
-        _emit_status("models_ready", f"Wakeword model available: {model_name}", model_path=model_path)
+        _emit_status(
+            "models_ready",
+            f"Wakeword model available: {model_name}",
+            model_path=model_path,
+        )
         return True
-    resolved_downloaded_path = resolve_model_path_from_directory(model_name, model_path, target_directory)
+    resolved_downloaded_path = resolve_model_path_from_directory(
+        model_name, model_path, target_directory
+    )
     if resolved_downloaded_path:
         _emit_status(
             "models_ready",
@@ -225,14 +231,18 @@ def ensure_models_available(
     if not missing_reference and target_directory:
         missing_reference = str(target_directory)
     if missing_reference:
-        _emit_status("error", f"Wakeword model still missing after download: {missing_reference}")
+        _emit_status(
+            "error", f"Wakeword model still missing after download: {missing_reference}"
+        )
         return False
 
     _emit_status("download_complete", "Wakeword models downloaded successfully")
     return True
 
 
-def resolve_model_path_for_framework(model_path: Optional[str], framework: str) -> Optional[str]:
+def resolve_model_path_for_framework(
+    model_path: Optional[str], framework: str
+) -> Optional[str]:
     if not model_path:
         return None
 
@@ -277,20 +287,28 @@ def create_model(model_cls: Any, model_path: Optional[str]) -> Tuple[Any, str]:
     supports_variadic_kwargs = any(
         param.kind == inspect.Parameter.VAR_KEYWORD for param in init_params.values()
     )
-    supports_model_paths = "wakeword_model_paths" in init_params or supports_variadic_kwargs
-    supports_framework = "inference_framework" in init_params or supports_variadic_kwargs
+    supports_model_paths = (
+        "wakeword_model_paths" in init_params or supports_variadic_kwargs
+    )
+    supports_framework = (
+        "inference_framework" in init_params or supports_variadic_kwargs
+    )
 
     if not supports_model_paths:
         raise TypeError(
             "wakeword model class must accept wakeword_model_paths or variadic keyword arguments"
         )
     if not model_path:
-        raise ValueError("wakeword model path is required to initialize wakeword_model_paths")
+        raise ValueError(
+            "wakeword model path is required to initialize wakeword_model_paths"
+        )
 
     def _build_model_args(framework: str) -> Dict[str, Any]:
         resolved_model_path = resolve_model_path_for_framework(model_path, framework)
         if not resolved_model_path:
-            raise ValueError("wakeword model path is required to initialize wakeword_model_paths")
+            raise ValueError(
+                "wakeword model path is required to initialize wakeword_model_paths"
+            )
 
         model_args: Dict[str, Any] = {"wakeword_model_paths": [resolved_model_path]}
         model_args.update(
@@ -306,13 +324,21 @@ def create_model(model_cls: Any, model_path: Optional[str]) -> Tuple[Any, str]:
     def _build_model_with_framework_fallback() -> Tuple[Any, str]:
         if supports_framework:
             try:
-                return model_cls(**_build_model_args("tflite"), inference_framework="tflite"), "tflite"
+                return (
+                    model_cls(
+                        **_build_model_args("tflite"), inference_framework="tflite"
+                    ),
+                    "tflite",
+                )
             except Exception as tflite_error:
                 _emit_status(
                     "fallback",
                     f"TFLite failed ({tflite_error}), retrying with ONNX",
                 )
-                return model_cls(**_build_model_args("onnx"), inference_framework="onnx"), "onnx"
+                return (
+                    model_cls(**_build_model_args("onnx"), inference_framework="onnx"),
+                    "onnx",
+                )
         return model_cls(**_build_model_args("onnx")), "onnx"
 
     return _build_model_with_framework_fallback()
@@ -332,7 +358,9 @@ def extract_detection(predictions: Any, preferred_model: str) -> Tuple[str, floa
     return str(model_name), float(score)
 
 
-def process_audio_chunk(model: Any, audio_data: bytes, preferred_model: str) -> Dict[str, Any]:
+def process_audio_chunk(
+    model: Any, audio_data: bytes, preferred_model: str
+) -> Dict[str, Any]:
     try:
         audio_array = np.frombuffer(audio_data, dtype=np.int16)
         if audio_array.size == 0:

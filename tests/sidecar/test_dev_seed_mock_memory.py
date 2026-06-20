@@ -9,9 +9,9 @@ import dev_seed_mock_memory  # noqa: E402
 
 def test_target_user_ids_prefer_generic_env_aliases(monkeypatch):
     monkeypatch.setenv(dev_seed_mock_memory.ENV_AGENT_MOCK_USER_ID, "agent-mock")
-    monkeypatch.setenv(dev_seed_mock_memory.ENV_MOCK_USER_ID, "windie-mock")
+    monkeypatch.setenv(dev_seed_mock_memory.ENV_WINDIE_MOCK_USER_ID, "windie-mock")
     monkeypatch.setenv(dev_seed_mock_memory.ENV_AGENT_USER_ID, "agent-user")
-    monkeypatch.setenv(dev_seed_mock_memory.ENV_USER_ID, "windie-user")
+    monkeypatch.setenv(dev_seed_mock_memory.ENV_WINDIE_USER_ID, "windie-user")
     monkeypatch.setenv("USER", "shell-user")
     monkeypatch.delenv("USERNAME", raising=False)
     monkeypatch.delenv("LOGNAME", raising=False)
@@ -29,8 +29,8 @@ def test_target_user_ids_prefer_generic_env_aliases(monkeypatch):
 def test_target_user_ids_preserve_windie_env_aliases(monkeypatch):
     monkeypatch.delenv(dev_seed_mock_memory.ENV_AGENT_MOCK_USER_ID, raising=False)
     monkeypatch.delenv(dev_seed_mock_memory.ENV_AGENT_USER_ID, raising=False)
-    monkeypatch.setenv(dev_seed_mock_memory.ENV_MOCK_USER_ID, "windie-mock")
-    monkeypatch.setenv(dev_seed_mock_memory.ENV_USER_ID, "windie-user")
+    monkeypatch.setenv(dev_seed_mock_memory.ENV_WINDIE_MOCK_USER_ID, "windie-mock")
+    monkeypatch.setenv(dev_seed_mock_memory.ENV_WINDIE_USER_ID, "windie-user")
     monkeypatch.delenv("USER", raising=False)
     monkeypatch.delenv("USERNAME", raising=False)
     monkeypatch.delenv("LOGNAME", raising=False)
@@ -44,9 +44,9 @@ def test_target_user_ids_preserve_windie_env_aliases(monkeypatch):
 
 def test_target_user_ids_deduplicate_in_precedence_order(monkeypatch):
     monkeypatch.setenv(dev_seed_mock_memory.ENV_AGENT_MOCK_USER_ID, "same-user")
-    monkeypatch.setenv(dev_seed_mock_memory.ENV_MOCK_USER_ID, "same-user")
+    monkeypatch.setenv(dev_seed_mock_memory.ENV_WINDIE_MOCK_USER_ID, "same-user")
     monkeypatch.setenv(dev_seed_mock_memory.ENV_AGENT_USER_ID, "same-user")
-    monkeypatch.setenv(dev_seed_mock_memory.ENV_USER_ID, "same-user")
+    monkeypatch.setenv(dev_seed_mock_memory.ENV_WINDIE_USER_ID, "same-user")
     monkeypatch.delenv("USER", raising=False)
     monkeypatch.delenv("USERNAME", raising=False)
     monkeypatch.delenv("LOGNAME", raising=False)
@@ -63,7 +63,8 @@ def test_mock_conversations_use_generic_demo_model_metadata():
         for conversation in dev_seed_mock_memory.MOCK_CONVERSATIONS
     }
     model_values = {
-        conversation["model_id"] for conversation in dev_seed_mock_memory.MOCK_CONVERSATIONS
+        conversation["model_id"]
+        for conversation in dev_seed_mock_memory.MOCK_CONVERSATIONS
     }
 
     assert provider_values == {"demo"}

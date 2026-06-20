@@ -17,10 +17,10 @@ from tools.browser.browser_use_engine import (
     ENV_AGENT_BROWSER_USE_COMMAND_TIMEOUT_SECONDS,
     ENV_AGENT_BROWSER_USE_HOME,
     ENV_AGENT_BROWSER_USE_SESSION,
-    ENV_BROWSER_USE_CLI,
-    ENV_BROWSER_USE_COMMAND_TIMEOUT_SECONDS,
-    ENV_BROWSER_USE_HOME,
-    ENV_BROWSER_USE_SESSION,
+    ENV_WINDIE_BROWSER_USE_CLI,
+    ENV_WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS,
+    ENV_WINDIE_BROWSER_USE_HOME,
+    ENV_WINDIE_BROWSER_USE_SESSION,
     _base_command,
     _browser_use_home,
     _browser_use_session,
@@ -54,13 +54,13 @@ def test_browser_use_env_resolvers_prefer_generic_alias(
     generic_home = tmp_path / "generic-home"
     windie_home = tmp_path / "windie-home"
     monkeypatch.setenv(ENV_AGENT_BROWSER_USE_HOME, str(generic_home))
-    monkeypatch.setenv(ENV_BROWSER_USE_HOME, str(windie_home))
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_HOME, str(windie_home))
     monkeypatch.setenv(ENV_AGENT_BROWSER_USE_SESSION, "agent-session")
-    monkeypatch.setenv(ENV_BROWSER_USE_SESSION, "windie-session")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_SESSION, "windie-session")
     monkeypatch.setenv(ENV_AGENT_BROWSER_USE_COMMAND_TIMEOUT_SECONDS, "7")
-    monkeypatch.setenv(ENV_BROWSER_USE_COMMAND_TIMEOUT_SECONDS, "9")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS, "9")
     monkeypatch.setenv(ENV_AGENT_BROWSER_USE_CLI, "agent-browser-use")
-    monkeypatch.setenv(ENV_BROWSER_USE_CLI, "windie-browser-use")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_CLI, "windie-browser-use")
 
     assert _browser_use_home() == str(generic_home)
     assert _browser_use_session() == "agent-session"
@@ -72,10 +72,10 @@ def test_browser_use_env_resolvers_preserve_windie_alias(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     windie_home = tmp_path / "windie-home"
-    monkeypatch.setenv(ENV_BROWSER_USE_HOME, str(windie_home))
-    monkeypatch.setenv(ENV_BROWSER_USE_SESSION, "windieos")
-    monkeypatch.setenv(ENV_BROWSER_USE_COMMAND_TIMEOUT_SECONDS, "9")
-    monkeypatch.setenv(ENV_BROWSER_USE_CLI, "windie-browser-use")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_HOME, str(windie_home))
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_SESSION, "windieos")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS, "9")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_CLI, "windie-browser-use")
 
     assert _browser_use_home() == str(windie_home)
     assert _browser_use_session() == "windieos"
@@ -591,7 +591,9 @@ async def test_close_uses_config_neutral_browser_use_shutdown() -> None:
 
 
 @pytest.mark.asyncio
-async def test_shutdown_browser_runtime_closes_browser_use_and_dedicated_chrome() -> None:
+async def test_shutdown_browser_runtime_closes_browser_use_and_dedicated_chrome() -> (
+    None
+):
     with (
         mock.patch.object(
             BrowserUseEngineRuntime,

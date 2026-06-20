@@ -40,8 +40,14 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
     assert "WINDIE_SIDECAR_SOURCE_STAMP" not in source
     assert "self.backend" not in source
     assert "daemon.backend" not in source
-    assert f'emit_sidecar_layer_log("{retired_local_sidecar_prefix}", "status requested")' not in source
-    assert f'emit_sidecar_layer_log("[Local{"Backend"}]", "status requested")' not in source
+    assert (
+        f'emit_sidecar_layer_log("{retired_local_sidecar_prefix}", "status requested")'
+        not in source
+    )
+    assert (
+        f'emit_sidecar_layer_log("[Local{"Backend"}]", "status requested")'
+        not in source
+    )
     assert '"[SidecarDaemon] listening' not in source
     assert '"[SidecarDaemon] stopping' not in source
     assert "class SidecarDaemon" not in source
@@ -53,13 +59,11 @@ def test_sidecar_daemon_default_discovery_path_is_generic():
     )
 
 
-def test_sidecar_daemon_user_data_root_prefers_generic_env(
-    tmp_path: Path, monkeypatch
-):
+def test_sidecar_daemon_user_data_root_prefers_generic_env(tmp_path: Path, monkeypatch):
     generic_root = tmp_path / "generic"
     windie_root = tmp_path / "windie"
     monkeypatch.setenv(sidecar_daemon.ENV_AGENT_USER_DATA_DIR, str(generic_root))
-    monkeypatch.setenv(sidecar_daemon.ENV_USER_DATA_DIR, str(windie_root))
+    monkeypatch.setenv(sidecar_daemon.ENV_WINDIE_USER_DATA_DIR, str(windie_root))
 
     assert sidecar_daemon.app_user_data_root() == generic_root
 
@@ -69,7 +73,7 @@ def test_sidecar_daemon_user_data_root_preserves_windie_env_alias(
 ):
     windie_root = tmp_path / "windie"
     monkeypatch.delenv(sidecar_daemon.ENV_AGENT_USER_DATA_DIR, raising=False)
-    monkeypatch.setenv(sidecar_daemon.ENV_USER_DATA_DIR, str(windie_root))
+    monkeypatch.setenv(sidecar_daemon.ENV_WINDIE_USER_DATA_DIR, str(windie_root))
 
     assert sidecar_daemon.app_user_data_root() == windie_root
 
@@ -82,9 +86,9 @@ def test_sidecar_daemon_test_platform_prefers_generic_env(monkeypatch, tmp_path)
         return tmp_path / "root"
 
     monkeypatch.delenv(sidecar_daemon.ENV_AGENT_USER_DATA_DIR, raising=False)
-    monkeypatch.delenv(sidecar_daemon.ENV_USER_DATA_DIR, raising=False)
+    monkeypatch.delenv(sidecar_daemon.ENV_WINDIE_USER_DATA_DIR, raising=False)
     monkeypatch.setenv(sidecar_daemon.ENV_AGENT_TEST_PLATFORM, "linux")
-    monkeypatch.setenv(sidecar_daemon.ENV_TEST_PLATFORM, "win32")
+    monkeypatch.setenv(sidecar_daemon.ENV_WINDIE_TEST_PLATFORM, "win32")
     monkeypatch.setattr(
         sidecar_daemon, "resolve_app_user_data_root", fake_user_data_root
     )
@@ -93,9 +97,7 @@ def test_sidecar_daemon_test_platform_prefers_generic_env(monkeypatch, tmp_path)
     assert captured["platform_name"] == "linux"
 
 
-def test_sidecar_daemon_test_platform_preserves_windie_env_alias(
-    monkeypatch, tmp_path
-):
+def test_sidecar_daemon_test_platform_preserves_windie_env_alias(monkeypatch, tmp_path):
     captured = {}
 
     def fake_user_data_root(**kwargs):
@@ -103,9 +105,9 @@ def test_sidecar_daemon_test_platform_preserves_windie_env_alias(
         return tmp_path / "root"
 
     monkeypatch.delenv(sidecar_daemon.ENV_AGENT_USER_DATA_DIR, raising=False)
-    monkeypatch.delenv(sidecar_daemon.ENV_USER_DATA_DIR, raising=False)
+    monkeypatch.delenv(sidecar_daemon.ENV_WINDIE_USER_DATA_DIR, raising=False)
     monkeypatch.delenv(sidecar_daemon.ENV_AGENT_TEST_PLATFORM, raising=False)
-    monkeypatch.setenv(sidecar_daemon.ENV_TEST_PLATFORM, "win32")
+    monkeypatch.setenv(sidecar_daemon.ENV_WINDIE_TEST_PLATFORM, "win32")
     monkeypatch.setattr(
         sidecar_daemon, "resolve_app_user_data_root", fake_user_data_root
     )
@@ -120,7 +122,7 @@ def test_sidecar_daemon_diagnostics_path_prefers_generic_env(
     generic_db = tmp_path / "generic.db"
     windie_db = tmp_path / "windie.db"
     monkeypatch.setenv(sidecar_daemon.ENV_AGENT_APP_DIAGNOSTICS_DB, str(generic_db))
-    monkeypatch.setenv(sidecar_daemon.ENV_APP_DIAGNOSTICS_DB, str(windie_db))
+    monkeypatch.setenv(sidecar_daemon.ENV_WINDIE_APP_DIAGNOSTICS_DB, str(windie_db))
 
     assert sidecar_daemon.diagnostics_database_path() == generic_db
 
@@ -129,7 +131,7 @@ def test_sidecar_daemon_diagnostics_path_preserves_windie_env_alias(
     tmp_path: Path, monkeypatch
 ):
     windie_db = tmp_path / "windie.db"
-    monkeypatch.setenv(sidecar_daemon.ENV_APP_DIAGNOSTICS_DB, str(windie_db))
+    monkeypatch.setenv(sidecar_daemon.ENV_WINDIE_APP_DIAGNOSTICS_DB, str(windie_db))
 
     assert sidecar_daemon.diagnostics_database_path() == windie_db
 
@@ -340,7 +342,9 @@ def test_mcp_execution_context_rejects_camel_case_metadata_aliases():
 
 
 @pytest.mark.asyncio
-async def test_mcp_stdout_reader_failure_fails_pending_request(tmp_path: Path, monkeypatch):
+async def test_mcp_stdout_reader_failure_fails_pending_request(
+    tmp_path: Path, monkeypatch
+):
     diagnostics_db = tmp_path / "diagnostics.db"
     monkeypatch.setenv("WINDIE_APP_DIAGNOSTICS_DB", str(diagnostics_db))
     client = McpStdioClient(McpServerSpec(id="large", command="fake-mcp-server"))
@@ -354,11 +358,13 @@ async def test_mcp_stdout_reader_failure_fails_pending_request(tmp_path: Path, m
     with pytest.raises(RuntimeError, match="MCP stdout reader failed for large"):
         await future
     with sqlite3.connect(diagnostics_db) as conn:
-        rows = conn.execute("""
+        rows = conn.execute(
+            """
             SELECT path, stage, status, data, error
             FROM diagnostic_events
             WHERE stage = 'stdout_reader_failed'
-            """).fetchall()
+            """
+        ).fetchall()
     assert len(rows) == 1
     path, stage, status, data, error = rows[0]
     assert path == "mcp.discovery"
@@ -565,7 +571,9 @@ async def test_sidecar_daemon_execute_tool_rejects_mcp_metadata_aliases():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_execute_tool_log_labels_passive_browser_session_sync(capsys):
+async def test_sidecar_daemon_execute_tool_log_labels_passive_browser_session_sync(
+    capsys,
+):
     local_runtime = FakeLocalRuntimeWithExecuteTool()
     daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
 
@@ -828,9 +836,7 @@ async def test_sidecar_daemon_preserves_mcp_structured_content():
     assert registration.status == 200
     mcp_result = {
         "content": [{"type": "text", "text": "Found 1 window(s)."}],
-        "structuredContent": {
-            "windows": [{"window_id": 1045, "title": "WindieOS"}]
-        },
+        "structuredContent": {"windows": [{"window_id": 1045, "title": "WindieOS"}]},
     }
     assert json.loads(execution.text) == {
         "success": True,
@@ -936,12 +942,14 @@ async def test_sidecar_daemon_records_mcp_execution_diagnostics(
     assert json.loads(execution.text)["success"] is True
     with sqlite3.connect(diagnostics_db) as conn:
         conn.row_factory = sqlite3.Row
-        rows = conn.execute("""
+        rows = conn.execute(
+            """
             SELECT path, stage, status, request_id, conversation_ref, data, error
             FROM diagnostic_events
             WHERE path = 'mcp.execution'
             ORDER BY rowid ASC
-            """).fetchall()
+            """
+        ).fetchall()
 
     assert [row["stage"] for row in rows] == [
         "tool_call_start",
@@ -988,12 +996,14 @@ async def test_sidecar_daemon_records_mcp_registration_diagnostics(
     assert json.loads(registration.text)["success"] is True
     with sqlite3.connect(diagnostics_db) as conn:
         conn.row_factory = sqlite3.Row
-        rows = conn.execute("""
+        rows = conn.execute(
+            """
             SELECT path, stage, status, data, error
             FROM diagnostic_events
             WHERE path = 'mcp.registration'
             ORDER BY rowid ASC
-            """).fetchall()
+            """
+        ).fetchall()
 
     assert [row["stage"] for row in rows] == [
         "registration_requested",

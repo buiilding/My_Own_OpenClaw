@@ -11,8 +11,8 @@ from tools.browser.chrome_launcher import (
     DEFAULT_DEDICATED_CDP_URL,
     ENV_AGENT_BROWSER_CDP_PORT,
     ENV_AGENT_USER_DATA_DIR,
-    ENV_BROWSER_CDP_PORT,
-    ENV_USER_DATA_DIR,
+    ENV_WINDIE_BROWSER_CDP_PORT,
+    ENV_WINDIE_USER_DATA_DIR,
     ChromeLaunchTimeoutError,
     ChromeNotFoundError,
     _resolve_default_cdp_port,
@@ -27,13 +27,13 @@ from tools.browser.chrome_launcher import (
 
 def test_resolve_default_cdp_port_prefers_generic_alias(monkeypatch):
     monkeypatch.setenv(ENV_AGENT_BROWSER_CDP_PORT, "9444")
-    monkeypatch.setenv(ENV_BROWSER_CDP_PORT, "9555")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_CDP_PORT, "9555")
 
     assert _resolve_default_cdp_port() == 9444
 
 
 def test_resolve_default_cdp_port_preserves_windie_alias(monkeypatch):
-    monkeypatch.setenv(ENV_BROWSER_CDP_PORT, "9555")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_CDP_PORT, "9555")
 
     assert _resolve_default_cdp_port() == 9555
 
@@ -129,7 +129,9 @@ class TestCdpDownloadBehaviorSupport:
         )
         mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
 
-        assert await is_cdp_download_behavior_supported(DEFAULT_DEDICATED_CDP_URL) is True
+        assert (
+            await is_cdp_download_behavior_supported(DEFAULT_DEDICATED_CDP_URL) is True
+        )
         mock_ws.send_json.assert_awaited_once_with(
             {
                 "id": 1,
@@ -171,7 +173,9 @@ class TestCdpDownloadBehaviorSupport:
         )
         mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
 
-        assert await is_cdp_download_behavior_supported(DEFAULT_DEDICATED_CDP_URL) is False
+        assert (
+            await is_cdp_download_behavior_supported(DEFAULT_DEDICATED_CDP_URL) is False
+        )
 
 
 class TestGetChromeUserDataDir:
@@ -215,13 +219,15 @@ class TestGetChromeUserDataDir:
         mock_home.return_value = Path("C:/Users/test")
         monkeypatch.setenv("LOCALAPPDATA", "C:/Users/test/AppData/Local")
         monkeypatch.delenv(ENV_AGENT_USER_DATA_DIR, raising=False)
-        monkeypatch.delenv(ENV_USER_DATA_DIR, raising=False)
+        monkeypatch.delenv(ENV_WINDIE_USER_DATA_DIR, raising=False)
 
         result = get_chrome_user_data_dir()
 
         assert result is not None
-        assert str(result).replace("\\", "/").endswith(
-            "AppData/Local/desktop-runtime/BrowserProfile"
+        assert (
+            str(result)
+            .replace("\\", "/")
+            .endswith("AppData/Local/desktop-runtime/BrowserProfile")
         )
 
     @mock.patch("platform.system")
@@ -241,8 +247,10 @@ class TestGetChromeUserDataDir:
         result = get_chrome_user_data_dir()
 
         assert result is not None
-        assert str(result).replace("\\", "/").endswith(
-            "AppData/Local/windieos/BrowserProfile"
+        assert (
+            str(result)
+            .replace("\\", "/")
+            .endswith("AppData/Local/windieos/BrowserProfile")
         )
 
 

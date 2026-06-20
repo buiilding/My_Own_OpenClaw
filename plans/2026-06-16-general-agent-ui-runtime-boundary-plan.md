@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Windie Env Alias Constant Boundary
+
+- Finding: local-runtime Python modules now prefer generic `AGENT_*` env names,
+  but several internal constants for legacy `WINDIE_*` compatibility variables
+  were still named as neutral/default `ENV_*` values across the daemon,
+  browser, wakeword, executor, shell, path, and demo seed helpers.
+- Change: renamed the internal compatibility constants to `ENV_WINDIE_*`,
+  preserved the existing env variable values and resolution order, updated
+  focused local-runtime tests, and added an AST guard so future
+  `ENV_* = "WINDIE_*"` constants must advertise themselves as Windie aliases.
+- Validation: focused local-runtime Python env, daemon, seed, executor, shell,
+  wakeword, browser-use, Chrome launcher, browser file-store, and local-backend
+  tests; formatting check; exact stale constant-name scan; AST guard scan.
+- Compatibility: no migration required. Runtime env variable names, precedence,
+  storage paths, diagnostics DB resolution, browser/wakeword launch behavior,
+  shell TTL behavior, permission-state lookup, hosted URLs, credentials,
+  permissions, IPC payloads, and local tool execution are unchanged.
+
 ### 2026-06-20 Renderer SDK Re-export Facade Removal
 
 - Finding: `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` had

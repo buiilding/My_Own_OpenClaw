@@ -7,12 +7,12 @@ from pathlib import Path
 
 DEFAULT_BROWSER_FILES_DIR = Path.home() / ".desktop-agent" / "browser"
 ENV_AGENT_BROWSER_FILES_DIR = "AGENT_BROWSER_FILES_DIR"
-ENV_BROWSER_FILES_DIR = "WINDIE_BROWSER_FILES_DIR"
+ENV_WINDIE_BROWSER_FILES_DIR = "WINDIE_BROWSER_FILES_DIR"
 
 
 def browser_files_root() -> Path:
     raw = ""
-    for env_name in (ENV_AGENT_BROWSER_FILES_DIR, ENV_BROWSER_FILES_DIR):
+    for env_name in (ENV_AGENT_BROWSER_FILES_DIR, ENV_WINDIE_BROWSER_FILES_DIR):
         raw = os.getenv(env_name, "").strip()
         if raw:
             break

@@ -70,7 +70,7 @@ def test_resolve_wakeword_model_supports_uppercase_models_map():
 
 def test_resolve_wakeword_model_directory_uses_windieos_root(monkeypatch, tmp_path):
     monkeypatch.delenv(wakeword_service.ENV_AGENT_WAKEWORD_MODEL_DIR, raising=False)
-    monkeypatch.delenv(wakeword_service.ENV_WAKEWORD_MODEL_DIR, raising=False)
+    monkeypatch.delenv(wakeword_service.ENV_WINDIE_WAKEWORD_MODEL_DIR, raising=False)
     monkeypatch.setattr(
         wakeword_service, "app_user_data_root", lambda: tmp_path / "windieos"
     )
@@ -85,22 +85,24 @@ def test_resolve_wakeword_model_directory_prefers_agent_env(monkeypatch, tmp_pat
     agent_dir = tmp_path / "agent-models"
     windie_dir = tmp_path / "windie-models"
     monkeypatch.setenv(wakeword_service.ENV_AGENT_WAKEWORD_MODEL_DIR, str(agent_dir))
-    monkeypatch.setenv(wakeword_service.ENV_WAKEWORD_MODEL_DIR, str(windie_dir))
+    monkeypatch.setenv(wakeword_service.ENV_WINDIE_WAKEWORD_MODEL_DIR, str(windie_dir))
 
     assert wakeword_service.resolve_wakeword_model_directory() == agent_dir
 
 
-def test_resolve_wakeword_model_directory_supports_windie_legacy_env(monkeypatch, tmp_path):
+def test_resolve_wakeword_model_directory_supports_windie_legacy_env(
+    monkeypatch, tmp_path
+):
     windie_dir = tmp_path / "windie-models"
     monkeypatch.delenv(wakeword_service.ENV_AGENT_WAKEWORD_MODEL_DIR, raising=False)
-    monkeypatch.setenv(wakeword_service.ENV_WAKEWORD_MODEL_DIR, str(windie_dir))
+    monkeypatch.setenv(wakeword_service.ENV_WINDIE_WAKEWORD_MODEL_DIR, str(windie_dir))
 
     assert wakeword_service.resolve_wakeword_model_directory() == windie_dir
 
 
 def test_resolve_wakeword_allow_runtime_download_prefers_agent_env(monkeypatch):
     monkeypatch.setenv(
-        wakeword_service.ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
+        wakeword_service.ENV_WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
         "1",
     )
     monkeypatch.setenv(
@@ -111,13 +113,15 @@ def test_resolve_wakeword_allow_runtime_download_prefers_agent_env(monkeypatch):
     assert wakeword_service.resolve_wakeword_allow_runtime_download() is False
 
 
-def test_resolve_wakeword_allow_runtime_download_supports_windie_legacy_env(monkeypatch):
+def test_resolve_wakeword_allow_runtime_download_supports_windie_legacy_env(
+    monkeypatch,
+):
     monkeypatch.delenv(
         wakeword_service.ENV_AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
         raising=False,
     )
     monkeypatch.setenv(
-        wakeword_service.ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
+        wakeword_service.ENV_WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
         "0",
     )
 
@@ -148,7 +152,9 @@ def test_create_model_rejects_model_name_only_constructor():
         raise AssertionError("expected model-name-only wakeword constructor to fail")
 
 
-def test_create_model_variadic_signature_uses_cached_auxiliary_models_for_onnx_fallback(tmp_path):
+def test_create_model_variadic_signature_uses_cached_auxiliary_models_for_onnx_fallback(
+    tmp_path,
+):
     model_dir = tmp_path / "models"
     model_dir.mkdir(parents=True)
     tflite_model = model_dir / "hey_jarvis_v0.1.tflite"
@@ -195,10 +201,14 @@ def test_ensure_models_available_returns_true_when_path_exists(tmp_path):
     model_file = tmp_path / "hey_jarvis.onnx"
     model_file.write_bytes(b"ok")
 
-    assert wakeword_service.ensure_models_available("hey_jarvis", str(model_file)) is True
+    assert (
+        wakeword_service.ensure_models_available("hey_jarvis", str(model_file)) is True
+    )
 
 
-def test_ensure_models_available_missing_packaged_model_uses_generic_reinstall_copy(monkeypatch):
+def test_ensure_models_available_missing_packaged_model_uses_generic_reinstall_copy(
+    monkeypatch,
+):
     statuses = []
     monkeypatch.setattr(
         wakeword_service,
@@ -237,7 +247,9 @@ def test_resolve_model_path_from_directory_prefers_known_filename(tmp_path):
     assert resolved == str(packaged_name)
 
 
-def test_ensure_models_available_downloads_to_target_directory_when_supported(monkeypatch, tmp_path):
+def test_ensure_models_available_downloads_to_target_directory_when_supported(
+    monkeypatch, tmp_path
+):
     model_dir = tmp_path / "models"
     model_dir.mkdir(parents=True)
     expected_model = model_dir / "hey_jarvis_v0.1.tflite"
@@ -249,7 +261,9 @@ def test_ensure_models_available_downloads_to_target_directory_when_supported(mo
             calls[-1][1]["target_directory"] = target_directory
         expected_model.write_bytes(b"ok")
 
-    monkeypatch.setattr(wakeword_service, "_load_download_models_func", lambda: fake_download)
+    monkeypatch.setattr(
+        wakeword_service, "_load_download_models_func", lambda: fake_download
+    )
 
     assert wakeword_service.ensure_models_available(
         "hey_jarvis",
@@ -263,7 +277,7 @@ def test_ensure_models_available_downloads_to_target_directory_when_supported(mo
 
 
 def test_process_audio_chunk_reports_detection():
-    audio = (b"\x00\x00" * 1600)
+    audio = b"\x00\x00" * 1600
 
     result = wakeword_service.process_audio_chunk(_PredictModel(), audio, "hey_jarvis")
 

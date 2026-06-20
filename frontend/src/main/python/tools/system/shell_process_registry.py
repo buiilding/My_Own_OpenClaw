@@ -19,7 +19,7 @@ DEFAULT_MAX_OUTPUT_CHARS = 200_000
 DEFAULT_PENDING_MAX_OUTPUT_CHARS = 30_000
 DEFAULT_TAIL_CHARS = 2000
 ENV_AGENT_SHELL_JOB_TTL_SECONDS = "AGENT_SHELL_JOB_TTL_SECONDS"
-ENV_SHELL_JOB_TTL_SECONDS = "WINDIE_SHELL_JOB_TTL_SECONDS"
+ENV_WINDIE_SHELL_JOB_TTL_SECONDS = "WINDIE_SHELL_JOB_TTL_SECONDS"
 
 
 def _clamp(value: Optional[int], min_value: int, max_value: int, default: int) -> int:
@@ -47,7 +47,9 @@ def _read_first_env_int(names: tuple[str, ...]) -> Optional[int]:
 
 def resolve_job_ttl_seconds() -> int:
     return _clamp(
-        _read_first_env_int((ENV_AGENT_SHELL_JOB_TTL_SECONDS, ENV_SHELL_JOB_TTL_SECONDS)),
+        _read_first_env_int(
+            (ENV_AGENT_SHELL_JOB_TTL_SECONDS, ENV_WINDIE_SHELL_JOB_TTL_SECONDS)
+        ),
         MIN_JOB_TTL_SECONDS,
         MAX_JOB_TTL_SECONDS,
         DEFAULT_JOB_TTL_SECONDS,
@@ -152,7 +154,11 @@ def append_output(session: ProcessSession, stream: str, chunk: str) -> None:
     if not chunk:
         return
     buffer = session.pending_stdout if stream == "stdout" else session.pending_stderr
-    buffer_chars = session.pending_stdout_chars if stream == "stdout" else session.pending_stderr_chars
+    buffer_chars = (
+        session.pending_stdout_chars
+        if stream == "stdout"
+        else session.pending_stderr_chars
+    )
     pending_cap = min(session.pending_max_output_chars, session.max_output_chars)
     buffer.append(chunk)
     buffer_chars += len(chunk)
@@ -165,7 +171,9 @@ def append_output(session: ProcessSession, stream: str, chunk: str) -> None:
         session.pending_stderr_chars = buffer_chars
     session.total_output_chars += len(chunk)
     expected_length = len(session.aggregated) + len(chunk)
-    session.aggregated = _trim_with_cap(session.aggregated + chunk, session.max_output_chars)
+    session.aggregated = _trim_with_cap(
+        session.aggregated + chunk, session.max_output_chars
+    )
     session.truncated = session.truncated or len(session.aggregated) < expected_length
     session.tail = tail(session.aggregated, DEFAULT_TAIL_CHARS)
 
@@ -174,14 +182,18 @@ def append_output(session: ProcessSession, stream: str, chunk: str) -> None:
         session.stdout_aggregated = _trim_with_cap(
             session.stdout_aggregated + chunk, session.max_output_chars
         )
-        session.truncated = session.truncated or len(session.stdout_aggregated) < expected_stdout_length
+        session.truncated = (
+            session.truncated or len(session.stdout_aggregated) < expected_stdout_length
+        )
         session.stdout_tail = tail(session.stdout_aggregated, DEFAULT_TAIL_CHARS)
     else:
         expected_stderr_length = len(session.stderr_aggregated) + len(chunk)
         session.stderr_aggregated = _trim_with_cap(
             session.stderr_aggregated + chunk, session.max_output_chars
         )
-        session.truncated = session.truncated or len(session.stderr_aggregated) < expected_stderr_length
+        session.truncated = (
+            session.truncated or len(session.stderr_aggregated) < expected_stderr_length
+        )
         session.stderr_tail = tail(session.stderr_aggregated, DEFAULT_TAIL_CHARS)
 
 
@@ -332,7 +344,9 @@ async def shutdown_registry_for_tests() -> None:
             if session.process and session.process.returncode is None:
                 with contextlib.suppress(ProcessLookupError, Exception):
                     session.process.kill()
-            with contextlib.suppress(asyncio.TimeoutError, asyncio.CancelledError, Exception):
+            with contextlib.suppress(
+                asyncio.TimeoutError, asyncio.CancelledError, Exception
+            ):
                 await asyncio.wait_for(session.wait_task, timeout=1.0)
             if session.wait_task.done():
                 continue
@@ -364,6 +378,10 @@ async def shutdown_registry_for_tests() -> None:
             )
 
     for session in sessions:
-        if session.loop is current_loop and session.process and session.process.returncode is None:
+        if (
+            session.loop is current_loop
+            and session.process
+            and session.process.returncode is None
+        ):
             with contextlib.suppress(asyncio.TimeoutError, Exception):
                 await asyncio.wait_for(session.process.wait(), timeout=1.0)

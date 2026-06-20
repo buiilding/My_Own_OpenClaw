@@ -25,9 +25,9 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_CDP_PORT = 9333
 ENV_AGENT_BROWSER_CDP_PORT = "AGENT_BROWSER_CDP_PORT"
-ENV_BROWSER_CDP_PORT = "WINDIE_BROWSER_CDP_PORT"
+ENV_WINDIE_BROWSER_CDP_PORT = "WINDIE_BROWSER_CDP_PORT"
 ENV_AGENT_USER_DATA_DIR = "AGENT_USER_DATA_DIR"
-ENV_USER_DATA_DIR = "WINDIE_USER_DATA_DIR"
+ENV_WINDIE_USER_DATA_DIR = "WINDIE_USER_DATA_DIR"
 CHROME_STARTUP_TIMEOUT = 10  # seconds
 CHROME_CHECK_INTERVAL = 0.5  # seconds
 
@@ -35,7 +35,7 @@ CHROME_CHECK_INTERVAL = 0.5  # seconds
 def _resolve_default_cdp_port() -> int:
     env_name = ENV_AGENT_BROWSER_CDP_PORT
     raw = ""
-    for candidate in (ENV_AGENT_BROWSER_CDP_PORT, ENV_BROWSER_CDP_PORT):
+    for candidate in (ENV_AGENT_BROWSER_CDP_PORT, ENV_WINDIE_BROWSER_CDP_PORT):
         raw = os.getenv(candidate, "").strip()
         if raw:
             env_name = candidate
@@ -169,7 +169,7 @@ def _iter_dedicated_chrome_processes(cdp_port: int) -> List[psutil.Process]:
 
 
 def _resolve_browser_app_data_dir_name() -> str:
-    for env_name in (ENV_AGENT_USER_DATA_DIR, ENV_USER_DATA_DIR):
+    for env_name in (ENV_AGENT_USER_DATA_DIR, ENV_WINDIE_USER_DATA_DIR):
         raw = os.getenv(env_name, "").strip()
         if raw:
             return Path(raw).expanduser().name or APP_DATA_DIR_NAME
@@ -211,7 +211,11 @@ def get_chrome_user_data_dir() -> Path:
 
     if system == "Windows":
         local_app_data = os.environ.get("LOCALAPPDATA", str(home / "AppData" / "Local"))
-        return Path(local_app_data) / _resolve_browser_app_data_dir_name() / "BrowserProfile"
+        return (
+            Path(local_app_data)
+            / _resolve_browser_app_data_dir_name()
+            / "BrowserProfile"
+        )
     return app_user_data_root() / "BrowserProfile"
 
 
