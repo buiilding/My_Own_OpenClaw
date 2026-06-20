@@ -2257,6 +2257,8 @@ describe('modular sdk refactor completion boundary', () => {
         'conversationReplayState.ts',
         'backward compatibility',
         'compatibility path',
+        'Main process backend bridge',
+        'SDK local runtime + sidecar callback wiring',
         'Frontend Tool Execution Service',
         'Electron Frontend',
         'Renderer invokes tool',

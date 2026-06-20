@@ -18352,3 +18352,20 @@ Each completed slice should report:
   SDK command payloads, backend websocket transport, artifact URL helpers,
   storage, credentials, permissions, local-runtime behavior, hosted backend
   URLs, and provider policy are unchanged.
+
+### 2026-06-20 Frontend runtime surface matrix SDK host wording
+
+- Finding: the frontend runtime surface matrix still labeled the Electron main
+  SDK path as a "Main process backend bridge" and described SDK tool runtime
+  wiring through sidecar callbacks, even though current ownership is the
+  Electron Agent SDK host plus SDK local-runtime coordination.
+- Change: renamed the matrix row to Electron Agent SDK host, clarified typed
+  SDK/backend-event fan-out and SDK local-runtime result delivery, and extended
+  the modular inventory guard against the retired backend-bridge and
+  sidecar-callback labels.
+- Validation: focused modular boundary test, exact stale matrix label scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. IPC channels, SDK command payloads,
+  hosted WebSocket transport, settings ACK gates, tool-result routing,
+  local-runtime bridge behavior, storage, credentials, permissions, hosted
+  backend URLs, and provider policy are unchanged.

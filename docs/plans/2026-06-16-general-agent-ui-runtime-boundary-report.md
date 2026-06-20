@@ -11,11 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `7d4072c92` (`docs(platform): use app-owned window wording`)
-- Latest completed slice: platform docs now describe Electron-owned
-  window/screenshot policy through desktop app/app-owned surfaces, and the
-  architecture overview now describes renderer runtime clients plus SDK command
-  facades instead of a renderer backend API client.
+- Latest inspected plan checkpoint: `0fa830bee` (`docs(architecture): route renderer clients through sdk commands`)
+- Latest completed slice: the architecture overview now describes renderer
+  runtime clients plus SDK command facades, and the frontend runtime surface
+  matrix now names the Electron Agent SDK host instead of a main-process backend
+  bridge.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -59,9 +59,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   screenshot policy through desktop app/app-owned surfaces while keeping product
   identity in skin/config. The architecture overview routes renderer requests
   through desktop runtime clients and SDK command facades instead of a stale
-  renderer backend API-client entry. Preload SDK-command validation failures use
-  generic Agent SDK wording while the `window.windie` bridge contract remains
-  stable. Python SDK
+  renderer backend API-client entry. The frontend runtime surface matrix names
+  the Electron Agent SDK host and SDK local-runtime result delivery instead of
+  backend-bridge or sidecar-callback labels. Preload SDK-command validation
+  failures use generic Agent SDK wording while the `window.windie` bridge
+  contract remains stable. Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,
   and JS SDK public stream projections use generic fallback error wording when
   runtime errors omit a message. SDK local-runtime auto-start discovery and
@@ -7488,3 +7490,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   payloads, backend websocket transport, artifact URL helpers, storage,
   credentials, permissions, local-runtime behavior, hosted backend URLs, and
   provider policy are unchanged; no migration is required.
+- The frontend runtime surface matrix now names the Electron Agent SDK host,
+  typed SDK/backend-event fan-out, and SDK local-runtime result delivery instead
+  of stale main-process backend-bridge and sidecar-callback labels. IPC
+  channels, SDK command payloads, hosted WebSocket transport, settings ACK
+  gates, tool-result routing, local-runtime bridge behavior, storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged; no migration is required.

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: rename the runtime surface matrix row from main-process
+  backend bridge to Electron Agent SDK host and route SDK tool runtime wording
+  through local-runtime coordination. No migration required.
+
 - docs/architecture: replace the stale renderer API-client overview entry with
   runtime-client and SDK command facade ownership. No migration required.
 
