@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `7ef3437a4` (`test(runtime): neutralize unicode repair fixtures`)
-- Latest completed slice: backend web-search/provider tests now use neutral
-  query samples instead of WindieOS-flavored arbitrary search text.
+- Latest inspected plan checkpoint: `7a062cbd3` (`test(backend): neutralize web search query fixtures`)
+- Latest completed slice: renderer browser session tests now use neutral tab
+  URL samples instead of WindieOS-flavored browser fixture domains.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -88,6 +88,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Backend web-search/provider fixtures now use neutral query samples while
   preserving native source extraction, source de-duplication, backend
   tool-sender progress ordering, and backend-executed tool-output behavior.
+  Renderer browser session fixtures now use neutral tab URLs while preserving
+  browser session readiness, active-tab labeling, carousel switching,
+  disconnect, polling, and in-flight connect behavior.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7571,3 +7574,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   ordering, backend-executed tool-output behavior, query payload shape,
   credentials, permissions, hosted backend URLs, provider policy, and
   local-runtime behavior are unchanged; no migration is required.
+- Renderer browser session fixture samples now use neutral docs, repository,
+  and pricing URLs instead of WindieOS-flavored browser tab domains. Browser
+  session store readiness, active-tab labeling, carousel switching, disconnect,
+  polling, in-flight connect behavior, IPC channels, storage, permissions,
+  hosted backend URLs, provider policy, and local-runtime browser behavior are
+  unchanged; no migration is required.

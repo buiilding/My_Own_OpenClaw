@@ -18581,3 +18581,22 @@ Each completed slice should report:
   backend-executed tool-output behavior, query payload shape, credentials,
   permissions, hosted backend URLs, provider policy, and local-runtime behavior
   are unchanged.
+
+### 2026-06-20 Renderer browser tab URL fixture neutrality
+
+- Finding: renderer browser session store and chat browser carousel tests
+  exercise generic browser session readiness, active-tab labeling, carousel
+  switching, polling, disconnect, and in-flight connect behavior, but their
+  mocked tab URLs still used WindieOS-flavored docs, repository, and pricing
+  domains.
+- Change: switched those browser tab URL fixture values to neutral
+  `example.com` and `github.com/example/project` samples and extended the
+  modular boundary guard so the retired product-shaped browser tab domains
+  stay out of renderer browser-session coverage.
+- Validation: focused browser session store, chat browser session control, and
+  modular boundary tests; exact retired fixture scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Browser session store readiness,
+  active-tab labeling, carousel switching, disconnect, polling, in-flight
+  connect behavior, IPC channels, storage, permissions, hosted backend URLs,
+  provider policy, and local-runtime browser behavior are unchanged.

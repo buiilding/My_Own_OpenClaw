@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/renderer: use neutral browser tab URL samples in browser session store
+  and chat browser carousel coverage instead of WindieOS-flavored fixture
+  domains. No migration required.
+
 - tests/backend: use neutral web-search query samples in provider source
   extraction and backend tool-sender coverage instead of WindieOS-flavored
   query fixture data. No migration required.

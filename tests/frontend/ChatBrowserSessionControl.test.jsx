@@ -147,8 +147,8 @@ describe('ChatBrowserSessionControl', () => {
       localRuntimeReady: true,
       currentTargetId: '',
       tabs: [
-        { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
-        { targetId: '1', title: 'GitHub', url: 'https://github.com/windieos' },
+        { targetId: '0', title: 'Docs', url: 'https://docs.example.com' },
+        { targetId: '1', title: 'GitHub', url: 'https://github.com/example/project' },
       ],
     };
     mockInvoke.mockImplementation(createBrowserToolHandler(session));
@@ -177,8 +177,8 @@ describe('ChatBrowserSessionControl', () => {
       localRuntimeReady: true,
       currentTargetId: '0',
       tabs: [
-        { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
-        { targetId: '1', title: 'GitHub', url: 'https://github.com/windieos' },
+        { targetId: '0', title: 'Docs', url: 'https://docs.example.com' },
+        { targetId: '1', title: 'GitHub', url: 'https://github.com/example/project' },
       ],
     };
     mockInvoke.mockImplementation(createBrowserToolHandler(session));
@@ -223,7 +223,7 @@ describe('ChatBrowserSessionControl', () => {
       localRuntimeReady: true,
       currentTargetId: '0',
       tabs: [
-        { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
+        { targetId: '0', title: 'Docs', url: 'https://docs.example.com' },
       ],
     };
     mockInvoke.mockImplementation(createBrowserToolHandler(session));
@@ -235,7 +235,7 @@ describe('ChatBrowserSessionControl', () => {
     session.tabs.push({
       targetId: '1',
       title: 'New pricing tab',
-      url: 'https://windieos.com/pricing',
+      url: 'https://example.com/pricing',
     });
     session.currentTargetId = '1';
 
@@ -254,7 +254,7 @@ describe('ChatBrowserSessionControl', () => {
       localRuntimeReady: false,
       currentTargetId: '0',
       tabs: [
-        { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
+        { targetId: '0', title: 'Docs', url: 'https://docs.example.com' },
       ],
     };
     mockInvoke.mockImplementation(createBrowserToolHandler(session));
@@ -311,7 +311,7 @@ describe('ChatBrowserSessionControl', () => {
       localRuntimeReady: true,
       currentTargetId: '',
       tabs: [
-        { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
+        { targetId: '0', title: 'Docs', url: 'https://docs.example.com' },
       ],
     };
     let resolveConnect;
@@ -328,7 +328,7 @@ describe('ChatBrowserSessionControl', () => {
           data: {
             connected: session.connected,
             title: session.connected ? 'Docs' : '',
-            url: session.connected ? 'https://docs.windieos.com' : '',
+            url: session.connected ? 'https://docs.example.com' : '',
             tab_count: session.connected ? 1 : 0,
           },
         };
@@ -338,7 +338,7 @@ describe('ChatBrowserSessionControl', () => {
           success: true,
           data: {
             tabs: session.connected
-              ? [{ tab_index: 0, title: 'Docs', url: 'https://docs.windieos.com' }]
+              ? [{ tab_index: 0, title: 'Docs', url: 'https://docs.example.com' }]
               : [],
           },
         };
@@ -352,7 +352,7 @@ describe('ChatBrowserSessionControl', () => {
               data: {
                 status: 'connected',
                 title: 'Docs',
-                url: 'https://docs.windieos.com',
+                url: 'https://docs.example.com',
               },
             });
           };

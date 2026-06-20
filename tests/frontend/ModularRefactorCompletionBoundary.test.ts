@@ -408,6 +408,20 @@ describe('modular sdk refactor completion boundary', () => {
     expect(conversationMetadataText).toContain("workspace_name: 'Project Alpha'");
   });
 
+  test('renderer browser session tests keep tab URL fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/BrowserSessionStore.test.js'),
+      read('tests/frontend/ChatBrowserSessionControl.test.jsx'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('docs.windieos.com');
+    expect(source).not.toContain('github.com/windieos');
+    expect(source).not.toContain('windieos.com/pricing');
+    expect(source).toContain('https://docs.example.com');
+    expect(source).toContain('https://github.com/example/project');
+    expect(source).toContain('https://example.com/pricing');
+  });
+
   test('local-runtime chat event store tests keep workspace fixtures product-neutral', async () => {
     const source = await read('tests/sidecar/test_chat_event_store.py');
 

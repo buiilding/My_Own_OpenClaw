@@ -184,7 +184,7 @@ describe('browserSessionStore', () => {
           data: {
             connected: true,
             title: 'Docs',
-            url: 'https://docs.windieos.com',
+            url: 'https://docs.example.com',
             tab_count: 1,
           },
         };
@@ -197,7 +197,7 @@ describe('browserSessionStore', () => {
               {
                 tab_index: 0,
                 title: 'Docs',
-                url: 'https://docs.windieos.com',
+                url: 'https://docs.example.com',
               },
             ],
           },
