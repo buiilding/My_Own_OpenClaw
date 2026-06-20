@@ -259,6 +259,10 @@ Owns Electron-main Agent SDK command execution helpers:
 
 Owns Agent SDK backend event relay bookkeeping:
 
+- exposes `createAgentBackendEventRuntime(...)` so `ipc.cjs` composes active
+  query state, event replay, backend traffic, observer fan-out, message
+  processing, response-overlay, session setters, trace, renderer broadcast,
+  settings ACK, and logging dependencies once
 - marks the active query context accepted when `query-accepted` matches the
   active turn
 - appends inbound events to turn-scoped replay before processing

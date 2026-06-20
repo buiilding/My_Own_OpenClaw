@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK backend-event relay dependency wiring into
+  `createAgentBackendEventRuntime(...)`, preserving active-query accepted and
+  terminal cleanup, turn replay, backend traffic labels, observer fan-out, and
+  backend message processing. No migration required.
 - main/ipc: move Agent SDK wake-up dependency wiring into
   `createAgentWakeupRuntime(...)`, preserving install-auth hydration, workspace
   fallback, MCP enablement, local-tool lifecycle, direct wake-up adapter

@@ -52,7 +52,7 @@ const {
   handleAgentBackendCloseEvent,
 } = require('./ipc/ipc_agent_backend_close_runtime.cjs');
 const {
-  handleAgentBackendEventRuntime,
+  createAgentBackendEventRuntime,
 } = require('./ipc/ipc_agent_backend_event_runtime.cjs');
 const {
   createActiveQueryContextState,
@@ -471,6 +471,35 @@ const agentConnectionEventsRuntime = createAgentConnectionEventsRuntime({
   advanceToNextBackendEndpoint,
   getCurrentEndpoint: () => backendEndpointState.getEndpoint(),
 });
+const agentBackendEventRuntime = createAgentBackendEventRuntime({
+  getActiveQueryContext: () => activeQueryContextState.get(),
+  setActiveQueryContext: (value) => activeQueryContextState.set(value),
+  appendForActiveTurn: (event) => ipcEventReplayState.appendForActiveTurn(event),
+  clearEventReplayState: () => ipcEventReplayState.clear(),
+  noteBackendTraffic,
+  notifyBackendMessageObservers: (event) => backendMessageObserverRegistry.notify(event),
+  processBackendMessageData,
+  processBackendMessageDeps: {
+    setCurrentSessionId: (value) => {
+      backendSessionState.setSessionId(value);
+    },
+    setCurrentServerUserId: (value) => {
+      backendSessionState.setServerUserId(value);
+    },
+    setCurrentConversationRef: (value) => {
+      backendSessionState.setConversationRef(value);
+    },
+    resolveSettingsSync: (msgId, wasSuccessful) => settingsSyncRuntime.resolveAck(
+      msgId,
+      wasSuccessful,
+    ),
+    setResponseOverlayPhase,
+    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+    broadcastToRenderers,
+    traceBackendEvent: (data) => electronMainTraceLogger.traceBackendEvent(data),
+    log,
+  },
+});
 const ipcProcessResetRuntime = createIpcProcessResetRuntime({
   settingsSyncRuntime,
   backendSessionState,
@@ -861,35 +890,7 @@ function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
 }
 
 function handleAgentBackendEvent(rendererData) {
-  return handleAgentBackendEventRuntime(rendererData, {
-    getActiveQueryContext: () => activeQueryContextState.get(),
-    setActiveQueryContext: (value) => activeQueryContextState.set(value),
-    appendForActiveTurn: (event) => ipcEventReplayState.appendForActiveTurn(event),
-    clearEventReplayState: () => ipcEventReplayState.clear(),
-    noteBackendTraffic,
-    notifyBackendMessageObservers: (event) => backendMessageObserverRegistry.notify(event),
-    processBackendMessageData,
-    processBackendMessageDeps: {
-      setCurrentSessionId: (value) => {
-        backendSessionState.setSessionId(value);
-      },
-      setCurrentServerUserId: (value) => {
-        backendSessionState.setServerUserId(value);
-      },
-      setCurrentConversationRef: (value) => {
-        backendSessionState.setConversationRef(value);
-      },
-      resolveSettingsSync: (msgId, wasSuccessful) => settingsSyncRuntime.resolveAck(
-        msgId,
-        wasSuccessful,
-      ),
-      setResponseOverlayPhase,
-      getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-      broadcastToRenderers,
-      traceBackendEvent: (data) => electronMainTraceLogger.traceBackendEvent(data),
-      log,
-    },
-  });
+  return agentBackendEventRuntime.handle(rendererData);
 }
 
 function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {

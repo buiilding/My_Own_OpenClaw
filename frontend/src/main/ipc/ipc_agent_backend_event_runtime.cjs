@@ -58,7 +58,18 @@ function handleAgentBackendEventRuntime(event, deps = {}) {
   }
 }
 
+function createAgentBackendEventRuntime(deps = {}) {
+  function handle(event) {
+    return handleAgentBackendEventRuntime(event, deps);
+  }
+
+  return {
+    handle,
+  };
+}
+
 module.exports = {
+  createAgentBackendEventRuntime,
   eventMatchesActiveTurn,
   handleAgentBackendEventRuntime,
   isTerminalBackendEvent,

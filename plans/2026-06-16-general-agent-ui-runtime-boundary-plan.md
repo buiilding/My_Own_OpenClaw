@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Backend Event Runtime Boundary
+
+- Finding: `ipc_agent_backend_event_runtime.cjs` owned active-query accepted
+  mutation, turn replay, backend traffic labels, observer fan-out, backend
+  message processing, and terminal cleanup, but `handleAgentBackendEvent(...)`
+  in `ipc.cjs` still assembled active-query state, replay, observer,
+  session-setting, settings ACK, response-overlay, renderer broadcast, trace,
+  and logging dependencies for every inbound backend event.
+- Change: added `createAgentBackendEventRuntime(...)` so the backend-event
+  helper owns reusable relay dependency composition. `handleAgentBackendEvent`
+  now delegates to the composed runtime with only the inbound SDK backend event.
+- Validation: focused backend-event runtime and main SDK boundary coverage
+  verifies wrapper relay behavior, source guards that keep direct
+  `handleAgentBackendEventRuntime(...)` calls out of
+  `handleAgentBackendEvent(...)`, and unchanged low-level
+  active-query/replay/terminal behavior.
+- Compatibility: no migration required. Backend event payloads, active-query
+  accepted-state mutation, replay buffering/clearing, backend traffic labels,
+  observer fan-out, settings ACK resolution, response-overlay side effects,
+  session/conversation setters, renderer IPC, storage, credentials,
+  permissions, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Agent Wakeup Runtime Boundary
 
 - Finding: `ipc_agent_wakeup_runtime.cjs` owned `AgentClient.wakeUp(...)`

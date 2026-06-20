@@ -4,6 +4,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const {
+  createAgentBackendEventRuntime,
   eventMatchesActiveTurn,
   handleAgentBackendEventRuntime,
   isTerminalBackendEvent,
@@ -111,6 +112,26 @@ describe('ipc_agent_backend_event_runtime', () => {
     );
   });
 
+  test('runtime wrapper relays events through composed dependencies', () => {
+    const deps = createDeps();
+    const runtime = createAgentBackendEventRuntime(deps);
+    const event = {
+      type: 'query-accepted',
+      turn_ref: 'turn-1',
+    };
+
+    runtime.handle(event);
+
+    expect(deps.getActiveQueryContextValue()).toEqual({
+      queryMessageId: 'turn-1',
+      accepted: true,
+    });
+    expect(deps.processBackendMessageData).toHaveBeenCalledWith(
+      event,
+      deps.processBackendMessageDeps,
+    );
+  });
+
   test('ipc.cjs delegates backend event relay bookkeeping to the helper module', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -121,9 +142,12 @@ describe('ipc_agent_backend_event_runtime', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('handleAgentBackendEventRuntime(rendererData');
+    expect(mainSource).toContain('createAgentBackendEventRuntime({');
+    expect(mainSource).toContain('agentBackendEventRuntime.handle(rendererData)');
+    expect(mainSource).not.toContain('handleAgentBackendEventRuntime(rendererData');
     expect(mainSource).not.toContain("rendererData.type === 'query-accepted'");
     expect(mainSource).not.toContain("rendererData.type === 'streaming-complete'");
+    expect(helperSource).toContain('function createAgentBackendEventRuntime');
     expect(helperSource).toContain("event.type === 'query-accepted'");
     expect(helperSource).toContain("event.type === 'streaming-complete'");
   });

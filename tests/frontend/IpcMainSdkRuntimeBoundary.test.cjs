@@ -428,9 +428,12 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('handleAgentBackendCloseEvent({ closeReason, shouldReconnect }');
     expect(source).not.toContain('Active query interrupted by backend disconnect');
     expect(agentBackendCloseRuntimeSource).toContain('Active query interrupted by backend disconnect');
-    expect(source).toContain('handleAgentBackendEventRuntime(rendererData');
+    expect(source).toContain('createAgentBackendEventRuntime({');
+    expect(source).toContain('agentBackendEventRuntime.handle(rendererData)');
+    expect(source).not.toContain('handleAgentBackendEventRuntime(rendererData');
     expect(source).not.toContain("rendererData.type === 'query-accepted'");
     expect(source).not.toContain("rendererData.type === 'streaming-complete'");
+    expect(agentBackendEventRuntimeSource).toContain('function createAgentBackendEventRuntime');
     expect(agentBackendEventRuntimeSource).toContain("event.type === 'query-accepted'");
     expect(agentBackendEventRuntimeSource).toContain("event.type === 'streaming-complete'");
     expect(source).toContain('createActiveQueryContextState()');
