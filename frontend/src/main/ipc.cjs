@@ -218,8 +218,7 @@ const {
   registerAgentSdkInvokeHandler,
 } = require('./ipc/ipc_agent_sdk_command_handlers.cjs');
 const {
-  trackRendererWindow: trackRendererWindowRuntime,
-  broadcastToRenderers: broadcastToRenderersRuntime,
+  createRendererWindowRegistry,
 } = require('./ipc/ipc_renderer_windows.cjs');
 const {
   broadcastQuerySendFailure: broadcastQuerySendFailureRuntime,
@@ -272,7 +271,7 @@ const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 const BACKEND_CONNECT_TIMEOUT_MS = 10000;
 const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
 const ipcHostCopyRuntime = createIpcHostCopyRuntime();
-let rendererWindows = new Set();
+const rendererWindowRegistry = createRendererWindowRegistry();
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const activeQueryContextState = createActiveQueryContextState();
@@ -669,9 +668,8 @@ async function ensureInitialSettingsSync() {
 }
 
 function trackRendererWindow(win) {
-  trackRendererWindowRuntime({
+  rendererWindowRegistry.track({
     win,
-    rendererWindows,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
     getLatestCurrentTurn: () => liveTurnState.getLatestCurrentTurn(),
     getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
@@ -692,8 +690,7 @@ function clearLatestPendingTurn(input = {}) {
 }
 
 function broadcastToRenderers(channel, payload, sourceWebContents = null) {
-  broadcastToRenderersRuntime({
-    rendererWindows,
+  rendererWindowRegistry.broadcast({
     channel,
     payload,
     sourceWebContents,
@@ -764,7 +761,7 @@ function shutdownIpcForTests() {
   resetSettingsSyncState();
   resetBackendSessionState();
   resetIpcProcessStateForTests();
-  rendererWindows = new Set();
+  rendererWindowRegistry.reset();
   backendMessageObserverRegistry.reset();
   installAuthRuntime.reset();
   backendConnectionGateState.setConnected(false);
@@ -782,7 +779,7 @@ function initializeIpc(win, options = {}) {
   const getWindows = typeof options.getWindows === 'function'
     ? options.getWindows
     : () => ({ mainWindow: win, chatWindow: null });
-  rendererWindows = new Set();
+  rendererWindowRegistry.reset();
   trackRendererWindow(win);
   initializeIpcStartupState({
     loadInstallAuthStateFromDisk,

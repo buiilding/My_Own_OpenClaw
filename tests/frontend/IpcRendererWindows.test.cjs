@@ -1,8 +1,11 @@
 /** @jest-environment node */
 
 const {
+  createRendererWindowRegistry,
   trackRendererWindow,
 } = require('../../frontend/src/main/ipc/ipc_renderer_windows.cjs');
+const fs = require('fs/promises');
+const path = require('path');
 
 function createWindowMock() {
   const listeners = new Map();
@@ -96,5 +99,55 @@ describe('ipc_renderer_windows', () => {
       'windie:current-turn',
       expect.anything(),
     );
+  });
+
+  test('registry owns renderer window set for track, broadcast, and reset', () => {
+    const registry = createRendererWindowRegistry();
+    const firstWindow = createWindowMock();
+    const secondWindow = createWindowMock();
+
+    registry.track({
+      win: firstWindow,
+      getResponseOverlayPhase: () => 'idle',
+    });
+    registry.track({
+      win: secondWindow,
+      getResponseOverlayPhase: () => 'streaming',
+    });
+
+    expect(registry.size()).toBe(2);
+
+    registry.broadcast({
+      channel: 'test-channel',
+      payload: { ok: true },
+      sourceWebContents: firstWindow.webContents,
+    });
+
+    expect(firstWindow.webContents.send).not.toHaveBeenCalledWith(
+      'test-channel',
+      { ok: true },
+    );
+    expect(secondWindow.webContents.send).toHaveBeenCalledWith('test-channel', { ok: true });
+
+    registry.reset();
+    expect(registry.size()).toBe(0);
+  });
+
+  test('ipc.cjs delegates renderer window storage to the registry', async () => {
+    const mainSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+    const helperSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_renderer_windows.cjs'),
+      'utf8',
+    );
+
+    expect(mainSource).toContain('createRendererWindowRegistry()');
+    expect(mainSource).toContain('rendererWindowRegistry.track({');
+    expect(mainSource).toContain('rendererWindowRegistry.broadcast({');
+    expect(mainSource).not.toContain('let rendererWindows = new Set()');
+    expect(mainSource).not.toContain('rendererWindows = new Set()');
+    expect(helperSource).toContain('const rendererWindows = new Set();');
   });
 });

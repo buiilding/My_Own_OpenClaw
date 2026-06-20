@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Renderer Window Registry Boundary
+
+- Finding: `ipc_renderer_windows.cjs` owned renderer-window tracking and
+  broadcast operations, but `ipc.cjs` still owned the mutable renderer window
+  set directly.
+- Change: added `createRendererWindowRegistry()` so
+  `ipc_renderer_windows.cjs` owns the renderer window set plus track,
+  broadcast, reset, and size accessors. `ipc.cjs` now delegates registration,
+  broadcast, initialize reset, and test shutdown reset through the registry.
+- Validation: focused renderer-window coverage for registry track/broadcast
+  source exclusion, reset behavior, and boundary guards that keep mutable
+  renderer-window set storage out of `ipc.cjs`.
+- Compatibility: no migration required. Renderer tracking, close-pruning,
+  late-window overlay/current-turn/pending-turn/replay sync, broadcast source
+  exclusion, renderer IPC channels, backend event payloads, storage,
+  credentials, permissions, hosted URLs, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Main Host Option State Boundary
 
 - Finding: `ipc.cjs` still owned mutable initialize-time host option handles

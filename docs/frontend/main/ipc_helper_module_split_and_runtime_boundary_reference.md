@@ -515,6 +515,8 @@ Owns IPC-facing app diagnostic append error handling:
 
 Owns renderer-window lifecycle and generic fan-out:
 
+- `createRendererWindowRegistry`: owns the renderer window set plus track,
+  broadcast, reset, and size accessors for the IPC composition root
 - `trackRendererWindow`: register + prune windows, sync current overlay phase after load
 - `trackRendererWindow`: optionally replays buffered in-flight turn events to late windows (`getReplayEvents`)
 - `trackRendererWindow`: replays the latest pending renderer-composed user turn
@@ -740,7 +742,8 @@ generic `to-backend` router or direct chat query IPC handlers.
 
 ## Delegation Flow in `ipc.cjs`
 
-1. register/broadcast wiring delegates to `ipc_renderer_windows.cjs`.
+1. renderer-window registry storage, register, reset, and broadcast wiring
+   delegate to `ipc_renderer_windows.cjs`.
 2. websocket inbound messages append turn-scoped replay state before delegating event processing to `processBackendMessageData`.
 3. query pre-capture delegates chatbox-only hook guard to `runBeforeOverlayQueryCapture`.
 4. query optimistic/synthetic events delegate to `ipc_query_broadcast.cjs` with builders from `ipc_query_events.cjs` and seed replay state for late-window hydration.

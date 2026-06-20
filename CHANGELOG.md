@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move renderer-window set storage into the
+  `ipc_renderer_windows.cjs` registry, preserving renderer tracking,
+  close-pruning, late-window state sync, broadcast source exclusion, and test
+  shutdown reset behavior. No migration required.
 - main/ipc: move initialize-time host option handles into
   `ipc_host_option_state.cjs`, preserving response overlay callbacks, overlay
   pre-capture, global stop shortcut setters, local tool lifecycle, injected

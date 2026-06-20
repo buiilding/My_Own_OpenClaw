@@ -127,7 +127,41 @@ function broadcastToRenderers({
   }
 }
 
+function createRendererWindowRegistry() {
+  const rendererWindows = new Set();
+
+  function track(input = {}) {
+    return trackRendererWindow({
+      ...input,
+      rendererWindows,
+    });
+  }
+
+  function broadcast(input = {}) {
+    return broadcastToRenderers({
+      ...input,
+      rendererWindows,
+    });
+  }
+
+  function reset() {
+    rendererWindows.clear();
+  }
+
+  function size() {
+    return rendererWindows.size;
+  }
+
+  return {
+    broadcast,
+    reset,
+    size,
+    track,
+  };
+}
+
 module.exports = {
   broadcastToRenderers,
+  createRendererWindowRegistry,
   trackRendererWindow,
 };
