@@ -98,7 +98,7 @@ bridge directly.
 
 ## Contract with Backend
 
-Outbound payload types from the SDK/main runtime:
+Outbound payload types from SDK/main local-runtime dispatch:
 
 - `tool-result`
 - `tool-bundle-result`

@@ -239,7 +239,7 @@ before backend relay:
 
 `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs` verifies:
 
-- main runtime prepares the desktop surface before computer-use local execution
+- Electron main local-runtime bridge prepares the desktop surface before computer-use local execution
 
 `tests/frontend/RuntimeEndpointStore.test.ts` and `ArtifactImageUtils.test.ts` verify:
 

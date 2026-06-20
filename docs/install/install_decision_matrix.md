@@ -18,7 +18,7 @@ Choose the install path from the runtime you need to validate. Source-mode check
 | edit renderer/main/local-runtime behavior quickly | Electron dev app | `<windie> start dev` | Vite renderer, Electron main, local-runtime process, SDK runtime transport | installed app state, signing, packaged resource paths |
 | verify pure renderer UI build | frontend dev/build | `<windie> start frontend`; `<windie> build frontend` | renderer compile/runtime in browser-like dev mode | Electron main, local runtime, packaged app |
 | verify bundled local-runtime Python | local-runtime Python build | `<windie> build sidecar-runtime` | dependency install, bytecode packaging, runtime archive | installer behavior, OS install paths |
-| verify installed desktop app locally | local reinstall helper | `<windie> reinstall <platform>` | installed app launch, local state reset, bundled runtime, Python sidecar startup | release signing/notarization, production publishing |
+| verify installed desktop app locally | local reinstall helper | `<windie> reinstall <platform>` | installed app launch, local state reset, bundled runtime, local-runtime Python startup | release signing/notarization, production publishing |
 | verify release artifacts | release workflow and smoke helpers | `.github/workflows/desktop-release.yml`; `scripts/ci/smoke-*` | target-OS package creation, smoke install, release artifact behavior | manual Gatekeeper validation on downloaded macOS apps |
 | route app to a non-default backend | endpoint override | `BACKEND_HTTP_URL`, `BACKEND_WS_URL` | desktop/local-runtime traffic reaches intended backend | backend service health by itself |
 

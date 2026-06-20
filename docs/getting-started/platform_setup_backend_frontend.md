@@ -234,7 +234,7 @@ WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python xvfb-r
 - Do not install Flash Attention.
 - If Electron fails to launch, install VC++ runtimes and ensure GPU driver is current.
 - Prefer PowerShell activation commands shown above.
-- If wakeword/sidecar startup fails, verify `WINDIE_PYTHON_PATH` points to a valid `python.exe` and that `frontend/src/main/python/requirements.txt` is installed in that environment.
+- If wakeword/local-runtime startup fails, verify `WINDIE_PYTHON_PATH` points to a valid `python.exe` and that `frontend/src/main/python/requirements.txt` is installed in that environment.
 - `onnxruntime-gpu` + torch CUDA wheels must match installed NVIDIA driver capability; if OCR provider falls back to CPU, update driver and reinstall matching wheel versions.
 
 ### Ubuntu

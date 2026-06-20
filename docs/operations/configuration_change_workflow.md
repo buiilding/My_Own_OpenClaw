@@ -4,7 +4,7 @@ read_when:
   - When adding, removing, renaming, or debugging a runtime config field,
     environment variable, frontend setting, endpoint default, provider
     credential, or local-runtime implementation variable.
-  - When deciding whether a setting belongs in backend config, Electron main, renderer storage, sidecar startup env, release CI, or docs only.
+  - When deciding whether a setting belongs in backend config, Electron main, renderer storage, local-runtime startup env, release CI, or docs only.
   - When a setting works in source mode but fails in packaged app or hosted backend mode.
 title: "Configuration Change Workflow"
 ---

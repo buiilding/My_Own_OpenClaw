@@ -120,7 +120,7 @@ Tool execution can produce image context in several ways:
 - `wait` captures a fresh screen after delay.
 - mouse/keyboard/scroll actions may return post-action screenshots depending on executor behavior.
 - browser screenshots come from dedicated browser runtime.
-- SDK/main runtime may upload or preserve local image refs before returning a tool result.
+- SDK/main local-runtime dispatch may upload or preserve local image refs before returning a tool result.
 - The sidecar screenshot tool returns inline JPEG base64 in `data.screenshot`;
   the SDK local tool-output event hoists screenshot fields from `data` onto the
   event payload for display rows.

@@ -217,7 +217,7 @@ Validate:
 | Settings save spins then fails | ACK map, timeout, backend `settings-updated`/`error` id | Electron settings sync or backend handler |
 | Tool call hangs after local-runtime tool failure | Python sidecar `ToolResult`, Electron relay, backend result storage | local-runtime tool implementation or backend tool-result ingress |
 | Tool failure visible but not saved in transcript | SDK runtime/store projection and structured failure contract | SDK runtime/store or renderer projection |
-| Local-runtime sidecar startup times out | process spawn/path/readiness status | Electron local runtime bridge or packaged runtime |
+| Local-runtime startup times out | process spawn/path/readiness status | Electron local runtime bridge or packaged runtime |
 | Provider exception leaks details | provider error mapping and sanitizer path | backend provider/inference layer |
 | Error includes a token/key | producing log/response call site and redaction coverage | owner runtime plus security docs |
 

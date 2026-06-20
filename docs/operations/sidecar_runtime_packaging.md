@@ -132,7 +132,7 @@ On a clean test machine:
 
 - Linux may require non-Python packages for some operations (for example `xdotool`).
 - Linux `.deb`/`.rpm` installers declare `xdotool` package dependency; AppImage users must install `xdotool` manually.
-- Sidecar startup/status now emits runtime dependency warnings when `xdotool` is missing so degraded window probes are visible in logs/status payloads.
+- Local-runtime startup/status now emits runtime dependency warnings when `xdotool` is missing so degraded window probes are visible in logs/status payloads.
 - Bundled runtimes now ship relocatable interpreter trees on Windows, macOS, and Linux (not host-bound `venv` shells) so installed apps do not depend on build-machine Python paths.
 - POSIX runtime validation now imports stdlib extension modules (`_socket`, `_ssl`, `_sqlite3`) from inside the bundled runtime and fails packaging when host-prefix leakage is detected.
 - Packaged POSIX sidecar launches now set `PYTHONHOME` to the bundled runtime root and clear inherited `PYTHONPATH` so macOS/Linux sidecar processes resolve stdlib/site-packages from app resources instead of any host interpreter config.

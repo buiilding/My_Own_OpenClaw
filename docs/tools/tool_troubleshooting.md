@@ -17,7 +17,7 @@ Use this page for symptom-to-owner routing. After identifying the owner, switch 
 | Tool not shown to model | backend tool policy/profile/provider health | [Tool Policy Profiles](tool_policy_profiles_and_capabilities.md) |
 | Tool schema missing fields | owning schema source or provider projection | client manifest source, `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/provider_projection.py` |
 | Model calls disabled coordinate method | backend method validation | `ToolPolicy.get_method_validation_errors()` |
-| Backend logs tool call but local runtime never runs it | websocket formatter/outgoing event or SDK/main local-runtime tool router | backend formatter tests, SDK/main runtime tests |
+| Backend logs tool call but local runtime never runs it | websocket formatter/outgoing event or SDK/main local-runtime tool router | backend formatter tests, SDK/main local-runtime dispatch tests |
 | SDK/main says unknown tool | local-runtime registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | Local runtime returns `Tool not found` | local-runtime implementation registration/import failure | local-runtime executable registry logs backed by Python sidecar modules and `tests/sidecar/test_tool_registry.py` |
 | Tool succeeds but no model continuation | backend waiting storage/result receiver | `backend/src/agent/tools/waiting/**` |

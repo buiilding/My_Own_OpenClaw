@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Startup and Request Labels
+
+- Finding: install troubleshooting, operations, frontend architecture,
+  local-runtime JSON-RPC protocol, Python implementation workflow, platform,
+  and README index docs still used public `sidecar startup`, `sidecar request`,
+  or `Local-runtime sidecar startup` labels for reusable startup/request
+  routes.
+- Change: reworded those labels through local-runtime startup/request wording
+  while keeping Python sidecar references where the docs point at concrete
+  implementation modules, process names, or sidecar pytest coverage.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale startup/request phrase scan, docs listing, and diff check.
+- Compatibility: no migration required. JSON-RPC method names, params, daemon
+  endpoints, IPC channels, SDK/main dispatch, packaged runtime paths, install
+  commands, storage, credentials, permissions, provider policy, hosted URLs,
+  and local-runtime behavior are unchanged.
+
 ### 2026-06-20 JSON-RPC Validation and Workflow Labels
 
 - Finding: validation-command, local-runtime tool-change, JSON-RPC protocol,
@@ -16420,3 +16437,21 @@ Each completed slice should report:
   client manifests, local-runtime executable registry behavior, Python sidecar
   modules, backend tool policy, provider projection, credentials, storage, IPC
   channels, and hosted URLs are unchanged.
+
+### 2026-06-20 SDK/main runtime label cleanup
+
+- Finding: tool lifecycle, routing, workflow, renderer overlay/capture, startup,
+  packaging, and SDK conversation docs still used broad `SDK/main runtime`,
+  `main runtime`, sidecar-startup, and renderer backend-wire handler labels
+  after the dispatch path had been split between SDK/main local-runtime
+  dispatch, Python sidecar implementation, Electron main window/overlay
+  ownership, and SDK projections.
+- Change: routed those labels through explicit SDK/main local-runtime dispatch,
+  Python sidecar implementation, Electron main window/overlay runtime,
+  local-runtime startup, and backend-wire compatibility-handler wording, and
+  extended the modular docs guard against the retired phrases.
+- Validation: focused modular docs boundary test, exact stale phrase scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Runtime code, SDK exports, IPC
+  payloads, local-runtime execution, storage, credentials, permissions, hosted
+  backend URLs, and provider policy are unchanged.

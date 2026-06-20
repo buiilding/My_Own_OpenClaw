@@ -35,6 +35,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route install, operations, architecture, JSON-RPC protocol, and
+  local-runtime Python workflow labels through local-runtime startup/request
+  wording instead of sidecar startup/request owner labels. No migration
+  required.
+- docs/runtime: route remaining SDK/main and Electron main runtime labels in
+  tool lifecycle, backend workflow, channel, renderer overlay, capture, and SDK
+  conversation docs through explicit SDK/main local-runtime dispatch or
+  Electron main window/overlay ownership, and route startup/process labels
+  through local-runtime startup wording. No migration required.
 - docs/frontend: route validation-command, tool-change, JSON-RPC protocol,
   system-state, and main-process workflow labels through local-runtime
   JSON-RPC/tool wording instead of unqualified sidecar JSON-RPC/call labels.

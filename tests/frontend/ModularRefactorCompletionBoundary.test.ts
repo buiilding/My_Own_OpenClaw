@@ -545,6 +545,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('public SDK agent APIs');
     expect(docText).not.toContain('SDK agent name');
     expect(docText).not.toContain('SDK main runtime');
+    expect(docText).not.toContain('SDK/main runtime');
+    expect(docText).not.toContain('through backend, SDK/main runtime, sidecar');
+    expect(docText).not.toContain('main runtime prepares the desktop surface');
+    expect(docText).not.toContain('current non-dashboard main runtime');
     expect(docText).not.toContain('backend event consumers via main rebroadcast');
     expect(docText).not.toContain('Electron rebroadcast path');
     expect(docText).not.toContain('transport rebroadcast');
@@ -557,6 +561,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Renderer-to-backend messages');
     expect(docText).not.toContain('Backend-to-renderer messages');
     expect(docText).not.toContain('renderer backend-wire stream handlers');
+    expect(docText).not.toContain('renderer backend-wire handlers should not build duplicate');
     expect(docText).not.toContain('3. SIDECAR EXECUTION');
     expect(docText).not.toContain('Frontend/sidecar owner');
     expect(docText).not.toContain('Frontend-owned payloads:');
@@ -1938,6 +1943,12 @@ describe('modular sdk refactor completion boundary', () => {
         'When adding/changing sidecar JSON-RPC methods',
         'daemon-backed sidecar calls',
         'sidecar startup failure',
+        'sidecar startup env/path resolution',
+        'malformed sidecar request handling',
+        'Sidecar request parsing',
+        'packaged app cannot start sidecar',
+        'sidecar startup and JSON-RPC hot paths',
+        'Local-runtime sidecar startup times out',
         'sidecar JSON-RPC/tool',
         'Python sidecar JSON-RPC handlers',
         'sidecar JSON-RPC internals',

@@ -162,7 +162,7 @@ contracts.
 - [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs local-runtime executable tool contract
 - [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Change workflow for model-facing schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and result-contract validation
 - [**Tool Catalog Matrix**](tools/tool_catalog_matrix.md) - Model-visible tools mapped to backend schema owners, local-runtime executors, policy gates, and tests
-- [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, SDK/main runtime, sidecar, result ingress, and history
+- [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, SDK/main local-runtime dispatch, Python sidecar implementation, result ingress, and history
 - [**Tool Policy Profiles and Capabilities**](tools/tool_policy_profiles_and_capabilities.md) - Tool profiles, available/disabled tools, coordinate methods, browser capability policy, and web-search exposure
 - [**Tool Troubleshooting**](tools/tool_troubleshooting.md) - Symptom-to-owner routing for visibility, schema, dispatch, sidecar, result, artifact, and replay failures
 - [**Computer Tools**](tools/computer.md) - Mouse, keyboard, screenshot, scroll, window, OCR, and vision grounding paths
@@ -290,7 +290,7 @@ contracts.
 - [**Frontend WS Handshake + Settings Sync**](frontend/main/websocket_handshake_and_settings_sync_reference.md) - Main-process websocket handshake lifecycle, renderer fan-out context tracking, settings ACK gate internals, and query send-failure synthesis
 - [**Frontend Main Local Runtime Hub**](frontend/main/local_backend/README.md) - Electron-main local-runtime sub-hub for process lifecycle, JSON-RPC mapping, and screenshot guard boundaries
 - [**Frontend Local Runtime Bridge Overview + Window Guard Index**](frontend/main/local_runtime_bridge_handler_and_window_guard_reference.md) - Overview page linking local-runtime lifecycle/mapping deep dives and overlay guard references
-- [**Frontend Local Runtime Process Lifecycle + Request Correlation**](frontend/main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md) - Sidecar startup env/path resolution, readiness retry token guards, timeout/pending map semantics, and reset/shutdown behavior
+- [**Frontend Local Runtime Process Lifecycle + Request Correlation**](frontend/main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md) - Local-runtime Python startup env/path resolution, readiness retry token guards, timeout/pending map semantics, and reset/shutdown behavior
 - [**Frontend Local Runtime RPC Handler Registry + Mapper Runtime**](frontend/main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md) - Direct and compiled handler registration contracts, payload mapping modes, and test-backed channel/method invariants
 - [**Frontend Main Overlay Focus Hub**](frontend/main/overlays/README.md) - Query-capture blur/settle and Linux screenshot hide-restore deep dives
 - [**Frontend Overlay Query-Capture Blur + Settle**](frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md) - Shared cross-platform pre-capture blur/settle semantics for overlay sends

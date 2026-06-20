@@ -151,7 +151,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 
 ## Fixed Size Contract
 
-- chat overlay window dimensions are still owned by main runtime (`createChatWindow`), but the native frame is now preallocated instead of resizing on each multiline anchor update.
+- chat overlay window dimensions are still owned by the Electron main window runtime (`createChatWindow`), but the native frame is now preallocated instead of resizing on each multiline anchor update.
 - `ChatBox.jsx` no longer emits renderer-driven freeform resize IPC for preview/startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
 - renderer now measures `.chatbox-shell` with `ResizeObserver` and reports the resulting visual-anchor height through `DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(...)`, so multiline composer growth can enlarge the lower pill body while main re-anchors response/context overlays without resizing the native chat window itself. The window runtime client assembles the underlying `height` / optional `frameHeight` IPC payload.
 - `.chatbox-shell` reserves explicit top bump headroom, and the chat pill consumes that space for its integrated close-button bump so the mutated shell contour stays inside the native overlay window even when multiline composer growth pushes the lower pill body taller.
@@ -164,7 +164,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 - multiline resize reporting is batched to one animation-frame commit so the main process sees the settled shell height instead of intermediate `ResizeObserver` steps, and main uses that anchor only for overlay re-positioning while the native chat frame stays fixed.
 - manual drag persistence now stores the dragged bottom edge rather than the raw overlay top-left `y`, so vertical dragging still works while multiline/preview growth continues to move upward from the same visual baseline.
 - response/typing overlays in main process use the reported chat visual anchor height so their vertical position follows the visible pill baseline instead of the full transparent chat window height.
-- response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in current non-dashboard main runtime) to keep the response pill visually near the chat pill.
+- response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in the current non-dashboard Electron main overlay runtime) to keep the response pill visually near the chat pill.
 - response overlay content now stays inside one fixed response frame (`236px`) instead of stepping the overlay height while tokens stream.
 - clipboard image parsing is shared through `desktopComposerAttachmentRuntime.parseClipboardImageItems(...)` (also used by dashboard `MessageInput`) to keep screenshot/paste payload shape consistent across overlay and dashboard composer surfaces.
 - result: main still owns the native window bounds, but multiline typing and preview growth now move the whole chat/response stack upward through one anchor-height contract instead of a separate resize IPC.

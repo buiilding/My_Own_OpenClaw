@@ -355,7 +355,7 @@ Primary modules:
     AgentClient lifecycle in `ipc_agent_client_lifecycle.cjs`, and uses the returned
     `agent.conversation(...)` runtime for sends and stream projection.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle
-    disconnect, typed sends, local tool coordination, sidecar startup/reuse,
+    disconnect, typed sends, local tool coordination, local-runtime startup/reuse,
     display rows, and current-turn projection to the SDK runtime.
   - Keeps Electron-only side effects in main: install-auth persistence,
     endpoint diagnostics, settings ACK gates, overlay phase changes, renderer

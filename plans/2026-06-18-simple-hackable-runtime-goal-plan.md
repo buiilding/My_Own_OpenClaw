@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed install troubleshooting, operations, frontend
+  architecture, local-runtime JSON-RPC protocol, Python implementation
+  workflow, platform, and README index labels through local-runtime
+  startup/request wording instead of public `sidecar startup`, `sidecar
+  request`, or `Local-runtime sidecar startup` owner labels. Validation covered
+  the modular docs boundary guard, docs search, related commit search, stale
+  startup/request phrase scan, docs listing, and diff check. No migration
+  required; JSON-RPC method names, params, daemon endpoints, IPC channels,
+  SDK/main dispatch, packaged runtime paths, install commands, storage,
+  credentials, permissions, provider policy, hosted URLs, and local-runtime
+  behavior are unchanged.
+
 - 2026-06-20: routed validation-command, local-runtime tool-change, JSON-RPC
   protocol, system-state, and main-process workflow labels through
   local-runtime JSON-RPC/tool routing backed by Python sidecar modules instead
@@ -3722,6 +3734,15 @@ For each completed slice, record:
   listing, source scan, and diff checks. No migration required; no code path,
   payload, storage, IPC, settings, tool schema, credential, permission, or
   provider-policy behavior changed.
+- 2026-06-20: completed an SDK/main runtime label cleanup by routing tool
+  lifecycle, channel, backend tool-turn, renderer overlay/capture, startup,
+  packaging, and SDK conversation docs through explicit SDK/main local-runtime
+  dispatch, Python sidecar implementation, Electron main window/overlay
+  ownership, local-runtime startup, and backend-wire compatibility handlers.
+  Validation: focused modular docs boundary test, exact stale phrase scan, docs
+  listing, and diff checks. No migration required; no runtime code, SDK export,
+  IPC payload, local-runtime execution, storage, credential, permission, hosted
+  URL, or provider-policy behavior changed.
 - 2026-06-18: completed the browser workflow hub-routing follow-up by aligning
   Browser Change Workflow links in the docs hub, browser hub, and getting-started
   hub with local-runtime execution and Python sidecar adapter wording. The

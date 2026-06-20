@@ -1,14 +1,14 @@
 ---
 summary: "Install troubleshooting guide for WindieOS source setup, package builds, bundled local-runtime Python, endpoint routing, permissions, signing, and platform-specific install failures."
 read_when:
-  - When source setup, npm install/build, Electron launch, sidecar startup, packaged reinstall, endpoint routing, or platform package install fails.
+  - When source setup, npm install/build, Electron launch, local-runtime startup, packaged reinstall, endpoint routing, or platform package install fails.
   - When deciding whether an install failure belongs to backend dependencies, frontend Node tooling, Electron main, bundled local-runtime Python packaging, OS permissions, or release signing.
 title: "Install Troubleshooting"
 ---
 
 # Install Troubleshooting
 
-First classify the failure by runtime boundary. Many install failures look like app bugs, but the first broken layer is often dependency setup, endpoint selection, bundled sidecar path resolution, or platform package state.
+First classify the failure by runtime boundary. Many install failures look like app bugs, but the first broken layer is often dependency setup, endpoint selection, bundled local-runtime Python path resolution, or platform package state.
 
 ## Symptom Map
 
@@ -18,7 +18,7 @@ First classify the failure by runtime boundary. Many install failures look like 
 | frontend command cannot find packages | Node install | `cd frontend && npm install`; inspect `frontend/package.json` scripts |
 | Electron dev launches but cannot connect | endpoint selection or backend health | `BACKEND_HTTP_URL`, `BACKEND_WS_URL`, backend health route |
 | renderer loads but local tools fail | Electron main local-runtime bridge | local-runtime readiness logs, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` |
-| packaged app cannot start sidecar | bundled runtime path or missing runtime deps | inspect `resources/python-runtime`, `frontend/src/main/app/runtime_paths.cjs`, packaged run log |
+| packaged app cannot start local runtime | bundled runtime path or missing runtime deps | inspect `resources/python-runtime`, `frontend/src/main/app/runtime_paths.cjs`, packaged run log |
 | local macOS reinstall waits on signing | wrong workflow for local loop | use reinstall helper; confirm release signing env is not driving local packaging |
 | Windows packaging fails extracting helpers | symlink/developer-mode issue | enable Developer Mode or run elevated shell; use Windows reinstall helper preflight |
 | Linux package installs but browser tools fail | missing OS dependency or AppImage gap | install `xdotool` for AppImage users; prefer DEB/RPM dependency metadata |

@@ -101,7 +101,7 @@ Activation:
 Dependencies:
 
 - `xdotool` binary is preferred for window listing/switching
-- sidecar startup now surfaces explicit runtime warning when `xdotool` is missing
+- local-runtime startup now surfaces explicit runtime warning when `xdotool` is missing
 - probe-layer fallbacks in `core/system_state.py` can still use Xlib for active-window/mouse-position when available
 
 Enumeration:

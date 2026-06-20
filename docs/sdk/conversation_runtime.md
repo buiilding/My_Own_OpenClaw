@@ -155,8 +155,8 @@ Electron main emits SDK-normalized conversation side-effect events separately
 as `conversation-event`; chat transcript/session handlers consume that channel
 instead of subscribing to raw `from-backend` stream semantics.
 When a same-turn `currentTurn` projection is present, renderer backend-wire
-handlers should not build duplicate live assistant/tool rows or own chat stream
-normalization. Backend-wire events may remain as compatibility traffic for
+compatibility handlers should not build duplicate live assistant/tool rows or
+own chat stream normalization. Backend-wire events may remain as compatibility traffic for
 non-chat consumers, diagnostics, or legacy hosts that do not emit the SDK
 projection.
 Renderer live-turn presentation adapters should render explicit SDK

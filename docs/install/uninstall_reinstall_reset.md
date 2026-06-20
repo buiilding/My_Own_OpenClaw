@@ -79,7 +79,7 @@ The helper targets Debian/Ubuntu systems with `apt`, packages Linux targets, ins
 2. Confirm backend endpoint snapshot matches the intended host.
 3. Send one prompt.
 4. Run one local runtime-backed tool.
-5. Check packaged logs for sidecar startup/import failures.
+5. Check packaged logs for local-runtime startup/import failures.
 6. If packaging changed, inspect package contents for `resources/python-runtime`.
 
 ## Related Docs

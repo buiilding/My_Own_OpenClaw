@@ -24,7 +24,7 @@ macOS behavior is shaped by TCC permissions, Screen Recording registration, micr
 - Local reinstall loops should skip Apple notarization.
 - Permission UI should probe real OS capability instead of treating settings navigation as success.
 - Accessibility and System Events automation failures are permission failures until proven otherwise.
-- Packaged runtime checks must include sidecar startup, microphone/screen prompt behavior, and installed-app path behavior.
+- Packaged runtime checks must include local-runtime startup, microphone/screen prompt behavior, and installed-app path behavior.
 
 ## Related Docs
 

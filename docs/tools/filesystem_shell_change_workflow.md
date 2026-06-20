@@ -56,7 +56,7 @@ flowchart LR
 | `read_file` pagination, binary guard, PDF handling, or line truncation is wrong | Local-runtime filesystem reader | `frontend/src/main/python/tools/filesystem/read_file_tool.py` | [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) |
 | `replace` fails to match or edits too broadly | Local-runtime replace engine | `frontend/src/main/python/tools/filesystem/replace_engine.py`, `replace_matchers.py`, `replace_patch_chunks.py` | `tests/sidecar/test_replace_engine.py`, `tests/sidecar/test_replace_tool.py` |
 | `replace` writes partial content after an error | Local-runtime replace I/O wrapper | `frontend/src/main/python/tools/filesystem/replace_tool.py` | atomic write tests and temp-file cleanup tests |
-| Tool result reaches UI but not backend continuation | SDK result envelope or backend result ingress | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `backend/src/api/handlers/tool_result.py` | SDK/main runtime and backend tool-result ingress docs/tests |
+| Tool result reaches UI but not backend continuation | SDK result envelope or backend result ingress | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `backend/src/api/handlers/tool_result.py` | SDK/main local-runtime dispatch and backend tool-result ingress docs/tests |
 | Backend receives a result but model history looks wrong | Backend result processing | `backend/src/agent/tools`, `backend/src/agent/tools/processing` | backend tool processing docs/tests |
 
 ## Change Sequence

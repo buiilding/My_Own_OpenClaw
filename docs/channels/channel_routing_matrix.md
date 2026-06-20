@@ -44,7 +44,7 @@ Desktop client-owned payloads:
 - renderer-local config and settings subset
 - overlay/window control payloads
 - renderer chat state and transcript queue payloads
-- local-runtime JSON-RPC request envelopes created by SDK/main runtime code
+- local-runtime JSON-RPC request envelopes created by SDK/main local-runtime dispatch
 
 Local-runtime implementation payloads:
 
