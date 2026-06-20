@@ -2,7 +2,7 @@
 summary: "Frontend Electron-main docs sub-hub for process orchestration, overlay windows, IPC handlers, and runtime path resolution."
 read_when:
   - When changing Electron main-process behavior, ipc handlers, or runtime endpoint/path resolution.
-  - When debugging overlay-window lifecycle and packaged sidecar launch behavior.
+  - When debugging overlay-window lifecycle and packaged local-runtime startup behavior.
 title: "Frontend Main Docs Hub"
 ---
 

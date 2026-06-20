@@ -53,7 +53,7 @@ SDK daemon startup sequence:
   context and `/status` succeeded.
 - Electron emits `local-runtime-status { ready: true }` only after the SDK
   runtime provider has returned a usable runtime for bridge-owned helper calls.
-- If Electron cannot construct a valid SDK sidecar launch plan, it emits
+- If Electron cannot construct a valid SDK local-runtime launch plan, it emits
   `local-runtime-status { ready:false, error }` and helper RPC calls fail closed.
 
 ## Request Correlation and Timeout Model
@@ -115,7 +115,7 @@ those capabilities use SDK-shaped commands and SDK local-runtime store calls.
 
 ## Debug Checklist
 
-If sidecar shows ready=false indefinitely:
+If local runtime shows ready=false indefinitely:
 
 1. verify `local_runtime_launch_options.cjs` can build a valid daemon launch plan
 2. inspect SDK auto-local-runtime discovery context and daemon `/status` failures

@@ -154,7 +154,7 @@ contracts.
 - [**Logging**](debug/logging.md) - Backend, Electron, renderer, sidecar, and packaged app log controls
 - [**Observability Change Workflow**](debug/observability_change_workflow.md) - Add or change logs, traces, metrics, and evidence without noisy defaults or secret leakage
 - [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
-- [**Runtime Traces**](debug/runtime_traces.md) - Stream, chat pill, screenshot, sidecar, and websocket trace routes
+- [**Runtime Traces**](debug/runtime_traces.md) - Stream, chat pill, screenshot, local-runtime, and websocket trace routes
 - [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and local-runtime URL drift checks
 - [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
 - [**Symptom Playbooks**](debug/symptom_playbooks.md) - Failure-to-owner maps for backend, tools, screenshots, overlays, permissions, voice, and browser

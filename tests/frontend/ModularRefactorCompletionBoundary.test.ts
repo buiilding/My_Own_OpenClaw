@@ -1148,6 +1148,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Python sidecar stdout is protocol traffic');
     expect(docText).toContain('Local-Runtime Python Sidecar Logging Changes');
     expect(docText).toContain('local-runtime screenshot capture');
+    expect(docText).toContain('<windie> diagnostics paths');
+    expect(docText).not.toContain('~/Library/Application Support/windieos/diagnostics/diagnostics.db');
     expect(docText).not.toContain('or sidecar registry');
     expect(docText).not.toContain('sidecar wakeword service');
     expect(docText).not.toContain('sidecar Browser Use CLI adapter');
@@ -1957,6 +1959,25 @@ describe('modular sdk refactor completion boundary', () => {
         'main/sidecar transcript RPC mapping',
         'SDK/main -> sidecar',
         'sidecar launch path',
+        'packaged sidecar uses `resources/python-runtime`',
+        'sidecar plaintext Python sources are removed before packaging',
+        'cannot launch the sidecar',
+        'sidecar launch code',
+        'Packaged POSIX sidecar launches',
+        'sidecar processes resolve',
+        'Electron sidecar launch environment',
+        'Main process or sidecar launch environment points the sidecar',
+        'standalone sidecar launches default',
+        'packaged-sidecar python path lookup',
+        'packaged sidecar launch behavior',
+        'SDK sidecar launch plan',
+        'SDK sidecar launch planning',
+        'SDK sidecar launch helpers',
+        'SDK sidecar launch options',
+        'focused wakeword, sidecar launch',
+        'If sidecar shows ready=false indefinitely',
+        'Python sidecar launch/result boundaries',
+        'changing sidecar Browser Use engine routing',
         'Main/sidecar screenshot behavior',
         'main/sidecar behavior',
         'reaches the Python sidecar',

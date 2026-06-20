@@ -1,5 +1,5 @@
 ---
-summary: "Electron main runtime path and endpoint resolution: backend ws/http URL derivation, removed packaged endpoint alias behavior, packaged-sidecar python path lookup, and desktop UI config persistence location."
+summary: "Electron main runtime path and endpoint resolution: backend ws/http URL derivation, removed packaged endpoint alias behavior, packaged local-runtime Python path lookup, and desktop UI config persistence location."
 read_when:
   - When changing backend endpoint env vars, removed packaged endpoint aliases, or ws/http URL derivation.
   - When debugging packaged-build Python script/runtime resolution or desktop UI config disk location.

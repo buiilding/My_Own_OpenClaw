@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route packaged startup/path, auth-state, browser adapter,
+  platform validation, and release-packaging wording through local-runtime
+  launch/startup labels instead of sidecar launch labels. No migration
+  required.
+- docs/debug: route persistent app diagnostics storage discovery through
+  `<windie> diagnostics paths` instead of a platform-specific SQLite path, and
+  label runtime trace routes through local-runtime wording. No migration
+  required.
 - docs/renderer: align the renderer app-runtime inventory with the live
   `desktopStreamPhaseRuntime.js` state/rule facade and guard against the stale
   TypeScript filename. No migration required.

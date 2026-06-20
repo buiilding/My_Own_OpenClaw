@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: renderer app-runtime inventory now names the live
-  `desktopStreamPhaseRuntime.js` state/rule facade and the renderer boundary
-  guard rejects the stale `desktopStreamPhaseRuntime.ts` filename so cleanup
-  decisions match the current source tree.
+- Latest completed slice: packaged launch/path docs now use local-runtime
+  startup labels, persistent app diagnostics storage discovery points to
+  `<windie> diagnostics paths` instead of a platform-specific SQLite path, and
+  the Runtime Traces index label uses local-runtime trace wording.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -5007,12 +5007,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ### 2026-06-16 Main Bundled Runtime Guidance Skin Slice
 
 - Compaction recovery: recent commits and the current worktree were inspected before continuing. Existing backend/sdk deletions and docs updates were present and treated as unrelated work.
-- Finding: wakeword and SDK sidecar launch helpers still embedded WindieOS reinstall guidance for missing packaged Python/runtime assets.
+- Finding: wakeword and SDK local-runtime launch helpers still embedded WindieOS reinstall guidance for missing packaged Python/runtime assets.
 - Decision: keep launch helpers generic and inject WindieOS packaged-runtime copy from `mainHostSkin` through main composition paths.
 - Change: bundled Python and wakeword executable reinstall guidance now lives in `mainHostSkin.bundledRuntime`.
-- Change: wakeword startup/process-error helpers and SDK sidecar launch options use generic app fallbacks unless host copy is provided.
-- Change: main window wakeword wiring and SDK sidecar launch planning pass the WindieOS bundled-runtime copy on app paths.
-- Validation: focused wakeword, sidecar launch, main-window runtime, and host-skin boundary tests pass.
+- Change: wakeword startup/process-error helpers and SDK local-runtime launch options use generic app fallbacks unless host copy is provided.
+- Change: main window wakeword wiring and SDK local-runtime launch planning pass the WindieOS bundled-runtime copy on app paths.
+- Validation: focused wakeword, local-runtime launch, main-window runtime, and host-skin boundary tests pass.
 
 ### 2026-06-16 Main Local Browser/OAuth Skin Slice
 
@@ -6202,3 +6202,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   client manifests, local-runtime execution, Python sidecar modules, IPC
   payloads, storage, credentials, permissions, hosted backend URLs, and provider
   policy are unchanged.
+- Packaged startup/path, auth-state, browser adapter, platform validation, and
+  release-packaging docs now describe local-runtime launch/startup boundaries
+  instead of sidecar launch labels while keeping Python sidecar implementation
+  paths visible where they are concrete debugging evidence. Runtime code,
+  packaged path resolution, auth-state env propagation, Browser Use adapter
+  behavior, local-runtime startup, storage, credentials, permissions, hosted
+  backend URLs, IPC payloads, and provider policy are unchanged.

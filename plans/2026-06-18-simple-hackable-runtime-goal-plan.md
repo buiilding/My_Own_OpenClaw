@@ -275,6 +275,25 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a packaged/local-runtime launch wording slice by
+  routing packaging, install troubleshooting, runtime-path, browser adapter,
+  platform validation, and auth-state docs through local-runtime startup or
+  launch labels instead of public sidecar launch labels. Validation covered the
+  focused modular docs boundary test, docs listing, exact stale launch-label
+  scan, and diff check. No migration required; packaged runtime paths,
+  launch options, auth-state file format, Python sidecar implementation,
+  IPC payloads, storage contents, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.
+
+- 2026-06-20: completed a diagnostics command-surface slice by routing
+  persistent app diagnostics storage discovery through `<windie> diagnostics
+  paths` instead of a macOS-only SQLite path and aligning the Runtime Traces
+  index wording with local-runtime trace routes. Validation covered the focused
+  modular docs boundary test, docs listing, live diagnostics path command,
+  stale hardcoded path scan, and diff check. No migration required; diagnostic
+  database schema, trace rows, IPC payloads, storage contents, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.
+
 - 2026-06-20: aligned the renderer app-runtime inventory with the live
   `desktopStreamPhaseRuntime.js` state/rule facade and added a renderer
   boundary guard against the stale `desktopStreamPhaseRuntime.ts` filename.

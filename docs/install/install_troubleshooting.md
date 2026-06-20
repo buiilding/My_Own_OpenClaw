@@ -67,10 +67,10 @@ Docs:
 
 Check packaged-only contracts:
 
-- packaged sidecar uses `resources/python-runtime`
+- packaged local runtime uses `resources/python-runtime`
 - packaged app does not depend on conda or system Python
 - `PYTHONHOME` and `PYTHONPATH` are controlled for POSIX bundled runtimes
-- sidecar plaintext Python sources are removed before packaging
+- local-runtime Python plaintext sources are removed before packaging
 - wakeword model must be prefetched unless `WINDIE_REQUIRE_WAKEWORD_PREFETCH=0`
 - browser automation uses system Chrome/Chromium first and does not prebundle Playwright Chromium
 - macOS packaged runtime Mach-O files must be signed in the release path

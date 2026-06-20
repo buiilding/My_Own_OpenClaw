@@ -195,10 +195,11 @@ event timeline, which has the same lifetime as the run-control service.
 
 Use app diagnostics when the path is not naturally tied to a conversation turn
 or can fail before a conversation exists. These rows are separate from hidden
-conversation `trace_event` rows and live in:
+conversation `trace_event` rows. Resolve the platform-specific diagnostics
+database and registered path surface with:
 
-```text
-~/Library/Application Support/windieos/diagnostics/diagnostics.db
+```bash
+<windie> diagnostics paths
 ```
 
 App diagnostic paths:

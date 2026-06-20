@@ -132,7 +132,8 @@ When a model is unavailable, check config resolution before editing provider cod
 ### Sidecar remote-client header propagation
 
 1. Electron main writes the install-auth state file.
-2. Main process or sidecar launch environment points the sidecar at the state file.
+2. Electron main injects the auth-state path into the local-runtime launch
+   environment for Python sidecar remote clients.
 3. `windie._auth.get_install_bearer_token()` loads and trims `installToken`.
 4. `RemoteApiClientBase._build_auth_headers()` emits `Authorization: Bearer <token>` when present.
 5. Remote client requests fail at the hosted auth boundary if the token is missing or invalid.
@@ -297,7 +298,7 @@ Edit:
 - `frontend/src/main/python/windie/_auth.py` for state-file env and token extraction.
 - `frontend/src/main/python/windie/_remote_api_client_base.py` for shared bearer-header construction.
 - concrete `remote_*_client.py` files only for request-specific behavior.
-- Electron sidecar launch environment if the auth-state path changes.
+- Electron local-runtime launch environment if the auth-state path changes.
 
 Validate:
 

@@ -2,7 +2,7 @@
 summary: "Workflow for changing WindieOS release, packaging, bundled local-runtime Python, smoke-check, and local reinstall behavior without confusing source-mode success with installed-app success."
 read_when:
   - When changing Electron Builder package targets, release workflow steps, signing/notarization behavior, bundled Python runtime generation, packaged backend defaults, local reinstall helpers, or packaged smoke checks.
-  - When a packaged app behaves differently from `<windie> start desktop`, cannot launch the sidecar, connects to the wrong backend, misses wakeword/browser runtime assets, or fails only after installation.
+  - When a packaged app behaves differently from `<windie> start desktop`, cannot start the local runtime, connects to the wrong backend, misses wakeword/browser runtime assets, or fails only after installation.
 title: "Release and Packaging Change Workflow"
 ---
 
@@ -43,7 +43,7 @@ The release path has two different jobs:
 
 1. **Classify the change.** Decide whether it is source-only, packaged-runtime, reinstall/reset, smoke-check, or release-publication work. Use [Install Decision Matrix](../install/install_decision_matrix.md) when the path is unclear.
 2. **Read the owner docs.** For packaging work, read this page, [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md), and [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md).
-3. **Inspect the source roots.** Start with the roots in the owner map before broad searches. For runtime failures, inspect path resolution and sidecar launch code before package metadata.
+3. **Inspect the source roots.** Start with the roots in the owner map before broad searches. For runtime failures, inspect path resolution and local-runtime launch code before package metadata.
 4. **Edit the producer first.** Fix package scripts, runtime assembly, endpoint resolution, or reinstall cleanup at the owner layer before adding consumer-side tolerance.
 5. **Update platform-specific paths explicitly.** If behavior differs by OS, update the matching OS helper, smoke script, platform doc, and validation notes.
 6. **Run source validation when source code changed.** Use focused frontend/sidecar tests for runtime path, endpoint, wakeword, browser, and local-runtime bridge changes.

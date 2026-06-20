@@ -63,7 +63,7 @@ For OS-specific failures, collect enough evidence to separate policy bugs from e
 - package type or source/dev mode.
 - whether the hosted backend endpoint is reachable.
 - relevant permission status from onboarding/settings.
-- Electron main log lines for permission, overlay, capture, or sidecar launch.
+- Electron main log lines for permission, overlay, capture, or local-runtime startup.
 - renderer console lines for surface orchestrator, overlay phase, or permission UI.
 - sidecar log lines for computer tool or window manager execution.
 - exact command or user flow that triggered the failure.

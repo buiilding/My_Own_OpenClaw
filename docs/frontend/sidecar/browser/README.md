@@ -1,7 +1,7 @@
 ---
-summary: "Local-runtime browser docs sub-hub for the Browser Use CLI adapter, canonical browser contract validation, and Python sidecar launch/result boundaries."
+summary: "Local-runtime browser docs sub-hub for the Browser Use CLI adapter, canonical browser contract validation, and local-runtime browser launch/result boundaries."
 read_when:
-  - When changing sidecar Browser Use engine routing, browser action validation, or Browser Use daemon invocation.
+  - When changing local-runtime Browser Use engine routing, browser action validation, or Browser Use daemon invocation.
   - When debugging browser action failures across adapter routing, action parameter normalization, or Browser Use CLI execution.
 title: "Local-Runtime Browser Docs Hub"
 ---

@@ -41,7 +41,7 @@ WindieOS config is split by runtime owner. Add a field where the owner can enfor
   make the Python sidecar implementation guess the app's endpoint policy.
 - Electron main passes the host-skinned user-data root to the local-runtime
   implementation;
-  standalone sidecar launches default to neutral `desktop-runtime` paths unless
+  standalone local-runtime launches default to neutral `desktop-runtime` paths unless
   `AGENT_USER_DATA_DIR` or `WINDIE_USER_DATA_DIR` is set.
 - VM worker variables configure the Electron main worker mode and `/api/runs/*` control plane; normal desktop chat still uses `/ws`.
 - Release signing variables are release-only. Local reinstall flows intentionally bypass Apple notarization.

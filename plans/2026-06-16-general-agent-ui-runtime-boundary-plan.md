@@ -120,6 +120,37 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Packaged Local-Runtime Launch Labels
+
+- Finding: packaging, install, runtime-path, browser adapter, platform
+  validation, and auth-state docs still used public sidecar launch labels for
+  reusable packaged local-runtime startup behavior.
+- Change: routed those labels through packaged local-runtime startup/launch,
+  local-runtime Python path lookup, and Electron local-runtime launch
+  environment wording while preserving Python sidecar implementation references
+  where concrete process code remains the subject.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  launch-label scan, and diff check.
+- Compatibility: no migration required. Packaged runtime paths, launch options,
+  auth-state file format, Python sidecar implementation, IPC payloads, storage
+  contents, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.
+
+### 2026-06-20 Diagnostics Path Command Surface
+
+- Finding: `docs/debug/runtime_traces.md` still showed a macOS-only
+  diagnostics SQLite path even though the current `<windie>` command surface
+  exposes portable diagnostics storage discovery with
+  `<windie> diagnostics paths`.
+- Change: routed persistent app diagnostics storage discovery through the CLI
+  command, aligned the Runtime Traces docs-index label with local-runtime trace
+  routes, and added a modular docs guard against the stale hardcoded path.
+- Validation: focused modular docs boundary test, docs listing, live
+  diagnostics path command, stale hardcoded path scan, and diff check.
+- Compatibility: no migration required. Diagnostic database schema, trace rows,
+  IPC payloads, storage contents, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-20 Renderer App-Runtime Inventory Filename
 
 - Finding: the renderer transport command reference listed
