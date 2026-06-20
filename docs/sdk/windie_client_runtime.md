@@ -64,10 +64,9 @@ Ownership rules:
   `AgentStopInput`, `AgentSessionRuntime`, `AgentSession`,
   `createAgentSession`, and `createAgentRuntimeTransport` contracts alongside
   `WebSocketLike` and `WebSocketConstructor`. `AgentSession.ts` is the
-  canonical websocket session module.
-  `createAgentBackendTransport` remains as a compatibility alias for older SDK
-  callers, but the SDK runtime and new host adapters use
-  `createAgentRuntimeTransport`.
+  canonical websocket session module. The older
+  `createAgentBackendTransport` compatibility alias has been removed so host
+  adapters use the runtime-named factory directly.
   `BackendSocketFactory.ts` exposes
   `createAgentBackendSocket` and `AgentBackendSocketOptions`.
   `ManagedAgentSession.ts` is the canonical managed

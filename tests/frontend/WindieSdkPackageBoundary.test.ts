@@ -21,7 +21,6 @@ import {
   buildDisplayConversation,
   isDefaultAgentDefinition,
   createAgentBackendSocket,
-  createAgentBackendTransport,
   createAgentRuntimeTransport,
   createAgentLocalRuntimeProvider,
   createAgentSession,
@@ -75,8 +74,6 @@ describe('@windie/sdk package boundary', () => {
     expect(agentBuiltins.desktop()).toEqual({ builtins: 'default' });
     expect(createAgentSession).toBeDefined();
     expect(createAgentRuntimeTransport).toBeDefined();
-    expect(createAgentBackendTransport).toBeDefined();
-    expect(createAgentBackendTransport).toBe(createAgentRuntimeTransport);
     expect(ManagedAgentSession).toBeDefined();
     expect(createManagedAgentSession).toBeDefined();
     expect(AgentSession).toBeDefined();

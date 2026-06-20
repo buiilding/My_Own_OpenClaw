@@ -15814,3 +15814,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime code, schemas, IPC channels,
   tool payloads/results, storage, credentials, permissions, hosted backend
   URLs, and provider policy are unchanged.
+
+### 2026-06-20 SDK runtime transport alias removal
+
+- Finding: `createAgentRuntimeTransport` is now the canonical SDK conversation
+  transport factory, but the TypeScript SDK package still exported
+  `createAgentBackendTransport` as a temporary compatibility alias and the SDK
+  docs still told advanced host adapters that the alias remained available.
+- Change: removed the backend-named factory alias from TS source and checked-in
+  CJS output, kept `createAgentRuntimeTransport` as the sole public factory,
+  updated SDK docs, and changed package-boundary tests to assert the retired
+  export stays absent.
+- Validation: focused SDK package-boundary/private-export Jest coverage, docs
+  listing, stale alias scan, Node syntax checks, and diff checks.
+- Compatibility: no storage, IPC, websocket payload, credential, permission,
+  provider-policy, local-runtime, or renderer migration required. Public SDK
+  callers that imported `createAgentBackendTransport` must rename that import to
+  `createAgentRuntimeTransport`.

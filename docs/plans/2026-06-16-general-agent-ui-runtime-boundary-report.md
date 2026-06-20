@@ -5733,3 +5733,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Backend token-count/tool-schemas formatter docs now identify SDK/renderer
   typed message guards as the consumers for contract-sensitive payloads instead
   of frontend schema guards.
+- SDK runtime transport exports now expose only `createAgentRuntimeTransport`;
+  the temporary `createAgentBackendTransport` compatibility alias has been
+  removed from TypeScript source, checked-in CJS output, docs, and package
+  boundary expectations. Public SDK callers that used the alias should rename
+  the import; no storage, IPC, websocket payload, credential, permission,
+  provider-policy, local-runtime, or renderer migration is required.

@@ -336,7 +336,6 @@ function createAgentRuntimeTransport(session, conversationRef, agentDefinition) 
         close: async () => session.close(1000, 'conversation-runtime-close'),
     };
 }
-exports.createAgentBackendTransport = createAgentRuntimeTransport;
 function cloneJsonRecord(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
         return {};

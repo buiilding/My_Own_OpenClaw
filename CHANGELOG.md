@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: remove the `createAgentBackendTransport` compatibility export so
+  public TypeScript SDK callers use the canonical
+  `createAgentRuntimeTransport` conversation transport factory. Migration:
+  rename imports to `createAgentRuntimeTransport`.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from
@@ -807,9 +811,9 @@ All notable changes to WindieOS will be documented in this file.
   normalization behind the desktop extension runtime client instead of the
   agent settings tab. No migration required.
 - sdk/runtime: add `createAgentRuntimeTransport` as the primary conversation
-  transport factory and route SDK internals/tests through it while preserving
-  `createAgentBackendTransport` as a compatibility alias. No migration
-  required.
+  transport factory and route SDK internals/tests through it. The temporary
+  `createAgentBackendTransport` compatibility alias was later removed before
+  release.
 - renderer/runtime: move MCP registry list, refresh, and enablement payload
   normalization behind the desktop MCP runtime client instead of the dashboard
   section. No migration required.

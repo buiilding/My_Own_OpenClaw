@@ -34,7 +34,6 @@ export * from './tools/builtins.js';
 export * from './settings/modelSelection.js';
 export {
   AgentSession,
-  createAgentBackendTransport,
   createAgentRuntimeTransport,
   createAgentSession,
 } from './transport/AgentSession.js';

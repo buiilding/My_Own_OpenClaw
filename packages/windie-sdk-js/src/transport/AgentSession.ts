@@ -479,8 +479,6 @@ export function createAgentRuntimeTransport(
   };
 }
 
-export const createAgentBackendTransport = createAgentRuntimeTransport;
-
 function cloneJsonRecord(value: unknown): JsonRecord {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return {};

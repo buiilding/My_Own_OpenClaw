@@ -70,6 +70,7 @@ describe('@windie/sdk private helper exports', () => {
 
     expect(normalizerModule.normalizeBackendEventToConversationEvent).toBeDefined();
     expect(rootModule.normalizeBackendEventToConversationEvent).toBeUndefined();
+    expect(rootModule.createAgentBackendTransport).toBeUndefined();
   });
 
   test('sidecar store compatibility module is removed', () => {

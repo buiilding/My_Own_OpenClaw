@@ -83,8 +83,8 @@ generic agent-session contracts such as `AgentSessionRuntime`,
 `ManagedAgentSession` are the canonical hosted-session modules. New app-builder code should
 prefer the generic names because the hosted websocket transport is an Agent SDK
 runtime concern rather than WindieOS renderer skin state.
-`createAgentBackendTransport` remains a compatibility alias for existing SDK
-callers, but new host adapters should use the runtime-named factory.
+The older `createAgentBackendTransport` compatibility alias has been removed so
+host adapters use the runtime-named factory directly.
 Hosts that inject a transport into `createConversationRuntime(...)` should type
 that adapter as `AgentRuntimeTransport`. The older `BackendTransport`
 compatibility type has been removed so new app-builder code sees one reusable
