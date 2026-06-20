@@ -194,6 +194,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 SDK Local Runtime Daemon Docs Boundary
+
+- Finding: the SDK runtime reference still described the reusable
+  auto-local-runtime provider as starting `sidecar_daemon.py` and named the
+  repo-specific sidecar launcher args, which made the public contract read like
+  the WindieOS desktop implementation path.
+- Change: described the provider as starting or reusing the configured daemon
+  command/script, kept discovery/registration/JSON-RPC/shutdown ownership in
+  `AgentClient`, and extended the modular SDK docs guard against the old
+  sidecar script and launcher wording.
+- Validation: passed focused SDK docs boundary test, docs listing, stale SDK
+  sidecar script/launcher scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK auto-local-runtime
+  option names, daemon launch behavior, discovery payloads, IPC channels,
+  storage, credentials, permissions, provider policy, and hosted URLs are
+  unchanged.
+
 ### 2026-06-20 Public SDK Local Runtime Example Boundary
 
 - Finding: the public TypeScript SDK README still showed `autoLocalRuntime`

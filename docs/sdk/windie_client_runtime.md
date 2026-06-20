@@ -727,7 +727,8 @@ launch context) in `ipc_electron_agent_client_factory.cjs`, passes them as
 host IPC facades such as browser control and local-runtime status.
 
 The SDK auto-local-runtime provider reads the daemon discovery file, validates launch
-context when one is provided, starts or reuses `sidecar_daemon.py`, owns
+context when one is provided, starts or reuses the configured daemon command or
+script, owns
 `AgentLocalRuntimeHttpClient`, unwraps JSON-RPC `/rpc` responses before callers
 see them, and exposes the runtime to memory, persistence, tool registration,
 and local tool execution. Discovery files are daemon-authored snake_case
@@ -745,10 +746,10 @@ Non-Electron SDK hosts can override that behavior with:
 - `autoLocalRuntime`: daemon script or explicit command/args, discovery file,
   host/port, timeout, cwd, env/env mode, optional launch context, Python command,
   and optional `pythonArgs` launcher prefix for the default Node provider.
-  Repo-local examples use this to run `scripts/python-in-env sidecar python`
-  while leaving daemon discovery, registration, JSON-RPC unwrapping, and
-  shutdown with `AgentClient`. Node and Python SDK hosts that rely on an
-  environment override use `AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT`; legacy
+  Hosts can use this to supply a project-specific Python launcher while leaving
+  daemon discovery, registration, JSON-RPC unwrapping, and shutdown with
+  `AgentClient`. Node and Python SDK hosts that rely on an environment override
+  use `AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT`; legacy
   `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT` remains supported, while the older
   sidecar-named env override is not part of the SDK local-runtime contract.
   The SDK does not guess WindieOS repository paths for the daemon. Hosts must

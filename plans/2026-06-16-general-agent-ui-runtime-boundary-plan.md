@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 SDK Local Runtime Daemon Docs Boundary
+
+- Finding: `docs/sdk/windie_client_runtime.md` still described the generic
+  SDK auto-local-runtime provider as starting `sidecar_daemon.py` and called
+  out the repo-specific sidecar launcher args, even though SDK callers supply
+  a daemon command or script and Electron main owns the concrete desktop
+  sidecar launcher.
+- Change: reworded the SDK local-runtime options reference around configured
+  daemon command/script ownership, left daemon discovery and JSON-RPC behavior
+  in the SDK contract, and extended the modular SDK docs guard to reject the
+  sidecar script and launcher wording in SDK docs.
+- Validation: passed focused SDK docs boundary test, docs listing, stale SDK
+  sidecar script/launcher scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK auto-local-runtime
+  option names, daemon launch behavior, discovery payloads, IPC channels,
+  storage, credentials, permissions, provider policy, and hosted URLs are
+  unchanged.
+
 ### 2026-06-20 Public SDK Local Runtime Example Boundary
 
 - Finding: the public TypeScript SDK README's `autoLocalRuntime` example still
