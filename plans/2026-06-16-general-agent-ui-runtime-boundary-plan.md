@@ -15967,3 +15967,19 @@ Each completed slice should report:
   CLI invocation, dedicated CDP/profile behavior, tool outputs, storage,
   credentials, permissions, hosted backend URLs, provider policy, and IPC
   payloads are unchanged.
+
+### 2026-06-20 Browser schema test lifecycle label cleanup
+
+- Finding: the shared strict browser schema parity test still named adapter-only
+  lifecycle actions `WINDIE_BROWSER_LIFECYCLE_ACTIONS` and compared them
+  through a `windie_actions` set, even though the schema contract is the
+  reusable local-runtime/browser-adapter action surface.
+- Change: renamed the local test constants and assertions to
+  local-runtime/browser-adapter wording while leaving the canonical browser
+  action set unchanged.
+- Validation: focused browser schema pytest coverage, exact stale-symbol scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Browser schemas, canonical action
+  names, model-facing tool exposure, local-runtime validation, Browser Use
+  execution, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and IPC payloads are unchanged.

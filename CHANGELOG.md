@@ -65,6 +65,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/browser: remove stale Browser Use extraction model env guidance; `extract`
   now documents the deterministic local-runtime markdown/focused-excerpt path.
   No migration required.
+- tests/browser: rename the shared browser schema reconciliation guard away from
+  Windie-owned lifecycle wording to local-runtime adapter actions. No migration
+  required.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from

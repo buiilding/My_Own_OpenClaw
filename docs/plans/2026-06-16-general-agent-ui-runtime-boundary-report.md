@@ -5790,3 +5790,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   requirement. Browser action schemas, CLI invocation, dedicated CDP/profile
   behavior, tool outputs, storage, credentials, permissions, hosted backend
   URLs, provider policy, and IPC payloads are unchanged.
+- Browser schema tests now describe canonical browser actions and
+  local-runtime adapter actions without Windie-owned lifecycle labels. Browser
+  schemas, model-facing exposure, local-runtime validation, Browser Use
+  execution, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and IPC payloads are unchanged.

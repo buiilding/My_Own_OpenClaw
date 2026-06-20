@@ -56,7 +56,7 @@ NATIVE_BROWSER_USE_AGENT_ACTIONS = {
     "read_file",
     "evaluate",
 }
-WINDIE_BROWSER_LIFECYCLE_ACTIONS = {
+LOCAL_RUNTIME_BROWSER_ADAPTER_ACTIONS = {
     "connect",
     "status",
     "profiles",
@@ -174,13 +174,13 @@ def test_sidecar_action_contract_is_canonical_only() -> None:
     assert "get_text" in BROWSER_CANONICAL_ACTIONS
 
 
-def test_windie_browser_schema_reconciles_native_browser_use_surface() -> None:
-    windie_actions = set(BROWSER_CANONICAL_ACTIONS)
+def test_browser_schema_reconciles_native_browser_use_surface() -> None:
+    canonical_actions = set(BROWSER_CANONICAL_ACTIONS)
 
-    assert NATIVE_BROWSER_USE_AGENT_ACTIONS - windie_actions == {"dropdown_options"}
-    assert WINDIE_BROWSER_LIFECYCLE_ACTIONS.issubset(windie_actions)
-    assert "save_as_pdf" in windie_actions
-    assert "dropdown_options" not in windie_actions
+    assert NATIVE_BROWSER_USE_AGENT_ACTIONS - canonical_actions == {"dropdown_options"}
+    assert LOCAL_RUNTIME_BROWSER_ADAPTER_ACTIONS.issubset(canonical_actions)
+    assert "save_as_pdf" in canonical_actions
+    assert "dropdown_options" not in canonical_actions
 
 
 def test_snapshot_schema_is_strict() -> None:
