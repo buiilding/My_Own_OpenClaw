@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Direct Wake-Up Adapter Dependency Boundary
+
+- Finding: `startAgent(...)` delegated wake-up behavior to
+  `ipc_agent_wakeup_runtime.cjs` and adapter behavior to
+  `ipc_direct_wake_up_agent_adapter.cjs`, but still carried the full
+  renderer/event/trace/MCP dependency map for the direct adapter inline.
+- Change: added `ipc_direct_wake_up_agent_adapter_deps.cjs` to own the
+  dependency map consumed by the direct wake-up adapter. `startAgent(...)` now
+  supplies `buildDirectWakeUpAgentAdapterDeps` from that helper runtime.
+- Validation: focused dependency-builder coverage verifies the adapter
+  dependency surface and source guards that keep the inline dependency literal
+  out of `ipc.cjs`.
+- Compatibility: no migration required. Renderer fan-out, current-turn and
+  pending-turn updates, trace hooks, terminal status mapping, workspace
+  fallback, backend-event relay, MCP refresh, MCP client identity, renderer IPC
+  channels, storage, credentials, permissions, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Main IPC Process Reset Runtime Boundary
 
 - Finding: `ipc.cjs` still owned the reset checklist for settings sync,

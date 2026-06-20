@@ -149,6 +149,9 @@ const {
   createDirectWakeUpAgentAdapter,
 } = require('./ipc/ipc_direct_wake_up_agent_adapter.cjs');
 const {
+  createDirectWakeUpAgentAdapterDepsRuntime,
+} = require('./ipc/ipc_direct_wake_up_agent_adapter_deps.cjs');
+const {
   attachAgentDefinitionContext: attachAgentDefinitionContextRuntime,
 } = require('./ipc/ipc_agent_definition_context.cjs');
 const {
@@ -458,6 +461,27 @@ const ipcProcessResetRuntime = createIpcProcessResetRuntime({
   agentClientLifecycle,
   agentRuntimeLifecycle,
 });
+const directWakeUpAgentAdapterDepsRuntime = createDirectWakeUpAgentAdapterDepsRuntime({
+  broadcastToRenderers,
+  resolveRuntimeConversationRef,
+  setLatestCurrentTurnProjection: (currentTurnProjection) => liveTurnState.setLatestCurrentTurn(
+    currentTurnProjection,
+  ),
+  getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
+  pendingTurnMatchesCurrentTurn,
+  clearLatestPendingTurn,
+  logLiveSurfaceTrace,
+  summarizeCurrentTurn,
+  isDebugFlagEnabled,
+  currentTurnTraceLogger,
+  getSyncSdkLiveTurnSurfaceIntent: () => hostOptionState.getSyncSdkLiveTurnSurfaceIntent(),
+  log,
+  buildConversationTerminalStatus,
+  resolveWorkspacePathForAgent,
+  handleAgentBackendEvent,
+  refreshMcpServersForConfig,
+  getMcpClientInfo: () => ipcHostCopyRuntime.getMcpClientInfo(),
+});
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -586,27 +610,7 @@ async function startAgent({ reason = 'request', workspacePath = null } = {}) {
     getDesktopUiConfigForMcpRegistry,
     getLocalToolLifecycle: () => hostOptionState.getLocalToolLifecycle(),
     createDirectWakeUpAgentAdapter,
-    buildDirectWakeUpAgentAdapterDeps: () => ({
-      broadcastToRenderers,
-      resolveRuntimeConversationRef,
-      setLatestCurrentTurnProjection: (currentTurnProjection) => liveTurnState.setLatestCurrentTurn(
-        currentTurnProjection,
-      ),
-      getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
-      pendingTurnMatchesCurrentTurn,
-      clearLatestPendingTurn,
-      logLiveSurfaceTrace,
-      summarizeCurrentTurn,
-      isDebugFlagEnabled,
-      currentTurnTraceLogger,
-      getSyncSdkLiveTurnSurfaceIntent: () => hostOptionState.getSyncSdkLiveTurnSurfaceIntent(),
-      log,
-      buildConversationTerminalStatus,
-      resolveWorkspacePathForAgent,
-      handleAgentBackendEvent,
-      refreshMcpServersForConfig,
-      getMcpClientInfo: () => ipcHostCopyRuntime.getMcpClientInfo(),
-    }),
+    buildDirectWakeUpAgentAdapterDeps: () => directWakeUpAgentAdapterDepsRuntime.build(),
     appendIpcBridgeDiagnostic,
     log,
   });

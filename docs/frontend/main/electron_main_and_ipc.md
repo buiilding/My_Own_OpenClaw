@@ -112,7 +112,9 @@ Responsibilities:
   cleanup.
 - Delegates direct wake-up agent adapter behavior to a focused helper that owns
   `agent.conversation(...)` runtime handles, SDK event fan-out, inference
-  context rehydration, replay invalidation, and MCP refresh forwarding.
+  context rehydration, replay invalidation, and MCP refresh forwarding; the
+  adapter dependency map is built by
+  `ipc_direct_wake_up_agent_adapter_deps.cjs`.
 - Delegates query-level agent-definition context attachment to a focused helper
   that gathers custom instructions, workspace AGENTS.md layers, extension prompt
   layers, and host OS/workspace facts before calling the SDK builder.

@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move direct wake-up Agent adapter dependency construction into
+  `ipc_direct_wake_up_agent_adapter_deps.cjs`, preserving renderer fan-out,
+  current-turn and pending-turn updates, trace hooks, terminal status mapping,
+  backend-event relay, MCP refresh, and MCP client identity behavior. No
+  migration required.
 - main/ipc: move IPC process reset orchestration into
   `ipc_process_reset_runtime.cjs`, preserving settings/session/cache reset
   grouping, renderer-window and backend-observer cleanup, install auth and MCP
