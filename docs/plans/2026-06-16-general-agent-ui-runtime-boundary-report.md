@@ -11,10 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `c0ae5095f` (`test(sdk): neutralize hosted endpoint fixtures`)
-- Latest completed slice: Agent SDK client fixtures now use neutral hosted
-  endpoint hosts, and Agent SDK workspace fixtures now use neutral project
-  samples instead of product-named workspace data.
+- Latest inspected plan checkpoint: `ea8050bff` (`test(sdk): neutralize workspace fixtures`)
+- Latest completed slice: Agent SDK workspace fixtures now use neutral project
+  samples, and platform docs now describe Electron-owned window/screenshot
+  policy through desktop app/app-owned surfaces instead of WindieOS-window
+  ownership labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -54,7 +55,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   while preserving the same hosted route construction, websocket fallback, and
   environment compatibility coverage. Agent SDK workspace fixtures now use
   neutral project metadata while preserving the same local-runtime store and
-  projection contracts. Preload SDK-command validation failures use generic
+  projection contracts. Platform docs describe Electron-owned window and
+  screenshot policy through desktop app/app-owned surfaces while keeping product
+  identity in skin/config. Preload SDK-command validation failures use generic
   Agent SDK wording while the `window.windie` bridge contract remains stable.
   Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,
@@ -7470,3 +7473,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime conversation-store RPC shapes, SDK projections, storage
   contracts, credentials, permissions, hosted backend URLs, provider policy,
   and local-runtime behavior are unchanged; no migration is required.
+- Platform window/input and validation docs now describe Electron-owned policy
+  through desktop app/app-owned windows and surfaces instead of WindieOS-window
+  ownership labels, and the modular boundary guard now reads those platform
+  docs. Electron window policy, overlay behavior, screenshot
+  hide/protect/restore flow, permission probes, IPC channels, storage,
+  credentials, local-runtime platform adapters, hosted backend URLs, and
+  provider policy are unchanged; no migration is required.

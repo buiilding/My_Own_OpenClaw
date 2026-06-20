@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/platform: describe Electron-owned window and screenshot policy through
+  desktop app/app-owned surfaces instead of WindieOS-window ownership labels. No
+  migration required.
+
 - tests/sdk: use neutral project workspace fixtures in Agent SDK client,
   conversation-store, and conversation-runtime coverage instead of WindieOS
   workspace samples. No migration required.

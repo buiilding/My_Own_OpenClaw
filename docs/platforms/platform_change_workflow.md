@@ -13,7 +13,7 @@ title: "Platform Change Workflow"
 
 Use this workflow before editing platform behavior. WindieOS platform bugs often look like UI bugs, tool bugs, or install bugs, but the owner is usually one of four places:
 
-- Electron main window policy for WindieOS-owned windows and overlays.
+- Electron main window policy for app-owned windows and overlays.
 - Local-runtime platform adapters for host OS window discovery and local input
   execution.
 - Permission services for OS authority probes and grant flows.
@@ -64,7 +64,9 @@ Keep these rules explicit in the change, tests, and docs:
 
 ## Electron Main Platform Changes
 
-Electron main owns WindieOS windows, overlays, content protection, IPC handlers, permission probes, and SDK local-runtime host/status context. Use this path when the bug concerns a WindieOS-owned surface.
+Electron main owns desktop app windows, overlays, content protection, IPC
+handlers, permission probes, and SDK local-runtime host/status context. Use this
+path when the bug concerns an app-owned surface.
 
 Primary files:
 

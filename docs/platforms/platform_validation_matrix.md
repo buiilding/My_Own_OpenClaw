@@ -33,7 +33,7 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 | Changed surface | Frontend tests | Local-runtime Python tests | Notes |
 | --- | --- | --- | --- |
 | content protection | `tests/frontend/WindowPlatformPolicy.test.cjs`, `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` | not applicable | Covers Electron main policy and screenshot-capture leases; smoke screenshot capture on target OS when capture behavior changed. |
-| screenshot visibility bridge | `tests/frontend/LocalRuntimeWindowVisibility.test.cjs` | `tests/sidecar/test_screenshot_tool.py` | Use when screenshots include WindieOS surfaces or capture bounds are wrong. |
+| screenshot visibility bridge | `tests/frontend/LocalRuntimeWindowVisibility.test.cjs` | `tests/sidecar/test_screenshot_tool.py` | Use when screenshots include desktop app surfaces or capture bounds are wrong. |
 | overlay phase state | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/OverlayPhaseIpcRuntime.test.cjs` | not applicable | Use when phase transitions change hide/protect/restore behavior. |
 | display affinity and multi-monitor targeting | `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/DisplayQueryHandler.test.cjs` | `tests/sidecar/test_screenshot_tool.py` | Include manual multi-monitor capture check if the bug was monitor-specific. |
 | permission probe or grant | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/permissionStore.test.js` | platform-specific local-runtime Python tool test if execution depends on the grant | Use real OS manual checks for grant flows. Mocks only prove routing. |

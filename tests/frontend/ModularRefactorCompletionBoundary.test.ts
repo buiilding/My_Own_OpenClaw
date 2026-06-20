@@ -751,6 +751,9 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/renderer/infrastructure/conversation_transcript_loader_and_display_bounds_storage_reference.md'),
       read('docs/frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md'),
+      read('docs/platforms/window_input_matrix.md'),
+      read('docs/platforms/platform_change_workflow.md'),
+      read('docs/platforms/platform_validation_matrix.md'),
     ]);
     const docText = docs.join('\n');
 

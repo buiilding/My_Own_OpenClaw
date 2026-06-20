@@ -18319,3 +18319,20 @@ Each completed slice should report:
   workspace metadata extraction, local-runtime conversation-store RPC shapes,
   SDK projections, storage contracts, credentials, permissions, hosted backend
   URLs, provider policy, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Platform docs app-owned window wording
+
+- Finding: platform owner docs still described Electron main as owning
+  "WindieOS windows" and screenshots containing "WindieOS surfaces", even
+  though the main-process boundary is the generic desktop app window/overlay
+  host and product identity belongs in skin/config.
+- Change: reworded the platform window/input matrix, platform change workflow,
+  and platform validation matrix through desktop app and app-owned window
+  policy, then added those docs to the modular boundary guard that rejects stale
+  WindieOS-window ownership labels.
+- Validation: focused modular boundary test, exact stale platform ownership
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Electron window policy, overlay
+  behavior, screenshot hide/protect/restore flow, permission probes, IPC
+  channels, storage, credentials, local-runtime platform adapters, hosted
+  backend URLs, and provider policy are unchanged.

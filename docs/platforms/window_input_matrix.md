@@ -8,13 +8,13 @@ title: "Window and Input Matrix"
 
 # Window and Input Matrix
 
-Window and input behavior spans Electron main and the local runtime. Electron owns WindieOS windows and overlay policy. The local runtime owns host-window discovery and local input/tool execution through the current local-runtime Python implementation.
+Window and input behavior spans Electron main and the local runtime. Electron owns desktop app windows and overlay policy. The local runtime owns host-window discovery and local input/tool execution through the current local-runtime Python implementation.
 
 ## Owner Map
 
 | Concern | Owner files |
 | --- | --- |
-| WindieOS BrowserWindow policy | `frontend/src/main/surfaces/window_platform_policy.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/overlay_*` |
+| desktop app BrowserWindow policy | `frontend/src/main/surfaces/window_platform_policy.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/overlay_*` |
 | overlay topmost/all-workspaces behavior | `frontend/src/main/surfaces/overlay_topmost_runtime.cjs`, `frontend/src/main/surfaces/surface_window_options_runtime.cjs` |
 | local-runtime platform abstraction | `frontend/src/main/python/core/platform/__init__.py`, `base.py` |
 | macOS window management | `frontend/src/main/python/core/platform/macos.py` |
@@ -33,7 +33,8 @@ Window and input behavior spans Electron main and the local runtime. Electron ow
 
 ## Routing Rules
 
-- Keep WindieOS-owned window visibility, focusability, content protection, and all-workspaces policy in Electron main.
+- Keep app-owned window visibility, focusability, content protection, and
+  all-workspaces policy in Electron main.
 - Keep host-application window discovery and switching in local-runtime
   platform adapters.
 - Renderer should consume normalized active-window/context state.
@@ -42,8 +43,8 @@ Window and input behavior spans Electron main and the local runtime. Electron ow
 
 ## Debug Checklist
 
-1. Confirm the failing operation is WindieOS window policy or host-window control.
-2. For WindieOS windows, inspect Electron main logs and platform policy modules.
+1. Confirm the failing operation is app-owned window policy or host-window control.
+2. For desktop app windows, inspect Electron main logs and platform policy modules.
 3. For host-window discovery, run the local-runtime Python platform tests or a focused local-runtime Python shell probe.
 4. On Linux, verify `xdotool` or `ydotool` availability before editing fuzzy match logic.
 5. On macOS, verify Accessibility and System Events permissions before editing AppKit code.
