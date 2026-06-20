@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sidecar: use a neutral Browser Use session sample while preserving
+  legacy Windie browser env alias coverage. No migration required.
+
 - tests/renderer: use a neutral audio worklet blob URL sample in wakeword hook
   coverage instead of WindieOS-flavored fixture data. No migration required.
 

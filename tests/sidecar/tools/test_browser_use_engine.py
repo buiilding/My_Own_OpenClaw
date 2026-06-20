@@ -73,12 +73,12 @@ def test_browser_use_env_resolvers_preserve_windie_alias(
 ) -> None:
     windie_home = tmp_path / "windie-home"
     monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_HOME, str(windie_home))
-    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_SESSION, "windieos")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_SESSION, "legacy-agent-session")
     monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS, "9")
     monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_CLI, "windie-browser-use")
 
     assert _browser_use_home() == str(windie_home)
-    assert _browser_use_session() == "windieos"
+    assert _browser_use_session() == "legacy-agent-session"
     assert _browser_use_timeout() == 9.0
     assert _base_command() == ["windie-browser-use"]
 

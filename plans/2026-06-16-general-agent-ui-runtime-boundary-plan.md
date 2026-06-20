@@ -18744,3 +18744,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Renderer wakeword capture cleanup,
   AudioWorklet setup, IPC channels, permissions, storage, hosted backend URLs,
   provider policy, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Browser Use legacy session fixture neutrality
+
+- Finding: Browser Use engine tests correctly cover the legacy
+  `WINDIE_BROWSER_USE_*` env aliases, but the arbitrary session value for the
+  legacy alias was still WindieOS-shaped fixture data.
+- Change: switched the legacy session value to neutral
+  `legacy-agent-session` and added a modular boundary guard while preserving the
+  legacy env alias assertions.
+- Validation: focused sidecar Browser Use engine and modular boundary tests;
+  exact retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Legacy env alias compatibility, generic
+  `AGENT_BROWSER_USE_*` precedence, Browser Use CLI invocation, dedicated
+  browser CDP behavior, permissions, storage, hosted backend URLs, provider
+  policy, and local-runtime behavior are unchanged.

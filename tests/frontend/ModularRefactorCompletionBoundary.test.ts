@@ -548,6 +548,14 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('blob:agent-audio-worklet');
   });
 
+  test('browser use engine tests keep legacy session fixtures product-neutral', async () => {
+    const source = await read('tests/sidecar/tools/test_browser_use_engine.py');
+
+    expect(source).not.toContain('ENV_WINDIE_BROWSER_USE_SESSION, "windieos"');
+    expect(source).not.toContain('_browser_use_session() == "windieos"');
+    expect(source).toContain('ENV_WINDIE_BROWSER_USE_SESSION, "legacy-agent-session"');
+  });
+
   test('backend user-query sanitization tests keep desktop context fixtures product-neutral', async () => {
     const source = await read('tests/backend/test_agent_executor_user_query_sanitization.py');
 

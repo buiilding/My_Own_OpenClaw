@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `bdcab6585` (`test(main): neutralize icon path fixtures`)
-- Latest completed slice: wakeword hook tests now use a neutral audio worklet
-  blob URL sample instead of WindieOS-flavored fixture data.
+- Latest inspected plan checkpoint: `1b27fe997` (`test(renderer): neutralize wakeword worklet fixture`)
+- Latest completed slice: Browser Use engine tests now use a neutral legacy
+  session value while preserving Windie env alias coverage.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -113,6 +113,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   host-skin app icon filename coverage.
   Wakeword hook tests now use a neutral audio worklet blob URL while preserving
   renderer capture cleanup behavior.
+  Browser Use engine tests now keep legacy Windie env alias coverage while using
+  neutral Browser Use session fixture values.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7655,3 +7657,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   capture cleanup, AudioWorklet setup, IPC channels, permissions, storage,
   hosted backend URLs, provider policy, and local-runtime behavior are
   unchanged; no migration is required.
+- Browser Use engine tests now use neutral `legacy-agent-session` samples for
+  the legacy `WINDIE_BROWSER_USE_SESSION` env alias instead of a WindieOS-shaped
+  session value. Legacy env alias compatibility, generic `AGENT_BROWSER_USE_*`
+  precedence, Browser Use CLI invocation, dedicated browser CDP behavior,
+  permissions, storage, hosted backend URLs, provider policy, and local-runtime
+  behavior are unchanged; no migration is required.
