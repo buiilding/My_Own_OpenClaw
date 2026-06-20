@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/events: route transcription endpoint and response-overlay side-effect
+  wording through client/backend transcription and SDK conversation-event
+  boundaries instead of renderer/backend-wire phrasing. No migration required.
 - docs/tools: replace current-facing `ToolResultEnvelope` validation routes
   with SDK result-envelope, local-runtime, and renderer tool-display checks.
   No migration required.

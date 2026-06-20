@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Transcription and Overlay Event Docs Boundary
+
+- Finding: the backend endpoint reference still labeled `/ws/transcription`
+  payloads as renderer-to-backend/backend-to-renderer messages, and the
+  response-overlay reference still described renderer backend-wire stream
+  handlers even though the generic boundary is a client/backend transcription
+  gateway plus SDK conversation-event/current-turn projection side effects.
+- Change: renamed the transcription route message headings to
+  client-to-backend/backend-to-client transcription messages, reworded overlay
+  transcript/history side-effect ownership through SDK conversation events, and
+  extended the modular runtime docs guard to reject the stale renderer/backend
+  and backend-wire phrases.
+- Validation: passed focused frontend docs boundary test, docs listing, stale
+  phrase scan, and diff check.
+- Compatibility: no migration required. Runtime code, transcription websocket
+  paths, message payloads, SDK event shapes, IPC channels, transcript storage,
+  settings, credentials, permissions, provider policy, and hosted URLs are
+  unchanged.
+
 ### 2026-06-20 Tool Result Envelope Docs SDK Boundary
 
 - Finding: current-facing IPC, test-selection, local-runtime tool workflow, and

@@ -33,12 +33,12 @@ Behavior:
 - routes binary audio frames through `parse_gateway_audio_frame(...)`
 - keeps one renderer protocol while backend chooses `stt_provider="nova"` or `stt_provider="openai"`
 
-Renderer-to-backend messages:
+Client-to-backend transcription messages:
 
 - text control: `set_langs`, `start_over`
 - binary audio frames: gateway-framed PCM16 audio (`sampleRate` metadata prefix + payload)
 
-Backend-to-renderer messages:
+Backend-to-client transcription messages:
 
 - `status`
 - `realtime`

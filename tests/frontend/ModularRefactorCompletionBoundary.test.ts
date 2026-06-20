@@ -460,6 +460,7 @@ describe('modular sdk refactor completion boundary', () => {
     const runtimeBoundaryDocs = [
       'docs/architecture/frontend_architecture.md',
       'docs/concepts/streaming_and_events.md',
+      'docs/backend/api/http_and_ws_endpoint_reference.md',
       'docs/README.md',
       'docs/debug/README.md',
       'docs/debug/process_health_checklist.md',
@@ -472,6 +473,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/main/electron_main_and_ipc.md',
       'docs/frontend/main/query_payload_and_relay_reference.md',
       'docs/frontend/renderer/chat_stream_and_tool_execution_reference.md',
+      'docs/frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md',
       'docs/frontend/renderer/renderer_runtime.md',
       'docs/frontend/renderer/renderer_state_change_workflow.md',
       'docs/frontend/sidecar/browser_automation_stack.md',
@@ -496,6 +498,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK transport/projection, typed fan-out channel');
     expect(docText).toContain('Agent SDK runtime receives the hosted backend WebSocket event');
     expect(docText).toContain('SDK projection events and typed backend side-channel events are consumed');
+    expect(docText).toContain('Client-to-backend transcription messages');
+    expect(docText).toContain('renderer transcript/history side-effect handlers consume SDK conversation');
     expect(docText).toContain('3. LOCAL-RUNTIME EXECUTION');
     expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('SDK agent-runtime');
@@ -518,6 +522,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Sub-hub for `from-backend` event ingress typing boundaries');
     expect(docText).not.toContain('Main-process rebroadcast path, typed event-guard limits');
     expect(docText).not.toContain('`from-backend` events are consumed by the expected listener');
+    expect(docText).not.toContain('Renderer-to-backend messages');
+    expect(docText).not.toContain('Backend-to-renderer messages');
+    expect(docText).not.toContain('renderer backend-wire stream handlers');
     expect(docText).not.toContain('3. SIDECAR EXECUTION');
     expect(docText).not.toContain('Frontend/sidecar owner');
     expect(docText).not.toContain('Frontend-owned payloads:');
