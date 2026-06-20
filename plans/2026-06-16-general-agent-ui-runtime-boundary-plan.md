@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main AgentClient Lifecycle Boundary
+
+- Finding: `ipc.cjs` still owned the cached `AgentClient` instance directly,
+  including lazy construction, first-use `client_initialized` logging,
+  initialized-client lookup for local-runtime discovery, and local-runtime
+  shutdown/reset during tests.
+- Change: added `ipc_agent_client_lifecycle.cjs` to own cached `AgentClient`
+  lifecycle. `ipc.cjs` now injects the Electron AgentClient factory and logging
+  while consuming helper methods for `getAgentClient`,
+  initialized-client lookup, and shutdown/reset.
+- Validation: focused lifecycle coverage for lazy construction, reuse,
+  first-use logging, initialized lookup, shutdown-and-reset forwarding,
+  reset-without-shutdown, and a boundary guard that keeps the cached
+  `agentClient` variable out of `ipc.cjs`.
+- Compatibility: no migration required. AgentClient constructor inputs,
+  local-runtime shutdown timing, client initialization logging semantics,
+  SDK wake-up behavior, renderer IPC channels, storage, credentials,
+  permissions, hosted URLs, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main Agent Backend Event Relay Boundary
 
 - Finding: connection open/close/fallback and backend close cleanup had moved

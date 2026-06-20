@@ -56,6 +56,9 @@ const {
   createElectronAgentClient: createElectronAgentClientRuntime,
 } = require('./ipc/ipc_electron_agent_client_factory.cjs');
 const {
+  createAgentClientLifecycle,
+} = require('./ipc/ipc_agent_client_lifecycle.cjs');
+const {
   startAgentRuntime,
 } = require('./ipc/ipc_agent_wakeup_runtime.cjs');
 const {
@@ -268,7 +271,6 @@ let setGlobalAgentStopShortcutAccelerator = null;
 let localToolLifecycle = null;
 let syncSdkLiveTurnSurfaceIntent = null;
 let agentWebSocketImpl = null;
-let agentClient = null;
 let latestCurrentTurnProjection = null;
 let latestPendingTurn = null;
 let desktopLocalRuntimeLaunchConfig = null;
@@ -293,10 +295,14 @@ const ipcStatusPayloads = createIpcStatusPayloads({
   }),
   getGlobalAgentStopShortcutStatus,
 });
+const agentClientLifecycle = createAgentClientLifecycle({
+  createAgentClient: createElectronAgentClient,
+  logMainRuntime,
+});
 const agentRuntimeLifecycle = createAgentRuntimeLifecycle({
   startAgent,
   getAgentClient,
-  getAgentClientIfInitialized: () => agentClient,
+  getAgentClientIfInitialized: () => agentClientLifecycle.getAgentClientIfInitialized(),
   logMainRuntime,
 });
 const {
@@ -589,11 +595,7 @@ function createElectronAgentClient() {
 }
 
 function getAgentClient() {
-  if (!agentClient) {
-    logMainRuntime('[Main][SDK] client_initialized');
-    agentClient = createElectronAgentClient();
-  }
-  return agentClient;
+  return agentClientLifecycle.getAgentClient();
 }
 
 async function startAgent({ reason = 'request', workspacePath = null } = {}) {
@@ -839,8 +841,7 @@ function shutdownIpcForTests() {
   isConnected = false;
   mcpRefreshRuntime.reset();
   latestPendingTurn = null;
-  void agentClient?.shutdownLocalRuntime?.();
-  agentClient = null;
+  agentClientLifecycle.shutdownAndReset();
   agentRuntimeLifecycle.reset({ closeActiveAgent: true });
   desktopLocalRuntimeLaunchConfig = null;
 }

@@ -73,6 +73,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs'),
       'utf8',
     );
+    const agentClientLifecycleSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_client_lifecycle.cjs'),
+      'utf8',
+    );
     const agentWakeupRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs'),
       'utf8',
@@ -200,7 +204,13 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('createMcpRefreshRuntime({');
     expect(source).not.toContain("refreshMcpServersForLatestConfig('mcp-startup')");
     expect(mcpRefreshRuntimeSource).toContain("refreshMcpServersForLatestConfig('mcp-startup')");
-    expect(source).toContain('[Main][SDK] client_initialized');
+    expect(source).not.toContain('[Main][SDK] client_initialized');
+    expect(source).toContain('createAgentClientLifecycle({');
+    expect(source).not.toContain('let agentClient = null');
+    expect(source).not.toContain('agentClient = createElectronAgentClient()');
+    expect(agentClientLifecycleSource).toContain('let agentClient = null;');
+    expect(agentClientLifecycleSource).toContain('agentClient = createAgentClient();');
+    expect(agentClientLifecycleSource).toContain('[Main][SDK] client_initialized');
     expect(source).not.toContain('[Main][SDK] creating_client backend=');
     expect(electronAgentClientFactorySource).toContain('[Main][SDK] creating_client backend=');
     expect(source).toContain('createAgentRuntimeLifecycle({');

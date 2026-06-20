@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move cached `AgentClient` lifecycle into
+  `ipc_agent_client_lifecycle.cjs`, preserving lazy construction,
+  `client_initialized` logging, initialized-client lookup, local-runtime
+  shutdown forwarding, and test reset behavior. No migration required.
 - main/ipc: move Agent SDK backend event relay bookkeeping into
   `ipc_agent_backend_event_runtime.cjs`, preserving active query accepted-state
   marking, replay append/clear behavior, backend traffic labels, observer
