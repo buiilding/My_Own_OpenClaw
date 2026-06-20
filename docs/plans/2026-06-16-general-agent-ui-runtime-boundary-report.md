@@ -194,6 +194,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Main Scripted Provider Debug Env Boundary
+
+- Finding: `frontend/src/main/ipc/ipc_runtime_helpers.cjs` read
+  `WINDIE_ENABLE_SCRIPTED_PROVIDER` directly while other main-process debug and
+  dev flags route through `debug_env.cjs` plus `main_host_skin.cjs`. That made
+  the generic Electron IPC helper own one WindieOS-specific env key.
+- Change: introduced the generic `scriptedProvider` debug-env flag, mapped it
+  to `WINDIE_ENABLE_SCRIPTED_PROVIDER` in the WindieOS host skin, updated
+  scripted model-row augmentation to use `isDebugFlagEnabled(...)`, and
+  extended the debug-env/main-host-skin/IP helper tests to guard the boundary.
+- Validation: passed focused frontend main/debug-env tests, docs listing,
+  scripted-provider env stale scan, and diff check.
+- Compatibility: no migration required. Dev startup still uses
+  `WINDIE_ENABLE_SCRIPTED_PROVIDER=1`; packaged/customer model pickers remain
+  unchanged; backend scripted provider routing, model-list payloads, IPC
+  channels, renderer settings/model state, storage, credentials, permissions,
+  provider policy, and hosted URLs are unchanged.
+
 ### 2026-06-20 Python SDK Package Discovery Boundary
 
 - Finding: `packages/windie-sdk-python/pyproject.toml` used the broad

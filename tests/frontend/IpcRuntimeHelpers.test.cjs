@@ -7,11 +7,24 @@ const {
   isScriptedProviderDevModelEnabled,
   withScriptedDevModel,
 } = require('../../frontend/src/main/ipc/ipc_runtime_helpers.cjs');
+const {
+  configureDebugEnvRuntime,
+} = require('../../frontend/src/main/app/debug_env.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 describe('ipc_runtime_helpers scripted provider augmentation', () => {
+  afterEach(() => {
+    configureDebugEnvRuntime();
+  });
+
   test('detects the scripted provider dev flag exactly', () => {
+    expect(isScriptedProviderDevModelEnabled({ AGENT_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(true);
+    expect(isScriptedProviderDevModelEnabled({ AGENT_ENABLE_SCRIPTED_PROVIDER: 'true' })).toBe(false);
+    expect(isScriptedProviderDevModelEnabled({ WINDIE_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(false);
+    configureDebugEnvRuntime(mainHostSkin.debug);
     expect(isScriptedProviderDevModelEnabled({ WINDIE_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(true);
-    expect(isScriptedProviderDevModelEnabled({ WINDIE_ENABLE_SCRIPTED_PROVIDER: 'true' })).toBe(false);
     expect(isScriptedProviderDevModelEnabled({})).toBe(false);
   });
 
@@ -25,7 +38,7 @@ describe('ipc_runtime_helpers scripted provider augmentation', () => {
     };
 
     expect(withScriptedDevModel(event, {})).toBe(event);
-    expect(withScriptedDevModel(event, { WINDIE_ENABLE_SCRIPTED_PROVIDER: '1' })).toEqual({
+    expect(withScriptedDevModel(event, { AGENT_ENABLE_SCRIPTED_PROVIDER: '1' })).toEqual({
       type: 'models-listed',
       payload: {
         local: [],
@@ -46,6 +59,6 @@ describe('ipc_runtime_helpers scripted provider augmentation', () => {
       },
     };
 
-    expect(withScriptedDevModel(event, { WINDIE_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(event);
+    expect(withScriptedDevModel(event, { AGENT_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(event);
   });
 });

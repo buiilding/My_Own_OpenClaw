@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: route the dev-only scripted provider model-picker flag through the
+  generic debug-env runtime and WindieOS host skin instead of reading the
+  `WINDIE_ENABLE_SCRIPTED_PROVIDER` env var directly in IPC helpers. No
+  migration required.
 - sdk/python: limit `windie-sdk` package discovery to the public `windie`
   package so local-runtime shared contracts are not swept into the hosted
   Python SDK distribution. No migration required.

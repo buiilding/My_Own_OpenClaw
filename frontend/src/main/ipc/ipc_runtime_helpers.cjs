@@ -10,6 +10,7 @@ const {
 } = require('./ipc_backend_event_channels.cjs');
 const {
   isDebugFlagEnabled,
+  isExactDebugFlagEnabled,
 } = require('../app/debug_env.cjs');
 
 const SCRIPTED_PROVIDER_MODEL = Object.freeze({
@@ -93,7 +94,7 @@ function resolveRendererViewFromWebContents(webContents) {
 }
 
 function isScriptedProviderDevModelEnabled(env = process.env) {
-  return String(env.WINDIE_ENABLE_SCRIPTED_PROVIDER || '').trim() === '1';
+  return isExactDebugFlagEnabled('scriptedProvider', '1', env);
 }
 
 function withScriptedDevModel(data, env = process.env) {

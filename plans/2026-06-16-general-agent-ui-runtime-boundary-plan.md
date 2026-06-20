@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Scripted Provider Debug Env Boundary
+
+- Finding: `ipc_runtime_helpers.cjs` appended the dev-only scripted model row
+  by reading `WINDIE_ENABLE_SCRIPTED_PROVIDER` directly, which left one
+  WindieOS-specific environment key inside the generic Electron main IPC helper
+  instead of the host skin/debug-env adapter.
+- Change: added a generic `scriptedProvider` debug flag, mapped it to
+  `WINDIE_ENABLE_SCRIPTED_PROVIDER` in `main_host_skin.cjs`, updated the IPC
+  helper to call `isDebugFlagEnabled('scriptedProvider', env)`, documented the
+  host-skin mapping, and extended main/debug-env boundary tests.
+- Validation: passed focused frontend main/debug-env tests, docs listing,
+  scripted-provider env stale scan, and diff check.
+- Compatibility: no migration required. `<windie> start dev` still sets
+  `WINDIE_ENABLE_SCRIPTED_PROVIDER=1`, packaged/customer starts remain hidden,
+  backend scripted provider behavior, model-list payloads, IPC channels,
+  renderer model picker behavior, storage, credentials, permissions, provider
+  policy, and hosted URLs are unchanged.
+
 ### 2026-06-20 Python SDK Package Discovery Boundary
 
 - Finding: `packages/windie-sdk-python/pyproject.toml` discovered packages with

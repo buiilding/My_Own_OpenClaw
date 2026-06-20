@@ -386,7 +386,9 @@ describe('main host skin/config boundary', () => {
     ].join('\n');
 
     expect(skinSource).toContain("streamEvents: 'WINDIE_DEBUG_STREAM_EVENTS'");
+    expect(skinSource).toContain("scriptedProvider: 'WINDIE_ENABLE_SCRIPTED_PROVIDER'");
     expect(debugEnvSource).toContain("streamEvents: 'AGENT_DEBUG_STREAM_EVENTS'");
+    expect(debugEnvSource).toContain("scriptedProvider: 'AGENT_ENABLE_SCRIPTED_PROVIDER'");
     expect(debugEnvSource).toContain('configureDebugEnvRuntime');
     expect(indexSource).toContain('configureIpcHostRuntime({');
     expect(indexSource).toContain('debug: mainHostSkin.debug');
@@ -398,6 +400,7 @@ describe('main host skin/config boundary', () => {
     expect(mainIpcSource).not.toContain('configureDebugEnvRuntime(mainHostSkin.debug)');
     expect(genericDebugSources).not.toContain('WINDIE_DEBUG_');
     expect(genericDebugSources).not.toContain('WINDIE_DEV_UI');
+    expect(genericDebugSources).not.toContain('WINDIE_ENABLE_SCRIPTED_PROVIDER');
   });
 
   test('bundled runtime helpers use generic defaults instead of product reinstall copy', () => {

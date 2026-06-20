@@ -3,6 +3,7 @@
 const {
   configureDebugEnvRuntime,
   isDebugFlagEnabled,
+  isExactDebugFlagEnabled,
   resolveDebugEnvConfig,
 } = require('../../frontend/src/main/app/debug_env.cjs');
 const {
@@ -20,6 +21,7 @@ describe('main debug env runtime', () => {
       toolScreenshot: 'AGENT_DEBUG_TOOL_SCREENSHOT',
       liveSurface: 'AGENT_DEBUG_LIVE_SURFACE',
       ipcStdout: 'AGENT_DEBUG_IPC_STDOUT',
+      scriptedProvider: 'AGENT_ENABLE_SCRIPTED_PROVIDER',
     });
     expect(isDebugFlagEnabled('streamEvents', {
       AGENT_DEBUG_STREAM_EVENTS: '1',
@@ -41,5 +43,14 @@ describe('main debug env runtime', () => {
     expect(isDebugFlagEnabled('liveSurface', {
       WINDIE_DEBUG_LIVE_SURFACE: '0',
     })).toBe(false);
+    expect(isDebugFlagEnabled('scriptedProvider', {
+      WINDIE_ENABLE_SCRIPTED_PROVIDER: '1',
+    })).toBe(true);
+    expect(isExactDebugFlagEnabled('scriptedProvider', '1', {
+      WINDIE_ENABLE_SCRIPTED_PROVIDER: 'true',
+    })).toBe(false);
+    expect(isExactDebugFlagEnabled('scriptedProvider', '1', {
+      WINDIE_ENABLE_SCRIPTED_PROVIDER: '1',
+    })).toBe(true);
   });
 });

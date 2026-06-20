@@ -106,6 +106,7 @@ const debug = Object.freeze({
     ipcStdout: 'WINDIE_DEBUG_IPC_STDOUT',
     liveSurface: 'WINDIE_DEBUG_LIVE_SURFACE',
     localRuntimeStdout: 'WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT',
+    scriptedProvider: 'WINDIE_ENABLE_SCRIPTED_PROVIDER',
     startupStdout: 'WINDIE_DEBUG_STARTUP_STDOUT',
     streamEvents: 'WINDIE_DEBUG_STREAM_EVENTS',
     surfaceStdout: 'WINDIE_DEBUG_SURFACE_STDOUT',

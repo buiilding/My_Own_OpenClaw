@@ -9,6 +9,7 @@ const DEFAULT_DEBUG_ENV = Object.freeze({
   ipcStdout: 'AGENT_DEBUG_IPC_STDOUT',
   liveSurface: 'AGENT_DEBUG_LIVE_SURFACE',
   localRuntimeStdout: 'AGENT_DEBUG_LOCAL_RUNTIME_STDOUT',
+  scriptedProvider: 'AGENT_ENABLE_SCRIPTED_PROVIDER',
   startupStdout: 'AGENT_DEBUG_STARTUP_STDOUT',
   streamEvents: 'AGENT_DEBUG_STREAM_EVENTS',
   surfaceStdout: 'AGENT_DEBUG_SURFACE_STDOUT',
@@ -55,8 +56,15 @@ function isDebugFlagEnabled(flag, env = process.env, config = activeDebugEnvConf
   return isTruthyEnvFlag(env?.[envKey]);
 }
 
+function isExactDebugFlagEnabled(flag, expectedValue = '1', env = process.env, config = activeDebugEnvConfig) {
+  const envConfig = resolveDebugEnvConfig(config);
+  const envKey = envConfig[flag];
+  return String(env?.[envKey] || '').trim() === expectedValue;
+}
+
 module.exports = {
   configureDebugEnvRuntime,
   isDebugFlagEnabled,
+  isExactDebugFlagEnabled,
   resolveDebugEnvConfig,
 };

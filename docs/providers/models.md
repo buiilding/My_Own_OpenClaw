@@ -44,7 +44,10 @@ The scripted runtime is an exception for local dev-loop validation. The backend
 provider is always routable as `scripted` so selected dev sessions can execute
 it, but the desktop UI only appends the `Scripted Runtime` model row when
 `<windie> start dev` launches Electron with `WINDIE_ENABLE_SCRIPTED_PROVIDER=1`.
-This keeps packaged and customer starts from surfacing the deterministic model.
+The generic main-process helper reads the host-configured `scriptedProvider`
+debug flag, and the WindieOS host skin maps that flag to the current
+`WINDIE_ENABLE_SCRIPTED_PROVIDER` environment variable. This keeps packaged and
+customer starts from surfacing the deterministic model.
 
 Scripted chat commands are typed in the normal composer after selecting
 `Scripted` / `Scripted Runtime`:
