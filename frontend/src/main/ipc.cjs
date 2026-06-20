@@ -242,6 +242,9 @@ const {
   registerImageContextMenuHandler,
 } = require('./ipc/ipc_image_context_menu.cjs');
 const {
+  registerImageInteractionHandlers,
+} = require('./ipc/ipc_image_interaction_handlers.cjs');
+const {
   resolveActiveSurfaceDisplayAffinity,
   setActiveDisplayAffinity,
 } = require('./surfaces/display_affinity_runtime.cjs');
@@ -845,25 +848,16 @@ function initializeIpc(win, options = {}) {
     buildInstallAuthHeaders,
   });
 
-  registerClipboardImageHandler({
-    ipcMain,
-    clipboard,
-    nativeImage,
-    getTrustedImageOrigins: () => [
-      backendEndpointState.getHttpUrl(),
-      ...backendEndpointState.getCandidates().map((candidate) => candidate.httpUrl),
-    ],
-  });
-  registerImageContextMenuHandler({
+  registerImageInteractionHandlers({
     ipcMain,
     Menu,
     BrowserWindow,
     clipboard,
     nativeImage,
-    getTrustedImageOrigins: () => [
-      backendEndpointState.getHttpUrl(),
-      ...backendEndpointState.getCandidates().map((candidate) => candidate.httpUrl),
-    ],
+    registerClipboardImageHandler,
+    registerImageContextMenuHandler,
+    getBackendHttpUrl: () => backendEndpointState.getHttpUrl(),
+    getBackendCandidates: () => backendEndpointState.getCandidates(),
   });
 
   registerRendererDiagnosticsHandlers({

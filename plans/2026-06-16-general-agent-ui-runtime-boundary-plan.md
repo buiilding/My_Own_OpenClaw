@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Image Interaction Handler Boundary
+
+- Finding: `initializeIpc` registered clipboard image copy and image context
+  menu copy separately, duplicating the trusted backend artifact-origin callback
+  in the IPC composition root.
+- Change: added `ipc_image_interaction_handlers.cjs` to own shared image IPC
+  registration and trusted-origin callback construction while keeping Electron
+  OS primitives injected from the host boundary.
+- Validation: focused image-interaction coverage verifies backend endpoint and
+  candidate origin assembly, shared clipboard/context-menu policy injection,
+  and a source guard that keeps the duplicated origin callback out of
+  `ipc.cjs`.
+- Compatibility: no migration required. Channel names, clipboard/context-menu
+  behavior, trusted `/api/artifacts/...` validation, redirect/content-type/size
+  checks, backend endpoint state, storage, credentials, permissions, provider
+  policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Renderer Window Registry Boundary
 
 - Finding: `ipc_renderer_windows.cjs` owned renderer-window tracking and

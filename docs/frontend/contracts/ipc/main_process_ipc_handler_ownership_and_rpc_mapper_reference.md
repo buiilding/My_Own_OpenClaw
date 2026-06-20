@@ -22,6 +22,9 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
+- `frontend/src/main/ipc/ipc_image_interaction_handlers.cjs`
+- `frontend/src/main/ipc/ipc_clipboard_image.cjs`
+- `frontend/src/main/ipc/ipc_image_context_menu.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
@@ -99,10 +102,13 @@ Notable behavior:
   `ipc_artifact_handlers.cjs`; upload delegates to the shared artifact uploader,
   and protected image fetch ensures install auth before calling
   `ipc_artifact_fetch.cjs`
-- clipboard image copy and image context-menu copy share the same main-process
-  fetch policy: bounded `data:image/*` URLs are decoded locally; HTTP(S) fetches
-  are limited to trusted backend-origin `/api/artifacts/...` URLs, use manual
-  redirect validation, and require image content type plus bounded response size
+- clipboard image copy and image context-menu copy are registered by
+  `ipc_image_interaction_handlers.cjs`, which injects the same trusted backend
+  artifact-origin policy into `ipc_clipboard_image.cjs` and
+  `ipc_image_context_menu.cjs`; bounded `data:image/*` URLs are decoded
+  locally, while HTTP(S) fetches are limited to trusted backend-origin
+  `/api/artifacts/...` URLs, use manual redirect validation, and require image
+  content type plus bounded response size
 - helper-module split:
   - inbound backend message normalization/state/phase fan-out: `ipc_runtime_helpers.cjs`
   - renderer-window registration and broadcast fan-out: `ipc_renderer_windows.cjs`

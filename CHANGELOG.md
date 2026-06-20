@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move shared image IPC registration and trusted artifact-origin
+  callback wiring into `ipc_image_interaction_handlers.cjs`, preserving
+  clipboard image copy, native image context menu copy, backend artifact-origin
+  validation, and Electron OS primitive injection. No migration required.
 - main/ipc: move renderer-window set storage into the
   `ipc_renderer_windows.cjs` registry, preserving renderer tracking,
   close-pruning, late-window state sync, broadcast source exclusion, and test
