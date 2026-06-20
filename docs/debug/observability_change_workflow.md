@@ -34,7 +34,7 @@ Use this workflow before adding logs or diagnostic flags. Observability should p
   that can fail before a conversation or turn exists.
 - Keep verbose traces opt-in behind env flags, URL params, or test-only gates.
 - Do not log secrets, bearer tokens, API keys, install tokens, file contents, or full screenshots.
-- Do not write debug text to Python sidecar stdout. Python sidecar stdout is protocol traffic.
+- Do not write debug text to local-runtime Python stdout. Local-runtime Python stdout is protocol traffic.
 - Prefer structured fields such as `user_id`, `session_id`, `conversation_ref`, `turn_ref`, `request_id`, and `bundle_id` over long prose.
 - Redact or summarize payloads at trust boundaries.
 - Update [Diagnostic Flags](diagnostic_flags.md) when adding, renaming, or removing a flag.
@@ -149,7 +149,7 @@ Rules:
 
 - The signal belongs to the producing runtime.
 - Verbose output is gated.
-- Python sidecar stdout remains protocol-only.
+- Local-runtime Python stdout remains protocol-only.
 - Secrets and user data are redacted or omitted.
 - Diagnostic flags docs are updated for flag changes.
 - Tests cover gating or serialization when behavior changed.

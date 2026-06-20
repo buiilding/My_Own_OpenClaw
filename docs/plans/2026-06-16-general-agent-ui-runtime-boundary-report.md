@@ -12,11 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: runtime-node, transcript replay, desktop, concept,
-  docs-hub, workflow, architecture link-label, platform, debug, tool-catalog,
-  agent-architecture, and mobile-planning routes now describe the
-  local-runtime Python implementation node instead of Python sidecar owner
-  labels, with a focused docs boundary guard against those retired phrases.
+- Latest completed slice: docs hub, architecture, diagnostic flags,
+  observability, process health, and release-packaging routes now describe
+  local-runtime Python stdout, stderr, spawn readiness, hosted-helper clients,
+  and platform dependency diagnostics instead of Python sidecar process/log
+  owner labels, with a focused docs boundary guard against those retired
+  phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -245,6 +246,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Local-Runtime Python Diagnostic Process Labels
+
+- Finding: docs hub, architecture, diagnostic flags, observability, process
+  health, and release-packaging docs still used Python sidecar stdout, stderr,
+  spawn-readiness, hosted-helper-client, and platform dependency wording where
+  the reusable owner is the local-runtime Python implementation.
+- Change: routed those labels through local-runtime Python stdout/stderr,
+  spawn-readiness, hosted-helper-client, and platform dependency wording while
+  preserving concrete `sidecar_daemon.py`, `resources/python-runtime`,
+  env-flag, and packaged-runtime details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  diagnostic/process label scans, and diff checks.
+- Compatibility: no migration required. Runtime code, executable behavior,
+  JSON-RPC/daemon payloads, IPC payloads, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Runtime Node Local-Runtime Python Labels
 

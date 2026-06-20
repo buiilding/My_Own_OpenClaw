@@ -67,7 +67,7 @@ WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
 | `AGENT_ENABLE_SEMANTIC_SUMMARIZER=0` (`WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` in WindieOS launches) | Disables semantic summarizer for focused local-runtime debugging; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
 | `AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` (`WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` in WindieOS launches) | Prevents browser feature-pack auto-install while debugging availability; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
 
-Python sidecar stdout is protocol traffic. Never log debug text to stdout.
+Local-runtime Python stdout is protocol traffic. Never log debug text to stdout.
 
 ## VM Worker and Runs
 

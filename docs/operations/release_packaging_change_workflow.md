@@ -92,13 +92,13 @@ Start with the installed-app signal, not the dev app:
 
 | Failure | First evidence | Likely fix area |
 | --- | --- | --- |
-| App opens but local-runtime status never becomes ready | Packaged app logs, Python sidecar stderr, `resources/python-runtime` contents | runtime path resolver, runtime build script, runtime requirements |
+| App opens but local-runtime status never becomes ready | Packaged app logs, local-runtime Python stderr, `resources/python-runtime` contents | runtime path resolver, runtime build script, runtime requirements |
 | Works in `electron:dev` but not installed app | Compare source paths to `process.resourcesPath` paths | packaged path resolver or missing `extraResources` entry |
 | Backend websocket fails only in installed app | endpoint env/defaults and install auth token path | Electron endpoint forwarding, renderer app-runtime endpoint/status clients, local-runtime backend config |
 | Wakeword works in source mode but not package | wakeword model files and bridge launch logs | runtime asset prefetch, wakeword bridge, runtime requirements |
 | Browser works in source mode but package asks for Chromium unexpectedly | browser availability logs and Playwright cache path | packaged browser policy, feature-pack installer, system-browser detection |
 | macOS DMG-mounted app crashes but copied app works | `codesign`, `spctl`, smoke helper output | signing, hardened runtime entitlements, bundled Mach-O signing |
-| Linux AppImage misses input/window behavior | Python sidecar platform dependency warnings | Linux package dependency metadata, AppImage user dependency docs |
+| Linux AppImage misses input/window behavior | Local-runtime Python platform dependency warnings | Linux package dependency metadata, AppImage user dependency docs |
 
 ## Validation Matrix
 

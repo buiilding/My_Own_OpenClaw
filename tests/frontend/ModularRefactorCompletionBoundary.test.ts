@@ -1204,7 +1204,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime Python logs');
     expect(docText).toContain('local-runtime Python process');
     expect(docText).toContain('local-runtime Python readiness');
-    expect(docText).toContain('Python sidecar stdout is protocol traffic');
+    expect(docText).toContain('Local-runtime Python stdout is protocol traffic');
     expect(docText).toContain('Local-Runtime Python Logging Changes');
     expect(docText).toContain('local-runtime screenshot capture');
     expect(docText).toContain('<windie> diagnostics paths');
@@ -2644,6 +2644,12 @@ describe('modular sdk refactor completion boundary', () => {
         'Current implementation: Python sidecar',
         'the Python sidecar is the current concrete implementation',
         '[Python Sidecar]',
+        'Python sidecar stdout',
+        'Python sidecar stderr',
+        'Python sidecar spawn env/readiness',
+        'Python sidecar platform dependency warnings',
+        'Sidecar daemon entrypoint',
+        'Python sidecar hosted-helper HTTP clients',
         'Python sidecar unit test for the executable tool',
         'Python sidecar computer implementations',
         'Python sidecar scoped host bridge',

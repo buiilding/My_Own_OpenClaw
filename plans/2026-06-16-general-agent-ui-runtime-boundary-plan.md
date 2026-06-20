@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Python Diagnostic Process Labels
+
+- Finding: docs hub, architecture, diagnostic flags, observability, process
+  health, and release-packaging docs still used Python sidecar stdout, stderr,
+  spawn-readiness, hosted-helper-client, and platform dependency wording where
+  the reusable owner is the local-runtime Python implementation.
+- Change: routed those labels through local-runtime Python stdout/stderr,
+  spawn-readiness, hosted-helper-client, and platform dependency wording while
+  preserving concrete `sidecar_daemon.py`, `resources/python-runtime`,
+  env-flag, and packaged-runtime details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  diagnostic/process label scans, and diff checks.
+- Compatibility: no migration required. Runtime code, executable behavior,
+  JSON-RPC/daemon payloads, IPC payloads, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Runtime Node Local-Runtime Python Labels
 
 - Finding: runtime-node, transcript replay, desktop, concept, docs-hub,

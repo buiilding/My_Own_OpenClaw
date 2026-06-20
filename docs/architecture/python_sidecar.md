@@ -32,7 +32,7 @@ Release contract:
 - Python SDK callers import `AgentSdkClient` from the public `windie` package. The old `core` package re-export and `WindieSdkClient`/`WindieSdkAgentSession` aliases have been removed.
 
 **Key files:**
-- Sidecar daemon entrypoint: `frontend/src/main/python/sidecar_daemon.py`
+- Local-runtime Python daemon entrypoint: `frontend/src/main/python/sidecar_daemon.py`
 - LocalRuntimeService implementation: `frontend/src/main/python/local_backend.py`
 - Electron bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - Shared stdout writer: `frontend/src/main/python/core/stdout_json.py`
@@ -142,7 +142,7 @@ Local memory is backed by the local-runtime Python implementation:
   endpoint resolver into that generic env and `WINDIE_BACKEND_HTTP_URL`.
   Missing sidecar endpoint config fails fast instead of falling back to a
   hosted default.
-- Python sidecar hosted-helper HTTP clients do not parse Electron endpoint env
+- Local-runtime Python hosted-helper HTTP clients do not parse Electron endpoint env
   aliases or retry alternate backend URLs. Remote memory/title/summarization
   calls stay pinned to the injected backend endpoint.
 - Summarizer runs on a fixed interval, deduplicates via summary hashes, and updates `watermark_state.json` safely on shutdown

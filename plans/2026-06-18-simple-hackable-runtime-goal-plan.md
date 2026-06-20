@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime Python diagnostic/process label slice
+  by routing docs hub, architecture, diagnostic flags, observability, process
+  health, and release-packaging docs through local-runtime Python stdout,
+  stderr, spawn-readiness, hosted-helper-client, and platform dependency
+  wording instead of Python sidecar process/log labels. The slice preserved
+  concrete `sidecar_daemon.py`, `resources/python-runtime`, env flag, and
+  packaged-runtime details while extending the modular docs guard against the
+  retired phrases. Validation covered the focused modular docs boundary test,
+  docs listing, exact stale diagnostic/process label scans, and diff checks. No
+  migration required; no runtime code, executable behavior, JSON-RPC/daemon
+  payload, IPC payload, storage, credential, permission, hosted URL,
+  provider-policy, or trust-boundary behavior changed.
 - 2026-06-20: completed a runtime-node local-runtime Python label slice by
   routing runtime-node, transcript replay, desktop, concept, docs-hub,
   workflow, architecture link-label, tool-development, platform, debug,

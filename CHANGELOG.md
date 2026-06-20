@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route local-runtime Python stdout, stderr, spawn readiness,
+  hosted-helper client, and packaging diagnostic labels through local-runtime
+  Python wording instead of Python sidecar process/log labels. No migration
+  required.
 - docs(nodes): route runtime-node, transcript-storage, desktop-local-execution,
   workflow, link-label, debug, tool-catalog, development, mobile-planning, and
   concept docs through local-runtime Python implementation wording. No

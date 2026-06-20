@@ -63,8 +63,8 @@ First checks:
 Healthy signs:
 
 - local runtime bridge readiness probe succeeds.
-- Python sidecar stdout is valid JSON-RPC only.
-- Python sidecar stderr has no startup import/runtime errors.
+- Local-runtime Python stdout is valid JSON-RPC only.
+- Local-runtime Python stderr has no startup import/runtime errors.
 - `tools/registry.py` exposes expected tool names.
 
 First checks:
