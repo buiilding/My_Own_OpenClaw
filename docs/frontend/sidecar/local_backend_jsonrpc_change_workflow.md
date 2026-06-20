@@ -38,7 +38,7 @@ This workflow is narrower than the general [Local-Runtime Python Implementation 
 | Change request timeout or timeout error shape | SDK daemon client plus bridge timeout policy | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs` | SDK client tests and local-runtime bridge tests |
 | Change local-runtime readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, Python sidecar daemon tests |
 | Change memory method payloads | SDK local-runtime store plus Python memory mixin | SDK local-runtime store code, `frontend/src/main/python/local_backend_memory_handlers.py` | SDK local-runtime store tests, Python sidecar memory/conversation tests |
-| Change `execute_tool` behavior | SDK/main local tool runtime plus Python sidecar tool registry | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, Python sidecar tool tests |
+| Change `execute_tool` behavior | SDK/main local tool runtime plus local-runtime executable registry backed by Python sidecar modules | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, Python sidecar tool tests |
 | Change browser runtime install/warmup methods | main bridge helper plus local-runtime browser feature-pack handling | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py`, browser feature-pack helpers | browser runtime and local-runtime tests |
 | Change macOS automation permission method | main permission bridge plus Python sidecar platform helper | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py`, `frontend/src/main/python/local_backend.py` | permission IPC tests, macOS automation Python sidecar tests |
 
@@ -51,7 +51,7 @@ or local tool runtime code rather than the compiled mapper table.
 
 | Main-side entry | JSON-RPC method | Sidecar handler | Notes |
 | --- | --- | --- | --- |
-| scoped host channels / `executeToolForBackend(...)` | `execute_tool` | `_handle_execute_tool` | Runs local-runtime tools through the Python sidecar `ToolRegistry`; screenshot path may be materialized into backend artifacts by Electron main. |
+| scoped host channels / `executeToolForBackend(...)` | `execute_tool` | `_handle_execute_tool` | Runs local-runtime tools through the executable registry backed by Python sidecar modules; screenshot path may be materialized into backend artifacts by Electron main. |
 | `get-system-state` IPC | `get_system_state` | `_handle_get_system_state` | Returns system/window/runtime state; failure normalizes to `null` in main helper paths. |
 | status helper | `get_status` | `_handle_get_status` | Returns local-runtime diagnostic status through SDK runtime RPC. |
 | browser install helper | `install_browser_chromium` | `_handle_install_browser_chromium` | Main helper uses a long timeout for feature-pack/browser provisioning. |

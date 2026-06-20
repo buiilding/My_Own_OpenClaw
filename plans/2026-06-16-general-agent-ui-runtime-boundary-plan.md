@@ -122,15 +122,16 @@ Each completed slice should report:
 
 ### 2026-06-20 Tool Authoring Local-Runtime Registry Wording
 
-- Finding: the tool catalog matrix and development/MCP docs still used sidecar
-  local action, built-in Python sidecar tool, sidecar `ToolRegistry`, and Python
-  sidecar tool registry wording in public authoring/troubleshooting routes
-  after those routes moved to local-runtime executable manifest and registry
-  ownership.
+- Finding: the tool catalog matrix and development/MCP/JSON-RPC workflow docs
+  still used sidecar local action, built-in Python sidecar tool, sidecar
+  `ToolRegistry`, and Python sidecar tool registry wording in public
+  authoring/troubleshooting routes after those routes moved to local-runtime
+  executable manifest and registry ownership.
 - Change: updated those docs to name local-runtime executable actions,
   local-runtime executable tools, and local-runtime executable registries backed
   by Python sidecar modules; extended the modular docs guard against the retired
-  sidecar registry/action phrases.
+  sidecar registry/action phrases and aligned the `execute_tool` JSON-RPC
+  workflow row with the same owner.
 - Validation: focused modular docs boundary guard, docs search, related commit
   search, stale sidecar registry/action phrase scan, docs listing, and diff
   check.

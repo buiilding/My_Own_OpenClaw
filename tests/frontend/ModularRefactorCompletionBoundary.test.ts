@@ -756,6 +756,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/sidecar/README.md'),
       read('docs/frontend/sidecar/sidecar_daemon_runtime_reference.md'),
       read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
+      read('docs/frontend/sidecar/local_backend_jsonrpc_change_workflow.md'),
       read('docs/frontend/sidecar/tool_catalog_and_execution_model.md'),
       read('docs/frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md'),
       read('docs/gateway/websocket_connection_lifecycle.md'),
@@ -782,6 +783,12 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/tools/computer.md'),
       read('docs/sdk/conversation_runtime.md'),
       read('docs/architecture/extension_points.md'),
+    ])).join('\n');
+    const toolAuthoringRegistryDocText = (await Promise.all([
+      read('docs/development/mcp.md'),
+      read('docs/development/tool_development.md'),
+      read('docs/frontend/sidecar/local_backend_jsonrpc_change_workflow.md'),
+      read('docs/tools/tool_catalog_matrix.md'),
     ])).join('\n');
     const localRuntimePayloadDocText = (await Promise.all([
       read('docs/architecture/agent_visible_data_pipeline.md'),
@@ -948,10 +955,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('live local-runtime exposed set backed by the Python registry');
     expect(toolRoutingDocText).toContain('local-runtime exposed tool set backed by the Python sidecar registry');
     expect(toolRoutingDocText).toContain('local-runtime executable registry contains `browser`');
-    expect(toolRoutingDocText).toContain('not local-runtime executable actions');
-    expect(toolRoutingDocText).toContain('For built-in local-runtime executable tools');
-    expect(toolRoutingDocText).toContain('local-runtime executable registry');
-    expect(toolRoutingDocText).toContain('local-runtime executable tool registries backed by Python sidecar modules');
+    expect(toolAuthoringRegistryDocText).toContain('not local-runtime executable actions');
+    expect(toolAuthoringRegistryDocText).toContain('For built-in local-runtime executable tools');
+    expect(toolAuthoringRegistryDocText).toContain('local-runtime executable registry');
+    expect(toolAuthoringRegistryDocText).toContain('local-runtime executable registry backed by Python sidecar modules');
+    expect(toolAuthoringRegistryDocText).toContain('local-runtime executable tool registries backed by Python sidecar modules');
     expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
@@ -1017,10 +1025,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('live sidecar exposed set');
     expect(toolRoutingDocText).not.toContain('Python sidecar exposed-tool set');
     expect(toolRoutingDocText).not.toContain('Python sidecar exposed set');
-    expect(toolRoutingDocText).not.toContain('sidecar local actions');
-    expect(toolRoutingDocText).not.toContain('built-in Python sidecar tools');
-    expect(toolRoutingDocText).not.toContain('sidecar `ToolRegistry`');
-    expect(toolRoutingDocText).not.toContain('Python sidecar tool registries');
+    expect(toolAuthoringRegistryDocText).not.toContain('sidecar local actions');
+    expect(toolAuthoringRegistryDocText).not.toContain('built-in Python sidecar tools');
+    expect(toolAuthoringRegistryDocText).not.toContain('sidecar `ToolRegistry`');
+    expect(toolAuthoringRegistryDocText).not.toContain('Python sidecar tool registry');
+    expect(toolAuthoringRegistryDocText).not.toContain('Python sidecar tool registries');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');

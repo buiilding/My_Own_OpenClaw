@@ -240,14 +240,16 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ### 2026-06-20 Tool Authoring Local-Runtime Registry Wording
 
-- Finding: tool catalog and development docs still described backend-only
-  capabilities as not being sidecar local actions and sent tool visibility
-  troubleshooting through built-in Python sidecar tools, sidecar `ToolRegistry`,
-  and Python sidecar tool registries even though the reusable authoring route is
-  local-runtime executable manifest and registry ownership.
+- Finding: tool catalog, development, MCP, and JSON-RPC workflow docs still
+  described backend-only capabilities as not being sidecar local actions and
+  sent tool visibility troubleshooting through built-in Python sidecar tools,
+  sidecar `ToolRegistry`, and Python sidecar tool registries even though the
+  reusable authoring route is local-runtime executable manifest and registry
+  ownership.
 - Change: reworded the catalog, tool development, and MCP docs through
   local-runtime executable action, manifest, and registry labels while keeping
-  Python sidecar module paths visible as the current implementation detail.
+  Python sidecar module paths visible as the current implementation detail, and
+  aligned the `execute_tool` JSON-RPC workflow row with the same registry owner.
 - Validation: focused modular docs boundary guard, docs search, related commit
   search, stale sidecar registry/action phrase scan, docs listing, and diff
   check.
