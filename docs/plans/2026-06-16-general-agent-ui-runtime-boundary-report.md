@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `3ee4b2a56` (`test(backend): neutralize web search tool fixtures`)
-- Latest completed slice: main IPC tests now use neutral temp path samples
-  instead of WindieOS-flavored query AGENTS.md and persistence fixtures.
+- Latest inspected plan checkpoint: `cc468bb6c` (`test(main): neutralize ipc temp path fixtures`)
+- Latest completed slice: backend container config updater tests now use
+  neutral temp TTS path samples instead of WindieOS-flavored fixtures.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -105,6 +105,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   native source query propagation, and output formatting.
   Main IPC fixtures now use neutral temp paths while preserving local AGENTS.md
   query layer attachment and serialized desktop UI config/install-auth writes.
+  Backend container config updater fixtures now use neutral temp TTS paths while
+  preserving DI config rebinding through current registry/context owners.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7621,5 +7623,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   instead of WindieOS-flavored query AGENTS.md and persistence sample
   directories. Local AGENTS.md query layer attachment, serialized desktop UI
   config writes, serialized install-auth writes, IPC channels, storage,
+  permissions, hosted backend URLs, provider policy, and local-runtime behavior
+  are unchanged; no migration is required.
+- Backend container config updater fixture samples now use neutral
+  `project-alpha` temp TTS paths instead of WindieOS-flavored sample paths. DI
+  config rebinding, LLM client reinitialization, tool orchestrator
+  registry/context config resolution, model service config updates, credentials,
   permissions, hosted backend URLs, provider policy, and local-runtime behavior
   are unchanged; no migration is required.

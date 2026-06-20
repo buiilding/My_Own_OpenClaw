@@ -518,6 +518,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('/work/project-alpha');
   });
 
+  test('backend config updater tests keep temp path fixtures product-neutral', async () => {
+    const source = await read('tests/backend/test_container_config_updater.py');
+
+    expect(source).not.toContain('/tmp/windieos-test-tts');
+    expect(source).toContain('/tmp/project-alpha-test-tts');
+  });
+
   test('backend user-query sanitization tests keep desktop context fixtures product-neutral', async () => {
     const source = await read('tests/backend/test_agent_executor_user_query_sanitization.py');
 

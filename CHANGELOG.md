@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/backend: use neutral temp TTS path samples in container config updater
+  coverage instead of WindieOS-flavored fixture data, and assert updated config
+  through the tool orchestrator's registry/context owners. No migration required.
+
 - tests/main: use neutral temp path samples in IPC query AGENTS.md and
   persistence concurrency coverage instead of WindieOS-flavored fixture data. No
   migration required.

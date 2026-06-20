@@ -18684,3 +18684,18 @@ Each completed slice should report:
   serialized desktop UI config writes, serialized install-auth writes, IPC
   channels, storage, permissions, hosted backend URLs, provider policy, and
   local-runtime behavior are unchanged.
+
+### 2026-06-20 Backend config updater temp path fixture neutrality
+
+- Finding: backend container config updater tests exercise DI config rebinding
+  after config updates, but their temporary TTS model path values still used
+  WindieOS-flavored directory names as arbitrary config fixture data.
+- Change: switched those TTS model path fixture values to neutral
+  `project-alpha` temp paths and extended the modular boundary guard so the
+  retired product-shaped TTS path stays out of backend config updater coverage.
+- Validation: focused backend container config updater and modular boundary
+  tests; exact retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. DI config rebinding, LLM client
+  reinitialization, tool orchestrator registry/context config resolution, model
+  service config updates, credentials, permissions, hosted backend URLs,
+  provider policy, and local-runtime behavior are unchanged.

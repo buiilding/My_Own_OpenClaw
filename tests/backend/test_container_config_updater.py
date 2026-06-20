@@ -60,7 +60,7 @@ async def test_update_config_rebinds_di_config_consumers(monkeypatch) -> None:
         memory_enabled=False,
         ocr_backend="disabled",
         vision_backend="disabled",
-        tts_model_path="/tmp/windieos-test-tts-initial",
+        tts_model_path="/tmp/project-alpha-test-tts-initial",
     )
     config_manager = ConfigManager()
     config_manager._config = initial_config
@@ -79,7 +79,7 @@ async def test_update_config_rebinds_di_config_consumers(monkeypatch) -> None:
         initial_config.model_copy(
             update={
                 "llm_timeout": 222,
-                "tts_model_path": "/tmp/windieos-test-tts-updated",
+                "tts_model_path": "/tmp/project-alpha-test-tts-updated",
             }
         )
     )
@@ -90,7 +90,9 @@ async def test_update_config_rebinds_di_config_consumers(monkeypatch) -> None:
     assert container._di_container.core.config() is updated_config
     assert container.llm_client.config is updated_config
     assert captured_llm_configs[-1] is updated_config
-    assert container._di_container.tool_orchestrator().config is updated_config
+    tool_orchestrator = container._di_container.tool_orchestrator()
+    assert tool_orchestrator.tool_registry.config is updated_config
+    assert tool_orchestrator.context_factory.config is updated_config
     assert container.model_service.config is updated_config
 
 
