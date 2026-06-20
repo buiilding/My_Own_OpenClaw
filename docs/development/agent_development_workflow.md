@@ -85,7 +85,7 @@ Keep each patch around one behavior boundary:
 - renderer UI state plus renderer tests
 - docs-only routing update plus docs listing/link checks
 
-Widen only when the boundary requires it, for example a tool schema change that must update backend schema, sidecar registry, renderer result handling, docs, and parity tests.
+Widen only when the boundary requires it, for example a tool schema change that must update backend schema, SDK/main local-runtime dispatch, local-runtime executable registry implementation, renderer projection handling, docs, and parity tests.
 
 ## 6. Validation
 

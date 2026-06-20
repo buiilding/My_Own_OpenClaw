@@ -675,6 +675,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/desktop/artifact_change_workflow.md'),
       read('docs/backend/agent/tool_turn_change_workflow.md'),
       read('docs/development/agent_architecture_reference.md'),
+      read('docs/development/agent_development_workflow.md'),
       read('docs/development/agent_routing_quick_cards.md'),
       read('docs/development/agent_runtime_ownership_and_change_routing.md'),
       read('docs/development/README.md'),
@@ -830,6 +831,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime MCP `tools/call` execution');
     expect(docText).toContain('Local-runtime Python tool implementation');
     expect(docText).toContain('local-runtime transcript store backed by Python sidecar modules');
+    expect(docText).toContain('SDK/main local-runtime dispatch, local-runtime executable registry implementation');
     expect(docText).toContain('Python sidecar tests for implementation parity');
     expect(docText).toContain('The local runtime owns local tool execution');
     expect(docText).toContain('Local runtime implementation');
@@ -878,6 +880,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Python sidecar local tool');
     expect(docText).not.toContain('sidecar transcript store');
     expect(docText).not.toContain('sidecar local transcript DB');
+    expect(docText).not.toContain('backend schema, sidecar registry, renderer result handling');
     expect(docText).not.toContain('routes it to the sidecar');
     expect(docText).not.toContain('Tool result reaches frontend but model does not continue');
     expect(docText).not.toContain('The sidecar sends MCP `tools/call`');

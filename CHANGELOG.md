@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/development: route the agent development workflow's tool-schema
+  widening example through SDK/main local-runtime dispatch, local-runtime
+  executable registry implementation, and renderer projection handling instead
+  of sidecar registry plus renderer result handling. No migration required.
 - docs/providers: replace the stale Kimi frontend validation command's deleted
   `ApiClient.test.ts` entry with the current renderer ApiClient boundary guard.
   No migration required.

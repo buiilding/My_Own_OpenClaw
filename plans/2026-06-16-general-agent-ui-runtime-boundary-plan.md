@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Agent Development Tool-Schema Widening Boundary
+
+- Finding: the agent development workflow still used a tool schema widening
+  example that named sidecar registry and renderer result handling as the
+  cross-runtime route, even though the active path runs through backend schema,
+  SDK/main local-runtime dispatch, local-runtime executable registry
+  implementation, and renderer projection handling.
+- Change: updated that example to use the current owner boundaries and extended
+  the modular docs guard against the stale sidecar-registry/renderer-result
+  route.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale workflow phrase scan, docs listing, and diff check.
+- Compatibility: no migration required. Tool schemas, executable registry
+  behavior, SDK/main dispatch, renderer projections, IPC channels, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Kimi Provider Frontend Validation Route Cleanup
 
 - Finding: the Kimi provider doc still referenced the deleted

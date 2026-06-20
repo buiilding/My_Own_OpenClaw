@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: updated the agent development workflow's tool-schema widening
+  example to route through backend schema, SDK/main local-runtime dispatch,
+  local-runtime executable registry implementation, and renderer projection
+  handling instead of sidecar registry plus renderer result handling. Validation
+  covered the modular docs boundary guard, docs search, related commit search,
+  stale workflow phrase scan, docs listing, and diff check. No migration
+  required; tool schemas, executable registry behavior, SDK/main dispatch,
+  renderer projections, IPC channels, storage, credentials, permissions,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-20: replaced the Kimi provider doc's deleted `ApiClient.test.ts`
   frontend validation route with the current `RendererApiClientBoundary.test.ts`
   guard and added that provider doc to the guard input set. Validation covered

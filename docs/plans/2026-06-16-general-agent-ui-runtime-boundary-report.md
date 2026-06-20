@@ -238,6 +238,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Agent Development Tool-Schema Widening Boundary
+
+- Finding: `docs/development/agent_development_workflow.md` still used a tool
+  schema widening example that routed work through sidecar registry and
+  renderer result handling, even though the active cross-runtime path is
+  backend schema, SDK/main local-runtime dispatch, local-runtime executable
+  registry implementation, and renderer projection handling.
+- Change: reworded that workflow example through the current owner boundaries
+  and extended the modular docs guard so the old sidecar-registry/renderer
+  result route stays retired.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale workflow phrase scan, docs listing, and diff check.
+- Compatibility: no migration required. Tool schemas, executable registry
+  behavior, SDK/main dispatch, renderer projections, IPC channels, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Kimi Provider Frontend Validation Route Cleanup
 
 - Finding: `docs/providers/kimi_coding.md` still listed the deleted
