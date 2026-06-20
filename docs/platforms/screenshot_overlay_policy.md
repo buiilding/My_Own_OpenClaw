@@ -27,7 +27,7 @@ short lease around SDK-local screenshot execution:
 
 1. SDK calls Electron's local tool lifecycle immediately before `screenshot`.
 2. Electron main enables content protection for WindieOS overlay windows.
-3. The sidecar screenshot runs.
+3. The local-runtime screenshot task runs.
 4. Electron main disables content protection in the release callback.
 
 ## Owner Files

@@ -217,7 +217,7 @@ Validation sequence:
 | screenshot hide/restore | `tests/frontend/LocalRuntimeWindowVisibility.test.cjs` |
 | overlay phase latching | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
 | permission probe or grant | `tests/frontend/PermissionService.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs` |
-| sidecar screenshot | `tests/sidecar/test_screenshot_tool.py` |
+| local-runtime screenshot implementation | `tests/sidecar/test_screenshot_tool.py` |
 | sidecar input tools | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_scroll_tool.py` |
 | window manager | `tests/sidecar/test_macos_window_manager.py`, `tests/sidecar/test_windows_window_manager.py`, `tests/sidecar/test_linux_window_manager.py`, `tests/sidecar/test_platform_module_selection.py` |
 | packaged runtime | target OS package command and smoke helper |

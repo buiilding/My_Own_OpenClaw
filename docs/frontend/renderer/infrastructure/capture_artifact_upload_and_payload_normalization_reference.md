@@ -1,7 +1,7 @@
 ---
 summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, removed/deleted renderer `ArtifactUploader`/`ToolExecutionPayloads`/formatter helpers, `RuntimeEndpointStore` artifact URL handling behind the desktop artifact runtime client, tool payload field filtering, and content-type normalization contracts."
 read_when:
-  - When changing screenshot/system-state capture timing, display-bounds injection, or sidecar screenshot data handling.
+  - When changing screenshot/system-state capture timing, display-bounds injection, or local-runtime screenshot data handling.
   - When changing renderer artifact URL base sync, `RuntimeEndpointStore`, `setRuntimeEndpointHttpUrl`, `buildRuntimeArtifactUrl`, `DesktopArtifactRuntimeClient.buildArtifactUrl`, or backend endpoint propagation into artifact display URLs.
   - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `output`, `capture_meta`) before backend relay.
   - When searching for removed or deleted renderer capture/upload/formatter helpers such as `ArtifactUploader`, `ToolScreenshotDebugTrace`, `ScreenshotAttachmentPipeline`, `CapturePayloadUtils`, `MessageFormatter`, `ToolExecutionPayloads.ts`, or `ToolExecutionBackendPayload.ts`.
@@ -146,7 +146,7 @@ Current ownership:
 - SDK/main owns query screenshot resource resolution, post-action screenshot
   capture, shared visual-resource materialization, and backend-bound screenshot
   refs.
-- Electron main owns sidecar screenshot invocation, selected-display bounds
+- Electron main owns local-runtime screenshot invocation, selected-display bounds
   injection, local screenshot temp-path validation, upload fallback behavior,
   cleanup, and local bridge result normalization.
 - Renderer infrastructure owns artifact URL display helpers only

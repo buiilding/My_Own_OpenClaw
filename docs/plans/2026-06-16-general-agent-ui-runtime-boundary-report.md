@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: communication-flow arrows and memory debugging notes
-  now use readable ASCII runtime-flow text instead of mojibake encoding
-  artifacts.
+- Latest completed slice: screenshot capture and tool lifecycle docs now route
+  through local-runtime screenshot wording instead of sidecar screenshot owner
+  labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -240,6 +240,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   through SDK/renderer consumers.
 
 ## Inspection Log
+
+### 2026-06-20 Local-Runtime Screenshot Label Follow-Up
+
+- Finding: coordinate-resolution, artifact payload, platform, screenshot
+  overlay, and tool lifecycle docs still used sidecar screenshot labels for
+  reusable local-runtime capture behavior.
+- Change: routed those references through local-runtime screenshot result,
+  invocation, task, implementation, and tool wording, and added modular docs
+  guards for the retired sidecar screenshot phrases.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  screenshot-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, screenshot capture
+  behavior, capture metadata, IPC payloads, tool-result payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
 
 ### 2026-06-20 Communication Flow Mojibake Cleanup
 

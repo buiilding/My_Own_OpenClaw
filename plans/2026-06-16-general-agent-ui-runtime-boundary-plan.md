@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Screenshot Label Follow-Up
+
+- Finding: coordinate-resolution, artifact payload, platform, screenshot
+  overlay, and tool lifecycle docs still used sidecar screenshot labels for
+  reusable local-runtime capture behavior.
+- Change: routed those references through local-runtime screenshot result,
+  invocation, task, implementation, and tool wording, and added modular docs
+  guards for the retired sidecar screenshot phrases.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  screenshot-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, screenshot capture
+  behavior, capture metadata, IPC payloads, tool-result payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 ### 2026-06-20 Communication Flow Mojibake Cleanup
 
 - Finding: `docs/architecture/communication_flow.md` still contained mojibake

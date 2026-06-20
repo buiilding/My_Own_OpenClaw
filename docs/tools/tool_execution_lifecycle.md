@@ -121,7 +121,7 @@ Tool execution can produce image context in several ways:
 - mouse/keyboard/scroll actions may return post-action screenshots depending on executor behavior.
 - browser screenshots come from dedicated browser runtime.
 - SDK/main local-runtime dispatch may upload or preserve local image refs before returning a tool result.
-- The sidecar screenshot tool returns inline JPEG base64 in `data.screenshot`;
+- The local-runtime screenshot tool returns inline JPEG base64 in `data.screenshot`;
   the SDK local tool-output event hoists screenshot fields from `data` onto the
   event payload for display rows.
 - The same SDK `tool-result` payload sends `data.screenshot` and
@@ -130,7 +130,7 @@ Tool execution can produce image context in several ways:
   image context while keeping UI display owned by the SDK local output event.
 
 Prefer file or artifact refs for large binary payloads when the runtime has a
-stable materialization path. The sidecar screenshot tool is the current explicit
+stable materialization path. The local-runtime screenshot tool is the current explicit
 exception: it returns inline JPEG base64 so SDK-owned local output display works
 without reviving the old Electron-only screenshot materializer.
 

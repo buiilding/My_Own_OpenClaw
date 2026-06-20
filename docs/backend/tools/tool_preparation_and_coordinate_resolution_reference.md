@@ -206,7 +206,7 @@ If `mouse_control` executes wrong location:
 
 1. inspect `coordinate_contract` metadata (source, crop, normalized coords, status)
 2. verify click used the same `coordinate_resolution_screenshot_id` as current frame
-3. verify sidecar screenshot result included frame-local `capture_meta`
+3. verify local-runtime screenshot result included frame-local `capture_meta`
 
 If OCR ambiguity retries are inconsistent:
 

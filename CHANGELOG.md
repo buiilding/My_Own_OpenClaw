@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route screenshot capture, overlay policy, coordinate-resolution,
+  artifact payload, and tool lifecycle docs through local-runtime screenshot
+  wording instead of sidecar screenshot owner labels. No migration required.
 - docs/architecture: replace mojibake communication-flow arrows and memory
   debugging quotes with ASCII runtime-flow text, and guard the core
   architecture flow docs from unreadable encoding artifacts. No migration

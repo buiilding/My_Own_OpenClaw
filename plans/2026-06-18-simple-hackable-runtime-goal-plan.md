@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime screenshot label follow-up by routing
+  coordinate-resolution, artifact payload, platform, screenshot overlay, and
+  tool lifecycle docs through local-runtime screenshot result, invocation,
+  task, implementation, and tool wording instead of sidecar screenshot owner
+  labels. Validation covered the focused modular docs boundary test, docs
+  listing, exact stale screenshot-label scan, and diff check. No migration
+  required; runtime code, screenshot capture behavior, capture metadata, IPC
+  payloads, tool-result payloads, storage, credentials, permissions, hosted
+  backend URLs, provider policy, and trust boundaries are unchanged.
+
 - 2026-06-20: completed a communication-flow mojibake cleanup slice by
   replacing unreadable user-query, tool-execution, error-flow, and transport
   arrows plus memory debugging quotes with ASCII runtime-flow text. Validation
