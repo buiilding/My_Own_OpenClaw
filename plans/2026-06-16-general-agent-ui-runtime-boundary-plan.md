@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Backend Client Settings Patch Guard Docs Route
+
+- Finding: the backend validation reference title and content already used
+  client settings patch ownership, but the docs filename and backlinks still
+  exposed the older `frontend_patch_guard` route.
+- Change: renamed the reference route to
+  `input_validation_and_client_settings_patch_guard_reference.md`, updated
+  backlinks, and added a backend guardrail that the old route stays removed.
+- Validation: passed focused backend runtime architecture guardrail test, docs
+  listing/link validation, stale retired route scan, and diff check.
+- Compatibility: no migration required. Documentation paths changed only inside
+  repo docs; backend validation code, client settings patch field behavior,
+  API payloads, renderer settings sync, storage, credentials, permissions,
+  provider policy, and hosted URLs are unchanged.
+
 ### 2026-06-20 Backend Tool Result Transformer Output Ownership Wording
 
 - Finding: the backend result transformer reference still described

@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/docs: rename the input validation docs route from frontend patch
+  guard to client settings patch guard and update backlinks. No migration
+  required.
 - backend/docs: route `ToolResult.format_for_history` pass-through wording
   through SDK/local-runtime output ownership instead of frontend-owned output.
   No migration required.

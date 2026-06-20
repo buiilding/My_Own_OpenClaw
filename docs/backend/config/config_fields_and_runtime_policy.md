@@ -169,7 +169,7 @@ Validated by `ClientSettingsPatch` in `backend/src/core/validation/validators.py
 
 Deep validation reference:
 
-- [Input Validation and Client Settings Patch Guard Reference](../core/validation/input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard Reference](../core/validation/input_validation_and_client_settings_patch_guard_reference.md)
 
 Allowed patch keys only:
 

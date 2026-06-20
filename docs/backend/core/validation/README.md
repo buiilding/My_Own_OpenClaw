@@ -10,7 +10,7 @@ title: "Backend Core Validation Docs Hub"
 
 ## Deep Pages
 
-- [Input Validation and Client Settings Patch Guard Reference](input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard Reference](input_validation_and_client_settings_patch_guard_reference.md)
 
 ## Code Scope
 

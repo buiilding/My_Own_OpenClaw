@@ -143,3 +143,18 @@ def test_tool_result_transformer_docs_use_sdk_local_runtime_output_wording():
 
     assert "preformatted SDK/local-runtime" in transformer_reference
     assert "preformatted frontend `output`" not in transformer_reference
+
+
+def test_client_settings_patch_guard_doc_path_uses_client_settings_wording():
+    validation_docs_dir = REPO_ROOT / "docs/backend/core/validation"
+    new_reference = (
+        validation_docs_dir
+        / "input_validation_and_client_settings_patch_guard_reference.md"
+    )
+    old_reference = (
+        validation_docs_dir
+        / f"input_validation_and_{'frontend'}_patch_guard_reference.md"
+    )
+
+    assert new_reference.exists()
+    assert not old_reference.exists()

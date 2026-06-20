@@ -62,7 +62,7 @@ Do not add a generic "run privileged action" channel. Add a narrow channel with 
 
 Read:
 
-- [Input Validation and Client Settings Patch Guard](../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard](../backend/core/validation/input_validation_and_client_settings_patch_guard_reference.md)
 - [Backend API and Transport](../backend/api/api_and_transport.md)
 - [Backend Contracts Docs Hub](../backend/contracts/README.md)
 

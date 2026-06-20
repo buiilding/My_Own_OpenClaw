@@ -249,7 +249,7 @@ Read:
 
 - [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md)
 - [Provider Change Workflow](../providers/provider_change_workflow.md)
-- [Input Validation and Client Settings Patch Guard](../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard](../backend/core/validation/input_validation_and_client_settings_patch_guard_reference.md)
 
 Edit:
 

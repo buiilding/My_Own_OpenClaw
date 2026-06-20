@@ -200,8 +200,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   conditional protocol sends now live behind the desktop voice runtime client.
   Backend result-transformer docs now describe tool-output pass-through as
   SDK/local-runtime owned instead of frontend-owned.
+  Backend validation docs now route the input validation/client settings patch
+  guard through a client-settings-named docs path instead of the retired
+  frontend-named patch guard path.
 
 ## Inspection Log
+
+### 2026-06-20 Backend Client Settings Patch Guard Docs Route
+
+- Finding: the backend validation reference title and content already used
+  client settings patch ownership, but the docs filename and backlinks still
+  exposed the older `frontend_patch_guard` route.
+- Change: renamed the reference route to
+  `input_validation_and_client_settings_patch_guard_reference.md`, updated
+  backlinks, and added a backend guardrail that the old route stays removed.
+- Validation: passed focused backend runtime architecture guardrail test, docs
+  listing/link validation, stale retired route scan, and diff check.
+- Compatibility: no migration required. Documentation paths changed only inside
+  repo docs; backend validation code, client settings patch field behavior,
+  API payloads, renderer settings sync, storage, credentials, permissions,
+  provider policy, and hosted URLs are unchanged.
 
 ### 2026-06-20 Backend Tool Result Transformer Output Ownership Wording
 
