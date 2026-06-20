@@ -18109,3 +18109,20 @@ Each completed slice should report:
   behavior, SDK package exports, display/rehydrate projections, storage schemas,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
+
+### 2026-06-20 Mock backend E2E test route rename
+
+- Finding: the SDK mock-backend E2E test already uses `AgentClient` and generic
+  Agent SDK wording, but the focused test route and package-boundary list still
+  used the product-branded `WindieSdkMockBackendE2E` filename.
+- Change: renamed the focused test to
+  `tests/frontend/AgentSdkMockBackendE2E.test.ts`, updated package-boundary
+  references, and extended the modular route guard so the generic route exists
+  while the retired branded route stays absent.
+- Validation: focused Agent SDK mock-backend E2E test, SDK package boundary
+  test, modular docs boundary test, exact old-route scan, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Runtime code, mock backend behavior,
+  SDK websocket flow, local-runtime tool-result return, conversation storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.

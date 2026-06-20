@@ -309,6 +309,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureText).not.toContain('sidecar-backed SDK store');
     expect(architectureText).not.toContain('SDK desktop agent');
     expect(architectureText).not.toContain(`SDK desktop-${'agent'}`);
+    await expect(pathExists('tests/frontend/AgentSdkMockBackendE2E.test.ts')).resolves.toBe(true);
+    await expect(pathExists('tests/frontend/WindieSdkMockBackendE2E.test.ts')).resolves.toBe(false);
     await expect(pathExists('tests/frontend/AgentSdkFileConversationStore.test.ts')).resolves.toBe(true);
     await expect(pathExists('tests/frontend/WindieSdkFileConversationStore.test.ts')).resolves.toBe(false);
     await expect(pathExists('tests/frontend/AgentSdkModelSelection.test.ts')).resolves.toBe(true);

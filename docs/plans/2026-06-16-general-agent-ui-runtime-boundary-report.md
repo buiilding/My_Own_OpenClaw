@@ -7379,3 +7379,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   display/rehydrate projections, storage schemas, credentials, permissions,
   hosted backend URLs, and provider policy are unchanged; no migration is
   required.
+- The SDK mock-backend E2E focused test now lives at
+  `tests/frontend/AgentSdkMockBackendE2E.test.ts`, with package-boundary
+  references routed to the generic Agent SDK E2E route. Runtime code, mock
+  backend behavior, SDK websocket flow, local-runtime tool-result return,
+  conversation storage, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged; no migration is required.

@@ -65,7 +65,7 @@ describe('@windie/sdk package boundary', () => {
       'tests/frontend/WindieSdkClient.test.ts',
       'tests/frontend/WindieSdkConversationRuntime.test.ts',
       'tests/frontend/AgentSdkFileConversationStore.test.ts',
-      'tests/frontend/WindieSdkMockBackendE2E.test.ts',
+      'tests/frontend/AgentSdkMockBackendE2E.test.ts',
     ];
 
     for (const relativePath of sdkTestFiles) {

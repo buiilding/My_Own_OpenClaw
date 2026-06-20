@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: rename the SDK mock-backend E2E focused test to
+  `AgentSdkMockBackendE2E.test.ts` and update package-boundary references to
+  the generic route. No migration required.
 - tests/frontend: rename the SDK file conversation store focused test to
   `AgentSdkFileConversationStore.test.ts` and update active docs/package-boundary
   references to the generic route. No migration required.
