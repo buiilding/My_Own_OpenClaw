@@ -5414,3 +5414,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Sidecar-backed tool/runtime hub headings and link labels now use
   local-runtime implementation wording, while concrete Python sidecar daemon,
   JSON-RPC, registry, protocol, and packaging references remain explicit.
+- Main local-runtime lifecycle workflow now describes generic daemon ownership,
+  packaged local-runtime Python launch options, packaged local-runtime
+  behavior, and local-runtime binary paths while preserving concrete
+  `sidecar_daemon.py` implementation breadcrumbs.

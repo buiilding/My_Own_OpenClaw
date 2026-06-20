@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Local-Runtime Lifecycle Docs Boundary
+
+- Finding: the main local-runtime process lifecycle workflow still described
+  generic daemon startup/reuse, SDK lifetime ownership, and packaged launch
+  behavior with sidecar-owned wording, even though Electron main should read as
+  a generic host that passes launch facts to the SDK local runtime.
+- Change: reworded the workflow through configured local-runtime daemon
+  ownership, packaged local-runtime Python launch options, packaged
+  local-runtime behavior, and local-runtime binary path language while
+  preserving concrete `sidecar_daemon.py` implementation breadcrumbs where the
+  current process name matters.
+- Validation: passed focused modular docs boundary test, docs listing, stale
+  lifecycle phrase scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK local-runtime
+  startup/reuse behavior, packaged paths, launch env/context payloads, IPC
+  channels, storage, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-20 SDK Active Sidecar Wording Boundary
 
 - Finding: active SDK docs still used sidecar-facing wording for OCR/vision

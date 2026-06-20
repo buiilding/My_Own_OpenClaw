@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/main: route the local-runtime lifecycle workflow through generic daemon
+  ownership and packaged local-runtime Python launch wording instead of
+  sidecar-owned lifecycle phrasing. No migration required.
 - sdk/docs: remove remaining sidecar-facing active wording from SDK runtime,
   conversation, and OCR/vision docs so public SDK contracts route through
   local-runtime processes and implementation-specific env aliases. No migration

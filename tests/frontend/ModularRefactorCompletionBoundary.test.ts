@@ -1179,6 +1179,22 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('title: "Sidecar Runtime Change Workflow"');
   });
 
+  test('main local-runtime lifecycle workflow keeps daemon ownership generic', async () => {
+    const lifecycleWorkflow = await read('docs/frontend/main/local_backend/process_lifecycle_change_workflow.md');
+
+    expect(lifecycleWorkflow).toContain('configured local-runtime daemon');
+    expect(lifecycleWorkflow).toContain('The SDK owns local-runtime daemon lifetime');
+    expect(lifecycleWorkflow).toContain('packaged local-runtime Python launch options');
+    expect(lifecycleWorkflow).toContain('Packaged local-runtime behavior');
+    expect(lifecycleWorkflow).toContain('| Local-runtime binary path |');
+    expect(lifecycleWorkflow).not.toContain('packaged Python sidecar launch');
+    expect(lifecycleWorkflow).not.toContain('start/reuse the Python sidecar daemon');
+    expect(lifecycleWorkflow).not.toContain('The SDK owns sidecar daemon lifetime');
+    expect(lifecycleWorkflow).not.toContain('Packaged sidecar behavior');
+    expect(lifecycleWorkflow).not.toContain('| Sidecar binary path |');
+    expect(lifecycleWorkflow).not.toContain('before changing Python sidecar code');
+  });
+
   test('browser contract docs route shared validation through the local runtime boundary', async () => {
     const docs = await Promise.all([
       read('docs/README.md'),

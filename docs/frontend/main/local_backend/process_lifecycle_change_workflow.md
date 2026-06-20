@@ -1,14 +1,14 @@
 ---
 summary: "Workflow for changing WindieOS SDK-owned local-runtime daemon lifecycle, readiness status, helper RPC routing, packaged launch options, and renderer readiness consumers."
 read_when:
-  - When changing desktop local-runtime daemon startup, shutdown, readiness status broadcasts, helper RPC routing, or packaged Python sidecar launch options.
-  - When debugging local-runtime startup failures, `local-runtime-status` drift, browser controls waiting forever, SDK local-runtime `/rpc` failures, or packaged Python sidecar launch failures.
+  - When changing desktop local-runtime daemon startup, shutdown, readiness status broadcasts, helper RPC routing, or packaged local-runtime Python launch options.
+  - When debugging local-runtime startup failures, `local-runtime-status` drift, browser controls waiting forever, SDK local-runtime `/rpc` failures, or packaged local-runtime Python launch failures.
 title: "SDK-Owned Local Runtime Lifecycle Change Workflow"
 ---
 
 # Local Runtime Process Lifecycle Change Workflow
 
-Use this workflow when desktop needs to start/reuse the Python sidecar daemon,
+Use this workflow when desktop needs to start/reuse the configured local-runtime daemon,
 report readiness, or route Electron helper calls through the SDK local runtime.
 Use [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md)
 for method registration and payload-shape changes after the daemon is reachable.
@@ -29,7 +29,7 @@ flowchart LR
   SDKProvider --> Rpc["SDK AgentLocalRuntimeHttpClient /rpc"]
 ```
 
-The SDK owns sidecar daemon lifetime and RPC unwrapping. Electron main owns only
+The SDK owns local-runtime daemon lifetime and RPC unwrapping. Electron main owns only
 desktop launch facts, host window/screenshot/artifact behavior, and renderer
 readiness/status broadcasts.
 
@@ -41,7 +41,7 @@ readiness/status broadcasts.
 | Supervisor state | `frontend/src/main/sidecar/local_runtime_supervisor.cjs` | Tracks renderer-visible daemon status, ready flag, generation, and last error. |
 | Launch options | `frontend/src/main/sidecar/local_runtime_launch_options.cjs` | Resolves desktop daemon command/args/cwd/env/launch context before passing them to the SDK. |
 | Timeout policy | `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs` | Defines default and browser-specific request timeout tiers. |
-| Launch target resolution | `frontend/src/main/app/runtime_paths.cjs` | Chooses packaged sidecar binary, packaged Python runtime, source `.py`, or configured Python executable. |
+| Launch target resolution | `frontend/src/main/app/runtime_paths.cjs` | Chooses packaged local-runtime binary, packaged Python runtime, source `.py`, or configured Python executable. |
 | Endpoint/env inputs | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs` | Resolves backend URL/env and normalizes `NODE_OPTIONS`. |
 | Renderer readiness store | `frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore.js` | Bootstraps current status and subscribes to `local-runtime-status` events. |
 | Browser readiness consumer | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` | Gates browser session sync and controls on local-runtime readiness. |
@@ -98,19 +98,19 @@ If a new lifecycle state is added, update the supervisor tests, renderer normali
 
 ## Packaged App Rules
 
-Packaged sidecar behavior is different from source mode and must be validated separately when changed.
+Packaged local-runtime behavior is different from source mode and must be validated separately when changed.
 
 | Area | Required behavior |
 | --- | --- |
 | Missing bundled runtime | SDK launch option construction fails closed with reinstall guidance. |
 | Python runtime env | Set Python isolation variables and delete `PYTHONPATH` when packaged Python runtime is used. |
 | Browser feature pack autoinstall | Disabled in packaged mode, enabled in source mode unless explicitly overridden. |
-| Sidecar binary path | Prefer packaged binary when present before falling back to Python runtime. |
+| Local-runtime binary path | Prefer packaged binary when present before falling back to Python runtime. |
 | User-facing errors | Avoid machine-specific stack traces; use actionable runtime or reinstall guidance. |
 
 If a source-mode change works but packaged mode fails, inspect
 `runtime_paths.cjs`, Electron Builder file inclusion, and the `autoLocalRuntime` env
-passed to the SDK provider before changing Python sidecar code.
+passed to the SDK provider before changing local-runtime Python code.
 
 ## Renderer Consumer Rules
 
