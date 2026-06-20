@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: local-runtime service hubs now describe
-  local-runtime Python service startup/framing and daemon docs instead of
-  sidecar service/daemon hub labels, with a focused docs boundary guard
+- Latest completed slice: architecture and platform workflow docs now route
+  drag/tool execution through local-runtime Python/local-runtime wording
+  instead of sidecar execution labels, with a focused docs boundary guard
   against those retired phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
@@ -244,6 +244,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Local-Runtime Execution Labels
+
+- Finding: architecture and platform workflow docs still said the sidecar
+  executes local drag/tool actions where the reusable execution owner is the
+  local runtime and the concrete implementation is local-runtime Python.
+- Change: routed drag execution through local-runtime Python wording and
+  platform tool execution through local runtime wording while preserving
+  backend coordinate normalization, Electron/renderer permission surfacing, and
+  OS-authority details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  execution label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, coordinate normalization,
+  permission behavior, tool execution, IPC payloads, storage, credentials,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime Python Service Hub Labels
 

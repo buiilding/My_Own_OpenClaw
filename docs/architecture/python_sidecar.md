@@ -128,7 +128,7 @@ Computer-control execution notes:
   local-runtime computer-control implementation across Windows, macOS, and
   Linux; optional `clicks` remains available for explicit literal overrides.
 - `mouse_control` drag uses source coordinates from `x/y` and destination coordinates from `drag_to_x/drag_to_y`.
-- Backend coordinate normalization converts both source and drag destination from screenshot space into desktop space before the sidecar executes the drag.
+- Backend coordinate normalization converts both source and drag destination from screenshot space into desktop space before local-runtime Python executes the drag.
 
 ## Memory
 

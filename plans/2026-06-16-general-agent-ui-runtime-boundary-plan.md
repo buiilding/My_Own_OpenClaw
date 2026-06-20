@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Execution Labels
+
+- Finding: architecture and platform workflow docs still said the sidecar
+  executes local drag/tool actions where the reusable execution owner is the
+  local runtime and the concrete implementation is local-runtime Python.
+- Change: routed drag execution through local-runtime Python wording and
+  platform tool execution through local runtime wording while preserving
+  backend coordinate normalization, Electron/renderer permission surfacing, and
+  OS-authority details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  execution label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, coordinate normalization,
+  permission behavior, tool execution, IPC payloads, storage, credentials,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Local-Runtime Python Service Hub Labels
 
 - Finding: local-runtime service hubs still used sidecar service startup,

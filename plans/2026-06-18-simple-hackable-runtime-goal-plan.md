@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime execution label slice by routing
+  architecture drag execution through local-runtime Python wording and platform
+  local-tool execution through local runtime wording instead of sidecar
+  execution labels. Validation: focused modular docs boundary test, docs
+  listing, exact stale execution label scan, and diff checks. No migration
+  required; no runtime code, coordinate normalization, permission behavior, tool
+  execution, IPC payload, storage, credential, hosted URL, provider-policy, or
+  trust-boundary behavior changed.
 - 2026-06-20: completed a local-runtime Python service hub label slice by
   routing service startup/framing and daemon hub labels through local-runtime
   Python service/daemon wording instead of sidecar service/daemon labels.

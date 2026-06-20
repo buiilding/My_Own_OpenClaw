@@ -2675,6 +2675,8 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar DB',
         'sidecar storage internals',
         'sidecar authority',
+        'Sidecar executes local tools',
+        'sidecar executes the drag',
         'standalone sidecar service startup/shutdown',
         'sidecar service scripts',
         'for the sidecar daemon, tool catalog',

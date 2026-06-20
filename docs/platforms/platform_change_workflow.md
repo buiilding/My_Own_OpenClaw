@@ -157,7 +157,7 @@ Permission changes cross Electron main and renderer, and sometimes sidecar verif
 
 - Electron main probes the OS and returns normalized permission status.
 - Renderer displays status and invokes grant actions.
-- Sidecar executes local tools only after the Electron/renderer path has surfaced the required authority.
+- Local runtime executes local tools only after the Electron/renderer path has surfaced the required authority.
 - Backend may hide or show tool capability based on client-provided policy, but it cannot grant OS authority.
 
 Common files:

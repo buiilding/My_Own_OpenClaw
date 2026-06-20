@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(platform): route local drag/tool execution labels through local-runtime
+  Python/local-runtime wording instead of sidecar execution wording. No
+  migration required.
 - docs(runtime): route local-runtime service hub labels through
   local-runtime Python service/daemon wording instead of sidecar service hub
   wording. No migration required.
