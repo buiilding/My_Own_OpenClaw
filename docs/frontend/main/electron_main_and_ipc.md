@@ -108,7 +108,8 @@ Responsibilities:
   registration to a focused helper while keeping Agent SDK host session state
   in `ipc.cjs`.
 - Delegates renderer log and live-surface trace channel registration to a
-  focused helper while diagnostics runtimes keep normalization and redaction.
+  focused helper runtime while diagnostics runtimes keep normalization and
+  redaction.
 - Delegates pending renderer turn relay registration to a focused helper while
   `ipc.cjs` keeps the latest pending-turn cache used by stop/current-turn
   cleanup through the helper's runtime wrapper.

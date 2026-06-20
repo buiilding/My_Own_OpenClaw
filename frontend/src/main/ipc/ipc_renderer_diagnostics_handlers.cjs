@@ -16,6 +16,24 @@ function registerRendererDiagnosticsHandlers({
   });
 }
 
+function createRendererDiagnosticsHandlersRuntime({
+  handleRendererLog,
+  handleRendererLiveSurfaceTrace,
+} = {}) {
+  function register({ ipcMain } = {}) {
+    return registerRendererDiagnosticsHandlers({
+      ipcMain,
+      handleRendererLog,
+      handleRendererLiveSurfaceTrace,
+    });
+  }
+
+  return {
+    register,
+  };
+}
+
 module.exports = {
+  createRendererDiagnosticsHandlersRuntime,
   registerRendererDiagnosticsHandlers,
 };

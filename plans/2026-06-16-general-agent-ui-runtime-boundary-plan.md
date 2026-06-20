@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Renderer Diagnostics Handler Runtime Boundary
+
+- Finding: `ipc_renderer_diagnostics_handlers.cjs` owned renderer diagnostics
+  channel bodies, but `initializeIpc(...)` still passed renderer log and
+  live-surface trace callbacks directly when registering the handlers.
+- Change: added `createRendererDiagnosticsHandlersRuntime(...)` so the
+  diagnostics helper owns reusable handler dependency composition while
+  `initializeIpc(...)` only registers the already-composed runtime with
+  `ipcMain`.
+- Validation: focused renderer-diagnostics coverage verifies the runtime
+  registers injected callbacks and source guards keep direct diagnostics
+  handler dependency wiring out of `initializeIpc(...)`.
+- Compatibility: no migration required. `renderer-log` and
+  `live-surface-trace` channel names, diagnostics normalization/redaction,
+  live-surface trace handling, renderer IPC, storage, credentials,
+  permissions, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Artifact Handler Runtime Boundary
 
 - Finding: `ipc_artifact_handlers.cjs` owned artifact upload/fetch IPC

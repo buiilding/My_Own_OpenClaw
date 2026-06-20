@@ -6,6 +6,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const {
+  createRendererDiagnosticsHandlersRuntime,
   registerRendererDiagnosticsHandlers,
 } = require('../../frontend/src/main/ipc/ipc_renderer_diagnostics_handlers.cjs');
 
@@ -65,6 +66,28 @@ describe('renderer diagnostics IPC handlers', () => {
     expect(handleRendererLiveSurfaceTrace).toHaveBeenCalledWith(payload);
   });
 
+  test('runtime registers renderer diagnostic handlers with injected callbacks', () => {
+    const listeners = {};
+    const ipcMain = {
+      on: jest.fn((channel, listener) => {
+        listeners[channel] = listener;
+      }),
+    };
+    const handleRendererLog = jest.fn();
+    const handleRendererLiveSurfaceTrace = jest.fn();
+    const runtime = createRendererDiagnosticsHandlersRuntime({
+      handleRendererLog,
+      handleRendererLiveSurfaceTrace,
+    });
+
+    runtime.register({ ipcMain });
+    listeners['renderer-log'](null, { message: 'renderer event' });
+    listeners['live-surface-trace'](null, { event: 'surface.event' });
+
+    expect(handleRendererLog).toHaveBeenCalledWith({ message: 'renderer event' });
+    expect(handleRendererLiveSurfaceTrace).toHaveBeenCalledWith({ event: 'surface.event' });
+  });
+
   test('ipc.cjs delegates renderer diagnostics channel bodies to the helper module', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -75,9 +98,13 @@ describe('renderer diagnostics IPC handlers', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('registerRendererDiagnosticsHandlers({');
+    expect(mainSource).toContain('createRendererDiagnosticsHandlersRuntime({');
+    expect(mainSource).toContain('rendererDiagnosticsHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('registerRendererDiagnosticsHandlers({');
     expect(mainSource).not.toContain("ipcMain.on('renderer-log'");
     expect(mainSource).not.toContain("ipcMain.on('live-surface-trace'");
+    expect(helperSource).toContain('function createRendererDiagnosticsHandlersRuntime');
+    expect(helperSource).toContain('return registerRendererDiagnosticsHandlers({');
     expect(helperSource).toContain("ipcMain.on('renderer-log'");
     expect(helperSource).toContain("ipcMain.on('live-surface-trace'");
   });

@@ -131,7 +131,7 @@ const {
   handleRendererLog,
 } = require('./ipc/ipc_diagnostics_runtime.cjs');
 const {
-  registerRendererDiagnosticsHandlers,
+  createRendererDiagnosticsHandlersRuntime,
 } = require('./ipc/ipc_renderer_diagnostics_handlers.cjs');
 const {
   createPendingTurnRuntime,
@@ -556,6 +556,10 @@ const artifactHandlersRuntime = createArtifactHandlersRuntime({
   getBackendHttpUrl: () => backendEndpointState.getHttpUrl(),
   buildInstallAuthHeaders,
 });
+const rendererDiagnosticsHandlersRuntime = createRendererDiagnosticsHandlersRuntime({
+  handleRendererLog,
+  handleRendererLiveSurfaceTrace,
+});
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -916,11 +920,7 @@ function initializeIpc(win, options = {}) {
     getBackendCandidates: () => backendEndpointState.getCandidates(),
   });
 
-  registerRendererDiagnosticsHandlers({
-    ipcMain,
-    handleRendererLog,
-    handleRendererLiveSurfaceTrace,
-  });
+  rendererDiagnosticsHandlersRuntime.register({ ipcMain });
 
   pendingTurnRuntime.register({ ipcMain });
 

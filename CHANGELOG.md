@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move renderer diagnostics handler dependency wiring into
+  `createRendererDiagnosticsHandlersRuntime(...)`, preserving `renderer-log`
+  and `live-surface-trace` channels plus existing diagnostics normalization
+  and redaction. No migration required.
 - main/ipc: move artifact upload/fetch handler dependency wiring into
   `createArtifactHandlersRuntime(...)`, preserving `upload-artifact` and
   `fetch-artifact-image` channel behavior, install-auth refresh, backend URL

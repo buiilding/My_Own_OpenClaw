@@ -451,6 +451,8 @@ Owns renderer diagnostics IPC handler registration:
 
 - `renderer-log`
 - `live-surface-trace`
+- exposes `createRendererDiagnosticsHandlersRuntime(...)` so `ipc.cjs`
+  composes renderer log and live-surface trace callbacks once
 - renderer log payloads still normalize and redact through
   `ipc_diagnostics_runtime.cjs`
 - live-surface trace payloads still normalize and redact through
