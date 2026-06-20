@@ -24,7 +24,7 @@ Electron main resolves backend endpoints in this order:
 3. `WINDIE_DEFAULT_BACKEND_HTTP_URL` and `WINDIE_DEFAULT_BACKEND_WS_URL`
 4. hosted default
 
-The Python sidecar process receives the resolved HTTP URL as `WINDIE_BACKEND_HTTP_URL`. If renderer websocket traffic reaches one backend while local-runtime memory/API calls reach another, debug Electron main env injection before changing local-runtime hosted helper clients.
+The local-runtime Python process receives the resolved HTTP URL as `WINDIE_BACKEND_HTTP_URL`. If renderer websocket traffic reaches one backend while local-runtime memory/API calls reach another, debug Electron main env injection before changing local-runtime hosted helper clients.
 
 ## Explicit Local Backend Origin
 

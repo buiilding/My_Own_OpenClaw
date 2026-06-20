@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(install): route public install/config process labels through
+  local-runtime Python process wording instead of Python sidecar process or
+  local Python sidecar wording. No migration required.
 - docs(tools): route remaining Python sidecar tool labels through
   local-runtime Python tool/result wording. No migration required.
 - docs(runtime): route import-boundary code-owner labels through

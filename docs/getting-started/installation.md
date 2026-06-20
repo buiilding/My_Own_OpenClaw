@@ -301,7 +301,7 @@ export WINDIE_DEFAULT_BACKEND_HTTP_URL="https://your-api.example.com"
 export WINDIE_DEFAULT_BACKEND_WS_URL="wss://your-api.example.com/ws"
 ```
 
-The app still starts the local Python sidecar for local tool execution.
+The app still starts the local-runtime Python process for local tool execution.
 Packaged builds look for Python in this order:
 
 1. `WINDIE_PYTHON_PATH`

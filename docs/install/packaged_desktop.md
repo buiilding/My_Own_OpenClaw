@@ -10,7 +10,7 @@ title: "Packaged Desktop Builds"
 
 Packaged WindieOS builds are Electron apps with bundled local-runtime Python.
 The current implementation starts local-runtime Python from that bundle; the
-Python sidecar process remains the concrete packaged entrypoint. Use
+local-runtime Python process remains the concrete packaged entrypoint. Use
 `<windie> ...` packaging commands from the repository root; they wrap the
 frontend package tasks and bundled local-runtime Python builder before Electron
 Builder.

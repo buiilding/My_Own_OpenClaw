@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime Python process-label slice by routing
+  runtime configuration, packaged desktop, endpoint setup, and installation
+  docs through local-runtime Python process wording instead of Python sidecar
+  process or local Python sidecar wording. The slice preserved concrete bundled
+  runtime paths, `WINDIE_PYTHON_PATH`, and `WINDIE_BACKEND_HTTP_URL` names.
+  Validation covered docs listing, exact public install/config process-label
+  scan, and diff check. No migration required; runtime code, packaging
+  commands, executable behavior, environment variable names,
+  JSON-RPC/daemon payloads, IPC payloads, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
+
 - 2026-06-20: completed a local-runtime Python tool-label slice by routing
   debug, browser, sidecar-tool, and backend bridge docs through local-runtime
   Python tool/result wording instead of Python sidecar tool labels. The slice
