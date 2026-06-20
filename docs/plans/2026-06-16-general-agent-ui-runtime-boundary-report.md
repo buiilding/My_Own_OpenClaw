@@ -3138,6 +3138,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   generation routes, credentials, permissions, hosted backend URLs, and provider
   policy are unchanged.
 
+### 2026-06-20 Local-Runtime Python Process Labels
+
+- Finding: operations configuration, JSON-RPC workflow, and debug failure docs
+  still used sidecar-process owner labels for Python executable selection,
+  process exit/error handling, stderr forwarding, lifecycle readiness, and
+  local-runtime bridge failure routing.
+- Change: routed those public labels through local-runtime Python
+  process/daemon wording while preserving `sidecar_daemon.py` and
+  `tests/sidecar/*` references where they identify concrete implementation
+  files and focused test targets.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  process-label scan, and diff check.
+- Compatibility: no migration required. Environment variable names, process
+  launch behavior, stdout/stderr forwarding, JSON-RPC request cleanup, IPC
+  channels, storage, credentials, permissions, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-19 Backend Agent-Definition Default-Policy Wording Boundary
 
 - Worktree contained a separate debug diagnostic/process-health wording slice

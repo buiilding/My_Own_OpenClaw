@@ -332,6 +332,27 @@ For each completed slice, record:
   storage, memory retrieval, SDK/backend title generation routes, credentials,
   permissions, hosted backend URLs, and provider policy are unchanged.
 
+- 2026-06-20: completed a mobile baseline tool-execution label slice by routing
+  the mobile planning baseline through SDK local-runtime execution backed by the
+  Python sidecar implementation instead of presenting the local Python sidecar
+  as a parallel runtime target. Validation covered the focused modular docs
+  boundary test, docs listing, exact stale mobile baseline phrase scan, and diff
+  check. No migration required; runtime code, mobile APIs,
+  capability-negotiation plans, tool schemas, IPC channels, storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.
+
+- 2026-06-20: completed a local-runtime Python process-label slice by routing
+  operations configuration, JSON-RPC workflow, and debug failure labels for
+  Python executable selection, process exit/error handling, stderr forwarding,
+  lifecycle readiness, and bridge failure routing through local-runtime Python
+  process/daemon wording. Validation covered the focused modular docs boundary
+  test, docs listing, exact stale process-label scan, and diff check. No
+  migration required; environment variable names, process launch behavior,
+  stdout/stderr forwarding, JSON-RPC request cleanup, IPC channels, storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.
+
 - 2026-06-20: aligned the renderer app-runtime inventory with the live
   `desktopStreamPhaseRuntime.js` state/rule facade and added a renderer
   boundary guard against the stale `desktopStreamPhaseRuntime.ts` filename.

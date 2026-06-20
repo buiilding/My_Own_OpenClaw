@@ -230,7 +230,8 @@ When launching Electron (dev or packaged), these env vars can override defaults:
 - `BACKEND_HOST` and `BACKEND_PORT`: explicit endpoint override when full URLs are unset; malformed local overrides fall back to hosted defaults instead of producing an empty endpoint set.
 - `WINDIE_DEFAULT_BACKEND_HTTP_URL`: hosted-default HTTP URL when no `BACKEND_*` override is set.
 - `WINDIE_DEFAULT_BACKEND_WS_URL`: hosted-default WS URL when no `BACKEND_*` override is set.
-- `WINDIE_PYTHON_PATH`: explicit Python executable path for sidecar processes.
+- `WINDIE_PYTHON_PATH`: explicit Python executable path for local-runtime Python
+  startup.
 - `WINDIE_VM_MODE`: set to `1` to boot WindieOS in hosted VM dashboard mode.
   - Disables first-run permission/onboarding gates in renderer.
   - Hides dashboard sidebar + settings/models/memory panels.

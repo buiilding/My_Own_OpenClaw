@@ -147,9 +147,9 @@ Electron main readiness behavior:
 - passes backend endpoint, install-auth path, permission-state path, packaged-app flags, and Python runtime env.
 - performs repeated `ping` readiness checks.
 - marks the supervisor ready when ping succeeds.
-- rejects all pending requests on Python sidecar process exit/error.
+- rejects all pending requests on local-runtime Python process exit/error.
 - parses stdout line by line; large JSON responses can be parsed in a worker thread.
-- forwards allowed stderr lines with active sidecar daemon, local-runtime, tool,
+- forwards allowed stderr lines with active local-runtime daemon, local-runtime, tool,
   and MCP prefixes; retired local-backend-prefixed helper lines are not part of
   the host forwarding allowlist.
 
@@ -191,7 +191,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | Electron bridge handler | `cd frontend && npm run test -- LocalRuntimeBridge.rpc` |
 | Execute-tool bridge behavior | `cd frontend && npm run test -- LocalRuntimeBridge ToolExecution` plus focused Python sidecar tool tests |
 | Preload/renderer IPC channel addition | `cd frontend && npm run test -- PreloadIpcChannels IpcBridge` |
-| Python sidecar process lifecycle/readiness | local-runtime bridge lifecycle tests and `tests/sidecar/test_sidecar_daemon.py` when shutdown changes |
+| Local-runtime Python process lifecycle/readiness | local-runtime bridge lifecycle tests and `tests/sidecar/test_sidecar_daemon.py` when shutdown changes |
 | Docs-only JSON-RPC changes | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Documentation Checklist

@@ -1472,6 +1472,11 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar-backed tool registry',
         'sidecar-local',
         'sidecar remote title client',
+        'explicit Python executable path for sidecar processes',
+        'Python sidecar process exit/error',
+        'active sidecar daemon',
+        'Python sidecar process lifecycle/readiness',
+        'sidecar process/request failures',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;
@@ -2422,6 +2427,7 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar-owned SDK/local-runtime MCP registration',
         'sidecar-owned MCP `tools/call` execution',
         'SDK/sidecar local runtime',
+        'SDK local runtime and local Python sidecar',
         'The sidecar starts each enabled MCP server',
         'The sidecar sends MCP',
         'The sidecar calls `tools/list`',

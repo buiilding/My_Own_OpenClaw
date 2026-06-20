@@ -212,6 +212,39 @@ Each completed slice should report:
   generation routes, credentials, permissions, hosted backend URLs, and provider
   policy are unchanged.
 
+### 2026-06-20 Mobile Baseline Tool-Execution Label
+
+- Finding: the mobile planning baseline still said tool execution is delegated
+  to the SDK local runtime and local Python sidecar, which made the sidecar read
+  like a parallel runtime target instead of the current implementation behind
+  SDK local-runtime execution.
+- Change: routed that baseline through SDK local-runtime execution backed by
+  the Python sidecar implementation and extended the modular inventory guard
+  against the retired parallel-owner phrase.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  mobile baseline phrase scan, and diff check.
+- Compatibility: no migration required. Runtime code, mobile APIs,
+  capability-negotiation plans, tool schemas, IPC channels, storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.
+
+### 2026-06-20 Local-Runtime Python Process Labels
+
+- Finding: operations configuration, JSON-RPC workflow, and debug failure docs
+  still used sidecar-process owner labels for Python executable selection,
+  process exit/error handling, stderr forwarding, lifecycle readiness, and
+  local-runtime bridge failure routing.
+- Change: routed those public labels through local-runtime Python
+  process/daemon wording while preserving `sidecar_daemon.py` and
+  `tests/sidecar/*` references where they identify concrete implementation
+  files and focused test targets.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  process-label scan, and diff check.
+- Compatibility: no migration required. Environment variable names, process
+  launch behavior, stdout/stderr forwarding, JSON-RPC request cleanup, IPC
+  channels, storage, credentials, permissions, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-20 Renderer App-Runtime Inventory Filename
 
 - Finding: the renderer transport command reference listed

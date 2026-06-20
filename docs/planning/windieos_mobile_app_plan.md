@@ -23,7 +23,10 @@ WindieOS is currently desktop-first and Electron-coupled:
 
 - App shell and window lifecycle are implemented in Electron main process code at `frontend/src/main/index.cjs`.
 - Renderer-backend communication goes through Electron IPC (`window.ipc`) and a Node WebSocket bridge in `frontend/src/main/ipc.cjs`.
-- Tool execution is delegated to the SDK local runtime and local Python sidecar via `frontend/src/main/sidecar/local_runtime_bridge.cjs` and `frontend/src/main/python/local_backend.py`.
+- Tool execution is delegated through SDK local-runtime execution backed by the
+  Python sidecar implementation via
+  `frontend/src/main/sidecar/local_runtime_bridge.cjs` and
+  `frontend/src/main/python/local_backend.py`.
 - Wakeword is a dedicated Python subprocess bridge in `frontend/src/main/wakeword/wakeword_bridge.cjs`.
 - Tool schemas are backend-defined remote stubs and currently must match the
   local-runtime exposed set backed by Python sidecar implementation tests (see

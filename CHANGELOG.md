@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/planning: route the mobile baseline tool-execution line through SDK
+  local-runtime execution backed by the Python sidecar implementation instead
+  of presenting the local Python sidecar as a parallel runtime target. No
+  migration required.
 - docs/debug: route the Stream Event Trace owner table through SDK
   backend-event handling, main renderer fan-out, and renderer
   SDK-normalized conversation-event consumption instead of relay-only stream
@@ -46,6 +50,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: route IPC status, extension tool routing, local-memory title,
   and mobile parity risk labels through SDK/local-runtime wording instead of
   sidecar owner labels. No migration required.
+- docs/runtime: route Python executable, JSON-RPC failure, daemon stderr, and
+  lifecycle/readiness labels through local-runtime Python process wording
+  instead of sidecar-process owner labels. No migration required.
 - docs/runtime: route platform, operations, doctor, protocol-error, and
   development workflow sidecar-process labels through local-runtime startup or
   host-status wording while keeping the packaged Python sidecar entrypoint

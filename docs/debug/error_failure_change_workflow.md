@@ -161,7 +161,7 @@ Edit:
 
 - `ipc.cjs` for websocket send/close/reconnect and synthetic query failure.
 - `ipc_settings_sync.cjs` for ACK timeout behavior.
-- `local_runtime_bridge.cjs` for sidecar process/request failures.
+- `local_runtime_bridge.cjs` for local-runtime process/request failures.
 - `wakeword_bridge*.cjs` for wakeword process status failures.
 
 Validate:
