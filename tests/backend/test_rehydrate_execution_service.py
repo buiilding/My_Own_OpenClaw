@@ -153,7 +153,7 @@ async def test_execute_forwards_workspace_repo_instructions_to_session_manager()
                 "message_type": "user_query",
             }
         ],
-        workspace_path="/work/WindieOS",
+        workspace_path="/work/project-alpha",
         repo_instruction_messages=[
             {"role": "user", "content": "Respect AGENTS.md"},
         ],
@@ -165,7 +165,7 @@ async def test_execute_forwards_workspace_repo_instructions_to_session_manager()
         (
             "user-1",
             manager.session,
-            "/work/WindieOS",
+            "/work/project-alpha",
             [{"role": "user", "content": "Respect AGENTS.md"}],
         )
     ]

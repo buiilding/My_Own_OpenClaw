@@ -18460,3 +18460,21 @@ Each completed slice should report:
   workspace metadata persistence, revision storage, IPC/RPC payload contracts,
   credentials, permissions, hosted backend URLs, provider policy, and
   renderer/SDK behavior are unchanged.
+
+### 2026-06-20 Backend workspace context fixture neutrality
+
+- Finding: backend query execution, rehydrate, prompt manager, and session
+  manager tests still used a WindieOS-flavored workspace path as generic
+  user/project context even though these tests exercise workspace forwarding,
+  prompt rendering, and active session prompt refresh behavior.
+- Change: switched those backend workspace fixture values to neutral
+  `project-alpha` samples and extended the modular boundary guard so the
+  retired product-shaped workspace sample stays out of the backend workspace
+  context tests.
+- Validation: focused backend query execution, rehydrate, API handler, prompt
+  manager, and session manager tests; focused modular boundary test; exact
+  retired fixture scan; docs listing; and diff checks.
+- Compatibility: no migration required. Query payload keys, rehydrate session
+  updates, prompt rendering semantics, conversation history system prompt
+  refresh, IPC/WebSocket contracts, storage, credentials, permissions, hosted
+  backend URLs, provider policy, and local-runtime behavior are unchanged.

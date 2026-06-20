@@ -1350,7 +1350,7 @@ async def test_query_handler_forwards_query_scoped_context_to_session(monkeypatc
                 "<episodic_memory>\n- opened repo\n</episodic_memory>\n\n"
                 "<user_query>\ncontextful query\n</user_query>"
             ),
-            "workspace_path": "/work/WindieOS",
+            "workspace_path": "/work/project-alpha",
             "repo_instruction_messages": [
                 {"role": "user", "content": "Respect AGENTS.md"},
             ],
@@ -1364,7 +1364,7 @@ async def test_query_handler_forwards_query_scoped_context_to_session(monkeypatc
 
     assert len(session_manager.session.calls) == 1
     assert session_manager.session.calls[0]["operating_system"] == "Linux"
-    assert session_manager.session.calls[0]["workspace_path"] == "/work/WindieOS"
+    assert session_manager.session.calls[0]["workspace_path"] == "/work/project-alpha"
     assert session_manager.session.calls[0]["repo_instruction_messages"] == [
         {"role": "user", "content": "Respect AGENTS.md"}
     ]

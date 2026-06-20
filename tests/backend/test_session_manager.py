@@ -192,11 +192,11 @@ async def test_set_session_workspace_path_updates_active_prompt(monkeypatch) -> 
     manager.set_client_operating_system("user-1", "Linux")
     session = await manager.get_or_create_session("user-1", conversation_ref="conv-1")
 
-    manager.set_session_workspace_path("user-1", session, "/work/WindieOS")
+    manager.set_session_workspace_path("user-1", session, "/work/project-alpha")
 
-    assert session.prompt_builder.system_prompt == "prompt:Linux:/work/WindieOS"
-    assert session.prompt_builder.workspace_path == "/work/WindieOS"
-    assert session.history.system_prompt == "prompt:Linux:/work/WindieOS"
+    assert session.prompt_builder.system_prompt == "prompt:Linux:/work/project-alpha"
+    assert session.prompt_builder.workspace_path == "/work/project-alpha"
+    assert session.history.system_prompt == "prompt:Linux:/work/project-alpha"
 
 
 @pytest.mark.asyncio

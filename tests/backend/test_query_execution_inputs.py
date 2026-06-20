@@ -51,7 +51,7 @@ def test_resolve_query_execution_inputs_preserves_artifact_refs_and_payload_fiel
         capture_meta={"display": {"width": 1920}},
         content="<user_query>\nhello\n</user_query>",
         system_state_internal={"active_window": "Terminal", "ignored": "nope"},
-        workspace_path="/work/WindieOS",
+        workspace_path="/work/project-alpha",
         repo_instruction_messages=[{"role": "user", "content": "Use repo rules"}],
         conversation_ref="conv-2",
     )
@@ -66,7 +66,7 @@ def test_resolve_query_execution_inputs_preserves_artifact_refs_and_payload_fiel
     assert inputs.capture_meta == {"display": {"width": 1920}}
     assert inputs.message_content == "<user_query>\nhello\n</user_query>"
     assert inputs.conversation_ref == "conv-2"
-    assert inputs.workspace_path == "/work/WindieOS"
+    assert inputs.workspace_path == "/work/project-alpha"
     assert inputs.repo_instruction_messages == [
         {"role": "user", "content": "Use repo rules"}
     ]

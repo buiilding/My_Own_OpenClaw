@@ -196,10 +196,10 @@ def test_render_system_prompt_accepts_explicit_operating_system(tmp_path, monkey
         "global macOS None"
     )
     assert (
-        manager.render_system_prompt("macOS", "/work/WindieOS")
+        manager.render_system_prompt("macOS", "/work/project-alpha")
         == "Provided operating system: macOS\n"
-        "Provided workspace: /work/WindieOS\n\n"
-        "global macOS /work/WindieOS"
+        "Provided workspace: /work/project-alpha\n\n"
+        "global macOS /work/project-alpha"
     )
     assert manager.system_prompt == (
         "Provided operating system: BackendOS\n"

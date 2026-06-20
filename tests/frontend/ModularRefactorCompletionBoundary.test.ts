@@ -405,6 +405,19 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('You are in Project Alpha.');
   });
 
+  test('backend workspace context tests keep workspace fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/backend/test_query_execution_inputs.py'),
+      read('tests/backend/test_rehydrate_execution_service.py'),
+      read('tests/backend/test_api_handlers.py'),
+      read('tests/backend/test_prompt_manager.py'),
+      read('tests/backend/test_session_manager.py'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('/work/WindieOS');
+    expect(source).toContain('/work/project-alpha');
+  });
+
   test('landing docs track desktop runtime and local runtime public copy', async () => {
     const landingDocs = await Promise.all([
       read('docs/frontend/landing/landing_page_runtime_and_content_reference.md'),
