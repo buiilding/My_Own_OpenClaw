@@ -120,6 +120,40 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Source-Map Reference Local-Runtime Python Polish
+
+- Finding: source-map navigation, the source-map deep page, configuration
+  rules, and the code-change surface index still had residual Python sidecar
+  implementation labels for folder topology, endpoint policy, ownership, and
+  validation routing.
+- Change: routed those labels through local-runtime Python implementation
+  wording while preserving concrete `frontend/src/main/python` paths and
+  sidecar daemon/test command names where they describe current implementation
+  files.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  source-map/reference label scan, and diff check.
+- Compatibility: no migration required. Runtime code, config variables,
+  endpoint propagation, local tool execution, JSON-RPC/daemon payloads, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
+### 2026-06-20 Bundled Local-Runtime Python Packaging And Source Labels
+
+- Finding: bundled Python packaging, source-map, configuration, and code-change
+  reference docs still used Sidecar runtime/process or Python sidecar labels
+  for packaged process startup, bytecode-only sources, package topology,
+  validation, debug rows, and local-tool exercise checks.
+- Change: routed those labels through local-runtime Python process/bundle
+  and package wording while preserving existing `sidecar-runtime` command names
+  and build script paths.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  packaging/source-label scan, and diff check.
+- Compatibility: no migration required. Package command names, build script
+  paths, bundled runtime paths, Electron Builder config, packaged startup,
+  package import surfaces, feature-pack behavior, browser extraction behavior,
+  JSON-RPC/daemon payloads, IPC payloads, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Browser Local-Runtime Adapter Labels
 
 - Finding: browser control and dedicated-browser runtime docs still used

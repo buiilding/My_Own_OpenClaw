@@ -17,7 +17,7 @@ Run from the repository root:
 
 | Command | Builds | Notes |
 | --- | --- | --- |
-| `<windie> package <platform>` | Electron Builder targets for the chosen OS | Runs sidecar-runtime and frontend builds first |
+| `<windie> package <platform>` | Electron Builder targets for the chosen OS | Runs `<windie> build sidecar-runtime` and frontend builds first |
 | `<windie> package mac` | macOS DMG and ZIP | Must run on macOS |
 | `<windie> package win` | Windows NSIS installer | Must run on Windows |
 | `<windie> package linux` | Linux AppImage, DEB, RPM | Must run on Linux |
@@ -40,7 +40,8 @@ Runtime expectations:
 - Build each runtime on its target OS.
 - Packaged local-runtime Python uses `resources/python-runtime`.
 - Packaged app does not depend on conda, system Python, or build-machine venv paths.
-- Packaged runtime ships bytecode-only Python sidecar implementation sources.
+- Packaged runtime ships bytecode-only local-runtime Python implementation
+  sources.
 - Packaged runtime does not prebundle Playwright Chromium.
 - Browser automation prefers installed Chrome/Chromium-family browsers and only installs Chromium after user consent when needed.
 - Wakeword model prefetch is required unless explicitly overridden with `WINDIE_REQUIRE_WAKEWORD_PREFETCH=0`.
@@ -173,7 +174,7 @@ Do not change version numbers, tags, or publish artifacts without explicit appro
 | Symptom | Likely owner | First checks |
 | --- | --- | --- |
 | Packaged app cannot find `packages/windie-sdk-js/cjs` or `ws` at launch | generated SDK CJS resources or SDK-owned websocket dependency missing from Electron Builder config | inspect package contents under `resources/packages/windie-sdk-js/cjs` and `resources/node_modules/ws`; verify the source path is `packages/windie-sdk-js/node_modules/ws` |
-| Packaged app cannot start sidecar | runtime path or bundled Python missing | `frontend/src/main/app/runtime_paths.cjs`, package contents under `resources/python-runtime`, sidecar logs |
+| Packaged app cannot start local runtime | runtime path or bundled Python missing | `frontend/src/main/app/runtime_paths.cjs`, package contents under `resources/python-runtime`, local-runtime logs |
 | macOS local build hangs on signing/notarization | wrong path: using release signing instead of local reinstall | confirm reinstall helper strips `APPLE_*` and `CSC_*`; use ad-hoc local path |
 | macOS app launches from copied install but not DMG | signing/hardened runtime/Gatekeeper path | `scripts/ci/smoke-macos-packages.sh`, [Release Guide](release.md) |
 | Windows packaging fails extracting signing helper | symlink/developer mode | run reinstall helper preflight, enable Developer Mode or use elevated shell |
@@ -189,7 +190,7 @@ For packaging changes:
 2. Inspect package contents for `resources/python-runtime`, `resources/packages/windie-sdk-js/cjs`, and `resources/node_modules/ws`; `ws` should be copied from `packages/windie-sdk-js/node_modules/ws`, not a frontend direct dependency.
 3. Launch installed app, not only the source Electron app.
 4. Verify backend connectivity to the intended endpoint.
-5. Verify one local tool call that exercises the sidecar.
+5. Verify one local tool call that exercises local-runtime Python.
 6. Verify wakeword startup path if runtime packaging changed.
 7. Run the matching `scripts/ci/smoke-*` helper where available.
 8. Update [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md), [Packaged Desktop Builds](../install/packaged_desktop.md), and [Release Guide](release.md) when behavior changes.

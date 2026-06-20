@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: browser control architecture and dedicated-browser
-  runtime state docs now route Browser Use invocation/state through SDK/main
-  local-runtime dispatch and the local-runtime Python browser adapter instead
-  of presenting Sidecar as the public browser runtime actor.
+- Latest completed slice: bundled Python packaging, source-map, and reference
+  docs now route packaged process, bytecode, package topology, validation, and
+  local-tool exercise labels through local-runtime Python wording instead of
+  Sidecar runtime/process or Python sidecar route-owner labels while preserving
+  current `sidecar-runtime` command names.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +245,40 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Source-Map Reference Local-Runtime Python Polish
+
+- Finding: source-map navigation, the source-map deep page, configuration
+  rules, and the code-change surface index still had residual Python sidecar
+  implementation labels for folder topology, endpoint policy, ownership, and
+  validation routing.
+- Change: routed those labels through local-runtime Python implementation
+  wording while preserving concrete `frontend/src/main/python` paths and
+  sidecar daemon/test command names where they describe current implementation
+  files.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  source-map/reference label scan, and diff check.
+- Compatibility: no migration required. Runtime code, config variables,
+  endpoint propagation, local tool execution, JSON-RPC/daemon payloads, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
+### 2026-06-20 Bundled Local-Runtime Python Packaging And Source Labels
+
+- Finding: bundled Python packaging, source-map, configuration, and code-change
+  reference docs still used Sidecar runtime/process or Python sidecar labels
+  for packaged process startup, bytecode-only sources, package topology,
+  validation, debug rows, and local-tool exercise checks.
+- Change: routed those labels through local-runtime Python process/bundle
+  and package wording while preserving existing `sidecar-runtime` command names
+  and build script paths.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  packaging/source-label scan, and diff check.
+- Compatibility: no migration required. Package command names, build script
+  paths, bundled runtime paths, Electron Builder config, packaged startup,
+  package import surfaces, feature-pack behavior, browser extraction behavior,
+  JSON-RPC/daemon payloads, IPC payloads, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Browser Local-Runtime Adapter Labels
 

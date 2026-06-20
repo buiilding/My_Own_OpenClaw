@@ -18,8 +18,9 @@ frontend app and do not need Python installed system-wide.
 - Installer includes generated SDK CommonJS runtime modules at
   `resources/packages/windie-sdk-js/cjs` plus the SDK-owned `ws` dependency at
   `resources/node_modules/ws` for Electron main startup.
-- Sidecar processes run from `resources/python-runtime/sidecar`.
-- Runtime build ships sidecar bytecode (`.pyc`) only; sidecar plaintext `.py` files are removed before packaging.
+- Local-runtime Python processes run from `resources/python-runtime/sidecar`.
+- Runtime build ships local-runtime Python bytecode (`.pyc`) only; plaintext
+  Python implementation `.py` files are removed before packaging.
 - Runtime defaults to system-browser-first packaging and does not prebundle Playwright Chromium.
 
 ## Repository Pieces
@@ -49,7 +50,7 @@ Build each runtime on its target OS:
 
 Do not reuse one OS runtime for another OS release.
 
-## Step 1: Build Sidecar Runtime
+## Step 1: Build Local-Runtime Python Bundle
 
 From repo root:
 
@@ -120,7 +121,7 @@ On a clean test machine:
    - Install command example: `sudo apt install -y ./release/windieos_*_amd64.deb`
    - Uninstall command example: `sudo apt purge -y windieos`
    - Review dependency cleanup before running autoremove: `sudo apt autoremove --dry-run`
-3. Launch app and verify sidecar starts without Python-not-found errors.
+3. Launch app and verify local-runtime Python starts without Python-not-found errors.
    - If Electron main reports a missing `packages/windie-sdk-js/cjs` module,
      inspect the installed app resources for the generated SDK CJS tree and
      `resources/node_modules/ws`.
@@ -145,7 +146,9 @@ On a clean test machine:
 - Runtime build is idempotent for bundled assets: wakeword prefetch is skipped when already present.
 - Packaged app disables browser feature-pack runtime auto-install; missing bundled Python runtime deps are treated as build/package errors.
 - Browser automation permission flow checks Chromium availability at runtime and can install Chromium on user consent when needed.
-- Browser `extract`/`read_long_content` now use deterministic markdown extraction in sidecar (no sidecar LLM provider SDK dependency).
+- Browser `extract`/`read_long_content` now use deterministic markdown extraction
+  in the local-runtime Python adapter, with no local-runtime Python LLM provider
+  SDK dependency.
 - Browser launch first checks system-installed Chrome/Chromium-family browsers, then falls back to any Chromium previously installed into the user Playwright cache.
 - Wakeword model prefetch is required during runtime build; build fails when prefetch fails (unless explicitly overridden via `WINDIE_REQUIRE_WAKEWORD_PREFETCH=0`).
 - Packaged wakeword runtime disables model download fallback; missing wakeword model is treated as packaging/install error.

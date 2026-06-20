@@ -1307,9 +1307,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK-Owned Local-Runtime Lifecycle Reference');
     expect(docText).toContain('SDK-Owned Local-Runtime Readiness and Helper RPC Reference');
     expect(docText).toContain('Local Runtime Python Implementation Docs Hub');
+    expect(docText).toContain('local-runtime Python implementation folder topology maps');
     expect(docText).toContain('Local-Runtime Process Lifecycle');
     expect(docText).toContain('Local-Runtime JSON-RPC Protocol');
     expect(docText).toContain('Local-Runtime Python Folder Topology');
+    expect(docText).toContain('local-runtime Python implementation service/tool topology flow');
     expect(docText).toContain('Local-Runtime Wakeword Service Model');
     expect(docText).toContain('Frontend IPC and Local-Runtime Contract Touchpoints Reference');
     expect(docText).toContain('Local-Runtime Summarizer Watermark and Conversation Batch Reference');
@@ -1405,6 +1407,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Sidecar Process Lifecycle');
     expect(docText).not.toContain('Sidecar JSON-RPC Protocol');
     expect(docText).not.toContain('Sidecar Python Folder Topology');
+    expect(docText).not.toContain('Python sidecar implementation service/tool topology flow');
+    expect(docText).not.toContain('Python sidecar implementation folder topology maps');
     expect(docText).not.toContain('Sidecar Wakeword Service Model');
     expect(docText).not.toContain('title: "Sidecar Tool Change Workflow"');
     expect(docText).not.toContain('title: "Sidecar Runtime Change Workflow"');
@@ -1648,10 +1652,22 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar implementation boundaries',
         'Core backend, desktop local-runtime, and Python sidecar implementation files',
         'Python sidecar implementation tests',
+        'Python sidecar implementation code import backend',
+        'Python Sidecar Folder Topology',
+        'sidecar package import surfaces',
+        'sidecar package public exports',
+        'Python sidecar services',
         'The sidecar invokes Browser Use',
         '## Sidecar Runtime State',
         'window operations through the Python sidecar implementation',
         'host OS automation and local tool execution through the current Python sidecar implementation',
+        'Python sidecar implementation folder topology maps',
+        'Python sidecar implementation service/tool topology flow',
+        "make the Python sidecar implementation guess the app's endpoint policy",
+        'do not make desktop client or Python sidecar implementation code import backend code',
+        '| Python sidecar | Local executable tools',
+        'Python sidecar browser tests',
+        'Python sidecar computer tests',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;
@@ -2676,11 +2692,17 @@ describe('modular sdk refactor completion boundary', () => {
         'missing sidecar runtime',
         'package build, sidecar runtime',
         'bundled Python sidecar runtime',
+        'Build Sidecar Runtime',
         'Build the bundled Python sidecar runtime',
         'Build bundled Python sidecar runtime',
+        'Sidecar processes run from',
         'Packaged sidecar runtime',
         'packaged sidecar runtime',
         'Packaged sidecar uses `resources/python-runtime`',
+        'verify sidecar starts',
+        'Packaged app cannot start sidecar',
+        'exercises the sidecar',
+        'deterministic markdown extraction in sidecar',
         'desktop sidecar daemon',
         'bytecode-only sidecar sources',
         'features/dashboard/utils/modelSelectionUtils.js',

@@ -38,7 +38,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | Electron main/IPC | focused `tests/frontend/*.test.cjs` or related Jest test | run `<windie> test frontend` for shared bridge changes |
 | transcript/replay | focused transcript tests | include backend rehydrate/history tests when backend replay shape changes |
 | tool schema/result contract | backend schema/policy tests plus SDK runtime/router and local-runtime executable parity tests | add renderer projection tests when visible UI rows change |
-| browser runtime | backend browser schema tests plus Python sidecar browser tests | include browser UI/session tests when renderer controls change |
+| browser runtime | backend browser schema tests plus local-runtime Python browser tests | include browser UI/session tests when renderer controls change |
 | docs-only | `<windie> docs list`, focused link check, `git diff --check` | no code tests needed unless docs generator changed |
 | packaging/reinstall | `<windie> docs list` plus target OS package/reinstall command | run matching `scripts/ci/smoke-*` helper before release |
 | runtime config/env vars | focused backend, renderer, and sidecar config tests | include docs updates for [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |

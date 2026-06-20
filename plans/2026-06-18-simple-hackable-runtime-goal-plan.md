@@ -275,6 +275,31 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a source-map/reference local-runtime Python polish
+  slice by routing residual source-map navigation, source-map deep page,
+  configuration endpoint-policy, code-change owner table, and validation labels
+  through local-runtime Python implementation wording instead of Python sidecar
+  implementation route-owner labels. Validation covered the focused modular
+  docs boundary test, docs listing, exact stale source-map/reference label
+  scan, and diff check. No migration required; runtime code, config variables,
+  endpoint propagation, local tool execution, JSON-RPC/daemon payloads, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
+- 2026-06-20: completed a bundled local-runtime Python packaging/source label
+  slice by routing packaged process startup, bytecode-only sources, package
+  topology, validation, debug rows, and local-tool exercise checks through
+  local-runtime Python process/bundle/package wording instead of Sidecar
+  runtime/process or Python sidecar route-owner labels while preserving
+  existing `sidecar-runtime` command names and build script paths.
+  Validation covered the focused modular docs boundary test, docs listing,
+  exact stale packaging/source-label scan, and diff check. No migration
+  required; package command names, build script paths, bundled runtime paths,
+  Electron Builder config, packaged startup, package import surfaces,
+  feature-pack behavior, browser extraction behavior, JSON-RPC/daemon payloads,
+  IPC payloads, storage, credentials, permissions, hosted backend URLs,
+  provider policy, and trust boundaries are unchanged.
+
 - 2026-06-20: completed a browser local-runtime adapter label slice by routing
   browser control architecture and dedicated-browser runtime state docs through
   SDK/main local-runtime dispatch and the local-runtime Python browser adapter

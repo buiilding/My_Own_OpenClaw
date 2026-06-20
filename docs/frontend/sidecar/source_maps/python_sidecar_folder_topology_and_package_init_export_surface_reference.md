@@ -1,19 +1,19 @@
 ---
-summary: "Deep reference for the Python local-runtime implementation source topology map and remaining package `__init__` export surfaces."
+summary: "Deep reference for the local-runtime Python implementation source topology map and remaining package `__init__` export surfaces."
 read_when:
-  - When updating sidecar package boundaries or contributor-facing topology docs.
-  - When changing sidecar package public exports.
-title: "Python Sidecar Folder Topology and Package `__init__` Export Surface Reference"
+  - When updating local-runtime Python package boundaries or contributor-facing topology docs.
+  - When changing local-runtime Python package public exports.
+title: "Local-Runtime Python Folder Topology and Package `__init__` Export Surface Reference"
 ---
 
-# Python Sidecar Folder Topology and Package `__init__` Export Surface Reference
+# Local-Runtime Python Folder Topology and Package `__init__` Export Surface Reference
 
 This page documents:
 
 - `frontend/src/main/python/folder_structure.md`
-- remaining concrete sidecar package entrypoints
+- remaining concrete local-runtime Python package entrypoints
 
-## Sidecar Topology Source Map Contract
+## Local-Runtime Python Topology Source Map Contract
 
 `frontend/src/main/python/folder_structure.md` is the source-owned topology
 narrative for the Python local-runtime implementation boundaries.
@@ -29,7 +29,7 @@ Maintenance rule:
 
 - if local-runtime Python folder ownership or service flows change, update this source map in the same change set
 
-## Sidecar Package `__init__` Surface Contract
+## Local-Runtime Python Package `__init__` Surface Contract
 
 `core/__init__.py` and `core/platform/__init__.py` are intentionally absent.
 Import core helpers from concrete modules such as `core.remote_semantic_client`

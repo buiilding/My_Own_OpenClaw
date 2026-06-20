@@ -35,6 +35,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/reference: route source-map, config, and code-change ownership labels
+  through local-runtime Python implementation wording instead of Python sidecar
+  implementation route-owner labels. No migration required.
+- docs/operations: route bundled Python packaging, source-map, and reference
+  labels through local-runtime Python process/package wording instead of
+  Sidecar runtime/process or Python sidecar route-owner labels while
+  preserving existing `sidecar-runtime` command names. No migration required.
 - docs/browser: route browser control architecture and Browser Use state labels
   through SDK/main local-runtime dispatch and the local-runtime Python browser
   adapter instead of presenting Sidecar as the public browser runtime actor.

@@ -38,7 +38,7 @@ WindieOS config is split by runtime owner. Add a field where the owner can enfor
 - API keys must come from environment variables or secure local config paths, never committed docs/tests/fixtures.
 - Renderer persistence should contain only user-facing settings, not provider internals or secrets.
 - The local runtime receives the active backend URL from Electron main; do not
-  make the Python sidecar implementation guess the app's endpoint policy.
+  make the local-runtime Python implementation guess the app's endpoint policy.
 - Electron main passes the host-skinned user-data root to the local-runtime
   implementation;
   standalone local-runtime launches default to neutral `desktop-runtime` paths unless
