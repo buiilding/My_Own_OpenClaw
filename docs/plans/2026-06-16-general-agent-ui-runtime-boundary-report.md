@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `7bbf833a3` (`test(renderer): neutralize browser tab fixtures`)
-- Latest completed slice: main permission workspace tests now use neutral
-  workspace path samples instead of WindieOS-flavored temp directory fixtures.
+- Latest inspected plan checkpoint: `66831d404` (`test(main): neutralize permission workspace fixtures`)
+- Latest completed slice: repo instruction runtime tests now use neutral
+  AGENTS.md workspace temp path samples instead of WindieOS-flavored fixtures.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -94,6 +94,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Main permission workspace fixtures now use neutral temp paths while preserving
   workspace picker grants, active-workspace updates, selected-path persistence,
   untrusted-path rejection, and sanitized diagnostics.
+  Repo instruction runtime fixtures now use neutral AGENTS.md workspace temp
+  paths while preserving file-to-parent resolution and git-root-to-workspace
+  prompt layer ordering.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7589,3 +7592,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   untrusted-path rejection, sanitized diagnostics, IPC channels, storage,
   permissions, hosted backend URLs, provider policy, and local-runtime behavior
   are unchanged; no migration is required.
+- Repo instruction runtime fixture samples now use neutral `project-alpha`
+  AGENTS.md temp path prefixes instead of WindieOS-flavored sample directories.
+  File-to-parent resolution, git-root-to-workspace prompt layer ordering,
+  prompt layer content shape, IPC channels, storage, permissions, hosted backend
+  URLs, provider policy, and local-runtime behavior are unchanged; no migration
+  is required.

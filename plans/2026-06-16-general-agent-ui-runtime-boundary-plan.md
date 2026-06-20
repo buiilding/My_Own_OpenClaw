@@ -18617,3 +18617,20 @@ Each completed slice should report:
   active-workspace updates, selected-path persistence, untrusted-path rejection,
   sanitized diagnostics, IPC channels, storage, permissions, hosted backend
   URLs, provider policy, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Repo instruction workspace fixture neutrality
+
+- Finding: repo instruction runtime tests exercise file-to-parent workspace
+  resolution and git-root-to-workspace AGENTS.md prompt layer ordering, but
+  their temp workspace prefixes still used WindieOS-flavored directory names as
+  arbitrary filesystem fixture data.
+- Change: switched those AGENTS.md workspace temp prefixes to neutral
+  `project-alpha` samples and extended the modular boundary guard so the
+  retired product-shaped repo-instruction temp paths stay out of main runtime
+  coverage.
+- Validation: focused repo instruction runtime and modular boundary tests;
+  exact retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. File-to-parent resolution,
+  git-root-to-workspace prompt layer ordering, prompt layer content shape, IPC
+  channels, storage, permissions, hosted backend URLs, provider policy, and
+  local-runtime behavior are unchanged.

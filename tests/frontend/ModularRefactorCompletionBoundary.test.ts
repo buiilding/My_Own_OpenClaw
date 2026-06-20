@@ -398,6 +398,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('project-alpha-untrusted-workspace');
   });
 
+  test('repo instruction runtime tests keep workspace fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/RepoInstructionRuntime.test.cjs');
+
+    expect(source).not.toContain('windieos-agents-file');
+    expect(source).not.toContain('windieos-agents-layers');
+    expect(source).toContain('project-alpha-agents-file');
+    expect(source).toContain('project-alpha-agents-layers');
+  });
+
   test('renderer conversation metadata tests keep workspace fixtures product-neutral', async () => {
     const conversationMetadataText = await Promise.all([
       read('tests/frontend/ConversationGroups.test.js'),

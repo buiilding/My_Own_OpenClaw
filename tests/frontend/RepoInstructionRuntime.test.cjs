@@ -10,7 +10,7 @@ const {
 
 describe('repo_instruction_runtime', () => {
   test('resolves file paths to their parent directory before loading prompt layers', () => {
-    const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-agents-file-'));
+    const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'project-alpha-agents-file-'));
     const filePath = path.join(workspaceRoot, 'main.ts');
     fs.writeFileSync(filePath, 'console.log("hi");\n', 'utf8');
     fs.writeFileSync(path.join(workspaceRoot, 'AGENTS.md'), 'use tests\n', 'utf8');
@@ -26,7 +26,7 @@ describe('repo_instruction_runtime', () => {
   });
 
   test('resolveWorkspaceRepoInstructionPromptLayers walks from git root to workspace', () => {
-    const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-agents-layers-'));
+    const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'project-alpha-agents-layers-'));
     const workspaceDir = path.join(repoRoot, 'apps', 'desktop');
     fs.mkdirSync(workspaceDir, { recursive: true });
     fs.mkdirSync(path.join(repoRoot, '.git'));
