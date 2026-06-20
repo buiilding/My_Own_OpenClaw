@@ -141,7 +141,7 @@ Question the design when:
 | --- | --- |
 | model did not see repo instructions | Electron repo instruction runtime and backend prompt constructor fallback discovery |
 | tool missing from prompt | backend tool policy, provider health gates, `agent_definition.tools` availability, provider projection |
-| tool visible but local runtime cannot execute it | backend/local-runtime parity tests and sidecar exposed-tool registry |
+| tool visible but local runtime cannot execute it | backend/local-runtime parity tests and local-runtime exposed-tool registry backed by Python sidecar modules |
 | transparency panel missing tool schemas | backend prompt metadata event emission and frontend transparency handlers |
 | screenshot shown in UI but not useful to model | artifact upload refs, query payload screenshot context, backend artifact fetch path |
 | model saw stale or duplicate context | `PromptConstructor._build_prompt_messages`, client prompt layers, and backend history rendering |

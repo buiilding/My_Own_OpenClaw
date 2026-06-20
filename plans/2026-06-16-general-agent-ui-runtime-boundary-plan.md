@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Tool Parity Exposed-Registry Wording
+
+- Finding: prompt/context debugging docs and backend tool registry/bridge
+  references still named the sidecar exposed-tool registry/set as the parity
+  surface, even though the current boundary is backend/local-runtime parity
+  with Python sidecar modules as the backing implementation.
+- Change: reworded those parity labels through local-runtime exposed-tool
+  registry/set ownership backed by Python sidecar modules and extended the
+  modular tool-routing guard for the retired sidecar-exposed phrases.
+- Validation: passed focused modular boundary test, docs listing, stale
+  sidecar exposed-tool parity scan, and diff check.
+- Compatibility: no migration required. Tool names, schemas, manifest payloads,
+  parity tests, Python sidecar registry paths, SDK/main dispatch,
+  tool-call/result payloads, renderer display, storage, credentials,
+  permissions, provider policy, local-runtime routing, and hosted URLs are
+  unchanged.
+
 ### 2026-06-20 Architecture Diagram Desktop Host Label
 
 - Finding: `docs/architecture/architecture.md` still labeled the desktop-side

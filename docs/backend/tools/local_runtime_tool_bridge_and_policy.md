@@ -46,7 +46,7 @@ implementations in `frontend/src/main/python/tools/*`.
 
 Current runtime note:
 
-- this remote bridge is direct-name based; the live backend catalog and Python sidecar exposed-tool set both use concrete tool names such as `mouse_control` and `run_shell_command`
+- this remote bridge is direct-name based; the live backend catalog and local-runtime exposed-tool set backed by Python sidecar modules both use concrete tool names such as `mouse_control` and `run_shell_command`
 - wrapper envelopes are not registered remote tool names in the current bridge
 - backend-owned `web_search` is outside this local-runtime bridge because it never dispatches through SDK/main local-runtime execution
 - backend-owned grounded helper tools such as `grounded_mouse_action` and

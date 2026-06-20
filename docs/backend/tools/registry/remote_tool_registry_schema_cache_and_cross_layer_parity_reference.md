@@ -76,7 +76,7 @@ mapping, preventing external mutation of the catalog-derived lookup map.
 Catalog-driven runtime helpers also power:
 
 - model-facing surface resolution in `ToolRegistry`
-- sidecar exposed-tool parity in `frontend/src/main/python/tools/registry.py`
+- local-runtime exposed-tool parity backed by `frontend/src/main/python/tools/registry.py`
 
 Wrapper boundary:
 

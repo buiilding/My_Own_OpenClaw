@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/docs: route local tool parity and exposed-tool registry wording
+  through local-runtime ownership backed by Python sidecar modules. No
+  migration required.
 - architecture/docs: rename the system architecture diagram desktop boundary
   from Electron frontend to desktop client / SDK host. No migration required.
 - architecture/docs: route system/backend overview error, security, local-tool,
