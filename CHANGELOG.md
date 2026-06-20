@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move image clipboard/context-menu handler dependency wiring into
+  `createImageInteractionHandlersRuntime(...)`, preserving shared trusted
+  backend artifact-origin policy and copy/context-menu behavior. No migration
+  required.
 - main/ipc: move renderer diagnostics handler dependency wiring into
   `createRendererDiagnosticsHandlersRuntime(...)`, preserving `renderer-log`
   and `live-surface-trace` channels plus existing diagnostics normalization

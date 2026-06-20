@@ -61,7 +61,37 @@ function registerImageInteractionHandlers({
   });
 }
 
+function createImageInteractionHandlersRuntime({
+  Menu,
+  BrowserWindow,
+  clipboard,
+  nativeImage,
+  registerClipboardImageHandler,
+  registerImageContextMenuHandler,
+  getBackendHttpUrl,
+  getBackendCandidates,
+} = {}) {
+  function register({ ipcMain } = {}) {
+    return registerImageInteractionHandlers({
+      ipcMain,
+      Menu,
+      BrowserWindow,
+      clipboard,
+      nativeImage,
+      registerClipboardImageHandler,
+      registerImageContextMenuHandler,
+      getBackendHttpUrl,
+      getBackendCandidates,
+    });
+  }
+
+  return {
+    register,
+  };
+}
+
 module.exports = {
   buildTrustedImageOrigins,
+  createImageInteractionHandlersRuntime,
   registerImageInteractionHandlers,
 };

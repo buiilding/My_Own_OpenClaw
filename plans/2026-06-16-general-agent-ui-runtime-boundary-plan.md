@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Image Interaction Handler Runtime Boundary
+
+- Finding: `ipc_image_interaction_handlers.cjs` owned shared clipboard image
+  copy and image context-menu registration, but `initializeIpc(...)` still
+  passed Electron primitives, handler factories, backend URL, and endpoint
+  candidate dependencies directly when registering the handlers.
+- Change: added `createImageInteractionHandlersRuntime(...)` so the image
+  interaction helper owns reusable handler dependency composition while
+  `initializeIpc(...)` only registers the already-composed runtime with
+  `ipcMain`.
+- Validation: focused image-interaction coverage verifies the runtime registers
+  clipboard and context-menu handlers with the same trusted origin policy and
+  source guards keep direct image handler dependency wiring out of
+  `initializeIpc(...)`.
+- Compatibility: no migration required. `copy-image-to-clipboard` and
+  `show-image-context-menu` behavior, trusted backend artifact-origin
+  construction, Electron clipboard/nativeImage/Menu/BrowserWindow use,
+  renderer IPC, storage, credentials, permissions, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Main Renderer Diagnostics Handler Runtime Boundary
 
 - Finding: `ipc_renderer_diagnostics_handlers.cjs` owned renderer diagnostics

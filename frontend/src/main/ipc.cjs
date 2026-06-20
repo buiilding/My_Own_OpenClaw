@@ -246,7 +246,7 @@ const {
   registerImageContextMenuHandler,
 } = require('./ipc/ipc_image_context_menu.cjs');
 const {
-  registerImageInteractionHandlers,
+  createImageInteractionHandlersRuntime,
 } = require('./ipc/ipc_image_interaction_handlers.cjs');
 const {
   resolveActiveSurfaceDisplayAffinity,
@@ -559,6 +559,16 @@ const artifactHandlersRuntime = createArtifactHandlersRuntime({
 const rendererDiagnosticsHandlersRuntime = createRendererDiagnosticsHandlersRuntime({
   handleRendererLog,
   handleRendererLiveSurfaceTrace,
+});
+const imageInteractionHandlersRuntime = createImageInteractionHandlersRuntime({
+  Menu,
+  BrowserWindow,
+  clipboard,
+  nativeImage,
+  registerClipboardImageHandler,
+  registerImageContextMenuHandler,
+  getBackendHttpUrl: () => backendEndpointState.getHttpUrl(),
+  getBackendCandidates: () => backendEndpointState.getCandidates(),
 });
 
 function buildInstallAuthHeaders() {
@@ -908,17 +918,7 @@ function initializeIpc(win, options = {}) {
 
   artifactHandlersRuntime.register({ ipcMain });
 
-  registerImageInteractionHandlers({
-    ipcMain,
-    Menu,
-    BrowserWindow,
-    clipboard,
-    nativeImage,
-    registerClipboardImageHandler,
-    registerImageContextMenuHandler,
-    getBackendHttpUrl: () => backendEndpointState.getHttpUrl(),
-    getBackendCandidates: () => backendEndpointState.getCandidates(),
-  });
+  imageInteractionHandlersRuntime.register({ ipcMain });
 
   rendererDiagnosticsHandlersRuntime.register({ ipcMain });
 

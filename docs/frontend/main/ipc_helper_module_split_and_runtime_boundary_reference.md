@@ -264,6 +264,9 @@ Owns Agent SDK backend event relay bookkeeping:
 Owns image IPC registration shared by clipboard copy and native image context
 menu handlers:
 
+- exposes `createImageInteractionHandlersRuntime(...)` so `ipc.cjs` composes
+  Electron primitives, clipboard/context-menu handler factories, backend URL,
+  and endpoint-candidate callbacks once
 - builds the trusted backend artifact-origin callback from the active backend
   HTTP URL plus endpoint candidates
 - registers `copy-image-to-clipboard` and `show-image-context-menu` with the
