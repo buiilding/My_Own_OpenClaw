@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: aligned the diagnostics first-triage table with current runtime
+  ownership so no-response debugging starts at the Electron main Agent SDK host
+  plus SDK backend transport traces, and tool-result continuation debugging
+  starts at SDK/main tool-result relay before backend ingestion/waiting modules.
+  This preserves the long-running goal's debug route focus without changing
+  runtime behavior. Validation covered the modular docs boundary guard, docs
+  search, related commit search, docs listing, and diff checks. No migration
+  required; diagnostic commands, trace paths, websocket behavior, SDK/main
+  relay behavior, renderer display, storage, credentials, permissions, hosted
+  URLs, provider policy, and local execution behavior are unchanged.
+
 - 2026-06-19: cached docs index metadata and precomputed normalized search
   fields inside `scripts/windie/docs.cjs` so repeated `findDocs(...)` calls used
   by required orientation and `WindieDocsIndex` no longer reload and normalize

@@ -238,6 +238,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Diagnostics First-Triage Runtime Wording
+
+- Finding: `docs/help/diagnostics.md` still routed no-response and tool-result
+  continuation failures through broad `ipc.cjs`/frontend wording after Agent
+  SDK host and tool-result ingress ownership had moved to narrower routes.
+- Change: reworded those diagnostics rows to start with Electron main Agent
+  SDK host, SDK backend transport traces, and SDK/main tool-result relay before
+  backend websocket or backend ingestion modules.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, docs listing, and diff check.
+- Compatibility: no migration required. Diagnostic command names, trace paths,
+  websocket behavior, SDK/main relay behavior, renderer display, storage,
+  credentials, permissions, hosted URLs, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Settings and Transparency Docs Consumer Labels
 
 - Finding: provider/config workflows still described `Frontend settings`, and

@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Diagnostics First-Triage Runtime Wording
+
+- Finding: the first-triage diagnostics table still routed no-response and
+  tool-result continuation failures through broad `ipc.cjs`/frontend wording
+  even after recent Agent SDK host and tool-result ingress ownership cleanup.
+- Change: updated `docs/help/diagnostics.md` so no-response triage starts with
+  the Electron main Agent SDK host, SDK backend transport traces, and backend
+  websocket logs, while tool-result continuation triage starts with SDK/main
+  tool-result relay plus backend ingestion/waiting/processing modules.
+- Validation: focused modular docs boundary guard for the new diagnostics
+  wording and stale frontend-result route, docs search, related commit search,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Diagnostic commands, trace paths,
+  backend websocket behavior, SDK/main tool-result relay, renderer display,
+  storage, credentials, permissions, hosted URLs, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Settings and Transparency Docs Consumer Labels
 
 - Finding: provider/config workflows still described `Frontend settings`, and

@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/help: route diagnostics first-triage wording through Electron main
+  Agent SDK host, SDK backend transport traces, and SDK/main tool-result relay
+  instead of broad frontend-result wording. No migration required.
 - sdk/runtime: remove the `createAgentBackendTransport` compatibility export so
   public TypeScript SDK callers use the canonical
   `createAgentRuntimeTransport` conversation transport factory. Migration:

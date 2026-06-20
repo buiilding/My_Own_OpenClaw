@@ -832,6 +832,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Tool Policy or Local-Runtime Execution');
     expect(docText).toContain('Local-Runtime Python Tools');
     expect(docText).toContain('SDK/main local-runtime dispatch');
+    expect(docText).toContain('Electron main Agent SDK host');
+    expect(docText).toContain('SDK backend transport traces');
+    expect(docText).toContain('Tool result reaches SDK/main but model does not continue');
+    expect(docText).toContain('SDK tool-result relay plus backend tool-result ingestion/waiting/processing modules');
     expect(architectureToolSystemText).toContain('Desktop Client / Local Runtime');
     expect(architectureToolSystemText).toContain('desktop client manifest builder');
     expect(architectureToolSystemText).toContain('local-runtime exposed-tool parity');
@@ -865,6 +869,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Local Runtime Sidecar Hub');
     expect(docText).not.toContain('executable sidecar local tools');
     expect(docText).not.toContain('routes it to the sidecar');
+    expect(docText).not.toContain('Tool result reaches frontend but model does not continue');
     expect(docText).not.toContain('The sidecar sends MCP `tools/call`');
     expect(docText).not.toContain('sidecar, or SDK trust boundaries');
     expect(docText).not.toContain('tool, or sidecar change');
