@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: route IPC test shutdown renderer-window cleanup through
+  `rendererWindowRuntime.reset()` inside `createIpcProcessResetRuntime(...)`
+  so reset orchestration depends on the same composed renderer-window boundary
+  used by initialization, tracking, and broadcast. No migration required.
 - main/ipc: wrap VM automated-query dispatch dependency composition in
   `createAutomatedQueryRuntime(...)`, keeping `sendAutomatedQuery(...)` as the
   exported VM worker API while preserving backend connection, settings sync,

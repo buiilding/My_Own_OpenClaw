@@ -296,7 +296,7 @@ Owns IPC process reset orchestration used by reconnect and test cleanup paths:
 
 - resets settings-sync state, backend session identity, live-turn caches, and
   trace caches as grouped runtime operations
-- preserves test shutdown cleanup order for renderer-window registry,
+- preserves test shutdown cleanup order for the renderer-window runtime,
   backend-message observers, install auth, connection gate, MCP refresh,
   pending turns, cached AgentClient lifecycle, and active Agent SDK adapter
 - keeps idempotent duplicate resets explicit in one helper instead of

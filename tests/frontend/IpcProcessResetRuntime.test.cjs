@@ -65,7 +65,7 @@ describe('ipc process reset runtime', () => {
       installAuthRuntime: resettable('installAuthRuntime', calls),
       mcpRefreshRuntime: resettable('mcpRefreshRuntime', calls),
       hostOptionState: resettable('hostOptionState', calls),
-      rendererWindowRegistry: resettable('rendererWindowRegistry', calls),
+      rendererWindowRuntime: resettable('rendererWindowRuntime', calls),
       backendMessageObserverRegistry: resettable('backendMessageObserverRegistry', calls),
       agentClientLifecycle: {
         shutdownAndReset: jest.fn(() => calls.push('agentClientLifecycle.shutdownAndReset')),
@@ -93,7 +93,7 @@ describe('ipc process reset runtime', () => {
       'hostOptionState.reset',
       'currentTurnTraceLogger.reset',
       'electronMainTraceLogger.reset',
-      'rendererWindowRegistry.reset',
+      'rendererWindowRuntime.reset',
       'backendMessageObserverRegistry.reset',
       'installAuthRuntime.reset',
       'backendConnectionGateState.setConnected:false',
@@ -115,9 +115,13 @@ describe('ipc process reset runtime', () => {
     );
 
     expect(mainSource).toContain('createIpcProcessResetRuntime({');
+    expect(mainSource).toContain('rendererWindowRuntime,');
+    expect(mainSource).not.toContain('rendererWindowRegistry,\n  backendMessageObserverRegistry');
     expect(mainSource).toContain('ipcProcessResetRuntime.shutdownIpcForTests()');
     expect(mainSource).not.toContain('agentClientLifecycle.shutdownAndReset();');
     expect(mainSource).not.toContain('agentRuntimeLifecycle.reset({ closeActiveAgent: true });');
+    expect(runtimeSource).toContain("call(rendererWindowRuntime, 'reset')");
+    expect(runtimeSource).not.toContain("call(rendererWindowRegistry, 'reset')");
     expect(runtimeSource).toContain("call(agentClientLifecycle, 'shutdownAndReset')");
     expect(runtimeSource).toContain("call(agentRuntimeLifecycle, 'reset', { closeActiveAgent: true })");
   });

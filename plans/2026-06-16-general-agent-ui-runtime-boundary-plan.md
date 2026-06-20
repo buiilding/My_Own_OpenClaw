@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Process Reset Renderer Window Runtime Boundary
+
+- Finding: `createRendererWindowRuntime(...)` now owned renderer-window track,
+  broadcast, and initialization reset composition, but `createIpcProcessResetRuntime(...)`
+  still accepted the raw renderer-window registry for test shutdown cleanup.
+- Change: changed process reset orchestration to depend on
+  `rendererWindowRuntime.reset()` so shutdown cleanup uses the same composed
+  renderer-window boundary as initialization, tracking, and broadcast.
+- Validation: focused process-reset coverage verifies cleanup order and source
+  guards keep the raw registry out of the reset-runtime dependency list.
+- Compatibility: no migration required. Test shutdown order, renderer window
+  registration and cleanup, overlay phase sync, current-turn sync, pending-turn
+  replay, buffered event replay, broadcast exclusion, renderer IPC channels,
+  storage, credentials, permissions, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Main Automated Query Runtime Boundary
 
 - Finding: `ipc_automated_query_dispatcher.cjs` already owned VM automated-query

@@ -23,7 +23,7 @@ function createIpcProcessResetRuntime({
   installAuthRuntime,
   mcpRefreshRuntime,
   hostOptionState,
-  rendererWindowRegistry,
+  rendererWindowRuntime,
   backendMessageObserverRegistry,
   agentClientLifecycle,
   agentRuntimeLifecycle,
@@ -58,7 +58,7 @@ function createIpcProcessResetRuntime({
     resetSettingsSyncState();
     resetBackendSessionState();
     resetIpcProcessStateForTests();
-    call(rendererWindowRegistry, 'reset');
+    call(rendererWindowRuntime, 'reset');
     call(backendMessageObserverRegistry, 'reset');
     call(installAuthRuntime, 'reset');
     call(backendConnectionGateState, 'setConnected', false);

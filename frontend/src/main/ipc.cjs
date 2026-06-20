@@ -546,7 +546,7 @@ const ipcProcessResetRuntime = createIpcProcessResetRuntime({
   installAuthRuntime,
   mcpRefreshRuntime,
   hostOptionState,
-  rendererWindowRegistry,
+  rendererWindowRuntime,
   backendMessageObserverRegistry,
   agentClientLifecycle,
   agentRuntimeLifecycle,
