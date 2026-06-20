@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route backend-only tool capability and tool authoring
+  troubleshooting wording through local-runtime executable manifest/registry
+  ownership instead of sidecar local action and sidecar registry labels. No
+  migration required.
 - docs/development: route the agent development workflow's tool-schema
   widening example through SDK/main local-runtime dispatch, local-runtime
   executable registry implementation, and renderer projection handling instead

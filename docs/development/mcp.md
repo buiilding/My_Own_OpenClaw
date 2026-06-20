@@ -262,7 +262,7 @@ For normal MCP integrations, do not edit:
 - `frontend/src/main/extensions/extension_manifest.cjs`
 - `frontend/src/main/extensions/mcp_control.cjs`
 - backend tool registries
-- Python sidecar tool registries
+- local-runtime executable tool registries backed by Python sidecar modules
 
 Edit those only when changing the WindieOS MCP platform itself.
 

@@ -273,11 +273,13 @@ If you add backend-only tools, document the wiring point in the same PR.
 1. For backend-owned tools, confirm backend stub is present in
    `backend/src/tools/tool_catalog.py` and the concrete
    `backend/src/tools/remote_tools/<domain>.py` module.
-2. For built-in Python sidecar tools, confirm the tool is listed in
-   `frontend/src/main/python/tools/manifest.py`.
+2. For built-in local-runtime executable tools, confirm the tool is listed in
+   `frontend/src/main/python/tools/manifest.py`, the current Python sidecar
+   implementation manifest.
 3. For local-runtime plugin tools, confirm `plugin.json` has `schema` and
    `entrypoint`.
-4. Confirm handler is registered in sidecar `ToolRegistry`.
+4. Confirm the handler is registered in the local-runtime executable registry
+   (`frontend/src/main/python/tools/registry.py`).
 5. Run remote contract or extension manifest tests for the changed path.
 
 ### Tool executes but fails in local runtime

@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed tool catalog, tool development, and MCP authoring
+  troubleshooting wording through local-runtime executable actions, manifest,
+  and registry ownership instead of sidecar local action, built-in Python
+  sidecar tool, sidecar `ToolRegistry`, and Python sidecar tool registry
+  labels. Python sidecar paths remain visible as the current implementation
+  detail. Validation covered the modular docs boundary guard, docs search,
+  related commit search, stale sidecar registry/action phrase scan, docs
+  listing, and diff check. No migration required; tool schemas,
+  local-runtime executable registry behavior, SDK/main dispatch, MCP
+  registration, IPC channels, storage, credentials, permissions, provider
+  policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-20: updated the agent development workflow's tool-schema widening
   example to route through backend schema, SDK/main local-runtime dispatch,
   local-runtime executable registry implementation, and renderer projection

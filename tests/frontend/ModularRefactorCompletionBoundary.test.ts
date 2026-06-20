@@ -748,6 +748,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/development/agent_routing_quick_cards.md'),
       read('docs/development/agent_runtime_ownership_and_change_routing.md'),
       read('docs/development/extensions.md'),
+      read('docs/development/mcp.md'),
       read('docs/development/tool_development.md'),
       read('docs/README.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
@@ -947,6 +948,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('live local-runtime exposed set backed by the Python registry');
     expect(toolRoutingDocText).toContain('local-runtime exposed tool set backed by the Python sidecar registry');
     expect(toolRoutingDocText).toContain('local-runtime executable registry contains `browser`');
+    expect(toolRoutingDocText).toContain('not local-runtime executable actions');
+    expect(toolRoutingDocText).toContain('For built-in local-runtime executable tools');
+    expect(toolRoutingDocText).toContain('local-runtime executable registry');
+    expect(toolRoutingDocText).toContain('local-runtime executable tool registries backed by Python sidecar modules');
     expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
@@ -1012,6 +1017,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('live sidecar exposed set');
     expect(toolRoutingDocText).not.toContain('Python sidecar exposed-tool set');
     expect(toolRoutingDocText).not.toContain('Python sidecar exposed set');
+    expect(toolRoutingDocText).not.toContain('sidecar local actions');
+    expect(toolRoutingDocText).not.toContain('built-in Python sidecar tools');
+    expect(toolRoutingDocText).not.toContain('sidecar `ToolRegistry`');
+    expect(toolRoutingDocText).not.toContain('Python sidecar tool registries');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');

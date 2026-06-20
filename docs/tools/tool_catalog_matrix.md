@@ -39,7 +39,7 @@ Do not import backend tool code into the sidecar to force parity. Keep parity ex
 
 ## Backend-Only Logical Capabilities
 
-Some capabilities are model-visible but are not sidecar local actions:
+Some capabilities are model-visible but are not local-runtime executable actions:
 
 | Capability | Owner | Execution path |
 | --- | --- | --- |
