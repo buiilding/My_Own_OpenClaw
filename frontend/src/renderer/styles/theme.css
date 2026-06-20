@@ -112,7 +112,6 @@
   --ui-neutral-black: #000000;
   --ui-brand-dot-bg: var(--agent-accent);
   --ui-brand-dot-fg: var(--ui-neutral-white);
-  --ui-gpt-dot-bg: var(--agent-accent);
   --ui-on-accent: var(--ui-neutral-white);
   --ui-settings-swatch-bg: var(--ui-neutral-black);
   --ui-toggle-thumb-on: var(--ui-neutral-white);

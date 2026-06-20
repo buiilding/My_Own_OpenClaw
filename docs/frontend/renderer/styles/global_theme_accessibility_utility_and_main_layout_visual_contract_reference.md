@@ -87,6 +87,9 @@ Sidebar navigation state contract:
 
 - active/selected nav buttons use `.active`/`.selected` class names
 - hover/active styles rely on border/background transitions on `.cg-nav-item`
+- removed provider-specific dashboard shell selectors such as `cg-gpt-*` and
+  token names such as `--ui-gpt-dot-bg`; model/provider presentation belongs in
+  dashboard panel surfaces and renderer skin config, not shell layout CSS
 
 Responsive behavior:
 

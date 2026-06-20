@@ -80,6 +80,8 @@ describe('renderer skin/config boundary', () => {
     expect(dashboardShellCssSource).toContain('--cg-brand-app-icon-url');
     expect(dashboardShellCssSource).not.toContain('--windie-desktop-brand-icon-url');
     expect(dashboardShellCssSource).not.toContain('windieos.app.png');
+    expect(dashboardShellCssSource).not.toContain('cg-gpt');
+    expect(dashboardShellCssSource).not.toContain('ui-gpt');
   });
 
   test('settings components consume skin copy instead of hard-coding product copy', () => {

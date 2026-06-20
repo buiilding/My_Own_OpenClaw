@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/styles: remove unreferenced `cg-gpt-*` dashboard shell selectors and
+  the matching `--ui-gpt-dot-bg` token so generic dashboard CSS no longer keeps
+  provider-specific style names. No migration required.
 - sdk/transport: route managed agent-session stop alias rejection through the
   shared `AgentSession` helper instead of duplicating the snake_case guard. No
   migration required.

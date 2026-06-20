@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+### 2026-06-20 Renderer Dashboard Shell GPT Token Cleanup
+
+- Finding: generic renderer dashboard shell CSS still kept unreferenced
+  provider-specific `cg-gpt-*` selectors and `--ui-gpt-dot-bg` token naming.
+- Change: removed the stale selectors/token and added a renderer skin boundary
+  assertion so dashboard shell styles stay provider-neutral.
+- Validation: focused renderer skin boundary tests, exact stale CSS-token scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Dashboard markup, model/provider
+  config, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 SDK Managed Stop Alias Guard Cleanup
 
 - Finding: managed and unmanaged SDK hosted-session transports duplicated the

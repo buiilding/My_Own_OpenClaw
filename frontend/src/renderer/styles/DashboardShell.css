@@ -317,51 +317,6 @@ body.cg-scroll-locked,
   color: var(--ui-text-dim);
 }
 
-.cg-gpt-card,
-.cg-chat-card {
-  width: 100%;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--ui-text-secondary);
-  text-align: left;
-  padding: 7px 10px;
-  cursor: default;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
-
-.cg-gpt-card {
-  cursor: pointer;
-}
-
-.cg-gpt-card:hover,
-.cg-chat-card:hover {
-  background: var(--ui-hover-bg);
-  color: var(--ui-text-primary);
-}
-
-.cg-gpt-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: var(--ui-gpt-dot-bg);
-  color: var(--ui-on-accent);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.cg-chat-card {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .cg-chat-list-scroll {
   display: flex;
   flex-direction: column;
@@ -1058,8 +1013,6 @@ body.cg-scroll-locked,
 
   .cg-sidebar .cg-brand-text,
   .cg-sidebar .cg-sidebar-section-label,
-  .cg-sidebar .cg-gpt-card,
-  .cg-sidebar .cg-chat-card,
   .cg-sidebar .cg-sidebar-divider,
   .cg-sidebar .cg-nav-item-label {
     display: none;

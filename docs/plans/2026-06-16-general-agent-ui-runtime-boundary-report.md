@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: SDK managed agent sessions reuse the canonical
-  `AgentSession` stop-alias guard instead of carrying a second snake_case
-  compatibility check.
+- Latest completed slice: renderer dashboard shell CSS no longer carries
+  unreferenced provider-specific `cg-gpt-*` selectors or `--ui-gpt-dot-bg`
+  token names.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -243,6 +243,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Renderer Dashboard Shell GPT Token Cleanup
+
+- Finding: `DashboardShell.css` and `theme.css` still carried unreferenced
+  `cg-gpt-*` selectors and the `--ui-gpt-dot-bg` token even though dashboard
+  shell layout is now a generic renderer surface and provider/model
+  presentation lives in dashboard panel surfaces plus renderer skin config.
+- Change: removed the dead provider-specific CSS selectors and token, and
+  extended renderer skin boundary coverage so the dashboard shell stylesheet
+  stays free of `cg-gpt` / `ui-gpt` names.
+- Validation: focused renderer skin boundary tests, exact stale CSS-token scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Runtime behavior, rendered dashboard
+  markup, provider/model config, storage, credentials, permissions, hosted
+  backend URLs, provider policy, and local execution behavior are unchanged.
 
 ### 2026-06-20 SDK Managed Stop Alias Guard Cleanup
 
