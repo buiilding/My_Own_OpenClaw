@@ -102,7 +102,7 @@ Desktop host, renderer, and local-runtime Python code must not import backend co
 - [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) for target OS package commands, bundled runtime rules, and smoke checks.
 - [Help Hub](../help/README.md) for diagnostics, troubleshooting, triage routes, doctor-style checks, evidence packets, and FAQ routes.
 - [Triage Routes](../help/triage_routes.md) for mapping user-visible symptoms to the first likely runtime owner.
-- [Doctor Checklist](../help/doctor_checklist.md) for collecting environment, endpoint, sidecar, permission, packaging, and hosted evidence.
+- [Doctor Checklist](../help/doctor_checklist.md) for collecting environment, endpoint, local-runtime, permission, packaging, and hosted evidence.
 - [Evidence Packet](../help/evidence_packet.md) for handoff-ready bug reports across backend, desktop host, renderer, local-runtime, local-runtime Python implementation, and SDK boundaries.
 - [FAQ](../help/faq.md) for recurring source, packaged, endpoint, provider, tool, browser, permission, and memory questions.
 - [Web Surfaces](../web/README.md) for landing, hosted API/auth, SDK/client, artifact, websocket, and dashboard-adjacent web boundaries.

@@ -26,13 +26,13 @@ title: "System-State Collection and Removed getSystemState Bridge Export Referen
 1. a renderer or Electron-main consumer invokes `get-system-state` through Electron IPC.
 2. Electron main (`ipcMain.handle('get-system-state')`) calls `getSystemStateFromBackend(fields)`.
 3. main bridge sends JSON-RPC `get_system_state` request to the local-runtime Python implementation.
-4. Python sidecar `LocalRuntimeService._handle_get_system_state(...)` calls `core.system_state.get_system_state(...)`.
-5. Python sidecar returns `{ success: true, data: state }`.
+4. Local-runtime Python `LocalRuntimeService._handle_get_system_state(...)` calls `core.system_state.get_system_state(...)`.
+5. Local-runtime Python returns `{ success: true, data: state }`.
 6. main bridge unwraps to `result.data || result` and returns plain state object to renderer.
 
 Error path:
 
-- if JSON-RPC fails or the Python sidecar returns `{ success: false, ... }`, main returns `null`.
+- if JSON-RPC fails or local-runtime Python returns `{ success: false, ... }`, main returns `null`.
 
 ## Removed Direct Bridge Export
 
@@ -100,7 +100,7 @@ Per-field post-processing:
 ### `windows`
 
 - source: `core.platform.window_manager.WindowManager().get_windows()`
-- sidecar returns title list only
+- local-runtime Python returns title list only
 - default on failure: `[]`
 
 ### `stats`
@@ -160,8 +160,8 @@ Current runtime note:
 
 ## Failure and Fallback Behavior Across Layers
 
-- Python sidecar field probe failure -> per-field defaults in response object
-- Python sidecar handler exception -> `{ success: false, error }`
+- Local-runtime Python field probe failure -> per-field defaults in response object
+- Local-runtime Python handler exception -> `{ success: false, error }`
 - main bridge error or `success: false` -> renderer receives `null`
 - main/renderer consumers typically degrade to null/unknown UI state rather than hard-failing query flow
 

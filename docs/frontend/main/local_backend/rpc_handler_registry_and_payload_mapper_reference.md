@@ -127,7 +127,7 @@ interfaces. Preserve these rules there:
 - renderer-facing command fields stay SDK-shaped and camelCase
 - Python JSON-RPC method params stay snake_case
 - command validation belongs at the SDK/renderer facade boundary
-- sidecar handler signatures stay explicit so JSON-RPC validation can reject
+- local-runtime Python handler signatures stay explicit so JSON-RPC validation can reject
   missing or unexpected params
 - fallback aliases are allowed only when both names are intentionally public and
   covered by focused tests

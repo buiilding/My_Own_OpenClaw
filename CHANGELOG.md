@@ -35,6 +35,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(config): route backend config, configuration workflow, and docs-hub
+  evidence labels through local-runtime env/local-runtime wording instead of
+  sidecar env or sidecar evidence labels. No migration required.
+- docs(runtime): route local-runtime JSON-RPC handler, system-state response,
+  and config/env labels through local-runtime Python wording instead of
+  sidecar handler/env owner labels. No migration required.
 - docs(runtime): route local-runtime Python stdout, stderr, spawn readiness,
   hosted-helper client, and packaging diagnostic labels through local-runtime
   Python wording instead of Python sidecar process/log labels. No migration

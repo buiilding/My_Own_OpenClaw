@@ -275,6 +275,30 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a configuration local-runtime env label slice by
+  routing backend config guardrails, operations configuration validation, and
+  docs-hub evidence labels through local-runtime env/local-runtime wording
+  instead of sidecar env or sidecar evidence labels. The slice preserved
+  backend config assembly, Electron endpoint propagation, packaged runtime, and
+  local-runtime Python environment behavior while extending the modular docs
+  guard against the retired phrases. Validation covered the focused modular
+  docs boundary test, docs listing, exact stale config/env label scans, and
+  diff checks. No migration required; no runtime code, settings payload,
+  endpoint value, env variable name, JSON-RPC/daemon payload, IPC payload,
+  storage, credential, permission, hosted URL, provider-policy, or
+  trust-boundary behavior changed.
+- 2026-06-20: completed a local-runtime Python handler/response label slice by
+  routing system-state, IPC, local-runtime JSON-RPC, and local-runtime bridge
+  docs through local-runtime Python handler params, protocol tests,
+  success/error envelopes, and system-state fallback wording instead of
+  sidecar/Python sidecar handler owner labels. The same slice preserved related
+  configuration/docs-hub dirty work by routing sidecar env/doctor evidence to
+  local-runtime env wording. Validation: focused modular docs boundary test,
+  docs listing, exact stale handler/response/env label scan, and diff checks.
+  No migration required; no runtime code, JSON-RPC method name, handler
+  signature, response envelope, system-state fallback value, config propagation,
+  IPC payload, storage, credential, permission, hosted URL, provider-policy, or
+  trust-boundary behavior changed.
 - 2026-06-20: completed a local-runtime Python diagnostic/process label slice
   by routing docs hub, architecture, diagnostic flags, observability, process
   health, and release-packaging docs through local-runtime Python stdout,

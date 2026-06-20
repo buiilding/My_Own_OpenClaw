@@ -48,7 +48,7 @@ The core rule is: put the setting where it can be enforced, then propagate only 
 5. Propagate only the normalized value needed by downstream runtimes.
 6. Add tests at the owner boundary and every protocol boundary that receives the value.
 7. Update docs that list defaults, env vars, renderer-persisted settings, and packaging behavior.
-8. Validate source mode and packaged mode when the change touches endpoint, sidecar, signing, or bundled runtime behavior.
+8. Validate source mode and packaged mode when the change touches endpoint, local-runtime env, signing, or bundled runtime behavior.
 
 ## Backend Config Changes
 
@@ -184,8 +184,8 @@ Validation:
 - Secrets are not committed or serialized into logs/tests/docs.
 - Session config rewire behavior is tested when backend session settings change.
 - First-query settings sync still waits for the backend ACK when required.
-- Sidecar receives only normalized env values.
-- Packaged-app behavior is validated when endpoint, sidecar, signing, or bundled runtime config changes.
+- Local-runtime Python receives only normalized env values.
+- Packaged-app behavior is validated when endpoint, local-runtime env, signing, or bundled runtime config changes.
 
 ## Related Docs
 

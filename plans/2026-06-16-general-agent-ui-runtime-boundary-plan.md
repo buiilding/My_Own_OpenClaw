@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Python Handler Response Labels
+
+- Finding: system-state, IPC, local-runtime JSON-RPC, and local-runtime bridge
+  docs plus configuration/docs-hub routes still used sidecar/Python sidecar
+  handler and env labels for handler params, protocol tests, success/error
+  envelopes, system-state fallback behavior, and packaged/source validation
+  where the reusable boundary is local-runtime JSON-RPC and local-runtime env
+  backed by local-runtime Python handlers.
+- Change: routed those labels through local-runtime Python handler, response,
+  platform-probe, and local-runtime env wording while preserving concrete
+  `get_system_state`, `LocalRuntimeService._handle_get_system_state(...)`,
+  local bridge, endpoint, signing, and bundled-runtime details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  handler/response/env label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, JSON-RPC method names,
+  handler signatures, response envelopes, system-state fallback values,
+  config propagation, IPC payloads, storage, credentials, permissions, hosted
+  backend URLs, provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Local-Runtime Python Diagnostic Process Labels
 
 - Finding: docs hub, architecture, diagnostic flags, observability, process

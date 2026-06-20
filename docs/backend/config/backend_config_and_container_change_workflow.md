@@ -16,7 +16,7 @@ Backend config has two shapes:
 - global runtime config loaded from `backend/src/core/config/app_config.py` through `ConfigManager`
 - session-scoped config assembled from client `update-settings` patches and applied to `AgentSession`
 
-Do not make renderer settings, sidecar env, or Electron endpoint code mutate backend internals directly. They should send allowed values through the documented config/update boundary and let backend config assembly rebuild the runtime objects.
+Do not make renderer settings, local-runtime env, or Electron endpoint code mutate backend internals directly. They should send allowed values through the documented config/update boundary and let backend config assembly rebuild the runtime objects.
 
 ## Fast Owner Map
 

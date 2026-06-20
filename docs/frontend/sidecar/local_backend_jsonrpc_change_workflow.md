@@ -49,7 +49,7 @@ This workflow is narrower than the general [Local-Runtime Python Implementation 
 These methods are invoked by focused helper code in `sidecar/local_runtime_bridge.cjs`
 or local tool runtime code rather than the compiled mapper table.
 
-| Main-side entry | JSON-RPC method | Sidecar handler | Notes |
+| Main-side entry | JSON-RPC method | Local-runtime Python handler | Notes |
 | --- | --- | --- | --- |
 | scoped host channels / `executeToolForBackend(...)` | `execute_tool` | `_handle_execute_tool` | Runs local-runtime tools through the executable registry backed by local-runtime Python modules; screenshot path may be materialized into backend artifacts by Electron main. |
 | `get-system-state` IPC | `get_system_state` | `_handle_get_system_state` | Returns system/window/runtime state; failure normalizes to `null` in main helper paths. |
@@ -93,7 +93,7 @@ channel.
 7. Return a stable result envelope and avoid leaking tracebacks or local paths
    unless that is already the contract for the method.
 8. Add SDK command/store tests, renderer facade tests when applicable, and
-   sidecar handler/protocol tests.
+   local-runtime Python handler/protocol tests.
 9. Link the new method from [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md) and the relevant domain doc.
 
 ## Add a Main-Only JSON-RPC Helper
@@ -104,7 +104,7 @@ Use this path when renderer does not need a general IPC channel, but Electron ma
 2. Call `sendRequestOrError(method, params, options)` unless callers should handle thrown errors.
 3. Set a method-specific `timeoutMs` only when the operation is expected to exceed the default.
 4. Register the Python JSON-RPC method in `LocalRuntimeService._initialize_methods`.
-5. Implement and test the sidecar handler.
+5. Implement and test the local-runtime Python handler.
 6. Export the main helper only if another main module needs to call it.
 7. Update main-process docs if the helper affects startup, packaging, permission, browser, or runtime behavior.
 
@@ -123,7 +123,7 @@ Preserve these payload guarantees:
 
 Do not silently rename payload keys in only the renderer or only the SDK
 local-runtime caller. If a key changes, update renderer caller, SDK command,
-sidecar handler signature, tests, and docs together.
+local-runtime Python handler signature, tests, and docs together.
 
 ## Protocol and Readiness Rules
 

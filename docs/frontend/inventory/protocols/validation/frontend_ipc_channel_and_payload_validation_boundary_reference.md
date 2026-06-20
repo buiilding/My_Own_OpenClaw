@@ -119,8 +119,8 @@ Examples:
 - conversation and memory command payloads stay SDK-shaped at the renderer
   boundary.
 - SDK local-runtime store code normalizes fields such as `conversationId`,
-  `memoryId`, and `recordKind` into sidecar snake_case params.
-- sidecar handler signatures provide the final JSON-RPC `INVALID_PARAMS`
+  `memoryId`, and `recordKind` into local-runtime Python snake_case params.
+- local-runtime Python handler signatures provide the final JSON-RPC `INVALID_PARAMS`
   validation for missing or unexpected params.
 
 Role:

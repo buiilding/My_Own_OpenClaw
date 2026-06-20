@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for sidecar platform layering: direct OS probes used by `get_system_state`, separate window-manager adapters used by system tools, and OS-specific dependency/fallback behavior."
+summary: "Deep reference for local-runtime Python platform layering: direct OS probes used by `get_system_state`, separate window-manager adapters used by system tools, and OS-specific dependency/fallback behavior."
 read_when:
   - When changing active-window/window-list collection logic or window-activation matching behavior on Windows/macOS/Linux.
   - When diagnosing mismatches where `get_system_state` reports one window title surface but `switch_window` matching/activation behaves differently.
@@ -53,14 +53,14 @@ Key boundary:
 Flow:
 
 1. renderer invokes `get-system-state` IPC
-2. main bridge calls sidecar `get_system_state`
-3. sidecar handler returns `{ success: true, data }` or `{ success: false, error }`
+2. main bridge calls local-runtime Python `get_system_state`
+3. local-runtime Python handler returns `{ success: true, data }` or `{ success: false, error }`
 4. main bridge unwraps `result.data || result`
-5. if sidecar fails or bridge errors, main returns `null`
+5. if local-runtime Python fails or bridge errors, main returns `null`
 
 Implication:
 
-- renderer consumers must tolerate `null` from bridge even though sidecar itself tries to return fallback-filled field objects
+- renderer consumers must tolerate `null` from bridge even though local-runtime Python tries to return fallback-filled field objects
 
 ## OS-Specific Adapter Semantics
 
@@ -157,4 +157,4 @@ When changing platform adapters:
 1. validate `switch_window` and `get_open_windows` behaviors for each OS-specific implementation
 2. confirm `get_system_state` window fields still produce expected shape/fallbacks
 3. ensure ambiguity guards remain conservative on Linux matching
-4. verify main bridge still normalizes sidecar success/error responses to renderer expectations
+4. verify main bridge still normalizes local-runtime Python success/error responses to renderer expectations

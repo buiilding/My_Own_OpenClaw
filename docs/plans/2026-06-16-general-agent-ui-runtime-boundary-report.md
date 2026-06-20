@@ -12,12 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: docs hub, architecture, diagnostic flags,
-  observability, process health, and release-packaging routes now describe
-  local-runtime Python stdout, stderr, spawn readiness, hosted-helper clients,
-  and platform dependency diagnostics instead of Python sidecar process/log
-  owner labels, with a focused docs boundary guard against those retired
-  phrases.
+- Latest completed slice: system-state, IPC, local-runtime JSON-RPC,
+  local-runtime bridge, configuration, and docs-hub routes now describe
+  local-runtime Python handler params, response envelopes, fallback/error
+  returns, system-state probe handling, and local-runtime env evidence instead
+  of sidecar handler/env owner labels, with a focused docs boundary guard
+  against those retired phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -246,6 +246,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Local-Runtime Python Handler Response Labels
+
+- Finding: system-state, IPC, local-runtime JSON-RPC, and local-runtime bridge
+  docs plus configuration/docs-hub routes still used sidecar/Python sidecar
+  handler and env labels for handler params, protocol tests, success/error
+  envelopes, system-state fallback behavior, and packaged/source validation
+  where the reusable boundary is local-runtime JSON-RPC and local-runtime env
+  backed by local-runtime Python handlers.
+- Change: routed those labels through local-runtime Python handler, response,
+  platform-probe, and local-runtime env wording while preserving concrete
+  `get_system_state`, `LocalRuntimeService._handle_get_system_state(...)`,
+  local bridge, endpoint, signing, and bundled-runtime details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  handler/response/env label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, JSON-RPC method names,
+  handler signatures, response envelopes, system-state fallback values,
+  config propagation, IPC payloads, storage, credentials, permissions, hosted
+  backend URLs, provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime Python Diagnostic Process Labels
 
