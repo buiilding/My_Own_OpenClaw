@@ -19,6 +19,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
+- `frontend/src/main/ipc/ipc_install_auth_runtime.cjs`
 - `packages/windie-sdk-js/src/runtime/AgentClient.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
@@ -111,6 +112,18 @@ Owns IPC startup state hydration:
 - updates the global agent stop shortcut accelerator from cached config
 - initializes global stop-shortcut enabled state from the current response-overlay phase
 - treats disk-hydration failures as fail-open startup conditions
+
+### `ipc_install_auth_runtime.cjs`
+
+Owns Electron main install-auth runtime orchestration:
+
+- builds bearer headers from the current install token
+- shares one pending install-auth ensure operation across concurrent callers
+- validates cached disk install auth against backend endpoint candidates
+- clears backend-rejected cached tokens before fresh install registration
+- registers fresh installs against endpoint candidates and activates the
+  winning backend endpoint
+- maps host platform names into install registration operating-system metadata
 
 ### `AgentClient.wakeUp(...)` and `agent.conversation(...)`
 
@@ -379,6 +392,9 @@ generic `to-backend` router or direct chat query IPC handlers.
    `ipc_extension_mcp_handlers.cjs`.
 19. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
+20. install-auth header construction, cached-token validation, stale-token
+    clearing, registration fallback, and pending ensure-state sharing delegate
+    to `ipc_install_auth_runtime.cjs`.
 
 ## Drift Hotspots
 

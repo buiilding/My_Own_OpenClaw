@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move install-auth header construction, cached-token validation,
+  stale-token clearing, registration fallback, and pending ensure-state sharing
+  into `ipc_install_auth_runtime.cjs` so `ipc.cjs` keeps host session state
+  while a focused helper owns the credential runtime flow. No migration
+  required.
 - cli/docs: cache docs index metadata and precomputed search fields per process
   so repeated `findDocs(...)` calls no longer reload and renormalize the full
   docs corpus. Public `loadDocsIndex()` callers still receive fresh doc objects.

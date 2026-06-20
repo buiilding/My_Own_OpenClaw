@@ -47,6 +47,10 @@ const {
   validateInstallAuthStateWithBackend,
 } = require('./ipc/ipc_install_auth_state.cjs');
 const {
+  createInstallAuthRuntime,
+  resolveDesktopHostOperatingSystem,
+} = require('./ipc/ipc_install_auth_runtime.cjs');
+const {
   isValidConfigPayload,
 } = require('./ipc/ipc_settings_sync.cjs');
 const {
@@ -227,7 +231,6 @@ let localToolLifecycle = null;
 let syncSdkLiveTurnSurfaceIntent = null;
 let agentWebSocketImpl = null;
 let currentGlobalAgentStopShortcutStatus = null;
-let pendingInstallAuthStatePromise = null;
 let agentClient = null;
 let activeAgent = null;
 let pendingAgentStartPromise = null;
@@ -257,6 +260,22 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   log,
   timeoutMs: SETTINGS_SYNC_TIMEOUT_MS,
 });
+const installAuthRuntime = createInstallAuthRuntime({
+  getCurrentState: () => ({
+    installToken: currentInstallToken,
+    userId: currentUserId,
+    installId: currentInstallId,
+  }),
+  applyInstallAuthState,
+  getEndpointCandidates: () => backendEndpointState.getCandidates(),
+  setActiveBackendEndpoint,
+  loadInstallAuthStateFromDisk,
+  validateInstallAuthStateWithBackend,
+  registerInstallWithBackend,
+  saveInstallAuthStateToDisk,
+  clearInstallAuthStateFromDisk,
+  log,
+});
 
 function applyInstallAuthState(state) {
   if (!state || typeof state !== 'object') {
@@ -282,109 +301,11 @@ function applyInstallAuthState(state) {
 }
 
 function buildInstallAuthHeaders() {
-  if (typeof currentInstallToken !== 'string' || !currentInstallToken) {
-    return {};
-  }
-  return {
-    Authorization: `Bearer ${currentInstallToken}`,
-  };
+  return installAuthRuntime.buildInstallAuthHeaders();
 }
 
 async function ensureInstallAuthState() {
-  const currentState = applyInstallAuthState({
-    installToken: currentInstallToken,
-    userId: currentUserId,
-    installId: currentInstallId,
-  });
-  if (currentState) {
-    return currentState;
-  }
-  if (pendingInstallAuthStatePromise) {
-    return pendingInstallAuthStatePromise;
-  }
-
-  pendingInstallAuthStatePromise = (async () => {
-    let lastError = null;
-    const endpointCandidates = backendEndpointState.getCandidates();
-    const cachedDiskState = await loadInstallAuthStateFromDisk(log);
-    if (cachedDiskState) {
-      let sawInvalidCachedToken = false;
-      for (let index = 0; index < endpointCandidates.length; index += 1) {
-        const candidate = endpointCandidates[index];
-        const validation = await validateInstallAuthStateWithBackend(cachedDiskState, {
-          backendHttpUrl: candidate.httpUrl,
-        });
-        if (validation.valid && validation.state) {
-          setActiveBackendEndpoint(index);
-          const validatedState = applyInstallAuthState(validation.state);
-          const persistedIdentityMatches = (
-            validation.state.userId === cachedDiskState.userId
-            && validation.state.installId === cachedDiskState.installId
-          );
-          if (!persistedIdentityMatches) {
-            await saveInstallAuthStateToDisk(validation.state, log);
-          }
-          return validatedState;
-        }
-        if (validation.invalidToken) {
-          sawInvalidCachedToken = true;
-          log(`Cached install auth was rejected by ${candidate.httpUrl} (${validation.status || 'invalid'}); registering a fresh install.`);
-        } else {
-          lastError = new Error(
-            `Install auth validation failed against ${candidate.httpUrl}: ${validation.error || 'unknown error'}`,
-          );
-          log(lastError.message);
-        }
-      }
-      if (!sawInvalidCachedToken) {
-        const cachedState = applyInstallAuthState(cachedDiskState);
-        if (cachedState) {
-          return cachedState;
-        }
-      }
-      await clearInstallAuthStateFromDisk(log);
-    }
-
-    for (let index = 0; index < endpointCandidates.length; index += 1) {
-      const candidate = endpointCandidates[index];
-      try {
-        const registeredState = await registerInstallWithBackend({
-          backendHttpUrl: candidate.httpUrl,
-          operatingSystem: resolveDesktopHostOperatingSystem(process.platform),
-          log,
-        });
-        const persistResult = await saveInstallAuthStateToDisk(registeredState, log);
-        if (!persistResult?.success) {
-          throw new Error(persistResult?.error || 'Failed to persist install auth state');
-        }
-        setActiveBackendEndpoint(index);
-        return applyInstallAuthState(registeredState);
-      } catch (error) {
-        lastError = error;
-        log(`Install registration failed against ${candidate.httpUrl}: ${error?.message || error}`);
-      }
-    }
-    throw lastError || new Error('Failed to register install with backend');
-  })().finally(() => {
-    pendingInstallAuthStatePromise = null;
-  });
-
-  return pendingInstallAuthStatePromise;
-}
-
-function resolveDesktopHostOperatingSystem(platformName = process.platform) {
-  switch (platformName) {
-    case 'darwin':
-      return 'macOS';
-    case 'win32':
-      return 'Windows';
-    case 'linux':
-      return 'Linux';
-    default:
-      return typeof platformName === 'string' && platformName.trim().length > 0
-        ? platformName.trim()
-        : null;
-  }
+  return installAuthRuntime.ensureInstallAuthState();
 }
 
 function normalizeGlobalAgentStopShortcutStatus(status) {
@@ -609,7 +530,7 @@ function resetIpcProcessStateForTests() {
   activeQueryContext = null;
   latestDesktopUiConfig = null;
   currentGlobalAgentStopShortcutStatus = null;
-  pendingInstallAuthStatePromise = null;
+  installAuthRuntime.reset();
   pendingStartupMcpRefreshPromise = null;
   latestCurrentTurnProjection = null;
   latestPendingTurn = null;
@@ -1460,7 +1381,7 @@ function shutdownIpcForTests() {
   localToolLifecycle = null;
   syncSdkLiveTurnSurfaceIntent = null;
   agentWebSocketImpl = null;
-  pendingInstallAuthStatePromise = null;
+  installAuthRuntime.reset();
   isConnected = false;
   pendingAgentStartPromise = null;
   pendingStartupMcpRefreshPromise = null;

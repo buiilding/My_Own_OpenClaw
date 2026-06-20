@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Main Install Auth Runtime Boundary
+
+- Finding: install-auth persistence and backend validation helpers already
+  lived outside `ipc.cjs`, but the main IPC relay root still owned bearer-header
+  construction, cached-token validation across backend candidates, stale-token
+  clearing, fresh registration fallback, OS metadata mapping, and the shared
+  pending ensure promise inline.
+- Change: added `ipc_install_auth_runtime.cjs` so the credential runtime flow is
+  owned by a focused helper. `ipc.cjs` now injects current host state, endpoint
+  state, and persistence/backend helpers while keeping session/user variables in
+  the Agent SDK host root.
+- Validation: focused install-auth runtime coverage for headers, platform
+  mapping, cached validation, stale-token registration fallback, and concurrent
+  ensure sharing.
+- Compatibility: no migration required. Install-auth persisted file shape,
+  bearer header format, backend `/api/install/*` contracts, SDK wake-up
+  install-auth payloads, IPC channels, hosted URLs, provider policy,
+  permissions, and local execution behavior are unchanged.
+
 ### 2026-06-19 Docs Search Runtime Cache
 
 - Finding: the required docs-search workflow had become slow enough that
