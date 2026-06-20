@@ -528,6 +528,9 @@ Owns Electron-main cached SDK live-turn and pending-turn state:
 
 Owns main-process stop target resolution and stop execution:
 
+- `createMainStopTargetRuntime`: composes live current-turn reads, pending-turn
+  reads, active conversation-ref reads, SDK stop execution, and overlay phase
+  completion for `ipc.cjs`
 - chooses stoppable SDK current turns before renderer pending turns
 - falls back to the active conversation only when no current or pending turn is
   available

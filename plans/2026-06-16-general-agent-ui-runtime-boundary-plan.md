@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Stop Target Runtime Composition Boundary
+
+- Finding: `ipc_stop_target_runtime.cjs` owned stop target selection and SDK
+  stop execution, but `ipc.cjs` still rebuilt the live current-turn,
+  pending-turn, active conversation, SDK stop, and overlay completion
+  dependency bag every time the main stop shortcut resolved or triggered a
+  target.
+- Change: added `createMainStopTargetRuntime(...)` so the stop-target owner now
+  composes the Electron main adapter once. `ipc.cjs` delegates
+  `resolveMainStopTarget()` and `triggerStopQueryFromMain()` to the composed
+  runtime while preserving the public exports used by shortcut and lifecycle
+  tests.
+- Validation: focused stop-target coverage verifies lazy current-state reads,
+  SDK-shaped stop payloads, overlay completion after successful stops, and
+  source guards that keep direct stop-target dependency assembly out of
+  `ipc.cjs`.
+- Compatibility: no migration required. Global shortcut registration, stop
+  priority order, SDK `stop-query` payload fields, pending-turn cleanup,
+  response overlay completion, renderer IPC channels, storage, credentials,
+  permissions, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main IPC Initialization Runtime Boundary
 
 - Finding: earlier main IPC wrapper slices moved individual handler dependency

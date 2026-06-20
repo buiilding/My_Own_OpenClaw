@@ -1,6 +1,9 @@
 /** @jest-environment node */
 
+const fs = require('fs/promises');
+const path = require('path');
 const {
+  createMainStopTargetRuntime,
   isStoppableCurrentTurnProjection,
   resolveMainStopTarget,
   triggerMainStopTarget,
@@ -128,5 +131,66 @@ describe('ipc_stop_target_runtime', () => {
       setResponseOverlayPhase,
     })).resolves.toBe(false);
     expect(setResponseOverlayPhase).not.toHaveBeenCalled();
+  });
+
+  test('composed runtime resolves current main-process stop state lazily', async () => {
+    const stopQueryThroughAgentSdkRuntime = jest.fn(async () => true);
+    const setResponseOverlayPhase = jest.fn();
+    let latestCurrentTurnProjection = { phase: 'idle' };
+    let latestPendingTurn = null;
+    let currentConversationRef = 'conv-idle';
+    const runtime = createMainStopTargetRuntime({
+      getLatestCurrentTurnProjection: () => latestCurrentTurnProjection,
+      getLatestPendingTurn: () => latestPendingTurn,
+      getCurrentConversationRef: () => currentConversationRef,
+      stopQueryThroughAgentSdkRuntime,
+      setResponseOverlayPhase,
+    });
+
+    expect(runtime.resolve()).toEqual({
+      source: 'idle',
+      conversationRef: 'conv-idle',
+      turnRef: null,
+      canStop: true,
+    });
+
+    latestCurrentTurnProjection = {
+      phase: 'streaming',
+      conversationRef: 'conv-current',
+      turnRef: 'turn-current',
+    };
+    latestPendingTurn = {
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
+    };
+    currentConversationRef = 'conv-active';
+
+    await expect(runtime.trigger()).resolves.toBe(true);
+
+    expect(stopQueryThroughAgentSdkRuntime).toHaveBeenCalledWith({
+      conversation_ref: 'conv-current',
+      turn_ref: 'turn-current',
+    });
+    expect(setResponseOverlayPhase).toHaveBeenCalledWith('complete', 'stop-query');
+  });
+
+  test('ipc.cjs delegates stop-target dependency assembly to the runtime', async () => {
+    const mainSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+    const helperSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_stop_target_runtime.cjs'),
+      'utf8',
+    );
+
+    expect(mainSource).toContain('createMainStopTargetRuntime({');
+    expect(mainSource).toContain('mainStopTargetRuntime.resolve()');
+    expect(mainSource).toContain('mainStopTargetRuntime.trigger()');
+    expect(mainSource).not.toContain('resolveMainStopTargetRuntime({');
+    expect(mainSource).not.toContain('triggerMainStopTarget({');
+    expect(helperSource).toContain('function createMainStopTargetRuntime');
+    expect(helperSource).toContain('return resolveMainStopTarget({');
+    expect(helperSource).toContain('return triggerMainStopTarget({');
   });
 });

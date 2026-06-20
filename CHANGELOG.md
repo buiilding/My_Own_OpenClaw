@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move main stop-target dependency composition into
+  `createMainStopTargetRuntime(...)`, keeping live current-turn, pending-turn,
+  active conversation, SDK stop, and overlay completion wiring out of
+  `ipc.cjs`. No migration required.
 - main/ipc: move `initializeIpc(...)` orchestration into
   `createIpcInitializationRuntime(...)`, preserving endpoint refresh, host
   option application, renderer-window reset/track, startup hydration, handler

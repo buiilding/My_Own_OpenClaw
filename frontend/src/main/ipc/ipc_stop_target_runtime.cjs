@@ -80,7 +80,37 @@ async function triggerMainStopTarget({
   return true;
 }
 
+function createMainStopTargetRuntime({
+  getLatestCurrentTurnProjection,
+  getLatestPendingTurn,
+  getCurrentConversationRef,
+  stopQueryThroughAgentSdkRuntime,
+  setResponseOverlayPhase,
+} = {}) {
+  function resolve() {
+    return resolveMainStopTarget({
+      latestCurrentTurnProjection: getLatestCurrentTurnProjection(),
+      latestPendingTurn: getLatestPendingTurn(),
+      currentConversationRef: getCurrentConversationRef(),
+    });
+  }
+
+  function trigger() {
+    return triggerMainStopTarget({
+      stopTarget: resolve(),
+      stopQueryThroughAgentSdkRuntime,
+      setResponseOverlayPhase,
+    });
+  }
+
+  return {
+    resolve,
+    trigger,
+  };
+}
+
 module.exports = {
+  createMainStopTargetRuntime,
   isStoppableCurrentTurnProjection,
   resolveMainStopTarget,
   triggerMainStopTarget,

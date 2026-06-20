@@ -72,6 +72,9 @@ main-process status/config adapter around native registration:
 `frontend/src/main/ipc/ipc_stop_target_runtime.cjs` owns the target-resolution
 rule for an already-registered stop action:
 
+- `createMainStopTargetRuntime` composes the Electron main live-turn,
+  pending-turn, active-conversation, SDK stop, and overlay-phase dependencies so
+  `ipc.cjs` delegates the stop action instead of rebuilding the dependency bag.
 - SDK current-turn projections are stoppable during `awaiting`, `streaming`,
   `tool_call`, `tool_output`, or when the SDK projection reports busy
   presentation state.

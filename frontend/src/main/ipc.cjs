@@ -144,8 +144,7 @@ const {
   createIpcLiveTurnState,
 } = require('./ipc/ipc_live_turn_state.cjs');
 const {
-  resolveMainStopTarget: resolveMainStopTargetRuntime,
-  triggerMainStopTarget,
+  createMainStopTargetRuntime,
 } = require('./ipc/ipc_stop_target_runtime.cjs');
 const {
   createDirectWakeUpAgentAdapter,
@@ -310,6 +309,13 @@ const liveTurnState = createIpcLiveTurnState();
 const pendingTurnRuntime = createPendingTurnRuntime({
   liveTurnState,
   broadcastToRenderers,
+});
+const mainStopTargetRuntime = createMainStopTargetRuntime({
+  getLatestCurrentTurnProjection: () => liveTurnState.getLatestCurrentTurn(),
+  getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
+  getCurrentConversationRef: () => backendSessionState.getConversationRef(),
+  stopQueryThroughAgentSdkRuntime: (input) => stopQueryThroughAgentSdkRuntime(input),
+  setResponseOverlayPhase,
 });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const responseOverlayPhaseRuntime = createResponseOverlayPhaseRuntime({
@@ -977,19 +983,11 @@ async function appendMainProcessTraceEvent(input = {}) {
 }
 
 function resolveMainStopTarget() {
-  return resolveMainStopTargetRuntime({
-    latestCurrentTurnProjection: liveTurnState.getLatestCurrentTurn(),
-    latestPendingTurn: liveTurnState.getLatestPendingTurn(),
-    currentConversationRef: backendSessionState.getConversationRef(),
-  });
+  return mainStopTargetRuntime.resolve();
 }
 
 async function triggerStopQueryFromMain() {
-  return triggerMainStopTarget({
-    stopTarget: resolveMainStopTarget(),
-    stopQueryThroughAgentSdkRuntime,
-    setResponseOverlayPhase,
-  });
+  return mainStopTargetRuntime.trigger();
 }
 
 function registerRendererWindow(win) {
