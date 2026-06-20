@@ -33,7 +33,7 @@ These clients talk only to the public backend surfaces documented here:
 - WebSocket: `/ws`
 
 The renderer side exposes the TypeScript app client at `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`, while the sidecar exports `AgentSdkClient` from the public `windie` Python package.
-The hosted SDK clients are intentionally separate from the renderer `ApiClient`, which is the Electron IPC bridge used by the desktop app itself.
+The hosted SDK clients are intentionally separate from the first-party Electron renderer app-runtime facades, which adapt SDK and hosted transport contracts for the desktop UI and IPC boundary.
 
 Backend message dispatch is handled by `MessageHandlerRegistry` in `backend/src/api/infrastructure/registry.py`.
 
@@ -633,7 +633,7 @@ This is intended for SDK inspectors and debugging tools.
 
 These routes expose backend-owned debug and introspection state for developer SDK consumers.
 They are meant for backend-aware debugging tools and local developer workflows that need to inspect
-what the backend would send to the model without relying on the customer-facing frontend.
+what the backend would send to the model without relying on the desktop renderer UI.
 
 Current scope:
 

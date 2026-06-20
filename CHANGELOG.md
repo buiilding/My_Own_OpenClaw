@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/reference: route API reference client-boundary wording through the
+  first-party Electron renderer app-runtime facades instead of the deleted
+  renderer `ApiClient`, and describe SDK introspection as independent from the
+  desktop renderer UI. No migration required.
 - docs/help: route diagnostics first-triage wording through Electron main
   Agent SDK host, SDK backend transport traces, and SDK/main tool-result relay
   instead of broad frontend-result wording. No migration required.

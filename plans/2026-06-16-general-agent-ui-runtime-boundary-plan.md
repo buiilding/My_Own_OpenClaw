@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 API Reference Renderer Client Boundary Wording
+
+- Finding: the API reference still described hosted SDK clients as separate
+  from a renderer `ApiClient` Electron IPC bridge, despite the active renderer
+  path using app-runtime facades backed by `agentSdkClient.ts` and the legacy
+  ApiClient being deleted.
+- Change: updated `docs/reference/api_reference.md` to contrast hosted SDK
+  clients with the first-party Electron renderer app-runtime facades, and
+  reworded SDK introspection docs away from customer-facing frontend language
+  toward desktop renderer UI language.
+- Validation: focused renderer ApiClient boundary guard covering the API
+  reference, docs search, related commit search, stale ApiClient/frontend scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. SDK HTTP routes, websocket payloads,
+  IPC channels, renderer app-runtime facades, hosted transport behavior,
+  storage, credentials, permissions, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Diagnostics First-Triage Runtime Wording
 
 - Finding: the first-triage diagnostics table still routed no-response and

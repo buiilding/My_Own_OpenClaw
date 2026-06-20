@@ -117,6 +117,7 @@ describe('renderer api client boundary', () => {
     const docs = await Promise.all([
       fs.readFile(path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'), 'utf8'),
       fs.readFile(path.resolve(__dirname, '../../docs/planning/windieos_mobile_app_plan.md'), 'utf8'),
+      fs.readFile(path.resolve(__dirname, '../../docs/reference/api_reference.md'), 'utf8'),
       fs.readFile(path.resolve(__dirname, '../../docs/web/web_client_integration.md'), 'utf8'),
       fs.readFile(path.join(rendererRoot, 'folder_structure.md'), 'utf8'),
     ]);
@@ -126,9 +127,12 @@ describe('renderer api client boundary', () => {
     expect(docText).toContain('SDK runtime and hosted transport facade');
     expect(docText).toContain('Renderer SDK facade for hosted transport wrappers and runtime contracts');
     expect(docText).toContain('Electron renderer app-runtime facades');
+    expect(docText).toContain('first-party Electron renderer app-runtime facades');
     expect(docText).toContain('Non-Electron clients should import the SDK package');
     expect(docText).not.toContain('Developer-facing backend SDK transport wrapper');
     expect(docText).not.toContain('Electron renderer `ApiClient`');
+    expect(docText).not.toContain('renderer `ApiClient`');
+    expect(docText).not.toContain('customer-facing frontend');
     expect(docText).not.toContain('Renderer SDK facade for hosted transport wrappers, runtime contracts, and app imports');
     expect(docText).not.toContain('`renderer/infrastructure/api/client.ts` remains');
     expect(docText).not.toContain('typed backend command emitter');

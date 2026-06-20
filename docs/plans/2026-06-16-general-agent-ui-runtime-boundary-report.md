@@ -238,6 +238,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 API Reference Renderer Client Boundary Wording
+
+- Finding: `docs/reference/api_reference.md` still contrasted hosted SDK
+  clients with a renderer `ApiClient` Electron IPC bridge even though that
+  bridge is deleted and first-party renderer code now reaches runtime/backend
+  behavior through app-runtime facades backed by the SDK facade.
+- Change: reworded the API reference around first-party Electron renderer
+  app-runtime facades and described SDK introspection as independent from the
+  desktop renderer UI, then extended the renderer ApiClient boundary guard to
+  cover the API reference.
+- Validation: focused renderer ApiClient boundary test, docs search, related
+  commit search, stale ApiClient/customer-facing frontend scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. SDK routes, websocket payloads, IPC
+  channels, renderer app-runtime facades, hosted transport behavior, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Diagnostics First-Triage Runtime Wording
 
 - Finding: `docs/help/diagnostics.md` still routed no-response and tool-result
