@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/ipc: route backend relay drift debugging through `windie:invoke`, typed
+  SDK/backend-event fan-out, and Agent SDK backend transport instead of a
+  removed non-chat `to-backend` path. No migration required.
 - docs/voice: route wakeword troubleshooting and renderer voice references
   through the local-runtime wakeword helper backed by the Python service instead
   of naming the sidecar service as the direct owner. No migration required.

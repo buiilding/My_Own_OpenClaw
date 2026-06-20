@@ -144,7 +144,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   instead of shortcutting directly from Electron IPC to backend `/ws`.
   Wakeword route docs now name the local-runtime wakeword helper as the
   boundary backed by the Python service implementation instead of routing
-  failures directly to the sidecar service.
+  failures directly to the sidecar service. The IPC workflow now routes backend
+  relay drift debugging through `windie:invoke`, typed SDK/backend-event
+  fan-out, and Agent SDK backend transport instead of a removed non-chat
+  `to-backend` path.
 
   Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
   Python sidecar method, handler, daemon, protocol, memory, and tool validation
@@ -5079,6 +5082,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   subprocess framing, backend wakeword activation messages, renderer voice
   state, storage, credentials, permissions, provider policy, hosted URLs, and
   local execution behavior are unchanged.
+
+### 2026-06-20 IPC Workflow SDK Relay Drift Boundary
+
+- Finding: the IPC change workflow still told agents to debug backend relay
+  drift by inspecting a remaining non-chat `to-backend` send path, even though
+  live source has removed that relay and current renderer/backend routing uses
+  `windie:invoke`, typed SDK/backend-event fan-out, settings sync gates, and
+  Agent SDK backend transport.
+- Change: updated the IPC workflow backend-relay drift row to route through
+  SDK commands, typed fan-out, query payload building, and Agent SDK backend
+  transport send ownership.
+- Validation: extended the architecture/IPC docs boundary guard to read the IPC
+  workflow, require the current SDK command/fan-out wording, and reject the
+  retired non-chat `to-backend` debug route.
+- Compatibility: no migration required. Runtime code, preload allowlists, IPC
+  channel names, `windie:invoke` command names, backend websocket payloads,
+  SDK projection events, storage, credentials, permissions, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
 
 ## Remaining Findings
 

@@ -508,6 +508,7 @@ describe('modular sdk refactor completion boundary', () => {
     const docs = await Promise.all([
       read('docs/architecture/architecture.md'),
       read('docs/architecture/communication_flow.md'),
+      read('docs/frontend/ipc_change_workflow.md'),
     ]);
     const docText = docs.join('\n');
 
@@ -515,11 +516,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('`windie:conversation-event`: SDK-normalized conversation side-effect events');
     expect(docText).toContain('Agent SDK Host');
     expect(docText).toContain('Agent SDK runtime -> WebSocket -> Backend');
+    expect(docText).toContain('Inspect `windie:invoke` SDK commands, typed SDK/backend-event fan-out');
     expect(docText).toMatch(/typed\s+backend side-channel event fan-out/);
     expect(docText).not.toContain('`to-backend`: Renderer');
     expect(docText).not.toContain('`from-backend`: Backend');
     expect(docText).not.toContain('**`from-backend`**');
     expect(docText).not.toContain('Receive messages from backend and local query-mirror events');
+    expect(docText).not.toContain('remaining non-chat `to-backend` send path');
     expect(docText).not.toContain('WebSocket Client');
     expect(docText).not.toContain('Main Process -> WebSocket -> Backend');
     expect(docText).not.toContain('Main Process → WebSocket → Backend');
