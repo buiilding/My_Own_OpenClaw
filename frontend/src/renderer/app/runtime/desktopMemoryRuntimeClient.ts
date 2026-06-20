@@ -3,7 +3,7 @@
  */
 
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
-import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/agentSdkClient';
+import { SDK_RUNTIME_COMMANDS } from './desktopConversationRuntimeContracts';
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 

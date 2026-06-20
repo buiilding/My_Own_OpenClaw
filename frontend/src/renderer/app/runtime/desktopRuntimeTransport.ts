@@ -5,7 +5,7 @@
 import {
   SDK_RUNTIME_COMMANDS,
   type AgentRuntimeTransport,
-} from '../../infrastructure/api/agentSdkClient';
+} from './desktopConversationRuntimeContracts';
 import { getMemoryRetrievalInjectionEnabled } from './desktopMemoryRetrievalPreferenceRuntime';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';

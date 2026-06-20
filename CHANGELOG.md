@@ -49,6 +49,9 @@ All notable changes to WindieOS will be documented in this file.
 - tests/sdk: route pure Agent SDK tests directly to the package source instead
   of the renderer SDK facade, leaving renderer integration tests on the facade.
   No migration required.
+- frontend/renderer: route app-runtime SDK command/type consumers through
+  `desktopConversationRuntimeContracts` instead of importing the renderer SDK
+  facade directly. No migration required.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from

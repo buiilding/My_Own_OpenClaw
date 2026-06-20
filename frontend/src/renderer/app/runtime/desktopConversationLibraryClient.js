@@ -5,7 +5,7 @@
 import {
   DesktopConversationContinuityService,
 } from './desktopConversationContinuityService';
-import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/agentSdkClient';
+import { SDK_RUNTIME_COMMANDS } from './desktopConversationRuntimeContracts';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 import { metadataListToDashboardConversations } from './desktopDashboardConversationLoadRuntime';
 

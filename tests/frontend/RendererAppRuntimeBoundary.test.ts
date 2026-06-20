@@ -69,6 +69,30 @@ describe('renderer app runtime boundary', () => {
     expect(sdkFacadeSource).not.toContain('desktop agent UI');
   });
 
+  test('app runtime SDK consumers route through the conversation contracts facade', async () => {
+    const files = await listSourceFiles(path.join(appRoot, 'runtime'));
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const relativePath = normalizeRelativePath(path.relative(appRoot, file));
+      if (relativePath === 'runtime/desktopConversationRuntimeContracts.ts') {
+        continue;
+      }
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('infrastructure/api/agentSdkClient')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    const contractsSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopConversationRuntimeContracts.ts'),
+      'utf8',
+    );
+
+    expect(offenders).toEqual([]);
+    expect(contractsSource).toContain('infrastructure/api/agentSdkClient');
+  });
+
   test('frontend architecture docs describe renderer skin facades with desktop-runtime wording', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'),

@@ -14,7 +14,7 @@ import {
   type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
   type TraceTimelineEntry,
-} from '../../infrastructure/api/agentSdkClient';
+} from './desktopConversationRuntimeContracts';
 import {
   createDesktopConversationStore,
   loadDesktopTraceTimeline,

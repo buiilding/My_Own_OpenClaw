@@ -11,7 +11,7 @@ import {
 import { resolveConversationStreamEventUserId } from './desktopChatStreamEventPayloadRuntime';
 import {
   type ConversationEvent,
-} from '../../infrastructure/api/agentSdkClient';
+} from './desktopConversationRuntimeContracts';
 
 type HandleConversationEventIngressDeps = {
   getActiveConversationRef: () => string | null | undefined;

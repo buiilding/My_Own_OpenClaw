@@ -5,7 +5,7 @@
 import {
   buildModelSettingsPatch,
   type AgentModelSelection,
-} from '../../infrastructure/api/agentSdkClient';
+} from './desktopConversationRuntimeContracts';
 import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 
 type RuntimeSettingsPatch = Record<string, unknown>;

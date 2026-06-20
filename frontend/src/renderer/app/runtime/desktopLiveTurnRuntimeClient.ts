@@ -6,7 +6,7 @@ import {
   SDK_RUNTIME_COMMANDS,
   type AgentModelSelection,
   type TurnInputResource,
-} from '../../infrastructure/api/agentSdkClient';
+} from './desktopConversationRuntimeContracts';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { getMemoryRetrievalInjectionEnabled } from './desktopMemoryRetrievalPreferenceRuntime';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';

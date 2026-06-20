@@ -15883,3 +15883,19 @@ Each completed slice should report:
   renderer facade behavior, SDK exports, IPC payloads, credentials, permissions,
   hosted backend URLs, provider policy, and local-runtime behavior are
   unchanged.
+
+### 2026-06-20 Renderer app-runtime SDK contract facade routing
+
+- Finding: `desktopConversationRuntimeContracts.ts` already existed as the
+  renderer app-runtime facade for SDK conversation/runtime contracts, but
+  several app-runtime clients still imported SDK command constants and types
+  directly from `infrastructure/api/agentSdkClient`.
+- Change: routed app-runtime SDK consumers through
+  `desktopConversationRuntimeContracts.ts` and added a renderer app-runtime
+  boundary guard so only that contracts facade reaches the renderer SDK facade.
+- Validation: focused renderer app-runtime and affected runtime-client Jest
+  coverage, docs listing, exact direct-import scan, and diff checks.
+- Compatibility: no migration required. Runtime behavior, SDK exports, IPC
+  command strings, settings/model payloads, memory commands, conversation
+  continuity, credentials, permissions, hosted backend URLs, provider policy,
+  storage, and local-runtime behavior are unchanged.

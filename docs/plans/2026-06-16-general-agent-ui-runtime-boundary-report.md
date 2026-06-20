@@ -5758,3 +5758,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer facade. Production code, SDK exports, IPC payloads, credentials,
   permissions, hosted backend URLs, provider policy, storage, and local-runtime
   behavior are unchanged.
+- Renderer app-runtime SDK consumers now route command constants and SDK types
+  through `desktopConversationRuntimeContracts.ts`; only that contracts facade
+  imports the renderer `agentSdkClient` facade. Runtime behavior, SDK exports,
+  IPC command strings, settings/model payloads, memory commands, conversation
+  continuity, credentials, permissions, hosted backend URLs, provider policy,
+  storage, and local-runtime behavior are unchanged.
