@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: the debug Stream Event Trace table now routes stream
-  debugging through SDK backend-event handling, main renderer fan-out, and
-  renderer SDK conversation-event consumption instead of relay-only stream
-  wording.
+- Latest completed slice: the mobile planning baseline now describes desktop
+  tool execution as SDK local-runtime execution backed by the Python sidecar
+  implementation instead of a parallel local Python sidecar runtime target.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -6260,3 +6259,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   code, websocket events, IPC channels, SDK projections, renderer state,
   storage, credentials, permissions, hosted backend URLs, and provider policy
   are unchanged.
+- The mobile planning baseline now describes desktop tool execution as SDK
+  local-runtime execution backed by the Python sidecar implementation instead
+  of a parallel local Python sidecar runtime target. Runtime code, mobile APIs,
+  capability-negotiation plans, tool schemas, IPC channels, storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.
