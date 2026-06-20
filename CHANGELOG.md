@@ -83,6 +83,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/tools: clarify that backend-owned `web_search` is enabled by backend
   provider/model policy and credentials, not renderer settings or
   client/local-runtime manifests. No migration required.
+- docs/tools: route browser capability policy checklist wording through the
+  local-runtime executable registry instead of an unqualified sidecar registry.
+  No migration required.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from

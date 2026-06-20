@@ -62,7 +62,7 @@ Check:
 - `agent_disabled_capabilities`
 - `agent_provider_unavailable_capabilities`
 - client `agent_available_tools`
-- sidecar registry contains `browser`
+- local-runtime executable registry contains `browser`
 
 ### Web Search
 

@@ -5824,3 +5824,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   search routing, Brave configuration, SDK/renderer projection, client
   manifests, local-runtime executable tools, credentials, storage, IPC channels,
   and hosted URLs are unchanged.
+- Browser policy docs now route registry checks through the local-runtime
+  executable registry instead of an unqualified sidecar registry label. Browser
+  policy behavior, accepted client manifests, local-runtime executable registry
+  behavior, Python sidecar modules, backend tool policy, provider projection,
+  credentials, storage, IPC channels, and hosted URLs are unchanged.

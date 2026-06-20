@@ -16066,3 +16066,18 @@ Each completed slice should report:
   provider-native search routing, Brave configuration, SDK/renderer projection,
   client manifests, local-runtime executable tools, credentials, storage, IPC
   channels, and hosted URLs are unchanged.
+
+### 2026-06-20 Browser policy registry wording
+
+- Finding: the tool policy profile guide still told browser-policy debugging to
+  check whether the sidecar registry contains `browser`, which left an
+  unqualified sidecar owner label in a backend policy workflow.
+- Change: routed the checklist through the local-runtime executable registry and
+  extended the modular tool-routing guard against the old sidecar-registry
+  phrase.
+- Validation: focused modular docs boundary test, exact stale registry phrase
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Browser policy behavior, accepted
+  client manifests, local-runtime executable registry behavior, Python sidecar
+  modules, backend tool policy, provider projection, credentials, storage, IPC
+  channels, and hosted URLs are unchanged.

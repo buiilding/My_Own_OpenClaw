@@ -928,6 +928,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('parity tests against local-runtime exposed tools');
     expect(toolRoutingDocText).toContain('live local-runtime exposed set backed by the Python registry');
     expect(toolRoutingDocText).toContain('local-runtime exposed tool set backed by the Python sidecar registry');
+    expect(toolRoutingDocText).toContain('local-runtime executable registry contains `browser`');
     expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
@@ -981,6 +982,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('registered sidecar tools');
     expect(toolRoutingDocText).not.toContain('proof that the sidecar directly accepts');
     expect(toolRoutingDocText).not.toContain('sidecar registry implementation');
+    expect(toolRoutingDocText).not.toContain('sidecar registry contains `browser`');
     expect(toolRoutingDocText).not.toContain('sidecar-executable');
     expect(toolRoutingDocText).not.toContain('sidecar executable manifest');
     expect(toolRoutingDocText).not.toContain('executable sidecar arguments');
