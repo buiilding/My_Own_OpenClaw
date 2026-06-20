@@ -104,7 +104,7 @@ describe('ipc_artifact_handlers', () => {
       uploadArtifact: jest.fn(async (payload) => ({ success: true, uploaded: payload })),
       fetchArtifactImage: jest.fn(async (payload) => ({ success: true, fetched: payload })),
       ensureInstallAuthState: jest.fn(async () => undefined),
-      getBackendHttpUrl: jest.fn(() => 'https://runtime.windieos.test'),
+      getBackendHttpUrl: jest.fn(() => 'https://runtime.backend.example.test'),
       buildInstallAuthHeaders: jest.fn(() => ({ Authorization: 'Bearer runtime-token' })),
     });
 
@@ -116,7 +116,7 @@ describe('ipc_artifact_handlers', () => {
       success: true,
       uploaded: {
         base64: 'runtime-image',
-        backendHttpUrl: 'https://runtime.windieos.test',
+        backendHttpUrl: 'https://runtime.backend.example.test',
         headers: { Authorization: 'Bearer runtime-token' },
       },
     });

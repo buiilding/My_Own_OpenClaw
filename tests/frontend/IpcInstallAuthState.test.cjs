@@ -118,7 +118,7 @@ describe('ipc_install_auth_state persistence', () => {
         installId: 'install_cached',
       },
       {
-        backendHttpUrl: 'https://api.windieos.test/',
+        backendHttpUrl: 'https://auth.backend.example.test/',
         fetchImpl,
       },
     );
@@ -134,7 +134,7 @@ describe('ipc_install_auth_state persistence', () => {
       },
     });
     expect(fetchImpl).toHaveBeenCalledWith(
-      'https://api.windieos.test/api/install/me',
+      'https://auth.backend.example.test/api/install/me',
       {
         method: 'GET',
         headers: {
@@ -159,7 +159,7 @@ describe('ipc_install_auth_state persistence', () => {
         installId: 'install_cached',
       },
       {
-        backendHttpUrl: 'https://api.windieos.test',
+        backendHttpUrl: 'https://auth.backend.example.test',
         fetchImpl,
       },
     );

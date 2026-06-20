@@ -582,6 +582,20 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('runtime.backend.example.test');
   });
 
+  test('endpoint runtime tests keep arbitrary test hosts product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/IpcArtifactHandlers.test.cjs'),
+      read('tests/frontend/IpcInstallAuthState.test.cjs'),
+      read('tests/frontend/RuntimeEndpointStore.test.ts'),
+    ]);
+    const retiredHostSuffix = ['.', 'windieos', '.test'].join('');
+    const combined = source.join('\n');
+
+    expect(combined).not.toContain(retiredHostSuffix);
+    expect(combined).toContain('https://runtime.backend.example.test');
+    expect(combined).toContain('https://auth.backend.example.test');
+  });
+
   test('backend user-query sanitization tests keep desktop context fixtures product-neutral', async () => {
     const source = await read('tests/backend/test_agent_executor_user_query_sanitization.py');
 

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: use neutral `.example.test` endpoint hosts in artifact,
+  install-auth, and renderer runtime endpoint coverage instead of
+  WindieOS-shaped arbitrary test hosts. No migration required.
+
 - tests/main: use neutral candidate backend endpoint fixtures in image
   interaction handler coverage while preserving WindieOS hosted-default origin
   assertions. No migration required.

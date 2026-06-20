@@ -27,16 +27,16 @@ describe('RuntimeEndpointStore', () => {
   });
 
   test('setRuntimeEndpointHttpUrl ignores invalid runtime URLs', () => {
-    setRuntimeEndpointHttpUrl('https://api.windieos.test/');
+    setRuntimeEndpointHttpUrl('https://runtime.backend.example.test/');
     setRuntimeEndpointHttpUrl('file:///tmp/not-http');
 
-    expect(buildRuntimeArtifactUrl('art-2')).toBe('https://api.windieos.test/api/artifacts/art-2');
+    expect(buildRuntimeArtifactUrl('art-2')).toBe('https://runtime.backend.example.test/api/artifacts/art-2');
   });
 
   test('buildRuntimeTranscriptionWebSocketUrl maps http endpoints to websocket endpoints', () => {
-    setRuntimeEndpointHttpUrl('https://api.windieos.test/base');
+    setRuntimeEndpointHttpUrl('https://runtime.backend.example.test/base');
 
-    expect(buildRuntimeTranscriptionWebSocketUrl()).toBe('wss://api.windieos.test/ws/transcription');
+    expect(buildRuntimeTranscriptionWebSocketUrl()).toBe('wss://runtime.backend.example.test/ws/transcription');
   });
 
   test('runtime endpoint client syncs generic runtime snapshot URL', () => {

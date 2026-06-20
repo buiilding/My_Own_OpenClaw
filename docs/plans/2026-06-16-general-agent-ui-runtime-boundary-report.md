@@ -11,10 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `18e861218` (`docs(extensions): neutralize scaffold dir help`)
-- Latest completed slice: image interaction handler tests now use neutral
-  candidate backend endpoint fixtures while preserving WindieOS hosted-default
-  origin coverage.
+- Latest inspected plan checkpoint: `ffdf2c238` (`test(main): neutralize image endpoint fixtures`)
+- Latest completed slice: artifact, install-auth, and renderer runtime endpoint
+  tests now use neutral `.example.test` endpoint hosts instead of
+  WindieOS-shaped arbitrary test hosts.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -22,7 +22,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   use generic local-runtime contribution copy while the `<windie>` CLI command
   remains product-owned. Image interaction handler tests use neutral candidate
   backend endpoint fixtures while keeping WindieOS hosted-default origin
-  assertions in host-owned endpoint coverage.
+  assertions in host-owned endpoint coverage. Artifact, install-auth, and
+  renderer runtime endpoint tests use neutral `.example.test` hosts for
+  arbitrary endpoint behavior while real WindieOS hosted defaults remain
+  host-skin/config owned.
   Renderer voice docs name the desktop voice/audio runtime contract and
   backend-owned transcription gateway boundary instead of embedding concrete STT
   provider policy. Renderer config reference docs now keep current OpenAI/GPT default
@@ -126,6 +129,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   samples while preserving the `windie-sdk` distribution and `windie` import.
   Image interaction handler tests now use neutral candidate backend endpoint
   fixtures while preserving active WindieOS hosted-default origin coverage.
+  Artifact, install-auth, and renderer runtime endpoint tests now use neutral
+  `.example.test` hosts for arbitrary endpoint behavior while preserving hosted
+  default coverage elsewhere.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7693,3 +7699,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   menu handler registration, artifact trust policy, install auth, permissions,
   storage, provider policy, and local-runtime behavior are unchanged; no
   migration is required.
+- Artifact handler runtime, install-auth validation, and renderer runtime
+  endpoint store tests now use neutral `.example.test` endpoint hosts instead
+  of WindieOS-shaped arbitrary test domains. Real WindieOS hosted defaults,
+  artifact upload/fetch URL construction, install-auth identity validation,
+  runtime artifact URL construction, transcription websocket URL derivation,
+  permissions, storage, provider policy, and local-runtime behavior are
+  unchanged; no migration is required.

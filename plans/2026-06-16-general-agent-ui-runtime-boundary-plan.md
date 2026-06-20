@@ -18806,3 +18806,21 @@ Each completed slice should report:
   registration, context menu handler registration, artifact trust policy,
   install auth, permissions, storage, provider policy, and local-runtime
   behavior are unchanged.
+
+### 2026-06-20 Runtime endpoint arbitrary host fixture neutrality
+
+- Finding: artifact handler runtime, install-auth validation, and renderer
+  runtime endpoint store tests used `.windieos.test` domains as arbitrary
+  endpoint fixtures even though those tests do not require product-hosted
+  defaults.
+- Change: switched the arbitrary runtime/auth endpoint hosts to neutral
+  `.example.test` values and added modular boundary coverage for the retired
+  product-shaped test suffix.
+- Validation: focused artifact handler, install-auth state, runtime endpoint
+  store, and modular boundary tests; exact retired `.windieos.test` scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Real WindieOS hosted defaults, artifact
+  upload/fetch URL construction, install-auth identity validation, runtime
+  artifact URL construction, transcription websocket URL derivation,
+  permissions, storage, provider policy, and local-runtime behavior are
+  unchanged.
