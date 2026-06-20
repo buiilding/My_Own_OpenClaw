@@ -18649,3 +18649,22 @@ Each completed slice should report:
   manifest discovery, tool registration, IPC channels, storage, permissions,
   hosted backend URLs, provider policy, and local-runtime behavior are
   unchanged.
+
+### 2026-06-20 Backend web-search tool query fixture neutrality
+
+- Finding: backend web-search tool tests exercise Brave request parameter
+  construction, Brave result normalization, missing config and disabled policy
+  failures, native OpenAI/Gemini routing, native source query propagation, and
+  output formatting, but their search query samples still used WindieOS
+  identity as arbitrary user text.
+- Change: switched those web-search tool query fixture values to neutral
+  `project alpha latest` samples and extended the modular boundary guard so the
+  retired product-shaped query sample stays out of backend web-search tool
+  coverage.
+- Validation: focused backend web-search tool and modular boundary tests; exact
+  retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Brave request parameter construction,
+  Brave result normalization, missing config and disabled policy failures,
+  native OpenAI/Gemini routing, native source query propagation, output
+  formatting, credentials, permissions, hosted backend URLs, provider policy,
+  and local-runtime behavior are unchanged.

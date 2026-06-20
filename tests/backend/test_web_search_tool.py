@@ -21,14 +21,14 @@ def _build_tool_context(*, config: AppConfig | None = None, session: object | No
 def test_web_search_tool_build_request_params_sanitizes_domains_and_bounds_count():
     params = WebSearchTool._build_request_params(
         WebSearchArgs(
-            query="windieos latest",
+            query="project alpha latest",
             count=10,
             domains=[" https://example.com ", "bad domain", "sub.example.org"],
             recency_days=3,
         )
     )
 
-    assert params["q"] == "windieos latest (site:example.com OR site:sub.example.org)"
+    assert params["q"] == "project alpha latest (site:example.com OR site:sub.example.org)"
     assert params["count"] == 10
     assert params["freshness"] == "pw"
 
@@ -74,13 +74,13 @@ async def test_web_search_tool_returns_normalized_brave_results(monkeypatch):
     monkeypatch.setattr(tool, "_perform_request", fake_perform_request)
 
     result = await tool.run(
-        WebSearchArgs(query="windieos latest", count=2),
+        WebSearchArgs(query="project alpha latest", count=2),
         _build_tool_context(config=config),
     )
 
     assert result.success is True
     assert result.data == {
-        "query": "windieos latest",
+        "query": "project alpha latest",
         "provider": "brave",
         "results": [
             {
@@ -99,7 +99,7 @@ async def test_web_search_tool_returns_normalized_brave_results(monkeypatch):
             },
         ],
     }
-    assert 'Web search results for "windieos latest":' in result.output
+    assert 'Web search results for "project alpha latest":' in result.output
 
 
 @pytest.mark.asyncio
@@ -112,7 +112,7 @@ async def test_web_search_tool_reports_missing_backend_configuration(monkeypatch
     )
 
     result = await tool.run(
-        WebSearchArgs(query="windieos latest"),
+        WebSearchArgs(query="project alpha latest"),
         _build_tool_context(config=config),
     )
 
@@ -133,7 +133,7 @@ async def test_web_search_tool_blocks_disabled_policy_before_brave_execution(mon
     monkeypatch.setattr(tool, "_perform_request", perform_request)
 
     result = await tool.run(
-        WebSearchArgs(query="windieos latest"),
+        WebSearchArgs(query="project alpha latest"),
         _build_tool_context(config=config),
     )
 
@@ -159,7 +159,7 @@ async def test_web_search_tool_maps_brave_runtime_failures_to_tool_errors(monkey
     monkeypatch.setattr(tool, "_perform_request", fake_perform_request)
 
     result = await tool.run(
-        WebSearchArgs(query="windieos latest"),
+        WebSearchArgs(query="project alpha latest"),
         _build_tool_context(config=config),
     )
 
@@ -210,13 +210,13 @@ async def test_web_search_tool_routes_to_openai_native_search(monkeypatch):
     tool_context.services["tool_request_id"] = "req-openai-web-search-1"
     tool_context.services["emit_streaming_event"] = emitted_progress.append
     result = await tool.run(
-        WebSearchArgs(query="windieos latest", count=2),
+        WebSearchArgs(query="project alpha latest", count=2),
         tool_context,
     )
 
     assert result.success is True
     assert result.data == {
-        "query": "windieos latest",
+        "query": "project alpha latest",
         "provider": "openai",
         "results": [
             {
@@ -224,14 +224,14 @@ async def test_web_search_tool_routes_to_openai_native_search(monkeypatch):
                 "title": "Example A",
                 "provider": "openai",
                 "rank": 1,
-                "query": "windieos latest",
+                "query": "project alpha latest",
             },
             {
                 "url": "https://example.com/b",
                 "title": "Example B",
                 "provider": "openai",
                 "rank": 2,
-                "query": "windieos latest",
+                "query": "project alpha latest",
             },
         ],
     }
@@ -266,7 +266,7 @@ async def test_web_search_tool_routes_to_gemini_native_search(monkeypatch):
 
     session = SimpleNamespace(llm_client=_DummyLLMClient())
     result = await tool.run(
-        WebSearchArgs(query="windieos latest", count=1),
+        WebSearchArgs(query="project alpha latest", count=1),
         _build_tool_context(config=config, session=session),
     )
 
@@ -278,10 +278,10 @@ async def test_web_search_tool_routes_to_gemini_native_search(monkeypatch):
             "title": "Example G",
             "provider": "gemini",
             "rank": 1,
-            "query": "windieos latest",
+            "query": "project alpha latest",
         }
     ]
-    assert 'Web search results for "windieos latest":' in result.output
+    assert 'Web search results for "project alpha latest":' in result.output
 
 
 @pytest.mark.asyncio

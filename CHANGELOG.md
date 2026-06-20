@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/backend: use neutral query samples in backend web-search tool coverage
+  instead of WindieOS-flavored query fixture data. No migration required.
+
 - tests/main: use neutral configured client info in MCP initialize coverage
   instead of WindieOS-flavored arbitrary client fixture data. No migration
   required.

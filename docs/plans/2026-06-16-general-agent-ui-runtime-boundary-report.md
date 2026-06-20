@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `73b5878f1` (`test(main): neutralize repo instruction fixtures`)
-- Latest completed slice: MCP runtime tests now use neutral configured client
-  info instead of WindieOS-flavored arbitrary client fixture data.
+- Latest inspected plan checkpoint: `d547efa24` (`test(main): neutralize mcp client info fixture`)
+- Latest completed slice: backend web-search tool tests now use neutral query
+  samples instead of WindieOS-flavored arbitrary search text.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -99,6 +99,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   prompt layer ordering.
   MCP runtime fixtures now use neutral configured client info while preserving
   MCP initialize payload forwarding.
+  Backend web-search tool fixtures now use neutral query samples while
+  preserving Brave request parameter construction, Brave result normalization,
+  missing config and disabled policy failures, native OpenAI/Gemini routing,
+  native source query propagation, and output formatting.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7605,3 +7609,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   forwarding, manifest discovery, tool registration, IPC channels, storage,
   permissions, hosted backend URLs, provider policy, and local-runtime behavior
   are unchanged; no migration is required.
+- Backend web-search tool fixture samples now use neutral `project alpha`
+  query text instead of WindieOS-flavored sample data. Brave request parameter
+  construction, Brave result normalization, missing config and disabled policy
+  failures, native OpenAI/Gemini routing, native source query propagation,
+  output formatting, credentials, permissions, hosted backend URLs, provider
+  policy, and local-runtime behavior are unchanged; no migration is required.

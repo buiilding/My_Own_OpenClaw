@@ -515,13 +515,16 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('backend web-search tests keep query fixtures product-neutral', async () => {
     const source = await Promise.all([
+      read('tests/backend/test_web_search_tool.py'),
       read('tests/backend/test_tool_sender.py'),
       read('tests/backend/test_gemini_provider.py'),
       read('tests/backend/test_openai_provider.py'),
     ]).then(sources => sources.join('\n'));
 
     expect(source).not.toContain('latest windieos news');
+    expect(source).not.toContain('windieos latest');
     expect(source).toContain('latest project alpha news');
+    expect(source).toContain('project alpha latest');
   });
 
   test('landing docs track desktop runtime and local runtime public copy', async () => {
