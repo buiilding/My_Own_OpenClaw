@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route validation-command, tool-change, JSON-RPC protocol,
+  system-state, and main-process workflow labels through local-runtime
+  JSON-RPC/tool wording instead of unqualified sidecar JSON-RPC/call labels.
+  No migration required.
 - docs/frontend: route local-runtime JSON-RPC reference, workflow, inventory,
   and source-map labels through local-runtime method/startup wording instead of
   sidecar method/startup owner labels. No migration required.

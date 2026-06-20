@@ -238,6 +238,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 JSON-RPC Validation and Workflow Labels
+
+- Finding: validation-command, local-runtime tool-change, JSON-RPC protocol,
+  system-state, and main-process workflow docs still used unqualified
+  `sidecar JSON-RPC`, `Python sidecar JSON-RPC handlers`, or `sidecar call`
+  labels for reusable local-runtime tool/JSON-RPC routes.
+- Change: reworded those labels through local-runtime JSON-RPC/tool routing
+  backed by Python sidecar modules while preserving Python sidecar references
+  where the docs point at concrete process, protocol, or pytest coverage.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, exact stale JSON-RPC workflow-label scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. JSON-RPC method names, params, daemon
+  endpoints, IPC channels, SDK/main dispatch, validation commands, storage,
+  credentials, permissions, provider policy, hosted URLs, and local-runtime
+  behavior are unchanged.
+
 ### 2026-06-20 Local-Runtime JSON-RPC Reference Labels
 
 - Finding: the local-runtime JSON-RPC reference, Python implementation

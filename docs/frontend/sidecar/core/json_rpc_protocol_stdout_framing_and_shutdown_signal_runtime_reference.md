@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for sidecar JSON-RPC internals: request validation/dispatch, notification suppression semantics, parse/internal error envelopes, and stdout JSON-line writes."
+summary: "Deep reference for local-runtime JSON-RPC internals backed by Python sidecar modules: request validation/dispatch, notification suppression semantics, parse/internal error envelopes, and stdout JSON-line writes."
 read_when:
   - When changing `core/ipc_protocol.py` or `core/stdout_json.py`.
   - When debugging malformed sidecar request handling, missing notification suppression, or stdout framing.

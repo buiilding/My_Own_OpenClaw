@@ -35,7 +35,7 @@ PowerShell and `./scripts/python-in-env.sh` on Unix-like shells.
 | backend route/schema/handler | `<python-in-env> backend python -m pytest tests/backend/<focused_test>.py -q` |
 | backend agent/session/history/tool loop | focused backend pytest for the touched module, then `<windie> test backend` when shared state changes |
 | provider/model catalog | focused backend provider/model tests plus `<windie> docs list` |
-| sidecar JSON-RPC/tool | `<python-in-env> sidecar python -m pytest tests/sidecar/<focused_test>.py -q` |
+| local-runtime JSON-RPC/tool | `<python-in-env> sidecar python -m pytest tests/sidecar/<focused_test>.py -q` |
 | frontend renderer/hook/store | `<windie> test frontend -- <test_file>` |
 | Electron main/IPC | focused Jest/CJS test under `tests/frontend`, then `<windie> test frontend` if shared |
 | tool schema parity | backend schema tests plus local-runtime executable parity tests |

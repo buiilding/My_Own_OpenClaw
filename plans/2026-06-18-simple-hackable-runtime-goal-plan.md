@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed validation-command, local-runtime tool-change, JSON-RPC
+  protocol, system-state, and main-process workflow labels through
+  local-runtime JSON-RPC/tool routing backed by Python sidecar modules instead
+  of unqualified `sidecar JSON-RPC`, `Python sidecar JSON-RPC handlers`, or
+  `sidecar call` labels. Validation covered the modular docs boundary guard,
+  docs search, related commit search, exact stale JSON-RPC workflow-label scan,
+  docs listing, and diff check. No migration required; JSON-RPC method names,
+  params, daemon endpoints, IPC channels, SDK/main dispatch, validation
+  commands, storage, credentials, permissions, provider policy, hosted URLs,
+  and local-runtime behavior are unchanged.
+
 - 2026-06-20: routed local-runtime JSON-RPC reference, Python implementation
   workflow, frontend inventory, and source-map `summary`/`read_when` or
   package-topology labels through local-runtime method/startup wording instead of sidecar

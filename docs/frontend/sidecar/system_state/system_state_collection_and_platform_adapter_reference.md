@@ -39,7 +39,7 @@ Error path:
 `local_runtime_bridge.cjs` no longer exports `getSystemState(fields)`.
 System-state access stays on the `get-system-state` IPC handler, which calls
 the internal `getSystemStateFromBackend(fields)` helper and then dispatches
-sidecar JSON-RPC `get_system_state`. Stale references to
+local-runtime JSON-RPC `get_system_state`. Stale references to
 `local_runtime_bridge.getSystemState`, `getSystemState export removed`, or
 direct system-state bridge exports should be routed back to this IPC path.
 
