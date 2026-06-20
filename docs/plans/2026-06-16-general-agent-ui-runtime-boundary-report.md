@@ -238,6 +238,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Host Skin Agent Display Name Wording
+
+- Finding: active architecture and IPC helper docs still described host-skin
+  product identity as an SDK agent name, even though the main boundary owns
+  generic Electron host copy and only passes an agent display name into the SDK
+  agent-definition path.
+- Change: reworded those docs around agent display name ownership and extended
+  the modular runtime docs guard so the stale SDK-agent-name label stays out of
+  active host-skin routing docs.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale SDK-agent-name phrase scan, docs listing, and diff check.
+- Compatibility: no migration required. Host-skin config shape, SDK agent
+  definition payloads, IPC channels, renderer display, storage, credentials,
+  permissions, provider policy, hosted URLs, and local-runtime behavior are
+  unchanged.
+
 ### 2026-06-20 Tool Authoring Local-Runtime Registry Wording
 
 - Finding: tool catalog, development, MCP, and JSON-RPC workflow docs still

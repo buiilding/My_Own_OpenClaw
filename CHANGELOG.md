@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/main: route host-skin product identity wording through agent display
+  name instead of SDK agent name labels in active architecture and IPC helper
+  docs. No migration required.
 - docs/tools: route backend-only tool capability, tool authoring
   troubleshooting, MCP, and JSON-RPC workflow wording through local-runtime
   executable manifest/registry ownership instead of sidecar local action and

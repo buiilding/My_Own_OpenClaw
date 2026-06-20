@@ -629,10 +629,10 @@ Owns IPC host skin/config fan-out:
 
 Owns generic Electron agent-host copy defaults and app-skin copy state:
 
-- stores default SDK agent name, MCP client identity, and query-event copy
+- stores default agent display name, MCP client identity, and query-event copy
   fallbacks for generic hosts
 - normalizes host-skin identity and query-event copy sections independently
-- exposes SDK agent name, MCP client identity, and query-event copy accessors to
+- exposes agent display name, MCP client identity, and query-event copy accessors to
   the IPC composition root
 - keeps WindieOS-specific copy supplied by `main_host_skin.cjs` out of generic
   runtime helpers
@@ -943,7 +943,7 @@ generic `to-backend` router or direct chat query IPC handlers.
     backend idle-disconnect timer sync, delegate to
     `ipc_response_overlay_phase_runtime.cjs`.
 18. generic Electron agent-host copy defaults and app-skin copy state,
-    including SDK agent name, MCP client identity, and query event copy,
+    including agent display name, MCP client identity, and query event copy,
     delegate to `ipc_host_copy_runtime.cjs`.
 19. host initialization option state, including response-overlay callbacks,
     pre-capture callback, global shortcut setters, local-tool lifecycle,

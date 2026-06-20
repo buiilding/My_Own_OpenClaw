@@ -500,6 +500,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/contracts/ipc_channel_and_handler_reference.md',
       'docs/frontend/inventory/frontend_functionality_capability_catalog_reference.md',
       'docs/frontend/main/electron_main_and_ipc.md',
+      'docs/frontend/main/ipc_helper_module_split_and_runtime_boundary_reference.md',
       'docs/frontend/main/query_payload_and_relay_reference.md',
       'docs/frontend/renderer/chat_stream_and_tool_execution_reference.md',
       'docs/frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md',
@@ -529,6 +530,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK projection events and typed backend side-channel events are consumed');
     expect(docText).toContain('Client-to-backend transcription messages');
     expect(docText).toContain('renderer transcript/history side-effect handlers consume SDK conversation');
+    expect(docText).toContain('agent display name');
     expect(docText).toContain('3. LOCAL-RUNTIME EXECUTION');
     expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('SDK agent-runtime');
@@ -541,6 +543,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('SDK agent/conversation runtime');
     expect(docText).not.toContain('SDK agent stream-event module');
     expect(docText).not.toContain('public SDK agent APIs');
+    expect(docText).not.toContain('SDK agent name');
     expect(docText).not.toContain('SDK main runtime');
     expect(docText).not.toContain('backend event consumers via main rebroadcast');
     expect(docText).not.toContain('Electron rebroadcast path');

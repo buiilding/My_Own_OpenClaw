@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed active host-skin product identity wording through agent
+  display name ownership instead of SDK agent name labels in architecture and
+  IPC helper docs. Validation covered the modular docs boundary guard, docs
+  search, related commit search, stale SDK-agent-name phrase scan, docs listing,
+  and diff check. No migration required; host-skin config shape, SDK agent
+  definition payloads, IPC channels, renderer display, storage, credentials,
+  permissions, provider policy, hosted URLs, and local-runtime behavior are
+  unchanged.
+
 - 2026-06-20: routed tool catalog, tool development, MCP authoring
   troubleshooting, and JSON-RPC workflow wording through local-runtime
   executable actions, manifest, and registry ownership instead of sidecar local

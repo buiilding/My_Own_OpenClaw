@@ -300,7 +300,7 @@ Primary modules:
     instead of being embedded in `main/index.cjs` or permission service modules.
   - Query send/disconnect fallback messages should also read from this boundary
     when main builds renderer-facing query error events.
-  - Product identity such as SDK agent name and tray tooltip should read from
+  - Product identity such as agent display name and tray tooltip should read from
     this boundary instead of being embedded in host/runtime modules.
   - MCP client identity should be supplied by this boundary when Electron main
     refreshes extension MCP tools; the MCP runtime default remains generic.
