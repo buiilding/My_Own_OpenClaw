@@ -59,7 +59,7 @@ const mockPermissionState = {
     system_events_automation: {
       status: 'needs-action',
       granted: false,
-      reason: 'WindieOS still needs permission to control System Events. Click Grant to show the macOS Automation prompt.',
+      reason: 'Sample Desktop still needs permission to control System Events. Click Grant to show the macOS Automation prompt.',
     },
     microphone: {
       status: 'granted',
@@ -69,7 +69,7 @@ const mockPermissionState = {
     browser_automation: {
       status: 'needs-action',
       granted: false,
-      reason: 'Open the WindieOS browser and sign in with the profile WindieOS should use for browser help.',
+      reason: 'Open the Sample Desktop browser and sign in with the profile Sample Desktop should use for browser help.',
     },
   },
   missingRequiredPermissions: [],
@@ -89,6 +89,18 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => ({
     updateConfig: (...args) => mockUpdateConfig(...args),
   }),
+}));
+
+jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
+  desktopRuntimeSkin: {
+    onboarding: {
+      dialogLabel: 'Sample Desktop onboarding',
+      missingPermissionsMessage: 'Sample Desktop could not find any onboarding permissions for this platform.',
+      loadingPermissionsMessage: 'Sample Desktop is still loading permission status. Wait a moment and try again.',
+      missingRequiredPermissionsMessage: 'Some permissions are still missing. You can continue now and grant them later in Settings.',
+      startLabel: 'Start Sample Desktop',
+    },
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -187,7 +199,7 @@ describe('DesktopOnboardingSlideshow', () => {
     expect(screen.getByText('Shift').tagName).toBe('KBD');
     expect(screen.getByText('Esc').tagName).toBe('KBD');
     expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Start WindieOS' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start Sample Desktop' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Minimize window' }));
     fireEvent.click(screen.getByRole('button', { name: 'Toggle maximize window' }));
@@ -200,7 +212,7 @@ describe('DesktopOnboardingSlideshow', () => {
     expect(screen.getByText('Step 4 of 5')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Start WindieOS' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start Sample Desktop' }));
     expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
@@ -210,7 +222,7 @@ describe('DesktopOnboardingSlideshow', () => {
       permission_id: 'screen_capture',
       status: 'needs-action',
       granted: false,
-      reason: 'Waiting for Screen Recording access. Enable WindieOS in System Settings.',
+      reason: 'Waiting for Screen Recording access. Enable Sample Desktop in System Settings.',
     });
     mockRunPermissionProbe.mockResolvedValue({
       permission_id: 'screen_capture',
@@ -234,7 +246,7 @@ describe('DesktopOnboardingSlideshow', () => {
       <DesktopOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Ctrl + Shift + Esc" />,
     );
 
-    const dialog = screen.getByRole('dialog', { name: 'WindieOS onboarding' });
+    const dialog = screen.getByRole('dialog', { name: 'Sample Desktop onboarding' });
     const scrollRegion = container.querySelector('.desktop-onboarding-card-scroll-region');
     const actions = container.querySelector('.desktop-onboarding-actions');
     const nextButton = screen.getByRole('button', { name: 'Next' });
@@ -281,7 +293,7 @@ describe('DesktopOnboardingSlideshow', () => {
     expect(screen.getByText('Esc').tagName).toBe('KBD');
   });
 
-  test('allows Start WindieOS even when required permissions are still missing', () => {
+  test('allows Start Sample Desktop even when required permissions are still missing', () => {
     const previousMissingRequiredPermissions = mockPermissionState.missingRequiredPermissions;
     mockPermissionState.missingRequiredPermissions = ['screen_capture', 'system_events_automation'];
 
@@ -297,7 +309,7 @@ describe('DesktopOnboardingSlideshow', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Next' }));
       }
 
-      expect(screen.getByRole('button', { name: 'Start WindieOS' })).toBeEnabled();
+      expect(screen.getByRole('button', { name: 'Start Sample Desktop' })).toBeEnabled();
       expect(
         screen.getByText('Some permissions are still missing. You can continue now and grant them later in Settings.'),
       ).toBeInTheDocument();
@@ -359,7 +371,7 @@ describe('DesktopOnboardingSlideshow', () => {
       browser_automation: {
         status: 'needs-action',
         granted: false,
-        reason: 'Open the WindieOS browser and sign in with the profile WindieOS should use for browser help.',
+        reason: 'Open the Sample Desktop browser and sign in with the profile Sample Desktop should use for browser help.',
       },
     };
 

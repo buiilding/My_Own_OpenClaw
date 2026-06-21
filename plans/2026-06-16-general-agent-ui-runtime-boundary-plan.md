@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Onboarding Skin Fixture Neutralization
+
+- Finding: `DesktopOnboardingSlideshow` coverage still asserted WindieOS
+  onboarding labels and permission reasons directly, even though onboarding
+  product copy is consumed through `desktopRuntimeSkin.onboarding` and
+  permission copy is supplied by the permission store.
+- Change: mocked a neutral sample onboarding skin and replaced product-specific
+  mocked permission reasons with sample desktop copy, then added a modular
+  completion guard so onboarding slideshow tests stay product-neutral.
+- Validation: focused onboarding slideshow and modular boundary tests, exact
+  product-copy scan, docs listing, and diff checks.
+- Compatibility: no migration required. Renderer onboarding behavior,
+  WindieOS renderer skin copy, permission store contracts, IPC channels,
+  settings, credentials, local authority, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Renderer Chat Empty-State Fixture Neutralization
 
 - Finding: `ChatInterfaceWiring` still asserted the WindieOS empty-state title

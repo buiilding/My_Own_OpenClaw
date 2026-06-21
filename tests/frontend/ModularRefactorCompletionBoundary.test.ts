@@ -433,6 +433,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('Welcome to Sample Desktop Demo');
   });
 
+  test('renderer onboarding slideshow tests keep skin copy fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/DesktopOnboardingSlideshow.test.jsx');
+
+    expect(source).not.toContain('WindieOS');
+    expect(source).not.toContain('Start WindieOS');
+    expect(source).toContain('Sample Desktop onboarding');
+    expect(source).toContain('Start Sample Desktop');
+  });
+
   test('main permission workspace tests keep path fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/PermissionIpcRuntime.test.cjs'),

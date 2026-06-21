@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/renderer: use neutral injected onboarding skin and permission copy in
+  desktop onboarding slideshow coverage instead of WindieOS product strings. No
+  migration required.
 - tests/renderer: use neutral injected chat skin copy in chat interface wiring
   coverage instead of WindieOS empty-state text. No migration required.
 - tests/main: use a neutral local-runtime env key fixture in IPC host option
