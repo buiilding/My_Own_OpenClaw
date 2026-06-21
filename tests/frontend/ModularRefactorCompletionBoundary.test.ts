@@ -2423,8 +2423,10 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/backend/tools/browser/schema/backend_local_runtime_browser_schema_parity_and_validation_boundary_reference.md'),
       read('docs/browser/browser_action_surface.md'),
       read('docs/browser/browser_control.md'),
+      read('docs/browser/browser_control_run.md'),
       read('docs/browser/browser_change_workflow.md'),
       read('docs/browser/dedicated_browser_runtime.md'),
+      read('docs/browser/browser_troubleshooting.md'),
       read('docs/frontend/main/permission_manifest_probe_and_request_ipc_reference.md'),
       read('docs/frontend/sidecar/browser/contracts/README.md'),
       read('docs/frontend/sidecar/browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md'),
@@ -2449,6 +2451,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('hosted backend keeps agent orchestration');
     expect(docText).toContain('The hosted backend exposes the canonical browser tool contract');
     expect(docText).toContain('local-runtime Python browser adapter normalizes Browser');
+    expect(docText).toContain('local-runtime browser adapter now targets the named Browser Use');
     expect(docText).toContain('Local-Runtime Browser State');
     expect(docText).toContain('dedicated browser runtime');
     expect(docText).toContain('controlled browser session');
@@ -2469,6 +2472,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('WindieOS browser session');
     expect(docText).not.toContain('WindieOS desktop launches');
     expect(docText).not.toContain('WindieOS connects to or starts');
+    expect(docText).not.toContain(retiredProductName('OS connect now targets'));
+    expect(docText).not.toContain(retiredProductName('OS connect, snapshots'));
     expect(docText).not.toContain('dedicated Windie connect path');
     expect(docText).not.toContain('WindieOS passes them only when starting');
     expect(docText).not.toContain('WindieOS does not call Browser Use CLI');
@@ -2483,6 +2488,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('WindieOS keeps agent orchestration');
     expect(docText).not.toContain('WindieOS should only own adapter/result boundaries');
     expect(docText).not.toContain('WindieOS result normalization');
+    expect(docText).not.toContain(retiredProductName('OS Browser Use session'));
+    expect(docText).not.toContain(retiredProductName(' browser CDP port'));
+    expect(docText).not.toContain(retiredProductName(' Dedicated Browser'));
     expect(docText).not.toContain('Backend-Sidecar Browser Schema');
     expect(docText).not.toContain('Frontend/sidecar manifest');
     expect(docText).not.toContain('Python sidecar registry');

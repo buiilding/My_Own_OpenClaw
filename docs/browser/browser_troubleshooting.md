@@ -1,5 +1,5 @@
 ---
-summary: "Browser troubleshooting playbook for WindieOS connect, snapshots, refs, downloads/files, permissions, feature packs, and renderer session controls."
+summary: "Browser troubleshooting playbook for the desktop connect path, snapshots, refs, downloads/files, permissions, feature packs, and renderer session controls."
 read_when:
   - When a browser action fails or the dedicated browser session UI is stale.
   - When debugging CDP, Playwright, browser feature-pack availability, refs, downloads, or browser file actions.

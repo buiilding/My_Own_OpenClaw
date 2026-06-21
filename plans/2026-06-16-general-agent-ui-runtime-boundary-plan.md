@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Browser Runbook Connect Wording
+
+- Finding: the browser control source-run guide and troubleshooting summary
+  still described Browser Use connect, reuse, CDP port selection, and result
+  normalization through WindieOS product wording instead of the local-runtime
+  browser adapter, hosted backend policy, and Electron UI owners.
+- Change: reworded the runbook and troubleshooting summary through the desktop
+  connect path, local-runtime browser adapter, hosted backend policy, and
+  Electron readiness/status UI while preserving WindieOS env aliases as product
+  launch configuration.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Browser action schemas, Browser Use
+  daemon/session behavior, CDP port env names, UI controls, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Browser Hub Ownership Summary Wording
 
 - Finding: the browser hub, browser change workflow, and browser tool overview

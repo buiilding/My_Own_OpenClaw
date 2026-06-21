@@ -50,6 +50,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/browser: align browser hub, workflow, and tool overview ownership
   summaries around hosted backend policy, Electron UI, and local-runtime
   Browser Use adapter responsibilities. No migration required.
+- docs/browser: route browser control source-run and troubleshooting wording
+  through the desktop connect path and local-runtime Browser Use adapter
+  instead of product-owned connect/result-copy. No migration required.
 - frontend/main: regenerate the built-in local-runtime tool manifest from the
   sidecar source so the Electron artifact matches the current browser
   `output_schema` executable contract. No migration required.

@@ -17,7 +17,8 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
-`browser-use[cli]` is installed from the sidecar requirements and is the maintained browser automation engine.
+Browser Use runtime dependencies are installed from the local-runtime Python
+requirements and provide the maintained browser automation engine.
 
 To verify the dedicated browser runtime boundary:
 
@@ -60,10 +61,13 @@ export AGENT_BROWSER_USE_SESSION=desktop-agent
 export AGENT_BROWSER_USE_CLI=browser-use
 ```
 
-That's it. WindieOS connect now targets the named Browser Use daemon session:
-- If that Browser Use session is already running, WindieOS reuses it.
+That's it. The local-runtime browser adapter now targets the named Browser Use
+daemon session:
+- If that Browser Use session is already running, the adapter reuses it.
 - If not, Browser Use starts the browser session automatically.
-- WindieOS keeps the agent loop, policy, UI, and result normalization.
+- The hosted backend keeps agent orchestration and policy, Electron UI owns
+  readiness/status controls, and the local-runtime adapter normalizes Browser
+  Use results.
 
 **Terminal 1 - Backend:**
 ```bash
@@ -109,7 +113,7 @@ cd WindieOS
 ```
 
 The mock client will automatically:
-- Connect to the WindieOS Browser Use session
+- Connect to the Browser Use session through the local-runtime adapter
 - Navigate to Amazon
 - Search for "shoes"
 - Sort by price (low to high)
@@ -362,23 +366,23 @@ brew install --cask google-chrome
 
 ### "Port 9333 already in use"
 
-**Fix:** Set a different Windie browser CDP port:
+**Fix:** Set a different dedicated browser CDP port:
 ```bash
 export AGENT_BROWSER_CDP_PORT=9334
 ```
 
 ### Extension Badge Shows "OFF"
 
-**Problem:** Extension not connected to sidecar
+**Problem:** Extension not connected to the local runtime
 
 **Fix:**
-1. Make sure WindieOS Electron app is running
-2. Check that sidecar started properly
+1. Make sure the desktop Electron app is running
+2. Check that the local runtime started properly
 3. Look for errors in Electron console (Ctrl+Shift+I)
 
 ## Advanced Usage
 
-### Windie Dedicated Browser
+### Dedicated Desktop Browser
 
 ```
 Open the browser and go to example.com
@@ -416,7 +420,7 @@ Agent:
 ### Environment Variables
 
 ```bash
-# Windie browser CDP port (default: 9333)
+# Dedicated browser CDP port (default: 9333)
 export AGENT_BROWSER_CDP_PORT=9333
 
 # Browser Use session name (default: desktop-agent)
