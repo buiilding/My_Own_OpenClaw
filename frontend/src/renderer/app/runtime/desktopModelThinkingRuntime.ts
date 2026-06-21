@@ -9,7 +9,7 @@ type ModelCapabilityDescriptor = {
   supports_thinking_text_stream?: boolean;
 };
 
-export function resolveThinkingCapabilities(
+function resolveThinkingCapabilities(
   modelId: string | null | undefined,
   modelProvider: string | null | undefined,
   availableModels: { local?: unknown[]; online?: unknown[] } | null | undefined,
@@ -38,3 +38,7 @@ export function resolveThinkingCapabilities(
     supportsThinkingTextStream: supportsThinking ? supportsThinkingTextStream : false,
   };
 }
+
+export const DesktopModelThinkingRuntime = Object.freeze({
+  resolveThinkingCapabilities,
+});

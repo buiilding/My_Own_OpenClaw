@@ -96,7 +96,7 @@ Workspace identity state:
 ## Model Capability Resolution and Thinking Fallback Policy
 
 `useChatStream` resolves selected-model thinking flags through
-`desktopModelThinkingRuntime.resolveThinkingCapabilities(...)`:
+`DesktopModelThinkingRuntime.resolveThinkingCapabilities(...)`:
 
 - source set is merged `availableModels.local + availableModels.online`
 - primary match: `{id, provider}`

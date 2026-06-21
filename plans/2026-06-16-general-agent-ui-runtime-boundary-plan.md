@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Model Thinking Facade
+
+- Finding: `desktopModelThinkingRuntime.ts` already owned selected-model
+  thinking capability resolution from backend catalog metadata, but still
+  exported `resolveThinkingCapabilities(...)` as a standalone helper imported
+  directly by chat stream code and tests.
+- Change: made the capability resolver private to the model-thinking runtime
+  module, exposed it through `DesktopModelThinkingRuntime`, and routed
+  `useChatStream` plus focused tests through that facade.
+- Validation: focused model-thinking and renderer chat boundary coverage,
+  exact standalone helper export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Backend model catalog
+  metadata remains the only source of thinking capability truth; selected
+  model/provider config, stream thinking fallback behavior, IPC, storage,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Markdown Message Facade
 
 - Finding: `desktopMarkdownMessageRuntime.js` already owned markdown

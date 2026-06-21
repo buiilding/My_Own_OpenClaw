@@ -2,9 +2,13 @@
  * Covers model thinking capabilities. behavior in the frontend test suite.
  */
 
-import { resolveThinkingCapabilities } from '../../frontend/src/renderer/app/runtime/desktopModelThinkingRuntime';
+import { DesktopModelThinkingRuntime } from '../../frontend/src/renderer/app/runtime/desktopModelThinkingRuntime';
 
 describe('desktopModelThinkingRuntime', () => {
+  const {
+    resolveThinkingCapabilities,
+  } = DesktopModelThinkingRuntime;
+
   test('does not infer thinking support when model metadata omits capability flags', () => {
     expect(
       resolveThinkingCapabilities(

@@ -2391,7 +2391,11 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(streamSource).toContain('desktopModelThinkingRuntime');
+    expect(streamSource).toContain('DesktopModelThinkingRuntime');
+    expect(streamSource).not.toContain('import { resolveThinkingCapabilities }');
     expect(streamSource).not.toContain('utils/modelThinkingCapabilities');
+    expect(modelThinkingRuntimeSource).toContain('export const DesktopModelThinkingRuntime = Object.freeze');
+    expect(modelThinkingRuntimeSource).not.toContain('export function resolveThinkingCapabilities');
     expect(modelThinkingRuntimeSource).toContain('supports_thinking');
     expect(modelThinkingRuntimeSource).toContain('supports_thinking_text_stream');
     await expect(fs.stat(
