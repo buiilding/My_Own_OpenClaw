@@ -3,12 +3,17 @@
  */
 
 import { DesktopConversationLibraryClient } from '../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient';
-import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
+import { AgentSdkCommandInvokeClient } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
-  invokeAgentSdkCommand: jest.fn(),
+  AgentSdkCommandInvokeClient: {
+    invokeAgentSdkCommand: jest.fn(),
+  },
 }));
 
+const {
+  invokeAgentSdkCommand,
+} = AgentSdkCommandInvokeClient;
 const mockInvokeAgentSdkCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 const retiredSidecarDaemonDiscoveryError = `timed out waiting for ${'sidecar'} daemon discovery`;
 

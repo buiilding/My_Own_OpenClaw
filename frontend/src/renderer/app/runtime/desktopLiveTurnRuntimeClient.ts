@@ -9,9 +9,12 @@ import {
 } from './desktopConversationRuntimeContracts';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopMemoryRetrievalPreferenceRuntime } from './desktopMemoryRetrievalPreferenceRuntime';
-import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
+import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
 
 const SEND_COMMAND_FAILURE_FALLBACK = 'Failed to send command to the renderer app runtime';
+const {
+  invokeAgentSdkCommand,
+} = AgentSdkCommandInvokeClient;
 
 type CaptureMeta = {
   source_w?: number;

@@ -4,14 +4,19 @@
 
 import * as DesktopMemoryRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient';
 import { DesktopMemoryRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient';
-import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
+import { AgentSdkCommandInvokeClient } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
-  invokeAgentSdkCommand: jest.fn(),
+  AgentSdkCommandInvokeClient: {
+    invokeAgentSdkCommand: jest.fn(),
+  },
 }));
 
+const {
+  invokeAgentSdkCommand,
+} = AgentSdkCommandInvokeClient;
 const mockInvokeAgentSdkCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 
 describe('DesktopMemoryRuntimeClient', () => {

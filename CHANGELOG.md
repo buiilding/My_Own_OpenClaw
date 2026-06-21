@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose SDK command invocation through
+  `AgentSdkCommandInvokeClient` instead of a standalone async helper export,
+  keeping bridge lookup, `windie:invoke` fallback dispatch, and result
+  validation behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose conversation-ref creation, transcript/chat
   projection, main-session hydration, and send-time conversation resolution
   through `DesktopConversationSessionRuntime` instead of standalone helper

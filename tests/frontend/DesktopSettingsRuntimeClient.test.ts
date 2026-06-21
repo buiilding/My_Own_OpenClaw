@@ -8,7 +8,9 @@ const mockInvokeAgentSdkCommand = jest.fn(async () => undefined);
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => {
   return {
-    invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeAgentSdkCommand(...args),
+    AgentSdkCommandInvokeClient: {
+      invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeAgentSdkCommand(...args),
+    },
   };
 });
 

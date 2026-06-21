@@ -6,9 +6,12 @@ import {
   DesktopConversationContinuityService,
 } from './desktopConversationContinuityService';
 import { SDK_RUNTIME_COMMANDS } from './desktopConversationRuntimeContracts';
-import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
+import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
 import { DesktopDashboardConversationLoadRuntime } from './desktopDashboardConversationLoadRuntime';
 
+const {
+  invokeAgentSdkCommand,
+} = AgentSdkCommandInvokeClient;
 const {
   metadataListToDashboardConversations,
 } = DesktopDashboardConversationLoadRuntime;

@@ -453,11 +453,12 @@ debug tracing shared by wakeword and voice-mode hooks.
 
 The previous renderer helper file `windieCommandInvokeClient.ts` and function
 `invokeWindieCommand(...)` were renamed to
-`agentSdkCommandInvokeClient.ts` and `invokeAgentSdkCommand(...)`. Inside that
-renderer helper, the private bridge type/helper use `AgentSdkCommandBridge` and
-`getAgentSdkCommandBridge(...)`. The preload bridge is still exposed as
-`window.agentSdk`; the IPC channel string remains `windie:invoke` as the
-existing wire contract.
+`agentSdkCommandInvokeClient.ts` and the
+`AgentSdkCommandInvokeClient.invokeAgentSdkCommand(...)` facade method. Inside
+that renderer helper, the private bridge type/helper use
+`AgentSdkCommandBridge` and `getAgentSdkCommandBridge(...)`. The preload bridge
+is still exposed as `window.agentSdk`; the IPC channel string remains
+`windie:invoke` as the existing wire contract.
 
 The previous internal helper names `handleWindieSdkInvoke(...)` and
 `buildWindieSdkCommandHandlers(...)` were removed from the Electron main

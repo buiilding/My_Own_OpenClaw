@@ -6,7 +6,9 @@ const mockGetActiveConversationRef = jest.fn(() => null);
 const mockInvokeAgentSdkCommand = jest.fn();
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
-  invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeAgentSdkCommand(...args),
+  AgentSdkCommandInvokeClient: {
+    invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeAgentSdkCommand(...args),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({

@@ -17,7 +17,7 @@ import {
   type ConversationEvent,
   type JsonRecord,
 } from '../../packages/windie-sdk-js/src';
-import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
+import { AgentSdkCommandInvokeClient } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
 let mockCommandHandler: (command: string, payload?: Record<string, unknown>) => Promise<unknown>;
@@ -26,9 +26,11 @@ let mockSessionUserId: string | null = 'user-replay-db';
 let mockBackendRehydrateFailure: Error | null = null;
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
-  invokeAgentSdkCommand: jest.fn((command: string, payload?: Record<string, unknown>) => (
-    mockCommandHandler(command, payload)
-  )),
+  AgentSdkCommandInvokeClient: {
+    invokeAgentSdkCommand: jest.fn((command: string, payload?: Record<string, unknown>) => (
+      mockCommandHandler(command, payload)
+    )),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
@@ -50,6 +52,10 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
     },
   })),
 }));
+
+const {
+  invokeAgentSdkCommand,
+} = AgentSdkCommandInvokeClient;
 
 type SqliteChatRow = {
   id: string;

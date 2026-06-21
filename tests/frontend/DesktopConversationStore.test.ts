@@ -9,12 +9,17 @@ import {
 import {
   createConversationEvent,
 } from '../../packages/windie-sdk-js/src';
-import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
+import { AgentSdkCommandInvokeClient } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
-  invokeAgentSdkCommand: jest.fn(),
+  AgentSdkCommandInvokeClient: {
+    invokeAgentSdkCommand: jest.fn(),
+  },
 }));
 
+const {
+  invokeAgentSdkCommand,
+} = AgentSdkCommandInvokeClient;
 const mockInvokeAgentSdkCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 
 const defaultRevision = {

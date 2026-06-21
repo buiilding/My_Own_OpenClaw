@@ -31,7 +31,7 @@ function getAgentSdkCommandBridge(): AgentSdkCommandBridge | null {
   return window.agentSdk ?? null;
 }
 
-export async function invokeAgentSdkCommand<T = unknown>(
+async function invokeAgentSdkCommand<T = unknown>(
   command: string,
   payload: Record<string, unknown> = {},
 ): Promise<T> {
@@ -49,3 +49,7 @@ export async function invokeAgentSdkCommand<T = unknown>(
 
   return result.data as T;
 }
+
+export const AgentSdkCommandInvokeClient = Object.freeze({
+  invokeAgentSdkCommand,
+});

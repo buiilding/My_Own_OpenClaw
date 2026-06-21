@@ -2,10 +2,14 @@
  * Coordinates the memory app-runtime client for the renderer UI.
  */
 
-import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
+import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
 import { SDK_RUNTIME_COMMANDS } from './desktopConversationRuntimeContracts';
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
+
+const {
+  invokeAgentSdkCommand,
+} = AgentSdkCommandInvokeClient;
 
 type MemoryKind = 'episodic' | 'semantic';
 

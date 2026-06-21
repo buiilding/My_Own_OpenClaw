@@ -8,7 +8,11 @@ import {
 } from './desktopConversationRuntimeContracts';
 import { DesktopMemoryRetrievalPreferenceRuntime } from './desktopMemoryRetrievalPreferenceRuntime';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
-import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
+import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
+
+const {
+  invokeAgentSdkCommand,
+} = AgentSdkCommandInvokeClient;
 
 function optionalString(value: unknown): string | null {
   return normalizeNonEmptyString(value);

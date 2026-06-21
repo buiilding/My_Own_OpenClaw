@@ -778,6 +778,7 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
+    expect(source).toContain('AgentSdkCommandInvokeClient');
     expect(source).toContain('invokeAgentSdkCommand');
     expect(source).toContain('SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST');
     expect(source).toContain('SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH');
@@ -965,12 +966,14 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
+    expect(liveTurnSource).toContain('AgentSdkCommandInvokeClient');
     expect(liveTurnSource).toContain('invokeAgentSdkCommand');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
     expect(liveTurnSource).not.toContain('WINDIE_SEND');
     expect(liveTurnSource).not.toContain('WINDIE_STOP');
 
+    expect(agentRuntimeTransportSource).toContain('AgentSdkCommandInvokeClient');
     expect(agentRuntimeTransportSource).toContain('invokeAgentSdkCommand');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
@@ -995,6 +998,9 @@ describe('renderer app runtime boundary', () => {
 
     expect(source).toContain('getAgentSdkCommandBridge');
     expect(source).toContain('type AgentSdkCommandBridge');
+    expect(source).toContain('export const AgentSdkCommandInvokeClient = Object.freeze');
+    expect(source).toContain('invokeAgentSdkCommand');
+    expect(source).not.toContain('export async function invokeAgentSdkCommand');
     expect(source).toContain('window.agentSdk ?? null');
     expect(source).not.toContain('window.desktopAgent');
     expect(source).not.toContain('window.windie');

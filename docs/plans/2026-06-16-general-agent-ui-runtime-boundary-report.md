@@ -9266,3 +9266,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   behavior, IPC payloads, storage, local-runtime execution, provider policy,
   backend behavior, and trust boundaries are unchanged; no migration is
   required.
+- Renderer SDK-command invocation now routes through
+  `AgentSdkCommandInvokeClient` instead of a standalone async helper export.
+  Live-turn, desktop transport, memory, conversation library/continuity, and
+  transcript conversation-store callers consume the facade object while the
+  command helper keeps `window.agentSdk` bridge lookup, `windie:invoke` fallback
+  dispatch, result validation, and fallback error text private. SDK command
+  names, IPC channel strings, command payloads, command result shapes, storage,
+  local-runtime execution, provider policy, backend behavior, and trust
+  boundaries are unchanged; no migration is required.

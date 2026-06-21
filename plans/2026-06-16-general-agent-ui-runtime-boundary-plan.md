@@ -24268,3 +24268,22 @@ Each completed slice should report:
   open/delete behavior, send-time conversation resolution, replay behavior,
   renderer markup, IPC payloads, storage, local-runtime execution, provider
   policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer SDK command invoke facade helper privacy
+
+- Finding: SDK command invocation lived in the renderer app runtime, but
+  transport, memory, conversation library/continuity, transcript store, and
+  focused tests still imported the command function as a standalone async
+  helper.
+- Change: exposed command invocation through `AgentSdkCommandInvokeClient` and
+  kept `invokeAgentSdkCommand` behind the runtime facade that owns
+  `window.agentSdk` bridge lookup, `windie:invoke` fallback dispatch, result
+  validation, and fallback command error text.
+- Validation: focused desktop runtime transport, live-turn, memory,
+  conversation library/store, settings, voice, replay integration, renderer
+  app-runtime boundary tests, targeted renderer ESLint, exact source/doc scans,
+  docs listing, and diff checks.
+- Compatibility: no migration required. SDK command names, `windie:invoke`
+  channel usage, command payloads, command result handling, renderer markup,
+  IPC payloads, storage, local-runtime execution, provider policy, backend
+  behavior, and trust boundaries are unchanged.

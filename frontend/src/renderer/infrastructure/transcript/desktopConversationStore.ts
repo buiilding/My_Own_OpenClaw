@@ -21,7 +21,11 @@ import type {
   SdkDisplayRow,
   TraceTimelineEntry,
 } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
-import { invokeAgentSdkCommand } from '../../app/runtime/agentSdkCommandInvokeClient';
+import { AgentSdkCommandInvokeClient } from '../../app/runtime/agentSdkCommandInvokeClient';
+
+const {
+  invokeAgentSdkCommand,
+} = AgentSdkCommandInvokeClient;
 
 export type DesktopTraceTimelineOptions = {
   turnRef?: string | null;

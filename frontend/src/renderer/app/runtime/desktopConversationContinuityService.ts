@@ -22,11 +22,14 @@ import {
 } from '../../infrastructure/transcript/desktopConversationStore';
 import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
+import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
 import { DesktopDashboardConversationLoadRuntime } from './desktopDashboardConversationLoadRuntime';
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 
+const {
+  invokeAgentSdkCommand,
+} = AgentSdkCommandInvokeClient;
 const {
   metadataListToDashboardConversations,
 } = DesktopDashboardConversationLoadRuntime;
