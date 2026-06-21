@@ -7875,3 +7875,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   user-data path contracts. Conversation export behavior, history schema
   compatibility, provider policy, permissions, storage, and backend behavior are
   unchanged; no migration is required.
+- Wakeword service coverage now uses neutral legacy model-directory fixtures
+  while preserving `WINDIE_WAKEWORD_MODEL_DIR` alias coverage. Wakeword model
+  directory precedence, generic `AGENT_*` env preference, WindieOS alias
+  compatibility, provider policy, permissions, storage, and backend behavior are
+  unchanged; no migration is required.

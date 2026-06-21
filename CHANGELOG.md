@@ -86,6 +86,9 @@ All notable changes to WindieOS will be documented in this file.
   coverage while preserving the product CLI, `.windie/logs`, and user-data path
   contracts. No migration required.
 
+- tests/sidecar: use neutral legacy wakeword model directory fixtures while
+  preserving `WINDIE_WAKEWORD_MODEL_DIR` alias coverage. No migration required.
+
 - tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
   in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
   directory. No migration required.

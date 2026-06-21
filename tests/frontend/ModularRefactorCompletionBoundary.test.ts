@@ -691,10 +691,16 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {
-    const source = await read('tests/frontend/voice/WakewordDetectionHook.test.ts');
+    const source = await Promise.all([
+      read('tests/frontend/voice/WakewordDetectionHook.test.ts'),
+      read('tests/sidecar/test_wakeword_service.py'),
+    ]).then(sources => sources.join('\n'));
+    const retiredWakewordModelDir = ['windie', 'models'].join('-');
 
     expect(source).not.toContain('blob:windieos-audio-worklet');
+    expect(source).not.toContain(retiredWakewordModelDir);
     expect(source).toContain('blob:agent-audio-worklet');
+    expect(source).toContain('legacy-models');
   });
 
   test('browser use engine tests keep legacy session fixtures product-neutral', async () => {

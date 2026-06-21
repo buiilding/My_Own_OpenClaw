@@ -19188,3 +19188,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Conversation export behavior, history
   schema compatibility, provider policy, permissions, storage, and backend
   behavior are unchanged.
+
+### 2026-06-21 Wakeword model directory fixture neutrality
+
+- Finding: wakeword service legacy-env coverage still used a Windie-flavored
+  arbitrary model directory fixture while testing model-directory precedence.
+- Change: renamed the test-only directory value to `legacy-models` and extended
+  the modular boundary guard while preserving `WINDIE_WAKEWORD_MODEL_DIR` alias
+  coverage.
+- Validation: focused wakeword service sidecar tests and modular boundary test;
+  exact retired wakeword model fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Wakeword model directory precedence,
+  generic `AGENT_*` env preference, WindieOS alias compatibility, provider
+  policy, permissions, storage, and backend behavior are unchanged.
