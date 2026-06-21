@@ -131,15 +131,15 @@ function normalizeTranscriptionGatewayMessage(rawData: unknown): DesktopTranscri
   }
 }
 
-export function resolveWakewordStatusReady(status: WakewordStatusPayload | null | undefined): boolean {
+function resolveWakewordStatusReady(status: WakewordStatusPayload | null | undefined): boolean {
   return status?.ready === true;
 }
 
-export function resolveWakewordStatusError(status: WakewordStatusPayload | null | undefined): string | null {
+function resolveWakewordStatusError(status: WakewordStatusPayload | null | undefined): string | null {
   return typeof status?.error === 'string' && status.error.length > 0 ? status.error : null;
 }
 
-export function resolveWakewordReadyStatus(
+function resolveWakewordReadyStatus(
   status: WakewordStatusPayload | null | undefined,
 ): WakewordReadyStatus {
   return {
@@ -148,7 +148,7 @@ export function resolveWakewordReadyStatus(
   };
 }
 
-export function resolveWakewordDetectionValues(
+function resolveWakewordDetectionValues(
   payload: WakewordDetectionPayload | null | undefined,
 ): WakewordDetectionValues | null {
   const source = isRecord(payload) ? payload : {};
@@ -167,7 +167,7 @@ export function resolveWakewordDetectionValues(
   return values;
 }
 
-export function resolveWakewordToggleState(
+function resolveWakewordToggleState(
   payload: WakewordTogglePayload | null | undefined,
 ): WakewordToggleState | null {
   const source = isRecord(payload) ? payload : {};

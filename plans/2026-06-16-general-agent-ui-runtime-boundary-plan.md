@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Wakeword Value Parser Privacy
+
+- Finding: `DesktopVoiceRuntimeClient` already owned wakeword status,
+  detection, and toggle IPC event normalization through value-level
+  subscription helpers, but still exported raw parser functions so focused
+  tests could call implementation details directly.
+- Change: made the raw wakeword ready-status, detection-value, and toggle-state
+  parsers private to the voice runtime client, kept the public
+  `onWakewordDetectedValues(...)`, `onWakewordReadyStatus(...)`, and
+  `onWakewordToggleState(...)` helpers as the renderer-facing contract, and
+  updated tests to exercise value behavior through IPC subscription facades.
+- Validation: focused voice runtime client and renderer voice boundary tests,
+  exact raw-helper export scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Wakeword IPC channel names,
+  wakeword detection/status/toggle payload acceptance, voice hooks, microphone
+  capture, OS permissions, credentials, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Renderer Permission Envelope Parser Privacy
 
 - Finding: `DesktopPermissionRuntimeClient` already owned permission command

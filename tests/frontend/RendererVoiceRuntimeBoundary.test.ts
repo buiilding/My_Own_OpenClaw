@@ -40,6 +40,12 @@ describe('renderer voice runtime boundary', () => {
     expect(source).not.toContain('DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage');
     expect(runtimeSource).toContain('const event = normalizeTranscriptionGatewayMessage(rawData);');
     expect(runtimeSource).not.toContain('DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage');
+    expect(runtimeSource).toContain('function resolveWakewordReadyStatus');
+    expect(runtimeSource).not.toContain('export function resolveWakewordReadyStatus');
+    expect(runtimeSource).toContain('function resolveWakewordDetectionValues');
+    expect(runtimeSource).not.toContain('export function resolveWakewordDetectionValues');
+    expect(runtimeSource).toContain('function resolveWakewordToggleState');
+    expect(runtimeSource).not.toContain('export function resolveWakewordToggleState');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendDefaultTranscriptionLanguage');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionStartOverIfOpen');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionAudioMessageIfOpen');

@@ -2,14 +2,8 @@
  * Covers voice app-runtime client behavior in the frontend test suite.
  */
 
-import {
-  DesktopVoiceRuntimeClient,
-  resolveWakewordDetectionValues,
-  resolveWakewordReadyStatus,
-  resolveWakewordStatusError,
-  resolveWakewordStatusReady,
-  resolveWakewordToggleState,
-} from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
+import * as DesktopVoiceRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
+import { DesktopVoiceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
 import {
   IpcBridge,
   ON_CHANNELS,
@@ -68,38 +62,12 @@ describe('DesktopVoiceRuntimeClient', () => {
     expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_STATUS, statusListener);
   });
 
-  test('normalizes wakeword status ready and error values', () => {
-    expect(resolveWakewordStatusReady({ ready: true })).toBe(true);
-    expect(resolveWakewordStatusReady({ ready: false })).toBe(false);
-    expect(resolveWakewordStatusReady({})).toBe(false);
-    expect(resolveWakewordStatusError({ error: 'model missing' })).toBe('model missing');
-    expect(resolveWakewordStatusError({ error: '' })).toBeNull();
-    expect(resolveWakewordStatusError({ error: null })).toBeNull();
-    expect(resolveWakewordReadyStatus({ ready: true, error: 'warming up' })).toEqual({
-      ready: true,
-      error: 'warming up',
-    });
-  });
-
-  test('normalizes wakeword detection values', () => {
-    expect(resolveWakewordDetectionValues({
-      model: 'hey-jarvis',
-      confidence: 0.92,
-      score: 0.7,
-    })).toEqual({
-      model: 'hey-jarvis',
-      confidence: 0.92,
-      score: 0.7,
-    });
-    expect(resolveWakewordDetectionValues({
-      model: 12 as unknown as string,
-      confidence: 0.5,
-      score: '0.5',
-    })).toEqual({
-      model: '',
-      confidence: 0.5,
-    });
-    expect(resolveWakewordDetectionValues({ confidence: 'high' })).toBeNull();
+  test('keeps raw wakeword value parsers private to the runtime client', () => {
+    expect(DesktopVoiceRuntimeModule).not.toHaveProperty('resolveWakewordStatusReady');
+    expect(DesktopVoiceRuntimeModule).not.toHaveProperty('resolveWakewordStatusError');
+    expect(DesktopVoiceRuntimeModule).not.toHaveProperty('resolveWakewordReadyStatus');
+    expect(DesktopVoiceRuntimeModule).not.toHaveProperty('resolveWakewordDetectionValues');
+    expect(DesktopVoiceRuntimeModule).not.toHaveProperty('resolveWakewordToggleState');
   });
 
   test('emits value-level wakeword detection updates', () => {
@@ -115,13 +83,18 @@ describe('DesktopVoiceRuntimeClient', () => {
 
     DesktopVoiceRuntimeClient.onWakewordDetectedValues(detectionListener, invalidListener);
     detectionHandler?.({ model: 'hey-jarvis', confidence: 0.99, score: 0.8 });
+    detectionHandler?.({ model: 12 as unknown as string, confidence: 0.5, score: '0.5' });
     detectionHandler?.({ model: 'hey-jarvis', confidence: 'bad' });
 
     expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_DETECTED, expect.any(Function));
-    expect(detectionListener).toHaveBeenCalledWith({
+    expect(detectionListener).toHaveBeenNthCalledWith(1, {
       model: 'hey-jarvis',
       confidence: 0.99,
       score: 0.8,
+    });
+    expect(detectionListener).toHaveBeenNthCalledWith(2, {
+      model: '',
+      confidence: 0.5,
     });
     expect(invalidListener).toHaveBeenCalledTimes(1);
   });
@@ -137,17 +110,14 @@ describe('DesktopVoiceRuntimeClient', () => {
     });
 
     DesktopVoiceRuntimeClient.onWakewordReadyStatus(readyListener);
-    statusHandler?.({ ready: true, error: '' });
+    statusHandler?.({ ready: true, error: 'warming up' });
+    statusHandler?.({ ready: false, error: '' });
+    statusHandler?.({});
 
     expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_STATUS, expect.any(Function));
-    expect(readyListener).toHaveBeenCalledWith({ ready: true, error: null });
-  });
-
-  test('normalizes wakeword toggle state values', () => {
-    expect(resolveWakewordToggleState({ enabled: true })).toEqual({ enabled: true });
-    expect(resolveWakewordToggleState({ enabled: false })).toEqual({ enabled: false });
-    expect(resolveWakewordToggleState({ enabled: 'false' })).toBeNull();
-    expect(resolveWakewordToggleState(null)).toBeNull();
+    expect(readyListener).toHaveBeenNthCalledWith(1, { ready: true, error: 'warming up' });
+    expect(readyListener).toHaveBeenNthCalledWith(2, { ready: false, error: null });
+    expect(readyListener).toHaveBeenNthCalledWith(3, { ready: false, error: null });
   });
 
   test('emits value-level wakeword toggle state updates', () => {

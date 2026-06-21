@@ -99,6 +99,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep permission command envelope parsing and single-status
   normalization private to the permission runtime client while preserving the
   public permission status map helper. No migration required.
+- frontend/renderer: keep wakeword status, detection, and toggle value parsers
+  private to the voice runtime client while preserving the public value-level
+  wakeword subscription helpers. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.
