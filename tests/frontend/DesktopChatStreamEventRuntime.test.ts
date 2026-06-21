@@ -36,6 +36,17 @@ function createEvent(overrides: Record<string, unknown> = {}) {
   } as any;
 }
 
+function pendingTurn(turnRef = 'turn-new', conversationRef = 'conv-default') {
+  return {
+    conversationRef,
+    turnRef,
+    userMessageId: `user-${turnRef}`,
+    text: 'next turn',
+    timestamp: '2026-06-21T12:00:00.000Z',
+    attachmentFilenames: null,
+  };
+}
+
 function getWorkspaceState(conversationRef?: string | null) {
   return useChatStore.getState().getWorkspaceState(conversationRef);
 }
@@ -51,6 +62,7 @@ describe('DesktopChatStreamEventRuntime', () => {
       activeConversationRef: null,
       turnConversationRefs: {},
       isSending: false,
+      pendingTurn: null,
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-active',
@@ -61,6 +73,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         __default__: {
           ...state.workspaces.__default__,
           isSending: false,
+          pendingTurn: null,
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-active',
@@ -75,6 +88,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     useChatStore.setState((state) => ({
       ...state,
       isSending: true,
+      pendingTurn: pendingTurn('turn-new'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-old',
@@ -85,6 +99,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         __default__: {
           ...state.workspaces.__default__,
           isSending: true,
+          pendingTurn: pendingTurn('turn-new'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-old',
@@ -95,6 +110,34 @@ describe('DesktopChatStreamEventRuntime', () => {
     }));
 
     expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(false);
+  });
+
+  test('stale raw sending state alone does not open terminal pending handoff', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      pendingTurn: null,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-old',
+        phase: 'complete',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          pendingTurn: null,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-old',
+            phase: 'complete',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(true);
   });
 
   test('classifies supported SDK conversation stream event types', () => {
@@ -227,6 +270,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
       ],
       isSending: true,
+      pendingTurn: pendingTurn('turn-new'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-old',
@@ -240,6 +284,7 @@ describe('DesktopChatStreamEventRuntime', () => {
             { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
           ],
           isSending: true,
+          pendingTurn: pendingTurn('turn-new'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-old',
@@ -259,6 +304,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
       ],
       isSending: true,
+      pendingTurn: pendingTurn('turn-current'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-current',
@@ -272,6 +318,7 @@ describe('DesktopChatStreamEventRuntime', () => {
             { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
           ],
           isSending: true,
+          pendingTurn: pendingTurn('turn-current'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-current',
@@ -299,6 +346,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         },
       ],
       isSending: true,
+      pendingTurn: pendingTurn('turn-current'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-current',
@@ -320,6 +368,7 @@ describe('DesktopChatStreamEventRuntime', () => {
             },
           ],
           isSending: true,
+          pendingTurn: pendingTurn('turn-current'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-current',
@@ -336,6 +385,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     useChatStore.setState((state) => ({
       ...state,
       isSending: true,
+      pendingTurn: pendingTurn('turn-new'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-old',
@@ -346,6 +396,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         __default__: {
           ...state.workspaces.__default__,
           isSending: true,
+          pendingTurn: pendingTurn('turn-new'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-old',
@@ -362,6 +413,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     useChatStore.setState((state) => ({
       ...state,
       isSending: true,
+      pendingTurn: pendingTurn('turn-current'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-current',
@@ -372,6 +424,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         __default__: {
           ...state.workspaces.__default__,
           isSending: true,
+          pendingTurn: pendingTurn('turn-current'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-current',
@@ -388,6 +441,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     useChatStore.setState((state) => ({
       ...state,
       isSending: true,
+      pendingTurn: pendingTurn('turn-new'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-old',
@@ -398,6 +452,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         __default__: {
           ...state.workspaces.__default__,
           isSending: true,
+          pendingTurn: pendingTurn('turn-new'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-old',
@@ -417,6 +472,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
       ],
       isSending: true,
+      pendingTurn: pendingTurn('turn-old'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-old',
@@ -430,6 +486,7 @@ describe('DesktopChatStreamEventRuntime', () => {
             { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
           ],
           isSending: true,
+          pendingTurn: pendingTurn('turn-old'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-old',
@@ -449,6 +506,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
       ],
       isSending: true,
+      pendingTurn: pendingTurn('turn-current'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-current',
@@ -462,6 +520,7 @@ describe('DesktopChatStreamEventRuntime', () => {
             { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
           ],
           isSending: true,
+          pendingTurn: pendingTurn('turn-current'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-current',
@@ -478,6 +537,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     useChatStore.setState((state) => ({
       ...state,
       isSending: true,
+      pendingTurn: pendingTurn('turn-new'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-old',
@@ -488,6 +548,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         __default__: {
           ...state.workspaces.__default__,
           isSending: true,
+          pendingTurn: pendingTurn('turn-new'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-old',
@@ -537,6 +598,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     useChatStore.setState((state) => ({
       ...state,
       isSending: true,
+      pendingTurn: pendingTurn('turn-new'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: null,
@@ -547,6 +609,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         __default__: {
           ...state.workspaces.__default__,
           isSending: true,
+          pendingTurn: pendingTurn('turn-new'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: null,
@@ -598,6 +661,7 @@ describe('DesktopChatStreamEventRuntime', () => {
     useChatStore.setState((state) => ({
       ...state,
       isSending: true,
+      pendingTurn: pendingTurn('turn-default-new'),
       streamTracking: {
         ...state.streamTracking,
         activeTurnRef: 'turn-default-old',
@@ -608,6 +672,7 @@ describe('DesktopChatStreamEventRuntime', () => {
         __default__: {
           ...state.workspaces.__default__,
           isSending: true,
+          pendingTurn: pendingTurn('turn-default-new'),
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
             activeTurnRef: 'turn-default-old',

@@ -10,9 +10,13 @@ type StreamGuardMessage = {
   turnRef?: string | null;
 };
 
+type StreamGuardPendingTurn = {
+  turnRef?: string | null;
+};
+
 export type StreamGuardWorkspace = {
-  isSending: boolean;
   messages: StreamGuardMessage[];
+  pendingTurn?: StreamGuardPendingTurn | null;
   streamTracking: {
     phase: StreamPhase;
     activeTurnRef?: string | null;
@@ -29,13 +33,17 @@ function normalizeTurnRef(turnRef: string | null | undefined): string {
   return typeof turnRef === 'string' ? turnRef.trim() : '';
 }
 
+function hasPendingTurn(workspace: StreamGuardWorkspace): boolean {
+  return normalizeTurnRef(workspace.pendingTurn?.turnRef).length > 0;
+}
+
 function isAwaitingFirstChunkMismatch(
   workspace: StreamGuardWorkspace,
   eventTurnRef: string,
   activeTurnRef: string,
 ): boolean {
   return (
-    workspace.isSending === true
+    hasPendingTurn(workspace)
     && workspace.streamTracking.phase === 'awaiting-first-chunk'
     && activeTurnRef.length > 0
     && eventTurnRef !== activeTurnRef
@@ -44,7 +52,7 @@ function isAwaitingFirstChunkMismatch(
 
 function hasTerminalPendingHandoff(workspace: StreamGuardWorkspace): boolean {
   return (
-    workspace.isSending === true
+    hasPendingTurn(workspace)
     && TERMINAL_PENDING_HANDOFF_PHASES.has(workspace.streamTracking.phase)
   );
 }

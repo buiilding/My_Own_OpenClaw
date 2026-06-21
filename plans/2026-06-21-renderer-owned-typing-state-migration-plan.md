@@ -9,6 +9,25 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Stream Terminal Handoff Pending-Turn Gate
+
+- Finding: `DesktopChatStreamTerminalHandoffRuntime` still used raw
+  `isSending=true` with terminal or awaiting-first-chunk stream phases to relax
+  stale-turn filtering during next-turn re-anchor, leaving a stale send latch
+  able to open a transport handoff window without an accepted renderer pending
+  turn.
+- Change: terminal and awaiting-first-chunk handoff predicates now require a
+  valid renderer `pendingTurn`; `streamTracking.phase` remains transport
+  state for stale-packet filtering, but `isSending` is no longer the proof that
+  a new renderer-owned turn exists.
+- Validation target: `DesktopChatStreamTerminalHandoffRuntime.test.ts`,
+  `DesktopChatStreamEventRuntime.test.ts`, and
+  `RendererChatRuntimeBoundary.test.ts` protect pending-turn re-anchor,
+  stale raw `isSending=true` rejection, and the runtime boundary.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Pending-Turn Handoff Resolver Facade
 
 - Finding: `chatStore.ts` still consumed

@@ -15,10 +15,12 @@ function createWorkspace({
   phase = 'complete',
   isSending = true,
   lastMessage = null,
+  pendingTurn = { turnRef: 'turn-new' },
 } = {}) {
   return {
     isSending,
     messages: lastMessage ? [lastMessage] : [],
+    pendingTurn,
     streamTracking: {
       phase,
     },
@@ -32,26 +34,34 @@ describe('DesktopChatStreamTerminalHandoffRuntime', () => {
     expect(normalizeTurnRef(' turn-1 ')).toBe('turn-1');
   });
 
-  test('detects awaiting-first-chunk mismatch only while actively sending', () => {
+  test('detects awaiting-first-chunk mismatch only with a renderer pending turn', () => {
     expect(isAwaitingFirstChunkMismatch(
-      createWorkspace({ phase: 'awaiting-first-chunk', isSending: true }),
+      createWorkspace({ phase: 'awaiting-first-chunk', pendingTurn: { turnRef: 'turn-new' } }),
       'turn-new',
       'turn-old',
     )).toBe(true);
 
     expect(isAwaitingFirstChunkMismatch(
-      createWorkspace({ phase: 'awaiting-first-chunk', isSending: false }),
+      createWorkspace({
+        phase: 'awaiting-first-chunk',
+        isSending: true,
+        pendingTurn: null,
+      }),
       'turn-new',
       'turn-old',
     )).toBe(false);
   });
 
-  test('detects terminal pending handoff only for sending terminal phases', () => {
-    expect(hasTerminalPendingHandoff(createWorkspace({ phase: 'idle', isSending: true }))).toBe(true);
-    expect(hasTerminalPendingHandoff(createWorkspace({ phase: 'complete', isSending: true }))).toBe(true);
-    expect(hasTerminalPendingHandoff(createWorkspace({ phase: 'error', isSending: true }))).toBe(true);
-    expect(hasTerminalPendingHandoff(createWorkspace({ phase: 'streaming', isSending: true }))).toBe(false);
-    expect(hasTerminalPendingHandoff(createWorkspace({ phase: 'complete', isSending: false }))).toBe(false);
+  test('detects terminal pending handoff only for pending-turn terminal phases', () => {
+    expect(hasTerminalPendingHandoff(createWorkspace({ phase: 'idle' }))).toBe(true);
+    expect(hasTerminalPendingHandoff(createWorkspace({ phase: 'complete' }))).toBe(true);
+    expect(hasTerminalPendingHandoff(createWorkspace({ phase: 'error' }))).toBe(true);
+    expect(hasTerminalPendingHandoff(createWorkspace({ phase: 'streaming' }))).toBe(false);
+    expect(hasTerminalPendingHandoff(createWorkspace({
+      phase: 'complete',
+      isSending: true,
+      pendingTurn: null,
+    }))).toBe(false);
   });
 
   test.each([

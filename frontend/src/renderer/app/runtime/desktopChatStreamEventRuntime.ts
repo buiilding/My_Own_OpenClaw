@@ -208,8 +208,8 @@ function shouldIgnoreForStaleTurn(
   if (isAwaitingFirstChunkMismatch(workspace, eventTurnRef, normalizedActiveTurnRef)) {
     return false;
   }
-  // Keep first packets of the next turn when UI has already entered "sending" but
-  // stream-tracking still points at a completed previous turn.
+  // Keep first packets of the next turn when renderer pending-turn state exists
+  // but stream-tracking still points at a completed previous turn.
   if (hasTerminalPendingHandoff(workspace)) {
     return shouldIgnoreForTerminalPendingHandoff(
       workspace,
