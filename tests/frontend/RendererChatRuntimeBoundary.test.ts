@@ -656,6 +656,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts'),
       'utf8',
     );
+    const traceRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts'),
+      'utf8',
+    );
     const thinkingRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts'),
       'utf8',
@@ -666,6 +670,23 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onCurrentTurnProjection');
     expect(projectionSource).toContain('desktopCurrentTurnProjectionEffectsRuntime');
     expect(projectionSource).toContain('applyCurrentTurnProjectionSideEffects');
+    expect(projectionSource).toContain('logRendererCurrentTurnAppliedTrace');
+    expect(projectionSource).not.toContain('logRendererLiveSurfaceTrace');
+    expect(projectionSource).not.toContain("'renderer.current_turn.applied'");
+    expect(projectionSource).not.toContain('overlayMode');
+    expect(projectionSource).not.toContain('guardRef');
+    expect(projectionSource).not.toContain('typingVisible');
+    expect(projectionSource).not.toContain('overlayVisible');
+    expect(projectionSource).not.toContain('hasVisibleContent');
+    expect(projectionSource).not.toContain('entryCount');
+    expect(projectionSource).not.toContain('assistantLength');
+    expect(projectionSource).not.toContain('reasoningLength');
+    expect(projectionSource).not.toContain('toolEventCount');
+    expect(projectionSource).not.toContain('staleSideEffectsSkipped');
+    expect(traceRuntimeSource).toContain('buildRendererCurrentTurnAppliedTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererCurrentTurnAppliedTrace');
+    expect(traceRuntimeSource).toContain("'renderer.current_turn.applied'");
+    expect(traceRuntimeSource).toContain('staleSideEffectsSkipped');
     expect(projectionSideEffectsSource).toContain('setThinkingStatus');
     expect(projectionSideEffectsSource).toContain('streaming-response');
     expect(projectionSideEffectsSource).toContain('desktopChatStreamThinkingRuntime');

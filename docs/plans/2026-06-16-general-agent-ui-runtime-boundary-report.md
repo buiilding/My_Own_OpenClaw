@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: minimal chat pill reset, lifecycle, and hit-test
-  live-surface trace payload shaping now stays behind
-  `desktopRendererTraceRuntime`, with `MinimalChatPill` reporting send,
-  lifecycle, and pointer-state values instead of carrying live-surface event
-  labels or hit-test field names locally.
+- Latest completed slice: SDK current-turn applied live-surface trace payload
+  shaping now stays behind `desktopRendererTraceRuntime`, with
+  `useConversationRuntimeProjectionStream` reporting the current-turn
+  projection and derived-side-effect skip state instead of carrying
+  live-surface event labels or projection field names locally.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -176,6 +176,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   live-surface traces now consume `desktopRendererTraceRuntime` helpers instead
   of carrying live-surface event names, reset reasons, or `ignoreMouseEvents`
   field mapping inside `MinimalChatPill`.
+  SDK current-turn applied live-surface traces now consume
+  `desktopRendererTraceRuntime` helpers instead of carrying event names,
+  overlay/guard projection, visible-content booleans, text lengths,
+  tool-event counts, or stale-skip trace field names inside
+  `useConversationRuntimeProjectionStream`.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
@@ -619,6 +624,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Renderer Current-Turn Applied Trace Boundary
+
+- Finding: `useConversationRuntimeProjectionStream.ts` delegated current-turn
+  store side effects to `desktopCurrentTurnProjectionEffectsRuntime`, but still
+  called `logRendererLiveSurfaceTrace(...)` directly for
+  `renderer.current_turn.applied` and assembled overlay mode, guard ref,
+  visibility, text-length, tool-count, and stale-skip trace fields locally.
+- Change: added current-turn applied payload/logging helpers to
+  `desktopRendererTraceRuntime.ts` and routed the projection hook through them
+  so the hook reports the SDK current-turn object and derived-side-effect skip
+  state instead of owning live-surface trace event names or projection fields.
+- Validation: focused renderer trace runtime, chat stream current-turn state,
+  renderer chat/runtime boundary coverage, docs listing, stale hook-local
+  current-turn trace scan, and diff checks.
+- Compatibility: no migration required. SDK current-turn application order,
+  stale-side-effect gating, chat store mutations, live-surface event name and
+  payload shape, IPC, storage, permissions, credentials, hosted backend URLs,
+  and provider policy are unchanged.
 
 ### 2026-06-21 Renderer Chat Pill Live Trace Boundary
 

@@ -161,6 +161,14 @@ tool-event ids. It is the renderer-side owner for:
 - preserving typing/thinking state for SDK tool events projected with
   `executionSkipped === true`
 
+`desktopRendererTraceRuntime.ts` owns the SDK current-turn applied live-surface
+trace projection. `useConversationRuntimeProjectionStream` reports the
+SDK current-turn object plus whether derived side effects were skipped; the
+runtime emits `renderer.current_turn.applied` with overlay mode, guard ref,
+visible-content booleans, entry counts, text lengths, tool-event counts, and the
+`staleSideEffectsSkipped` trace field. The hook must not duplicate those trace
+field names locally.
+
 The utility does not create transcript rows or interpret backend-wire events.
 Transcript display still comes from SDK display rows, and conversation-event
 handlers still own metadata, compaction, terminal materialization, and tool-row

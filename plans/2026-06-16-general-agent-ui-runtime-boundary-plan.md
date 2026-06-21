@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Current-Turn Applied Trace Boundary
+
+- Finding: `useConversationRuntimeProjectionStream.ts` delegated current-turn
+  store side effects to `desktopCurrentTurnProjectionEffectsRuntime`, but still
+  called `logRendererLiveSurfaceTrace(...)` directly for
+  `renderer.current_turn.applied` and assembled overlay mode, guard ref,
+  visibility, text-length, tool-count, and stale-skip trace fields locally.
+- Change: added current-turn applied payload/logging helpers to
+  `desktopRendererTraceRuntime.ts` and routed the projection hook through them
+  so the hook reports the SDK current-turn object and derived-side-effect skip
+  state instead of owning live-surface trace event names or projection fields.
+- Validation: focused renderer trace runtime, chat stream current-turn state,
+  renderer chat/runtime boundary coverage, docs listing, stale hook-local
+  current-turn trace scan, and diff checks.
+- Compatibility: no migration required. SDK current-turn application order,
+  stale-side-effect gating, chat store mutations, live-surface event name and
+  payload shape, IPC, storage, permissions, credentials, hosted backend URLs,
+  and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Chat Pill Live Trace Boundary
 
 - Finding: `MinimalChatPill.jsx` already used app-runtime helpers for chat pill

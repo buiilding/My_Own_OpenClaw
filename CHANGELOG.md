@@ -38,6 +38,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: move SDK current-turn applied live-surface trace payload
+  shaping into `desktopRendererTraceRuntime` so
+  `useConversationRuntimeProjectionStream` reports the current-turn projection
+  and derived-side-effect skip state without owning trace event labels,
+  overlay/guard field names, or length/count projection locally. No migration
+  required.
 - renderer/pill: move minimal chat pill reset, lifecycle, and hit-test
   live-surface trace payload shaping into `desktopRendererTraceRuntime` so
   `MinimalChatPill` reports send, lifecycle, and pointer-state values without

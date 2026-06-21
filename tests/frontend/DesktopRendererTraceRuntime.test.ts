@@ -14,6 +14,7 @@ import {
   buildRendererChatPillHitTestTracePayload,
   buildRendererChatPillLifecycleTracePayload,
   buildRendererChatPillResetTracePayload,
+  buildRendererCurrentTurnAppliedTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
   buildRendererOverlayViewModelTracePayload,
@@ -26,6 +27,7 @@ import {
   logRendererChatPillHitTestTrace,
   logRendererChatPillLifecycleTrace,
   logRendererChatPillResetTrace,
+  logRendererCurrentTurnAppliedTrace,
   logRendererOverlayViewModelTrace,
   logRendererOverlayViewModelResolvedTrace,
   logRendererChatPillTrace,
@@ -183,6 +185,72 @@ describe('desktopRendererTraceRuntime', () => {
       source: 'minimal-chat-pill-renderer',
       active: true,
       ignoreMouseEvents: false,
+    }));
+  });
+
+  test('builds current-turn applied live trace payloads', () => {
+    expect(buildRendererCurrentTurnAppliedTracePayload({
+      source: ' sdk:current-turn ',
+      conversationRef: ' conv-turn ',
+      currentTurn: {
+        turnRef: ' turn-1 ',
+        phase: ' streaming ',
+        assistantText: 'answer',
+        reasoningText: 'step',
+        toolEvents: [{ id: 'tool-1' }, { id: 'tool-2' }],
+        presentation: {
+          overlayIntent: {
+            mode: ' response ',
+            staleGuardRef: ' guard-1 ',
+            turnRef: ' turn-intent ',
+          },
+          typingVisible: false,
+          overlayVisible: true,
+          hasVisibleContent: true,
+          entries: [{ id: 'entry-1' }],
+        },
+      },
+      skipDerivedSideEffects: true,
+    })).toEqual({
+      source: 'sdk:current-turn',
+      turnRef: 'turn-1',
+      conversationRef: 'conv-turn',
+      phase: 'streaming',
+      overlayMode: 'response',
+      guardRef: 'guard-1',
+      typingVisible: false,
+      overlayVisible: true,
+      hasVisibleContent: true,
+      entryCount: 1,
+      assistantLength: 6,
+      reasoningLength: 4,
+      toolEventCount: 2,
+      staleSideEffectsSkipped: true,
+    });
+  });
+
+  test('logs current-turn applied traces through live surface channel', () => {
+    setSearch('?debug_live_surface=1&view=main');
+
+    logRendererCurrentTurnAppliedTrace({
+      conversationRef: 'conv-turn',
+      currentTurn: {
+        turnRef: 'turn-1',
+        phase: 'awaiting',
+        assistantText: '',
+        reasoningText: '',
+        toolEvents: [],
+      },
+      skipDerivedSideEffects: false,
+    });
+
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'renderer.current_turn.applied',
+      source: 'sdk:current-turn',
+      conversationRef: 'conv-turn',
+      turnRef: 'turn-1',
+      phase: 'awaiting',
+      staleSideEffectsSkipped: false,
     }));
   });
 

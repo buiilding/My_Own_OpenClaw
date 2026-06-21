@@ -113,6 +113,30 @@ export type RendererChatPillHitTestTraceValues = {
   active?: boolean;
 };
 
+export type RendererCurrentTurnAppliedTraceValues = {
+  source?: string;
+  conversationRef?: unknown;
+  currentTurn?: {
+    turnRef?: unknown;
+    phase?: unknown;
+    assistantText?: unknown;
+    reasoningText?: unknown;
+    toolEvents?: readonly unknown[];
+    presentation?: {
+      overlayIntent?: {
+        mode?: unknown;
+        staleGuardRef?: unknown;
+        turnRef?: unknown;
+      } | null;
+      typingVisible?: boolean;
+      overlayVisible?: boolean;
+      hasVisibleContent?: boolean;
+      entries?: readonly unknown[];
+    } | null;
+  } | null;
+  skipDerivedSideEffects?: boolean;
+};
+
 export type RendererResponseOverlayStateTraceValues = {
   source?: string;
   action?: string;
@@ -594,6 +618,49 @@ export function logRendererChatPillHitTestTrace(
   logRendererLiveSurfaceTrace(
     'chat_pill.hit_test.set',
     buildRendererChatPillHitTestTracePayload(values),
+    traceString(values.conversationRef) || null,
+  );
+}
+
+export function buildRendererCurrentTurnAppliedTracePayload(
+  values: RendererCurrentTurnAppliedTraceValues,
+): Record<string, unknown> {
+  const currentTurn = values.currentTurn;
+  const presentation = currentTurn?.presentation;
+  const overlayIntent = presentation?.overlayIntent;
+  return {
+    source: traceString(values.source) || 'sdk:current-turn',
+    turnRef: traceString(currentTurn?.turnRef) || null,
+    conversationRef: traceString(values.conversationRef) || null,
+    phase: traceString(currentTurn?.phase) || null,
+    overlayMode: traceString(overlayIntent?.mode) || null,
+    guardRef: (
+      traceString(overlayIntent?.staleGuardRef)
+      || traceString(overlayIntent?.turnRef)
+      || traceString(currentTurn?.turnRef)
+      || null
+    ),
+    typingVisible: presentation?.typingVisible === true,
+    overlayVisible: presentation?.overlayVisible === true,
+    hasVisibleContent: presentation?.hasVisibleContent === true,
+    entryCount: Array.isArray(presentation?.entries) ? presentation.entries.length : 0,
+    assistantLength: typeof currentTurn?.assistantText === 'string'
+      ? currentTurn.assistantText.length
+      : 0,
+    reasoningLength: typeof currentTurn?.reasoningText === 'string'
+      ? currentTurn.reasoningText.length
+      : 0,
+    toolEventCount: Array.isArray(currentTurn?.toolEvents) ? currentTurn.toolEvents.length : 0,
+    staleSideEffectsSkipped: values.skipDerivedSideEffects === true,
+  };
+}
+
+export function logRendererCurrentTurnAppliedTrace(
+  values: RendererCurrentTurnAppliedTraceValues,
+): void {
+  logRendererLiveSurfaceTrace(
+    'renderer.current_turn.applied',
+    buildRendererCurrentTurnAppliedTracePayload(values),
     traceString(values.conversationRef) || null,
   );
 }
