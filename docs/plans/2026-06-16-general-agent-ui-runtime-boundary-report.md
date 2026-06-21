@@ -177,7 +177,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   result-normalization wording through the desktop connect path, hosted backend
   policy, Electron UI, and local-runtime browser adapter.
   Dashboard provider API-key controls now consume provider display specs through
-  `desktopProviderCredentialRuntime.getProviderApiKeySpecs()` instead of a raw
+  `DesktopProviderCredentialRuntime.getProviderApiKeySpecs()` instead of a raw
   skin spec table re-export.
   AppConfigProvider now routes cross-window config storage-event filtering
   through `desktopRendererConfigStorageRuntime.isRendererConfigStorageEvent(...)`

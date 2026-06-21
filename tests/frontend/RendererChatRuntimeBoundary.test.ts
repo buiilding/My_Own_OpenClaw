@@ -2269,7 +2269,11 @@ describe('renderer chat runtime boundary', () => {
     expect(modelCardPresentationRuntimeSource).toContain('desktopRuntimeConfig');
     expect(modelCardPresentationRuntimeSource).not.toContain('features/dashboard');
     expect(providerCredentialRuntimeSource).toContain('desktopRuntimeConfig');
+    expect(providerCredentialRuntimeSource).toContain('DesktopProviderCredentialRuntime');
     expect(providerCredentialRuntimeSource).toContain('normalizeProviderApiKeys');
+    expect(providerCredentialRuntimeSource).not.toContain('export function getProviderApiKeySpecs');
+    expect(providerCredentialRuntimeSource).not.toContain('export function normalizeProviderApiKeys');
+    expect(providerCredentialRuntimeSource).not.toContain('export function stripProviderApiKeySecrets');
     expect(providerCredentialRuntimeSource).not.toContain('features/dashboard');
     expect(configStorageSource).toContain('desktopProviderCredentialRuntime');
     await expect(fs.stat(

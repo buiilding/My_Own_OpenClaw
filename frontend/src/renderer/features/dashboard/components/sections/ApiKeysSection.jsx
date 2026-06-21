@@ -5,18 +5,15 @@
 import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import {
-  getProviderApiKeySpecs,
-  normalizeProviderApiKeys,
-} from '../../../../app/runtime/desktopProviderCredentialRuntime';
+import { DesktopProviderCredentialRuntime } from '../../../../app/runtime/desktopProviderCredentialRuntime';
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
 
-const PROVIDER_API_KEY_CONTROLS = getProviderApiKeySpecs();
+const PROVIDER_API_KEY_CONTROLS = DesktopProviderCredentialRuntime.getProviderApiKeySpecs();
 
 function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
   const [expanded, setExpanded] = useState(false);
   const normalizedProviderApiKeys = useMemo(
-    () => normalizeProviderApiKeys(providerApiKeys),
+    () => DesktopProviderCredentialRuntime.normalizeProviderApiKeys(providerApiKeys),
     [providerApiKeys],
   );
 

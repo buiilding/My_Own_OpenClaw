@@ -77,6 +77,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: expose settings event routing through the settings event
   runtime client facade instead of a standalone router export. No migration
   required.
+- frontend/renderer: route provider credential spec, normalization, and secret
+  stripping helpers through the provider credential runtime facade instead of
+  standalone helper exports. No migration required.
 - docs/memory and docs/concepts: describe `session_id` as hosted backend
   runtime identity instead of generic backend runtime/session wording. No
   migration required.

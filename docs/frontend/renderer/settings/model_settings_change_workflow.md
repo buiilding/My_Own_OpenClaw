@@ -132,7 +132,7 @@ Dashboard rules:
 - Legacy catalog entries can trigger a one-time refresh through
   `DesktopSettingsRuntimeClient.listModels()` from the renderer.
 - Provider API key entries must be normalized through
-  `desktopProviderCredentialRuntime.normalizeProviderApiKeys(...)` before
+  `DesktopProviderCredentialRuntime.normalizeProviderApiKeys(...)` before
   storing in config.
 
 ### 4. Inspect chat header model controls

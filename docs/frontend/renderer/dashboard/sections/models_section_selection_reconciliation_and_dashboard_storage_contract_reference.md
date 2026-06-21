@@ -35,7 +35,8 @@ Derived config inputs:
 - `model_provider` (default empty)
 - `speech_mode_enabled` (default `false`)
 - `interaction_mode` (default `agent`)
-- `provider_api_keys` normalized via `normalizeProviderApiKeys(...)`
+- `provider_api_keys` normalized via
+  `DesktopProviderCredentialRuntime.normalizeProviderApiKeys(...)`
 
 ## Provider-First Navigation Contract
 
@@ -106,10 +107,12 @@ Outbound config update on model select (`buildModelConfigUpdate`):
 
 - collapsed by default (`expanded=false`)
 - toggles each provider key via
-  `desktopProviderCredentialRuntime.getProviderApiKeySpecs()`
+  `DesktopProviderCredentialRuntime.getProviderApiKeySpecs()`
 - value/input updates call `onProviderApiKeysChange(...)`
 
-Provider credential runtime normalization (`normalizeProviderApiKeys`) guarantees fixed provider key set:
+Provider credential runtime normalization
+(`DesktopProviderCredentialRuntime.normalizeProviderApiKeys(...)`) guarantees
+fixed provider key set:
 
 - `openai`, `anthropic`, `kimi_coding`, `google`, `openrouter`, `mistral`
 - each entry shape: `{ enabled: boolean, api_key: string }`

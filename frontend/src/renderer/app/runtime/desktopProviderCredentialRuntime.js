@@ -11,11 +11,11 @@ function isPlainRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-export function getProviderApiKeySpecs() {
+function getProviderApiKeySpecs() {
   return PROVIDER_API_KEY_SPECS;
 }
 
-export function normalizeProviderApiKeys(input = null) {
+function normalizeProviderApiKeys(input = null) {
   const source = isPlainRecord(input) ? input : {};
   const normalized = {};
 
@@ -30,7 +30,7 @@ export function normalizeProviderApiKeys(input = null) {
   return normalized;
 }
 
-export function stripProviderApiKeySecrets(input = null) {
+function stripProviderApiKeySecrets(input = null) {
   const normalized = normalizeProviderApiKeys(input);
   const stripped = {};
 
@@ -43,3 +43,9 @@ export function stripProviderApiKeySecrets(input = null) {
 
   return stripped;
 }
+
+export const DesktopProviderCredentialRuntime = {
+  getProviderApiKeySpecs,
+  normalizeProviderApiKeys,
+  stripProviderApiKeySecrets,
+};

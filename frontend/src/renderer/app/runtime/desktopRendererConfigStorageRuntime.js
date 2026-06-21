@@ -12,8 +12,7 @@ import {
   normalizeAppearanceTheme,
 } from './desktopAppearanceThemeRuntime';
 import {
-  normalizeProviderApiKeys,
-  stripProviderApiKeySecrets,
+  DesktopProviderCredentialRuntime,
 } from './desktopProviderCredentialRuntime';
 
 /**
@@ -43,7 +42,7 @@ const DEFAULT_RENDERER_CONFIG = {
   browser_automation_enabled: false,
   global_agent_stop_shortcut: DesktopShortcutRuntimeClient.normalizeGlobalAgentStopShortcutAccelerator(),
   include_query_screenshot: true,
-  provider_api_keys: normalizeProviderApiKeys(),
+  provider_api_keys: DesktopProviderCredentialRuntime.normalizeProviderApiKeys(),
   appearance_mode: 'system',
   appearance_theme: normalizeAppearanceTheme(),
 };
@@ -94,7 +93,9 @@ function buildRendererConfig(overrides = {}) {
     agent_enabled_mcp_servers: Array.isArray(filteredOverrides.agent_enabled_mcp_servers)
       ? filteredOverrides.agent_enabled_mcp_servers.filter((serverId) => typeof serverId === 'string')
       : DEFAULT_RENDERER_CONFIG.agent_enabled_mcp_servers,
-    provider_api_keys: normalizeProviderApiKeys(filteredOverrides.provider_api_keys),
+    provider_api_keys: DesktopProviderCredentialRuntime.normalizeProviderApiKeys(
+      filteredOverrides.provider_api_keys,
+    ),
     appearance_mode: normalizeAppearanceMode(filteredOverrides.appearance_mode),
     appearance_theme: normalizeAppearanceTheme(filteredOverrides.appearance_theme),
   };
@@ -105,7 +106,9 @@ function stripProviderSecretsForConfigPersistence(config) {
 
   return {
     ...normalized,
-    provider_api_keys: stripProviderApiKeySecrets(normalized.provider_api_keys),
+    provider_api_keys: DesktopProviderCredentialRuntime.stripProviderApiKeySecrets(
+      normalized.provider_api_keys,
+    ),
   };
 }
 

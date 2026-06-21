@@ -317,8 +317,12 @@ describe('renderer skin/config boundary', () => {
     expect(configStorageSource).toContain('desktopProviderCredentialRuntime');
     expect(providerCredentialRuntimeSource).toContain('desktopRuntimeConfig');
     expect(providerCredentialRuntimeSource).not.toContain('providerCredentialSettings');
+    expect(providerCredentialRuntimeSource).toContain('DesktopProviderCredentialRuntime');
     expect(providerCredentialRuntimeSource).toContain('stripProviderApiKeySecrets');
     expect(providerCredentialRuntimeSource).toContain('getProviderApiKeySpecs');
+    expect(providerCredentialRuntimeSource).not.toContain('export function stripProviderApiKeySecrets');
+    expect(providerCredentialRuntimeSource).not.toContain('export function getProviderApiKeySpecs');
+    expect(providerCredentialRuntimeSource).not.toContain('export function normalizeProviderApiKeys');
     expect(providerCredentialRuntimeSource).not.toContain('export { PROVIDER_API_KEY_SPECS }');
     expect(configStorageSource).not.toContain('openai: { enabled: false');
     expect(providerCredentialRuntimeSource).not.toContain('OpenAI API Key');

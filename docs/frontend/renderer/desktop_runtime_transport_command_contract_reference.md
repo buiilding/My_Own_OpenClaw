@@ -171,9 +171,9 @@ projected card rows from the app-runtime facade.
 
 `desktopProviderCredentialRuntime.js` owns renderer provider API-key entry
 normalization, skin-configured API-key specs, and renderer-persistence secret
-stripping. Dashboard API-key controls and local config storage consume this
-runtime facade instead of duplicating fixed provider-key rules under a section
-helper.
+stripping through `DesktopProviderCredentialRuntime`. Dashboard API-key
+controls and local config storage consume this runtime facade instead of
+duplicating fixed provider-key rules under a section helper.
 
 `desktopDashboardConversationLoadRuntime.js` owns recent-conversation row
 normalization, row identity/title helpers, pinned-reference pruning, row

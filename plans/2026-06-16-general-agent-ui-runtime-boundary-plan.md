@@ -1555,15 +1555,34 @@ Each completed slice should report:
   still re-exported the raw `PROVIDER_API_KEY_SPECS` skin table for dashboard
   UI and tests to map directly.
 - Change: replaced the raw spec re-export with
-  `getProviderApiKeySpecs()`, routed `ApiKeysSection` and focused provider
-  credential tests through the semantic helper, and updated boundary coverage
-  plus docs to keep skin provider spec tables behind the credential runtime.
+  `DesktopProviderCredentialRuntime.getProviderApiKeySpecs()`, routed
+  `ApiKeysSection` and focused provider credential tests through the semantic
+  helper, and updated boundary coverage plus docs to keep skin provider spec
+  tables behind the credential runtime.
 - Validation: focused provider credential, models section, renderer skin/config
   boundary coverage, docs listing, raw spec export scan, and diff checks.
 - Compatibility: no migration required. Provider credential config shape,
   provider ids, dashboard labels/placeholders, localStorage and disk redaction,
   settings sync, credentials, hosted backend URLs, and provider policy are
   unchanged.
+
+### 2026-06-21 Renderer Provider Credential Helper Facade
+
+- Finding: `desktopProviderCredentialRuntime.js` owned provider credential
+  specs, normalization, and renderer-persistence secret stripping, but still
+  exported each helper directly and dashboard/config-storage callers imported
+  those standalone helpers.
+- Change: added a `DesktopProviderCredentialRuntime` facade object, made the
+  provider spec, normalization, and secret-stripping helpers private to the
+  runtime module, and routed dashboard API-key controls, models config updates,
+  local config storage, focused tests, and docs through the facade methods.
+- Validation: focused provider credential, models section, renderer chat
+  boundary, renderer skin/config boundary, and config storage coverage, exact
+  standalone helper export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Provider credential config
+  shape, provider ids, dashboard labels/placeholders, localStorage and disk
+  redaction, settings sync, credentials, hosted backend URLs, and provider
+  policy are unchanged.
 
 ### 2026-06-21 Renderer Appearance Theme Runtime Boundary
 

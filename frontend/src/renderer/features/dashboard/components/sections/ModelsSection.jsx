@@ -24,7 +24,7 @@ import {
   ModelCard,
   ProviderCard,
 } from './modelCards';
-import { normalizeProviderApiKeys } from '../../../../app/runtime/desktopProviderCredentialRuntime';
+import { DesktopProviderCredentialRuntime } from '../../../../app/runtime/desktopProviderCredentialRuntime';
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 
@@ -38,7 +38,9 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
   const modelMode = config?.model_mode || 'online';
   const selectedModelId = config?.selected_model_id || '';
   const selectedProvider = config?.model_provider || '';
-  const providerApiKeys = normalizeProviderApiKeys(config?.provider_api_keys);
+  const providerApiKeys = DesktopProviderCredentialRuntime.normalizeProviderApiKeys(
+    config?.provider_api_keys,
+  );
   const speechModeEnabled = config?.speech_mode_enabled ?? false;
   const interactionMode = config?.interaction_mode || 'agent';
 
@@ -72,7 +74,7 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
 
   const handleProviderApiKeysChange = useCallback((nextProviderApiKeys) => {
     onConfigChange({
-      provider_api_keys: normalizeProviderApiKeys(nextProviderApiKeys),
+      provider_api_keys: DesktopProviderCredentialRuntime.normalizeProviderApiKeys(nextProviderApiKeys),
     });
   }, [onConfigChange]);
 
