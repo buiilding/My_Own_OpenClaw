@@ -7558,8 +7558,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   settings/model payloads, credentials, permissions, storage, provider policy,
   and local-runtime behavior are unchanged.
 - Renderer SDK-backed transcript store/projection adapters now import SDK
-  contracts from the package source directly. Production renderer
-  `agentSdkClient` imports are guarded behind
+  contracts from SDK owner modules. Production renderer `agentSdkClient`
+  imports are guarded behind
   `desktopConversationRuntimeContracts.ts`; conversation store behavior,
   display-row projection, SDK exports, IPC command strings, persisted
   transcript data, credentials, permissions, hosted backend URLs, provider
@@ -8496,3 +8496,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   conversation continuity, stream handling, trace/replay correlation,
   settings/model payloads, storage, provider policy, permissions, and backend
   behavior are unchanged; no migration is required.
+- Renderer transcript display projection and desktop conversation store
+  adapters now import SDK display-row/conversation types, trace projection, and
+  command constants from their SDK owner modules instead of the SDK package
+  root. Boundary coverage prevents those transcript adapters from returning to
+  package-root imports. Display-row projection, conversation store behavior,
+  trace timelines, SDK command strings, persisted transcript data, storage,
+  provider policy, permissions, and backend behavior are unchanged; no
+  migration is required.

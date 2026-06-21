@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/transcript: import SDK display-row, conversation-store, trace, and
+  command contracts from SDK owner modules instead of the package root. No
+  migration required.
 - renderer/runtime: narrow `desktopConversationRuntimeContracts.ts` to explicit
   SDK conversation, continuity, command, model-selection, and tool-correlation
   owner exports instead of re-exporting the full SDK package root. No migration

@@ -4,19 +4,23 @@
 
 import {
   buildTraceTimeline,
+} from '../../../../../packages/windie-sdk-js/src/projections/conversationProjections.js';
+import {
   SDK_RUNTIME_COMMANDS,
-  type CompactedReplaySnapshot,
-  type ConversationMetadata,
-  type ConversationRewritePlan,
-  type ConversationEvent,
-  type ListConversationOptions,
-  type RehydrateSnapshot,
-  type SearchConversationOptions,
-  type ConversationStore,
-  type DisplayConversation,
-  type SdkDisplayRow,
-  type TraceTimelineEntry,
-} from '../../../../../packages/windie-sdk-js/src';
+} from '../../../../../packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.js';
+import type {
+  CompactedReplaySnapshot,
+  ConversationMetadata,
+  ConversationRewritePlan,
+  ConversationEvent,
+  ListConversationOptions,
+  RehydrateSnapshot,
+  SearchConversationOptions,
+  ConversationStore,
+  DisplayConversation,
+  SdkDisplayRow,
+  TraceTimelineEntry,
+} from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
 import { invokeAgentSdkCommand } from '../../app/runtime/agentSdkCommandInvokeClient';
 
 export type DesktopTraceTimelineOptions = {

@@ -3,10 +3,10 @@
  */
 
 import type { ChatMessage } from '../../app/runtime/desktopChatMessageTypes';
-import {
-  type SdkDisplayRow,
-  type DisplayMessage,
-} from '../../../../../packages/windie-sdk-js/src';
+import type {
+  SdkDisplayRow,
+  DisplayMessage,
+} from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
 import { buildAssistantTextChatMessageState } from './assistantTextChatMessageState';
 import { buildToolCallChatMessageState } from './toolCallChatMessageState';
 import { buildToolOutputChatMessageState } from './toolOutputChatMessageState';

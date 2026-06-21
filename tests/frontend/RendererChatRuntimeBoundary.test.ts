@@ -2292,6 +2292,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('sourceEventType');
     expect(source).toContain('desktopChatMessageTypes');
     expect(source).toContain('desktopPresentationSourceChannels');
+    expect(source).toContain('packages/windie-sdk-js/src/conversation/types.js');
+    expect(source).not.toContain("packages/windie-sdk-js/src';");
     expect(source).not.toContain('features/chat');
     expect(source).not.toContain('rawEventType');
     expect(source).not.toContain('metadata.raw');

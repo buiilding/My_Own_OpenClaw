@@ -106,6 +106,24 @@ describe('renderer app runtime boundary', () => {
     expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
   });
 
+  test('renderer transcript SDK adapters import narrow SDK owner contracts', async () => {
+    const displayProjectionSource = await fs.readFile(
+      path.join(rendererRoot, 'infrastructure/transcript/sdkDisplayChatMessageProjection.ts'),
+      'utf8',
+    );
+    const conversationStoreSource = await fs.readFile(
+      path.join(rendererRoot, 'infrastructure/transcript/desktopConversationStore.ts'),
+      'utf8',
+    );
+
+    expect(displayProjectionSource).toContain('packages/windie-sdk-js/src/conversation/types.js');
+    expect(displayProjectionSource).not.toContain("packages/windie-sdk-js/src';");
+    expect(conversationStoreSource).toContain('packages/windie-sdk-js/src/conversation/types.js');
+    expect(conversationStoreSource).toContain('packages/windie-sdk-js/src/projections/conversationProjections.js');
+    expect(conversationStoreSource).toContain('packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.js');
+    expect(conversationStoreSource).not.toContain("packages/windie-sdk-js/src';");
+  });
+
   test('frontend architecture docs describe renderer skin facades with chat desktop UI wording', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'),

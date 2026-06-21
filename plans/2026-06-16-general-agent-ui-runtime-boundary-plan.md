@@ -20566,3 +20566,20 @@ Each completed slice should report:
   strings, conversation continuity, stream handling, trace/replay correlation,
   settings/model payloads, storage, provider policy, permissions, and backend
   behavior are unchanged.
+
+### 2026-06-21 renderer transcript SDK owner-module imports
+
+- Finding: renderer transcript display-row projection and desktop conversation
+  store adapters still imported SDK contracts from the SDK package root even
+  though they only need conversation/display-row types, trace projection, and
+  SDK command constants.
+- Change: routed those adapters to the SDK owner modules
+  (`conversation/types`, `projections/conversationProjections`, and
+  `runtime/SdkRuntimeCommands`) and added renderer boundary guards against
+  package-root imports in the transcript adapters.
+- Validation: focused transcript projection/store and renderer boundary tests,
+  exact package-root import scan, docs listing, and diff checks.
+- Compatibility: no migration required. Display-row projection, conversation
+  store behavior, trace timelines, SDK command strings, persisted transcript
+  data, storage, provider policy, permissions, and backend behavior are
+  unchanged.
