@@ -152,7 +152,8 @@ Important untyped paths:
 
 - `audio-chunk`: routed to `audio-chunk` and parsed behind
   `DesktopAudioRuntimeClient.onAudioChunk(...)`
-- `models-listed`: routed to `backend-settings-event` and consumed by `routeDesktopSettingsEvent(...)`
+- `models-listed`: routed to `backend-settings-event` and consumed by
+  `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)`
 - `settings-updated`: routed to `backend-settings-event` and consumed by `AppStatusProvider` listener
 - settings-specific `error`: routed to `backend-settings-event` and normalized by `DesktopAppConfigRuntimeClient`
 

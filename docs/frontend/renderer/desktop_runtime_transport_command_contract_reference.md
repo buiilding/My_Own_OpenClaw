@@ -281,8 +281,9 @@ value-level save-status actions so `AppStatusProvider` owns timer/state
 transitions without switching on settings-event payload fields.
 
 `desktopSettingsEventRuntimeClient.ts` owns model-list settings-event handler
-state and raw `models-listed` type dispatch via `routeDesktopSettingsEvent(...)`
-so `AppConfigProvider` does not parse raw settings-event `type` values directly.
+state and raw `models-listed` type dispatch via
+`DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)` so
+`AppConfigProvider` does not parse raw settings-event `type` values directly.
 
 `desktopClientSessionRuntimeClient.ts` owns renderer adapter calls for the
 Electron client/session snapshot and IPC transport status subscription, including

@@ -380,6 +380,25 @@ Each completed slice should report:
   replay, manual compaction, storage, credentials, hosted backend URLs, and
   provider policy are unchanged.
 
+### 2026-06-21 Renderer Settings Event Router Facade
+
+- Finding: settings/model ACK docs already described
+  `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)` as the
+  event-routing contract, but the module still exported the raw
+  `routeDesktopSettingsEvent(...)` helper directly and `AppConfigProvider`
+  imported that standalone function.
+- Change: added a `DesktopSettingsEventRuntimeClient` facade object, made the
+  raw settings-event router private to the module, and routed
+  `AppConfigProvider` plus focused tests through the facade method while
+  keeping `useDesktopSettingsEventHandlers(...)` as the public React adapter.
+- Validation: focused settings event runtime client, AppConfigProvider, and
+  renderer settings boundary tests, exact standalone router export/import scan,
+  docs list, and diff hygiene.
+- Compatibility/security: no migration required. The `backend-settings-event`
+  channel, `models-listed` payload routing, available-model state updates,
+  settings save-status handling, credentials, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Renderer Client Session Parser Privacy
 
 - Finding: `DesktopClientSessionRuntimeClient` already owned raw
@@ -6550,8 +6569,9 @@ Each completed slice should report:
   `models-listed` event type dispatch through the provider-local
   `appConfigEvents` helper.
 - Change: moved settings-event type dispatch into
-  `routeDesktopSettingsEvent(...)` in `desktopSettingsEventRuntimeClient` and
-  deleted the retired provider-local router and test.
+  `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)` in
+  `desktopSettingsEventRuntimeClient` and deleted the retired provider-local
+  router and test.
 - Validation: passed focused settings-event runtime, app config provider model,
   renderer settings boundary, and docs-index tests plus stale router reference
   scan, docs listing, and diff checks.

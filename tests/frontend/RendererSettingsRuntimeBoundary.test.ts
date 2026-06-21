@@ -466,7 +466,7 @@ describe('renderer settings runtime boundary', () => {
     );
 
     expect(providerSource).toContain('useDesktopSettingsEventHandlers');
-    expect(providerSource).toContain('routeDesktopSettingsEvent');
+    expect(providerSource).toContain('DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent');
     expect(providerSource).toContain('DesktopClientSessionRuntimeClient.onIpcStatusValues');
     expect(providerSource).toContain('DesktopClientSessionRuntimeClient.resolveIpcStatusValues');
     expect(providerSource).toContain('DesktopVoiceRuntimeClient.onWakewordToggleState');
@@ -485,6 +485,9 @@ describe('renderer settings runtime boundary', () => {
     expect(providerSource).not.toContain('useSettingsManagement');
     expect(settingsEventClientSource).toContain('handleModelsListed');
     expect(settingsEventClientSource).toContain('routeDesktopSettingsEvent');
+    expect(settingsEventClientSource).toContain('function routeDesktopSettingsEvent');
+    expect(settingsEventClientSource).not.toContain('export function routeDesktopSettingsEvent');
+    expect(settingsEventClientSource).toContain('DesktopSettingsEventRuntimeClient');
   });
 
   test('renderer runtime sync names local-only config as renderer-owned state', async () => {

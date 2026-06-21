@@ -34,7 +34,7 @@ function isListedModelsPayload(payload: unknown): payload is ListedModelsPayload
   );
 }
 
-export function routeDesktopSettingsEvent(
+function routeDesktopSettingsEvent(
   data: DesktopSettingsEvent,
   handlers: DesktopSettingsEventHandlers | null | undefined,
 ) {
@@ -59,3 +59,7 @@ export function useDesktopSettingsEventHandlers(
     handleModelsListed,
   ]);
 }
+
+export const DesktopSettingsEventRuntimeClient = {
+  routeDesktopSettingsEvent,
+};

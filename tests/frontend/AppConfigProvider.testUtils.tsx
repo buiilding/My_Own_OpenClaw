@@ -14,7 +14,7 @@ import {
 import { AppConfigProvider } from '../../frontend/src/renderer/app/providers/AppConfigProvider';
 import { useAppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
 import {
-  routeDesktopSettingsEvent,
+  DesktopSettingsEventRuntimeClient,
   useDesktopSettingsEventHandlers,
 } from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
 import {
@@ -67,7 +67,9 @@ let loadDesktopUiConfigResponse: any = null;
 let clientUserIdResponse: any = null;
 
 export const mockUseDesktopSettingsEventHandlers = useDesktopSettingsEventHandlers as jest.Mock;
-export const mockRouteDesktopSettingsEvent = routeDesktopSettingsEvent as jest.Mock;
+export const mockRouteDesktopSettingsEvent = (
+  DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent as jest.Mock
+);
 export const mockGetRendererConfigStorageKey = getRendererConfigStorageKey as jest.Mock;
 export const mockIsRendererConfigStorageEvent = isRendererConfigStorageEvent as jest.Mock;
 export const mockLoadConfigFromStorage = loadConfigFromStorage as jest.Mock;

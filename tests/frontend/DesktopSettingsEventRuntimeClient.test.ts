@@ -5,7 +5,7 @@
 import { act, renderHook } from '@testing-library/react';
 
 import {
-  routeDesktopSettingsEvent,
+  DesktopSettingsEventRuntimeClient,
   useDesktopSettingsEventHandlers,
 } from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
 
@@ -15,7 +15,7 @@ describe('desktopSettingsEventRuntimeClient', () => {
       handleModelsListed: jest.fn(),
     };
 
-    routeDesktopSettingsEvent(
+    DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(
       { type: 'models-listed', payload: { local_models: [], online_models: [] } },
       handlers,
     );
@@ -30,7 +30,7 @@ describe('desktopSettingsEventRuntimeClient', () => {
       handleModelsListed: jest.fn(),
     };
 
-    routeDesktopSettingsEvent({ type: 'status-updated' }, handlers);
+    DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent({ type: 'status-updated' }, handlers);
 
     expect(handlers.handleModelsListed).not.toHaveBeenCalled();
   });

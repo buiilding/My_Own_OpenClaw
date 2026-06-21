@@ -142,8 +142,8 @@ Electron host transport is routed through app runtime clients:
   global-stop shortcut status.
 - `DesktopConversationSessionRuntimeClient` owns shared session-helper rule routing for runtime clients.
 - `DesktopSettingsEventRuntimeClient` owns model-list settings-event payload handling for providers.
-- `routeDesktopSettingsEvent(...)` in `DesktopSettingsEventRuntimeClient` owns
-  raw `models-listed` settings-event type dispatch for app config providers.
+- `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)` owns raw
+  `models-listed` settings-event type dispatch for app config providers.
 - `DesktopTranscriptSessionRuntimeClient` owns transcript-session binding updates derived from connection snapshots.
 - `DesktopVoiceRuntimeClient` owns value-level wakeword-toggle state fan-out.
 - `DesktopSettingsRuntimeClient` owns SDK settings/model commands.

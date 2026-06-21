@@ -221,8 +221,8 @@ On `window.storage` for `windieos-config`:
 
 ## Event Router Boundary (`desktopSettingsEventRuntimeClient`)
 
-- `routeDesktopSettingsEvent(...)` only routes `models-listed` settings events
-  to settings handlers
+- `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)` only
+  routes `models-listed` settings events to settings handlers
 - transcript user-id normalization belongs to `DesktopClientSessionRuntimeClient`
   IPC status value projection
 

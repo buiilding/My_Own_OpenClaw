@@ -47,8 +47,8 @@ Flow:
    `backend-settings-event`
 6. `AppConfigProvider` listener calls
    `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)`
-7. `routeDesktopSettingsEvent(...)` dispatches `models-listed` to
-   `handleModelsListed(...)`
+7. `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)`
+   dispatches `models-listed` to `handleModelsListed(...)`
 8. `useDesktopSettingsEventHandlers` updates `availableModels` via payload
    passthrough
 
@@ -108,7 +108,8 @@ If model list never updates:
 
 1. verify the dashboard provider calls `DesktopSettingsRuntimeClient.requestDashboardStartupModelList()` and the `models.list` command reaches main through `windie:invoke`
 2. verify backend emits `models-listed`
-3. verify `routeDesktopSettingsEvent(...)` receives event and `handleModelsListed` runs
+3. verify `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)`
+   receives event and `handleModelsListed` runs
 
 If save status remains `saving`:
 

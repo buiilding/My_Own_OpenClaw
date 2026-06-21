@@ -25,7 +25,7 @@ import { DesktopAppConfigRuntimeClient } from '../runtime/desktopAppConfigRuntim
 import { DesktopClientSessionRuntimeClient } from '../runtime/desktopClientSessionRuntimeClient';
 import { DesktopRuntimeEndpointClient } from '../runtime/desktopRuntimeEndpointClient';
 import {
-  routeDesktopSettingsEvent,
+  DesktopSettingsEventRuntimeClient,
   useDesktopSettingsEventHandlers,
 } from '../runtime/desktopSettingsEventRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
@@ -153,7 +153,7 @@ export function AppConfigProvider({ children }) {
   }, []);
 
   const onSettingsEvent = useCallback((data) => {
-    routeDesktopSettingsEvent(data, handlersRef.current);
+    DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(data, handlersRef.current);
   }, [handlersRef]);
 
   const applyRuntimeConnectionSnapshot = useCallback((statusValues) => {
