@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/reference: use neutral backend endpoint samples in SDK client examples
+  while preserving WindieOS hosted-default topology prose. No migration
+  required.
+
 - tests/main: use neutral explicit endpoint override fixtures in IPC lifecycle
   coverage instead of Windie-shaped sample hosts. No migration required.
 

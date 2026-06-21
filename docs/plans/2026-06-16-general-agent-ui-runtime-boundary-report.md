@@ -7757,3 +7757,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   origin normalization, renderer endpoint snapshots, VM worker backend state,
   hosted default env-key behavior, permissions, storage, provider policy, and
   local-runtime behavior are unchanged; no migration is required.
+- The API reference SDK TypeScript and Python client examples now use neutral
+  `https://backend.example.com` constructor samples instead of the WindieOS
+  hosted URL. Product-owned prose still documents the real hosted default
+  topology. SDK explicit endpoint configuration, hosted route behavior,
+  artifacts, OCR/vision routes, install auth, provider policy, permissions,
+  storage, and local-runtime behavior are unchanged; no migration is required.

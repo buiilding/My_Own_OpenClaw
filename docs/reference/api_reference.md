@@ -356,7 +356,7 @@ These routes are for hosted backend use. They are not meant to require SDK consu
 import { AgentClient, moduleTool } from '@windie/sdk';
 
 const client = new AgentClient({
-  backendUrl: 'https://api.windieos.com',
+  backendUrl: 'https://backend.example.com',
 });
 
 const agent = await client.wakeUp({
@@ -393,7 +393,7 @@ await agent.ask('Click the orange search button', {
 from windie import AgentSdkClient
 
 sdk = AgentSdkClient(
-    backend_url="https://api.windieos.com",
+    backend_url="https://backend.example.com",
     default_user_id="dev-user",
 )
 

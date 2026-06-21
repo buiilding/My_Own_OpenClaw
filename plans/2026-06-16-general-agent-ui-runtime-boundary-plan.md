@@ -18908,3 +18908,17 @@ Each completed slice should report:
   websocket URL derivation, origin normalization, renderer endpoint snapshots,
   VM worker backend state, hosted default env-key behavior, provider policy,
   permissions, storage, and local-runtime behavior are unchanged.
+
+### 2026-06-20 API reference SDK endpoint example neutrality
+
+- Finding: the API reference correctly documented WindieOS hosted defaults in
+  product-topology prose, but the TypeScript and Python SDK constructor examples
+  still used the WindieOS hosted URL as explicit client configuration.
+- Change: switched those SDK example constructor values to neutral
+  `https://backend.example.com` samples and extended modular boundary coverage
+  for the exact retired SDK snippets while preserving product-hosted prose.
+- Validation: focused modular boundary test; exact retired SDK snippet scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. SDK explicit endpoint configuration,
+  hosted route behavior, artifacts, OCR/vision routes, install auth, provider
+  policy, permissions, storage, and local-runtime behavior are unchanged.

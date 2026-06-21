@@ -264,6 +264,7 @@ describe('modular sdk refactor completion boundary', () => {
     const sdkDocText = sdkDocs.join('\n');
     const apiReferenceText = await read('docs/reference/api_reference.md');
     const architectureText = await read('docs/development/agent_architecture_reference.md');
+    const retiredHostedUrl = ['https://api', 'windieos', 'com'].join('.');
 
     expect(sdkDocText).toContain('local-runtime module-tool SDK example');
     expect(sdkDocText).toContain('local-runtime plugin SDK example');
@@ -274,6 +275,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).toContain('local runtime tool-result data');
     expect(sdkDocText).toContain('local-runtime-backed default conversation store');
     expect(apiReferenceText).toContain('local runtime process just to use hosted OCR or prediction routes');
+    expect(apiReferenceText).toContain("backendUrl: 'https://backend.example.com'");
+    expect(apiReferenceText).toContain('backend_url="https://backend.example.com"');
     expect(sdkDocText).not.toContain('sidecar runtime client');
     expect(sdkDocText).not.toContain('sidecar daemon');
     expect(sdkDocText).not.toContain('sidecar process');
@@ -314,6 +317,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('WindieOS app needs during normal operation');
     expect(sdkDocText).not.toContain('WindieOS renderer skin state');
     expect(apiReferenceText).not.toContain('local backend process just to use hosted OCR or prediction routes');
+    expect(apiReferenceText).not.toContain(`backendUrl: '${retiredHostedUrl}'`);
+    expect(apiReferenceText).not.toContain(`backend_url="${retiredHostedUrl}"`);
     expect(architectureText).not.toContain('sidecar-backed storage');
     expect(architectureText).not.toContain('sidecar-backed SDK store');
     expect(architectureText).not.toContain('SDK desktop agent');
