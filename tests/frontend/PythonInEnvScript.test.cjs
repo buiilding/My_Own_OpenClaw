@@ -72,4 +72,36 @@ describe('scripts/python-in-env.sh', () => {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  test('accepts local-runtime as the canonical Python runtime target', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-python-in-env-runtime-'));
+    const { fakePython } = makeFakeConda(tempDir);
+
+    try {
+      const result = spawnSync(
+        'bash',
+        [
+          pythonInEnvPath,
+          'local-runtime',
+          process.execPath,
+          '-e',
+          'process.stdout.write(process.env.WINDIE_PYTHON_PATH || "")',
+        ],
+        {
+          cwd: repoRoot,
+          env: {
+            ...process.env,
+            PATH: `${tempDir}${path.delimiter}${process.env.PATH || ''}`,
+            WINDIE_PYTHON_PATH: '/stale/base/python3',
+          },
+          encoding: 'utf8',
+        },
+      );
+
+      expect(result.status).toBe(0);
+      expect(result.stdout).toBe(fakePython);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });

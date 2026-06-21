@@ -72,7 +72,7 @@ function collectStatus({ all = false } = {}) {
   const node = checkCommand('node');
   const npm = checkCommand('npm');
   const backendPython = checkPython('backend');
-  const localRuntimePython = checkPython('sidecar');
+  const localRuntimePython = checkPython('local-runtime');
   const frontendScripts = getFrontendScripts();
   const endpoint = getEndpointSnapshot();
 

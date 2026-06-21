@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- scripts: add `local-runtime` as the canonical `python-in-env` target for the
+  Python local runtime, route first-party local-runtime callers through it, and
+  retain `sidecar` as a compatibility target. No migration required.
 - cli/doctor: rename deep diagnostic labels from local-backend/sidecar import
   wording to backend port and local-runtime import checks while preserving the
   same port probe and Python `local_backend.py` import. No migration required.

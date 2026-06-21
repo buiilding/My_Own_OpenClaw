@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: `<windie> doctor --deep` now reports backend port
-  and local-runtime import diagnostics instead of local-backend/sidecar import
-  labels while preserving the same port probe and Python `local_backend.py`
-  import.
+- Latest completed slice: `scripts/python-in-env.*` now accepts
+  `local-runtime` as the canonical Python local-runtime target, and first-party
+  local-runtime callers use it while the old `sidecar` target remains as a
+  compatibility alias.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -36,10 +36,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
   prefix, bundled runtime copy, env keys, runs header, wakeword model, and
   browser warmup copy remain host-skin owned.
+  The repo Python env wrapper accepts `local-runtime` for local-runtime Python
+  commands, and first-party status, doctor, and `test-sidecar.sh` callers use
+  that canonical target while the public `<windie> test sidecar` command and
+  lower-level `sidecar` env target remain compatibility surfaces.
   CLI deep doctor diagnostics name the backend port and local-runtime import
   checks by their current runtime owners while still probing
-  `127.0.0.1:8765` and importing the concrete `local_backend.py` module through
-  the repo's `sidecar` Python environment target.
+  `127.0.0.1:8765` and importing the concrete `local_backend.py` module.
   CLI status output reports the reusable Python environment and test wrappers
   as local-runtime-owned; machine-readable status includes
   `localRuntimePython` while retaining `sidecarPython` as a compatibility

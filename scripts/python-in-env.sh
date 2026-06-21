@@ -4,7 +4,7 @@
 set -euo pipefail
 
 if [ "$#" -lt 2 ]; then
-  echo "Usage: scripts/python-in-env.sh <backend|sidecar|frontend> <command> [args...]" >&2
+  echo "Usage: scripts/python-in-env.sh <backend|local-runtime|sidecar|frontend> <command> [args...]" >&2
   exit 2
 fi
 
@@ -15,11 +15,11 @@ case "$TARGET" in
   backend)
     ENV_NAME="${WINDIE_BACKEND_ENV:-jarvis}"
     ;;
-  sidecar|frontend)
+  local-runtime|sidecar|frontend)
     ENV_NAME="${WINDIE_FRONTEND_ENV:-frontend_jarvis}"
     ;;
   *)
-    echo "Unknown target '$TARGET'. Use backend, sidecar, or frontend." >&2
+    echo "Unknown target '$TARGET'. Use backend, local-runtime, sidecar, or frontend." >&2
     exit 2
     ;;
 esac
@@ -27,7 +27,7 @@ esac
 if command -v conda >/dev/null 2>&1; then
   if conda run -n "$ENV_NAME" python -c "import sys" >/dev/null 2>&1; then
     case "$TARGET" in
-      sidecar|frontend)
+      local-runtime|sidecar|frontend)
         ENV_PYTHON="$(conda run -n "$ENV_NAME" python -c "import sys; print(sys.executable)" 2>/dev/null | tail -n 1 || true)"
         if [ -n "$ENV_PYTHON" ]; then
           export WINDIE_PYTHON_PATH="$ENV_PYTHON"

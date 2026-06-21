@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Python Env Local-Runtime Target Boundary
+
+- Finding: `scripts/python-in-env.*` only exposed the historical `sidecar`
+  target for local-runtime Python commands, so first-party status, doctor,
+  local-runtime test wrapper, and validation docs still taught or used the old
+  target even after user-facing labels moved to local-runtime wording.
+- Change: added `local-runtime` as a canonical wrapper target that maps to the
+  frontend/local-runtime conda environment, routed status, deep doctor, and
+  `test-sidecar.sh` through it, and updated validation examples while keeping
+  the `sidecar` target as a compatibility alias.
+- Validation: focused Python env wrapper Jest coverage, focused Windie CLI
+  status and deep-doctor Jest coverage, exact stale first-party wrapper-target
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Existing `sidecar` wrapper
+  calls, `<windie> test sidecar`, conda environment selection, exported
+  `WINDIE_PYTHON_PATH`, Python local-runtime import behavior, credentials,
+  permissions, IPC, and tool execution are unchanged.
+
 ### 2026-06-21 CLI Deep Doctor Local-Runtime Diagnostic Boundary
 
 - Finding: `<windie> doctor --deep --json` still named its backend port probe

@@ -1115,7 +1115,7 @@ async function runDoctor(args) {
     const localRuntimeImport = capture(
       script(process.platform === 'win32' ? 'scripts/python-in-env.cmd' : 'scripts/python-in-env.sh'),
       [
-        'sidecar',
+        'local-runtime',
         'python',
         '-c',
         'import sys; sys.path.insert(0, "frontend/src/main/python"); import local_backend; print("ok")',
