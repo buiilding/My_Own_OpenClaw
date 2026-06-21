@@ -91,6 +91,7 @@ describe('ipc_transcript_session_sync', () => {
     expect(docs).toContain('hosted backend runtime behavior');
     expect(docs).toContain('hosted backend websocket/session runtime');
     expect(docs).toContain('hosted backend session manager');
+    expect(docs).toContain('| local-runtime transcript row |');
     expect(docs).not.toContain('to backend runtime sessions');
     expect(docs).not.toContain('belong to backend runtime session context');
     expect(docs).not.toContain('`sessionId` is backend runtime identity');
@@ -98,6 +99,7 @@ describe('ipc_transcript_session_sync', () => {
     expect(docs).not.toContain('| string | backend websocket/session runtime |');
     expect(docs).not.toContain('| backend session manager |');
     expect(docs).not.toContain('join to a backend runtime');
+    expect(docs).not.toContain('| sidecar transcript row |');
   });
 
   test('broadcasts resolved conversation ref when payload only changes user id', () => {

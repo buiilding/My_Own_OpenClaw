@@ -54,6 +54,8 @@ All notable changes to WindieOS will be documented in this file.
 - docs/reference: describe hosted SDK route independence from the desktop app
   and local-runtime process instead of the retired Electron-app-or-sidecar
   wording. No migration required.
+- docs/reference: label durable transcript storage rows as local-runtime
+  transcript rows instead of sidecar transcript rows. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

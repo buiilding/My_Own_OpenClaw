@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Transcript Row Label Boundary
+
+- Finding: the session/transcript reference still named durable transcript
+  storage rows as sidecar transcript rows, even though the table is about
+  replay/search/semantic-window data owned through the local-runtime transcript
+  storage boundary.
+- Change: renamed the row family to local-runtime transcript row and extended
+  the transcript session docs guard so the retired row label cannot return.
+- Validation: focused transcript session sync docs guard, exact stale-label
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Transcript row fields,
+  SQLite schemas, SDK rehydrate projection, backend history replay, IPC
+  payloads, local-runtime storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Hosted SDK Route Surface Independence Label Boundary
 
 - Finding: the HTTP/websocket API surface map still said backend-owned SDK
