@@ -21999,3 +21999,21 @@ Each completed slice should report:
   active WindieOS skin copy, renderer settings behavior, wakeword/STT config
   payloads, browser permission behavior, storage, IPC, provider policy,
   permissions, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer browser-session SDK command facade
+
+- Finding: `browserSessionStore.js` still imported `SDK_RUNTIME_COMMANDS`
+  directly from the SDK command owner module for diagnostics, bypassing the
+  renderer app-runtime conversation contract facade that already owns SDK
+  command exposure for renderer clients.
+- Change: routed the browser-session diagnostics command lookup through
+  `desktopConversationRuntimeContracts.ts` and tightened renderer chat-runtime
+  boundary coverage so the infrastructure store cannot reintroduce the direct
+  SDK command import or the retired `agentSdkClient` path.
+- Validation: focused browser-session store and renderer chat-runtime boundary
+  tests, exact direct SDK-command/retired-agent-client import scan for the
+  touched store, docs listing, and diff checks.
+- Compatibility: no migration required. Browser connect/disconnect/status
+  behavior, diagnostics payloads, SDK command names, IPC channels, storage,
+  provider policy, permissions, backend behavior, and trust boundaries are
+  unchanged.

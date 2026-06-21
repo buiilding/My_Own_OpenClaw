@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/browser: route browser-session diagnostics through the renderer
+  app-runtime conversation contract facade instead of importing SDK command
+  names directly from the SDK owner module. No migration required.
 - docs/renderer: describe wakeword and dedicated-browser labels as
   renderer-skin-provided in active settings/voice references instead of
   hardcoding the WindieOS skin phrase. No migration required.

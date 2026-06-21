@@ -4,7 +4,7 @@
 
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { DESKTOP_RUNTIME_INVOKE_CHANNELS } from '../ipc/channels';
-import { SDK_RUNTIME_COMMANDS } from '../../../../../packages/windie-sdk-js/src/runtime/SdkRuntimeCommands';
+import { SDK_RUNTIME_COMMANDS } from '../../app/runtime/desktopConversationRuntimeContracts';
 import {
   getLocalRuntimeStatusSnapshot,
   subscribeLocalRuntimeStatusStore,

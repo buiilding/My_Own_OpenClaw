@@ -2181,7 +2181,8 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/runtime/browserSessionStore.js'),
       'utf8',
     );
-    expect(browserSessionStoreSource).toContain('runtime/SdkRuntimeCommands');
+    expect(browserSessionStoreSource).toContain('app/runtime/desktopConversationRuntimeContracts');
+    expect(browserSessionStoreSource).not.toContain('runtime/SdkRuntimeCommands');
     expect(browserSessionStoreSource).not.toContain('api/agentSdkClient');
     await expect(fs.stat(
       path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/hooks/useBrowserSessionControl.js'),
