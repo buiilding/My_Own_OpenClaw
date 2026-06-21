@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: the live-surface selector no longer exposes the raw
-  `isSending` send-latch alias; dashboard/pill/overlay lifecycle inputs remain
-  on messages, pending turn, and SDK current-turn projection, while
-  `MinimalResponseOverlay` reads `isSending` separately only for diagnostic
-  trace payloads.
+- Latest completed slice: chat and dashboard outside-dismiss browser
+  subscriptions now route through
+  `DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside(...)`; feature
+  modules keep menu state and container refs local without owning raw
+  `window.addEventListener(...)` / `removeEventListener(...)` wiring.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

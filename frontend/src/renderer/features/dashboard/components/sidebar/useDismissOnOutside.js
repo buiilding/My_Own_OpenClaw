@@ -3,6 +3,7 @@
  */
 
 import { useEffect } from 'react';
+import { DesktopDismissOnOutsideRuntime } from '../../../../app/runtime/desktopDismissOnOutsideRuntime';
 
 export function useDismissOnOutside({ isOpen, containerRef, onDismiss }) {
   useEffect(() => {
@@ -10,24 +11,10 @@ export function useDismissOnOutside({ isOpen, containerRef, onDismiss }) {
       return undefined;
     }
 
-    const handlePointerDown = (event) => {
-      if (!containerRef.current?.contains(event.target)) {
-        onDismiss();
-      }
-    };
-
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        onDismiss();
-      }
-    };
-
-    window.addEventListener('mousedown', handlePointerDown);
-    window.addEventListener('keydown', handleEscape);
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-      window.removeEventListener('keydown', handleEscape);
-    };
+    return DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside({
+      containerRef,
+      onDismiss,
+    });
   }, [containerRef, isOpen, onDismiss]);
 }
 

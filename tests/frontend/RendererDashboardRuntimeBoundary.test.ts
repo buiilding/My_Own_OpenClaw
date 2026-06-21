@@ -162,6 +162,24 @@ describe('renderer dashboard runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('dashboard sidebar outside-dismiss hook uses app runtime browser adapter', async () => {
+    const dismissHookSource = await fs.readFile(
+      path.join(dashboardRoot, 'components/sidebar/useDismissOnOutside.js'),
+      'utf8',
+    );
+    const dismissRuntimeSource = await fs.readFile(
+      path.join(repoRoot, 'frontend/src/renderer/app/runtime/desktopDismissOnOutsideRuntime.js'),
+      'utf8',
+    );
+
+    expect(dismissHookSource).toContain('DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside');
+    expect(dismissHookSource).not.toContain('window.addEventListener');
+    expect(dismissHookSource).not.toContain('window.removeEventListener');
+    expect(dismissRuntimeSource).toContain('addEventListener');
+    expect(dismissRuntimeSource).toContain('removeEventListener');
+    expect(dismissRuntimeSource).not.toContain('features/dashboard');
+  });
+
   test('dashboard feature code consumes transcript session info through app runtime client', async () => {
     const removedDashboardHookPath = path.join(
       dashboardRoot,

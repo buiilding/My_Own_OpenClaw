@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route chat browser session, plus-menu, and dashboard
+  sidebar outside-dismiss subscriptions through `DesktopDismissOnOutsideRuntime`
+  so pointer and Escape dismissal rules share one renderer app-runtime owner. No
+  migration required.
 - frontend/renderer: route chat message and transparency-section clipboard
   writes through `DesktopClipboardRuntime.writeText(...)`, keeping browser
   clipboard access in the renderer app-runtime boundary while preserving local

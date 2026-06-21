@@ -3,6 +3,7 @@
  */
 
 import { useEffect, useLayoutEffect } from 'react';
+import { DesktopDismissOnOutsideRuntime } from '../../../app/runtime/desktopDismissOnOutsideRuntime';
 
 export function useTextareaAutoResize(inputValue, resizeTextarea) {
   useLayoutEffect(() => {
@@ -12,17 +13,11 @@ export function useTextareaAutoResize(inputValue, resizeTextarea) {
 
 export function useDismissPlusMenu(plusMenuRef, setPlusMenuOpen) {
   useEffect(() => {
-    const handlePointerDown = (event) => {
-      const target = event.target;
-      if (plusMenuRef.current && !plusMenuRef.current.contains(target)) {
-        setPlusMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('mousedown', handlePointerDown);
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-    };
+    return DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside({
+      containerRef: plusMenuRef,
+      dismissOnEscape: false,
+      onDismiss: () => setPlusMenuOpen(false),
+    });
   }, [plusMenuRef, setPlusMenuOpen]);
 }
 

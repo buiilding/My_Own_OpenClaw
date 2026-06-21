@@ -2535,6 +2535,30 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('chat feature outside-dismiss UI bindings use app runtime browser adapter', async () => {
+    const browserControlSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatBrowserSessionControl.jsx'),
+      'utf8',
+    );
+    const messageInputBindingsSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useMessageInputUiBindings.js'),
+      'utf8',
+    );
+    const dismissRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopDismissOnOutsideRuntime.js'),
+      'utf8',
+    );
+
+    for (const source of [browserControlSource, messageInputBindingsSource]) {
+      expect(source).toContain('DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside');
+      expect(source).not.toContain('window.addEventListener');
+      expect(source).not.toContain('window.removeEventListener');
+    }
+    expect(dismissRuntimeSource).toContain('addEventListener');
+    expect(dismissRuntimeSource).toContain('removeEventListener');
+    expect(dismissRuntimeSource).not.toContain('features/chat');
+  });
+
   test('chat and dashboard model selection share app runtime reconciliation', async () => {
     const chatModelOptionsSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js'),

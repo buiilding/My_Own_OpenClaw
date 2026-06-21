@@ -14,6 +14,7 @@ title: "Dashboard Sidebar, Search, and Profile Menu Runtime Reference"
 - `frontend/src/renderer/features/dashboard/components/sidebar/DashboardSidebarNavigation.jsx`
 - `frontend/src/renderer/features/dashboard/components/sidebar/DashboardSidebarUserMenu.jsx`
 - `frontend/src/renderer/features/dashboard/components/sidebar/useDismissOnOutside.js`
+- `frontend/src/renderer/app/runtime/desktopDismissOnOutsideRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
@@ -60,6 +61,9 @@ Module split ownership:
 - `DashboardSidebarUserMenu` owns profile menu state/rendering.
 - `DashboardSidebar` owns conversation row rendering and per-row action menu state.
 - `useDismissOnOutside` is shared by both profile menu and conversation kebab menu.
+  It delegates browser `mousedown`/`keydown` subscriptions to
+  `DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside(...)`; sidebar
+  feature code owns menu state, not the raw window listener adapter.
 - The `MCPs` product item opens the MCP control panel. Renderer code routes
   registry list, refresh, enablement commands, registry payload normalization,
   and enablement registry-or-error projection through

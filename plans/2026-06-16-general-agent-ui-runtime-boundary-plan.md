@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Outside Dismiss Browser Adapter Runtime
+
+- Finding: chat browser tab picker, message-input plus menu, and dashboard
+  sidebar menus each owned raw `window.addEventListener(...)` /
+  `removeEventListener(...)` wiring for outside-click and Escape dismissal.
+- Change: added `DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside(...)`
+  as the renderer app-runtime browser subscription adapter. Feature modules now
+  keep only local open/close state and pass their container refs plus dismissal
+  callbacks into the runtime facade.
+- Validation target: focused outside-dismiss runtime, chat browser control,
+  message input, dashboard sidebar, and renderer boundary tests protect
+  pointer/Escape dismissal, cleanup, pointer-only plus-menu behavior, and
+  rejection of raw window listener wiring in those feature modules.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Live Surface Selector Send Alias Removal
 
 - Finding: after surface hooks stopped consuming raw `isSending`,

@@ -6,6 +6,7 @@ import { Link2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { DesktopBrowserSessionRuntimeClient } from '../../../app/runtime/desktopBrowserSessionRuntimeClient';
+import { DesktopDismissOnOutsideRuntime } from '../../../app/runtime/desktopDismissOnOutsideRuntime';
 
 function ChatBrowserSessionControl() {
   const rootRef = useRef(null);
@@ -34,25 +35,10 @@ function ChatBrowserSessionControl() {
       return undefined;
     }
 
-    const handlePointerDown = (event) => {
-      if (rootRef.current && !rootRef.current.contains(event.target)) {
-        setPickerOpen(false);
-      }
-    };
-
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        setPickerOpen(false);
-      }
-    };
-
-    window.addEventListener('mousedown', handlePointerDown);
-    window.addEventListener('keydown', handleEscape);
-
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-      window.removeEventListener('keydown', handleEscape);
-    };
+    return DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside({
+      containerRef: rootRef,
+      onDismiss: () => setPickerOpen(false),
+    });
   }, [pickerOpen]);
 
   const openPicker = useCallback(() => {

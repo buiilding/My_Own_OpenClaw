@@ -12,6 +12,7 @@ title: "MessageInput Clipboard Image and Voice Submit Reference"
 
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/hooks/useMessageInputUiBindings.js`
+- `frontend/src/renderer/app/runtime/desktopDismissOnOutsideRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
@@ -32,7 +33,8 @@ Component-owned state:
 UI-effect bindings (`useMessageInputUiBindings`) own:
 
 - textarea auto-resize on input changes via `useLayoutEffect`, so multiline `Shift+Enter` growth updates the composer height before paint instead of showing a one-frame row hop
-- plus-menu outside-click dismissal
+- plus-menu outside-click dismissal through
+  `DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside(...)`
 - automatic plus-menu close when the visible lifecycle loop lock begins (`isLoopActive=true`)
 - focus-request token handling for composer autofocus
 
@@ -179,7 +181,8 @@ Hard send guard:
 Plus menu:
 
 - toggles add-on action list for `Add photos & files`
-- click outside closes menu
+- click outside closes menu; the browser listener subscription lives in
+  `DesktopDismissOnOutsideRuntime`, while `MessageInput` keeps menu state local
 
 The menu does not alter outbound query payload; it only opens the native file-picker path.
 
