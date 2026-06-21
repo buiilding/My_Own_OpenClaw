@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { buildGatewayAudioMessage, float32ToPcm16 } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
+import { DesktopVoiceAudioEncodingRuntime } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
 import {
   closeAudioContextSafely,
   cleanupAudioCaptureNodes,
@@ -244,8 +244,8 @@ export function useVoiceMode(
             return;
           }
 
-          const int16Data = float32ToPcm16(inputData);
-          const message = buildGatewayAudioMessage(int16Data, 16000);
+          const int16Data = DesktopVoiceAudioEncodingRuntime.float32ToPcm16(inputData);
+          const message = DesktopVoiceAudioEncodingRuntime.buildGatewayAudioMessage(int16Data, 16000);
 
           try {
             DesktopVoiceRuntimeClient.sendTranscriptionAudioMessageIfOpen(websocketRef.current, message);

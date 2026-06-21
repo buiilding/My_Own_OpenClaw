@@ -75,15 +75,25 @@ describe('renderer voice runtime boundary', () => {
     const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
     const voiceModeSource = await fs.readFile(voiceModeHookPath, 'utf8');
     const detectionSource = await fs.readFile(detectionHookPath, 'utf8');
+    const audioEncodingRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts'),
+      'utf8',
+    );
 
     for (const source of [voiceModeSource, detectionSource]) {
       expect(source).toContain('desktopVoiceAudioEncodingRuntime');
+      expect(source).toContain('DesktopVoiceAudioEncodingRuntime');
       expect(source).toContain('desktopVoiceAudioCaptureCleanupRuntime');
       expect(source).toContain('desktopVoiceAudioProcessorNodeRuntime');
+      expect(source).not.toContain('import { float32ToPcm16');
       expect(source).not.toContain('../utils/audioEncoding');
       expect(source).not.toContain('../utils/audioCaptureCleanup');
       expect(source).not.toContain('../utils/audioProcessorNode');
     }
+    expect(audioEncodingRuntimeSource).toContain('export const DesktopVoiceAudioEncodingRuntime = Object.freeze');
+    expect(audioEncodingRuntimeSource).not.toContain('export function float32ToPcm16');
+    expect(audioEncodingRuntimeSource).not.toContain('export function normalizeAudioCaptureChunkSize');
+    expect(audioEncodingRuntimeSource).not.toContain('export function buildGatewayAudioMessage');
 
     await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/audioEncoding.ts'))).rejects.toThrow();
     await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/audioCaptureCleanup.ts'))).rejects.toThrow();

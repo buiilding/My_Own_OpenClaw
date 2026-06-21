@@ -13,7 +13,7 @@ function encodeAscii(value: string): Uint8Array {
   return bytes;
 }
 
-export function float32ToPcm16(float32Array: Float32Array): Int16Array {
+function float32ToPcm16(float32Array: Float32Array): Int16Array {
   const int16Array = new Int16Array(float32Array.length);
   for (let i = 0; i < float32Array.length; i++) {
     const sample = Math.max(-1, Math.min(1, float32Array[i]));
@@ -22,7 +22,7 @@ export function float32ToPcm16(float32Array: Float32Array): Int16Array {
   return int16Array;
 }
 
-export function normalizeAudioCaptureChunkSize(size: number): number {
+function normalizeAudioCaptureChunkSize(size: number): number {
   return VALID_AUDIO_CAPTURE_CHUNK_SIZES.reduce((previous, current) =>
     Math.abs(current - size) < Math.abs(previous - size) ? current : previous,
   );
@@ -42,7 +42,7 @@ function getGatewayMetadataPrefix(sampleRate: number): Uint8Array {
   return prefix;
 }
 
-export function buildGatewayAudioMessage(audioData: Int16Array, sampleRate: number = 16000): Uint8Array {
+function buildGatewayAudioMessage(audioData: Int16Array, sampleRate: number = 16000): Uint8Array {
   const metadataPrefix = getGatewayMetadataPrefix(sampleRate);
   const audioBytes = new Uint8Array(audioData.buffer, audioData.byteOffset, audioData.byteLength);
   const message = new Uint8Array(metadataPrefix.length + audioBytes.length);
@@ -50,3 +50,9 @@ export function buildGatewayAudioMessage(audioData: Int16Array, sampleRate: numb
   message.set(audioBytes, metadataPrefix.length);
   return message;
 }
+
+export const DesktopVoiceAudioEncodingRuntime = Object.freeze({
+  float32ToPcm16,
+  normalizeAudioCaptureChunkSize,
+  buildGatewayAudioMessage,
+});

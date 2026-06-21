@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Voice Audio Encoding Facade
+
+- Finding: `desktopVoiceAudioEncodingRuntime.ts` already owned voice PCM16
+  conversion, capture chunk-size normalization, and transcription-gateway
+  binary framing, but still exported those helpers as standalone functions
+  consumed by voice-mode, wakeword capture, and focused tests.
+- Change: made the audio encoding helpers private to the runtime module,
+  exposed them through `DesktopVoiceAudioEncodingRuntime`, and routed
+  `useVoiceMode`, `useWakewordDetection`, and focused tests through that
+  facade.
+- Validation: focused voice audio encoding, voice-mode hook, wakeword hook, and
+  renderer voice boundary coverage, exact standalone helper export/import scan,
+  docs list, and diff hygiene.
+- Compatibility/security: no migration required. PCM conversion, supported
+  chunk-size selection, gateway binary framing, microphone capture behavior,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Wakeword Event Facade
 
 - Finding: `desktopWakewordEventRuntime.ts` already owned wakeword chunk-size

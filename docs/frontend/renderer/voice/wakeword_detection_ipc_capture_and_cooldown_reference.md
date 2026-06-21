@@ -130,12 +130,12 @@ Capture defaults:
 Per capture callback (`AudioWorkletNode`):
 
 1. read Float32 channel data
-2. convert to PCM16 via `float32ToPcm16`
+2. convert to PCM16 via `DesktopVoiceAudioEncodingRuntime.float32ToPcm16`
 3. send ArrayBuffer through `wakeword-audio-chunk` IPC channel
 
 Chunk normalization:
 
-- `normalizeAudioCaptureChunkSize` chooses nearest supported size
+- `DesktopVoiceAudioEncodingRuntime.normalizeAudioCaptureChunkSize` chooses nearest supported size
 - warning emitted when requested size differs
 
 ## Detection Filtering Policy

@@ -97,14 +97,14 @@ Node graph:
 Per audio callback:
 
 1. read Float32 mono channel data
-2. convert with `float32ToPcm16(...)`
-3. frame with `buildGatewayAudioMessage(...)`
+2. convert with `DesktopVoiceAudioEncodingRuntime.float32ToPcm16(...)`
+3. frame with `DesktopVoiceAudioEncodingRuntime.buildGatewayAudioMessage(...)`
 4. send binary payload through
    `DesktopVoiceRuntimeClient.sendTranscriptionAudioMessageIfOpen(...)`
 
 ## Binary Framing Contract
 
-`buildGatewayAudioMessage(...)` format:
+`DesktopVoiceAudioEncodingRuntime.buildGatewayAudioMessage(...)` format:
 
 1. 4-byte little-endian metadata length
 2. JSON metadata bytes (`{"sampleRate": <value>}`)

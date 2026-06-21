@@ -2,11 +2,13 @@
  * Covers voice audio encoding. behavior in the frontend test suite.
  */
 
-import {
+import { DesktopVoiceAudioEncodingRuntime } from '../../frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime';
+
+const {
   buildGatewayAudioMessage,
   float32ToPcm16,
   normalizeAudioCaptureChunkSize,
-} from '../../frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime';
+} = DesktopVoiceAudioEncodingRuntime;
 
 describe('voice audio encoding utilities', () => {
   test('float32ToPcm16 clamps and converts samples', () => {

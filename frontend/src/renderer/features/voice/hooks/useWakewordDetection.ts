@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
-import { float32ToPcm16, normalizeAudioCaptureChunkSize } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
+import { DesktopVoiceAudioEncodingRuntime } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
 import {
   cleanupAudioCaptureNodes,
   closeAudioContextSafely,
@@ -57,7 +57,7 @@ export function useWakewordDetection(
   } = options;
 
   // Ensure chunkSize is a valid power of 2
-  const chunkSize = normalizeAudioCaptureChunkSize(rawChunkSize);
+  const chunkSize = DesktopVoiceAudioEncodingRuntime.normalizeAudioCaptureChunkSize(rawChunkSize);
 
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -191,7 +191,7 @@ export function useWakewordDetection(
           if (!isCapturingRef.current) {
             return;
           }
-          const int16Data = float32ToPcm16(inputData);
+          const int16Data = DesktopVoiceAudioEncodingRuntime.float32ToPcm16(inputData);
           sendAudioChunk(int16Data);
         },
       });

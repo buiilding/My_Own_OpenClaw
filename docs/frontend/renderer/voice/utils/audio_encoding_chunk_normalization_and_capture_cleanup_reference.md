@@ -21,7 +21,7 @@ title: "Audio Encoding, Chunk Normalization, and Capture Cleanup Reference"
 
 ## PCM Conversion Contract
 
-`float32ToPcm16(Float32Array)` behavior:
+`DesktopVoiceAudioEncodingRuntime.float32ToPcm16(Float32Array)` behavior:
 
 - clamps input sample to `[-1, 1]`
 - negative branch scales by `0x8000`
@@ -35,7 +35,7 @@ Practical effect:
 
 ## Gateway Binary Framing Contract
 
-`buildGatewayAudioMessage(audioData, sampleRate)` output layout:
+`DesktopVoiceAudioEncodingRuntime.buildGatewayAudioMessage(audioData, sampleRate)` output layout:
 
 1. 4-byte little-endian unsigned metadata length
 2. UTF-8/ASCII JSON metadata body (`{"sampleRate": ...}`)
@@ -48,7 +48,7 @@ Caching detail:
 
 ## Capture Chunk Normalization
 
-`normalizeAudioCaptureChunkSize(size)` chooses nearest value from:
+`DesktopVoiceAudioEncodingRuntime.normalizeAudioCaptureChunkSize(size)` chooses nearest value from:
 
 - `256, 512, 1024, 1280, 2048, 4096, 8192, 16384`
 

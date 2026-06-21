@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose voice PCM conversion, chunk-size normalization, and
+  gateway binary framing through `DesktopVoiceAudioEncodingRuntime` instead of
+  standalone helper exports, keeping voice-mode and wakeword capture audio
+  primitives behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose wakeword event warning, confidence, and cooldown
   helpers through `DesktopWakewordEventRuntime` instead of standalone helper
   exports, keeping wakeword hook and IPC payload normalization behind the

@@ -127,15 +127,15 @@ Reconnect policy:
 - required `AudioWorkletNode` capture processor (`desktop-runtime-capture-processor`) with chunk size 4096
 - every capture callback:
   - read Float32 input
-  - convert to PCM16 (`float32ToPcm16`)
-  - frame payload (`buildGatewayAudioMessage`)
+  - convert to PCM16 (`DesktopVoiceAudioEncodingRuntime.float32ToPcm16`)
+  - frame payload (`DesktopVoiceAudioEncodingRuntime.buildGatewayAudioMessage`)
   - send binary payload through `DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage(...)`
 
 There is no `ScriptProcessorNode` fallback. If the worklet API or module setup
 is unavailable, capture startup fails explicitly with an AudioWorklet capture
 processor error.
 
-Gateway binary framing (`buildGatewayAudioMessage`):
+Gateway binary framing (`DesktopVoiceAudioEncodingRuntime.buildGatewayAudioMessage`):
 
 - prefix: 4-byte little-endian metadata length
 - metadata body: JSON bytes (`{"sampleRate":16000}`)
