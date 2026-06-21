@@ -4,11 +4,15 @@
 
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { DESKTOP_RUNTIME_INVOKE_CHANNELS } from '../ipc/channels';
-import { SDK_RUNTIME_COMMANDS } from '../../app/runtime/desktopConversationRuntimeContracts';
+import { DesktopConversationRuntimeContracts } from '../../app/runtime/desktopConversationRuntimeContracts';
 import {
   getLocalRuntimeStatusSnapshot,
   subscribeLocalRuntimeStatusStore,
 } from './localRuntimeStatusStore';
+
+const {
+  SDK_RUNTIME_COMMANDS,
+} = DesktopConversationRuntimeContracts;
 
 const DEFAULT_CONNECTED_POLL_MS = 2000;
 const INTERACTIVE_CONNECTED_POLL_MS = 1000;

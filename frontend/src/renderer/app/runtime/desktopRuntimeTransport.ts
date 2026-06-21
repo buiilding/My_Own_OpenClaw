@@ -3,13 +3,16 @@
  */
 
 import {
-  SDK_RUNTIME_COMMANDS,
+  DesktopConversationRuntimeContracts,
   type AgentRuntimeTransport,
 } from './desktopConversationRuntimeContracts';
 import { DesktopMemoryRetrievalPreferenceRuntime } from './desktopMemoryRetrievalPreferenceRuntime';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
 
+const {
+  SDK_RUNTIME_COMMANDS,
+} = DesktopConversationRuntimeContracts;
 const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;

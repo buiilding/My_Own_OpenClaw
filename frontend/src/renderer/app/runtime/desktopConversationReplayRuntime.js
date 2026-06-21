@@ -2,12 +2,14 @@
  * Provides renderer conversation replay projection helpers.
  */
 
-import {
+import { DesktopConversationRuntimeContracts } from './desktopConversationRuntimeContracts';
+
+const {
   resolveCorrelationId,
   resolveToolBundleCorrelationId,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
-} from './desktopConversationRuntimeContracts';
+} = DesktopConversationRuntimeContracts;
 
 const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);

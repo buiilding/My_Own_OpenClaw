@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose concrete SDK conversation contract values through
+  `DesktopConversationRuntimeContracts` instead of named value re-exports,
+  preserving renderer type exports while keeping SDK commands, continuity,
+  model-settings patches, and tool-correlation helpers behind an explicit
+  app-runtime facade object. No migration required.
 - frontend/renderer: expose chat message, markdown, and shared hook helper
   facades through `DesktopChatMessageRuntimeClient`,
   `DesktopMarkdownRuntimeClient`, and `DesktopRendererHooksRuntimeClient`

@@ -3,11 +3,14 @@
  */
 
 import {
-  buildModelSettingsPatch,
+  DesktopConversationRuntimeContracts,
   type AgentModelSelection,
 } from './desktopConversationRuntimeContracts';
 import { DesktopRuntimeTransport } from './desktopRuntimeTransport';
 
+const {
+  buildModelSettingsPatch,
+} = DesktopConversationRuntimeContracts;
 const {
   createDesktopRuntimeTransport,
 } = DesktopRuntimeTransport;

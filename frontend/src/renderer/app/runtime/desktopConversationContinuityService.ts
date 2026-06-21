@@ -3,8 +3,7 @@
  */
 
 import {
-  ConversationContinuityService,
-  SDK_RUNTIME_COMMANDS,
+  DesktopConversationRuntimeContracts,
   type AgentModelSelection,
   type JsonRecord,
   type ListConversationOptions,
@@ -27,6 +26,10 @@ import { DesktopDashboardConversationLoadRuntime } from './desktopDashboardConve
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 
+const {
+  ConversationContinuityService,
+  SDK_RUNTIME_COMMANDS,
+} = DesktopConversationRuntimeContracts;
 const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;

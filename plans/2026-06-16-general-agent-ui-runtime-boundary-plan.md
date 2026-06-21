@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Conversation Contract Value Facade
+
+- Finding: `desktopConversationRuntimeContracts.ts` already narrowed renderer
+  SDK contract access to direct SDK owner modules, but concrete SDK values such
+  as command constants, continuity service construction, model-settings patch
+  building, and tool-correlation helpers still escaped as named value
+  re-exports.
+- Change: preserved the renderer SDK type exports and exposed the concrete SDK
+  values through `DesktopConversationRuntimeContracts`, then routed renderer
+  app-runtime clients and browser-session diagnostics through that contract
+  object.
+- Validation: focused renderer app/API/chat runtime boundary tests,
+  conversation continuity, settings, runtime transport, live-turn, replay, and
+  browser-session store tests, targeted lint, stale direct value import/export
+  scans, docs validation, and diff checks.
+- Compatibility/security: no migration required. This is renderer-internal
+  facade cleanup only; SDK command names, conversation projection types,
+  continuity behavior, model settings payloads, tool-correlation semantics, IPC,
+  storage, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-21 Renderer Helper Client Facade Objects
 
 - Finding: `desktopChatMessageRuntimeClient.ts`,

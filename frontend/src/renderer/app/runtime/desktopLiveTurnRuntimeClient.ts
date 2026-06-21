@@ -3,7 +3,7 @@
  */
 
 import {
-  SDK_RUNTIME_COMMANDS,
+  DesktopConversationRuntimeContracts,
   type AgentModelSelection,
   type TurnInputResource,
 } from './desktopConversationRuntimeContracts';
@@ -12,6 +12,9 @@ import { DesktopMemoryRetrievalPreferenceRuntime } from './desktopMemoryRetrieva
 import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
 
 const SEND_COMMAND_FAILURE_FALLBACK = 'Failed to send command to the renderer app runtime';
+const {
+  SDK_RUNTIME_COMMANDS,
+} = DesktopConversationRuntimeContracts;
 const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;

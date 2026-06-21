@@ -364,6 +364,13 @@ message components depend on those named runtime clients rather than importing
 individual helper re-exports, keeping helper ownership visible while the generic
 chat UI package boundary is still being split from the WindieOS skin.
 
+`desktopConversationRuntimeContracts.ts` preserves the renderer's SDK
+conversation type exports while exposing concrete SDK values through
+`DesktopConversationRuntimeContracts`. Renderer runtime clients use that object
+for SDK command constants, continuity service construction, model settings
+patches, and tool-correlation helpers instead of importing named value
+re-exports from the contracts facade.
+
 `desktopLocalRuntimeStatusRuntimeClient.ts` owns renderer access to shared
 local-runtime status snapshots and value-level readiness subscriptions. Dashboard
 recent-conversation reloads consume `onReady(...)` so dashboard code owns the

@@ -3,13 +3,16 @@
  */
 
 import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
-import { SDK_RUNTIME_COMMANDS } from './desktopConversationRuntimeContracts';
+import { DesktopConversationRuntimeContracts } from './desktopConversationRuntimeContracts';
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 
 const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;
+const {
+  SDK_RUNTIME_COMMANDS,
+} = DesktopConversationRuntimeContracts;
 
 type MemoryKind = 'episodic' | 'semantic';
 

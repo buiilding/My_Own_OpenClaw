@@ -89,7 +89,10 @@ describe('renderer api client boundary', () => {
     expect(source).toContain("packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.js");
     expect(source).toContain("packages/windie-sdk-js/src/settings/modelSelection.js");
     expect(source).toContain("packages/windie-sdk-js/src/tools/toolCorrelationIds.js");
+    expect(source).toContain('export const DesktopConversationRuntimeContracts = Object.freeze');
     expect(source).not.toContain("export * from '../../../../../packages/windie-sdk-js/src';");
+    expect(source).not.toContain('export {\n  SDK_RUNTIME_COMMANDS');
+    expect(source).not.toContain('export {\n  buildModelSettingsPatch');
     expect(source).not.toContain(`${retiredProductType} as AgentModelSelection`);
     expect(source).not.toContain('infrastructure/api/agentSdkClient');
   });

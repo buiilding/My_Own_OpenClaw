@@ -5,10 +5,13 @@
 import {
   DesktopConversationContinuityService,
 } from './desktopConversationContinuityService';
-import { SDK_RUNTIME_COMMANDS } from './desktopConversationRuntimeContracts';
+import { DesktopConversationRuntimeContracts } from './desktopConversationRuntimeContracts';
 import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
 import { DesktopDashboardConversationLoadRuntime } from './desktopDashboardConversationLoadRuntime';
 
+const {
+  SDK_RUNTIME_COMMANDS,
+} = DesktopConversationRuntimeContracts;
 const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;
