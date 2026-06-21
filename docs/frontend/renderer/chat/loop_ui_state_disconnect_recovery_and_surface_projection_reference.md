@@ -195,6 +195,7 @@ local send-preflight handoff to
 surface still prepares overlay presentation input and SDK overlay intent
 metadata, but phase, busy, awaiting, and response flags now come from
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`. The
+live-surface adapter exposes `isBusy` rather than a legacy `isSending` alias.
 decision to keep renderer-local pending typing through idle, hidden, stale,
 terminal, or visible SDK projections lives with the visible lifecycle owner and
 requires an accepted renderer `pendingTurn`.

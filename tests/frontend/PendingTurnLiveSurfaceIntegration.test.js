@@ -104,7 +104,6 @@ function resetStore() {
     currentTurnProjection: null,
     latestCurrentTurnProjection: null,
     pendingTurn: null,
-    isSending: false,
   });
 }
 
@@ -190,7 +189,6 @@ describe('pending-turn live surface integration', () => {
     ]);
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
-      isSending: state.isSending,
       pendingTurn: state.pendingTurn,
       currentTurnProjection: state.currentTurnProjection,
     })).toMatchObject({
@@ -212,7 +210,6 @@ describe('pending-turn live surface integration', () => {
     state = useChatStore.getState();
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
-      isSending: state.isSending,
       pendingTurn: state.pendingTurn,
       currentTurnProjection: state.currentTurnProjection,
     })).toMatchObject({
@@ -229,7 +226,6 @@ describe('pending-turn live surface integration', () => {
     expect(state.pendingTurn).toBeNull();
     expect(resolveLiveTurnPresentationInput({
       messages: state.messages,
-      isSending: state.isSending,
       pendingTurn: state.pendingTurn,
       currentTurnProjection: state.currentTurnProjection,
     })).toMatchObject({

@@ -148,7 +148,6 @@ function resolveLiveTurnPresentationInput({
     );
     return {
       phase: getAwaitingFirstChunkResponseOverlayPhase(),
-      isSending: true,
       isBusy: true,
       showAwaiting: true,
       showResponse: false,
@@ -182,7 +181,6 @@ function resolveLiveTurnPresentationInput({
     const overlayIntent = resolveSdkOverlayIntent(presentation, currentTurnProjection);
     return {
       phase: visibleLifecyclePhase,
-      isSending: lifecycleIsBusy,
       isBusy: lifecycleIsBusy,
       showAwaiting: lifecycleShowsTyping,
       showResponse: lifecycleShowsResponse,
@@ -201,7 +199,6 @@ function resolveLiveTurnPresentationInput({
   if (currentTurnPhase) {
     return {
       phase: visibleLifecyclePhase,
-      isSending: lifecycleIsBusy,
       isBusy: lifecycleIsBusy,
       showAwaiting: lifecycleShowsTyping,
       showResponse: lifecycleShowsResponse,
@@ -218,7 +215,6 @@ function resolveLiveTurnPresentationInput({
 
   return {
     phase: getIdleResponseOverlayPhase(),
-    isSending: false,
     isBusy: false,
     showAwaiting: false,
     showResponse: false,

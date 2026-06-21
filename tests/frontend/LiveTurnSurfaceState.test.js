@@ -32,12 +32,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
       },
-      isSending: false,
     });
 
     expect(state).toMatchObject({
       phase: 'complete',
-      isSending: false,
+      isBusy: false,
       source: 'current-turn',
       useLocalSendLatch: false,
       useSdkLiveTurnPresentation: false,
@@ -56,7 +55,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-2',
         text: 'second',
       }),
-      isSending: true,
       messages: [
         { id: 'user-1', sender: 'user', text: 'first', turnRef: 'turn-1' },
         { id: 'assistant-1', sender: 'assistant', text: 'done', turnRef: 'turn-1' },
@@ -66,7 +64,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
-      isSending: true,
       isBusy: true,
       showAwaiting: true,
       source: 'pending-turn',
@@ -88,12 +85,10 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: null,
       pendingTurn: pendingTurn(),
-      isSending: true,
     });
 
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
-      isSending: true,
       isBusy: true,
       source: 'pending-turn',
       useLocalSendLatch: true,
@@ -114,12 +109,10 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-pending',
         text: 'start now',
       }),
-      isSending: true,
     });
 
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
-      isSending: true,
       isBusy: true,
       source: 'pending-turn',
       useLocalSendLatch: true,
@@ -164,12 +157,10 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-pending',
         text: 'start now',
       }),
-      isSending: true,
     });
 
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
-      isSending: true,
       isBusy: true,
       source: 'sdk-current-turn',
       useLocalSendLatch: false,
@@ -205,7 +196,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-2',
         text: 'second',
       }),
-      isSending: true,
       messages: [
         { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
       ],
@@ -213,7 +203,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
-      isSending: true,
       isBusy: true,
       source: 'sdk-current-turn',
       useLocalSendLatch: false,
@@ -244,13 +233,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         },
       },
       pendingTurn: pendingTurn(),
-      isSending: true,
       messages: [],
     });
 
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
-      isSending: true,
       source: 'pending-turn',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: true,
@@ -279,7 +266,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
           },
         },
       },
-      isSending: true,
       messages: [
         { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
       ],
@@ -287,7 +273,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
     expect(state).toMatchObject({
       phase: 'complete',
-      isSending: false,
       isBusy: false,
       source: 'sdk-current-turn',
       useLocalSendLatch: false,
@@ -308,7 +293,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-2',
         text: 'second',
       }),
-      isSending: true,
       messages: [
         { id: 'user-1', sender: 'user', text: 'first', turnRef: 'turn-1' },
         { id: 'assistant-1', sender: 'assistant', text: 'done', turnRef: 'turn-1' },
@@ -317,7 +301,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
-      isSending: true,
       source: 'pending-turn',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: false,
@@ -350,7 +333,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         userMessageId: 'user-2',
         text: 'second',
       }),
-      isSending: true,
       messages: [
         { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
       ],
@@ -358,7 +340,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
-      isSending: true,
       source: 'sdk-current-turn',
       useLocalSendLatch: false,
       useSdkLiveTurnPresentation: true,
@@ -388,7 +369,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
           },
         },
       },
-      isSending: false,
       messages: [
         { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
       ],
@@ -396,7 +376,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
-      isSending: true,
       isBusy: true,
       showAwaiting: true,
       showResponse: false,
@@ -431,7 +410,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
           },
         },
       },
-      isSending: false,
       messages: [
         { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
       ],
@@ -439,7 +417,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
     expect(state).toMatchObject({
       phase: 'streaming',
-      isSending: true,
       isBusy: true,
       showAwaiting: false,
       showResponse: true,
@@ -457,12 +434,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       currentTurnProjection: null,
       streamTracking: { phase: 'streaming' },
       phase: 'tool-call',
-      isSending: false,
     });
 
     expect(state).toMatchObject({
       phase: 'idle',
-      isSending: false,
+      isBusy: false,
       source: 'idle',
     });
   });

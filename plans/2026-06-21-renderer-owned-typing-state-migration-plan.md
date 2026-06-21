@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Live Surface Send Alias Removal
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
+  still returned an `isSending` alias even after production consumers moved to
+  visible-lifecycle `isBusy`, awaiting, response, phase, and source fields.
+  Focused tests were the only remaining consumers, preserving a misleading
+  lifecycle-shaped send-latch field on the live-surface adapter.
+- Change: the live-surface adapter no longer emits `isSending`; tests and docs
+  now assert `isBusy` and visible lifecycle fields as the surface contract.
+- Validation target: `LiveTurnSurfaceState.test.js`,
+  `PendingTurnLiveSurfaceIntegration.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the removed alias and pending
+  send handoff.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Surface Hook Raw Send Prop Cleanup
 
 - Finding: after pending-turn preflight became the lifecycle authority,
