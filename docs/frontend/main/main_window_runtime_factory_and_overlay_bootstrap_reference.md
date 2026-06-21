@@ -47,7 +47,7 @@ Startup visibility ownership note:
 Delegated helper ownership:
 
 - icon resolution + fallback behavior: `main_window_icon_runtime.cjs`
-- renderer view loading + shared overlay BrowserWindow defaults + lazy loader: `main_window_overlay_runtime.cjs`
+- renderer view loading + shared overlay BrowserWindow defaults + lazy loader: `createMainWindowOverlayRuntime(...)` from `main_window_overlay_runtime.cjs`
 
 ## Main Window Bootstrap (`createMainWindow`)
 

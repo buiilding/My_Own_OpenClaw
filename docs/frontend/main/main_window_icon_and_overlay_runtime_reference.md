@@ -25,7 +25,7 @@ title: "Main Window Icon and Overlay Runtime Reference"
 Helper modules own shared primitives:
 
 - `main_window_icon_runtime.cjs`: app/tray icon resolution and native-image fallback
-- `main_window_overlay_runtime.cjs`: renderer route loader + shared overlay BrowserWindow factory + lazy loader
+- `main_window_overlay_runtime.cjs`: public overlay runtime facade for renderer route loading, shared overlay BrowserWindow creation, renderer console logging, and lazy loader creation
 
 ## Icon Runtime Contract (`main_window_icon_runtime.cjs`)
 
@@ -68,7 +68,12 @@ Used by:
 
 ## Overlay Runtime Contract (`main_window_overlay_runtime.cjs`)
 
-### `loadRendererView(...)`
+`createMainWindowOverlayRuntime(...)` is the public Electron-main facade for
+shared overlay window bootstrapping. Lower-level renderer loading, overlay
+window factory, console logging, and lazy-loader helpers stay private to the
+overlay runtime owner.
+
+### `overlayRuntime.loadRendererView(...)`
 
 Query-flag assembly:
 
@@ -83,7 +88,7 @@ Load behavior:
 - packaged app: `targetWindow.loadFile(dist/index.html, { query })`
 - dev app: `targetWindow.loadURL(http://localhost:5173?...query...)`
 
-### `createOverlayBrowserWindow(...)`
+### `overlayRuntime.createOverlayBrowserWindow(...)`
 
 Shared overlay defaults:
 
@@ -99,11 +104,18 @@ Shared overlay defaults:
 - optional `show` and `icon` overrides
 - `devTools` gated by `allowDevTools`
 
-### `createLazyRendererViewLoader(options)`
+### `overlayRuntime.createLazyRendererViewLoader(options)`
 
 - returns closure that loads renderer view exactly once
-- first call: runs `loadRendererView(options)` and returns `true`
+- first call: runs `overlayRuntime.loadRendererView(options)` and returns `true`
 - later calls: no-op and returns `false`
+
+### `overlayRuntime.attachRendererConsoleLogging(...)`
+
+- attaches one `console-message` listener per target `webContents`
+- writes session banners for default and verbose renderer logs
+- always writes renderer console lines to the verbose renderer log
+- forwards warning/error/critical levels to the default renderer layer log
 
 Used by:
 
@@ -121,8 +133,11 @@ Used by:
 
 `tests/frontend/MainWindowOverlayRuntime.test.cjs`:
 
+- overlay runtime exposes the facade while keeping lower-level helpers private
 - dev URL includes expected query flags
 - lazy loader performs single load
+- renderer console logging attaches once and routes warning/error payloads to
+  the default renderer log
 - overlay BrowserWindow factory keeps transparent defaults and applies platform-specific overlay types (`panel` on macOS, `toolbar` on Windows, none on Linux)
 
 `tests/frontend/MainWindowRuntime.test.cjs`:

@@ -64,6 +64,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep main-window overlay loader, BrowserWindow factory,
+  console logging, and lazy-loader helpers private to
+  `main_window_overlay_runtime.cjs` while window bootstrap consumes
+  `createMainWindowOverlayRuntime(...)`. No migration required.
 - frontend/main: keep local-runtime window resolver and screenshot wrapper
   helpers private to `local_runtime_window_visibility.cjs` while bridge and
   execute-tool code consume `createLocalRuntimeWindowVisibilityRuntime(...)`.

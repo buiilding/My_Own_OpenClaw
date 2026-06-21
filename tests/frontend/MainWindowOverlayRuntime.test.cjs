@@ -1,19 +1,28 @@
 /** @jest-environment node */
 
 const {
-  attachRendererConsoleLogging,
-  createLazyRendererViewLoader,
-  createOverlayBrowserWindow,
-  loadRendererView,
+  createMainWindowOverlayRuntime,
 } = require('../../frontend/src/main/surfaces/main_window_overlay_runtime.cjs');
 
 describe('main_window_overlay_runtime', () => {
+  const overlayRuntime = createMainWindowOverlayRuntime();
+
+  test('exposes only the overlay runtime facade', () => {
+    const overlayRuntimeModule = require('../../frontend/src/main/surfaces/main_window_overlay_runtime.cjs');
+
+    expect(overlayRuntimeModule.createMainWindowOverlayRuntime).toBe(createMainWindowOverlayRuntime);
+    expect(overlayRuntimeModule.loadRendererView).toBeUndefined();
+    expect(overlayRuntimeModule.createLazyRendererViewLoader).toBeUndefined();
+    expect(overlayRuntimeModule.attachRendererConsoleLogging).toBeUndefined();
+    expect(overlayRuntimeModule.createOverlayBrowserWindow).toBeUndefined();
+  });
+
   test('loadRendererView loads dev url with expected query params', () => {
     const targetWindow = {
       loadURL: jest.fn(),
     };
 
-    loadRendererView({
+    overlayRuntime.loadRendererView({
       targetWindow,
       view: 'minimal-chat-pill',
       app: { isPackaged: false },
@@ -33,7 +42,7 @@ describe('main_window_overlay_runtime', () => {
     const targetWindow = {
       loadURL: jest.fn(),
     };
-    const ensureLoaded = createLazyRendererViewLoader({
+    const ensureLoaded = overlayRuntime.createLazyRendererViewLoader({
       targetWindow,
       view: 'minimal-chat-pill',
       app: { isPackaged: false },
@@ -57,7 +66,7 @@ describe('main_window_overlay_runtime', () => {
     const writeVerboseLogLine = jest.fn();
     const writeVerboseSessionBanner = jest.fn();
 
-    expect(attachRendererConsoleLogging({
+    expect(overlayRuntime.attachRendererConsoleLogging({
       targetWindow: { webContents },
       view: 'chat-pill',
       writeLayerLogLine,
@@ -65,7 +74,7 @@ describe('main_window_overlay_runtime', () => {
       writeVerboseLogLine,
       writeVerboseSessionBanner,
     })).toBe(true);
-    expect(attachRendererConsoleLogging({
+    expect(overlayRuntime.attachRendererConsoleLogging({
       targetWindow: { webContents },
       view: 'chat-pill',
       writeLayerLogLine,
@@ -102,7 +111,7 @@ describe('main_window_overlay_runtime', () => {
     const writeLayerLogLine = jest.fn();
     const writeVerboseLogLine = jest.fn();
 
-    attachRendererConsoleLogging({
+    overlayRuntime.attachRendererConsoleLogging({
       targetWindow: { webContents },
       view: 'main',
       writeLayerLogLine,
@@ -129,7 +138,7 @@ describe('main_window_overlay_runtime', () => {
     const writeLayerLogLine = jest.fn();
     const writeVerboseLogLine = jest.fn();
 
-    attachRendererConsoleLogging({
+    overlayRuntime.attachRendererConsoleLogging({
       targetWindow: { webContents },
       view: 'main',
       writeLayerLogLine,
@@ -157,7 +166,7 @@ describe('main_window_overlay_runtime', () => {
   test('createOverlayBrowserWindow omits toolbar type on linux overlays', () => {
     const BrowserWindow = jest.fn((options) => ({ options }));
 
-    const win = createOverlayBrowserWindow({
+    const win = overlayRuntime.createOverlayBrowserWindow({
       BrowserWindow,
       path: require('path'),
       platform: 'linux',
@@ -190,7 +199,7 @@ describe('main_window_overlay_runtime', () => {
   test('createOverlayBrowserWindow starts hidden by default', () => {
     const BrowserWindow = jest.fn((options) => ({ options }));
 
-    const win = createOverlayBrowserWindow({
+    const win = overlayRuntime.createOverlayBrowserWindow({
       BrowserWindow,
       path: require('path'),
       platform: 'darwin',
@@ -210,7 +219,7 @@ describe('main_window_overlay_runtime', () => {
   test('createOverlayBrowserWindow uses native panel windows on mac overlays', () => {
     const BrowserWindow = jest.fn((options) => ({ options }));
 
-    const win = createOverlayBrowserWindow({
+    const win = overlayRuntime.createOverlayBrowserWindow({
       BrowserWindow,
       path: require('path'),
       platform: 'darwin',
@@ -231,7 +240,7 @@ describe('main_window_overlay_runtime', () => {
   test('createOverlayBrowserWindow keeps toolbar type on windows overlays', () => {
     const BrowserWindow = jest.fn((options) => ({ options }));
 
-    const win = createOverlayBrowserWindow({
+    const win = overlayRuntime.createOverlayBrowserWindow({
       BrowserWindow,
       path: require('path'),
       platform: 'win32',

@@ -204,9 +204,15 @@ function createLazyRendererViewLoader(options) {
   };
 }
 
+function createMainWindowOverlayRuntime() {
+  return Object.freeze({
+    attachRendererConsoleLogging,
+    createLazyRendererViewLoader,
+    createOverlayBrowserWindow,
+    loadRendererView,
+  });
+}
+
 module.exports = {
-  attachRendererConsoleLogging,
-  createLazyRendererViewLoader,
-  createOverlayBrowserWindow,
-  loadRendererView,
+  createMainWindowOverlayRuntime,
 };

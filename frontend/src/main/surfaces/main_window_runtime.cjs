@@ -6,10 +6,7 @@ const {
   createMainWindowIconRuntime,
 } = require('./main_window_icon_runtime.cjs');
 const {
-  attachRendererConsoleLogging,
-  createLazyRendererViewLoader,
-  createOverlayBrowserWindow,
-  loadRendererView,
+  createMainWindowOverlayRuntime,
 } = require('./main_window_overlay_runtime.cjs');
 const {
   buildPreloadIpcChannelsArgument,
@@ -26,6 +23,7 @@ const CHATBOX_OVERLAY_FIXED_HEIGHT = 164;
 const DEFAULT_OVERLAY_QUERY_CAPTURE_FOCUS_WAIT_MS = 120;
 const PENDING_COLLAPSE_TO_CHAT_PILL_KEY = '__desktopRuntimePendingCollapseToChatPill';
 const mainWindowIconRuntime = createMainWindowIconRuntime();
+const mainWindowOverlayRuntime = createMainWindowOverlayRuntime();
 
 function normalizeOverlayQueryCaptureFocusWaitMs(value) {
   if (typeof value !== 'number' && typeof value !== 'string') {
@@ -249,12 +247,12 @@ function createMainWindow({
   });
 
   setMainWindow(mainWindow);
-  attachRendererConsoleLogging({
+  mainWindowOverlayRuntime.attachRendererConsoleLogging({
     targetWindow: mainWindow,
     view: 'main',
     logPrefix: rendererLogPrefix,
   });
-  loadRendererView({
+  mainWindowOverlayRuntime.loadRendererView({
     targetWindow: mainWindow,
     app,
     path,
@@ -382,7 +380,7 @@ function createChatWindow({
     resolveAppIconPath: appIconPathResolver,
     warn,
   });
-  const chatWindow = createOverlayBrowserWindow({
+  const chatWindow = mainWindowOverlayRuntime.createOverlayBrowserWindow({
     BrowserWindow,
     path,
     platform,
@@ -392,7 +390,7 @@ function createChatWindow({
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setChatWindow(chatWindow);
-  attachRendererConsoleLogging({
+  mainWindowOverlayRuntime.attachRendererConsoleLogging({
     targetWindow: chatWindow,
     view: 'chat-pill',
     logPrefix: rendererLogPrefix,
@@ -404,7 +402,7 @@ function createChatWindow({
   chatWindow.setIgnoreMouseEvents(true, { forward: true });
   positionChatWindow();
 
-  const ensureChatRendererLoaded = createLazyRendererViewLoader({
+  const ensureChatRendererLoaded = mainWindowOverlayRuntime.createLazyRendererViewLoader({
     targetWindow: chatWindow,
     view: 'minimal-chat-pill',
     app,
@@ -481,7 +479,7 @@ function createResponseWindow({
     resolveAppIconPath: appIconPathResolver,
     warn,
   });
-  const responseWindow = createOverlayBrowserWindow({
+  const responseWindow = mainWindowOverlayRuntime.createOverlayBrowserWindow({
     BrowserWindow,
     path,
     platform,
@@ -492,7 +490,7 @@ function createResponseWindow({
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setResponseWindow(responseWindow);
-  attachRendererConsoleLogging({
+  mainWindowOverlayRuntime.attachRendererConsoleLogging({
     targetWindow: responseWindow,
     view: enableOsToolGhostDebug ? responseWindowDebugView : 'response-overlay',
     logPrefix: rendererLogPrefix,
@@ -503,7 +501,7 @@ function createResponseWindow({
   });
   responseWindow.setIgnoreMouseEvents(true, { forward: true });
 
-  const ensureResponseRendererLoaded = createLazyRendererViewLoader({
+  const ensureResponseRendererLoaded = mainWindowOverlayRuntime.createLazyRendererViewLoader({
     targetWindow: responseWindow,
     view: enableOsToolGhostDebug ? responseWindowDebugView : 'minimal-response-overlay',
     app,

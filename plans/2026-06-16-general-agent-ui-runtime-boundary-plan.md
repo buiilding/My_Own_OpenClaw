@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Window Overlay Runtime Facade
+
+- Finding: `main_window_overlay_runtime.cjs` owned shared renderer view
+  loading, overlay BrowserWindow defaults, renderer console logging, and lazy
+  loader creation, but exported those lower-level helpers directly to
+  `main_window_runtime.cjs` and focused tests.
+- Change: added `createMainWindowOverlayRuntime(...)` as the public Electron
+  main overlay facade and routed dashboard, chat, and response bootstrap
+  through it while keeping the raw loader, BrowserWindow factory, console
+  logging, and lazy-loader helpers private to the overlay runtime owner.
+- Validation: focused main-window overlay/runtime/skin tests, targeted
+  main-window lint, docs listing, stale export/import scans, and diff checks
+  before commit.
+- Compatibility/security: no renderer route query flag, preload IPC argument,
+  overlay BrowserWindow option, renderer console log routing, lazy-load timing,
+  native window mutation, IPC channel, credential, permission, storage, or
+  trust-boundary migration required; overlay bootstrap behavior is unchanged.
+
 ### 2026-06-21 Main Local-Runtime Window Visibility Facade
 
 - Finding: `local_runtime_window_visibility.cjs` owned host-window resolver
