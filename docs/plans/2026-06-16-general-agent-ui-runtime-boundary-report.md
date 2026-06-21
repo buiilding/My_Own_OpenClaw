@@ -43,6 +43,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   real WindieOS debug env names remain host-skin owned.
   Generic IPC query runtime tests use sample interruption copy while real
   WindieOS query event copy remains host-skin owned.
+  Generic extension manifest and MCP runtime tests use sample env maps while
+  real WindieOS contribution-root and MCP enablement env names remain host-skin
+  owned.
   Generic runtime-path and wakeword bridge tests use sample host config and
   neutral packaged resource roots while real WindieOS env/model/path values
   remain host-skin owned. Local-runtime bridge RPC tests use neutral injected
@@ -7969,6 +7972,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   interrupted-query event shaping, injected host copy wiring, permissions,
   storage, provider policy, and backend behavior are unchanged; no migration is
   required.
+- Generic extension manifest and MCP runtime tests now use neutral sample env
+  maps instead of importing WindieOS host-skin env config. Real WindieOS
+  contribution-root and MCP enablement env ownership remains covered by
+  host-skin boundary tests. Extension contribution-root resolution, MCP
+  enablement env resolution, plugin/skill/MCP manifest loading, client tool
+  manifest projection, permissions, storage, provider policy, and backend
+  behavior are unchanged; no migration is required.
 - Generic runtime-path and wakeword bridge tests now use neutral injected host
   config fixtures instead of importing WindieOS host-skin values. Real WindieOS
   env, wakeword model, packaged-entrypoint, and runtime-path ownership remains

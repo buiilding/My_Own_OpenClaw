@@ -19364,6 +19364,22 @@ Each completed slice should report:
   interrupted-query event shaping, injected host copy wiring, permissions,
   storage, provider policy, and backend behavior are unchanged.
 
+### 2026-06-21 Extension and MCP env fixture neutrality
+
+- Finding: generic extension manifest and MCP runtime tests still imported
+  WindieOS host-skin env config to exercise configured host contribution-root
+  and enabled-MCP env behavior.
+- Change: replaced those imports with test-local sample extension and MCP env
+  maps and added a modular boundary guard so generic extension/MCP runtime
+  coverage stays product-neutral.
+- Validation: focused extension manifest, MCP runtime, host-skin boundary, and
+  modular boundary tests; exact retired extension/MCP fixture scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Extension contribution-root resolution,
+  MCP enablement env resolution, host-skin wiring, plugin/skill/MCP manifest
+  loading, client tool manifest projection, permissions, storage, provider
+  policy, and backend behavior are unchanged.
+
 ### 2026-06-21 Runtime path and wakeword host config fixture neutrality
 
 - Finding: generic runtime-path and wakeword bridge tests imported the

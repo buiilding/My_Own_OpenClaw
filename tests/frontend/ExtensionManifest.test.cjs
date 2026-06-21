@@ -18,9 +18,12 @@ const {
   resolveDefaultContributionRoot,
   resolveExtensionEnvConfig,
 } = require('../../frontend/src/main/extensions/extension_manifest.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const sampleExtensionConfig = Object.freeze({
+  env: Object.freeze({
+    contributionsDir: 'SAMPLE_AGENT_CONTRIBUTIONS_DIR',
+  }),
+});
 
 function writeExtensionRegistry() {
   const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-contributions-'));
@@ -100,7 +103,7 @@ describe('extension registry loader', () => {
   afterEach(() => {
     clearExtensionRuntimeCache();
     configureExtensionManifestRuntime();
-    delete process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR;
+    delete process.env.SAMPLE_AGENT_CONTRIBUTIONS_DIR;
     delete process.env.AGENT_CONTRIBUTIONS_DIR;
   });
 
@@ -321,22 +324,25 @@ describe('extension registry loader', () => {
 
   test('default contribution root honors configured host environment override', () => {
     const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-host-contributions-'));
-    process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR = contributionRoot;
-    configureExtensionManifestRuntime(mainHostSkin.extensions);
+    process.env.SAMPLE_AGENT_CONTRIBUTIONS_DIR = contributionRoot;
+    configureExtensionManifestRuntime(sampleExtensionConfig);
 
     expect(resolveDefaultContributionRoot()).toBe(path.resolve(contributionRoot));
   });
 
-  test('extension contribution env names are configurable by host skin', () => {
+  test('extension contribution env names are configurable by host config', () => {
     const source = fs.readFileSync(
       path.resolve(__dirname, '../../frontend/src/main/extensions/extension_manifest.cjs'),
       'utf8',
     );
+    const windieContributionEnv = ['WINDIE', 'AGENT', 'CONTRIBUTIONS', 'DIR'].join('_');
 
     expect(resolveExtensionEnvConfig()).toEqual({
       contributionsDir: 'AGENT_CONTRIBUTIONS_DIR',
     });
-    expect(mainHostSkin.extensions.env.contributionsDir).toBe('WINDIE_AGENT_CONTRIBUTIONS_DIR');
-    expect(source).not.toContain('WINDIE_AGENT_CONTRIBUTIONS_DIR');
+    expect(resolveExtensionEnvConfig(sampleExtensionConfig.env)).toEqual({
+      contributionsDir: 'SAMPLE_AGENT_CONTRIBUTIONS_DIR',
+    });
+    expect(source).not.toContain(windieContributionEnv);
   });
 });

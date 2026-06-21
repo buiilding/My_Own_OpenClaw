@@ -783,6 +783,23 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('Sample app lost connection after accepting the message.');
   });
 
+  test('extension and MCP runtime tests keep injected env fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/ExtensionManifest.test.cjs'),
+      read('tests/frontend/McpRuntime.test.cjs'),
+    ]).then(sources => sources.join('\n'));
+    const windieContributionEnv = ['WINDIE', 'AGENT', 'CONTRIBUTIONS', 'DIR'].join('_');
+    const windieMcpEnv = ['WINDIE', 'ENABLED', 'MCPS'].join('_');
+
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain(windieContributionEnv);
+    expect(source).not.toContain(windieMcpEnv);
+    expect(source).toContain('sampleExtensionConfig');
+    expect(source).toContain('SAMPLE_AGENT_CONTRIBUTIONS_DIR');
+    expect(source).toContain('sampleMcpConfig');
+    expect(source).toContain('SAMPLE_ENABLED_MCPS');
+  });
+
   test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/voice/WakewordDetectionHook.test.ts'),
