@@ -5,9 +5,8 @@ const path = require('path');
 
 const {
   createAgentBackendEventRuntime,
-  eventMatchesActiveTurn,
-  isTerminalBackendEvent,
 } = require('../../frontend/src/main/ipc/ipc_agent_backend_event_runtime.cjs');
+const backendEventRuntimeModule = require('../../frontend/src/main/ipc/ipc_agent_backend_event_runtime.cjs');
 
 function createDeps(overrides = {}) {
   let activeQueryContext = {
@@ -37,18 +36,9 @@ describe('ipc_agent_backend_event_runtime', () => {
     return runtime.handle(event);
   }
 
-  test('matches active turns and terminal events explicitly', () => {
-    expect(eventMatchesActiveTurn(
-      { turn_ref: 'turn-1' },
-      { queryMessageId: 'turn-1' },
-    )).toBe(true);
-    expect(eventMatchesActiveTurn(
-      { turn_ref: 'turn-2' },
-      { queryMessageId: 'turn-1' },
-    )).toBe(false);
-    expect(isTerminalBackendEvent({ type: 'streaming-complete' })).toBe(true);
-    expect(isTerminalBackendEvent({ type: 'error' })).toBe(true);
-    expect(isTerminalBackendEvent({ type: 'query-accepted' })).toBe(false);
+  test('keeps active-turn and terminal-event classifiers private to the runtime owner', () => {
+    expect(backendEventRuntimeModule.eventMatchesActiveTurn).toBeUndefined();
+    expect(backendEventRuntimeModule.isTerminalBackendEvent).toBeUndefined();
   });
 
   test('marks active query accepted and relays backend events through replay, traffic, observers, and processor', () => {
@@ -99,6 +89,36 @@ describe('ipc_agent_backend_event_runtime', () => {
     expect(deps.getActiveQueryContextValue()).toEqual({
       queryMessageId: 'turn-1',
       accepted: false,
+    });
+  });
+
+  test('does not mark active query accepted for stale accepted events', () => {
+    const deps = createDeps();
+
+    handleBackendEvent({
+      type: 'query-accepted',
+      turn_ref: 'turn-2',
+    }, deps);
+
+    expect(deps.getActiveQueryContextValue()).toEqual({
+      queryMessageId: 'turn-1',
+      accepted: false,
+    });
+  });
+
+  test('does not clear active context for matching non-terminal events', () => {
+    const deps = createDeps();
+
+    handleBackendEvent({
+      type: 'query-accepted',
+      turn_ref: 'turn-1',
+    }, deps);
+
+    expect(deps.setActiveQueryContext).not.toHaveBeenCalled();
+    expect(deps.clearEventReplayState).not.toHaveBeenCalled();
+    expect(deps.getActiveQueryContextValue()).toEqual({
+      queryMessageId: 'turn-1',
+      accepted: true,
     });
   });
 

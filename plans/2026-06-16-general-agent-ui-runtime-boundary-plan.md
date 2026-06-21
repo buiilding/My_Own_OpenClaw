@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Backend Event Classifier Privacy
+
+- Finding: `ipc_agent_backend_event_runtime.cjs` already kept the lower-level
+  backend-event relay handler private, but active-turn matching and
+  terminal-event classification still leaked as public helper exports.
+- Change: kept the classifiers private to the backend-event runtime owner and
+  moved stale accepted, matching terminal, stale terminal, and non-terminal
+  coverage through `createAgentBackendEventRuntime(...)`.
+- Validation: focused backend-event runtime and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no backend event payload, replay, observer fan-out,
+  active-query context, credential, permission, or trust-boundary migration
+  required.
+
 ### 2026-06-21 Main Image Trusted-Origin Helper Privacy
 
 - Finding: after image IPC registration moved into

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep backend-event active-turn and terminal-event classifiers
+  private to `ipc_agent_backend_event_runtime.cjs` and cover stale accepted,
+  matching terminal, stale terminal, and non-terminal behavior through
+  `createAgentBackendEventRuntime(...)`. No migration required.
 - frontend/main: keep trusted image-origin construction private to
   `ipc_image_interaction_handlers.cjs` and cover active backend plus candidate
   artifact origins through the aggregate image interaction runtime. No

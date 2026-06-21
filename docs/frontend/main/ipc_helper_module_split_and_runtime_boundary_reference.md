@@ -334,6 +334,8 @@ Owns Agent SDK backend event relay bookkeeping:
   active turn
 - keeps the lower-level backend-event relay handler private to the runtime
   helper
+- keeps active-turn matching and terminal-event classification private to the
+  runtime owner while tests exercise those paths through the composed facade
 - appends inbound events to turn-scoped replay before processing
 - forwards backend traffic labels and backend-message observer notifications
 - delegates payload handling into `processBackendMessageData(...)` with injected

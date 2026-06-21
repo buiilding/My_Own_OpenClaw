@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main image interaction keeps trusted
-  image-origin construction private to the aggregate
-  `ipc_image_interaction_handlers.cjs` owner, with active backend and candidate
-  artifact origins covered through registered `copy-image-to-clipboard`
-  behavior instead of direct helper imports.
+- Latest completed slice: Electron main backend-event relay keeps active-turn
+  matching and terminal-event classification private to
+  `ipc_agent_backend_event_runtime.cjs`, with stale accepted, matching
+  terminal, stale terminal, and non-terminal behavior covered through
+  `createAgentBackendEventRuntime(...)`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
