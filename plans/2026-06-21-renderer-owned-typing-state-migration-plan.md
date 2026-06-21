@@ -9,6 +9,32 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Legacy Presentation Lifecycle Facade Cleanup
+
+- Finding: `useChatSurfaceController(...)` still called
+  `resolveSdkCurrentTurnPresentationState(...)` after resolving the renderer
+  visible lifecycle, leaving the chat surface with a second SDK presentation
+  lifecycle reducer for the same dashboard and pill busy/typing state. The
+  old `useOverlayTurnLifecycle(...)` feature hook also kept legacy
+  current-turn overlay lifecycle mapping outside the visible lifecycle facade.
+- Change: the controller now keeps `useCurrentTurnPresentationState(...)` only
+  as the legacy presentation-field adapter and always stamps it from
+  `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`.
+  Legacy overlay lifecycle helpers used by that adapter moved behind
+  `DesktopVisibleTurnLifecycleRuntime`, and the old feature hook was deleted.
+  The response overlay still owns SDK presentation entries and dismissal data
+  until its remaining data path is collapsed in a later slice.
+- Validation target: `ChatSurfaceController.test.jsx` continues to protect
+  visible lifecycle busy/Stop, awaiting anchor, and local pending handoff, while
+  `RendererAppRuntimeBoundary.test.ts` rejects a controller import of
+  `DesktopCurrentTurnPresentationRuntime` and the deleted overlay lifecycle
+  hook. `DesktopVisibleTurnLifecycleRuntime.test.js` covers the legacy overlay
+  lifecycle adapter functions now exposed only through the visible lifecycle
+  runtime facade.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Visible Lifecycle Preflight And Overlay Adapter Tightening
 
 - Finding: live-surface local send-preflight handoff still lived beside

@@ -8,8 +8,11 @@ import {
 
 const {
   applyVisibleTurnLifecycleToPresentationState,
+  buildCurrentTurnPresentationSnapshotSignature,
   hasAuthoritativeSdkProjection,
   hasAuthoritativeSameTurnSdkReplacement,
+  isCurrentTurnPresentationOverlayLifecycleBusy,
+  resolveCurrentTurnPresentationOverlayLifecycle,
   resolveVisibleTurnLifecycle,
   resolveVisibleTurnLifecycleForPresentation,
   shouldUseLocalSendPreflight,
@@ -62,6 +65,9 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(visibleLifecycleModule.hasAuthoritativeSdkProjection).toBeUndefined();
     expect(visibleLifecycleModule.hasAuthoritativeSameTurnSdkReplacement).toBeUndefined();
     expect(visibleLifecycleModule.resolveVisibleTurnLifecycle).toBeUndefined();
+    expect(visibleLifecycleModule.buildCurrentTurnPresentationSnapshotSignature).toBeUndefined();
+    expect(visibleLifecycleModule.isCurrentTurnPresentationOverlayLifecycleBusy).toBeUndefined();
+    expect(visibleLifecycleModule.resolveCurrentTurnPresentationOverlayLifecycle).toBeUndefined();
     expect(visibleLifecycleModule.shouldUseLocalSendPreflight).toBeUndefined();
   });
 
@@ -462,5 +468,29 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         turnRef: 'turn-2',
       }],
     })).toBe(false);
+  });
+
+  test('keeps legacy presentation lifecycle mapping behind the visible lifecycle facade', () => {
+    expect(buildCurrentTurnPresentationSnapshotSignature({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      hasVisibleReply: false,
+    })).toBe('awaiting-first-chunk|1|0');
+
+    const activeLifecycle = resolveCurrentTurnPresentationOverlayLifecycle({
+      phase: 'tool-output',
+      isSending: false,
+      hasVisibleReply: false,
+      transportConnected: true,
+    });
+    expect(activeLifecycle).toBe('active');
+    expect(isCurrentTurnPresentationOverlayLifecycleBusy(activeLifecycle)).toBe(true);
+
+    expect(resolveCurrentTurnPresentationOverlayLifecycle({
+      phase: 'tool-output',
+      isSending: false,
+      hasVisibleReply: false,
+      transportConnected: false,
+    })).toBe('idle');
   });
 });

@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for shared chat loop UI state resolution: overlay-turn lifecycle projection, transport-disconnect recovery watchdog behavior, and dashboard/minimal-pill surface consumers."
 read_when:
-  - When changing `useChatLoopUiState`, `useOverlayTurnLifecycle`, `desktopChatLoopUiRuntime`, or stream-phase-to-UI mapping behavior.
+  - When changing `useChatLoopUiState`, `desktopOverlayTurnLifecycleRuntime`, `desktopChatLoopUiRuntime`, or stream-phase-to-UI mapping behavior.
   - When debugging stuck stop buttons, minimal-pill loop locks, or reconnect races after missing terminal events.
 title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 ---
@@ -15,7 +15,6 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 - `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
-- `frontend/src/renderer/features/chat/hooks/useOverlayTurnLifecycle.js`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
@@ -199,7 +198,11 @@ renderer app-runtime facade.
 
 It does not mutate stream tracking or backend query state; it is UI projection only.
 
-`useOverlayTurnLifecycle(...)` composes that transport projection with the shared lifecycle resolver so current-turn presentation consumers no longer each reduce `phase + isSending` separately.
+`useCurrentTurnPresentationState(...)` composes transport projection from
+`useChatLoopTransportState(...)` with current-turn overlay lifecycle helpers
+from `DesktopVisibleTurnLifecycleRuntime`, so legacy current-turn presentation
+fields do not carry their own `phase + isSending` lifecycle reducer and do not
+import the overlay lifecycle runtime directly.
 `DesktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
 owns SDK presentation snapshots (`presentation.overlayIntent`, awaiting
 anchors, visible response entries, and lifecycle mapping) so chat and overlay
@@ -210,8 +213,10 @@ feature hooks do not carry their own SDK current-turn reducers.
 that projection for dashboard/pill busy state, stop affordance gating,
 awaiting-dot visibility, and chatbox awaiting state. The older
 `useCurrentTurnPresentationState(...)` result remains an adapter for legacy
-presentation fields while visible lifecycle owns the typing decision. The
-controller resolves the active lifecycle against the SDK current-turn
+presentation fields while visible lifecycle owns the typing decision; the
+controller no longer calls
+`DesktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`.
+The controller resolves the active lifecycle against the SDK current-turn
 conversation ref when present, so a lagging session ref does not hide the
 visible same-turn projection.
 

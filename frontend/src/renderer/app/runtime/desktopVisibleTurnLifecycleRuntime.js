@@ -10,6 +10,8 @@ const {
   getIdleOverlayTurnLifecycle,
   getPreflightOverlayTurnLifecycle,
   getTerminalOverlayTurnLifecycle,
+  isOverlayTurnLifecycleBusy,
+  resolveOverlayTurnLifecycle,
 } = DesktopOverlayTurnLifecycleRuntime;
 
 const TERMINAL_PHASES = new Set(['complete', 'error']);
@@ -408,6 +410,36 @@ function resolveOverlayTurnLifecycleForVisibleLifecycle(visibleTurnLifecycle) {
   return getIdleOverlayTurnLifecycle();
 }
 
+function resolveCurrentTurnPresentationOverlayLifecycle({
+  phase = null,
+  isSending = false,
+  hasVisibleReply = false,
+  transportConnected = true,
+} = {}) {
+  return resolveOverlayTurnLifecycle({
+    phase,
+    isSending,
+    hasVisibleReply,
+    transportConnected,
+  });
+}
+
+function isCurrentTurnPresentationOverlayLifecycleBusy(lifecycle) {
+  return isOverlayTurnLifecycleBusy(lifecycle);
+}
+
+function buildCurrentTurnPresentationSnapshotSignature({
+  phase = null,
+  isSending = false,
+  hasVisibleReply = false,
+} = {}) {
+  return [
+    normalizeString(phase) || 'idle',
+    isSending === true ? '1' : '0',
+    hasVisibleReply === true ? '1' : '0',
+  ].join('|');
+}
+
 function applyVisibleTurnLifecycleToPresentationState(presentationState, visibleTurnLifecycle) {
   const nextState = {
     ...presentationState,
@@ -450,8 +482,11 @@ function applyVisibleTurnLifecycleToPresentationState(presentationState, visible
 
 export const DesktopVisibleTurnLifecycleRuntime = Object.freeze({
   applyVisibleTurnLifecycleToPresentationState,
+  buildCurrentTurnPresentationSnapshotSignature,
   hasAuthoritativeSdkProjection: isAuthoritativeSdkProjection,
   hasAuthoritativeSameTurnSdkReplacement,
+  isCurrentTurnPresentationOverlayLifecycleBusy,
+  resolveCurrentTurnPresentationOverlayLifecycle,
   resolveVisibleTurnLifecycleForPresentation,
   resolveVisibleTurnLifecycle,
   shouldUseLocalSendPreflight,

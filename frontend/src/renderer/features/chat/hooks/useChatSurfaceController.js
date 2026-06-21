@@ -9,12 +9,8 @@ import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationSta
 import {
   DesktopLiveTurnSurfaceRuntime,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
-import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import { DesktopVisibleTurnLifecycleRuntime } from '../../../app/runtime/desktopVisibleTurnLifecycleRuntime';
 
-const {
-  resolveSdkCurrentTurnPresentationState,
-} = DesktopCurrentTurnPresentationRuntime;
 const {
   applyVisibleTurnLifecycleToPresentationState,
   resolveVisibleTurnLifecycle,
@@ -71,17 +67,8 @@ export function useChatSurfaceController({
     isSending: liveTurnPresentationInput.isSending,
     messages,
   });
-  const resolvedCurrentTurnPresentationState = (
-    liveTurnPresentationInput.useSdkLiveTurnPresentation
-    && !liveTurnPresentationInput.useLocalSendLatch
-  )
-    ? resolveSdkCurrentTurnPresentationState({
-      currentTurnProjection,
-      fallbackState: currentTurnPresentationState,
-    })
-    : currentTurnPresentationState;
   const visibleLifecyclePresentationState = applyVisibleTurnLifecycleToPresentationState(
-    resolvedCurrentTurnPresentationState,
+    currentTurnPresentationState,
     controllerVisibleTurnLifecycle,
   );
   const isBusy = controllerVisibleTurnLifecycle.isBusy === true;

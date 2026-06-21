@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Legacy Presentation Lifecycle Facade Cleanup
+
+- Finding: chat surface presentation had been stamped from the visible
+  lifecycle, but the legacy presentation adapter still reached through a
+  standalone `useOverlayTurnLifecycle(...)` feature hook for
+  `phase + isSending` lifecycle mapping.
+- Change: deleted `useOverlayTurnLifecycle.js` and moved the legacy
+  current-turn overlay lifecycle adapter functions behind
+  `DesktopVisibleTurnLifecycleRuntime`; `useCurrentTurnPresentationState(...)`
+  now keeps only transport recovery composition and presentation-field shaping.
+- Validation: `DesktopVisibleTurnLifecycleRuntime.test.js` covers the legacy
+  adapter facade, and `RendererAppRuntimeBoundary.test.ts` rejects both a chat
+  surface SDK presentation reducer import and the deleted overlay lifecycle
+  hook.
+- Compatibility/security: no SDK event payload, IPC payload, transcript
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Visible Lifecycle Preflight And Overlay Adapter Tightening
 
 - Finding: live-surface local send-preflight handoff still lived beside
