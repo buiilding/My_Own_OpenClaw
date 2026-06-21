@@ -8,7 +8,7 @@ function createAutomatedQueryDispatcher({
   ensureInitialSettingsSync,
   getPendingSettingsSyncPromise,
   buildQueryPayload,
-  attachAgentDefinitionContext,
+  attachAgentDefinitionContextToPayload,
   sendQueryThroughAgentSdkRuntime,
   getState,
   setCurrentConversationRef,
@@ -59,7 +59,7 @@ function createAutomatedQueryDispatcher({
     const payload = {
       ...builtQuery.payload,
     };
-    const payloadWithAgentDefinition = attachAgentDefinitionContext(payload);
+    const payloadWithAgentDefinition = attachAgentDefinitionContextToPayload(payload);
 
     const queryMessageId = uuidGenerator();
     const messageId = await sendQueryThroughAgentSdkRuntime({

@@ -509,6 +509,8 @@ Owns Electron-main query-level agent-definition context attachment:
 - exposes `createAgentDefinitionContextRuntime(...)` so `ipc.cjs` composes the
   latest config reader, platform name, SDK builder, and default-definition
   predicate once
+- keeps lower-level context attachment private behind the runtime facade while
+  the pure merge helper remains available for focused contract tests
 - reads custom instructions from cached desktop UI config
 - resolves workspace `AGENTS.md` prompt layers for the query workspace
 - loads extension prompt layers once before calling

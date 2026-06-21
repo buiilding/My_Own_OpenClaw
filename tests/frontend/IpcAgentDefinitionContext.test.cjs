@@ -15,7 +15,6 @@ const {
 } = require('../../frontend/src/main/extensions/extension_manifest.cjs');
 
 const {
-  attachAgentDefinitionContext,
   createAgentDefinitionContextRuntime,
   mergeAgentDefinitionContext,
 } = require('../../frontend/src/main/ipc/ipc_agent_definition_context.cjs');
@@ -67,11 +66,12 @@ describe('ipc_agent_definition_context', () => {
   test('returns payload unchanged when generated definition is default and no definition was supplied', () => {
     const payload = { text: 'hello' };
     const buildAgentDefinition = jest.fn(() => ({ mode: 'default' }));
-
-    expect(attachAgentDefinitionContext(payload, {
+    const runtime = createAgentDefinitionContextRuntime({
       buildAgentDefinition,
       isDefaultAgentDefinition: definition => definition.mode === 'default',
-    })).toBe(payload);
+    });
+
+    expect(runtime.attach(payload)).toBe(payload);
   });
 
   test('attaches generated repo, extension, custom instruction, workspace, and OS context', async () => {
@@ -96,24 +96,22 @@ describe('ipc_agent_definition_context', () => {
     }));
 
     try {
-      const result = attachAgentDefinitionContext(
-        {
-          text: 'hello',
-          workspace_path: repoRoot,
-          agent_definition: {
-            runtime: { workspace_path: 'supplied-workspace' },
-            prompt_layers: [{ id: 'supplied-layer' }],
-          },
+      const runtime = createAgentDefinitionContextRuntime({
+        getLatestDesktopUiConfig: () => ({
+          agent_custom_instructions: ' Be concise. ',
+        }),
+        platformName: 'win32',
+        buildAgentDefinition,
+        isDefaultAgentDefinition: () => false,
+      });
+      const result = runtime.attach({
+        text: 'hello',
+        workspace_path: repoRoot,
+        agent_definition: {
+          runtime: { workspace_path: 'supplied-workspace' },
+          prompt_layers: [{ id: 'supplied-layer' }],
         },
-        {
-          latestDesktopUiConfig: {
-            agent_custom_instructions: ' Be concise. ',
-          },
-          platformName: 'win32',
-          buildAgentDefinition,
-          isDefaultAgentDefinition: () => false,
-        },
-      );
+      });
 
       expect(buildAgentDefinition).toHaveBeenCalledWith(expect.objectContaining({
         includeToolManifest: false,
@@ -190,5 +188,8 @@ describe('ipc_agent_definition_context', () => {
     expect(mainSource).toContain('agentDefinitionContextRuntime.attach(payload)');
     expect(mainSource).not.toContain('attachAgentDefinitionContextRuntime(payload');
     expect(helperSource).toContain('function createAgentDefinitionContextRuntime');
+    const helperModule = require('../../frontend/src/main/ipc/ipc_agent_definition_context.cjs');
+    expect(helperModule.attachAgentDefinitionContext).toBeUndefined();
+    expect(typeof helperModule.mergeAgentDefinitionContext).toBe('function');
   });
 });

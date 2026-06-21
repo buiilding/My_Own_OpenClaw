@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Agent Definition Context Attachment Privacy
+
+- Finding: `ipc_agent_definition_context.cjs` already exposed
+  `createAgentDefinitionContextRuntime(...)` as the Electron main composition
+  facade, but focused tests still reached into the lower-level attachment
+  helper.
+- Change: kept `attachAgentDefinitionContext(...)` private to the
+  agent-definition context helper module and moved default-context and
+  repo/extension/custom-instruction attachment coverage through the runtime
+  facade while leaving the pure merge helper public.
+- Validation: focused agent-definition context, chat query handler, automated
+  query dispatcher, and main SDK boundary tests, targeted main IPC lint, docs
+  listing, stale export-line scans, and diff checks before commit.
+- Compatibility/security: no IPC payload, prompt-layer, workspace, credential,
+  permission, or trust-boundary migration required; generated and supplied
+  agent-definition context merge behavior is unchanged.
+
 ### 2026-06-21 Main Startup State Initializer Privacy
 
 - Finding: `ipc_startup_state.cjs` already exposed

@@ -624,7 +624,7 @@ const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
   setFirstQuery: (nextValue) => {
     backendConnectionGateState.setFirstQuery(nextValue);
   },
-  attachAgentDefinitionContext: (payload) => preserveSdkTurnInputFields(
+  attachAgentDefinitionContextToPayload: (payload) => preserveSdkTurnInputFields(
     buildBackendQueryPayload(attachAgentDefinitionContext(payload)),
     payload,
   ),
@@ -669,7 +669,7 @@ const automatedQueryRuntime = createAutomatedQueryRuntime({
   ensureInitialSettingsSync,
   getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
   buildQueryPayload,
-  attachAgentDefinitionContext: (payload) => buildBackendQueryPayload(
+  attachAgentDefinitionContextToPayload: (payload) => buildBackendQueryPayload(
     attachAgentDefinitionContext(payload),
   ),
   sendQueryThroughAgentSdkRuntime,

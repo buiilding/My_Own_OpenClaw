@@ -70,7 +70,7 @@ function createRuntimeHarness() {
     setCurrentConversationRef,
     setActiveQueryContext,
     setFirstQuery,
-    attachAgentDefinitionContext: jest.fn((payload) => ({
+    attachAgentDefinitionContextToPayload: jest.fn((payload) => ({
       ...payload,
       agent_definition: { mode: 'default' },
     })),

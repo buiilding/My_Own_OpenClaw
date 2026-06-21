@@ -20,7 +20,7 @@ function createChatQueryHandlers({
   setCurrentConversationRef,
   setActiveQueryContext,
   setFirstQuery,
-  attachAgentDefinitionContext,
+  attachAgentDefinitionContextToPayload,
   ensureInstallAuthState,
   isBackendRuntimeConnected,
   ensureBackendConnection,
@@ -66,7 +66,7 @@ function createChatQueryHandlers({
       return { ok: false, error: error?.message || 'Rejected renderer query' };
     }
 
-    payload = attachAgentDefinitionContext(preparedQuery.payload);
+    payload = attachAgentDefinitionContextToPayload(preparedQuery.payload);
     setCurrentConversationRef(preparedQuery.conversationRef);
     queryMessageId = preparedQuery.queryMessageId;
     queryUsedInitialContext = preparedQuery.queryUsedInitialContext;
@@ -148,7 +148,7 @@ function createChatQueryHandlerRuntime({
   setCurrentConversationRef,
   setActiveQueryContext,
   setFirstQuery,
-  attachAgentDefinitionContext,
+  attachAgentDefinitionContextToPayload,
   ensureInstallAuthState,
   isBackendRuntimeConnected,
   ensureBackendConnection,
@@ -169,7 +169,7 @@ function createChatQueryHandlerRuntime({
       setCurrentConversationRef,
       setActiveQueryContext,
       setFirstQuery,
-      attachAgentDefinitionContext,
+      attachAgentDefinitionContextToPayload,
       ensureInstallAuthState,
       isBackendRuntimeConnected,
       ensureBackendConnection,

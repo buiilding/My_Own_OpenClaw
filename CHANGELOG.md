@@ -38,6 +38,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level agent-definition context attachment
+  helper private to `ipc_agent_definition_context.cjs` and exercise
+  generated/supplied context merging through
+  `createAgentDefinitionContextRuntime(...)`, preserving repo `AGENTS.md`,
+  extension skill, custom instruction, workspace, and host OS attachment
+  behavior. No migration required.
 - frontend/main: keep the lower-level IPC startup-state initializer private to
   `ipc_startup_state.cjs` and exercise install-auth/config/shortcut hydration
   through `createIpcStartupStateRuntime(...)`, preserving startup behavior and
