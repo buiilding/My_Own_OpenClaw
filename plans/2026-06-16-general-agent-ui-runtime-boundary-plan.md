@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Chat Clipboard Runtime Facade
+
+- Finding: chat message copy actions and transparency-section copy buttons
+  still wrote directly through `navigator.clipboard`, leaving a browser
+  adapter inside generic chat feature code after message presentation helpers
+  had moved behind app-runtime facades.
+- Change: added `DesktopClipboardRuntime.writeText(...)` as the renderer
+  app-runtime clipboard adapter. `useCopyMessageAction(...)` keeps UI success
+  timing local but delegates text writes through the runtime facade, and
+  `TransparencySection` uses the same facade after serializing transparency
+  content.
+- Validation target: focused clipboard runtime and renderer chat boundary tests
+  protect injected clipboard writes, empty-copy no-ops, unavailable-adapter
+  failures, and rejection of direct `navigator.clipboard` usage in chat feature
+  modules.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Stream Completion Tracking Pending-Turn Gate
 
 - Finding: `useChatStreamCompletionHandler(...)` still used raw

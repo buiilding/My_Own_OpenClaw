@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route chat message and transparency-section clipboard
+  writes through `DesktopClipboardRuntime.writeText(...)`, keeping browser
+  clipboard access in the renderer app-runtime boundary while preserving local
+  copy-success UI timing. No migration required.
 - frontend/renderer: route chat stream completion tracking decisions through
   `DesktopChatStreamEventRuntime.shouldRecordTerminalCompletionTracking(...)`,
   so stale raw `isSending=true` no longer records duplicate terminal tracking

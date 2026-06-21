@@ -1334,6 +1334,37 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('chat feature clipboard writes route through app runtime facade', async () => {
+    const files = await listSourceFiles(chatRoot);
+    const offenders: string[] = [];
+    const copyHookSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useCopyMessageAction.js'),
+      'utf8',
+    );
+    const transparencySectionSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/TransparencySection.jsx'),
+      'utf8',
+    );
+    const clipboardRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopClipboardRuntime.js'),
+      'utf8',
+    );
+
+    for (const file of files) {
+      const relativePath = path.relative(chatRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('navigator.clipboard')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+    expect(copyHookSource).toContain('DesktopClipboardRuntime.writeText');
+    expect(transparencySectionSource).toContain('DesktopClipboardRuntime.writeText');
+    expect(clipboardRuntimeSource).toContain('navigator?.clipboard');
+    expect(clipboardRuntimeSource).not.toContain('features/chat');
+  });
+
   test('renderer feature hooks read latest-ref helper through app runtime facade', async () => {
     const featureRoot = path.join(rendererRoot, 'features');
     const files = await listSourceFiles(featureRoot);

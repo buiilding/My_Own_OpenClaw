@@ -30,6 +30,7 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
+- `frontend/src/renderer/app/runtime/desktopClipboardRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
 - `frontend/src/renderer/infrastructure/llmOutputContract.ts`
@@ -215,6 +216,11 @@ Canonical tool-schema guard requires each entry:
 - object `function.parameters`
 
 `fullUserMessage.metadata` is copied (`{...metadata}`) to avoid caller-side mutation through section objects.
+
+Transparency section copy buttons serialize content through
+`DesktopMessageTransparencyRuntime.serializeTransparencySectionContent(...)`
+and write the result through `DesktopClipboardRuntime.writeText(...)`, so the
+feature component does not own the browser clipboard adapter.
 
 Conversation-level behavior:
 

@@ -15,6 +15,7 @@ title: "Message Action Controls, Source Badge, and Dev-UI Tagging Reference"
 - `frontend/src/renderer/features/chat/components/message/UserMessageActions.jsx`
 - `frontend/src/renderer/features/chat/components/message/MessageSourceBadge.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
+- `frontend/src/renderer/app/runtime/desktopClipboardRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopPresentationSourceChannels.js`
 - `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
@@ -83,11 +84,15 @@ Inputs:
 Runtime behavior:
 
 - no-op when `messageText` is empty
-- writes text with `navigator.clipboard.writeText`
+- writes text through `DesktopClipboardRuntime.writeText(...)`
 - sets `copySuccess=true` on success
 - auto-resets `copySuccess` after delay
 - clears pending timer on unmount
 - logs warning with prefix on clipboard failure
+
+`DesktopClipboardRuntime.writeText(...)` is the renderer app-runtime browser
+adapter for clipboard writes. Message action feature code owns button state and
+timers, but it does not call `navigator.clipboard` directly.
 
 ## Source Badge and Dev-UI Gate
 

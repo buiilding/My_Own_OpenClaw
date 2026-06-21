@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { DesktopClipboardRuntime } from '../../../../app/runtime/desktopClipboardRuntime';
 import { DesktopMessageTransparencyRuntime } from '../../../../app/runtime/desktopMessageTransparencyRuntime';
 
 function TransparencySection({ title, content, metadata, type = 'text' }) {
@@ -14,7 +15,7 @@ function TransparencySection({ title, content, metadata, type = 'text' }) {
     const textToCopy = DesktopMessageTransparencyRuntime.serializeTransparencySectionContent(
       content,
     );
-    navigator.clipboard.writeText(textToCopy);
+    DesktopClipboardRuntime.writeText(textToCopy);
   };
 
   const renderContent = () => {

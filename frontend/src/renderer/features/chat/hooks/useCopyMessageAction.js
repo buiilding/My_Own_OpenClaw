@@ -3,6 +3,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { DesktopClipboardRuntime } from '../../../app/runtime/desktopClipboardRuntime';
 
 export function useCopyMessageAction({
   messageText = '',
@@ -34,9 +35,11 @@ export function useCopyMessageAction({
       return;
     }
     try {
-      await navigator.clipboard.writeText(messageText);
-      setCopySuccess(true);
-      scheduleCopyReset();
+      const didCopy = await DesktopClipboardRuntime.writeText(messageText);
+      if (didCopy) {
+        setCopySuccess(true);
+        scheduleCopyReset();
+      }
     } catch (error) {
       console.warn(`[${warningPrefix}] Failed to copy message:`, error);
     }
