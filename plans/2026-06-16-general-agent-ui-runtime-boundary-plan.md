@@ -22150,3 +22150,20 @@ Each completed slice should report:
   memory RPC names, payloads, SDK local-runtime store behavior, backend
   embeddings, IPC channels, storage schemas, provider policy, backend behavior,
   and trust boundaries are unchanged.
+
+### 2026-06-21 IPC sudo shell local-runtime owner labels
+
+- Finding: the IPC channel reference and local-runtime bridge handler reference
+  still described Linux `sudo ...` rewriting as owned by the sidecar shell tool,
+  even though the active generic contract routes shell execution through the
+  local-runtime shell tool.
+- Change: reworded both sudo rewrite ownership notes to local-runtime shell
+  tool wording and extended modular boundary coverage over the IPC reference
+  plus the local-runtime payload docs.
+- Validation: focused modular refactor boundary test, exact stale phrase scan
+  for the touched IPC/local-runtime bridge references, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  shell argument mapping, sudo rewrite behavior, local-runtime tool execution,
+  IPC channels, storage, provider policy, backend behavior, and trust
+  boundaries are unchanged.

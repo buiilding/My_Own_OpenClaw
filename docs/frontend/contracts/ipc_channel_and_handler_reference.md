@@ -145,7 +145,7 @@ Behavior:
 - `set-active-workspace`
 
 There is no renderer-callable `set-agent-sudo-access` channel. Linux
-`run_shell_command` sudo behavior is owned by the sidecar shell tool, which
+`run_shell_command` sudo behavior is owned by the local-runtime shell tool, which
 rewrites leading `sudo ...` commands to `pkexec` prompting.
 
 Removed legacy renderer-callable channels:

@@ -62,6 +62,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/memory: route the memory IPC/RPC reference through local-runtime
   JSON-RPC and memory-store call wording instead of sidecar call labels. No
   migration required.
+- docs/main: route sudo shell rewrite ownership through local-runtime shell
+  tool wording in IPC and local-runtime bridge references. No migration
+  required.
 - docs/renderer: route malformed local-runtime result remediation through the
   local-runtime/main bridge label in the renderer state workflow instead of the
   sidecar/main bridge label. No migration required.

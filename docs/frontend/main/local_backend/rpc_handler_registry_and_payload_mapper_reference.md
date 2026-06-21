@@ -71,7 +71,7 @@ Tool-arg normalization behavior:
 - screenshot tools may receive injected fallback `display_bounds` derived from
   main-process display-affinity runtime when explicit bounds are missing
 - `run_shell_command` arguments are not augmented with a frontend-selected
-  `sudo_auth_mode`; Linux `sudo ...` rewriting is owned by the sidecar shell
+  `sudo_auth_mode`; Linux `sudo ...` rewriting is owned by the local-runtime shell
   tool
 
 Display-affinity fallback precedence for screenshot local tool calls:
