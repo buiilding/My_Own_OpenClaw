@@ -11,6 +11,7 @@ const {
   isTurnCompletedConversationStreamEvent,
   resolveConversationStreamEventConversationRef,
   resolveConversationStreamEventTurnRef,
+  shouldRecordTerminalCompletionTracking,
 } = DesktopChatStreamEventRuntime;
 
 type UseChatStreamCompletionHandlerOptions = {
@@ -40,17 +41,16 @@ export const useChatStreamCompletionHandler = ({
     }
     const resolvedConversationRef = conversationRef ?? resolveConversationStreamEventConversationRef(event);
     const workspace = useChatStore.getState().getWorkspaceState(resolvedConversationRef);
-    const shouldRecordTerminalTracking = (
-      workspace.streamTracking?.phase !== 'complete'
-      || workspace.isSending === true
-      || workspace.thinkingStatus !== null
-      || workspace.thinkingSourceEventType !== null
+    const eventTurnRef = resolveConversationStreamEventTurnRef(event);
+    const shouldRecordTerminalTracking = shouldRecordTerminalCompletionTracking(
+      workspace,
+      eventTurnRef,
     );
     setIsSending(false, resolvedConversationRef);
     setThinkingStatus(null, resolvedConversationRef);
     setThinkingSourceEventType(null, resolvedConversationRef);
     if (shouldRecordTerminalTracking) {
-      recordTrackingEvent('streaming-complete', resolveConversationStreamEventTurnRef(event), {
+      recordTrackingEvent('streaming-complete', eventTurnRef, {
         phase: 'complete',
       }, resolvedConversationRef);
     }

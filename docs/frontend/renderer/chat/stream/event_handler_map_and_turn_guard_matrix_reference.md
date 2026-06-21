@@ -124,7 +124,7 @@ Reason: `user_message` establishes turn/workspace state and seeds optimistic UI 
   - SDK `currentTurn.phase`: clear send/thinking state and record terminal `streaming-complete`/`error` tracking for `complete`/`error`
   - backend-owned synthetic tool calls projected by the SDK with `executionSkipped === true`: record the tool-call tracking event without clearing typing/thinking state as if an executable local-runtime tool started
 - `useChatStream` core handlers:
-  - `streaming-complete`: assistant message completion + optional transcript assistant write
+  - `streaming-complete`: assistant message completion + optional transcript assistant write; duplicate terminal tracking is gated by `DesktopChatStreamEventRuntime.shouldRecordTerminalCompletionTracking(...)` so raw `isSending` compatibility state does not own completion recording
   - transparency handlers: mutate existing user/assistant rows with metadata snapshots
 
 ## Drift Hotspots

@@ -25,6 +25,7 @@ const {
   resolveConversationStreamEventTurnRef,
   resolveConversationStreamEventTurnRefForUpdate,
   shouldIgnoreConversationEventForStaleTurn,
+  shouldRecordTerminalCompletionTracking,
 } = DesktopChatStreamEventRuntime;
 
 function createEvent(overrides: Record<string, unknown> = {}) {
@@ -167,6 +168,66 @@ describe('DesktopChatStreamEventRuntime', () => {
 
     expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(false);
     expect(shouldIgnore(createEvent({ turnRef: 'turn-unrelated' }), null)).toBe(true);
+  });
+
+  test('terminal completion tracking ignores duplicate complete with only stale raw sending', () => {
+    expect(shouldRecordTerminalCompletionTracking({
+      messages: [],
+      pendingTurn: null,
+      streamTracking: {
+        activeTurnRef: 'turn-old',
+        phase: 'complete',
+      },
+      isSending: true,
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    } as any, 'turn-old')).toBe(false);
+  });
+
+  test('terminal completion tracking records matching pending turn only', () => {
+    expect(shouldRecordTerminalCompletionTracking({
+      messages: [],
+      pendingTurn: pendingTurn('turn-new'),
+      streamTracking: {
+        activeTurnRef: 'turn-old',
+        phase: 'complete',
+      },
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    }, 'turn-new')).toBe(true);
+
+    expect(shouldRecordTerminalCompletionTracking({
+      messages: [],
+      pendingTurn: pendingTurn('turn-new'),
+      streamTracking: {
+        activeTurnRef: 'turn-old',
+        phase: 'complete',
+      },
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    }, 'turn-unrelated')).toBe(false);
+
+    expect(shouldRecordTerminalCompletionTracking({
+      messages: [],
+      pendingTurn: null,
+      streamTracking: {
+        activeTurnRef: 'turn-old',
+        phase: 'complete',
+      },
+      thinkingStatus: 'thinking',
+      thinkingSourceEventType: null,
+    } as any, 'turn-old')).toBe(false);
+  });
+
+  test('terminal completion tracking records non-complete stream phase', () => {
+    expect(shouldRecordTerminalCompletionTracking({
+      messages: [],
+      pendingTurn: null,
+      streamTracking: {
+        activeTurnRef: 'turn-old',
+        phase: 'streaming',
+      },
+    }, 'turn-old')).toBe(true);
   });
 
   test('classifies supported SDK conversation stream event types', () => {

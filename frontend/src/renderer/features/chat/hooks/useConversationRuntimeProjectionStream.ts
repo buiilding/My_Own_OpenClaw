@@ -67,6 +67,8 @@ export function useConversationRuntimeProjectionStream(): void {
       }
 
       setLatestCurrentTurnProjection(currentTurn);
+      // Check stale-turn status before current-turn storage can resolve pendingTurn.
+      const preProjectionWorkspace = useChatStore.getState().getWorkspaceState(conversationRef);
       setCurrentTurnProjection(currentTurn, conversationRef);
 
       const shouldSkipDerivedSideEffects = (
@@ -74,7 +76,7 @@ export function useConversationRuntimeProjectionStream(): void {
         && shouldIgnoreConversationEventForStaleTurn({
           turnRef: currentTurn.turnRef,
         }, conversationRef, {
-          getWorkspaceState: useChatStore.getState().getWorkspaceState,
+          getWorkspaceState: () => preProjectionWorkspace,
         })
       );
       logRendererCurrentTurnAppliedTrace({

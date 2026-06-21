@@ -12,11 +12,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: chat stream terminal re-anchor handoff now requires
-  incoming events to match renderer `pendingTurn.turnRef` in
-  `DesktopChatStreamTerminalHandoffRuntime`; raw `isSending=true` remains
-  compatibility/diagnostic state, and unrelated non-pending turn refs no
-  longer open stale-turn filtering exceptions after a previous terminal phase.
+- Latest completed slice: chat stream completion tracking now routes duplicate
+  terminal-recording decisions through
+  `DesktopChatStreamEventRuntime.shouldRecordTerminalCompletionTracking(...)`;
+  raw `isSending=true` remains compatibility/diagnostic state and no longer
+  records terminal tracking without a matching pending turn. SDK current-turn
+  projection side effects now run stale-turn checks against the pre-storage
+  workspace snapshot so projection storage cannot clear pending-turn handoff
+  evidence before the guard runs.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

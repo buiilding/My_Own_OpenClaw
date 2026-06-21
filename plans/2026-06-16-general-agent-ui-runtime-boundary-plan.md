@@ -9,6 +9,28 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Stream Completion Tracking Pending-Turn Gate
+
+- Finding: `useChatStreamCompletionHandler(...)` still used raw
+  `workspace.isSending === true` to decide whether a duplicate
+  `turn_completed` event should record terminal tracking after the stream phase
+  was already complete.
+- Change: `DesktopChatStreamEventRuntime` now owns
+  `shouldRecordTerminalCompletionTracking(...)`, which records terminal
+  completion when phase is not already complete or the event turn matches
+  renderer `pendingTurn.turnRef`. The completion hook no longer treats stale
+  raw `isSending` or stale thinking copy as a tracking authority. SDK
+  current-turn projection side effects also run stale-turn checks against the
+  pre-storage workspace snapshot so projection storage cannot clear
+  pending-turn handoff evidence before the guard runs.
+- Validation target: focused stream event runtime and renderer chat boundary
+  tests protect duplicate-completion suppression, matching pending-turn
+  completion, stale thinking-copy suppression, next-turn projection handoff,
+  and the feature hook's runtime facade usage.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Stream Terminal Handoff Pending-Turn Gate
 
 - Finding: `DesktopChatStreamTerminalHandoffRuntime` still treated raw

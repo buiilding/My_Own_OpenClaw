@@ -1420,6 +1420,7 @@ describe('useChatStream state + stream handling', () => {
 
     act(() => {
       useChatStore.setState({
+        activeConversationRef: 'conv-test',
         messages: [
           {
             id: 'assistant-old',
@@ -1437,6 +1438,14 @@ describe('useChatStream state + stream handling', () => {
           },
         ],
         isSending: true,
+        pendingTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-new',
+          userMessageId: 'user-new',
+          text: 'follow up',
+          timestamp: '2026-03-05T00:00:04.000Z',
+          attachmentFilenames: null,
+        },
         streamTracking: {
           activeTurnRef: 'turn-old',
           phase: 'complete',

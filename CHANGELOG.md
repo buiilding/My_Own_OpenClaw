@@ -68,6 +68,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route chat stream completion tracking decisions through
+  `DesktopChatStreamEventRuntime.shouldRecordTerminalCompletionTracking(...)`,
+  so stale raw `isSending=true` no longer records duplicate terminal tracking
+  without a matching pending turn; SDK current-turn projection side effects now
+  run stale-turn checks against the pre-storage workspace snapshot so
+  projection storage cannot clear `pendingTurn` before handoff. No migration
+  required.
 - frontend/renderer: require chat stream terminal re-anchor handoff events to
   match renderer `pendingTurn.turnRef`, so stale `isSending` and unrelated
   turn refs no longer open stale-turn filtering exceptions. No migration

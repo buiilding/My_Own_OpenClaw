@@ -180,6 +180,19 @@ Automatic updates:
 - SDK `currentTurn.phase='complete'` records `streaming-complete`, clears send/thinking state, and stamps completion timestamp when missing
 - SDK `currentTurn.phase='error'` records `error`, clears send/thinking state, stores `lastError`, and stamps completion timestamp when missing
 
+Duplicate SDK `turn_completed` events record terminal tracking only when
+`DesktopChatStreamEventRuntime.shouldRecordTerminalCompletionTracking(...)`
+finds that stream phase is not already complete or the event turn matches
+renderer `pendingTurn.turnRef`. Bare `isSending=true` and stale thinking copy
+are diagnostic compatibility state and do not record another terminal tracking
+event by themselves.
+
+SDK current-turn projection side effects run stale-turn checks against the
+workspace snapshot captured before `setCurrentTurnProjection(...)` stores the
+new projection. This preserves renderer pending-turn handoff evidence for the
+guard even when storing an authoritative same-turn projection clears
+`pendingTurn`.
+
 Dashboard/pill presentation note:
 
 - terminal `phase='complete'|'error'` still renders as `awaiting-reply` when a new send latch is already active and the current turn has no visible assistant reply yet; this prevents later turns from inheriting the previous turn's terminal phase and suppressing the awaiting indicator.

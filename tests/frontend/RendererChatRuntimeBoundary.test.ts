@@ -1377,8 +1377,13 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/chatStream/useChatStreamCompletionHandler.ts'),
       'utf8',
     );
+    const runtimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts'),
+      'utf8',
+    );
 
     expect(source).toContain('isTurnCompletedConversationStreamEvent');
+    expect(source).toContain('shouldRecordTerminalCompletionTracking');
     expect(source).not.toContain("event.type !== 'turn_completed'");
     expect(source).not.toContain('payload.rawEvent');
     expect(source).not.toContain('payload.sourceEvent');
@@ -1389,6 +1394,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('event.turnRef');
     expect(source).not.toContain('payload?.userId');
     expect(source).not.toContain('recordAssistantTranscriptMessage');
+    expect(source).not.toContain('workspace.isSending');
+    expect(runtimeSource).toContain('shouldRecordTerminalCompletionTracking');
+    expect(runtimeSource).not.toContain('export function shouldRecordTerminalCompletionTracking');
   });
 
   test('chat stream terminal telemetry does not own live response phase', async () => {

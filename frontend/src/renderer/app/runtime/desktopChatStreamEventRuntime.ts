@@ -43,6 +43,8 @@ type ConversationStreamEventIdentityEvent = {
   turnRef?: string | null;
 };
 
+type StreamCompletionWorkspace = StreamGuardWorkspace;
+
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
@@ -230,6 +232,21 @@ function shouldIgnoreConversationEventForStaleTurn(
   }, conversationRef, deps);
 }
 
+function shouldRecordTerminalCompletionTracking(
+  workspace: StreamCompletionWorkspace,
+  eventTurnRef: string | null | undefined,
+): boolean {
+  if (workspace.streamTracking?.phase !== 'complete') {
+    return true;
+  }
+  const normalizedEventTurnRef = normalizeTurnRef(eventTurnRef);
+  const normalizedPendingTurnRef = normalizeTurnRef(workspace.pendingTurn?.turnRef);
+  return (
+    normalizedEventTurnRef.length > 0
+    && normalizedEventTurnRef === normalizedPendingTurnRef
+  );
+}
+
 type UpdateStreamTracking = (
   updater: (current: any) => any,
   conversationRef?: string | null,
@@ -270,5 +287,6 @@ export const DesktopChatStreamEventRuntime = Object.freeze({
   isTurnErrorConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
   shouldIgnoreConversationEventForStaleTurn,
+  shouldRecordTerminalCompletionTracking,
   recordTrackingEvent,
 });
