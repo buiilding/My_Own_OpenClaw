@@ -1,4 +1,4 @@
-"""Covers stdout json behavior in the sidecar test suite."""
+"""Covers local-runtime stdout JSON framing behavior."""
 
 import pytest
 

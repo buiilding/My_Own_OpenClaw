@@ -1,4 +1,4 @@
-"""Covers feature pack installer behavior in the sidecar test suite."""
+"""Covers local-runtime feature pack installer behavior."""
 
 from pathlib import Path
 

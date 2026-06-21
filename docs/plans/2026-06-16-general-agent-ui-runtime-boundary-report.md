@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: local-runtime executable tool Python tests now use
-  local-runtime tool docstrings and registry drift copy instead of
-  sidecar-suite/sidecar-registry wording, with focused guard coverage
-  preventing those active tool headers from returning.
+- Latest completed slice: local-runtime core/protocol Python tests now use
+  local-runtime JSON-RPC/stdout/daemon/helper docstrings instead of
+  sidecar-suite wording, with focused guard coverage preventing those active
+  support-test headers from returning.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -56,14 +56,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
   Local-runtime Python service/browser registry/bootstrap,
-  memory/conversation, and executable tool tests use owner-correct
-  local-runtime service, tool-helper, bootstrap, memory, conversation, and tool
-  labels while preserving real `local_backend.py`, `sidecar_daemon.py`, and
-  `tests/sidecar` implementation paths. Agent SDK local-runtime provider and
-  tool-coordinator tests use neutral `AGENT_TEST_*` launch env,
-  launch-context, daemon, tool-execution failure/unavailable, error, and
-  conversation fixtures while real Windie compatibility env aliases remain
-  explicitly covered by
+  memory/conversation, executable tool, and core/protocol tests use
+  owner-correct local-runtime service, tool-helper, bootstrap, memory,
+  conversation, tool, JSON-RPC, stdout, daemon, and helper labels while
+  preserving real `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar`
+  implementation paths. Agent SDK local-runtime provider and tool-coordinator
+  tests use neutral `AGENT_TEST_*` launch env, launch-context, daemon,
+  tool-execution failure/unavailable, error, and conversation fixtures while
+  real Windie compatibility env aliases remain explicitly covered by
   `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
   Generic local-runtime bridge screenshot tests preserve retired namespace
   rejection coverage while avoiding direct legacy WindieOS screenshot temp
@@ -634,6 +634,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Local-Runtime Core Protocol Test Label Boundary
+
+- Finding: active local-runtime Python core/protocol tests still introduced
+  JSON-RPC, stdout framing, daemon lifecycle, env flag, executor, feature-pack,
+  filesystem utility, thread-pool, and Unicode sanitizer coverage as sidecar
+  test-suite behavior even though those surfaces are local-runtime support
+  contracts behind Electron/SDK adapters.
+- Change: renamed those active module docstrings to local-runtime
+  core/protocol/helper wording and added a focused JSON-RPC protocol guard for
+  the exact active support-test headers while preserving real
+  `sidecar_daemon.py` implementation references.
+- Validation: focused local-runtime core/protocol pytest coverage, exact stale
+  core/protocol test-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Runtime code, JSON-RPC
+  envelopes, stdout framing, daemon entrypoint/discovery, env aliases, feature
+  pack install paths, IPC, storage, credentials, and trust boundaries are
+  unchanged.
 
 ### 2026-06-21 Local-Runtime Tool Test Label Boundary
 

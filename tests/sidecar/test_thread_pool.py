@@ -1,4 +1,4 @@
-"""Covers thread pool behavior in the sidecar test suite."""
+"""Covers local-runtime thread pool behavior."""
 
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 

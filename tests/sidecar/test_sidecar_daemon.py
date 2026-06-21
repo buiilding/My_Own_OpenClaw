@@ -1,4 +1,4 @@
-"""Covers sidecar daemon behavior in the sidecar test suite."""
+"""Covers local-runtime daemon lifecycle behavior."""
 
 import asyncio
 import json

@@ -1,4 +1,6 @@
-"""Covers json rpc protocol behavior in the sidecar test suite."""
+"""Covers local-runtime JSON-RPC protocol behavior."""
+
+from pathlib import Path
 
 import pytest
 
@@ -8,6 +10,40 @@ ensure_frontend_python_path()
 
 import core.ipc_protocol as ipc_protocol_module  # noqa: E402
 from core.ipc_protocol import JSONRPCError, JSONRPCProtocol  # noqa: E402
+
+
+LOCAL_RUNTIME_CORE_TEST_LABEL_PATHS = [
+    "test_env_flags.py",
+    "test_feature_pack_installer.py",
+    "test_file_utils.py",
+    "test_executors.py",
+    "test_json_rpc_protocol.py",
+    "test_stdout_json.py",
+    "test_sidecar_daemon.py",
+    "test_thread_pool.py",
+    "test_unicode_sanitizer.py",
+]
+
+
+def test_local_runtime_core_tests_use_boundary_docstrings():
+    test_dir = Path(__file__).parent
+    retired_suite_label = "behavior in the " + "sidecar test suite"
+    expected_headers = {
+        "test_env_flags.py": '"""Covers local-runtime environment flag behavior."""',
+        "test_feature_pack_installer.py": '"""Covers local-runtime feature pack installer behavior."""',
+        "test_file_utils.py": '"""Covers local-runtime filesystem utility behavior."""',
+        "test_executors.py": '"""Covers local-runtime executor behavior."""',
+        "test_json_rpc_protocol.py": '"""Covers local-runtime JSON-RPC protocol behavior."""',
+        "test_stdout_json.py": '"""Covers local-runtime stdout JSON framing behavior."""',
+        "test_sidecar_daemon.py": '"""Covers local-runtime daemon lifecycle behavior."""',
+        "test_thread_pool.py": '"""Covers local-runtime thread pool behavior."""',
+        "test_unicode_sanitizer.py": '"""Covers local-runtime Unicode sanitizer behavior."""',
+    }
+
+    for name in LOCAL_RUNTIME_CORE_TEST_LABEL_PATHS:
+        source = (test_dir / name).read_text(encoding="utf-8")
+        assert source.splitlines()[0] == expected_headers[name]
+        assert retired_suite_label not in source
 
 
 @pytest.mark.asyncio

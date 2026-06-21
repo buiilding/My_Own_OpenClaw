@@ -1,4 +1,4 @@
-"""Covers env flags behavior in the sidecar test suite."""
+"""Covers local-runtime environment flag behavior."""
 
 import ast
 from pathlib import Path

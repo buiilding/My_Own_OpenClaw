@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Core Protocol Test Label Boundary
+
+- Finding: active local-runtime Python core/protocol tests still introduced
+  JSON-RPC, stdout framing, daemon lifecycle, env flag, executor, feature-pack,
+  filesystem utility, thread-pool, and Unicode sanitizer coverage as sidecar
+  test-suite behavior even though those surfaces are local-runtime support
+  contracts behind Electron/SDK adapters.
+- Change: renamed those active module docstrings to local-runtime
+  core/protocol/helper wording and added a focused JSON-RPC protocol guard for
+  the exact active support-test headers while preserving real
+  `sidecar_daemon.py` implementation references.
+- Validation: focused local-runtime core/protocol pytest coverage, exact stale
+  core/protocol test-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Runtime code, JSON-RPC
+  envelopes, stdout framing, daemon entrypoint/discovery, env aliases, feature
+  pack install paths, IPC, storage, credentials, and trust boundaries are
+  unchanged.
+
 ### 2026-06-21 Local-Runtime Tool Test Label Boundary
 
 - Finding: active local-runtime executable tool tests still introduced their

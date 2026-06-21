@@ -1,4 +1,4 @@
-"""Covers file utils behavior in the sidecar test suite."""
+"""Covers local-runtime filesystem utility behavior."""
 
 import sys
 import builtins
