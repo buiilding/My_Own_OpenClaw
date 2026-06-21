@@ -116,6 +116,9 @@ Rules:
 - Invalid control JSON or malformed binary frames should not crash the route.
 - Preserve cleanup so microphone capture stops on disconnect, cancel, and unmount.
 - Keep dictated text reconciliation scoped to the active transcription region.
+- Keep renderer voice trace logging routed through
+  `DesktopVoiceDebugTraceRuntime.logVoiceDebugTrace(...)` so hooks do not parse
+  `debug_voice=1` or emit raw trace logs directly.
 
 ## TTS Playback Changes
 

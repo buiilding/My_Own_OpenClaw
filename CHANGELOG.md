@@ -122,6 +122,10 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopDevUiRuntime` instead of a standalone `isDevUiEnabled()` export,
   keeping dev-only chat controls and source badges behind the renderer
   app-runtime facade. No migration required.
+- frontend/renderer: expose gated voice lifecycle tracing through
+  `DesktopVoiceDebugTraceRuntime` instead of a standalone
+  `logVoiceDebugTrace()` export, keeping `debug_voice=1` parsing and trace
+  emission behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

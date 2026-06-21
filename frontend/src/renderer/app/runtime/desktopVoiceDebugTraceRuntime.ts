@@ -12,9 +12,13 @@ function isVoiceDebugTraceEnabled(): boolean {
   return params.get('debug_voice') === '1';
 }
 
-export function logVoiceDebugTrace(stage: string, details: VoiceTraceDetails = {}): void {
+function logVoiceDebugTrace(stage: string, details: VoiceTraceDetails = {}): void {
   if (!isVoiceDebugTraceEnabled()) {
     return;
   }
   console.log(`[VoiceTrace][renderer][${stage}]`, details);
 }
+
+export const DesktopVoiceDebugTraceRuntime = Object.freeze({
+  logVoiceDebugTrace,
+});

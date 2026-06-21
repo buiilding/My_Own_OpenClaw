@@ -158,15 +158,22 @@ describe('renderer voice runtime boundary', () => {
       '../../frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts',
       '../../frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts',
     ];
+    const debugTraceRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVoiceDebugTraceRuntime.ts'),
+      'utf8',
+    );
 
     for (const hookPath of hookPaths) {
       const source = await fs.readFile(path.resolve(__dirname, hookPath), 'utf8');
 
       expect(source).toContain('logVoiceDebugTrace');
+      expect(source).toContain('DesktopVoiceDebugTraceRuntime');
       expect(source).toContain('desktopVoiceDebugTraceRuntime');
       expect(source).not.toContain('../utils/voiceDebugTrace');
       expect(source).not.toContain('console.log(');
     }
+    expect(debugTraceRuntimeSource).toContain('export const DesktopVoiceDebugTraceRuntime = Object.freeze');
+    expect(debugTraceRuntimeSource).not.toContain('export function logVoiceDebugTrace');
   });
 
   test('wakeword hooks consume app-runtime wakeword helpers', async () => {

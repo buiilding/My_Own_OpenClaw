@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Voice Debug Trace Facade
+
+- Finding: `desktopVoiceDebugTraceRuntime.ts` already owned the renderer
+  `debug_voice=1` query flag and gated voice lifecycle trace emission, but
+  still exported `logVoiceDebugTrace()` as a standalone helper.
+- Change: made the helper private to the runtime module, exposed it through
+  `DesktopVoiceDebugTraceRuntime`, and routed voice mode, wakeword detection,
+  wakeword bridge events, voice boundary coverage, and voice docs through that
+  facade.
+- Validation: focused voice mode, wakeword detection, renderer voice boundary,
+  exact standalone voice-debug helper export/import scan, docs list, and diff
+  hygiene.
+- Compatibility/security: no migration required. The `debug_voice=1` query
+  flag, trace payloads, gated `console.log` behavior, wakeword and dictation
+  transports, storage, credentials, provider policy, hosted backend URLs, and
+  local execution trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Dev UI Runtime Facade
 
 - Finding: `desktopDevUiRuntime.js` already owned the renderer-only `dev_ui=1`

@@ -5,7 +5,9 @@
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
 import { DesktopWakewordEventRuntime } from '../../../app/runtime/desktopWakewordEventRuntime';
-import { logVoiceDebugTrace } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
+import { DesktopVoiceDebugTraceRuntime } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
+
+const { logVoiceDebugTrace } = DesktopVoiceDebugTraceRuntime;
 
 type WakewordDetectionPayload = {
   model: string;

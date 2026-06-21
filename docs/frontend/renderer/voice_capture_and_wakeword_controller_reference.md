@@ -102,6 +102,11 @@ Hook lifecycle:
    the session-end callback and sends `{"type":"start_over"}`
 6. disable/unmount -> stop audio capture + close socket + clear reconnect timers
 
+Voice and wakeword lifecycle trace breadcrumbs go through
+`DesktopVoiceDebugTraceRuntime.logVoiceDebugTrace(...)`, which gates
+`console.log` output behind the `debug_voice=1` query flag so hook code does
+not own debug flag parsing or raw trace emission directly.
+
 While enabled, a current non-closed WebSocket covers both `CONNECTING` and
 `OPEN` states. Re-renders must not replace an in-flight connection attempt; the
 first socket owns its eventual `onopen`, language payload, close, and reconnect

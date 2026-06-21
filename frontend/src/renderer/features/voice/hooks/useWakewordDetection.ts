@@ -8,7 +8,7 @@ import { DesktopVoiceAudioEncodingRuntime } from '../../../app/runtime/desktopVo
 import { DesktopVoiceAudioCaptureCleanupRuntime } from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
 import { createAudioCaptureProcessorNode } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import { DesktopWakewordEventRuntime } from '../../../app/runtime/desktopWakewordEventRuntime';
-import { logVoiceDebugTrace } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
+import { DesktopVoiceDebugTraceRuntime } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
 import { DesktopWakewordCaptureGuardRuntime } from '../../../app/runtime/desktopWakewordCaptureGuardRuntime';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
@@ -25,6 +25,7 @@ const {
   hasAvailableAudioInputDevice,
   isMissingAudioDeviceError,
 } = DesktopWakewordCaptureGuardRuntime;
+const { logVoiceDebugTrace } = DesktopVoiceDebugTraceRuntime;
 
 const WAKEWORD_COOLDOWN_MS = 2000;
 const CAPTURE_RETRY_DELAY_MS = 3000;
