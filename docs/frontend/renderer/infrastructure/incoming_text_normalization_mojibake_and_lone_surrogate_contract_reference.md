@@ -12,7 +12,7 @@ title: "Incoming Text Normalization Contract Reference"
 
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`
-- `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `tests/frontend/IncomingTextNormalization.test.ts`
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`
 
@@ -80,10 +80,11 @@ This avoids invalid UTF-16 payload propagation while preserving valid non-BMP ch
 
 ### Transcript session-sync payload parsing
 
-`sessionSyncPayload.ts` uses `normalizeOptionalIncomingText(...)` for:
+`transcriptSessionRuntime.ts` uses `normalizeOptionalIncomingText(...)` for
+its private transcript session-sync parser:
 
-- `conversationRef|conversation_ref`
-- `userId|user_id`
+- `conversationRef`
+- `userId`
 
 Whitespace-only values collapse to `null`; omitted keys remain `undefined` for partial-update semantics.
 

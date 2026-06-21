@@ -1,65 +1,126 @@
 /**
- * Covers transcript session sync payload. behavior in the frontend test suite.
+ * Covers transcript session sync payload behavior through the renderer runtime.
  */
 
-import { extractTranscriptSessionSyncPayload } from '../../frontend/src/renderer/infrastructure/transcript/sessionSyncPayload';
+jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
+  IpcBridge: {
+    on: jest.fn(),
+    send: jest.fn(),
+  },
+  ON_CHANNELS: {
+    TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
+  },
+  SEND_CHANNELS: {
+    TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
+  },
+}));
 
-describe('extractTranscriptSessionSyncPayload', () => {
-  test('returns null for non-object payloads', () => {
-    expect(extractTranscriptSessionSyncPayload(null)).toBeNull();
-    expect(extractTranscriptSessionSyncPayload('abc')).toBeNull();
-    expect(extractTranscriptSessionSyncPayload([])).toBeNull();
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/sessionInfoStorage', () => ({
+  emitSessionUpdateEvent: jest.fn(),
+  persistSessionInfoToStorage: jest.fn(),
+  readSessionInfoFromStorage: jest.fn(() => ({ conversationRef: null, userId: null })),
+}));
+
+import * as TranscriptSessionRuntimeModule from '../../frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime';
+import { createTranscriptSessionRuntime } from '../../frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime';
+import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { readSessionInfoFromStorage } from '../../frontend/src/renderer/infrastructure/transcript/sessionInfoStorage';
+
+function createRuntimeAndHandler() {
+  const runtime = createTranscriptSessionRuntime();
+  const handler = (IpcBridge.on as jest.Mock).mock.calls[0]?.[1];
+  expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.TRANSCRIPT_SESSION_SYNC, expect.any(Function));
+  return { runtime, handler };
+}
+
+describe('transcript session sync payload handling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (readSessionInfoFromStorage as jest.Mock).mockReturnValue({ conversationRef: null, userId: null });
+  });
+
+  test('keeps the raw transcript session sync parser private to the runtime', () => {
+    expect(TranscriptSessionRuntimeModule).not.toHaveProperty('extractTranscriptSessionSyncPayload');
+  });
+
+  test('ignores non-object payloads', () => {
+    const { runtime, handler } = createRuntimeAndHandler();
+
+    handler(null);
+    handler('abc');
+    handler([]);
+
+    expect(runtime.getTranscriptSessionInfo()).toEqual({ conversationRef: null, userId: null });
   });
 
   test('extracts camelCase conversation and user identifiers', () => {
-    expect(extractTranscriptSessionSyncPayload({
+    const { runtime, handler } = createRuntimeAndHandler();
+
+    handler({
       conversationRef: ' conv-1 ',
       userId: ' user-1 ',
-    })).toEqual({
+    });
+
+    expect(runtime.getTranscriptSessionInfo()).toEqual({
       conversationRef: 'conv-1',
       userId: 'user-1',
     });
+    expect(IpcBridge.send).not.toHaveBeenCalled();
   });
 
   test('rejects snake_case conversation and user aliases', () => {
-    expect(() => extractTranscriptSessionSyncPayload({
+    const { runtime, handler } = createRuntimeAndHandler();
+
+    expect(() => handler({
       conversation_ref: 'conv-2',
       user_id: 'user-2',
     })).toThrow(
       'Transcript session sync payloads must use conversationRef and userId; conversation_ref and user_id are not supported.',
     );
+    expect(runtime.getTranscriptSessionInfo()).toEqual({ conversationRef: null, userId: null });
   });
 
   test('rejects session aliases because conversationRef owns chat identity', () => {
-    expect(() => extractTranscriptSessionSyncPayload({
+    const { runtime, handler } = createRuntimeAndHandler();
+
+    expect(() => handler({
       session_id: 'session-2',
       sessionId: 'session-3',
     })).toThrow(
       'Transcript session sync payloads must use conversationRef; sessionId and session_id are not supported.',
     );
+    expect(runtime.getTranscriptSessionInfo()).toEqual({ conversationRef: null, userId: null });
   });
 
   test('rejects session aliases even when canonical fields are present', () => {
-    expect(() => extractTranscriptSessionSyncPayload({
+    const { runtime, handler } = createRuntimeAndHandler();
+
+    expect(() => handler({
       conversationRef: 'conv-2',
       sessionId: 'session-2',
       userId: 'user-2',
     })).toThrow(
       'Transcript session sync payloads must use conversationRef; sessionId and session_id are not supported.',
     );
+    expect(runtime.getTranscriptSessionInfo()).toEqual({ conversationRef: null, userId: null });
   });
 
   test('supports partial payload updates', () => {
-    expect(extractTranscriptSessionSyncPayload({
+    const { runtime, handler } = createRuntimeAndHandler();
+
+    handler({
       conversationRef: 'conv-3',
-    })).toEqual({
-      conversationRef: 'conv-3',
-      userId: undefined,
     });
-    expect(extractTranscriptSessionSyncPayload({
+    expect(runtime.getTranscriptSessionInfo()).toEqual({
+      conversationRef: 'conv-3',
+      userId: null,
+    });
+
+    handler({
       userId: 'user-3',
-    })).toEqual({
-      conversationRef: undefined,
+    });
+    expect(runtime.getTranscriptSessionInfo()).toEqual({
+      conversationRef: 'conv-3',
       userId: 'user-3',
     });
   });

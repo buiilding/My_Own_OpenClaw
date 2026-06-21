@@ -20,7 +20,7 @@ title: "Frontend Renderer Transcript Contracts Docs Hub"
 ## Code Scope
 
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
-- `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`

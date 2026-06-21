@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for transcript-session-sync payload parsing: conversationRef identity keys, whitespace/null normalization, and partial-update semantics consumed by the desktop transcript session runtime."
 read_when:
-  - When changing `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts` or transcript-session sync message formats.
+  - When changing the private transcript-session sync parser in `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts` or transcript-session sync message formats.
   - When debugging renderer/main transcript session drift caused by payload keys, whitespace-only identifiers, or partial update packets.
 title: "Transcript Session Sync Payload Normalization Contract Reference"
 ---
@@ -10,7 +10,6 @@ title: "Transcript Session Sync Payload Normalization Contract Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`
@@ -19,7 +18,10 @@ title: "Transcript Session Sync Payload Normalization Contract Reference"
 
 ## Ownership Boundary
 
-`extractTranscriptSessionSyncPayload(payload)` is the normalization boundary for inbound `transcript-session-sync` packets consumed by the desktop transcript session runtime.
+The private `extractTranscriptSessionSyncPayload(payload)` parser inside
+`transcriptSessionRuntime.ts` is the normalization boundary for inbound
+`transcript-session-sync` packets consumed by the desktop transcript session
+runtime.
 
 It does not persist state; it only parses and normalizes external payload shape into:
 
@@ -30,25 +32,25 @@ The session runtime then applies the normalized fields through `applyTranscriptS
 
 ## Accepted Identity Keys
 
-Conversation identity keys (first-present resolution order):
+Conversation identity key:
 
-1. `conversationRef`
-2. `conversation_ref`
+- `conversationRef`
 
-User identity keys:
+User identity key:
 
 - `userId`
-- `user_id`
 
 If neither conversation nor user key is present, function returns `null` (ignore packet).
 
-Removed session identity keys are rejected:
+Removed session identity and backend transport keys are rejected:
 
 - `sessionId`
 - `session_id`
+- `conversation_ref`
+- `user_id`
 
-These keys belong to hosted backend runtime session context, not durable transcript
-conversation identity.
+These keys belong to hosted backend runtime session context or backend query
+transport envelopes, not durable transcript conversation identity.
 
 ## Payload-Type Gate
 
@@ -91,13 +93,16 @@ The transcript session runtime merges these via session-state update rules, pres
 
 ## Test-Locked Invariants
 
-`tests/frontend/TranscriptSessionSyncPayload.test.ts` locks:
+`tests/frontend/TranscriptSessionSyncPayload.test.ts` locks the behavior through
+the runtime's subscribed `transcript-session-sync` handler:
 
 - rejection of non-object payloads
 - camelCase extraction and trim behavior
-- snake_case conversation/user key support
+- fail-fast rejection of `conversation_ref`/`user_id` because backend transport
+  aliases are not accepted on the renderer sync channel
 - fail-fast rejection of `sessionId`/`session_id` because `conversationRef` owns chat identity
-- partial update output shape with `undefined` missing field
+- partial update merge behavior where omitted fields preserve current runtime state
+- private parser ownership inside `transcriptSessionRuntime.ts`
 
 `tests/frontend/TranscriptSessionState.test.ts` and the app runtime tests lock integration behavior:
 

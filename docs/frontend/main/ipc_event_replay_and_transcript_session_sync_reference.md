@@ -16,7 +16,7 @@ title: "IPC Event Replay and Transcript Session Sync Reference"
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
-- `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 
 ## Turn-Scoped Event Replay Contract
@@ -134,11 +134,11 @@ Main update behavior:
   `conversationRef` or `userId` fields do not turn into clears
 - rebroadcast excludes sender window (`broadcastToRenderers(..., sourceWebContents)`)
 
-### Renderer normalization (`extractTranscriptSessionSyncPayload`)
+### Renderer normalization (`transcriptSessionRuntime.ts`)
 
 Renderer accepts the same camelCase keys, rejects the same removed session
 identity and snake_case sync alias keys, and applies the same normalization
-semantics before calling:
+semantics through the private transcript sync parser before calling:
 
 - `applyTranscriptSessionUpdate(conversationRef, userId, { syncToMainProcess: false })`
 

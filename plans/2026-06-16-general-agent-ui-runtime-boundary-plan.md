@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Transcript Sync Parser Privacy
+
+- Finding: `sessionSyncPayload.ts` exported the raw
+  `extractTranscriptSessionSyncPayload(...)` parser even though production
+  packets only flow through the renderer transcript session runtime's
+  `transcript-session-sync` subscription.
+- Change: moved the parser into `transcriptSessionRuntime.ts`, deleted the
+  standalone parser module, and rewrote the focused transcript sync tests to
+  exercise normalization through the runtime subscription. Extended the renderer
+  app-runtime boundary guard so the raw parser stays private.
+- Validation: focused transcript sync and renderer app-runtime boundary tests,
+  exact stale parser-module/export scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. `transcript-session-sync`
+  channel names, camelCase payload rules, removed-key rejection, session storage
+  behavior, outbound rebroadcast suppression, permissions, credentials, hosted
+  backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Audio Parser Privacy
 
 - Finding: `desktopAudioRuntimeClient.ts` already owned raw `audio-chunk` IPC

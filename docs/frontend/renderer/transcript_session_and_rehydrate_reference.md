@@ -24,7 +24,6 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
-- `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
@@ -66,7 +65,9 @@ Session info is persisted/emitted only when changed:
 - writes to `sessionStorage`
 - dispatches browser event `transcript-session-update`
 - sends IPC event `transcript-session-sync` so main process session snapshots track renderer transcript identity
-- inbound `transcript-session-sync` packets are normalized by `extractTranscriptSessionSyncPayload(...)` before state updates:
+- inbound `transcript-session-sync` packets are normalized by the private
+  `extractTranscriptSessionSyncPayload(...)` parser inside
+  `transcriptSessionRuntime.ts` before state updates:
   - accepts first-class identity keys (`conversationRef`, `userId`)
   - rejects removed snake_case sync aliases (`conversation_ref`, `user_id`);
     those keys belong to backend query transport envelopes

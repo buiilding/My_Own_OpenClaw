@@ -989,6 +989,19 @@ describe('renderer app runtime boundary', () => {
     expect(sessionClientSource).not.toContain('features/chat/session/conversationSessionRuntime');
   });
 
+  test('transcript session sync parsing stays private to the transcript runtime', async () => {
+    const transcriptRuntimeSource = await fs.readFile(
+      path.join(rendererRoot, 'infrastructure/transcript/transcriptSessionRuntime.ts'),
+      'utf8',
+    );
+
+    expect(transcriptRuntimeSource).toContain('const extractTranscriptSessionSyncPayload');
+    expect(transcriptRuntimeSource).not.toContain('export const extractTranscriptSessionSyncPayload');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'infrastructure/transcript/sessionSyncPayload.ts'),
+    )).rejects.toThrow();
+  });
+
   test('chat provider reads transcript session info through app runtime client', async () => {
     const providerSource = await fs.readFile(
       path.join(appRoot, 'providers/ChatProvider.jsx'),
