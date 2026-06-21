@@ -114,6 +114,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep local-runtime readiness snapshot parsing private to
   the local-runtime status client while preserving public readiness methods. No
   migration required.
+- frontend/renderer: keep memory admin user-id normalization private to the
+  memory runtime client while preserving the public client method used by memory
+  settings actions. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

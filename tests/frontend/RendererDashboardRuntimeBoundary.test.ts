@@ -187,11 +187,17 @@ describe('renderer dashboard runtime boundary', () => {
       path.join(dashboardRoot, 'components/sections/settings/useMemorySettingsActions.js'),
       'utf8',
     );
+    const memoryRuntimeSource = await fs.readFile(
+      path.join(repoRoot, 'frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts'),
+      'utf8',
+    );
 
     expect(offenders).toEqual([]);
     expect(memoryActionsSource).toContain('useDesktopTranscriptSessionInfo');
     expect(memoryActionsSource).toContain('app/runtime/desktopTranscriptSessionInfoRuntimeClient');
     expect(memoryActionsSource).toContain('DesktopMemoryRuntimeClient.resolveMemoryAdminUserId');
     expect(memoryActionsSource).not.toContain("userId === 'default_user'");
+    expect(memoryRuntimeSource).toContain('function resolveMemoryAdminUserId');
+    expect(memoryRuntimeSource).not.toContain('export function resolveMemoryAdminUserId');
   });
 });

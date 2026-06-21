@@ -33,7 +33,7 @@ async function listMemories(type: MemoryKind, limit: number): Promise<unknown[]>
   return Array.isArray(data?.memories) ? data.memories : [];
 }
 
-export function resolveMemoryAdminUserId(sessionInfo: unknown): string | null {
+function resolveMemoryAdminUserId(sessionInfo: unknown): string | null {
   const userId = textOrEmpty(recordOrEmpty(sessionInfo).userId);
   return userId && userId !== 'default_user' ? userId : null;
 }

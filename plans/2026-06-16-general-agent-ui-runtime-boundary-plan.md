@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Memory Admin User Helper Privacy
+
+- Finding: `DesktopMemoryRuntimeClient` already exposed
+  `resolveMemoryAdminUserId(...)` as a client method for memory settings
+  actions, but also exported the raw helper directly for focused tests.
+- Change: made the memory admin user-id normalizer private to the memory runtime
+  client while preserving the public client method used by dashboard memory
+  settings actions.
+- Validation: focused memory runtime client and renderer dashboard boundary
+  tests, exact raw-helper export scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Memory list/delete/clear SDK
+  commands, chat-history clearing user-id behavior, memory-store subscriptions,
+  transcript session lookup, local memory storage, permissions, credentials,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Local-Runtime Status Predicate Privacy
 
 - Finding: `DesktopLocalRuntimeStatusRuntimeClient` already owned raw
