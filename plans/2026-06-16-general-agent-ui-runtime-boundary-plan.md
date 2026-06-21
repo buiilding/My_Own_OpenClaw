@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Generated Built-In Tool Manifest Parity Refresh
+
+- Finding: broader sidecar validation exposed generated Electron manifest drift:
+  the browser executable schema artifact still carried an explicit
+  `output_schema.additionalProperties` field and integer numeric bounds while
+  the local-runtime Python manifest source no longer did.
+- Change: regenerated `frontend/src/main/generated/builtin_tool_manifest.json`
+  from the sidecar manifest source through the repo generator.
+- Validation: sidecar tool manifest parity tests, browser schema tests, frontend
+  tool manifest tests, docs list, and diff check.
+- Compatibility: no migration required. Omitting `additionalProperties` on the
+  `output_schema` object keeps arbitrary JSON-schema hints allowed by default;
+  browser action names, executable fields, schema roles, storage, credentials,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Sidecar Retired Copy Guard Cleanup
 
 - Finding: sidecar local-runtime tests preserved retired WindieOS workspace,

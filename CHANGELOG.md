@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: regenerate the built-in local-runtime tool manifest from the
+  sidecar source so the Electron artifact matches the current browser
+  `output_schema` executable contract. No migration required.
 - tests/sidecar: build retired local-runtime product-copy guards from split
   literals so sidecar tests do not carry direct WindieOS workspace, backend,
   sidecar, permission, user-data, or wakeword phrases. No migration required.

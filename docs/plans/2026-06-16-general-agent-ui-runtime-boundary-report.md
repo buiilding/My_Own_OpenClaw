@@ -11,11 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `378bedf1e` (`test(frontend): neutralize boundary copy guards`)
-- Latest completed slice: sidecar local-runtime tests now build retired
-  product-specific copy guards from split literals instead of carrying direct
-  WindieOS workspace, backend, sidecar, permission, user-data, or wakeword
-  phrases.
+- Latest inspected plan checkpoint: `187a2f2f5` (`test(sidecar): neutralize retired copy guards`)
+- Latest completed slice: the generated Electron built-in local-runtime tool
+  manifest now matches the current sidecar browser executable schema for
+  `output_schema` and numeric browser fields.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -79,6 +78,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic sidecar local-runtime tests keep retired workspace, backend, sidecar,
   permission, user-data, and wakeword copy regression guards without storing
   those old WindieOS phrases as direct literals.
+  The generated Electron built-in tool manifest matches the sidecar manifest
+  source for browser `output_schema` and numeric field normalization.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
