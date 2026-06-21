@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: rename direct wake-up adapter backend-event unsubscribe
+  bookkeeping to SDK backend-event subscription wording while preserving the
+  `subscribeRawBackendEvents` SDK hook. No migration required.
 - backend/docs: align app-assembly and runtime route-surface references with
   the live `API_ROUTERS` order and add a guard so documented router order
   cannot drift from the backend source tuple. No migration required.

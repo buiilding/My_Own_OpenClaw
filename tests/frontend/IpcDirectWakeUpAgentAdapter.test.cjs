@@ -40,10 +40,10 @@ function createAgent(runtimeFactory = () => createRuntime()) {
       return runtime;
     }),
     subscribeRawBackendEvents: jest.fn((handler) => {
-      agent.rawBackendHandler = handler;
-      return agent.detachRawBackendEvents;
+      agent.sdkBackendEventHandler = handler;
+      return agent.detachBackendEventSubscription;
     }),
-    detachRawBackendEvents: jest.fn(),
+    detachBackendEventSubscription: jest.fn(),
     updateSettings: jest.fn(async () => ({ updated: true })),
     requestModelList: jest.fn(async () => ['model-1']),
     listMemories: jest.fn(async () => []),
@@ -273,7 +273,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     expect(runtimes['conv-keep'].close).toHaveBeenCalled();
   });
 
-  test('forwards raw backend events and detaches subscriptions on close', () => {
+  test('forwards SDK backend events and detaches subscriptions on close', () => {
     const runtime = createRuntime();
     const agent = createAgent(() => runtime);
     const deps = createDeps();
@@ -283,11 +283,11 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       deps,
     });
 
-    agent.rawBackendHandler({ type: 'backend-event' });
+    agent.sdkBackendEventHandler({ type: 'backend-event' });
     adapter.close();
 
     expect(deps.handleAgentBackendEvent).toHaveBeenCalledWith({ type: 'backend-event' });
-    expect(agent.detachRawBackendEvents).toHaveBeenCalled();
+    expect(agent.detachBackendEventSubscription).toHaveBeenCalled();
     expect(runtime.detachRuntimeEvents).toHaveBeenCalled();
     expect(runtime.close).toHaveBeenCalled();
     expect(agent.sleep).toHaveBeenCalled();

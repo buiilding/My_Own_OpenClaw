@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: backend app-assembly/runtime docs now mirror the
-  live `API_ROUTERS` tuple order for auth, websocket, transcription, runs,
-  artifacts, SDK, embeddings, and semantic routers, with a guard that parses
-  the source tuple and keeps route-surface docs aligned.
+- Latest completed slice: Electron main direct wake-up adapter backend-event
+  unsubscribe bookkeeping now uses SDK backend-event subscription wording while
+  preserving the explicit SDK `subscribeRawBackendEvents(...)` hook.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

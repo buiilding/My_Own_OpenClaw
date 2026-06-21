@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Direct Wake Adapter Backend-Event Subscription Naming
+
+- Finding: the Electron main direct wake-up adapter consumed the SDK
+  `subscribeRawBackendEvents(...)` debug hook correctly, but its local
+  unsubscribe variable and focused test wording repeated "raw backend" as a
+  main-process bookkeeping concept.
+- Change: renamed the main adapter unsubscribe handle to
+  `detachBackendEventSubscription`, updated the focused mock/test wording to
+  "SDK backend events," and left the SDK method name unchanged as the explicit
+  SDK hook being consumed.
+- Validation: focused direct wake-up adapter tests, main host-skin boundary
+  tests, stale local variable scans, docs listing, and diff checks.
+- Compatibility/security: no migration required. SDK backend-event
+  subscription behavior, renderer fan-out, replay/overlay processing, hosted
+  backend transport, local-runtime execution, IPC channels, credentials,
+  storage, and provider policy are unchanged.
+
 ### 2026-06-21 Backend Route Registration Surface Docs Guard
 
 - Finding: `API_ROUTERS` registers auth, websocket, transcription, runs,

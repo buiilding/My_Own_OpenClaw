@@ -64,7 +64,7 @@ function createDirectWakeUpAgentAdapter({
 
   const defaultConversationRef = `conv-${agent.id}`;
   const runtimeHandles = new Map();
-  let detachRawBackendEvents = () => {};
+  let detachBackendEventSubscription = () => {};
   let closed = false;
 
   function broadcastStatus(status) {
@@ -255,7 +255,7 @@ function createDirectWakeUpAgentAdapter({
       }
     });
     if (typeof detach === 'function') {
-      detachRawBackendEvents = detach;
+      detachBackendEventSubscription = detach;
     }
   }
 
@@ -429,7 +429,7 @@ function createDirectWakeUpAgentAdapter({
         return;
       }
       closed = true;
-      detachRawBackendEvents();
+      detachBackendEventSubscription();
       closeAllRuntimeHandles();
       agent.sleep();
       broadcastStatus({
