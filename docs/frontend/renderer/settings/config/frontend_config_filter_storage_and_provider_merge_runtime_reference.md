@@ -74,6 +74,9 @@ Removed storage keys:
 Renderer config persistence is intentionally single-key: config payload changes
 are broadcast by the `windieos-config` localStorage write itself, not by
 a separate version timestamp.
+`desktopRendererConfigStorageRuntime.js` owns both the active key accessor and
+the storage-event predicate, so provider code routes cross-window sync through
+`isRendererConfigStorageEvent(...)` instead of importing raw skin storage keys.
 
 Storage compatibility note:
 
@@ -207,6 +210,8 @@ When IPC status reports connected:
 
 On `window.storage` for `windieos-config`:
 
+- `isRendererConfigStorageEvent(...)` filters events to the active renderer
+  config storage key and localStorage area
 - reload from localStorage
 - merge/filter
 - apply only when changed; `provider_api_keys` uses content-aware comparison so equivalent nested objects from another window are treated as no-ops

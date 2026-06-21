@@ -327,12 +327,12 @@ describe('renderer skin/config boundary', () => {
   test('persisted renderer storage keys live in renderer skin config', () => {
     const configFacadeSource = fs.readFileSync(skinConfigFacadePath, 'utf8');
     const storageSettingsSource = fs.readFileSync(storageSettingsPath, 'utf8');
-    const consumers = [
+    const storageOwnerSources = [
       configStoragePath,
       memoryPreferencePath,
       permissionStoragePath,
-      appConfigProviderPath,
     ].map((sourcePath) => fs.readFileSync(sourcePath, 'utf8'));
+    const appConfigProviderSource = fs.readFileSync(appConfigProviderPath, 'utf8');
 
     expect(configFacadeSource).toContain("from './storageSettings'");
     expect(storageSettingsSource).toContain('RENDERER_STORAGE_KEYS');
@@ -342,13 +342,16 @@ describe('renderer skin/config boundary', () => {
     const removedPermissionOnboardingKey = `desktop-${'agent'}-permission-onboarding`;
     expect(storageSettingsSource).not.toContain(removedPermissionOnboardingKey);
 
-    for (const source of consumers) {
+    for (const source of storageOwnerSources) {
       expect(source).toContain('RENDERER_STORAGE_KEYS');
       expect(source).not.toContain("'windieos-config'");
       expect(source).not.toContain("'windieos-memory-retrieval-injection-enabled'");
       expect(source).not.toContain(`'${removedPermissionOnboardingKey}'`);
       expect(source).not.toContain("'windieos-permission-onboarding'");
     }
+    expect(appConfigProviderSource).toContain('isRendererConfigStorageEvent');
+    expect(appConfigProviderSource).not.toContain('RENDERER_STORAGE_KEYS');
+    expect(appConfigProviderSource).not.toContain("'windieos-config'");
   });
 
   test('appearance defaults live in renderer skin config', () => {

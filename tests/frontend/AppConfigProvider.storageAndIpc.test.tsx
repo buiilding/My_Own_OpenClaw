@@ -11,6 +11,8 @@ import {
   IpcBridge,
   mockBindTranscriptUser,
   mockDesktopSettingsUpdateSettings,
+  mockGetRendererConfigStorageKey,
+  mockIsRendererConfigStorageEvent,
   mockLoadConfigFromStorage,
   mockSaveConfigToStorage,
   mockSetRuntimeEndpointHttpUrl,
@@ -22,7 +24,6 @@ import {
   setClientUserIdResponse,
   setLoadDesktopUiConfigResponse,
 } from './AppConfigProvider.testUtils';
-import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig';
 
 registerAppConfigProviderSuiteLifecycle();
 
@@ -90,7 +91,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', {
-        key: RENDERER_STORAGE_KEYS.config,
+        key: mockGetRendererConfigStorageKey(),
         storageArea: window.localStorage,
       }));
     });
@@ -138,7 +139,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', {
-        key: RENDERER_STORAGE_KEYS.config,
+        key: mockGetRendererConfigStorageKey(),
         storageArea: window.localStorage,
       }));
     });
@@ -180,13 +181,30 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', {
-        key: RENDERER_STORAGE_KEYS.config,
+        key: mockGetRendererConfigStorageKey(),
         storageArea: window.localStorage,
       }));
     });
 
     expect(result.current.config).toBe(currentConfig);
     expect(mockSaveConfigToStorage).not.toHaveBeenCalled();
+  });
+
+  test('routes storage-event filtering through the config storage runtime', () => {
+    renderAppConfigContext();
+    mockIsRendererConfigStorageEvent.mockClear();
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'unrelated-key',
+        storageArea: window.localStorage,
+      }));
+    });
+
+    expect(mockIsRendererConfigStorageEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ key: 'unrelated-key' }),
+      window.localStorage,
+    );
   });
 
   test('loads provider_api_keys from storage on startup', () => {

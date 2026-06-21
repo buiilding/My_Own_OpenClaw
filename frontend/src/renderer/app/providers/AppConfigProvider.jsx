@@ -4,7 +4,11 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { filterRendererConfig } from '../runtime/desktopRendererConfigFilterRuntime';
-import { loadConfigFromStorage, saveConfigToStorage } from '../runtime/desktopRendererConfigStorageRuntime';
+import {
+  isRendererConfigStorageEvent,
+  loadConfigFromStorage,
+  saveConfigToStorage,
+} from '../runtime/desktopRendererConfigStorageRuntime';
 import { AppConfigContext } from './AppConfigContext';
 import { useLatestRef } from '../runtime/desktopRendererHooksRuntimeClient';
 import {
@@ -28,7 +32,6 @@ import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeC
 import { DesktopShortcutRuntimeClient } from '../runtime/desktopShortcutRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../runtime/desktopVoiceRuntimeClient';
-import { RENDERER_STORAGE_KEYS } from '../skin/desktopRuntimeConfig';
 
 function resolveInitialWakewordSuppressed() {
   if (typeof window === 'undefined') {
@@ -251,10 +254,7 @@ export function AppConfigProvider({ children }) {
 
   useEffect(() => {
     const handleStorage = (event) => {
-      if (
-        event?.storageArea !== window.localStorage
-        || (event?.key && event.key !== RENDERER_STORAGE_KEYS.config)
-      ) {
+      if (!isRendererConfigStorageEvent(event, window.localStorage)) {
         return;
       }
 

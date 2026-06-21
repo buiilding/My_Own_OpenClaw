@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Config Storage Event Boundary
+
+- Finding: `desktopRendererConfigStorageRuntime.js` already owned the active
+  renderer config localStorage key for load/save, but `AppConfigProvider`
+  still imported `RENDERER_STORAGE_KEYS.config` from the renderer skin to
+  filter cross-window storage events.
+- Change: added `getRendererConfigStorageKey()` and
+  `isRendererConfigStorageEvent(...)` to the config storage runtime, routed
+  `AppConfigProvider` and focused tests through those helpers, and updated
+  renderer skin/config boundary coverage so provider code cannot depend on raw
+  skin storage keys.
+- Validation: focused config storage, AppConfigProvider storage/IPC,
+  renderer skin/config boundary coverage, docs listing, raw storage-key import
+  scan, and diff checks.
+- Compatibility: no migration required. The active `windieos-config`
+  localStorage key, storage event behavior, disk persistence payload,
+  provider credential redaction, settings sync, credentials, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Provider Credential Spec Export Boundary
 
 - Finding: `desktopProviderCredentialRuntime.js` already owned

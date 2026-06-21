@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/config: route cross-window renderer config storage-event filtering
+  through `desktopRendererConfigStorageRuntime` so `AppConfigProvider` no
+  longer imports raw skin storage keys. No migration required.
 - renderer/settings: keep provider API-key display specs private to
   `desktopProviderCredentialRuntime`, exposing `getProviderApiKeySpecs()` for
   dashboard API-key controls instead of the raw skin spec table. No migration

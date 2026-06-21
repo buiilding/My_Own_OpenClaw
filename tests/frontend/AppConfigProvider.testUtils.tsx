@@ -17,7 +17,12 @@ import {
   routeDesktopSettingsEvent,
   useDesktopSettingsEventHandlers,
 } from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
-import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime';
+import {
+  getRendererConfigStorageKey,
+  isRendererConfigStorageEvent,
+  loadConfigFromStorage,
+  saveConfigToStorage,
+} from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime';
 import { DesktopRuntimeEndpointClient } from '../../frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
@@ -27,6 +32,11 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererConfigFilterRu
   filterRendererConfig: (config: Record<string, any>) => config,
 }));
 jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime', () => ({
+  getRendererConfigStorageKey: jest.fn(() => 'windieos-config'),
+  isRendererConfigStorageEvent: jest.fn((event: StorageEvent, storageArea: Storage) => (
+    event?.storageArea === storageArea
+    && (!event?.key || event.key === 'windieos-config')
+  )),
   loadConfigFromStorage: jest.fn(),
   saveConfigToStorage: jest.fn(),
 }));
@@ -58,6 +68,8 @@ let clientUserIdResponse: any = null;
 
 export const mockUseDesktopSettingsEventHandlers = useDesktopSettingsEventHandlers as jest.Mock;
 export const mockRouteDesktopSettingsEvent = routeDesktopSettingsEvent as jest.Mock;
+export const mockGetRendererConfigStorageKey = getRendererConfigStorageKey as jest.Mock;
+export const mockIsRendererConfigStorageEvent = isRendererConfigStorageEvent as jest.Mock;
 export const mockLoadConfigFromStorage = loadConfigFromStorage as jest.Mock;
 export const mockSaveConfigToStorage = saveConfigToStorage as jest.Mock;
 export const mockBindTranscriptUser = DesktopTranscriptSessionRuntimeClient.bindTranscriptUser as jest.Mock;

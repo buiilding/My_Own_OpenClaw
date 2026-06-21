@@ -3,17 +3,16 @@
  */
 
 import {
+  getRendererConfigStorageKey,
+  isRendererConfigStorageEvent,
   loadConfigFromStorage,
   saveConfigToStorage,
 } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js';
 import {
   normalizeAppearanceTheme,
 } from '../../frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js';
-import {
-  RENDERER_STORAGE_KEYS,
-} from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig.js';
 
-const CONFIG_KEY = RENDERER_STORAGE_KEYS.config;
+const CONFIG_KEY = getRendererConfigStorageKey();
 const DEFAULT_RENDERER_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
@@ -288,5 +287,19 @@ describe('configStorage', () => {
     expect(saveConfigToStorage(DEFAULT_RENDERER_CONFIG)).toBe(false);
     setItemSpy.mockRestore();
     errorSpy.mockRestore();
+  });
+
+  test('identifies renderer config storage events by storage area and key', () => {
+    const event = new StorageEvent('storage', {
+      key: CONFIG_KEY,
+      storageArea: window.localStorage,
+    });
+    const unrelatedEvent = new StorageEvent('storage', {
+      key: 'unrelated-key',
+      storageArea: window.localStorage,
+    });
+
+    expect(isRendererConfigStorageEvent(event, window.localStorage)).toBe(true);
+    expect(isRendererConfigStorageEvent(unrelatedEvent, window.localStorage)).toBe(false);
   });
 });

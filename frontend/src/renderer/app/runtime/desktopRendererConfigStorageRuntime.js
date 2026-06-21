@@ -121,6 +121,20 @@ function clearStoredConfigUnsafe() {
   localStorage.removeItem(CONFIG_STORAGE_KEY);
 }
 
+export function getRendererConfigStorageKey() {
+  return CONFIG_STORAGE_KEY;
+}
+
+export function isRendererConfigStorageEvent(
+  event,
+  storageArea = globalThis.window?.localStorage,
+) {
+  return (
+    event?.storageArea === storageArea
+    && (!event?.key || event.key === CONFIG_STORAGE_KEY)
+  );
+}
+
 /**
  * Load configuration from localStorage.
  * 
