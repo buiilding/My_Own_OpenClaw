@@ -177,7 +177,7 @@ describe('Agent public conversation store APIs', () => {
 });
 
 describe('LocalRuntimeConversationStore event payload write params', () => {
-  test('loads generic metadata event payloads and ignores removed Windie metadata keys', async () => {
+  test('loads generic metadata event payloads and ignores removed product metadata keys', async () => {
     const genericEvent: ConversationEvent = createConversationEvent({
       eventId: 'evt-generic',
       type: 'assistant_message',

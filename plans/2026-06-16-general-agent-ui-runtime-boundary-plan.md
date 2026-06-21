@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Frontend Metadata Test Product-Label Wording
+
+- Finding: dashboard metadata invalidation and SDK conversation store metadata
+  test names still described generic SDK/runtime behavior with product-owned
+  labels, even though the behavior belongs to SDK conversation events and
+  product-neutral legacy metadata handling.
+- Change: renamed those tests around SDK metadata invalidation and
+  product-neutral metadata keys, and extended modular boundary guards for the
+  retired product-owned generic test labels.
+- Validation: focused frontend tests, modular boundary coverage, exact retired
+  source-label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, renderer behavior, SDK
+  conversation events, local-runtime storage, IPC channels, persisted data,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Conversation Runtime Product-Label Wording
 
 - Finding: websocket lifecycle, agent-loop, memory hub, memory workflow, and

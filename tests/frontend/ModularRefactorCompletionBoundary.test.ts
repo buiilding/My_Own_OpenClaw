@@ -387,6 +387,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkTestText).not.toContain('/Windieos_workspace/');
     expect(sdkTestText).not.toContain('/tmp/windie-project');
     expect(sdkTestText).not.toContain('windieos docs');
+    expect(sdkTestText).not.toContain('Windie' + ' metadata keys');
     expect(sdkTestText).not.toContain(`workspaceName: '${retiredProductName('OS')}'`);
     expect(sdkTestText).not.toContain(`workspace_name: '${retiredProductName('OS')}'`);
     for (const retiredPrefix of retiredSdkTempPrefixes) {
@@ -3336,6 +3337,7 @@ describe('modular sdk refactor completion boundary', () => {
         'Windie' + 'OS streaming events',
         'Windie' + 'OS turn executes',
         'Windie' + 'OS agent loop is backend-owned',
+        'Windie' + ' reports conversation metadata invalidation',
         'renderer owns turn-level UI/send/stream behavior',
         'useChatStream.ts` remains the canonical stream-event state machine',
         'frontend/src/renderer/features/permissions/utils/*',

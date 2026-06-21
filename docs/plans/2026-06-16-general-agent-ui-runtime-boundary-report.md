@@ -11,11 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `89d4082e5` (`docs(runtime): route concept labels through runtime owners`)
-- Latest completed slice: websocket lifecycle, agent-loop, memory hub, memory
-  workflow, and transcript replay docs now describe generic boundaries through
-  hosted backend, SDK projection, and desktop/backend runtime labels instead of
-  product-owned generic conversation/runtime labels.
+- Latest inspected plan checkpoint: `21d5bf2b0` (`docs(memory): route conversation runtime labels`)
+- Latest completed slice: dashboard metadata invalidation and SDK conversation
+  store metadata test names now describe generic behavior through SDK and
+  product-neutral labels instead of product-owned generic runtime labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -151,6 +150,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   systems, and visible-chat replay through hosted backend, SDK projection, and
   desktop/backend runtime wording instead of product-owned generic
   conversation/runtime labels.
+  Dashboard metadata invalidation and SDK conversation store metadata tests now
+  use SDK/product-neutral test names for generic runtime behavior while real
+  WindieOS product identity remains covered in host-skin and renderer-skin
+  boundary tests.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real

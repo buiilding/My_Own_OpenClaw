@@ -945,7 +945,7 @@ describe('DashboardShell', () => {
     expect(screen.getByRole('button', { name: 'Ubuntu mic timeout troubleshooting' })).toBeInTheDocument();
   });
 
-  test('refreshes recent chats when Windie reports conversation metadata invalidation', async () => {
+  test('refreshes recent chats when SDK reports conversation metadata invalidation', async () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {

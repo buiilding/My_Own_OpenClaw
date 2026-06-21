@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: route dashboard metadata invalidation and SDK conversation
+  store metadata test names through SDK/product-neutral labels instead of
+  product-owned generic runtime labels. No migration required.
 - docs/memory: route websocket lifecycle, agent-loop, memory hub, memory
   workflow, and transcript replay wording through hosted backend, SDK
   projection, and desktop/backend runtime labels instead of product-owned
