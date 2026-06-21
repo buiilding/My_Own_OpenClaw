@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level Agent SDK wake-up function private to
+  `ipc_agent_wakeup_runtime.cjs` and exercise install-auth, workspace, MCP,
+  test-mode option, adapter, and diagnostic behavior through
+  `createAgentWakeupRuntime(...)`, preserving Electron main wake-up
+  composition. No migration required.
 - frontend/main: keep the lower-level agent-definition context attachment
   helper private to `ipc_agent_definition_context.cjs` and exercise
   generated/supplied context merging through

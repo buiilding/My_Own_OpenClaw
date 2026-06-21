@@ -276,6 +276,8 @@ Owns Electron-main Agent SDK wake-up orchestration:
 - exposes `createAgentWakeupRuntime(...)` so `ipc.cjs` composes install auth,
   workspace fallback, AgentClient access, MCP config, local-tool lifecycle,
   direct wake-up adapter dependencies, diagnostics, and logging once
+- keeps the lower-level Agent SDK wake-up function private behind the runtime
+  facade
 - ensures install-auth state exists before wake-up
 - resolves explicit or cached workspace paths for the agent runtime
 - assembles `AgentClient.wakeUp(...)` options, including host skin agent name,

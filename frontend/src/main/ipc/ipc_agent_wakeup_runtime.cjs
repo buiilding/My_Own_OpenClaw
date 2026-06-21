@@ -65,5 +65,4 @@ function createAgentWakeupRuntime(deps = {}) {
 
 module.exports = {
   createAgentWakeupRuntime,
-  startAgentRuntime,
 };

@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Agent Wakeup Function Privacy
+
+- Finding: `ipc_agent_wakeup_runtime.cjs` already exposed
+  `createAgentWakeupRuntime(...)` as the Electron main composition facade, but
+  focused tests still imported the lower-level Agent SDK wake-up function.
+- Change: kept `startAgentRuntime(...)` private to the wake-up helper module
+  and moved install-auth, explicit/fallback workspace, MCP, test-mode option,
+  direct adapter, diagnostic, and logging coverage through the runtime facade.
+- Validation: focused Agent wake-up and main SDK boundary tests, targeted main
+  IPC lint, docs listing, stale export-line scans, and diff checks before
+  commit.
+- Compatibility/security: no IPC payload, install-auth, workspace, MCP,
+  local-tool lifecycle, credential, permission, or trust-boundary migration
+  required; Agent SDK wake-up behavior is unchanged.
+
 ### 2026-06-21 Main Agent Definition Context Attachment Privacy
 
 - Finding: `ipc_agent_definition_context.cjs` already exposed

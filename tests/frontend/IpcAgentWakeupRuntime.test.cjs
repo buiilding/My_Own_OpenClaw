@@ -5,7 +5,6 @@ const path = require('path');
 
 const {
   createAgentWakeupRuntime,
-  startAgentRuntime,
 } = require('../../frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs');
 
 function createWakeupDeps(overrides = {}) {
@@ -36,10 +35,11 @@ function createWakeupDeps(overrides = {}) {
 describe('ipc_agent_wakeup_runtime', () => {
   test('wakes the Agent SDK runtime with install auth, workspace, MCPs, and adapter deps', async () => {
     const deps = createWakeupDeps();
-    const result = await startAgentRuntime({
+    const runtime = createAgentWakeupRuntime(deps);
+    const result = await runtime.start({
       reason: 'query',
       workspacePath: '/repo/explicit',
-    }, deps);
+    });
     const client = deps.getAgentClient.mock.results[0].value;
 
     expect(result).toBe(deps.adapter);
@@ -77,9 +77,11 @@ describe('ipc_agent_wakeup_runtime', () => {
       resolveWorkspacePathForAgent: jest.fn(() => '/repo/fallback'),
     });
 
-    await startAgentRuntime({
+    const runtime = createAgentWakeupRuntime(deps);
+
+    await runtime.start({
       reason: 'test',
-    }, deps);
+    });
     const client = deps.getAgentClient.mock.results[0].value;
 
     expect(client.wakeUp).toHaveBeenCalledWith(expect.objectContaining({
@@ -133,5 +135,7 @@ describe('ipc_agent_wakeup_runtime', () => {
     expect(helperSource).toContain('function createAgentWakeupRuntime');
     expect(helperSource).toContain('const agent = await client.wakeUp({');
     expect(helperSource).toContain("action: 'runtime.wakeup'");
+    const helperModule = require('../../frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs');
+    expect(helperModule.startAgentRuntime).toBeUndefined();
   });
 });

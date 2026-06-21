@@ -297,6 +297,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('startAgentRuntime({ reason, workspacePath }');
     expect(source).not.toContain('client.wakeUp({');
     expect(agentWakeupRuntimeSource).toContain('function createAgentWakeupRuntime');
+    expect(agentWakeupRuntimeSource).not.toContain('  startAgentRuntime,');
     expect(agentWakeupRuntimeSource).toContain('client.wakeUp({');
     expect(source).toContain('createDirectWakeUpAgentAdapter,');
     expect(source).not.toContain('createDirectWakeUpAgentAdapter({');
