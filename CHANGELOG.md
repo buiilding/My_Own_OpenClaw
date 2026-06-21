@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route renderer config context access through
+  `DesktopRendererConfigRuntimeClient` instead of a standalone hook export,
+  keeping feature code on the app-runtime facade. No migration required.
 - frontend/renderer: expose resolved message screenshot hooks through
   `DesktopResolvedMessageScreenshotsRuntime` instead of standalone hook
   exports, keeping async artifact screenshot resolution behind the app-runtime

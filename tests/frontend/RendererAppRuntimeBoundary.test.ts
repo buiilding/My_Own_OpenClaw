@@ -1557,9 +1557,14 @@ describe('renderer app runtime boundary', () => {
 
     await expect(collectSourceNeedleOffenders(featureRoot, forbiddenProviderNeedles))
       .resolves.toEqual([]);
+    await expect(collectSourceNeedleOffenders(featureRoot, [
+      'import { useDesktopRendererConfigContext',
+      'useDesktopRendererConfigContext,',
+    ])).resolves.toEqual([]);
     expect(runtimeClientSource).toContain('useDesktopRendererConfigContext');
     expect(runtimeClientSource).toContain('useAppConfigContext');
     expect(runtimeClientSource).toContain('DesktopRendererConfigRuntimeClient');
+    expect(runtimeClientSource).not.toContain('export function useDesktopRendererConfigContext');
     expect(runtimeClientSource).not.toContain('export function buildDeferredQueryModelSelection');
   });
 

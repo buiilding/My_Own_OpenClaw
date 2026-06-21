@@ -120,11 +120,15 @@ describe('renderer chat runtime boundary', () => {
     for (const relativePath of hookFiles) {
       const source = await fs.readFile(path.join(chatRoot, relativePath), 'utf8');
       expect(source).toContain('desktopRendererConfigRuntimeClient');
+      expect(source).toContain('DesktopRendererConfigRuntimeClient');
+      expect(source).not.toContain('import { useDesktopRendererConfigContext');
+      expect(source).not.toContain('useDesktopRendererConfigContext,');
       expect(source).not.toContain('app/providers/AppConfigContext');
       expect(source).not.toContain('useAppConfigContext');
     }
     expect(runtimeClientSource).toContain('useAppConfigContext');
     expect(runtimeClientSource).toContain('useDesktopRendererConfigContext');
+    expect(runtimeClientSource).not.toContain('export function useDesktopRendererConfigContext');
   });
 
   test('message sender does not persist live user transcript rows in renderer', async () => {

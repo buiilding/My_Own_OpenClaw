@@ -6,7 +6,7 @@
 import { useCallback, useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
-import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
+import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
@@ -44,7 +44,7 @@ export function useChatMessageSender(
   const { addMessage, setIsSending } = useChatCommonActions();
   const clearPendingTurn = useChatStore((state) => state.clearPendingTurn);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
-  const { config } = useDesktopRendererConfigContext();
+  const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const { senderSurface = 'overlay-chatbox', returnToChatboxPolicy } = options;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
   const sendLifecycle = useMemo(() => resolveChatPillSendLifecycle({

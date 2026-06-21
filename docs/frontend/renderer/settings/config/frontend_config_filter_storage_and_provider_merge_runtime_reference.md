@@ -14,6 +14,7 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 
 - `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient.js`
 - `frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
@@ -194,6 +195,14 @@ This is the central dedupe guard preventing redundant writes and settings runtim
 2. call `DesktopAppConfigRuntimeClient.loadRendererConfig()` and merge filtered disk config
 3. call `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()`
 4. subscribe through `DesktopClientSessionRuntimeClient.onIpcStatus(...)` and `DesktopAppConfigRuntimeClient.onSettingsEvent(...)`
+
+Renderer feature code reads the config provider through
+`DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext()` instead
+of importing the provider context hook directly. The runtime client also owns
+deferred query model-selection projection through
+`DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection(...)`, so
+chat send/replay code stays on an app-runtime facade rather than the provider
+module surface.
 
 ### Update path (`updateConfig`)
 

@@ -7,7 +7,7 @@ import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import PermissionStatusBadge from '../../../../permissions/components/PermissionStatusBadge';
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';
 import { DesktopPermissionGrantEffectsRuntime } from '../../../../../app/runtime/desktopPermissionGrantEffectsRuntime';
-import { useDesktopRendererConfigContext } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
+import { DesktopRendererConfigRuntimeClient } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
 import {
   DesktopPermissionPresentationRuntime,
 } from '../../../../../app/runtime/desktopPermissionPresentationRuntime';
@@ -33,7 +33,7 @@ function BrowserSettingsTab() {
   const bootstrapPermissions = usePermissionStore((state) => state.bootstrapPermissions);
   const requestPermission = usePermissionStore((state) => state.requestPermission);
   const runPermissionProbe = usePermissionStore((state) => state.runPermissionProbe);
-  const { updateConfig } = useDesktopRendererConfigContext();
+  const { updateConfig } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const [isOpeningBrowser, setIsOpeningBrowser] = useState(false);
   const [statusOverride, setStatusOverride] = useState(null);
   const [openBrowserError, setOpenBrowserError] = useState('');

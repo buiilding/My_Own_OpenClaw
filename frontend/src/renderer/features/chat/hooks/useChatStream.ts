@@ -7,7 +7,7 @@ import type { ConversationEvent } from '../../../app/runtime/desktopConversation
 import {
   useChatStore,
 } from '../stores/chatStore';
-import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
+import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopModelThinkingRuntime } from '../../../app/runtime/desktopModelThinkingRuntime';
 import { type TranscriptModelContext } from '../../../app/runtime/desktopChatStreamModelContextRuntime';
 import { useChatCommonActions } from './useChatCommonActions';
@@ -65,7 +65,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const registerTurnConversationRef = useChatStore((state) => state.registerTurnConversationRef);
-  const { config, availableModels } = useDesktopRendererConfigContext();
+  const { config, availableModels } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const modelCapabilities = useMemo(() => DesktopModelThinkingRuntime.resolveThinkingCapabilities(
     config?.selected_model_id || null,
     config?.model_provider || null,

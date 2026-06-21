@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Config Context Runtime Facade
+
+- Finding: `desktopRendererConfigRuntimeClient.js` already owned deferred query
+  model-selection projection, but chat, onboarding, and settings feature code
+  still imported `useDesktopRendererConfigContext(...)` as a standalone hook
+  export from the runtime client module.
+- Change: moved config-context access onto
+  `DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext()`,
+  routed feature consumers through that facade object, and added renderer app
+  and chat runtime-boundary coverage so standalone hook imports/exports stay
+  removed.
+- Validation: targeted renderer source lint for the touched config/chat/
+  onboarding/settings modules, plus focused frontend boundary and provider/chat
+  tests before commit.
+- Compatibility/security: no migration required. App config provider state,
+  localStorage/disk persistence, settings-event channels, provider credential
+  redaction, IPC, credentials, storage, hosted backend policy, and local-runtime
+  execution are unchanged.
+
 ### 2026-06-21 Renderer Resolved Screenshot Runtime Facade
 
 - Finding: `desktopResolvedMessageScreenshotsRuntime.js` owned async

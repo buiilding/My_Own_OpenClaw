@@ -3,7 +3,7 @@
  */
 
 import PropTypes from 'prop-types';
-import { useDesktopRendererConfigContext } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
+import { DesktopRendererConfigRuntimeClient } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopShortcutRuntimeClient } from '../../../../../app/runtime/desktopShortcutRuntimeClient';
 import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import { SettingsToggle, SelectDropdown } from './settingsControls';
@@ -16,7 +16,7 @@ function GeneralSettingsTab({ config, onConfigChange }) {
     wakewordSuppressed,
     setWakewordEnabled,
     globalAgentStopShortcutStatus,
-  } = useDesktopRendererConfigContext();
+  } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const wakewordSttEnabled = config?.wakeword_stt_enabled ?? false;
   const showToolLogs = config?.show_tool_logs === true;
   const globalStopShortcut = config?.global_agent_stop_shortcut;

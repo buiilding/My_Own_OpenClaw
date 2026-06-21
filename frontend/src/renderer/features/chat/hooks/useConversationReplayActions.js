@@ -7,7 +7,6 @@ import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { useChatStore } from '../stores/chatStore';
 import {
   DesktopRendererConfigRuntimeClient,
-  useDesktopRendererConfigContext,
 } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopArtifactRuntimeClient } from '../../../app/runtime/desktopArtifactRuntimeClient';
 import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
@@ -158,7 +157,7 @@ export function useConversationReplayActions({
 }) {
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const addMessage = useChatStore((state) => state.addMessage);
-  const { config } = useDesktopRendererConfigContext();
+  const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
     .buildDeferredQueryModelSelection(config);
 

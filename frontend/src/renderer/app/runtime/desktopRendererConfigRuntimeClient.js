@@ -8,7 +8,7 @@ function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-export function useDesktopRendererConfigContext() {
+function useDesktopRendererConfigContext() {
   return useAppConfigContext();
 }
 
@@ -31,8 +31,11 @@ function buildDeferredQueryModelSelection(config) {
   };
 }
 
-export const DesktopRendererConfigRuntimeClient = {
+export const DesktopRendererConfigRuntimeClient = Object.freeze({
+  useDesktopRendererConfigContext() {
+    return useDesktopRendererConfigContext();
+  },
   buildDeferredQueryModelSelection(config) {
     return buildDeferredQueryModelSelection(config);
   },
-};
+});

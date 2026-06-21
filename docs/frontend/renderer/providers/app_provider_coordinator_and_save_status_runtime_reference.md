@@ -20,6 +20,7 @@ title: "App Provider Coordinator and Save-Status Runtime Reference"
 - `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient.js`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/renderer/app/providers/configComparison.ts`
 - `tests/frontend/AppProvider.test.tsx`
@@ -149,6 +150,10 @@ Electron host transport is routed through app runtime clients:
   `models-listed` settings-event type dispatch for app config providers.
 - `DesktopTranscriptSessionRuntimeClient` owns transcript-session binding updates derived from connection snapshots.
 - `DesktopVoiceRuntimeClient` owns value-level wakeword-toggle state fan-out.
+- `DesktopRendererConfigRuntimeClient` owns feature-facing config context access
+  and deferred query model-selection projection so chat, onboarding, and
+  settings feature code consume app-runtime facade methods instead of provider
+  hook exports.
 - `DesktopSettingsRuntimeClient` owns SDK settings/model commands.
 
 Provider code should not import `IpcBridge`, channel constants, or SDK desktop transport channel names directly.
