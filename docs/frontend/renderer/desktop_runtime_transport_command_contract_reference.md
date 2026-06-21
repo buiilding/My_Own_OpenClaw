@@ -192,10 +192,11 @@ labels, matched-role labels, and search snippet matched-role prefix display.
 grouping and search-row presentation policy to this app-runtime facade instead
 of a feature utility or modal-local prefix comparison.
 
-`desktopToolGhostRuntime.ts` owns the debug tool-ghost click animation
-timing used by `ToolGhostDebugApp`. The debug app keeps rendering and timer
-lifecycle state, while reusable timing helpers stay in the app-runtime facade
-instead of the chat feature constant tree or raw exported constants.
+`DesktopToolGhostRuntime.getToolGhostClickSyncDelayMs(...)` owns the debug
+tool-ghost click animation timing used by `ToolGhostDebugApp`. The debug app
+keeps rendering and timer lifecycle state, while reusable timing helpers stay
+in the app-runtime facade instead of the chat feature constant tree or raw
+standalone helper exports.
 
 `desktopRendererConfigFilterRuntime.js` and
 `desktopRendererConfigStorageRuntime.js` own renderer-managed settings

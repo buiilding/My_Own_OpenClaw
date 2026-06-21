@@ -28,7 +28,8 @@ title: "Tool Ghost Debug Track Style and CSS Class Contract Reference"
 - `--ghost-target-scale`
 - `--ghost-motion-duration`
 
-`--ghost-motion-duration` must stay aligned with `getToolGhostClickSyncDelayMs()`.
+`--ghost-motion-duration` must stay aligned with
+`DesktopToolGhostRuntime.getToolGhostClickSyncDelayMs(...)`.
 
 ## Class Token Contract
 

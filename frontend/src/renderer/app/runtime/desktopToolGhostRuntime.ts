@@ -12,6 +12,10 @@ const TOOL_GHOST_CLICK_SYNC_DELAY_MS = (
   + TOOL_GHOST_CLICK_HOLD_END_MS
 );
 
-export function getToolGhostClickSyncDelayMs(): number {
+function getToolGhostClickSyncDelayMs(): number {
   return TOOL_GHOST_CLICK_SYNC_DELAY_MS;
 }
+
+export const DesktopToolGhostRuntime = Object.freeze({
+  getToolGhostClickSyncDelayMs,
+});

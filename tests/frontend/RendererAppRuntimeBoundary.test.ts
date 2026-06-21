@@ -1258,11 +1258,12 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(runtimeSource).toContain('getToolGhostClickSyncDelayMs');
+    expect(runtimeSource).toContain('export const DesktopToolGhostRuntime = Object.freeze');
+    expect(runtimeSource).not.toContain('export function getToolGhostClickSyncDelayMs');
     expect(runtimeSource).not.toContain('export const TOOL_GHOST_CLICK_SYNC_DELAY_MS');
     expect(runtimeSource).not.toContain('features/chat');
     expect(debugAppSource).toContain('desktopToolGhostRuntime');
-    expect(debugAppSource).toContain('getToolGhostClickSyncDelayMs');
+    expect(debugAppSource).toContain('DesktopToolGhostRuntime');
     expect(debugAppSource).not.toContain('import { TOOL_GHOST_CLICK_SYNC_DELAY_MS }');
     expect(debugAppSource).not.toContain('features/chat/constants/toolGhostRuntime');
     await expect(fs.stat(

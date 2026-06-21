@@ -3,12 +3,15 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getToolGhostClickSyncDelayMs } from './runtime/desktopToolGhostRuntime';
+import { DesktopToolGhostRuntime } from './runtime/desktopToolGhostRuntime';
 import ToolGhostCursor from '../features/chat/components/ToolGhostCursor';
 import '../styles/theme.css';
 import '../styles/ChatBoxResponseOverlay.css';
 
 const LOOP_GAP_MS = 700;
+const {
+  getToolGhostClickSyncDelayMs,
+} = DesktopToolGhostRuntime;
 const toolGhostClickSyncDelayMs = getToolGhostClickSyncDelayMs();
 
 const TRACK_STYLE = Object.freeze({

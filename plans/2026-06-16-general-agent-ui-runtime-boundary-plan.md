@@ -23279,3 +23279,16 @@ Each completed slice should report:
   fallback, stale visible-response suppression, overlay layout mode selection,
   renderer markup, IPC payloads, storage, local-runtime execution, provider
   policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer tool ghost timing facade helper privacy
+
+- Finding: debug tool-ghost click animation timing lived in the renderer app
+  runtime, but the debug app and boundary tests still imported the timing
+  helper as a standalone export.
+- Change: exposed tool-ghost timing through `DesktopToolGhostRuntime` and kept
+  `getToolGhostClickSyncDelayMs` private to `desktopToolGhostRuntime`.
+- Validation: renderer app-runtime boundary test, targeted renderer ESLint,
+  exact source/doc scans, docs listing, and diff checks.
+- Compatibility: no migration required. Tool-ghost motion duration, hide-loop
+  timing, debug markup, IPC payloads, storage, local-runtime execution,
+  provider policy, backend behavior, and trust boundaries are unchanged.

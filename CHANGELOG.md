@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose debug tool-ghost click timing through
+  `DesktopToolGhostRuntime` instead of a standalone helper export, keeping
+  motion-duration and hide-loop timing behind the renderer app-runtime facade.
+  No migration required.
 - frontend/renderer: expose response-overlay view intent resolution through
   `DesktopResponseOverlayViewRuntime` instead of a standalone helper export,
   keeping overlay visibility and layout intent behind the renderer app-runtime
