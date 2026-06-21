@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Local-Runtime Adapter Test Label Boundary
+
+- Finding: `MainHostSkinBoundary.test.cjs` still named active Electron main
+  host-skin boundary checks as main sidecar adapter coverage even though the
+  checks assert local-runtime bridge console labels, debug flag naming, and
+  adapter dependencies.
+- Change: renamed those active test labels to main local-runtime adapter
+  wording while preserving assertions for real sidecar compatibility folders,
+  log file names, and the concrete `sidecar_daemon.py` entrypoint owned by the
+  WindieOS skin.
+- Validation: focused main host-skin boundary Jest coverage, exact stale
+  main-sidecar-adapter test-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Runtime code, host-skin
+  compatibility values, daemon launch paths, log routing, IPC, permissions,
+  credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Python SDK Package Test Label Boundary
 
 - Finding: active Python SDK package/client tests and the repo-agent extension

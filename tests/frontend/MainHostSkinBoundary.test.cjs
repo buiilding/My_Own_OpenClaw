@@ -658,7 +658,7 @@ describe('main host skin/config boundary', () => {
     }
   });
 
-  test('main sidecar adapter console labels use local-runtime bridge naming', () => {
+  test('main local-runtime adapter console labels use local-runtime bridge naming', () => {
     for (const modulePath of localRuntimeBridgeModulePaths) {
       const source = fs.readFileSync(modulePath, 'utf8');
       const retiredBridgeLogPrefix = `[Main][${'Sidecar' + 'Bridge'}]`;
@@ -673,7 +673,7 @@ describe('main host skin/config boundary', () => {
     expect(joinedSource).toContain('[Main][LocalRuntimeBridge]');
   });
 
-  test('main sidecar adapter debug stdout flag uses local-runtime wording', () => {
+  test('main local-runtime adapter debug stdout flag uses local-runtime wording', () => {
     const bridgeSource = fs.readFileSync(localRuntimeBridgePath, 'utf8');
 
     expect(bridgeSource).toContain("isDebugFlagEnabled('localRuntimeStdout')");
@@ -681,7 +681,7 @@ describe('main host skin/config boundary', () => {
     expect(bridgeSource).not.toContain('WINDIE_DEBUG_LOCAL_BACKEND_STDOUT');
   });
 
-  test('main sidecar adapter active dependencies use local-runtime names', () => {
+  test('main local-runtime adapter active dependencies use local-runtime names', () => {
     const bridgeSource = fs.readFileSync(localRuntimeBridgePath, 'utf8');
     const supervisorSource = fs.readFileSync(
       path.join(mainRoot, 'sidecar/local_runtime_supervisor.cjs'),

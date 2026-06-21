@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Python SDK package/client and repo-agent example
-  Python tests now use SDK/package and local-runtime example labels instead of
-  sidecar-suite wording, with focused guard coverage preventing those active
-  headers from returning.
+- Latest completed slice: Electron main host-skin boundary tests now use main
+  local-runtime adapter labels instead of main sidecar adapter wording while
+  preserving concrete WindieOS compatibility assertions for real sidecar
+  folders, logs, and daemon entrypoints.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -55,6 +55,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic settings section tests use sample settings skin and browser
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
+  Electron main host-skin boundary tests use main local-runtime adapter labels
+  for bridge console logging, debug flag, and dependency guards while concrete
+  WindieOS sidecar compatibility folders, log aliases, and daemon entrypoints
+  remain host-skin-owned assertions.
   Local-runtime Python service/browser registry/bootstrap,
   memory/conversation, executable tool, core/protocol, and
   platform/system-state/wakeword, and hosted-backend client/config tests use
