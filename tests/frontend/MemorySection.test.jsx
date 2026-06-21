@@ -3,9 +3,9 @@
  */
 
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig';
+import { getMemoryRetrievalInjectionStorageKey } from '../../frontend/src/renderer/app/runtime/desktopMemoryRetrievalPreferenceRuntime';
 
-const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = RENDERER_STORAGE_KEYS.memoryRetrievalInjection;
+const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = getMemoryRetrievalInjectionStorageKey();
 
 const mockListEpisodicMemories = jest.fn();
 const mockListSemanticMemories = jest.fn();

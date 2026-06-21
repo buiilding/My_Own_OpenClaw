@@ -20,6 +20,10 @@ function normalizePreferenceValue(value) {
   return value !== false;
 }
 
+export function getMemoryRetrievalInjectionStorageKey() {
+  return MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY;
+}
+
 export function getMemoryRetrievalInjectionEnabled(storage = null) {
   const targetStorage = resolveStorage(storage);
   if (!targetStorage) {

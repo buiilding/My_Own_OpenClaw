@@ -3,12 +3,12 @@
  */
 
 import {
+  getMemoryRetrievalInjectionStorageKey,
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,
 } from '../../frontend/src/renderer/app/runtime/desktopMemoryRetrievalPreferenceRuntime';
-import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig';
 
-const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = RENDERER_STORAGE_KEYS.memoryRetrievalInjection;
+const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = getMemoryRetrievalInjectionStorageKey();
 
 describe('memoryRetrievalPreference', () => {
   beforeEach(() => {
@@ -38,6 +38,10 @@ describe('memoryRetrievalPreference', () => {
     setMemoryRetrievalInjectionEnabled(true);
     expect(getMemoryRetrievalInjectionEnabled()).toBe(true);
     expect(window.localStorage.getItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY)).toBe('true');
+  });
+
+  test('exposes the active preference storage key through the runtime owner', () => {
+    expect(getMemoryRetrievalInjectionStorageKey()).toBe(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY);
   });
 
   test('defaults to enabled when storage read fails', () => {

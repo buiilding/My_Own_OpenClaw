@@ -10,6 +10,10 @@ import { RENDERER_STORAGE_KEYS } from '../skin/desktopRuntimeConfig';
 
 const PERMISSION_ONBOARDING_STORAGE_KEY = RENDERER_STORAGE_KEYS.permissionOnboarding;
 
+export function getPermissionOnboardingStorageKey() {
+  return PERMISSION_ONBOARDING_STORAGE_KEY;
+}
+
 function readFromStorage() {
   return readJsonObjectFromLocalStorage(PERMISSION_ONBOARDING_STORAGE_KEY);
 }

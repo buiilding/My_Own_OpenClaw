@@ -73,9 +73,12 @@ Response normalization:
 
 ## Onboarding Persistence Contract
 
-`desktopPermissionOnboardingStorageRuntime.js` localStorage key:
+`desktopPermissionOnboardingStorageRuntime.js` owns the active localStorage key:
 
 - `windieos-permission-onboarding`
+
+Tests and feature callers use that runtime's storage API/key accessor instead
+of importing renderer skin storage keys directly.
 
 Retired `desktop-agent-permission-onboarding` snapshots are ignored rather than
 migrated. Users with only the old key may see onboarding again for the current

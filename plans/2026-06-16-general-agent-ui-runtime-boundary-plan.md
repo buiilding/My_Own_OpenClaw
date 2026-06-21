@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Feature Storage Key Accessor Boundary
+
+- Finding: memory retrieval and permission onboarding storage runtimes owned
+  their localStorage keys in production code, but focused tests still imported
+  raw `RENDERER_STORAGE_KEYS` from the renderer skin config to assert persisted
+  values.
+- Change: added `getMemoryRetrievalInjectionStorageKey()` and
+  `getPermissionOnboardingStorageKey()` to the owning app-runtime storage
+  modules, routed memory/preference/permission tests through those helpers, and
+  tightened renderer skin/config boundary coverage so caller tests do not reach
+  into the skin storage table directly.
+- Validation: focused memory retrieval, memory section, permission storage,
+  renderer skin/config boundary coverage, docs listing, raw test skin-storage
+  import scan, and diff checks.
+- Compatibility: no migration required. The active
+  `windieos-memory-retrieval-injection-enabled` and
+  `windieos-permission-onboarding` keys, persisted payloads, removed-key
+  ignore behavior, permissions, storage, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Renderer Config Storage Event Boundary
 
 - Finding: `desktopRendererConfigStorageRuntime.js` already owned the active

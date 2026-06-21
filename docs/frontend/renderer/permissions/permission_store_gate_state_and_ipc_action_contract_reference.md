@@ -174,9 +174,12 @@ On guard failure:
 
 ## Persistence Contract
 
-`desktopPermissionOnboardingStorageRuntime.js` uses localStorage key:
+`desktopPermissionOnboardingStorageRuntime.js` owns the active localStorage key:
 
 - `windieos-permission-onboarding`
+
+Permission feature code and tests should go through the onboarding storage
+runtime rather than importing renderer skin storage keys directly.
 
 Retired `desktop-agent-permission-onboarding` state is not read or migrated.
 That intentionally resets onboarding completion for installs that only have the

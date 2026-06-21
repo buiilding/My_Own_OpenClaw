@@ -3,13 +3,13 @@
  */
 
 import {
+  getPermissionOnboardingStorageKey,
   loadPermissionOnboardingState,
   savePermissionOnboardingState,
 } from '../../frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime';
-import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig';
 
 describe('permission onboarding storage', () => {
-  const STORAGE_KEY = RENDERER_STORAGE_KEYS.permissionOnboarding;
+  const STORAGE_KEY = getPermissionOnboardingStorageKey();
 
   beforeEach(() => {
     window.localStorage.clear();
@@ -33,6 +33,10 @@ describe('permission onboarding storage', () => {
 
     expect(window.localStorage.getItem(STORAGE_KEY)).toBe(JSON.stringify(saved));
     expect(loadPermissionOnboardingState()).toEqual(saved);
+  });
+
+  test('exposes the active onboarding storage key through the runtime owner', () => {
+    expect(getPermissionOnboardingStorageKey()).toBe(STORAGE_KEY);
   });
 
   test('ignores removed permission storage key', () => {

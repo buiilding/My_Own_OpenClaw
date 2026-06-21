@@ -28,6 +28,18 @@ const rendererStateWorkflowPath = path.resolve(
   __dirname,
   '../../docs/frontend/renderer/renderer_state_change_workflow.md',
 );
+const memoryRetrievalPreferenceTestPath = path.resolve(
+  __dirname,
+  'MemoryRetrievalPreference.test.js',
+);
+const memorySectionTestPath = path.resolve(
+  __dirname,
+  'MemorySection.test.jsx',
+);
+const permissionStorageTestPath = path.resolve(
+  __dirname,
+  'PermissionStorage.test.js',
+);
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
 const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/components/sections');
 const providerApiKeysPropTypesPath = path.join(dashboardSectionsRoot, 'providerApiKeysPropTypes.js');
@@ -333,6 +345,11 @@ describe('renderer skin/config boundary', () => {
       permissionStoragePath,
     ].map((sourcePath) => fs.readFileSync(sourcePath, 'utf8'));
     const appConfigProviderSource = fs.readFileSync(appConfigProviderPath, 'utf8');
+    const callerTestSources = [
+      memoryRetrievalPreferenceTestPath,
+      memorySectionTestPath,
+      permissionStorageTestPath,
+    ].map((sourcePath) => fs.readFileSync(sourcePath, 'utf8'));
 
     expect(configFacadeSource).toContain("from './storageSettings'");
     expect(storageSettingsSource).toContain('RENDERER_STORAGE_KEYS');
@@ -352,6 +369,12 @@ describe('renderer skin/config boundary', () => {
     expect(appConfigProviderSource).toContain('isRendererConfigStorageEvent');
     expect(appConfigProviderSource).not.toContain('RENDERER_STORAGE_KEYS');
     expect(appConfigProviderSource).not.toContain("'windieos-config'");
+    expect(callerTestSources.join('\n')).toContain('getMemoryRetrievalInjectionStorageKey');
+    expect(callerTestSources.join('\n')).toContain('getPermissionOnboardingStorageKey');
+    for (const source of callerTestSources) {
+      expect(source).not.toContain('RENDERER_STORAGE_KEYS');
+      expect(source).not.toContain('desktopRuntimeConfig');
+    }
   });
 
   test('appearance defaults live in renderer skin config', () => {

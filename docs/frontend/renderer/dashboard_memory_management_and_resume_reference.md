@@ -45,7 +45,11 @@ title: "Dashboard Memory Management and Resume Reference"
 `MemorySection` (opened from dashboard modal) owns:
 
 - memory-type tabs: `episodic`, `semantic`, `procedural`
-- retrieval injection toggle (`Inject memory into prompts`) persisted in localStorage key `windieos-memory-retrieval-injection-enabled`; the removed `desktop-assistant-memory-retrieval-injection-enabled` key is ignored and not migrated
+- retrieval injection toggle (`Inject memory into prompts`) persisted through
+  `desktopMemoryRetrievalPreferenceRuntime.js`; that runtime owns the active
+  localStorage key (`windieos-memory-retrieval-injection-enabled`) and the
+  removed `desktop-assistant-memory-retrieval-injection-enabled` key is ignored
+  and not migrated
 - memory list fetch orchestration through the runtime client
 - memory row projection and search filtering through `desktopMemoryPresentationRuntime.js`
 - edit/delete interactions for rendered memory rows

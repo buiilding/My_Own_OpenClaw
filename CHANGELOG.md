@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/storage: expose memory retrieval and permission onboarding storage
+  keys through their app-runtime owners so tests and callers do not import raw
+  renderer skin storage keys. No migration required.
 - renderer/config: route cross-window renderer config storage-event filtering
   through `desktopRendererConfigStorageRuntime` so `AppConfigProvider` no
   longer imports raw skin storage keys. No migration required.
