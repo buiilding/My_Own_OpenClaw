@@ -21776,3 +21776,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Documentation labels changed only;
   local authority behavior, IPC, storage, provider policy, permissions, and
   backend behavior are unchanged.
+
+### 2026-06-21 MCP diagnostics local-runtime runtime label
+
+- Finding: the Python local-runtime MCP diagnostics writer still persisted
+  `runtime = "sidecar"` for MCP execution and registration events after the
+  MCP client identity and diagnostic owner docs moved to local-runtime labels.
+- Change: added a named `LOCAL_RUNTIME_DIAGNOSTICS_RUNTIME` constant and use it
+  for MCP diagnostic event rows, with focused sidecar tests asserting both
+  execution and registration diagnostics persist `local_runtime`.
+- Validation: focused sidecar MCP diagnostics tests, Python compile check, docs
+  listing, source scan for the retired runtime literal in the daemon, and diff
+  checks.
+- Compatibility: no schema migration required. Existing diagnostic rows retain
+  their historical runtime value; newly written MCP diagnostic rows use
+  `local_runtime`. IPC, storage schema, MCP payload shape, provider policy,
+  permissions, and backend behavior are unchanged.

@@ -43,6 +43,7 @@ MCP_PROTOCOL_VERSION = "2024-11-05"
 MCP_DISCOVERY_DIAGNOSTICS_PATH = "mcp.discovery"
 MCP_EXECUTION_DIAGNOSTICS_PATH = "mcp.execution"
 MCP_REGISTRATION_DIAGNOSTICS_PATH = "mcp.registration"
+LOCAL_RUNTIME_DIAGNOSTICS_RUNTIME = "local_runtime"
 MAX_DIAGNOSTIC_TEXT_LENGTH = 240
 MCP_STDIO_STREAM_LIMIT_BYTES = 64 * 1024 * 1024
 PASSIVE_BROWSER_SESSION_ACTIONS = {"get_tabs", "status"}
@@ -340,7 +341,7 @@ def append_mcp_diagnostic_event(
                     path,
                     stage,
                     status,
-                    "sidecar",
+                    LOCAL_RUNTIME_DIAGNOSTICS_RUNTIME,
                     time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                     int(duration_ms) if duration_ms is not None else None,
                     normalize_string(request_id),

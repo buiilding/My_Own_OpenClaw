@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- local-runtime/python: write MCP diagnostic events with a
+  `local_runtime` runtime label instead of `sidecar`, with focused sidecar
+  coverage for execution and registration rows. No schema migration required;
+  existing diagnostic rows retain their historical value.
 - docs/architecture: relabel the change-ownership decision tree's local
   machine authority branch through local-runtime Python/Electron main ownership
   instead of sidecar-as-owner wording. No migration required.

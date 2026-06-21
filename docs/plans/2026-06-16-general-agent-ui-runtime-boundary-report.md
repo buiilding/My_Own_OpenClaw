@@ -9172,3 +9172,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   and concrete repository identifiers remain unchanged. Local authority
   behavior, IPC, storage, provider policy, permissions, and backend behavior are
   unchanged; no migration is required.
+- Python local-runtime MCP diagnostic events now persist `runtime =
+  "local_runtime"` instead of `runtime = "sidecar"` for execution and
+  registration rows. A named daemon constant owns the value and focused sidecar
+  tests assert the persisted runtime label. Existing diagnostic rows retain
+  their historical value; no schema migration is required. MCP payloads, IPC,
+  provider policy, permissions, and backend behavior are unchanged.

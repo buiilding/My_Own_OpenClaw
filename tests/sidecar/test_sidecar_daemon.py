@@ -13,6 +13,7 @@ ensure_frontend_python_path()
 
 import sidecar_daemon  # noqa: E402
 from sidecar_daemon import (  # noqa: E402
+    LOCAL_RUNTIME_DIAGNOSTICS_RUNTIME,
     McpServerSpec,
     McpStdioClient,
     LocalRuntimeDaemon,
@@ -955,7 +956,7 @@ async def test_sidecar_daemon_records_mcp_execution_diagnostics(
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
             """
-            SELECT path, stage, status, request_id, conversation_ref, data, error
+            SELECT path, stage, status, runtime, request_id, conversation_ref, data, error
             FROM diagnostic_events
             WHERE path = 'mcp.execution'
             ORDER BY rowid ASC
@@ -968,6 +969,7 @@ async def test_sidecar_daemon_records_mcp_execution_diagnostics(
     ]
     assert {row["request_id"] for row in rows} == {"req-1"}
     assert {row["conversation_ref"] for row in rows} == {"conv-1"}
+    assert {row["runtime"] for row in rows} == {LOCAL_RUNTIME_DIAGNOSTICS_RUNTIME}
     assert rows[-1]["status"] == "succeeded"
     assert rows[-1]["error"] is None
     data = json.loads(rows[-1]["data"])
@@ -1009,7 +1011,7 @@ async def test_sidecar_daemon_records_mcp_registration_diagnostics(
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
             """
-            SELECT path, stage, status, data, error
+            SELECT path, stage, status, runtime, data, error
             FROM diagnostic_events
             WHERE path = 'mcp.registration'
             ORDER BY rowid ASC
@@ -1022,6 +1024,7 @@ async def test_sidecar_daemon_records_mcp_registration_diagnostics(
         "reconcile_succeeded",
         "registration_completed",
     ]
+    assert {row["runtime"] for row in rows} == {LOCAL_RUNTIME_DIAGNOSTICS_RUNTIME}
     assert rows[-1]["status"] == "succeeded"
     assert rows[-1]["error"] is None
     data = json.loads(rows[-1]["data"])
