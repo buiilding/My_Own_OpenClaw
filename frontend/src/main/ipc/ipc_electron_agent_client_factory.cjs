@@ -126,6 +126,8 @@ function createElectronAgentClientFactoryRuntime({
   onBackendSend = () => {},
   onBackendFallback = () => {},
   isTest = false,
+  createLaunchPlan = createDesktopLocalRuntimeLaunchPlan,
+  resolveUserDataRoot = appUserDataRoot,
   createClient = createElectronAgentClient,
   logMainRuntime = () => {},
 } = {}) {
@@ -146,6 +148,8 @@ function createElectronAgentClientFactoryRuntime({
       onBackendSend,
       onBackendFallback,
       isTest: typeof isTest === 'function' ? isTest() : isTest,
+      createLaunchPlan,
+      resolveUserDataRoot,
       logMainRuntime,
     });
   }
@@ -156,8 +160,5 @@ function createElectronAgentClientFactoryRuntime({
 }
 
 module.exports = {
-  buildDesktopLocalRuntimeLaunchOptionsForAgent,
-  buildDesktopLocalRuntimeOptions,
-  buildManagedBackendEndpoints,
   createElectronAgentClientFactoryRuntime,
 };

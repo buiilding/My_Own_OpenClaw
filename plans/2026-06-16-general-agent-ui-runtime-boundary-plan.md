@@ -9,6 +9,28 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Electron Agent Client Factory Helper Privacy
+
+- Finding: `ipc_electron_agent_client_factory.cjs` already exposed
+  `createElectronAgentClientFactoryRuntime(...)` as the Electron main
+  composition facade, but managed endpoint shaping and desktop local-runtime
+  option builders still leaked as public helper exports after the constructor
+  privacy slice.
+- Change: kept `buildManagedBackendEndpoints(...)`,
+  `buildDesktopLocalRuntimeLaunchOptionsForAgent(...)`, and
+  `buildDesktopLocalRuntimeOptions(...)` private to the factory owner while
+  preserving managed endpoint mapping, auto-local-runtime launch-plan
+  construction, launch error behavior, test-mode disable behavior, dynamic host
+  option resolution, callback attachment, timeout policy, websocket injection,
+  and logging coverage through `createElectronAgentClientFactoryRuntime(...)`.
+- Validation: focused Electron agent-client factory and main SDK boundary
+  tests, targeted main IPC lint, docs listing, stale export scans, and diff
+  checks before commit.
+- Compatibility/security: no SDK client option, backend endpoint, websocket,
+  local-runtime launch, install-auth, credential, permission, storage, or
+  trust-boundary migration required; constructed `AgentClient` behavior is
+  unchanged.
+
 ### 2026-06-21 Main Global Stop Shortcut Config Helper Privacy
 
 - Finding: `ipc_global_stop_shortcut_config_runtime.cjs` already exposed
@@ -406,8 +428,8 @@ Date: 2026-06-16
   `AgentClient` constructor helper directly.
 - Change: kept `createElectronAgentClient(...)` private to the factory module
   and moved managed endpoint, callback, timeout, test-mode, and logging
-  coverage through the runtime facade while leaving focused endpoint and
-  local-runtime option builders public.
+  coverage through the runtime facade; a later follow-up kept focused endpoint
+  and local-runtime option builders private behind the same facade.
 - Validation: focused Electron agent-client factory and main SDK boundary
   tests, targeted main IPC lint, docs listing, stale export-line scans, and
   diff checks before commit.

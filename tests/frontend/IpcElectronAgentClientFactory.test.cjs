@@ -3,12 +3,10 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const electronAgentClientFactoryModule = require('../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
 const {
-  buildDesktopLocalRuntimeLaunchOptionsForAgent,
-  buildDesktopLocalRuntimeOptions,
-  buildManagedBackendEndpoints,
   createElectronAgentClientFactoryRuntime,
-} = require('../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
+} = electronAgentClientFactoryModule;
 
 function createEndpointState() {
   return {
@@ -29,8 +27,31 @@ function createEndpointState() {
 }
 
 describe('ipc_electron_agent_client_factory', () => {
-  test('builds managed backend endpoint options from endpoint state', () => {
-    expect(buildManagedBackendEndpoints(createEndpointState())).toEqual([
+  test('builds managed backend and desktop auto-local-runtime options through the runtime', () => {
+    const constructedOptions = [];
+    class FakeAgentClient {
+      constructor(options) {
+        constructedOptions.push(options);
+      }
+    }
+    const WebSocketImpl = function TestSocket() {};
+    const createLaunchPlan = jest.fn(() => ({
+      ok: true,
+      options: { command: 'python', args: ['daemon.py'] },
+    }));
+    const runtime = createElectronAgentClientFactoryRuntime({
+      AgentClient: FakeAgentClient,
+      backendEndpointState: createEndpointState(),
+      getDesktopLocalRuntimeLaunchConfig: () => ({ isPackaged: true }),
+      getWebSocketImpl: () => WebSocketImpl,
+      isTest: false,
+      createLaunchPlan,
+      resolveUserDataRoot: () => 'C:/Users/test/AppData/Roaming/AgentRuntime',
+    });
+
+    runtime.createClient();
+
+    expect(constructedOptions[0].backendEndpoints).toEqual([
       {
         backendUrl: 'https://primary.test',
         httpBaseUrl: 'https://primary.test',
@@ -44,25 +65,10 @@ describe('ipc_electron_agent_client_factory', () => {
         wsOrigin: 'https://origin.test',
       },
     ]);
-  });
-
-  test('builds desktop auto-local-runtime launch options through the launch plan owner', () => {
-    const WebSocketImpl = function TestSocket() {};
-    const createLaunchPlan = jest.fn(() => ({
-      ok: true,
-      options: { command: 'python', args: ['daemon.py'] },
-    }));
-
-    expect(buildDesktopLocalRuntimeLaunchOptionsForAgent({
-      desktopLocalRuntimeLaunchConfig: {
-        isPackaged: true,
-      },
-      backendHttpUrl: 'https://primary.test',
-      WebSocketImpl,
-      createLaunchPlan,
-      resolveUserDataRoot: () => 'C:/Users/test/AppData/Roaming/AgentRuntime',
-    })).toEqual({ command: 'python', args: ['daemon.py'] });
-
+    expect(constructedOptions[0].autoLocalRuntime).toEqual({
+      command: 'python',
+      args: ['daemon.py'],
+    });
     expect(createLaunchPlan).toHaveBeenCalledWith({
       isPackaged: true,
       backendEndpoints: {
@@ -74,16 +80,16 @@ describe('ipc_electron_agent_client_factory', () => {
   });
 
   test('throws stable errors when desktop local-runtime launch options cannot be built', () => {
-    expect(() => buildDesktopLocalRuntimeLaunchOptionsForAgent({
+    class FakeAgentClient {}
+    const runtime = createElectronAgentClientFactoryRuntime({
+      AgentClient: FakeAgentClient,
+      backendEndpointState: createEndpointState(),
+      isTest: false,
       createLaunchPlan: () => ({ ok: false, error: 'missing daemon' }),
       resolveUserDataRoot: () => '/tmp/user-data',
-    })).toThrow('missing daemon');
-  });
+    });
 
-  test('disables auto-local-runtime startup in tests', () => {
-    expect(buildDesktopLocalRuntimeOptions({
-      isTest: true,
-    })).toEqual({ autoStartLocalRuntime: false });
+    expect(() => runtime.createClient()).toThrow('missing daemon');
   });
 
   test('creates an AgentClient with managed backend and host callbacks', () => {
@@ -196,7 +202,12 @@ describe('ipc_electron_agent_client_factory', () => {
     expect(factorySource).toContain('function createElectronAgentClientFactoryRuntime');
     expect(factorySource).toContain('new AgentClient({');
     expect(factorySource).toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent({');
-    const factoryModule = require('../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
-    expect(factoryModule.createElectronAgentClient).toBeUndefined();
+    expect(factorySource).not.toContain('  buildDesktopLocalRuntimeLaunchOptionsForAgent,');
+    expect(factorySource).not.toContain('  buildDesktopLocalRuntimeOptions,');
+    expect(factorySource).not.toContain('  buildManagedBackendEndpoints,');
+    expect(electronAgentClientFactoryModule.createElectronAgentClient).toBeUndefined();
+    expect(electronAgentClientFactoryModule.buildDesktopLocalRuntimeLaunchOptionsForAgent).toBeUndefined();
+    expect(electronAgentClientFactoryModule.buildDesktopLocalRuntimeOptions).toBeUndefined();
+    expect(electronAgentClientFactoryModule.buildManagedBackendEndpoints).toBeUndefined();
   });
 });

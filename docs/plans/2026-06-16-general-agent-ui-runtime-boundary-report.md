@@ -12,12 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main global stop shortcut config keeps raw
-  status normalization and fallback application private to
-  `ipc_global_stop_shortcut_config_runtime.cjs`, while status trim/filter
-  normalization, invalid status handling, fallback config application,
-  failed-registration skip behavior, persistence, broadcast, and reset remain
-  covered through the public shortcut config runtime facade.
+- Latest completed slice: Electron main AgentClient factory keeps managed
+  endpoint shaping and desktop local-runtime option builders private to
+  `ipc_electron_agent_client_factory.cjs`, while managed endpoint mapping,
+  launch-plan construction, launch errors, test-mode disable behavior, dynamic
+  host options, callbacks, timeout policy, websocket injection, and logging
+  remain covered through the public factory runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1082,6 +1082,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   targeted main IPC lint, docs listing, stale export scans, and diff checks.
 - Compatibility: no migration required. SDK runtime command payloads,
   conversation-ref fallback behavior, replay/edit/retry paths, credentials,
+  permissions, trust boundaries, and storage are unchanged.
+
+### 2026-06-21 Main Electron Agent Client Factory Helper Privacy
+
+- Finding: `ipc_electron_agent_client_factory.cjs` already exposed the composed
+  factory runtime facade, but `buildManagedBackendEndpoints(...)`,
+  `buildDesktopLocalRuntimeLaunchOptionsForAgent(...)`, and
+  `buildDesktopLocalRuntimeOptions(...)` still leaked lower-level option
+  shaping helpers as public exports.
+- Change: removed those helpers from the public module surface while preserving
+  runtime coverage for managed endpoint mapping, desktop auto-local-runtime
+  launch-plan construction, launch error behavior, test-mode disable behavior,
+  dynamic host option resolution, callbacks, timeout policy, websocket
+  injection, and logging.
+- Validation: focused Electron agent-client factory and main SDK boundary
+  tests, targeted main IPC lint, docs listing, stale export scans, and diff
+  checks.
+- Compatibility: no migration required. SDK client options, backend endpoints,
+  websockets, local-runtime launch behavior, install auth, credentials,
   permissions, trust boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Global Stop Shortcut Config Helper Privacy

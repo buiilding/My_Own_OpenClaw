@@ -291,6 +291,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(electronAgentClientFactorySource).toContain('function createElectronAgentClientFactoryRuntime');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).not.toContain('  createElectronAgentClient,');
+    expect(electronAgentClientFactorySource).not.toContain('  buildManagedBackendEndpoints,');
     expect(source).not.toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
     expect(source).toContain('createAgentWakeupRuntime({');
@@ -409,6 +410,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(hostOptionStateSource).not.toContain('  normalizeOptionalObject,');
     expect(source).not.toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
     expect(electronAgentClientFactorySource).toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent({');
+    expect(electronAgentClientFactorySource).not.toContain('  buildDesktopLocalRuntimeLaunchOptionsForAgent,');
+    expect(electronAgentClientFactorySource).not.toContain('  buildDesktopLocalRuntimeOptions,');
     expect(electronAgentClientFactorySource).not.toContain('autoSidecar: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
     expect(source).toContain('hostOptionState.getDesktopLocalRuntimeLaunchConfig()');
     expect(source).not.toContain('let desktopLocalRuntimeLaunchConfig = null');
