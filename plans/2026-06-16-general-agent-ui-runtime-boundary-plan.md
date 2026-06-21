@@ -21885,3 +21885,20 @@ Each completed slice should report:
   endpoint behavior, discovery files, JSON-RPC methods, dynamic tool/MCP
   handling, diagnostics, IPC, storage, provider policy, permissions, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 local-runtime status SDK owner import
+
+- Finding: `frontend/src/main/sidecar/local_runtime_status_broadcaster.cjs`
+  imported `conversationMetadataInvalidationFromLocalRuntimeEvent` through the
+  SDK package root even though the helper is owned by the SDK conversation
+  continuity runtime.
+- Change: narrowed the main-process broadcaster import to
+  `packages/windie-sdk-js/cjs/runtime/ConversationContinuityService.js` and
+  added focused frontend coverage preventing the package-root import from
+  returning.
+- Validation: focused local-runtime status broadcaster Jest test, exact SDK
+  root-import scan for the touched module, docs listing, and diff checks.
+- Compatibility: no migration required. Conversation metadata invalidation
+  projection, local-runtime status payloads, IPC channels, SDK exports, storage,
+  provider policy, permissions, backend behavior, and trust boundaries are
+  unchanged.

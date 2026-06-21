@@ -4,7 +4,7 @@
 
 const {
   conversationMetadataInvalidationFromLocalRuntimeEvent,
-} = require('../../../../packages/windie-sdk-js/cjs/index.js');
+} = require('../../../../packages/windie-sdk-js/cjs/runtime/ConversationContinuityService.js');
 const {
   DESKTOP_RUNTIME_ON_CHANNELS,
 } = require('../ipc/ipc_desktop_runtime_channels.cjs');

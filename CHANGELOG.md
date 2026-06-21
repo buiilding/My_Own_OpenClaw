@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/sdk: narrow local-runtime status broadcaster imports from the SDK package
+  root to the conversation-continuity owner module, with focused frontend
+  coverage for the boundary. No migration required.
 - tests/local-runtime: rename local-runtime daemon lifecycle test functions away
   from `test_sidecar_daemon_*` owner labels while preserving the concrete
   `sidecar_daemon.py` module coverage. No migration required.

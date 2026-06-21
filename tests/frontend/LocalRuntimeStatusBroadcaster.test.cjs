@@ -1,5 +1,7 @@
 /** @jest-environment node */
 
+const fs = require('fs');
+const path = require('path');
 const {
   broadcastConversationMetadataInvalidation,
   buildLocalRuntimeStatusPayload,
@@ -9,7 +11,21 @@ const {
   DESKTOP_RUNTIME_ON_CHANNELS,
 } = require('../../frontend/src/main/ipc/ipc_desktop_runtime_channels.cjs');
 
+const broadcasterPath = path.resolve(
+  __dirname,
+  '../../frontend/src/main/sidecar/local_runtime_status_broadcaster.cjs',
+);
+
 describe('local_runtime_status_broadcaster', () => {
+  test('imports conversation metadata projection from the SDK owner module', () => {
+    const source = fs.readFileSync(broadcasterPath, 'utf8');
+
+    expect(source).toContain(
+      'packages/windie-sdk-js/cjs/runtime/ConversationContinuityService.js',
+    );
+    expect(source).not.toContain('packages/windie-sdk-js/cjs/index.js');
+  });
+
   test('builds local runtime status from supervisor and SDK local runtime snapshots', () => {
     expect(buildLocalRuntimeStatusPayload({
       supervisor: {

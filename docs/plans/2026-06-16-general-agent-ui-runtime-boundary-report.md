@@ -9218,3 +9218,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   endpoint behavior, discovery files, JSON-RPC methods, dynamic tool/MCP
   handling, diagnostics, IPC, storage, provider policy, permissions, backend
   behavior, and trust boundaries are unchanged; no migration is required.
+- The local-runtime status broadcaster now imports conversation metadata
+  invalidation projection from the SDK conversation-continuity owner module
+  instead of the SDK package root. Focused frontend coverage prevents the root
+  import from returning. Local-runtime status payloads, IPC channels,
+  conversation metadata invalidation projection, SDK exports, storage, provider
+  policy, permissions, backend behavior, and trust boundaries are unchanged; no
+  migration is required.
