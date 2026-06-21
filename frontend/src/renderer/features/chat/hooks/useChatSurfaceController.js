@@ -50,7 +50,7 @@ export function useChatSurfaceController({
 }) {
   const { config, updateConfig } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
-    activeConversationRef: sessionInfo?.conversationRef || null,
+    activeConversationRef: currentTurnProjection?.conversationRef || sessionInfo?.conversationRef || null,
     pendingTurn,
     currentTurnProjection,
     messages,

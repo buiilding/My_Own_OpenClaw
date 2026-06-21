@@ -122,6 +122,36 @@ describe('useChatSurfaceController', () => {
     }));
   });
 
+  test('keeps current-turn lifecycle active when session conversation ref lags', () => {
+    const { result } = renderController({
+      props: {
+        sessionInfo: {
+          conversationRef: 'conv-stale-session',
+          userId: 'user-1',
+        },
+        currentTurnProjection: {
+          phase: 'streaming',
+          conversationRef: 'conv-visible-turn',
+          turnRef: 'turn-visible',
+          assistantText: 'streaming response',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      },
+    });
+
+    expect(result.current).toMatchObject({
+      isBusy: true,
+      canStop: true,
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'active',
+        conversationRef: 'conv-visible-turn',
+        turnRef: 'turn-visible',
+      }),
+    });
+  });
+
   test('uses SDK awaiting anchor as dashboard typing dot target', () => {
     const { result } = renderController({
       presentationState: {
@@ -400,6 +430,8 @@ describe('useChatSurfaceController', () => {
     const setThinkingSourceEventType = jest.fn();
     const { result } = renderController({
       props: {
+        currentTurnProjection: null,
+        isSending: false,
         sessionInfo: {
           conversationRef: 'conv-active',
           userId: 'user-active',

@@ -37,30 +37,6 @@ function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function hasCurrentTurnLiveProgressMessages(messages) {
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return false;
-  }
-
-  const lastUserIndex = findLastUserIndex(messages);
-  const lowerBound = lastUserIndex >= 0 ? lastUserIndex + 1 : 0;
-
-  for (let index = lowerBound; index < messages.length; index += 1) {
-    const message = messages[index];
-    if (
-      message?.type === 'tool-output'
-      || message?.type === 'tool-call'
-      || message?.type === 'tool-bundle'
-      || message?.type === 'tool-explanation'
-      || message?.type === 'search-source'
-    ) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 function isTextlessCurrentTurnThinkingMessage(message) {
   return (
     isSdkCurrentTurnSourceChannel(message?.sourceChannel)
@@ -270,5 +246,4 @@ function buildThreadPresentationMessages(
 
 export const DesktopThreadPresentationRuntime = Object.freeze({
   buildThreadPresentationMessages,
-  hasCurrentTurnLiveProgressMessages,
 });

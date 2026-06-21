@@ -512,6 +512,7 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopThreadPresentationRuntime');
+    expect(threadPresentationSource).not.toContain('hasCurrentTurnLiveProgressMessages');
     expect(threadPresentationSource).not.toContain('export function hasCurrentTurnLiveProgressMessages');
     expect(threadPresentationSource).not.toContain('export function buildThreadPresentationMessages');
     expect(threadPresentationSource).not.toContain('import { isSdkCurrentTurnSourceChannel }');

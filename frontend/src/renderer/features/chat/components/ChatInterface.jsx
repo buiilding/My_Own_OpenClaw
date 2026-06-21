@@ -51,7 +51,6 @@ const {
 } = DesktopChatModelOptionsRuntime;
 const {
   buildThreadPresentationMessages,
-  hasCurrentTurnLiveProgressMessages,
 } = DesktopThreadPresentationRuntime;
 const { buildThreadFindState } = DesktopThreadFindRuntime;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
@@ -232,10 +231,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     && loadingConversationRef.length > 0
     && loadingConversationRef === activeConversationRef
     && renderedMessages.length === 0
-  );
-  const hasLiveProgressMessages = useMemo(
-    () => hasCurrentTurnLiveProgressMessages(renderedMessages),
-    [renderedMessages],
   );
   const modelMode = config?.model_mode || 'online';
   const configuredProvider = config?.model_provider || '';
@@ -564,7 +559,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
             thinkingStatus={thinkingStatus}
             thinkingSourceEventType={thinkingSourceEventType}
             compactionDebugInfo={compactionDebugInfo}
-            awaitingDotTargetMessageId={hasLiveProgressMessages ? null : awaitingDotTargetMessageId}
+            awaitingDotTargetMessageId={awaitingDotTargetMessageId}
             findQuery={normalizedFindQuery}
             messageFindMatchIndexesById={threadFindState.messageMatchIndexesById}
             activeFindMatchIndex={resolvedActiveFindMatchIndex}

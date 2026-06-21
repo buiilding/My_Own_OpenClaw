@@ -8,7 +8,6 @@ import {
 
 const {
   buildThreadPresentationMessages,
-  hasCurrentTurnLiveProgressMessages,
 } = DesktopThreadPresentationRuntime;
 
 describe('desktopThreadPresentationRuntime', () => {
@@ -480,26 +479,6 @@ describe('desktopThreadPresentationRuntime', () => {
     })).toBe(messages);
   });
 
-  test('detects live tool-call progress messages', () => {
-    const messages = [
-      { id: 'user-1', sender: 'user', text: 'Find OCR code' },
-      {
-        id: 'tool-call-1',
-        sender: 'assistant',
-        type: 'tool-call',
-        text: 'raw tool call',
-        toolCallDetails: {
-          parameters: {
-            tool: 'run_shell_command',
-            explanation: 'Search Python files for OCR-related code.',
-          },
-        },
-      },
-    ];
-
-    expect(hasCurrentTurnLiveProgressMessages(messages)).toBe(true);
-  });
-
   test('keeps live search-source rows visible in hidden-thread presentation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Search the web' },
@@ -600,33 +579,4 @@ describe('desktopThreadPresentationRuntime', () => {
     })).toBe(messages);
   });
 
-  test('current-turn live progress ignores progress rows before the latest user', () => {
-    expect(hasCurrentTurnLiveProgressMessages([
-      { id: 'user-1', sender: 'user', text: 'Search the web' },
-      {
-        id: 'search-1',
-        sender: 'assistant',
-        type: 'search-source',
-        text: 'Searched example.com',
-      },
-      { id: 'user-2', sender: 'user', text: 'Now answer this' },
-    ])).toBe(false);
-
-    expect(hasCurrentTurnLiveProgressMessages([
-      { id: 'user-1', sender: 'user', text: 'Search the web' },
-      {
-        id: 'search-1',
-        sender: 'assistant',
-        type: 'search-source',
-        text: 'Searched example.com',
-      },
-      { id: 'user-2', sender: 'user', text: 'Now answer this' },
-      {
-        id: 'tool-call-2:tool-explanation:0',
-        sender: 'assistant',
-        type: 'tool-explanation',
-        text: 'Read the latest file.',
-      },
-    ])).toBe(true);
-  });
 });

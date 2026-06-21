@@ -404,6 +404,7 @@ describe('ChatInterface wiring', () => {
   test('shows raw tool-call rows while the active loop is still running', () => {
     mockChatState.isSending = true;
     mockChatState.streamTracking.phase = 'tool-output';
+    setMockCurrentTurnProjection('tool-output');
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'Open a folder' },
       {
@@ -435,6 +436,7 @@ describe('ChatInterface wiring', () => {
   test('hides awaiting dot while live web-search progress is visible', () => {
     mockChatState.isSending = true;
     mockChatState.streamTracking.phase = 'tool-call';
+    setMockCurrentTurnProjection('tool-call');
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'Search the web' },
       {
@@ -1233,7 +1235,9 @@ describe('ChatInterface wiring', () => {
 
   test('stop response handler sends stop-query while stream is active', () => {
     mockChatState.streamTracking.phase = 'streaming';
-    setMockCurrentTurnProjection('streaming');
+    setMockCurrentTurnProjection('streaming', {
+      assistantText: 'streaming response',
+    });
 
     render(<ChatInterface />);
 
@@ -1259,6 +1263,7 @@ describe('ChatInterface wiring', () => {
     setMockCurrentTurnProjection('streaming', {
       conversationRef: 'conv_visible_turn',
       turnRef: 'turn_visible',
+      assistantText: 'streaming response',
     });
 
     render(<ChatInterface />);
@@ -1278,7 +1283,9 @@ describe('ChatInterface wiring', () => {
 
   test('stop shortcut sends stop-query while stream is active', () => {
     mockChatState.streamTracking.phase = 'streaming';
-    setMockCurrentTurnProjection('streaming');
+    setMockCurrentTurnProjection('streaming', {
+      assistantText: 'streaming response',
+    });
 
     render(<ChatInterface />);
 
@@ -1493,7 +1500,7 @@ describe('ChatInterface wiring', () => {
     expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-1');
   });
 
-  test('keeps awaiting dot visible if streaming phase arrives before the first assistant row renders', () => {
+  test('does not show awaiting dot for phase-only streaming without pending or visible content', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
     ];
@@ -1504,10 +1511,10 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
-    expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-1');
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBeNull();
   });
 
-  test('hides awaiting dot during a later turn when visible tool rows exist after the latest user message', () => {
+  test('keeps awaiting dot from renderer pending even when durable tool rows exist', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'first task', type: 'user' },
       { id: 'assistant-1', sender: 'assistant', text: 'done', type: 'llm-text' },
@@ -1516,12 +1523,20 @@ describe('ChatInterface wiring', () => {
       { id: 'tool-output-2', sender: 'assistant', text: '{"ok":true}', type: 'tool-output' },
     ];
     mockChatState.streamTracking.phase = 'tool-output';
-    mockChatState.isSending = false;
+    mockChatState.isSending = true;
+    mockChatState.pendingTurn = {
+      conversationRef: 'conv_existing',
+      turnRef: 'turn_pending_2',
+      userMessageId: 'user-2',
+      text: 'second task',
+      timestamp: '2026-06-21T00:00:00.000Z',
+      attachmentFilenames: null,
+    };
 
     render(<ChatInterface />);
 
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
-    expect(lastMessageListProps.awaitingDotTargetMessageId).toBeNull();
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-2');
   });
 
   test('keeps awaiting dot visible during a later turn while send latch is active over a terminal previous phase', () => {

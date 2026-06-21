@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Dashboard Awaiting Anchor Row-Shape Cleanup
+
+- Finding: dashboard awaiting-dot routing no longer computed live progress
+  suppression locally, but the deletion target was not protected in the
+  core-loop regression pack.
+- Change: deleted the live-progress row-shape helper, updated
+  `ChatInterfaceWiring.test.jsx` so phase-only streaming stays hidden without
+  pending or visible content, renderer pending still drives the awaiting anchor
+  even when durable tool rows exist, and `useChatSurfaceController(...)` stays
+  active when the SDK current-turn conversation ref is ahead of the session ref.
+- Validation: `ChatInterfaceWiring.test.jsx` is registered in `<windie> test
+  core-loop` alongside the visible lifecycle controller tests.
+- Compatibility/security: no SDK event payload, IPC payload, transcript
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Response Overlay Visible Lifecycle Routing
 
 - Finding: `useResponseOverlayViewModel(...)` still reduced live-turn input,

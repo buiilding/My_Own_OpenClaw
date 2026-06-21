@@ -68,6 +68,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: keep dashboard awaiting-dot routing on the
+  renderer-owned visible lifecycle instead of suppressing it from durable
+  live-progress row shape, and resolve active lifecycle against the SDK
+  current-turn conversation when the session ref lags. `ChatInterfaceWiring`
+  now runs in the core-loop pack for that invariant. No migration required.
 - frontend/renderer: route response overlay view-model awaiting and response
   state through the renderer-owned visible turn lifecycle, so phase-only
   visible-empty projections no longer show typing and pending sends continue to

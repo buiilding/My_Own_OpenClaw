@@ -210,7 +210,10 @@ feature hooks do not carry their own SDK current-turn reducers.
 that projection for dashboard/pill busy state, stop affordance gating,
 awaiting-dot visibility, and chatbox awaiting state. The older
 `useCurrentTurnPresentationState(...)` result remains an adapter for legacy
-presentation fields while visible lifecycle owns the typing decision.
+presentation fields while visible lifecycle owns the typing decision. The
+controller resolves the active lifecycle against the SDK current-turn
+conversation ref when present, so a lagging session ref does not hide the
+visible same-turn projection.
 
 `useResponseOverlayViewModel(...)` also resolves the same visible lifecycle and
 applies `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
@@ -228,6 +231,9 @@ progress, error, or pending turn do not independently show typing.
 - uses visible lifecycle `isBusy` as the stop-query affordance gate
 - uses visible lifecycle awaiting anchor for `showAssistantAwaitingDot` instead
   of component-local reply scanning
+- passes the visible lifecycle awaiting anchor directly to `MessageList`; live
+  progress row shape remains rendering data and does not suppress lifecycle
+  typing state
 
 `ChatBox.jsx`:
 
