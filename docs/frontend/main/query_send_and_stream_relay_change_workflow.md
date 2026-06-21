@@ -86,7 +86,7 @@ sequenceDiagram
 
 Send and stop/cancel follow the same app-runtime boundary. Chat UI calls
 `DesktopLiveTurnRuntimeClient.sendQuery(...)`; that creates an SDK
-conversation runtime and calls `runtime.send(...)`. The desktop runtime transport
+conversation runtime and calls `runtime.send(...)`. The SDK desktop transport
 adapter is the only renderer-side layer that maps the semantic SDK query command
 into the `windie:invoke` command `conversation.send`. Chat UI calls
 `DesktopLiveTurnRuntimeClient.stop(...)`; that creates an SDK conversation
@@ -109,7 +109,7 @@ Before editing, answer which contract is changing:
 - Compose contract: text, pasted images, readable files, screenshot capture,
   message-send policy, disabled send states.
 - Renderer runtime facade contract: `DesktopLiveTurnRuntimeClient.sendQuery(...)` arguments,
-  SDK `runtime.send(...)` payload, and desktop runtime transport
+  SDK `runtime.send(...)` payload, and SDK desktop transport adapter
   typed chat IPC payload shape.
 - Main/SDK runtime contract: query payload filtering, enrichment, settings ACK
   gate, SDK runtime send, local synthetic events, replay, and send failure behavior.

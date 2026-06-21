@@ -559,7 +559,7 @@ Owns pending renderer turn IPC handler registration and payload acceptance:
 - pending-turn cache clear and SDK-current-turn match primitives consumed by
   `ipc.cjs` stop and SDK current-turn cleanup paths, while explicit target
   matching remains private inside the clear path
-- pending/clear broadcasts through the shared desktop runtime pending-turn
+- pending/clear broadcasts through the shared SDK desktop transport pending-turn
   channel constant
 
 ### `ipc_live_turn_state.cjs`

@@ -57,6 +57,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/renderer: route SDK command comments and renderer continuity/compaction/
   architecture docs through host-runtime and renderer app-runtime labels instead of
   desktop-runtime wording. No migration required.
+- docs/runtime: route SDK command transport docs through SDK desktop transport
+  adapter wording instead of desktop-runtime transport ownership labels. No
+  migration required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

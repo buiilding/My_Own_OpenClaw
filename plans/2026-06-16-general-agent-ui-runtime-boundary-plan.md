@@ -20265,3 +20265,20 @@ Each completed slice should report:
   continuity, replay persistence, compaction transport mapping, renderer
   projection, architecture routing, provider policy, permissions, storage, and
   backend behavior are unchanged.
+
+### 2026-06-21 SDK desktop transport adapter wording
+
+- Finding: active architecture, main workflow, runtime audio, provider, IPC
+  helper, and inventory docs still used desktop-runtime transport labels for
+  SDK command mapping, pending-turn fan-out, provider channel-import guidance,
+  and end-to-end query checkpoints.
+- Change: reworded those docs to SDK desktop transport adapter/pending-turn/
+  channel-name labels and extended modular routing coverage over the affected
+  docs so desktop-runtime transport ownership phrases stay retired while the
+  concrete module name remains available where needed.
+- Validation: focused modular boundary test, docs listing, exact retired
+  desktop-runtime transport phrase scan, and diff checks.
+- Compatibility: no migration required. SDK command constants, renderer
+  runtime clients, `windie:invoke` IPC names, pending-turn fan-out, stop-query
+  mapping, provider wiring, storage, permissions, provider policy, and backend
+  behavior are unchanged.

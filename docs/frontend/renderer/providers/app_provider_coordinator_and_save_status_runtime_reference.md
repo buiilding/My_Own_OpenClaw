@@ -148,7 +148,7 @@ Desktop host transport is routed through app runtime clients:
 - `DesktopVoiceRuntimeClient` owns value-level wakeword-toggle state fan-out.
 - `DesktopSettingsRuntimeClient` owns SDK settings/model commands.
 
-Provider code should not import `IpcBridge`, channel constants, or desktop runtime channel names directly.
+Provider code should not import `IpcBridge`, channel constants, or SDK desktop transport channel names directly.
 
 ## AppStatusProvider Save-State Machine
 

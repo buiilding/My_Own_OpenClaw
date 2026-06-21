@@ -128,7 +128,7 @@ This section distinguishes current behavior from target behavior and known migra
    `DesktopLiveTurnRuntimeClient.sendQuery()` as the SDK-shaped
    `conversation.send` command; it does not create a renderer-local visible user
    row on the successful send path.
-4. The desktop runtime transport maps SDK runtime interface calls to `windie:invoke` command names.
+4. The SDK desktop transport adapter maps SDK runtime interface calls to `windie:invoke` command names.
 5. Main `ipc.cjs`:
    - Ensures one-time initial settings sync ACK gate.
    - Runs blur-only overlay pre-capture prep for chatbox-surface sends.

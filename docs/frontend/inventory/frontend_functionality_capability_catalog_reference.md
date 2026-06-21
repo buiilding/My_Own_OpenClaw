@@ -237,7 +237,7 @@ Capabilities:
 
 ## 10) End-to-End Path Checkpoints
 
-1. Renderer `DesktopLiveTurnRuntimeClient.sendQuery` sends query intent through the SDK conversation runtime and desktop runtime transport.
+1. Renderer `DesktopLiveTurnRuntimeClient.sendQuery` sends query intent through the SDK conversation runtime and SDK desktop transport adapter.
 2. Main process enriches payload and hands it to the SDK runtime for backend WebSocket transport.
 3. SDK conversation events relay from main to renderer
    `windie:conversation-event`; backend settings/capability/audio side channels

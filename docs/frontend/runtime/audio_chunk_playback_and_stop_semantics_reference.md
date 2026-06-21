@@ -117,7 +117,7 @@ When user stops query:
    `acceptStoppedTurn(...)`
 2. playback stops immediately
 3. `DesktopLiveTurnRuntimeClient.stop(...)` calls the SDK conversation runtime stop command
-4. the desktop runtime transport adapter maps that semantic stop into the `stop-query` backend envelope
+4. the SDK desktop transport adapter maps that semantic stop into the `stop-query` backend envelope
 
 When user sends a new query:
 

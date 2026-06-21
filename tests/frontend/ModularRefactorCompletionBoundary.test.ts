@@ -1535,8 +1535,10 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/main/electron_main_and_ipc.md',
       'docs/frontend/main/ipc_helper_module_split_and_runtime_boundary_reference.md',
       'docs/frontend/main/query_payload_and_relay_reference.md',
+      'docs/frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md',
       'docs/frontend/renderer/chat_stream_and_tool_execution_reference.md',
       'docs/frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md',
+      'docs/frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md',
       'docs/frontend/renderer/renderer_runtime.md',
       'docs/frontend/renderer/renderer_state_change_workflow.md',
       'docs/frontend/sidecar/browser_automation_stack.md',
@@ -1561,6 +1563,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK transport/projection, typed fan-out channel');
     expect(docText).toContain('Agent SDK runtime receives the hosted backend WebSocket event');
     expect(docText).toContain('SDK projection events and typed backend side-channel events are consumed');
+    expect(docText).toContain('SDK desktop transport adapter maps');
+    expect(docText).toContain('shared SDK desktop transport pending-turn');
+    expect(docText).toContain('SDK desktop transport channel names');
     expect(docText).toContain('Client-to-backend transcription messages');
     expect(docText).toContain('renderer transcript/history side-effect handlers consume SDK conversation');
     expect(docText).toContain('agent display name');
@@ -1605,6 +1610,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Frontend/sidecar owner');
     expect(docText).not.toContain('Frontend-owned payloads:');
     expect(docText).not.toContain('Sidecar-owned payloads:');
+    expect(docText).not.toContain('The desktop runtime transport maps');
+    expect(docText).not.toContain('the desktop runtime transport adapter maps');
+    expect(docText).not.toContain('desktop runtime transport\nadapter');
+    expect(docText).not.toContain('desktop runtime transport\n  typed chat IPC payload shape');
+    expect(docText).not.toContain('shared desktop runtime pending-turn');
+    expect(docText).not.toContain('desktop runtime channel names directly');
   });
 
   test('renderer settings docs use renderer-local presentation wording', async () => {

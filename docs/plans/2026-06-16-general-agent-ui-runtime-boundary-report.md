@@ -8358,3 +8358,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   transport mapping, renderer projection, architecture routing, provider
   policy, permissions, storage, and backend behavior are unchanged; no
   migration is required.
+- Architecture, main workflow, runtime audio, provider, IPC helper, and
+  inventory docs now use SDK desktop transport adapter/pending-turn/channel-name
+  labels instead of desktop-runtime transport ownership wording. SDK command
+  constants, renderer runtime clients, `windie:invoke` IPC names,
+  pending-turn fan-out, stop-query mapping, provider wiring, storage,
+  permissions, provider policy, and backend behavior are unchanged; no
+  migration is required.
