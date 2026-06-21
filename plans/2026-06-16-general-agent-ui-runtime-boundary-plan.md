@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Modular Local-Runtime Helper Guard Label Boundary
+
+- Finding: `ModularRefactorCompletionBoundary.test.ts` still named active
+  disposable-env and browser-profile guards as sidecar helper/browser launcher
+  tests even though the guards enforce local-runtime Python fixture neutrality;
+  the same suite also exposed renderer settings docs drifting from its
+  renderer-local theme editor values invariant phrase.
+- Change: renamed those active guard labels to local-runtime helper and
+  local-runtime browser launcher wording while preserving reads from the real
+  `tests/sidecar` implementation test paths, and restored the renderer settings
+  docs invariant wording.
+- Validation: focused modular completion boundary Jest coverage, exact stale
+  helper/browser launcher label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Test fixtures, local-runtime
+  env alias support, dedicated browser profile behavior, implementation paths,
+  IPC, storage, credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Main Local-Runtime Adapter Test Label Boundary
 
 - Finding: `MainHostSkinBoundary.test.cjs` still named active Electron main
@@ -1205,27 +1222,27 @@ Each completed slice should report:
   README text, prompt skills, contribution root behavior, CLI output, storage,
   credentials, hosted backend URLs, and provider policy are unchanged.
 
-### 2026-06-21 Sidecar Browser Launcher Profile Wording Cleanup
+### 2026-06-21 Local-Runtime Browser Launcher Profile Wording Cleanup
 
 - Finding: browser launcher coverage described injected profile-path
   compatibility as WindieOS desktop launch behavior even though the local
   runtime launcher supports host-injected app data names.
 - Change: renamed the test docstring to generic desktop app launch wording and
   added a modular completion guard for the retired phrase.
-- Validation: focused sidecar Chrome launcher tests, modular boundary test, and
-  exact retired phrase scan.
+- Validation: focused local-runtime Chrome launcher tests, modular boundary
+  test, and exact retired phrase scan.
 - Compatibility: no migration required. Dedicated browser profile path
   resolution, generic and legacy env aliases, CDP launch behavior, storage,
   credentials, hosted backend URLs, and provider policy are unchanged.
 
-### 2026-06-21 Sidecar Helper Env Fixture Neutralization
+### 2026-06-21 Local-Runtime Helper Env Fixture Neutralization
 
-- Finding: sidecar helper coverage used `WINDIE_TEST_*` as arbitrary
+- Finding: local-runtime helper coverage used `WINDIE_TEST_*` as arbitrary
   environment keys for generic env flag parsing, env int parsing, and shell
   env propagation, even though real Windie env aliases are covered separately.
 - Change: renamed those disposable fixtures to `AGENT_TEST_*` and added a
-  modular completion guard scoped to the affected sidecar helper tests.
-- Validation: focused sidecar helper tests, modular boundary test, and exact
+  modular completion guard scoped to the affected local-runtime helper tests.
+- Validation: focused local-runtime helper tests, modular boundary test, and exact
   retired-env scan. A broader `test_shell_process_tool.py` run still hits the
   existing Windows heredoc shell limitation outside this fixture change.
 - Compatibility: no migration required. Local-runtime env alias support, shell

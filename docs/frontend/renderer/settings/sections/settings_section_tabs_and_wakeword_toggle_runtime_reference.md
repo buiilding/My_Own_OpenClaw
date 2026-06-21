@@ -120,7 +120,7 @@ fallback fields directly.
 
 ## Appearance Tab Ownership Model
 
-`desktopAppearanceThemeRuntime.js` owns renderer-local theme editor
+`desktopAppearanceThemeRuntime.js` owns renderer-local theme editor values and
 descriptors:
 
 - light, dark, or system theme mode

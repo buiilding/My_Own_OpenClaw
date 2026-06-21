@@ -425,7 +425,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS');
   });
 
-  test('sidecar helper tests keep disposable env fixtures product-neutral', async () => {
+  test('local-runtime helper tests keep disposable env fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/sidecar/test_env_flags.py'),
       read('tests/sidecar/test_shell_process_registry.py'),
@@ -440,7 +440,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('AGENT_TEST');
   });
 
-  test('sidecar browser launcher tests keep profile compatibility wording product-neutral', async () => {
+  test('local-runtime browser launcher tests keep profile compatibility wording product-neutral', async () => {
     const source = await read('tests/sidecar/tools/test_chrome_launcher.py');
 
     expect(source).not.toContain('WindieOS desktop launches');

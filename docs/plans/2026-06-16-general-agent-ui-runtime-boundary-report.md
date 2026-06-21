@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main host-skin boundary tests now use main
-  local-runtime adapter labels instead of main sidecar adapter wording while
-  preserving concrete WindieOS compatibility assertions for real sidecar
-  folders, logs, and daemon entrypoints.
+- Latest completed slice: modular completion boundary guards now name
+  local-runtime helper and browser launcher fixture coverage instead of
+  stale owner wording while preserving reads from the real `tests/sidecar`
+  implementation test paths; the same validation pass restored the renderer
+  settings docs invariant phrase for renderer-local theme editor values.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -78,12 +79,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic onboarding permission action tests describe focus-driven permission
   refresh as desktop app focus behavior while real product identity remains
   skin/config owned.
-  Generic sidecar helper tests use neutral `AGENT_TEST_*` disposable env
+  Generic local-runtime helper tests use neutral `AGENT_TEST_*` disposable env
   fixtures while real Windie env aliases remain covered in explicit alias
   tests.
-  Generic sidecar browser launcher tests describe injected dedicated profile
-  path compatibility through desktop app launch wording while real Windie
-  legacy env aliases remain covered explicitly.
+  Generic local-runtime browser launcher tests describe injected dedicated
+  profile path compatibility through desktop app launch wording while real
+  Windie legacy env aliases remain covered explicitly.
   Generic extension scaffold and public example tests keep retired plugin-copy
   regression guards without storing the old WindieOS starter plugin phrases as
   direct literals.

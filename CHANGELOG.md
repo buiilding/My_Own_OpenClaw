@@ -41,6 +41,11 @@ All notable changes to WindieOS will be documented in this file.
 - main/tests: route active main host-skin local-runtime adapter test labels
   away from sidecar-adapter wording while preserving real sidecar compatibility
   folder, log, and daemon entrypoint assertions. No migration required.
+- frontend/tests: rename modular completion guards for local-runtime helper and
+  browser launcher fixtures away from stale owner wording while preserving
+  real `tests/sidecar` implementation path reads, and restore the renderer
+  settings docs wording guarded by the same boundary suite. No migration
+  required.
 - sdk/tests: rename active Agent SDK local-runtime fixtures away from stale
   sidecar labels and add package-boundary coverage so reusable SDK runtime tests
   use local-runtime daemon/error/conversation wording. No migration required.
