@@ -437,7 +437,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain('windieos-conversation-workspace');
     expect(source).not.toContain('windieos-diagnostic-workspace');
     expect(source).not.toContain('windieos-untrusted-workspace');
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain('WindieOS');
     expect(source).not.toContain(retiredPermissionTempRoot);
+    expect(source).toContain('samplePermissionCopy');
+    expect(source).toContain('Select sample workspace folder');
     expect(source).toContain('project-alpha-workspace');
     expect(source).toContain('project-alpha-conversation-workspace');
     expect(source).toContain('project-alpha-diagnostic-workspace');

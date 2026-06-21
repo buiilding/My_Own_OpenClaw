@@ -5,9 +5,12 @@ const {
   requestPermission,
   runPermissionProbe,
 } = require('../../frontend/src/main/permissions/permission_service.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const samplePermissionCopy = Object.freeze({
+  workspace: Object.freeze({
+    folderPickerTitle: 'Select sample workspace folder',
+  }),
+});
 
 function createMockPermissionStateStore() {
   const state = new Map();
@@ -297,7 +300,7 @@ describe('permission_service', () => {
   test('System Events automation probe on macOS reflects the sidecar automation verifier', async () => {
     const probeMacOsSystemEventsAutomationPermission = jest.fn(async () => ({
       granted: false,
-      reason: 'WindieOS still needs permission to control System Events.',
+      reason: 'Sample app still needs permission to control System Events.',
       details: {
         os_status: -1744,
       },
@@ -349,7 +352,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('filesystem_workspace_access', {
       platform: 'linux',
-      permissionCopy: mainHostSkin.permissions,
+      permissionCopy: samplePermissionCopy,
       permissionStateStore,
       fs: {
         existsSync: jest.fn(() => true),
@@ -362,7 +365,7 @@ describe('permission_service', () => {
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
     expect(showOpenDialog).toHaveBeenCalledWith({
-      title: 'Select workspace folder for WindieOS',
+      title: 'Select sample workspace folder',
       buttonLabel: 'Give folder context',
       properties: ['openDirectory', 'createDirectory'],
     });

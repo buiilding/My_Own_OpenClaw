@@ -19364,6 +19364,21 @@ Each completed slice should report:
   interrupted-query event shaping, injected host copy wiring, permissions,
   storage, provider policy, and backend behavior are unchanged.
 
+### 2026-06-21 Permission copy fixture neutrality
+
+- Finding: the generic permission service tests still imported WindieOS
+  host-skin permission copy to exercise workspace folder-picker copy.
+- Change: replaced that import with test-local sample permission copy and
+  extended the modular boundary guard so permission service fixtures stay
+  product-neutral.
+- Validation: focused permission service, permission IPC, host-skin boundary,
+  and modular boundary tests; exact retired permission-copy fixture scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Permission manifest listing,
+  probe/request flows, workspace folder selection, stored permission state, OS
+  permission prompts, host-skin wiring, provider policy, storage, and backend
+  behavior are unchanged.
+
 ### 2026-06-21 Backend endpoint defaults fixture neutrality
 
 - Finding: the generic backend endpoint resolver tests still imported WindieOS

@@ -11,10 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `445d1e5a3` (`test(main): neutralize layer log host fixture`)
-- Latest completed slice: generic backend endpoint tests now use neutral
-  injected hosted endpoint defaults instead of WindieOS host-skin hosted
-  backend values.
+- Latest inspected plan checkpoint: `8ea824f4b` (`test(main): neutralize endpoint host fixture`)
+- Latest completed slice: generic permission service tests now use neutral
+  injected permission copy instead of WindieOS host-skin permission copy.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -43,6 +42,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   real WindieOS debug env names remain host-skin owned.
   Generic IPC query runtime tests use sample interruption copy while real
   WindieOS query event copy remains host-skin owned.
+  Generic permission service tests use sample permission copy while real
+  WindieOS permission copy remains host-skin owned.
   Generic backend endpoint tests use sample hosted endpoint defaults while real
   WindieOS hosted URLs and default endpoint env names remain host-skin owned.
   Generic layer-log sink tests use sample logging config while real WindieOS log
@@ -7996,6 +7997,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   artifact base selection, removed packaged-default env rejection, permissions,
   storage, provider policy, and backend behavior are unchanged; no migration is
   required.
+- Generic permission service tests now use neutral sample permission copy
+  instead of importing WindieOS host-skin permission copy. Real WindieOS
+  permission copy remains covered by host-skin boundary tests. Permission
+  manifest listing, probe/request flows, workspace folder selection, stored
+  permission state, OS permission prompts, provider policy, storage, and backend
+  behavior are unchanged; no migration is required.
 - Generic runtime-path and wakeword bridge tests now use neutral injected host
   config fixtures instead of importing WindieOS host-skin values. Real WindieOS
   env, wakeword model, packaged-entrypoint, and runtime-path ownership remains
