@@ -101,10 +101,16 @@ describe('renderer voice runtime boundary', () => {
     );
     const detectionSource = await fs.readFile(detectionHookPath, 'utf8');
     const bridgeSource = await fs.readFile(bridgeHookPath, 'utf8');
+    const wakewordEventRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWakewordEventRuntime.ts'),
+      'utf8',
+    );
 
     expect(detectionSource).toContain('DesktopVoiceRuntimeClient.sendWakewordAudioChunk');
     expect(detectionSource).toContain('DesktopVoiceRuntimeClient.enableWakeword');
     expect(detectionSource).toContain('DesktopVoiceRuntimeClient.disableWakeword');
+    expect(detectionSource).toContain('DesktopWakewordEventRuntime');
+    expect(detectionSource).not.toContain('import { getChunkSizeWarning');
     expect(detectionSource).not.toContain('SEND_CHANNELS');
     expect(detectionSource).not.toContain('IpcBridge.');
     expect(bridgeSource).toContain('DesktopVoiceRuntimeClient.onWakewordDetectedValues');
@@ -114,11 +120,16 @@ describe('renderer voice runtime boundary', () => {
     expect(bridgeSource).not.toContain('data?.confidence');
     expect(bridgeSource).not.toContain('data.model');
     expect(bridgeSource).not.toContain('data.score');
+    expect(bridgeSource).toContain('DesktopWakewordEventRuntime');
     expect(bridgeSource).not.toContain('resolveConfidence');
     expect(bridgeSource).not.toContain('status.ready');
     expect(bridgeSource).not.toContain('status.error');
     expect(bridgeSource).not.toContain('ON_CHANNELS');
     expect(bridgeSource).not.toContain('IpcBridge.');
+    expect(wakewordEventRuntimeSource).toContain('export const DesktopWakewordEventRuntime = Object.freeze');
+    expect(wakewordEventRuntimeSource).not.toContain('export function getChunkSizeWarning');
+    expect(wakewordEventRuntimeSource).not.toContain('export function resolveConfidence');
+    expect(wakewordEventRuntimeSource).not.toContain('export function isWithinCooldown');
   });
 
   test('voice hooks route lifecycle traces through the gated voice debug helper', async () => {

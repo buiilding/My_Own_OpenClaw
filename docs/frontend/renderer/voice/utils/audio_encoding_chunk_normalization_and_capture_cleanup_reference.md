@@ -120,13 +120,15 @@ Design goal:
 
 ## Wakeword Utility Guards
 
-`desktopWakewordEventRuntime` helpers:
+`DesktopWakewordEventRuntime` facade methods:
 
 - `resolveConfidence`: accepts finite numeric confidence only
 - `isWithinCooldown`: pure cooldown predicate (`now - last < cooldownMs`)
 - `getChunkSizeWarning`: deterministic warning string for normalized chunk substitution
 
-These helpers keep hook logic declarative and testable.
+These helpers stay private to the runtime module and are exposed through the
+facade so hook logic remains declarative without importing standalone raw
+normalizers.
 
 ## Drift Hotspots
 

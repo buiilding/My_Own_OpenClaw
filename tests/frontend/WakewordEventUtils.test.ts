@@ -2,11 +2,13 @@
  * Covers wakeword event utils. behavior in the frontend test suite.
  */
 
-import {
+import { DesktopWakewordEventRuntime } from '../../frontend/src/renderer/app/runtime/desktopWakewordEventRuntime';
+
+const {
   getChunkSizeWarning,
   isWithinCooldown,
   resolveConfidence,
-} from '../../frontend/src/renderer/app/runtime/desktopWakewordEventRuntime';
+} = DesktopWakewordEventRuntime;
 
 describe('wakewordEventUtils', () => {
   test('getChunkSizeWarning returns warning only when chunk size is normalized', () => {

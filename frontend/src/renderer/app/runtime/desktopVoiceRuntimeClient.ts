@@ -4,7 +4,7 @@
 
 import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { DesktopRuntimeEndpointClient } from './desktopRuntimeEndpointClient';
-import { resolveConfidence } from './desktopWakewordEventRuntime';
+import { DesktopWakewordEventRuntime } from './desktopWakewordEventRuntime';
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
 
 const SET_LANGUAGE_PAYLOAD = JSON.stringify({
@@ -152,11 +152,11 @@ function resolveWakewordDetectionValues(
   payload: WakewordDetectionPayload | null | undefined,
 ): WakewordDetectionValues | null {
   const source = isRecord(payload) ? payload : {};
-  const confidence = resolveConfidence(source.confidence);
+  const confidence = DesktopWakewordEventRuntime.resolveConfidence(source.confidence);
   if (confidence === null) {
     return null;
   }
-  const score = resolveConfidence(source.score);
+  const score = DesktopWakewordEventRuntime.resolveConfidence(source.score);
   const values: WakewordDetectionValues = {
     model: typeof source.model === 'string' ? source.model : '',
     confidence,

@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
-import { isWithinCooldown } from '../../../app/runtime/desktopWakewordEventRuntime';
+import { DesktopWakewordEventRuntime } from '../../../app/runtime/desktopWakewordEventRuntime';
 import { logVoiceDebugTrace } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
 
 type WakewordDetectionPayload = {
@@ -48,7 +48,7 @@ export function useWakewordBridgeEvents({
       const now = Date.now();
       const confidence = detection.confidence;
       const confidenceText = confidence.toFixed(4);
-      if (isWithinCooldown(now, lastDetectionRef.current, cooldownMs)) {
+      if (DesktopWakewordEventRuntime.isWithinCooldown(now, lastDetectionRef.current, cooldownMs)) {
         return;
       }
 

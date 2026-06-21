@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Wakeword Event Facade
+
+- Finding: `desktopWakewordEventRuntime.ts` already owned wakeword chunk-size
+  warnings, confidence normalization, and cooldown checks, but still exported
+  those helpers as standalone functions consumed by voice hooks, the voice
+  runtime client, and focused tests.
+- Change: made the wakeword event helpers private to the runtime module,
+  exposed them through `DesktopWakewordEventRuntime`, and routed
+  `useWakewordDetection`, `useWakewordBridgeEvents`, `DesktopVoiceRuntimeClient`,
+  and focused tests through that facade.
+- Validation: focused wakeword event, wakeword hook, voice runtime client, and
+  renderer voice boundary coverage, exact standalone helper export/import scan,
+  docs list, and diff hygiene.
+- Compatibility/security: no migration required. Warning text, confidence
+  acceptance, cooldown behavior, wakeword IPC payload normalization, microphone
+  capture behavior, permissions, credentials, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Renderer Memory Retrieval Preference Facade
 
 - Finding: `desktopMemoryRetrievalPreferenceRuntime.js` already owned the

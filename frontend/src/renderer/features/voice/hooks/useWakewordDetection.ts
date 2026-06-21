@@ -11,9 +11,7 @@ import {
   takeAudioContext,
 } from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
 import { createAudioCaptureProcessorNode } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
-import {
-  getChunkSizeWarning,
-} from '../../../app/runtime/desktopWakewordEventRuntime';
+import { DesktopWakewordEventRuntime } from '../../../app/runtime/desktopWakewordEventRuntime';
 import { logVoiceDebugTrace } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
 import {
   clearWakewordCaptureGuard,
@@ -104,7 +102,7 @@ export function useWakewordDetection(
   }, [clearMissingDeviceLock]);
 
   useEffect(() => {
-    const warningMessage = getChunkSizeWarning(rawChunkSize, chunkSize);
+    const warningMessage = DesktopWakewordEventRuntime.getChunkSizeWarning(rawChunkSize, chunkSize);
     if (warningMessage) {
       console.warn(warningMessage);
     }
