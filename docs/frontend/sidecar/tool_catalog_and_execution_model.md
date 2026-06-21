@@ -103,7 +103,7 @@ Current runtime boundary:
   - args are deep-copied before tool invocation
 - no wrapper-envelope validation path exists in the current local-runtime Python
   registry implementation
-- runtime argument enforcement is therefore owned by the concrete tool implementation, not by a sidecar wrapper router
+- runtime argument enforcement is therefore owned by the concrete tool implementation, not by a local-runtime wrapper router
 
 Implication:
 

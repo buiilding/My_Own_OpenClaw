@@ -70,7 +70,7 @@ Files created per user:
 
 Use when you need a full local-memory reset in dev (episodic + semantic + FAISS + watermark).
 
-1. Stop Electron/sidecar first.
+1. Stop Electron/local-runtime processes first.
 2. Run one command:
 
 Linux/macOS (auto-detect path):

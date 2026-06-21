@@ -22234,3 +22234,21 @@ Each completed slice should report:
   transcript-session payload parsing, removed alias rejection, renderer/main
   sync behavior, hosted backend session ids, IPC, storage, provider policy,
   permissions, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 architecture local-runtime owner-label cleanup
+
+- Finding: active architecture and local-runtime tool-catalog docs still used
+  sidecar as an owner label for plugin Python entrypoint loading, memory
+  shutdown order, backend-history mutation boundaries, and argument-enforcement
+  wrapper routing even though those responsibilities now sit behind
+  local-runtime Python/local-runtime execution boundaries.
+- Change: reworded those active references through local-runtime ownership and
+  extended the modular boundary guard for the retired sidecar owner phrases
+  while preserving concrete `docs/frontend/sidecar` paths and `tests/sidecar`
+  implementation paths.
+- Validation: focused modular boundary test, exact stale phrase scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  plugin manifest loading, memory stores, backend conversation history,
+  local-runtime argument enforcement, IPC, storage, provider policy,
+  permissions, backend behavior, and trust boundaries are unchanged.

@@ -27,7 +27,7 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 | stream event phase | backend event producer plus SDK runtime reducer | chat UI, response overlay, tool coordinator, transcript projections | stale-turn filtering belongs at consumer boundaries |
 | normalized conversation events | SDK runtime | desktop, CLI, custom UI, store adapters, backend rehydrate projection | UI messages are projections, not storage truth |
 | transcript queue | SDK store adapter and local-runtime local store during migration | dashboard replay, memory indexing, backend rehydrate | visible transcript is not the same as backend history |
-| backend conversation history | backend | prompt context, compaction, history rehydrate | sidecar should not mutate it directly |
+| backend conversation history | backend | prompt context, compaction, history rehydrate | local-runtime execution should not mutate it directly |
 | semantic/episodic memory | local-runtime memory store plus backend embedding/semantic APIs | prompt context, dashboard memory, search | embeddings may degrade without blocking SQLite storage |
 | artifacts | backend artifact service/API plus Electron upload bridge | renderer image display, tool results, SDK clients | artifact refs should survive transcript replay |
 | permissions | Electron main permission services plus stored permission state | renderer onboarding/settings, local-runtime path/tool decisions | renderer displays normalized state |
