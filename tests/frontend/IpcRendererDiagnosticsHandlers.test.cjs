@@ -7,7 +7,6 @@ const path = require('path');
 
 const {
   createRendererDiagnosticsHandlersRuntime,
-  registerRendererDiagnosticsHandlers,
 } = require('../../frontend/src/main/ipc/ipc_renderer_diagnostics_handlers.cjs');
 
 function createHarness() {
@@ -20,11 +19,11 @@ function createHarness() {
   const handleRendererLog = jest.fn();
   const handleRendererLiveSurfaceTrace = jest.fn();
 
-  registerRendererDiagnosticsHandlers({
-    ipcMain,
+  const runtime = createRendererDiagnosticsHandlersRuntime({
     handleRendererLog,
     handleRendererLiveSurfaceTrace,
   });
+  runtime.register({ ipcMain });
 
   return {
     handleRendererLiveSurfaceTrace,
@@ -110,6 +109,8 @@ describe('renderer diagnostics IPC handlers', () => {
     expect(mainSource).not.toContain("ipcMain.on('live-surface-trace'");
     expect(helperSource).toContain('function createRendererDiagnosticsHandlersRuntime');
     expect(helperSource).toContain('return registerRendererDiagnosticsHandlers({');
+    const rendererDiagnosticsModule = require('../../frontend/src/main/ipc/ipc_renderer_diagnostics_handlers.cjs');
+    expect(rendererDiagnosticsModule.registerRendererDiagnosticsHandlers).toBeUndefined();
     expect(helperSource).toContain("ipcMain.on('renderer-log'");
     expect(helperSource).toContain("ipcMain.on('live-surface-trace'");
   });

@@ -35,5 +35,4 @@ function createRendererDiagnosticsHandlersRuntime({
 
 module.exports = {
   createRendererDiagnosticsHandlersRuntime,
-  registerRendererDiagnosticsHandlers,
 };

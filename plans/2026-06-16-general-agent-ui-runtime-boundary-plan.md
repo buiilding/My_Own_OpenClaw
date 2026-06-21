@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Renderer Diagnostics Runtime Registration Privacy
+
+- Finding: `ipc_renderer_diagnostics_handlers.cjs` exposed
+  `createRendererDiagnosticsHandlersRuntime(...)` for `ipc.cjs` and
+  initialization composition, but still publicly exported the lower-level
+  `registerRendererDiagnosticsHandlers(...)` helper even though production
+  already routes `renderer-log` and `live-surface-trace` registration through
+  the runtime facade.
+- Change: kept the lower-level renderer diagnostics registration helper
+  private to `ipc_renderer_diagnostics_handlers.cjs`, updated focused and broad
+  boundary tests to exercise renderer log and live-surface trace behavior
+  through `createRendererDiagnosticsHandlersRuntime(...)`, and documented the
+  runtime helper as the public composition boundary.
+- Validation: focused renderer diagnostics handler and main SDK boundary tests
+  plus targeted main IPC lint, docs listing, stale export-line scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. Renderer log forwarding,
+  live-surface trace forwarding, IPC channels, diagnostic redaction/runtime
+  callbacks, credentials, provider policy, permissions, storage, backend
+  behavior, and local-runtime execution are unchanged.
+
 ### 2026-06-21 Main Artifact Runtime Registration Privacy
 
 - Finding: `ipc_artifact_handlers.cjs` exposed

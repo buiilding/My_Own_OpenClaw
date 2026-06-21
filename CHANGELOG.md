@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level renderer diagnostics IPC registration
+  helper private to `ipc_renderer_diagnostics_handlers.cjs` and exercise
+  renderer log/live-surface trace behavior through
+  `createRendererDiagnosticsHandlersRuntime(...)`, preserving the Electron
+  main initialization composition boundary. No migration required.
 - frontend/main: keep the lower-level artifact IPC registration helper private
   to `ipc_artifact_handlers.cjs` and exercise upload/fetch behavior through
   `createArtifactHandlersRuntime(...)`, preserving the Electron main
