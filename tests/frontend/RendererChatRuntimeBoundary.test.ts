@@ -931,6 +931,9 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMarkdownRuntimeClient.ts'),
       'utf8',
     );
+    const markdownMessageRuntimeSource = await fs.readFile(files[0], 'utf8');
+    const threadFindRuntimeSource = await fs.readFile(files[1], 'utf8');
+    const markdownMessageSource = await fs.readFile(files[2], 'utf8');
 
     for (const file of files) {
       const source = await fs.readFile(file, 'utf8');
@@ -940,6 +943,12 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(chatInterfaceSource).toContain('desktopThreadFindRuntime');
     expect(chatInterfaceSource).not.toContain('utils/message/threadFindState');
+    expect(markdownMessageRuntimeSource).toContain('export const DesktopMarkdownMessageRuntime = Object.freeze');
+    expect(markdownMessageRuntimeSource).not.toContain('export function buildMarkdownRenderModel');
+    expect(threadFindRuntimeSource).toContain('DesktopMarkdownMessageRuntime');
+    expect(markdownMessageSource).toContain('DesktopMarkdownMessageRuntime');
+    expect(threadFindRuntimeSource).not.toContain('import { buildMarkdownRenderModel }');
+    expect(markdownMessageSource).not.toContain('import { buildMarkdownRenderModel }');
     expect(markdownClientSource).toContain('infrastructure/markdown');
     expect(markdownClientSource).toContain('infrastructure/llmOutputContract');
     await expect(fs.stat(

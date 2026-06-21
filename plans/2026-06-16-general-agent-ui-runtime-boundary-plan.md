@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Markdown Message Facade
+
+- Finding: `desktopMarkdownMessageRuntime.js` already owned markdown
+  render-model construction for message rows and thread-find text projection,
+  but still exported `buildMarkdownRenderModel(...)` as a standalone helper
+  that feature code imported directly.
+- Change: made the render-model helper private to the markdown message runtime
+  module, exposed it through `DesktopMarkdownMessageRuntime`, routed
+  `MarkdownMessage` and `desktopThreadFindRuntime` through that facade, and
+  removed stale ignored provider/model arguments from the thread-find call.
+- Validation: focused markdown runtime, markdown message, thread-find, and
+  renderer chat boundary coverage, exact standalone helper export/import scan,
+  docs list, and diff hygiene.
+- Compatibility/security: no migration required. Markdown rendering,
+  sanitization, assistant-only math rendering, thread-find text extraction,
+  highlighting, IPC, storage, permissions, credentials, hosted backend URLs,
+  and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Shortcut Runtime Helper Privacy
 
 - Finding: `DesktopShortcutRuntimeClient` already exposed public methods for

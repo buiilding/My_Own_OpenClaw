@@ -5,7 +5,9 @@
 import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { highlightSanitizedHtml } from '../../../../../app/runtime/desktopMarkdownRuntimeClient';
-import { buildMarkdownRenderModel } from '../../../../../app/runtime/desktopMarkdownMessageRuntime';
+import { DesktopMarkdownMessageRuntime } from '../../../../../app/runtime/desktopMarkdownMessageRuntime';
+
+const { buildMarkdownRenderModel } = DesktopMarkdownMessageRuntime;
 
 export default function MarkdownMessage({
   text,

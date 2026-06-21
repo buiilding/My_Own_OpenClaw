@@ -8,7 +8,7 @@ import {
   resolveLlmOutputContract,
 } from './desktopMarkdownRuntimeClient';
 
-export function buildMarkdownRenderModel({
+function buildMarkdownRenderModel({
   text,
   sender = 'assistant',
 }) {
@@ -24,3 +24,7 @@ export function buildMarkdownRenderModel({
     plainText: extractTextFromHtml(html),
   };
 }
+
+export const DesktopMarkdownMessageRuntime = Object.freeze({
+  buildMarkdownRenderModel,
+});

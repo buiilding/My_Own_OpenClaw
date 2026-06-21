@@ -73,6 +73,10 @@ entries inside `toolCallDetails.tools`)
 
 Assistant markdown rendering now follows a single contract:
 
+- **Renderer-facing facade**: message components and thread-find projection call
+  `DesktopMarkdownMessageRuntime.buildMarkdownRenderModel(...)` rather than a
+  standalone helper export, keeping markdown normalization, sanitization, math
+  toggling, and plain-text extraction in the renderer app-runtime boundary.
 - **Input contract**: model text must resolve to **renderable markdown + optional math**
 - **Provider-aware transport cleanup** happens before markdown parse in `resolveLlmOutputContract(...)`
 - **Provider-agnostic math normalization** converts LaTeX delimiters (`\(...\)` / `\[...\]`) into the dollar-delimited forms consumed by the markdown math renderer when math rendering is enabled

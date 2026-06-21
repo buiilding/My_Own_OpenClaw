@@ -3,7 +3,9 @@
  */
 
 import { collectTextMatches } from './desktopMarkdownRuntimeClient';
-import { buildMarkdownRenderModel } from './desktopMarkdownMessageRuntime';
+import { DesktopMarkdownMessageRuntime } from './desktopMarkdownMessageRuntime';
+
+const { buildMarkdownRenderModel } = DesktopMarkdownMessageRuntime;
 
 function resolveToolCallSearchText(message) {
   if (typeof message?.toolCallDisplayText === 'string' && message.toolCallDisplayText.trim()) {
@@ -52,8 +54,6 @@ function resolveSearchableMessageText(message) {
   return buildMarkdownRenderModel({
     text: message.text ?? '',
     sender: message.sender ?? 'assistant',
-    modelProvider: message.modelProvider ?? null,
-    modelId: message.modelId ?? null,
   }).plainText;
 }
 
