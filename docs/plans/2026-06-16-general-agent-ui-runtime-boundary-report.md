@@ -12,8 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `d0e85049e` (`test(sidecar): neutralize remote client endpoint fixtures`)
-- Latest completed slice: artifact and image IPC helper tests now use neutral
-  endpoint fixtures instead of WindieOS hosted URL samples.
+- Latest completed slice: generic main-window and main-process bootstrap tests
+  now use neutral injected skin fixtures instead of WindieOS product skin
+  values.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -30,7 +31,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   explicit backend endpoint fixtures while preserving generic and legacy env
   alias behavior. Artifact and image IPC helper tests use neutral endpoint
   fixtures while product-hosted defaults stay covered in host-skin and endpoint
-  resolver tests.
+  resolver tests. Generic main-window and main-process bootstrap tests use
+  neutral injected skin values while real WindieOS app icon, tray tooltip, log
+  prefix, bundled runtime copy, and browser warmup copy remain host-skin owned.
   Renderer voice docs name the desktop voice/audio runtime contract and
   backend-owned transcription gateway boundary instead of embedding concrete STT
   provider policy. Renderer config reference docs now keep current OpenAI/GPT default
@@ -7908,3 +7911,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   host-skin/CLI owned. Layer log file resolution, session banner writing,
   renderer verbose logging, host-skin log configuration, permissions, storage,
   provider policy, and backend behavior are unchanged; no migration is required.
+- Generic main-window and main-process bootstrap tests now use neutral injected
+  skin fixtures instead of WindieOS product skin values. Real WindieOS app icon,
+  tray tooltip, log prefix, bundled runtime copy, and browser warmup copy remain
+  covered by the host-skin boundary tests. Window bootstrap delegation, tray
+  icon behavior, renderer log-prefix propagation, host-skin configuration,
+  permissions, storage, provider policy, and backend behavior are unchanged; no
+  migration is required.

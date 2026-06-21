@@ -708,10 +708,22 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('main window runtime tests keep injected icon fixtures product-neutral', async () => {
-    const source = await read('tests/frontend/MainWindowRuntime.test.cjs');
+    const [windowRuntimeTest, bootstrapRuntimeTest] = await Promise.all([
+      read('tests/frontend/MainWindowRuntime.test.cjs'),
+      read('tests/frontend/MainProcessBootstrapRuntime.test.cjs'),
+    ]);
+    const source = `${windowRuntimeTest}\n${bootstrapRuntimeTest}`;
 
     expect(source).not.toContain('/tmp/windieos.png');
+    expect(source).not.toContain('windieos.app.png');
+    expect(source).not.toContain("trayTooltip: 'WindieOS'");
+    expect(source).not.toContain("rendererLogPrefix: '[WindieOS]'");
+    expect(source).not.toContain('Please reinstall WindieOS');
+    expect(source).not.toContain('Open the WindieOS browser');
     expect(source).toContain('/tmp/agent-icon.png');
+    expect(source).toContain('sample.app.png');
+    expect(source).toContain("trayTooltip: 'Sample Desktop'");
+    expect(source).toContain("rendererLogPrefix: '[SampleApp]'");
   });
 
   test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {

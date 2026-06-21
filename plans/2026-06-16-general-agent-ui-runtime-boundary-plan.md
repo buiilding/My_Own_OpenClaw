@@ -19268,3 +19268,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Layer log file resolution, session
   banner writing, renderer verbose logging, host-skin log configuration,
   permissions, storage, provider policy, and backend behavior are unchanged.
+
+### 2026-06-21 Main bootstrap skin fixture neutrality
+
+- Finding: generic main-window and main-process bootstrap tests still used
+  WindieOS host-skin values as arbitrary injected app icon, tray tooltip, log
+  prefix, runtime reinstall copy, and browser warmup copy fixtures.
+- Change: switched those test-only injected values to neutral sample app
+  fixtures and extended the modular boundary guard while preserving real
+  WindieOS host-skin coverage in `MainHostSkinBoundary`.
+- Validation: focused main-window, main-process bootstrap, host-skin boundary,
+  and modular boundary tests; exact retired injected skin fixture scans, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Window bootstrap delegation, tray icon
+  behavior, renderer log-prefix propagation, host-skin configuration,
+  permissions, storage, provider policy, and backend behavior are unchanged.

@@ -37,11 +37,11 @@ describe('main_process_bootstrap_runtime', () => {
         vmWorkerEnv: {
           workspaceId: 'WINDIE_VM_WORKSPACE_ID',
         },
-        appIconFileName: 'windieos.app.png',
-        rendererLogPrefix: '[WindieOS]',
-        trayTooltip: 'WindieOS',
+        appIconFileName: 'sample.app.png',
+        rendererLogPrefix: '[SampleApp]',
+        trayTooltip: 'Sample Desktop',
         bundledRuntimeCopy: {
-          missingRuntimeMessage: 'Please reinstall WindieOS',
+          missingRuntimeMessage: 'Please reinstall this sample app',
         },
         runtimePaths: {
           pythonPath: 'WINDIE_PYTHON_PATH',
@@ -56,7 +56,7 @@ describe('main_process_bootstrap_runtime', () => {
         wakewordModelName: 'hey_jarvis',
         wakewordStderrLogMarkers: ['hey_jarvis'],
         localRuntimeBridgeCopy: {
-          browserWarmupExplanation: 'Open the WindieOS browser',
+          browserWarmupExplanation: 'Open the sample browser',
         },
         enableOsToolGhostDebug: false,
         responseWindowDebugView: 'tool-ghost-debug',
@@ -122,8 +122,8 @@ describe('main_process_bootstrap_runtime', () => {
       syncSdkLiveTurnSurfaceIntent: deps.syncSdkLiveTurnSurfaceIntent,
       getKnownLocalRuntime: deps.getKnownLocalRuntime,
       ensureLocalRuntime: deps.ensureLocalRuntime,
-      appIconFileName: 'windieos.app.png',
-      rendererLogPrefix: '[WindieOS]',
+      appIconFileName: 'sample.app.png',
+      rendererLogPrefix: '[SampleApp]',
       bundledRuntimeCopy: deps.bundledRuntimeCopy,
       runtimePaths: deps.runtimePaths,
       localRuntimeDaemonEntrypoint: 'sidecar_daemon.py',
@@ -180,17 +180,17 @@ describe('main_process_bootstrap_runtime', () => {
     expect(state.windows.responseWindow).toEqual({ id: 'response-window' });
     expect(deps.createChatWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
-      appIconFileName: 'windieos.app.png',
-      rendererLogPrefix: '[WindieOS]',
+      appIconFileName: 'sample.app.png',
+      rendererLogPrefix: '[SampleApp]',
     }));
     expect(deps.createResponseWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
-      appIconFileName: 'windieos.app.png',
-      rendererLogPrefix: '[WindieOS]',
+      appIconFileName: 'sample.app.png',
+      rendererLogPrefix: '[SampleApp]',
     }));
     expect(deps.createTrayRuntime).toHaveBeenCalledWith(expect.objectContaining({
-      appIconFileName: 'windieos.app.png',
-      trayTooltip: 'WindieOS',
+      appIconFileName: 'sample.app.png',
+      trayTooltip: 'Sample Desktop',
     }));
     expect(deps.createChatWindowRuntime.mock.calls[0][0]).not.toHaveProperty('mainHostSkin');
     expect(deps.createResponseWindowRuntime.mock.calls[0][0]).not.toHaveProperty('mainHostSkin');

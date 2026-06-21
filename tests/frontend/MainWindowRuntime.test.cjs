@@ -840,13 +840,13 @@ describe('main_window_runtime createTray', () => {
     nativeImage.createFromPath.mockReturnValueOnce(icon);
 
     const { deps, tray } = createTrayDeps({
-      trayTooltip: 'WindieOS',
+      trayTooltip: 'Sample Desktop',
     });
     createTray(deps);
 
     expect(nativeImage.createFromPath).toHaveBeenCalledWith('/tmp/agent-icon.png');
     expect(deps.Tray).toHaveBeenCalledWith(icon);
-    expect(tray.setToolTip).toHaveBeenCalledWith('WindieOS');
+    expect(tray.setToolTip).toHaveBeenCalledWith('Sample Desktop');
   });
 
   test('falls back to data-url tray icon when path icon is empty', () => {
