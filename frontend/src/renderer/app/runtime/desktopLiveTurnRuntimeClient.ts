@@ -8,7 +8,7 @@ import {
   type TurnInputResource,
 } from './desktopConversationRuntimeContracts';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import { getMemoryRetrievalInjectionEnabled } from './desktopMemoryRetrievalPreferenceRuntime';
+import { DesktopMemoryRetrievalPreferenceRuntime } from './desktopMemoryRetrievalPreferenceRuntime';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 
 const SEND_COMMAND_FAILURE_FALLBACK = 'Failed to send command to the renderer app runtime';
@@ -100,7 +100,7 @@ export const DesktopLiveTurnRuntimeClient = {
       metadata: input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)
         ? input.metadata
         : null,
-      memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
+      memory_retrieval_enabled: DesktopMemoryRetrievalPreferenceRuntime.getMemoryRetrievalInjectionEnabled(),
     });
     throwIfFailedIpcResult(result);
   },

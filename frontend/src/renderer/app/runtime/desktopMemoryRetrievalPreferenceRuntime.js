@@ -20,11 +20,11 @@ function normalizePreferenceValue(value) {
   return value !== false;
 }
 
-export function getMemoryRetrievalInjectionStorageKey() {
+function getMemoryRetrievalInjectionStorageKey() {
   return MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY;
 }
 
-export function getMemoryRetrievalInjectionEnabled(storage = null) {
+function getMemoryRetrievalInjectionEnabled(storage = null) {
   const targetStorage = resolveStorage(storage);
   if (!targetStorage) {
     return true;
@@ -47,7 +47,7 @@ export function getMemoryRetrievalInjectionEnabled(storage = null) {
   return true;
 }
 
-export function setMemoryRetrievalInjectionEnabled(enabled, storage = null) {
+function setMemoryRetrievalInjectionEnabled(enabled, storage = null) {
   const normalizedEnabled = normalizePreferenceValue(enabled);
   const targetStorage = resolveStorage(storage);
   if (targetStorage) {
@@ -62,3 +62,9 @@ export function setMemoryRetrievalInjectionEnabled(enabled, storage = null) {
   }
   return normalizedEnabled;
 }
+
+export const DesktopMemoryRetrievalPreferenceRuntime = Object.freeze({
+  getMemoryRetrievalInjectionStorageKey,
+  getMemoryRetrievalInjectionEnabled,
+  setMemoryRetrievalInjectionEnabled,
+});

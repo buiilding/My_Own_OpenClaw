@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Memory Retrieval Preference Facade
+
+- Finding: `desktopMemoryRetrievalPreferenceRuntime.js` already owned the
+  renderer-local memory retrieval injection storage key and preference
+  normalization, but still exported its storage-key, read, and write helpers as
+  standalone functions consumed by dashboard memory UI and query send paths.
+- Change: made the preference helpers private to the memory retrieval
+  preference module, exposed them through
+  `DesktopMemoryRetrievalPreferenceRuntime`, and routed `MemorySection`,
+  `desktopRuntimeTransport`, `DesktopLiveTurnRuntimeClient`, and focused tests
+  through that facade.
+- Validation: focused memory preference, memory section, runtime transport,
+  live-turn runtime, skin config boundary, and renderer runtime boundary
+  coverage, exact standalone helper export/import scan, docs list, and diff
+  hygiene.
+- Compatibility/security: no migration required. The active
+  `windieos-memory-retrieval-injection-enabled` storage key, ignored removed
+  key behavior, query `memory_retrieval_enabled` payload flag, local runtime
+  memory search policy, IPC, permissions, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Renderer Presentation Source Channel Facade
 
 - Finding: `desktopPresentationSourceChannels.js` already hid the SDK-derived

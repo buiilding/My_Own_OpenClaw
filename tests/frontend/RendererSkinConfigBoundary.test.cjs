@@ -432,7 +432,7 @@ describe('renderer skin/config boundary', () => {
     expect(appConfigProviderSource).toContain('isRendererConfigStorageEvent');
     expect(appConfigProviderSource).not.toContain('RENDERER_STORAGE_KEYS');
     expect(appConfigProviderSource).not.toContain("'windieos-config'");
-    expect(callerTestSources.join('\n')).toContain('getMemoryRetrievalInjectionStorageKey');
+    expect(callerTestSources.join('\n')).toContain('DesktopMemoryRetrievalPreferenceRuntime');
     expect(callerTestSources.join('\n')).toContain('getPermissionOnboardingStorageKey');
     for (const source of callerTestSources) {
       expect(source).not.toContain('RENDERER_STORAGE_KEYS');

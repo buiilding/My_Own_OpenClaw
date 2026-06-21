@@ -14,10 +14,7 @@ import {
 } from 'lucide-react';
 import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemoryRuntimeClient';
 import { desktopRuntimeSkin } from '../../../../app/skin/desktopRuntimeSkin';
-import {
-  getMemoryRetrievalInjectionEnabled,
-  setMemoryRetrievalInjectionEnabled,
-} from '../../../../app/runtime/desktopMemoryRetrievalPreferenceRuntime';
+import { DesktopMemoryRetrievalPreferenceRuntime } from '../../../../app/runtime/desktopMemoryRetrievalPreferenceRuntime';
 import {
   buildProceduralMemoriesForDashboard,
   filterDashboardMemoriesByQuery,
@@ -29,6 +26,10 @@ import {
 import MemoryItem from './MemoryItem';
 
 const memoryPanelSkin = desktopRuntimeSkin.memoryPanel;
+const {
+  getMemoryRetrievalInjectionEnabled,
+  setMemoryRetrievalInjectionEnabled,
+} = DesktopMemoryRetrievalPreferenceRuntime;
 const MEMORY_TYPE_ICONS = Object.freeze({
   bookOpen: BookOpen,
   clock: Clock,

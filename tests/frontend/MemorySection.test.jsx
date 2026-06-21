@@ -3,9 +3,11 @@
  */
 
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { getMemoryRetrievalInjectionStorageKey } from '../../frontend/src/renderer/app/runtime/desktopMemoryRetrievalPreferenceRuntime';
+import { DesktopMemoryRetrievalPreferenceRuntime } from '../../frontend/src/renderer/app/runtime/desktopMemoryRetrievalPreferenceRuntime';
 
-const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = getMemoryRetrievalInjectionStorageKey();
+const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = (
+  DesktopMemoryRetrievalPreferenceRuntime.getMemoryRetrievalInjectionStorageKey()
+);
 
 const mockListEpisodicMemories = jest.fn();
 const mockListSemanticMemories = jest.fn();

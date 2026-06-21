@@ -19,6 +19,7 @@ title: "Dashboard Memory Management and Resume Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
 - `frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopMemoryRetrievalPreferenceRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
@@ -48,10 +49,10 @@ title: "Dashboard Memory Management and Resume Reference"
 - memory tab labels/descriptions are projected by
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()`
 - retrieval injection toggle (`Inject memory into prompts`) persisted through
-  `desktopMemoryRetrievalPreferenceRuntime.js`; that runtime owns the active
-  localStorage key (`windieos-memory-retrieval-injection-enabled`) and the
-  removed `desktop-assistant-memory-retrieval-injection-enabled` key is ignored
-  and not migrated
+  `DesktopMemoryRetrievalPreferenceRuntime`; that runtime facade owns the
+  active localStorage key (`windieos-memory-retrieval-injection-enabled`) and
+  the removed `desktop-assistant-memory-retrieval-injection-enabled` key is
+  ignored and not migrated
 - memory list fetch orchestration through the runtime client
 - memory row projection and search filtering through `desktopMemoryPresentationRuntime.js`
 - edit/delete interactions for rendered memory rows

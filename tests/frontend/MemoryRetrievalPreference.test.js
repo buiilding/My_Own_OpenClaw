@@ -2,11 +2,13 @@
  * Covers memory retrieval preference. behavior in the frontend test suite.
  */
 
-import {
+import { DesktopMemoryRetrievalPreferenceRuntime } from '../../frontend/src/renderer/app/runtime/desktopMemoryRetrievalPreferenceRuntime';
+
+const {
   getMemoryRetrievalInjectionStorageKey,
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,
-} from '../../frontend/src/renderer/app/runtime/desktopMemoryRetrievalPreferenceRuntime';
+} = DesktopMemoryRetrievalPreferenceRuntime;
 
 const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = getMemoryRetrievalInjectionStorageKey();
 

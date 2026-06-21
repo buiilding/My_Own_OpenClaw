@@ -6,7 +6,7 @@ import {
   SDK_RUNTIME_COMMANDS,
   type AgentRuntimeTransport,
 } from './desktopConversationRuntimeContracts';
-import { getMemoryRetrievalInjectionEnabled } from './desktopMemoryRetrievalPreferenceRuntime';
+import { DesktopMemoryRetrievalPreferenceRuntime } from './desktopMemoryRetrievalPreferenceRuntime';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 
@@ -85,7 +85,7 @@ async function sendQuery(
       attachment_context: optionalString(payload.attachment_context) ?? null,
       attachment_filenames: optionalStringArray(payload.attachment_filenames) ?? null,
       workspace_path: optionalString(payload.workspace_path) ?? workspacePath ?? null,
-      memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
+      memory_retrieval_enabled: DesktopMemoryRetrievalPreferenceRuntime.getMemoryRetrievalInjectionEnabled(),
     },
   );
   if (result && typeof result === 'object' && result.ok === false) {

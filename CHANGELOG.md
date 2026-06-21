@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose memory retrieval injection preference persistence
+  through `DesktopMemoryRetrievalPreferenceRuntime` instead of standalone
+  helper exports, keeping the dashboard toggle and query payload memory flag
+  behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose SDK-derived presentation source channel labels
   through `DesktopPresentationSourceChannels` instead of standalone helper
   exports, keeping current-turn, display-row, and source-badge channel labels
