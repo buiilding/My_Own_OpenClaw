@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Visible Turn Lifecycle Handoff
+
+- Finding: renderer pending-turn clearing and live-surface preflight handoff
+  used separate predicates, leaving SDK idle, wrong-turn, or visible-empty
+  current-turn projections able to drift from ADR 006's renderer-owned typing
+  lifecycle rules.
+- Change: added `desktopVisibleTurnLifecycleRuntime` as the renderer
+  app-runtime owner for visible lifecycle projection and same-turn SDK
+  replacement detection, then routed chat pending clearing and live-surface
+  pending-turn handoff through `hasAuthoritativeSameTurnSdkReplacement(...)`.
+- Validation: focused visible lifecycle, chat store, live-surface, and
+  pending-turn integration tests, plus registration in the Core Loop
+  Regression Pack.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, permission, credential, local execution, storage, or trust-boundary
+  migration required; this slice changes renderer projection ownership only.
+
 ### 2026-06-21 Main Window Overlay Runtime Facade
 
 - Finding: `main_window_overlay_runtime.cjs` owned shared renderer view

@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main main-window overlay runtime keeps
-  renderer loading, shared overlay BrowserWindow defaults, renderer console
-  logging, and lazy-loader helpers private to
-  `main_window_overlay_runtime.cjs`, while dashboard, chat, and response
-  bootstrap consume `createMainWindowOverlayRuntime(...)`.
+- Latest completed slice: renderer visible turn lifecycle handoff now routes
+  pending-turn clearing and live-surface preflight through
+  `DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSameTurnSdkReplacement(...)`,
+  while `desktopVisibleTurnLifecycleRuntime` owns the local-pending to SDK
+  current-turn lifecycle projection required by ADR 006.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

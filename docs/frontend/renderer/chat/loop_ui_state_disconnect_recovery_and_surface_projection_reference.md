@@ -11,6 +11,7 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 ## Canonical Modules
 
 - `frontend/src/shared/overlay_turn_lifecycle_contract.json`
+- `frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
@@ -21,9 +22,36 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
+- `tests/frontend/DesktopVisibleTurnLifecycleRuntime.test.js`
 - `tests/frontend/ChatLoopUiState.test.js`
 - `tests/frontend/ChatLoopUiStateHook.test.jsx`
 - `tests/frontend/OverlayTurnLifecycle.test.js`
+
+## Visible Turn Lifecycle Contract (`desktopVisibleTurnLifecycleRuntime.js`)
+
+`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns the
+renderer-visible handoff from local pending sends to SDK current-turn
+projection. It combines:
+
+- renderer `pendingTurn`
+- SDK `currentTurnProjection`
+- active conversation ref
+- message rows used only for awaiting-anchor lookup
+
+Output statuses:
+
+- `local_pending`: renderer accepted the send, but SDK has not emitted an
+  authoritative same-turn projection yet
+- `awaiting`: SDK accepted the same turn but has not emitted visible content
+- `active`: SDK emitted visible text, reasoning, tool/search progress, tool
+  call, tool output, or visible error content
+- `terminal`: SDK completed or errored the same turn
+- `idle`: no visible active turn for the conversation
+
+`DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSameTurnSdkReplacement(...)`
+is the shared handoff predicate for clearing renderer pending turns and
+suppressing local send preflight. SDK idle, wrong-turn terminal, stale, and
+visible-empty projections must not replace `local_pending`.
 
 ## Overlay Turn Lifecycle Contract
 
@@ -199,6 +227,14 @@ feature hooks do not carry their own SDK current-turn reducers.
   - `response`
 
 ## Test-Backed Invariants
+
+`tests/frontend/DesktopVisibleTurnLifecycleRuntime.test.js` validates:
+
+- local pending persists through SDK idle, visible-empty, stale, and wrong-turn
+  projections
+- same-turn SDK awaiting, visible progress/text, and terminal projections
+  replace local pending
+- the handoff predicate stays behind the visible lifecycle runtime facade
 
 `tests/frontend/ChatLoopUiState.test.js` validates:
 
