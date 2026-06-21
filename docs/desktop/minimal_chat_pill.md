@@ -40,7 +40,7 @@ The chat pill is the small always-available desktop command surface. It is rende
   instead of leaving the app with no visible surface.
 - Intentional summons such as wakeword detection, the global hotkey, and
   dashboard-close handoff may reopen the pill and clear the user-hidden intent.
-- Screenshot capture behavior differs by platform; Linux hides WindieOS overlays, Windows/macOS do not.
+- Screenshot capture behavior differs by platform; Linux hides desktop overlay surfaces, Windows/macOS do not.
 - Drag and resize behavior should preserve the user-perceived anchor, especially when multiline input or image previews grow.
 - Press-and-hold dragging is a shell interaction, not text entry. The first
   unfocused press on the textarea may request native text-entry activation for
@@ -117,7 +117,7 @@ For Linux screenshot capture:
   content
 - mount the typing indicator in a stable awaiting shell
 - do not animate awaiting-to-response transitions in the chat pill loop
-- Linux is the only OS that should hide WindieOS overlay surfaces for screenshot
+- Linux is the only OS that should hide desktop overlay surfaces for screenshot
   capture and restore them after capture
 - Windows and macOS must not add capture-time hide/show for the chat pill or
   response overlay

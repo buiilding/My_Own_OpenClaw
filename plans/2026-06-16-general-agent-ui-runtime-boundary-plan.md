@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Desktop Overlay Surface Policy Wording
+
+- Finding: minimal chat pill, Linux, Windows, and overlay phase workflow docs
+  still described generic screenshot hide/restore policy as WindieOS overlay
+  behavior, even though product identity belongs in skin/config and the capture
+  policy owner is Electron main plus platform adapters.
+- Change: reworded those active docs around desktop overlay surfaces/policy and
+  added them to the modular stale-phrase guard.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, screenshot lease policy,
+  platform adapters, Electron content-protection behavior, IPC channels, SDK
+  projections, storage, credentials, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-21 Websocket Event Routing Summary Wording
 
 - Finding: docs hub, repository docs index, and agent routing quick cards still

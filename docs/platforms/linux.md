@@ -7,7 +7,7 @@ title: "Linux"
 
 # Linux
 
-Linux is the only platform where WindieOS should hide overlay surfaces for screenshot capture and restore them after capture. This exists to avoid capturing the minimal chat pill or response overlay in tool screenshots.
+Linux is the only platform where desktop overlay surfaces should hide for screenshot capture and restore afterward. This exists to avoid capturing the minimal chat pill or response overlay in tool screenshots.
 
 ## Key Areas
 
@@ -20,7 +20,7 @@ Linux is the only platform where WindieOS should hide overlay surfaces for scree
 
 ## Rules
 
-- Hide WindieOS overlay surfaces before screenshot capture and restore them after capture.
+- Hide desktop overlay surfaces before screenshot capture and restore them after capture.
 - Use the hide-only collapse path for minimal pill screenshot timing; do not pre-hide with a show path.
 - Keep the awaiting indicator latched through transient `idle` until streaming, completion, error, or visible response content clears it.
 - Verify `xdotool` or `ydotool` availability before editing window-switching or input-control behavior.

@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: route desktop, Linux, Windows, and overlay workflow screenshot-capture
+  labels through desktop overlay surface wording instead of product-owned
+  overlay labels. No migration required.
 - docs: route websocket event summary labels through Agent SDK projection and
   typed Electron fan-out wording instead of generic Electron rebroadcast labels.
   No migration required.

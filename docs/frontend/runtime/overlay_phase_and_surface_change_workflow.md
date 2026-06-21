@@ -30,7 +30,7 @@ rather than the React component that happens to render the symptom.
 - During pointer-control leases, Electron main keeps the chat pill, response
   overlay non-focusable and click-through, then restores
   normal pill and response-overlay hit-testing and focusability in `finally`.
-- During screenshot-capture leases, Linux hides visible WindieOS overlay
+- During screenshot-capture leases, Linux hides visible desktop overlay
   surfaces and restores them afterward; macOS and Windows use content
   protection for the capture window only and disable it immediately afterward.
 - Renderer code must not directly own loop-wide interactivity toggles. It may

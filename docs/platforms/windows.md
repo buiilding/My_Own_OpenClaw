@@ -24,7 +24,7 @@ Windows behavior is mostly implemented through Electron main window policy, loca
 - PowerShell should not invoke `./scripts/committer.sh` directly; use Git Bash or plain `git add`/`git commit`.
 - Keep Windows package checks separate from Linux/macOS package assumptions.
 - Treat Developer Mode, PowerShell execution policy, and NSIS install behavior as packaging concerns before changing app runtime code.
-- Host-window switching belongs in the local-runtime Win32 adapter; WindieOS overlay policy belongs in Electron main.
+- Host-window switching belongs in the local-runtime Win32 adapter; desktop overlay policy belongs in Electron main.
 
 ## Related Docs
 
