@@ -68,7 +68,7 @@ Wait-delay resolution:
 
 Renderer send behavior:
 
-- `desktopChatSendPreparationRuntime.ts` emits a `query_screenshot_request` SDK resource
+- `DesktopChatSendPreparationRuntime` emits a `query_screenshot_request` SDK resource
   when overlay/config policy asks for a query screenshot
 - renderer does not capture, upload, or materialize that screenshot before the
   SDK turn exists

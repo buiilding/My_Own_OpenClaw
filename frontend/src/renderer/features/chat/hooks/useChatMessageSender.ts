@@ -16,16 +16,17 @@ import {
   type OutgoingUserMessagePayload,
 } from '../../../app/runtime/desktopChatSendPayloadRuntime';
 import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
-import {
-  dispatchPreparedDesktopChatTurn,
-  prepareDesktopChatSend,
-} from '../../../app/runtime/desktopChatSendPreparationRuntime';
+import { DesktopChatSendPreparationRuntime } from '../../../app/runtime/desktopChatSendPreparationRuntime';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const chatSkin = desktopRuntimeSkin.chat;
 const {
   resolveChatPillSendLifecycle,
 } = DesktopChatPillSessionRuntime;
+const {
+  dispatchPreparedDesktopChatTurn,
+  prepareDesktopChatSend,
+} = DesktopChatSendPreparationRuntime;
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;

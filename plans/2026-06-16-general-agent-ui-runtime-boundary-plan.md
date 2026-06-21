@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Send Preparation Runtime Facade
+
+- Finding: `desktopChatSendPreparationRuntime.ts` already owned outgoing chat
+  send preflight, immediate conversation/session resolution, pending-turn
+  acceptance, workspace resource assembly, send lifecycle tracing, and
+  prepared live-turn dispatch, but still exported `prepareDesktopChatSend(...)`
+  and `dispatchPreparedDesktopChatTurn(...)` as standalone async helpers.
+- Change: exposed both send orchestration entrypoints through
+  `DesktopChatSendPreparationRuntime` and routed the chat message sender,
+  replay resend/retry flow, and pending-turn live-surface integration test
+  through the facade. Payload and send-state rules remain behind their
+  existing send payload/state facades.
+- Validation: focused pending-turn live-surface integration, chat message
+  sender, and renderer chat-runtime boundary tests plus lint, stale standalone
+  export/import scans, docs listing, and diff checks.
+- Compatibility/security: no migration required. Outgoing SDK turn payloads,
+  resources, pending-turn shape, trace payloads, IPC, storage, credentials,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-21 Renderer Stream Event Payload Runtime Facade
 
 - Finding: `desktopChatStreamEventPayloadRuntime.ts` already owned SDK

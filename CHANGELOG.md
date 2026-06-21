@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose chat send preparation and prepared-turn dispatch
+  through `DesktopChatSendPreparationRuntime` instead of standalone async
+  helper exports, keeping send preflight, pending-turn acceptance, SDK
+  resource assembly, and live-turn dispatch behind the renderer app-runtime
+  facade. No migration required.
 - frontend/renderer: expose chat stream payload access, terminal/error
   parsing, compaction payload projection, local-user aliases, and screenshot
   attachment normalization through `DesktopChatStreamEventPayloadRuntime`

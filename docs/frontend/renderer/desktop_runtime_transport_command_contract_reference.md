@@ -141,7 +141,7 @@ No current app-runtime client is a verified deletion target just because it is
 thin. A cleanup slice should first name the consumer, prove the replacement
 owner, update tests, and remove exactly one obsolete path.
 
-`desktopChatSendPreparationRuntime.ts` owns renderer chat send preflight,
+`DesktopChatSendPreparationRuntime` owns renderer chat send preflight,
 pending-turn acceptance, SDK turn resource assembly, workspace binding, and
 live-turn dispatch. Chat feature hooks inject the chat-store state callbacks it
 needs instead of letting the app-runtime module import feature store internals.

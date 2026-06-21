@@ -139,6 +139,10 @@ describe('renderer chat runtime boundary', () => {
 
     expect(hookSource).not.toContain('recordUserTranscriptMessage');
     expect(hookSource).not.toContain('recordUserMessage');
+    expect(hookSource).toContain('DesktopChatSendPreparationRuntime');
+    expect(helperSource).toContain('export const DesktopChatSendPreparationRuntime = Object.freeze');
+    expect(helperSource).not.toContain('export async function prepareDesktopChatSend');
+    expect(helperSource).not.toContain('export async function dispatchPreparedDesktopChatTurn');
     expect(helperSource).not.toContain('recordUserTranscriptMessage');
     expect(helperSource).not.toContain('recordTranscriptUserMessage');
   });
@@ -1467,6 +1471,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).toContain('desktopConversationReplayRuntime');
     expect(source).toContain('DesktopConversationReplayRuntime');
+    expect(source).toContain('DesktopChatSendPreparationRuntime');
     expect(source).not.toContain('utils/conversationReplayToolMessages');
     expect(source).toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).toContain('DesktopConversationContinuityService.prepareRetryTurn');
@@ -1787,8 +1792,12 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(senderHookSource).toContain('desktopChatSendPayloadRuntime');
+    expect(senderHookSource).toContain('DesktopChatSendPreparationRuntime');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
     expect(sendPreparationSource).toContain('desktopChatSendStateRuntime');
+    expect(sendPreparationSource).toContain('export const DesktopChatSendPreparationRuntime = Object.freeze');
+    expect(sendPreparationSource).not.toContain('export async function prepareDesktopChatSend');
+    expect(sendPreparationSource).not.toContain('export async function dispatchPreparedDesktopChatTurn');
     expect(sendPreparationSource).toContain('logRendererChatSendLifecycleTrace');
     expect(sendPreparationSource).not.toContain('logRendererChatPillTrace');
     expect(sendPreparationSource).not.toContain("source: 'renderer-send'");

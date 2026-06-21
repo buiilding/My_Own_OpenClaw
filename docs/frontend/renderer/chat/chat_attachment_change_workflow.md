@@ -132,7 +132,7 @@ Clipboard image IPC trust boundary:
 ### File Chip Appears but Model Does Not See File Text
 
 1. Confirm selected file is in `readableFiles[]`, not `clipboardImages[]`.
-2. Confirm `desktopChatSendPreparationRuntime.ts` submitted a `readable_file` resource.
+2. Confirm `DesktopChatSendPreparationRuntime` submitted a `readable_file` resource.
 3. Confirm `DefaultTurnResourceResolvers` called the local-runtime `read_file` tool.
 4. Confirm successful `output` was added to `attachment_context` before backend transport.
 5. Confirm the visible transcript row only stores filename metadata.

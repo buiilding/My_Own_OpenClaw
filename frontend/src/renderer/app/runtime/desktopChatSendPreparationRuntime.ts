@@ -225,7 +225,7 @@ async function runSendSurfaceWindowPolicy({
   }
 }
 
-export async function prepareDesktopChatSend({
+async function prepareDesktopChatSend({
   payload,
   config,
   dependencies,
@@ -329,7 +329,7 @@ export async function prepareDesktopChatSend({
   };
 }
 
-export async function dispatchPreparedDesktopChatTurn(
+async function dispatchPreparedDesktopChatTurn(
   preparedTurn: PreparedDesktopChatTurn,
 ): Promise<void> {
   if (preparedTurn.deferredQueryModelSelection) {
@@ -356,3 +356,8 @@ export async function dispatchPreparedDesktopChatTurn(
     reason: preparedTurn.sendLifecycle.surfaceReason,
   });
 }
+
+export const DesktopChatSendPreparationRuntime = Object.freeze({
+  prepareDesktopChatSend,
+  dispatchPreparedDesktopChatTurn,
+});

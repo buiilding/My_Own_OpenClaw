@@ -32,7 +32,7 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 
 `useChatMessageSender` is now the React adapter for chat-store actions,
 playback cleanup, app config, and sender options. It delegates preparation and
-final live-turn dispatch to `desktopChatSendPreparationRuntime.ts`, which returns a
+final live-turn dispatch to `DesktopChatSendPreparationRuntime`, which returns a
 `PreparedDesktopChatTurn` before calling the backend-facing live-turn runtime.
 Retry and edit/resend replay actions also adapt their continuity-prepared
 turns into this same dispatch shape, with transcript recording disabled because
@@ -150,7 +150,7 @@ predicate used by send preparation. The raw predicate stays private behind the
 renderer app-runtime facade.
 
 Send lifecycle chat-pill traces go through `desktopRendererTraceRuntime.ts`.
-`desktopChatSendPreparationRuntime.ts` reports send-start,
+`DesktopChatSendPreparationRuntime` reports send-start,
 screenshot-decision, and query-dispatched values through
 `logRendererChatSendLifecycleTrace(...)`; the trace runtime owns
 `turn_id`, `include_query_screenshot`, and chat-pill trace payload field names.

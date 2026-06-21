@@ -3,9 +3,7 @@
  */
 
 import { waitFor } from '@testing-library/react';
-import {
-  prepareDesktopChatSend,
-} from '../../frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime';
+import { DesktopChatSendPreparationRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime';
 import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -23,6 +21,9 @@ import {
 } from './chatStoreTestUtils';
 
 const { buildThreadPresentationMessages } = DesktopThreadPresentationRuntime;
+const {
+  prepareDesktopChatSend,
+} = DesktopChatSendPreparationRuntime;
 const {
   buildCurrentTurnMessagesFromPresentation,
 } = DesktopCurrentTurnMessageRuntime;

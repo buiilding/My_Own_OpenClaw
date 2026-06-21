@@ -22,7 +22,7 @@ import {
 import {
   DesktopConversationReplayRuntime,
 } from '../../../app/runtime/desktopConversationReplayRuntime';
-import { dispatchPreparedDesktopChatTurn } from '../../../app/runtime/desktopChatSendPreparationRuntime';
+import { DesktopChatSendPreparationRuntime } from '../../../app/runtime/desktopChatSendPreparationRuntime';
 
 const chatSkin = desktopRuntimeSkin.chat;
 const {
@@ -32,6 +32,9 @@ const {
   findReplayEditableUserMessageIndex,
   resolveReplayRetryMessageIndexes,
 } = DesktopConversationReplayRuntime;
+const {
+  dispatchPreparedDesktopChatTurn,
+} = DesktopChatSendPreparationRuntime;
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   let conversationRef = resolveRendererConversationSessionSnapshot({
