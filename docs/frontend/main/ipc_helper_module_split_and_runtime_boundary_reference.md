@@ -889,6 +889,8 @@ Owns Electron-main Agent SDK backend close cleanup:
 - marks the SDK inference contexts stale and resets settings sync on close
 - classifies close-time active-query phases that should synthesize an
   interrupted SDK-shaped query event
+- keeps interrupted-query close classification private to the runtime owner
+  while tests exercise phase behavior through the composed facade
 - builds the interrupted event through `ipc_query_events.cjs` and routes it back
   through the backend-event relay callback
 - keeps the lower-level backend-close cleanup handler private to the runtime

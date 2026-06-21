@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main backend-event relay keeps active-turn
-  matching and terminal-event classification private to
-  `ipc_agent_backend_event_runtime.cjs`, with stale accepted, matching
-  terminal, stale terminal, and non-terminal behavior covered through
-  `createAgentBackendEventRuntime(...)`.
+- Latest completed slice: Electron main backend-close cleanup keeps
+  interrupted-query close classification private to
+  `ipc_agent_backend_close_runtime.cjs`, with interruptible, idle, and
+  no-active-query close behavior covered through
+  `createAgentBackendCloseRuntime(...)`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

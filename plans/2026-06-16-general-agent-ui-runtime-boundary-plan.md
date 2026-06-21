@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Backend Close Classifier Privacy
+
+- Finding: `ipc_agent_backend_close_runtime.cjs` already kept the lower-level
+  backend-close cleanup handler private, but the interrupted-query close
+  classifier still leaked as a public helper export.
+- Change: kept interrupted-query close classification private to the
+  backend-close runtime owner and moved interruptible phase, idle phase, and
+  no-active-query coverage through `createAgentBackendCloseRuntime(...)`.
+- Validation: focused backend-close runtime and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no backend close payload, interrupted-query event,
+  replay cleanup, overlay phase, credential, permission, or trust-boundary
+  migration required.
+
 ### 2026-06-21 Main Backend Event Classifier Privacy
 
 - Finding: `ipc_agent_backend_event_runtime.cjs` already kept the lower-level

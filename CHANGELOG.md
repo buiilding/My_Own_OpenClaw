@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep backend-close interrupted-query classification private to
+  `ipc_agent_backend_close_runtime.cjs` and cover interruptible, idle, and
+  no-active-query close behavior through `createAgentBackendCloseRuntime(...)`.
+  No migration required.
 - frontend/main: keep backend-event active-turn and terminal-event classifiers
   private to `ipc_agent_backend_event_runtime.cjs` and cover stale accepted,
   matching terminal, stale terminal, and non-terminal behavior through

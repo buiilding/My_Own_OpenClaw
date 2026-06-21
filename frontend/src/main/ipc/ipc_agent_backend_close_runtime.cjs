@@ -95,5 +95,4 @@ function createAgentBackendCloseRuntime(deps = {}) {
 
 module.exports = {
   createAgentBackendCloseRuntime,
-  shouldInterruptActiveQueryOnClose,
 };

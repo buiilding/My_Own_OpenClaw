@@ -5,8 +5,8 @@ const path = require('path');
 
 const {
   createAgentBackendCloseRuntime,
-  shouldInterruptActiveQueryOnClose,
 } = require('../../frontend/src/main/ipc/ipc_agent_backend_close_runtime.cjs');
+const backendCloseRuntimeModule = require('../../frontend/src/main/ipc/ipc_agent_backend_close_runtime.cjs');
 
 function createCloseDeps(overrides = {}) {
   return {
@@ -37,31 +37,31 @@ describe('ipc_agent_backend_close_runtime', () => {
     return runtime.handle(event);
   }
 
-  test('classifies only active query phases as interrupted backend closes', () => {
-    expect(shouldInterruptActiveQueryOnClose({
-      activeQueryContext: { queryMessageId: 'turn-1' },
-      activePhase: 'awaiting-first-chunk',
-    })).toBe(true);
-    expect(shouldInterruptActiveQueryOnClose({
-      activeQueryContext: { queryMessageId: 'turn-1' },
-      activePhase: 'streaming',
-    })).toBe(true);
-    expect(shouldInterruptActiveQueryOnClose({
-      activeQueryContext: { queryMessageId: 'turn-1' },
-      activePhase: 'tool-call',
-    })).toBe(true);
-    expect(shouldInterruptActiveQueryOnClose({
-      activeQueryContext: { queryMessageId: 'turn-1' },
-      activePhase: 'tool-output',
-    })).toBe(true);
-    expect(shouldInterruptActiveQueryOnClose({
-      activeQueryContext: { queryMessageId: 'turn-1' },
-      activePhase: 'idle',
-    })).toBe(false);
-    expect(shouldInterruptActiveQueryOnClose({
-      activeQueryContext: null,
-      activePhase: 'streaming',
-    })).toBe(false);
+  test('keeps interrupted-close classification private to the runtime owner', () => {
+    expect(backendCloseRuntimeModule.shouldInterruptActiveQueryOnClose).toBeUndefined();
+  });
+
+  test.each([
+    'awaiting-first-chunk',
+    'streaming',
+    'tool-call',
+    'tool-output',
+  ])('synthesizes interrupted query events for active %s backend closes', (activePhase) => {
+    const deps = createCloseDeps({
+      getResponseOverlayPhase: jest.fn(() => activePhase),
+      getActiveQueryContext: jest.fn(() => ({
+        queryMessageId: 'turn-1',
+        conversationRef: 'conv-1',
+        accepted: true,
+      })),
+    });
+
+    const result = handleBackendClose({ shouldReconnect: true }, deps);
+
+    expect(result).toEqual({ interrupted: true });
+    expect(deps.handleAgentBackendEvent).toHaveBeenCalledWith({ type: 'error', turn_ref: 'turn-1' });
+    expect(deps.setActiveQueryContext).toHaveBeenCalledWith(null);
+    expect(deps.setResponseOverlayPhase).not.toHaveBeenCalled();
   });
 
   test('synthesizes interrupted query events for active backend closes', () => {
