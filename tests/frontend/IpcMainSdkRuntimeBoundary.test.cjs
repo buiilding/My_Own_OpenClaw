@@ -10,6 +10,11 @@ function retiredProductName(suffix) {
 }
 
 describe('main ipc sdk runtime boundary', () => {
+  const retiredAgentClientLifecycleFactorySignature = `function ${[
+    'createAgentClient',
+    'Lifecycle',
+  ].join('')}(`;
+
   test('main helper modules import SDK contracts from owner modules', async () => {
     const ipcSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -450,9 +455,13 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain("refreshMcpServersForLatestConfig('mcp-startup')");
     expect(mcpRefreshRuntimeSource).toContain("refreshMcpServersForLatestConfig('mcp-startup')");
     expect(source).not.toContain('[Main][SDK] client_initialized');
-    expect(source).toContain('createAgentClientLifecycle({');
+    expect(source).toContain('createAgentClientLifecycleRuntime({');
     expect(source).not.toContain('let agentClient = null');
     expect(source).not.toContain('agentClient = createElectronAgentClient()');
+    expect(agentClientLifecycleSource).toContain('function createAgentClientLifecycleRuntime');
+    expect(agentClientLifecycleSource).not.toContain(
+      retiredAgentClientLifecycleFactorySignature,
+    );
     expect(agentClientLifecycleSource).toContain('let agentClient = null;');
     expect(agentClientLifecycleSource).toContain('agentClient = createAgentClient();');
     expect(agentClientLifecycleSource).toContain('[Main][SDK] client_initialized');

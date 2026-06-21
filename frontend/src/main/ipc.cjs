@@ -73,7 +73,7 @@ const {
   createElectronAgentClientFactoryRuntime,
 } = require('./ipc/ipc_electron_agent_client_factory.cjs');
 const {
-  createAgentClientLifecycle,
+  createAgentClientLifecycleRuntime,
 } = require('./ipc/ipc_agent_client_lifecycle.cjs');
 const {
   createRuntimeConversationRefRuntime,
@@ -397,7 +397,7 @@ const electronAgentClientFactoryRuntime = createElectronAgentClientFactoryRuntim
   isTest: () => process.env.NODE_ENV === 'test',
   logMainRuntime,
 });
-const agentClientLifecycle = createAgentClientLifecycle({
+const agentClientLifecycle = createAgentClientLifecycleRuntime({
   createAgentClient: () => electronAgentClientFactoryRuntime.createClient(),
   logMainRuntime,
 });
@@ -443,7 +443,6 @@ const {
   countMcpEnabledServersInConfig,
   getDesktopUiConfigForMcpRegistry,
   persistDesktopUiConfigToDisk,
-  preserveMainOwnedDesktopUiConfigFields,
 } = createDesktopUiConfigPersistenceRuntime({
   getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
   setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
@@ -827,10 +826,6 @@ function resetBackendSessionState() {
   ipcProcessResetRuntime.resetBackendSessionState();
 }
 
-function resetIpcProcessStateForTests() {
-  ipcProcessResetRuntime.resetIpcProcessStateForTests();
-}
-
 function resolveWorkspacePathForAgent(payload = {}) {
   return workspacePathRuntime.resolve(payload);
 }
@@ -943,10 +938,6 @@ function initializeIpc(win, options = {}) {
 
 async function appendMainProcessTraceEvent(input = {}) {
   return mainProcessTraceRuntime.appendMainProcessTraceEvent(input);
-}
-
-function resolveMainStopTarget() {
-  return mainStopTargetRuntime.resolve();
 }
 
 async function triggerStopQueryFromMain() {

@@ -185,8 +185,8 @@ describe('ipc_stop_target_runtime', () => {
     );
 
     expect(mainSource).toContain('createMainStopTargetRuntime({');
-    expect(mainSource).toContain('mainStopTargetRuntime.resolve()');
     expect(mainSource).toContain('mainStopTargetRuntime.trigger()');
+    expect(mainSource).not.toContain('function resolveMainStopTarget()');
     expect(mainSource).not.toContain('resolveMainStopTargetRuntime({');
     expect(mainSource).not.toContain('triggerMainStopTarget({');
     expect(helperSource).toContain('function createMainStopTargetRuntime');

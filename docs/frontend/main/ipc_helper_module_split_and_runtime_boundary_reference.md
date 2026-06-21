@@ -261,6 +261,8 @@ Owns Electron-main `AgentClient` instance lifecycle:
   discovery
 - forwards `shutdownLocalRuntime()` during test shutdown and clears the cached
   client instance
+- exposes `createAgentClientLifecycleRuntime(...)` so `ipc.cjs` wires the
+  AgentClient cache lifecycle as an explicit runtime helper
 
 ### `ipc_agent_wakeup_runtime.cjs`
 

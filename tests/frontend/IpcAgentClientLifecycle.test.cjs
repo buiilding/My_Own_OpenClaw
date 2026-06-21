@@ -4,15 +4,17 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const {
-  createAgentClientLifecycle,
+  createAgentClientLifecycleRuntime,
 } = require('../../frontend/src/main/ipc/ipc_agent_client_lifecycle.cjs');
 
 describe('ipc_agent_client_lifecycle', () => {
+  const retiredFactorySignature = `function ${['createAgentClient', 'Lifecycle'].join('')}(`;
+
   test('creates and logs the AgentClient once, then reuses it', () => {
     const client = { id: 'client-1' };
     const createAgentClient = jest.fn(() => client);
     const logMainRuntime = jest.fn();
-    const lifecycle = createAgentClientLifecycle({
+    const lifecycle = createAgentClientLifecycleRuntime({
       createAgentClient,
       logMainRuntime,
     });
@@ -30,7 +32,7 @@ describe('ipc_agent_client_lifecycle', () => {
     const client = {
       shutdownLocalRuntime: jest.fn(),
     };
-    const lifecycle = createAgentClientLifecycle({
+    const lifecycle = createAgentClientLifecycleRuntime({
       createAgentClient: jest.fn(() => client),
     });
 
@@ -45,7 +47,7 @@ describe('ipc_agent_client_lifecycle', () => {
     const client = {
       shutdownLocalRuntime: jest.fn(),
     };
-    const lifecycle = createAgentClientLifecycle({
+    const lifecycle = createAgentClientLifecycleRuntime({
       createAgentClient: jest.fn(() => client),
     });
 
@@ -66,9 +68,11 @@ describe('ipc_agent_client_lifecycle', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('createAgentClientLifecycle({');
+    expect(mainSource).toContain('createAgentClientLifecycleRuntime({');
     expect(mainSource).not.toContain('let agentClient = null');
     expect(mainSource).not.toContain('agentClient = createElectronAgentClient()');
+    expect(helperSource).toContain('function createAgentClientLifecycleRuntime');
+    expect(helperSource).not.toContain(retiredFactorySignature);
     expect(helperSource).toContain('let agentClient = null;');
     expect(helperSource).toContain('agentClient = createAgentClient();');
   });

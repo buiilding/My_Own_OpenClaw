@@ -2,7 +2,7 @@
  * Owns Electron main AgentClient instance caching and shutdown.
  */
 
-function createAgentClientLifecycle(deps = {}) {
+function createAgentClientLifecycleRuntime(deps = {}) {
   const {
     createAgentClient,
     logMainRuntime = () => {},
@@ -44,5 +44,5 @@ function createAgentClientLifecycle(deps = {}) {
 }
 
 module.exports = {
-  createAgentClientLifecycle,
+  createAgentClientLifecycleRuntime,
 };
