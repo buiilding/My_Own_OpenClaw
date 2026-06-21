@@ -18,7 +18,7 @@ describe('desktopMessageInputRuntime', () => {
     expect(buildOutgoingMessage('  hello world  ', false)).toBe('hello world');
   });
 
-  test('buildOutgoingMessage blocks sends while isSending is true', () => {
+  test('buildOutgoingMessage blocks sends while submit is blocked', () => {
     expect(buildOutgoingMessage('hello', true)).toBeNull();
   });
 

@@ -545,7 +545,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
           <h1 className="chat-empty-title">{chatSkin.emptyTitle}</h1>
           <MessageInput
             onSendMessage={sendMessage}
-            isSending={composerBusy}
+            isLoopActive={composerBusy}
             onStopResponse={handleStopTurn}
             isCentered
             focusRequestToken={focusComposerToken}
@@ -573,7 +573,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
           />
           <MessageInput
             onSendMessage={sendMessage}
-            isSending={composerBusy}
+            isLoopActive={composerBusy}
             onStopResponse={handleStopTurn}
             focusRequestToken={focusComposerToken}
           />

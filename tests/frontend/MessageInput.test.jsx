@@ -71,7 +71,7 @@ describe('MessageInput', () => {
 
   test('submits trimmed message text', () => {
     const onSendMessage = jest.fn();
-    render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
+    render(<MessageInput onSendMessage={onSendMessage} isLoopActive={false} />);
 
     const input = screen.getByLabelText('Type your message');
     fireEvent.change(input, { target: { value: '  hello world  ', selectionStart: 13 } });
@@ -83,7 +83,7 @@ describe('MessageInput', () => {
 
   test('does not submit whitespace-only messages', () => {
     const onSendMessage = jest.fn();
-    render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
+    render(<MessageInput onSendMessage={onSendMessage} isLoopActive={false} />);
 
     const input = screen.getByLabelText('Type your message');
     fireEvent.change(input, { target: { value: '   ', selectionStart: 3 } });
@@ -92,14 +92,14 @@ describe('MessageInput', () => {
     expect(onSendMessage).not.toHaveBeenCalled();
   });
 
-  test('blocks submit when isSending is true', () => {
+  test('blocks submit when isLoopActive is true', () => {
     const onSendMessage = jest.fn();
-    const { rerender } = render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
+    const { rerender } = render(<MessageInput onSendMessage={onSendMessage} isLoopActive={false} />);
 
     const input = screen.getByLabelText('Type your message');
     fireEvent.change(input, { target: { value: 'hello', selectionStart: 5 } });
 
-    rerender(<MessageInput onSendMessage={onSendMessage} isSending />);
+    rerender(<MessageInput onSendMessage={onSendMessage} isLoopActive />);
     fireEvent.submit(input.closest('form'));
 
     expect(onSendMessage).not.toHaveBeenCalled();
@@ -107,14 +107,14 @@ describe('MessageInput', () => {
   });
 
   test('disables side controls while loop is active', () => {
-    render(<MessageInput onSendMessage={jest.fn()} isSending />);
+    render(<MessageInput onSendMessage={jest.fn()} isLoopActive />);
 
     expect(screen.getByTestId('plus-btn')).toBeDisabled();
     expect(screen.getByTestId('voice-btn')).toBeDisabled();
   });
 
   test('send button is disabled for empty input', () => {
-    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    render(<MessageInput onSendMessage={jest.fn()} isLoopActive={false} />);
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
   });
 
@@ -122,7 +122,7 @@ describe('MessageInput', () => {
     render(
       <MessageInput
         onSendMessage={jest.fn()}
-        isSending={false}
+        isLoopActive={false}
         isTransportConnected={false}
       />,
     );
@@ -138,7 +138,7 @@ describe('MessageInput', () => {
 
   test('keeps latest transcription in composer when utterance ends in voice mode', () => {
     const onSendMessage = jest.fn();
-    render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
+    render(<MessageInput onSendMessage={onSendMessage} isLoopActive={false} />);
 
     const input = screen.getByLabelText('Type your message');
     const voiceButton = screen.getByTestId('voice-btn');
@@ -162,7 +162,7 @@ describe('MessageInput', () => {
   });
 
   test('toggles a transient voice session from the microphone button', () => {
-    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    render(<MessageInput onSendMessage={jest.fn()} isLoopActive={false} />);
 
     const voiceButton = screen.getByTestId('voice-btn');
     expect(lastVoiceEnabled).toBe(false);
@@ -183,7 +183,7 @@ describe('MessageInput', () => {
 
   test('shows pasted image preview and sends it with the typed message', async () => {
     const onSendMessage = jest.fn();
-    render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
+    render(<MessageInput onSendMessage={onSendMessage} isLoopActive={false} />);
 
     const input = screen.getByLabelText('Type your message');
 
@@ -210,7 +210,7 @@ describe('MessageInput', () => {
   });
 
   test('allows removing pasted image preview before sending', async () => {
-    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    render(<MessageInput onSendMessage={jest.fn()} isLoopActive={false} />);
 
     const input = screen.getByLabelText('Type your message');
 
@@ -226,7 +226,7 @@ describe('MessageInput', () => {
   });
 
   test('appends a second pasted image instead of replacing the first', async () => {
-    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    render(<MessageInput onSendMessage={jest.fn()} isLoopActive={false} />);
 
     const input = screen.getByLabelText('Type your message');
 
@@ -245,7 +245,7 @@ describe('MessageInput', () => {
     const { rerender } = render(
       <MessageInput
         onSendMessage={jest.fn()}
-        isSending={false}
+        isLoopActive={false}
         focusRequestToken={0}
       />,
     );
@@ -257,7 +257,7 @@ describe('MessageInput', () => {
     rerender(
       <MessageInput
         onSendMessage={jest.fn()}
-        isSending={false}
+        isLoopActive={false}
         focusRequestToken={1}
       />,
     );
@@ -266,7 +266,7 @@ describe('MessageInput', () => {
   });
 
   test('opens add-attachment menu from plus button and closes on outside click', () => {
-    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    render(<MessageInput onSendMessage={jest.fn()} isLoopActive={false} />);
 
     fireEvent.click(screen.getByTestId('plus-btn'));
     expect(screen.getByRole('menu')).toBeInTheDocument();
@@ -282,18 +282,18 @@ describe('MessageInput', () => {
   });
 
   test('closes add-attachment menu when loop becomes active', () => {
-    const { rerender } = render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    const { rerender } = render(<MessageInput onSendMessage={jest.fn()} isLoopActive={false} />);
 
     fireEvent.click(screen.getByTestId('plus-btn'));
     expect(screen.getByRole('menu')).toBeInTheDocument();
 
-    rerender(<MessageInput onSendMessage={jest.fn()} isSending />);
+    rerender(<MessageInput onSendMessage={jest.fn()} isLoopActive />);
 
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
   test('opens native file picker when selecting add photos & files', () => {
-    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    render(<MessageInput onSendMessage={jest.fn()} isLoopActive={false} />);
 
     const attachmentInput = screen.getByTestId('attachment-input');
     const clickSpy = jest.spyOn(attachmentInput, 'click').mockImplementation(() => {});
@@ -307,7 +307,7 @@ describe('MessageInput', () => {
 
   test('includes selected readable files in outgoing payload and shows file name', async () => {
     const onSendMessage = jest.fn();
-    render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
+    render(<MessageInput onSendMessage={onSendMessage} isLoopActive={false} />);
 
     const attachmentInput = screen.getByTestId('attachment-input');
     const imageFile = new File(['image-bytes'], 'photo.png', { type: 'image/png' });
@@ -364,7 +364,7 @@ describe('MessageInput', () => {
       }
     };
 
-    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    render(<MessageInput onSendMessage={jest.fn()} isLoopActive={false} />);
 
     await act(async () => {
       fireEvent.change(screen.getByTestId('attachment-input'), {
@@ -399,7 +399,7 @@ describe('MessageInput', () => {
       }
     };
 
-    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    render(<MessageInput onSendMessage={jest.fn()} isLoopActive={false} />);
 
     await act(async () => {
       fireEvent.paste(screen.getByLabelText('Type your message'), buildImagePasteEvent());
@@ -414,7 +414,7 @@ describe('MessageInput', () => {
 
   test('enables send button for attachment-only message', async () => {
     const onSendMessage = jest.fn();
-    render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
+    render(<MessageInput onSendMessage={onSendMessage} isLoopActive={false} />);
 
     const attachmentInput = screen.getByTestId('attachment-input');
     const textFile = new File(['hello'], 'notes.txt', { type: 'text/plain' });
@@ -440,7 +440,7 @@ describe('MessageInput', () => {
   });
 
   test('does not render thinking dropdown control next to add attachment', () => {
-    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    render(<MessageInput onSendMessage={jest.fn()} isLoopActive={false} />);
 
     expect(screen.queryByTestId('thinking-mode-btn')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Close thinking mode')).not.toBeInTheDocument();

@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer chat shared action selectors and message-input send guards: store selector boundary, composer submit normalization, whitespace/isSending normalization, and clipboard-image payload shaping."
+summary: "Deep reference for renderer chat shared action selectors and message-input send guards: store selector boundary, composer submit normalization, whitespace/loop-lock normalization, and clipboard-image payload shaping."
 read_when:
   - When changing `useChatCommonActions` or re-wiring chat hooks that mutate `chatStore` state.
   - When debugging dropped message sends, duplicate submit attempts, or microphone/transcription behavior around manual send.
@@ -42,9 +42,9 @@ Expected outcome:
 
 ## Input Normalization Contract (`DesktopMessageInputRuntime`)
 
-`DesktopMessageInputRuntime.buildOutgoingMessage(inputValue, isSending, clipboardImages?, readableFiles?)` behavior:
+`DesktopMessageInputRuntime.buildOutgoingMessage(inputValue, isSubmitBlocked, clipboardImages?, readableFiles?)` behavior:
 
-1. if `isSending === true`, returns `null` (hard submit block)
+1. if `isSubmitBlocked === true`, returns `null` (hard submit block)
 2. otherwise trims text
 3. returns `null` for blank/whitespace-only text
 4. normalizes image attachments from the canonical `clipboardImages[]` array
@@ -85,12 +85,12 @@ This limits unnecessary updates when stream/send logic repeats identical flags.
 - `tests/frontend/DesktopMessageInputRuntime.test.js`
   - whitespace/blank inputs rejected
   - trim-on-send behavior
-  - `isSending` hard block
+  - submit-block hard guard
   - clipboard image payload shape selection
 - `tests/frontend/MessageInput.test.jsx`
   - form submit uses trimmed text
   - whitespace submit blocked
-  - `isSending` disables submit path/button
+  - visible lifecycle `isLoopActive` disables submit path/button and renders Stop
   - voice utterance-end keeps the latest transcription in the composer without auto-send
   - pasted image preview/send/remove behavior
 - `tests/frontend/ChatStore.test.ts`

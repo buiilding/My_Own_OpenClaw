@@ -43,11 +43,11 @@ function normalizeReadableFiles(readableFiles) {
 
 function buildOutgoingMessage(
   inputValue,
-  isSending,
+  isSubmitBlocked,
   clipboardImages = [],
   readableFiles = [],
 ) {
-  if (isSending) {
+  if (isSubmitBlocked) {
     return null;
   }
 

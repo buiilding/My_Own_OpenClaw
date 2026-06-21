@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for MessageInput runtime: text/voice submit paths, clipboard/file attachment parsing and preview contracts, plus/thinking menu behavior, and send-button state guards."
+summary: "Deep reference for MessageInput runtime: text/voice submit paths, clipboard/file attachment parsing and preview contracts, plus/thinking menu behavior, and visible lifecycle loop-lock guards."
 read_when:
   - When changing `MessageInput.jsx` input/submit behavior, pasted image UX, file-attachment parsing, or voice-mode handoff.
   - When debugging why submit is blocked, attachment payload is missing, or microphone dictation session behavior differs from form submit.
@@ -33,7 +33,7 @@ UI-effect bindings (`useMessageInputUiBindings`) own:
 
 - textarea auto-resize on input changes via `useLayoutEffect`, so multiline `Shift+Enter` growth updates the composer height before paint instead of showing a one-frame row hop
 - plus-menu outside-click dismissal
-- automatic plus-menu close on send lock (`isSending=true`)
+- automatic plus-menu close when the visible lifecycle loop lock begins (`isLoopActive=true`)
 - focus-request token handling for composer autofocus
 
 Hook-owned text/transcription state (`useTranscription`):
@@ -58,7 +58,7 @@ All submit paths call `submitMessageValue(...)`.
 `submitMessageValue(...)` behavior:
 
 1. build outgoing payload through
-   `DesktopMessageInputRuntime.buildOutgoingMessage(input, isSending, clipboardImages, selectedReadableFiles)`.
+   `DesktopMessageInputRuntime.buildOutgoingMessage(input, isSubmitBlocked, clipboardImages, selectedReadableFiles)`.
 2. if payload is null, abort.
 3. call `onSendMessage(payload)`.
 4. clear input/transcription.
@@ -152,7 +152,7 @@ Voice status component:
 
 Send button behavior:
 
-- shown only when `isSending=false`
+- shown only when `isLoopActive=false`
 - disabled only when all are empty:
  - `inputValue.trim()`
  - `clipboardImages[]`
@@ -160,18 +160,18 @@ Send button behavior:
 
 Stop button behavior:
 
-- shown when `isSending=true`
+- shown when `isLoopActive=true`
 - invokes optional `onStopResponse`
 
 Loop-lock side controls:
 
-- plus/attachment button is disabled when `isSending=true`
-- voice button is disabled when `isSending=true`
+- plus/attachment button is disabled when `isLoopActive=true`
+- voice button is disabled when `isLoopActive=true`
 - open attachment menu is forcibly closed when loop lock begins
 
 Hard send guard:
 
-- if `isSending=true`, `DesktopMessageInputRuntime.buildOutgoingMessage(...)`
+- if `isSubmitBlocked=true`, `DesktopMessageInputRuntime.buildOutgoingMessage(...)`
   returns null.
 
 ## Menu Runtime Notes
@@ -186,7 +186,7 @@ The menu does not alter outbound query payload; it only opens the native file-pi
 ## Test-Backed Invariants
 
 - trimmed send text and whitespace block behavior.
-- `isSending` submit block + stop-button rendering.
+- `isLoopActive` submit block + stop-button rendering.
 - voice button starts and stops a temporary dictation session.
 - utterance-end keeps the latest transcription in the composer without auto-send.
 - pasted-image preview render.

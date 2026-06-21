@@ -103,7 +103,7 @@ Readable files (non-image):
 and readable-file collections:
 
 - drops invalid clipboard/readable entries with normalization helpers
-- blocks send when `isSending=true`
+- blocks send when the caller passes `isSubmitBlocked=true`
 - returns `null` when both text and attachments are absent
 - text-only -> returns trimmed string
 - attachment-bearing -> returns object:

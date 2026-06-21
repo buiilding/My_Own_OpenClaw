@@ -838,7 +838,7 @@ describe('ChatInterface wiring', () => {
 
     expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('gpt-test-model');
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
-    expect(lastInputProps.isSending).toBe(false);
+    expect(lastInputProps.isLoopActive).toBe(false);
     expect(lastInputProps.isCentered).toBe(true);
     expect(typeof lastInputProps.onSendMessage).toBe('function');
     expect(typeof lastInputProps.onStopResponse).toBe('function');
@@ -1342,7 +1342,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
-    expect(lastInputProps.isSending).toBe(true);
+    expect(lastInputProps.isLoopActive).toBe(true);
     lastInputProps.onStopResponse();
     expect(mockStopQuery).toHaveBeenCalledTimes(1);
     expect(mockStopQuery).toHaveBeenCalledWith('conv_existing', 'turn_pending');
@@ -1354,7 +1354,7 @@ describe('ChatInterface wiring', () => {
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
   });
 
-  test('keeps composer in stop state during tool loop even when isSending is false', () => {
+  test('keeps composer in stop state during tool loop even when raw isSending is false', () => {
     mockChatState.streamTracking.phase = 'tool-call';
     mockChatState.isSending = false;
     setMockCurrentTurnProjection('tool-call', {
@@ -1373,7 +1373,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
-    expect(lastInputProps.isSending).toBe(true);
+    expect(lastInputProps.isLoopActive).toBe(true);
     expect(typeof lastInputProps.onStopResponse).toBe('function');
   });
 
@@ -1585,7 +1585,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
-    expect(lastInputProps.isSending).toBe(false);
+    expect(lastInputProps.isLoopActive).toBe(false);
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
     expect(lastMessageListProps.awaitingDotTargetMessageId).toBeNull();
   });

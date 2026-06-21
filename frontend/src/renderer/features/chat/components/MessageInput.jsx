@@ -18,7 +18,7 @@ import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
 import { DesktopAttachmentPresentationRuntime } from '../../../app/runtime/desktopAttachmentPresentationRuntime';
 import {
-  useClosePlusMenuOnSending,
+  useClosePlusMenuOnLoopActive,
   useComposerFocusRequest,
   useDismissPlusMenu,
   useTextareaAutoResize,
@@ -26,7 +26,7 @@ import {
 
 function MessageInput({
   onSendMessage,
-  isSending,
+  isLoopActive,
   onStopResponse = undefined,
   isCentered = false,
   focusRequestToken = 0,
@@ -50,7 +50,7 @@ function MessageInput({
     handleComposerPaste,
     handleAttachmentSelection,
   } = useChatComposerDraft({
-    isSubmitBlocked: isSending,
+    isSubmitBlocked: isLoopActive,
     onSendMessage,
     onBeforeSend: () => {
       setVoiceSessionActive(false);
@@ -82,30 +82,30 @@ function MessageInput({
       return;
     }
     lastHandledFocusRequestRef.current = nextFocusRequestToken;
-    if (!textareaRef.current || isSending) {
+    if (!textareaRef.current || isLoopActive) {
       return;
     }
     textareaRef.current.focus();
     const textLength = textareaRef.current.value.length;
     textareaRef.current.setSelectionRange(textLength, textLength);
-  }, [isSending]);
+  }, [isLoopActive]);
 
   useTextareaAutoResize(inputValue, resizeTextarea);
   useDismissPlusMenu(plusMenuRef, setPlusMenuOpen);
-  useClosePlusMenuOnSending(isSending, setPlusMenuOpen);
+  useClosePlusMenuOnLoopActive(isLoopActive, setPlusMenuOpen);
   useComposerFocusRequest({
     focusRequestToken,
     handleFocusRequest,
   });
 
   useEffect(() => {
-    if (isSending && voiceSessionActive) {
+    if (isLoopActive && voiceSessionActive) {
       setVoiceSessionActive(false);
     }
-  }, [isSending, voiceSessionActive]);
+  }, [isLoopActive, voiceSessionActive]);
 
   const handleVoiceButtonClick = useCallback(() => {
-    if (isSending) {
+    if (isLoopActive) {
       return;
     }
 
@@ -116,10 +116,10 @@ function MessageInput({
       resetTranscription();
       return true;
     });
-  }, [isSending, resetTranscription]);
+  }, [isLoopActive, resetTranscription]);
 
   const { isConnected, isRecording, error } = useVoiceMode(
-    voiceSessionActive && !isSending,
+    voiceSessionActive && !isLoopActive,
     (text) => {
       updateTranscription(text);
     },
@@ -217,14 +217,14 @@ function MessageInput({
                   aria-label="Add attachment"
                   data-testid="plus-btn"
                   aria-expanded={plusMenuOpen}
-                  disabled={isSending}
+                  disabled={isLoopActive}
                   onClick={() => {
                     setPlusMenuOpen((current) => !current);
                   }}
                 >
                   <Plus size={18} />
                 </button>
-                {plusMenuOpen && !isSending ? (
+                {plusMenuOpen && !isLoopActive ? (
                   <div className="message-dropdown-menu message-add-photos-under-pill" role="menu">
                     <button
                       type="button"
@@ -256,7 +256,7 @@ function MessageInput({
               }}
               onKeyDown={handleKeyDown}
               placeholder="Ask anything"
-              disabled={isSending}
+              disabled={isLoopActive}
               className="message-input composer-textarea"
               rows={1}
               style={{ minHeight: '24px', maxHeight: '200px' }}
@@ -270,12 +270,12 @@ function MessageInput({
                 aria-label={voiceSessionActive ? 'Stop voice input' : 'Start voice input'}
                 aria-pressed={voiceSessionActive}
                 data-testid="voice-btn"
-                disabled={isSending}
+                disabled={isLoopActive}
                 onClick={handleVoiceButtonClick}
               >
                 <Mic size={18} />
               </button>
-              {isSending ? (
+              {isLoopActive ? (
                 <button
                   type="button"
                   className="message-send-btn message-stop-btn"
@@ -311,7 +311,7 @@ function MessageInput({
 
 MessageInput.propTypes = {
   onSendMessage: PropTypes.func.isRequired,
-  isSending: PropTypes.bool,
+  isLoopActive: PropTypes.bool,
   onStopResponse: PropTypes.func,
   isCentered: PropTypes.bool,
   focusRequestToken: PropTypes.number,

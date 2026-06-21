@@ -26,13 +26,13 @@ export function useDismissPlusMenu(plusMenuRef, setPlusMenuOpen) {
   }, [plusMenuRef, setPlusMenuOpen]);
 }
 
-export function useClosePlusMenuOnSending(isSending, setPlusMenuOpen) {
+export function useClosePlusMenuOnLoopActive(isLoopActive, setPlusMenuOpen) {
   useEffect(() => {
-    if (!isSending) {
+    if (!isLoopActive) {
       return;
     }
     setPlusMenuOpen(false);
-  }, [isSending, setPlusMenuOpen]);
+  }, [isLoopActive, setPlusMenuOpen]);
 }
 
 export function useComposerFocusRequest({
