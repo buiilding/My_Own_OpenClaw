@@ -9,6 +9,28 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Live-Surface Visible Lifecycle Projection
+
+- Finding: `DesktopLiveTurnSurfaceRuntime` still derived live-surface
+  phase/busy/awaiting/response fields from SDK phase, SDK presentation
+  `isBusy`, and overlay intent before the visible lifecycle owner stamped the
+  surface. `ChatInterface.jsx` also still disabled assistant feedback/retry
+  actions with raw `isSending || canStop`.
+- Change: live-surface input now derives its phase/busy/awaiting/response flags
+  from `DesktopVisibleTurnLifecycleRuntime`, with SDK overlay intent retained
+  as rendering metadata, and assistant action disabling now uses the
+  controller's visible lifecycle busy/stop projection. Response overlay
+  prefers SDK presentation rows when present and falls back to projection-built
+  rows when presentation exists but carries no visible content.
+- Validation: `LiveTurnSurfaceState.test.js` covers SDK awaiting/response
+  states overriding false SDK presentation flags or hidden overlay intent, and
+  `ChatInterfaceWiring.test.jsx` covers stale raw `isSending` with a terminal
+  same-turn SDK projection. `LiveTurnSurfaceState.test.js` is registered in
+  `<windie> test core-loop`.
+- Compatibility/security: no SDK event payload, IPC payload, transcript
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Current-Turn Projection Send-Latch Boundary
 
 - Finding: `DesktopCurrentTurnProjectionEffectsRuntime` still allowed SDK

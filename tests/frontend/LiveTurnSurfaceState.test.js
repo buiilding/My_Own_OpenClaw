@@ -339,6 +339,91 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('uses visible lifecycle instead of SDK presentation flags for awaiting state', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'awaiting',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        presentation: {
+          typingVisible: false,
+          overlayVisible: false,
+          isBusy: false,
+          hasVisibleContent: false,
+          entries: [],
+          overlayIntent: {
+            visible: false,
+            mode: 'hidden',
+            turnRef: 'turn-2',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-2',
+          },
+        },
+      },
+      isSending: false,
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      isBusy: true,
+      showAwaiting: true,
+      showResponse: false,
+      source: 'sdk-current-turn',
+      useLocalSendLatch: false,
+      useSdkLiveTurnPresentation: true,
+      overlayIntent: expect.objectContaining({
+        mode: 'hidden',
+      }),
+    });
+  });
+
+  test('uses visible lifecycle instead of SDK overlay intent for response state', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'streaming',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        assistantText: 'Visible response',
+        presentation: {
+          typingVisible: false,
+          overlayVisible: false,
+          isBusy: false,
+          hasVisibleContent: false,
+          entries: [],
+          overlayIntent: {
+            visible: false,
+            mode: 'hidden',
+            turnRef: 'turn-2',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-2',
+          },
+        },
+      },
+      isSending: false,
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'streaming',
+      isSending: true,
+      isBusy: true,
+      showAwaiting: false,
+      showResponse: true,
+      source: 'sdk-current-turn',
+      useLocalSendLatch: false,
+      useSdkLiveTurnPresentation: true,
+      overlayIntent: expect.objectContaining({
+        mode: 'hidden',
+      }),
+    });
+  });
+
   test('ignores legacy stream phase inputs when SDK current turn is absent', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: null,

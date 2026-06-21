@@ -12,12 +12,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: current-turn projection effects no longer treat SDK
-  `presentation.typingVisible` or `presentation.overlayVisible` as send-latch
-  authorities; SDK awaiting phase accepts the turn, while actual presentation
-  entries, explicit visible content, text, tool rows, or terminal state clear
-  sending. The temporary chat-surface presentation lifecycle bridge is removed,
-  leaving visible lifecycle as the busy/typing owner.
+- Latest completed slice: live-surface phase/busy/awaiting/response fields now
+  read the renderer visible lifecycle while SDK overlay intent remains metadata
+  for refs, stale guards, dismissal, and trace context. Dashboard assistant
+  feedback/retry disabling also reads visible lifecycle busy/Stop projection
+  instead of raw `isSending`, and current-turn projection effects no longer
+  treat SDK `presentation.typingVisible` or `presentation.overlayVisible` as
+  send-latch authorities.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

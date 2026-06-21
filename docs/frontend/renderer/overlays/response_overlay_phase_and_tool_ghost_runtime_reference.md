@@ -48,7 +48,9 @@ Current-turn entry construction:
   into overlay-ready current-turn messages and entries
 - SDK live-turn presentation rows are converted with
   `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`;
-  older projection snapshots are converted with
+  when SDK presentation exists but has no visible rows, the overlay falls back
+  to projection-built rows for visible assistant text/tool/error content.
+  Older projection snapshots are converted with
   `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromProjection(...)`.
 - the response overlay filters those current-turn messages through
   `DesktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
@@ -93,7 +95,9 @@ Phase ownership boundary:
 - `DesktopLiveTurnSurfaceRuntime` owns live current-turn surface input and SDK
   overlay-intent fallback projection for chat and response-overlay surfaces;
   feature hooks consume that facade instead of importing standalone live-turn
-  helpers.
+  helpers. Its phase, busy, awaiting, and response flags are mapped from
+  `DesktopVisibleTurnLifecycleRuntime`; SDK overlay intent remains rendering
+  metadata for refs, stale guards, dismissal, and trace context.
 - React chat surfaces do not subscribe to generic `response-overlay-phase`
   changes for runtime state. Renderer send preflight is represented as a
   pending user turn in chat state and over `windie:pending-turn`; this keeps the
@@ -146,8 +150,10 @@ Contract ownership:
   stamped by `DesktopVisibleTurnLifecycleRuntime` after that data step.
 - `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)` owns
   hidden SDK startup and terminal handoff rules used by live-surface
-  projection; `DesktopLiveTurnSurfaceRuntime` maps that decision into overlay
-  phase and guard fields.
+  projection. `DesktopLiveTurnSurfaceRuntime` maps the resolved visible
+  lifecycle into legacy overlay phase, busy, awaiting, and response fields;
+  SDK overlay intent remains metadata for turn refs, stale guards, dismissal,
+  and trace context rather than lifecycle authority.
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   owns the dismissal target projection from SDK overlay intent, current-turn
   refs, latest response entry id, and stale guard ref.

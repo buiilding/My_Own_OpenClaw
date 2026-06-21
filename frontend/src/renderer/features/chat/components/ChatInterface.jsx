@@ -566,7 +566,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
             enableAgentLoopAutoScroll={composerBusy}
             enableAssistantActions
             enableUserActions
-            disableAssistantActions={isSending || canStop}
+            disableAssistantActions={composerBusy || canStop}
             onAssistantFeedbackChange={handleAssistantFeedbackChange}
             onAssistantTryAgain={handleTryAgainFromAssistant}
             onUserEdit={handleEditFromUser}

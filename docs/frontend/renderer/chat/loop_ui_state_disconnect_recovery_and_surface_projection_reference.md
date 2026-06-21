@@ -228,9 +228,11 @@ visible same-turn projection.
 `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)` delegates
 local send-preflight handoff to
 `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)`. The live
-surface still prepares overlay presentation input, but the decision to keep a
-renderer-local send latch through idle, hidden, stale, terminal, or visible SDK
-projections lives with the visible lifecycle owner.
+surface still prepares overlay presentation input and SDK overlay intent
+metadata, but phase, busy, awaiting, and response flags now come from
+`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`. The
+decision to keep a renderer-local send latch through idle, hidden, stale,
+terminal, or visible SDK projections lives with the visible lifecycle owner.
 
 `useResponseOverlayViewModel(...)` also resolves the same visible lifecycle and
 applies `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
@@ -249,6 +251,8 @@ survive adaptation.
 
 - consumes `useChatSurfaceController(...)`
 - uses visible lifecycle `isBusy` as the stop-query affordance gate
+- disables assistant feedback/retry actions from visible lifecycle busy/Stop
+  state instead of raw `isSending`
 - uses visible lifecycle awaiting anchor for `showAssistantAwaitingDot` instead
   of component-local reply scanning
 - passes the visible lifecycle awaiting anchor directly to `MessageList`; live

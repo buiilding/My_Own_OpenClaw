@@ -14,10 +14,9 @@ const {
   getStreamingResponseOverlayPhase,
   getToolCallResponseOverlayPhase,
   getToolOutputResponseOverlayPhase,
-  isAwaitingFirstChunkResponseOverlayPhase,
-  isStreamingResponseOverlayPhase,
 } = DesktopResponseOverlayPhaseRuntime;
 const {
+  resolveVisibleTurnLifecycle,
   shouldUseLocalSendPreflight,
 } = DesktopVisibleTurnLifecycleRuntime;
 
@@ -31,12 +30,13 @@ const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
   idle: getIdleResponseOverlayPhase(),
 });
 
-const CURRENT_TURN_BUSY_PHASES = new Set([
-  'awaiting',
-  'streaming',
-  'tool_call',
-  'tool_output',
-]);
+const VISIBLE_LIFECYCLE_STATUS_TO_SURFACE_PHASE = Object.freeze({
+  local_pending: getAwaitingFirstChunkResponseOverlayPhase(),
+  awaiting: getAwaitingFirstChunkResponseOverlayPhase(),
+  active: getStreamingResponseOverlayPhase(),
+  terminal: getCompleteResponseOverlayPhase(),
+  idle: getIdleResponseOverlayPhase(),
+});
 
 function normalizePhase(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
@@ -82,8 +82,20 @@ function mapCurrentTurnProjectionPhase(phase) {
   return CURRENT_TURN_PHASE_TO_SURFACE_PHASE[normalizePhase(phase)] ?? null;
 }
 
-function isCurrentTurnProjectionBusy(phase) {
-  return CURRENT_TURN_BUSY_PHASES.has(normalizePhase(phase));
+function resolveVisibleLifecycleSurfacePhase(visibleTurnLifecycle, currentTurnProjection) {
+  const status = normalizePhase(visibleTurnLifecycle?.status);
+  if (status === 'active' || status === 'terminal') {
+    return (
+      mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
+      || VISIBLE_LIFECYCLE_STATUS_TO_SURFACE_PHASE[status]
+      || getIdleResponseOverlayPhase()
+    );
+  }
+  return (
+    VISIBLE_LIFECYCLE_STATUS_TO_SURFACE_PHASE[status]
+    || mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
+    || getIdleResponseOverlayPhase()
+  );
 }
 
 function hasSdkLiveTurnPresentation(currentTurnProjection) {
@@ -136,8 +148,14 @@ function resolveLiveTurnPresentationInput({
   pendingTurn = null,
   isSending = false,
   messages = [],
+  visibleTurnLifecycle = null,
 } = {}) {
   const useSdkLiveTurnPresentation = hasSdkLiveTurnPresentation(currentTurnProjection);
+  const resolvedVisibleTurnLifecycle = visibleTurnLifecycle ?? resolveVisibleTurnLifecycle({
+    pendingTurn,
+    currentTurnProjection,
+    messages,
+  });
   const useLocalSendLatch = shouldUseSendPreflight({
     currentTurnProjection,
     isSending,
@@ -175,17 +193,23 @@ function resolveLiveTurnPresentationInput({
     };
   }
 
+  const visibleLifecyclePhase = resolveVisibleLifecycleSurfacePhase(
+    resolvedVisibleTurnLifecycle,
+    currentTurnProjection,
+  );
+  const lifecycleIsBusy = resolvedVisibleTurnLifecycle?.isBusy === true;
+  const lifecycleShowsTyping = resolvedVisibleTurnLifecycle?.showTyping === true;
+  const lifecycleShowsResponse = resolvedVisibleTurnLifecycle?.status === 'active';
+
   if (useSdkLiveTurnPresentation) {
     const presentation = currentTurnProjection.presentation;
     const overlayIntent = resolveSdkOverlayIntent(presentation, currentTurnProjection);
-    const showAwaiting = overlayIntent.mode === 'awaiting';
-    const showResponse = overlayIntent.mode === 'response';
     return {
-      phase: mapCurrentTurnProjectionPhase(currentTurnProjection?.phase) || getIdleResponseOverlayPhase(),
-      isSending: presentation.isBusy === true,
-      isBusy: presentation.isBusy === true,
-      showAwaiting,
-      showResponse,
+      phase: visibleLifecyclePhase,
+      isSending: lifecycleIsBusy,
+      isBusy: lifecycleIsBusy,
+      showAwaiting: lifecycleShowsTyping,
+      showResponse: lifecycleShowsResponse,
       source: 'sdk-current-turn',
       useLocalSendLatch: false,
       useSdkLiveTurnPresentation: true,
@@ -200,11 +224,11 @@ function resolveLiveTurnPresentationInput({
   const currentTurnPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase);
   if (currentTurnPhase) {
     return {
-      phase: currentTurnPhase,
-      isSending: isCurrentTurnProjectionBusy(currentTurnProjection?.phase),
-      isBusy: isCurrentTurnProjectionBusy(currentTurnProjection?.phase),
-      showAwaiting: isAwaitingFirstChunkResponseOverlayPhase(currentTurnPhase),
-      showResponse: isStreamingResponseOverlayPhase(currentTurnPhase),
+      phase: visibleLifecyclePhase,
+      isSending: lifecycleIsBusy,
+      isBusy: lifecycleIsBusy,
+      showAwaiting: lifecycleShowsTyping,
+      showResponse: lifecycleShowsResponse,
       source: 'current-turn',
       useLocalSendLatch: false,
       useSdkLiveTurnPresentation: false,

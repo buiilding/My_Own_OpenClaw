@@ -56,6 +56,7 @@ export function useChatSurfaceController({
     pendingTurn,
     isSending,
     messages,
+    visibleTurnLifecycle,
   });
   const controllerVisibleTurnLifecycle = resolveVisibleTurnLifecycleForPresentation({
     visibleTurnLifecycle,

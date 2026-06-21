@@ -68,6 +68,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route live-surface phase/busy/awaiting/response flags and
+  dashboard assistant-action disabling through visible lifecycle state instead
+  of raw SDK presentation flags or `isSending`, so stale send latches and
+  hidden overlay intent do not override resolved desktop lifecycle; response
+  overlay falls back to projection rows when SDK presentation rows are empty.
+  No migration required.
 - frontend/renderer: stop SDK current-turn `presentation.typingVisible` and
   `presentation.overlayVisible` from driving the send latch; awaiting phase
   now accepts the SDK turn, while actual presentation entries, explicit visible

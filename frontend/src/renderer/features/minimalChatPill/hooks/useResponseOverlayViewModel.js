@@ -74,20 +74,21 @@ export function useResponseOverlayViewModel({
   const lastResolvedTraceSignatureRef = useRef(null);
   const lastTypingVisibleRef = useRef(null);
   const lastOverlayIntentModeRef = useRef(null);
-  const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
-    currentTurnProjection,
-    pendingTurn,
-    isSending,
-    messages,
-  });
-  const useSdkLiveTurnPresentation = liveTurnPresentationInput.useSdkLiveTurnPresentation;
-  const useLocalSendLatch = liveTurnPresentationInput.useLocalSendLatch;
-  const currentTurnPhase = liveTurnPresentationInput.phase;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     pendingTurn,
     currentTurnProjection,
     messages,
   });
+  const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
+    currentTurnProjection,
+    pendingTurn,
+    isSending,
+    messages,
+    visibleTurnLifecycle,
+  });
+  const useSdkLiveTurnPresentation = liveTurnPresentationInput.useSdkLiveTurnPresentation;
+  const useLocalSendLatch = liveTurnPresentationInput.useLocalSendLatch;
+  const currentTurnPhase = liveTurnPresentationInput.phase;
   const overlayVisibleTurnLifecycle = resolveVisibleTurnLifecycleForPresentation({
     visibleTurnLifecycle,
     liveTurnPresentationInput,
@@ -100,8 +101,11 @@ export function useResponseOverlayViewModel({
         return [];
       }
       if (useSdkLiveTurnPresentation) {
-        return buildCurrentTurnMessagesFromPresentation(currentTurnProjection)
+        const presentationMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection)
           .filter(isVisibleResponseOverlayMessage);
+        return presentationMessages.length > 0
+          ? presentationMessages
+          : normalizeProjectedCurrentTurnEntries(currentTurnProjection);
       }
       return normalizeProjectedCurrentTurnEntries(currentTurnProjection);
     },

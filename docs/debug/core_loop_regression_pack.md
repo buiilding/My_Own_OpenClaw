@@ -31,7 +31,9 @@ selection matrix.
 | --- | --- |
 | Sending from the pill immediately latches pending/Stop state. | `PendingTurnLiveSurfaceIntegration.test.js`, `ChatPillSessionFlow.test.ts` |
 | Renderer-local pending typing does not flash because of SDK idle, visible-empty, wrong-turn projections, or SDK presentation visibility flags before authoritative same-turn handoff. | `DesktopVisibleTurnLifecycleRuntime.test.js`, `DesktopCurrentTurnProjectionEffectsRuntime.test.ts`, `PendingTurnLiveSurfaceIntegration.test.js` |
+| Live-surface awaiting/response flags follow visible lifecycle instead of SDK presentation flags or hidden overlay intent. | `LiveTurnSurfaceState.test.js`, `ChatBoxResponse.state.test.jsx` |
 | Dashboard awaiting-dot routing follows renderer visible lifecycle instead of durable live-progress row shape or stale session refs. | `ChatInterfaceWiring.test.jsx`, `ChatSurfaceController.test.jsx` |
+| Dashboard assistant feedback/retry actions follow visible lifecycle busy/Stop state instead of stale raw send latches. | `ChatInterfaceWiring.test.jsx` |
 | Response overlay consumes renderer visible lifecycle instead of phase-only typing state. | `ChatBoxResponse.state.test.jsx`, `DesktopVisibleTurnLifecycleRuntime.test.js` |
 | Chat-pill query screenshot metadata survives dashboard display load. | `AgentConversationStoreApi.test.ts`, `AgentSdkConversationRuntime.test.ts`, `SdkDisplayChatMessageProjection.test.ts` |
 | Typing/awaiting state does not flash because of transient idle events. | `AgentSdkConversationRuntime.test.ts`, `ConversationRuntimeProjectionStream.test.ts`, `ResponseOverlayPhaseHandler.test.cjs` |

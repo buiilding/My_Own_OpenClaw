@@ -1299,6 +1299,51 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
+  test('falls back to projection response when SDK presentation entries are empty', async () => {
+    setChatState([
+      { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-sdk' },
+    ]);
+    useChatStore.setState({
+      isSending: false,
+      currentTurnProjection: {
+        conversationRef: 'conv-test',
+        turnRef: 'turn-sdk',
+        phase: 'streaming',
+        assistantText: 'projection visible response',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+        presentation: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-sdk',
+          phase: 'streaming',
+          entries: [],
+          hasVisibleContent: false,
+          typingVisible: false,
+          overlayVisible: false,
+          isBusy: false,
+          isTerminal: false,
+          lastError: null,
+          awaitingAnchor: null,
+          overlayIntent: {
+            visible: false,
+            mode: 'hidden',
+            turnRef: 'turn-sdk',
+            conversationRef: 'conv-test',
+            staleGuardRef: 'turn-sdk',
+          },
+        },
+      },
+    });
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('projection visible response')).toBeInTheDocument();
+    });
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+  });
+
   test('sends hide size update when visible response overlay unmounts', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },

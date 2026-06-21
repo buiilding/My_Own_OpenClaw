@@ -1639,6 +1639,47 @@ describe('ChatInterface wiring', () => {
     expect(typeof lastMessageListProps.onAssistantTryAgain).toBe('function');
   });
 
+  test('keeps assistant actions enabled when only raw isSending is stale', () => {
+    mockChatState.isSending = true;
+    mockChatState.currentTurnProjection = {
+      phase: 'complete',
+      conversationRef: 'conv-test',
+      turnRef: 'turn-complete',
+      assistantText: '',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        typingVisible: false,
+        overlayVisible: false,
+        isBusy: false,
+        isTerminal: true,
+        hasVisibleContent: true,
+        entries: [{
+          id: 'assistant-1',
+          type: 'llm-text',
+          text: 'done',
+        }],
+        overlayIntent: {
+          visible: false,
+          mode: 'hidden',
+          turnRef: 'turn-complete',
+          conversationRef: 'conv-test',
+          staleGuardRef: 'turn-complete',
+        },
+      },
+    };
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-complete' },
+      { id: 'assistant-1', sender: 'assistant', text: 'done', type: 'llm-text', turnRef: 'turn-complete' },
+    ];
+
+    render(<ChatInterface />);
+
+    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.disableAssistantActions).toBe(false);
+  });
+
   test('assistant feedback action updates message feedback state', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello' },
