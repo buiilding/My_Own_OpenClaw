@@ -916,6 +916,8 @@ Owns extension and MCP IPC handler registration:
 - exposes `createExtensionMcpHandlersRuntime(...)` so `ipc.cjs` composes
   extension registry, MCP config, persistence, Agent SDK refresh, and
   host-skin MCP client identity dependencies once
+- keeps lower-level extension/MCP handler registration private behind the
+  runtime facade
 - extension listing combines public extension metadata with the current MCP
   registry snapshot
 - MCP enablement persists through desktop UI config with MCP allowlist

@@ -369,6 +369,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('registerExtensionMcpHandlers({');
     expect(extensionMcpHandlersSource).toContain('function createExtensionMcpHandlersRuntime');
     expect(extensionMcpHandlersSource).toContain('return registerExtensionMcpHandlers({');
+    expect(extensionMcpHandlersSource).not.toContain('  registerExtensionMcpHandlers,');
     expect(source).toContain('createDesktopUiConfigHandlersRuntime({');
     expect(source).not.toContain('desktopUiConfigHandlersRuntime.register({ ipcMain })');
     expect(initializationRuntimeSource).toContain('desktopUiConfigHandlersRuntime.register({ ipcMain })');

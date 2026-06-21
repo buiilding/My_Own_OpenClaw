@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level extension/MCP IPC registration helper
+  private to `ipc_extension_mcp_handlers.cjs` and exercise extension/MCP
+  channel behavior through `createExtensionMcpHandlersRuntime(...)`,
+  preserving the Electron main initialization composition boundary. No
+  migration required.
 - frontend/main: keep the lower-level desktop UI config IPC registration helper
   private to `ipc_desktop_ui_config_handlers.cjs` and exercise load/save
   behavior through `createDesktopUiConfigHandlersRuntime(...)`, preserving the

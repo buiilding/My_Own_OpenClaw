@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Extension MCP Handler Registration Privacy
+
+- Finding: `ipc_extension_mcp_handlers.cjs` already exposed
+  `createExtensionMcpHandlersRuntime(...)` as the Electron main composition
+  facade, but focused tests still reached into the lower-level handler
+  registration helper.
+- Change: kept `registerExtensionMcpHandlers(...)` private to the extension/MCP
+  helper module and moved extension listing, MCP listing, enablement, refresh,
+  and SDK refresh coverage through the runtime facade.
+- Validation: focused extension/MCP handler and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export-line scans, and diff
+  checks before commit.
+- Compatibility/security: no IPC payload, storage, settings, permission,
+  credential, MCP manifest, or trust-boundary migration required; existing
+  extension/MCP channels and the public runtime facade remain available.
+
 ### 2026-06-21 Main Desktop UI Config Handler Registration Privacy
 
 - Finding: `ipc_desktop_ui_config_handlers.cjs` already exposed

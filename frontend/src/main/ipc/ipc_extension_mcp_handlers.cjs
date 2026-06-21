@@ -104,5 +104,4 @@ function createExtensionMcpHandlersRuntime({
 
 module.exports = {
   createExtensionMcpHandlersRuntime,
-  registerExtensionMcpHandlers,
 };

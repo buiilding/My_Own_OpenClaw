@@ -7,7 +7,6 @@ const path = require('path');
 
 const {
   createExtensionMcpHandlersRuntime,
-  registerExtensionMcpHandlers,
 } = require('../../frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs');
 
 function createHarness(overrides = {}) {
@@ -50,10 +49,9 @@ function createHarness(overrides = {}) {
     ...overrides.runtime,
   };
 
-  registerExtensionMcpHandlers({
-    ipcMain,
-    ...deps,
-  });
+  const runtime = createExtensionMcpHandlersRuntime(deps);
+
+  runtime.register({ ipcMain });
 
   return {
     config,
@@ -61,6 +59,7 @@ function createHarness(overrides = {}) {
     handlers,
     ipcMain,
     registerMcps,
+    runtime,
   };
 }
 
@@ -249,5 +248,7 @@ describe('extension and MCP IPC handlers', () => {
     expect(helperSource).toContain('return registerExtensionMcpHandlers({');
     expect(helperSource).toContain("ipcMain.handle('list-agent-extensions'");
     expect(helperSource).toContain("ipcMain.handle('set-mcp-server-enabled'");
+    const helperModule = require('../../frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs');
+    expect(helperModule.registerExtensionMcpHandlers).toBeUndefined();
   });
 });
