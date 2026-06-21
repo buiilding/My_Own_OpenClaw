@@ -61,7 +61,7 @@ describe('ipc_electron_agent_client_factory', () => {
       backendHttpUrl: 'https://primary.test',
       WebSocketImpl,
       createLaunchPlan,
-      resolveUserDataRoot: () => 'C:/Users/test/AppData/Roaming/WindieOS',
+      resolveUserDataRoot: () => 'C:/Users/test/AppData/Roaming/AgentRuntime',
     })).toEqual({ command: 'python', args: ['daemon.py'] });
 
     expect(createLaunchPlan).toHaveBeenCalledWith({
@@ -69,7 +69,7 @@ describe('ipc_electron_agent_client_factory', () => {
       backendEndpoints: {
         httpUrl: 'https://primary.test',
       },
-      userDataRoot: 'C:/Users/test/AppData/Roaming/WindieOS',
+      userDataRoot: 'C:/Users/test/AppData/Roaming/AgentRuntime',
       WebSocketImpl,
     });
   });

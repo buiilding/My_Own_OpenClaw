@@ -19227,3 +19227,17 @@ Each completed slice should report:
 - Compatibility: no migration required. AgentClient wake-up options, MCP
   client-info propagation, host-copy defaults, permissions, provider policy,
   storage, and backend behavior are unchanged.
+
+### 2026-06-21 Electron AgentClient factory user-data fixture neutrality
+
+- Finding: Electron AgentClient factory coverage still used a WindieOS app-data
+  path as an arbitrary injected `userDataRoot` fixture while testing generic
+  local-runtime launch option forwarding.
+- Change: switched the test-only path to
+  `C:/Users/test/AppData/Roaming/AgentRuntime` and added modular boundary
+  coverage so generic AgentClient factory tests keep product app-data names out.
+- Validation: focused AgentClient factory and modular boundary tests; exact
+  retired injected user-data fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Local-runtime launch option
+  construction, managed backend endpoint assembly, AgentClient creation,
+  permissions, provider policy, storage, and backend behavior are unchanged.

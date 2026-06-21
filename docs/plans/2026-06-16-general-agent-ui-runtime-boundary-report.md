@@ -7891,3 +7891,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   AgentClient wake-up options, MCP client-info propagation, host-copy defaults,
   permissions, provider policy, storage, and backend behavior are unchanged; no
   migration is required.
+- Electron AgentClient factory tests now use a neutral injected user-data path
+  fixture instead of a WindieOS app-data sample. Product app-data names remain
+  host-skin/runtime-path owned. Local-runtime launch option construction,
+  managed backend endpoint assembly, AgentClient creation, permissions,
+  provider policy, storage, and backend behavior are unchanged; no migration is
+  required.

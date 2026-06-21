@@ -573,6 +573,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain("name: 'Sample Runtime'");
   });
 
+  test('Electron AgentClient factory tests keep injected user-data fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/IpcElectronAgentClientFactory.test.cjs');
+
+    expect(source).not.toContain('C:/Users/test/AppData/Roaming/WindieOS');
+    expect(source).toContain('C:/Users/test/AppData/Roaming/AgentRuntime');
+  });
+
   test('renderer conversation metadata tests keep workspace fixtures product-neutral', async () => {
     const conversationMetadataText = await Promise.all([
       read('tests/frontend/ConversationGroups.test.js'),
