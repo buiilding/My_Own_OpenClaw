@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/development: route setup, testing, validation, triage, contributing,
+  and local-runtime workflow guidance through local-runtime Python wording while
+  preserving concrete `tests/sidecar` paths. No migration required.
 - cli: keep `sidecar` command aliases executable for compatibility while
   removing them from primary `<windie> --help` output and CLI command tables so
   new workflows use the canonical `local-runtime` commands. No migration

@@ -8,7 +8,7 @@ read_when:
 
 For symptom-driven and subsystem-specific command selection, read [Test Selection](../debug/test_selection.md).
 
-## Backend + Sidecar Tests
+## Backend + Local-Runtime Python Tests
 
 ```bash
 cd /path/to/WindieOS
@@ -22,7 +22,7 @@ cd /path/to/WindieOS
 <windie> test backend
 ```
 
-### Sidecar-Only Tests
+### Local-Runtime Python Tests
 
 ```bash
 cd /path/to/WindieOS
@@ -57,7 +57,7 @@ npm run audit:knip
   - `tests/backend` runs with `jarvis`
   - `tests/sidecar` runs with `frontend_jarvis`
 - `scripts\python-in-env.cmd` on Windows and `scripts/python-in-env.sh` on Unix-like shells use `conda run` when envs exist, otherwise fall back to the current shell env (CI-friendly).
-- Sidecar protocol output normalization is covered by `tests/sidecar/test_stdout_json.py` (shared JSON-line writer).
+- Local-runtime protocol output normalization is covered by `tests/sidecar/test_stdout_json.py` (shared JSON-line writer).
 - Local runtime bridge restart/readiness handling is covered by `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`.
 - Wakeword bridge stale-buffer/stale-process restart behavior is covered by `tests/frontend/WakewordBridge.test.cjs`.
 - For CI parity: `<windie> test frontend`.

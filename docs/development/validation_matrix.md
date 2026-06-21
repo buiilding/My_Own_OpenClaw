@@ -1,5 +1,5 @@
 ---
-summary: "Validation command matrix for WindieOS backend, frontend, sidecar, tools, docs, packaging, runtime config, and operations changes."
+summary: "Validation command matrix for WindieOS backend, frontend, local-runtime Python, tools, docs, packaging, runtime config, and operations changes."
 read_when:
   - When deciding which tests, lint, docs checks, or packaging smoke commands to run for a change.
   - When replacing stale all-in-one check assumptions with current WindieOS script entrypoints.
@@ -17,7 +17,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | docs listing/front matter | `<windie> docs list` |
 | all Python backend tests | `<windie> test backend` |
 | all local-runtime Python tests | `<windie> test local-runtime` |
-| backend + sidecar + frontend CI tests when `frontend/node_modules` exists | `<windie> test all` |
+| backend + local-runtime Python + frontend CI tests when `frontend/node_modules` exists | `<windie> test all` |
 | frontend Jest CI | `<windie> test frontend` |
 | frontend typecheck | `cd frontend && npm run typecheck` |
 | frontend lint | `cd frontend && npm run lint` |
@@ -41,7 +41,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | browser runtime | backend browser schema tests plus local-runtime Python browser tests | include browser UI/session tests when renderer controls change |
 | docs-only | `<windie> docs list`, focused link check, `git diff --check` | no code tests needed unless docs generator changed |
 | packaging/reinstall | `<windie> docs list` plus target OS package/reinstall command | run matching `scripts/ci/smoke-*` helper before release |
-| runtime config/env vars | focused backend, renderer, and sidecar config tests | include docs updates for [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
+| runtime config/env vars | focused backend, renderer, and local-runtime config tests | include docs updates for [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
 
 ## Common Focused Test Paths
 

@@ -13,7 +13,7 @@ Use this before committing non-trivial changes. The checklist is meant to catch 
 ## Ownership
 
 - Is the edited layer the producer of the behavior?
-- Did the change cross backend, Electron main, renderer, preload, sidecar, or hosted API boundaries?
+- Did the change cross backend, Electron main, renderer, preload, local runtime, or hosted API boundaries?
 - Did any Electron client or local-runtime Python code start depending on backend Python imports?
 - Did a future/planned concept leak into stable docs as current behavior?
 

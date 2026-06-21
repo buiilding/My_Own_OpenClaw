@@ -139,7 +139,7 @@ frontend/src/
 ### Local Automation
 
 - `<windie> docs list`: Lists docs and front-matter metadata.
-- `<windie> test all`: Runs backend, sidecar, and frontend tests.
+- `<windie> test all`: Runs backend, local-runtime Python, and frontend tests.
 - `scripts/committer "<subject>" --body "<body>" -- <files...>`: Scoped commits using the shared `committer` helper. The body is required and must use the enforced `What changed`, `Owning layer`, `Previous behavior`, `New path`, `Validation`, and `Migration/security` sections.
 - Frontend checks auto-skip when `frontend/node_modules` is missing.
 - `cd frontend && npm run typecheck`: Runs TS gate (`tsc --noEmit -p tsconfig.eslint.json`).
@@ -252,7 +252,7 @@ tests/backend/
 └── test_websocket_message_handler.py
 ```
 
-### Sidecar Tests
+### Local-Runtime Python Tests
 
 **Run Tests**:
 ```bash

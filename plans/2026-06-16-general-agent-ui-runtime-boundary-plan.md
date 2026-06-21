@@ -21668,3 +21668,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing `logs sidecar`,
   `test sidecar`, and `build sidecar-runtime` invocations still route to the
   same local-runtime log/test/build behavior.
+
+### 2026-06-21 development docs local-runtime validation labels
+
+- Finding: development setup, testing, validation, triage, and contribution
+  docs still used sidecar as the primary owner label for Python local-runtime
+  setup and validation, even though the command/docs surface now prefers
+  local-runtime Python.
+- Change: updated those development docs and the local-runtime Python workflow
+  reference to use local-runtime Python wording for setup, broad validation,
+  JSON-RPC triage, review boundaries, and focused parity commands while
+  preserving concrete `tests/sidecar` paths and compatibility file names.
+- Validation: docs listing, exact stale-primary sidecar wording scans across
+  touched docs, and diff checks.
+- Compatibility: no migration required. Documentation labels changed only;
+  command behavior, conda env names, test paths, IPC paths, storage, provider
+  policy, permissions, and backend behavior are unchanged.

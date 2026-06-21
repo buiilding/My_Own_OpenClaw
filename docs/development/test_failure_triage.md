@@ -1,5 +1,5 @@
 ---
-summary: "Test failure triage workflow for WindieOS backend, sidecar, frontend, docs, packaging, and cross-runtime contract failures."
+summary: "Test failure triage workflow for WindieOS backend, local-runtime Python, frontend, docs, packaging, and cross-runtime contract failures."
 read_when:
   - When a focused or broad WindieOS validation command fails.
   - When deciding whether a failure is caused by the current change, local environment, stale docs, missing dependency, or cross-runtime contract drift.
@@ -17,7 +17,7 @@ Do not immediately change production code after a test fails. First identify whe
 | import/module error | correct env launcher and dependency install |
 | route/schema assertion | route model, payload contract, docs/reference examples |
 | websocket event mismatch | backend formatter and renderer consumer contracts |
-| sidecar JSON parse failure | stdout contamination or malformed JSON-RPC response |
+| local-runtime JSON parse failure | stdout contamination or malformed JSON-RPC response |
 | frontend hook/component failure | changed state contract or stale mocked event payload |
 | docs listing failure | missing front matter or bad `read_when` structure |
 | package build failure | bundled runtime path, target OS, package script, signing/env |

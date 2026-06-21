@@ -213,7 +213,7 @@ Run:
 
 ```bash
 ./scripts/python-in-env backend python -m pytest tests/backend/test_remote_tool_contract.py
-./scripts/python-in-env frontend python -m pytest tests/sidecar/test_shared_tool_schema_parity.py
+./scripts/python-in-env local-runtime python -m pytest tests/sidecar/test_shared_tool_schema_parity.py
 ```
 
 Then run full suites relevant to your change:

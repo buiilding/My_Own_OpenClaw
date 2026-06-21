@@ -9123,3 +9123,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   now point new callers at the canonical commands, and docs mention the aliases
   only in compatibility notes. Existing alias invocations keep routing to the
   same local-runtime log, test, and build behavior; no migration is required.
+- Development setup, testing, validation, triage, contribution, review, and
+  local-runtime workflow docs now use local-runtime Python as the active owner
+  label for setup and validation. Concrete `tests/sidecar` paths and
+  compatibility file names remain where they are real filesystem or command
+  identifiers. Command behavior, conda env names, test paths, IPC paths,
+  storage, provider policy, permissions, and backend behavior are unchanged; no
+  migration is required.

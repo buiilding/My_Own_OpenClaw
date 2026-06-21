@@ -8,13 +8,13 @@ read_when:
 
 ## Requirements
 
-- **Python** 3.11 (backend + sidecar)
+- **Python** 3.11 (backend + local-runtime Python)
 - **Node.js** 18+ (frontend)
 - **npm** (included with Node)
 
 ## Python Environment Options
 
-You can use either `venv` or conda. The Electron sidecar resolves Python using:
+You can use either `venv` or conda. The Electron local runtime resolves Python using:
 
 - `CONDA_PREFIX` if set
 - otherwise `python3` (Linux/macOS) or `py` (Windows) from `PATH`
@@ -28,7 +28,7 @@ source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
 ```
 
-Install sidecar deps into the same env you will use to launch Electron:
+Install local-runtime Python deps into the same env you will use to launch Electron:
 
 ```bash
 cd frontend/src/main/python
@@ -43,7 +43,7 @@ conda activate jarvis
 pip install -r backend/requirements.txt
 ```
 
-If you want a separate env for the sidecar:
+If you want a separate env for the local-runtime Python implementation:
 
 ```bash
 conda create -n frontend_jarvis python=3.11
@@ -56,19 +56,19 @@ pip install -r frontend/src/main/python/requirements.txt
 Repo scripts can route commands into the canonical conda envs when present:
 
 - `jarvis` for backend commands
-- `frontend_jarvis` for sidecar/frontend commands
+- `frontend_jarvis` for local-runtime/frontend commands
 
 Use:
 
 ```bash
-./scripts/python-in-env.sh <backend|local-runtime|sidecar|frontend> <cmd...>
+./scripts/python-in-env.sh <backend|local-runtime|frontend> <cmd...>
 ```
 
 If conda or the target env is unavailable, this script falls back to your current shell environment.
 
 Optional overrides:
 - `WINDIE_BACKEND_ENV`: override backend env name (default `jarvis`)
-- `WINDIE_FRONTEND_ENV`: override sidecar/frontend env name (default `frontend_jarvis`)
+- `WINDIE_FRONTEND_ENV`: override local-runtime/frontend env name (default `frontend_jarvis`)
 
 ## Frontend Environment
 

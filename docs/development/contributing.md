@@ -23,7 +23,7 @@ Example:
 feat(frontend-dashboard): delete semantic memory entries
 
 - Add right-click delete menu in Semantic Memory section.
-- Wire IPC bridge to sidecar delete handler.
+- Wire IPC bridge to the local-runtime delete handler.
 - Add regression tests.
 ```
 

@@ -120,11 +120,11 @@ When changing platform adapters or system state:
 | Memory runtime/storage | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` |
 | Backend config/remote semantic client | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_backend_config.py tests/sidecar/test_remote_semantic_client.py` |
 | Wakeword service | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_wakeword_service.py` plus frontend wakeword bridge tests if framing changes |
-| Docs-only sidecar workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
+| Docs-only local-runtime Python workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Review Checklist
 
-Before committing sidecar work:
+Before committing local-runtime Python work:
 
 - Did the change belong to local-runtime Python rather than backend policy, Electron main orchestration, or renderer projection?
 - Did JSON-RPC and Electron bridge payloads stay explicit and tested when they changed?
