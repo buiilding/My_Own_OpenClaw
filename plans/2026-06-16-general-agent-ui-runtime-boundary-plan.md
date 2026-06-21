@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Pill Live Trace Boundary
+
+- Finding: `MinimalChatPill.jsx` already used app-runtime helpers for chat pill
+  state traces, but still called `logRendererLiveSurfaceTrace(...)` directly
+  for send reset, mount/unmount lifecycle, and normal hit-test changes with
+  event labels such as `turn_surface.reset`, `renderer.chat_pill.*`, and
+  `chat_pill.hit_test.set`.
+- Change: added chat pill reset, lifecycle, and hit-test payload/logging
+  helpers to `desktopRendererTraceRuntime.ts` and routed `MinimalChatPill`
+  through them so the component reports send, lifecycle, and pointer-state
+  values instead of owning live-surface event names or hit-test field mapping.
+- Validation: focused renderer trace runtime, response overlay state, renderer
+  app-runtime boundary coverage, docs listing, stale component-local chat pill
+  live-trace scan, and diff checks.
+- Compatibility: no migration required. Live-surface event names and payload
+  shape, chat pill send/reset behavior, hit-test IPC, window lifecycle, storage,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Response Overlay Surface Snapshot Trace Boundary
 
 - Finding: `MinimalResponseOverlay.jsx` consumed app-runtime helpers for

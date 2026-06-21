@@ -408,6 +408,12 @@ Expected stdout markers when chat-pill or live-surface debug flags are enabled:
 - `[ChatPillTrace][renderer]`
 - `[LiveSurfaceTrace]`
 
+Minimal chat pill reset, lifecycle, and hit-test live-surface traces are
+projected through `desktopRendererTraceRuntime.ts`; `MinimalChatPill.jsx`
+reports send/lifecycle/pointer values and does not assemble `turn_surface.reset`,
+`renderer.chat_pill.*`, `chat_pill.hit_test.set`, or `ignoreMouseEvents`
+payload fields locally.
+
 Chat-pill visibility and response-overlay window decisions are stored in app
 diagnostics under `surface.visibility` instead of being emitted to stdout by
 default:

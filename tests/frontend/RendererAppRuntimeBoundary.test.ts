@@ -267,9 +267,25 @@ describe('renderer app runtime boundary', () => {
 
     expect(traceRuntimeSource).toContain('buildRendererChatPillStateTracePayload');
     expect(traceRuntimeSource).toContain('logRendererChatPillStateTrace');
+    expect(traceRuntimeSource).toContain('buildRendererChatPillResetTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererChatPillResetTrace');
+    expect(traceRuntimeSource).toContain('buildRendererChatPillLifecycleTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererChatPillLifecycleTrace');
+    expect(traceRuntimeSource).toContain('buildRendererChatPillHitTestTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererChatPillHitTestTrace');
     expect(traceRuntimeSource).toContain('conversation_ref');
     expect(traceRuntimeSource).toContain('current_turn_phase');
+    expect(minimalPillSource).toContain('logRendererChatPillResetTrace');
+    expect(minimalPillSource).toContain('logRendererChatPillLifecycleTrace');
+    expect(minimalPillSource).toContain('logRendererChatPillHitTestTrace');
     expect(minimalPillSource).toContain('logRendererChatPillStateTrace');
+    expect(minimalPillSource).not.toContain("logRendererLiveSurfaceTrace");
+    expect(minimalPillSource).not.toContain("'turn_surface.reset'");
+    expect(minimalPillSource).not.toContain("'renderer.chat_pill.mount'");
+    expect(minimalPillSource).not.toContain("'renderer.chat_pill.unmount'");
+    expect(minimalPillSource).not.toContain("'chat_pill.hit_test.set'");
+    expect(minimalPillSource).not.toContain('renderer-normal-hit-test-request');
+    expect(minimalPillSource).not.toContain('ignoreMouseEvents');
     expect(minimalPillSource).not.toContain('conversation_ref');
     expect(minimalPillSource).not.toContain('current_turn_phase');
     expect(minimalPillSource).not.toContain('live_turn_phase');

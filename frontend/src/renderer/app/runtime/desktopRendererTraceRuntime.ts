@@ -90,6 +90,29 @@ export type RendererChatPillStateTraceValues = {
   messageCount?: unknown;
 };
 
+export type RendererChatPillResetTraceValues = {
+  source?: string;
+  conversationRef?: unknown;
+  previousTurnRef?: unknown;
+  previousPhase?: unknown;
+  attachmentCount?: unknown;
+  includeQueryScreenshot?: boolean;
+};
+
+export type RendererChatPillLifecycleTraceValues = {
+  source?: string;
+  action: 'mount' | 'unmount';
+  conversationRef?: unknown;
+  turnRef?: unknown;
+  phase?: unknown;
+};
+
+export type RendererChatPillHitTestTraceValues = {
+  source?: string;
+  conversationRef?: unknown;
+  active?: boolean;
+};
+
 export type RendererResponseOverlayStateTraceValues = {
   source?: string;
   action?: string;
@@ -503,6 +526,74 @@ export function logRendererChatPillStateTrace(
 ): void {
   logRendererChatPillTrace(
     buildRendererChatPillStateTracePayload(values),
+    traceString(values.conversationRef) || null,
+  );
+}
+
+export function buildRendererChatPillResetTracePayload(
+  values: RendererChatPillResetTraceValues,
+): Record<string, unknown> {
+  return {
+    source: traceString(values.source) || 'minimal-chat-pill',
+    reason: 'user-send',
+    conversationRef: traceString(values.conversationRef) || null,
+    previousTurnRef: traceString(values.previousTurnRef) || null,
+    previousPhase: traceString(values.previousPhase) || null,
+    attachmentCount: traceNumberOrZero(values.attachmentCount),
+    includeQueryScreenshot: values.includeQueryScreenshot === true,
+  };
+}
+
+export function logRendererChatPillResetTrace(
+  values: RendererChatPillResetTraceValues,
+): void {
+  logRendererLiveSurfaceTrace(
+    'turn_surface.reset',
+    buildRendererChatPillResetTracePayload(values),
+    traceString(values.conversationRef) || null,
+  );
+}
+
+export function buildRendererChatPillLifecycleTracePayload(
+  values: RendererChatPillLifecycleTraceValues,
+): Record<string, unknown> {
+  return {
+    source: traceString(values.source) || 'minimal-chat-pill',
+    conversationRef: traceString(values.conversationRef) || null,
+    turnRef: traceString(values.turnRef) || null,
+    phase: traceString(values.phase) || null,
+  };
+}
+
+export function logRendererChatPillLifecycleTrace(
+  values: RendererChatPillLifecycleTraceValues,
+): void {
+  const action = values.action === 'unmount' ? 'unmount' : 'mount';
+  logRendererLiveSurfaceTrace(
+    `renderer.chat_pill.${action}`,
+    buildRendererChatPillLifecycleTracePayload(values),
+    traceString(values.conversationRef) || null,
+  );
+}
+
+export function buildRendererChatPillHitTestTracePayload(
+  values: RendererChatPillHitTestTraceValues,
+): Record<string, unknown> {
+  const active = values.active === true;
+  return {
+    source: traceString(values.source) || 'minimal-chat-pill-renderer',
+    reason: 'renderer-normal-hit-test-request',
+    active,
+    ignoreMouseEvents: !active,
+  };
+}
+
+export function logRendererChatPillHitTestTrace(
+  values: RendererChatPillHitTestTraceValues,
+): void {
+  logRendererLiveSurfaceTrace(
+    'chat_pill.hit_test.set',
+    buildRendererChatPillHitTestTracePayload(values),
     traceString(values.conversationRef) || null,
   );
 }

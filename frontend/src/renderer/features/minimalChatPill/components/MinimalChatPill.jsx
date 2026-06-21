@@ -27,9 +27,10 @@ import {
   stopChatboxDrag,
 } from '../../../app/runtime/desktopChatboxLayoutRuntime';
 import {
-  logRendererChatPillTrace,
+  logRendererChatPillHitTestTrace,
+  logRendererChatPillLifecycleTrace,
+  logRendererChatPillResetTrace,
   logRendererChatPillStateTrace,
-  logRendererLiveSurfaceTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { useChatSurfaceController } from '../../chat/hooks/useChatSurfaceController';
 import {
@@ -126,15 +127,13 @@ function MinimalChatPill() {
     onSendMessage: sendMessage,
     onBeforeSend: () => {
       const conversationRef = sessionInfo?.conversationRef || null;
-      logRendererLiveSurfaceTrace('turn_surface.reset', {
-        source: 'minimal-chat-pill',
-        reason: 'user-send',
+      logRendererChatPillResetTrace({
         conversationRef,
         previousTurnRef: currentTurnProjection?.turnRef || null,
         previousPhase: currentTurnProjection?.phase || null,
         attachmentCount: clipboardImages.length + selectedReadableFiles.length,
         includeQueryScreenshot,
-      }, conversationRef);
+      });
       setWakewordSttSessionActive(false);
     },
   });
@@ -230,20 +229,20 @@ function MinimalChatPill() {
 
   useEffect(() => {
     const initialSnapshot = lifecycleTraceSnapshotRef.current;
-    logRendererLiveSurfaceTrace('renderer.chat_pill.mount', {
-      source: 'minimal-chat-pill',
+    logRendererChatPillLifecycleTrace({
+      action: 'mount',
       conversationRef: initialSnapshot.conversationRef,
       turnRef: initialSnapshot.turnRef,
       phase: initialSnapshot.phase,
-    }, initialSnapshot.conversationRef);
+    });
     return () => {
       const latestSnapshot = lifecycleTraceSnapshotRef.current;
-      logRendererLiveSurfaceTrace('renderer.chat_pill.unmount', {
-        source: 'minimal-chat-pill',
+      logRendererChatPillLifecycleTrace({
+        action: 'unmount',
         conversationRef: latestSnapshot.conversationRef,
         turnRef: latestSnapshot.turnRef,
         phase: latestSnapshot.phase,
-      }, latestSnapshot.conversationRef);
+      });
     };
   }, []);
 
@@ -449,12 +448,10 @@ function MinimalChatPill() {
     }
     chatboxHitTestActiveRef.current = nextActive;
     DesktopWindowRuntimeClient.setChatboxHitTestActiveValue(nextActive).catch(() => {});
-    logRendererLiveSurfaceTrace('chat_pill.hit_test.set', {
-      source: 'minimal-chat-pill-renderer',
-      reason: 'renderer-normal-hit-test-request',
+    logRendererChatPillHitTestTrace({
+      conversationRef: sessionInfo?.conversationRef || null,
       active: nextActive,
-      ignoreMouseEvents: !nextActive,
-    }, sessionInfo?.conversationRef || null);
+    });
   }, [sessionInfo?.conversationRef]);
 
   useEffect(() => {

@@ -11,6 +11,9 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntim
 }));
 
 import {
+  buildRendererChatPillHitTestTracePayload,
+  buildRendererChatPillLifecycleTracePayload,
+  buildRendererChatPillResetTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
   buildRendererOverlayViewModelTracePayload,
@@ -20,6 +23,9 @@ import {
   buildRendererResponseSurfaceSizeLiveTracePayload,
   buildRendererResponseSurfaceSizeTracePayload,
   configureRendererTraceWorkspaceSnapshotResolver,
+  logRendererChatPillHitTestTrace,
+  logRendererChatPillLifecycleTrace,
+  logRendererChatPillResetTrace,
   logRendererOverlayViewModelTrace,
   logRendererOverlayViewModelResolvedTrace,
   logRendererChatPillTrace,
@@ -96,6 +102,87 @@ describe('desktopRendererTraceRuntime', () => {
       event: 'typing.show',
       activeConversationRef: 'conv-1',
       workspaceMessageCount: 2,
+    }));
+  });
+
+  test('builds chat pill reset, lifecycle, and hit-test live trace payloads', () => {
+    expect(buildRendererChatPillResetTracePayload({
+      conversationRef: ' conv-reset ',
+      previousTurnRef: ' turn-prev ',
+      previousPhase: ' awaiting ',
+      attachmentCount: '2',
+      includeQueryScreenshot: true,
+    })).toEqual({
+      source: 'minimal-chat-pill',
+      reason: 'user-send',
+      conversationRef: 'conv-reset',
+      previousTurnRef: 'turn-prev',
+      previousPhase: 'awaiting',
+      attachmentCount: 2,
+      includeQueryScreenshot: true,
+    });
+
+    expect(buildRendererChatPillLifecycleTracePayload({
+      action: 'mount',
+      conversationRef: ' conv-life ',
+      turnRef: ' turn-life ',
+      phase: ' streaming ',
+    })).toEqual({
+      source: 'minimal-chat-pill',
+      conversationRef: 'conv-life',
+      turnRef: 'turn-life',
+      phase: 'streaming',
+    });
+
+    expect(buildRendererChatPillHitTestTracePayload({
+      active: false,
+    })).toEqual({
+      source: 'minimal-chat-pill-renderer',
+      reason: 'renderer-normal-hit-test-request',
+      active: false,
+      ignoreMouseEvents: true,
+    });
+  });
+
+  test('logs chat pill reset, lifecycle, and hit-test traces through live surface channel', () => {
+    setSearch('?debug_live_surface=1&view=minimal-chat-pill');
+
+    logRendererChatPillResetTrace({
+      conversationRef: 'conv-reset',
+      previousTurnRef: 'turn-prev',
+      previousPhase: 'streaming',
+      attachmentCount: 1,
+      includeQueryScreenshot: false,
+    });
+    logRendererChatPillLifecycleTrace({
+      action: 'unmount',
+      conversationRef: 'conv-life',
+      turnRef: 'turn-life',
+      phase: 'complete',
+    });
+    logRendererChatPillHitTestTrace({
+      conversationRef: 'conv-hit',
+      active: true,
+    });
+
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'turn_surface.reset',
+      source: 'minimal-chat-pill',
+      reason: 'user-send',
+      conversationRef: 'conv-reset',
+      previousTurnRef: 'turn-prev',
+    }));
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'renderer.chat_pill.unmount',
+      source: 'minimal-chat-pill',
+      turnRef: 'turn-life',
+      phase: 'complete',
+    }));
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'chat_pill.hit_test.set',
+      source: 'minimal-chat-pill-renderer',
+      active: true,
+      ignoreMouseEvents: false,
     }));
   });
 

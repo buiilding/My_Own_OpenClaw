@@ -95,6 +95,17 @@ compaction behind its loop lock.
 - absolute move dispatch:
   - `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
 
+### Renderer Trace Ownership
+
+- `desktopRendererTraceRuntime.ts` owns minimal chat pill live-surface trace
+  payload shaping for send reset, mount/unmount lifecycle, and normal hit-test
+  intent. `MinimalChatPill.jsx` reports values through
+  `logRendererChatPillResetTrace(...)`,
+  `logRendererChatPillLifecycleTrace(...)`, and
+  `logRendererChatPillHitTestTrace(...)` instead of assembling
+  `turn_surface.reset`, `renderer.chat_pill.*`, `chat_pill.hit_test.set`, or
+  `ignoreMouseEvents` fields locally.
+
 ### Screenshot Preview Lane and Visual Anchor
 
 - screenshot button toggles query screenshot resource capture for the next send

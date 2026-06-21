@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/pill: move minimal chat pill reset, lifecycle, and hit-test
+  live-surface trace payload shaping into `desktopRendererTraceRuntime` so
+  `MinimalChatPill` reports send, lifecycle, and pointer-state values without
+  owning live-surface event labels or hit-test field names locally. No
+  migration required.
 - renderer/overlay: move response overlay response-surface snapshot stream
   trace payload shaping into `desktopRendererTraceRuntime` so
   `MinimalResponseOverlay` reports phase/message/content values without

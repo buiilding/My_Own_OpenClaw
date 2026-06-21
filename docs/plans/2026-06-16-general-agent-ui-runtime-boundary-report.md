@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: response overlay response-surface snapshot stream
-  trace payload shaping now stays behind `desktopRendererTraceRuntime`, with
-  `MinimalResponseOverlay` reporting phase/message/content values instead of
-  calling the raw response-surface trace logger or carrying snapshot field
-  names locally.
+- Latest completed slice: minimal chat pill reset, lifecycle, and hit-test
+  live-surface trace payload shaping now stays behind
+  `desktopRendererTraceRuntime`, with `MinimalChatPill` reporting send,
+  lifecycle, and pointer-state values instead of carrying live-surface event
+  labels or hit-test field names locally.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -172,6 +172,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `desktopRendererTraceRuntime` helpers instead of calling the raw
   response-surface trace logger or carrying snapshot field mapping inside
   `MinimalResponseOverlay`.
+  Minimal chat pill send-reset, mount/unmount, and normal hit-test
+  live-surface traces now consume `desktopRendererTraceRuntime` helpers instead
+  of carrying live-surface event names, reset reasons, or `ignoreMouseEvents`
+  field mapping inside `MinimalChatPill`.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
@@ -615,6 +619,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Renderer Chat Pill Live Trace Boundary
+
+- Finding: `MinimalChatPill.jsx` already consumed app-runtime helpers for chat
+  pill state traces, but still called `logRendererLiveSurfaceTrace(...)`
+  directly for send reset, mount/unmount lifecycle, and normal hit-test changes
+  with event labels such as `turn_surface.reset`, `renderer.chat_pill.*`, and
+  `chat_pill.hit_test.set`.
+- Change: added chat pill reset, lifecycle, and hit-test payload/logging
+  helpers to `desktopRendererTraceRuntime.ts` and routed `MinimalChatPill`
+  through them so the component reports send, lifecycle, and pointer-state
+  values instead of owning live-surface event names or hit-test field mapping.
+- Validation: focused renderer trace runtime, response overlay state, renderer
+  app-runtime boundary coverage, docs listing, stale component-local chat pill
+  live-trace scan, and diff checks.
+- Compatibility: no migration required. Live-surface event names and payload
+  shape, chat pill send/reset behavior, hit-test IPC, window lifecycle, storage,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
 
 ### 2026-06-21 Renderer Response Overlay Surface Snapshot Trace Boundary
 
