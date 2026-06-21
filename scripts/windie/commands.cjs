@@ -100,7 +100,8 @@ Tests and docs:
 
 Build and package:
   <windie> build frontend
-  <windie> build sidecar-runtime
+  <windie> build local-runtime
+  <windie> build sidecar-runtime  # alias
   <windie> package mac
   <windie> package win
   <windie> package linux
@@ -1379,12 +1380,12 @@ function runBuild(args) {
   if (target === 'frontend') {
     return runForeground('npm', ['--prefix', FRONTEND_DIR, 'run', 'build'], { cwd: REPO_ROOT });
   }
-  if (target === 'sidecar-runtime') {
+  if (target === 'local-runtime' || target === 'sidecar-runtime') {
     return runForeground('npm', ['--prefix', FRONTEND_DIR, 'run', 'build:sidecar-runtime'], {
       cwd: REPO_ROOT,
     });
   }
-  throw new Error('Usage: <windie> build frontend|sidecar-runtime');
+  throw new Error('Usage: <windie> build frontend|local-runtime|sidecar-runtime');
 }
 
 function runPackage(args) {
@@ -1727,6 +1728,16 @@ function getSpawnPlan(argv) {
   }
   if (command === 'docs' && args[0] === 'list') {
     return { command: process.execPath, args: nodeScriptArgs('scripts/docs-list.js', args.slice(1)), cwd: REPO_ROOT };
+  }
+  if (command === 'build' && args[0] === 'frontend') {
+    return { command: 'npm', args: ['--prefix', FRONTEND_DIR, 'run', 'build'], cwd: REPO_ROOT };
+  }
+  if (command === 'build' && (args[0] === 'local-runtime' || args[0] === 'sidecar-runtime')) {
+    return {
+      command: 'npm',
+      args: ['--prefix', FRONTEND_DIR, 'run', 'build:sidecar-runtime'],
+      cwd: REPO_ROOT,
+    };
   }
   return null;
 }

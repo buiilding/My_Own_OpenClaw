@@ -57,7 +57,8 @@ surface. The command tables below use `<windie>` for the active platform shim.
 | `<windie> commits search <query>` | Search recent git commits by subject, body, author, hash, date, and changed paths. |
 | `<windie> commits search <query> --limit 20 --json` | Return a bounded machine-readable commit-search result set. |
 | `<windie> build frontend` | Build the frontend bundle. |
-| `<windie> build sidecar-runtime` | Build the bundled Python runtime. |
+| `<windie> build local-runtime` | Build the bundled Python local-runtime payload. |
+| `<windie> build sidecar-runtime` | Compatibility alias for the bundled Python local-runtime build. |
 | `<windie> package mac` | Package macOS artifacts. |
 | `<windie> package win` | Package Windows artifacts. |
 | `<windie> package linux` | Package Linux artifacts. |

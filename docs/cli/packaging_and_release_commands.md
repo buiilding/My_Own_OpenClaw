@@ -22,7 +22,8 @@ Run from the repository root.
 | Command | Purpose |
 | --- | --- |
 | `<windie> build frontend` | Build the Vite frontend bundle. |
-| `<windie> build sidecar-runtime` | Build bundled Python runtime. |
+| `<windie> build local-runtime` | Build bundled Python local-runtime payload. |
+| `<windie> build sidecar-runtime` | Compatibility alias for the bundled Python local-runtime build. |
 | `<windie> package mac` | Build macOS DMG/ZIP. |
 | `<windie> package win` | Build Windows NSIS installer. |
 | `<windie> package linux` | Build Linux AppImage/DEB/RPM. |

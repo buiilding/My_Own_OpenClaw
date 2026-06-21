@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/build: add `build local-runtime` as the primary bundled Python
+  local-runtime build command and keep `build sidecar-runtime` as a
+  compatibility alias for the existing npm build script. No migration required.
 - scripts: add `local-runtime` as the canonical `python-in-env` target for the
   Python local runtime, route first-party local-runtime callers through it, and
   retain `sidecar` as a compatibility target. No migration required.

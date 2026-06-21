@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: `scripts/python-in-env.*` now accepts
-  `local-runtime` as the canonical Python local-runtime target, and first-party
-  local-runtime callers use it while the old `sidecar` target remains as a
-  compatibility alias.
+- Latest completed slice: `<windie> build local-runtime` is now the primary
+  CLI command for building the bundled Python local-runtime payload, while
+  `<windie> build sidecar-runtime` remains as a compatibility alias for the
+  existing npm build script.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -36,6 +36,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
   prefix, bundled runtime copy, env keys, runs header, wakeword model, and
   browser warmup copy remain host-skin owned.
+  CLI build routing exposes `build local-runtime` as the owner-correct command
+  for the bundled Python local-runtime payload while preserving
+  `build sidecar-runtime` and `npm run build:sidecar-runtime` compatibility.
   The repo Python env wrapper accepts `local-runtime` for local-runtime Python
   commands, and first-party status, doctor, and `test-sidecar.sh` callers use
   that canonical target while the public `<windie> test sidecar` command and

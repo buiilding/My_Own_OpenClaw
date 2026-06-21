@@ -122,6 +122,8 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('<windie> logs renderer [--verbose]');
     expect(result.stdout).toContain('<windie> logs local-runtime');
     expect(result.stdout).toContain('<windie> logs sidecar');
+    expect(result.stdout).toContain('<windie> build local-runtime');
+    expect(result.stdout).toContain('<windie> build sidecar-runtime');
     expect(result.stdout).not.toContain('<windie> logs desktop');
     expect(result.stdout).toContain('<windie> commits search <query> [--limit <n>] [--json]');
   });
@@ -283,6 +285,24 @@ describe('windie CLI', () => {
     expect(getSpawnPlan(['docs', 'list'])).toMatchObject({
       command: process.execPath,
       args: [path.join(repoRoot, 'scripts/docs-list.js')],
+      cwd: repoRoot,
+    });
+  });
+
+  test('routes build commands without requiring callers to cd frontend', () => {
+    expect(getSpawnPlan(['build', 'frontend'])).toMatchObject({
+      command: 'npm',
+      args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'build'],
+      cwd: repoRoot,
+    });
+    expect(getSpawnPlan(['build', 'local-runtime'])).toMatchObject({
+      command: 'npm',
+      args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'build:sidecar-runtime'],
+      cwd: repoRoot,
+    });
+    expect(getSpawnPlan(['build', 'sidecar-runtime'])).toMatchObject({
+      command: 'npm',
+      args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'build:sidecar-runtime'],
       cwd: repoRoot,
     });
   });

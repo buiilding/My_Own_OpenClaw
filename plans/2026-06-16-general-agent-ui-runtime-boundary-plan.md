@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 CLI Local-Runtime Build Command Boundary
+
+- Finding: the Windie CLI only exposed `build sidecar-runtime` for the bundled
+  Python local-runtime payload, so help/docs still taught the historical
+  sidecar-runtime command as the primary build surface.
+- Change: added `build local-runtime` as the primary CLI command, kept
+  `build sidecar-runtime` as a compatibility alias, and added spawn-plan
+  coverage for frontend, local-runtime, and alias build routes without running
+  a full package build.
+- Validation: focused Windie CLI help/build-route Jest coverage, exact
+  sidecar-runtime primary-command scan for CLI docs/help, docs list, and diff
+  hygiene.
+- Compatibility/security: no migration required. The underlying
+  `npm run build:sidecar-runtime` script, packaging flows, bundled runtime
+  contents, permissions, credentials, IPC, and tool execution are unchanged.
+
 ### 2026-06-21 Python Env Local-Runtime Target Boundary
 
 - Finding: `scripts/python-in-env.*` only exposed the historical `sidecar`

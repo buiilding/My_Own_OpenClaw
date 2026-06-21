@@ -81,7 +81,8 @@ tables below use `<windie>` for the active platform shim.
 | Command | Purpose |
 | --- | --- |
 | `<windie> build frontend` | Build the frontend bundle. |
-| `<windie> build sidecar-runtime` | Build the bundled Python runtime. |
+| `<windie> build local-runtime` | Build the bundled Python local-runtime payload. |
+| `<windie> build sidecar-runtime` | Compatibility alias for the bundled Python local-runtime build. |
 | `<windie> package mac` | Package macOS DMG/ZIP. |
 | `<windie> package win` | Package Windows NSIS installer. |
 | `<windie> package linux` | Package Linux AppImage/DEB/RPM. |
