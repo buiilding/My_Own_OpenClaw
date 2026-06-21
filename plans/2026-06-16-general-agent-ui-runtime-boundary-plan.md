@@ -20347,3 +20347,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime modules, imports, command
   names, IPC channels, voice gateway protocol, storage, permissions, provider
   policy, and backend behavior are unchanged.
+
+### 2026-06-21 renderer settings memory voice client labels
+
+- Finding: active renderer source-map comments, app-runtime client headers, and
+  focused settings/memory/voice/client tests still described helpers as
+  desktop settings/memory/voice runtime clients, desktop runtime transport, or
+  desktop runtime fan-out even when the current owner is an app-runtime client
+  or the SDK desktop transport adapter.
+- Change: reworded those labels to settings/memory/voice app-runtime clients,
+  renderer app-runtime fan-out, and SDK desktop transport adapter wording while
+  preserving concrete file names and exported `Desktop*RuntimeClient` symbols.
+- Validation: focused settings, memory, voice, transport, renderer chat,
+  renderer settings, renderer skin-config, and modular boundary tests; exact
+  active-label scan; docs listing; and diff checks.
+- Compatibility: no migration required. Runtime modules, exports, imports,
+  command names, IPC channels, storage keys, provider policy, permissions, and
+  backend behavior are unchanged.

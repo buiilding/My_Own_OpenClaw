@@ -1,5 +1,5 @@
 /**
- * Provides the desktop runtime transport module for the renderer UI.
+ * Provides the SDK desktop transport adapter for the renderer UI.
  */
 
 import {

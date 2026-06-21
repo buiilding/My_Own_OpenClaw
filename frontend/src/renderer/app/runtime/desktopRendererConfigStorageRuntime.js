@@ -18,7 +18,7 @@ import {
  * 
  * Implements optimistic state pattern:
  * - Loads from localStorage immediately on startup (zero-latency)
- * - Syncs through the desktop settings runtime on connection
+ * - Syncs through the settings app-runtime client on connection
  * - Persists to localStorage when runtime settings changes are acknowledged
  */
 

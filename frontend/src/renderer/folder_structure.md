@@ -106,7 +106,7 @@ frontend/src/renderer/
 │   │
 │   └── providers/                       # Context providers for global state
 │       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
-│       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config/models/wakeword and syncs renderer config through the desktop settings runtime on connect/startup
+│       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config/models/wakeword and syncs renderer config through the settings app-runtime client on connect/startup
 │       ├── AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider
 │       ├── AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
 │       ├── AppStatusProvider.jsx        # AppStatusProvider - Manages saveStatus (transient, frequent changes)
@@ -190,7 +190,7 @@ frontend/src/renderer/
 │       │   └── VoiceStatus.jsx          # VoiceStatus - Displays voice mode status (recording, error, connected)
 │       │
 │       ├── hooks/                       # Voice business logic hooks
-│       │   ├── useVoiceMode.ts          # useVoiceMode - Uses desktop voice runtime gateway connection and audio capture
+│       │   ├── useVoiceMode.ts          # useVoiceMode - Uses the voice app-runtime client gateway connection and audio capture
 │       │   └── useWakewordDetection.ts  # useWakewordDetection - Manages wakeword capture through the local-runtime helper bridge
 │       │
 │
@@ -265,7 +265,7 @@ frontend/src/renderer/
 4. CONTEXT INITIALIZATION
    ├─> app/providers/AppConfigContext.jsx
    │   ├─> Load config from localStorage (optimistic state)
-   │   ├─> Request models list through the desktop settings runtime
+   │   ├─> Request models list through the settings app-runtime client
    │   └─> Set up IPC listeners
    │
    └─> app/providers/AppStatusContext.jsx

@@ -75,6 +75,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/runtime: route active agent architecture and IPC/transport guidance
   through renderer app-runtime client/facade wording instead of renderer or
   desktop runtime facade owner labels. No migration required.
+- renderer/runtime: label settings, memory, voice, and SDK command transport
+  helpers as app-runtime clients or the SDK desktop transport adapter instead
+  of desktop-runtime owner phrases. No migration required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

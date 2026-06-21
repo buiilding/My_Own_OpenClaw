@@ -1,5 +1,5 @@
 /**
- * Covers desktop memory runtime client. behavior in the frontend test suite.
+ * Covers memory app-runtime client behavior in the frontend test suite.
  */
 
 import {
@@ -86,7 +86,7 @@ describe('DesktopMemoryRuntimeClient', () => {
     expect(resolveMemoryAdminUserId(null)).toBeNull();
   });
 
-  test('subscribes to memory store changes through desktop runtime fan-out', () => {
+  test('subscribes to memory store changes through renderer app-runtime fan-out', () => {
     const removeListener = jest.fn();
     const listener = jest.fn();
     const onSpy = jest.spyOn(IpcBridge, 'on').mockReturnValue(removeListener);

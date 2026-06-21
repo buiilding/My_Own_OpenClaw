@@ -1,5 +1,5 @@
 /**
- * Coordinates the desktop voice runtime client for the renderer UI.
+ * Coordinates the voice app-runtime client for the renderer UI.
  */
 
 import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';

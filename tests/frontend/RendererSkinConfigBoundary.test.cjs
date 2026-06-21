@@ -376,7 +376,7 @@ describe('renderer skin/config boundary', () => {
     expect(configFilterSource).not.toContain('FRONTEND_CONFIG_FIELDS');
     expect(configFilterSource).not.toContain('subset of the backend configuration');
     expect(configFilterSource).not.toContain('configuration object from backend');
-    expect(configStorageSource).toContain('desktop settings runtime');
+    expect(configStorageSource).toContain('settings app-runtime client');
     expect(configStorageSource).toContain('runtime settings changes are acknowledged');
     expect(configStorageSource).not.toContain('Syncs with backend on connection');
     expect(configStorageSource).not.toContain('when backend confirms changes');

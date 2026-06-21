@@ -1,5 +1,5 @@
 ﻿/**
- * Coordinates the desktop memory runtime client for the renderer UI.
+ * Coordinates the memory app-runtime client for the renderer UI.
  */
 
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';

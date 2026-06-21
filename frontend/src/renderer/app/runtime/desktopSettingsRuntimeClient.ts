@@ -1,5 +1,5 @@
 /**
- * Coordinates the desktop settings runtime client for the renderer UI.
+ * Coordinates the settings app-runtime client for the renderer UI.
  */
 
 import {

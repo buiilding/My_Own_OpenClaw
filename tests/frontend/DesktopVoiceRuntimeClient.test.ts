@@ -1,5 +1,5 @@
 /**
- * Covers desktop voice runtime client. behavior in the frontend test suite.
+ * Covers voice app-runtime client behavior in the frontend test suite.
  */
 
 import {
@@ -36,7 +36,7 @@ describe('DesktopVoiceRuntimeClient', () => {
     jest.restoreAllMocks();
   });
 
-  test('sends wakeword notifications through the desktop runtime transport', async () => {
+  test('sends wakeword notifications through the SDK desktop transport adapter', async () => {
     await expect(DesktopVoiceRuntimeClient.wakewordDetected()).resolves.toBeUndefined();
 
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('wakeword.detected', {});

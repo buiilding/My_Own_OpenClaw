@@ -8393,3 +8393,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   runtime modules, imports, command names, IPC channels, voice gateway
   protocol, storage, permissions, provider policy, and backend behavior are
   unchanged; no migration is required.
+- Renderer source-map comments, app-runtime client headers, and focused
+  settings/memory/voice/client tests now label the settings, memory, and voice
+  helpers as app-runtime clients and command transport as the SDK desktop
+  transport adapter instead of desktop-runtime owner phrases. Concrete file
+  names and exported `Desktop*RuntimeClient` symbols, runtime modules, imports,
+  command names, IPC channels, storage keys, provider policy, permissions, and
+  backend behavior are unchanged; no migration is required.

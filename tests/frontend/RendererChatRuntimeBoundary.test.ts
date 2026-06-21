@@ -443,7 +443,7 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('dashboard memory feature code routes through the desktop memory runtime client', async () => {
+  test('dashboard memory feature code routes through the memory app-runtime client', async () => {
     const dashboardRoot = path.resolve(
       __dirname,
       '../../frontend/src/renderer/features/dashboard',

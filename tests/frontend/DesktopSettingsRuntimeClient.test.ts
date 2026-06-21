@@ -1,5 +1,5 @@
 /**
- * Covers desktop settings runtime client. behavior in the frontend test suite.
+ * Covers settings app-runtime client behavior in the frontend test suite.
  */
 
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
@@ -20,7 +20,7 @@ describe('DesktopSettingsRuntimeClient', () => {
     DesktopSettingsRuntimeClient.resetDashboardStartupModelListForTests();
   });
 
-  test('requests model lists through the desktop runtime transport', () => {
+  test('requests model lists through the SDK desktop transport adapter', () => {
     DesktopSettingsRuntimeClient.listModels();
 
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('models.list');
@@ -67,7 +67,7 @@ describe('DesktopSettingsRuntimeClient', () => {
     warnSpy.mockRestore();
   });
 
-  test('sends settings patches through the desktop runtime transport', () => {
+  test('sends settings patches through the SDK desktop transport adapter', () => {
     DesktopSettingsRuntimeClient.updateSettings({
       speech_mode_enabled: true,
     });

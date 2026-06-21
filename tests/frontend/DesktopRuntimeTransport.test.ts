@@ -1,5 +1,5 @@
 /**
- * Covers desktop runtime transport behavior in the frontend test suite.
+ * Covers SDK desktop transport adapter behavior in the frontend test suite.
  */
 
 import { createDesktopRuntimeTransport } from '../../frontend/src/renderer/app/runtime/desktopRuntimeTransport';

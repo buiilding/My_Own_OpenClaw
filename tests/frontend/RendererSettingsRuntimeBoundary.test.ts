@@ -12,7 +12,7 @@ const settingsRuntimeFiles = [
 ].map((relativePath) => path.resolve(__dirname, relativePath));
 
 describe('renderer settings runtime boundary', () => {
-  test('model list and settings sync callers use the desktop settings runtime facade', async () => {
+  test('model list and settings sync callers use the settings app-runtime client', async () => {
     const offenders: string[] = [];
 
     for (const file of settingsRuntimeFiles) {
