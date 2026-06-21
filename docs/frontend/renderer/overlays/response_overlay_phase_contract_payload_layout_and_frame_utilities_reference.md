@@ -46,8 +46,9 @@ Renderer contract adapter:
 - `getResponseOverlayPhaseValues()` and `getResponseOverlayPhaseMap()` expose
   parity snapshots for contract tests.
 - `isAwaitingFirstChunkResponseOverlayPhase(...)` and
-  `isStreamingResponseOverlayPhase(...)` keep current-turn surface code on
-  behavior-level checks through the facade rather than standalone exports.
+  `isStreamingResponseOverlayPhase(...)` remain behind the facade for
+  phase-contract tests and legacy phase callers; current-turn busy/awaiting
+  surface state is mapped from `DesktopVisibleTurnLifecycleRuntime`.
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayViewContract(...)`
   owns response-overlay visibility and layout intent resolution while keeping
   the raw view-contract resolver private behind the renderer app-runtime
