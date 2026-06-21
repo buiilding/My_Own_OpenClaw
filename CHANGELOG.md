@@ -41,6 +41,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/development: update architecture and MCP references to describe
   frontend/local-runtime Python import and driver-resolution boundaries without
   sidecar-as-owner wording. No migration required.
+- docs/workflows: relabel backend-service and release-packaging import
+  boundaries through client/local-runtime Python wording instead of sidecar
+  owner wording. No migration required.
 - docs/development: route setup, testing, validation, triage, contributing,
   and local-runtime workflow guidance through local-runtime Python wording while
   preserving concrete `tests/sidecar` paths. No migration required.

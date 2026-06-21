@@ -31,7 +31,8 @@ Do not put service policy into API route functions or renderer code. Routes shou
 
 - API routes validate HTTP/websocket payloads and call services; services own reusable behavior and provider details.
 - Agent-loop code orchestrates tool turns and prompt context; it should not duplicate service internals.
-- Frontend and sidecar consume hosted route contracts; they must not import backend services.
+- Frontend and the local-runtime Python implementation consume hosted route
+  contracts; they must not import backend services.
 - Keep heavyweight model imports lazy enough that disabled or remote modes can start without local model dependencies.
 - Provider health and circuit breakers should fail capabilities predictably instead of repeatedly invoking dead local/remote providers.
 - Service errors returned to clients should be structured and sanitized while logs retain enough evidence for debugging.

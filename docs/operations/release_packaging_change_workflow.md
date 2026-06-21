@@ -37,7 +37,9 @@ The release path has two different jobs:
 - Local macOS reinstall intentionally strips Apple signing/notarization env vars and uses ad-hoc signing. That path is for fast installed-app validation, not release-signing validation.
 - Release signing secrets must stay in CI secrets or local environment only. Never document real credential values or commit generated certificates.
 - Browser and wakeword runtime assets are packaging responsibilities when packaged fallback downloads are disabled. Missing packaged assets should fail build or smoke validation rather than silently relying on source-mode behavior.
-- Frontend and sidecar must not inspect backend source to make packaged behavior work. Endpoint, auth, and runtime defaults must flow through explicit config and IPC/env boundaries.
+- Frontend and the local-runtime Python implementation must not inspect backend
+  source to make packaged behavior work. Endpoint, auth, and runtime defaults
+  must flow through explicit config and IPC/env boundaries.
 
 ## Change Sequence
 

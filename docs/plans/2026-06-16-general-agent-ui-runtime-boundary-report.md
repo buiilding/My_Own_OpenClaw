@@ -9137,3 +9137,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   repository identifiers. Import boundaries, MCP discovery, driver resolution,
   storage, provider policy, permissions, and backend behavior are unchanged; no
   migration is required.
+- Backend-service and release-packaging workflow docs now route backend import
+  and source-inspection boundaries through frontend/client plus local-runtime
+  Python implementation labels instead of "Frontend and sidecar" owner wording.
+  Backend route contracts, packaged endpoint/auth/default flow, packaging
+  behavior, IPC/env boundaries, storage, provider policy, permissions, and
+  backend behavior are unchanged; no migration is required.

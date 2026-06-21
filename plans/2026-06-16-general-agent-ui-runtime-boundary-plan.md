@@ -21700,3 +21700,18 @@ Each completed slice should report:
   import boundaries, MCP discovery, driver resolution behavior, test paths, IPC
   paths, storage, provider policy, permissions, and backend behavior are
   unchanged.
+
+### 2026-06-21 workflow import-boundary owner labels
+
+- Finding: backend-service and release-packaging workflow docs still used
+  "Frontend and sidecar" for backend import/source-inspection boundaries.
+- Change: relabeled those boundaries to frontend/client plus local-runtime
+  Python implementation wording so the workflows keep backend-service and
+  packaged-runtime ownership clear without presenting sidecar as the owning
+  abstraction.
+- Validation: focused stale-label scan for the two workflow docs, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Documentation labels changed only;
+  backend route contracts, packaged endpoint/auth/default flow, packaging
+  behavior, IPC/env boundaries, storage, provider policy, permissions, and
+  backend behavior are unchanged.
