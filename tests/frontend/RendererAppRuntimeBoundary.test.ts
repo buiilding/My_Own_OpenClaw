@@ -1168,10 +1168,14 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(providerSource).toContain('useDesktopTranscriptSessionInfo');
+    expect(providerSource).toContain('DesktopTranscriptSessionInfoRuntimeClient');
+    expect(providerSource).toContain('DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo');
     expect(providerSource).toContain('runtime/desktopTranscriptSessionInfoRuntimeClient');
     expect(providerSource).not.toContain('features/dashboard/hooks/useTranscriptSessionInfo');
+    expect(providerSource).not.toContain('import { useDesktopTranscriptSessionInfo');
     expect(sessionInfoClientSource).toContain('useSyncExternalStore');
+    expect(sessionInfoClientSource).toContain('DesktopTranscriptSessionInfoRuntimeClient');
+    expect(sessionInfoClientSource).not.toContain('export function useDesktopTranscriptSessionInfo');
     expect(sessionInfoClientSource).toContain(
       'DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo',
     );

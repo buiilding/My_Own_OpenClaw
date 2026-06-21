@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose transcript session info subscription through
+  `DesktopTranscriptSessionInfoRuntimeClient` instead of a standalone hook
+  export, keeping chat provider, chat session, and memory settings consumers
+  on the app-runtime facade. No migration required.
 - frontend/renderer: route renderer config context access through
   `DesktopRendererConfigRuntimeClient` instead of a standalone hook export,
   keeping feature code on the app-runtime facade. No migration required.

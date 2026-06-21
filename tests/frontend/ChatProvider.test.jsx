@@ -39,7 +39,9 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatStream', () =>
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient', () => ({
-  useDesktopTranscriptSessionInfo: () => mockUseTranscriptSessionInfo(),
+  DesktopTranscriptSessionInfoRuntimeClient: {
+    useDesktopTranscriptSessionInfo: () => mockUseTranscriptSessionInfo(),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatSessionBootstrap', () => ({

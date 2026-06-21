@@ -9,7 +9,7 @@ import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessio
 import { useConversationSessionProjection } from '../../features/chat/session/useConversationSessionProjection';
 import { useChatStore } from '../../features/chat/stores/chatStore';
 import { DesktopRendererTraceRuntime } from '../runtime/desktopRendererTraceRuntime';
-import { useDesktopTranscriptSessionInfo } from '../runtime/desktopTranscriptSessionInfoRuntimeClient';
+import { DesktopTranscriptSessionInfoRuntimeClient } from '../runtime/desktopTranscriptSessionInfoRuntimeClient';
 import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
 
 const {
@@ -44,7 +44,7 @@ configureRendererTraceWorkspaceSnapshotResolver(resolveChatTraceWorkspaceSnapsho
  * No business logic - just composition.
  */
 export function ChatProvider({ children, enableTranscript = true }) {
-  const transcriptSessionInfo = useDesktopTranscriptSessionInfo();
+  const transcriptSessionInfo = DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo();
   const bootstrapSession = useChatSessionBootstrap();
 
   useEffect(() => {

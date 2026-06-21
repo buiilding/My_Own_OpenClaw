@@ -4,7 +4,7 @@
 
 import { act, renderHook } from '@testing-library/react';
 
-import { useDesktopTranscriptSessionInfo } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient';
+import { DesktopTranscriptSessionInfoRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
@@ -30,7 +30,9 @@ describe('useDesktopTranscriptSessionInfo', () => {
       userId: 'user-1',
     });
 
-    const { result } = renderHook(() => useDesktopTranscriptSessionInfo());
+    const { result } = renderHook(() => (
+      DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo()
+    ));
 
     expect(result.current).toEqual({
       conversationRef: 'conv-1',
@@ -45,7 +47,9 @@ describe('useDesktopTranscriptSessionInfo', () => {
     ];
     mockGetTranscriptSessionInfo.mockImplementation(() => snapshots[0]);
 
-    const { result } = renderHook(() => useDesktopTranscriptSessionInfo());
+    const { result } = renderHook(() => (
+      DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo()
+    ));
     expect(result.current).toEqual(snapshots[0]);
 
     mockGetTranscriptSessionInfo.mockImplementation(() => snapshots[1]);
@@ -62,7 +66,9 @@ describe('useDesktopTranscriptSessionInfo', () => {
       userId: 'user-stable',
     });
 
-    const { result, rerender } = renderHook(() => useDesktopTranscriptSessionInfo());
+    const { result, rerender } = renderHook(() => (
+      DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo()
+    ));
     const firstSnapshot = result.current;
 
     mockGetTranscriptSessionInfo.mockReturnValue({

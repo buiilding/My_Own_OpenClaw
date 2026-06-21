@@ -86,8 +86,9 @@ Responsibility split:
   attachment filenames.
 - `DesktopConversationLibraryClient` owns list/load/delete/search through the SDK store path.
 
-Renderer consumers subscribe through `useDesktopTranscriptSessionInfo()` for
-stable transcript identity snapshots without making dashboard the owner of
+Renderer consumers subscribe through
+`DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo()`
+for stable transcript identity snapshots without making dashboard the owner of
 app-level session state.
 
 Renderer chat, minimal pill, and dashboard consumers read their current

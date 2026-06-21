@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Transcript Session Info Runtime Facade
+
+- Finding: `desktopTranscriptSessionInfoRuntimeClient.js` owned the
+  `useSyncExternalStore` subscription for stable transcript identity snapshots,
+  but exported `useDesktopTranscriptSessionInfo(...)` as a standalone hook
+  consumed by the chat provider, chat session projection, and memory settings.
+- Change: exposed transcript session info access through
+  `DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo()`,
+  routed renderer consumers and focused mocks through that facade object, and
+  updated boundary tests/docs so standalone hook imports/exports stay removed.
+- Validation: focused transcript-session, chat-provider, chat-interface,
+  settings, and renderer boundary tests plus targeted renderer source lint,
+  docs listing, stale standalone hook scans, and diff checks before commit.
+- Compatibility/security: no migration required. Transcript session storage,
+  browser update events, main-process sync IPC, conversation/session identity,
+  memory admin user-id resolution, credentials, hosted backend policy, and
+  local-runtime execution are unchanged.
+
 ### 2026-06-21 Renderer Config Context Runtime Facade
 
 - Finding: `desktopRendererConfigRuntimeClient.js` already owned deferred query

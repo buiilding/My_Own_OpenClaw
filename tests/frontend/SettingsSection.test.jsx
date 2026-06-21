@@ -180,7 +180,9 @@ jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient', () => ({
-  useDesktopTranscriptSessionInfo: () => mockTranscriptSessionInfo,
+  DesktopTranscriptSessionInfoRuntimeClient: {
+    useDesktopTranscriptSessionInfo: () => mockTranscriptSessionInfo,
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/features/permissions/stores/permissionStore', () => ({

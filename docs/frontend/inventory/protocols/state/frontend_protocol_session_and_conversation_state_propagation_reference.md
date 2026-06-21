@@ -158,7 +158,8 @@ Locked by `tests/frontend/IpcMainBridge.query.test.cjs`:
   - clear chat messages + active send/thinking flags
 
 Dashboard consumers read active-row and user-id fallback state through
-`useDesktopTranscriptSessionInfo()`, keeping the subscription in the renderer
+`DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo()`,
+keeping the subscription in the renderer
 app-runtime boundary rather than dashboard feature ownership.
 
 Locked by:

@@ -96,7 +96,8 @@ Conversation runtime methods used by this surface:
 
 ## Shared Session Identity Contract
 
-`useDesktopTranscriptSessionInfo()` provides runtime user id and active
+`DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo()`
+provides runtime user id and active
 conversation ref through the renderer app-runtime facade. Memory list/delete
 commands go through `DesktopMemoryRuntimeClient`, which delegates active user
 resolution to the command runtime instead of a renderer-owned default user

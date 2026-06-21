@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
-import { useDesktopTranscriptSessionInfo } from '../../../app/runtime/desktopTranscriptSessionInfoRuntimeClient';
+import { DesktopTranscriptSessionInfoRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionInfoRuntimeClient';
 import { DesktopConversationSessionRuntime } from '../../../app/runtime/desktopConversationSessionRuntime';
 
 const {
@@ -12,7 +12,7 @@ const {
 } = DesktopConversationSessionRuntime;
 
 export function useRendererConversationSessionInfo() {
-  const transcriptSessionInfo = useDesktopTranscriptSessionInfo();
+  const transcriptSessionInfo = DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo();
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const transcriptConversationRef = transcriptSessionInfo?.conversationRef;
   const transcriptUserId = transcriptSessionInfo?.userId;

@@ -44,10 +44,16 @@ function subscribeToSessionChanges(onStoreChange) {
   return () => window.removeEventListener('transcript-session-update', handleSessionUpdate);
 }
 
-export function useDesktopTranscriptSessionInfo() {
+function useDesktopTranscriptSessionInfo() {
   return useSyncExternalStore(
     subscribeToSessionChanges,
     readSessionSnapshot,
     () => EMPTY_SESSION_INFO,
   );
 }
+
+export const DesktopTranscriptSessionInfoRuntimeClient = Object.freeze({
+  useDesktopTranscriptSessionInfo() {
+    return useDesktopTranscriptSessionInfo();
+  },
+});

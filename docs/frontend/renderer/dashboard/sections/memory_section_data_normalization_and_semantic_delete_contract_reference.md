@@ -38,7 +38,7 @@ State buckets:
 
 User id for memory calls is resolved by the command runtime:
 
-- conversation surfaces read `sessionInfo.userId` from `useDesktopTranscriptSessionInfo()`
+- conversation surfaces read `sessionInfo.userId` from `DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo()`
 - memory list/delete calls go through `DesktopMemoryRuntimeClient` without a
   renderer-owned default user id
 

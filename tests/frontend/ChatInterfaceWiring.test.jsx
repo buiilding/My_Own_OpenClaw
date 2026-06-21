@@ -217,7 +217,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient', () => ({
-  useDesktopTranscriptSessionInfo: () => mockTranscriptSessionSnapshot,
+  DesktopTranscriptSessionInfoRuntimeClient: {
+    useDesktopTranscriptSessionInfo: () => mockTranscriptSessionSnapshot,
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/components/MessageList', () => (props) =>

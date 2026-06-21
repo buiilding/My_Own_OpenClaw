@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: renderer config context access now routes through
-  `DesktopRendererConfigRuntimeClient` instead of a standalone hook export,
-  keeping chat, onboarding, and settings feature code on the app-runtime config
-  facade.
+- Latest completed slice: renderer transcript session info subscription now
+  routes through `DesktopTranscriptSessionInfoRuntimeClient` instead of a
+  standalone hook export, keeping chat provider, chat session, and memory
+  settings consumers on the app-runtime session facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

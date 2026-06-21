@@ -4,13 +4,13 @@
 
 import { useState } from 'react';
 import { DesktopMemoryRuntimeClient } from '../../../../../app/runtime/desktopMemoryRuntimeClient';
-import { useDesktopTranscriptSessionInfo } from '../../../../../app/runtime/desktopTranscriptSessionInfoRuntimeClient';
+import { DesktopTranscriptSessionInfoRuntimeClient } from '../../../../../app/runtime/desktopTranscriptSessionInfoRuntimeClient';
 import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 
 const memorySettingsSkin = desktopRuntimeSkin.settings.memory;
 
 export function useMemorySettingsActions() {
-  const sessionInfo = useDesktopTranscriptSessionInfo();
+  const sessionInfo = DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo();
   const memoryAdminUserId = DesktopMemoryRuntimeClient.resolveMemoryAdminUserId(sessionInfo);
   const [pendingAction, setPendingAction] = useState(null);
   const [status, setStatus] = useState({
