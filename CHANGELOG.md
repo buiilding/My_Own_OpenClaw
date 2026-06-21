@@ -78,6 +78,10 @@ All notable changes to WindieOS will be documented in this file.
   coverage while preserving the `WINDIE_FRONTEND_LOG_FILE` compatibility key. No
   migration required.
 
+- tests/main: use neutral temporary contribution and diagnostics roots in MCP
+  control coverage instead of Windie-flavored arbitrary temp directories. No
+  migration required.
+
 - tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
   in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
   directory. No migration required.

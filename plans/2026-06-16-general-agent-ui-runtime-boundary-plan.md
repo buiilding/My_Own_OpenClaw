@@ -19160,3 +19160,17 @@ Each completed slice should report:
 - Compatibility: no migration required. Launcher env override behavior, the
   default repo-local `.windie/logs` product path, provider policy, permissions,
   storage, and backend behavior are unchanged.
+
+### 2026-06-21 MCP control temp fixture neutrality
+
+- Finding: MCP control coverage still used Windie-flavored arbitrary temp roots
+  for test contribution packages and diagnostics DB setup.
+- Change: switched those test-only roots to neutral `agent-*` fixtures and
+  extended the modular boundary guard over MCP control coverage.
+- Validation: focused MCP control attempt, modular boundary test, exact retired
+  MCP temp fixture scan, docs listing, and diff checks. The MCP control file's
+  diagnostics assertion still requires a local `sqlite3` executable when run on
+  this machine.
+- Compatibility: no migration required. MCP enablement, local-runtime
+  registration, diagnostics payloads, provider policy, permissions, storage, and
+  backend behavior are unchanged.

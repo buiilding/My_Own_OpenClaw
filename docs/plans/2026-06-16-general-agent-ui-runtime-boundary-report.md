@@ -7865,3 +7865,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   launcher env override behavior, default repo-local `.windie/logs` product
   path, provider policy, permissions, storage, and backend behavior are
   unchanged; no migration is required.
+- MCP control coverage now uses neutral temporary contribution and diagnostics
+  roots instead of Windie-flavored arbitrary temp directories. MCP enablement,
+  local-runtime registration, diagnostics payloads, provider policy,
+  permissions, storage, and backend behavior are unchanged; no migration is
+  required.

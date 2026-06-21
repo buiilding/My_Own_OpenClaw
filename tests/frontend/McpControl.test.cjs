@@ -55,7 +55,7 @@ function readDiagnosticEvents({ pathFilter = '', limit = 50 } = {}) {
 }
 
 function writeCuaMcpRegistry() {
-  const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cua-mcp-'));
+  const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-cua-mcp-'));
   const mcpDir = path.join(contributionRoot, 'mcps', 'cua-driver');
   fs.mkdirSync(mcpDir, { recursive: true });
   fs.writeFileSync(
@@ -78,7 +78,7 @@ describe('MCP control runtime', () => {
 
   beforeEach(() => {
     previousDbPath = process.env.WINDIE_APP_DIAGNOSTICS_DB;
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-mcp-diagnostics-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-mcp-diagnostics-'));
     process.env.WINDIE_APP_DIAGNOSTICS_DB = path.join(tempDir, 'diagnostics.db');
   });
 
