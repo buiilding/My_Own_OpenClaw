@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/browser: describe the Chrome launcher dedicated-profile and connect
+  policy through host-skinned desktop/local-runtime wording instead of
+  WindieOS desktop launch copy. No migration required.
 - frontend/main: regenerate the built-in local-runtime tool manifest from the
   sidecar source so the Electron artifact matches the current browser
   `output_schema` executable contract. No migration required.

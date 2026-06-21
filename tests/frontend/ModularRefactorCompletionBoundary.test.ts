@@ -2427,6 +2427,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/browser/dedicated_browser_runtime.md'),
       read('docs/frontend/main/permission_manifest_probe_and_request_ipc_reference.md'),
       read('docs/frontend/sidecar/browser/contracts/README.md'),
+      read('docs/frontend/sidecar/browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md'),
       read('docs/frontend/sidecar/browser_action_runtime_reference.md'),
       read('docs/frontend/sidecar/browser_automation_stack.md'),
       read('docs/frontend/sidecar/tools/browser_runtime_contract_and_windie_runtime_reference.md'),
@@ -2449,6 +2450,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('dedicated browser runtime');
     expect(docText).toContain('controlled browser session');
     expect(docText).toContain('dedicated browser Chrome/CDP startup policy');
+    expect(docText).toContain('Host-skinned desktop launches may inject a product-specific user-data root');
+    expect(docText).toContain('dedicated desktop connect path');
     expect(docText).toContain('Desktop client/local-runtime manifest');
     expect(docText).toContain('local-runtime executable registry backed by local-runtime Python modules');
     expect(docText).not.toContain('dedicated Windie browser runtime');
@@ -2457,6 +2460,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('dedicated WindieOS Chrome/CDP startup policy');
     expect(docText).not.toContain('dedicated WindieOS browser');
     expect(docText).not.toContain('WindieOS browser session');
+    expect(docText).not.toContain('WindieOS desktop launches');
+    expect(docText).not.toContain('WindieOS connects to or starts');
+    expect(docText).not.toContain('dedicated Windie connect path');
     expect(docText).not.toContain('Backend-Sidecar Browser Schema');
     expect(docText).not.toContain('Frontend/sidecar manifest');
     expect(docText).not.toContain('Python sidecar registry');

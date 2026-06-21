@@ -74,9 +74,10 @@ default browser profile. Standalone launches use generic desktop-runtime paths:
 - macOS: `~/Library/Application Support/desktop-runtime/BrowserProfile`
 - Linux: `~/.config/desktop-runtime/BrowserProfile`
 
-WindieOS desktop launches inject the host-skinned `windieos` user-data root, so
-the existing `windieos/BrowserProfile` dedicated profile remains the active
-desktop path.
+Host-skinned desktop launches may inject a product-specific user-data root. The
+current WindieOS skin injects `windieos`, so the existing
+`windieos/BrowserProfile` dedicated profile remains the active desktop path for
+that product configuration.
 
 ## Launch Semantics
 
@@ -109,8 +110,9 @@ Important behavior:
 2. CDP unavailable + `auto_launch=True` -> launch dedicated instance and return URL
 3. CDP unavailable + `auto_launch=False` -> raise `ChromeLauncherError`
 
-The launcher does not accept restart/kill flags; WindieOS connects to or starts
-its own dedicated browser instance and never kills the user's default Chrome.
+The launcher does not accept restart/kill flags; the desktop browser adapter
+connects to or starts its own dedicated browser instance and never kills the
+user's default Chrome.
 
 ## Process Kill Helper
 
@@ -121,7 +123,8 @@ its own dedicated browser instance and never kills the user's default Chrome.
 - non-Windows: `pkill` (with `-9` only in force mode)
 - waits 2s and rechecks process presence
 
-This helper exists, but dedicated Windie connect path intentionally avoids killing default user browser instances.
+This helper exists, but the dedicated desktop connect path intentionally avoids
+killing default user browser instances.
 
 ## `ChromeLauncher` Wrapper
 

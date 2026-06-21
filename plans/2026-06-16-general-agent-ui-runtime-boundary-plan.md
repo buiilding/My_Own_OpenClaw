@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Chrome Launcher Reference Host-Skin Wording
+
+- Finding: the Chrome launcher reference still described host-injected
+  dedicated profile compatibility and connect policy as WindieOS desktop launch
+  behavior, even though the reusable boundary is a host-skinned desktop
+  local-runtime browser adapter.
+- Change: reworded the reference through host-skinned desktop launches and the
+  dedicated desktop connect path, while keeping the current WindieOS
+  `windieos/BrowserProfile` compatibility path explicitly documented as a
+  product-skin configuration.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Chrome detection, dedicated profile
+  resolution, CDP port/env behavior, Browser Use attachment, browser state,
+  storage, credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Generated Built-In Tool Manifest Parity Refresh
 
 - Finding: broader sidecar validation exposed generated Electron manifest drift:
