@@ -3,12 +3,16 @@
  */
 
 import {
-  resolveMessageSourceBadgePresentation,
-  resolveSourceTag,
-  resolveThinkingSourceBadgePresentation,
+  DesktopMessageSourceTagRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime';
 
 describe('desktopMessageSourceTagRuntime', () => {
+  const {
+    resolveMessageSourceBadgePresentation,
+    resolveSourceTag,
+    resolveThinkingSourceBadgePresentation,
+  } = DesktopMessageSourceTagRuntime;
+
   test('resolves known SDK event and channel labels', () => {
     expect(resolveSourceTag('tool-output', 'sdk-local-runtime')).toBe(
       'tool output / sdk-local-runtime',

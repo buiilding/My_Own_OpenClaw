@@ -22993,3 +22993,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Attachment preview labels, selected
   file parsing, renderer UI markup, storage, IPC, local-runtime execution,
   provider policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer message source tag facade helper privacy
+
+- Finding: message source and thinking badge presentation had moved into the
+  renderer app runtime, but chat message components still imported the source
+  tag helpers as standalone exports.
+- Change: exposed source badge, source-tag, and thinking badge presentation
+  through `DesktopMessageSourceTagRuntime` and kept the underlying helper
+  functions private to `desktopMessageSourceTagRuntime`.
+- Validation: focused message source tag runtime and renderer chat boundary
+  tests, targeted renderer ESLint, exact source/doc scans, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Dev-UI gating, badge text/title
+  output, token usage estimates, renderer markup, SDK source-channel labels,
+  storage, IPC, local-runtime execution, provider policy, backend behavior, and
+  trust boundaries are unchanged.

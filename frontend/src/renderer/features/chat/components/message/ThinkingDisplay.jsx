@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
-import { resolveThinkingSourceBadgePresentation } from '../../../../app/runtime/desktopMessageSourceTagRuntime';
+import { DesktopMessageSourceTagRuntime } from '../../../../app/runtime/desktopMessageSourceTagRuntime';
 import '../../../../styles/ThinkingDisplay.css';
 
 const THINKING_BOTTOM_STICK_THRESHOLD = 12;
@@ -61,7 +61,7 @@ function ThinkingDisplay({ status, sourceEventType = null }) {
   }
 
   const sourceBadgePresentation = isDevUiEnabled()
-    ? resolveThinkingSourceBadgePresentation(sourceEventType)
+    ? DesktopMessageSourceTagRuntime.resolveThinkingSourceBadgePresentation(sourceEventType)
     : null;
 
   return (

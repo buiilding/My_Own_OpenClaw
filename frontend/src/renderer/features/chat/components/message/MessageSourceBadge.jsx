@@ -4,14 +4,14 @@
 
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
-import { resolveMessageSourceBadgePresentation } from '../../../../app/runtime/desktopMessageSourceTagRuntime';
+import { DesktopMessageSourceTagRuntime } from '../../../../app/runtime/desktopMessageSourceTagRuntime';
 
 export default function MessageSourceBadge({ message }) {
   if (!isDevUiEnabled()) {
     return null;
   }
 
-  const presentation = resolveMessageSourceBadgePresentation(message);
+  const presentation = DesktopMessageSourceTagRuntime.resolveMessageSourceBadgePresentation(message);
 
   return (
     <div className="message-source-badge" title={presentation.title}>

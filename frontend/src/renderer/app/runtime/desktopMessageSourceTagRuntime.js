@@ -48,7 +48,7 @@ const SOURCE_CHANNEL_LABELS = {
   unknown: 'unknown',
 };
 
-export function resolveSourceTag(sourceEventType, sourceChannel) {
+function resolveSourceTag(sourceEventType, sourceChannel) {
   const normalizedEventType = typeof sourceEventType === 'string' && sourceEventType.trim()
     ? sourceEventType.trim()
     : 'unknown';
@@ -61,7 +61,7 @@ export function resolveSourceTag(sourceEventType, sourceChannel) {
   return `${eventLabel} / ${channelLabel}`;
 }
 
-export function resolveMessageSourceBadgePresentation(message) {
+function resolveMessageSourceBadgePresentation(message) {
   const sourceEventType = typeof message?.sourceEventType === 'string' && message.sourceEventType
     ? message.sourceEventType
     : 'transcript';
@@ -78,7 +78,7 @@ export function resolveMessageSourceBadgePresentation(message) {
   };
 }
 
-export function resolveThinkingSourceBadgePresentation(sourceEventType) {
+function resolveThinkingSourceBadgePresentation(sourceEventType) {
   const resolvedSourceEventType = typeof sourceEventType === 'string' && sourceEventType.trim()
     ? sourceEventType.trim()
     : 'llm-thought';
@@ -90,3 +90,9 @@ export function resolveThinkingSourceBadgePresentation(sourceEventType) {
     title: `source_event=${resolvedSourceEventType}`,
   };
 }
+
+export const DesktopMessageSourceTagRuntime = Object.freeze({
+  resolveMessageSourceBadgePresentation,
+  resolveSourceTag,
+  resolveThinkingSourceBadgePresentation,
+});

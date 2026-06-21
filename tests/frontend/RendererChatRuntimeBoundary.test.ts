@@ -968,12 +968,12 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
 
-    expect(sourceBadgeSource).toContain('resolveMessageSourceBadgePresentation');
+    expect(sourceBadgeSource).toContain('DesktopMessageSourceTagRuntime.resolveMessageSourceBadgePresentation');
     expect(sourceBadgeSource).toContain('desktopMessageSourceTagRuntime');
     expect(sourceBadgeSource).not.toContain('desktopMessageTokenUsageRuntime');
     expect(sourceBadgeSource).not.toContain('sourceEventType');
     expect(sourceBadgeSource).not.toContain('sourceChannel');
-    expect(thinkingDisplaySource).toContain('resolveThinkingSourceBadgePresentation');
+    expect(thinkingDisplaySource).toContain('DesktopMessageSourceTagRuntime.resolveThinkingSourceBadgePresentation');
     expect(thinkingDisplaySource).toContain('desktopMessageSourceTagRuntime');
     expect(thinkingDisplaySource).not.toContain('desktopPresentationSourceChannels');
     expect(thinkingDisplaySource).not.toContain('resolveSourceTag');
@@ -983,8 +983,12 @@ describe('renderer chat runtime boundary', () => {
     expect(thinkingDisplaySource).not.toContain('utils/message/sourceTags');
     expect(sourceTagRuntimeSource).toContain('desktopPresentationSourceChannels');
     expect(sourceTagRuntimeSource).toContain('desktopMessageTokenUsageRuntime');
+    expect(sourceTagRuntimeSource).toContain('DesktopMessageSourceTagRuntime');
     expect(sourceTagRuntimeSource).toContain('resolveMessageSourceBadgePresentation');
     expect(sourceTagRuntimeSource).toContain('resolveThinkingSourceBadgePresentation');
+    expect(sourceTagRuntimeSource).not.toContain('export function resolveSourceTag');
+    expect(sourceTagRuntimeSource).not.toContain('export function resolveMessageSourceBadgePresentation');
+    expect(sourceTagRuntimeSource).not.toContain('export function resolveThinkingSourceBadgePresentation');
     expect(sourceTagRuntimeSource).not.toContain('features/chat');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
     expect(tokenUsageRuntimeSource).not.toContain('features/chat');

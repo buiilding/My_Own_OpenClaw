@@ -46,7 +46,7 @@ Overflow behavior:
 Dev source badge:
 
 - `ThinkingDisplay` checks the dev-UI gate, then renders
-  `desktopMessageSourceTagRuntime.resolveThinkingSourceBadgePresentation(sourceEventType)`
+  `DesktopMessageSourceTagRuntime.resolveThinkingSourceBadgePresentation(sourceEventType)`
   output when enabled.
 - `desktopMessageSourceTagRuntime` owns the `llm-thought` fallback, source
   label, SDK conversation-event channel label, and source badge title string.
