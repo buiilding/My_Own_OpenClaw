@@ -40,6 +40,10 @@ Conversation workspace state:
 - `turnConversationRefs: Record<turnRef, conversationRef>`
 - `latestCurrentTurnProjection`
 
+The default workspace key is private to `chatWorkspaceState.ts`. Store
+initialization uses `createInitialWorkspaceRecord()` so `chatStore.ts` and
+feature callers do not import the raw sentinel string.
+
 All mutating actions accept optional `conversationRef` and write into that workspace. The projected top-level fields above always mirror the currently active workspace so existing selectors/components stay stable.
 
 Message attachment fields used by current send/runtime paths include:

@@ -4,6 +4,7 @@
 
 import type { StreamTracking } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  createInitialWorkspaceRecord,
   createInitialWorkspaceState,
   normalizeConversationRef,
   readWorkspaceState,
@@ -39,6 +40,19 @@ describe('chatWorkspaceState', () => {
     expect(normalizeConversationRef(undefined)).toBeNull();
     expect(resolveChatWorkspaceRef(' conversation-2 ')).toBe('conversation-2');
     expect(resolveChatWorkspaceRef('')).toBe('__default__');
+  });
+
+  test('creates the default workspace record through the workspace-state owner', () => {
+    expect(createInitialWorkspaceRecord()).toEqual({
+      __default__: expect.objectContaining({
+        messages: [],
+        isSending: false,
+        thinkingStatus: null,
+        streamTracking: expect.objectContaining({
+          phase: 'idle',
+        }),
+      }),
+    });
   });
 
   test('resolves workspace conversation refs using explicit then active value', () => {

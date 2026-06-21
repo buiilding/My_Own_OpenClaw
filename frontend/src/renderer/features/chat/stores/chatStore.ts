@@ -11,8 +11,8 @@ import type {
   TokenCounts,
 } from '../../../app/runtime/desktopChatMessageTypes';
 import {
-  DEFAULT_CHAT_WORKSPACE_REF,
   createInitialStreamTracking,
+  createInitialWorkspaceRecord,
   createInitialWorkspaceState,
   normalizeConversationRef,
   readWorkspaceState,
@@ -390,9 +390,7 @@ export function selectLiveTurnSurfaceState(state: ChatState) {
 export const useChatStore = create<ChatState>((set, get) => ({
   // Initial state
   activeConversationRef: null,
-  workspaces: {
-    [DEFAULT_CHAT_WORKSPACE_REF]: createInitialWorkspaceState(),
-  },
+  workspaces: createInitialWorkspaceRecord(),
   turnConversationRefs: {},
   dismissedResponseOverlayEntries: {},
   messages: [],

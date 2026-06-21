@@ -20753,3 +20753,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Empty snapshot shapes, extension/MCP
   list normalization, settings fallback behavior, IPC channels, persisted
   config, provider policy, permissions, and backend behavior are unchanged.
+
+### 2026-06-21 renderer chat workspace default-key privacy
+
+- Finding: `chatWorkspaceState.ts` owned workspace-ref normalization and the
+  default workspace sentinel, but exported the raw
+  `DEFAULT_CHAT_WORKSPACE_REF` string to `chatStore.ts` for initial state
+  construction.
+- Change: made the default workspace key private to the workspace-state owner,
+  added `createInitialWorkspaceRecord()` for store initialization, and updated
+  focused tests plus boundary coverage so the store depends on the semantic
+  initializer instead of the raw sentinel.
+- Validation: focused chat workspace, chat store, renderer chat boundary, docs
+  listing, exact raw-export/import scan, and diff checks.
+- Compatibility: no migration required. The default workspace key string,
+  workspace record shape, active-workspace projection, stream state, persisted
+  transcript data, IPC channels, provider policy, permissions, and backend
+  behavior are unchanged.

@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: keep the default chat workspace key private to the workspace
+  state owner and initialize chat-store workspaces through a semantic helper.
+  No migration required.
 - renderer/settings: keep extension, tool-manifest, remote-tool, and MCP empty
   snapshots private to their app-runtime clients, exposing semantic empty-state
   helpers for dashboard settings surfaces. No migration required.

@@ -8600,3 +8600,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   shapes, extension/MCP list normalization, settings fallback behavior, IPC
   channels, persisted config, provider policy, permissions, and backend
   behavior are unchanged; no migration is required.
+- The renderer chat workspace-state owner now keeps the raw default workspace
+  key private to `chatWorkspaceState.ts`; `chatStore.ts` initializes workspace
+  records through `createInitialWorkspaceRecord()` instead of importing
+  `DEFAULT_CHAT_WORKSPACE_REF`. Boundary coverage prevents the raw sentinel
+  from returning as a store dependency. The default workspace key string,
+  workspace record shape, active-workspace projection, stream state, persisted
+  transcript data, IPC channels, provider policy, permissions, and backend
+  behavior are unchanged; no migration is required.
