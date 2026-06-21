@@ -29,13 +29,18 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
 
     assert "Desktop Runtime local runtime" in source
     assert "Desktop Runtime sidecar" not in source
-    assert "Run the Python sidecar daemon." in source
-    assert 'emit_sidecar_layer_log("[LocalRuntime]", "status requested")' in source
+    assert "Python local-runtime daemon HTTP/WebSocket runtime." in source
+    assert "Run the Python local-runtime daemon." in source
+    assert (
+        'emit_local_runtime_layer_log("[LocalRuntime]", "status requested")'
+        in source
+    )
     assert '"[LocalRuntimeDaemon] listening' in source
     assert '"[LocalRuntimeDaemon] stopping' in source
     assert "resolve_app_user_data_root(" in source
     assert 'Path.home() / "Library" / "Application Support" / "windieos"' not in source
     assert f"{retired_product_name} sidecar" not in source
+    assert "Run the Python sidecar daemon." not in source
     assert f"Run the {retired_product_name} sidecar daemon." not in source
     assert "WINDIE_SIDECAR_SOURCE_PATH" not in source
     assert "WINDIE_SIDECAR_SOURCE_STAMP" not in source
@@ -45,6 +50,7 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
         f'emit_sidecar_layer_log("{retired_local_sidecar_prefix}", "status requested")'
         not in source
     )
+    assert "emit_sidecar_layer_log(" not in source
     assert (
         f'emit_sidecar_layer_log("[Local{"Backend"}]", "status requested")'
         not in source
@@ -413,8 +419,10 @@ async def test_sidecar_daemon_health_endpoint_reports_generic_service():
 
     assert response.status == 200
     assert payload["status"] == "ok"
-    assert payload["service"] == "sidecar_daemon"
+    assert payload["service"] == "local_runtime_daemon"
+    retired_service_name = "sidecar" "_daemon"
     legacy_service_name = "windie" "_sidecar_daemon"
+    assert payload["service"] != retired_service_name
     assert payload["service"] != legacy_service_name
     assert payload["pid"] > 0
 

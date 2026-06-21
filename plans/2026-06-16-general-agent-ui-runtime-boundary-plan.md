@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Daemon Health Label Boundary
+
+- Finding: the Python local-runtime daemon kept active sidecar-owned wording in
+  its module docstring, argparse help, internal layer-log helper name, and local
+  `/health` service label even though the SDK/main boundary already treats the
+  process as the local-runtime daemon and preserves `sidecar_daemon.py` only as
+  the WindieOS launch filename.
+- Change: renamed the active daemon copy and helper to local-runtime wording
+  and changed `/health` to report `service: "local_runtime_daemon"`, with docs
+  updated to describe the payload as diagnostic ownership instead of filename
+  identity.
+- Validation: focused local-runtime daemon pytest, exact stale active-label
+  scan, docs list, py_compile, and diff hygiene.
+- Compatibility/security: the local `/health` service label changes from
+  `sidecar_daemon` to `local_runtime_daemon`; no migration is required for
+  launch paths, discovery files, token auth, `/status`, `/rpc`, local tool
+  execution, memory storage, IPC, permissions, credentials, hosted backend URLs,
+  or provider policy.
+
 ### 2026-06-21 SDK Private Export Compatibility Guard Labels
 
 - Finding: the SDK private-export guard suite still described retired

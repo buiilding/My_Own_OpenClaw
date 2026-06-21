@@ -38,6 +38,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- local-runtime/python: label the daemon entrypoint help, internal layer-log
+  helper, and local `/health` service payload as `local_runtime_daemon` instead
+  of sidecar-owned wording. The historical `sidecar_daemon.py` entrypoint
+  remains the WindieOS host-skinned launch file; local health clients should
+  treat the service label as descriptive diagnostics, and no migration is
+  required for launch paths, auth, tools, memory, IPC, permissions, or
+  credentials.
 - sdk/tests: rename the private-export compatibility guard labels for retired
   local-runtime modules while keeping the removed historical module-name
   assertions intact. No migration required.

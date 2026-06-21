@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Python sidecar daemon HTTP/WebSocket runtime."""
+"""Python local-runtime daemon HTTP/WebSocket runtime."""
 
 from __future__ import annotations
 
@@ -148,7 +148,7 @@ def sanitize_diagnostic_text(
     return text
 
 
-def emit_sidecar_layer_log(prefix: str, message: str) -> None:
+def emit_local_runtime_layer_log(prefix: str, message: str) -> None:
     print(
         f"{prefix} {sanitize_diagnostic_text(message)}",
         file=sys.stderr,
@@ -920,14 +920,14 @@ class LocalRuntimeDaemon:
         return web.json_response(
             {
                 "status": "ok",
-                "service": "sidecar_daemon",
+                "service": "local_runtime_daemon",
                 "pid": os.getpid(),
                 "created_at": self.created_at,
             }
         )
 
     async def handle_status(self, request: web.Request) -> web.Response:
-        emit_sidecar_layer_log("[LocalRuntime]", "status requested")
+        emit_local_runtime_layer_log("[LocalRuntime]", "status requested")
         return web.json_response(await self.build_status_payload())
 
     async def handle_shutdown(self, request: web.Request) -> web.Response:
@@ -1266,7 +1266,7 @@ class LocalRuntimeDaemon:
                     return data
 
                 started_at = time.monotonic()
-                emit_sidecar_layer_log(
+                emit_local_runtime_layer_log(
                     "[MCP]",
                     f"tool_call_start server={mcp_server.id} tool={tool_name} exposed={exposed_tool_name}",
                 )
@@ -1283,7 +1283,7 @@ class LocalRuntimeDaemon:
                     result = await mcp_client.call_tool(tool_name, args)
                 except Exception as exc:
                     elapsed_ms = int((time.monotonic() - started_at) * 1000)
-                    emit_sidecar_layer_log(
+                    emit_local_runtime_layer_log(
                         "[MCP]",
                         f"tool_call_failed server={mcp_server.id} tool={tool_name} elapsed_ms={elapsed_ms}",
                     )
@@ -1302,7 +1302,7 @@ class LocalRuntimeDaemon:
                 elapsed_ms = int((time.monotonic() - started_at) * 1000)
                 output = serialize_mcp_result_for_output(result)
                 if result.get("isError"):
-                    emit_sidecar_layer_log(
+                    emit_local_runtime_layer_log(
                         "[MCP]",
                         f"tool_call_failed server={mcp_server.id} tool={tool_name} elapsed_ms={elapsed_ms}",
                     )
@@ -1330,7 +1330,7 @@ class LocalRuntimeDaemon:
                     conversation_ref=conversation_ref,
                     data=diagnostic_data({"elapsedMs": elapsed_ms}),
                 )
-                emit_sidecar_layer_log(
+                emit_local_runtime_layer_log(
                     "[MCP]",
                     f"tool_call_succeeded server={mcp_server.id} tool={tool_name} elapsed_ms={elapsed_ms}",
                 )
@@ -1390,7 +1390,7 @@ class LocalRuntimeDaemon:
         log_prefix, log_message = build_tool_execution_layer_log(
             tool_name, args, result
         )
-        emit_sidecar_layer_log(log_prefix, log_message)
+        emit_local_runtime_layer_log(log_prefix, log_message)
         await self.emit_event(
             {
                 "type": "tool-executed",
@@ -1528,7 +1528,7 @@ async def run_daemon(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the Python sidecar daemon.")
+    parser = argparse.ArgumentParser(description="Run the Python local-runtime daemon.")
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=int, default=0)
     parser.add_argument("--token", default=None)

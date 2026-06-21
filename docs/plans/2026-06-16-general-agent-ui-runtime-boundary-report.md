@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: SDK private-export compatibility guard labels now
-  describe retired local-runtime modules without presenting sidecar as the
-  active owner, while retaining the exact removed historical module-name
-  assertions.
+- Latest completed slice: local-runtime Python daemon help, internal layer-log
+  helper naming, and local `/health` service payload now use local-runtime
+  daemon ownership instead of sidecar-owned wording while preserving the
+  historical `sidecar_daemon.py` launch filename.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -43,6 +43,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   SDK private-export compatibility tests use local-runtime wording for active
   guard labels while preserving concrete removed sidecar compatibility module
   sentinels so stale public CJS files stay absent.
+  The Python local-runtime daemon still launches from the WindieOS
+  `sidecar_daemon.py` host-skinned entrypoint, but active runtime help text,
+  internal layer-log helper naming, and `/health` service diagnostics identify
+  the running service as `local_runtime_daemon`.
   CLI test routing exposes `test local-runtime` as the owner-correct command
   for local-runtime Python pytest while preserving `test sidecar` and the
   `scripts/test-sidecar.sh` compatibility wrapper.

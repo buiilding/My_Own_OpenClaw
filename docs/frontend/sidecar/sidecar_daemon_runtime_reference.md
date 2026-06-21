@@ -112,6 +112,10 @@ POST /rpc
 WS   /events
 ```
 
+`GET /health` returns daemon liveness with the generic `local_runtime_daemon`
+service label, pid, and creation time. The response intentionally describes the
+runtime owner rather than the historical entrypoint filename.
+
 `/tools` returns the executable local tool manifest. This is local-runtime diagnostic/execution shape, not the backend's policy-filtered model-visible schema.
 
 `POST /rpc` accepts the existing local JSON-RPC envelope and dispatches it through `LocalRuntimeService.protocol.handle_request(...)`. It exists so Electron can keep existing memory/status/system-state IPC handlers while using the daemon as the only Python runtime owner.
