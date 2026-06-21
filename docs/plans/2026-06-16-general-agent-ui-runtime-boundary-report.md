@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: dashboard recent-conversation reload triggers no
-  longer pass unused reason strings through the dashboard hook; SDK event
-  classification now returns only the action and conversation identity the hook
-  actually consumes.
+- Latest completed slice: the tool-acceptance runtime summary formatter now
+  lives on the `DesktopRuntimeSkin` facade instead of the concrete WindieOS skin
+  file, keeping the skin object data-only while preserving the consumer API.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

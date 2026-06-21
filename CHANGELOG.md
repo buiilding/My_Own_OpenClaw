@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: move the tool-acceptance runtime summary formatter from
+  the concrete WindieOS skin file into the `DesktopRuntimeSkin` facade so the
+  skin stays data-only while consumers keep the same facade API. No migration
+  required.
 - frontend/renderer: remove unused dashboard recent-conversation reload reason
   strings from the dashboard hook and conversation-load runtime facade, keeping
   SDK event classification to action plus conversation identity only. No

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Skin Formatter Facade Ownership
+
+- Finding: `windieDesktopSkin.js` exported both the concrete WindieOS skin data
+  and `formatToolAcceptanceRuntimeSummary(...)`, while consumers already called
+  the helper through `DesktopRuntimeSkin`.
+- Change: moved the formatter implementation into `desktopRuntimeSkin.js` so
+  the concrete WindieOS skin file stays data-only and the generic renderer skin
+  facade owns the callable presentation helper.
+- Validation: focused renderer skin/config boundary tests plus targeted skin
+  source lint, docs listing, stale direct formatter export scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. Settings tool acceptance copy,
+  local/cloud runtime labels, active skin values, IPC, credentials, hosted
+  backend policy, and local-runtime execution are unchanged.
+
 ### 2026-06-21 Renderer Dashboard Conversation Reload Reason Cleanup
 
 - Finding: `useDashboardConversations` and `DashboardShell` still passed

@@ -105,9 +105,12 @@ describe('renderer skin/config boundary', () => {
     expect(skinSource).toContain('web_search');
     expect(skinSource).toContain('run_shell_command');
     expect(skinSource).toContain('requireUserMessage');
+    expect(skinSource).not.toContain('export function formatToolAcceptanceRuntimeSummary');
     expect(skinFacadeSource).toContain('export const desktopRuntimeSkin = windieDesktopSkin');
     expect(skinFacadeSource).toContain('export const DesktopRuntimeSkin = Object.freeze');
     expect(skinFacadeSource).toContain("from './windieDesktopSkin'");
+    expect(skinFacadeSource).toContain('function formatToolAcceptanceRuntimeSummary');
+    expect(skinFacadeSource).toContain('formatToolAcceptanceRuntimeSummary');
     expect(skinFacadeSource).not.toContain('export {');
   });
 
