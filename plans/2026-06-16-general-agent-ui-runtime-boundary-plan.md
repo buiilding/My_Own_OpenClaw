@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Dashboard Provider Credential Runtime Boundary
+
+- Finding: dashboard `providerApiKeys.js` and
+  `desktopRendererConfigStorageRuntime.js` each normalized provider API-key
+  entries from the active renderer skin, leaving dashboard API-key controls and
+  renderer local persistence with duplicate fixed-provider credential rules.
+- Change: added `desktopProviderCredentialRuntime.js` as the app-runtime owner
+  for provider API-key entry normalization, skin-configured API-key specs, and
+  renderer-persistence secret stripping; routed `ModelsSection`,
+  `ApiKeysSection`, and config storage through it; and retired the
+  dashboard-local `providerApiKeys.js` helper.
+- Validation: focused provider credential, models section, config storage,
+  renderer boundary, renderer skin/config boundary, docs listing, stale helper
+  path scan, and diff checks.
+- Compatibility: no migration required. Provider credential config shape,
+  renderer localStorage key, disk persistence payload, settings runtime sync,
+  backend provider policy, credentials, hosted backend URLs, and provider model
+  catalog behavior are unchanged; renderer persistence continues to scrub raw
+  provider API-key secrets.
+
 ### 2026-06-21 Dashboard Model Card Presentation Runtime Boundary
 
 - Finding: `ModelsSection` already used `desktopModelSelectionRuntime` for

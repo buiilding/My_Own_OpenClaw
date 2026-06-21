@@ -31,6 +31,7 @@ const rendererStateWorkflowPath = path.resolve(
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
 const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/components/sections');
 const providerApiKeysPropTypesPath = path.join(dashboardSectionsRoot, 'providerApiKeysPropTypes.js');
+const providerCredentialRuntimePath = path.join(rendererRoot, 'app/runtime/desktopProviderCredentialRuntime.js');
 const configFilterPath = path.join(rendererRoot, 'app/runtime/desktopRendererConfigFilterRuntime.js');
 const configStoragePath = path.join(rendererRoot, 'app/runtime/desktopRendererConfigStorageRuntime.js');
 const applyAppearanceThemePath = path.join(rendererRoot, 'app/applyAppearanceTheme.js');
@@ -235,10 +236,7 @@ describe('renderer skin/config boundary', () => {
     const providerSkinSource = fs.readFileSync(providerCredentialSettingsPath, 'utf8');
     const providerPropTypesSource = fs.readFileSync(providerApiKeysPropTypesPath, 'utf8');
     const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
-    const apiKeysSource = fs.readFileSync(
-      path.join(dashboardSectionsRoot, 'providerApiKeys.js'),
-      'utf8',
-    );
+    const providerCredentialRuntimeSource = fs.readFileSync(providerCredentialRuntimePath, 'utf8');
 
     expect(configFacadeSource).toContain("from './providerCredentialSettings'");
     expect(providerSkinSource).toContain('DEFAULT_PROVIDER_API_KEYS');
@@ -252,10 +250,13 @@ describe('renderer skin/config boundary', () => {
     expect(providerPropTypesSource).not.toContain('mistral: providerApiKeyEntryPropType');
     expect(configStorageSource).toContain('desktopRuntimeConfig');
     expect(configStorageSource).not.toContain('providerCredentialSettings');
-    expect(apiKeysSource).toContain('desktopRuntimeConfig');
-    expect(apiKeysSource).not.toContain('providerCredentialSettings');
+    expect(configStorageSource).toContain('desktopProviderCredentialRuntime');
+    expect(providerCredentialRuntimeSource).toContain('desktopRuntimeConfig');
+    expect(providerCredentialRuntimeSource).not.toContain('providerCredentialSettings');
+    expect(providerCredentialRuntimeSource).toContain('stripProviderApiKeySecrets');
     expect(configStorageSource).not.toContain('openai: { enabled: false');
-    expect(apiKeysSource).not.toContain('OpenAI API Key');
+    expect(providerCredentialRuntimeSource).not.toContain('OpenAI API Key');
+    expect(fs.existsSync(path.join(dashboardSectionsRoot, 'providerApiKeys.js'))).toBe(false);
   });
 
   test('default model selection lives in renderer skin config', () => {

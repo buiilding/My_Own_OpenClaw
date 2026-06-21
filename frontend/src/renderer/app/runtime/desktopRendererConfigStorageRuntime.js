@@ -6,9 +6,12 @@ import { DesktopShortcutRuntimeClient } from './desktopShortcutRuntimeClient';
 import {
   DEFAULT_APPEARANCE_THEME,
   DEFAULT_MODEL_SELECTION,
-  DEFAULT_PROVIDER_API_KEYS,
   RENDERER_STORAGE_KEYS,
 } from '../skin/desktopRuntimeConfig';
+import {
+  normalizeProviderApiKeys,
+  stripProviderApiKeySecrets,
+} from './desktopProviderCredentialRuntime';
 
 /**
  * Local storage utilities for configuration persistence.
@@ -37,28 +40,10 @@ const DEFAULT_RENDERER_CONFIG = {
   browser_automation_enabled: false,
   global_agent_stop_shortcut: DesktopShortcutRuntimeClient.normalizeGlobalAgentStopShortcutAccelerator(),
   include_query_screenshot: true,
-  provider_api_keys: DEFAULT_PROVIDER_API_KEYS,
+  provider_api_keys: normalizeProviderApiKeys(),
   appearance_mode: 'system',
   appearance_theme: DEFAULT_APPEARANCE_THEME,
 };
-
-function normalizeProviderApiKeys(overrides = null) {
-  const source = toPlainRecord(overrides);
-
-  const normalized = {};
-  for (const [provider, defaultEntry] of Object.entries(DEFAULT_PROVIDER_API_KEYS)) {
-    const candidate = (
-      source[provider]
-      && typeof source[provider] === 'object'
-      && !Array.isArray(source[provider])
-    ) ? source[provider] : {};
-    normalized[provider] = {
-      enabled: candidate.enabled === true,
-      api_key: typeof candidate.api_key === 'string' ? candidate.api_key : defaultEntry.api_key,
-    };
-  }
-  return normalized;
-}
 
 function normalizeHexColor(value, fallback) {
   if (typeof value !== 'string') {
@@ -158,17 +143,10 @@ function buildRendererConfig(overrides = {}) {
 
 function stripProviderSecretsForConfigPersistence(config) {
   const normalized = buildRendererConfig(config);
-  const providerApiKeys = {};
-  for (const [provider, entry] of Object.entries(normalized.provider_api_keys)) {
-    providerApiKeys[provider] = {
-      ...entry,
-      api_key: '',
-    };
-  }
 
   return {
     ...normalized,
-    provider_api_keys: providerApiKeys,
+    provider_api_keys: stripProviderApiKeySecrets(normalized.provider_api_keys),
   };
 }
 

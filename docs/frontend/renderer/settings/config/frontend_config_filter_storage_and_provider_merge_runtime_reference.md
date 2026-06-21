@@ -14,6 +14,7 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 
 - `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
@@ -88,6 +89,10 @@ The generic storage runtime assembles defaults through the
 specs, and appearance palettes live in the active renderer skin so another
 desktop skin can replace them without changing
 `desktopRendererConfigStorageRuntime.js`.
+
+Provider key entry normalization and renderer-persistence secret stripping live
+in `desktopProviderCredentialRuntime.js`, which consumes those skin defaults
+for both dashboard API-key controls and local config persistence.
 
 Current WindieOS skin defaults:
 

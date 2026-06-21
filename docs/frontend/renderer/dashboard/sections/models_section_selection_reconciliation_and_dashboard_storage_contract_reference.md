@@ -13,8 +13,8 @@ title: "Models Section Selection Reconciliation and Dashboard Storage Contract R
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`
 - `frontend/src/renderer/app/runtime/desktopModelCardPresentationRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/modelCards.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`
 - `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`
 - `tests/frontend/ModelSelectionUtils.test.js`
 - `tests/frontend/ModelsSection.test.jsx`
@@ -108,7 +108,7 @@ Outbound config update on model select (`buildModelConfigUpdate`):
 - toggles each provider key via `PROVIDER_API_KEY_SPECS`
 - value/input updates call `onProviderApiKeysChange(...)`
 
-`providerApiKeys` normalization (`normalizeProviderApiKeys`) guarantees fixed provider key set:
+Provider credential runtime normalization (`normalizeProviderApiKeys`) guarantees fixed provider key set:
 
 - `openai`, `anthropic`, `kimi_coding`, `google`, `openrouter`, `mistral`
 - each entry shape: `{ enabled: boolean, api_key: string }`
@@ -140,7 +140,7 @@ Persistence/sync remains owned by AppConfig provider pipeline.
 
 1. Changing provider normalization rules in one helper only can split provider grouping vs selection matching.
 2. Removing provider from selection checks (`id`-only) can select wrong provider variant for duplicate ids.
-3. Extending provider API key schema without updating `normalizeProviderApiKeys` drops new provider keys from persisted payloads.
+3. Extending provider API key schema without updating `desktopProviderCredentialRuntime` drops new provider keys from persisted payloads.
 4. Breaking warning timeout cleanup can leak timers on panel unmount.
 
 ## Related Pages

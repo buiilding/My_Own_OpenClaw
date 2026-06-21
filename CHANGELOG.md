@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/config: centralize provider API-key normalization and renderer
+  persistence scrubbing in `desktopProviderCredentialRuntime.js`, replacing the
+  dashboard-local helper and sharing the same fixed provider-key projection
+  with config storage. No migration required.
 - renderer/models: move dashboard model-card and provider-card projection into
   `desktopModelCardPresentationRuntime.js`, retiring the section-local
   `modelCardData.js` helper while preserving model selection, grouping, and

@@ -24,7 +24,7 @@ import {
   ModelCard,
   ProviderCard,
 } from './modelCards';
-import { normalizeProviderApiKeys } from './providerApiKeys';
+import { normalizeProviderApiKeys } from '../../../../app/runtime/desktopProviderCredentialRuntime';
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 

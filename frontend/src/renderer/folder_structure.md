@@ -178,7 +178,6 @@ frontend/src/renderer/
 │   │           ├── MemoryItem.jsx       # MemoryItem - Expand/edit/delete UI row for individual memory entries
 │   │           ├── ModelsSection.jsx    # ModelsSection - Model list + API key input
 │   │           ├── modelCards.jsx       # modelCards - Provider/model card presentational components
-│   │           ├── providerApiKeys.js   # providerApiKeys - Provider API key defaults/specs + normalization
 │   │           └── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
 │   │
 │   ├── permissions/                      # Permission settings control center

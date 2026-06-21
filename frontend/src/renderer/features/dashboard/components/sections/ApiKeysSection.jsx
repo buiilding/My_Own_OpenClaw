@@ -8,7 +8,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
   normalizeProviderApiKeys,
   PROVIDER_API_KEY_SPECS,
-} from './providerApiKeys';
+} from '../../../../app/runtime/desktopProviderCredentialRuntime';
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
 
 function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {

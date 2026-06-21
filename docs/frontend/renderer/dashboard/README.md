@@ -38,8 +38,8 @@ title: "Renderer Dashboard Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
 - `frontend/src/renderer/app/runtime/desktopModelCardPresentationRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/modelCards.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`
 - `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
