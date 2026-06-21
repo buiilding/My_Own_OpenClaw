@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sidecar: describe browser profile compatibility coverage with generic
+  desktop app wording instead of WindieOS desktop launch copy. No migration
+  required.
 - tests/sidecar: use neutral `AGENT_TEST_*` disposable env fixtures in
   local-runtime helper coverage instead of arbitrary `WINDIE_TEST_*` names. No
   migration required.

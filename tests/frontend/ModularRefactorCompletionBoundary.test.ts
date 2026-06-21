@@ -423,6 +423,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('AGENT_TEST');
   });
 
+  test('sidecar browser launcher tests keep profile compatibility wording product-neutral', async () => {
+    const source = await read('tests/sidecar/tools/test_chrome_launcher.py');
+
+    expect(source).not.toContain('WindieOS desktop launches');
+    expect(source).toContain('desktop app launches keep the injected dedicated profile path');
+  });
+
   test('renderer workspace runtime tests keep workspace fixtures product-neutral', async () => {
     const workspaceTestText = await Promise.all([
       read('tests/frontend/DesktopWorkspaceRuntimeClient.test.ts'),

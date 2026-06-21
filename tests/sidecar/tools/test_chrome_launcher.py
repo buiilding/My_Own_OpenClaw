@@ -235,7 +235,7 @@ class TestGetChromeUserDataDir:
     def test_windows_path_uses_injected_windie_app_data_name(
         self, mock_home, mock_system, monkeypatch
     ):
-        """Test WindieOS desktop launches keep the existing dedicated profile path."""
+        """Test desktop app launches keep the injected dedicated profile path."""
         mock_system.return_value = "Windows"
         mock_home.return_value = Path("C:/Users/test")
         monkeypatch.setenv("LOCALAPPDATA", "C:/Users/test/AppData/Local")

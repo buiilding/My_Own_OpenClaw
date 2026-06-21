@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `4dbc68317` (`test(renderer): neutralize onboarding focus wording`)
-- Latest completed slice: sidecar helper tests now use neutral `AGENT_TEST_*`
-  disposable env fixtures instead of arbitrary `WINDIE_TEST_*` names.
+- Latest inspected plan checkpoint: `ab14d7d73` (`test(sidecar): neutralize helper env fixtures`)
+- Latest completed slice: sidecar browser launcher profile compatibility tests
+  now use generic desktop app wording instead of WindieOS desktop launch copy.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -65,6 +65,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic sidecar helper tests use neutral `AGENT_TEST_*` disposable env
   fixtures while real Windie env aliases remain covered in explicit alias
   tests.
+  Generic sidecar browser launcher tests describe injected dedicated profile
+  path compatibility through desktop app launch wording while real Windie
+  legacy env aliases remain covered explicitly.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real

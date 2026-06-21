@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Sidecar Browser Launcher Profile Wording Cleanup
+
+- Finding: browser launcher coverage described injected profile-path
+  compatibility as WindieOS desktop launch behavior even though the local
+  runtime launcher supports host-injected app data names.
+- Change: renamed the test docstring to generic desktop app launch wording and
+  added a modular completion guard for the retired phrase.
+- Validation: focused sidecar Chrome launcher tests, modular boundary test, and
+  exact retired phrase scan.
+- Compatibility: no migration required. Dedicated browser profile path
+  resolution, generic and legacy env aliases, CDP launch behavior, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Sidecar Helper Env Fixture Neutralization
 
 - Finding: sidecar helper coverage used `WINDIE_TEST_*` as arbitrary
