@@ -54,7 +54,7 @@ export type DesktopWorkspaceSelectionUpdateListener = (
 
 const WORKSPACE_ACCESS_PERMISSION_ID = 'filesystem_workspace_access';
 
-export function getEmptyActiveWorkspaceSelection(): DesktopWorkspaceSelection {
+function getEmptyActiveWorkspaceSelection(): DesktopWorkspaceSelection {
   return {
     activeWorkspaceName: '',
     activeWorkspacePath: '',
@@ -146,7 +146,7 @@ function normalizeWorkspaceAccessUpdatedPayload(
   };
 }
 
-export function areActiveWorkspaceSelectionsEqual(
+function areActiveWorkspaceSelectionsEqual(
   currentWorkspace: unknown,
   nextWorkspace: unknown,
 ): boolean {
@@ -158,7 +158,7 @@ export function areActiveWorkspaceSelectionsEqual(
   );
 }
 
-export function getActiveWorkspacePresentation(
+function getActiveWorkspacePresentation(
   workspace: unknown,
   copy: DesktopWorkspacePresentationCopy = {},
 ): DesktopActiveWorkspacePresentation {

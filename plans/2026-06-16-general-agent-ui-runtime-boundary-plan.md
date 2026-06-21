@@ -269,6 +269,23 @@ Each completed slice should report:
   permissions, credentials, hosted backend URLs, and provider policy are
   unchanged.
 
+### 2026-06-21 Renderer Workspace Selection Helper Facade
+
+- Finding: `DesktopWorkspaceRuntimeClient` already exposed active workspace
+  selection equality, empty-selection creation, and presentation values as
+  facade methods used by workspace settings UI, but the raw helpers were still
+  exported directly for focused tests.
+- Change: made the active workspace selection equality, empty-selection, and
+  presentation helpers private to the workspace runtime client module and moved
+  focused coverage through the public `DesktopWorkspaceRuntimeClient` methods.
+- Validation: focused workspace runtime client and renderer settings boundary
+  tests, exact standalone helper export/import scan, docs list, and diff
+  hygiene.
+- Compatibility/security: no migration required. Workspace IPC channel names,
+  active workspace selection payloads, settings UI behavior, conversation
+  workspace bindings, local filesystem permission behavior, credentials, hosted
+  backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Response Overlay Payload Helper Privacy
 
 - Finding: `DesktopResponseOverlayRuntimeClient` already owned response

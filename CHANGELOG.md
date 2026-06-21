@@ -71,6 +71,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep deferred query model-selection projection behind the
   renderer config runtime client facade instead of a standalone helper export.
   No migration required.
+- frontend/renderer: keep active workspace selection equality, empty-selection,
+  and presentation helpers behind the workspace runtime client facade instead
+  of standalone helper exports. No migration required.
 - docs/memory and docs/concepts: describe `session_id` as hosted backend
   runtime identity instead of generic backend runtime/session wording. No
   migration required.

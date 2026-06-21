@@ -28,9 +28,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 import * as DesktopWorkspaceRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 import {
   DesktopWorkspaceRuntimeClient,
-  areActiveWorkspaceSelectionsEqual,
-  getActiveWorkspacePresentation,
-  getEmptyActiveWorkspaceSelection,
 } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 
 describe('DesktopWorkspaceRuntimeClient', () => {
@@ -44,7 +41,7 @@ describe('DesktopWorkspaceRuntimeClient', () => {
   });
 
   test('compares active workspace selections by value-level name and path', () => {
-    expect(areActiveWorkspaceSelectionsEqual(
+    expect(DesktopWorkspaceRuntimeClient.areActiveWorkspaceSelectionsEqual(
       {
         activeWorkspaceName: 'Project Alpha',
         activeWorkspacePath: '/repo/project-alpha',
@@ -68,17 +65,17 @@ describe('DesktopWorkspaceRuntimeClient', () => {
         },
       ),
     ).toBe(false);
-    expect(areActiveWorkspaceSelectionsEqual(null, null)).toBe(true);
+    expect(DesktopWorkspaceRuntimeClient.areActiveWorkspaceSelectionsEqual(null, null)).toBe(true);
   });
 
   test('builds active workspace presentation values at the runtime boundary', () => {
-    expect(getEmptyActiveWorkspaceSelection()).toEqual({
+    expect(DesktopWorkspaceRuntimeClient.getEmptyActiveWorkspaceSelection()).toEqual({
       activeWorkspaceName: '',
       activeWorkspacePath: '',
       selectedPaths: [],
     });
 
-    expect(getActiveWorkspacePresentation(
+    expect(DesktopWorkspaceRuntimeClient.getActiveWorkspacePresentation(
       {
         activeWorkspaceName: 'Project Alpha',
         activeWorkspacePath: '/repo/project-alpha',
