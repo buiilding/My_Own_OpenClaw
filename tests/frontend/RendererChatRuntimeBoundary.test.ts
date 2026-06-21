@@ -983,6 +983,7 @@ describe('renderer chat runtime boundary', () => {
     expect(thinkingDisplaySource).not.toContain('utils/message/sourceTags');
     expect(sourceTagRuntimeSource).toContain('desktopPresentationSourceChannels');
     expect(sourceTagRuntimeSource).toContain('desktopMessageTokenUsageRuntime');
+    expect(sourceTagRuntimeSource).toContain('DesktopMessageTokenUsageRuntime.resolveMessageTokenUsageTag');
     expect(sourceTagRuntimeSource).toContain('DesktopMessageSourceTagRuntime');
     expect(sourceTagRuntimeSource).toContain('resolveMessageSourceBadgePresentation');
     expect(sourceTagRuntimeSource).toContain('resolveThinkingSourceBadgePresentation');
@@ -991,6 +992,8 @@ describe('renderer chat runtime boundary', () => {
     expect(sourceTagRuntimeSource).not.toContain('export function resolveThinkingSourceBadgePresentation');
     expect(sourceTagRuntimeSource).not.toContain('features/chat');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
+    expect(tokenUsageRuntimeSource).toContain('DesktopMessageTokenUsageRuntime');
+    expect(tokenUsageRuntimeSource).not.toContain('export function resolveMessageTokenUsageTag');
     expect(tokenUsageRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/sourceTags.js'),

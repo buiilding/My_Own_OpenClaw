@@ -132,7 +132,7 @@ Important:
 - dedicated `TokenCountDisplay` component path is retired in current frontend runtime.
 - token count remains part of stream telemetry/state and may be surfaced by future UI consumers.
 - in `dev_ui=1`, per-message token estimates now render via
-  `MessageSourceBadge` through `desktopMessageTokenUsageRuntime`:
+  `MessageSourceBadge` through `DesktopMessageTokenUsageRuntime`:
   - user rows show text/image/total estimates
   - tool-call/tool-output rows show payload token estimates
   - all message-level values are approximate and intentionally tagged `tokens~`

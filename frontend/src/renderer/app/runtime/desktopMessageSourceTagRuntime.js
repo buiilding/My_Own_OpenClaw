@@ -8,7 +8,7 @@ import {
   getSdkDisplayRowsSourceChannel,
 } from './desktopPresentationSourceChannels';
 import {
-  resolveMessageTokenUsageTag,
+  DesktopMessageTokenUsageRuntime,
 } from './desktopMessageTokenUsageRuntime';
 
 const sdkConversationEventSourceChannel = getSdkConversationEventSourceChannel();
@@ -68,7 +68,7 @@ function resolveMessageSourceBadgePresentation(message) {
   const sourceChannel = typeof message?.sourceChannel === 'string' && message.sourceChannel
     ? message.sourceChannel
     : 'unknown';
-  const tokenUsageTag = resolveMessageTokenUsageTag(message);
+  const tokenUsageTag = DesktopMessageTokenUsageRuntime.resolveMessageTokenUsageTag(message);
   const sourceTag = resolveSourceTag(sourceEventType, sourceChannel);
   return {
     badgeText: tokenUsageTag

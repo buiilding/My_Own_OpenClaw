@@ -142,7 +142,7 @@ function resolveProviderTokenUsageTag(message) {
   return `tokens(provider) ${parts.join(' ')}`;
 }
 
-export function resolveMessageTokenUsageTag(message) {
+function resolveMessageTokenUsageTag(message) {
   if (!message || typeof message !== 'object') {
     return null;
   }
@@ -172,3 +172,7 @@ export function resolveMessageTokenUsageTag(message) {
 
   return null;
 }
+
+export const DesktopMessageTokenUsageRuntime = Object.freeze({
+  resolveMessageTokenUsageTag,
+});

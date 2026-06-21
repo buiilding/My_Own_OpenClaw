@@ -23040,3 +23040,19 @@ Each completed slice should report:
   screenshot routing, assistant visible-text detection, renderer markup,
   storage, IPC, local-runtime execution, provider policy, backend behavior, and
   trust boundaries are unchanged.
+
+### 2026-06-21 renderer message token usage facade helper privacy
+
+- Finding: message token usage tag derivation lived in the renderer app
+  runtime, but source badge presentation still imported the token usage helper
+  as a standalone export.
+- Change: exposed token usage tag derivation through
+  `DesktopMessageTokenUsageRuntime` and kept `resolveMessageTokenUsageTag`
+  private to `desktopMessageTokenUsageRuntime`.
+- Validation: focused message token usage runtime, message source tag runtime,
+  and renderer chat boundary tests, targeted renderer ESLint, exact source/doc
+  scans, docs listing, and diff checks.
+- Compatibility: no migration required. Provider token tags, approximate
+  user/tool token estimates, source badge text, renderer markup, storage, IPC,
+  local-runtime execution, provider policy, backend behavior, and trust
+  boundaries are unchanged.

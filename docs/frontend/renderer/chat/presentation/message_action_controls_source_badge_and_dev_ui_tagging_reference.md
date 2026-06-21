@@ -117,7 +117,7 @@ The source portion of the badge is resolved via
 Per-message token telemetry tag:
 
 - `DesktopMessageSourceTagRuntime.resolveMessageSourceBadgePresentation(...)` appends
-  `desktopMessageTokenUsageRuntime.resolveMessageTokenUsageTag(message)` output
+  `DesktopMessageTokenUsageRuntime.resolveMessageTokenUsageTag(message)` output
   when present.
 - tags are intentionally approximate (`tokens~ ...`) and currently emitted for:
   - user rows: `txt:<n> img(est):<n> total:<n>`

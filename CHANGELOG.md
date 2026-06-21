@@ -102,6 +102,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep message source and thinking badge presentation behind
   the message source tag runtime facade instead of standalone helper exports.
   No migration required.
+- frontend/renderer: keep message token usage tag derivation behind the message
+  token usage runtime facade instead of a standalone helper export. No
+  migration required.
 - frontend/renderer: keep message row class-name assembly behind the message
   class runtime facade instead of a standalone helper export. No migration
   required.
