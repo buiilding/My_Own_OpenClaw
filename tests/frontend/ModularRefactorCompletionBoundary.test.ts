@@ -593,6 +593,7 @@ describe('modular sdk refactor completion boundary', () => {
   test('image interaction handler tests keep candidate endpoint fixtures product-neutral', async () => {
     const source = await read('tests/frontend/IpcImageInteractionHandlers.test.cjs');
 
+    expect(source).not.toContain('https://api.windieos.com');
     expect(source).not.toContain('candidate-a.windieos.com');
     expect(source).not.toContain('candidate-b.windieos.com');
     expect(source).not.toContain('candidate.windieos.com');
@@ -600,6 +601,19 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain('candidate.windieos.test');
     expect(source).toContain('candidate-a.backend.example.com');
     expect(source).toContain('runtime.backend.example.test');
+  });
+
+  test('artifact and image IPC helper tests keep endpoint fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/IpcArtifactHandlers.test.cjs'),
+      read('tests/frontend/IpcArtifactFetch.test.cjs'),
+      read('tests/frontend/IpcClipboardImageHandler.test.cjs'),
+      read('tests/frontend/IpcImageContextMenuHandler.test.cjs'),
+    ]);
+    const combined = source.join('\n');
+
+    expect(combined).not.toContain('https://api.windieos.com');
+    expect(combined).toContain('https://backend.example.com');
   });
 
   test('endpoint runtime tests keep arbitrary test hosts product-neutral', async () => {

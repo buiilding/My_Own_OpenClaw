@@ -18857,3 +18857,21 @@ Each completed slice should report:
   behavior, no-local-fallback error behavior, hosted backend defaults in
   product-owned config/docs, provider policy, permissions, storage, and
   local-runtime behavior are unchanged.
+
+### 2026-06-20 Artifact and image IPC endpoint fixture neutrality
+
+- Finding: artifact fetch, artifact handler, clipboard image, image
+  context-menu, and image interaction IPC helper tests used WindieOS hosted URL
+  samples even though those helpers are generic main-process IPC behavior and
+  product-hosted defaults are covered by host-skin/endpoint resolver tests.
+- Change: switched those helper test fixtures to neutral
+  `https://backend.example.com` values and extended modular boundary coverage
+  for the retired hosted URL in the helper tests.
+- Validation: focused artifact/image IPC helper and modular boundary tests;
+  exact retired hosted endpoint scan, docs listing, and diff checks.
+- Compatibility: no migration required. Product-hosted endpoint defaults remain
+  covered in host-skin and endpoint resolver tests. Artifact URL construction,
+  trusted-origin checks, redirect rejection, clipboard copy behavior, native
+  context-menu copy behavior, handler registration, install auth header
+  forwarding, permissions, storage, provider policy, and local-runtime behavior
+  are unchanged.

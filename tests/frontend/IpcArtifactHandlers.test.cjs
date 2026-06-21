@@ -16,7 +16,7 @@ function createHarness(overrides = {}) {
     uploadArtifact: jest.fn(async (payload) => ({ success: true, uploaded: payload })),
     fetchArtifactImage: jest.fn(async (payload) => ({ success: true, fetched: payload })),
     ensureInstallAuthState: jest.fn(async () => undefined),
-    getBackendHttpUrl: jest.fn(() => 'https://api.windieos.com'),
+    getBackendHttpUrl: jest.fn(() => 'https://backend.example.com'),
     buildInstallAuthHeaders: jest.fn(() => ({ Authorization: 'Bearer install-token' })),
     ...overrides,
   };
@@ -56,7 +56,7 @@ describe('ipc_artifact_handlers', () => {
     expect(deps.uploadArtifact).toHaveBeenCalledWith({
       base64: 'abc',
       contentType: 'image/png',
-      backendHttpUrl: 'https://api.windieos.com',
+      backendHttpUrl: 'https://backend.example.com',
       headers: { Authorization: 'Bearer install-token' },
     });
     expect(result.success).toBe(true);
@@ -72,7 +72,7 @@ describe('ipc_artifact_handlers', () => {
     expect(deps.ensureInstallAuthState).toHaveBeenCalledTimes(1);
     expect(deps.fetchArtifactImage).toHaveBeenCalledWith({
       artifactId: 'artifact-1',
-      backendHttpUrl: 'https://api.windieos.com',
+      backendHttpUrl: 'https://backend.example.com',
       headers: { Authorization: 'Bearer install-token' },
     });
     expect(result.success).toBe(true);

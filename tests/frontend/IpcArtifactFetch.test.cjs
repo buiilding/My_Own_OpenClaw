@@ -16,7 +16,7 @@ describe('ipc artifact fetch helper', () => {
 
     const result = await fetchArtifactImage({
       artifactId: 'artifact-123',
-      backendHttpUrl: 'https://api.windieos.com',
+      backendHttpUrl: 'https://backend.example.com',
       headers: {
         Authorization: 'Bearer test-install-token',
       },
@@ -29,7 +29,7 @@ describe('ipc artifact fetch helper', () => {
       contentType: 'image/png',
     });
     expect(fetchImpl).toHaveBeenCalledWith(
-      'https://api.windieos.com/api/artifacts/artifact-123',
+      'https://backend.example.com/api/artifacts/artifact-123',
       {
         method: 'GET',
         headers: {
@@ -50,12 +50,12 @@ describe('ipc artifact fetch helper', () => {
 
     await fetchArtifactImage({
       url: 'https://other.example.com/api/artifacts/artifact-456?x=1',
-      backendHttpUrl: 'https://api.windieos.com/',
+      backendHttpUrl: 'https://backend.example.com/',
       fetchImpl,
     });
 
     expect(fetchImpl).toHaveBeenCalledWith(
-      'https://api.windieos.com/api/artifacts/artifact-456',
+      'https://backend.example.com/api/artifacts/artifact-456',
       {
         method: 'GET',
         headers: {},

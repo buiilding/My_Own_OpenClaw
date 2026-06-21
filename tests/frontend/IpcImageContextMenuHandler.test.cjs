@@ -114,7 +114,7 @@ describe('ipc image context menu handler', () => {
         createFromBuffer: jest.fn(),
       },
       fetchImpl,
-      trustedImageOrigins: ['https://api.windieos.com'],
+      trustedImageOrigins: ['https://backend.example.com'],
     });
 
     const result = await handler({ sender: {} }, {

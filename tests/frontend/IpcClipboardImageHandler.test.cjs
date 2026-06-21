@@ -76,16 +76,16 @@ describe('ipc clipboard image handler', () => {
     const fetchImpl = jest.fn().mockResolvedValue(imageResponse());
 
     const result = await copyImageToClipboard({
-      src: 'https://api.windieos.com/api/artifacts/screenshot.png',
+      src: 'https://backend.example.com/api/artifacts/screenshot.png',
       clipboard,
       nativeImage,
       fetchImpl,
-      trustedImageOrigins: ['https://api.windieos.com'],
+      trustedImageOrigins: ['https://backend.example.com'],
     });
 
     expect(result).toEqual({ success: true });
     expect(fetchImpl).toHaveBeenCalledWith(
-      'https://api.windieos.com/api/artifacts/screenshot.png',
+      'https://backend.example.com/api/artifacts/screenshot.png',
       { redirect: 'manual' },
     );
     expect(nativeImage.createFromBuffer).toHaveBeenCalledWith(expect.any(Buffer));
@@ -119,7 +119,7 @@ describe('ipc clipboard image handler', () => {
       clipboard,
       nativeImage,
       fetchImpl,
-      trustedImageOrigins: ['https://api.windieos.com'],
+      trustedImageOrigins: ['https://backend.example.com'],
     })).rejects.toThrow('not a trusted artifact image');
 
     expect(fetchImpl).not.toHaveBeenCalled();
@@ -150,19 +150,19 @@ describe('ipc clipboard image handler', () => {
     };
 
     await expect(copyImageToClipboard({
-      src: 'https://api.windieos.com/api/artifacts/not-image',
+      src: 'https://backend.example.com/api/artifacts/not-image',
       clipboard,
       nativeImage,
       fetchImpl: jest.fn().mockResolvedValue(imageResponse({ contentType: 'text/html' })),
-      trustedImageOrigins: ['https://api.windieos.com'],
+      trustedImageOrigins: ['https://backend.example.com'],
     })).rejects.toThrow('image content type');
 
     await expect(copyImageToClipboard({
-      src: 'https://api.windieos.com/api/artifacts/too-large',
+      src: 'https://backend.example.com/api/artifacts/too-large',
       clipboard,
       nativeImage,
       fetchImpl: jest.fn().mockResolvedValue(imageResponse({ contentLength: '9' })),
-      trustedImageOrigins: ['https://api.windieos.com'],
+      trustedImageOrigins: ['https://backend.example.com'],
       maxRemoteImageBytes: 4,
     })).rejects.toThrow('too large');
 
@@ -181,11 +181,11 @@ describe('ipc clipboard image handler', () => {
     }));
 
     await expect(copyImageToClipboard({
-      src: 'https://api.windieos.com/api/artifacts/redirect',
+      src: 'https://backend.example.com/api/artifacts/redirect',
       clipboard,
       nativeImage,
       fetchImpl,
-      trustedImageOrigins: ['https://api.windieos.com'],
+      trustedImageOrigins: ['https://backend.example.com'],
     })).rejects.toThrow('not a trusted artifact image');
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);

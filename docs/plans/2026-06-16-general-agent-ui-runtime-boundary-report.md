@@ -11,10 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `3249de83f` (`test(sidecar): neutralize python sdk endpoint fixtures`)
-- Latest completed slice: sidecar remote API and semantic client tests now use
-  neutral explicit backend endpoint fixtures while preserving generic and
-  legacy env alias behavior.
+- Latest inspected plan checkpoint: `d0e85049e` (`test(sidecar): neutralize remote client endpoint fixtures`)
+- Latest completed slice: artifact and image IPC helper tests now use neutral
+  endpoint fixtures instead of WindieOS hosted URL samples.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -29,7 +28,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   backend endpoint fixtures while preserving caller-supplied URL and websocket
   derivation behavior. Sidecar remote API and semantic client tests use neutral
   explicit backend endpoint fixtures while preserving generic and legacy env
-  alias behavior.
+  alias behavior. Artifact and image IPC helper tests use neutral endpoint
+  fixtures while product-hosted defaults stay covered in host-skin and endpoint
+  resolver tests.
   Renderer voice docs name the desktop voice/audio runtime contract and
   backend-owned transcription gateway boundary instead of embedding concrete STT
   provider policy. Renderer config reference docs now keep current OpenAI/GPT default
@@ -141,6 +142,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   derivation, local-runtime registration, and tool-result routing behavior.
   Sidecar remote API and semantic client tests now use neutral explicit backend
   endpoint fixtures while preserving generic and legacy env alias behavior.
+  Artifact and image IPC helper tests now use neutral endpoint fixtures while
+  preserving artifact URL construction, trusted-origin checks, clipboard copy,
+  context-menu copy, and handler-registration behavior.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7731,3 +7735,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   behavior, no-local-fallback error behavior, hosted backend defaults in
   product-owned config/docs, provider policy, permissions, storage, and
   local-runtime behavior are unchanged; no migration is required.
+- Artifact fetch, artifact handler, clipboard image, image context-menu, and
+  image interaction IPC helper tests now use neutral `https://backend.example.com`
+  endpoint fixtures instead of WindieOS hosted URL samples. Product-hosted
+  endpoint defaults remain covered in host-skin and endpoint resolver tests.
+  Artifact URL construction, trusted-origin checks, redirect rejection,
+  clipboard copy behavior, native context-menu copy behavior, handler
+  registration, install auth header forwarding, permissions, storage, provider
+  policy, and local-runtime behavior are unchanged; no migration is required.
