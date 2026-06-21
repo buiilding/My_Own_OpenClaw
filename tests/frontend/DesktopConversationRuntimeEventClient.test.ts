@@ -28,9 +28,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/channels', () => ({
 
 import {
   DesktopConversationRuntimeEventClient,
-  normalizeCurrentTurnProjectionEvent,
-  normalizeDisplayRowsProjectionEvent,
 } from '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient';
+import * as DesktopConversationRuntimeEventModule from '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient';
 
 const currentTurn = {
   conversationRef: 'conv-1',
@@ -65,46 +64,18 @@ describe('DesktopConversationRuntimeEventClient', () => {
     mockChannelListeners = new Map();
   });
 
-  test('normalizes direct and enveloped current-turn projection payloads', () => {
-    expect(normalizeCurrentTurnProjectionEvent(currentTurn)).toEqual({
-      currentTurn,
-      conversationRef: 'conv-1',
-    });
-    expect(normalizeCurrentTurnProjectionEvent({
-      conversationRef: ' override-conv ',
-      currentTurn,
-    })).toEqual({
-      currentTurn,
-      conversationRef: 'override-conv',
-    });
-    expect(normalizeCurrentTurnProjectionEvent({ currentTurn: { phase: 'streaming' } })).toEqual({
-      currentTurn: null,
-      conversationRef: null,
-    });
-  });
-
-  test('normalizes display-row projection payloads', () => {
-    expect(normalizeDisplayRowsProjectionEvent([displayRow])).toEqual({
-      rows: [displayRow],
-      conversationRef: 'conv-1',
-    });
-    expect(normalizeDisplayRowsProjectionEvent([{ id: 'row-1' }])).toEqual({
-      rows: [],
-      conversationRef: null,
-    });
-    expect(normalizeDisplayRowsProjectionEvent(null)).toEqual({
-      rows: [],
-      conversationRef: null,
-    });
-  });
-
   test('current-turn subscriptions emit normalized events', () => {
+    expect(DesktopConversationRuntimeEventModule).not.toHaveProperty('normalizeCurrentTurnProjectionEvent');
     const events: unknown[] = [];
     const unsubscribe = DesktopConversationRuntimeEventClient.onCurrentTurnProjection((event) => {
       events.push(event);
     });
 
-    mockChannelListeners.get('windie:current-turn')?.({ currentTurn });
+    mockChannelListeners.get('windie:current-turn')?.(currentTurn);
+    mockChannelListeners.get('windie:current-turn')?.({
+      conversationRef: ' override-conv ',
+      currentTurn,
+    });
     mockChannelListeners.get('windie:current-turn')?.({ currentTurn: { phase: 'streaming' } });
 
     expect(mockOn).toHaveBeenCalledWith('windie:current-turn', expect.any(Function));
@@ -112,6 +83,10 @@ describe('DesktopConversationRuntimeEventClient', () => {
       {
         currentTurn,
         conversationRef: 'conv-1',
+      },
+      {
+        currentTurn,
+        conversationRef: 'override-conv',
       },
       {
         currentTurn: null,
@@ -124,6 +99,7 @@ describe('DesktopConversationRuntimeEventClient', () => {
   });
 
   test('display-row subscriptions emit normalized events', () => {
+    expect(DesktopConversationRuntimeEventModule).not.toHaveProperty('normalizeDisplayRowsProjectionEvent');
     const events: unknown[] = [];
     const unsubscribe = DesktopConversationRuntimeEventClient.onDisplayRowsProjection((event) => {
       events.push(event);

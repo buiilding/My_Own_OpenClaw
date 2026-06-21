@@ -120,6 +120,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep pending-turn broadcast normalization private to the
   pending-turn runtime client while preserving the conversation event client's
   normalized subscription surface. No migration required.
+- frontend/renderer: keep conversation current-turn and display-row event
+  normalizers private to the conversation runtime event client while preserving
+  normalized subscription methods. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

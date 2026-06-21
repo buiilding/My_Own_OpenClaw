@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Conversation Event Normalizer Privacy
+
+- Finding: `DesktopConversationRuntimeEventClient` already exposed normalized
+  current-turn and display-row subscription methods, but still exported the raw
+  normalizers directly for focused tests.
+- Change: made the current-turn and display-row event normalizers private to the
+  conversation runtime event client and moved focused coverage to the
+  subscription methods that renderer features consume.
+- Validation: focused conversation event client and renderer chat boundary
+  tests, exact raw-helper export scans, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Conversation event fan-out
+  channels, current-turn projection payload handling, display-row projection
+  payload handling, pending-turn handling, renderer chat projection state,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Pending-Turn Broadcast Helper Privacy
 
 - Finding: `DesktopPendingTurnRuntimeClient` already owned pending-turn send and

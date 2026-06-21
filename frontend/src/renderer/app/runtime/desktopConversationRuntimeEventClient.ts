@@ -80,7 +80,7 @@ function resolveRowsConversationRef(rows: SdkDisplayRow[]): string | null {
   return null;
 }
 
-export function normalizeCurrentTurnProjectionEvent(
+function normalizeCurrentTurnProjectionEvent(
   payload: unknown,
 ): DesktopCurrentTurnProjectionEvent {
   const source = recordOrEmpty(payload);
@@ -99,7 +99,7 @@ export function normalizeCurrentTurnProjectionEvent(
   };
 }
 
-export function normalizeDisplayRowsProjectionEvent(
+function normalizeDisplayRowsProjectionEvent(
   payload: unknown,
 ): DesktopDisplayRowsProjectionEvent {
   if (!isSdkDisplayRows(payload)) {

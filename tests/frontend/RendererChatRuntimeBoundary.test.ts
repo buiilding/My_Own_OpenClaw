@@ -881,8 +881,10 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
-    expect(eventClientSource).toContain('normalizeCurrentTurnProjectionEvent');
-    expect(eventClientSource).toContain('normalizeDisplayRowsProjectionEvent');
+    expect(eventClientSource).toContain('function normalizeCurrentTurnProjectionEvent');
+    expect(eventClientSource).toContain('function normalizeDisplayRowsProjectionEvent');
+    expect(eventClientSource).not.toContain('export function normalizeCurrentTurnProjectionEvent');
+    expect(eventClientSource).not.toContain('export function normalizeDisplayRowsProjectionEvent');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).toContain('renderer-compose');
     expect(displayProjectionSource).toContain('sdkDisplayChatMessageProjection');
