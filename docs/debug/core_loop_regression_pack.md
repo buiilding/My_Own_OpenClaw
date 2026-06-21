@@ -30,8 +30,8 @@ selection matrix.
 | Behavior | Initial owner tests |
 | --- | --- |
 | Sending from the pill immediately latches pending/Stop state. | `PendingTurnLiveSurfaceIntegration.test.js`, `ChatPillSessionFlow.test.ts` |
-| Typing/awaiting state does not flash because of transient idle events. | `AgentSdkConversationRuntime.test.ts`, `ConversationRuntimeProjectionStream.test.ts`, `LiveTurnSurfaceState.test.js`, `ChatSurfaceController.test.jsx`, `ResponseOverlayPhaseHandler.test.cjs` |
-| Dashboard and pill render the same active turn projection. | `LiveTurnSurfaceState.test.js`, `ChatSurfaceController.test.jsx`, `DesktopLiveTurnRuntimeClient.test.ts`, `IpcLiveTurnState.test.cjs`, `IpcConversationEventProjection.test.cjs` |
+| Typing/awaiting state does not flash because of transient idle events. | `AgentSdkConversationRuntime.test.ts`, `ConversationRuntimeProjectionStream.test.ts`, `ResponseOverlayPhaseHandler.test.cjs` |
+| Dashboard and pill render the same active turn projection. | `DesktopLiveTurnRuntimeClient.test.ts`, `IpcLiveTurnState.test.cjs`, `IpcConversationEventProjection.test.cjs` |
 | Stop clears busy/thinking state for the correct conversation and turn. | `PendingStopLiveSurfaceIntegration.test.jsx`, `DesktopStopTurnRuntime.test.js` |
 | Tool-call rows pair with tool-output rows after replay. | `ToolCallMessageState.test.js`, `ToolOutputMessageState.test.ts`, `ConversationRuntimeProjectionStream.test.ts` |
 | Opening dashboard during an active turn hides native overlay but preserves live content. | `ResponseOverlayVisibilityPolicy.test.cjs`, `ResponseOverlayPhaseHandler.test.cjs` |

@@ -139,44 +139,6 @@ function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
   };
 }
 
-function doesProjectionMatchPendingTurn(currentTurnProjection, pendingTurn) {
-  if (!isPendingTurn(pendingTurn) || !currentTurnProjection) {
-    return false;
-  }
-  return (
-    normalizeConversationRef(currentTurnProjection.conversationRef) === pendingTurn.conversationRef
-    && normalizeTurnRef(currentTurnProjection.turnRef) === pendingTurn.turnRef
-  );
-}
-
-function hasSdkPresentationContent(presentation) {
-  const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
-  return (
-    presentation?.hasVisibleContent === true
-    || entries.length > 0
-  );
-}
-
-function canSdkProjectionSupersedePendingTurn(currentTurnProjection, pendingTurn) {
-  if (!doesProjectionMatchPendingTurn(currentTurnProjection, pendingTurn)) {
-    return false;
-  }
-  const projectionPhase = normalizePhase(currentTurnProjection?.phase);
-  const presentation = currentTurnProjection?.presentation;
-  const overlayIntent = resolveSdkOverlayIntent(presentation, currentTurnProjection);
-  return (
-    projectionPhase === 'complete'
-    || projectionPhase === 'error'
-    || projectionPhase === 'streaming'
-    || projectionPhase === 'tool_call'
-    || projectionPhase === 'tool_output'
-    || presentation?.isTerminal === true
-    || presentation?.typingVisible === true
-    || overlayIntent.mode === 'awaiting'
-    || hasSdkPresentationContent(presentation)
-  );
-}
-
 function shouldUseSendPreflight({
   currentTurnProjection,
   isSending,
@@ -188,12 +150,6 @@ function shouldUseSendPreflight({
     return false;
   }
   if (!currentTurnProjection) {
-    return true;
-  }
-  if (
-    isPendingTurn(pendingTurn)
-    && !canSdkProjectionSupersedePendingTurn(currentTurnProjection, pendingTurn)
-  ) {
     return true;
   }
   if (
