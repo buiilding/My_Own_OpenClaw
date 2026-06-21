@@ -28,6 +28,9 @@ title: "Dashboard Conversation Hook Search, Polling, and Group Bucket Contract R
 ## Ownership Boundary
 
 `DashboardShell` delegates conversation list/search/rehydrate behavior to `useDashboardConversations`.
+The hook is exported directly from its owner declaration in
+`useDashboardConversations.js`; do not add a passive export block or alternate
+hook barrel.
 
 Shell-owned concerns:
 
@@ -199,6 +202,8 @@ Timer hygiene:
 2. Changing group keys without updating both sidebar and search render loops breaks section ordering.
 3. Removing poll cleanup leaks timers and background list reloads.
 4. Forgetting to clear active transcript session when deleting active conversation leaves stale transcript routing.
+5. Reintroducing passive hook re-export blocks can obscure the dashboard
+   conversation owner module without adding runtime behavior.
 
 ## Related Pages
 

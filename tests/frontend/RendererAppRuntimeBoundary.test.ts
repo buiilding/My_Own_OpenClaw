@@ -866,6 +866,8 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardHookSource).toContain('renameDashboardConversationInList');
     expect(dashboardHookSource).toContain('removeDashboardConversationFromList');
     expect(dashboardHookSource).toContain('togglePinnedConversationRef');
+    expect(dashboardHookSource).toContain('export function useDashboardConversations');
+    expect(dashboardHookSource).not.toContain('export { useDashboardConversations');
     expect(dashboardHookSource).not.toContain('conversation_id: metadata');
     expect(dashboardHookSource).not.toContain('workspace_path: metadata');
     expect(dashboardHookSource).not.toContain('conversation?.conversation_id');

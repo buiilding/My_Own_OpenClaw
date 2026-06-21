@@ -49,7 +49,7 @@ const {
   buildWorkspaceConversationGroups,
 } = DesktopDashboardConversationGroupRuntime;
 
-function useDashboardConversations({
+export function useDashboardConversations({
   resolvedUserId,
   sessionConversationRef,
   activeConversationRef,
@@ -529,5 +529,3 @@ function useDashboardConversations({
     resetSearch,
   };
 }
-
-export { useDashboardConversations };

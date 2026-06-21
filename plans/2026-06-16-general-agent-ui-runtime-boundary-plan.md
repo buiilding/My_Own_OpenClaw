@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Dashboard Hook Owner Export
+
+- Finding: `useDashboardConversations.js` already delegated reusable dashboard
+  conversation loading, grouping, display projection, workspace binding, and
+  session reset rules to app-runtime facades, but still exported the hook
+  through a passive owner-module export block.
+- Change: exported `useDashboardConversations` directly from the hook
+  declaration and expanded renderer app-runtime boundary coverage so the
+  passive hook export block stays removed.
+- Validation: focused dashboard conversation hook and renderer app/chat
+  runtime boundary tests plus targeted lint, docs validation, stale hook export
+  scans, and diff checks.
+- Compatibility/security: no migration required. This is renderer-internal
+  export-shape cleanup only; dashboard state, SDK conversation commands,
+  workspace binding, transcript-session updates, IPC, storage, credentials,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-21 Renderer Provider Context Owner Exports
 
 - Finding: `AppConfigContext.jsx`, `AppStatusContext.jsx`, and
