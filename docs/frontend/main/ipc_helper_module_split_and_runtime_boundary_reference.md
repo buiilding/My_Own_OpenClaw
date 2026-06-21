@@ -615,6 +615,9 @@ Owns main-process stop target resolution and stop execution:
 - sends SDK-shaped `conversation_ref` / `turn_ref` stop payloads through the
   injected Agent SDK stop function
 - completes the response overlay phase only after a successful stop result
+- keeps the executable stop trigger helper private behind
+  `createMainStopTargetRuntime(...).trigger()` while leaving pure projection
+  and target-resolution helpers available for deterministic coverage
 
 ### `ipc_event_replay_state.cjs`
 

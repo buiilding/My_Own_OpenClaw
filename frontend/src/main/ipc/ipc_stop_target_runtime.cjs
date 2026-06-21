@@ -113,5 +113,4 @@ module.exports = {
   createMainStopTargetRuntime,
   isStoppableCurrentTurnProjection,
   resolveMainStopTarget,
-  triggerMainStopTarget,
 };

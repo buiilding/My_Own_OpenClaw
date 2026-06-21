@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Stop Target Trigger Privacy
+
+- Finding: `ipc_stop_target_runtime.cjs` already exposed
+  `createMainStopTargetRuntime(...)` as the Electron main composition facade,
+  but focused tests still imported the lower-level executable
+  `triggerMainStopTarget(...)` helper directly.
+- Change: kept `triggerMainStopTarget(...)` private to the stop-target helper
+  module and moved SDK stop execution and overlay-completion coverage through
+  `createMainStopTargetRuntime(...).trigger()` while leaving pure projection
+  and target resolver helpers public for deterministic coverage.
+- Validation: focused stop-target runtime tests, targeted main IPC lint, docs
+  listing, stale export-line scans, and diff checks before commit.
+- Compatibility/security: no IPC channel, global shortcut, SDK stop payload,
+  overlay phase, credential, permission, or trust-boundary migration required;
+  stop execution behavior is unchanged.
+
 ### 2026-06-21 Main Renderer Window Helper Privacy
 
 - Finding: `ipc_renderer_windows.cjs` already exposed

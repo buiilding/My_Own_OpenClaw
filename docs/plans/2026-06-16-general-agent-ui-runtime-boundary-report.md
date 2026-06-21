@@ -12,12 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main renderer-window lifecycle keeps
-  lower-level tracking and fan-out helpers private to
-  `ipc_renderer_windows.cjs`, so production and focused tests use
-  `createRendererWindowRuntime(...)` as the composition boundary while
-  preserving overlay phase sync, SDK current-turn sync, pending-turn replay,
-  buffered event replay, source-window broadcast exclusion, and reset behavior.
+- Latest completed slice: Electron main stop-target execution keeps the
+  lower-level trigger helper private to `ipc_stop_target_runtime.cjs`, so
+  production and focused tests use `createMainStopTargetRuntime(...).trigger()`
+  as the composition boundary while preserving SDK current-turn priority,
+  pending-turn fallback, idle conversation fallback, SDK stop payload shape, and
+  response overlay completion behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

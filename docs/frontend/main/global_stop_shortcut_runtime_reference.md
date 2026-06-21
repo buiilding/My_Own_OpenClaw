@@ -82,6 +82,9 @@ rule for an already-registered stop action:
 - Renderer pending turns beat idle active-conversation fallback.
 - A successful stop sends the SDK-shaped `{ conversation_ref, turn_ref }`
   command and completes the response overlay phase.
+- The lower-level executable stop trigger remains private to the helper module;
+  callers use `createMainStopTargetRuntime(...).trigger()` as the Electron main
+  composition boundary.
 
 ## Platform Catalog
 

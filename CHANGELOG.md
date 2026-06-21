@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level main stop-target trigger helper private
+  to `ipc_stop_target_runtime.cjs` and exercise SDK stop execution through
+  `createMainStopTargetRuntime(...).trigger()`, while leaving pure stop-target
+  projection and resolver helpers available for focused coverage. No migration
+  required.
 - frontend/main: keep lower-level renderer-window tracking and fan-out helpers
   private to `ipc_renderer_windows.cjs` and exercise overlay/current-turn,
   pending-turn, replay, and broadcast behavior through

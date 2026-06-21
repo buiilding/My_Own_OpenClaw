@@ -6,7 +6,6 @@ const {
   createMainStopTargetRuntime,
   isStoppableCurrentTurnProjection,
   resolveMainStopTarget,
-  triggerMainStopTarget,
 } = require('../../frontend/src/main/ipc/ipc_stop_target_runtime.cjs');
 
 describe('ipc_stop_target_runtime', () => {
@@ -92,16 +91,20 @@ describe('ipc_stop_target_runtime', () => {
   test('sends the resolved stop target through the Agent SDK runtime and completes the overlay phase', async () => {
     const stopQueryThroughAgentSdkRuntime = jest.fn(async () => true);
     const setResponseOverlayPhase = jest.fn();
-
-    await expect(triggerMainStopTarget({
-      stopTarget: {
+    const runtime = createMainStopTargetRuntime({
+      getLatestCurrentTurnProjection: () => ({
         canStop: true,
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
-      },
+        phase: 'streaming',
+      }),
+      getLatestPendingTurn: () => null,
+      getCurrentConversationRef: () => null,
       stopQueryThroughAgentSdkRuntime,
       setResponseOverlayPhase,
-    })).resolves.toBe(true);
+    });
+
+    await expect(runtime.trigger()).resolves.toBe(true);
 
     expect(stopQueryThroughAgentSdkRuntime).toHaveBeenCalledWith({
       conversation_ref: 'conv-1',
@@ -113,23 +116,26 @@ describe('ipc_stop_target_runtime', () => {
   test('does not complete the overlay phase when no stop target or stop result exists', async () => {
     const stopQueryThroughAgentSdkRuntime = jest.fn(async () => false);
     const setResponseOverlayPhase = jest.fn();
-
-    await expect(triggerMainStopTarget({
-      stopTarget: { canStop: false },
+    const noStopRuntime = createMainStopTargetRuntime({
+      getLatestCurrentTurnProjection: () => ({ phase: 'idle' }),
+      getLatestPendingTurn: () => null,
+      getCurrentConversationRef: () => null,
       stopQueryThroughAgentSdkRuntime,
       setResponseOverlayPhase,
-    })).resolves.toBe(false);
+    });
+
+    await expect(noStopRuntime.trigger()).resolves.toBe(false);
     expect(stopQueryThroughAgentSdkRuntime).not.toHaveBeenCalled();
 
-    await expect(triggerMainStopTarget({
-      stopTarget: {
-        canStop: true,
-        conversationRef: 'conv-1',
-        turnRef: null,
-      },
+    const rejectedStopRuntime = createMainStopTargetRuntime({
+      getLatestCurrentTurnProjection: () => ({ phase: 'idle' }),
+      getLatestPendingTurn: () => null,
+      getCurrentConversationRef: () => 'conv-1',
       stopQueryThroughAgentSdkRuntime,
       setResponseOverlayPhase,
-    })).resolves.toBe(false);
+    });
+
+    await expect(rejectedStopRuntime.trigger()).resolves.toBe(false);
     expect(setResponseOverlayPhase).not.toHaveBeenCalled();
   });
 
@@ -192,5 +198,6 @@ describe('ipc_stop_target_runtime', () => {
     expect(helperSource).toContain('function createMainStopTargetRuntime');
     expect(helperSource).toContain('return resolveMainStopTarget({');
     expect(helperSource).toContain('return triggerMainStopTarget({');
+    expect(helperSource).not.toContain('  triggerMainStopTarget,');
   });
 });
