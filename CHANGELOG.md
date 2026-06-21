@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: stop exporting trace recorder, turn-input pipeline, and default resource
+  resolver internals from the package root while preserving the public
+  conversation runtime/projection surface. No migration required for
+  first-party callers; focused tests import these helpers from owner modules.
 - sdk: stop exporting conversation reducer and event-scope helper functions from
   the package root while keeping conversation runtime/projection APIs public.
   No migration required for first-party callers; reducer tests import the owner

@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 SDK Trace Resource Helper Package-Root Narrowing
+
+- Finding: the SDK package root still exported trace recorder, turn-input
+  pipeline, and default resource resolver helper modules even though those
+  helpers are consumed by SDK runtime classes and focused tests rather than
+  normal host callers.
+- Change: removed the trace/resource helper wildcard exports from the package
+  root and checked-in CJS root, routed resource resolver tests to the owner
+  module, and added package-boundary coverage so trace/resource helper values
+  stay off the entrypoint.
+- Validation: focused SDK package-boundary, conversation-runtime, and
+  AgentClient tests plus CJS root smoke checks, docs listing, stale root-export
+  scans, and diff checks.
+- Compatibility/security: no migration required for first-party callers.
+  Trace rows, resource resolution behavior, conversation send/edit/retry,
+  local-runtime execution, hosted backend payloads, IPC, credentials, storage,
+  and provider policy are unchanged.
+
 ### 2026-06-21 SDK Conversation Reducer Package-Root Narrowing
 
 - Finding: the SDK package root still exported the conversation reducer and

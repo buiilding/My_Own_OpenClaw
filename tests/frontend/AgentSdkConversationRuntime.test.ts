@@ -9,7 +9,6 @@ import {
   buildDisplayRows,
   buildRehydrateSnapshot,
   buildTraceTimeline,
-  createDefaultTurnResourceResolvers,
   createConversationEvent,
   InMemoryConversationStore,
   SdkConversationRuntime,
@@ -28,6 +27,9 @@ import {
   createInitialConversationRuntimeState,
   reduceConversationRuntimeState,
 } from '../../packages/windie-sdk-js/src/runtime/conversationReducer';
+import {
+  createDefaultTurnResourceResolvers,
+} from '../../packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers';
 import {
   normalizeBackendEventToConversationEvent as normalizeBackendEventToConversationEventRaw,
 } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';

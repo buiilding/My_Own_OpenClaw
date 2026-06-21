@@ -117,6 +117,9 @@ describe('@windie/sdk package boundary', () => {
     expect('createInitialConversationRuntimeState' in AgentSdkPackage).toBe(false);
     expect('reduceConversationRuntimeState' in AgentSdkPackage).toBe(false);
     expect('getConversationEventScope' in AgentSdkPackage).toBe(false);
+    expect('TraceRecorder' in AgentSdkPackage).toBe(false);
+    expect('sanitizeTraceData' in AgentSdkPackage).toBe(false);
+    expect('createDefaultTurnResourceResolvers' in AgentSdkPackage).toBe(false);
   });
 
   test('exports generic agent session contracts', async () => {

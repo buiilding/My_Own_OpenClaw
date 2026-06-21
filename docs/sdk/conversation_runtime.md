@@ -46,6 +46,11 @@ contracts for host UIs. The lower-level reducer and event-scope helpers
 `getConversationEventScope`, and related scope predicates) are implementation
 helpers owned by their `runtime/conversationReducer` and
 `runtime/conversationEventScope` modules rather than package-entrypoint API.
+Trace recording, turn-input resource resolution, and default resource resolver
+construction follow the same rule: they stay in their owner modules
+(`runtime/TraceRecorder`, `runtime/TurnInputPipeline`, and
+`runtime/DefaultTurnResourceResolvers`) and are consumed by SDK runtime classes
+instead of being published as package-root API.
 
 ## Event Model
 
