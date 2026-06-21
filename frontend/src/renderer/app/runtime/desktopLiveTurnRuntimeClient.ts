@@ -1,5 +1,5 @@
 /**
- * Coordinates the desktop live turn runtime client for the renderer UI.
+ * Coordinates the live-turn app-runtime client for the renderer UI.
  */
 
 import {

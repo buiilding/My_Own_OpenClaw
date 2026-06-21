@@ -1,5 +1,5 @@
 /**
- * Coordinates the desktop transcript session runtime client for the renderer UI.
+ * Coordinates the transcript-session app-runtime client for the renderer UI.
  */
 
 import { desktopTranscriptSessionRuntime } from './desktopTranscriptSessionRuntime';

@@ -1,5 +1,5 @@
 ---
-summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, removed/deleted renderer `ArtifactUploader`/`ToolExecutionPayloads`/formatter helpers, `RuntimeEndpointStore` artifact URL handling behind the desktop artifact runtime client, tool payload field filtering, and content-type normalization contracts."
+summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, removed/deleted renderer `ArtifactUploader`/`ToolExecutionPayloads`/formatter helpers, `RuntimeEndpointStore` artifact URL handling behind the artifact app-runtime client, tool payload field filtering, and content-type normalization contracts."
 read_when:
   - When changing screenshot/system-state capture timing, display-bounds injection, or local-runtime screenshot data handling.
   - When changing renderer artifact URL base sync, `RuntimeEndpointStore`, `setRuntimeEndpointHttpUrl`, `buildRuntimeArtifactUrl`, `DesktopArtifactRuntimeClient.buildArtifactUrl`, or backend endpoint propagation into artifact display URLs.

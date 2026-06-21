@@ -75,6 +75,8 @@ describe('renderer app runtime boundary', () => {
       'renderer runtime clients',
       'renderer runtime consumers',
       'for the renderer runtime',
+      'desktop live turn runtime client',
+      'desktop transcript session runtime client',
     ]);
 
     expect(offenders).toEqual([]);

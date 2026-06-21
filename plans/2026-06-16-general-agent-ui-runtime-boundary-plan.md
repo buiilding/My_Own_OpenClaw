@@ -22034,3 +22034,19 @@ Each completed slice should report:
   renderer startup routing, permission manifests, onboarding behavior, storage,
   IPC channels, provider policy, backend behavior, and trust boundaries are
   unchanged.
+
+### 2026-06-21 renderer app-runtime client label cleanup
+
+- Finding: two renderer app-runtime source headers and the active capture
+  reference still used desktop-runtime-client shorthand, even though the current
+  split names these modules as renderer app-runtime clients/facades rather than
+  a separate desktop runtime layer.
+- Change: reworded the live-turn, transcript-session, and artifact docs labels
+  through renderer app-runtime client wording and extended renderer app-runtime
+  boundary coverage for the remaining retired source phrases.
+- Validation: focused renderer app-runtime boundary test, exact stale label
+  scans for the touched source/docs, docs listing, and diff checks.
+- Compatibility: no migration required. Comments/docs/tests changed only;
+  live-turn commands, transcript-session sync, artifact URL building, IPC
+  channels, SDK command names, storage, permissions, provider policy, backend
+  behavior, and trust boundaries are unchanged.
