@@ -11,7 +11,7 @@ import UserMessageActions from './UserMessageActions';
 import MessageSourceBadge from './MessageSourceBadge';
 import UserMessageEditComposer from './UserMessageEditComposer';
 import messageShapePropType from './messageShapePropType';
-import { buildMessageClassName } from '../../../../app/runtime/desktopMessageClassRuntime';
+import { DesktopMessageClassRuntime } from '../../../../app/runtime/desktopMessageClassRuntime';
 import {
   shouldRenderAssistantActions,
   shouldRenderUserActions,
@@ -37,7 +37,7 @@ const MessageItem = memo(function MessageItem({
   onCancelUserEdit,
   onSubmitUserEdit,
 }) {
-  const messageClass = buildMessageClassName(message);
+  const messageClass = DesktopMessageClassRuntime.buildMessageClassName(message);
   const showUserEditComposer = shouldRenderUserActions(message, enableUserActions) && isUserEditing;
 
   return (

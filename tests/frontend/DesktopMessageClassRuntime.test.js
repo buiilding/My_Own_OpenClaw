@@ -2,9 +2,11 @@
  * Covers desktop message class runtime behavior in the frontend test suite.
  */
 
-import { buildMessageClassName } from '../../frontend/src/renderer/app/runtime/desktopMessageClassRuntime';
+import { DesktopMessageClassRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageClassRuntime';
 
 describe('desktopMessageClassRuntime', () => {
+  const { buildMessageClassName } = DesktopMessageClassRuntime;
+
   test('builds base user message class names', () => {
     expect(
       buildMessageClassName({

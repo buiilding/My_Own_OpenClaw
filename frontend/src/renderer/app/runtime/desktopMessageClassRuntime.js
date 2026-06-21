@@ -4,7 +4,7 @@
 
 import { hasMessageScreenshot } from './desktopMessageScreenshotRuntime';
 
-export function buildMessageClassName(message) {
+function buildMessageClassName(message) {
   const classNames = ['message', `message-${message.sender}`];
 
   if (message.sender === 'assistant' && message.isComplete === false) {
@@ -21,3 +21,7 @@ export function buildMessageClassName(message) {
 
   return classNames.join(' ');
 }
+
+export const DesktopMessageClassRuntime = Object.freeze({
+  buildMessageClassName,
+});

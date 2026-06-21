@@ -1023,6 +1023,7 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(messageItemSource).toContain('desktopMessageClassRuntime');
+    expect(messageItemSource).toContain('DesktopMessageClassRuntime.buildMessageClassName');
     expect(messageItemSource).not.toContain('utils/message/messageListClasses');
     expect(messageContentSource).toContain('desktopMessageContentRuntime');
     expect(messageContentSource).not.toContain('MESSAGE_CONTENT_RENDER_KIND');
@@ -1035,6 +1036,8 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain("message.type === 'llm-text'");
     expect(messageContentSource).not.toContain('utils/message/messageScreenshots');
     expect(classRuntimeSource).toContain('desktopMessageScreenshotRuntime');
+    expect(classRuntimeSource).toContain('DesktopMessageClassRuntime');
+    expect(classRuntimeSource).not.toContain('export function buildMessageClassName');
     expect(classRuntimeSource).not.toContain('features/chat');
     expect(contentRuntimeSource).toContain('desktopMessageScreenshotRuntime');
     expect(contentRuntimeSource).toContain('isErrorMessageContentPresentation');

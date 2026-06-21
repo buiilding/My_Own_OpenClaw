@@ -297,10 +297,10 @@ def test_tool_domain_values_stable():
 
 **Example Frontend Unit Test**:
 ```javascript
-import { buildMessageClassName } from '../../frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js';
+import { DesktopMessageClassRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js';
 
 test('adds screenshot class when screenshot data exists', () => {
-  const cls = buildMessageClassName({
+  const cls = DesktopMessageClassRuntime.buildMessageClassName({
     sender: 'assistant',
     screenshot: 'abc123',
   });

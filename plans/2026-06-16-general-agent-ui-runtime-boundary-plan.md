@@ -23009,3 +23009,18 @@ Each completed slice should report:
   output, token usage estimates, renderer markup, SDK source-channel labels,
   storage, IPC, local-runtime execution, provider policy, backend behavior, and
   trust boundaries are unchanged.
+
+### 2026-06-21 renderer message class facade helper privacy
+
+- Finding: message row class-name assembly lived in the renderer app runtime,
+  but `MessageItem` still imported the class-name helper as a standalone
+  export.
+- Change: exposed row class-name assembly through
+  `DesktopMessageClassRuntime` and kept `buildMessageClassName` private to
+  `desktopMessageClassRuntime`.
+- Validation: focused message class runtime and renderer chat boundary tests,
+  targeted renderer ESLint, exact source/doc scans, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Message row class strings, screenshot
+  detection, renderer markup, storage, IPC, local-runtime execution, provider
+  policy, backend behavior, and trust boundaries are unchanged.
