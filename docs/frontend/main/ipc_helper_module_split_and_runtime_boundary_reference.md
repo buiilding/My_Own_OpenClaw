@@ -475,6 +475,7 @@ Owns Electron-main install-auth identity state and shaping:
 - stores the current install token, install id, and client user id
 - normalizes and trims install token, user id, and install id values before
   applying them to owned main-process host state
+- keeps install-auth identity normalization private behind the identity runtime
 - initializes the server-user fallback in `ipc_backend_session_state.cjs` only
   when the backend has not supplied a server user id yet
 - exposes the current install-auth state to `ipc_install_auth_runtime.cjs`

@@ -65,6 +65,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: keep host option normalization and desktop local-runtime
   launch-config construction private to `ipc_host_option_state.cjs` and
   exercise them through `createIpcHostOptionState(...)`. No migration required.
+- frontend/main: keep install-auth identity normalization private to
+  `ipc_install_auth_identity_runtime.cjs` and exercise trim/rejection behavior
+  through `createInstallAuthIdentityRuntime(...)`. No migration required.
 - frontend/main: keep lower-level clipboard image and image context-menu IPC
   registration private to `ipc_image_interaction_handlers.cjs`, so
   `ipc.cjs` composes one aggregate image-interaction runtime while focused

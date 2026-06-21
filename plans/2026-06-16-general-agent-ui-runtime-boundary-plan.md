@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Install Auth Identity Normalization Privacy
+
+- Finding: `ipc_install_auth_identity_runtime.cjs` already exposed
+  `createInstallAuthIdentityRuntime(...)` as the Electron main identity facade,
+  but the token/user/install-id normalizer still leaked as a public test-only
+  helper export.
+- Change: kept `normalizeInstallAuthState(...)` private to the install-auth
+  identity owner and moved trim plus incomplete-state rejection coverage through
+  `createInstallAuthIdentityRuntime(...).applyInstallAuthState(...)`.
+- Validation: focused install-auth identity and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no install-auth state shape, SDK `installAuth`
+  option, credential, permission, trust-boundary, or storage migration
+  required; identity normalization behavior is unchanged.
+
 ### 2026-06-21 Main Host Option State Helper Privacy
 
 - Finding: `ipc_host_option_state.cjs` already exposed

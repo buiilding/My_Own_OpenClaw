@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main host option state keeps optional-value
-  normalization and desktop local-runtime launch-config construction private
-  to `ipc_host_option_state.cjs`, with behavior covered through
-  `createIpcHostOptionState(...)`.
+- Latest completed slice: Electron main install-auth identity keeps
+  token/user/install-id normalization private to
+  `ipc_install_auth_identity_runtime.cjs`, with trim and rejection behavior
+  covered through `createInstallAuthIdentityRuntime(...)`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1066,6 +1066,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
   contracts, IPC channels, storage, provider policy, and hosted backend
   behavior are unchanged.
+
+### 2026-06-21 Main Install Auth Identity Normalization Privacy
+
+- Finding: `ipc_install_auth_identity_runtime.cjs` already exposed the composed
+  Electron main install-auth identity runtime, but
+  `normalizeInstallAuthState(...)` still leaked as a focused-test-only helper
+  export.
+- Change: removed the normalizer from the public module surface and moved
+  token/user/install-id trim plus incomplete-state rejection coverage through
+  `createInstallAuthIdentityRuntime(...).applyInstallAuthState(...)`.
+- Validation: focused install-auth identity and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. Install-auth state shape, SDK
+  `installAuth` option, current-user accessors, server-user fallback,
+  credentials, permissions, trust boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Host Option State Helper Privacy
 

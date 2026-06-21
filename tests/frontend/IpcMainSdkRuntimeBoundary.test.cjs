@@ -515,6 +515,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(installAuthIdentitySource).toContain('let currentUserId = initialState.currentUserId');
     expect(installAuthIdentitySource).toContain('let currentInstallId = initialState.currentInstallId');
     expect(installAuthIdentitySource).toContain('autoRegister: false');
+    expect(installAuthIdentitySource).not.toContain('  normalizeInstallAuthState,');
     const wakeCall = agentWakeupRuntimeSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
     expect(wakeCall).toContain('name: getSdkAgentName()');

@@ -90,5 +90,4 @@ function createInstallAuthIdentityRuntime(deps = {}) {
 
 module.exports = {
   createInstallAuthIdentityRuntime,
-  normalizeInstallAuthState,
 };

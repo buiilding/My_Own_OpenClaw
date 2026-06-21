@@ -3,10 +3,10 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const installAuthIdentityModule = require('../../frontend/src/main/ipc/ipc_install_auth_identity_runtime.cjs');
 const {
   createInstallAuthIdentityRuntime,
-  normalizeInstallAuthState,
-} = require('../../frontend/src/main/ipc/ipc_install_auth_identity_runtime.cjs');
+} = installAuthIdentityModule;
 
 function createIdentityRuntime(initialState = {}) {
   const state = {
@@ -28,8 +28,10 @@ function createIdentityRuntime(initialState = {}) {
 }
 
 describe('ipc_install_auth_identity_runtime', () => {
-  test('normalizes complete install auth state and rejects incomplete values', () => {
-    expect(normalizeInstallAuthState({
+  test('normalizes complete install auth state and rejects incomplete values through the runtime facade', () => {
+    const { runtime } = createIdentityRuntime();
+
+    expect(runtime.applyInstallAuthState({
       installToken: ' token-1 ',
       userId: ' user-1 ',
       installId: ' install-1 ',
@@ -38,12 +40,12 @@ describe('ipc_install_auth_identity_runtime', () => {
       userId: 'user-1',
       installId: 'install-1',
     });
-    expect(normalizeInstallAuthState({
+    expect(runtime.applyInstallAuthState({
       installToken: 'token-1',
       userId: '',
       installId: 'install-1',
     })).toBeNull();
-    expect(normalizeInstallAuthState(null)).toBeNull();
+    expect(runtime.applyInstallAuthState(null)).toBeNull();
   });
 
   test('applies normalized identity and initializes server user when missing', () => {
@@ -147,10 +149,11 @@ describe('ipc_install_auth_identity_runtime', () => {
     );
 
     expect(mainSource).toContain('createInstallAuthContextRuntime({');
-    expect(mainSource).toContain('installAuthContextRuntime.getCurrentUserId()');
-    expect(mainSource).toContain('installAuthContextRuntime.setCurrentUserId(');
+    expect(mainSource).toContain('ipcSessionContextRuntime.getCurrentUserId()');
+    expect(mainSource).toContain('ipcSessionContextRuntime.setTranscriptSessionState(state)');
     expect(mainSource).not.toContain('createInstallAuthIdentityRuntime({');
     expect(mainSource).not.toContain('installAuthIdentityRuntime');
+    expect(mainSource).not.toContain('installAuthContextRuntime.getCurrentUserId()');
     expect(contextSource).toContain('createInstallAuthIdentityRuntime({');
     expect(contextSource).toContain('identityRuntime.getCurrentUserId()');
     expect(contextSource).toContain('identityRuntime.setCurrentUserId(userId)');
@@ -164,5 +167,6 @@ describe('ipc_install_auth_identity_runtime', () => {
     expect(helperSource).toContain('let currentUserId = initialState.currentUserId');
     expect(helperSource).toContain('let currentInstallId = initialState.currentInstallId');
     expect(helperSource).toContain('autoRegister: false');
+    expect(installAuthIdentityModule.normalizeInstallAuthState).toBeUndefined();
   });
 });
