@@ -56,6 +56,10 @@ const microphonePermissionServicePath = path.join(mainRoot, 'permissions/permiss
 const workspacePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_workspace.cjs');
 const permissionIpcRuntimePath = path.join(mainRoot, 'permissions/permission_ipc_runtime.cjs');
 const permissionManifestPath = path.resolve(__dirname, '../../frontend/src/shared/permissions/permission_manifest.json');
+const permissionManifestReferencePath = path.resolve(
+  __dirname,
+  '../../docs/frontend/main/permission_manifest_probe_and_request_ipc_reference.md',
+);
 const mainMarkerConsumerPaths = [
   layerLogSinkPath,
   path.join(mainRoot, 'surfaces/main_window_overlay_runtime.cjs'),
@@ -292,6 +296,24 @@ describe('main host skin/config boundary', () => {
       .not.toContain('mainHostSkin');
     expect(fs.readFileSync(permissionIpcRuntimePath, 'utf8'))
       .not.toContain('local_runtime_bridge.cjs');
+  });
+
+  test('main permission docs route product copy through host-skin wording', () => {
+    const source = fs.readFileSync(permissionManifestReferencePath, 'utf8');
+
+    expect(source).toContain('host-skinned app will open its dedicated browser');
+    expect(source).toContain('profile the agent host should use');
+    expect(source).toContain('register the host app in the Screen Recording list');
+    expect(source).toContain('while the app re-probes');
+    expect(source).toContain('user enables the app in System Settings');
+    expect(source).toContain('same capture path used by auto-screenshot');
+    expect(source).not.toContain('WindieOS will open its dedicated browser');
+    expect(source).not.toContain('profile WindieOS should use');
+    expect(source).not.toContain('register WindieOS in the Screen Recording list');
+    expect(source).not.toContain('WindieOS re-probes');
+    expect(source).not.toContain('enables WindieOS in System Settings');
+    expect(source).not.toContain('WindieOS focuses the onboarding window');
+    expect(source).not.toContain('same backend used by auto-screenshot');
   });
 
   test('query event builders keep product copy in the host skin', () => {

@@ -22050,3 +22050,19 @@ Each completed slice should report:
   live-turn commands, transcript-session sync, artifact URL building, IPC
   channels, SDK command names, storage, permissions, provider policy, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 main permission docs host-skin wording
+
+- Finding: active main permission manifest/request docs still hardcoded
+  WindieOS product copy for dedicated-browser setup and macOS Screen Recording
+  remediation even though current permission services receive that copy through
+  `main_host_skin.cjs`.
+- Change: reworded the generic permission reference through host-skinned
+  app/current-app guidance and extended main host-skin boundary coverage so the
+  hardcoded product phrases do not return outside host skin/config.
+- Validation: focused main host-skin boundary test, exact stale phrase scans for
+  the touched main permission docs, docs listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  permission manifest payloads, permission probes/requests, onboarding behavior,
+  local-runtime browser warm-up, screenshot verification, IPC channels, storage,
+  provider policy, backend behavior, and trust boundaries are unchanged.
