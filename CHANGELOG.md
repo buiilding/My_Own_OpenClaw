@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/memory: move dashboard memory row projection and search filtering
+  into `desktopMemoryPresentationRuntime.js`, deleting section-local memory
+  helper files while preserving list, search, refresh, and delete behavior. No
+  migration required.
 - tests/frontend: route dashboard metadata invalidation and SDK conversation
   store metadata test names through SDK/product-neutral labels instead of
   product-owned generic runtime labels. No migration required.

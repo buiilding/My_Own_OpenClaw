@@ -451,8 +451,10 @@ describe('renderer chat runtime boundary', () => {
     const files = [
       path.join(dashboardRoot, 'components/sections/MemorySection.jsx'),
       path.join(dashboardRoot, 'components/sections/MemoryItem.jsx'),
-      path.join(dashboardRoot, 'components/sections/memorySectionData.js'),
-      path.join(dashboardRoot, 'components/sections/memorySectionState.js'),
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime.js',
+      ),
     ];
     const offenders: string[] = [];
 
@@ -474,6 +476,36 @@ describe('renderer chat runtime boundary', () => {
     }
 
     expect(offenders).toEqual([]);
+  });
+
+  test('dashboard memory projection rules live in the app runtime facade', async () => {
+    const dashboardRoot = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/features/dashboard',
+    );
+    const memorySectionSource = await fs.readFile(
+      path.join(dashboardRoot, 'components/sections/MemorySection.jsx'),
+      'utf8',
+    );
+    const runtimeSource = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime.js',
+      ),
+      'utf8',
+    );
+
+    expect(memorySectionSource).toContain('desktopMemoryPresentationRuntime');
+    expect(memorySectionSource).not.toContain('./memorySectionData');
+    expect(memorySectionSource).not.toContain('./memorySectionState');
+    expect(runtimeSource).toContain('normalizeEpisodicMemoriesForDashboard');
+    expect(runtimeSource).toContain('normalizeSemanticMemoriesForDashboard');
+    await expect(fs.stat(
+      path.join(dashboardRoot, 'components/sections/memorySectionData.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(dashboardRoot, 'components/sections/memorySectionState.js'),
+    )).rejects.toThrow();
   });
 
   test('dashboard MCP section routes registry IPC through app runtime client', async () => {

@@ -214,14 +214,14 @@ describe('MemorySection', () => {
 
   test('normalizes memory rows with runtime delete-routing fields', async () => {
     const {
-      normalizeEpisodicMemories,
-      normalizeSemanticMemories,
+      normalizeEpisodicMemoriesForDashboard,
+      normalizeSemanticMemoriesForDashboard,
     } = await import(
-      '../../frontend/src/renderer/features/dashboard/components/sections/memorySectionData'
+      '../../frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime'
     );
 
-    const episodicRow = normalizeEpisodicMemories([{ id: 'ep-runtime-1', content: 'User: hi' }])[0];
-    const semanticRow = normalizeSemanticMemories([{ id: 'sem-runtime-1', content: 'Summary: hi' }])[0];
+    const episodicRow = normalizeEpisodicMemoriesForDashboard([{ id: 'ep-runtime-1', content: 'User: hi' }])[0];
+    const semanticRow = normalizeSemanticMemoriesForDashboard([{ id: 'sem-runtime-1', content: 'Summary: hi' }])[0];
 
     expect(episodicRow).toMatchObject({
       runtimeMemoryId: 'ep-runtime-1',

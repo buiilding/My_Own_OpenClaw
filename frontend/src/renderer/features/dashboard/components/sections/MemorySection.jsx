@@ -5,8 +5,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
+  BookOpen,
+  Clock,
   MessageSquare,
   Search,
+  Workflow,
   X,
 } from 'lucide-react';
 import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemoryRuntimeClient';
@@ -15,19 +18,36 @@ import {
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,
 } from '../../../../app/runtime/desktopMemoryRetrievalPreferenceRuntime';
+import {
+  buildProceduralMemoriesForDashboard,
+  filterDashboardMemoriesByQuery,
+  normalizeEpisodicMemoriesForDashboard,
+  normalizeSemanticMemoriesForDashboard,
+  resolveDashboardMemoryTypeInfo,
+} from '../../../../app/runtime/desktopMemoryPresentationRuntime';
 import MemoryItem from './MemoryItem';
-import {
-  buildProceduralMemories,
-  MEMORY_TYPES,
-  normalizeEpisodicMemories,
-  normalizeSemanticMemories,
-} from './memorySectionData';
-import {
-  filterMemoriesByQuery,
-  resolveActiveMemoryTypeInfo,
-} from './memorySectionState';
 
 const memoryPanelSkin = desktopRuntimeSkin.memoryPanel;
+const MEMORY_TYPES = Object.freeze([
+  {
+    id: 'episodic',
+    label: 'Episodic',
+    icon: Clock,
+    description: 'Interaction memories and short-lived context snapshots',
+  },
+  {
+    id: 'semantic',
+    label: 'Semantic',
+    icon: BookOpen,
+    description: 'Facts, preferences and distilled long-term knowledge',
+  },
+  {
+    id: 'procedural',
+    label: 'Procedural',
+    icon: Workflow,
+    description: 'Skills, routines and workflows',
+  },
+]);
 
 function MemorySection({ onClose = () => {} }) {
   const [activeType, setActiveType] = useState('episodic');
@@ -41,7 +61,7 @@ function MemorySection({ onClose = () => {} }) {
   const [memoriesByType, setMemoriesByType] = useState({
     episodic: [],
     semantic: [],
-    procedural: buildProceduralMemories(),
+    procedural: buildProceduralMemoriesForDashboard(),
   });
 
   const loadMemories = useCallback(async () => {
@@ -55,9 +75,9 @@ function MemorySection({ onClose = () => {} }) {
       ]);
 
       setMemoriesByType({
-        episodic: normalizeEpisodicMemories(episodicMemories),
-        semantic: normalizeSemanticMemories(semanticMemories),
-        procedural: buildProceduralMemories(),
+        episodic: normalizeEpisodicMemoriesForDashboard(episodicMemories),
+        semantic: normalizeSemanticMemoriesForDashboard(semanticMemories),
+        procedural: buildProceduralMemoriesForDashboard(),
       });
     } catch (error) {
       setLoadError(error?.message || memoryPanelSkin.loadFailureFallback);
@@ -77,11 +97,11 @@ function MemorySection({ onClose = () => {} }) {
   }, [loadMemories]);
 
   const activeTypeInfo = useMemo(() => {
-    return resolveActiveMemoryTypeInfo(activeType, MEMORY_TYPES);
+    return resolveDashboardMemoryTypeInfo(activeType, MEMORY_TYPES);
   }, [activeType]);
 
   const filteredMemories = useMemo(() => {
-    return filterMemoriesByQuery(activeType, memoriesByType, searchQuery);
+    return filterDashboardMemoriesByQuery(activeType, memoriesByType, searchQuery);
   }, [activeType, memoriesByType, searchQuery]);
 
   const handleDelete = useCallback(async (memory) => {

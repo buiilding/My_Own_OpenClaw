@@ -35,7 +35,7 @@ title: "Renderer Dashboard Docs Hub"
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
+- `frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/modelCardData.js`
 - `frontend/src/renderer/features/dashboard/components/sections/modelCards.jsx`
@@ -44,6 +44,7 @@ title: "Renderer Dashboard Docs Hub"
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`
 - `tests/frontend/DashboardShell.test.jsx`
 - `tests/frontend/MemorySection.test.jsx`

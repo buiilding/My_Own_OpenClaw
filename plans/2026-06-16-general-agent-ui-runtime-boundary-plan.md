@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Dashboard Memory Presentation Runtime Boundary
+
+- Finding: `MemorySection` already used `DesktopMemoryRuntimeClient` for
+  SDK-shaped memory commands, but section-local helper files still owned
+  episodic transcript parsing, semantic summary/facts projection, runtime
+  delete-routing fields, procedural placeholders, active-type fallback, and
+  search filtering.
+- Change: added `desktopMemoryPresentationRuntime.js`, routed
+  `MemorySection` through that app-runtime projection facade, deleted the
+  section-local `memorySectionData.js` and `memorySectionState.js` helpers, and
+  updated dashboard memory docs plus boundary tests to keep the old helper
+  paths retired.
+- Validation: focused memory section, memory presentation, renderer chat
+  runtime boundary, and docs checks.
+- Compatibility: no migration required. Runtime memory list/delete commands,
+  memory-store fan-out, local-runtime storage, IPC channel names, retrieval
+  preference storage, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Frontend Metadata Test Product-Label Wording
 
 - Finding: dashboard metadata invalidation and SDK conversation store metadata

@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for dashboard MemorySection runtime: episodic/semantic fetch normalization, procedural placeholder behavior, local edit/add UX, runtime-backed delete, and memory-store refresh contracts."
 read_when:
-  - When changing `MemorySection.jsx`, `MemoryItem.jsx`, or `memorySectionData.js`.
+  - When changing `MemorySection.jsx`, `MemoryItem.jsx`, or `desktopMemoryPresentationRuntime.js`.
   - When debugging dashboard memory list shape drift, episodic/semantic delete failures, or search/edit state behavior.
 title: "Memory Section Data Normalization and Delete Contract Reference"
 ---
@@ -12,7 +12,7 @@ title: "Memory Section Data Normalization and Delete Contract Reference"
 
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
+- `frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`
 - `tests/frontend/MemorySection.test.jsx`
@@ -22,9 +22,9 @@ title: "Memory Section Data Normalization and Delete Contract Reference"
 `MemorySection` owns dashboard memory modal behavior:
 
 - memory type tabs (`episodic`, `semantic`, `procedural`)
-- fetch + normalization on mount/user switch
+- fetch orchestration on mount/user switch
 - refresh on memory-store change fan-out
-- local search filter
+- local search state
 - episodic/semantic delete RPC flow (for runtime-backed rows)
 
 State buckets:
@@ -56,11 +56,17 @@ Store-change refresh:
 - the panel does not inspect user ids from the store-change payload; active user
   resolution remains with the memory runtime commands
 
-Normalization modules:
+Presentation projection helpers:
 
-- episodic -> `normalizeEpisodicMemories(...)`
-- semantic -> `normalizeSemanticMemories(...)`
-- procedural -> `buildProceduralMemories()` (currently empty array)
+- episodic -> `normalizeEpisodicMemoriesForDashboard(...)`
+- semantic -> `normalizeSemanticMemoriesForDashboard(...)`
+- procedural -> `buildProceduralMemoriesForDashboard()` (currently empty array)
+- active type fallback -> `resolveDashboardMemoryTypeInfo(...)`
+- search filtering -> `filterDashboardMemoriesByQuery(...)`
+
+These helpers live in `desktopMemoryPresentationRuntime.js` so dashboard UI
+code consumes a reusable memory presentation projection instead of owning
+local-runtime memory parsing rules inside section-local files.
 
 ### Episodic normalization
 
@@ -92,7 +98,7 @@ Add/edit controls are intentionally not exposed in `MemorySection`. The panel is
 
 - no confirmation prompt; delete is single-click
 - rows with `runtimeMemoryId` and runtime memory kind call
-  `DesktopMemoryRuntimeClient.deleteMemoryItem({ userId, memoryId, kind })`
+  `DesktopMemoryRuntimeClient.deleteMemoryItem({ memoryId, kind })`
 - rows without a runtime memory id are removed from local list only
 
 `DesktopMemoryRuntimeClient` contains the SDK-shaped memory commands and desktop

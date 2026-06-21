@@ -1,33 +1,6 @@
 /**
- * Provides the memory section data module for the renderer UI.
+ * Provides dashboard memory presentation projection for the renderer runtime.
  */
-
-import {
-  BookOpen,
-  Clock,
-  Workflow,
-} from 'lucide-react';
-
-export const MEMORY_TYPES = Object.freeze([
-  {
-    id: 'episodic',
-    label: 'Episodic',
-    icon: Clock,
-    description: 'Interaction memories and short-lived context snapshots',
-  },
-  {
-    id: 'semantic',
-    label: 'Semantic',
-    icon: BookOpen,
-    description: 'Facts, preferences and distilled long-term knowledge',
-  },
-  {
-    id: 'procedural',
-    label: 'Procedural',
-    icon: Workflow,
-    description: 'Skills, routines and workflows',
-  },
-]);
 
 function parseSemanticContent(content) {
   const normalized = (content || '').replace(/\r\n/g, '\n').trim();
@@ -63,7 +36,7 @@ function parseSemanticContent(content) {
   };
 }
 
-function formatDateLabel(timestamp) {
+function formatMemoryDateLabel(timestamp) {
   if (!timestamp) {
     return 'Unknown time';
   }
@@ -79,7 +52,7 @@ function formatDateLabel(timestamp) {
   });
 }
 
-function buildEpisodicTitle(content, fallbackIndex) {
+function buildEpisodicMemoryTitle(content, fallbackIndex) {
   const raw = (content || '').split('\n').map((line) => line.trim()).find(Boolean) || '';
   if (!raw) {
     return `Episodic memory ${fallbackIndex + 1}`;
@@ -91,7 +64,7 @@ function buildEpisodicTitle(content, fallbackIndex) {
   return normalized.length > 84 ? `${normalized.slice(0, 81)}...` : normalized;
 }
 
-function extractAssistantResponse(content) {
+function extractAssistantMemoryResponse(content) {
   const normalized = (content || '').replace(/\r\n/g, '\n').trim();
   if (!normalized) {
     return '';
@@ -115,18 +88,18 @@ function extractAssistantResponse(content) {
   return tail.slice(0, nextRoleMatch.index).trim();
 }
 
-export function normalizeEpisodicMemories(memories = []) {
+export function normalizeEpisodicMemoriesForDashboard(memories = []) {
   return memories.map((memory, index) => {
     const detail = (memory?.content || '').trim() || '(empty memory)';
-    const assistantResponse = extractAssistantResponse(memory?.content);
+    const assistantResponse = extractAssistantMemoryResponse(memory?.content);
     const words = detail.split(/\s+/).filter(Boolean).length;
 
     return {
       id: memory?.id || `episodic-${index}`,
-      title: buildEpisodicTitle(memory?.content, index),
+      title: buildEpisodicMemoryTitle(memory?.content, index),
       detail,
       assistantResponse,
-      date: formatDateLabel(memory?.timestamp),
+      date: formatMemoryDateLabel(memory?.timestamp),
       tokens: Math.max(words, 0),
       source: memory?.metadata?.source || 'memory_store',
       timestamp: memory?.timestamp || null,
@@ -136,7 +109,7 @@ export function normalizeEpisodicMemories(memories = []) {
   });
 }
 
-export function normalizeSemanticMemories(memories = []) {
+export function normalizeSemanticMemoriesForDashboard(memories = []) {
   return memories.map((memory, index) => {
     const parsed = parseSemanticContent(memory?.content || '');
     const detail = parsed.facts.length > 0
@@ -156,6 +129,32 @@ export function normalizeSemanticMemories(memories = []) {
   });
 }
 
-export function buildProceduralMemories() {
+export function buildProceduralMemoriesForDashboard() {
   return [];
+}
+
+export function resolveDashboardMemoryTypeInfo(activeType, memoryTypes) {
+  return memoryTypes.find((type) => type.id === activeType) || memoryTypes[0];
+}
+
+export function filterDashboardMemoriesByQuery(activeType, memoriesByType, searchQuery) {
+  const source = memoriesByType[activeType] || [];
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return source;
+  }
+
+  return source.filter((memory) => {
+    const title = (memory.title || '').toLowerCase();
+    const detail = (memory.detail || '').toLowerCase();
+    if (activeType !== 'episodic') {
+      return title.includes(normalizedQuery) || detail.includes(normalizedQuery);
+    }
+    const assistantResponse = (memory.assistantResponse || '').toLowerCase();
+    return (
+      title.includes(normalizedQuery)
+      || detail.includes(normalizedQuery)
+      || assistantResponse.includes(normalizedQuery)
+    );
+  });
 }

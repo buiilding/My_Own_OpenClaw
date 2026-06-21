@@ -18,7 +18,7 @@ title: "Dashboard Memory Management and Resume Reference"
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
+- `frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
@@ -46,8 +46,8 @@ title: "Dashboard Memory Management and Resume Reference"
 
 - memory-type tabs: `episodic`, `semantic`, `procedural`
 - retrieval injection toggle (`Inject memory into prompts`) persisted in localStorage key `windieos-memory-retrieval-injection-enabled`; the removed `desktop-assistant-memory-retrieval-injection-enabled` key is ignored and not migrated
-- memory list fetch + normalization
-- local search filter over loaded rows
+- memory list fetch orchestration through the runtime client
+- memory row projection and search filtering through `desktopMemoryPresentationRuntime.js`
 - edit/delete interactions for rendered memory rows
 
 Runtime methods used by this surface:
@@ -119,8 +119,8 @@ Removed helper note:
 
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js` and
   `EpisodicMemoryUtils.test.js` were removed. Episodic memory display
-  normalization now lives with the MemorySection data flow and runtime client
-  path described here, not in a separate dashboard utility.
+  normalization now lives in `desktopMemoryPresentationRuntime.js`, not in a
+  separate dashboard utility or section-local helper.
 
 ### Semantic list
 
@@ -146,9 +146,9 @@ Normalization:
 
 ### Delete behavior
 
-- rows with backend IDs route delete through
+- rows with runtime memory IDs route delete through
   `DesktopMemoryRuntimeClient.deleteMemoryItem(...)`
-- rows without backend IDs remain UI-local removals.
+- rows without runtime memory IDs remain UI-local removals.
 
 ## Conversation Resume Flow (Sidebar/Search)
 

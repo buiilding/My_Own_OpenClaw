@@ -11,10 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `21d5bf2b0` (`docs(memory): route conversation runtime labels`)
-- Latest completed slice: dashboard metadata invalidation and SDK conversation
-  store metadata test names now describe generic behavior through SDK and
-  product-neutral labels instead of product-owned generic runtime labels.
+- Latest inspected plan checkpoint: `95fdac01e` (`test(frontend): neutralize metadata labels`)
+- Latest completed slice: dashboard memory row projection and search filtering
+  now live in `desktopMemoryPresentationRuntime.js`; `MemorySection` consumes
+  the app-runtime facade and the old section-local memory helper files are
+  retired.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -80,6 +81,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   those old WindieOS phrases as direct literals.
   The generated Electron built-in tool manifest matches the sidecar manifest
   source for browser `output_schema` and numeric field normalization.
+  The dashboard memory panel now keeps modal state, fetch orchestration,
+  rendering, and delete actions while app-runtime memory presentation helpers
+  own episodic transcript parsing, semantic summary/facts projection, runtime
+  memory delete-routing fields, procedural placeholders, active-type fallback,
+  and search matching policy.
   The Chrome launcher reference names host-skinned desktop launch and dedicated
   desktop connect ownership while documenting the WindieOS browser profile path
   only as the active product-skin configuration.

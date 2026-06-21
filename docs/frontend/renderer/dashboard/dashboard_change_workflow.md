@@ -47,7 +47,7 @@ the owner map before changing code.
 | Search modal behavior changes | `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`, `useDashboardConversations.js`, `desktopConversationLibraryClient.js`, `desktopConversationStore.ts` | `tests/frontend/DashboardSidebar.test.jsx`, conversation search tests, focused modal tests when added |
 | Opening a conversation lands in wrong chat/session/workspace | `useDashboardConversations.js`, `desktopWorkspaceRuntimeClient.ts`, `desktopConversationStore.ts`, `desktopConversationSessionRuntime.ts`, `conversationWorkspaceBinding.js`, Electron main SDK runtime registry | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationSessionRuntime.test.ts`, `tests/frontend/ConversationWorkspaceBinding.test.js`, `tests/frontend/IpcMainConversationRuntimeRegistry.test.cjs` |
 | Delete/clear chats leaves stale transcript, workspace, or active state | `useDashboardConversations.js`, `DashboardShell.jsx`, `desktopConversationStore.ts`, `desktopActiveChatSessionRuntime.ts`, workspace binding helpers | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/DesktopConversationStore.test.ts`, `tests/frontend/UseDashboardConversations.test.jsx`, `tests/frontend/ResetActiveChatSession.test.ts` |
-| Memory panel list/delete/search/toggle changes | `components/sections/MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`, `memorySectionState.js`, `DesktopMemoryRuntimeClient`, memory runtime contracts | `tests/frontend/MemorySection.test.jsx`, `tests/frontend/MemorySectionState.test.js`, memory runtime/local-runtime Python tests |
+| Memory panel list/delete/search/toggle changes | `components/sections/MemorySection.jsx`, `MemoryItem.jsx`, `app/runtime/desktopMemoryPresentationRuntime.js`, `DesktopMemoryRuntimeClient`, memory runtime contracts | `tests/frontend/MemorySection.test.jsx`, `tests/frontend/DesktopMemoryPresentationRuntime.test.js`, `tests/frontend/RendererChatRuntimeBoundary.test.ts`, memory runtime/local-runtime Python tests |
 | Models panel selection, provider grouping, API keys, or fallback changes | `components/sections/ModelsSection.jsx`, `app/runtime/desktopModelSelectionRuntime.js`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelCardData.test.js` |
 | Settings panel tabs or config controls change | `components/sections/SettingsSection.jsx`, `components/sections/settings/*`, AppConfig provider utilities | `tests/frontend/SettingsSection.test.jsx`, `tests/frontend/GeneralSettingsTab.test.jsx`, `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts` |
 | Usage panel changes from placeholder to real data | `components/sections/UsageSection.jsx`, token/usage event consumers, backend token-count docs | `tests/frontend/UsageSection.test.jsx`, token-count renderer/backend tests when data becomes real |
@@ -153,8 +153,7 @@ Memory section:
 
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
-- `frontend/src/renderer/features/dashboard/components/sections/memorySectionState.js`
+- `frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime.js`
 - [Memory Section Data Normalization and Semantic Delete Contract Reference](sections/memory_section_data_normalization_and_semantic_delete_contract_reference.md)
 
 Models section:
@@ -229,7 +228,7 @@ Conversation list/resume/delete change:
 Memory panel change:
 
 - `cd frontend && npm run test -- MemorySection`
-- `cd frontend && npm run test -- MemorySectionState`
+- `cd frontend && npm run test -- DesktopMemoryPresentationRuntime RendererChatRuntimeBoundary`
 - relevant local-runtime memory tests when IPC/memory storage behavior changes
 
 Models/settings panel change:

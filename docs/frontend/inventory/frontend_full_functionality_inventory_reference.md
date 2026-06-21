@@ -233,7 +233,7 @@ Primary files:
 - Shell: `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - Sidebar/search: `DashboardSidebar.jsx`, `SearchChatsModal.jsx`
 - Sections:
-  - `MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`
+  - `MemorySection.jsx`, `MemoryItem.jsx`, `desktopMemoryPresentationRuntime.js`
   - `ModelsSection.jsx`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js`, `ApiKeysSection.jsx`
   - `SettingsSection.jsx`, `UsageSection.jsx`
 - Utilities/hooks:
@@ -379,7 +379,7 @@ Functionality:
 Canonical current frontend now differs from older deep-doc slices:
 
 - Old token display component path (`TokenCountDisplay`) is no longer an active render surface.
-- Memory dashboard is unified under `MemorySection` + section-local data helpers.
+- Memory dashboard is unified under `MemorySection` + app-runtime memory presentation helpers.
 - Old split memory section components and context-menu hotkey helper paths are retired.
 - Old response overlay ghost lifecycle helper/util file paths were replaced by current runtime wiring.
 - Chat stream update helpers moved into `useStreamMessageUpdaters.ts` and related modern utils.

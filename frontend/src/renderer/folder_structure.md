@@ -179,7 +179,6 @@ frontend/src/renderer/
 │   │           ├── ModelsSection.jsx    # ModelsSection - Model list + API key input
 │   │           ├── modelCards.jsx       # modelCards - Provider/model card presentational components
 │   │           ├── modelCardData.js     # modelCardData - Provider/model card derivation helpers
-│   │           ├── memorySectionData.js # memorySectionData - Memory type metadata + normalization helpers
 │   │           ├── providerApiKeys.js   # providerApiKeys - Provider API key defaults/specs + normalization
 │   │           └── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
 │   │
