@@ -2,15 +2,17 @@
  * Covers desktop message list runtime behavior in the frontend test suite.
  */
 
-import {
-  resolveCompactionStatusText,
-  shouldAutoScrollForThinkingTextUpdate,
-  shouldRenderAssistantActions,
-  shouldRenderUserActions,
-} from '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime';
+import { DesktopMessageListRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime';
 import { resolveCurrentTurnPresentationState } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 
 describe('desktopMessageListRuntime', () => {
+  const {
+    resolveCompactionStatusText,
+    shouldAutoScrollForThinkingTextUpdate,
+    shouldRenderAssistantActions,
+    shouldRenderUserActions,
+  } = DesktopMessageListRuntime;
+
   test('awaiting-dot target picks latest user row only while awaiting reply', () => {
     const awaitingState = resolveCurrentTurnPresentationState({
       phase: 'idle',

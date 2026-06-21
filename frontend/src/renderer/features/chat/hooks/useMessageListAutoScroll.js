@@ -7,13 +7,7 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import {
-  isNearBottom,
-  scrollToConversationSwitchTarget,
-  shouldAutoScrollForAgentLoopMessageUpdate,
-  shouldAutoScrollForThinkingTextUpdate,
-  shouldForceScrollForNewUserMessage,
-} from '../../../app/runtime/desktopMessageListRuntime';
+import { DesktopMessageListRuntime } from '../../../app/runtime/desktopMessageListRuntime';
 
 export function useMessageListAutoScroll({
   messages,
@@ -105,7 +99,7 @@ export function useMessageListAutoScroll({
     shouldAutoScrollRef.current = true;
     skipNextMessagesAutoScrollRef.current = true;
     forceInstantAutoScrollRef.current = true;
-    scrollToConversationSwitchTarget(messageListRef.current, 'auto');
+    DesktopMessageListRuntime.scrollToConversationSwitchTarget(messageListRef.current, 'auto');
     syncScrollMetrics();
   }, [conversationRef, syncScrollMetrics]);
 
@@ -113,7 +107,7 @@ export function useMessageListAutoScroll({
     const element = messageListRef.current;
     const nextScrollTop = Number(element?.scrollTop) || 0;
     const nextScrollHeight = Number(element?.scrollHeight) || 0;
-    const nearBottom = isNearBottom(element);
+    const nearBottom = DesktopMessageListRuntime.isNearBottom(element);
     const hasKnownScrollMetrics = lastScrollHeightRef.current > 0 || lastScrollTopRef.current > 0;
 
     if (!hasKnownScrollMetrics) {
@@ -175,7 +169,10 @@ export function useMessageListAutoScroll({
 
   useEffect(() => {
     const previousMessages = previousMessagesRef.current;
-    const shouldForceScroll = shouldForceScrollForNewUserMessage(previousMessages, messages);
+    const shouldForceScroll = DesktopMessageListRuntime.shouldForceScrollForNewUserMessage(
+      previousMessages,
+      messages,
+    );
 
     if (skipNextMessagesAutoScrollRef.current) {
       skipNextMessagesAutoScrollRef.current = false;
@@ -200,8 +197,14 @@ export function useMessageListAutoScroll({
 
     const shouldAutoScroll = enableAgentLoopAutoScroll
       && (
-        shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, messages)
-        || shouldAutoScrollForThinkingTextUpdate(previousMessages, messages)
+        DesktopMessageListRuntime.shouldAutoScrollForAgentLoopMessageUpdate(
+          previousMessages,
+          messages,
+        )
+        || DesktopMessageListRuntime.shouldAutoScrollForThinkingTextUpdate(
+          previousMessages,
+          messages,
+        )
       );
     previousMessagesRef.current = messages;
     if (!shouldAutoScroll) {

@@ -13,7 +13,7 @@ const AGENT_LOOP_AUTO_SCROLL_MESSAGE_TYPES = new Set([
   'search-source',
 ]);
 
-export function isNearBottom(element) {
+function isNearBottom(element) {
   if (!element) {
     return true;
   }
@@ -29,7 +29,7 @@ export function isNearBottom(element) {
   return distanceFromBottom <= MESSAGE_LIST_BOTTOM_STICK_THRESHOLD_PX;
 }
 
-export function scrollToConversationSwitchTarget(element, behavior = 'auto') {
+function scrollToConversationSwitchTarget(element, behavior = 'auto') {
   if (!element) {
     return;
   }
@@ -56,7 +56,7 @@ function isUserMessage(message) {
   return Boolean(message) && message.sender === 'user';
 }
 
-export function shouldForceScrollForNewUserMessage(previousMessages, nextMessages) {
+function shouldForceScrollForNewUserMessage(previousMessages, nextMessages) {
   if (!Array.isArray(previousMessages) || !Array.isArray(nextMessages)) {
     return false;
   }
@@ -69,7 +69,7 @@ export function shouldForceScrollForNewUserMessage(previousMessages, nextMessage
     .some(isUserMessage);
 }
 
-export function shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, nextMessages) {
+function shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, nextMessages) {
   if (!Array.isArray(previousMessages) || !Array.isArray(nextMessages)) {
     return false;
   }
@@ -100,7 +100,7 @@ export function shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, next
   );
 }
 
-export function shouldAutoScrollForThinkingTextUpdate(previousMessages, nextMessages) {
+function shouldAutoScrollForThinkingTextUpdate(previousMessages, nextMessages) {
   if (!Array.isArray(previousMessages) || !Array.isArray(nextMessages)) {
     return false;
   }
@@ -121,7 +121,7 @@ export function shouldAutoScrollForThinkingTextUpdate(previousMessages, nextMess
   );
 }
 
-export function shouldRenderAssistantActions(message, enableAssistantActions) {
+function shouldRenderAssistantActions(message, enableAssistantActions) {
   if (!enableAssistantActions) {
     return false;
   }
@@ -137,11 +137,11 @@ export function shouldRenderAssistantActions(message, enableAssistantActions) {
   return message.isComplete !== false;
 }
 
-export function shouldRenderUserActions(message, enableUserActions) {
+function shouldRenderUserActions(message, enableUserActions) {
   return enableUserActions && message.sender === 'user';
 }
 
-export function resolveCompactionStatusText(thinkingStatus, thinkingSourceEventType) {
+function resolveCompactionStatusText(thinkingStatus, thinkingSourceEventType) {
   if (typeof thinkingStatus !== 'string') {
     return null;
   }
@@ -172,3 +172,14 @@ export function resolveCompactionStatusText(thinkingStatus, thinkingSourceEventT
   }
   return null;
 }
+
+export const DesktopMessageListRuntime = Object.freeze({
+  isNearBottom,
+  scrollToConversationSwitchTarget,
+  shouldForceScrollForNewUserMessage,
+  shouldAutoScrollForAgentLoopMessageUpdate,
+  shouldAutoScrollForThinkingTextUpdate,
+  shouldRenderAssistantActions,
+  shouldRenderUserActions,
+  resolveCompactionStatusText,
+});

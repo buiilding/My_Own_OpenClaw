@@ -12,10 +12,7 @@ import MessageSourceBadge from './MessageSourceBadge';
 import UserMessageEditComposer from './UserMessageEditComposer';
 import messageShapePropType from './messageShapePropType';
 import { DesktopMessageClassRuntime } from '../../../../app/runtime/desktopMessageClassRuntime';
-import {
-  shouldRenderAssistantActions,
-  shouldRenderUserActions,
-} from '../../../../app/runtime/desktopMessageListRuntime';
+import { DesktopMessageListRuntime } from '../../../../app/runtime/desktopMessageListRuntime';
 
 
 const MessageItem = memo(function MessageItem({
@@ -38,7 +35,18 @@ const MessageItem = memo(function MessageItem({
   onSubmitUserEdit,
 }) {
   const messageClass = DesktopMessageClassRuntime.buildMessageClassName(message);
-  const showUserEditComposer = shouldRenderUserActions(message, enableUserActions) && isUserEditing;
+  const showUserEditComposer = DesktopMessageListRuntime.shouldRenderUserActions(
+    message,
+    enableUserActions,
+  ) && isUserEditing;
+  const showAssistantActions = DesktopMessageListRuntime.shouldRenderAssistantActions(
+    message,
+    enableAssistantActions,
+  );
+  const showUserActions = DesktopMessageListRuntime.shouldRenderUserActions(
+    message,
+    enableUserActions,
+  ) && !showUserEditComposer;
 
   return (
     <div className={messageClass}>
@@ -59,7 +67,7 @@ const MessageItem = memo(function MessageItem({
         />
       )}
       <MessageSourceBadge message={message} />
-      {shouldRenderAssistantActions(message, enableAssistantActions) ? (
+      {showAssistantActions ? (
         <AssistantMessageActions
           messageId={message.id}
           messageText={message.text}
@@ -70,7 +78,7 @@ const MessageItem = memo(function MessageItem({
           onTryAgain={onAssistantTryAgain}
         />
       ) : null}
-      {shouldRenderUserActions(message, enableUserActions) && !showUserEditComposer ? (
+      {showUserActions ? (
         <UserMessageActions
           messageId={message.id}
           messageText={message.text}

@@ -23056,3 +23056,19 @@ Each completed slice should report:
   user/tool token estimates, source badge text, renderer markup, storage, IPC,
   local-runtime execution, provider policy, backend behavior, and trust
   boundaries are unchanged.
+
+### 2026-06-21 renderer message list facade helper privacy
+
+- Finding: message-list scroll, action, and compaction presentation rules lived
+  in the renderer app runtime, but chat components and scroll tests still
+  imported those helpers as standalone exports.
+- Change: exposed message-list presentation rules through
+  `DesktopMessageListRuntime` and kept the scroll/action/compaction helper
+  functions private to `desktopMessageListRuntime`.
+- Validation: focused message list runtime, message list scroll behavior, and
+  renderer chat boundary tests, targeted renderer ESLint, exact source/doc
+  scans, docs listing, and diff checks.
+- Compatibility: no migration required. Message-list auto-scroll thresholds,
+  conversation-switch anchoring, assistant/user action gating, compaction status
+  text, renderer markup, storage, IPC, local-runtime execution, provider
+  policy, backend behavior, and trust boundaries are unchanged.

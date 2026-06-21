@@ -1081,11 +1081,21 @@ describe('renderer chat runtime boundary', () => {
 
     for (const source of [messageListSource, messageItemSource, autoScrollSource]) {
       expect(source).toContain('desktopMessageListRuntime');
+      expect(source).toContain('DesktopMessageListRuntime');
       expect(source).not.toContain('utils/message/messageListState');
     }
+    expect(messageListRuntimeSource).toContain('DesktopMessageListRuntime');
     expect(messageListRuntimeSource).toContain('resolveCompactionStatusText');
     expect(messageListRuntimeSource).toContain('shouldAutoScrollForAgentLoopMessageUpdate');
     expect(messageListRuntimeSource).toContain('shouldAutoScrollForThinkingTextUpdate');
+    expect(messageListRuntimeSource).not.toContain('export function isNearBottom');
+    expect(messageListRuntimeSource).not.toContain('export function scrollToConversationSwitchTarget');
+    expect(messageListRuntimeSource).not.toContain('export function shouldForceScrollForNewUserMessage');
+    expect(messageListRuntimeSource).not.toContain('export function shouldAutoScrollForAgentLoopMessageUpdate');
+    expect(messageListRuntimeSource).not.toContain('export function shouldAutoScrollForThinkingTextUpdate');
+    expect(messageListRuntimeSource).not.toContain('export function shouldRenderAssistantActions');
+    expect(messageListRuntimeSource).not.toContain('export function shouldRenderUserActions');
+    expect(messageListRuntimeSource).not.toContain('export function resolveCompactionStatusText');
     expect(autoScrollSource).not.toContain("nextLastMessage.type === 'llm-text'");
     expect(messageListRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(

@@ -12,9 +12,7 @@ import {
 import PropTypes from 'prop-types';
 import messageShapePropType from './message/messageShapePropType';
 import MessageItem from './message/MessageItem';
-import {
-  resolveCompactionStatusText,
-} from '../../../app/runtime/desktopMessageListRuntime';
+import { DesktopMessageListRuntime } from '../../../app/runtime/desktopMessageListRuntime';
 import { resolveConversationToolSchemas } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
 import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
@@ -201,7 +199,10 @@ function MessageList({
   );
 
   const compactionStatusText = useMemo(() => {
-    return resolveCompactionStatusText(thinkingStatus, thinkingSourceEventType);
+    return DesktopMessageListRuntime.resolveCompactionStatusText(
+      thinkingStatus,
+      thinkingSourceEventType,
+    );
   }, [thinkingSourceEventType, thinkingStatus]);
   const showCompactionDebugDetails = showDevCompactionDebug
     && compactionDebugInfo

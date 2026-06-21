@@ -10,10 +10,12 @@ import {
 } from '@testing-library/react';
 
 import MessageList from '../../frontend/src/renderer/features/chat/components/MessageList';
-import {
+import { DesktopMessageListRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime';
+
+const {
   shouldAutoScrollForAgentLoopMessageUpdate,
   shouldForceScrollForNewUserMessage,
-} from '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime';
+} = DesktopMessageListRuntime;
 
 function applyScrollMetrics(element, { scrollHeight, clientHeight, scrollTop }) {
   Object.defineProperty(element, 'scrollHeight', {
