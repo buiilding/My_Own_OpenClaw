@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main Agent SDK command execution now exposes
-  `createAgentSdkRuntimeCommandsRuntime(...)`, keeping `ipc.cjs` composed from
-  explicit runtime helper factories while preserving query dispatch, stop,
-  settings update, model-list, and wakeword-detected command behavior.
+- Latest completed slice: Electron main VM automated-query dispatch keeps the
+  lower-level dispatcher private to `ipc_automated_query_dispatcher.cjs`, so
+  production and focused tests use `createAutomatedQueryRuntime(...)` as the
+  composition boundary while preserving VM query dispatch behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

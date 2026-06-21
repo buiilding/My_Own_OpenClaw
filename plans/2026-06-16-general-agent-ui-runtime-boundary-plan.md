@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Automated Query Runtime Dispatcher Privacy
+
+- Finding: `ipc_agent_sdk_runtime_commands.cjs` and neighboring IPC helpers
+  now expose runtime factories as their composition boundary, but
+  `ipc_automated_query_dispatcher.cjs` still publicly exported the lower-level
+  `createAutomatedQueryDispatcher(...)` helper even though `ipc.cjs` already
+  composes VM automated-query dispatch through `createAutomatedQueryRuntime(...)`.
+- Change: kept the lower-level automated-query dispatcher private to
+  `ipc_automated_query_dispatcher.cjs`, updated focused tests to exercise
+  behavior through `createAutomatedQueryRuntime(...)`, and documented the
+  runtime helper as the public composition boundary.
+- Validation: focused automated-query dispatcher and main SDK boundary tests
+  plus targeted main IPC lint, docs listing, stale dispatcher-export scans, and
+  diff checks before commit.
+- Compatibility/security: no migration required. VM automated-query validation,
+  hosted-backend connection ensure, settings sync waiting, query payload
+  building, agent-definition attachment, SDK runtime query dispatch,
+  conversation/first-query state updates, IPC channels, credentials, provider
+  policy, permissions, storage, and local-runtime execution are unchanged.
+
 ### 2026-06-21 Main Agent SDK Runtime Commands Factory Naming
 
 - Finding: `ipc_agent_sdk_runtime_commands.cjs` owned Electron-main Agent SDK

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level automated-query dispatcher private to
+  `ipc_automated_query_dispatcher.cjs` and exercise VM automated-query behavior
+  through `createAutomatedQueryRuntime(...)`, preserving the `ipc.cjs`
+  composition boundary. No migration required.
 - frontend/main: rename the Electron main Agent SDK command helper factory to
   `createAgentSdkRuntimeCommandsRuntime(...)`, keeping `ipc.cjs` composed from
   explicit runtime helper factories while preserving query dispatch, stop,

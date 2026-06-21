@@ -101,6 +101,5 @@ function createAutomatedQueryRuntime(deps = {}) {
 }
 
 module.exports = {
-  createAutomatedQueryDispatcher,
   createAutomatedQueryRuntime,
 };

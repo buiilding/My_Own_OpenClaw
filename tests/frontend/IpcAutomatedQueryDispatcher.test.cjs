@@ -1,11 +1,11 @@
 /**
- * Covers ipc automated query dispatcher. behavior in the frontend test suite.
+ * Covers ipc automated query runtime behavior in the frontend test suite.
  */
 
+const automatedQueryRuntimeModule = require('../../frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs');
 const {
-  createAutomatedQueryDispatcher,
   createAutomatedQueryRuntime,
-} = require('../../frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs');
+} = automatedQueryRuntimeModule;
 const fs = require('fs/promises');
 const path = require('path');
 
@@ -56,11 +56,11 @@ function createHarness(overrides = {}) {
     log: jest.fn(),
     ...overrides,
   };
-  const dispatcher = createAutomatedQueryDispatcher(deps);
+  const runtime = createAutomatedQueryRuntime(deps);
 
   return {
     deps,
-    dispatcher,
+    runtime,
     getState: () => ({
       currentConversationRef,
       isFirstQuery,
@@ -69,12 +69,14 @@ function createHarness(overrides = {}) {
 }
 
 describe('ipc_automated_query_dispatcher', () => {
+  const retiredDispatcherExport = `${['createAutomatedQuery', 'Dispatcher'].join('')},`;
+
   test('rejects missing query text before connecting', async () => {
-    const { deps, dispatcher } = createHarness({
+    const { deps, runtime } = createHarness({
       prepareAutomatedQueryPayload: jest.fn(() => null),
     });
 
-    await expect(dispatcher.sendAutomatedQuery({})).resolves.toEqual({
+    await expect(runtime.sendAutomatedQuery({})).resolves.toEqual({
       ok: false,
       error: 'Missing query text',
     });
@@ -82,13 +84,13 @@ describe('ipc_automated_query_dispatcher', () => {
   });
 
   test('returns backend connection errors without dispatching', async () => {
-    const { deps, dispatcher } = createHarness({
+    const { deps, runtime } = createHarness({
       ensureBackendConnection: jest.fn(async () => {
         throw new Error('closed');
       }),
     });
 
-    await expect(dispatcher.sendAutomatedQuery({ text: 'run this' })).resolves.toEqual({
+    await expect(runtime.sendAutomatedQuery({ text: 'run this' })).resolves.toEqual({
       ok: false,
       error: 'closed',
     });
@@ -99,13 +101,13 @@ describe('ipc_automated_query_dispatcher', () => {
     const pendingSettings = Promise.resolve();
     const {
       deps,
-      dispatcher,
+      runtime,
       getState,
     } = createHarness({
       getPendingSettingsSyncPromise: jest.fn(() => pendingSettings),
     });
 
-    const result = await dispatcher.sendAutomatedQuery({
+    const result = await runtime.sendAutomatedQuery({
       text: 'inspect app',
       attachmentFilenames: ['screenshot.png'],
     });
@@ -150,7 +152,7 @@ describe('ipc_automated_query_dispatcher', () => {
   });
 
   test('keeps first-query state when built query did not use initial context', async () => {
-    const { deps, dispatcher } = createHarness({
+    const { deps, runtime } = createHarness({
       buildQueryPayload: jest.fn(async () => ({
         payload: {},
         queryUsedInitialContext: false,
@@ -158,7 +160,7 @@ describe('ipc_automated_query_dispatcher', () => {
       })),
     });
 
-    await dispatcher.sendAutomatedQuery({
+    await runtime.sendAutomatedQuery({
       text: 'continue',
       conversationRef: 'conv-existing',
     });
@@ -199,5 +201,7 @@ describe('ipc_automated_query_dispatcher', () => {
     expect(mainSource).not.toContain('automatedQueryDispatcher.sendAutomatedQuery(options)');
     expect(helperSource).toContain('function createAutomatedQueryRuntime');
     expect(helperSource).toContain('createAutomatedQueryDispatcher(deps)');
+    expect(automatedQueryRuntimeModule.createAutomatedQueryDispatcher).toBeUndefined();
+    expect(helperSource).not.toContain(retiredDispatcherExport);
   });
 });

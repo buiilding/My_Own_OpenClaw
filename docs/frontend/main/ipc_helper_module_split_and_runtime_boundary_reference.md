@@ -152,6 +152,8 @@ Owns VM automated-query dispatch orchestration:
 - exposes `createAutomatedQueryRuntime(...)` so `ipc.cjs` composes VM worker
   query dispatch dependencies once and exports `sendAutomatedQuery(...)` as a
   thin runtime call
+- keeps the lower-level automated-query dispatcher private to the runtime
+  helper
 - validates assigned-run query options through `prepareAutomatedQueryPayload`
 - connects the SDK managed hosted session for `automated-query`
 - waits for initial settings sync and any pending settings ACK
