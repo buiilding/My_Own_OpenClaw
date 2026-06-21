@@ -12,11 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main host-copy runtime keeps generic
-  fallback copy private to `ipc_host_copy_runtime.cjs`, while default identity,
-  MCP client info, query-event fallback, independent section fallback, and
-  host-skin configuration remain covered through the public host-copy runtime
-  facade.
+- Latest completed slice: Electron main global stop shortcut config keeps raw
+  status normalization and fallback application private to
+  `ipc_global_stop_shortcut_config_runtime.cjs`, while status trim/filter
+  normalization, invalid status handling, fallback config application,
+  failed-registration skip behavior, persistence, broadcast, and reset remain
+  covered through the public shortcut config runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1081,6 +1082,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   targeted main IPC lint, docs listing, stale export scans, and diff checks.
 - Compatibility: no migration required. SDK runtime command payloads,
   conversation-ref fallback behavior, replay/edit/retry paths, credentials,
+  permissions, trust boundaries, and storage are unchanged.
+
+### 2026-06-21 Main Global Stop Shortcut Config Helper Privacy
+
+- Finding: `ipc_global_stop_shortcut_config_runtime.cjs` already exposed the
+  composed shortcut config runtime facade, but
+  `normalizeGlobalAgentStopShortcutStatus(...)` and
+  `applyGlobalStopShortcutFallbackToConfig(...)` still leaked raw helper
+  exports.
+- Change: removed the raw helpers from the public module surface while
+  preserving runtime coverage for status trim/filter normalization, invalid
+  status handling, fallback config application, failed-registration skip
+  behavior, persistence, broadcast, and reset.
+- Validation: focused global stop shortcut config runtime tests, targeted main
+  IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. Desktop config shape, global shortcut
+  status, fallback persistence, IPC status broadcasts, credentials,
   permissions, trust boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Host Copy Default Privacy

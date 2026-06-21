@@ -91,6 +91,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: keep generic host-copy defaults private to
   `ipc_host_copy_runtime.cjs` while preserving the public host-copy runtime
   getters and skin configuration facade. No migration required.
+- frontend/main: keep global stop shortcut status normalization and fallback
+  application private to `ipc_global_stop_shortcut_config_runtime.cjs` while
+  preserving the public shortcut config runtime facade. No migration required.
 - frontend/main: keep lower-level clipboard image and image context-menu IPC
   registration private to `ipc_image_interaction_handlers.cjs`, so
   `ipc.cjs` composes one aggregate image-interaction runtime while focused

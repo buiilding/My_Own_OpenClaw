@@ -844,6 +844,8 @@ Owns Electron-main global stop shortcut status/config adaptation:
 - skips fallback persistence when registration failed or the fallback is already
   saved
 - broadcasts connection/status snapshots after shortcut status changes
+- keeps raw status normalization and fallback application helpers private behind
+  the shortcut config runtime facade
 
 ### `ipc_main_process_trace_runtime.cjs`
 

@@ -111,7 +111,5 @@ function createGlobalStopShortcutConfigRuntime({
 }
 
 module.exports = {
-  applyGlobalStopShortcutFallbackToConfig,
   createGlobalStopShortcutConfigRuntime,
-  normalizeGlobalAgentStopShortcutStatus,
 };

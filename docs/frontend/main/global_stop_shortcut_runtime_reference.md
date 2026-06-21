@@ -68,6 +68,8 @@ main-process status/config adapter around native registration:
 - skips fallback persistence when registration failed or the fallback is
   already saved
 - broadcasts updated IPC status snapshots after shortcut status changes
+- keeps raw status normalization and config-fallback application private behind
+  the composed shortcut config runtime facade
 
 `frontend/src/main/ipc/ipc_stop_target_runtime.cjs` owns the target-resolution
 rule for an already-registered stop action:

@@ -3,11 +3,10 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const globalStopShortcutConfigRuntimeModule = require('../../frontend/src/main/ipc/ipc_global_stop_shortcut_config_runtime.cjs');
 const {
-  applyGlobalStopShortcutFallbackToConfig,
   createGlobalStopShortcutConfigRuntime,
-  normalizeGlobalAgentStopShortcutStatus,
-} = require('../../frontend/src/main/ipc/ipc_global_stop_shortcut_config_runtime.cjs');
+} = globalStopShortcutConfigRuntimeModule;
 
 function isValidConfigPayload(config) {
   return Boolean(config) && typeof config === 'object' && !Array.isArray(config);
@@ -15,10 +14,15 @@ function isValidConfigPayload(config) {
 
 describe('ipc_global_stop_shortcut_config_runtime', () => {
   test('normalizes shortcut status fields for renderer snapshots', () => {
-    expect(normalizeGlobalAgentStopShortcutStatus(null)).toBeNull();
-    expect(normalizeGlobalAgentStopShortcutStatus([])).toBeNull();
+    const runtime = createGlobalStopShortcutConfigRuntime();
 
-    expect(normalizeGlobalAgentStopShortcutStatus({
+    runtime.updateGlobalAgentStopShortcutStatus(null);
+    expect(runtime.getStatus()).toBeNull();
+
+    runtime.updateGlobalAgentStopShortcutStatus([]);
+    expect(runtime.getStatus()).toBeNull();
+
+    runtime.updateGlobalAgentStopShortcutStatus({
       enabled: true,
       requestedAccelerator: ' CommandOrControl+Alt+. ',
       resolvedAccelerator: ' CommandOrControl+Shift+. ',
@@ -32,7 +36,9 @@ describe('ipc_global_stop_shortcut_config_runtime', () => {
         42,
         'CommandOrControl+Shift+.',
       ],
-    })).toEqual({
+    });
+
+    expect(runtime.getStatus()).toEqual({
       enabled: true,
       requestedAccelerator: 'CommandOrControl+Alt+.',
       resolvedAccelerator: 'CommandOrControl+Shift+.',
@@ -45,6 +51,7 @@ describe('ipc_global_stop_shortcut_config_runtime', () => {
         'CommandOrControl+Shift+.',
       ],
     });
+    expect(globalStopShortcutConfigRuntimeModule.normalizeGlobalAgentStopShortcutStatus).toBeUndefined();
   });
 
   test('applies resolved fallback accelerator to valid desktop UI config', () => {
@@ -52,31 +59,26 @@ describe('ipc_global_stop_shortcut_config_runtime', () => {
       global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
       model_mode: 'online',
     };
-
-    expect(applyGlobalStopShortcutFallbackToConfig(config, {
-      status: {
-        registrationFailed: false,
-        resolvedAccelerator: 'CommandOrControl+Shift+.',
-      },
+    const runtime = createGlobalStopShortcutConfigRuntime({
       isValidConfigPayload,
-    })).toEqual({
+    });
+
+    runtime.updateGlobalAgentStopShortcutStatus({
+      registrationFailed: false,
+      resolvedAccelerator: 'CommandOrControl+Shift+.',
+    });
+    expect(runtime.applyShortcutStatusFallbackToConfig(config)).toEqual({
       global_agent_stop_shortcut: 'CommandOrControl+Shift+.',
       model_mode: 'online',
     });
 
-    expect(applyGlobalStopShortcutFallbackToConfig(config, {
-      status: {
-        registrationFailed: true,
-        resolvedAccelerator: 'CommandOrControl+Shift+.',
-      },
-      isValidConfigPayload,
-    })).toBe(config);
-    expect(applyGlobalStopShortcutFallbackToConfig(null, {
-      status: {
-        resolvedAccelerator: 'CommandOrControl+Shift+.',
-      },
-      isValidConfigPayload,
-    })).toBeNull();
+    runtime.updateGlobalAgentStopShortcutStatus({
+      registrationFailed: true,
+      resolvedAccelerator: 'CommandOrControl+Shift+.',
+    });
+    expect(runtime.applyShortcutStatusFallbackToConfig(config)).toBe(config);
+    expect(runtime.applyShortcutStatusFallbackToConfig(null)).toBeNull();
+    expect(globalStopShortcutConfigRuntimeModule.applyGlobalStopShortcutFallbackToConfig).toBeUndefined();
   });
 
   test('runtime persists fallback config and broadcasts connection status after status updates', () => {
@@ -174,5 +176,7 @@ describe('ipc_global_stop_shortcut_config_runtime', () => {
     expect(mainSource).not.toContain('status.supportedAccelerators');
     expect(helperSource).toContain('function normalizeGlobalAgentStopShortcutStatus');
     expect(helperSource).toContain('function applyGlobalStopShortcutFallbackToConfig');
+    expect(helperSource).not.toContain('  normalizeGlobalAgentStopShortcutStatus,');
+    expect(helperSource).not.toContain('  applyGlobalStopShortcutFallbackToConfig,');
   });
 });

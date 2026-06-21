@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Global Stop Shortcut Config Helper Privacy
+
+- Finding: `ipc_global_stop_shortcut_config_runtime.cjs` already exposed
+  `createGlobalStopShortcutConfigRuntime(...)` as the Electron main shortcut
+  config facade, but raw status normalization and fallback application helpers
+  still leaked as public exports.
+- Change: kept `normalizeGlobalAgentStopShortcutStatus(...)` and
+  `applyGlobalStopShortcutFallbackToConfig(...)` private to the shortcut config
+  owner while preserving status trim/filter normalization, invalid status
+  handling, fallback config application, failed-registration skip behavior,
+  persistence, broadcast, and reset coverage through the runtime facade.
+- Validation: focused global stop shortcut config runtime tests, targeted main
+  IPC lint, docs listing, stale export scans, and diff checks before commit.
+- Compatibility/security: no desktop config shape, global shortcut status,
+  fallback persistence, IPC status broadcast, credential, permission, storage,
+  or trust-boundary migration required; shortcut config behavior is unchanged.
+
 ### 2026-06-21 Main Host Copy Default Privacy
 
 - Finding: `ipc_host_copy_runtime.cjs` already exposed
