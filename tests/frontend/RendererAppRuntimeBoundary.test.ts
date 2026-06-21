@@ -1185,6 +1185,8 @@ describe('renderer app runtime boundary', () => {
 
     expect(resetRuntimeSource).toContain('applyRendererConversationSelection');
     expect(resetRuntimeSource).toContain('DesktopTranscriptSessionRuntimeClient');
+    expect(resetRuntimeSource).toContain('DesktopActiveChatSessionRuntime');
+    expect(resetRuntimeSource).not.toContain('export const resetActiveChatSession');
     expect(resetRuntimeSource).not.toContain('features/chat');
     expect(dashboardShellSource).toContain('desktopActiveChatSessionRuntime');
     expect(dashboardConversationSource).toContain('desktopActiveChatSessionRuntime');

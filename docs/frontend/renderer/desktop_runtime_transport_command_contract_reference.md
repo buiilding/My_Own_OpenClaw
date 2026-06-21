@@ -410,7 +410,7 @@ normalization for mutable renderer side effects, including local-user
 metadata, and tool-schema metadata. Event handlers keep turn/workspace side
 effects while consuming normalized payload fields from this runtime facade.
 
-`desktopActiveChatSessionRuntime.ts` owns active chat-session reset behavior
+`DesktopActiveChatSessionRuntime` owns active chat-session reset behavior
 shared by new-chat, dashboard conversation delete, and clear-chat flows. Chat
 and dashboard modules pass their store setter callbacks into this runtime
 helper so transcript/session reset policy does not live under either feature.

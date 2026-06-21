@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Active Chat Session Reset Facade
+
+- Finding: `desktopActiveChatSessionRuntime.ts` already owned the shared
+  active chat reset rule for clearing transcript identity plus chat workspace
+  state across new-chat, dashboard delete, and clear-chat flows, but still
+  exported `resetActiveChatSession(...)` as a standalone helper.
+- Change: made the reset helper private to the runtime module, exposed it
+  through `DesktopActiveChatSessionRuntime`, and routed new-chat, dashboard
+  consumers, focused reset tests, dashboard mocks, and boundary guards through
+  that facade.
+- Validation: focused active-session reset, new-chat, dashboard conversation,
+  renderer app/chat runtime boundaries, exact standalone reset helper
+  export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Conversation refs,
+  transcript-session payloads, chat-store setter behavior, dashboard delete and
+  clear-chat behavior, workspace bindings, IPC, storage, credentials,
+  provider policy, hosted backend URLs, and local execution trust boundaries
+  are unchanged.
+
 ### 2026-06-21 Renderer Config Filter Facade
 
 - Finding: `desktopRendererConfigFilterRuntime.js` already owned the

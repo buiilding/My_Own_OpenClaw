@@ -10,7 +10,7 @@ import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desk
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import { applyRendererConversationSelection } from '../../../app/runtime/desktopConversationSessionRuntime';
-import { resetActiveChatSession } from '../../../app/runtime/desktopActiveChatSessionRuntime';
+import { DesktopActiveChatSessionRuntime } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import {
   buildConversationGroups,
   buildWorkspaceConversationGroups,
@@ -38,6 +38,9 @@ const {
   shouldReloadRecentConversationsForEventAction,
   togglePinnedConversationRef,
 } = DesktopDashboardConversationLoadRuntime;
+const {
+  resetActiveChatSession,
+} = DesktopActiveChatSessionRuntime;
 
 function useDashboardConversations({
   resolvedUserId,

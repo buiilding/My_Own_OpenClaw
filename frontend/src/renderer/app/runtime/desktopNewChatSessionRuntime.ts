@@ -9,8 +9,12 @@ import {
   createConversationRef,
   initializeLocalConversationSession,
 } from './desktopConversationSessionRuntime';
-import { resetActiveChatSession } from './desktopActiveChatSessionRuntime';
+import { DesktopActiveChatSessionRuntime } from './desktopActiveChatSessionRuntime';
 import type { TokenCounts } from './desktopChatMessageTypes';
+
+const {
+  resetActiveChatSession,
+} = DesktopActiveChatSessionRuntime;
 
 type NewChatSessionOptions = {
   clearMessages: (conversationRef?: string | null) => void;

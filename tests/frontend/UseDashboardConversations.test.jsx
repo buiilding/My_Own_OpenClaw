@@ -54,7 +54,9 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationSessionRun
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopActiveChatSessionRuntime', () => ({
-  resetActiveChatSession: jest.fn(),
+  DesktopActiveChatSessionRuntime: {
+    resetActiveChatSession: jest.fn(),
+  },
 }));
 
 function renderDashboardConversations(options = {}) {

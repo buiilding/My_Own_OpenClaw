@@ -16,7 +16,7 @@ type ResetActiveChatSessionOptions = {
   setChatActiveConversationRef?: (conversationRef: string | null) => void;
 };
 
-export const resetActiveChatSession = ({
+const resetActiveChatSession = ({
   conversationRef = null,
   userId,
   clearMessages,
@@ -38,3 +38,7 @@ export const resetActiveChatSession = ({
   setThinkingStatus(null, targetConversationRef);
   setTokenCounts(null, targetConversationRef);
 };
+
+export const DesktopActiveChatSessionRuntime = Object.freeze({
+  resetActiveChatSession,
+});

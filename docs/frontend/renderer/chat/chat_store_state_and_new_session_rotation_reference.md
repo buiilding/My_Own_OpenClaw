@@ -116,13 +116,13 @@ browser event directly.
 
 1. optional `stopActiveQuery()` callback
 2. reset the previous active chat through
-   `desktopActiveChatSessionRuntime.resetActiveChatSession(...)`
+   `DesktopActiveChatSessionRuntime.resetActiveChatSession(...)`
 3. create new `conversationRef` via `desktopConversationSessionRuntime.createConversationRef()`
 4. snapshot the currently selected workspace into the conversation binding map
 5. persist through `setActiveConversationRef(nextConversationRef)`
 6. return new conversation ref
 
-`desktopActiveChatSessionRuntime.resetActiveChatSession(...)` owns the shared
+`DesktopActiveChatSessionRuntime.resetActiveChatSession(...)` owns the shared
 renderer rule for clearing active transcript identity plus chat workspace
 state. Chat new-session and dashboard delete/clear paths call that app-runtime
 facade instead of keeping a chat-feature-only reset helper.

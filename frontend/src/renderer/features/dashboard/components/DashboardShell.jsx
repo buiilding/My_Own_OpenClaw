@@ -16,7 +16,7 @@ import DashboardSidebar from './DashboardSidebar';
 import { useDashboardConversations } from '../hooks/useDashboardConversations';
 import MemorySection from './sections/MemorySection';
 import SearchChatsModal from './SearchChatsModal';
-import { resetActiveChatSession } from '../../../app/runtime/desktopActiveChatSessionRuntime';
+import { DesktopActiveChatSessionRuntime } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopChatEventsRuntime } from '../../../app/runtime/desktopChatEvents';
@@ -28,6 +28,9 @@ const {
 const {
   requestDashboardLayoutPass,
 } = DesktopDashboardLayoutRuntime;
+const {
+  resetActiveChatSession,
+} = DesktopActiveChatSessionRuntime;
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
