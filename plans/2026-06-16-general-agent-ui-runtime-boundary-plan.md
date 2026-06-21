@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Desktop UI Config Handler Registration Privacy
+
+- Finding: `ipc_desktop_ui_config_handlers.cjs` already exposed
+  `createDesktopUiConfigHandlersRuntime(...)` as the Electron main composition
+  facade, but focused tests still reached into the lower-level handler
+  registration helper.
+- Change: kept `registerDesktopUiConfigHandlers(...)` private to the desktop UI
+  config helper module and moved load/save handler coverage through the runtime
+  facade.
+- Validation: focused desktop UI config handler and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export-line scans, and diff
+  checks before commit.
+- Compatibility/security: no IPC payload, storage, settings, permission,
+  credential, or trust-boundary migration required; the legacy renderer channel
+  names and public runtime facade remain available.
+
 ### 2026-06-21 Main Pending Turn Runtime Registration Privacy
 
 - Finding: `ipc_pending_turn_handlers.cjs` already exposed

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level desktop UI config IPC registration helper
+  private to `ipc_desktop_ui_config_handlers.cjs` and exercise load/save
+  behavior through `createDesktopUiConfigHandlersRuntime(...)`, preserving the
+  Electron main initialization composition boundary. No migration required.
 - frontend/main: keep the lower-level pending-turn IPC registration helper
   private to `ipc_pending_turn_handlers.cjs` and exercise pending/clear
   behavior through `createPendingTurnRuntime(...)`, preserving the Electron

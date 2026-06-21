@@ -69,5 +69,4 @@ function createDesktopUiConfigHandlersRuntime({
 
 module.exports = {
   createDesktopUiConfigHandlersRuntime,
-  registerDesktopUiConfigHandlers,
 };

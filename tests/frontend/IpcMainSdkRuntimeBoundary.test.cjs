@@ -375,6 +375,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('registerDesktopUiConfigHandlers({');
     expect(desktopUiConfigHandlersSource).toContain('function createDesktopUiConfigHandlersRuntime');
     expect(desktopUiConfigHandlersSource).toContain('return registerDesktopUiConfigHandlers({');
+    expect(desktopUiConfigHandlersSource).not.toContain('  registerDesktopUiConfigHandlers,');
     expect(source).toContain('createIpcStartupStateRuntime({');
     expect(source).not.toContain('ipcStartupStateRuntime.initialize()');
     expect(initializationRuntimeSource).toContain('ipcStartupStateRuntime.initialize()');

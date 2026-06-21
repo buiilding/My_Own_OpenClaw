@@ -7,7 +7,6 @@ const path = require('path');
 
 const {
   createDesktopUiConfigHandlersRuntime,
-  registerDesktopUiConfigHandlers,
 } = require('../../frontend/src/main/ipc/ipc_desktop_ui_config_handlers.cjs');
 
 function createHarness(overrides = {}) {
@@ -19,8 +18,7 @@ function createHarness(overrides = {}) {
   };
   const latest = { current: overrides.initialLatest || null };
   const setGlobalAgentStopShortcutAccelerator = jest.fn();
-  registerDesktopUiConfigHandlers({
-    ipcMain,
+  const runtime = createDesktopUiConfigHandlersRuntime({
     loadCachedDesktopUiConfigFromDisk: jest.fn(async () => overrides.loadResult),
     persistDesktopUiConfigToDisk: jest.fn(async (config) => ({ success: true, config })),
     isValidConfigPayload: (config) => (
@@ -37,9 +35,13 @@ function createHarness(overrides = {}) {
     setGlobalAgentStopShortcutAccelerator,
     ...overrides.runtime,
   });
+
+  runtime.register({ ipcMain });
+
   return {
     handlers,
     ipcMain,
+    runtime,
     latest,
     setGlobalAgentStopShortcutAccelerator,
   };
@@ -143,5 +145,7 @@ describe('desktop UI config IPC handlers', () => {
     expect(mainSource).not.toContain('registerDesktopUiConfigHandlers({');
     expect(helperSource).toContain('function createDesktopUiConfigHandlersRuntime');
     expect(helperSource).toContain('return registerDesktopUiConfigHandlers({');
+    const helperModule = require('../../frontend/src/main/ipc/ipc_desktop_ui_config_handlers.cjs');
+    expect(helperModule.registerDesktopUiConfigHandlers).toBeUndefined();
   });
 });

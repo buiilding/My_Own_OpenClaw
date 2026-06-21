@@ -786,10 +786,11 @@ Owns Electron-main desktop UI config persistence semantics around the disk I/O h
 Owns desktop UI config IPC handler registration while preserving the legacy
 renderer wire channel names:
 
-- `registerDesktopUiConfigHandlers`
 - exposes `createDesktopUiConfigHandlersRuntime(...)` so `ipc.cjs` composes
   config load/save, validation, persistence, latest-cache, shortcut fallback,
   and initialize-time shortcut setter dependencies once
+- keeps lower-level desktop UI config handler registration private behind the
+  runtime facade
 - `load-frontend-config`
 - `save-frontend-config`
 - shortcut fallback application while keeping the latest config cache in
