@@ -11,10 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `d0e85049e` (`test(sidecar): neutralize remote client endpoint fixtures`)
-- Latest completed slice: generic debug-env and wakeword-runtime helper tests
-  now use neutral injected host config fixtures instead of WindieOS host-skin
-  values.
+- Latest inspected plan checkpoint: `445d1e5a3` (`test(main): neutralize layer log host fixture`)
+- Latest completed slice: generic backend endpoint tests now use neutral
+  injected hosted endpoint defaults instead of WindieOS host-skin hosted
+  backend values.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -43,6 +43,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   real WindieOS debug env names remain host-skin owned.
   Generic IPC query runtime tests use sample interruption copy while real
   WindieOS query event copy remains host-skin owned.
+  Generic backend endpoint tests use sample hosted endpoint defaults while real
+  WindieOS hosted URLs and default endpoint env names remain host-skin owned.
   Generic layer-log sink tests use sample logging config while real WindieOS log
   env keys, aliases, filenames, and directories remain host-skin owned.
   Generic extension manifest and MCP runtime tests use sample env maps while
@@ -7987,6 +7989,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   tests. Layer-log env-key resolution, host-provided log directory handling, log
   file resolution, permissions, storage, provider policy, and backend behavior
   are unchanged; no migration is required.
+- Generic backend endpoint tests now use neutral sample hosted endpoint defaults
+  instead of importing WindieOS host-skin hosted backend values. Real WindieOS
+  hosted URLs and default endpoint env names remain covered by host-skin
+  boundary tests. Endpoint candidate resolution, explicit endpoint overrides,
+  artifact base selection, removed packaged-default env rejection, permissions,
+  storage, provider policy, and backend behavior are unchanged; no migration is
+  required.
 - Generic runtime-path and wakeword bridge tests now use neutral injected host
   config fixtures instead of importing WindieOS host-skin values. Real WindieOS
   env, wakeword model, packaged-entrypoint, and runtime-path ownership remains

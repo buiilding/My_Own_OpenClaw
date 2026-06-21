@@ -805,6 +805,22 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('SAMPLE_ENABLED_MCPS');
   });
 
+  test('backend endpoint tests keep injected hosted defaults product-neutral', async () => {
+    const source = await read('tests/frontend/BackendEndpoints.test.cjs');
+    const hostedDefaultHttpEnv = ['WINDIE', 'DEFAULT', 'BACKEND', 'HTTP', 'URL'].join('_');
+    const hostedDefaultWsEnv = ['WINDIE', 'DEFAULT', 'BACKEND', 'WS', 'URL'].join('_');
+
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain('api.windieos.com');
+    expect(source).not.toContain('staging.windieos.com');
+    expect(source).not.toContain(hostedDefaultHttpEnv);
+    expect(source).not.toContain(hostedDefaultWsEnv);
+    expect(source).toContain('sampleHostedBackend');
+    expect(source).toContain('https://hosted.example.test');
+    expect(source).toContain('SAMPLE_DEFAULT_BACKEND_HTTP_URL');
+    expect(source).toContain('SAMPLE_DEFAULT_BACKEND_WS_URL');
+  });
+
   test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/voice/WakewordDetectionHook.test.ts'),

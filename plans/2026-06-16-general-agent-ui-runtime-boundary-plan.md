@@ -19364,6 +19364,22 @@ Each completed slice should report:
   interrupted-query event shaping, injected host copy wiring, permissions,
   storage, provider policy, and backend behavior are unchanged.
 
+### 2026-06-21 Backend endpoint defaults fixture neutrality
+
+- Finding: the generic backend endpoint resolver tests still imported WindieOS
+  host-skin hosted backend defaults to exercise configured hosted endpoint and
+  artifact-base behavior.
+- Change: replaced that import with a test-local sample hosted endpoint config
+  and extended the modular boundary guard so generic endpoint tests stay
+  product-neutral.
+- Validation: focused backend endpoint, host-skin boundary, and modular
+  boundary tests; exact retired backend endpoint fixture scan, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Endpoint candidate resolution, explicit
+  endpoint overrides, artifact base selection, removed packaged-default env
+  rejection, host-skin wiring, permissions, storage, provider policy, and
+  backend behavior are unchanged.
+
 ### 2026-06-21 Layer-log host config fixture neutrality
 
 - Finding: the generic layer-log sink tests still imported WindieOS host-skin

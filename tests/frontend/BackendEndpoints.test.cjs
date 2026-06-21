@@ -11,13 +11,25 @@ const {
   resolveBackendEndpoints,
   resolvePreferredArtifactHttpUrl,
 } = require('../../frontend/src/main/app/backend_endpoints.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const sampleHostedBackend = Object.freeze({
+  httpUrl: 'https://hosted.example.test',
+  wsUrl: 'wss://hosted.example.test/ws',
+  env: Object.freeze({
+    defaultHttpUrl: 'SAMPLE_DEFAULT_BACKEND_HTTP_URL',
+    defaultWsUrl: 'SAMPLE_DEFAULT_BACKEND_WS_URL',
+  }),
+});
+
+const hostedDefaultHttpEnv = ['WINDIE', 'DEFAULT', 'BACKEND', 'HTTP', 'URL'].join('_');
+const hostedDefaultWsEnv = ['WINDIE', 'DEFAULT', 'BACKEND', 'WS', 'URL'].join('_');
+const retiredPackagedHttpEnv = ['WINDIE', 'DEFAULT', 'PACKAGED', 'BACKEND', 'HTTP', 'URL'].join('_');
+const retiredPackagedWsEnv = ['WINDIE', 'DEFAULT', 'PACKAGED', 'BACKEND', 'WS', 'URL'].join('_');
+const hostSkinSymbol = ['main', 'Host', 'Skin'].join('');
 
 describe('backend_endpoints artifact url selection', () => {
   beforeEach(() => {
-    configureBackendEndpointRuntime(mainHostSkin.hostedBackend);
+    configureBackendEndpointRuntime(sampleHostedBackend);
   });
 
   afterEach(() => {
@@ -25,26 +37,26 @@ describe('backend_endpoints artifact url selection', () => {
   });
 
   test('prefers loopback artifact base when hosted backend is primary', () => {
-    expect(resolvePreferredArtifactHttpUrl('https://api.windieos.com', [
-      { httpUrl: 'https://api.windieos.com' },
+    expect(resolvePreferredArtifactHttpUrl('https://hosted.example.test', [
+      { httpUrl: 'https://hosted.example.test' },
       { httpUrl: 'http://127.0.0.1:8765' },
     ])).toBe('http://127.0.0.1:8765');
   });
 
   test('falls back to active backend http url when no loopback candidate exists', () => {
-    expect(resolvePreferredArtifactHttpUrl('https://api.windieos.com', [
-      { httpUrl: 'https://api.windieos.com' },
-    ])).toBe('https://api.windieos.com');
+    expect(resolvePreferredArtifactHttpUrl('https://hosted.example.test', [
+      { httpUrl: 'https://hosted.example.test' },
+    ])).toBe('https://hosted.example.test');
   });
 
   test('uses canonical hosted artifact base when no endpoint data exists', () => {
-    expect(resolvePreferredArtifactHttpUrl(null, [])).toBe('https://api.windieos.com');
+    expect(resolvePreferredArtifactHttpUrl(null, [])).toBe('https://hosted.example.test');
   });
 });
 
 describe('backend_endpoints hosted defaults', () => {
   beforeEach(() => {
-    configureBackendEndpointRuntime(mainHostSkin.hostedBackend);
+    configureBackendEndpointRuntime(sampleHostedBackend);
   });
 
   afterEach(() => {
@@ -60,7 +72,7 @@ describe('backend_endpoints hosted defaults', () => {
     expect(source).toContain('DEFAULT_LOOPBACK_BACKEND_HOST');
     expect(source).toContain('DEFAULT_LOOPBACK_BACKEND_PORT');
     expect(source).toContain('configureBackendEndpointRuntime');
-    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain(hostSkinSymbol);
     expect(source).toContain('normalizeEndpointDefaults');
     expect(source).toContain('resolveConfiguredDefaultEndpoints');
     expect(source).not.toContain('DEFAULT_HOSTED_BACKEND');
@@ -78,8 +90,8 @@ describe('backend_endpoints hosted defaults', () => {
     expect(source).not.toContain(['resolveLocal', 'FallbackEndpoints'].join(''));
     expect(source).not.toContain(['explicitLocal', 'HostOrPort'].join(''));
     expect(source).not.toContain(['local', 'Candidates'].join(''));
-    expect(source).not.toContain('WINDIE_DEFAULT_BACKEND_HTTP_URL');
-    expect(source).not.toContain('WINDIE_DEFAULT_BACKEND_WS_URL');
+    expect(source).not.toContain(hostedDefaultHttpEnv);
+    expect(source).not.toContain(hostedDefaultWsEnv);
   });
 
   test('generic resolver defaults to loopback without host configuration', () => {
@@ -93,20 +105,20 @@ describe('backend_endpoints hosted defaults', () => {
     expect(resolvePreferredArtifactHttpUrl(null, [])).toBe('http://127.0.0.1:8765');
   });
 
-  test('uses canonical hosted-default override pair', () => {
+  test('uses configured hosted-default override pair', () => {
     const env = {
-      WINDIE_DEFAULT_BACKEND_HTTP_URL: 'https://staging.windieos.com/',
-      WINDIE_DEFAULT_BACKEND_WS_URL: 'wss://staging.windieos.com/ws',
+      SAMPLE_DEFAULT_BACKEND_HTTP_URL: 'https://staging.example.test/',
+      SAMPLE_DEFAULT_BACKEND_WS_URL: 'wss://staging.example.test/ws',
     };
 
     expect(resolveBackendEndpoints(env)).toEqual({
-      httpUrl: 'https://staging.windieos.com',
-      wsUrl: 'wss://staging.windieos.com/ws',
-      wsOrigin: 'https://staging.windieos.com',
+      httpUrl: 'https://staging.example.test',
+      wsUrl: 'wss://staging.example.test/ws',
+      wsOrigin: 'https://staging.example.test',
     });
   });
 
-  test('supports non-Windie hosted-default override env names from host config', () => {
+  test('supports non-default hosted-default override env names from host config', () => {
     const env = {
       AGENT_DEFAULT_BACKEND_HTTP_URL: 'https://agent.example.com/',
       AGENT_DEFAULT_BACKEND_WS_URL: 'wss://agent.example.com/ws',
@@ -149,15 +161,15 @@ describe('backend_endpoints hosted defaults', () => {
 
   test('ignores removed packaged hosted-default override names', () => {
     const candidates = resolveBackendEndpointCandidates({
-      WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL: 'https://packaged.example.com',
-      WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL: 'wss://packaged.example.com/ws',
+      [retiredPackagedHttpEnv]: 'https://packaged.example.com',
+      [retiredPackagedWsEnv]: 'wss://packaged.example.com/ws',
     });
 
     expect(candidates).toEqual([
       {
-        httpUrl: 'https://api.windieos.com',
-        wsUrl: 'wss://api.windieos.com/ws',
-        wsOrigin: 'https://api.windieos.com',
+        httpUrl: 'https://hosted.example.test',
+        wsUrl: 'wss://hosted.example.test/ws',
+        wsOrigin: 'https://hosted.example.test',
       },
     ]);
   });
@@ -174,8 +186,8 @@ describe('backend_endpoints hosted defaults', () => {
 
     for (const docPath of docs) {
       const content = fs.readFileSync(path.resolve(__dirname, '../..', docPath), 'utf8');
-      expect(content).not.toContain('WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL');
-      expect(content).not.toContain('WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL');
+      expect(content).not.toContain(retiredPackagedHttpEnv);
+      expect(content).not.toContain(retiredPackagedWsEnv);
     }
   });
 
@@ -186,15 +198,15 @@ describe('backend_endpoints hosted defaults', () => {
 
     expect(resolveBackendEndpointCandidates(env)).toEqual([
       {
-        httpUrl: 'https://api.windieos.com',
-        wsUrl: 'wss://api.windieos.com/ws',
-        wsOrigin: 'https://api.windieos.com',
+        httpUrl: 'https://hosted.example.test',
+        wsUrl: 'wss://hosted.example.test/ws',
+        wsOrigin: 'https://hosted.example.test',
       },
     ]);
     expect(resolveBackendEndpoints(env)).toEqual({
-      httpUrl: 'https://api.windieos.com',
-      wsUrl: 'wss://api.windieos.com/ws',
-      wsOrigin: 'https://api.windieos.com',
+      httpUrl: 'https://hosted.example.test',
+      wsUrl: 'wss://hosted.example.test/ws',
+      wsOrigin: 'https://hosted.example.test',
     });
   });
 });
