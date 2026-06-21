@@ -220,7 +220,9 @@ presentation fields while visible lifecycle owns the typing decision; the
 controller no longer calls an SDK presentation reducer, and the response
 overlay uses
 `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
-only for SDK response-entry and overlay-intent data.
+only for SDK response-entry data plus overlay-intent metadata. Actual response
+visibility requires a visible response entry; overlay intent alone is not a
+response lifecycle authority.
 The controller resolves the active lifecycle against the SDK current-turn
 conversation ref when present, so a lagging session ref does not hide the
 visible same-turn projection.

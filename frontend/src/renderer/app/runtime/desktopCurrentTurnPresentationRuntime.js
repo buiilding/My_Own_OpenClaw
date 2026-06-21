@@ -2,26 +2,14 @@
  * Provides the chat turn presentation state module for the renderer UI.
  */
 
-import { DesktopChatLoopUiRuntime } from './desktopChatLoopUiRuntime';
-import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
 import { DesktopLiveTurnSurfaceRuntime } from './desktopLiveTurnSurfaceRuntime';
 
-const {
-  isChatLoopAwaitingReply,
-  isChatLoopBusy,
-  resolveChatLoopUiState,
-} = DesktopChatLoopUiRuntime;
-
-const {
-  getIdleOverlayTurnLifecycle,
-} = DesktopOverlayTurnLifecycleRuntime;
 const {
   resolveSdkOverlayIntent,
 } = DesktopLiveTurnSurfaceRuntime;
 
 const CHATBOX_SURFACE_STATE = Object.freeze({
   COMPACT: 'compact',
-  AWAITING_REPLY: 'awaiting-reply',
   RESPONSE: 'response',
 });
 
@@ -60,58 +48,8 @@ function findLatestVisibleAssistantReply(
   return null;
 }
 
-function hasVisibleChatTurnReply(activeResponse) {
-  return Boolean(activeResponse);
-}
-
-function hasCurrentTurnAssistantThinking(messages) {
-  const lastUserIndex = findLastUserIndex(messages);
-  const lowerBound = lastUserIndex >= 0 ? lastUserIndex + 1 : 0;
-  for (let index = lowerBound; index < messages.length; index += 1) {
-    const message = messages[index];
-    if (message?.sender !== 'assistant') {
-      continue;
-    }
-    if (typeof message.thinkingText === 'string' && message.thinkingText.trim()) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function findAwaitingDotTargetMessageId(messages, showAssistantAwaitingDot) {
-  if (!showAssistantAwaitingDot) {
-    return null;
-  }
-  const lastUserIndex = findLastUserIndex(messages);
-  if (lastUserIndex === -1) {
-    return null;
-  }
-  const message = messages[lastUserIndex];
-  return typeof message?.id === 'string' && message.id ? message.id : null;
-}
-
 function hasVisibleChatboxResponse(activeResponse, dismissedResponseId) {
   return Boolean(activeResponse && activeResponse.id !== dismissedResponseId);
-}
-
-function resolveChatboxSurfaceState({
-  loopUiState,
-  activeResponse,
-  dismissedResponseId = null,
-}) {
-  const hasVisibleResponse = hasVisibleChatboxResponse(activeResponse, dismissedResponseId);
-  if (hasVisibleResponse && !isChatLoopAwaitingReply(loopUiState)) {
-    return CHATBOX_SURFACE_STATE.RESPONSE;
-  }
-  if (isChatLoopAwaitingReply(loopUiState)) {
-    return CHATBOX_SURFACE_STATE.AWAITING_REPLY;
-  }
-  return CHATBOX_SURFACE_STATE.COMPACT;
-}
-
-function shouldShowChatboxAwaitingReply(surfaceState) {
-  return surfaceState === CHATBOX_SURFACE_STATE.AWAITING_REPLY;
 }
 
 function shouldShowChatboxResponse(surfaceState) {
@@ -119,8 +57,6 @@ function shouldShowChatboxResponse(surfaceState) {
 }
 
 function resolveCurrentTurnPresentationState({
-  phase = null,
-  lifecycle = getIdleOverlayTurnLifecycle(),
   messages,
   dismissedResponseId = null,
   allowedTypes = DEFAULT_VISIBLE_ASSISTANT_REPLY_TYPES,
@@ -128,37 +64,25 @@ function resolveCurrentTurnPresentationState({
 }) {
   const activeResponse = providedActiveResponse
     ?? findLatestVisibleAssistantReply(messages, allowedTypes);
-  const hasVisibleReply = hasVisibleChatTurnReply(activeResponse);
-  const loopUiState = resolveChatLoopUiState({
-    lifecycle,
-    phase,
-    hasVisibleReply,
-  });
-  const showAssistantAwaitingDot = (
-    isChatLoopAwaitingReply(loopUiState)
-    && messages.length > 0
-    && !hasVisibleReply
-    && !hasCurrentTurnAssistantThinking(messages)
-  );
-  const chatboxSurfaceState = resolveChatboxSurfaceState({
-    loopUiState,
-    activeResponse,
-    dismissedResponseId,
-  });
+  const hasVisibleReply = Boolean(activeResponse);
+  const visibleResponse = hasVisibleChatboxResponse(activeResponse, dismissedResponseId)
+    ? activeResponse
+    : null;
+  const chatboxSurfaceState = visibleResponse
+    ? CHATBOX_SURFACE_STATE.RESPONSE
+    : CHATBOX_SURFACE_STATE.COMPACT;
 
   return {
     activeResponse,
     hasVisibleReply,
-    loopUiState,
-    isBusy: isChatLoopBusy(loopUiState),
-    isAwaitingReply: isChatLoopAwaitingReply(loopUiState),
-    showAssistantAwaitingDot,
-    awaitingDotTargetMessageId: findAwaitingDotTargetMessageId(messages, showAssistantAwaitingDot),
-    visibleResponse: hasVisibleChatboxResponse(activeResponse, dismissedResponseId)
-      ? activeResponse
-      : null,
+    loopUiState: 'idle',
+    isBusy: false,
+    isAwaitingReply: false,
+    showAssistantAwaitingDot: false,
+    awaitingDotTargetMessageId: null,
+    visibleResponse,
     chatboxSurfaceState,
-    showChatboxAwaitingReply: shouldShowChatboxAwaitingReply(chatboxSurfaceState),
+    showChatboxAwaitingReply: false,
     showChatboxResponse: shouldShowChatboxResponse(chatboxSurfaceState),
   };
 }
@@ -183,7 +107,7 @@ function resolveSdkResponseOverlayPresentationState({
       : null
   );
   const overlayIntent = resolveSdkOverlayIntent(presentation, currentTurnProjection);
-  const responseVisible = overlayIntent.mode === 'response';
+  const responseVisible = Boolean(visibleResponse);
   const state = {
     ...fallbackState,
     activeResponse: visibleResponse,

@@ -26,7 +26,7 @@ visible-assistant type sets private behind `DesktopCurrentTurnPresentationRuntim
 Facade methods:
 
 - `DesktopCurrentTurnPresentationRuntime.findLatestVisibleAssistantReply(messages, allowedTypes)`
-- `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState({ phase, lifecycle, messages, dismissedResponseId, allowedTypes, activeResponse })`
+- `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState({ messages, dismissedResponseId, allowedTypes, activeResponse })`
 
 ## Turn-Boundary Scan Contract
 
@@ -72,14 +72,15 @@ the facade methods when they need an explicit override.
 1. `DesktopCurrentTurnPresentationRuntime.findLatestVisibleAssistantReply(...)`
 2. `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
 
-It returns the legacy presentation snapshot before visible lifecycle stamping:
+It returns a message-only presentation snapshot before visible lifecycle
+stamping:
 
-- `loopUiState`
-- `isBusy`
-- `isAwaitingReply`
+- `loopUiState` (`idle` until visible lifecycle stamping)
+- `isBusy` (`false` until visible lifecycle stamping)
+- `isAwaitingReply` (`false` until visible lifecycle stamping)
 - `activeResponse`
 - `hasVisibleReply`
-- `showAssistantAwaitingDot`
+- `showAssistantAwaitingDot` (`false` until visible lifecycle stamping)
 - `visibleResponse`
 - `chatboxSurfaceState`
 - `showChatboxAwaitingReply`
@@ -88,10 +89,11 @@ It returns the legacy presentation snapshot before visible lifecycle stamping:
 `useChatSurfaceController(...)` owns transport/lifecycle composition by applying
 `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
 to that snapshot. `useCurrentTurnPresentationState(...)` does not read
-`isSending`, SDK presentation visibility flags, or transport recovery state as
-typing authorities.
+`phase`, overlay lifecycle, `isSending`, SDK presentation visibility flags, or
+transport recovery state as typing authorities.
 
-Awaiting-dot visibility is stricter than response-pane visibility:
+After visible lifecycle stamping, awaiting-dot visibility is stricter than
+response-pane visibility:
 
 - the main chat awaiting dot renders only before the current turn has visible assistant activity
 - assistant `thinkingText` after the latest user row counts as visible activity for the main list, because it makes the per-message `Show thinking` disclosure eligible
@@ -103,7 +105,8 @@ Awaiting-dot visibility is stricter than response-pane visibility:
 
 `ChatInterface.jsx`:
 
-- uses the shared snapshot for busy/stop behavior and awaiting-dot visibility
+- uses the visible-lifecycle-stamped snapshot for busy/stop behavior and
+  awaiting-dot visibility
 - dashboard no longer performs its own assistant-reply scan
 
 `ChatBox.jsx`:

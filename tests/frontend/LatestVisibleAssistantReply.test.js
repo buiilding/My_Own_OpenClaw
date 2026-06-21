@@ -9,10 +9,8 @@ describe('desktopCurrentTurnPresentationRuntime visible reply helpers', () => {
     resolveCurrentTurnPresentationState,
   } = DesktopCurrentTurnPresentationRuntime;
 
-  test('targets the latest user row for awaiting-dot rendering', () => {
+  test('does not derive awaiting-dot state from message rows', () => {
     const state = resolveCurrentTurnPresentationState({
-      phase: 'idle',
-      lifecycle: 'preflight',
       messages: [
         { id: 'user-1', sender: 'user', text: 'first' },
         { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text' },
@@ -20,13 +18,13 @@ describe('desktopCurrentTurnPresentationRuntime visible reply helpers', () => {
       ],
     });
 
-    expect(state.awaitingDotTargetMessageId).toBe('user-2');
+    expect(state.loopUiState).toBe('idle');
+    expect(state.showAssistantAwaitingDot).toBe(false);
+    expect(state.awaitingDotTargetMessageId).toBeNull();
   });
 
   test('ignores tool rows after the latest user until a visible assistant reply exists', () => {
     const state = resolveCurrentTurnPresentationState({
-      phase: 'tool-output',
-      lifecycle: 'active',
       messages: [
         { sender: 'user', text: 'first task', type: 'user' },
         { sender: 'assistant', text: 'done', type: 'llm-text' },
@@ -42,8 +40,6 @@ describe('desktopCurrentTurnPresentationRuntime visible reply helpers', () => {
 
   test('selects the latest visible assistant reply after the latest user', () => {
     const state = resolveCurrentTurnPresentationState({
-      phase: 'streaming',
-      lifecycle: 'active',
       messages: [
         { sender: 'user', text: 'first task', type: 'user' },
         { sender: 'assistant', text: 'done', type: 'llm-text' },

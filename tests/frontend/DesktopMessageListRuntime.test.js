@@ -3,7 +3,6 @@
  */
 
 import { DesktopMessageListRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime';
-import { DesktopCurrentTurnPresentationRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 
 describe('desktopMessageListRuntime', () => {
   const {
@@ -12,51 +11,6 @@ describe('desktopMessageListRuntime', () => {
     shouldRenderAssistantActions,
     shouldRenderUserActions,
   } = DesktopMessageListRuntime;
-  const {
-    resolveCurrentTurnPresentationState,
-  } = DesktopCurrentTurnPresentationRuntime;
-
-  test('awaiting-dot target picks latest user row only while awaiting reply', () => {
-    const awaitingState = resolveCurrentTurnPresentationState({
-      phase: 'idle',
-      lifecycle: 'preflight',
-      messages: [
-        { id: 'assistant-1', sender: 'assistant' },
-        { id: 'user-1', sender: 'user' },
-        { id: 'assistant-2', sender: 'assistant' },
-        { id: 'user-2', sender: 'user' },
-      ],
-    });
-    expect(awaitingState.awaitingDotTargetMessageId).toBe('user-2');
-
-    const notAwaitingState = resolveCurrentTurnPresentationState({
-      phase: 'complete',
-      lifecycle: 'terminal',
-      messages: [{ id: 'user-1', sender: 'user' }],
-    });
-    expect(notAwaitingState.awaitingDotTargetMessageId).toBeNull();
-  });
-
-  test('awaiting-dot target clears when current turn assistant thinking is visible', () => {
-    const awaitingState = resolveCurrentTurnPresentationState({
-      phase: 'awaiting-first-chunk',
-      lifecycle: 'awaiting',
-      messages: [
-        { id: 'user-1', sender: 'user', text: 'think through this', type: 'user' },
-        {
-          id: 'assistant-1',
-          sender: 'assistant',
-          text: '',
-          type: 'llm-text',
-          thinkingText: 'Drafting plan',
-          thinkingSourceEventType: 'llm-thought',
-        },
-      ],
-    });
-
-    expect(awaitingState.showAssistantAwaitingDot).toBe(false);
-    expect(awaitingState.awaitingDotTargetMessageId).toBeNull();
-  });
 
   test('resolveCompactionStatusText maps source event to status metadata', () => {
     expect(resolveCompactionStatusText('Compacting...', 'context-compaction-started')).toEqual(

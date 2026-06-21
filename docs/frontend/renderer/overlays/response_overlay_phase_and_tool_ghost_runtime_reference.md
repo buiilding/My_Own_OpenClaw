@@ -145,9 +145,10 @@ Contract ownership:
   app-runtime facade.
 - `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
 - `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
-  overlays SDK response-entry and overlay-intent data onto the legacy
-  presentation-field adapter; lifecycle, awaiting, busy, and typing fields are
-  stamped by `DesktopVisibleTurnLifecycleRuntime` after that data step.
+  overlays SDK response-entry data and overlay-intent metadata onto the legacy
+  presentation-field adapter; response visibility requires an actual response
+  entry, and lifecycle, awaiting, busy, and typing fields are stamped by
+  `DesktopVisibleTurnLifecycleRuntime` after that data step.
 - `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)` owns
   hidden SDK startup and terminal handoff rules used by live-surface
   projection. `DesktopLiveTurnSurfaceRuntime` maps the resolved visible

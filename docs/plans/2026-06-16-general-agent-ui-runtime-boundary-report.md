@@ -12,13 +12,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: live-surface phase/busy/awaiting/response fields now
-  read the renderer visible lifecycle while SDK overlay intent remains metadata
-  for refs, stale guards, dismissal, and trace context. Dashboard assistant
-  feedback/retry disabling also reads visible lifecycle busy/Stop projection
-  instead of raw `isSending`, and current-turn projection effects no longer
-  treat SDK `presentation.typingVisible` or `presentation.overlayVisible` as
-  send-latch authorities.
+- Latest completed slice: current-turn presentation now adapts only latest
+  visible assistant reply and response-entry data, with idle lifecycle defaults
+  until `DesktopVisibleTurnLifecycleRuntime` stamps busy, awaiting, chatbox
+  awaiting, and awaiting-dot fields. SDK response-overlay projection requires
+  an actual visible response entry for response state while preserving SDK
+  overlay intent as metadata for refs, stale guards, dismissal, and trace
+  context. Dashboard `MessageInput` receives the controller's visible lifecycle
+  lock as `isLoopActive`/`isSubmitBlocked` instead of raw `isSending`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

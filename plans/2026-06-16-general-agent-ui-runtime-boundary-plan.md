@@ -9,6 +9,45 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Message-Only Current-Turn Presentation Adapter
+
+- Finding: `DesktopCurrentTurnPresentationRuntime` still imported
+  `DesktopChatLoopUiRuntime` and `DesktopOverlayTurnLifecycleRuntime`, allowing
+  the message adapter to reduce `phase + lifecycle` into busy, awaiting, and
+  chatbox surface state after the visible lifecycle owner took that authority.
+  The SDK response-overlay adapter also allowed overlay intent mode to force
+  response visibility without a visible response entry.
+- Change: current-turn presentation now adapts only latest visible assistant
+  reply data into the legacy presentation shape with idle defaults until
+  `DesktopVisibleTurnLifecycleRuntime` stamps live state. SDK response-overlay
+  projection now requires an actual visible response entry for response
+  surface state while preserving overlay intent as metadata for refs and
+  dismissal targets.
+- Validation target: `ChatboxSurfaceState.test.js`,
+  `LatestVisibleAssistantReply.test.js`, and `RendererAppRuntimeBoundary.test.ts`
+  cover the message-only adapter contract, visible-entry response projection,
+  and removal of chat-loop/overlay lifecycle imports from the current-turn
+  presentation facade.
+- Compatibility/security: no SDK event payload, IPC payload, transcript
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Message Input Loop-Active Boundary
+
+- Finding: `MessageInput.jsx` consumed the chat surface controller's
+  `composerBusy` output, but the component and input runtime still named that
+  boundary `isSending`, keeping raw send-latch language at the dashboard
+  composer surface after the visible lifecycle migration.
+- Change: `ChatInterface.jsx` now passes `isLoopActive` into `MessageInput`;
+  composer side effects, Stop rendering, voice/attachment disabling, and the
+  outgoing-message hard guard use loop-active/submit-blocked naming.
+- Validation target: `MessageInput.test.jsx`,
+  `DesktopMessageInputRuntime.test.js`, and `ChatInterfaceWiring.test.jsx`
+  cover the renamed boundary and active-loop Stop state.
+- Compatibility/security: no SDK event payload, IPC payload, transcript
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Live-Surface Visible Lifecycle Projection
 
 - Finding: `DesktopLiveTurnSurfaceRuntime` still derived live-surface

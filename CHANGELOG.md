@@ -68,6 +68,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: make `DesktopCurrentTurnPresentationRuntime` message-only
+  for current-turn presentation state by removing chat-loop and overlay
+  lifecycle imports; visible lifecycle stamping now owns awaiting, busy, and
+  Stop state, while SDK overlay intent remains response metadata and cannot
+  force response visibility without an entry. No migration required.
+- frontend/renderer: rename dashboard `MessageInput`'s loop lock from raw
+  `isSending` to visible-lifecycle `isLoopActive`/`isSubmitBlocked`, so
+  composer submit, Stop rendering, attachment controls, and voice controls
+  consume the controller's visible lifecycle boundary. No migration required.
 - frontend/renderer: route live-surface phase/busy/awaiting/response flags and
   dashboard assistant-action disabling through visible lifecycle state instead
   of raw SDK presentation flags or `isSending`, so stale send latches and

@@ -11,22 +11,21 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     resolveSdkResponseOverlayPresentationState,
   } = DesktopCurrentTurnPresentationRuntime;
 
-  test('shows awaiting state while user message is still sending', () => {
+  test('keeps message-only state compact until visible lifecycle stamps awaiting state', () => {
     const state = resolveCurrentTurnPresentationState({
-      phase: 'idle',
-      lifecycle: 'preflight',
       messages: [{ id: 'user-1', sender: 'user', text: 'hello', type: 'user' }],
     });
 
-    expect(state.chatboxSurfaceState).toBe('awaiting-reply');
-    expect(state.showChatboxAwaitingReply).toBe(true);
+    expect(state.loopUiState).toBe('idle');
+    expect(state.isBusy).toBe(false);
+    expect(state.isAwaitingReply).toBe(false);
+    expect(state.chatboxSurfaceState).toBe('compact');
+    expect(state.showChatboxAwaitingReply).toBe(false);
     expect(state.showChatboxResponse).toBe(false);
   });
 
   test('shows response state after first visible chunk arrives', () => {
     const state = resolveCurrentTurnPresentationState({
-      phase: 'streaming',
-      lifecycle: 'active',
       messages: [
         { id: 'user-1', sender: 'user', text: 'task', type: 'user' },
       ],
@@ -38,24 +37,21 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     expect(state.showChatboxAwaitingReply).toBe(false);
   });
 
-  test('returns to awaiting state when tool output resumes the loop', () => {
+  test('keeps visible response data independent from lifecycle state', () => {
     const state = resolveCurrentTurnPresentationState({
-      phase: 'tool-output',
-      lifecycle: 'active',
       messages: [
         { id: 'user-1', sender: 'user', text: 'task', type: 'user' },
       ],
       activeResponse: { id: 'assistant-1', type: 'llm-text', sender: 'assistant', text: 'done' },
     });
 
-    expect(state.chatboxSurfaceState).toBe('awaiting-reply');
-    expect(state.showChatboxAwaitingReply).toBe(true);
+    expect(state.chatboxSurfaceState).toBe('response');
+    expect(state.showChatboxResponse).toBe(true);
+    expect(state.showChatboxAwaitingReply).toBe(false);
   });
 
   test('keeps compact state when no response is visible and loop is terminal', () => {
     const state = resolveCurrentTurnPresentationState({
-      phase: 'complete',
-      lifecycle: 'terminal',
       messages: [{ id: 'user-1', sender: 'user', text: 'task', type: 'user' }],
     });
 
@@ -66,8 +62,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
   test('treats dismissed responses as hidden in presentation state', () => {
     const state = resolveCurrentTurnPresentationState({
-      phase: 'streaming',
-      lifecycle: 'active',
       messages: [{ id: 'user-1', sender: 'user', text: 'task', type: 'user' }],
       activeResponse: { id: 'assistant-1', type: 'llm-text', sender: 'assistant', text: 'done' },
       dismissedResponseId: 'assistant-1',
@@ -79,8 +73,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
   test('keeps tool rows from suppressing awaiting state after the latest user turn', () => {
     const state = resolveCurrentTurnPresentationState({
-      phase: 'tool-output',
-      lifecycle: 'active',
       messages: [
         { id: 'user-1', sender: 'user', text: 'first task', type: 'user' },
         { id: 'assistant-1', sender: 'assistant', text: 'done', type: 'llm-text' },
@@ -91,12 +83,12 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     });
 
     expect(state.hasVisibleReply).toBe(false);
-    expect(state.showAssistantAwaitingDot).toBe(true);
-    expect(state.showChatboxAwaitingReply).toBe(true);
+    expect(state.showAssistantAwaitingDot).toBe(false);
+    expect(state.showChatboxAwaitingReply).toBe(false);
     expect(state.showChatboxResponse).toBe(false);
   });
 
-  test('projects SDK overlay response data onto fallback lifecycle state', () => {
+  test('projects SDK response entries onto fallback lifecycle state', () => {
     const state = resolveSdkResponseOverlayPresentationState({
       currentTurnProjection: {
         conversationRef: 'conv-1',
@@ -119,7 +111,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       responseOverlayEntries: [
         { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
       ],
-      dismissedResponseId: 'assistant-1',
       fallbackState: {
         isBusy: false,
         isAwaitingReply: false,
@@ -130,8 +121,8 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     });
 
     expect(state).toMatchObject({
-      activeResponse: null,
-      visibleResponse: null,
+      activeResponse: { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
+      visibleResponse: { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
       hasVisibleReply: true,
       showChatboxResponse: true,
       chatboxSurfaceState: 'response',
@@ -141,6 +132,70 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
         mode: 'response',
         turnRef: 'turn-1',
       }),
+    });
+  });
+
+  test('does not let SDK overlay intent alone force response state', () => {
+    const state = resolveSdkResponseOverlayPresentationState({
+      currentTurnProjection: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        presentation: {
+          hasVisibleContent: true,
+          overlayVisible: true,
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            turnRef: 'turn-1',
+          },
+        },
+      },
+      responseOverlayEntries: [],
+      fallbackState: {
+        chatboxSurfaceState: 'compact',
+        showChatboxResponse: false,
+      },
+      includeOverlayIntent: true,
+    });
+
+    expect(state).toMatchObject({
+      activeResponse: null,
+      visibleResponse: null,
+      showChatboxResponse: false,
+      chatboxSurfaceState: 'compact',
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+      }),
+    });
+  });
+
+  test('treats dismissed SDK response entries as hidden response data', () => {
+    const state = resolveSdkResponseOverlayPresentationState({
+      currentTurnProjection: {
+        presentation: {
+          hasVisibleContent: true,
+          overlayVisible: true,
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+          },
+        },
+      },
+      responseOverlayEntries: [
+        { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
+      ],
+      dismissedResponseId: 'assistant-1',
+      fallbackState: {
+        chatboxSurfaceState: 'compact',
+        showChatboxResponse: false,
+      },
+    });
+
+    expect(state).toMatchObject({
+      activeResponse: null,
+      visibleResponse: null,
+      showChatboxResponse: false,
+      chatboxSurfaceState: 'compact',
     });
   });
 

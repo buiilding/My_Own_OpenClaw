@@ -9,6 +9,44 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Message-Only Current-Turn Presentation Adapter
+
+- Finding: `DesktopCurrentTurnPresentationRuntime` still contained a legacy
+  reducer from `phase + overlay lifecycle` into loop UI state, so busy,
+  awaiting, chatbox awaiting, and awaiting-dot fields had a second authority
+  beside `DesktopVisibleTurnLifecycleRuntime`. SDK overlay intent mode could
+  also force response surface visibility without response entries.
+- Change: `resolveCurrentTurnPresentationState(...)` is now a message/response
+  adapter only: it selects the latest visible assistant reply and returns idle
+  lifecycle defaults for the visible lifecycle adapter to stamp. SDK response
+  overlay projection uses actual visible response entries for response state
+  and keeps overlay intent as metadata for dismissal refs and trace context.
+- Validation target: focused presentation and boundary tests protect the
+  deleted imports, message-only default state, dismissed-response behavior, and
+  overlay-intent-as-metadata rule.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Message Input Loop-Active Boundary
+
+- Finding: dashboard `MessageInput` already received `composerBusy` from the
+  visible lifecycle controller, but its public prop and helper naming still
+  exposed the lock as raw `isSending`, preserving an obsolete send-latch
+  authority at the composer boundary.
+- Change: `ChatInterface.jsx` now passes `isLoopActive={composerBusy}`;
+  `MessageInput.jsx` uses `isLoopActive` for Stop rendering, submit blocking,
+  attachment/voice disabling, focus suppression, and plus-menu close behavior;
+  `DesktopMessageInputRuntime.buildOutgoingMessage(...)` names the hard guard
+  `isSubmitBlocked`.
+- Validation target: `MessageInput.test.jsx`,
+  `DesktopMessageInputRuntime.test.js`, and `ChatInterfaceWiring.test.jsx`
+  protect submit blocking, Stop state, and stale raw `isSending=false` with an
+  active visible lifecycle.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Live-Surface Visible Lifecycle Projection
 
 - Finding: live-surface input still used SDK phase/presentation busy and
