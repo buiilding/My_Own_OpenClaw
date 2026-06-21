@@ -8429,3 +8429,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Electron main host behavior, SDK runtime contracts, IPC channels,
   permissions, storage, provider policy, and backend behavior are unchanged; no
   migration is required.
+- Active tool-schema, ADR, architecture, backend workflow, development,
+  frontend inventory, and routing docs now describe local tool schema ownership
+  through the client/local-runtime schema boundary and Electron client manifest
+  builder instead of the older desktop client/local-runtime owner label. The
+  modular boundary guard now expects the current tool-manifest labels and the
+  retired phrase is absent from active docs/tests. Concrete
+  `client_tool_manifest` payload names, manifest file paths, SDK/main dispatch,
+  backend policy/projection ownership, and local-runtime Python implementation
+  names are unchanged; no migration is required.

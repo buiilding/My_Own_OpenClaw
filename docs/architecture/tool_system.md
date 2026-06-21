@@ -15,7 +15,7 @@ Current runtime note:
 - the live backend registry and the live local-runtime registry both use direct tool names such as `mouse_control` and `run_shell_command`
 - the repo also contains wrapper-shaped reference artifacts for `computer_use` and `system_use` under `model-facing/`, but those names are not registered by `backend/src/tools/registry.py` or `frontend/src/main/python/tools/registry.py`
 
-Desktop client/local-runtime built-in tool schemas now flow through `client_tool_manifest`.
+Client/local-runtime built-in tool schemas now flow through `client_tool_manifest`.
 For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth.md`.
 
 ## Architecture
@@ -30,7 +30,7 @@ For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth
                  ^ WebSocket
                  |
 +--------------------------------------------------+
-| Desktop Client / Local Runtime                   |
+| Client Manifest + Local Runtime                  |
 |  - Electron main: host bridge and dispatch       |
 |  - SDK runtime: ToolExecutionCoordinator         |
 |  - Local-runtime Python executor: executable tools |
@@ -54,7 +54,7 @@ This is the live remote tool surface today: 14 direct remote tools shared across
 Catalog-driven declaration contract:
 
 - backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-owned remote tools and backend policy
-- desktop client manifest builder `frontend/src/main/extensions/tool_manifest.cjs` is the source of truth for built-in desktop client/local-runtime schemas
+- Electron client manifest builder `frontend/src/main/extensions/tool_manifest.cjs` is the source of truth for built-in client/local-runtime schemas
 - plugin `schema` contributions are loaded by Electron main from `plugins/*/plugin.json`
 - plugin Python entrypoints are loaded by the sidecar from `plugins/*/plugin.json`
 - backend validates accepted/rejected client manifest entries before prompt construction
@@ -70,8 +70,8 @@ Catalog-driven declaration contract:
 
 Boundary rule:
 
-- Desktop client and local-runtime Python code must never import backend Python modules or depend on `backend.src.*` at runtime
-- desktop client/local-runtime and backend schema pairing must stay import-independent across that boundary
+- Client and local-runtime Python code must never import backend Python modules or depend on `backend.src.*` at runtime
+- client/local-runtime and backend schema pairing must stay import-independent across that boundary
 - drift prevention comes from explicit backend-vs-local-runtime schema parity tests run before production, not from cross-boundary runtime imports
 
 Wrapper reference artifact note:
@@ -101,7 +101,7 @@ The backend:
 - Builds tool schemas and passes them to LiteLLM via native request params (`tools`, optional `tool_choice`, optional `parallel_tool_calls`)
 - Emits tool schemas as a transparency event (`tool-schemas`)
 - Resolves coordinates and screenshots with frame-local metadata (`capture_meta` + internal frame identity)
-- Waits for results from SDK/main local-runtime execution for desktop client/local-runtime tools
+- Waits for results from SDK/main local-runtime execution for client/local-runtime tools
 - Executes backend-owned tools directly when a tool declares backend execution
 - Augments provider-native web-search responses with normalized source/progress metadata
 - Keeps tool schemas focused on action/parameter contracts while placing cross-tool operational strategy (grounding, timing, verification, sequencing) in the global system prompt
@@ -249,9 +249,9 @@ class MyTool(Tool[MyToolArgs]):
         }
 ```
 
-### Desktop Client/Local-Runtime Tool (Local-Runtime Execution)
+### Client/Local-Runtime Tool (Local-Runtime Execution)
 
-Desktop client/local-runtime tools use backend catalog stubs for model-facing schema and
+Client/local-runtime tools use backend catalog stubs for model-facing schema and
 policy, then dispatch executable payloads through the SDK/main local runtime
 into the local-runtime Python executor. Backend-owned remote tools such as `web_search`
 stay in backend services and do not use the local-runtime Python executor.

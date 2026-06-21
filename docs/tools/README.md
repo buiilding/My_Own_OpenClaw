@@ -8,7 +8,7 @@ title: "Tools Hub"
 
 # Tools Hub
 
-Model-facing tools are split between desktop client/local-runtime manifest
+Model-facing tools are split between client/local-runtime manifest
 schemas, local-runtime executable implementations backed by local-runtime
 Python, backend-owned remote tools and policy/projection, and SDK/main-process
 dispatch.
@@ -30,7 +30,7 @@ dispatch.
 
 ## Current Tool Catalogs
 
-Desktop client/local-runtime model-visible tools are supplied by the accepted client manifest. The backend catalog keeps backend-owned tools plus fallback/default entries:
+Client/local-runtime model-visible tools are supplied by the accepted client manifest. The backend catalog keeps backend-owned tools plus fallback/default entries:
 
 - `mouse_control`
 - `keyboard_control`
@@ -47,7 +47,7 @@ Desktop client/local-runtime model-visible tools are supplied by the accepted cl
 - `replace`
 - `browser`
 
-Local-runtime executable tools are registered in `frontend/src/main/python/tools/registry.py`. The local-runtime executable registry backed by local-runtime Python modules intentionally mirrors only the executable local actions expected by accepted desktop client/local-runtime schemas.
+Local-runtime executable tools are registered in `frontend/src/main/python/tools/registry.py`. The local-runtime executable registry backed by local-runtime Python modules intentionally mirrors only the executable local actions expected by accepted client/local-runtime schemas.
 
 ## Change Path
 

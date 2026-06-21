@@ -14,7 +14,7 @@ Use this workflow before changing backend tool-turn behavior. WindieOS has two t
 - Backend model-facing tools tell the LLM what it can request.
 - SDK/main local-runtime tools run local actions and return results.
 
-Desktop client/local-runtime and local-runtime Python code must not import backend tool schema code for parity. Keep parity in docs and tests.
+Client/local-runtime and local-runtime Python code must not import backend tool schema code for parity. Keep parity in docs and tests.
 
 ## Tool-Turn Path
 

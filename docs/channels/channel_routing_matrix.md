@@ -38,7 +38,7 @@ Backend-owned payloads:
 - `/api/sdk/*`, `/api/artifacts/*`, `/api/runs/*`, `/api/embeddings/*`, and `/api/semantic/*` request/response models
 - transcription websocket provider protocol normalization
 
-Desktop client-owned payloads:
+Electron client-owned payloads:
 
 - renderer-to-main IPC channel payloads
 - renderer-local config and settings subset
@@ -93,7 +93,7 @@ Use `/api/sdk/*` when:
 
 | Symptom | Likely channel | First docs |
 | --- | --- | --- |
-| Query never reaches backend | desktop SDK command path or backend websocket | [IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md), [Backend WebSocket Reference](../backend/api/websocket_connection_and_task_lifecycle_reference.md) |
+| Query never reaches backend | SDK command path or backend websocket | [IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md), [Backend WebSocket Reference](../backend/api/websocket_connection_and_task_lifecycle_reference.md) |
 | Query streams but UI does not update | backend outgoing event or renderer stream consumer | [Backend Contracts Events Hub](../backend/contracts/events/README.md), [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md) |
 | Tool call appears but local action does not run | SDK runtime tool router or local-runtime Python executor | [Local Tool Channels](sidecar_and_tool_channels.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Voice text does not appear | `/ws/transcription` or voice renderer state | [Voice and Audio Channels](voice_and_audio_channels.md) |

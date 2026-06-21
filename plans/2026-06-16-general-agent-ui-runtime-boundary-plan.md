@@ -20423,3 +20423,25 @@ Each completed slice should report:
   wording; renderer modules, Electron main host behavior, SDK runtime contracts,
   IPC channels, permissions, storage, provider policy, and backend behavior are
   unchanged.
+
+### 2026-06-21 client/local-runtime tool-manifest wording
+
+- Finding: active tool-schema, ADR, architecture, backend workflow,
+  development, frontend inventory, and routing docs still described local tool
+  schema ownership as `desktop client/local-runtime`, with boundary tests
+  preserving desktop-client manifest labels even though the current split is
+  client-provided manifests, the Electron client manifest builder, SDK/main
+  local-runtime dispatch, and local-runtime Python executable authority.
+- Change: reworded those active labels to client/local-runtime schema and
+  Electron client manifest builder wording while preserving concrete manifest
+  file paths, `client_tool_manifest` payload names, SDK/main dispatch labels,
+  backend policy/projection ownership, and local-runtime Python implementation
+  names. Updated modular boundary expectations for the new tool-manifest
+  labels and retired the old desktop client/local-runtime phrase from active
+  docs.
+- Validation: focused modular boundary test, exact retired tool-manifest owner
+  phrase scan, docs listing, and diff checks.
+- Compatibility: no migration required. Tool schemas, generated manifest
+  artifacts, backend manifest validation, provider projection, SDK/main
+  dispatch, local-runtime execution, IPC channels, permissions, storage, and
+  backend behavior are unchanged.

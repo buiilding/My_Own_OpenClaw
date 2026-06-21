@@ -91,7 +91,7 @@ Local-runtime Python tool implementation files
 ```
 
 Frontend and sidecar must not import backend code for parity. Backend should use
-schemas, manifests, transport contracts, and tests to understand desktop client/local-runtime
+schemas, manifests, transport contracts, and tests to understand client/local-runtime
 capability.
 
 ## Backend Agent Runtime
@@ -217,7 +217,7 @@ Key TypeScript SDK surfaces:
 - `packages/windie-sdk-js/src/transport/ManagedWebSocketSession.ts`: hosted
   backend websocket lifecycle, typed query/stop/rehydrate/settings/model sends,
   backend event fan-out, and tool-result return.
-- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`: desktop client/local-runtime
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`: client/local-runtime
   tool claim, execution callback, result correlation, and backend result return.
 - `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`: local runtime
   daemon discovery/start/reuse, local-runtime-backed storage, builtin tool selection,

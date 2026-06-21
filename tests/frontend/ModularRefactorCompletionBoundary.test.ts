@@ -1749,7 +1749,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('renderer SDK command -> Electron agent host -> Agent SDK backend transport -> backend `/ws`');
     expect(docText).toContain('overlay renderer SDK command -> Electron agent host -> Agent SDK backend transport -> backend `/ws`');
     expect(docText).toContain('overlay renderer `windie:invoke` command `conversation.send` -> Electron main agent host -> Agent SDK backend transport -> `/ws` `query`');
-    expect(docText).toContain('desktop SDK command path or backend websocket');
+    expect(docText).toContain('SDK command path or backend websocket');
     expect(docText).not.toContain('renderer -> Electron IPC -> backend `/ws`');
     expect(docText).not.toContain('overlay renderer -> Electron IPC -> backend `/ws`');
     expect(docText).not.toContain('overlay renderer IPC -> Electron main -> `/ws` `query`');
@@ -1931,7 +1931,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/architecture/backend_architecture.md'),
     ])).join('\n');
 
-    expect(docText).toContain('desktop client/local-runtime tool');
+    expect(docText).toContain('client/local-runtime tool');
     expect(docText).toContain('local-runtime executable tool');
     expect(docText).toContain('local-runtime plugins under `plugins/*/plugin.json`');
     expect(docText).toContain('local-runtime plugin tools');
@@ -1969,10 +1969,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK backend transport traces');
     expect(docText).toContain('Tool result reaches SDK/main but model does not continue');
     expect(docText).toContain('SDK tool-result relay plus backend tool-result ingestion/waiting/processing modules');
-    expect(architectureToolSystemText).toContain('Desktop Client / Local Runtime');
-    expect(architectureToolSystemText).toContain('desktop client manifest builder');
+    expect(architectureToolSystemText).toContain('Client Manifest + Local Runtime');
+    expect(architectureToolSystemText).toContain('Electron client manifest builder');
     expect(architectureToolSystemText).toContain('local-runtime exposed-tool parity');
-    expect(architectureToolSystemText).toContain('desktop client/local-runtime and backend schema pairing');
+    expect(architectureToolSystemText).toContain('client/local-runtime and backend schema pairing');
     expect(architectureOverviewText).toContain('renderer UI, Electron main agent host, SDK local runtime');
     expect(architectureOverviewText).toContain('SDK local runtime backed by the local-runtime Python implementation');
     expect(architectureOverviewText).toContain('Local-runtime Python implementation executes local tools');
@@ -2081,7 +2081,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('local runtime owns executable desktop actions');
     expect(toolRoutingDocText).toContain('local runtime owns actual mouse');
     expect(toolRoutingDocText).toContain('concrete executable tool implementations and dynamic tool registry behind the local-runtime boundary');
-    expect(toolRoutingDocText).toContain('local-runtime host own desktop client/local-runtime tool schemas and local executable authority');
+    expect(toolRoutingDocText).toContain('local-runtime host own client/local-runtime tool schemas and local executable authority');
     expect(toolRoutingDocText).toContain('The local runtime owns what can actually run locally');
     expect(toolRoutingDocText).toContain('Local-runtime implementation payloads');
     expect(toolRoutingDocText).toContain('Local-runtime tool');
@@ -2556,7 +2556,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('The desktop/local-runtime browser path should keep only adapter state');
     expect(docText).toContain('Host-skinned desktop launches may inject a product-specific user-data root');
     expect(docText).toContain('dedicated desktop connect path');
-    expect(docText).toContain('Desktop client/local-runtime manifest');
+    expect(docText).toContain('Client/local-runtime manifest');
     expect(docText).toContain('local-runtime executable registry backed by local-runtime Python modules');
     expect(docText).not.toContain('dedicated Windie browser runtime');
     expect(docText).not.toContain('Dedicated Windie browser navigation');

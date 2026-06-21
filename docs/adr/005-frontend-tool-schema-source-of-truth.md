@@ -1,16 +1,16 @@
 ---
-summary: "ADR 005 for the desktop client/local-runtime executable tool manifest source of truth while preserving backend-owned model-facing policy and import-independent parity."
+summary: "ADR 005 for the client/local-runtime executable tool manifest source of truth while preserving backend-owned model-facing policy and import-independent parity."
 read_when:
   - When changing backend tool schemas, local-runtime executable tool manifests, schema parity tests, tool catalog generation, or provider-visible tool policy.
-  - When evaluating whether the desktop client/local-runtime manifest pipeline should publish executable tool manifests consumed by the backend.
-title: "ADR 005: Desktop Client Tool Manifest Source of Truth"
+  - When evaluating whether the client/local-runtime manifest pipeline should publish executable tool manifests consumed by the backend.
+title: "ADR 005: Client Tool Manifest Source of Truth"
 ---
 
-# ADR 005: Desktop Client Tool Manifest Source of Truth
+# ADR 005: Client Tool Manifest Source of Truth
 
 ## Status
 
-Accepted. Current implementation uses a desktop client/local-runtime generated
+Accepted. Current implementation uses a client/local-runtime generated
 built-in client tool manifest for local tools, with backend-owned manifest trust
 checks, policy filtering, provider projection, and backend-native tools.
 
@@ -23,18 +23,18 @@ WindieOS has two related but distinct tool contracts:
 
 Historically, the backend owned the local model-facing tool catalog and emitted tool calls to the frontend while the Python implementation directly carried local execution. That left local tools split across two runtime contracts and made drift easy.
 
-The desktop client/local-runtime pipeline now publishes a versioned executable
+The client/local-runtime pipeline now publishes a versioned executable
 manifest for local built-in tools. The backend consumes the manifest during
 handshake, validates it, applies policy/provider projection, and still owns
 backend-native tools.
 
 ## Decision
 
-Use the desktop client/local-runtime manifest pipeline for built-in local tools.
+Use the client/local-runtime manifest pipeline for built-in local tools.
 
 Current rules:
 
-- the desktop client/local-runtime manifest pipeline owns built-in local tool
+- the client/local-runtime manifest pipeline owns built-in local tool
   schemas, while local-runtime Python code owns concrete executable implementations
 - Electron consumes `frontend/src/main/generated/builtin_tool_manifest.json`
 - the generated manifest is produced from `frontend/src/main/python/tools/manifest.py`
@@ -45,7 +45,7 @@ Current rules:
   provider adaptation, capability narrowing, and backend-native tools
 - backend validates tool arguments only for backend-executed tools; local
   tool payload validation belongs to the SDK/main local execution path
-- desktop client/local-runtime Python code does not import backend code
+- client/local-runtime Python code does not import backend code
 - drift prevention uses explicit parity tests and generated/shared contracts
 
 ## Alternatives Considered
@@ -59,8 +59,8 @@ Current rules:
 
 ## Consequences
 
-- Tool docs must keep desktop client/local-runtime schemas and backend-native schemas distinct.
-- Built-in desktop client/local-runtime schema changes update the frontend Python manifest source, regenerate the JSON artifact, and update tests.
+- Tool docs must keep client/local-runtime schemas and backend-native schemas distinct.
+- Built-in client/local-runtime schema changes update the frontend Python manifest source, regenerate the JSON artifact, and update tests.
 - Backend-native tool changes still update backend schema/policy tests.
 - Manifest compatibility, trust, signing, and fallback behavior remain future hardening work.
 

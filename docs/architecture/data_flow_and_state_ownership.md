@@ -22,7 +22,7 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 | backend endpoint URLs | Electron main | renderer, local-runtime env, SDK helpers | resolved in `frontend/src/main/app/backend_endpoints.cjs`; local runtime receives `WINDIE_BACKEND_HTTP_URL` |
 | session/conversation identity | backend plus SDK conversation runtime | backend history, SDK projections, local-runtime transcript/memory, renderer display | keep `user_id`, `session_id`, `conversation_ref`, and turn ids aligned |
 | model/provider settings | backend config/session policy; SDK model-selection contract; renderer stores user-facing subset | provider factory, model list UI, prompt construction | renderer should not persist backend-owned provider internals or keys; desktop query-time model patches are built through the SDK model-selection helper; conversation-scoped SDK model changes append `settings_updated` events for runtime state/debug but do not become display or rehydrate history |
-| model-facing tool schema | backend | LLM provider adapters, parser validation, transparency events | desktop client/local-runtime Python code must not import backend schema code |
+| model-facing tool schema | backend | LLM provider adapters, parser validation, transparency events | client/local-runtime Python code must not import backend schema code |
 | executable local tool implementation | local runtime | SDK tool coordinator, Electron main bridge, backend result ingestion, renderer display projection | backend sees results, local-runtime Python implementation does local work |
 | stream event phase | backend event producer plus SDK runtime reducer | chat UI, response overlay, tool coordinator, transcript projections | stale-turn filtering belongs at consumer boundaries |
 | normalized conversation events | SDK runtime | desktop, CLI, custom UI, store adapters, backend rehydrate projection | UI messages are projections, not storage truth |
@@ -56,7 +56,7 @@ fall back to the active chat, because `conversationRef` owns chat identity.
 | --- | --- |
 | renderer and backend disagree on model/provider | backend owns effective policy; renderer stores only user-facing selection |
 | local runtime points to different backend than websocket | Electron main injects resolved URL; debug `WINDIE_BACKEND_HTTP_URL` |
-| tool schemas drift | parity tests, generated/shared contract checks, no backend imports in desktop client/local-runtime Python code |
+| tool schemas drift | parity tests, generated/shared contract checks, no backend imports in client/local-runtime Python code |
 | visible transcript differs from backend history | use session/transcript reference and rehydrate contracts |
 | UI display, replay, and edit/resend history drift | make them projections from SDK normalized conversation events |
 | permission UI says granted without OS capability | permission services must probe real capability before setting granted |

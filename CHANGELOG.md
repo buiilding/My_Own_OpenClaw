@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route tool-manifest ownership wording through the
+  client/local-runtime schema boundary and Electron client manifest builder
+  instead of older desktop client/local-runtime labels. No migration required.
 - docs/main: route remaining architecture overview diagrams and Electron main
   owner labels through the Electron agent-host plus SDK runtime split instead
   of older desktop client/SDK host and Agent SDK host wording. No migration

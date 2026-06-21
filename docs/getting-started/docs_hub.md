@@ -827,7 +827,7 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [Architecture Decision Records](../adr/README.md)
 - [ADR 004: Browser Extension Auto-Attach Boundary](../adr/004-browser-extension-auto-attach.md)
-- [ADR 005: Desktop Client Tool Manifest Source of Truth](../adr/005-frontend-tool-schema-source-of-truth.md)
+- [ADR 005: Client Tool Manifest Source of Truth](../adr/005-frontend-tool-schema-source-of-truth.md)
 
 ## Where to Add New Docs
 

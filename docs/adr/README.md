@@ -15,7 +15,7 @@ Use ADRs for durable technical decisions that should outlive one implementation 
 | ADR | Status | Decision |
 | --- | --- | --- |
 | [ADR 004: Browser Extension Auto-Attach Boundary](004-browser-extension-auto-attach.md) | proposed | Keep browser-extension auto-attach as future extension-mode work; current browser control remains dedicated-profile/CDP owned. |
-| [ADR 005: Desktop Client Tool Manifest Source of Truth](005-frontend-tool-schema-source-of-truth.md) | accepted | Use desktop client/local-runtime executable tool manifests while preserving backend-owned model-facing policy and no runtime backend imports. |
+| [ADR 005: Client Tool Manifest Source of Truth](005-frontend-tool-schema-source-of-truth.md) | accepted | Use client/local-runtime executable tool manifests while preserving backend-owned model-facing policy and no runtime backend imports. |
 
 ## When To Add An ADR
 
