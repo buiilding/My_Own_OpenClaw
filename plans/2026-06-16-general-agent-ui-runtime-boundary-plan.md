@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Provider Context Owner Exports
+
+- Finding: `AppConfigContext.jsx`, `AppStatusContext.jsx`, and
+  `ChatContext.jsx` were already the canonical owner modules for renderer
+  provider context values and hooks, but still used passive same-module export
+  blocks.
+- Change: exported the context values and frozen empty chat context directly
+  from their owner declarations and added a renderer app-runtime boundary
+  assertion that keeps passive provider-context export blocks from returning.
+- Validation: focused provider context, app-provider, and renderer app-runtime
+  boundary tests plus targeted lint, docs validation, stale provider export
+  scans, and diff checks.
+- Compatibility/security: no migration required. This is renderer-internal
+  export-shape cleanup only; provider values, guard errors, context identity,
+  React provider wiring, IPC, storage, credentials, provider policy, hosted
+  URLs, and local execution behavior are unchanged.
+
 ### 2026-06-21 Renderer Skin Config Facade Objects
 
 - Finding: `desktopRuntimeConfig.js` and `desktopRuntimeSkin.js` already owned

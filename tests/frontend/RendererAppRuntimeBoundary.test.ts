@@ -1561,6 +1561,31 @@ describe('renderer app runtime boundary', () => {
     expect(runtimeClientSource).not.toContain('export function buildDeferredQueryModelSelection');
   });
 
+  test('provider context owner modules expose values without passive export blocks', async () => {
+    const configContextSource = await fs.readFile(
+      path.join(appRoot, 'providers/AppConfigContext.jsx'),
+      'utf8',
+    );
+    const statusContextSource = await fs.readFile(
+      path.join(appRoot, 'providers/AppStatusContext.jsx'),
+      'utf8',
+    );
+    const chatContextSource = await fs.readFile(
+      path.join(appRoot, 'providers/ChatContext.jsx'),
+      'utf8',
+    );
+
+    expect(configContextSource).toContain('export const AppConfigContext');
+    expect(configContextSource).toContain('export function useAppConfigContext');
+    expect(configContextSource).not.toContain('export {');
+    expect(statusContextSource).toContain('export const AppStatusContext');
+    expect(statusContextSource).toContain('export function useAppStatusContext');
+    expect(statusContextSource).not.toContain('export {');
+    expect(chatContextSource).toContain('export const EMPTY_CHAT_CONTEXT');
+    expect(chatContextSource).toContain('export const ChatContext');
+    expect(chatContextSource).not.toContain('export {');
+  });
+
   test('renderer app and feature code does not call SDK-owned transport/internal IPC channels', async () => {
     const roots = [
       path.join(rendererRoot, 'app'),

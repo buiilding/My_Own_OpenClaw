@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer context-hook boundaries: AppConfig/AppStatus provider guard errors and strict in-provider consumption contracts."
+summary: "Deep reference for renderer context-hook boundaries: AppConfig/AppStatus provider guard errors, direct owner exports, and strict in-provider consumption contracts."
 read_when:
   - When changing `useAppConfigContext` or `useAppStatusContext` guard behavior.
   - When updating import surfaces for config context hooks across renderer features/tests.
@@ -17,6 +17,9 @@ title: "App Config and Status Context Hook Guard Reference"
 
 ## AppConfigContext Hook Guard Contract
 
+`AppConfigContext` is exported directly from its owning provider-context module.
+Do not add passive re-export blocks or alternate context barrels.
+
 `useAppConfigContext()`:
 
 - reads from `AppConfigContext` via `useContext`
@@ -26,6 +29,9 @@ title: "App Config and Status Context Hook Guard Reference"
 This is a fail-fast boundary for all config-consuming renderer surfaces.
 
 ## AppStatusContext Hook Guard Contract
+
+`AppStatusContext` is exported directly from its owning provider-context module.
+Do not add passive re-export blocks or alternate context barrels.
 
 `useAppStatusContext()`:
 
@@ -47,11 +53,16 @@ This prevents save-status consumers from silently operating with missing status 
 - verifies throw outside provider
 - verifies value passthrough inside provider
 
+`tests/frontend/RendererAppRuntimeBoundary.test.ts`:
+
+- verifies these provider context owner modules do not use passive `export { ... }`
+  blocks
+
 ## Drift Hotspots
 
 1. Relaxing guard throws to silent fallbacks can hide provider mis-wiring and cause late null dereferences.
 2. Changing guard error text breaks tests and diagnostic consistency.
-3. Adding hook re-export modules can recreate duplicate import ownership without adding provider behavior.
+3. Adding hook re-export modules or passive export blocks can recreate duplicate import ownership without adding provider behavior.
 
 ## Related Pages
 

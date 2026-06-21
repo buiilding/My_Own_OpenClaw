@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: export provider context owner values directly from
+  `AppConfigContext`, `AppStatusContext`, and `ChatContext` instead of passive
+  export blocks, keeping renderer provider boundaries explicit while preserving
+  the existing hooks and context names. No migration required.
 - frontend/renderer: expose active skin config through `DesktopRuntimeConfig`
   and skin helper access through `DesktopRuntimeSkin` instead of passive
   `desktopRuntimeConfig`/`desktopRuntimeSkin` re-export barrels, keeping

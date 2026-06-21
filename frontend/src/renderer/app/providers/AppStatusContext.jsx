@@ -1,7 +1,6 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext } from 'react';
 
-const AppStatusContext = createContext();
+export const AppStatusContext = createContext();
 
 export function useAppStatusContext() {
   const context = useContext(AppStatusContext);
@@ -10,5 +9,3 @@ export function useAppStatusContext() {
   }
   return context;
 }
-
-export { AppStatusContext };

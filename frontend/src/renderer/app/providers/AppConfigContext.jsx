@@ -1,7 +1,6 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext } from 'react';
 
-const AppConfigContext = createContext();
+export const AppConfigContext = createContext();
 
 export function useAppConfigContext() {
   const context = useContext(AppConfigContext);
@@ -10,5 +9,3 @@ export function useAppConfigContext() {
   }
   return context;
 }
-
-export { AppConfigContext };

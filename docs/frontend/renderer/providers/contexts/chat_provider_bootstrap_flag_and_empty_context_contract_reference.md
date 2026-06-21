@@ -21,6 +21,8 @@ title: "Chat Provider Bootstrap Flag and Empty-Context Contract Reference"
 ## ChatContext Value Contract
 
 `ChatContext` is created with default `undefined` and provider value is constant `EMPTY_CHAT_CONTEXT`.
+Both values are exported directly from `ChatContext.jsx`; do not add passive
+re-export blocks or alternate context barrels.
 
 `EMPTY_CHAT_CONTEXT`:
 
