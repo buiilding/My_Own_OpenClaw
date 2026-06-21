@@ -297,7 +297,7 @@ describe('permission_service', () => {
     expect(status.granted).toBe(false);
   });
 
-  test('System Events automation probe on macOS reflects the sidecar automation verifier', async () => {
+  test('System Events automation probe on macOS reflects the local-runtime automation verifier', async () => {
     const probeMacOsSystemEventsAutomationPermission = jest.fn(async () => ({
       granted: false,
       reason: 'Sample app still needs permission to control System Events.',

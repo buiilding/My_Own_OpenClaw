@@ -55,6 +55,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/tests: rename the dashboard memory boundary guard away from sidecar
   IPC-channel wording while preserving direct local-runtime memory IPC channel
   rejection. No migration required.
+- main/tests: rename the macOS System Events automation permission probe guard
+  away from sidecar-verifier wording while preserving local-runtime automation
+  verifier behavior. No migration required.
 - sdk/tests: rename active Agent SDK local-runtime fixtures away from stale
   sidecar labels and add package-boundary coverage so reusable SDK runtime tests
   use local-runtime daemon/error/conversation wording. No migration required.

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Permission Local-Runtime Automation Verifier Label Boundary
+
+- Finding: `PermissionService.test.cjs` still named the macOS System Events
+  automation probe guard as sidecar automation verifier coverage even though
+  Electron main owns permission-service orchestration and injects a
+  local-runtime automation verifier.
+- Change: renamed the active test label to local-runtime automation verifier
+  wording while preserving the injected verifier behavior and permission status
+  assertions.
+- Validation: focused permission-service Jest coverage, exact stale sidecar
+  automation verifier label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Permission probe/request
+  behavior, macOS System Events verification details, IPC, OS permission
+  prompts, credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Dashboard Memory Local-Runtime IPC Guard Label Boundary
 
 - Finding: `RendererDashboardRuntimeBoundary.test.ts` still named its dashboard

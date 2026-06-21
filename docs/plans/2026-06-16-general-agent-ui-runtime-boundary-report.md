@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: dashboard memory runtime-boundary coverage now names
-  direct local-runtime memory IPC channels instead of sidecar IPC-channel
-  wording while still rejecting direct memory command/channel usage from the
-  renderer feature layer.
+- Latest completed slice: macOS System Events permission-service coverage now
+  names the local-runtime automation verifier instead of sidecar-verifier
+  wording while preserving the injected verifier behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -54,6 +53,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic desktop onboarding slideshow tests use sample onboarding skin and
   permission reasons while real WindieOS onboarding product copy remains
   renderer-skin/permission-copy owned.
+  Main permission-service tests describe macOS System Events automation through
+  the injected local-runtime automation verifier while Electron main owns
+  permission orchestration.
   Generic settings section tests use sample settings skin and browser
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
