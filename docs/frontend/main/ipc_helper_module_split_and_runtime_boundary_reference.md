@@ -700,6 +700,7 @@ Owns generic Electron agent-host copy defaults and app-skin copy state:
 - normalizes host-skin identity and query-event copy sections independently
 - exposes agent display name, MCP client identity, and query-event copy accessors to
   the IPC composition root
+- keeps generic default copy private behind the host-copy runtime facade
 - keeps WindieOS-specific copy supplied by `main_host_skin.cjs` out of generic
   runtime helpers
 

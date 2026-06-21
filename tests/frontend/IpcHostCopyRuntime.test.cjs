@@ -3,16 +3,26 @@
 const fs = require('fs');
 const path = require('path');
 
+const hostCopyRuntimeModule = require('../../frontend/src/main/ipc/ipc_host_copy_runtime.cjs');
 const {
-  DEFAULT_IPC_HOST_COPY,
   createIpcHostCopyRuntime,
-} = require('../../frontend/src/main/ipc/ipc_host_copy_runtime.cjs');
+} = hostCopyRuntimeModule;
 
 describe('ipc_host_copy_runtime', () => {
   test('uses generic host copy defaults before app skin configuration', () => {
     const runtime = createIpcHostCopyRuntime();
 
-    expect(runtime.getCopy()).toBe(DEFAULT_IPC_HOST_COPY);
+    expect(hostCopyRuntimeModule.DEFAULT_IPC_HOST_COPY).toBeUndefined();
+    expect(runtime.getCopy()).toEqual({
+      identity: {
+        sdkAgentName: 'Desktop Agent',
+        mcpClientInfo: {
+          name: 'Desktop Runtime',
+          version: '0.0.0',
+        },
+      },
+      queryEvents: {},
+    });
     expect(runtime.getSdkAgentName()).toBe('Desktop Agent');
     expect(runtime.getMcpClientInfo()).toEqual({
       name: 'Desktop Runtime',
@@ -54,7 +64,13 @@ describe('ipc_host_copy_runtime', () => {
       queryEvents,
     });
 
-    expect(runtime.getIdentity()).toBe(DEFAULT_IPC_HOST_COPY.identity);
+    expect(runtime.getIdentity()).toEqual({
+      sdkAgentName: 'Desktop Agent',
+      mcpClientInfo: {
+        name: 'Desktop Runtime',
+        version: '0.0.0',
+      },
+    });
     expect(runtime.getQueryEvents()).toBe(queryEvents);
 
     runtime.configure({
@@ -66,7 +82,7 @@ describe('ipc_host_copy_runtime', () => {
     });
 
     expect(runtime.getSdkAgentName()).toBe('Custom Agent');
-    expect(runtime.getQueryEvents()).toBe(DEFAULT_IPC_HOST_COPY.queryEvents);
+    expect(runtime.getQueryEvents()).toEqual({});
   });
 
   test('ipc.cjs delegates host-copy state and defaults to the helper', () => {
@@ -86,5 +102,6 @@ describe('ipc_host_copy_runtime', () => {
     expect(mainSource).toContain('ipcHostCopyRuntime.getQueryEvents()');
     expect(mainSource).not.toContain('const DEFAULT_IPC_HOST_COPY = Object.freeze');
     expect(helperSource).toContain('const DEFAULT_IPC_HOST_COPY = Object.freeze');
+    expect(helperSource).not.toContain('  DEFAULT_IPC_HOST_COPY,');
   });
 });

@@ -69,6 +69,5 @@ function createIpcHostCopyRuntime(initialCopy = {}) {
 }
 
 module.exports = {
-  DEFAULT_IPC_HOST_COPY,
   createIpcHostCopyRuntime,
 };

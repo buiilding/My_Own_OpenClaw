@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main backend endpoint state keeps mutable
-  endpoint construction private to `ipc_backend_endpoint_state.cjs`, while
-  initialization, candidate refresh, fallback advancement, empty-candidate
-  fallback, hosted-backend configuration, and URL access remain covered through
-  the public endpoint runtime facade.
+- Latest completed slice: Electron main host-copy runtime keeps generic
+  fallback copy private to `ipc_host_copy_runtime.cjs`, while default identity,
+  MCP client info, query-event fallback, independent section fallback, and
+  host-skin configuration remain covered through the public host-copy runtime
+  facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1082,6 +1082,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Compatibility: no migration required. SDK runtime command payloads,
   conversation-ref fallback behavior, replay/edit/retry paths, credentials,
   permissions, trust boundaries, and storage are unchanged.
+
+### 2026-06-21 Main Host Copy Default Privacy
+
+- Finding: `ipc_host_copy_runtime.cjs` already exposed the composed host-copy
+  runtime facade, but `DEFAULT_IPC_HOST_COPY` still leaked the generic fallback
+  copy object as a public helper export.
+- Change: removed the default copy object from the public module surface while
+  preserving runtime coverage for generic identity defaults, MCP client info,
+  query-event fallback, independent section fallback, and host-skin
+  configuration.
+- Validation: focused host-copy runtime and main host-skin boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. Host-skin configuration, SDK agent
+  display names, MCP client identity, query-event copy, IPC channels,
+  credentials, permissions, trust boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Backend Endpoint State Privacy
 

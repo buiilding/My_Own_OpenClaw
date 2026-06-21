@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Host Copy Default Privacy
+
+- Finding: `ipc_host_copy_runtime.cjs` already exposed
+  `createIpcHostCopyRuntime(...)` as the Electron main host-copy facade, but
+  the generic fallback copy object still leaked as a public helper export.
+- Change: kept `DEFAULT_IPC_HOST_COPY` private to the host-copy owner while
+  preserving default identity, MCP client info, query-event fallback,
+  independent section fallback, and host-skin configuration coverage through
+  the runtime getters/facade.
+- Validation: focused host-copy runtime and main host-skin boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no host-skin configuration, SDK agent display name,
+  MCP client identity, query-event copy, IPC channel, credential, permission,
+  storage, or trust-boundary migration required; host-copy behavior is
+  unchanged.
+
 ### 2026-06-21 Main Backend Endpoint State Privacy
 
 - Finding: `ipc_backend_endpoint_state.cjs` already exposed
