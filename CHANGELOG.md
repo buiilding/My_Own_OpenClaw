@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route websocket event, observability, failure, and tool
+  execution workflow first-read copy through shared backend/SDK/runtime wording
+  instead of product-owned generic contract labels. No migration required.
 - docs/renderer: route dashboard, settings, model selection, chat attachment,
   and overlay workflow summaries through desktop renderer wording instead of
   product-owned surface labels. No migration required.

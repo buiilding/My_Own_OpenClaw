@@ -10,7 +10,7 @@ title: "Local Tool Channels"
 
 # Local Tool Channels
 
-Local tools cross every WindieOS runtime boundary. The backend decides what the model can ask for, the SDK/main local-runtime path owns local execution routing and executable local machine action authority, and the local-runtime Python implementation provides the current concrete executors.
+Local tools cross backend, SDK/main, renderer, Electron main, and local-runtime boundaries. The backend decides what the model can ask for, the SDK/main local-runtime path owns local execution routing and executable local machine action authority, and the local-runtime Python implementation provides the current concrete executors.
 
 ## End-to-End Tool Channel
 

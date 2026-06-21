@@ -11,11 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `30ead97ef` (`docs(frontend): route local runtime workflow owners`)
-- Latest completed slice: renderer dashboard, settings, model-selection,
-  chat-attachment, and overlay first-read workflows now use desktop renderer
-  wording instead of assigning generic UI workflow ownership to WindieOS product
-  labels.
+- Latest inspected plan checkpoint: `7a50fb872` (`docs(renderer): route workflow summaries through desktop UI`)
+- Latest completed slice: websocket event, observability, error/failure, tool
+  schema, tool lifecycle, and local tool channel first-read docs now use shared
+  backend/SDK/runtime wording instead of assigning generic contract ownership to
+  WindieOS product labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -117,7 +117,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime implementation-root wording for generic local responsibilities.
   Renderer dashboard, settings, model-selection, chat-attachment, and overlay
   first-read workflows now use desktop renderer and desktop overlay wording for
-  generic UI responsibilities.
+  generic UI responsibilities. Websocket event, observability, error/failure,
+  tool schema, tool lifecycle, and local tool channel first-read docs now use
+  shared backend/SDK/runtime contract wording for generic pipelines.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
@@ -8079,6 +8081,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Runtime code, renderer components, IPC channels, config fields, SDK
   projections, screenshot capture policy, storage, credentials, hosted backend
   URLs, and provider policy are unchanged; no migration is required.
+- Websocket event, observability, error/failure, tool schema, tool lifecycle,
+  and local tool channel first-read docs now describe shared backend/SDK/runtime
+  contracts without product-owned generic pipeline labels. Runtime code,
+  websocket event names, formatter schemas, IPC channels, tool schemas, SDK
+  projections, tool-result envelopes, storage, credentials, hosted backend URLs,
+  and provider policy are unchanged; no migration is required.
 - Logging docs now use a neutral frontend log override path example while
   preserving the `WINDIE_FRONTEND_LOG_FILE` WindieOS override key. Launcher log
   override behavior, default `.windie/logs` source-run paths, provider policy,

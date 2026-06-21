@@ -1,5 +1,5 @@
 ---
-summary: "End-to-end WindieOS tool execution lifecycle from backend schema exposure through SDK-runtime dispatch, local execution, result ingress, history, loop continuation, and removed ToolRunnerHook callback/turn-guard test routing."
+summary: "End-to-end tool execution lifecycle from backend schema exposure through SDK-runtime dispatch, local execution, result ingress, history, loop continuation, and removed ToolRunnerHook callback/turn-guard test routing."
 read_when:
   - When changing tool-call dispatch, bundle execution, request ids, tool-result payloads, screenshots, or model-facing history.
   - When debugging a tool that was called by the model but did not execute or did not re-enter backend history correctly.
@@ -10,7 +10,7 @@ title: "Tool Execution Lifecycle"
 
 # Tool Execution Lifecycle
 
-WindieOS tools run through a distributed pipeline. The backend owns model-facing schema and loop semantics; the SDK runtime owns local dispatch, backend result return, normalized tool events, and display/rehydrate projections; the local runtime owns executable desktop actions through the local-runtime Python implementation.
+Tool execution runs through a distributed pipeline. The backend owns model-facing schema and loop semantics; the SDK runtime owns local dispatch, backend result return, normalized tool events, and display/rehydrate projections; the local runtime owns executable desktop actions through the local-runtime Python implementation.
 
 The SDK tool execution source of truth is
 `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, called from the
@@ -26,7 +26,7 @@ event router.
 2. Backend `ToolPolicy` filters specs by interaction mode, agent profile, client capabilities, provider health, disabled tools, and agent capability policy.
 3. Prompt construction includes the filtered model-facing tools.
 4. The model emits one or more tool calls.
-5. Backend parser/tool bridge normalizes provider-native calls into WindieOS tool-call shapes.
+5. Backend parser/tool bridge normalizes provider-native calls into canonical tool-call shapes.
 6. Backend preparation resolves any high-level or grounded fields into executable payloads.
 7. Backend sends `tool-call` or `tool-bundle` websocket events to the SDK client.
 8. SDK runtime normalizes the tool event and routes the call through its local runtime client to the configured local executor.

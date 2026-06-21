@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS error and failure surfaces across backend exceptions, websocket error envelopes, HTTP errors, Electron IPC/reconnect failures, local-runtime ToolResult errors, renderer error UI, and sanitized logs."
+summary: "Workflow for changing runtime error and failure surfaces across backend exceptions, websocket error envelopes, HTTP errors, Electron IPC/reconnect failures, local-runtime ToolResult errors, renderer error UI, and sanitized logs."
 read_when:
   - When changing exception mapping, websocket error envelopes, HTTP error responses, IPC failure behavior, local-runtime ToolResult failures, renderer error display, synthetic query failures, settings ACK timeouts, or log sanitization.
   - When debugging an error that is swallowed, overexposed, missing context, rendered in the wrong UI, retried forever, or visible in one runtime but not another.
@@ -8,7 +8,7 @@ title: "Error and Failure Change Workflow"
 
 # Error and Failure Change Workflow
 
-Use this workflow when a change affects how WindieOS fails, reports failure, recovers, retries, logs, or displays errors. Most regressions here come from fixing the visible symptom in the consumer while the producer is still emitting the wrong contract.
+Use this workflow when a change affects how the runtime fails, reports failure, recovers, retries, logs, or displays errors. Most regressions here come from fixing the visible symptom in the consumer while the producer is still emitting the wrong contract.
 
 Core rule: preserve the failure boundary. Backend errors should stay sanitized before crossing hosted transports, Electron should normalize bridge/process failures without hiding readiness state, local-runtime tools should return structured `ToolResult` failures, and renderer UI should display or recover from canonical payloads rather than inventing runtime semantics.
 

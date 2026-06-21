@@ -1,7 +1,7 @@
 ---
-summary: "Workflow for changing WindieOS model-visible tool schemas, policy gates, provider projection, local-runtime parity, SDK/local execution, and tool-result contracts."
+summary: "Workflow for changing model-visible tool schemas, policy gates, provider projection, local-runtime parity, SDK/local execution, and tool-result contracts."
 read_when:
-  - When adding, removing, renaming, hiding, exposing, or changing a model-visible WindieOS tool.
+  - When adding, removing, renaming, hiding, exposing, or changing a model-visible tool.
   - When changing tool argument schemas, descriptions, capability gates, profiles, coordinate methods, provider-native projections, local-runtime executable payloads, or local-runtime Python registry exposure.
   - When debugging a tool that is present in code but missing from the prompt, visible to the model but not executable, rejected before dispatch, or mismatched between backend and local-runtime executable schemas.
 title: "Tool Schema and Policy Change Workflow"
@@ -9,7 +9,7 @@ title: "Tool Schema and Policy Change Workflow"
 
 # Tool Schema and Policy Change Workflow
 
-Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and local-runtime executable implementation backed by local-runtime Python.
+Use this workflow before changing anything that affects what tools the model can see or call. Tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and local-runtime executable implementation backed by local-runtime Python.
 
 The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own desktop client/local-runtime tool schemas and local executable authority; local-runtime Python provides the current concrete local tool implementations. Do not make the desktop client or local-runtime Python implementation import backend schemas to avoid drift. Keep parity explicit in tests and docs.
 

@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS websocket event contracts across backend streaming events, formatter specs, outgoing schemas, SDK projection, typed Electron fan-out, renderer stream handlers, and tests."
+summary: "Workflow for changing hosted backend websocket event contracts across backend streaming events, formatter specs, outgoing schemas, SDK projection, typed Electron fan-out, renderer stream handlers, and tests."
 read_when:
   - When adding, renaming, formatting, removing, or consuming a backend websocket event.
   - When changing event payload fields, formatter behavior, outgoing schemas, SDK backend-event guards, `windie:conversation-event` routing, chat stream handlers, SDK/local-runtime tool events, token usage events, prompt transparency events, or audio side-channel payloads.
@@ -9,7 +9,7 @@ title: "WebSocket Event Contract Change Workflow"
 
 # WebSocket Event Contract Change Workflow
 
-Use this workflow before changing any event that crosses the backend websocket boundary. WindieOS uses a shared event vocabulary between backend formatter output, the Agent SDK backend transport, SDK backend-event normalization/projection, typed Electron fan-out channels, and renderer consumers. A change that touches only one side usually becomes a silent bug: the backend emits an event that formatter skips, schema validation rejects, the SDK typed guard ignores, the SDK normalizer fails to project, the typed fan-out channel does not publish, or the chat stream handler drops as stale.
+Use this workflow before changing any event that crosses the backend websocket boundary. The desktop/backend stack uses a shared event vocabulary between backend formatter output, the Agent SDK backend transport, SDK backend-event normalization/projection, typed Electron fan-out channels, and renderer consumers. A change that touches only one side usually becomes a silent bug: the backend emits an event that formatter skips, schema validation rejects, the SDK typed guard ignores, the SDK normalizer fails to project, the typed fan-out channel does not publish, or the chat stream handler drops as stale.
 
 The core rule is: update the producer, formatter, outgoing schema, SDK transport/projection, typed fan-out channel, renderer consumer, and tests as one contract.
 

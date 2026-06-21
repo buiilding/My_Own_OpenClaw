@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for adding or changing WindieOS logs, trace flags, diagnostic events, metrics, evidence collection, and debug gates across backend, Electron main, renderer, local-runtime Python, and packaged app runtimes."
+summary: "Workflow for adding or changing runtime logs, trace flags, diagnostic events, metrics, evidence collection, and debug gates across backend, Electron main, renderer, local-runtime Python, and packaged app runtimes."
 read_when:
   - When adding, removing, or renaming logs, trace flags, diagnostic events, metrics, or evidence collection paths.
   - When a bug needs new observability before a safe code fix can be made.

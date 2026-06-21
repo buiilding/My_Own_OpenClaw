@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Runtime Contract Workflow Summary Wording
+
+- Finding: websocket event, observability, error/failure, tool schema, tool
+  lifecycle, and local tool channel first-read docs still described shared
+  backend/SDK/runtime contracts as WindieOS-owned generic pipelines.
+- Change: reworded those summaries and openers around hosted backend websocket
+  events, runtime observability/failure handling, model-visible tool contracts,
+  canonical tool-call shapes, and explicit backend/SDK/main/renderer/local
+  runtime boundaries; extended modular boundary guards for the retired
+  product-owned contract phrases.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, websocket event names,
+  formatter schemas, IPC channels, tool schemas, SDK projections, tool-result
+  envelopes, storage, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Desktop Renderer Workflow Summary Wording
 
 - Finding: dashboard, settings, model-selection, chat-attachment, and overlay
