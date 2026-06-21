@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Native Search Replay SDK-Normalized Label
+
+- Finding: architecture and renderer tool-event docs still described
+  progress-only native web-search rehydrate rows as synthetic Windie or
+  Windie-normalized history, even though the owner is the SDK normalization and
+  rehydrate path.
+- Change: reworded the native-search replay labels to SDK-normalized
+  `web_search` history and extended the modular architecture/tool docs guard for
+  the retired product-branded normalization phrases.
+- Validation: focused modular architecture/tool docs guard, exact stale-label
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Web-search event names,
+  provider-native search behavior, Brave fallback behavior, SDK event schemas,
+  rehydrate payloads, transcript rows, backend tool policy, IPC payloads,
+  credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-21 Transcript Replay Local-Runtime Ownership Label
 
 - Finding: the transcript and replay guide still said the desktop runtime does

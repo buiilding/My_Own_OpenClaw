@@ -1728,6 +1728,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK/local-runtime conversation store owns durable conversation history');
     expect(docText).toContain('renderer app-runtime send facade plus the Electron main agent host');
     expect(docText).toContain('Local-runtime Python implementation (tools, memory, system, browser)');
+    expect(docText).toContain('synthetic SDK-normalized `web_search`');
     expect(docText).not.toContain('main-to-sidecar behavior');
     expect(docText).not.toContain('SDK sidecar `/rpc` failures');
     expect(docText).not.toContain('depends on the sidecar');
@@ -1743,6 +1744,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('WindieOS windows');
     expect(docText).not.toContain('WindieOS overlay/main windows');
     expect(docText).not.toContain('Workflow for changing WindieOS SDK-owned local-runtime daemon lifecycle');
+    expect(docText).not.toContain('synthetic Windie `web_search`');
+    expect(docText).not.toContain('Windie-normalized history');
+    expect(docText).not.toContain('synthetic paired Windie `web_search`');
     expect(docText).not.toContain('implemented in Electron main runtime');
     expect(docText).not.toContain('| Electron main runtime |');
     expect(docText).not.toContain('into main runtime state');

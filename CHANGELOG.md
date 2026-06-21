@@ -73,6 +73,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/memory: route transcript replay hidden-row ownership through the
   SDK/local-runtime replay path instead of desktop runtime shorthand. No
   migration required.
+- docs/architecture and docs/frontend: describe progress-only native web-search
+  replay rows as SDK-normalized history instead of Windie-normalized synthetic
+  history. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

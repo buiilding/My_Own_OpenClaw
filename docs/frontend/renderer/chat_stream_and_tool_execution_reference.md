@@ -328,8 +328,8 @@ SDK dispatch behavior:
     and projected detail objects instead of raw `payload` or
     `structuredPayload` fallbacks.
   - SDK rehydrate groups progress-only OpenAI native search rows into one
-    synthetic Windie `web_search` tool-call/tool-output pair for later model
-    history.
+    synthetic SDK-normalized `web_search` tool-call/tool-output pair for later
+    model history.
   - backend-wire `tool-call`, `tool-output`, `tool-bundle`, and `web-search-progress` events are not live-row or active-phase fallbacks in renderer chat code.
 - SDK `tool_call` from backend `tool-call`: persists a transcript tool-call row only. Live display comes from `currentTurn.toolEvents`.
   - the renderer consumes SDK `tool_call` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as metadata and parameters. It does not fall back to backend-wire `tool-call` payloads.
@@ -438,7 +438,7 @@ projects live tool-call/tool-output/tool-progress state into
 `currentTurn.toolEvents`; response overlay consumes that current-turn state, and
 the dashboard consumes SDK display rows. OpenAI-native web-search progress is
 retained as dashboard display transparency, while SDK rehydrate normalizes
-progress-only native search into a synthetic paired Windie `web_search` history
+progress-only native search into an SDK-normalized paired `web_search` history
 entry. The Agent SDK runtime routes executable local tools through Electron main
 and the SDK local runtime.
 

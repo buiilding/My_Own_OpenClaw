@@ -92,8 +92,8 @@ Some logical tools are fulfilled entirely in the backend and never go through th
   backend logical tool execution. They are retained as display transparency but
   are not followed by backend `tool-call`/`tool-output` rows for the same
   search. During SDK rehydrate, progress-only native search is normalized into a
-  synthetic Windie `web_search` `tool_call`/`tool_output` pair; these rows are
-  Windie-normalized history, not OpenAI-emitted function tool outputs.
+  synthetic SDK-normalized `web_search` `tool_call`/`tool_output` pair; these
+  rows are SDK-normalized history, not OpenAI-emitted function tool outputs.
 
 ### Backend Responsibilities
 
