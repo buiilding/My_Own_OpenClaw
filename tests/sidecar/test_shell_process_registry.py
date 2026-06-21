@@ -70,14 +70,14 @@ def test_clamp_and_read_env_int(monkeypatch):
     assert registry._clamp(-2, 1, 10, 7) == 1
     assert registry._clamp(12, 1, 10, 7) == 10
 
-    monkeypatch.delenv("WINDIE_TEST_INT", raising=False)
-    assert registry._read_env_int("WINDIE_TEST_INT") is None
+    monkeypatch.delenv("AGENT_TEST_INT", raising=False)
+    assert registry._read_env_int("AGENT_TEST_INT") is None
 
-    monkeypatch.setenv("WINDIE_TEST_INT", "abc")
-    assert registry._read_env_int("WINDIE_TEST_INT") is None
+    monkeypatch.setenv("AGENT_TEST_INT", "abc")
+    assert registry._read_env_int("AGENT_TEST_INT") is None
 
-    monkeypatch.setenv("WINDIE_TEST_INT", "42")
-    assert registry._read_env_int("WINDIE_TEST_INT") == 42
+    monkeypatch.setenv("AGENT_TEST_INT", "42")
+    assert registry._read_env_int("AGENT_TEST_INT") == 42
 
 
 def test_resolve_job_ttl_prefers_agent_env(monkeypatch):

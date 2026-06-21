@@ -408,6 +408,21 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS');
   });
 
+  test('sidecar helper tests keep disposable env fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/sidecar/test_env_flags.py'),
+      read('tests/sidecar/test_shell_process_registry.py'),
+      read('tests/sidecar/test_shell_process_tool.py'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('WINDIE_TEST_FLAG');
+    expect(source).not.toContain('WINDIE_TEST_INT');
+    expect(source).not.toContain('WINDIE_TEST');
+    expect(source).toContain('AGENT_TEST_FLAG');
+    expect(source).toContain('AGENT_TEST_INT');
+    expect(source).toContain('AGENT_TEST');
+  });
+
   test('renderer workspace runtime tests keep workspace fixtures product-neutral', async () => {
     const workspaceTestText = await Promise.all([
       read('tests/frontend/DesktopWorkspaceRuntimeClient.test.ts'),

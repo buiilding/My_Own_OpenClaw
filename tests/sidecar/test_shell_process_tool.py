@@ -248,13 +248,13 @@ async def test_run_shell_command_reports_original_relative_directory_when_missin
 
 @pytest.mark.asyncio
 async def test_run_shell_command_env_override_and_pty_warning():
-    cmd = f'{sys.executable} -c "import os; print(os.getenv(\'WINDIE_TEST\'))"'
+    cmd = f'{sys.executable} -c "import os; print(os.getenv(\'AGENT_TEST\'))"'
     result = await run_shell_command(
         {
             "command": cmd,
             "run_in_background": False,
             "terminate_after_seconds": 5,
-            "env": {"WINDIE_TEST": "ok"},
+            "env": {"AGENT_TEST": "ok"},
             "pty": True,
         }
     )

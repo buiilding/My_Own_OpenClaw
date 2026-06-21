@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Sidecar Helper Env Fixture Neutralization
+
+- Finding: sidecar helper coverage used `WINDIE_TEST_*` as arbitrary
+  environment keys for generic env flag parsing, env int parsing, and shell
+  env propagation, even though real Windie env aliases are covered separately.
+- Change: renamed those disposable fixtures to `AGENT_TEST_*` and added a
+  modular completion guard scoped to the affected sidecar helper tests.
+- Validation: focused sidecar helper tests, modular boundary test, and exact
+  retired-env scan. A broader `test_shell_process_tool.py` run still hits the
+  existing Windows heredoc shell limitation outside this fixture change.
+- Compatibility: no migration required. Local-runtime env alias support, shell
+  execution behavior, process registry behavior, IPC/RPC payloads, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Onboarding Focus Fixture Wording Cleanup
 
 - Finding: `useOnboardingPermissionActions` coverage described the generic

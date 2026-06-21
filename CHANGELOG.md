@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sidecar: use neutral `AGENT_TEST_*` disposable env fixtures in
+  local-runtime helper coverage instead of arbitrary `WINDIE_TEST_*` names. No
+  migration required.
 - tests/renderer: describe onboarding permission focus refresh with generic
   desktop app wording instead of WindieOS-specific focus copy. No migration
   required.

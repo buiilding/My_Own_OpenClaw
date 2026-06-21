@@ -43,18 +43,18 @@ def test_windie_env_alias_constants_are_named_as_aliases() -> None:
 
 
 def test_env_flag_enabled_resolves_truthy_values(monkeypatch) -> None:
-    monkeypatch.setenv("WINDIE_TEST_FLAG", " yes ")
+    monkeypatch.setenv("AGENT_TEST_FLAG", " yes ")
 
-    assert env_flag_enabled("WINDIE_TEST_FLAG", default=False) is True
+    assert env_flag_enabled("AGENT_TEST_FLAG", default=False) is True
 
 
 def test_env_flag_enabled_resolves_falsy_values(monkeypatch) -> None:
-    monkeypatch.setenv("WINDIE_TEST_FLAG", "off")
+    monkeypatch.setenv("AGENT_TEST_FLAG", "off")
 
-    assert env_flag_enabled("WINDIE_TEST_FLAG", default=True) is False
+    assert env_flag_enabled("AGENT_TEST_FLAG", default=True) is False
 
 
 def test_env_flag_enabled_falls_back_to_default_for_unknown_value(monkeypatch) -> None:
-    monkeypatch.setenv("WINDIE_TEST_FLAG", "definitely")
+    monkeypatch.setenv("AGENT_TEST_FLAG", "definitely")
 
-    assert env_flag_enabled("WINDIE_TEST_FLAG", default=False) is False
+    assert env_flag_enabled("AGENT_TEST_FLAG", default=False) is False
