@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: response overlay view-model trace payload, event,
-  and reason mapping now stays behind `desktopRendererTraceRuntime`, with the
-  overlay view-model reporting value-level inputs and change detection instead
-  of carrying live-surface trace schema strings locally.
+- Latest completed slice: response overlay window-sync live size-report and
+  mount/unmount trace assembly now stays behind `desktopRendererTraceRuntime`,
+  with the window-sync hook reporting measured values instead of carrying
+  live-surface trace event labels, native-mode mapping, or payload field names
+  locally.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -159,6 +160,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   typing-event, intent-event, and reason mapping now consumes
   `desktopRendererTraceRuntime` helpers instead of carrying trace schema
   strings inside the overlay view-model hook.
+  Response overlay window-sync live size-report and lifecycle traces now
+  consume `desktopRendererTraceRuntime` helpers instead of carrying
+  live-surface size-report, mount, unmount, reason, native-mode, or payload
+  field mapping inside the window-sync hook.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
@@ -602,6 +607,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Renderer Response Overlay Window-Sync Live Trace Boundary
+
+- Finding: `useResponseOverlayWindowSync.js` routed stream-style size traces
+  through `desktopRendererTraceRuntime`, but still assembled the live-surface
+  `response_overlay.renderer.size_report` payload plus response overlay
+  mount/unmount event labels locally.
+- Change: added response overlay live size payload shaping and lifecycle trace
+  logging helpers to `desktopRendererTraceRuntime.ts`, then routed the
+  window-sync hook through those helpers so it reports measured frame,
+  turn/guard, and visibility values instead of owning trace event labels,
+  reason fields, native overlay-mode mapping, or live payload field names.
+- Validation: focused renderer trace runtime, response overlay state, renderer
+  chat/app-runtime boundary coverage, docs listing, stale hook-local
+  live-trace event scan, and diff checks.
+- Compatibility: no migration required. Live-surface event names and payload
+  fields, stream trace fields, debug query flags, IPC responsebox sizing,
+  overlay rendering, storage, permissions, credentials, hosted backend URLs,
+  and provider policy are unchanged.
 
 ### 2026-06-21 Renderer Response Overlay View-Model Trace Boundary
 

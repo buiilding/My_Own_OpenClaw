@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Response Overlay Window-Sync Live Trace Boundary
+
+- Finding: `useResponseOverlayWindowSync.js` routed stream-style size traces
+  through `desktopRendererTraceRuntime`, but still assembled the live-surface
+  `response_overlay.renderer.size_report` payload plus response overlay
+  mount/unmount event labels locally.
+- Change: added response overlay live size payload shaping and lifecycle trace
+  logging helpers to `desktopRendererTraceRuntime.ts`, then routed the
+  window-sync hook through those helpers so it reports measured frame,
+  turn/guard, and visibility values instead of owning trace event labels,
+  reason fields, native overlay-mode mapping, or live payload field names.
+- Validation: focused renderer trace runtime, response overlay state, renderer
+  chat/app-runtime boundary coverage, docs listing, stale hook-local
+  live-trace event scan, and diff checks.
+- Compatibility: no migration required. Live-surface event names and payload
+  fields, stream trace fields, debug query flags, IPC responsebox sizing,
+  overlay rendering, storage, permissions, credentials, hosted backend URLs,
+  and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Response Overlay View-Model Trace Boundary
 
 - Finding: `useResponseOverlayViewModel.js` consumed app-runtime trace helpers

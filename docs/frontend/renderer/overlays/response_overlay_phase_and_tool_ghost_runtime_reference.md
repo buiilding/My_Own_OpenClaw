@@ -137,10 +137,16 @@ Contract ownership:
   visibility re-report behavior, delegating responsebox size payload assembly,
   IPC, and visibility payload normalization/boolean subscription projection to
   `DesktopResponseOverlayRuntimeClient`.
-- `desktopRendererTraceRuntime.ts` owns response-surface stream-trace payload
-  field shaping. `useResponseOverlayWindowSync(...)` reports value-level sizing
-  and turn inputs to `logRendererResponseSurfaceSizeTrace(...)`; the trace
-  runtime maps those values to the existing diagnostic fields.
+- `desktopRendererTraceRuntime.ts` owns response-surface stream-trace and
+  live-surface size-report payload field shaping.
+  `useResponseOverlayWindowSync(...)` reports value-level sizing and turn
+  inputs to `logRendererResponseSurfaceSizeTrace(...)`; the trace runtime maps
+  those values to the existing stream diagnostic fields and live
+  `response_overlay.renderer.size_report` event fields.
+- `desktopRendererTraceRuntime.ts` owns response overlay mount/unmount
+  live-surface event labels and payload shaping through
+  `logRendererResponseOverlayLifecycleTrace(...)`; the window-sync hook reports
+  only turn, guard, conversation, and lifecycle action values.
 - `desktopRendererTraceRuntime.ts` also owns response overlay view-model
   live-surface trace payload, resolved-event, typing-event, intent-event, and
   reason mapping. `useResponseOverlayViewModel(...)` reports value-level SDK,
@@ -225,8 +231,13 @@ Under `WINDIE_DEBUG_STREAM_EVENTS=1` (main injects `?debug_stream=1`) or explici
 - response-window size traces go through
   `logRendererResponseSurfaceSizeTrace(...)`, so the window-sync hook does not
   assemble trace fields such as `layout_mode`, `show_response`,
-  `thinking_text_length`, `compact_hover`, `turn_ref`, or `stale_guard_ref`
-  directly
+  `thinking_text_length`, `compact_hover`, `turn_ref`, `stale_guard_ref`,
+  `thinkingTextLength`, `overlayMode`, `guardRef`, or the
+  `response_overlay.renderer.size_report` event name directly
+- response overlay mount/unmount traces go through
+  `logRendererResponseOverlayLifecycleTrace(...)`, so the window-sync hook does
+  not assemble `renderer.response_overlay.mount` or
+  `renderer.response_overlay.unmount` event names locally
 - response overlay view-model traces go through
   `buildRendererOverlayViewModelTracePayload(...)`,
   `logRendererOverlayViewModelResolvedTrace(...)`,

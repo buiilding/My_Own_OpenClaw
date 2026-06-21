@@ -10,10 +10,9 @@ import {
   getResponseOverlayAwaitingFrameHeight,
   isCompactHoverLayoutMode,
   isAwaitingResponseOverlayLayoutMode,
-  resolveResponseOverlayNativeMode,
 } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import {
-  logRendererLiveSurfaceTrace,
+  logRendererResponseOverlayLifecycleTrace,
   logRendererResponseSurfaceSizeTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
 
@@ -79,21 +78,14 @@ export function useResponseOverlayWindowSync({
       try {
         logRendererResponseSurfaceSizeTrace({
           action: 'hide-requested',
-          visible: false,
-          layoutMode: getHiddenResponseOverlayLayoutMode(),
-          width: 0,
-          height: 0,
-        });
-        logRendererLiveSurfaceTrace('response_overlay.renderer.size_report', {
-          source: 'renderer-response-window-sync',
-          reason: 'hide-requested',
+          conversationRef: overlayIntent?.conversationRef || null,
           visible: false,
           layoutMode: getHiddenResponseOverlayLayoutMode(),
           turnRef,
-          guardRef: staleGuardRef,
+          staleGuardRef,
           width: 0,
           height: 0,
-        }, overlayIntent?.conversationRef || null);
+        });
         await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
           visible: false,
           width: 0,
@@ -142,6 +134,7 @@ export function useResponseOverlayWindowSync({
     try {
       logRendererResponseSurfaceSizeTrace({
         action: 'show-or-resize-requested',
+        conversationRef: overlayIntent?.conversationRef || null,
         visible: true,
         layoutMode,
         showResponse,
@@ -152,20 +145,6 @@ export function useResponseOverlayWindowSync({
         width,
         height,
       });
-      logRendererLiveSurfaceTrace('response_overlay.renderer.size_report', {
-        source: 'renderer-response-window-sync',
-        reason: 'show-or-resize-requested',
-        visible: true,
-        layoutMode,
-        overlayMode: resolveResponseOverlayNativeMode(layoutMode),
-        showResponse,
-        thinkingTextLength: typeof thinkingText === 'string' ? thinkingText.length : 0,
-        compactHover: Boolean(compactHover),
-        turnRef,
-        guardRef: staleGuardRef,
-        width,
-        height,
-      }, overlayIntent?.conversationRef || null);
       await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
         visible: true,
         width,
@@ -280,17 +259,19 @@ export function useResponseOverlayWindowSync({
   ]);
 
   useEffect(() => {
-    logRendererLiveSurfaceTrace('renderer.response_overlay.mount', {
-      source: 'renderer-response-window-sync',
+    logRendererResponseOverlayLifecycleTrace({
+      action: 'mount',
+      conversationRef: overlayConversationRefRef.current,
       turnRef: lastOverlayGuardRef.current.turnRef,
-      guardRef: lastOverlayGuardRef.current.staleGuardRef,
-    }, overlayConversationRefRef.current);
+      staleGuardRef: lastOverlayGuardRef.current.staleGuardRef,
+    });
     return () => {
-      logRendererLiveSurfaceTrace('renderer.response_overlay.unmount', {
-        source: 'renderer-response-window-sync',
+      logRendererResponseOverlayLifecycleTrace({
+        action: 'unmount',
+        conversationRef: overlayConversationRefRef.current,
         turnRef: lastOverlayGuardRef.current.turnRef,
-        guardRef: lastOverlayGuardRef.current.staleGuardRef,
-      }, overlayConversationRefRef.current);
+        staleGuardRef: lastOverlayGuardRef.current.staleGuardRef,
+      });
       const report = reportOverlaySizeRef.current;
       if (typeof report !== 'function') {
         return;

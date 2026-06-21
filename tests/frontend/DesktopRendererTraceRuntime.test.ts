@@ -14,12 +14,14 @@ import {
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
   buildRendererOverlayViewModelTracePayload,
+  buildRendererResponseSurfaceSizeLiveTracePayload,
   buildRendererResponseSurfaceSizeTracePayload,
   configureRendererTraceWorkspaceSnapshotResolver,
   logRendererOverlayViewModelTrace,
   logRendererOverlayViewModelResolvedTrace,
   logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
+  logRendererResponseOverlayLifecycleTrace,
   logRendererResponseSurfaceTrace,
   logRendererResponseSurfaceSizeTrace,
 } from '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime';
@@ -155,21 +157,83 @@ describe('desktopRendererTraceRuntime', () => {
 
     logRendererResponseSurfaceSizeTrace({
       action: 'hide-requested',
+      conversationRef: 'conv-size',
       visible: false,
       layoutMode: 'hidden',
+      turnRef: 'turn-size',
+      staleGuardRef: 'guard-size',
       width: 0,
       height: 0,
     });
 
-    expect(consoleLog).toHaveBeenCalledWith('[StreamTrace][renderer][response-surface]', {
+    expect(consoleLog).toHaveBeenCalledWith('[StreamTrace][renderer][response-surface]', expect.objectContaining({
       view: 'response-overlay',
       source: 'renderer-response-window-sync',
       action: 'hide-requested',
       visible: false,
       layout_mode: 'hidden',
+      turn_ref: 'turn-size',
+      stale_guard_ref: 'guard-size',
       width: 0,
       height: 0,
+    }));
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'response_overlay.renderer.size_report',
+      reason: 'hide-requested',
+      visible: false,
+      layoutMode: 'hidden',
+      turnRef: 'turn-size',
+      guardRef: 'guard-size',
+      width: 0,
+      height: 0,
+    }));
+  });
+
+  test('builds response overlay live size trace payloads', () => {
+    expect(buildRendererResponseSurfaceSizeLiveTracePayload({
+      source: ' custom-source ',
+      action: ' show-or-resize-requested ',
+      visible: true,
+      layoutMode: ' awaiting-typing ',
+      showResponse: false,
+      thinkingText: 'abc',
+      compactHover: true,
+      turnRef: ' turn-1 ',
+      staleGuardRef: ' guard-1 ',
+      width: '12',
+      height: '24',
+    })).toEqual({
+      source: 'custom-source',
+      reason: 'show-or-resize-requested',
+      visible: true,
+      layoutMode: 'awaiting-typing',
+      overlayMode: 'awaiting',
+      showResponse: false,
+      thinkingTextLength: 3,
+      compactHover: true,
+      turnRef: 'turn-1',
+      guardRef: 'guard-1',
+      width: 12,
+      height: 24,
     });
+  });
+
+  test('logs response overlay lifecycle traces through the live surface channel', () => {
+    setSearch('?debug_live_surface=1&view=minimal-response-overlay');
+
+    logRendererResponseOverlayLifecycleTrace({
+      action: 'unmount',
+      conversationRef: ' conv-life ',
+      turnRef: ' turn-life ',
+      staleGuardRef: ' guard-life ',
+    });
+
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'renderer.response_overlay.unmount',
+      source: 'renderer-response-window-sync',
+      turnRef: 'turn-life',
+      guardRef: 'guard-life',
+    }));
   });
 
   test('builds response overlay view-model live trace payloads', () => {

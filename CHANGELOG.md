@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlay: move response overlay window-sync live size-report and
+  mount/unmount trace assembly into `desktopRendererTraceRuntime` so
+  `useResponseOverlayWindowSync` reports measured values without owning
+  live-surface event labels, native-mode mapping, or payload field names. No
+  migration required.
 - renderer/overlay: move response overlay view-model trace payload, event, and
   reason mapping into `desktopRendererTraceRuntime` so
   `useResponseOverlayViewModel` emits app-runtime-built live-surface trace

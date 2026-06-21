@@ -2083,7 +2083,13 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).not.toContain('responseOverlayLayoutMode');
     expect(syncSource).not.toContain('responseOverlayLayoutContract');
     expect(syncSource).not.toContain('logRendererResponseSurfaceTrace');
+    expect(syncSource).not.toContain('logRendererLiveSurfaceTrace');
     expect(syncSource).toContain('logRendererResponseSurfaceSizeTrace');
+    expect(syncSource).toContain('logRendererResponseOverlayLifecycleTrace');
+    expect(syncSource).not.toContain("'response_overlay.renderer.size_report'");
+    expect(syncSource).not.toContain("'renderer.response_overlay.mount'");
+    expect(syncSource).not.toContain("'renderer.response_overlay.unmount'");
+    expect(syncSource).not.toContain('thinkingTextLength');
     expect(syncSource).not.toContain('layout_mode');
     expect(syncSource).not.toContain('show_response');
     expect(syncSource).not.toContain('thinking_text_length');
@@ -2101,7 +2107,9 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('buildResponseboxHitTestPayload');
     expect(clientSource).toContain('normalizeResponseOverlayVisibilityPayload(payload).visible');
     expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceSizeTracePayload');
+    expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceSizeLiveTracePayload');
     expect(traceRuntimeSource).toContain('logRendererResponseSurfaceSizeTrace');
+    expect(traceRuntimeSource).toContain('logRendererResponseOverlayLifecycleTrace');
     expect(layoutRuntimeSource).toContain('getRoundedFrameSize');
     expect(layoutRuntimeSource).toContain('getResponseOverlayAwaitingFrameHeight');
     expect(layoutRuntimeSource).toContain('getResponseOverlayFixedHeight');

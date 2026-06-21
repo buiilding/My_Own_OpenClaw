@@ -3,6 +3,7 @@
  */
 
 import { DesktopLiveSurfaceTraceRuntimeClient } from './desktopLiveSurfaceTraceRuntimeClient';
+import { resolveResponseOverlayNativeMode } from './desktopResponseOverlayLayoutRuntime';
 
 export type RendererTraceWorkspaceSnapshot = {
   activeConversationRef?: string | null;
@@ -27,6 +28,7 @@ type RendererTraceWorkspaceSnapshotResolver = (
 export type RendererResponseSurfaceSizeTraceValues = {
   source?: string;
   action: string;
+  conversationRef?: unknown;
   visible: boolean;
   layoutMode?: string | null;
   showResponse?: boolean;
@@ -37,6 +39,14 @@ export type RendererResponseSurfaceSizeTraceValues = {
   staleGuardRef?: unknown;
   width: unknown;
   height: unknown;
+};
+
+export type RendererResponseOverlayLifecycleTraceValues = {
+  source?: string;
+  action: 'mount' | 'unmount';
+  conversationRef?: unknown;
+  turnRef?: unknown;
+  staleGuardRef?: unknown;
 };
 
 export type RendererChatPillStateTraceValues = {
@@ -220,10 +230,60 @@ export function buildRendererResponseSurfaceSizeTracePayload(
   return payload;
 }
 
+export function buildRendererResponseSurfaceSizeLiveTracePayload(
+  values: RendererResponseSurfaceSizeTraceValues,
+): Record<string, unknown> {
+  const layoutMode = traceString(values.layoutMode) || 'hidden';
+  const payload: Record<string, unknown> = {
+    source: traceString(values.source) || 'renderer-response-window-sync',
+    reason: traceString(values.action) || 'size-report',
+    visible: values.visible === true,
+    layoutMode,
+    turnRef: traceString(values.turnRef) || null,
+    guardRef: traceString(values.staleGuardRef) || null,
+    width: traceNumberOrZero(values.width),
+    height: traceNumberOrZero(values.height),
+  };
+  if (values.visible === true) {
+    payload.overlayMode = resolveResponseOverlayNativeMode(layoutMode);
+    if (typeof values.showResponse === 'boolean') {
+      payload.showResponse = values.showResponse;
+    }
+    const thinkingTextLength = traceTextLength(values);
+    if (thinkingTextLength !== null) {
+      payload.thinkingTextLength = thinkingTextLength;
+    }
+    if (typeof values.compactHover === 'boolean') {
+      payload.compactHover = values.compactHover;
+    }
+  }
+  return payload;
+}
+
 export function logRendererResponseSurfaceSizeTrace(
   values: RendererResponseSurfaceSizeTraceValues,
 ): void {
   logRendererResponseSurfaceTrace(buildRendererResponseSurfaceSizeTracePayload(values));
+  logRendererLiveSurfaceTrace(
+    'response_overlay.renderer.size_report',
+    buildRendererResponseSurfaceSizeLiveTracePayload(values),
+    traceString(values.conversationRef) || null,
+  );
+}
+
+export function logRendererResponseOverlayLifecycleTrace(
+  values: RendererResponseOverlayLifecycleTraceValues,
+): void {
+  const action = values.action === 'unmount' ? 'unmount' : 'mount';
+  logRendererLiveSurfaceTrace(
+    `renderer.response_overlay.${action}`,
+    {
+      source: traceString(values.source) || 'renderer-response-window-sync',
+      turnRef: traceString(values.turnRef) || null,
+      guardRef: traceString(values.staleGuardRef) || null,
+    },
+    traceString(values.conversationRef) || null,
+  );
 }
 
 export function buildRendererResponseOverlayStateTracePayload(
