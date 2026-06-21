@@ -1428,6 +1428,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK local-runtime store params sent to the local runtime');
     expect(docText).toContain('SDK then called local-runtime `store_memory_by_embedding`');
     expect(docText).toContain('canonical local-runtime events');
+    expect(docText).toContain('SDK/local-runtime replay path does not write hidden replay rows');
     expect(docText).toContain('local-runtime backend-config tests');
     expect(docText).toContain('local-runtime conversation_events rows');
     expect(docText).toContain('local-runtime event store path');
@@ -1454,6 +1455,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('then calls sidecar\n`store_memory_by_embedding`');
     expect(docText).not.toContain('SDK local-runtime store params sent to the sidecar');
     expect(docText).not.toContain('SDK then called sidecar `store_memory_by_embedding`');
+    expect(docText).not.toContain('desktop runtime does not write hidden replay rows');
     expect(docText).not.toContain('Electron relay | `frontend/src/main/ipc.cjs`');
     expect(docText).not.toContain('Backend receive and renderer broadcast logs');
     expect(docText).not.toContain('Before/after event handling and workspace state');

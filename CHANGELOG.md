@@ -70,6 +70,9 @@ All notable changes to WindieOS will be documented in this file.
   desktop/backend runtime shorthand. No migration required.
 - docs/memory: describe the local memory backing as the local-runtime Python
   implementation instead of the Python sidecar. No migration required.
+- docs/memory: route transcript replay hidden-row ownership through the
+  SDK/local-runtime replay path instead of desktop runtime shorthand. No
+  migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

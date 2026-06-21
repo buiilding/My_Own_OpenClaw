@@ -48,7 +48,7 @@ SDK-owned conversation state uses a dedicated local-runtime chat-event table:
 - compaction replay generations: complete `compaction_applied` events with replacement-history entries
 
 SDK callers should read display and rehydrate state through SDK projections over
-chat events. The desktop runtime does not write hidden replay rows
+chat events. The SDK/local-runtime replay path does not write hidden replay rows
 or fall back to visible transcript rows for runtime truth.
 
 Edit/resend and try-again rewrites cut the canonical local-runtime chat-event log at

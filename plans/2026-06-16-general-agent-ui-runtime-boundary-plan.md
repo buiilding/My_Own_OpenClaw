@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Transcript Replay Local-Runtime Ownership Label
+
+- Finding: the transcript and replay guide still said the desktop runtime does
+  not write hidden replay rows, even though replay/display truth is owned by SDK
+  projections over the local-runtime chat-event log.
+- Change: reworded the active replay sentence to the SDK/local-runtime replay
+  path and extended the modular transcript docs guard for the retired desktop
+  runtime shorthand.
+- Validation: focused modular transcript docs guard, exact stale-label scan,
+  docs list, and diff hygiene.
+- Compatibility/security: no migration required. Conversation event schemas,
+  transcript rows, replay payloads, rehydrate projections, SQLite storage, IPC
+  payloads, local-runtime Python behavior, hosted backend history, credentials,
+  permissions, and provider policy are unchanged.
+
 ### 2026-06-21 Local-Runtime Memory Backing Label Boundary
 
 - Finding: the local runtime memory guide still said the current backing
