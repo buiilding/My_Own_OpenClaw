@@ -863,7 +863,8 @@ allowlist and routes conversation commands such as `conversation.send` and
 `createAgentSdkInvokeHandlerRuntime(...)`; `ipc.cjs` injects Electron-main
 state, settings gates, diagnostics, and Agent SDK runtime functions through
 generic dependencies such as `ensureAgent` while `initializeIpc(...)` supplies
-only the per-window chat/stop handlers:
+only the per-window chat/stop handlers. The lower-level invoke handler and IPC
+registration helper stay private to the runtime helper:
 
 - backend connection gating
 - initial settings sync waiting

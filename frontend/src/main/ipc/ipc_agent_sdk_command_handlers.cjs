@@ -484,6 +484,4 @@ function createAgentSdkInvokeHandlerRuntime({
 
 module.exports = {
   createAgentSdkInvokeHandlerRuntime,
-  handleAgentSdkInvoke,
-  registerAgentSdkInvokeHandler,
 };

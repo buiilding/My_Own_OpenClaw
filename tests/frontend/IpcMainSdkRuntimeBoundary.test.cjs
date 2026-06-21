@@ -23,6 +23,49 @@ describe('main ipc sdk runtime boundary', () => {
     'Commands',
   ].join('')}(`;
   const retiredChatQueryHandlersExport = `${['createChatQuery', 'Handlers'].join('')},`;
+  const retiredAgentSdkInvokeHandlerExport = `  ${['handleAgentSdk', 'Invoke'].join('')},`;
+  const retiredAgentSdkInvokeRegistrationExport = `  ${['registerAgentSdkInvoke', 'Handler'].join('')},`;
+
+  function createAgentSdkInvokeTestRuntime({
+    deps,
+    handleInvoke,
+    handleRendererChatQuery = jest.fn(),
+    handleRendererStopQuery = jest.fn(),
+  } = {}) {
+    const {
+      createAgentSdkInvokeHandlerRuntime,
+    } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
+    const handlers = {};
+    const ipcMain = {
+      handle: jest.fn((channel, handler) => {
+        handlers[channel] = handler;
+      }),
+    };
+    const runtime = createAgentSdkInvokeHandlerRuntime({
+      invokeChannel: 'windie:invoke',
+      deps,
+      ...(handleInvoke ? { handleInvoke } : {}),
+    });
+
+    runtime.register({
+      ipcMain,
+      handleRendererChatQuery,
+      handleRendererStopQuery,
+    });
+
+    return {
+      handleRendererChatQuery,
+      handleRendererStopQuery,
+      handlers,
+      invoke: (event, payload) => handlers['windie:invoke'](event, payload),
+      ipcMain,
+    };
+  }
+
+  function invokeAgentSdkCommand(payload, options = {}) {
+    const runtime = createAgentSdkInvokeTestRuntime(options);
+    return runtime.invoke(null, payload);
+  }
 
   test('main helper modules import SDK contracts from owner modules', async () => {
     const ipcSource = await fs.readFile(
@@ -643,6 +686,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(mainSource).not.toContain('ipcMain.handle(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
     expect(source).toContain('function createAgentSdkInvokeHandlerRuntime');
     expect(source).toContain('function registerAgentSdkInvokeHandler');
+    expect(source).not.toContain(retiredAgentSdkInvokeHandlerExport);
+    expect(source).not.toContain(retiredAgentSdkInvokeRegistrationExport);
     expect(source).toContain('handleInvoke(event, payload');
     expect(mainSource).toContain('ensureAgent,');
     expect(mainSource).not.toContain(`ensureAgent: ensure${retiredProductName('Agent')}`);
@@ -693,8 +738,8 @@ describe('main ipc sdk runtime boundary', () => {
     const sdkCommandModule = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
     expect(sdkCommandModule.buildAgentSdkCommandHandlers).toBeUndefined();
     expect(typeof sdkCommandModule.createAgentSdkInvokeHandlerRuntime).toBe('function');
-    expect(typeof sdkCommandModule.handleAgentSdkInvoke).toBe('function');
-    expect(typeof sdkCommandModule.registerAgentSdkInvokeHandler).toBe('function');
+    expect(sdkCommandModule.handleAgentSdkInvoke).toBeUndefined();
+    expect(sdkCommandModule.registerAgentSdkInvokeHandler).toBeUndefined();
 
     const memoryHandlers = source.match(/MEMORIES_LIST[\s\S]*?CONVERSATIONS_LIST/)?.[0] || '';
     expect(memoryHandlers).toContain('requireAuthenticatedCommandUserId(deps.getState().currentUserId);');
@@ -703,15 +748,6 @@ describe('main ipc sdk runtime boundary', () => {
   });
 
   test('SDK invoke registration forwards payloads through the strict command handler', async () => {
-    const {
-      registerAgentSdkInvokeHandler,
-    } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
-    const handlers = {};
-    const ipcMain = {
-      handle: jest.fn((channel, handler) => {
-        handlers[channel] = handler;
-      }),
-    };
     const handleInvoke = jest.fn(async () => ({ ok: true, data: 'done' }));
     const deps = {
       getState: jest.fn(() => ({ currentUserId: 'user-1' })),
@@ -719,16 +755,14 @@ describe('main ipc sdk runtime boundary', () => {
     const handleRendererChatQuery = jest.fn();
     const handleRendererStopQuery = jest.fn();
 
-    registerAgentSdkInvokeHandler({
-      ipcMain,
-      invokeChannel: 'windie:invoke',
+    const runtime = createAgentSdkInvokeTestRuntime({
       handleRendererChatQuery,
       handleRendererStopQuery,
       deps,
       handleInvoke,
     });
 
-    await expect(handlers['windie:invoke']({ sender: 'renderer' }, {
+    await expect(runtime.invoke({ sender: 'renderer' }, {
       command: 'models.list',
       payload: { userId: 'user-1' },
     })).resolves.toEqual({ ok: true, data: 'done' });
@@ -796,14 +830,12 @@ describe('main ipc sdk runtime boundary', () => {
   });
 
   test('electron main rejects removed user_id SDK command alias', async () => {
-    const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
     const ensureAgent = jest.fn(async () => ({
       listConversations: jest.fn(async () => []),
     }));
     const appendAppDiagnostic = jest.fn(input => input);
 
-    const result = await handleAgentSdkInvoke(
-      null,
+    const result = await invokeAgentSdkCommand(
       {
         command: 'conversations.list',
         payload: {
@@ -838,7 +870,6 @@ describe('main ipc sdk runtime boundary', () => {
   });
 
   test('electron main rejects removed conversation_ref SDK command alias', async () => {
-    const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
     const ensureAgent = jest.fn(async () => ({
       loadConversation: jest.fn(async () => ({
         display: { messages: [] },
@@ -848,8 +879,7 @@ describe('main ipc sdk runtime boundary', () => {
     }));
     const appendAppDiagnostic = jest.fn(input => input);
 
-    const result = await handleAgentSdkInvoke(
-      null,
+    const result = await invokeAgentSdkCommand(
       {
         command: 'conversation.loadDisplay',
         payload: {
@@ -878,7 +908,6 @@ describe('main ipc sdk runtime boundary', () => {
   });
 
   test('electron main keeps rehydrate and compact on backend transport conversation_ref', async () => {
-    const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
     const rehydrateMessages = jest.fn(async () => ({ rehydrated: true }));
     const compactHistory = jest.fn(async () => 'turn-compact');
     const ensureAgent = jest.fn(async () => ({
@@ -896,8 +925,7 @@ describe('main ipc sdk runtime boundary', () => {
       }),
     };
 
-    await expect(handleAgentSdkInvoke(
-      null,
+    await expect(invokeAgentSdkCommand(
       {
         command: 'conversation.rehydrate',
         payload: {
@@ -912,8 +940,7 @@ describe('main ipc sdk runtime boundary', () => {
       ok: true,
       data: { rehydrated: true },
     });
-    await expect(handleAgentSdkInvoke(
-      null,
+    await expect(invokeAgentSdkCommand(
       {
         command: 'conversation.compact',
         payload: {
@@ -947,7 +974,6 @@ describe('main ipc sdk runtime boundary', () => {
   });
 
   test('electron main rejects removed camelCase conversation refs on transport commands', async () => {
-    const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
     const ensureAgent = jest.fn(async () => ({
       rehydrateMessages: jest.fn(async () => ({})),
       compactHistory: jest.fn(async () => 'turn-compact'),
@@ -963,8 +989,7 @@ describe('main ipc sdk runtime boundary', () => {
       }),
     };
 
-    await expect(handleAgentSdkInvoke(
-      null,
+    await expect(invokeAgentSdkCommand(
       {
         command: 'conversation.rehydrate',
         payload: {
@@ -977,8 +1002,7 @@ describe('main ipc sdk runtime boundary', () => {
       ok: false,
       error: 'Agent runtime transport command requires conversation_ref; conversationRef is not supported.',
     });
-    await expect(handleAgentSdkInvoke(
-      null,
+    await expect(invokeAgentSdkCommand(
       {
         command: 'conversation.compact',
         payload: {
@@ -994,13 +1018,11 @@ describe('main ipc sdk runtime boundary', () => {
   });
 
   test('electron main rejects removed edit and retry SDK command aliases', async () => {
-    const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
     const ensureAgent = jest.fn(async () => ({
       prepareRetryTurn: jest.fn(async () => ({})),
     }));
 
-    const result = await handleAgentSdkInvoke(
-      null,
+    const result = await invokeAgentSdkCommand(
       {
         command: 'conversation.prepareRetryTurn',
         payload: {

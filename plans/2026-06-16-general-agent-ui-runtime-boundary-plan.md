@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Agent SDK Invoke Runtime Handler Privacy
+
+- Finding: `ipc_agent_sdk_command_handlers.cjs` exposed
+  `createAgentSdkInvokeHandlerRuntime(...)` for `ipc.cjs` and initialization
+  composition, but still publicly exported the lower-level
+  `handleAgentSdkInvoke(...)` and `registerAgentSdkInvokeHandler(...)` helpers
+  even though production already routes the `windie:invoke` handler through
+  the runtime facade.
+- Change: kept the lower-level invoke handler and IPC registration helper
+  private to `ipc_agent_sdk_command_handlers.cjs`, updated focused boundary
+  tests to drive SDK-shaped command behavior through
+  `createAgentSdkInvokeHandlerRuntime(...)`, and documented the runtime helper
+  as the public composition boundary.
+- Validation: focused main SDK boundary and initialization runtime tests plus
+  targeted main IPC lint, docs listing, stale export-line scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. SDK command names, strict
+  command allowlist behavior, `windie:invoke` channel handling, renderer
+  query/stop bridging, conversation/memory command behavior, diagnostics,
+  IPC payloads, credentials, provider policy, permissions, storage, and
+  local-runtime execution are unchanged.
+
 ### 2026-06-21 Main Chat Query Runtime Handler Privacy
 
 - Finding: `ipc_chat_query_handlers.cjs` exposed

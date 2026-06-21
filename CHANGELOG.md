@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level Agent SDK invoke handler and IPC
+  registration helper private to `ipc_agent_sdk_command_handlers.cjs` and
+  exercise SDK-shaped command behavior through
+  `createAgentSdkInvokeHandlerRuntime(...)`, preserving the `windie:invoke`
+  IPC composition boundary. No migration required.
 - frontend/main: keep the lower-level chat query handler factory private to
   `ipc_chat_query_handlers.cjs` and exercise renderer query/stop behavior
   through `createChatQueryHandlerRuntime(...)`, preserving the `ipc.cjs`
