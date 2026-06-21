@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose settings tab descriptors through
+  `DesktopSettingsTabRuntime` instead of a named helper export set, keeping
+  ordered tab ids and fallback label rules behind the renderer app-runtime
+  facade. No migration required.
 - frontend/renderer: expose dashboard sidebar navigation descriptors through
   `DesktopDashboardNavigationRuntime` instead of a named helper export set,
   keeping primary/panel navigation ordering, collapsed filtering, and label

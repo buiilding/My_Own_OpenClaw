@@ -1415,8 +1415,11 @@ describe('renderer app runtime boundary', () => {
 
     expect(settingsTabRuntimeSource).toContain('getSettingsTabDescriptors');
     expect(settingsTabRuntimeSource).toContain('resolveSettingsTabLabel');
+    expect(settingsTabRuntimeSource).toContain('export const DesktopSettingsTabRuntime = Object.freeze');
+    expect(settingsTabRuntimeSource).not.toContain('export {');
     expect(settingsTabRuntimeSource).not.toContain('features/dashboard');
     expect(settingsSectionSource).toContain('desktopSettingsTabRuntime');
+    expect(settingsSectionSource).toContain('DesktopSettingsTabRuntime');
     expect(settingsSectionSource).toContain('getSettingsTabDescriptors');
     expect(settingsSectionSource).toContain('resolveSettingsTabLabel');
     expect(settingsSectionSource).not.toContain('SETTINGS_TABS = Object.freeze');

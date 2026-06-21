@@ -75,7 +75,7 @@ flowchart LR
    - Presentation-only: affects renderer display only.
 
 2. Update the owning tab and shell.
-   - Add tab metadata in `desktopSettingsTabRuntime.js`.
+   - Add tab metadata through `DesktopSettingsTabRuntime`.
    - Add explicit `renderTabContent()` routing.
   - Keep the tab id stable if existing links or initial-tab opens use it.
    - Update `SettingsSection.propTypes` when props change.

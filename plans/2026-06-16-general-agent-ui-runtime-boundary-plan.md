@@ -24337,3 +24337,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Dashboard nav descriptors, collapsed
   filtering, renderer markup, storage, local-runtime execution, provider
   policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer settings tab facade helper privacy
+
+- Finding: settings tab descriptors lived in the renderer app runtime, but
+  SettingsSection and focused tests still imported the descriptor helpers
+  through a named export set.
+- Change: exposed settings tab behavior through `DesktopSettingsTabRuntime`
+  and kept ordered tab descriptors, tab ids, and fallback label resolution
+  behind the runtime facade.
+- Validation: focused settings tab runtime, SettingsSection, renderer
+  app-runtime boundary tests, targeted renderer ESLint, exact source/doc scans,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Settings tab descriptors, tab routing,
+  renderer markup, storage, local-runtime execution, provider policy, backend
+  behavior, and trust boundaries are unchanged.

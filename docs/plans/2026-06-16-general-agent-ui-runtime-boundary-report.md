@@ -196,8 +196,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `getAppearanceThemeFieldDescriptors()` instead of component-local descriptor
   tables.
   Settings sidebar tabs now consume
-  `desktopSettingsTabRuntime.getSettingsTabDescriptors()` and
-  `resolveSettingsTabLabel()` instead of a section-local tab registry while
+  `DesktopSettingsTabRuntime.getSettingsTabDescriptors()` and
+  `DesktopSettingsTabRuntime.resolveSettingsTabLabel()` instead of a section-local tab registry while
   keeping tab-content routing local to `SettingsSection`.
   Dashboard sidebar navigation now consumes
   `DesktopDashboardNavigationRuntime.getDashboardPrimaryNavItems()` and
@@ -9297,3 +9297,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   ids, and fallback label resolution private. Dashboard nav output, renderer
   markup, storage, local-runtime execution, provider policy, backend behavior,
   and trust boundaries are unchanged; no migration is required.
+- Renderer settings tab descriptors now route through
+  `DesktopSettingsTabRuntime` instead of a named helper export set.
+  SettingsSection and focused runtime tests consume the facade object while the
+  runtime keeps tab descriptors, ordered tab ids, and fallback label resolution
+  private. Settings tab output, renderer markup, storage, local-runtime
+  execution, provider policy, backend behavior, and trust boundaries are
+  unchanged; no migration is required.

@@ -21,10 +21,7 @@ import GeneralSettingsTab from './settings/GeneralSettingsTab';
 import MemorySettingsTab from './settings/MemorySettingsTab';
 import OnboardingSettingsTab from './settings/OnboardingSettingsTab';
 import WorkspaceSettingsTab from './settings/WorkspaceSettingsTab';
-import {
-  getSettingsTabDescriptors,
-  resolveSettingsTabLabel,
-} from '../../../../app/runtime/desktopSettingsTabRuntime';
+import { DesktopSettingsTabRuntime } from '../../../../app/runtime/desktopSettingsTabRuntime';
 import '../../../../styles/SettingsSurface.css';
 
 const SETTINGS_TAB_ICONS = Object.freeze({
@@ -36,6 +33,10 @@ const SETTINGS_TAB_ICONS = Object.freeze({
   database: Database,
   sparkles: Sparkles,
 });
+const {
+  getSettingsTabDescriptors,
+  resolveSettingsTabLabel,
+} = DesktopSettingsTabRuntime;
 const SETTINGS_TABS = getSettingsTabDescriptors();
 
 const appearanceThemeSectionShape = PropTypes.shape({

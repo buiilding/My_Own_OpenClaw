@@ -2,11 +2,13 @@
  * Covers renderer settings tab runtime behavior.
  */
 
-import {
+import { DesktopSettingsTabRuntime } from '../../frontend/src/renderer/app/runtime/desktopSettingsTabRuntime.js';
+
+const {
   getSettingsTabDescriptors,
   getSettingsTabIds,
   resolveSettingsTabLabel,
-} from '../../frontend/src/renderer/app/runtime/desktopSettingsTabRuntime.js';
+} = DesktopSettingsTabRuntime;
 
 describe('desktopSettingsTabRuntime', () => {
   test('exposes ordered settings tab descriptors for settings rendering', () => {

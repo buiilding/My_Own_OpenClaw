@@ -28,8 +28,8 @@ function resolveSettingsTabLabel(tabId, fallback = 'Settings') {
   return SETTINGS_TAB_DESCRIPTORS.find((descriptor) => descriptor.id === tabId)?.label || fallback;
 }
 
-export {
+export const DesktopSettingsTabRuntime = Object.freeze({
   getSettingsTabDescriptors,
   getSettingsTabIds,
   resolveSettingsTabLabel,
-};
+});
