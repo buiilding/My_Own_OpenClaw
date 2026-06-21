@@ -9,6 +9,25 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Legacy Overlay Phase Reducer Removal
+
+- Finding: `DesktopOverlayTurnLifecycleRuntime` still exposed
+  `resolveOverlayTurnLifecycle(...)`, reducing `phase + isSending` into
+  preflight/awaiting/active/terminal values even after visible lifecycle owned
+  that decision. `DesktopChatLoopUiRuntime` also kept a test-only lifecycle to
+  chat-loop UI reducer.
+- Change: overlay lifecycle runtime now exposes only semantic lifecycle value
+  getters and predicates; chat-loop runtime owns only transport recovery. Tests
+  that previously rebuilt lifecycle from phase/send state now assert transport
+  recovery or visible-lifecycle adapter behavior instead.
+- Validation target: `OverlayTurnLifecycle.test.js`,
+  `ChatLoopUiState.test.js`, `ChatLoopUiStateHook.test.jsx`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the retired resolver exports and
+  remaining transport/lifecycle-value contracts.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Message-Only Current-Turn Presentation Adapter
 
 - Finding: `DesktopCurrentTurnPresentationRuntime` still contained a legacy

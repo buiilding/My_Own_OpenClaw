@@ -92,14 +92,13 @@ Shared lifecycle source of truth:
 
 Renderer adapter:
 
-- `desktopOverlayTurnLifecycleRuntime.js` keeps the raw lifecycle table and JSON
-  phase-group tables private behind `DesktopOverlayTurnLifecycleRuntime`.
-- `resolveOverlayTurnLifecycle(...)` resolves renderer-local send state plus
-  main-process overlay phase into one canonical lifecycle string.
+- `desktopOverlayTurnLifecycleRuntime.js` keeps the raw lifecycle table private
+  behind `DesktopOverlayTurnLifecycleRuntime`.
 - `getIdleOverlayTurnLifecycle()`, `getPreflightOverlayTurnLifecycle()`,
   `getAwaitingOverlayTurnLifecycle()`, `getActiveOverlayTurnLifecycle()`, and
   `getTerminalOverlayTurnLifecycle()` expose semantic lifecycle values for
-  callers that need to create fixture or SDK-derived lifecycle values.
+  callers that need to create fixture, adapter, or SDK-derived lifecycle
+  values.
 - `isOverlayTurnLifecycleIdle(...)`, `isOverlayTurnLifecycleAwaiting(...)`,
   `isOverlayTurnLifecycleActive(...)`, `isOverlayTurnLifecycleTerminal(...)`,
   and `isOverlayTurnLifecycleBusy(...)` keep app and feature code on
@@ -108,10 +107,13 @@ Renderer adapter:
 
 Important behavior:
 
-- renderer-local `isSending` is treated as `preflight` until the main-process phase advances
-- `awaiting-first-chunk` resolves to `awaiting`
-- `streaming` / `tool-call` / `tool-output` resolve to `active`
-- `complete` / `error` resolve to `terminal` unless a newer send has already staged locally, in which case the lifecycle stays `preflight`
+- visible lifecycle status is mapped to overlay lifecycle values by
+  `DesktopVisibleTurnLifecycleRuntime`.
+- renderer-local `isSending` and main-process overlay phase do not directly
+  resolve overlay lifecycle in this adapter.
+- terminal, preflight, awaiting, and active decisions belong to the visible
+  lifecycle owner before this adapter exposes the legacy overlay lifecycle
+  value.
 
 Purpose:
 

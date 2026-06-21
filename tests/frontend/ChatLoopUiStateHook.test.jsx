@@ -5,17 +5,9 @@
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { useChatLoopTransportState } from '../../frontend/src/renderer/features/chat/hooks/useChatLoopUiState';
-import { DesktopChatLoopUiRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime';
-import { DesktopOverlayTurnLifecycleRuntime } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 const mockListeners = new Map();
 const mockInvoke = jest.fn();
-const {
-  resolveChatLoopUiState,
-} = DesktopChatLoopUiRuntime;
-const {
-  resolveOverlayTurnLifecycle,
-} = DesktopOverlayTurnLifecycleRuntime;
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -36,35 +28,16 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 }));
 
 function LoopStateProbe({
-  phase = 'idle',
-  isSending = false,
-  hasVisibleReply = false,
+  snapshotSignature = 'idle',
+  isBusy = false,
   recoveryWatchdogMs = 60,
 }) {
-  const optimisticLifecycle = resolveOverlayTurnLifecycle({
-    phase,
-    isSending,
-    hasVisibleReply,
-  });
-  const optimisticLoopUiState = resolveChatLoopUiState({
-    lifecycle: optimisticLifecycle,
-    hasVisibleReply,
-  });
   const transportState = useChatLoopTransportState({
-    snapshotSignature: `${phase || 'idle'}|${isSending ? '1' : '0'}|${hasVisibleReply ? '1' : '0'}`,
-    isBusy: optimisticLoopUiState !== 'idle',
+    snapshotSignature,
+    isBusy,
     recoveryWatchdogMs,
   });
-  const lifecycle = resolveOverlayTurnLifecycle({
-    phase,
-    isSending,
-    hasVisibleReply,
-    transportConnected: transportState.isPresentationTransportConnected,
-  });
-  const loopUiState = resolveChatLoopUiState({
-    lifecycle,
-    hasVisibleReply,
-  });
+  const isPresentationBusy = transportState.isPresentationTransportConnected && isBusy;
   const {
     isTransportConnected,
   } = transportState;
@@ -72,9 +45,8 @@ function LoopStateProbe({
   return (
     <div
       data-testid="loop-state-probe"
-      data-loop-ui-state={loopUiState}
-      data-is-busy={loopUiState !== 'idle' ? '1' : '0'}
-      data-is-awaiting-reply={loopUiState === 'awaiting-reply' ? '1' : '0'}
+      data-loop-ui-state={isPresentationBusy ? 'busy' : 'idle'}
+      data-is-busy={isPresentationBusy ? '1' : '0'}
       data-is-transport-connected={isTransportConnected ? '1' : '0'}
     />
   );
@@ -89,9 +61,9 @@ describe('useChatLoopUiState', () => {
   });
 
   test('drops to idle when runtime transport disconnects during an active loop', () => {
-    render(<LoopStateProbe phase="tool-call" isSending={false} />);
+    render(<LoopStateProbe snapshotSignature="tool-call" isBusy />);
 
-    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('awaiting-reply');
+    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('busy');
 
     act(() => {
       mockListeners.get('ipc-status')?.({ isConnected: false });
@@ -104,7 +76,7 @@ describe('useChatLoopUiState', () => {
   test('ignores runtime transport status without a boolean connection state', async () => {
     mockInvoke.mockResolvedValue({ isConnected: 'yes' });
 
-    render(<LoopStateProbe phase="tool-call" isSending={false} />);
+    render(<LoopStateProbe snapshotSignature="tool-call" isBusy />);
 
     await act(async () => {
       await Promise.resolve();
@@ -114,18 +86,18 @@ describe('useChatLoopUiState', () => {
       mockListeners.get('ipc-status')?.({ isConnected: 'unknown' });
     });
 
-    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('awaiting-reply');
+    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('busy');
     expect(screen.getByTestId('loop-state-probe').dataset.isTransportConnected).toBe('1');
   });
 
   test('watchdog clears stale busy lock after reconnect when no progress arrives', async () => {
     jest.useFakeTimers();
-    const { rerender } = render(<LoopStateProbe phase="awaiting-first-chunk" isSending />);
+    const { rerender } = render(<LoopStateProbe snapshotSignature="awaiting" isBusy />);
 
     act(() => {
       mockListeners.get('ipc-status')?.({ isConnected: false });
     });
-    rerender(<LoopStateProbe phase="awaiting-first-chunk" isSending />);
+    rerender(<LoopStateProbe snapshotSignature="awaiting" isBusy />);
     act(() => {
       mockListeners.get('ipc-status')?.({ isConnected: true });
     });
@@ -144,59 +116,34 @@ describe('useChatLoopUiState', () => {
 
   test('watchdog disarms when post-reconnect stream progress arrives', () => {
     jest.useFakeTimers();
-    const { rerender } = render(<LoopStateProbe phase="awaiting-first-chunk" isSending />);
+    const { rerender } = render(<LoopStateProbe snapshotSignature="awaiting" isBusy />);
 
     act(() => {
       mockListeners.get('ipc-status')?.({ isConnected: false });
       mockListeners.get('ipc-status')?.({ isConnected: true });
     });
 
-    rerender(<LoopStateProbe phase="streaming" isSending={false} hasVisibleReply />);
+    rerender(<LoopStateProbe snapshotSignature="streaming" isBusy />);
 
     act(() => {
       jest.advanceTimersByTime(75);
     });
 
-    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('active-response');
+    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('busy');
     expect(screen.getByTestId('loop-state-probe').dataset.isBusy).toBe('1');
-  });
-
-  test('maps tool-output before first visible reply to awaiting state, then switches to response once content appears', () => {
-    const { rerender } = render(
-      <LoopStateProbe phase="tool-output" isSending={false} hasVisibleReply={false} />,
-    );
-
-    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('awaiting-reply');
-
-    rerender(<LoopStateProbe phase="streaming" isSending={false} hasVisibleReply />);
-    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('active-response');
-  });
-
-  test('keeps terminal complete state in awaiting reply when a new send is already staged', () => {
-    render(<LoopStateProbe phase="complete" isSending hasVisibleReply={false} />);
-
-    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('awaiting-reply');
-    expect(screen.getByTestId('loop-state-probe').dataset.isBusy).toBe('1');
-  });
-
-  test('keeps terminal complete state idle when stale send latch still has a visible reply', () => {
-    render(<LoopStateProbe phase="complete" isSending hasVisibleReply />);
-
-    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('idle');
-    expect(screen.getByTestId('loop-state-probe').dataset.isBusy).toBe('0');
   });
 
   test('keeps watchdog disarmed when reconnect settles on terminal state with duplicate terminal snapshots', async () => {
     jest.useFakeTimers();
-    const { rerender } = render(<LoopStateProbe phase="awaiting-first-chunk" isSending />);
+    const { rerender } = render(<LoopStateProbe snapshotSignature="awaiting" isBusy />);
 
     act(() => {
       mockListeners.get('ipc-status')?.({ isConnected: false });
       mockListeners.get('ipc-status')?.({ isConnected: true });
     });
 
-    rerender(<LoopStateProbe phase="complete" isSending={false} hasVisibleReply={false} />);
-    rerender(<LoopStateProbe phase="complete" isSending={false} hasVisibleReply={false} />);
+    rerender(<LoopStateProbe snapshotSignature="complete" isBusy={false} />);
+    rerender(<LoopStateProbe snapshotSignature="complete" isBusy={false} />);
     await act(async () => {
       await Promise.resolve();
     });

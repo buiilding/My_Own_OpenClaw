@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: response overlay manual dismissal now routes through
-  `DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox(...)`, so the
-  view model passes only turn/guard refs while the runtime client owns the
-  hidden `set-responsebox-size` dismissal payload shape.
+- Latest completed slice: legacy overlay phase reducers are removed from the
+  renderer app runtime. `DesktopOverlayTurnLifecycleRuntime` now exposes only
+  semantic lifecycle values/predicates, and `DesktopChatLoopUiRuntime` owns
+  transport recovery only while `DesktopVisibleTurnLifecycleRuntime` remains
+  the visible typing/busy/awaiting authority.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

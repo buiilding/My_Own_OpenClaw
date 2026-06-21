@@ -66,22 +66,9 @@ Public lifecycle states:
 - `active`
 - `terminal`
 
-`resolveOverlayTurnLifecycle(...)` input fields:
-
-- `phase` (response-overlay phase vocabulary)
-- `isSending` (renderer-local send/preflight latch)
-- `hasVisibleReply`
-- `transportConnected` (default `true`)
-
-Resolution precedence:
-
-1. transport disconnected => `idle`
-2. terminal phase (`complete`/`error`) with a newly staged local send and no visible reply => `preflight`
-3. terminal phase without a staged local send => `terminal`
-4. `awaiting-first-chunk` => `awaiting`
-5. `streaming` / `tool-call` / `tool-output` => `active`
-6. local send latch before main-phase advancement => `preflight`
-7. otherwise => `idle`
+`DesktopOverlayTurnLifecycleRuntime` exposes only semantic lifecycle value
+getters and predicates. It no longer reduces `phase + isSending` into lifecycle
+state; `DesktopVisibleTurnLifecycleRuntime` owns that visible-state decision.
 
 Busy lifecycle states:
 
@@ -94,45 +81,17 @@ Awaiting lifecycle states:
 - `preflight`
 - `awaiting`
 
-## Base UI-State Contract (`desktopChatLoopUiRuntime.js`)
+## Transport Recovery Runtime (`desktopChatLoopUiRuntime.js`)
 
-Public states:
-
-- `idle`
-- `awaiting-reply`
-- `active-response`
-
-`DesktopChatLoopUiRuntime.resolveChatLoopUiState(...)` input fields:
-
-- `lifecycle` (`idle | preflight | awaiting | active | terminal`)
-- `phase` (response-overlay phase vocabulary; retained only for tool-phase surface intent)
-- `hasVisibleReply`
-
-Resolution precedence:
-
-1. `idle` / `terminal` lifecycle => `idle`
-2. `preflight` / `awaiting` lifecycle => `awaiting-reply`
-3. `active` lifecycle during tool-awaiting phases (`tool-call` / `tool-output`) => `awaiting-reply`
-4. other `active` lifecycle with no visible assistant reply => `awaiting-reply`
-5. other `active` lifecycle with visible assistant reply => `active-response`
-6. otherwise => `idle`
-
-Tool-awaiting phase checks are owned by
-`DesktopStreamPhaseRuntime.isOverlayAwaitingReplyPhase(...)`; the stream-phase
-predicate helper and awaiting phase set stay private behind that renderer
-app-runtime facade.
-
-Helper predicates:
-
-- `DesktopChatLoopUiRuntime.isChatLoopBusy(loopUiState)` (`idle` => false, others => true)
-- `DesktopChatLoopUiRuntime.isChatLoopAwaitingReply(loopUiState)` (`awaiting-reply` only)
-
-## Reducer Runtime (`desktopChatLoopUiRuntime.js`)
+`DesktopChatLoopUiRuntime` owns only the transport recovery machine used by
+`useChatLoopTransportState(...)`. It does not decide typing, Stop, busy, or
+chatbox response lifecycle; visible lifecycle output supplies the `isBusy`
+snapshot input.
 
 Reducer state fields:
 
-- `loopUiState`
 - `transportConnected`
+- `forceIdle`
 - `recoveryWatchdogArmed`
 - `pendingRecoveryFromDisconnect`
 - `preDisconnectSnapshotSignature`
@@ -146,7 +105,7 @@ Reducer events:
 
 Snapshot signature contract:
 
-- signature format: `<phase>|<isSendingBit>|<hasVisibleReplyBit>`
+- signature is supplied by the visible lifecycle consumer
 - used to detect post-reconnect progress vs stale repeated snapshots
 
 ### Disconnect/Reconnect Contract

@@ -20,54 +20,6 @@ const OVERLAY_TURN_LIFECYCLE = Object.freeze({
   TERMINAL: lifecycleStates[4] || 'terminal',
 });
 
-const OVERLAY_TURN_PHASE_GROUPS = Object.freeze({
-  awaiting: Object.freeze(Array.isArray(overlayTurnLifecycleContract?.phase_groups?.awaiting)
-    ? overlayTurnLifecycleContract.phase_groups.awaiting
-    : []),
-  active: Object.freeze(Array.isArray(overlayTurnLifecycleContract?.phase_groups?.active)
-    ? overlayTurnLifecycleContract.phase_groups.active
-    : []),
-  terminal: Object.freeze(Array.isArray(overlayTurnLifecycleContract?.phase_groups?.terminal)
-    ? overlayTurnLifecycleContract.phase_groups.terminal
-    : []),
-});
-
-const AWAITING_PHASE_SET = new Set(OVERLAY_TURN_PHASE_GROUPS.awaiting);
-const ACTIVE_PHASE_SET = new Set(OVERLAY_TURN_PHASE_GROUPS.active);
-const TERMINAL_PHASE_SET = new Set(OVERLAY_TURN_PHASE_GROUPS.terminal);
-
-function resolveOverlayTurnLifecycle({
-  phase,
-  isSending,
-  hasVisibleReply = false,
-  transportConnected = true,
-}) {
-  if (!transportConnected) {
-    return OVERLAY_TURN_LIFECYCLE.IDLE;
-  }
-
-  if (typeof phase === 'string' && TERMINAL_PHASE_SET.has(phase)) {
-    if (isSending === true && !hasVisibleReply) {
-      return OVERLAY_TURN_LIFECYCLE.PREFLIGHT;
-    }
-    return OVERLAY_TURN_LIFECYCLE.TERMINAL;
-  }
-
-  if (typeof phase === 'string' && AWAITING_PHASE_SET.has(phase)) {
-    return OVERLAY_TURN_LIFECYCLE.AWAITING;
-  }
-
-  if (typeof phase === 'string' && ACTIVE_PHASE_SET.has(phase)) {
-    return OVERLAY_TURN_LIFECYCLE.ACTIVE;
-  }
-
-  if (isSending === true) {
-    return OVERLAY_TURN_LIFECYCLE.PREFLIGHT;
-  }
-
-  return OVERLAY_TURN_LIFECYCLE.IDLE;
-}
-
 function getIdleOverlayTurnLifecycle() {
   return OVERLAY_TURN_LIFECYCLE.IDLE;
 }
@@ -116,7 +68,6 @@ function isOverlayTurnLifecycleAwaiting(lifecycle) {
 }
 
 export const DesktopOverlayTurnLifecycleRuntime = Object.freeze({
-  resolveOverlayTurnLifecycle,
   getIdleOverlayTurnLifecycle,
   getPreflightOverlayTurnLifecycle,
   getAwaitingOverlayTurnLifecycle,

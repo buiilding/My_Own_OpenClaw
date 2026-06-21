@@ -72,6 +72,10 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox(...)`, keeping
   the hidden dismissed responsebox IPC payload shape out of the view model. No
   migration required.
+- frontend/renderer: remove the legacy `phase + isSending` overlay lifecycle
+  and chat-loop UI reducers from renderer app runtime; visible lifecycle now
+  owns typing/busy state while `DesktopChatLoopUiRuntime` remains transport
+  recovery only. No migration required.
 - frontend/renderer: make `DesktopCurrentTurnPresentationRuntime` message-only
   for current-turn presentation state by removing chat-loop and overlay
   lifecycle imports; visible lifecycle stamping now owns awaiting, busy, and

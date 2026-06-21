@@ -1,25 +1,6 @@
 /**
- * Provides the chat loop ui state module for the renderer UI.
+ * Provides the chat loop transport recovery module for the renderer UI.
  */
-
-import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
-import { DesktopStreamPhaseRuntime } from './desktopStreamPhaseRuntime';
-
-const {
-  isOverlayTurnLifecycleActive,
-  isOverlayTurnLifecycleAwaiting,
-  isOverlayTurnLifecycleIdle,
-  isOverlayTurnLifecycleTerminal,
-} = DesktopOverlayTurnLifecycleRuntime;
-const {
-  isOverlayAwaitingReplyPhase,
-} = DesktopStreamPhaseRuntime;
-
-const CHAT_LOOP_UI_STATE = Object.freeze({
-  IDLE: 'idle',
-  AWAITING_REPLY: 'awaiting-reply',
-  ACTIVE_RESPONSE: 'active-response',
-});
 
 const CHAT_LOOP_TRANSPORT_MACHINE_EVENT = Object.freeze({
   SNAPSHOT: 'snapshot',
@@ -141,46 +122,10 @@ function reduceChatLoopTransportMachineState(state, event) {
   };
 }
 
-function resolveChatLoopUiState({
-  lifecycle,
-  phase,
-  hasVisibleReply = false,
-}) {
-  if (isOverlayTurnLifecycleIdle(lifecycle) || isOverlayTurnLifecycleTerminal(lifecycle)) {
-    return CHAT_LOOP_UI_STATE.IDLE;
-  }
-
-  if (isOverlayTurnLifecycleAwaiting(lifecycle)) {
-    return CHAT_LOOP_UI_STATE.AWAITING_REPLY;
-  }
-
-  if (isOverlayTurnLifecycleActive(lifecycle)) {
-    if (isOverlayAwaitingReplyPhase(phase)) {
-      return CHAT_LOOP_UI_STATE.AWAITING_REPLY;
-    }
-    return hasVisibleReply
-      ? CHAT_LOOP_UI_STATE.ACTIVE_RESPONSE
-      : CHAT_LOOP_UI_STATE.AWAITING_REPLY;
-  }
-
-  return CHAT_LOOP_UI_STATE.IDLE;
-}
-
-function isChatLoopBusy(loopUiState) {
-  return loopUiState !== CHAT_LOOP_UI_STATE.IDLE;
-}
-
-function isChatLoopAwaitingReply(loopUiState) {
-  return loopUiState === CHAT_LOOP_UI_STATE.AWAITING_REPLY;
-}
-
 export const DesktopChatLoopUiRuntime = Object.freeze({
   createInitialChatLoopTransportMachineState,
   createChatLoopSnapshotEvent,
   createChatLoopTransportStatusEvent,
   createChatLoopRecoveryTimeoutEvent,
   reduceChatLoopTransportMachineState,
-  resolveChatLoopUiState,
-  isChatLoopBusy,
-  isChatLoopAwaitingReply,
 });
