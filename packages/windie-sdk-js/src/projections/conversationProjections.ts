@@ -300,6 +300,46 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   };
 }
 
+const SCREENSHOT_METADATA_KEYS = [
+  'screenshotRef',
+  'screenshot_ref',
+  'screenshotUrl',
+  'screenshot_url',
+  'screenshotRefs',
+  'screenshot_refs',
+  'screenshot',
+  'image',
+  'screenshotContentType',
+  'screenshot_content_type',
+];
+
+function hasScreenshotMetadata(payload: JsonRecord): boolean {
+  return SCREENSHOT_METADATA_KEYS.some(key => Object.prototype.hasOwnProperty.call(payload, key));
+}
+
+function preserveExistingScreenshotMetadata(
+  row: Extract<SdkDisplayRow, { type: 'user_message' }>,
+  metadata: SdkDisplayRowMetadata,
+): SdkDisplayRowMetadata {
+  const previous = row.metadata;
+  const screenshotRef = previous?.screenshotRef ?? previous?.screenshot_ref ?? null;
+  const screenshotUrl = previous?.screenshotUrl ?? previous?.screenshot_url ?? null;
+  const screenshotRefs = previous?.screenshotRefs
+    ?? previous?.screenshot_refs
+    ?? (screenshotRef ? [screenshotRef] : null);
+  return {
+    ...metadata,
+    screenshotRef,
+    screenshot_ref: screenshotRef,
+    screenshotUrl,
+    screenshot_url: screenshotUrl,
+    screenshotRefs,
+    screenshot_refs: screenshotRefs,
+    screenshot: previous?.screenshot ?? null,
+    screenshotContentType: previous?.screenshotContentType ?? null,
+  };
+}
+
 function toolRowIdentity(event: ConversationEvent, index: number): string {
   if (event.type === 'tool_call') {
     const toolCall = modelFacingToolCallFromPayload(event.payload);
@@ -488,7 +528,9 @@ function mergeUserMessageMetadata(
   row: Extract<SdkDisplayRow, { type: 'user_message' }>,
   event: ConversationEvent,
 ): Extract<SdkDisplayRow, { type: 'user_message' }> {
-  const metadata = displayRowMetadata(event);
+  const metadata = hasScreenshotMetadata(event.payload)
+    ? displayRowMetadata(event)
+    : preserveExistingScreenshotMetadata(row, displayRowMetadata(event));
   return {
     ...row,
     metadata: {

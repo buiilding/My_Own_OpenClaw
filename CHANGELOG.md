@@ -39,6 +39,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/projection: preserve chat-pill screenshot metadata when dashboard display
+  reload replays a later same-turn `user_message_metadata` event that does not
+  carry screenshot fields. No migration required.
 - cli/history: make `<windie> conversation ...` inspect the local-runtime
   `desktop-runtime/history/history.db` root by default instead of the
   host-skinned diagnostics root, while preserving explicit user-data directory

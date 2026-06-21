@@ -646,6 +646,77 @@ describe('Agent SDK conversation runtime core', () => {
     });
   });
 
+  test('SDK display rows preserve screenshot metadata across later same-turn metadata replay', () => {
+    const user = createConversationEvent({
+      eventId: 'evt-user',
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'ui',
+      payload: { text: 'hello my name is peter' },
+    });
+    const sdkMetadata = createConversationEvent({
+      eventId: 'evt-user-metadata-sdk',
+      type: 'user_message_metadata',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'sdk',
+      payload: {
+        text: 'hello my name is peter',
+        screenshot_ref: 'artifact-1',
+        screenshot_url: '/api/artifacts/artifact-1',
+        screenshot_refs: ['artifact-1'],
+        attachment_filenames: ['clipboard-image.png'],
+      },
+    });
+    const backendMetadata = createConversationEvent({
+      eventId: 'evt-user-metadata-backend',
+      type: 'user_message_metadata',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: {
+        text: 'hello my name is peter',
+        sourceEventType: 'user-message-full',
+        content: '<episodic_memory>summary</episodic_memory>',
+      },
+    });
+    const assistant = createConversationEvent({
+      eventId: 'evt-assistant',
+      type: 'assistant_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: { text: 'ready' },
+    });
+
+    const rows = buildDisplayRows([user, sdkMetadata, backendMetadata, assistant]);
+
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({
+      id: 'evt-user',
+      type: 'user_message',
+      content: 'hello my name is peter',
+      metadata: expect.objectContaining({
+        eventId: 'evt-user-metadata-backend',
+        screenshotRef: 'artifact-1',
+        screenshot_ref: 'artifact-1',
+        screenshotUrl: '/api/artifacts/artifact-1',
+        screenshot_url: '/api/artifacts/artifact-1',
+        screenshotRefs: ['artifact-1'],
+        screenshot_refs: ['artifact-1'],
+        raw: expect.objectContaining({
+          sourceEventType: 'user-message-full',
+          attachment_filenames: ['clipboard-image.png'],
+        }),
+      }),
+    });
+  });
+
   test('orphan empty-chat greeting is not display or rehydrate history', () => {
     const events = [
       event('conversation_rewritten', { reason: 'retry' }),
