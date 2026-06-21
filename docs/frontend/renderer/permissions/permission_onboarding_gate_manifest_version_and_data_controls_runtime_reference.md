@@ -125,8 +125,8 @@ Permission request handling is split deliberately:
 - `usePermissionStore.requestPermission()` remains the shared IPC-backed request primitive
 - `useOnboardingPermissionActions()` owns onboarding-local request pending state
 - `getPermissionStatusDetailsPresentation(...)` in `desktopPermissionPresentationRuntime.js` owns status reason, class, and remediation presentation so onboarding slides do not parse raw status detail fields directly
-- `applyPermissionGrantEffects(...)` in `desktopPermissionGrantEffectsRuntime.js` centralizes permission-specific post-grant renderer effects such as enabling `browser_automation_enabled`
-- `shouldWatchExternalPermissionGrantCompletion(...)` and `shouldPollPermissionGrantByInterval(...)` in `desktopPermissionGrantEffectsRuntime.js` own permission-specific follow-up probe policy for OS-settings grants, so onboarding actions do not read raw status `details`, `granted`, or `status` fields directly
+- `DesktopPermissionGrantEffectsRuntime.applyPermissionGrantEffects(...)` centralizes permission-specific post-grant renderer effects such as enabling `browser_automation_enabled`
+- `DesktopPermissionGrantEffectsRuntime.shouldWatchExternalPermissionGrantCompletion(...)` and `DesktopPermissionGrantEffectsRuntime.shouldPollPermissionGrantByInterval(...)` own permission-specific follow-up probe policy for OS-settings grants, so onboarding actions do not read raw status `details`, `granted`, or `status` fields directly
 
 ### Settings Permission Status
 

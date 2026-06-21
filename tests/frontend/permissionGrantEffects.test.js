@@ -3,10 +3,14 @@
  */
 
 import {
+  DesktopPermissionGrantEffectsRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopPermissionGrantEffectsRuntime';
+
+const {
   applyPermissionGrantEffects,
   shouldPollPermissionGrantByInterval,
   shouldWatchExternalPermissionGrantCompletion,
-} from '../../frontend/src/renderer/app/runtime/desktopPermissionGrantEffectsRuntime';
+} = DesktopPermissionGrantEffectsRuntime;
 
 describe('applyPermissionGrantEffects', () => {
   test('enables browser automation in config after a granted browser permission', () => {

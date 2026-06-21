@@ -365,13 +365,13 @@ normalization into id-indexed value maps. `permissionStore` owns gate
 derivation, onboarding persistence, and action errors while delegating desktop
 permission transport and raw status field parsing to this client.
 
-`desktopPermissionGrantEffectsRuntime.js` owns renderer post-grant permission
+`DesktopPermissionGrantEffectsRuntime` owns renderer post-grant permission
 effects that update app config, such as enabling browser automation after the
 dedicated browser capability is granted, and external-grant watch policy for
 permissions that require a follow-up probe after the OS settings surface opens.
 Onboarding and settings UI pass permission status plus config updater callbacks
-into this runtime helper instead of keeping cross-surface config side effects
-or raw permission status-field checks under the permissions feature.
+into this runtime facade instead of keeping cross-surface config side effects or
+raw permission status-field checks under the permissions feature.
 
 `desktopPermissionPresentationRuntime.js` owns renderer permission status and
 presentation mapping shared by onboarding and settings: access-kind labels,

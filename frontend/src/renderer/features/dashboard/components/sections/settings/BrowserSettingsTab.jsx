@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import PermissionStatusBadge from '../../../../permissions/components/PermissionStatusBadge';
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';
-import { applyPermissionGrantEffects } from '../../../../../app/runtime/desktopPermissionGrantEffectsRuntime';
+import { DesktopPermissionGrantEffectsRuntime } from '../../../../../app/runtime/desktopPermissionGrantEffectsRuntime';
 import { useDesktopRendererConfigContext } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
 import {
   getPermissionManifestEntry,
@@ -16,6 +16,9 @@ import {
 
 const BROWSER_PERMISSION_ID = 'browser_automation';
 const browserSettingsSkin = desktopRuntimeSkin.settings.browser;
+const {
+  applyPermissionGrantEffects,
+} = DesktopPermissionGrantEffectsRuntime;
 
 function BrowserSettingsTab() {
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);

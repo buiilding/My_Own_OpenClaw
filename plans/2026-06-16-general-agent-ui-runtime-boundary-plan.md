@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Permission Grant Effects Facade
+
+- Finding: `desktopPermissionGrantEffectsRuntime.js` already owned renderer
+  post-grant config effects and external-grant follow-up probe policy shared by
+  onboarding and focused browser settings, but still exported each helper as a
+  standalone function.
+- Change: made the grant-effect and watch-policy helpers private to the
+  permission grant-effects runtime module, exposed them through
+  `DesktopPermissionGrantEffectsRuntime`, and routed onboarding actions,
+  browser settings, and focused permission tests through that facade.
+- Validation: focused permission grant-effects, onboarding permission actions,
+  browser settings, renderer app boundary, exact standalone permission helper
+  export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Browser automation
+  post-grant config enabling, external OS-settings watch permission ids,
+  screen-capture media-status short-circuit behavior, permission probes, IPC,
+  storage, credentials, hosted backend URLs, provider policy, and privileged
+  local execution enforcement are unchanged.
+
 ### 2026-06-21 Renderer Onboarding Slide Facade
 
 - Finding: `desktopOnboardingSlideRuntime.js` already owned pure startup

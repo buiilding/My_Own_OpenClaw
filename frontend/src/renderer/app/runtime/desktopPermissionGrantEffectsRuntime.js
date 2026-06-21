@@ -9,7 +9,7 @@ const EXTERNAL_GRANT_WATCH_PERMISSION_IDS = new Set([
   'microphone',
 ]);
 
-export function applyPermissionGrantEffects({ permissionId, status, updateConfig }) {
+function applyPermissionGrantEffects({ permissionId, status, updateConfig }) {
   if (
     permissionId === 'browser_automation'
     && status?.granted === true
@@ -19,11 +19,11 @@ export function applyPermissionGrantEffects({ permissionId, status, updateConfig
   }
 }
 
-export function shouldPollPermissionGrantByInterval(permissionId) {
+function shouldPollPermissionGrantByInterval(permissionId) {
   return EXTERNAL_GRANT_WATCH_PERMISSION_IDS.has(permissionId);
 }
 
-export function shouldWatchExternalPermissionGrantCompletion(permissionId, status) {
+function shouldWatchExternalPermissionGrantCompletion(permissionId, status) {
   if (permissionId === 'screen_capture' && status?.details?.media_status === 'granted') {
     return false;
   }
@@ -33,3 +33,9 @@ export function shouldWatchExternalPermissionGrantCompletion(permissionId, statu
     && status?.status === 'needs-action'
   );
 }
+
+export const DesktopPermissionGrantEffectsRuntime = Object.freeze({
+  applyPermissionGrantEffects,
+  shouldPollPermissionGrantByInterval,
+  shouldWatchExternalPermissionGrantCompletion,
+});
