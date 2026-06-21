@@ -18,12 +18,14 @@ const {
   waitForMainWindowSuppressedForScreenshot,
 } = require('./window_suppression_runtime.cjs');
 const {
-  activateWindowForInteraction: activateWindowForInteractionRuntime,
+  createWindowPlatformPolicy,
 } = require('./window_platform_policy.cjs');
 const {
   resolveChatWindowResponseOverlayRestore,
 } = require('./response_overlay_visibility_policy.cjs');
 const { logChatPillMainTrace } = require('../debug/chat_pill_trace_runtime.cjs');
+
+const windowInteractionPolicy = createWindowPlatformPolicy();
 
 function resolveShowTargetDisplayAffinity({
   targetDisplayAffinity = null,
@@ -231,7 +233,7 @@ function showMainWindow(options = {}, deps = {}) {
     setActiveDisplayAffinity = () => {},
     getActiveDisplayAffinity = () => null,
     hideChatWindow = () => {},
-    activateWindowForInteraction = activateWindowForInteractionRuntime,
+    activateWindowForInteraction = windowInteractionPolicy.activateWindowForInteraction,
   } = deps;
   const focus = options?.focus !== false;
   const maximize = options?.maximize === true;

@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Window Platform Activation Privacy
+
+- Finding: `window_platform_policy.cjs` already exposed
+  `createWindowPlatformPolicy(...)` as the Electron main facade for content
+  protection, overlay topmost/workspace behavior, and activation/focus handoff,
+  but still exported `activateWindowForInteraction(...)` directly to
+  `window_visibility_runtime.cjs` and focused tests.
+- Change: routed default dashboard activation through
+  `createWindowPlatformPolicy().activateWindowForInteraction`, kept the raw
+  activation helper private to the policy owner, and preserved caller injection
+  for focused visibility tests.
+- Validation: focused window-platform policy, window-visibility, surface
+  runtime, and main host-skin tests, targeted main surface lint, docs listing,
+  stale export/import scans, and diff checks before commit.
+- Compatibility/security: no window activation order, focus behavior,
+  content-protection policy, overlay topmost/workspace behavior, IPC channel,
+  credential, permission, storage, or trust-boundary migration required;
+  dashboard activation behavior is unchanged.
+
 ### 2026-06-21 Main Local-Runtime Launch Env Resolver Privacy
 
 - Finding: `local_runtime_launch_options.cjs` owned desktop local-runtime

@@ -2,7 +2,6 @@
 
 const {
   createWindowPlatformPolicy,
-  activateWindowForInteraction,
 } = require('../../frontend/src/main/surfaces/window_platform_policy.cjs');
 
 describe('window_platform_policy', () => {
@@ -64,6 +63,8 @@ describe('window_platform_policy', () => {
   });
 
   test('activates the native window and its webContents together', () => {
+    const policyModule = require('../../frontend/src/main/surfaces/window_platform_policy.cjs');
+    const policy = createWindowPlatformPolicy();
     const webContents = {
       isDestroyed: jest.fn(() => false),
       focus: jest.fn(),
@@ -75,7 +76,8 @@ describe('window_platform_policy', () => {
       webContents,
     };
 
-    activateWindowForInteraction(targetWindow);
+    expect(policyModule.activateWindowForInteraction).toBeUndefined();
+    policy.activateWindowForInteraction(targetWindow);
 
     expect(targetWindow.moveTop).toHaveBeenCalledTimes(1);
     expect(targetWindow.focus).toHaveBeenCalledTimes(1);

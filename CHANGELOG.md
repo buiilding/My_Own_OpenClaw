@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep focused-window activation private to
+  `window_platform_policy.cjs` while visibility code consumes it through
+  `createWindowPlatformPolicy(...)`. No migration required.
 - frontend/main: keep local-runtime daemon env-key normalization private to
   `local_runtime_launch_options.cjs` while callers validate behavior through
   `createDesktopLocalRuntimeLaunchPlan(...)`. No migration required.

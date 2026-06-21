@@ -88,6 +88,5 @@ function createWindowPlatformPolicy({
 }
 
 module.exports = {
-  activateWindowForInteraction,
   createWindowPlatformPolicy,
 };

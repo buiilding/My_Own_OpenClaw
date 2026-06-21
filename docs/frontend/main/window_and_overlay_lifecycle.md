@@ -51,7 +51,7 @@ Shared ownership model:
 - high-level surface state advances only after the low-level show helper reports
   success, so failed chat/dashboard window transitions do not mark startup
   handling complete or report a surface switch that was not applied.
-- `surfaces/window_platform_policy.cjs` is the single owner for per-platform `BrowserWindow` policy such as content protection, overlay topmost/workspace rules, and explicit activation/focus handoff.
+- `surfaces/window_platform_policy.cjs` is the single owner for per-platform `BrowserWindow` policy through `createWindowPlatformPolicy(...)`, including content protection, overlay topmost/workspace rules, and explicit activation/focus handoff.
 - `response_overlay_visibility_policy.cjs` is the shared pure policy layer for response-overlay phase -> window mode mapping and chat-pill response-shell restore eligibility.
 - `surfaces/surface_runtime.cjs` stores chat-pill show/hide decisions under the
   `surface.visibility` app diagnostics path, including `reason`, `user_hidden`,
