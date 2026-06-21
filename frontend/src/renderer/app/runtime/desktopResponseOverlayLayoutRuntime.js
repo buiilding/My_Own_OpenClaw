@@ -15,7 +15,7 @@ const RESPONSE_OVERLAY_LAYOUT_MODE = Object.freeze({
   AWAITING_TYPING: 'awaiting-typing',
 });
 
-export function resolveResponseOverlayLayoutMode({
+function resolveResponseOverlayLayoutMode({
   showResponse,
   showAwaitingReply,
 }) {
@@ -28,35 +28,35 @@ export function resolveResponseOverlayLayoutMode({
   return RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING;
 }
 
-export function isCompactHoverLayoutMode(layoutMode) {
+function isCompactHoverLayoutMode(layoutMode) {
   return layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING;
 }
 
-export function isVisibleResponseOverlayLayoutMode(layoutMode) {
+function isVisibleResponseOverlayLayoutMode(layoutMode) {
   return layoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
 }
 
-export function isAwaitingResponseOverlayLayoutMode(layoutMode) {
+function isAwaitingResponseOverlayLayoutMode(layoutMode) {
   return layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING;
 }
 
-export function getHiddenResponseOverlayLayoutMode() {
+function getHiddenResponseOverlayLayoutMode() {
   return RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
 }
 
-export function getResponseOverlayAwaitingFrameHeight() {
+function getResponseOverlayAwaitingFrameHeight() {
   return RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
 }
 
-export function getResponseOverlayFixedHeight() {
+function getResponseOverlayFixedHeight() {
   return RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT;
 }
 
-export function resolveResponseOverlayNativeMode(layoutMode) {
+function resolveResponseOverlayNativeMode(layoutMode) {
   return isAwaitingResponseOverlayLayoutMode(layoutMode) ? 'awaiting' : 'response';
 }
 
-export function getRoundedFrameSize(element) {
+function getRoundedFrameSize(element) {
   const rect = element?.getBoundingClientRect?.();
   if (!rect) {
     return null;
@@ -73,3 +73,15 @@ export function getRoundedFrameSize(element) {
     height: Math.max(1, Math.ceil(Math.max(rectHeight, scrollHeight, offsetHeight))),
   };
 }
+
+export const DesktopResponseOverlayLayoutRuntime = Object.freeze({
+  resolveResponseOverlayLayoutMode,
+  isCompactHoverLayoutMode,
+  isVisibleResponseOverlayLayoutMode,
+  isAwaitingResponseOverlayLayoutMode,
+  getHiddenResponseOverlayLayoutMode,
+  getResponseOverlayAwaitingFrameHeight,
+  getResponseOverlayFixedHeight,
+  resolveResponseOverlayNativeMode,
+  getRoundedFrameSize,
+});

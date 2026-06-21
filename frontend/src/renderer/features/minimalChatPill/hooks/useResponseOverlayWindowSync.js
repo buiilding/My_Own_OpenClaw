@@ -4,19 +4,15 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
-import {
-  getHiddenResponseOverlayLayoutMode,
-  getRoundedFrameSize,
-  getResponseOverlayAwaitingFrameHeight,
-  isCompactHoverLayoutMode,
-  isAwaitingResponseOverlayLayoutMode,
-} from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
+import { DesktopResponseOverlayLayoutRuntime } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import {
   logRendererResponseOverlayLifecycleTrace,
   logRendererResponseSurfaceSizeTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
 
-const TYPING_FRAME_HEIGHT = getResponseOverlayAwaitingFrameHeight();
+const TYPING_FRAME_HEIGHT = (
+  DesktopResponseOverlayLayoutRuntime.getResponseOverlayAwaitingFrameHeight()
+);
 
 function createHiddenFrameState() {
   return {
@@ -25,7 +21,7 @@ function createHiddenFrameState() {
     visible: false,
     fullScreenGhost: false,
     compactHover: false,
-    layoutMode: getHiddenResponseOverlayLayoutMode(),
+    layoutMode: DesktopResponseOverlayLayoutRuntime.getHiddenResponseOverlayLayoutMode(),
   };
 }
 
@@ -60,7 +56,7 @@ export function useResponseOverlayWindowSync({
 
   const reportOverlaySize = useCallback(async ({
     visible,
-    layoutMode = getHiddenResponseOverlayLayoutMode(),
+    layoutMode = DesktopResponseOverlayLayoutRuntime.getHiddenResponseOverlayLayoutMode(),
   }) => {
     const turnRef = overlayIntent?.turnRef ?? lastOverlayGuardRef.current.turnRef ?? null;
     const staleGuardRef = (
@@ -80,7 +76,7 @@ export function useResponseOverlayWindowSync({
           action: 'hide-requested',
           conversationRef: overlayIntent?.conversationRef || null,
           visible: false,
-          layoutMode: getHiddenResponseOverlayLayoutMode(),
+          layoutMode: DesktopResponseOverlayLayoutRuntime.getHiddenResponseOverlayLayoutMode(),
           turnRef,
           staleGuardRef,
           width: 0,
@@ -99,14 +95,14 @@ export function useResponseOverlayWindowSync({
       return;
     }
 
-    const nextFrame = getRoundedFrameSize(shellRef.current);
+    const nextFrame = DesktopResponseOverlayLayoutRuntime.getRoundedFrameSize(shellRef.current);
     if (!nextFrame) {
       return;
     }
 
-    const compactHover = isCompactHoverLayoutMode(layoutMode);
+    const compactHover = DesktopResponseOverlayLayoutRuntime.isCompactHoverLayoutMode(layoutMode);
     let { width, height } = nextFrame;
-    if (isAwaitingResponseOverlayLayoutMode(layoutMode)) {
+    if (DesktopResponseOverlayLayoutRuntime.isAwaitingResponseOverlayLayoutMode(layoutMode)) {
       height = TYPING_FRAME_HEIGHT;
     }
 
@@ -203,7 +199,7 @@ export function useResponseOverlayWindowSync({
     if (!isVisible) {
       void reportOverlaySize({
         visible: false,
-        layoutMode: getHiddenResponseOverlayLayoutMode(),
+        layoutMode: DesktopResponseOverlayLayoutRuntime.getHiddenResponseOverlayLayoutMode(),
       });
       return undefined;
     }
@@ -278,7 +274,7 @@ export function useResponseOverlayWindowSync({
       }
       void report({
         visible: false,
-        layoutMode: getHiddenResponseOverlayLayoutMode(),
+        layoutMode: DesktopResponseOverlayLayoutRuntime.getHiddenResponseOverlayLayoutMode(),
       });
     };
   }, []);

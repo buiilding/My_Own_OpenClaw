@@ -3,7 +3,7 @@
  */
 
 import { DesktopLiveSurfaceTraceRuntimeClient } from './desktopLiveSurfaceTraceRuntimeClient';
-import { resolveResponseOverlayNativeMode } from './desktopResponseOverlayLayoutRuntime';
+import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
 
 export type RendererTraceWorkspaceSnapshot = {
   activeConversationRef?: string | null;
@@ -343,7 +343,9 @@ export function buildRendererResponseSurfaceSizeLiveTracePayload(
     height: traceNumberOrZero(values.height),
   };
   if (values.visible === true) {
-    payload.overlayMode = resolveResponseOverlayNativeMode(layoutMode);
+    payload.overlayMode = DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayNativeMode(
+      layoutMode,
+    );
     if (typeof values.showResponse === 'boolean') {
       payload.showResponse = values.showResponse;
     }

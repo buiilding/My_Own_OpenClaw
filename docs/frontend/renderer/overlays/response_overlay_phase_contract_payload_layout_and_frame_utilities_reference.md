@@ -114,17 +114,17 @@ Purpose:
 
 ## Layout-Mode Resolver Contract
 
-`resolveResponseOverlayLayoutMode({ showResponse, showAwaitingReply })`:
+`DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayLayoutMode({ showResponse, showAwaitingReply })`:
 
 - `showResponse=true` -> `response`
 - else if `showAwaitingReply=true` -> `awaiting-typing`
 - else -> `hidden`
 
-`isCompactHoverLayoutMode(mode)` is true only for `awaiting-typing`.
-`getHiddenResponseOverlayLayoutMode()`,
-`isVisibleResponseOverlayLayoutMode(mode)`,
-`isAwaitingResponseOverlayLayoutMode(mode)`, and
-`resolveResponseOverlayNativeMode(mode)` keep renderer feature code on
+`DesktopResponseOverlayLayoutRuntime.isCompactHoverLayoutMode(mode)` is true only for `awaiting-typing`.
+`DesktopResponseOverlayLayoutRuntime.getHiddenResponseOverlayLayoutMode()`,
+`DesktopResponseOverlayLayoutRuntime.isVisibleResponseOverlayLayoutMode(mode)`,
+`DesktopResponseOverlayLayoutRuntime.isAwaitingResponseOverlayLayoutMode(mode)`, and
+`DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayNativeMode(mode)` keep renderer feature code on
 behavior-level checks instead of importing raw layout-mode tables.
 
 This classification feeds `set-responsebox-size` payload shape in `ChatBoxResponse`:
@@ -139,7 +139,7 @@ Shared layout source of truth:
 
 Renderer adapter:
 
-- `desktopResponseOverlayLayoutRuntime.js` exposes:
+- `DesktopResponseOverlayLayoutRuntime` exposes:
   - `getResponseOverlayAwaitingFrameHeight()`
   - `getResponseOverlayFixedHeight()`
   - raw JSON-derived layout constants remain private to the adapter
@@ -155,7 +155,7 @@ Purpose:
 
 ## Frame Measurement Contract
 
-`getRoundedFrameSize(element)`:
+`DesktopResponseOverlayLayoutRuntime.getRoundedFrameSize(element)`:
 
 - returns `null` when no measurable element/bounds exist
 - uses max of `getBoundingClientRect`, `scroll*`, and `offset*` dimensions

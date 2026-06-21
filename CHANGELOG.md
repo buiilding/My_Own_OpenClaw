@@ -99,6 +99,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep chatbox visual-anchor, frame-height, drag-state, and
   movement-target helpers behind the chatbox layout runtime facade instead of
   standalone helper exports. No migration required.
+- frontend/renderer: keep response-overlay layout mode, frame-height, native
+  mode, visibility, and rounded-frame helpers behind the response overlay
+  layout runtime facade instead of standalone helper exports. No migration
+  required.
 - frontend/renderer: keep attachment preview file-type labeling behind the
   attachment presentation runtime facade instead of a standalone helper export.
   No migration required.

@@ -23105,3 +23105,21 @@ Each completed slice should report:
   native frame padding, drag threshold, movement target computation, close bump
   height, renderer markup, IPC payloads, storage, local-runtime execution,
   provider policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer response overlay layout facade helper privacy
+
+- Finding: response-overlay layout mode, visibility, native-mode, frame-height,
+  and rounded-frame helpers lived in the renderer app runtime, but overlay
+  feature code, trace runtime, view runtime, and focused tests still imported
+  those helpers as standalone exports.
+- Change: exposed response-overlay layout and frame rules through
+  `DesktopResponseOverlayLayoutRuntime` and kept the helper functions private
+  to `desktopResponseOverlayLayoutRuntime`.
+- Validation: focused response overlay layout, overlay frame-size, renderer
+  app-runtime boundary, and renderer chat boundary tests, targeted renderer
+  ESLint, exact source/doc scans, docs listing, and diff checks.
+- Compatibility: no migration required. Response-overlay hidden/response/
+  awaiting layout modes, compact-hover behavior, fixed frame heights,
+  native-mode projection, rounded frame measurement, renderer markup, IPC
+  payloads, storage, local-runtime execution, provider policy, backend
+  behavior, and trust boundaries are unchanged.

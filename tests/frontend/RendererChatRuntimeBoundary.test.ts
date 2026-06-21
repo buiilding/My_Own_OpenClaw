@@ -2186,6 +2186,8 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(overlaySource).toContain('desktopResponseOverlayLayoutRuntime');
     expect(syncSource).toContain('desktopResponseOverlayLayoutRuntime');
+    expect(overlaySource).toContain('DesktopResponseOverlayLayoutRuntime');
+    expect(syncSource).toContain('DesktopResponseOverlayLayoutRuntime');
     expect(syncSource).not.toContain('overlayFrameSize');
     expect(syncSource).not.toContain('responseOverlayLayoutMode');
     expect(syncSource).not.toContain('responseOverlayLayoutContract');
@@ -2225,6 +2227,16 @@ describe('renderer chat runtime boundary', () => {
     expect(layoutRuntimeSource).toContain('getResponseOverlayFixedHeight');
     expect(layoutRuntimeSource).toContain('getHiddenResponseOverlayLayoutMode');
     expect(layoutRuntimeSource).toContain('isVisibleResponseOverlayLayoutMode');
+    expect(layoutRuntimeSource).toContain('DesktopResponseOverlayLayoutRuntime');
+    expect(layoutRuntimeSource).not.toContain('export function resolveResponseOverlayLayoutMode');
+    expect(layoutRuntimeSource).not.toContain('export function isCompactHoverLayoutMode');
+    expect(layoutRuntimeSource).not.toContain('export function isVisibleResponseOverlayLayoutMode');
+    expect(layoutRuntimeSource).not.toContain('export function isAwaitingResponseOverlayLayoutMode');
+    expect(layoutRuntimeSource).not.toContain('export function getHiddenResponseOverlayLayoutMode');
+    expect(layoutRuntimeSource).not.toContain('export function getResponseOverlayAwaitingFrameHeight');
+    expect(layoutRuntimeSource).not.toContain('export function getResponseOverlayFixedHeight');
+    expect(layoutRuntimeSource).not.toContain('export function resolveResponseOverlayNativeMode');
+    expect(layoutRuntimeSource).not.toContain('export function getRoundedFrameSize');
     expect(layoutRuntimeSource).not.toContain('export const RESPONSE_OVERLAY_LAYOUT_MODE');
     expect(layoutRuntimeSource).not.toContain('export const RESPONSE_OVERLAY_LAYOUT');
     expect(overlaySource).not.toContain('RESPONSE_OVERLAY_LAYOUT');

@@ -2,18 +2,20 @@
  * Covers response overlay layout mode. behavior in the frontend test suite.
  */
 
-import {
-  getHiddenResponseOverlayLayoutMode,
-  getResponseOverlayAwaitingFrameHeight,
-  getResponseOverlayFixedHeight,
-  isAwaitingResponseOverlayLayoutMode,
-  isCompactHoverLayoutMode,
-  isVisibleResponseOverlayLayoutMode,
-  resolveResponseOverlayNativeMode,
-  resolveResponseOverlayLayoutMode,
-} from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime';
+import { DesktopResponseOverlayLayoutRuntime } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime';
 
 describe('desktopResponseOverlayLayoutRuntime layout mode', () => {
+  const {
+    getHiddenResponseOverlayLayoutMode,
+    getResponseOverlayAwaitingFrameHeight,
+    getResponseOverlayFixedHeight,
+    isAwaitingResponseOverlayLayoutMode,
+    isCompactHoverLayoutMode,
+    isVisibleResponseOverlayLayoutMode,
+    resolveResponseOverlayNativeMode,
+    resolveResponseOverlayLayoutMode,
+  } = DesktopResponseOverlayLayoutRuntime;
+
   test('resolves response mode when response content is visible', () => {
     expect(resolveResponseOverlayLayoutMode({
       showResponse: true,

@@ -17,14 +17,13 @@ import {
   logRendererResponseSurfaceRenderTrace,
   logRendererResponseSurfaceSnapshotTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
-import {
-  getResponseOverlayAwaitingFrameHeight,
-  getResponseOverlayFixedHeight,
-} from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
+import { DesktopResponseOverlayLayoutRuntime } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 
-const RESPONSE_FIXED_HEIGHT = getResponseOverlayFixedHeight();
-const TYPING_FRAME_HEIGHT = getResponseOverlayAwaitingFrameHeight();
+const RESPONSE_FIXED_HEIGHT = DesktopResponseOverlayLayoutRuntime.getResponseOverlayFixedHeight();
+const TYPING_FRAME_HEIGHT = (
+  DesktopResponseOverlayLayoutRuntime.getResponseOverlayAwaitingFrameHeight()
+);
 
 function MinimalResponseOverlay() {
   const {

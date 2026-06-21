@@ -69,7 +69,8 @@ assemble diagnostic `layout_mode`, `show_response`, `thinking_text_length`,
 Behavior:
 
 - hidden mode sends `{ visible:false, width:0, height:0 }`
-- visible mode reports rounded shell size from `getRoundedFrameSize(...)`
+- visible mode reports rounded shell size from
+  `DesktopResponseOverlayLayoutRuntime.getRoundedFrameSize(...)`
 - awaiting-typing mode overrides height to `24`
 - repeated identical frame/layout payloads are deduped
 

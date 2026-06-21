@@ -2,10 +2,7 @@
  * Resolves response overlay view intent for renderer app-runtime consumers.
  */
 
-import {
-  isVisibleResponseOverlayLayoutMode,
-  resolveResponseOverlayLayoutMode,
-} from './desktopResponseOverlayLayoutRuntime';
+import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
 import { isOverlayTurnLifecycleAwaiting } from './desktopOverlayTurnLifecycleRuntime';
 
 type CurrentTurnPresentationStateLike = {
@@ -47,7 +44,7 @@ export function resolveResponseOverlayViewContract({
     && !isStaleVisibleResponseDuringAwaiting
   );
   const showAwaitingReply = !showResponse && awaitingReply;
-  const overlayLayoutMode = resolveResponseOverlayLayoutMode({
+  const overlayLayoutMode = DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayLayoutMode({
     showResponse,
     showAwaitingReply,
   });
@@ -57,6 +54,8 @@ export function resolveResponseOverlayViewContract({
     showResponse,
     showAwaitingReply,
     overlayLayoutMode,
-    isVisible: isVisibleResponseOverlayLayoutMode(overlayLayoutMode),
+    isVisible: DesktopResponseOverlayLayoutRuntime.isVisibleResponseOverlayLayoutMode(
+      overlayLayoutMode,
+    ),
   };
 }

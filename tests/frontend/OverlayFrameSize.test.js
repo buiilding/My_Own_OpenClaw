@@ -2,9 +2,11 @@
  * Covers overlay frame size. behavior in the frontend test suite.
  */
 
-import { getRoundedFrameSize } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime';
+import { DesktopResponseOverlayLayoutRuntime } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime';
 
 describe('desktopResponseOverlayLayoutRuntime frame size', () => {
+  const { getRoundedFrameSize } = DesktopResponseOverlayLayoutRuntime;
+
   test('returns rounded frame size with minimum 1x1 bounds', () => {
     const size = getRoundedFrameSize({
       getBoundingClientRect: () => ({ width: 0.4, height: 0.49 }),
