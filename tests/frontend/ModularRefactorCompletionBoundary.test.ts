@@ -3130,6 +3130,7 @@ describe('modular sdk refactor completion boundary', () => {
         'compatibility path',
         'Main process backend bridge',
         'revived generic backend bridge',
+        `${retiredProductName('OS')} owns schema validation, local transport, Chrome/CDP launch policy, browser-local files, and result normalization`,
         'SDK local runtime + sidecar callback wiring',
         'Frontend Tool Execution Service',
         'Electron Frontend',
@@ -3929,6 +3930,10 @@ describe('modular sdk refactor completion boundary', () => {
     }
 
     expect(offenders).toEqual({});
+
+    const moduleFileIndexText = await read('docs/frontend/inventory/frontend_module_file_index_reference.md');
+    expect(moduleFileIndexText).toContain('Hosted backend owns model-facing browser policy and schema exposure.');
+    expect(moduleFileIndexText).toContain('The local-runtime Python browser adapter owns Chrome/CDP launch policy');
 
     const codeSurfaceIndexText = await read('docs/reference/code_change_surface_index.md');
     expect(codeSurfaceIndexText).toContain('SDK-owned local-runtime daemon lifecycle');

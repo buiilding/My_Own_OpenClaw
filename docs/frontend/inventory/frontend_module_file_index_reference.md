@@ -154,10 +154,13 @@ Tool runtime:
 - `frontend/src/main/python/tools/browser/{browser_tool,browser_use_engine,chrome_detection,chrome_launcher,content_extraction,file_store}.py`
 - `frontend/src/main/python/windie_shared/browser_contract*.py`
 
-Browser Use CLI ownership:
+Browser Use runtime ownership:
 
-- WindieOS owns schema validation, local transport, Chrome/CDP launch policy, browser-local files, and result normalization.
-- The official `browser-use[cli]` dependency owns browser/session mechanics.
+- Hosted backend owns model-facing browser policy and schema exposure.
+- SDK/main local-runtime dispatch owns the local transport handoff.
+- The local-runtime Python browser adapter owns Chrome/CDP launch policy,
+  browser-local files, and Browser Use result normalization.
+- Browser Use owns browser/session mechanics.
 
 ## Landing + Preload Index
 

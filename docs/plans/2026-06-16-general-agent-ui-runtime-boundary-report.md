@@ -11,12 +11,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `f6cc370f8` (`docs(browser): align browser ownership summaries`)
-- Latest completed slice: the browser control source-run guide and browser
-  troubleshooting summary now route connect/reuse, CDP port, Electron status,
-  and Browser Use result-normalization wording through the desktop connect
-  path, hosted backend policy, Electron UI, and local-runtime browser adapter
-  instead of product-owned connect/result-copy.
+- Latest inspected plan checkpoint: `8be3bc897` (`docs(browser): route runbook connect ownership`)
+- Latest completed slice: the frontend module file index now splits browser
+  ownership across hosted backend policy/schema exposure, SDK/main
+  local-runtime dispatch, local-runtime Python browser adapter mechanics, and
+  Browser Use session behavior instead of a broad product-owned browser runtime
+  sentence.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -98,6 +98,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   route connect/reuse, CDP port, Electron status, and Browser Use
   result-normalization wording through the desktop connect path, hosted backend
   policy, Electron UI, and local-runtime browser adapter.
+  The frontend module file index now splits browser ownership across hosted
+  backend policy/schema exposure, SDK/main local-runtime dispatch,
+  local-runtime Python browser adapter mechanics, and Browser Use session
+  behavior instead of broad product-owned browser runtime wording.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
@@ -480,6 +484,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Frontend Browser Inventory Ownership Wording
+
+- Finding: `docs/frontend/inventory/frontend_module_file_index_reference.md`
+  still said WindieOS owned browser schema validation, local transport,
+  Chrome/CDP launch policy, browser-local files, and result normalization,
+  which collapsed hosted backend policy, SDK/main dispatch, local-runtime
+  Python adapter, and Browser Use mechanics into a product-level owner.
+- Change: reworded the browser ownership section to name hosted backend
+  policy/schema exposure, SDK/main local-runtime dispatch, local-runtime Python
+  browser adapter launch/files/result normalization, and Browser Use
+  browser/session mechanics directly.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Migration/security: no migration required. Browser schemas, local transport
+  commands, Chrome/CDP launch behavior, browser file paths, result payloads,
+  storage, credentials, hosted backend URLs, and provider policy are unchanged.
 
 ### 2026-06-21 Browser Runbook Connect Wording
 

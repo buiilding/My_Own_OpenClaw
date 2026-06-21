@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Frontend Browser Inventory Ownership Wording
+
+- Finding: the frontend module file index still said WindieOS owned browser
+  schema validation, local transport, Chrome/CDP launch policy, browser-local
+  files, and result normalization, even though those responsibilities now split
+  across hosted backend policy, SDK/main local-runtime dispatch, the
+  local-runtime Python browser adapter, and Browser Use mechanics.
+- Change: reworded the browser ownership section to name the hosted backend,
+  SDK/main dispatch, local-runtime Python browser adapter, and Browser Use
+  owners directly, and extended frontend inventory boundary coverage for the
+  retired broad ownership sentence.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Browser schemas, local transport
+  commands, Chrome/CDP launch behavior, browser file paths, result payloads,
+  storage, credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Browser Runbook Connect Wording
 
 - Finding: the browser control source-run guide and troubleshooting summary

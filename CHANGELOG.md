@@ -53,6 +53,10 @@ All notable changes to WindieOS will be documented in this file.
 - docs/browser: route browser control source-run and troubleshooting wording
   through the desktop connect path and local-runtime Browser Use adapter
   instead of product-owned connect/result-copy. No migration required.
+- docs/frontend: split browser ownership in the frontend module file index
+  across hosted backend policy, SDK/main local-runtime dispatch, the
+  local-runtime Python browser adapter, and Browser Use mechanics instead of a
+  broad product-owned browser runtime sentence. No migration required.
 - frontend/main: regenerate the built-in local-runtime tool manifest from the
   sidecar source so the Electron artifact matches the current browser
   `output_schema` executable contract. No migration required.
