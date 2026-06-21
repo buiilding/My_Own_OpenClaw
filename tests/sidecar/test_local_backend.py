@@ -45,6 +45,7 @@ def test_local_backend_runtime_copy_uses_local_runtime_terms():
 
     retired_runtime_label = "Python " + "sidecar runtime"
     retired_daemon_phrase = "sidecar " + "daemon"
+    retired_product_backend_service = "Local backend service for " + ("Windie" "OS")
 
     assert "Python local runtime" in sources
     assert "local runtime daemon" in sources
@@ -52,7 +53,7 @@ def test_local_backend_runtime_copy_uses_local_runtime_terms():
     assert retired_runtime_label not in sources
     assert retired_daemon_phrase not in sources
     assert "sidecar " + "storage/search" not in sources
-    assert "Local backend service for WindieOS" not in sources
+    assert retired_product_backend_service not in sources
     assert "Main local backend service" not in sources
     assert "Initializing local backend" not in sources
     assert "Shutting down local backend" not in sources
@@ -674,7 +675,7 @@ async def test_handle_execute_tool_browser_packaged_runtime_uses_generic_install
     assert result["success"] is False
     assert "bundled app install" in result["error"]
     assert "Reinstall this app" in result["error"]
-    assert "WindieOS" not in result["error"]
+    assert "Windie" "OS" not in result["error"]
 
 
 @pytest.mark.asyncio

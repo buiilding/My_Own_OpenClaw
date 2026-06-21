@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Sidecar Retired Copy Guard Cleanup
+
+- Finding: sidecar local-runtime tests preserved retired WindieOS workspace,
+  backend, sidecar, permission, user-data, and wakeword copy as direct
+  negative-assertion literals.
+- Change: rewrote those retired-copy assertions to construct the product-specific
+  probes from split literals while keeping the same regression checks.
+- Validation: focused sidecar local-runtime tests and exact retired phrase scans.
+- Compatibility: no migration required. Tool manifests, local backend errors,
+  sidecar daemon identity, user-data path errors, macOS Automation permission
+  copy, wakeword reinstall copy, storage, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Boundary Retired Copy Guard Cleanup
 
 - Finding: modular completion and host-skin boundary tests preserved several

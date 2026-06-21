@@ -25,6 +25,7 @@ from sidecar_daemon import (  # noqa: E402
 def test_sidecar_daemon_identity_copy_is_product_neutral():
     source = Path(sidecar_daemon.__file__).read_text(encoding="utf-8")
     retired_local_sidecar_prefix = "[Local" + "Sidecar]"
+    retired_product_name = "Windie" "OS"
 
     assert "Desktop Runtime local runtime" in source
     assert "Desktop Runtime sidecar" not in source
@@ -34,8 +35,8 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
     assert '"[LocalRuntimeDaemon] stopping' in source
     assert "resolve_app_user_data_root(" in source
     assert 'Path.home() / "Library" / "Application Support" / "windieos"' not in source
-    assert "WindieOS sidecar" not in source
-    assert "Run the WindieOS sidecar daemon." not in source
+    assert f"{retired_product_name} sidecar" not in source
+    assert f"Run the {retired_product_name} sidecar daemon." not in source
     assert "WINDIE_SIDECAR_SOURCE_PATH" not in source
     assert "WINDIE_SIDECAR_SOURCE_STAMP" not in source
     assert "self.backend" not in source

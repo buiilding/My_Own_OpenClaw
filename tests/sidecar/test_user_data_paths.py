@@ -61,7 +61,7 @@ def test_app_user_data_root_unsupported_os_uses_generic_error(monkeypatch):
         raise AssertionError("expected unsupported OS to raise")
 
     assert "local-runtime user-data path" in message
-    assert "WindieOS" not in message
+    assert "Windie" "OS" not in message
 
 
 def test_user_data_path_source_uses_local_runtime_terms():

@@ -95,15 +95,17 @@ def test_registry_tool_manifest_contains_builtin_schemas():
 def test_build_local_runtime_tool_manifest_uses_generic_workspace_description():
     manifest = build_local_runtime_tool_manifest({"run_shell_command"})
     [shell_tool] = manifest["tools"]
+    retired_workspace_copy = "Windie" "OS workspace"
+    retired_directory_copy = "Windie" "OS uses"
 
     assert "selected workspace folder" in shell_tool["description"]
-    assert "WindieOS workspace" not in shell_tool["description"]
+    assert retired_workspace_copy not in shell_tool["description"]
     for schema_key in ("schema", "executable_schema"):
         directory_description = shell_tool[schema_key]["properties"]["directory"][
             "description"
         ]
         assert "selected workspace folder" in directory_description
-        assert "WindieOS uses" not in directory_description
+        assert retired_directory_copy not in directory_description
 
 
 def test_build_local_runtime_tool_manifest_omits_unknown_schema_names():

@@ -262,7 +262,7 @@ def test_ensure_models_available_missing_packaged_model_uses_generic_reinstall_c
 
     assert statuses[-1]["status"] == "error"
     assert "Reinstall this app" in statuses[-1]["message"]
-    assert "WindieOS" not in statuses[-1]["message"]
+    assert "Windie" "OS" not in statuses[-1]["message"]
 
 
 def test_resolve_model_path_from_directory_prefers_known_filename(tmp_path):

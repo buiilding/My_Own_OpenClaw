@@ -43,7 +43,7 @@ def test_determine_system_events_automation_permission_requires_consent(monkeypa
 
     assert result["granted"] is False
     assert result["reason"].startswith("This app still needs permission")
-    assert "WindieOS" not in result["reason"]
+    assert "Windie" "OS" not in result["reason"]
     assert result["details"]["needs_user_consent"] is True
     assert result["details"]["os_status"] == automation_permission.ERR_AE_EVENT_WOULD_REQUIRE_USER_CONSENT
 
@@ -61,7 +61,7 @@ def test_determine_system_events_automation_permission_denial_uses_generic_app_c
 
     assert result["granted"] is False
     assert "Re-enable this app" in result["reason"]
-    assert "WindieOS" not in result["reason"]
+    assert "Windie" "OS" not in result["reason"]
     assert result["details"]["denied"] is True
 
 

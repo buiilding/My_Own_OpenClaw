@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sidecar: build retired local-runtime product-copy guards from split
+  literals so sidecar tests do not carry direct WindieOS workspace, backend,
+  sidecar, permission, user-data, or wakeword phrases. No migration required.
 - tests/frontend: build retired modular and host-skin boundary copy guards from
   split literals so completion tests do not carry direct WindieOS workspace,
   SDK, CLI, agent, or local-runtime phrases. No migration required.
