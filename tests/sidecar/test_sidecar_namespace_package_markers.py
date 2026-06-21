@@ -1,4 +1,4 @@
-"""Covers sidecar namespace packages that intentionally have no marker file."""
+"""Covers local-runtime Python namespace packages with no marker file."""
 
 import ast
 from pathlib import Path
@@ -31,17 +31,17 @@ CONCRETE_MODULES = [
 ]
 
 
-def test_marker_only_sidecar_package_files_are_removed():
+def test_marker_only_local_runtime_package_files_are_removed():
     for marker in REMOVED_MARKERS:
         assert not (ROOT / marker).exists()
 
 
-def test_sidecar_namespace_packages_still_import_concrete_modules():
+def test_local_runtime_namespace_packages_still_import_concrete_modules():
     for module_name in CONCRETE_MODULES:
         assert importlib.import_module(module_name).__name__ == module_name
 
 
-def test_sidecar_modules_do_not_publish_wildcard_export_lists():
+def test_local_runtime_modules_do_not_publish_wildcard_export_lists():
     allowed_export_surfaces = {
         FRONTEND_PYTHON_ROOT / "windie/__init__.py",
     }

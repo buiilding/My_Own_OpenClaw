@@ -9197,3 +9197,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   backend-import boundary checks are unchanged, so browser schema generation,
   validation behavior, IPC, storage, provider policy, permissions, and backend
   behavior are unchanged; no migration is required.
+- Namespace-package marker tests for `frontend/src/main/python` now use
+  local-runtime Python package labels instead of sidecar package/module labels.
+  Marker-removal, concrete-module importability, and wildcard-export guards are
+  unchanged, so package paths, public exports, local-runtime behavior, IPC,
+  storage, provider policy, permissions, and backend behavior are unchanged; no
+  migration is required.

@@ -21836,3 +21836,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Tests changed only; browser schema
   generation, local-runtime browser validation, backend import boundaries, IPC,
   storage, provider policy, permissions, and backend behavior are unchanged.
+
+### 2026-06-21 namespace package local-runtime test labels
+
+- Finding: namespace-package marker tests for `frontend/src/main/python` still
+  described the guarded package surface as sidecar namespace packages/modules
+  even though the guarded implementation is the local-runtime Python package
+  surface.
+- Change: renamed the module docstring and test functions to local-runtime
+  Python/package labels while keeping the same marker-removal, importability,
+  and wildcard-export assertions.
+- Validation: focused namespace-package marker test, exact retired-label scan
+  for the touched module, docs listing, and diff checks.
+- Compatibility: no migration required. Tests changed only; package marker
+  files, import paths, public exports, local-runtime behavior, IPC, storage,
+  provider policy, permissions, and backend behavior are unchanged.

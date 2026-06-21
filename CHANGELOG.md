@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/local-runtime: rename namespace-package marker test labels from
+  sidecar package wording to local-runtime Python package wording while keeping
+  the same marker and wildcard-export guards. No migration required.
 - tests/browser: rename local-runtime browser schema test functions away from
   sidecar route labels while preserving shared-contract coverage. No migration
   required.
