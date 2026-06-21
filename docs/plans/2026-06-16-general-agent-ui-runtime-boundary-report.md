@@ -8326,3 +8326,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   sensitive URL/title scrubbing, local-runtime browser adapter behavior,
   provider policy, permissions, storage, and backend behavior are unchanged; no
   migration is required.
+- Python SDK package sidecar tests now use Python SDK package wording in their
+  generated headers instead of product-branded `windie` SDK/package behavior
+  labels. The public `windie` import package and `windie-sdk` distribution name
+  remain unchanged and covered by package-boundary tests. Explicit backend URL
+  handling, install auth behavior, local-runtime startup, provider policy,
+  permissions, and backend behavior are unchanged; no migration is required.

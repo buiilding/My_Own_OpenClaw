@@ -41,6 +41,10 @@ All notable changes to WindieOS will be documented in this file.
 - tests/sdk: align the Agent SDK browser trace fixture with the local-runtime
   `dedicated_browser` result scope and add a modular boundary guard against the
   retired `windie_dedicated_browser` sample. No migration required.
+- tests/sdk: rename Python SDK package test headers from product-branded
+  `windie` SDK wording to Python SDK package wording, with modular boundary
+  coverage preserving the current public package/import name. No migration
+  required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

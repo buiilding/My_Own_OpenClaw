@@ -1020,6 +1020,8 @@ describe('modular sdk refactor completion boundary', () => {
   test('Python SDK package boundary tests keep endpoint fixtures product-neutral', async () => {
     const source = await read('tests/sidecar/test_windie_package_boundary.py');
 
+    expect(source).not.toContain('Covers windie package boundary behavior');
+    expect(source).toContain('Covers Python SDK package boundary behavior');
     expect(source).not.toContain('https://api.windieos.com');
     expect(source).toContain('https://backend.example.com');
   });
@@ -1027,6 +1029,8 @@ describe('modular sdk refactor completion boundary', () => {
   test('Python SDK client tests keep explicit endpoint fixtures product-neutral', async () => {
     const source = await read('tests/sidecar/test_windie_sdk_client.py');
 
+    expect(source).not.toContain('Covers windie sdk client behavior');
+    expect(source).toContain('Covers Python SDK package client behavior');
     expect(source).not.toContain('https://api.windieos.com');
     expect(source).not.toContain('wss://api.windieos.com/ws');
     expect(source).toContain('https://backend.example.com');

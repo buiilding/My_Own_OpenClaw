@@ -1,4 +1,4 @@
-"""Covers windie package boundary behavior in the sidecar test suite."""
+"""Covers Python SDK package boundary behavior in the sidecar test suite."""
 
 import tomllib
 from pathlib import Path

@@ -20184,3 +20184,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Browser tool result tracing, sensitive
   URL/title scrubbing, local-runtime browser adapter behavior, provider policy,
   permissions, storage, and backend behavior are unchanged.
+
+### 2026-06-21 Python SDK package test header neutrality
+
+- Finding: Python SDK package tests already import `AgentSdkClient` and guard
+  removal of the old `WindieSdkClient` aliases, but their generated headers
+  still described the coverage as "windie sdk" / "windie package" behavior.
+- Change: reworded those headers to Python SDK package client/boundary wording
+  and extended modular boundary coverage while preserving the public `windie`
+  package/import name.
+- Validation: focused Python SDK sidecar tests, modular boundary test, exact
+  stale-header scan, docs listing, and diff checks.
+- Compatibility: no migration required. The `windie-sdk` distribution name,
+  `windie` import package, explicit backend URL contract, install auth
+  behavior, local-runtime startup, provider policy, permissions, and backend
+  behavior are unchanged.
