@@ -8,20 +8,26 @@ const {
 const {
   configureDebugEnvRuntime,
 } = require('../../frontend/src/main/app/debug_env.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const sampleDebugConfig = Object.freeze({
+  env: Object.freeze({
+    chatPill: 'SAMPLE_DEBUG_CHAT_PILL',
+    devUi: 'SAMPLE_DEV_UI',
+    liveSurface: 'SAMPLE_DEBUG_LIVE_SURFACE',
+    streamEvents: 'SAMPLE_DEBUG_STREAM_EVENTS',
+  }),
+});
 
 describe('live_surface_trace_runtime', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    configureDebugEnvRuntime(mainHostSkin.debug);
-    delete process.env.WINDIE_DEBUG_LIVE_SURFACE;
-    delete process.env.WINDIE_DEV_UI;
-    delete process.env.WINDIE_DEBUG_CHAT_PILL;
-    delete process.env.WINDIE_DEBUG_STREAM_EVENTS;
+    configureDebugEnvRuntime(sampleDebugConfig);
+    delete process.env.SAMPLE_DEBUG_LIVE_SURFACE;
+    delete process.env.SAMPLE_DEV_UI;
+    delete process.env.SAMPLE_DEBUG_CHAT_PILL;
+    delete process.env.SAMPLE_DEBUG_STREAM_EVENTS;
   });
 
   afterEach(() => {
@@ -30,7 +36,7 @@ describe('live_surface_trace_runtime', () => {
   });
 
   test('does not enable trace from dev UI mode alone', () => {
-    process.env.WINDIE_DEV_UI = '1';
+    process.env.SAMPLE_DEV_UI = '1';
     const log = jest.fn();
 
     logLiveSurfaceTrace('typing.show', {}, { log });
@@ -39,7 +45,7 @@ describe('live_surface_trace_runtime', () => {
   });
 
   test('enables trace through the explicit live surface flag', () => {
-    process.env.WINDIE_DEBUG_LIVE_SURFACE = '1';
+    process.env.SAMPLE_DEBUG_LIVE_SURFACE = '1';
     const log = jest.fn();
 
     logLiveSurfaceTrace('typing.show', {}, { log });
@@ -85,7 +91,7 @@ describe('live_surface_trace_runtime', () => {
   });
 
   test('logs normalized event payload when enabled', () => {
-    process.env.WINDIE_DEBUG_LIVE_SURFACE = '1';
+    process.env.SAMPLE_DEBUG_LIVE_SURFACE = '1';
     const log = jest.fn();
 
     logLiveSurfaceTrace('typing.show', {
@@ -105,7 +111,7 @@ describe('live_surface_trace_runtime', () => {
   });
 
   test('normalizes renderer trace payload without raw content', () => {
-    process.env.WINDIE_DEBUG_LIVE_SURFACE = '1';
+    process.env.SAMPLE_DEBUG_LIVE_SURFACE = '1';
     const log = jest.fn();
 
     expect(handleRendererLiveSurfaceTrace({
@@ -150,7 +156,7 @@ describe('live_surface_trace_runtime', () => {
   });
 
   test('forwards renderer trace to the live surface logger', () => {
-    process.env.WINDIE_DEBUG_LIVE_SURFACE = '1';
+    process.env.SAMPLE_DEBUG_LIVE_SURFACE = '1';
     const log = jest.fn();
 
     expect(handleRendererLiveSurfaceTrace({

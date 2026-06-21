@@ -39,6 +39,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   headers while real WindieOS VM env and runs auth names remain host-skin owned.
   Generic GPU runtime tests use sample env maps while the real WindieOS
   software-rendering env name remains host-skin owned.
+  Generic IPC helper/live-surface trace tests use sample debug env maps while
+  real WindieOS debug env names remain host-skin owned.
   Generic runtime-path and wakeword bridge tests use sample host config and
   neutral packaged resource roots while real WindieOS env/model/path values
   remain host-skin owned. Local-runtime bridge RPC tests use neutral injected
@@ -7951,6 +7953,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   software-rendering env side effects, host-skin configuration, permissions,
   storage, provider policy, and backend behavior are unchanged; no migration is
   required.
+- Generic IPC helper, live-surface trace, overlay responsebox, and SDK
+  live-turn surface tests now use neutral sample debug env maps instead of
+  importing WindieOS host-skin debug config or product debug env literals. Real
+  WindieOS debug env ownership remains covered by the debug env and host-skin
+  boundary tests. Debug env-key normalization, scripted provider flag behavior,
+  live-surface trace logging, overlay snapshot logging, SDK typing transition
+  logging, host-skin configuration, permissions, storage, provider policy, and
+  backend behavior are unchanged; no migration is required.
 - Generic runtime-path and wakeword bridge tests now use neutral injected host
   config fixtures instead of importing WindieOS host-skin values. Real WindieOS
   env, wakeword model, packaged-entrypoint, and runtime-path ownership remains

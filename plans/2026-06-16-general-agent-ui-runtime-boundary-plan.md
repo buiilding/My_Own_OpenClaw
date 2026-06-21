@@ -19334,6 +19334,23 @@ Each completed slice should report:
   configuration, permissions, storage, provider policy, and backend behavior
   are unchanged.
 
+### 2026-06-21 Debug trace env fixture neutrality
+
+- Finding: IPC helper, live-surface trace, overlay responsebox, and SDK
+  live-turn surface tests still imported the WindieOS host skin or product debug
+  env keys as arbitrary configured-host fixtures, while Windie compatibility is
+  already covered in dedicated debug env tests and host-skin boundary tests.
+- Change: replaced those imports and env literals with test-local sample debug
+  env maps and added a modular boundary guard for the generic debug trace/helper
+  fixture suites.
+- Validation: focused IPC runtime helper, live-surface trace, overlay
+  responsebox, SDK live-turn surface, host-skin boundary, and modular boundary
+  tests; exact retired debug fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Debug env-key normalization, scripted
+  provider flag behavior, live-surface trace logging, overlay snapshot logging,
+  SDK typing transition logging, host-skin configuration, permissions, storage,
+  provider policy, and backend behavior are unchanged.
+
 ### 2026-06-21 Runtime path and wakeword host config fixture neutrality
 
 - Finding: generic runtime-path and wakeword bridge tests imported the

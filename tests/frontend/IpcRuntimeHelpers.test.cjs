@@ -11,9 +11,12 @@ const {
 const {
   configureDebugEnvRuntime,
 } = require('../../frontend/src/main/app/debug_env.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const sampleDebugConfig = Object.freeze({
+  env: Object.freeze({
+    scriptedProvider: 'SAMPLE_ENABLE_SCRIPTED_PROVIDER',
+  }),
+});
 
 describe('ipc_runtime_helpers scripted provider augmentation', () => {
   afterEach(() => {
@@ -23,9 +26,9 @@ describe('ipc_runtime_helpers scripted provider augmentation', () => {
   test('detects the scripted provider dev flag exactly', () => {
     expect(isScriptedProviderDevModelEnabled({ AGENT_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(true);
     expect(isScriptedProviderDevModelEnabled({ AGENT_ENABLE_SCRIPTED_PROVIDER: 'true' })).toBe(false);
-    expect(isScriptedProviderDevModelEnabled({ WINDIE_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(false);
-    configureDebugEnvRuntime(mainHostSkin.debug);
-    expect(isScriptedProviderDevModelEnabled({ WINDIE_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(true);
+    expect(isScriptedProviderDevModelEnabled({ SAMPLE_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(false);
+    configureDebugEnvRuntime(sampleDebugConfig);
+    expect(isScriptedProviderDevModelEnabled({ SAMPLE_ENABLE_SCRIPTED_PROVIDER: '1' })).toBe(true);
     expect(isScriptedProviderDevModelEnabled({})).toBe(false);
   });
 

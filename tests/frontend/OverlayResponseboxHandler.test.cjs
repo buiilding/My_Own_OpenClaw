@@ -6,9 +6,12 @@ const {
 const {
   configureDebugEnvRuntime,
 } = require('../../frontend/src/main/app/debug_env.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const sampleDebugConfig = Object.freeze({
+  env: Object.freeze({
+    liveSurface: 'SAMPLE_DEBUG_LIVE_SURFACE',
+  }),
+});
 
 describe('overlay_responsebox_handler', () => {
   function createDeps(overrides = {}) {
@@ -105,8 +108,8 @@ describe('overlay_responsebox_handler', () => {
 
   test('logs native overlay window snapshots around renderer hide requests', async () => {
     const originalEnv = process.env;
-    process.env = { ...originalEnv, WINDIE_DEBUG_LIVE_SURFACE: '1' };
-    configureDebugEnvRuntime(mainHostSkin.debug);
+    process.env = { ...originalEnv, SAMPLE_DEBUG_LIVE_SURFACE: '1' };
+    configureDebugEnvRuntime(sampleDebugConfig);
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     const deps = createDeps();
 

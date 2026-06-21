@@ -12,9 +12,12 @@ const {
 const {
   configureDebugEnvRuntime,
 } = require('../../frontend/src/main/app/debug_env.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const sampleDebugConfig = Object.freeze({
+  env: Object.freeze({
+    liveSurface: 'SAMPLE_DEBUG_LIVE_SURFACE',
+  }),
+});
 
 function createWindow({ visible = false } = {}) {
   let isVisible = visible;
@@ -369,8 +372,8 @@ describe('sdk_live_turn_surface_controller', () => {
 
   test('logs SDK typing transition once for show and once for hide on a turn', () => {
     const originalEnv = process.env;
-    process.env = { ...originalEnv, WINDIE_DEBUG_LIVE_SURFACE: '1' };
-    configureDebugEnvRuntime(mainHostSkin.debug);
+    process.env = { ...originalEnv, SAMPLE_DEBUG_LIVE_SURFACE: '1' };
+    configureDebugEnvRuntime(sampleDebugConfig);
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     const surfaceState = createSdkLiveTurnSurfaceState();
     const awaitingTurn = {

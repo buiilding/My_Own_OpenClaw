@@ -758,6 +758,22 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('SAMPLE_FORCE_SOFTWARE_RENDERING');
   });
 
+  test('debug trace helper tests keep injected env fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/IpcRuntimeHelpers.test.cjs'),
+      read('tests/frontend/LiveSurfaceTraceRuntime.test.cjs'),
+      read('tests/frontend/OverlayResponseboxHandler.test.cjs'),
+      read('tests/frontend/SdkLiveTurnSurfaceController.test.cjs'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain('WINDIE_DEBUG_');
+    expect(source).not.toContain('WINDIE_DEV_UI');
+    expect(source).not.toContain('WINDIE_ENABLE_SCRIPTED_PROVIDER');
+    expect(source).toContain('SAMPLE_DEBUG_LIVE_SURFACE');
+    expect(source).toContain('SAMPLE_ENABLE_SCRIPTED_PROVIDER');
+  });
+
   test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/voice/WakewordDetectionHook.test.ts'),
