@@ -7813,3 +7813,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   sidecar `open_app` screenshot payload propagation, provider policy,
   permissions, storage, and backend behavior are unchanged; no migration is
   required.
+- Conversation replay database integration tests now use a neutral
+  `agent-replay-db-*` temporary SQLite fixture root instead of a Windie-flavored
+  arbitrary temp directory. SDK conversation events, local-runtime store RPC
+  behavior, replay/rehydrate projections, edit/resend and retry preparation,
+  provider policy, permissions, storage schema, and backend behavior are
+  unchanged; no migration is required.

@@ -474,6 +474,14 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('agent-diagnostics-');
   });
 
+  test('conversation replay database integration keeps temp fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/ConversationReplayDatabaseIntegration.test.tsx');
+    const retiredReplayDbRoot = ['windie', 'replay-db-'].join('-');
+
+    expect(source).not.toContain(retiredReplayDbRoot);
+    expect(source).toContain('agent-replay-db-');
+  });
+
   test('MCP runtime tests keep configured client info fixtures product-neutral', async () => {
     const source = await read('tests/frontend/McpRuntime.test.cjs');
 

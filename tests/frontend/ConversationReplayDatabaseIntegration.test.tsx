@@ -330,7 +330,7 @@ function runPythonSqliteBridge<T>(
 }
 
 class SqliteConversationHistory {
-  readonly dir = mkdtempSync(join(tmpdir(), 'windie-replay-db-'));
+  readonly dir = mkdtempSync(join(tmpdir(), 'agent-replay-db-'));
   readonly dbPath = join(this.dir, 'history.db');
   rewriteFailure: string | null = null;
 

@@ -19032,3 +19032,17 @@ Each completed slice should report:
   artifact materialization, unowned-path rejection, sidecar `open_app`
   screenshot payload propagation, provider policy, permissions, storage, and
   backend behavior are unchanged.
+
+### 2026-06-21 Replay database temp fixture neutrality
+
+- Finding: conversation replay database integration coverage still used a
+  Windie-flavored arbitrary temp root for the SQLite fixture that backs the
+  SDK/local-runtime replay RPC shim.
+- Change: switched the disposable replay DB root to `agent-replay-db-*` and
+  added a modular boundary guard for the integration fixture.
+- Validation: focused conversation replay database and modular boundary tests;
+  exact retired replay DB temp-root scan, docs listing, and diff checks.
+- Compatibility: no migration required. SDK conversation events,
+  local-runtime store RPC behavior, replay/rehydrate projections, edit/resend
+  and retry preparation, provider policy, permissions, storage schema, and
+  backend behavior are unchanged.
