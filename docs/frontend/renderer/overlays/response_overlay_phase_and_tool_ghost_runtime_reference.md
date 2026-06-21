@@ -144,6 +144,10 @@ Contract ownership:
   awaiting anchors, and visible response entries; its output is adapted by
   `DesktopVisibleTurnLifecycleRuntime` before the overlay decides typing or
   response visibility.
+- `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)` owns
+  hidden SDK startup and terminal handoff rules used by live-surface
+  projection; `DesktopLiveTurnSurfaceRuntime` maps that decision into overlay
+  phase and guard fields.
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   owns the dismissal target projection from SDK overlay intent, current-turn
   refs, latest response entry id, and stale guard ref.
