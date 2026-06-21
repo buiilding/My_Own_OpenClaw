@@ -465,6 +465,7 @@ High-value `[LiveSurfaceTrace]` events:
 
 - `sdk.current_turn.received`
 - `renderer.current_turn.applied`
+- `renderer.display_rows.projected`
 - `typing.show` / `typing.hide`
 - `typing.rendered.show` / `typing.rendered.hide`
 - `response_overlay.intent.show_awaiting`
@@ -506,6 +507,13 @@ Phase invariants to check:
 - Transient `idle` must not clear the awaiting latch while the backend turn is still active.
 - `streaming`, `complete`, `error`, or visible response content clears the awaiting shell.
 - Linux can hide overlay surfaces during screenshot capture; Windows and macOS should not add capture-time hide/show for minimal chat pill or response overlay.
+- When a chat pill screenshot reaches the model but is missing from the
+  dashboard row, compare `renderer.display_rows.projected` rows from
+  `sdk-display-rows-stream` and `dashboard-open-conversation`: `sdkUserImageCount`
+  proves the SDK display rows carried image metadata,
+  `sdkProjectedUserImageCount` proves renderer display projection converted it,
+  and `mergedUserImageCount` proves the visible renderer store retained it after
+  replacing any optimistic text-only user row.
 
 ## Tool Screenshot Trace
 

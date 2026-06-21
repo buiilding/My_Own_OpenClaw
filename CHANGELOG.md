@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- frontend/renderer: add a sanitized `renderer.display_rows.projected`
+  live-surface trace and regression coverage for replacing optimistic
+  text-only user rows with SDK display rows carrying screenshot metadata. No
+  migration required.
 - cli/tests: add `<windie> test user-facing` as the product-level regression
   pack umbrella, keeping `core-loop` as one focused subset and registering the
   scripted-provider tool-loop invariant alongside it. No migration required.

@@ -31,10 +31,12 @@ const {
 } = DesktopCurrentTurnProjectionEffectsRuntime;
 const {
   buildChatMessagesFromSdkDisplayRows,
+  buildDisplayProjectionTraceSummary,
   mergeRendererAnnotationsIntoSdkMessages,
 } = DesktopConversationDisplayProjection;
 const {
   logRendererCurrentTurnAppliedTrace,
+  logRendererDisplayRowsProjectionTrace,
 } = DesktopRendererTraceRuntime;
 
 export function useConversationRuntimeProjectionStream(): void {
@@ -121,8 +123,19 @@ export function useConversationRuntimeProjectionStream(): void {
       }
       const sdkMessages = buildChatMessagesFromSdkDisplayRows(rows);
       const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+      const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(sdkMessages, workspace.messages);
+      logRendererDisplayRowsProjectionTrace({
+        source: 'sdk-display-rows-stream',
+        conversationRef,
+        ...buildDisplayProjectionTraceSummary({
+          rows,
+          sdkMessages,
+          currentMessages: workspace.messages,
+          mergedMessages,
+        }),
+      });
       setMessages(
-        mergeRendererAnnotationsIntoSdkMessages(sdkMessages, workspace.messages),
+        mergedMessages,
         conversationRef,
       );
     });

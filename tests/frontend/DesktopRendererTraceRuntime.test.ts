@@ -18,6 +18,7 @@ const {
   buildRendererChatPillLifecycleTracePayload,
   buildRendererChatPillResetTracePayload,
   buildRendererCurrentTurnAppliedTracePayload,
+  buildRendererDisplayRowsProjectionTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
   buildRendererOverlayViewModelTracePayload,
@@ -32,6 +33,7 @@ const {
   logRendererChatPillLifecycleTrace,
   logRendererChatPillResetTrace,
   logRendererCurrentTurnAppliedTrace,
+  logRendererDisplayRowsProjectionTrace,
   logRendererOverlayViewModelTrace,
   logRendererOverlayViewModelResolvedTrace,
   logRendererChatPillTrace,
@@ -108,6 +110,48 @@ describe('desktopRendererTraceRuntime', () => {
       event: 'typing.show',
       activeConversationRef: 'conv-1',
       workspaceMessageCount: 2,
+    }));
+  });
+
+  test('builds and emits display-row projection image-count traces', () => {
+    setSearch('?debug_live_surface=1&view=main');
+
+    expect(buildRendererDisplayRowsProjectionTracePayload({
+      source: 'sdk-display-rows-stream',
+      conversationRef: 'conv-1',
+      rowCount: 2,
+      sdkUserRowCount: 1,
+      sdkUserRowsWithImages: 1,
+      sdkUserImageCount: 1,
+      sdkMessageCount: 2,
+      sdkProjectedUserImageCount: 1,
+      currentMessageCount: 1,
+      currentOptimisticUserCount: 1,
+      mergedMessageCount: 2,
+      mergedUserImageCount: 1,
+    })).toEqual(expect.objectContaining({
+      source: 'sdk-display-rows-stream',
+      conversationRef: 'conv-1',
+      sdkUserImageCount: 1,
+      currentOptimisticUserCount: 1,
+      mergedUserImageCount: 1,
+    }));
+
+    logRendererDisplayRowsProjectionTrace({
+      source: 'sdk-display-rows-stream',
+      conversationRef: 'conv-1',
+      rowCount: 2,
+      sdkUserRowCount: 1,
+      sdkUserImageCount: 1,
+      mergedUserImageCount: 1,
+    });
+
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'renderer.display_rows.projected',
+      source: 'sdk-display-rows-stream',
+      conversationRef: 'conv-1',
+      sdkUserImageCount: 1,
+      mergedUserImageCount: 1,
     }));
   });
 
