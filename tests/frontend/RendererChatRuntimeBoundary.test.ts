@@ -2089,8 +2089,15 @@ describe('renderer chat runtime boundary', () => {
     expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceSizeTracePayload');
     expect(traceRuntimeSource).toContain('logRendererResponseSurfaceSizeTrace');
     expect(layoutRuntimeSource).toContain('getRoundedFrameSize');
-    expect(layoutRuntimeSource).toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
-    expect(layoutRuntimeSource).toContain('RESPONSE_OVERLAY_LAYOUT');
+    expect(layoutRuntimeSource).toContain('getResponseOverlayAwaitingFrameHeight');
+    expect(layoutRuntimeSource).toContain('getResponseOverlayFixedHeight');
+    expect(layoutRuntimeSource).toContain('getHiddenResponseOverlayLayoutMode');
+    expect(layoutRuntimeSource).toContain('isVisibleResponseOverlayLayoutMode');
+    expect(layoutRuntimeSource).not.toContain('export const RESPONSE_OVERLAY_LAYOUT_MODE');
+    expect(layoutRuntimeSource).not.toContain('export const RESPONSE_OVERLAY_LAYOUT');
+    expect(overlaySource).not.toContain('RESPONSE_OVERLAY_LAYOUT');
+    expect(syncSource).not.toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
+    expect(syncSource).not.toContain('RESPONSE_OVERLAY_LAYOUT');
     expect(overlaySource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue');
     expect(overlaySource).not.toContain('setResponseboxHitTestActive({');
     expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxSize');

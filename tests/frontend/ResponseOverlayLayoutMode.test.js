@@ -3,8 +3,13 @@
  */
 
 import {
+  getHiddenResponseOverlayLayoutMode,
+  getResponseOverlayAwaitingFrameHeight,
+  getResponseOverlayFixedHeight,
+  isAwaitingResponseOverlayLayoutMode,
   isCompactHoverLayoutMode,
-  RESPONSE_OVERLAY_LAYOUT_MODE,
+  isVisibleResponseOverlayLayoutMode,
+  resolveResponseOverlayNativeMode,
   resolveResponseOverlayLayoutMode,
 } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime';
 
@@ -13,26 +18,42 @@ describe('desktopResponseOverlayLayoutRuntime layout mode', () => {
     expect(resolveResponseOverlayLayoutMode({
       showResponse: true,
       showAwaitingReply: true,
-    })).toBe(RESPONSE_OVERLAY_LAYOUT_MODE.RESPONSE);
+    })).toBe('response');
   });
 
   test('resolves hidden mode when no overlay content is visible', () => {
     expect(resolveResponseOverlayLayoutMode({
       showResponse: false,
       showAwaitingReply: false,
-    })).toBe(RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN);
+    })).toBe('hidden');
   });
 
   test('resolves awaiting-typing mode when awaiting', () => {
     expect(resolveResponseOverlayLayoutMode({
       showResponse: false,
       showAwaitingReply: true,
-    })).toBe(RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING);
+    })).toBe('awaiting-typing');
   });
 
   test('compact hover applies only to awaiting modes', () => {
-    expect(isCompactHoverLayoutMode(RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN)).toBe(false);
-    expect(isCompactHoverLayoutMode(RESPONSE_OVERLAY_LAYOUT_MODE.RESPONSE)).toBe(false);
-    expect(isCompactHoverLayoutMode(RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING)).toBe(true);
+    expect(isCompactHoverLayoutMode('hidden')).toBe(false);
+    expect(isCompactHoverLayoutMode('response')).toBe(false);
+    expect(isCompactHoverLayoutMode('awaiting-typing')).toBe(true);
+  });
+
+  test('exposes semantic helpers for hidden, visible, and awaiting modes', () => {
+    expect(getHiddenResponseOverlayLayoutMode()).toBe('hidden');
+    expect(isVisibleResponseOverlayLayoutMode('hidden')).toBe(false);
+    expect(isVisibleResponseOverlayLayoutMode('response')).toBe(true);
+    expect(isVisibleResponseOverlayLayoutMode('awaiting-typing')).toBe(true);
+    expect(isAwaitingResponseOverlayLayoutMode('response')).toBe(false);
+    expect(isAwaitingResponseOverlayLayoutMode('awaiting-typing')).toBe(true);
+    expect(resolveResponseOverlayNativeMode('awaiting-typing')).toBe('awaiting');
+    expect(resolveResponseOverlayNativeMode('response')).toBe('response');
+  });
+
+  test('exposes fixed frame heights through helpers', () => {
+    expect(getResponseOverlayAwaitingFrameHeight()).toBe(24);
+    expect(getResponseOverlayFixedHeight()).toBe(236);
   });
 });

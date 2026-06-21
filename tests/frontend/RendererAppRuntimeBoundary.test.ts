@@ -479,6 +479,8 @@ describe('renderer app runtime boundary', () => {
 
     expect(responseViewRuntimeSource).toContain('resolveResponseOverlayViewContract');
     expect(responseViewRuntimeSource).toContain('desktopResponseOverlayLayoutRuntime');
+    expect(responseViewRuntimeSource).toContain('isVisibleResponseOverlayLayoutMode');
+    expect(responseViewRuntimeSource).not.toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
     expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('features/chat');
     expect(chatPillFlowSource).toContain('desktopResponseOverlayViewRuntime');

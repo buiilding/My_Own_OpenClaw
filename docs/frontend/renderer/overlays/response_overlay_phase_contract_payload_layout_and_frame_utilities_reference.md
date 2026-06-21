@@ -105,6 +105,11 @@ Purpose:
 - else -> `hidden`
 
 `isCompactHoverLayoutMode(mode)` is true only for `awaiting-typing`.
+`getHiddenResponseOverlayLayoutMode()`,
+`isVisibleResponseOverlayLayoutMode(mode)`,
+`isAwaitingResponseOverlayLayoutMode(mode)`, and
+`resolveResponseOverlayNativeMode(mode)` keep renderer feature code on
+behavior-level checks instead of importing raw layout-mode tables.
 
 This classification feeds `set-responsebox-size` payload shape in `ChatBoxResponse`:
 
@@ -119,8 +124,9 @@ Shared layout source of truth:
 Renderer adapter:
 
 - `desktopResponseOverlayLayoutRuntime.js` exposes:
-  - `RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT`
-  - `RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT`
+  - `getResponseOverlayAwaitingFrameHeight()`
+  - `getResponseOverlayFixedHeight()`
+  - raw JSON-derived layout constants remain private to the adapter
 
 Current fixed values:
 

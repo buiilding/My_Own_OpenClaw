@@ -5,17 +5,19 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 import {
+  getHiddenResponseOverlayLayoutMode,
   getRoundedFrameSize,
+  getResponseOverlayAwaitingFrameHeight,
   isCompactHoverLayoutMode,
-  RESPONSE_OVERLAY_LAYOUT,
-  RESPONSE_OVERLAY_LAYOUT_MODE,
+  isAwaitingResponseOverlayLayoutMode,
+  resolveResponseOverlayNativeMode,
 } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import {
   logRendererLiveSurfaceTrace,
   logRendererResponseSurfaceSizeTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
 
-const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
+const TYPING_FRAME_HEIGHT = getResponseOverlayAwaitingFrameHeight();
 
 function createHiddenFrameState() {
   return {
@@ -24,7 +26,7 @@ function createHiddenFrameState() {
     visible: false,
     fullScreenGhost: false,
     compactHover: false,
-    layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+    layoutMode: getHiddenResponseOverlayLayoutMode(),
   };
 }
 
@@ -59,7 +61,7 @@ export function useResponseOverlayWindowSync({
 
   const reportOverlaySize = useCallback(async ({
     visible,
-    layoutMode = RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+    layoutMode = getHiddenResponseOverlayLayoutMode(),
   }) => {
     const turnRef = overlayIntent?.turnRef ?? lastOverlayGuardRef.current.turnRef ?? null;
     const staleGuardRef = (
@@ -78,7 +80,7 @@ export function useResponseOverlayWindowSync({
         logRendererResponseSurfaceSizeTrace({
           action: 'hide-requested',
           visible: false,
-          layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+          layoutMode: getHiddenResponseOverlayLayoutMode(),
           width: 0,
           height: 0,
         });
@@ -86,7 +88,7 @@ export function useResponseOverlayWindowSync({
           source: 'renderer-response-window-sync',
           reason: 'hide-requested',
           visible: false,
-          layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+          layoutMode: getHiddenResponseOverlayLayoutMode(),
           turnRef,
           guardRef: staleGuardRef,
           width: 0,
@@ -112,7 +114,7 @@ export function useResponseOverlayWindowSync({
 
     const compactHover = isCompactHoverLayoutMode(layoutMode);
     let { width, height } = nextFrame;
-    if (layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING) {
+    if (isAwaitingResponseOverlayLayoutMode(layoutMode)) {
       height = TYPING_FRAME_HEIGHT;
     }
 
@@ -155,9 +157,7 @@ export function useResponseOverlayWindowSync({
         reason: 'show-or-resize-requested',
         visible: true,
         layoutMode,
-        overlayMode: layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING
-          ? 'awaiting'
-          : 'response',
+        overlayMode: resolveResponseOverlayNativeMode(layoutMode),
         showResponse,
         thinkingTextLength: typeof thinkingText === 'string' ? thinkingText.length : 0,
         compactHover: Boolean(compactHover),
@@ -224,7 +224,7 @@ export function useResponseOverlayWindowSync({
     if (!isVisible) {
       void reportOverlaySize({
         visible: false,
-        layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+        layoutMode: getHiddenResponseOverlayLayoutMode(),
       });
       return undefined;
     }
@@ -297,7 +297,7 @@ export function useResponseOverlayWindowSync({
       }
       void report({
         visible: false,
-        layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+        layoutMode: getHiddenResponseOverlayLayoutMode(),
       });
     };
   }, []);

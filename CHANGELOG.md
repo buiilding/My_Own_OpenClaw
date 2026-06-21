@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlay: keep response-overlay layout constants and mode tables
+  private to the app-runtime layout adapter, exposing semantic height and mode
+  helpers for minimal-pill callers. No migration required.
 - renderer/tool-ghost: keep the debug ghost click-sync delay private to the
   app-runtime timing helper instead of exporting the raw duration constant. No
   migration required.

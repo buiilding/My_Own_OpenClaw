@@ -8531,3 +8531,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   motion-duration value, tool ghost rendering, IPC payloads, storage, provider
   policy, permissions, and backend behavior are unchanged; no migration is
   required.
+- The renderer response-overlay layout runtime now keeps JSON-derived fixed
+  heights and layout-mode tables private to
+  `desktopResponseOverlayLayoutRuntime.js`; minimal-pill overlay callers and
+  the response-overlay view contract use semantic height, hidden/visible,
+  awaiting, compact-hover, and native-mode helpers. Boundary coverage prevents
+  raw `RESPONSE_OVERLAY_LAYOUT*` exports/imports from returning. Layout-mode
+  strings, fixed response/awaiting heights, compact-hover behavior,
+  responsebox sizing IPC, overlay visibility, storage, provider policy,
+  permissions, and backend behavior are unchanged; no migration is required.

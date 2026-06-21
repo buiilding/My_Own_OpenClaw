@@ -4,12 +4,12 @@
 
 import layoutContract from '../../../shared/response_overlay_layout_contract.json';
 
-export const RESPONSE_OVERLAY_LAYOUT = Object.freeze({
+const RESPONSE_OVERLAY_LAYOUT = Object.freeze({
   AWAITING_FRAME_HEIGHT: Number(layoutContract?.awaiting_frame_height) || 24,
   RESPONSE_FIXED_HEIGHT: Number(layoutContract?.response_fixed_height) || 236,
 });
 
-export const RESPONSE_OVERLAY_LAYOUT_MODE = Object.freeze({
+const RESPONSE_OVERLAY_LAYOUT_MODE = Object.freeze({
   HIDDEN: 'hidden',
   RESPONSE: 'response',
   AWAITING_TYPING: 'awaiting-typing',
@@ -30,6 +30,30 @@ export function resolveResponseOverlayLayoutMode({
 
 export function isCompactHoverLayoutMode(layoutMode) {
   return layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING;
+}
+
+export function isVisibleResponseOverlayLayoutMode(layoutMode) {
+  return layoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
+}
+
+export function isAwaitingResponseOverlayLayoutMode(layoutMode) {
+  return layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING;
+}
+
+export function getHiddenResponseOverlayLayoutMode() {
+  return RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
+}
+
+export function getResponseOverlayAwaitingFrameHeight() {
+  return RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
+}
+
+export function getResponseOverlayFixedHeight() {
+  return RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT;
+}
+
+export function resolveResponseOverlayNativeMode(layoutMode) {
+  return isAwaitingResponseOverlayLayoutMode(layoutMode) ? 'awaiting' : 'response';
 }
 
 export function getRoundedFrameSize(element) {

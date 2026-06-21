@@ -20634,3 +20634,20 @@ Each completed slice should report:
   loop-hide timing, CSS motion-duration value, tool ghost rendering, IPC
   payloads, storage, provider policy, permissions, and backend behavior are
   unchanged.
+
+### 2026-06-21 renderer response-overlay layout helper privacy
+
+- Finding: `desktopResponseOverlayLayoutRuntime.js` owned response-overlay
+  layout modes and JSON-derived fixed heights, but exported the raw layout and
+  mode objects directly to minimal-pill feature code and the view contract.
+- Change: made the raw layout constants and mode table private to the
+  app-runtime adapter, exposed semantic height/mode helpers, and updated the
+  minimal response overlay, window-sync hook, and view runtime to use the
+  helper surface.
+- Validation: focused response-overlay layout, renderer app-runtime boundary,
+  and renderer chat-runtime boundary tests, exact raw-export/import scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Layout-mode string values, fixed
+  response/awaiting heights, compact-hover behavior, responsebox sizing IPC,
+  overlay visibility, storage, provider policy, permissions, and backend
+  behavior are unchanged.

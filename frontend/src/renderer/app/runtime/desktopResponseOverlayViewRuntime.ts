@@ -3,7 +3,7 @@
  */
 
 import {
-  RESPONSE_OVERLAY_LAYOUT_MODE,
+  isVisibleResponseOverlayLayoutMode,
   resolveResponseOverlayLayoutMode,
 } from './desktopResponseOverlayLayoutRuntime';
 import { OVERLAY_TURN_LIFECYCLE } from './desktopOverlayTurnLifecycleRuntime';
@@ -60,6 +60,6 @@ export function resolveResponseOverlayViewContract({
     showResponse,
     showAwaitingReply,
     overlayLayoutMode,
-    isVisible: overlayLayoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+    isVisible: isVisibleResponseOverlayLayoutMode(overlayLayoutMode),
   };
 }
