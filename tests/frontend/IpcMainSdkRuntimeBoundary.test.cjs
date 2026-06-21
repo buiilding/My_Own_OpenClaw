@@ -593,6 +593,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain("rendererData.type === 'query-accepted'");
     expect(source).not.toContain("rendererData.type === 'streaming-complete'");
     expect(agentBackendEventRuntimeSource).toContain('function createAgentBackendEventRuntime');
+    expect(agentBackendEventRuntimeSource).not.toContain('  handleAgentBackendEventRuntime,');
     expect(agentBackendEventRuntimeSource).toContain("event.type === 'query-accepted'");
     expect(agentBackendEventRuntimeSource).toContain("event.type === 'streaming-complete'");
     expect(source).toContain('createActiveQueryContextState()');

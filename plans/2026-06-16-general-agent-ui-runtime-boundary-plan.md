@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Agent Backend Event Runtime Handler Privacy
+
+- Finding: `ipc_agent_backend_event_runtime.cjs` exposed
+  `createAgentBackendEventRuntime(...)` for `ipc.cjs` composition, but still
+  publicly exported the lower-level `handleAgentBackendEventRuntime(...)`
+  helper even though production already routes backend-event relay bookkeeping
+  through the runtime facade.
+- Change: kept the lower-level backend-event relay handler private to
+  `ipc_agent_backend_event_runtime.cjs`, updated focused and broad boundary
+  tests to exercise event relay behavior through
+  `createAgentBackendEventRuntime(...)`, and documented the runtime helper as
+  the public composition boundary.
+- Validation: focused backend-event runtime and main SDK boundary tests plus
+  targeted main IPC lint, docs listing, stale export-line scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. Backend-event acceptance
+  marking, turn-scoped replay append/clear behavior, backend traffic labels,
+  observer fan-out, `processBackendMessageData(...)` forwarding, IPC payloads,
+  credentials, provider policy, permissions, storage, backend behavior, and
+  local-runtime execution are unchanged.
+
 ### 2026-06-21 Main Agent SDK Invoke Runtime Handler Privacy
 
 - Finding: `ipc_agent_sdk_command_handlers.cjs` exposed

@@ -323,6 +323,8 @@ Owns Agent SDK backend event relay bookkeeping:
   settings ACK, and logging dependencies once
 - marks the active query context accepted when `query-accepted` matches the
   active turn
+- keeps the lower-level backend-event relay handler private to the runtime
+  helper
 - appends inbound events to turn-scoped replay before processing
 - forwards backend traffic labels and backend-message observer notifications
 - delegates payload handling into `processBackendMessageData(...)` with injected

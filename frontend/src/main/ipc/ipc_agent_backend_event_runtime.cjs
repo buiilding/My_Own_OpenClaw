@@ -71,6 +71,5 @@ function createAgentBackendEventRuntime(deps = {}) {
 module.exports = {
   createAgentBackendEventRuntime,
   eventMatchesActiveTurn,
-  handleAgentBackendEventRuntime,
   isTerminalBackendEvent,
 };

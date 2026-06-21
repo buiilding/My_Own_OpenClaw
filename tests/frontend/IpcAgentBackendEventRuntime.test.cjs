@@ -6,7 +6,6 @@ const path = require('path');
 const {
   createAgentBackendEventRuntime,
   eventMatchesActiveTurn,
-  handleAgentBackendEventRuntime,
   isTerminalBackendEvent,
 } = require('../../frontend/src/main/ipc/ipc_agent_backend_event_runtime.cjs');
 
@@ -33,6 +32,11 @@ function createDeps(overrides = {}) {
 }
 
 describe('ipc_agent_backend_event_runtime', () => {
+  function handleBackendEvent(event, deps) {
+    const runtime = createAgentBackendEventRuntime(deps);
+    return runtime.handle(event);
+  }
+
   test('matches active turns and terminal events explicitly', () => {
     expect(eventMatchesActiveTurn(
       { turn_ref: 'turn-1' },
@@ -54,7 +58,7 @@ describe('ipc_agent_backend_event_runtime', () => {
       turn_ref: 'turn-1',
     };
 
-    handleAgentBackendEventRuntime(event, deps);
+    handleBackendEvent(event, deps);
 
     expect(deps.getActiveQueryContextValue()).toEqual({
       queryMessageId: 'turn-1',
@@ -72,7 +76,7 @@ describe('ipc_agent_backend_event_runtime', () => {
   test('clears active query context and replay after matching terminal events', () => {
     const deps = createDeps();
 
-    handleAgentBackendEventRuntime({
+    handleBackendEvent({
       type: 'streaming-complete',
       turn_ref: 'turn-1',
     }, deps);
@@ -85,7 +89,7 @@ describe('ipc_agent_backend_event_runtime', () => {
   test('does not clear active context for stale terminal events', () => {
     const deps = createDeps();
 
-    handleAgentBackendEventRuntime({
+    handleBackendEvent({
       type: 'streaming-complete',
       turn_ref: 'turn-2',
     }, deps);
@@ -101,7 +105,7 @@ describe('ipc_agent_backend_event_runtime', () => {
   test('preserves historical unknown traffic labels for invalid events', () => {
     const deps = createDeps();
 
-    handleAgentBackendEventRuntime(null, deps);
+    handleBackendEvent(null, deps);
 
     expect(deps.appendForActiveTurn).toHaveBeenCalledWith(null);
     expect(deps.noteBackendTraffic).toHaveBeenCalledWith('message:unknown');
@@ -148,6 +152,8 @@ describe('ipc_agent_backend_event_runtime', () => {
     expect(mainSource).not.toContain("rendererData.type === 'query-accepted'");
     expect(mainSource).not.toContain("rendererData.type === 'streaming-complete'");
     expect(helperSource).toContain('function createAgentBackendEventRuntime');
+    const backendEventRuntimeModule = require('../../frontend/src/main/ipc/ipc_agent_backend_event_runtime.cjs');
+    expect(backendEventRuntimeModule.handleAgentBackendEventRuntime).toBeUndefined();
     expect(helperSource).toContain("event.type === 'query-accepted'");
     expect(helperSource).toContain("event.type === 'streaming-complete'");
   });
