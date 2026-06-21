@@ -23,7 +23,6 @@ const {
 const { mainHostSkin } = require('./app/main_host_skin.cjs');
 const {
   createPermissionStateStore,
-  resolveStatePath: resolvePermissionStatePath,
 } = require('./permissions/permission_state_store.cjs');
 const {
   getBackendConnectionState,
@@ -166,9 +165,10 @@ const VM_WORKER_MODE_ENABLED = isVmWorkerModeEnabled(
 );
 const RESPONSE_WINDOW_DEBUG_VIEW = 'tool-ghost-debug';
 const getUserDataPath = () => app.getPath('userData');
-const getPermissionStatePath = () => resolvePermissionStatePath({
+const createMainPermissionStateStore = () => createPermissionStateStore({
   userDataPath: getUserDataPath(),
 });
+const getPermissionStatePath = () => createMainPermissionStateStore().resolveStatePath();
 const agentStopShortcutRuntime = initializeAgentStopShortcutRuntime({
   globalShortcut,
   platform: process.platform,
@@ -375,9 +375,7 @@ initializeMainProcessLifecycleRuntime({
       dialog,
       platform: process.platform,
       userDataPath: getUserDataPath(),
-      permissionStateStore: createPermissionStateStore({
-        userDataPath: getUserDataPath(),
-      }),
+      permissionStateStore: createMainPermissionStateStore(),
       onWorkspaceAccessUpdated: ({ status }) => {
         broadcastWorkspaceAccessUpdated(status);
       },

@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep permission state-path resolution private to
+  `permission_state_store.cjs` while index/bootstrap consume
+  `createPermissionStateStore(...).resolveStatePath()`. No migration required.
 - frontend/main: keep app/tray icon path and native-image helpers private to
   `main_window_icon_runtime.cjs` while window/tray creation consume
   `createMainWindowIconRuntime(...)`. No migration required.

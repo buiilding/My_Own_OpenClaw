@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Permission State Store Path Facade
+
+- Finding: `permission_state_store.cjs` owned permission-state path selection
+  and persisted grant reads/writes, but exported `resolveStatePath(...)`
+  directly to `frontend/src/main/index.cjs` so bootstrap could compute the
+  local-runtime permission-state path outside the store facade.
+- Change: moved state-path lookup onto the `createPermissionStateStore(...)`
+  facade as `store.resolveStatePath()`, routed the main composition root
+  through a store instance, and kept the lower-level resolver private to the
+  permission state owner.
+- Validation: focused permission-state, permission IPC/service, main-process
+  bootstrap, and main host-skin tests, targeted main-process lint, docs
+  listing, stale export/import scans, and diff checks before commit.
+- Compatibility/security: no permission-state filename, user-data path
+  precedence, local-runtime environment value, persisted grant shape, IPC
+  channel, credential, permission semantics, storage migration, or
+  trust-boundary migration required; state-path resolution and serialized
+  writes are unchanged.
+
 ### 2026-06-21 Main Window Icon Runtime Facade
 
 - Finding: `main_window_icon_runtime.cjs` owned app/tray icon path resolution

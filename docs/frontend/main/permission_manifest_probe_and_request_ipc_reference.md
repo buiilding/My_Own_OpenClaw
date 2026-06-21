@@ -132,6 +132,9 @@ Request API is best-effort and returns normalized probe/status payloads.
 Writes are serialized per resolved state path and use unique temporary files so
 concurrent independent permission updates do not lose each other during
 read-modify-write persistence.
+The public `createPermissionStateStore(...)` facade owns state-path resolution
+through `store.resolveStatePath()`; callers should not import lower-level path
+helpers from the module.
 
 Current persisted item:
 

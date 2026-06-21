@@ -109,6 +109,10 @@ function enqueueStateUpdate(deps, operation) {
 
 function createPermissionStateStore(deps = {}) {
   return {
+    resolveStatePath() {
+      return resolveStatePath(deps);
+    },
+
     async get(permissionId) {
       if (typeof permissionId !== 'string' || !permissionId.trim()) {
         return null;
@@ -155,5 +159,4 @@ function createPermissionStateStore(deps = {}) {
 
 module.exports = {
   createPermissionStateStore,
-  resolveStatePath,
 };
