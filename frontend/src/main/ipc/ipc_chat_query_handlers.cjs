@@ -194,5 +194,4 @@ function createChatQueryHandlerRuntime({
 
 module.exports = {
   createChatQueryHandlerRuntime,
-  createChatQueryHandlers,
 };

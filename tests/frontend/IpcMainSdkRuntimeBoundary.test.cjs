@@ -22,6 +22,7 @@ describe('main ipc sdk runtime boundary', () => {
     'createAgentSdkRuntime',
     'Commands',
   ].join('')}(`;
+  const retiredChatQueryHandlersExport = `${['createChatQuery', 'Handlers'].join('')},`;
 
   test('main helper modules import SDK contracts from owner modules', async () => {
     const ipcSource = await fs.readFile(
@@ -287,6 +288,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('createChatQueryHandlers({');
     expect(chatQueryHandlersSource).toContain('function createChatQueryHandlerRuntime');
     expect(chatQueryHandlersSource).toContain('return createChatQueryHandlers({');
+    expect(chatQueryHandlersSource).not.toContain(retiredChatQueryHandlersExport);
     expect(source).toContain('createArtifactHandlersRuntime({');
     expect(source).not.toContain('artifactHandlersRuntime.register({ ipcMain })');
     expect(initializationRuntimeSource).toContain('artifactHandlersRuntime.register({ ipcMain })');

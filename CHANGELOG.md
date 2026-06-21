@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level chat query handler factory private to
+  `ipc_chat_query_handlers.cjs` and exercise renderer query/stop behavior
+  through `createChatQueryHandlerRuntime(...)`, preserving the `ipc.cjs`
+  composition boundary. No migration required.
 - frontend/main: keep the lower-level automated-query dispatcher private to
   `ipc_automated_query_dispatcher.cjs` and exercise VM automated-query behavior
   through `createAutomatedQueryRuntime(...)`, preserving the `ipc.cjs`

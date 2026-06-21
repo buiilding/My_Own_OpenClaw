@@ -3,9 +3,10 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const chatQueryHandlersModule = require('../../frontend/src/main/ipc/ipc_chat_query_handlers.cjs');
 const {
   createChatQueryHandlerRuntime,
-} = require('../../frontend/src/main/ipc/ipc_chat_query_handlers.cjs');
+} = chatQueryHandlersModule;
 
 function createRuntimeHarness() {
   const state = {
@@ -98,6 +99,8 @@ function createRuntimeHarness() {
 }
 
 describe('ipc_chat_query_handlers runtime', () => {
+  const retiredHandlersExport = `${['createChatQuery', 'Handlers'].join('')},`;
+
   test('runtime composes base query dependencies with per-initialize window hooks', async () => {
     const harness = createRuntimeHarness();
     const { handleRendererChatQuery } = harness.runtime.createHandlers({
@@ -157,5 +160,7 @@ describe('ipc_chat_query_handlers runtime', () => {
     expect(mainSource).not.toContain('createChatQueryHandlers({');
     expect(helperSource).toContain('function createChatQueryHandlerRuntime');
     expect(helperSource).toContain('return createChatQueryHandlers({');
+    expect(chatQueryHandlersModule.createChatQueryHandlers).toBeUndefined();
+    expect(helperSource).not.toContain(retiredHandlersExport);
   });
 });

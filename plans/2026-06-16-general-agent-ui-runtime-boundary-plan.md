@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Chat Query Runtime Handler Privacy
+
+- Finding: `ipc_chat_query_handlers.cjs` exposed
+  `createChatQueryHandlerRuntime(...)` for `ipc.cjs` composition, but still
+  publicly exported the lower-level `createChatQueryHandlers(...)` helper even
+  though production already routes renderer query/stop handling through the
+  runtime facade.
+- Change: kept the lower-level chat query handler factory private to
+  `ipc_chat_query_handlers.cjs`, added focused and broad boundary guards for
+  the retired export, and documented the runtime helper as the public
+  composition boundary.
+- Validation: focused chat query handler, initialization, and main SDK boundary
+  tests plus targeted main IPC lint, docs listing, stale handler-export scans,
+  and diff checks before commit.
+- Compatibility/security: no migration required. Renderer query validation,
+  install-auth ensure, hosted-backend connection ensure, settings sync waiting,
+  query payload building, agent-definition attachment, SDK runtime query/stop
+  dispatch, active query context, first-query state, response overlay phase
+  updates, IPC channels, credentials, provider policy, permissions, storage,
+  and local-runtime execution are unchanged.
+
 ### 2026-06-21 Main Automated Query Runtime Dispatcher Privacy
 
 - Finding: `ipc_agent_sdk_runtime_commands.cjs` and neighboring IPC helpers
