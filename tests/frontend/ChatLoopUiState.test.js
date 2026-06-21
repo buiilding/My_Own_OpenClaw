@@ -2,18 +2,20 @@
  * Covers chat loop ui state. behavior in the frontend test suite.
  */
 
-import {
-  createChatLoopRecoveryTimeoutEvent,
-  createChatLoopSnapshotEvent,
-  createChatLoopTransportStatusEvent,
-  createInitialChatLoopTransportMachineState,
-  isChatLoopAwaitingReply,
-  isChatLoopBusy,
-  reduceChatLoopTransportMachineState,
-  resolveChatLoopUiState,
-} from '../../frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime';
+import { DesktopChatLoopUiRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime';
 
 describe('desktopChatLoopUiRuntime', () => {
+  const {
+    createChatLoopRecoveryTimeoutEvent,
+    createChatLoopSnapshotEvent,
+    createChatLoopTransportStatusEvent,
+    createInitialChatLoopTransportMachineState,
+    isChatLoopAwaitingReply,
+    isChatLoopBusy,
+    reduceChatLoopTransportMachineState,
+    resolveChatLoopUiState,
+  } = DesktopChatLoopUiRuntime;
+
   test('treats preflight lifecycle as awaiting reply', () => {
     const loopUiState = resolveChatLoopUiState({
       lifecycle: 'preflight',

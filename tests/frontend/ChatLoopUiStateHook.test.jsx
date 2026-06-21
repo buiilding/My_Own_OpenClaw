@@ -5,11 +5,14 @@
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { useChatLoopTransportState } from '../../frontend/src/renderer/features/chat/hooks/useChatLoopUiState';
-import { resolveChatLoopUiState } from '../../frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime';
+import { DesktopChatLoopUiRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime';
 import { DesktopOverlayTurnLifecycleRuntime } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 const mockListeners = new Map();
 const mockInvoke = jest.fn();
+const {
+  resolveChatLoopUiState,
+} = DesktopChatLoopUiRuntime;
 const {
   resolveOverlayTurnLifecycle,
 } = DesktopOverlayTurnLifecycleRuntime;

@@ -23158,3 +23158,21 @@ Each completed slice should report:
   awaiting/active/terminal mapping, SDK presentation lifecycle projection,
   renderer markup, IPC payloads, storage, local-runtime execution, provider
   policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer chat loop UI facade helper privacy
+
+- Finding: chat-loop UI state resolution, busy/awaiting predicates, transport
+  recovery reducer, and event factories lived in the renderer app runtime, but
+  chat hooks, current-turn presentation, and focused tests still imported those
+  helpers as standalone exports.
+- Change: exposed chat-loop projection and transport recovery behavior through
+  `DesktopChatLoopUiRuntime` and kept the helper functions private to
+  `desktopChatLoopUiRuntime`.
+- Validation: focused chat-loop state, chat-loop hook, current-turn
+  presentation, renderer app-runtime boundary, and renderer chat-runtime
+  boundary tests, targeted renderer ESLint, exact source/doc scans, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Chat-loop UI state strings, transport
+  disconnect recovery, watchdog timing, current-turn presentation projection,
+  renderer markup, IPC payloads, storage, local-runtime execution, provider
+  policy, backend behavior, and trust boundaries are unchanged.

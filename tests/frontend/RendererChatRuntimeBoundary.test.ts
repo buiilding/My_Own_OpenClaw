@@ -1783,10 +1783,14 @@ describe('renderer chat runtime boundary', () => {
     expect(loopStateSource).not.toContain('function reduceChatLoopMachineState');
     expect(loopStateSource).toContain('reduceChatLoopTransportMachineState');
     expect(loopStateSource).toContain('createChatLoopTransportStatusEvent');
+    expect(loopStateSource).toContain('DesktopChatLoopUiRuntime');
     expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.onObservedIpcTransportConnection');
     expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.loadObservedMainTransportConnection');
     expect(loopRuntimeSource).toContain('CHAT_LOOP_TRANSPORT_MACHINE_EVENT');
+    expect(loopRuntimeSource).toContain('export const DesktopChatLoopUiRuntime = Object.freeze');
     expect(loopRuntimeSource).toContain('reduceChatLoopTransportMachineState');
+    expect(loopRuntimeSource).not.toContain('export function reduceChatLoopTransportMachineState');
+    expect(loopRuntimeSource).not.toContain('export function resolveChatLoopUiState');
     expect(loopRuntimeSource).not.toContain('features/chat');
     expect(clientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
     expect(clientSource).toContain('ON_CHANNELS.IPC_STATUS');

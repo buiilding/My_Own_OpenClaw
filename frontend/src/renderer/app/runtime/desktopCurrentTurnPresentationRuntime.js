@@ -2,13 +2,15 @@
  * Provides the chat turn presentation state module for the renderer UI.
  */
 
-import {
+import { DesktopChatLoopUiRuntime } from './desktopChatLoopUiRuntime';
+import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
+import { resolveSdkOverlayIntent } from './desktopLiveTurnSurfaceRuntime';
+
+const {
   isChatLoopAwaitingReply,
   isChatLoopBusy,
   resolveChatLoopUiState,
-} from './desktopChatLoopUiRuntime';
-import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
-import { resolveSdkOverlayIntent } from './desktopLiveTurnSurfaceRuntime';
+} = DesktopChatLoopUiRuntime;
 
 const {
   getActiveOverlayTurnLifecycle,

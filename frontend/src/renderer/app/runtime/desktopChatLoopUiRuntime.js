@@ -24,7 +24,7 @@ const CHAT_LOOP_TRANSPORT_MACHINE_EVENT = Object.freeze({
   RECOVERY_TIMEOUT: 'recovery-timeout',
 });
 
-export function createInitialChatLoopTransportMachineState() {
+function createInitialChatLoopTransportMachineState() {
   return {
     transportConnected: true,
     forceIdle: false,
@@ -35,7 +35,7 @@ export function createInitialChatLoopTransportMachineState() {
   };
 }
 
-export function createChatLoopSnapshotEvent({
+function createChatLoopSnapshotEvent({
   snapshotSignature,
   isBusy = false,
 }) {
@@ -46,20 +46,20 @@ export function createChatLoopSnapshotEvent({
   };
 }
 
-export function createChatLoopTransportStatusEvent({ connected = false } = {}) {
+function createChatLoopTransportStatusEvent({ connected = false } = {}) {
   return {
     type: CHAT_LOOP_TRANSPORT_MACHINE_EVENT.IPC_STATUS,
     connected: connected === true,
   };
 }
 
-export function createChatLoopRecoveryTimeoutEvent() {
+function createChatLoopRecoveryTimeoutEvent() {
   return {
     type: CHAT_LOOP_TRANSPORT_MACHINE_EVENT.RECOVERY_TIMEOUT,
   };
 }
 
-export function reduceChatLoopTransportMachineState(state, event) {
+function reduceChatLoopTransportMachineState(state, event) {
   if (!event || typeof event !== 'object') {
     return state;
   }
@@ -138,7 +138,7 @@ export function reduceChatLoopTransportMachineState(state, event) {
   };
 }
 
-export function resolveChatLoopUiState({
+function resolveChatLoopUiState({
   lifecycle,
   phase,
   hasVisibleReply = false,
@@ -163,10 +163,21 @@ export function resolveChatLoopUiState({
   return CHAT_LOOP_UI_STATE.IDLE;
 }
 
-export function isChatLoopBusy(loopUiState) {
+function isChatLoopBusy(loopUiState) {
   return loopUiState !== CHAT_LOOP_UI_STATE.IDLE;
 }
 
-export function isChatLoopAwaitingReply(loopUiState) {
+function isChatLoopAwaitingReply(loopUiState) {
   return loopUiState === CHAT_LOOP_UI_STATE.AWAITING_REPLY;
 }
+
+export const DesktopChatLoopUiRuntime = Object.freeze({
+  createInitialChatLoopTransportMachineState,
+  createChatLoopSnapshotEvent,
+  createChatLoopTransportStatusEvent,
+  createChatLoopRecoveryTimeoutEvent,
+  reduceChatLoopTransportMachineState,
+  resolveChatLoopUiState,
+  isChatLoopBusy,
+  isChatLoopAwaitingReply,
+});

@@ -75,7 +75,7 @@ Public states:
 - `awaiting-reply`
 - `active-response`
 
-`resolveChatLoopUiState(...)` input fields:
+`DesktopChatLoopUiRuntime.resolveChatLoopUiState(...)` input fields:
 
 - `lifecycle` (`idle | preflight | awaiting | active | terminal`)
 - `phase` (response-overlay phase vocabulary; retained only for tool-phase surface intent)
@@ -92,8 +92,8 @@ Resolution precedence:
 
 Helper predicates:
 
-- `isChatLoopBusy(loopUiState)` (`idle` => false, others => true)
-- `isChatLoopAwaitingReply(loopUiState)` (`awaiting-reply` only)
+- `DesktopChatLoopUiRuntime.isChatLoopBusy(loopUiState)` (`idle` => false, others => true)
+- `DesktopChatLoopUiRuntime.isChatLoopAwaitingReply(loopUiState)` (`awaiting-reply` only)
 
 ## Reducer Runtime (`desktopChatLoopUiRuntime.js`)
 
@@ -158,9 +158,11 @@ Default watchdog timeout is `3500ms` and is configurable through `recoveryWatchd
 The renderer client-session runtime client normalizes raw `ipc-status` and
 startup snapshot payloads into observed boolean connection updates for this hook.
 The client filters snapshots/events without a boolean connection field; the hook
-owns only subscriptions, snapshot event creation, and the recovery watchdog
-timer. Disconnect/reconnect state transitions live in
-`desktopChatLoopUiRuntime.reduceChatLoopTransportMachineState(...)`.
+owns only subscriptions, `DesktopChatLoopUiRuntime` snapshot event creation,
+and the recovery watchdog timer. Disconnect/reconnect state transitions live in
+`DesktopChatLoopUiRuntime.reduceChatLoopTransportMachineState(...)`; the raw
+state constants, reducer events, and helper functions stay private behind that
+renderer app-runtime facade.
 
 It does not mutate stream tracking or backend query state; it is UI projection only.
 

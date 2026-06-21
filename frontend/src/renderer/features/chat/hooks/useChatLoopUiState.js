@@ -4,13 +4,15 @@
 
 import { useEffect, useMemo, useReducer } from 'react';
 import { DesktopClientSessionRuntimeClient } from '../../../app/runtime/desktopClientSessionRuntimeClient';
-import {
+import { DesktopChatLoopUiRuntime } from '../../../app/runtime/desktopChatLoopUiRuntime';
+
+const {
   createChatLoopRecoveryTimeoutEvent,
   createChatLoopSnapshotEvent,
   createChatLoopTransportStatusEvent,
   createInitialChatLoopTransportMachineState,
   reduceChatLoopTransportMachineState,
-} from '../../../app/runtime/desktopChatLoopUiRuntime';
+} = DesktopChatLoopUiRuntime;
 
 export function useChatLoopTransportState({
   snapshotSignature,
