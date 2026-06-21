@@ -175,5 +175,4 @@ module.exports = {
   createPendingTurnRuntime,
   normalizePendingTurnPayload,
   pendingTurnMatchesCurrentTurn,
-  registerPendingTurnHandlers,
 };

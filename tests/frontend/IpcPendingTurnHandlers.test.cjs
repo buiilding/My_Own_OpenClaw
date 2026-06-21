@@ -12,7 +12,6 @@ const {
   createPendingTurnRuntime,
   normalizePendingTurnPayload,
   pendingTurnMatchesCurrentTurn,
-  registerPendingTurnHandlers,
 } = pendingTurnHandlers;
 
 function createHarness() {
@@ -24,25 +23,24 @@ function createHarness() {
     }),
   };
   const broadcastToRenderers = jest.fn();
-  const clearLatestPendingTurn = jest.fn(({ conversationRef, turnRef } = {}) => {
-    latestPendingTurn = null;
-    return { conversationRef, turnRef };
-  });
-
-  registerPendingTurnHandlers({
-    ipcMain,
-    setLatestPendingTurn: (pendingTurn) => {
+  const liveTurnState = {
+    getLatestPendingTurn: jest.fn(() => latestPendingTurn),
+    setLatestPendingTurn: jest.fn((pendingTurn) => {
       latestPendingTurn = pendingTurn;
-    },
-    clearLatestPendingTurn,
+    }),
+  };
+  const runtime = createPendingTurnRuntime({
+    liveTurnState,
     broadcastToRenderers,
   });
+
+  runtime.register({ ipcMain });
 
   return {
     broadcastToRenderers,
-    clearLatestPendingTurn,
     getLatestPendingTurn: () => latestPendingTurn,
     ipcMain,
+    liveTurnState,
     listeners,
   };
 }
@@ -107,7 +105,12 @@ describe('pending turn IPC handlers', () => {
   });
 
   test('ignores stale snake_case clear filters and broadcasts camelCase clears', () => {
-    const { broadcastToRenderers, clearLatestPendingTurn, listeners } = createHarness();
+    const {
+      broadcastToRenderers,
+      getLatestPendingTurn,
+      liveTurnState,
+      listeners,
+    } = createHarness();
 
     listeners['windie:pending-turn']({}, {
       type: 'clear',
@@ -115,8 +118,25 @@ describe('pending turn IPC handlers', () => {
       turn_ref: 'turn-1',
     });
 
-    expect(clearLatestPendingTurn).not.toHaveBeenCalled();
+    expect(liveTurnState.setLatestPendingTurn).not.toHaveBeenCalled();
     expect(broadcastToRenderers).not.toHaveBeenCalled();
+
+    listeners['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'user-1',
+        text: 'hello',
+        timestamp: '2026-06-19T00:00:00.000Z',
+      },
+    });
+    expect(getLatestPendingTurn()).toEqual(expect.objectContaining({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    }));
+    liveTurnState.setLatestPendingTurn.mockClear();
+    broadcastToRenderers.mockClear();
 
     listeners['windie:pending-turn']({}, {
       type: 'clear',
@@ -124,10 +144,8 @@ describe('pending turn IPC handlers', () => {
       turnRef: ' turn-1 ',
     });
 
-    expect(clearLatestPendingTurn).toHaveBeenCalledWith({
-      conversationRef: 'conv-1',
-      turnRef: 'turn-1',
-    });
+    expect(liveTurnState.setLatestPendingTurn).toHaveBeenCalledWith(null);
+    expect(getLatestPendingTurn()).toBeNull();
     expect(broadcastToRenderers).toHaveBeenCalledWith('windie:pending-turn', {
       type: 'clear',
       conversationRef: 'conv-1',
@@ -272,5 +290,6 @@ describe('pending turn IPC handlers', () => {
     expect(mainSource).not.toContain('ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
     expect(helperSource).toContain('function createPendingTurnRuntime');
     expect(helperSource).toContain('ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
+    expect(pendingTurnHandlers.registerPendingTurnHandlers).toBeUndefined();
   });
 });

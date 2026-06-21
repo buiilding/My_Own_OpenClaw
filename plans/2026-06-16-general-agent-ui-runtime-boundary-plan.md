@@ -7,6 +7,23 @@ title: "General Agent UI Runtime Boundary Plan"
 
 Date: 2026-06-16
 
+## Progress Notes
+
+### 2026-06-21 Main Pending Turn Runtime Registration Privacy
+
+- Finding: `ipc_pending_turn_handlers.cjs` already exposed
+  `createPendingTurnRuntime(...)` as the Electron main composition facade, but
+  focused tests still reached into the lower-level handler registration helper.
+- Change: kept `registerPendingTurnHandlers(...)` private to the pending-turn
+  helper module and moved pending/clear handler coverage through the runtime
+  facade.
+- Validation: focused pending-turn handler and main SDK boundary tests, targeted
+  main IPC lint, docs listing, stale export-line scans, and diff checks before
+  commit.
+- Compatibility/security: no IPC payload, storage, permission, credential, or
+  trust-boundary migration required; the public runtime facade and pure helper
+  exports remain available.
+
 ## Goal
 
 Make the application codebase read as a general desktop UI and host runtime for

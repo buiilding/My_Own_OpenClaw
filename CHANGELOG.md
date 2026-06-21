@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level pending-turn IPC registration helper
+  private to `ipc_pending_turn_handlers.cjs` and exercise pending/clear
+  behavior through `createPendingTurnRuntime(...)`, preserving the Electron
+  main initialization composition boundary. No migration required.
 - frontend/main: keep the lower-level renderer diagnostics IPC registration
   helper private to `ipc_renderer_diagnostics_handlers.cjs` and exercise
   renderer log/live-surface trace behavior through

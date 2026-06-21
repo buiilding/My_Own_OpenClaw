@@ -12,11 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main renderer diagnostics IPC registration
-  keeps the lower-level registration helper private to
-  `ipc_renderer_diagnostics_handlers.cjs`, so production and focused tests use
-  `createRendererDiagnosticsHandlersRuntime(...)` as the composition boundary
-  while preserving renderer log and live-surface trace forwarding behavior.
+- Latest completed slice: Electron main pending-turn IPC registration keeps
+  the lower-level registration helper private to
+  `ipc_pending_turn_handlers.cjs`, so production and focused tests use
+  `createPendingTurnRuntime(...)` as the composition boundary while preserving
+  pending-turn normalization, stale snake_case clear rejection, camelCase clear
+  broadcasts, and live-turn cache cleanup behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

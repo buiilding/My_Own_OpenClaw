@@ -569,6 +569,8 @@ Owns pending renderer turn IPC handler registration and payload acceptance:
 - `windie:pending-turn`
 - exposes `createPendingTurnRuntime(...)` so `ipc.cjs` composes pending-turn
   live state and renderer fan-out once
+- keeps lower-level pending-turn handler registration private behind the
+  runtime facade
 - pending-turn payload normalization and required identity checks
 - removed snake_case clear alias rejection
 - pending-turn cache clear and SDK-current-turn match primitives consumed by

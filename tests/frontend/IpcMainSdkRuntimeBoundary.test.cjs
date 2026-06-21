@@ -625,6 +625,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('liveTurnState.setLatestPendingTurn(');
     expect(pendingTurnHandlersSource).toContain('function createPendingTurnRuntime');
     expect(pendingTurnHandlersSource).toContain('liveTurnState.setLatestPendingTurn(pendingTurn)');
+    expect(pendingTurnHandlersSource).not.toContain('  registerPendingTurnHandlers,');
     expect(source).not.toContain('let latestCurrentTurnProjection = null');
     expect(source).not.toContain('let latestPendingTurn = null');
     expect(source).not.toContain('latestCurrentTurnProjection = currentTurnProjection');
