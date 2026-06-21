@@ -2,15 +2,17 @@
  * Covers chat box pill layout. behavior in the frontend test suite.
  */
 
-import {
-  createChatboxDragState,
-  getChatboxDragTarget,
-  getChatboxCloseBumpHeight,
-  startChatboxDrag,
-  stopChatboxDrag,
-} from '../../frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime';
+import { DesktopChatboxLayoutRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime';
 
 describe('chatbox pill layout utils', () => {
+  const {
+    createChatboxDragState,
+    getChatboxDragTarget,
+    getChatboxCloseBumpHeight,
+    startChatboxDrag,
+    stopChatboxDrag,
+  } = DesktopChatboxLayoutRuntime;
+
   test('creates the expected initial drag state', () => {
     expect(createChatboxDragState()).toEqual({
       isDragging: false,

@@ -17,15 +17,7 @@ import {
 import { useTextareaAutoResize } from '../../chat/hooks/useMessageInputUiBindings';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
-import {
-  createChatboxDragState,
-  getChatboxCloseBumpHeight,
-  getChatboxDragTarget,
-  resolveChatboxNativeFrameHeight,
-  resolveChatboxVisualAnchorHeight,
-  startChatboxDrag,
-  stopChatboxDrag,
-} from '../../../app/runtime/desktopChatboxLayoutRuntime';
+import { DesktopChatboxLayoutRuntime } from '../../../app/runtime/desktopChatboxLayoutRuntime';
 import {
   logRendererChatPillHitTestTrace,
   logRendererChatPillLifecycleTrace,
@@ -50,7 +42,7 @@ const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 
 function MinimalChatPill() {
-  const closeBumpHeight = getChatboxCloseBumpHeight();
+  const closeBumpHeight = DesktopChatboxLayoutRuntime.getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
   const isSending = useChatStore((state) => state.isSending);
   const currentTurnProjection = useChatStore((state) => (
@@ -80,7 +72,7 @@ function MinimalChatPill() {
     turnRef: null,
     phase: null,
   });
-  const dragStateRef = useRef(createChatboxDragState());
+  const dragStateRef = useRef(DesktopChatboxLayoutRuntime.createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
   const textEntryActiveRef = useRef(false);
   const chatSurface = useChatSurfaceController({
@@ -152,7 +144,7 @@ function MinimalChatPill() {
   }, []);
 
   const resolveNativeFrameHeightForShellHeight = useCallback((shellHeight) => {
-    return resolveChatboxNativeFrameHeight({
+    return DesktopChatboxLayoutRuntime.resolveChatboxNativeFrameHeight({
       hasImagePreview: hasAttachmentPreview,
       shellHeight,
     });
@@ -175,7 +167,7 @@ function MinimalChatPill() {
         return;
       }
       const shellHeight = shellRef.current?.offsetHeight ?? null;
-      const nextAnchorHeight = resolveChatboxVisualAnchorHeight({
+      const nextAnchorHeight = DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight({
         hasImagePreview: hasAttachmentPreview,
         shellHeight,
       });
@@ -323,7 +315,7 @@ function MinimalChatPill() {
       1,
       Math.round(shellElement?.offsetHeight || 0),
     );
-    const currentAnchorHeight = resolveChatboxVisualAnchorHeight({
+    const currentAnchorHeight = DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight({
       hasImagePreview: hasAttachmentPreview,
       shellHeight: currentShellHeight,
     });
@@ -569,7 +561,7 @@ function MinimalChatPill() {
   }, [chatSurface]);
 
   const handleDragMove = useCallback((event) => {
-    const nextTarget = getChatboxDragTarget(dragStateRef.current, event);
+    const nextTarget = DesktopChatboxLayoutRuntime.getChatboxDragTarget(dragStateRef.current, event);
     if (!nextTarget) {
       return;
     }
@@ -579,7 +571,7 @@ function MinimalChatPill() {
   }, []);
 
   const stopDragging = useCallback(() => {
-    stopChatboxDrag(dragStateRef.current);
+    DesktopChatboxLayoutRuntime.stopChatboxDrag(dragStateRef.current);
   }, []);
 
   useChatboxDragWindowBindings(handleDragMove, stopDragging);
@@ -588,7 +580,7 @@ function MinimalChatPill() {
     if (event.button !== 0) {
       return;
     }
-    startChatboxDrag(
+    DesktopChatboxLayoutRuntime.startChatboxDrag(
       dragStateRef.current,
       event,
       window.screenX,

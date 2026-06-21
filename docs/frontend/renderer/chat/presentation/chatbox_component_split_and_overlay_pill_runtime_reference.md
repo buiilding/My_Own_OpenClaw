@@ -91,7 +91,7 @@ compaction behind its loop lock.
   movement first, with mouse movement as a fallback, so a prevented first
   pointer-down used for focus handoff can still become a drag
 - drag move is ignored until distance reaches the shared `5px` Manhattan
-  threshold in `desktopChatboxLayoutRuntime`
+  threshold in `DesktopChatboxLayoutRuntime`
 - absolute move dispatch:
   - `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
 
@@ -111,12 +111,12 @@ compaction behind its loop lock.
 - screenshot button toggles query screenshot resource capture for the next send
 - preview lane state (`with-preview`) is driven only by image count
 - visual-anchor layout is resolved through
-  `desktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight(...)`
+  `DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight(...)`
 - visual-anchor IPC payload assembly is owned by
   `DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(...)`; the pill
   reports measured height values and optional native-frame height values.
 - drag-state and absolute move targets are resolved through
-  `desktopChatboxLayoutRuntime` before dispatching native movement IPC
+  `DesktopChatboxLayoutRuntime` before dispatching native movement IPC
 - visual-anchor IPC sync:
   - preview off -> `height: 64`
   - preview on -> `height: 116`

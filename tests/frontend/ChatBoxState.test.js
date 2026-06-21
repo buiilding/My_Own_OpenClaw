@@ -2,12 +2,14 @@
  * Covers chatbox layout runtime behavior in the frontend test suite.
  */
 
-import {
-  resolveChatboxNativeFrameHeight,
-  resolveChatboxVisualAnchorHeight,
-} from '../../frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime';
+import { DesktopChatboxLayoutRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime';
 
 describe('desktopChatboxLayoutRuntime', () => {
+  const {
+    resolveChatboxNativeFrameHeight,
+    resolveChatboxVisualAnchorHeight,
+  } = DesktopChatboxLayoutRuntime;
+
   test('resolveChatboxVisualAnchorHeight switches by preview mode', () => {
     expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: false })).toBe(64);
     expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: true })).toBe(116);

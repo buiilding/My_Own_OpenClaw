@@ -2010,9 +2010,18 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
     expect(layoutRuntimeSource).toContain('resolveChatboxNativeFrameHeight');
+    expect(layoutRuntimeSource).toContain('DesktopChatboxLayoutRuntime');
+    expect(layoutRuntimeSource).not.toContain('export function createChatboxDragState');
+    expect(layoutRuntimeSource).not.toContain('export function resolveChatboxVisualAnchorHeight');
+    expect(layoutRuntimeSource).not.toContain('export function resolveChatboxNativeFrameHeight');
+    expect(layoutRuntimeSource).not.toContain('export function startChatboxDrag');
+    expect(layoutRuntimeSource).not.toContain('export function stopChatboxDrag');
+    expect(layoutRuntimeSource).not.toContain('export function getChatboxDragTarget');
+    expect(layoutRuntimeSource).not.toContain('export function getChatboxCloseBumpHeight');
     expect(layoutRuntimeSource).not.toContain('export const CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(layoutRuntimeSource).not.toContain('export const CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
-    expect(pillSource).toContain('resolveChatboxNativeFrameHeight');
+    expect(pillSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxNativeFrameHeight');
+    expect(bindingsSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight');
     expect(pillSource).not.toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
     expect(bindingsSource).not.toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(pillSource).toContain('setChatboxVisualAnchorHeightValue');

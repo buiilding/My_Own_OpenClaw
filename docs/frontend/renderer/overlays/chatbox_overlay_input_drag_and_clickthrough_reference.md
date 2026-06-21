@@ -187,7 +187,7 @@ Movement path:
 
 1. cache pointer offset from current window origin
 2. on mousemove, ignore small movement (`<5px` Manhattan distance) through
-   `desktopChatboxLayoutRuntime.getChatboxDragTarget(...)`
+   `DesktopChatboxLayoutRuntime.getChatboxDragTarget(...)`
 3. once the threshold is crossed, mark the gesture as a real drag
 4. compute absolute target window coordinates
 5. call `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`

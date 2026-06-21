@@ -96,6 +96,9 @@ All notable changes to WindieOS will be documented in this file.
   carousel tab target selection through the browser session runtime client
   instead of deriving them in the chat feature component. No migration
   required.
+- frontend/renderer: keep chatbox visual-anchor, frame-height, drag-state, and
+  movement-target helpers behind the chatbox layout runtime facade instead of
+  standalone helper exports. No migration required.
 - frontend/renderer: keep attachment preview file-type labeling behind the
   attachment presentation runtime facade instead of a standalone helper export.
   No migration required.

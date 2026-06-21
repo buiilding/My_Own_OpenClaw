@@ -23089,3 +23089,19 @@ Each completed slice should report:
   inheritance, content pretty-printing, clipboard serialization, renderer
   markup, storage, IPC, local-runtime execution, provider policy, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer chatbox layout facade helper privacy
+
+- Finding: chatbox visual-anchor, frame-height, drag-state, and movement-target
+  rules lived in the renderer app runtime, but the minimal pill and focused
+  layout tests still imported those helpers as standalone exports.
+- Change: exposed chatbox layout and drag rules through
+  `DesktopChatboxLayoutRuntime` and kept the helper functions private to
+  `desktopChatboxLayoutRuntime`.
+- Validation: focused chatbox layout, chatbox pill layout, renderer app-runtime
+  boundary, and renderer chat boundary tests, targeted renderer ESLint, exact
+  source/doc scans, docs listing, and diff checks.
+- Compatibility: no migration required. Chatbox compact/preview anchor heights,
+  native frame padding, drag threshold, movement target computation, close bump
+  height, renderer markup, IPC payloads, storage, local-runtime execution,
+  provider policy, backend behavior, and trust boundaries are unchanged.

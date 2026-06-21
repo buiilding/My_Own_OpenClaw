@@ -8,7 +8,7 @@ const CHATBOX_VISUAL_ANCHOR_HEIGHT_WITH_PREVIEW = 116;
 const CHATBOX_DRAG_START_THRESHOLD = 5;
 const CHATBOX_CLOSE_BUMP_HEIGHT = 14;
 
-export function createChatboxDragState() {
+function createChatboxDragState() {
   return {
     isDragging: false,
     didDrag: false,
@@ -21,7 +21,7 @@ export function createChatboxDragState() {
   };
 }
 
-export function resolveChatboxVisualAnchorHeight({
+function resolveChatboxVisualAnchorHeight({
   hasImagePreview = false,
   shellHeight = null,
 } = {}) {
@@ -35,7 +35,7 @@ export function resolveChatboxVisualAnchorHeight({
     : CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT;
 }
 
-export function resolveChatboxNativeFrameHeight({
+function resolveChatboxNativeFrameHeight({
   hasImagePreview = false,
   shellHeight = null,
 } = {}) {
@@ -45,7 +45,7 @@ export function resolveChatboxNativeFrameHeight({
   }) + CHATBOX_WINDOW_FRAME_HEIGHT_PADDING;
 }
 
-export function startChatboxDrag(dragState, event, windowScreenX, windowScreenY) {
+function startChatboxDrag(dragState, event, windowScreenX, windowScreenY) {
   const screenX = Math.round(Number(event?.screenX) || 0);
   const screenY = Math.round(Number(event?.screenY) || 0);
 
@@ -59,13 +59,13 @@ export function startChatboxDrag(dragState, event, windowScreenX, windowScreenY)
   dragState.lastTargetY = Math.round(Number(windowScreenY) || 0);
 }
 
-export function stopChatboxDrag(dragState) {
+function stopChatboxDrag(dragState) {
   dragState.isDragging = false;
   dragState.lastTargetX = null;
   dragState.lastTargetY = null;
 }
 
-export function getChatboxDragTarget(dragState, event) {
+function getChatboxDragTarget(dragState, event) {
   if (!dragState?.isDragging) {
     return null;
   }
@@ -94,6 +94,16 @@ export function getChatboxDragTarget(dragState, event) {
   return { x: nextX, y: nextY };
 }
 
-export function getChatboxCloseBumpHeight() {
+function getChatboxCloseBumpHeight() {
   return CHATBOX_CLOSE_BUMP_HEIGHT;
 }
+
+export const DesktopChatboxLayoutRuntime = Object.freeze({
+  createChatboxDragState,
+  resolveChatboxVisualAnchorHeight,
+  resolveChatboxNativeFrameHeight,
+  startChatboxDrag,
+  stopChatboxDrag,
+  getChatboxDragTarget,
+  getChatboxCloseBumpHeight,
+});
