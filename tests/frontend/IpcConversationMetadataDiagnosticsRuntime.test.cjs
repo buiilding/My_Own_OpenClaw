@@ -1,13 +1,16 @@
 /** @jest-environment node */
 
 const {
-  normalizeAppDiagnosticContext,
-  recordConversationMetadataListDiagnostic,
+  createConversationMetadataDiagnosticsRuntime,
 } = require('../../frontend/src/main/ipc/ipc_conversation_metadata_diagnostics_runtime.cjs');
+
+const metadataDiagnosticsRuntimeModule = require('../../frontend/src/main/ipc/ipc_conversation_metadata_diagnostics_runtime.cjs');
 
 describe('ipc_conversation_metadata_diagnostics_runtime', () => {
   test('normalizes renderer diagnostic context with state fallbacks', () => {
-    expect(normalizeAppDiagnosticContext({
+    const runtime = createConversationMetadataDiagnosticsRuntime();
+
+    expect(runtime.createContext({
       _diagnostics: {
         path: ' conversation.metadata.list ',
         traceId: ' trace-1 ',
@@ -26,7 +29,7 @@ describe('ipc_conversation_metadata_diagnostics_runtime', () => {
       conversationRef: 'conv-1',
     });
 
-    expect(normalizeAppDiagnosticContext({}, {
+    expect(runtime.createContext({}, {
       currentSessionId: 'session-fallback',
       currentConversationRef: 'conv-fallback',
     })).toEqual({
@@ -37,9 +40,11 @@ describe('ipc_conversation_metadata_diagnostics_runtime', () => {
       sessionId: 'session-fallback',
       conversationRef: 'conv-fallback',
     });
+    expect(metadataDiagnosticsRuntimeModule.normalizeAppDiagnosticContext).toBeUndefined();
   });
 
   test('records metadata list diagnostics with request and duration data', () => {
+    const runtime = createConversationMetadataDiagnosticsRuntime();
     const appendAppDiagnostic = jest.fn(event => ({
       ...event,
       traceId: event.traceId || 'trace-created',
@@ -51,7 +56,7 @@ describe('ipc_conversation_metadata_diagnostics_runtime', () => {
       conversationRef: 'conv-1',
     };
 
-    const result = recordConversationMetadataListDiagnostic(appendAppDiagnostic, context, {
+    const result = runtime.record(appendAppDiagnostic, context, {
       stage: 'sdk_list',
       status: 'failed',
       runtime: 'electron-main',
@@ -82,5 +87,6 @@ describe('ipc_conversation_metadata_diagnostics_runtime', () => {
     }));
     expect(result.traceId).toBe('trace-created');
     expect(context.traceId).toBe('trace-created');
+    expect(metadataDiagnosticsRuntimeModule.recordConversationMetadataListDiagnostic).toBeUndefined();
   });
 });

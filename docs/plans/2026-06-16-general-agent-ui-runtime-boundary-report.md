@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main runtime conversation-ref helper keeps
-  payload/fallback resolution private to `ipc_runtime_conversation_ref.cjs`,
-  while nested transport precedence, direct aliases, cached fallback, trimming,
-  blank rejection, non-string rejection, and latest-fallback lookup remain
-  covered through the public conversation-ref runtime facade.
+- Latest completed slice: Electron main conversation metadata diagnostics keep
+  context normalization and record assembly private to
+  `ipc_conversation_metadata_diagnostics_runtime.cjs`, while renderer
+  diagnostic append, conversation-list lifecycle diagnostics, and trace-id
+  propagation remain covered through the public diagnostics runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1067,6 +1067,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
   contracts, IPC channels, storage, provider policy, and hosted backend
   behavior are unchanged.
+
+### 2026-06-21 Main Conversation Metadata Diagnostics Runtime Facade
+
+- Finding: `ipc_conversation_metadata_diagnostics_runtime.cjs` already owned
+  conversation metadata-list diagnostic context normalization and event record
+  assembly, but `ipc_agent_sdk_command_handlers.cjs` still imported the
+  lower-level `normalizeAppDiagnosticContext(...)` and
+  `recordConversationMetadataListDiagnostic(...)` helpers directly.
+- Change: added `createConversationMetadataDiagnosticsRuntime(...)` as the
+  public diagnostics facade and routed renderer diagnostic append plus
+  conversation-list lifecycle diagnostics through `createContext(...)` and
+  `record(...)`, keeping context normalization and record assembly helpers
+  private while preserving trace-id propagation into the mutable context.
+- Validation: focused conversation metadata diagnostics, Agent SDK command
+  handler, and main SDK boundary tests, targeted main IPC lint, docs listing,
+  stale export scans, and diff checks.
+- Compatibility: no migration required. App diagnostic event shapes,
+  diagnostics path, trace-id propagation, SDK command payloads, credentials,
+  permissions, trust boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Runtime Conversation Ref Resolver Privacy
 

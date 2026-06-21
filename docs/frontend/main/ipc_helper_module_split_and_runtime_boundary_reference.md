@@ -943,9 +943,9 @@ registration helper stay private to the runtime helper:
   `conversationRef` and `turnRef`; removed snake_case filter fields are ignored
   instead of being treated as aliases.
 - conversation metadata-list diagnostic context and event envelopes are built
-  by `ipc_conversation_metadata_diagnostics_runtime.cjs`; command handlers
-  choose lifecycle stages and call the helper rather than constructing
-  diagnostic rows inline.
+  through `createConversationMetadataDiagnosticsRuntime(...)`; command handlers
+  choose lifecycle stages and call the runtime facade rather than constructing
+  diagnostic rows inline or importing lower-level context/record helpers.
 
 Removed preflight invoke path:
 

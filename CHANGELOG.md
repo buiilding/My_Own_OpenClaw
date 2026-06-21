@@ -93,6 +93,11 @@ All notable changes to WindieOS will be documented in this file.
   transport, direct alias, cached fallback, trimming, blank rejection, and
   non-string rejection through `createRuntimeConversationRefRuntime(...)`. No
   migration required.
+- frontend/main: keep conversation metadata diagnostic context normalization
+  and record assembly private to `ipc_conversation_metadata_diagnostics_runtime.cjs`
+  while preserving renderer diagnostic append and conversation-list lifecycle
+  diagnostics through `createConversationMetadataDiagnosticsRuntime(...)`. No
+  migration required.
 - frontend/main: keep runtime conversation-ref string normalization private to
   `ipc_runtime_conversation_ref.cjs` while preserving nested
   transport/direct/fallback coverage through the runtime facade; a later

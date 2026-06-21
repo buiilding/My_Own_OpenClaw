@@ -750,10 +750,16 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.MEMORIES_CLEAR_ALL]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST]');
     expect(source).toContain('ipc_conversation_metadata_diagnostics_runtime');
+    expect(source).toContain('createConversationMetadataDiagnosticsRuntime');
+    expect(source).toContain('conversationMetadataDiagnosticsRuntime.createContext');
+    expect(source).toContain('conversationMetadataDiagnosticsRuntime.record');
     expect(source).not.toContain('function normalizeAppDiagnosticContext');
     expect(source).not.toContain('function recordConversationMetadataListDiagnostic');
     expect(metadataDiagnosticsSource).toContain('normalizeAppDiagnosticContext');
     expect(metadataDiagnosticsSource).toContain('recordConversationMetadataListDiagnostic');
+    expect(metadataDiagnosticsSource).toContain('function createConversationMetadataDiagnosticsRuntime');
+    expect(metadataDiagnosticsSource).not.toContain('  normalizeAppDiagnosticContext,');
+    expect(metadataDiagnosticsSource).not.toContain('  recordConversationMetadataListDiagnostic,');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATIONS_CLEAR_ALL]');

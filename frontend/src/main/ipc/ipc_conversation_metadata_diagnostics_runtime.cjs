@@ -51,7 +51,13 @@ function recordConversationMetadataListDiagnostic(appendAppDiagnostic, context =
   return result;
 }
 
+function createConversationMetadataDiagnosticsRuntime() {
+  return {
+    createContext: normalizeAppDiagnosticContext,
+    record: recordConversationMetadataListDiagnostic,
+  };
+}
+
 module.exports = {
-  normalizeAppDiagnosticContext,
-  recordConversationMetadataListDiagnostic,
+  createConversationMetadataDiagnosticsRuntime,
 };

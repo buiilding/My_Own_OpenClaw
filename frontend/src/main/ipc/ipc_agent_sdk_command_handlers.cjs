@@ -6,9 +6,10 @@ const {
   SDK_RUNTIME_COMMANDS,
 } = require('../../../../packages/windie-sdk-js/cjs/runtime/SdkRuntimeCommands.js');
 const {
-  normalizeAppDiagnosticContext,
-  recordConversationMetadataListDiagnostic,
+  createConversationMetadataDiagnosticsRuntime,
 } = require('./ipc_conversation_metadata_diagnostics_runtime.cjs');
+
+const conversationMetadataDiagnosticsRuntime = createConversationMetadataDiagnosticsRuntime();
 
 function isPlainObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
@@ -107,7 +108,7 @@ function requireCommandString(payload = {}, key, label) {
 
 function appendRendererAppDiagnostic(payload = {}, deps = {}) {
   const state = deps.getState();
-  const context = normalizeAppDiagnosticContext(payload, state);
+  const context = conversationMetadataDiagnosticsRuntime.createContext(payload, state);
   return deps.appendAppDiagnostic({
     ...context,
     stage: normalizeOptionalString(payload.stage) || 'renderer',
@@ -185,11 +186,11 @@ function buildAgentSdkCommandHandlers({
       return agent.clearMemories();
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST]: async (payload = {}) => {
-      const diagnostics = normalizeAppDiagnosticContext(payload, deps.getState());
+      const diagnostics = conversationMetadataDiagnosticsRuntime.createContext(payload, deps.getState());
       const startedAt = Date.now();
       const limit = normalizePositiveInteger(payload.limit);
       let failureStage = 'user_validated';
-      recordConversationMetadataListDiagnostic(deps.appendAppDiagnostic, diagnostics, {
+      conversationMetadataDiagnosticsRuntime.record(deps.appendAppDiagnostic, diagnostics, {
         stage: 'ipc_received',
         status: 'succeeded',
         runtime: 'electron-main',
@@ -202,7 +203,7 @@ function buildAgentSdkCommandHandlers({
       try {
         const userId = requireCommandUserId(payload, deps.getState().currentUserId);
         failureStage = 'agent_ready';
-        recordConversationMetadataListDiagnostic(deps.appendAppDiagnostic, diagnostics, {
+        conversationMetadataDiagnosticsRuntime.record(deps.appendAppDiagnostic, diagnostics, {
           stage: 'user_validated',
           status: 'succeeded',
           runtime: 'electron-main',
@@ -213,7 +214,7 @@ function buildAgentSdkCommandHandlers({
         });
         const agent = await deps.ensureAgent({ reason: 'sdk-command:conversations.list' });
         failureStage = 'sdk_list';
-        recordConversationMetadataListDiagnostic(deps.appendAppDiagnostic, diagnostics, {
+        conversationMetadataDiagnosticsRuntime.record(deps.appendAppDiagnostic, diagnostics, {
           stage: 'agent_ready',
           status: 'succeeded',
           runtime: 'electron-main',
@@ -227,7 +228,7 @@ function buildAgentSdkCommandHandlers({
           diagnostics: {
             ...diagnostics,
             emit: async eventInput => {
-              recordConversationMetadataListDiagnostic(
+              conversationMetadataDiagnosticsRuntime.record(
                 deps.appendAppDiagnostic,
                 diagnostics,
                 eventInput,
@@ -236,7 +237,7 @@ function buildAgentSdkCommandHandlers({
           },
         });
       } catch (error) {
-        recordConversationMetadataListDiagnostic(deps.appendAppDiagnostic, diagnostics, {
+        conversationMetadataDiagnosticsRuntime.record(deps.appendAppDiagnostic, diagnostics, {
           stage: failureStage,
           status: 'failed',
           runtime: 'electron-main',

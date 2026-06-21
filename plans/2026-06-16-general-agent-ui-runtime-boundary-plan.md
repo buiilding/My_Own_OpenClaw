@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Conversation Metadata Diagnostics Runtime Facade
+
+- Finding: `ipc_conversation_metadata_diagnostics_runtime.cjs` owned
+  conversation metadata-list diagnostic context normalization and event record
+  assembly, but still exported lower-level `normalizeAppDiagnosticContext(...)`
+  and `recordConversationMetadataListDiagnostic(...)` helpers directly into
+  `ipc_agent_sdk_command_handlers.cjs`.
+- Change: added `createConversationMetadataDiagnosticsRuntime(...)` as the
+  public Electron main diagnostics facade and routed renderer diagnostic append
+  plus conversation-list lifecycle diagnostics through `createContext(...)` and
+  `record(...)`, keeping the lower-level context/record helpers private while
+  preserving trace-id propagation into the mutable context.
+- Validation: focused conversation metadata diagnostics, Agent SDK command
+  handler, and main SDK boundary tests, targeted main IPC lint, docs listing,
+  stale export scans, and diff checks before commit.
+- Compatibility/security: no app diagnostic event shape, diagnostics path,
+  trace-id propagation, SDK command payload, credential, permission, storage,
+  or trust-boundary migration required; diagnostic behavior is unchanged.
+
 ### 2026-06-21 Main Runtime Conversation Ref Resolver Privacy
 
 - Finding: `ipc_runtime_conversation_ref.cjs` already exposed
