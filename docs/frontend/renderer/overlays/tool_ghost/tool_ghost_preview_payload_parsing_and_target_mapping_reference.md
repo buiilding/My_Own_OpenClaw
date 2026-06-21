@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for current tool-ghost debug cursor harness: static track payload, timing constants, and looped visibility behavior."
+summary: "Deep reference for current tool-ghost debug cursor harness: static track payload, timing helper, and looped visibility behavior."
 read_when:
   - When changing `ToolGhostDebugApp` animation timing or static track style payload.
-  - When debugging mismatch between debug ghost loop timing and `TOOL_GHOST_CLICK_SYNC_DELAY_MS`.
+  - When debugging mismatch between debug ghost loop timing and `getToolGhostClickSyncDelayMs()`.
 title: "Tool Ghost Debug Cursor Payload and Timing Reference"
 ---
 
@@ -29,13 +29,13 @@ Current page documents the debug harness only.
 - `--ghost-end-left/top`
 - `--ghost-ripple-left/top`
 - `--ghost-target-scale`
-- `--ghost-motion-duration` (derived from `TOOL_GHOST_CLICK_SYNC_DELAY_MS`)
+- `--ghost-motion-duration` (derived from `getToolGhostClickSyncDelayMs()`)
 
 This payload is intentionally deterministic for repeatable debug animation.
 
 ## Timing Contract
 
-- active animation duration: `TOOL_GHOST_CLICK_SYNC_DELAY_MS`
+- active animation duration: `getToolGhostClickSyncDelayMs()`
 - post-run gap before restart: `LOOP_GAP_MS = 700`
 - lifecycle:
   1. show ghost

@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/tool-ghost: keep the debug ghost click-sync delay private to the
+  app-runtime timing helper instead of exporting the raw duration constant. No
+  migration required.
 - renderer/chatbox: keep compact anchor and frame-padding constants private to
   the chatbox layout runtime and expose semantic anchor/frame helpers for
   minimal-pill callers. No migration required.

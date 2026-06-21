@@ -1034,9 +1034,12 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(runtimeSource).toContain('TOOL_GHOST_CLICK_SYNC_DELAY_MS');
+    expect(runtimeSource).toContain('getToolGhostClickSyncDelayMs');
+    expect(runtimeSource).not.toContain('export const TOOL_GHOST_CLICK_SYNC_DELAY_MS');
     expect(runtimeSource).not.toContain('features/chat');
     expect(debugAppSource).toContain('desktopToolGhostRuntime');
+    expect(debugAppSource).toContain('getToolGhostClickSyncDelayMs');
+    expect(debugAppSource).not.toContain('import { TOOL_GHOST_CLICK_SYNC_DELAY_MS }');
     expect(debugAppSource).not.toContain('features/chat/constants/toolGhostRuntime');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/constants/toolGhostRuntime.ts'),

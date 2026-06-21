@@ -28,7 +28,7 @@ Cycle (`runAnimationOnce`):
 1. clear existing timers
 2. increment `runToken` (forces remount key)
 3. set visible true
-4. schedule hide at `TOOL_GHOST_CLICK_SYNC_DELAY_MS`
+4. schedule hide at `getToolGhostClickSyncDelayMs()`
 5. after hide, schedule next run after `LOOP_GAP_MS`
 
 ## Timer and Cleanup Contract
@@ -49,9 +49,9 @@ Guarantee:
 
 ## Sync Delay Contract
 
-The debug lifecycle intentionally uses the same constant as tool-click sync semantics:
+The debug lifecycle intentionally uses the same runtime helper as tool-click sync semantics:
 
-- `TOOL_GHOST_CLICK_SYNC_DELAY_MS` from `desktopToolGhostRuntime.ts`
+- `getToolGhostClickSyncDelayMs()` from `desktopToolGhostRuntime.ts`
 
 This keeps debug cursor timing aligned with expected click timeline duration.
 

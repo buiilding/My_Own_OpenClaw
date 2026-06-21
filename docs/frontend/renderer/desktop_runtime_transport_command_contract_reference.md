@@ -190,8 +190,8 @@ grouping policy to this app-runtime facade instead of a feature utility.
 
 `desktopToolGhostRuntime.ts` owns the debug tool-ghost click animation
 timing used by `ToolGhostDebugApp`. The debug app keeps rendering and timer
-lifecycle state, while reusable timing constants stay in the app-runtime facade
-instead of the chat feature constant tree.
+lifecycle state, while reusable timing helpers stay in the app-runtime facade
+instead of the chat feature constant tree or raw exported constants.
 
 `desktopRendererConfigFilterRuntime.js` and
 `desktopRendererConfigStorageRuntime.js` own renderer-managed settings

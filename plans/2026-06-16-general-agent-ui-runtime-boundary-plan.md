@@ -20619,3 +20619,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Chatbox anchor values, native frame
   sizing, resize/collapse behavior, drag behavior, IPC payloads, storage,
   provider policy, permissions, and backend behavior are unchanged.
+
+### 2026-06-21 renderer tool-ghost timing helper privacy
+
+- Finding: `desktopToolGhostRuntime.ts` already owned debug tool-ghost click
+  timing, but exported the raw `TOOL_GHOST_CLICK_SYNC_DELAY_MS` constant
+  directly to `ToolGhostDebugApp`.
+- Change: made the click-sync duration private to the app-runtime module,
+  exposed `getToolGhostClickSyncDelayMs()` as the semantic public helper, and
+  updated the debug app plus active tool-ghost docs to use helper wording.
+- Validation: focused renderer app-runtime boundary test, exact exported
+  constant/direct-import scan, docs listing, and diff checks.
+- Compatibility: no migration required. Debug ghost animation duration,
+  loop-hide timing, CSS motion-duration value, tool ghost rendering, IPC
+  payloads, storage, provider policy, permissions, and backend behavior are
+  unchanged.

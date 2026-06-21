@@ -3,12 +3,13 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from './runtime/desktopToolGhostRuntime';
+import { getToolGhostClickSyncDelayMs } from './runtime/desktopToolGhostRuntime';
 import ToolGhostCursor from '../features/chat/components/ToolGhostCursor';
 import '../styles/theme.css';
 import '../styles/ChatBoxResponseOverlay.css';
 
 const LOOP_GAP_MS = 700;
+const toolGhostClickSyncDelayMs = getToolGhostClickSyncDelayMs();
 
 const TRACK_STYLE = Object.freeze({
   '--ghost-start-left': '50%',
@@ -18,7 +19,7 @@ const TRACK_STYLE = Object.freeze({
   '--ghost-ripple-left': '50%',
   '--ghost-ripple-top': '76%',
   '--ghost-target-scale': '1',
-  '--ghost-motion-duration': `${TOOL_GHOST_CLICK_SYNC_DELAY_MS}ms`,
+  '--ghost-motion-duration': `${toolGhostClickSyncDelayMs}ms`,
 });
 
 function ToolGhostDebugApp() {
@@ -48,7 +49,7 @@ function ToolGhostDebugApp() {
       loopTimerRef.current = window.setTimeout(() => {
         runAnimationOnce();
       }, LOOP_GAP_MS);
-    }, TOOL_GHOST_CLICK_SYNC_DELAY_MS);
+    }, toolGhostClickSyncDelayMs);
   }, [clearTimers]);
 
   useEffect(() => {

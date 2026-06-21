@@ -8523,3 +8523,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   frame sizing, resize/collapse behavior, drag behavior, IPC payloads, storage,
   provider policy, permissions, and backend behavior are unchanged; no
   migration is required.
+- The renderer debug tool-ghost timing runtime now keeps the raw click-sync
+  duration private to `desktopToolGhostRuntime.ts`; `ToolGhostDebugApp` uses
+  `getToolGhostClickSyncDelayMs()` for both CSS motion duration and hide-loop
+  timing. Active tool-ghost docs now describe the helper as the public timing
+  contract. Debug ghost animation duration, loop-hide timing, CSS
+  motion-duration value, tool ghost rendering, IPC payloads, storage, provider
+  policy, permissions, and backend behavior are unchanged; no migration is
+  required.
