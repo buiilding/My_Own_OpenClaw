@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Conversation Runtime Product-Label Wording
+
+- Finding: websocket lifecycle, agent-loop, memory hub, memory workflow, and
+  transcript replay docs still described generic connection, turn, memory, and
+  replay boundaries with product-owned conversation/runtime labels even though
+  those docs route hosted backend websocket lifecycle, hosted agent turns, SDK
+  projection state, local-runtime memory, and backend active history.
+- Change: reworded those docs around hosted backend websocket, hosted agent
+  loop, desktop/backend runtime memory, and transcript replay labels, and
+  extended modular boundary guards for the retired product-owned generic
+  conversation/runtime phrases.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, websocket routes and
+  event names, SDK projections, local-runtime memory storage, transcript
+  persistence, rehydrate payloads, IPC channels, storage schema, credentials,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Runtime Concept Product-Label Wording
 
 - Finding: onboarding permission, plugin, streaming/event concept, and

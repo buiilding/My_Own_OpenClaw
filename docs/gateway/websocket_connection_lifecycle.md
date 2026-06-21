@@ -1,5 +1,5 @@
 ---
-summary: "Main WindieOS websocket connection lifecycle from accept and install-token handshake through message validation, task scheduling, timeout, and cleanup."
+summary: "Hosted backend websocket connection lifecycle from accept and install-token handshake through message validation, task scheduling, timeout, and cleanup."
 read_when:
   - When changing the main `/ws` route, handshake message, websocket auth, message size limits, task concurrency, timeout behavior, or disconnect cleanup.
   - When debugging websocket close code `1008`, dropped tool results, stale sessions, duplicate connections, or missing per-user cleanup.

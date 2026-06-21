@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS transcript, replay, local-runtime memory, backend history, semanticization, and compaction behavior across owning runtimes."
+summary: "Workflow for changing transcript, replay, local-runtime memory, backend history, semanticization, and compaction behavior across owning runtimes."
 read_when:
   - When changing conversation persistence, replay, rehydrate, semantic memory, titles, search, backend history, or compaction.
   - When debugging missing chats, stale memory, wrong conversation ids, lost tool linkage, or semantic memory drift.
@@ -9,7 +9,9 @@ title: "Memory Change Workflow"
 
 # Memory Change Workflow
 
-WindieOS has multiple memory systems. Treating them as one store causes wrong-layer fixes. Start by identifying which memory layer owns the symptom.
+The desktop/backend runtime has multiple memory systems. Treating them as one
+store causes wrong-layer fixes. Start by identifying which memory layer owns the
+symptom.
 
 ## Pick the Owner
 

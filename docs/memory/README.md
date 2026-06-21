@@ -1,5 +1,5 @@
 ---
-summary: "Memory hub for WindieOS transcript persistence, conversation replay, local-runtime memory, semantic summarization, backend history, and rehydrate flow."
+summary: "Memory hub for transcript persistence, conversation replay, local-runtime memory, semantic summarization, backend history, and rehydrate flow."
 read_when:
   - When changing transcript persistence, conversation replay, memory search, semantic summarization, backend history, or rehydrate behavior.
   - When debugging missing chats, stale memory, title generation, semantic facts, or replay/tool linkage.
@@ -8,7 +8,8 @@ title: "Memory Hub"
 
 # Memory Hub
 
-WindieOS has several memory-like systems. They must not be treated as one store.
+The desktop/backend runtime has several memory-like systems. They must not be
+treated as one store.
 
 ## Memory Layers
 

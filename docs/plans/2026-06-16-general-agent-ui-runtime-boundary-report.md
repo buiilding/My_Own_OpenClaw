@@ -11,11 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `3af9d9911` (`docs(tools): route shared tool contract labels`)
-- Latest completed slice: onboarding permission, plugin, and streaming/event
-  concept docs now describe generic boundaries through desktop onboarding,
-  built-in local-runtime tool, backend streaming event, and backend websocket
-  event labels instead of product-owned generic runtime labels.
+- Latest inspected plan checkpoint: `89d4082e5` (`docs(runtime): route concept labels through runtime owners`)
+- Latest completed slice: websocket lifecycle, agent-loop, memory hub, memory
+  workflow, and transcript replay docs now describe generic boundaries through
+  hosted backend, SDK projection, and desktop/backend runtime labels instead of
+  product-owned generic conversation/runtime labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -146,6 +146,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   normalization, and agent-loop streaming steps through desktop onboarding,
   built-in local-runtime tool, backend streaming event, and backend websocket
   event wording instead of product-owned generic runtime labels.
+  Websocket lifecycle, agent-loop, memory hub, memory workflow, and transcript
+  replay docs now route connection lifecycle, hosted agent turns, memory-like
+  systems, and visible-chat replay through hosted backend, SDK projection, and
+  desktop/backend runtime wording instead of product-owned generic
+  conversation/runtime labels.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real

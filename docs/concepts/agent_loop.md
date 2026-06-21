@@ -1,14 +1,16 @@
 ---
 summary: "Conceptual agent-loop lifecycle from renderer query send through backend streaming, tool turns, result handling, and completion."
 read_when:
-  - When explaining or changing how a WindieOS turn executes.
+  - When explaining or changing how a hosted backend agent turn executes.
   - When debugging query streaming, tool calls, or completion behavior at a high level.
 title: "Agent Loop"
 ---
 
 # Agent Loop
 
-The WindieOS agent loop is backend-owned, but it depends on SDK/main local execution for local tools. Treat the loop as a distributed state machine rather than a single function call.
+The hosted agent loop is backend-owned, but it depends on SDK/main local
+execution for local tools. Treat the loop as a distributed state machine rather
+than a single function call.
 
 ## Turn Lifecycle
 

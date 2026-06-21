@@ -1373,6 +1373,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Renderer SDK conversation-event consumption');
     expect(docText).toContain('SDK-normalized conversation events, current-turn projections');
     expect(docText).not.toContain('WindieOS SDK-backed transcript projections');
+    expect(docText).not.toContain('Memory hub for ' + 'Windie' + 'OS transcript persistence');
+    expect(docText).not.toContain('Windie' + 'OS has several memory-like systems');
+    expect(docText).not.toContain('Workflow for changing ' + 'Windie' + 'OS transcript');
+    expect(docText).not.toContain('Windie' + 'OS has multiple memory systems');
+    expect(docText).not.toContain('Windie' + 'OS transcript replay is related to memory');
     expect(docText).not.toContain('sidecar-backed');
     expect(docText).not.toContain('canonical sidecar events');
     expect(docText).not.toContain('canonical sidecar chat-event log');
@@ -1921,6 +1926,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('### Python Sidecar Rejects a Payload');
     expect(docText).not.toContain('Python sidecar `entrypoint`');
     expect(docText).not.toContain('Local-runtime helper behavior implemented only inside the Python sidecar');
+    expect(docText).not.toContain('Main ' + 'Windie' + 'OS websocket connection lifecycle');
     expect(docText).not.toContain('Python sidecar execute_tool JSON-RPC');
     expect(docText).not.toContain('Python sidecar remote client base');
     expect(docText).not.toContain('Python sidecar remote clients');
@@ -3328,6 +3334,8 @@ describe('modular sdk refactor completion boundary', () => {
         'dashboard utility ownership',
         'Windie' + 'OS onboarding is a first-run gate',
         'Windie' + 'OS streaming events',
+        'Windie' + 'OS turn executes',
+        'Windie' + 'OS agent loop is backend-owned',
         'renderer owns turn-level UI/send/stream behavior',
         'useChatStream.ts` remains the canonical stream-event state machine',
         'frontend/src/renderer/features/permissions/utils/*',

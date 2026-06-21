@@ -9,7 +9,9 @@ title: "Transcript Replay Change Workflow"
 
 # Transcript Replay Change Workflow
 
-Use this workflow for the visible-chat projection path. WindieOS transcript replay is related to memory, but it is not the same thing as semantic memory or backend active model history.
+Use this workflow for the visible-chat projection path. Transcript replay is
+related to memory, but it is not the same thing as semantic memory or backend
+active model history.
 
 The core rule is: SDK local-runtime `conversation_events` rows are the canonical client-runtime state. Visible transcript rows are projections persisted for display/search, and backend active history is rebuilt from SDK rehydrate projections before resume. Fix display and replay at the SDK projection/store layer. Fix resumed model context at the rehydrate projection layer. Fix derived memory search/semantic facts in local-runtime memory and semanticization code.
 

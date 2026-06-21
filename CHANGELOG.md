@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/memory: route websocket lifecycle, agent-loop, memory hub, memory
+  workflow, and transcript replay wording through hosted backend, SDK
+  projection, and desktop/backend runtime labels instead of product-owned
+  generic conversation/runtime labels. No migration required.
 - docs/runtime: route onboarding permission, plugin built-in tool, and
   streaming/event concept wording through desktop onboarding, built-in
   local-runtime tool, and backend websocket event labels instead of
