@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Empty-State Fixture Neutralization
+
+- Finding: `ChatInterfaceWiring` still asserted the WindieOS empty-state title
+  directly, even though the chat interface reads that copy from
+  `desktopRuntimeSkin.chat`.
+- Change: mocked a neutral sample chat skin in the chat wiring test and added a
+  modular completion guard so renderer chat wiring fixtures stay
+  product-neutral while real WindieOS chat copy remains skin-owned.
+- Validation: focused chat wiring and modular boundary tests, exact empty-state
+  copy scan, docs listing, and diff checks.
+- Compatibility: no migration required. Renderer chat behavior, WindieOS
+  renderer skin copy, IPC channels, stored transcripts, settings, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-20 IPC Host Option State Env Fixture Neutralization
 
 - Finding: IPC host option state coverage used `WINDIE_TEST` as an arbitrary

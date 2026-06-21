@@ -426,6 +426,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(workspaceSurfaceText).toContain('D:\\\\Assistants\\\\project-alpha');
   });
 
+  test('renderer chat wiring tests keep skin copy fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/ChatInterfaceWiring.test.jsx');
+
+    expect(source).not.toContain('Welcome to WindieOS Demo');
+    expect(source).toContain('Welcome to Sample Desktop Demo');
+  });
+
   test('main permission workspace tests keep path fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/PermissionIpcRuntime.test.cjs'),

@@ -141,6 +141,16 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopDevUiRuntime', () => (
   isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
 
+jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
+  desktopRuntimeSkin: {
+    chat: {
+      emptyTitle: 'Welcome to Sample Desktop Demo',
+      replayPreparationFailureMessage: 'Sample app could not prepare the conversation replay.',
+      sendFailureMessage: 'Sample app is not connected right now.',
+    },
+  },
+}));
+
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
   DesktopLiveTurnRuntimeClient: {
     stop: (...args) => mockStopQuery(...args),
@@ -1194,7 +1204,7 @@ describe('ChatInterface wiring', () => {
   test('renders welcome empty state when there are no messages', () => {
     render(<ChatInterface />);
     expect(screen.getByTestId('chat-empty-state')).toBeInTheDocument();
-    expect(screen.getByText('Welcome to WindieOS Demo')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to Sample Desktop Demo')).toBeInTheDocument();
   });
 
   test('renders history loading state instead of welcome state while selected chat rows load', () => {
@@ -1203,7 +1213,7 @@ describe('ChatInterface wiring', () => {
     expect(screen.getByTestId('chat-history-loading-state')).toBeInTheDocument();
     expect(screen.getByText('Loading chat')).toBeInTheDocument();
     expect(screen.queryByTestId('chat-empty-state')).not.toBeInTheDocument();
-    expect(screen.queryByText('Welcome to WindieOS Demo')).not.toBeInTheDocument();
+    expect(screen.queryByText('Welcome to Sample Desktop Demo')).not.toBeInTheDocument();
     expect(screen.queryByTestId('message-input')).not.toBeInTheDocument();
   });
 

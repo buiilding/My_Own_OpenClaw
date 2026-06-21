@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/renderer: use neutral injected chat skin copy in chat interface wiring
+  coverage instead of WindieOS empty-state text. No migration required.
 - tests/main: use a neutral local-runtime env key fixture in IPC host option
   state coverage instead of a WindieOS-prefixed sample. No migration required.
 - tests/renderer, tests/main: use neutral injected query send-failure copy in
