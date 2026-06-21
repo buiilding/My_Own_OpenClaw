@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Browser Control Ownership Wording
+
+- Finding: the Browser Control guide still assigned dedicated Chrome/CDP launch,
+  connect behavior, lifecycle action schema, tab targeting, and profile
+  isolation to WindieOS product wording instead of the hosted backend,
+  Electron UI, and local-runtime browser adapter owners.
+- Change: reworded Browser Control ownership through hosted backend
+  model-facing policy, Electron permission/status UI, and local-runtime Python
+  browser adapter launch/session mechanics while preserving WindieOS env aliases
+  as product launch configuration.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Browser action names, schemas, connect
+  behavior, CDP/profile resolution, daemon files, tab controls, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Dedicated Browser Runtime Adapter Wording
 
 - Finding: the dedicated browser runtime guide still described Browser Use

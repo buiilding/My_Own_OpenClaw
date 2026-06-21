@@ -14,13 +14,13 @@ WindieOS provides a powerful **browser control tool** that allows the AI agent t
 
 Browser execution is routed through the maintained Browser Use CLI daemon via `frontend/src/main/python/tools/browser/browser_use_engine.py`.
 
-- WindieOS owns the model-facing `browser` tool schema, backend validation, agent loop, permissions, UI status, and result shape.
-- WindieOS owns the dedicated Chrome profile launch and CDP endpoint; Browser Use owns daemon session lifecycle after attaching, CDP/Playwright edge cases, DOM state extraction, numeric element indexes, click/input/scroll/upload/tab actions, screenshots, and daemon recovery.
+- The hosted backend owns the model-facing `browser` tool schema, backend validation, agent loop, provider policy, and result shape. Electron main and renderer own permission/readiness UI and visible browser status.
+- The local-runtime Python browser adapter owns the dedicated Chrome profile launch and CDP endpoint; Browser Use owns daemon session lifecycle after attaching, CDP/Playwright edge cases, DOM state extraction, numeric element indexes, click/input/scroll/upload/tab actions, screenshots, and daemon recovery.
 - The local-runtime Python browser adapter invokes Browser Use with
   `python -m browser_use.skill_cli.main` from the same Python environment.
 - Browser Use daemon files live under `AGENT_BROWSER_USE_HOME`
   (`WINDIE_BROWSER_USE_HOME` in WindieOS launches) when set, otherwise under
-  the WindieOS app data directory at `browser-use/`.
+  the active desktop app data directory at `browser-use/`.
 - The default Browser Use session name is `desktop-agent`; override with
   `AGENT_BROWSER_USE_SESSION` or the WindieOS alias
   `WINDIE_BROWSER_USE_SESSION=windieos` for diagnostics, isolated local
@@ -36,7 +36,7 @@ Browser execution is routed through the maintained Browser Use CLI daemon via `f
 The `browser` tool uses one connect model:
 
 1. **Desktop Runtime Browser Use Session** - a Browser Use daemon session named `desktop-agent` by default.
-2. WindieOS launches or reuses its dedicated persistent Chrome profile with CDP.
+2. The local-runtime browser adapter launches or reuses the dedicated persistent Chrome profile with CDP.
 3. Browser Use attaches to that CDP endpoint and maintains automation for the session.
 4. `connect` starts or reuses the Browser Use session and returns Browser Use state text.
 
@@ -55,10 +55,10 @@ The browser feature pack now requires the `browser_use` Python module. Browser U
 
 ## Connect Behavior
 
-**No manual setup required.** When you issue a browser request, WindieOS connect will:
+**No manual setup required.** When you issue a browser request, the `connect` action will:
 1. Reuse the named Browser Use daemon session when it is already running.
 2. Otherwise start the Browser Use daemon and a headed browser session.
-3. Leave WindieOS agent orchestration and tool-call policy unchanged.
+3. Leave hosted backend agent orchestration and tool-call policy unchanged.
 
 Connect via the tool:
 ```json
@@ -75,7 +75,7 @@ CDP connections are restricted to localhost for security. The agent can only con
 
 ### Browser Use Action Surface
 
-In addition to WindieOS lifecycle actions (`connect`, `status`, `profiles`, `snapshot`, `get_tabs`, etc.), `browser` exposes a flat Windie schema over Browser Use-backed actions:
+In addition to browser lifecycle actions (`connect`, `status`, `profiles`, `snapshot`, `get_tabs`, etc.), `browser` exposes a flat action schema over Browser Use-backed actions:
 
 - `navigate`, `click`, `extract`, `scroll`, `screenshot`, `wait`, `evaluate`, `close`
 - `search`, `go_back`, `done`
@@ -90,16 +90,16 @@ Notes:
 - `close` closes the controlled browser session.
 - `done` is exposed for parity with Browser Use completion tooling.
 - Browser Use actions are also supported via `act.request.kind` using the same names.
-- `switch` defaults to visible tab activation, but supports `activate=false` for internal-only target changes so WindieOS can control a different tab without bringing it to the foreground in the user-visible browser window.
+- `switch` defaults to visible tab activation, but supports `activate=false` for internal-only target changes so the browser adapter can control a different tab without bringing it to the foreground in the user-visible browser window.
 - `find_text` supports optional `css_scope` and `max_results`, matching the scoped page-search behavior used by `search_page`.
 - `find_elements` returns non-actionable `ordinal` values for CSS query results. Use `snapshot.output` indexes for `click`, `input`, `hover`, `upload_file`, `select_dropdown`, and `get_*` actions.
 - Browser-internal navigation targets such as `chrome://settings/syncSetup` are routed through Browser Use's Python `browser.goto(...)` action wrapper so the Browser Use CLI `open` command cannot rewrite them into `https://...` URLs.
 - Overlapping actions now run Browser Use-only semantics at runtime (`snapshot`, `navigate`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `evaluate`): compatibility-only fields are rejected (for example `snapshot.format`, `snapshot.snapshotFormat`, `snapshot.wait_until`, `snapshot.mode`, `snapshot.max_chars`, `snapshot.refs`, `snapshot.interactive`, `snapshot.compact`, `snapshot.depth`, `snapshot.selector`, `snapshot.frame`, `extract.mode`, `extract.selector`, `extract.frame`, `wait.state`, `screenshot.full_page`, `screenshot.ref`, `screenshot.element`, `screenshot.type`, `screenshot.quality`).
-- For `click`, `input`, `hover`, `upload_file`, `select_dropdown`, and `get_*`, the Browser Use engine requires numeric Browser Use element indexes. WindieOS role refs such as `e12` and `ref` aliases are rejected by validation instead of being routed through the retired controller locator path.
+- For `click`, `input`, `hover`, `upload_file`, `select_dropdown`, and `get_*`, the Browser Use engine requires numeric Browser Use element indexes. Role refs such as `e12` and `ref` aliases are rejected by validation instead of being routed through the retired controller locator path.
 
 ### 1. Connect
 
-Initialize/attach the WindieOS dedicated browser instance.
+Initialize or attach the dedicated desktop browser instance.
 
 ```json
 {
@@ -328,7 +328,7 @@ Switch to a specific tab.
 ```
 
 Optional:
-- `activate`: defaults to `true`. Set `false` to change WindieOS's internal browser-control target without bringing that tab to the foreground in the visible browser window.
+- `activate`: defaults to `true`. Set `false` to change the internal browser-control target without bringing that tab to the foreground in the visible browser window.
 
 ### Chat Header Browser Control
 
@@ -463,14 +463,14 @@ Unsupported browser-controller actions remain removed from runtime routing
 
 ## Troubleshooting
 
-### Cannot Connect to Windie Browser
+### Cannot Connect to Dedicated Browser
 
 **Error:** `Cannot connect to Chrome at http://127.0.0.1:9333`
 
 **Solutions:**
 
-1. **Auto-launch** (recommended): WindieOS connect auto-attaches to an existing Windie browser instance or launches one automatically.
-2. **If launch still fails**, close stale Windie browser instances and retry `{"action":"connect"}`.
+1. **Auto-launch** (recommended): `connect` auto-attaches to an existing dedicated browser instance or launches one automatically.
+2. **If launch still fails**, close stale dedicated browser instances and retry `{"action":"connect"}`.
 3. **Check dedicated browser CDP port availability**:
    ```bash
    lsof -i :9333  # macOS/Linux
@@ -511,7 +511,7 @@ playwright install chromium
 ## Best Practices
 
 1. **Snapshot before interacting** - Ensures refs are attached and the target still exists
-2. **Use the WindieOS dedicated browser session** - Browser automation runs through the isolated Browser Use/CDP path.
+2. **Use the dedicated browser session** - Browser automation runs through the isolated Browser Use/CDP path.
 3. **Close when done** - Frees resources
 4. **Handle failures gracefully** - Pages can change, elements may not exist
 
@@ -547,6 +547,6 @@ Supported platforms:
 ## Privacy & Security
 
 - **CDP connections** are localhost-only
-- **WindieOS browser profile** is separate from the user's default browser profile
+- **Dedicated browser profile** is separate from the user's default browser profile
 - **Screenshots** may contain sensitive data
 - **JavaScript evaluation** can execute arbitrary code

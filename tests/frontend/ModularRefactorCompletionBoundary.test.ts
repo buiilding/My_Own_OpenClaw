@@ -2450,6 +2450,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('dedicated browser runtime');
     expect(docText).toContain('controlled browser session');
     expect(docText).toContain('dedicated browser Chrome/CDP startup policy');
+    expect(docText).toContain('The local-runtime Python browser adapter owns the dedicated Chrome profile launch');
+    expect(docText).toContain('When you issue a browser request, the `connect` action will');
     expect(docText).toContain('The local-runtime Browser Use adapter passes them only when starting');
     expect(docText).toContain('The desktop/local-runtime browser path should keep only adapter state');
     expect(docText).toContain('Host-skinned desktop launches may inject a product-specific user-data root');
@@ -2468,6 +2470,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('WindieOS passes them only when starting');
     expect(docText).not.toContain('WindieOS does not call Browser Use CLI');
     expect(docText).not.toContain('WindieOS should keep only adapter state');
+    expect(docText).not.toContain('WindieOS owns the dedicated Chrome profile launch');
+    expect(docText).not.toContain('WindieOS launches or reuses its dedicated persistent Chrome profile');
+    expect(docText).not.toContain('WindieOS connect will');
+    expect(docText).not.toContain('Cannot Connect to Windie Browser');
+    expect(docText).not.toContain('WindieOS browser profile');
     expect(docText).not.toContain('Backend-Sidecar Browser Schema');
     expect(docText).not.toContain('Frontend/sidecar manifest');
     expect(docText).not.toContain('Python sidecar registry');
