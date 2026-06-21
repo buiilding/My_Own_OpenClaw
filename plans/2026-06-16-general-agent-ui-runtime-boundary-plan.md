@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Dashboard Layout Facade
+
+- Finding: `desktopDashboardLayoutRuntime.js` already owned the renderer-only
+  dashboard resize pulse timing and fallback dispatch behavior, but still
+  exported `requestDashboardLayoutPass(...)` as a standalone helper consumed by
+  `DashboardShell` and focused tests.
+- Change: made the resize-pulse helper private to the layout runtime module,
+  exposed it through `DesktopDashboardLayoutRuntime`, and routed dashboard
+  shell layout wake-up plus focused layout tests through that facade.
+- Validation: focused dashboard layout, dashboard shell, renderer app boundary,
+  exact standalone layout helper export/import scan, docs list, and diff
+  hygiene.
+- Compatibility/security: no migration required. Two-frame
+  `requestAnimationFrame` resize dispatch, timeout fallback behavior, direct
+  dispatch fallback behavior, dashboard target routing, IPC, storage,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer New Chat Event Facade
 
 - Finding: `desktopChatEvents.js` already owned the renderer-only new-chat DOM

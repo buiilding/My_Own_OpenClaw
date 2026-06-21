@@ -20,11 +20,14 @@ import { resetActiveChatSession } from '../../../app/runtime/desktopActiveChatSe
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopChatEventsRuntime } from '../../../app/runtime/desktopChatEvents';
-import { requestDashboardLayoutPass } from '../../../app/runtime/desktopDashboardLayoutRuntime';
+import { DesktopDashboardLayoutRuntime } from '../../../app/runtime/desktopDashboardLayoutRuntime';
 
 const {
   dispatchDesktopRuntimeNewChatEvent,
 } = DesktopChatEventsRuntime;
+const {
+  requestDashboardLayoutPass,
+} = DesktopDashboardLayoutRuntime;
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose dashboard layout resize-pulse requests through
+  `DesktopDashboardLayoutRuntime` instead of a standalone helper export,
+  keeping synthetic resize event details behind the renderer app-runtime
+  facade. No migration required.
 - frontend/renderer: expose renderer-only new-chat event dispatch and
   subscription through `DesktopChatEventsRuntime` instead of standalone helper
   exports, keeping the private browser event contract behind the renderer

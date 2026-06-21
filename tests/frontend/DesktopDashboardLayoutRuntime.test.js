@@ -2,7 +2,11 @@
  * Covers renderer dashboard layout runtime helpers.
  */
 
-import { requestDashboardLayoutPass } from '../../frontend/src/renderer/app/runtime/desktopDashboardLayoutRuntime';
+import { DesktopDashboardLayoutRuntime } from '../../frontend/src/renderer/app/runtime/desktopDashboardLayoutRuntime';
+
+const {
+  requestDashboardLayoutPass,
+} = DesktopDashboardLayoutRuntime;
 
 describe('desktopDashboardLayoutRuntime', () => {
   test('requestDashboardLayoutPass dispatches resize over two animation frames', () => {

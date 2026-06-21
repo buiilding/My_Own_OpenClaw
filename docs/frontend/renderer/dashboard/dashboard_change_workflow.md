@@ -106,7 +106,7 @@ Shell invariants:
 - `vmModeEnabled` disables dashboard chrome/panels and keeps only the chat
   surface.
 - `main-window-open-target` should wake dashboard layout through
-  `desktopDashboardLayoutRuntime.requestDashboardLayoutPass(...)` and route
+  `DesktopDashboardLayoutRuntime.requestDashboardLayoutPass(...)` and route
   only to known targets.
 - runtime clients provide normalized dashboard transport and user context snapshots
   (`DesktopWindowRuntimeClient.onMainWindowOpenTarget(...)` and

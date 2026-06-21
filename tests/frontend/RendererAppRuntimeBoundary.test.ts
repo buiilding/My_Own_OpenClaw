@@ -738,9 +738,12 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(dashboardLayoutSource).toContain('requestDashboardLayoutPass');
+    expect(dashboardLayoutSource).toContain('export const DesktopDashboardLayoutRuntime = Object.freeze');
+    expect(dashboardLayoutSource).not.toContain('export function requestDashboardLayoutPass');
     expect(dashboardLayoutSource).toContain("new Event('resize')");
     expect(dashboardLayoutSource).toContain('requestAnimationFrame');
     expect(dashboardShellSource).toContain('desktopDashboardLayoutRuntime');
+    expect(dashboardShellSource).toContain('DesktopDashboardLayoutRuntime');
     expect(dashboardShellSource).not.toContain("window.dispatchEvent(new Event('resize'))");
     expect(dashboardShellSource).not.toContain('window.requestAnimationFrame');
   });

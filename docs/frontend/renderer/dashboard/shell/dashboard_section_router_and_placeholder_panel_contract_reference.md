@@ -142,9 +142,9 @@ consumes a trimmed target string and does not interpret raw
 `main-window-open-target` payload fields directly.
 
 Dashboard reopen wake-up calls
-`desktopDashboardLayoutRuntime.requestDashboardLayoutPass(...)` for the
+`DesktopDashboardLayoutRuntime.requestDashboardLayoutPass(...)` for the
 renderer-only resize pulse used by layout observers. `DashboardShell` owns the
-animation and routing state, while the app-runtime helper owns the browser
+animation and routing state, while the app-runtime facade owns the browser
 resize event dispatch timing.
 
 Accepted targets:

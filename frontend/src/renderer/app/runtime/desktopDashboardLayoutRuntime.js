@@ -6,7 +6,7 @@ function getDefaultEventTarget() {
   return typeof window !== 'undefined' ? window : null;
 }
 
-export function requestDashboardLayoutPass(eventTarget = getDefaultEventTarget()) {
+function requestDashboardLayoutPass(eventTarget = getDefaultEventTarget()) {
   if (!eventTarget?.dispatchEvent) {
     return false;
   }
@@ -31,3 +31,7 @@ export function requestDashboardLayoutPass(eventTarget = getDefaultEventTarget()
   dispatchResize();
   return true;
 }
+
+export const DesktopDashboardLayoutRuntime = Object.freeze({
+  requestDashboardLayoutPass,
+});
