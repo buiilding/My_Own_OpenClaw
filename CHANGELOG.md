@@ -68,6 +68,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: move onboarding external permission grant watching into
+  `DesktopPermissionGrantEffectsRuntime`, keeping focus/visibility listeners
+  and recheck timers out of the onboarding feature hook. No migration required.
+- frontend/renderer: require renderer `pendingTurn` state for chat stream
+  terminal re-anchor handoff, so stale raw `isSending=true` no longer relaxes
+  stale-turn filtering after a previous terminal phase. No migration required.
 - frontend/renderer: keep visible-lifecycle SDK handoff predicates private to
   `DesktopVisibleTurnLifecycleRuntime`; chat store pending clearing now asks
   `resolvePendingTurnForCurrentProjection(...)` for the resolved pending-turn

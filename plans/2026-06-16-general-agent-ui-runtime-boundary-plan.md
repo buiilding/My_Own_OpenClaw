@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Onboarding Permission Grant Watcher Boundary
+
+- Finding: `useOnboardingPermissionActions(...)` still owned raw browser
+  focus/visibility subscriptions, interval scheduling, deadline checks, and
+  watched-permission bookkeeping while waiting for OS-settings permission
+  grants to appear.
+- Change: `DesktopPermissionGrantEffectsRuntime` now owns
+  `createExternalPermissionGrantWatcher(...)`, which encapsulates renderer
+  attention listeners, recheck timers, timeout clearing, and grant-completion
+  cleanup. The onboarding hook now delegates watcher lifecycle to that
+  app-runtime facade.
+- Validation target: focused permission grant-effects and onboarding action
+  tests protect polling, attention-triggered rechecks, grant completion, and
+  cleanup; renderer app-runtime boundary coverage rejects raw browser
+  attention/timer adapters in the onboarding hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission manifest, credential, local execution,
+  storage, or trust-boundary migration required.
+
 ### 2026-06-21 Visible Lifecycle Pending Resolver Facade
 
 - Finding: `chatStore.ts` still consumed

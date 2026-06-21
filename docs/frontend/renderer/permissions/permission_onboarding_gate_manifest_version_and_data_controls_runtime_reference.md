@@ -127,6 +127,7 @@ Permission request handling is split deliberately:
 - `DesktopPermissionPresentationRuntime.getPermissionStatusDetailsPresentation(...)` owns status reason, class, and remediation presentation so onboarding slides do not parse raw status detail fields directly
 - `DesktopPermissionGrantEffectsRuntime.applyPermissionGrantEffects(...)` centralizes permission-specific post-grant renderer effects such as enabling `browser_automation_enabled`
 - `DesktopPermissionGrantEffectsRuntime.shouldWatchExternalPermissionGrantCompletion(...)` and `DesktopPermissionGrantEffectsRuntime.shouldPollPermissionGrantByInterval(...)` own permission-specific follow-up probe policy for OS-settings grants, so onboarding actions do not read raw status `details`, `granted`, or `status` fields directly
+- `DesktopPermissionGrantEffectsRuntime.createExternalPermissionGrantWatcher(...)` owns OS-settings grant watcher mechanics: renderer focus/visibility listeners, recheck interval scheduling, timeout cleanup, and clearing the waiting permission once the external grant lands
 
 ### Settings Permission Status
 
@@ -153,9 +154,9 @@ Examples:
 3. Diverging onboarding and settings permission actions into separate stores.
 4. Changing storage key/shape without an explicit reset plan can reset completion state unexpectedly.
 5. Reintroducing permission-specific config side effects, raw status-field
-   watch decisions, or raw status-detail presentation parsing directly inside
-   onboarding view components will make permission behavior harder to reuse or
-   test.
+   watch decisions, raw browser attention/timer adapters, or raw status-detail
+   presentation parsing directly inside onboarding view components will make
+   permission behavior harder to reuse or test.
 
 ## Related Pages
 

@@ -1312,17 +1312,25 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(grantEffectsSource).toContain('browser_automation_enabled');
+    expect(grantEffectsSource).toContain('createExternalPermissionGrantWatcher');
     expect(grantEffectsSource).toContain('shouldPollPermissionGrantByInterval');
     expect(grantEffectsSource).toContain('shouldWatchExternalPermissionGrantCompletion');
     expect(grantEffectsSource).toContain('export const DesktopPermissionGrantEffectsRuntime = Object.freeze');
     expect(grantEffectsSource).not.toContain('export function applyPermissionGrantEffects');
+    expect(grantEffectsSource).not.toContain('export function createExternalPermissionGrantWatcher');
     expect(grantEffectsSource).not.toContain('export function shouldPollPermissionGrantByInterval');
     expect(grantEffectsSource).not.toContain('export function shouldWatchExternalPermissionGrantCompletion');
     expect(grantEffectsSource).not.toContain('features/permissions');
     expect(onboardingActionsSource).toContain('desktopPermissionGrantEffectsRuntime');
     expect(onboardingActionsSource).toContain('DesktopPermissionGrantEffectsRuntime');
-    expect(onboardingActionsSource).toContain('shouldPollPermissionGrantByInterval');
+    expect(onboardingActionsSource).toContain('createExternalPermissionGrantWatcher');
     expect(onboardingActionsSource).toContain('shouldWatchExternalPermissionGrantCompletion');
+    expect(onboardingActionsSource).not.toContain('shouldPollPermissionGrantByInterval');
+    expect(onboardingActionsSource).not.toContain('window.addEventListener');
+    expect(onboardingActionsSource).not.toContain('document.addEventListener');
+    expect(onboardingActionsSource).not.toContain('document.hidden');
+    expect(onboardingActionsSource).not.toContain('window.setInterval');
+    expect(onboardingActionsSource).not.toContain('window.clearInterval');
     expect(onboardingActionsSource).not.toContain('status?.details');
     expect(onboardingActionsSource).not.toContain('status?.granted');
     expect(onboardingActionsSource).not.toContain('status?.status');
@@ -1372,8 +1380,8 @@ describe('renderer app runtime boundary', () => {
     expect(badgeSource).toContain('DesktopPermissionPresentationRuntime');
     expect(onboardingSlideSource).toContain('desktopPermissionPresentationRuntime');
     expect(onboardingSlideSource).toContain('DesktopPermissionPresentationRuntime');
-    expect(onboardingActionsSource).toContain('desktopPermissionPresentationRuntime');
-    expect(onboardingActionsSource).toContain('DesktopPermissionPresentationRuntime');
+    expect(onboardingActionsSource).not.toContain('desktopPermissionPresentationRuntime');
+    expect(onboardingActionsSource).not.toContain('DesktopPermissionPresentationRuntime');
     expect(browserSettingsSource).toContain('DesktopPermissionPresentationRuntime');
     expect(onboardingSlideSource).not.toContain('status?.reason');
     expect(onboardingSlideSource).not.toContain('status?.status');

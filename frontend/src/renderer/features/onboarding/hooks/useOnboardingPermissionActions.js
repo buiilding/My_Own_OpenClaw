@@ -5,63 +5,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopPermissionGrantEffectsRuntime } from '../../../app/runtime/desktopPermissionGrantEffectsRuntime';
-import { DesktopPermissionPresentationRuntime } from '../../../app/runtime/desktopPermissionPresentationRuntime';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
 
 const {
   applyPermissionGrantEffects,
-  shouldPollPermissionGrantByInterval,
+  createExternalPermissionGrantWatcher,
   shouldWatchExternalPermissionGrantCompletion,
 } = DesktopPermissionGrantEffectsRuntime;
-const {
-  isPermissionGrantedStatus,
-} = DesktopPermissionPresentationRuntime;
-
-const PERMISSION_RECHECK_INTERVAL_MS = 1000;
-const PERMISSION_RECHECK_TIMEOUT_MS = 2 * 60 * 1000;
-
-function stopWatchingPermission({
-  watchedPermissionIdRef,
-  recheckIntervalRef,
-  recheckDeadlineRef,
-  setWaitingPermissionId,
-}) {
-  watchedPermissionIdRef.current = '';
-  recheckDeadlineRef.current = 0;
-  if (typeof setWaitingPermissionId === 'function') {
-    setWaitingPermissionId('');
-  }
-  if (typeof window !== 'undefined' && recheckIntervalRef.current) {
-    window.clearInterval(recheckIntervalRef.current);
-    recheckIntervalRef.current = null;
-  }
-}
-
-async function recheckWatchedPermission({
-  runPermissionProbe,
-  watchedPermissionIdRef,
-  recheckDeadlineRef,
-  recheckIntervalRef,
-  setWaitingPermissionId,
-}) {
-  const permissionId = watchedPermissionIdRef.current;
-  if (!permissionId) {
-    return null;
-  }
-
-  const status = typeof runPermissionProbe === 'function'
-    ? await runPermissionProbe(permissionId)
-    : null;
-  if (isPermissionGrantedStatus(status) || Date.now() >= recheckDeadlineRef.current) {
-    stopWatchingPermission({
-      watchedPermissionIdRef,
-      recheckIntervalRef,
-      recheckDeadlineRef,
-      setWaitingPermissionId,
-    });
-  }
-  return status;
-}
 
 export function useOnboardingPermissionActions() {
   const isLoading = usePermissionStore((state) => state.isLoading);
@@ -70,75 +20,20 @@ export function useOnboardingPermissionActions() {
   const { updateConfig } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const [pendingPermissionId, setPendingPermissionId] = useState('');
   const [waitingPermissionId, setWaitingPermissionId] = useState('');
-  const watchedPermissionIdRef = useRef('');
-  const recheckIntervalRef = useRef(null);
-  const recheckDeadlineRef = useRef(0);
-
-  const startWatchingPermission = (permissionId) => {
-    if (typeof window === 'undefined' || !permissionId) {
-      return;
-    }
-
-    const shouldPollByInterval = shouldPollPermissionGrantByInterval(permissionId);
-    stopWatchingPermission({
-      watchedPermissionIdRef,
-      recheckIntervalRef,
-      recheckDeadlineRef,
-      setWaitingPermissionId,
-    });
-    watchedPermissionIdRef.current = permissionId;
-    recheckDeadlineRef.current = Date.now() + PERMISSION_RECHECK_TIMEOUT_MS;
-    setWaitingPermissionId(permissionId);
-    if (shouldPollByInterval) {
-      recheckIntervalRef.current = window.setInterval(() => {
-        void recheckWatchedPermission({
-          runPermissionProbe,
-          watchedPermissionIdRef,
-          recheckIntervalRef,
-          recheckDeadlineRef,
-          setWaitingPermissionId,
-        });
-      }, PERMISSION_RECHECK_INTERVAL_MS);
-      void recheckWatchedPermission({
-        runPermissionProbe,
-        watchedPermissionIdRef,
-        recheckIntervalRef,
-        recheckDeadlineRef,
-        setWaitingPermissionId,
-      });
-    }
-  };
+  const permissionGrantWatcherRef = useRef(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof document === 'undefined') {
-      return undefined;
-    }
-
-    const handleWindowAttention = () => {
-      if (document.hidden || !watchedPermissionIdRef.current) {
-        return;
-      }
-      void recheckWatchedPermission({
-        runPermissionProbe,
-        watchedPermissionIdRef,
-        recheckIntervalRef,
-        recheckDeadlineRef,
-        setWaitingPermissionId,
-      });
-    };
-
-    window.addEventListener('focus', handleWindowAttention);
-    document.addEventListener('visibilitychange', handleWindowAttention);
+    const watcher = createExternalPermissionGrantWatcher({
+      runPermissionProbe,
+      setWaitingPermissionId,
+    });
+    permissionGrantWatcherRef.current = watcher;
 
     return () => {
-      window.removeEventListener('focus', handleWindowAttention);
-      document.removeEventListener('visibilitychange', handleWindowAttention);
-      stopWatchingPermission({
-        watchedPermissionIdRef,
-        recheckIntervalRef,
-        recheckDeadlineRef,
-        setWaitingPermissionId,
-      });
+      watcher.dispose();
+      if (permissionGrantWatcherRef.current === watcher) {
+        permissionGrantWatcherRef.current = null;
+      }
     };
   }, [runPermissionProbe]);
 
@@ -152,14 +47,9 @@ export function useOnboardingPermissionActions() {
       const status = await requestPermission(permissionId);
       applyPermissionGrantEffects({ permissionId, status, updateConfig });
       if (shouldWatchExternalPermissionGrantCompletion(permissionId, status)) {
-        startWatchingPermission(permissionId);
-      } else if (isPermissionGrantedStatus(status) && watchedPermissionIdRef.current === permissionId) {
-        stopWatchingPermission({
-          watchedPermissionIdRef,
-          recheckIntervalRef,
-          recheckDeadlineRef,
-          setWaitingPermissionId,
-        });
+        permissionGrantWatcherRef.current?.start(permissionId);
+      } else {
+        permissionGrantWatcherRef.current?.stopWhenGrantComplete(permissionId, status);
       }
       return status;
     } finally {
