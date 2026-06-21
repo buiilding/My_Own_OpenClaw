@@ -24,12 +24,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-import {
-  DesktopResponseOverlayRuntimeClient,
-  buildResponseboxHitTestPayload,
-  buildResponseboxSizePayload,
-  normalizeResponseOverlayVisibilityPayload,
-} from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient';
+import * as DesktopResponseOverlayRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient';
+import { DesktopResponseOverlayRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient';
 
 describe('DesktopResponseOverlayRuntimeClient', () => {
   beforeEach(() => {
@@ -37,19 +33,10 @@ describe('DesktopResponseOverlayRuntimeClient', () => {
     visibilityListener = null;
   });
 
-  test('normalizes response overlay visibility payloads', () => {
-    expect(normalizeResponseOverlayVisibilityPayload({ visible: true })).toEqual({
-      visible: true,
-    });
-    expect(normalizeResponseOverlayVisibilityPayload({ visible: false })).toEqual({
-      visible: false,
-    });
-    expect(normalizeResponseOverlayVisibilityPayload({ visible: 'yes' })).toEqual({
-      visible: false,
-    });
-    expect(normalizeResponseOverlayVisibilityPayload(null)).toEqual({
-      visible: false,
-    });
+  test('keeps response overlay value helpers private to the runtime client', () => {
+    expect(DesktopResponseOverlayRuntimeModule).not.toHaveProperty('normalizeResponseOverlayVisibilityPayload');
+    expect(DesktopResponseOverlayRuntimeModule).not.toHaveProperty('buildResponseboxSizePayload');
+    expect(DesktopResponseOverlayRuntimeModule).not.toHaveProperty('buildResponseboxHitTestPayload');
   });
 
   test('visibility subscriptions emit normalized visibility booleans', () => {
@@ -59,10 +46,14 @@ describe('DesktopResponseOverlayRuntimeClient', () => {
     });
 
     visibilityListener?.({ visible: true });
+    visibilityListener?.({ visible: false });
     visibilityListener?.({ visible: 'yes' });
+    visibilityListener?.(null);
 
     expect(events).toEqual([
       true,
+      false,
+      false,
       false,
     ]);
 
@@ -70,40 +61,23 @@ describe('DesktopResponseOverlayRuntimeClient', () => {
     expect(visibilityListener).toBeNull();
   });
 
-  test('builds responsebox size payloads from renderer values', () => {
-    expect(buildResponseboxSizePayload({
+  test('value-level size commands invoke responsebox size payloads', async () => {
+    await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
       visible: true,
       width: 240.8,
       height: 120,
       compactHover: true,
       turnRef: ' turn-1 ',
       staleGuardRef: ' guard-1 ',
-    })).toEqual({
-      visible: true,
-      width: 240.8,
-      height: 120,
-      compact_hover: true,
-      turn_ref: 'turn-1',
-      stale_guard_ref: 'guard-1',
     });
-    expect(buildResponseboxSizePayload({
+    await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
       visible: false,
       width: 'bad',
       height: null,
       turnRef: '',
       staleGuardRef: undefined,
       dismissed: true,
-    })).toEqual({
-      visible: false,
-      width: 0,
-      height: 0,
-      turn_ref: null,
-      stale_guard_ref: null,
-      dismissed: true,
     });
-  });
-
-  test('value-level size commands invoke responsebox size payloads', async () => {
     await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
       visible: true,
       width: 320,
@@ -113,7 +87,32 @@ describe('DesktopResponseOverlayRuntimeClient', () => {
       staleGuardRef: 'turn-2',
     });
 
-    expect(mockInvoke).toHaveBeenCalledWith(
+    expect(mockInvoke).toHaveBeenNthCalledWith(
+      1,
+      'set-responsebox-size',
+      {
+        visible: true,
+        width: 240.8,
+        height: 120,
+        compact_hover: true,
+        turn_ref: 'turn-1',
+        stale_guard_ref: 'guard-1',
+      },
+    );
+    expect(mockInvoke).toHaveBeenNthCalledWith(
+      2,
+      'set-responsebox-size',
+      {
+        visible: false,
+        width: 0,
+        height: 0,
+        turn_ref: null,
+        stale_guard_ref: null,
+        dismissed: true,
+      },
+    );
+    expect(mockInvoke).toHaveBeenNthCalledWith(
+      3,
       'set-responsebox-size',
       {
         visible: true,
@@ -127,12 +126,16 @@ describe('DesktopResponseOverlayRuntimeClient', () => {
   });
 
   test('value-level hit-test commands invoke responsebox hit-test payloads', async () => {
-    expect(buildResponseboxHitTestPayload(true)).toEqual({ active: true });
-    expect(buildResponseboxHitTestPayload(1)).toEqual({ active: false });
+    await DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(true);
+    await DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(1);
 
-    await DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(false);
-
-    expect(mockInvoke).toHaveBeenCalledWith(
+    expect(mockInvoke).toHaveBeenNthCalledWith(
+      1,
+      'set-responsebox-hit-test-active',
+      { active: true },
+    );
+    expect(mockInvoke).toHaveBeenNthCalledWith(
+      2,
       'set-responsebox-hit-test-active',
       { active: false },
     );

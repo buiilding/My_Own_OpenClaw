@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Response Overlay Payload Helper Privacy
+
+- Finding: `DesktopResponseOverlayRuntimeClient` already owned response
+  overlay visibility normalization plus responsebox size and hit-test payload
+  construction through value-level command/subscription helpers, but still
+  exported the raw payload helpers for focused tests.
+- Change: made the response overlay visibility, size, and hit-test payload
+  helpers private to the response overlay runtime client, kept raw-payload IPC
+  methods and public value-level facades intact, and updated focused coverage
+  to exercise normalized behavior through the public runtime client methods.
+- Validation: focused response overlay runtime client and renderer chat
+  boundary tests, exact raw-helper export scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Responsebox IPC channel names,
+  size/hit-test payload shapes, overlay visibility subscription behavior,
+  renderer trace payloads, permissions, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Renderer Wakeword Value Parser Privacy
 
 - Finding: `DesktopVoiceRuntimeClient` already owned wakeword status,

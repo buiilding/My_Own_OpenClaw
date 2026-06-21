@@ -51,7 +51,7 @@ function optionalStringOrNull(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-export function normalizeResponseOverlayVisibilityPayload(
+function normalizeResponseOverlayVisibilityPayload(
   payload: unknown,
 ): ResponseOverlayVisibilityPayload {
   const source = recordOrEmpty(payload);
@@ -60,7 +60,7 @@ export function normalizeResponseOverlayVisibilityPayload(
   };
 }
 
-export function buildResponseboxSizePayload(values: ResponseboxSizeValues): ResponseboxSizePayload {
+function buildResponseboxSizePayload(values: ResponseboxSizeValues): ResponseboxSizePayload {
   const payload: ResponseboxSizePayload = {
     visible: values.visible === true,
     width: finiteNumberOrZero(values.width),
@@ -77,7 +77,7 @@ export function buildResponseboxSizePayload(values: ResponseboxSizeValues): Resp
   return payload;
 }
 
-export function buildResponseboxHitTestPayload(active: unknown): ResponseboxHitTestPayload {
+function buildResponseboxHitTestPayload(active: unknown): ResponseboxHitTestPayload {
   return {
     active: active === true,
   };

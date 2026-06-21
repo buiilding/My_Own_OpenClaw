@@ -2139,9 +2139,12 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).not.toContain('setResponseboxSize({');
     expect(viewModelSource).toContain('setResponseboxSizeValues');
     expect(viewModelSource).not.toContain('setResponseboxSize({');
-    expect(clientSource).toContain('normalizeResponseOverlayVisibilityPayload');
-    expect(clientSource).toContain('buildResponseboxSizePayload');
-    expect(clientSource).toContain('buildResponseboxHitTestPayload');
+    expect(clientSource).toContain('function normalizeResponseOverlayVisibilityPayload');
+    expect(clientSource).not.toContain('export function normalizeResponseOverlayVisibilityPayload');
+    expect(clientSource).toContain('function buildResponseboxSizePayload');
+    expect(clientSource).not.toContain('export function buildResponseboxSizePayload');
+    expect(clientSource).toContain('function buildResponseboxHitTestPayload');
+    expect(clientSource).not.toContain('export function buildResponseboxHitTestPayload');
     expect(clientSource).toContain('normalizeResponseOverlayVisibilityPayload(payload).visible');
     expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceSizeTracePayload');
     expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceSizeLiveTracePayload');
