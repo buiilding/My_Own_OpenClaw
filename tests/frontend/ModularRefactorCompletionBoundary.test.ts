@@ -774,6 +774,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('SAMPLE_ENABLE_SCRIPTED_PROVIDER');
   });
 
+  test('IPC query runtime tests keep injected query copy product-neutral', async () => {
+    const source = await read('tests/frontend/IpcQueryRuntime.test.cjs');
+
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain('WindieOS lost connection');
+    expect(source).toContain('sampleQueryEventsCopy');
+    expect(source).toContain('Sample app lost connection after accepting the message.');
+  });
+
   test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/voice/WakewordDetectionHook.test.ts'),

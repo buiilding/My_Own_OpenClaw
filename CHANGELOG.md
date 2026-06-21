@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral injected IPC query interruption copy instead of
+  WindieOS host-skin query copy. No migration required.
 - tests/main: use neutral injected debug env fixtures in IPC helper and live
   surface trace coverage instead of WindieOS host-skin debug values. No
   migration required.

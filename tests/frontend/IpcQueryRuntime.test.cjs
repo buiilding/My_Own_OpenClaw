@@ -10,9 +10,10 @@ const {
   resolveConversationRef,
   buildQueryInterrupted: buildQueryInterruptedEvent,
 } = require('../../frontend/src/main/ipc/ipc_query_events.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const sampleQueryEventsCopy = Object.freeze({
+  interruptedAfterAccept: 'Sample app lost connection after accepting the message. Retry after reconnecting.',
+});
 
 describe('ipc_query_runtime', () => {
   test('buildBackendQueryPayload keeps the exact backend query contract keys', () => {
@@ -166,7 +167,7 @@ describe('ipc_query_runtime', () => {
       currentServerUserId: 'server-user-1',
       currentUserId: 'client-user-1',
       accepted: true,
-      copy: mainHostSkin.queryEvents,
+      copy: sampleQueryEventsCopy,
     })).toEqual({
       type: 'error',
       id: 'turn-1',
@@ -175,7 +176,7 @@ describe('ipc_query_runtime', () => {
       user_id: 'server-user-1',
       conversation_ref: 'conv-1',
       payload: {
-        message: 'WindieOS lost connection before the response finished. Retry this message after reconnecting.',
+        message: 'Sample app lost connection after accepting the message. Retry after reconnecting.',
         interrupted: true,
         accepted: true,
       },

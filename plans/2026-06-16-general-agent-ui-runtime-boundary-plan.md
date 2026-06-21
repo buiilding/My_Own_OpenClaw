@@ -19351,6 +19351,19 @@ Each completed slice should report:
   SDK typing transition logging, host-skin configuration, permissions, storage,
   provider policy, and backend behavior are unchanged.
 
+### 2026-06-21 IPC query copy fixture neutrality
+
+- Finding: generic IPC query runtime tests still imported WindieOS host-skin
+  query event copy to exercise injected interruption-message behavior.
+- Change: replaced that import with a test-local sample query copy and added a
+  modular boundary guard so IPC query runtime coverage stays product-neutral.
+- Validation: focused IPC query runtime, host-skin boundary, and modular
+  boundary tests; exact retired IPC query copy scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Query payload normalization,
+  interrupted-query event shaping, injected host copy wiring, permissions,
+  storage, provider policy, and backend behavior are unchanged.
+
 ### 2026-06-21 Runtime path and wakeword host config fixture neutrality
 
 - Finding: generic runtime-path and wakeword bridge tests imported the
