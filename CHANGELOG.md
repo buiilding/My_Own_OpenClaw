@@ -41,6 +41,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.
+- docs/main: describe the SDK-managed backend lifecycle in the IPC helper
+  reference as hosted-backend runtime ownership instead of generic backend
+  runtime shorthand. No migration required.
 - renderer/browser: route browser-session diagnostics through the renderer
   app-runtime conversation contract facade instead of importing SDK command
   names directly from the SDK owner module. No migration required.

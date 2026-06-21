@@ -22200,3 +22200,20 @@ Each completed slice should report:
   local-runtime bridge paths, Python implementation paths, daemon launch,
   hosted backend integration, IPC, storage, provider policy, permissions,
   backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 main IPC hosted-backend runtime label
+
+- Finding: the main IPC helper split reference still said
+  `AgentClient.wakeUp(...)` constructs a managed backend runtime, even though
+  the backend side of that SDK lifecycle is the WindieOS hosted-backend runtime
+  and the same doc now separates SDK local runtime, Electron main, and hosted
+  backend ownership.
+- Change: reworded that lifecycle line to managed hosted-backend runtime
+  wording and added main host-skin boundary coverage so the generic backend
+  runtime shorthand does not return to the IPC helper reference.
+- Validation: focused main host-skin boundary test, exact stale phrase scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  SDK wake-up behavior, hosted backend websocket construction, Electron IPC,
+  local-runtime startup, provider policy, permissions, storage, backend
+  behavior, and trust boundaries are unchanged.

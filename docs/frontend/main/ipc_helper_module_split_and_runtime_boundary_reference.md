@@ -230,9 +230,9 @@ Own Agent SDK runtime lifecycle construction:
 - resolves install identity from the install token and builds the authenticated
   SDK handshake
 - starts/reuses the SDK local runtime and discovers executable local tools
-- constructs the managed backend runtime once and exposes connection and command
-  helpers through the agent plus projection helpers through the conversation
-  runtime
+- constructs the managed hosted-backend runtime once and exposes connection and
+  command helpers through the agent plus projection helpers through the
+  conversation runtime
 - emits normalized conversation events and current-turn projections for Electron
   main to convert into renderer rows/status and forward
 - emits interrupted active-query events when the backend closes during an active loop phase

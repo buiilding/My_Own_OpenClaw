@@ -64,6 +64,10 @@ const queryPayloadReferencePath = path.resolve(
   __dirname,
   '../../docs/frontend/main/query_payload_and_relay_reference.md',
 );
+const ipcHelperReferencePath = path.resolve(
+  __dirname,
+  '../../docs/frontend/main/ipc_helper_module_split_and_runtime_boundary_reference.md',
+);
 const mainMarkerConsumerPaths = [
   layerLogSinkPath,
   path.join(mainRoot, 'surfaces/main_window_overlay_runtime.cjs'),
@@ -359,6 +363,13 @@ describe('main host skin/config boundary', () => {
 
     expect(source).toContain('local-runtime/tool runtime bootstrap');
     expect(source).not.toContain('sidecar/tool runtime bootstrap');
+  });
+
+  test('main IPC helper docs use hosted-backend runtime wording', () => {
+    const source = fs.readFileSync(ipcHelperReferencePath, 'utf8');
+
+    expect(source).toContain('managed hosted-backend runtime');
+    expect(source).not.toContain('managed backend runtime');
   });
 
   test('query send-failure broadcast builds sdk events without backend normalizer import', () => {
