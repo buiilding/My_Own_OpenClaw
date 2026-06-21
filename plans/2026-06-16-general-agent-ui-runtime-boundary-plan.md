@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Chat Interface Binding Subscription Runtime
+
+- Finding: `useChatInterfaceBindings(...)` still owned raw
+  `window.addEventListener(...)` / `removeEventListener(...)` wiring for
+  provider/model/reasoning menu dismissal, the local Stop shortcut, and
+  thread-find open/close shortcuts.
+- Change: added `DesktopChatInterfaceBindingsRuntime` as the renderer
+  app-runtime browser subscription owner for chat interface bindings. The
+  feature hook now delegates menu dismiss, Stop shortcut, and find shortcut
+  subscriptions while keeping React lifecycle and local callbacks in the hook.
+- Validation target: focused chat-interface binding runtime, chat interface
+  wiring, and renderer chat boundary tests protect menu dismissal, Stop
+  shortcut prevention/dispatch, thread-find shortcuts, and rejection of raw
+  window listener wiring in the feature hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Outside Dismiss Browser Adapter Runtime
 
 - Finding: chat browser tab picker, message-input plus menu, and dashboard

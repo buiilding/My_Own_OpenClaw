@@ -2099,6 +2099,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopShortcutRuntimeClient.ts'),
       'utf8',
     );
+    const chatInterfaceBindingsRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfaceBindingsRuntime.js'),
+      'utf8',
+    );
     const workspaceClientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts'),
       'utf8',
@@ -2155,10 +2159,19 @@ describe('renderer chat runtime boundary', () => {
     expect(bindingsSource).not.toContain('AUDIO_CHUNK');
     expect(bindingsSource).not.toContain('IpcBridge.on');
     expect(bindingsSource).not.toContain('infrastructure/shortcuts/agentStopShortcut');
+    expect(bindingsSource).not.toContain('window.addEventListener');
+    expect(bindingsSource).not.toContain('window.removeEventListener');
+    expect(bindingsSource).not.toContain('isAgentStopShortcutEvent');
     expect(chatInterfaceSource).toContain('DesktopNewChatSessionRuntime');
     expect(chatInterfaceSource).not.toContain('import { startNewChatSession');
     expect(bindingsSource).toContain('DesktopAudioRuntimeClient.onAudioChunk');
-    expect(bindingsSource).toContain('DesktopShortcutRuntimeClient.isAgentStopShortcutEvent');
+    expect(bindingsSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToMenuDismiss');
+    expect(bindingsSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToStopShortcut');
+    expect(bindingsSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToFindShortcut');
+    expect(chatInterfaceBindingsRuntimeSource).toContain('DesktopShortcutRuntimeClient.isAgentStopShortcutEvent');
+    expect(chatInterfaceBindingsRuntimeSource).toContain('addEventListener');
+    expect(chatInterfaceBindingsRuntimeSource).toContain('removeEventListener');
+    expect(chatInterfaceBindingsRuntimeSource).not.toContain('features/chat');
     expect(audioClientSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
     expect(audioClientSource).toContain('PlayerService');
     expect(audioClientSource).toContain('createAudioPlayer');

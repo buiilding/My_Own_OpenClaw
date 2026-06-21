@@ -12,6 +12,7 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterfaceHeaderControls.jsx`
+- `frontend/src/renderer/app/runtime/desktopChatInterfaceBindingsRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatInterfaceBindings.js`
 - `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
@@ -55,6 +56,9 @@ Dashboard stop behavior is owned by `useStopTurnHandler(...)`:
 Keyboard binding:
 
 - `useChatInterfaceStopShortcut(canStop, handleStopTurn)`
+- Raw `keydown` subscription and Stop shortcut predicate handling live in
+  `DesktopChatInterfaceBindingsRuntime`; the hook supplies lifecycle state and
+  the resolved stop callback.
 
 ## Sender Surface Contract (Dashboard/Main Window)
 
@@ -83,6 +87,9 @@ Chat interface event subscriptions are routed through app runtime clients:
   `onWorkspaceSelectionUpdated(...)`) and owns active-workspace refresh,
   conversation binding comparison, and whether a workspace-picker update should
   start a new chat.
+- `DesktopChatInterfaceBindingsRuntime` owns the browser `mousedown` and
+  `keydown` listener adapters used by provider/model/reasoning menu dismissal,
+  local Stop shortcut handling, and thread-find open/close shortcuts.
 
 Provider dropdown:
 

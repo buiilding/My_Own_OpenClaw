@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route chat interface menu-dismiss, stop-shortcut, and
+  thread-find shortcut window subscriptions through
+  `DesktopChatInterfaceBindingsRuntime`, keeping raw browser listener wiring
+  out of `useChatInterfaceBindings`. No migration required.
 - frontend/renderer: route chat browser session, plus-menu, and dashboard
   sidebar outside-dismiss subscriptions through `DesktopDismissOnOutsideRuntime`
   so pointer and Escape dismissal rules share one renderer app-runtime owner. No
