@@ -9,6 +9,26 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Runtime Conversation Ref Resolver Privacy
+
+- Finding: `ipc_runtime_conversation_ref.cjs` already exposed
+  `createRuntimeConversationRefRuntime(...)` as the Electron main
+  conversation-ref facade, but `resolveRuntimeConversationRef(...)` still
+  leaked as a public helper export after the lower-level string normalizer was
+  made private.
+- Change: kept conversation-ref payload/fallback resolution private to the
+  runtime owner while preserving nested transport `payload.conversation_ref`
+  precedence, direct snake/camel aliases, cached conversation fallback,
+  trimming, blank-value rejection, non-string rejection, and latest-fallback
+  lookup coverage through `createRuntimeConversationRefRuntime(...)`.
+- Validation: focused runtime conversation-ref and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no SDK runtime command payload, conversation-ref
+  fallback behavior, replay/edit/retry path, IPC channel, credential,
+  permission, storage, or trust-boundary migration required; conversation-ref
+  behavior is unchanged.
+
 ### 2026-06-21 Main Workspace Path Resolver Privacy
 
 - Finding: `ipc_workspace_path_runtime.cjs` already exposed
@@ -202,7 +222,9 @@ Date: 2026-06-16
   helper export.
 - Change: kept `normalizeOptionalString(...)` private to the runtime
   conversation-ref owner while preserving resolver coverage for nested
-  transport, direct alias, fallback, trim, blank, and non-string behavior.
+  transport, direct alias, fallback, trim, blank, and non-string behavior; a
+  later follow-up kept the conversation-ref resolver private behind the same
+  runtime facade.
 - Validation: focused runtime conversation-ref and main SDK boundary tests,
   targeted main IPC lint, docs listing, stale export scans, and diff checks
   before commit.

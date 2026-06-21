@@ -573,6 +573,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(runtimeConversationRefSource).toContain('function createRuntimeConversationRefRuntime');
     expect(runtimeConversationRefSource).toContain('input.conversation_ref || input.conversationRef');
     expect(runtimeConversationRefSource).not.toContain('  normalizeOptionalString,');
+    expect(runtimeConversationRefSource).not.toContain('  resolveRuntimeConversationRef,');
     expect(source).toContain('createBackendSessionState()');
     expect(source).not.toContain('let currentSessionId = null');
     expect(source).not.toContain('let currentServerUserId = null');

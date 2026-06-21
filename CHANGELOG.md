@@ -88,10 +88,16 @@ All notable changes to WindieOS will be documented in this file.
   `ipc_workspace_path_runtime.cjs` while preserving command payload precedence,
   cached config fallback, trimming, blank rejection, and non-string rejection
   through `createWorkspacePathRuntime(...)`. No migration required.
+- frontend/main: keep runtime conversation-ref payload/fallback resolution
+  private to `ipc_runtime_conversation_ref.cjs` while preserving nested
+  transport, direct alias, cached fallback, trimming, blank rejection, and
+  non-string rejection through `createRuntimeConversationRefRuntime(...)`. No
+  migration required.
 - frontend/main: keep runtime conversation-ref string normalization private to
-  `ipc_runtime_conversation_ref.cjs` while preserving the public resolver and
-  runtime facade for nested transport/direct/fallback coverage. No migration
-  required.
+  `ipc_runtime_conversation_ref.cjs` while preserving nested
+  transport/direct/fallback coverage through the runtime facade; a later
+  follow-up kept the conversation-ref resolver private behind the same facade.
+  No migration required.
 - frontend/main: keep workspace-path string normalization private to
   `ipc_workspace_path_runtime.cjs` while preserving payload/config fallback
   coverage through the runtime facade; a later follow-up kept the

@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main workspace-path runtime keeps
-  payload/config resolution private to `ipc_workspace_path_runtime.cjs`, while
-  command payload precedence, cached config fallback, trimming, blank rejection,
-  non-string rejection, and latest-config lookup remain covered through the
-  public workspace-path runtime facade.
+- Latest completed slice: Electron main runtime conversation-ref helper keeps
+  payload/fallback resolution private to `ipc_runtime_conversation_ref.cjs`,
+  while nested transport precedence, direct aliases, cached fallback, trimming,
+  blank rejection, non-string rejection, and latest-fallback lookup remain
+  covered through the public conversation-ref runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1068,6 +1068,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   contracts, IPC channels, storage, provider policy, and hosted backend
   behavior are unchanged.
 
+### 2026-06-21 Main Runtime Conversation Ref Resolver Privacy
+
+- Finding: `ipc_runtime_conversation_ref.cjs` already exposed the composed
+  conversation-ref runtime facade, but `resolveRuntimeConversationRef(...)`
+  still leaked the lower-level payload/fallback resolver as a public helper
+  export after the string normalizer was made private.
+- Change: removed the resolver from the public module surface while preserving
+  runtime coverage for nested transport `payload.conversation_ref` precedence,
+  direct `conversation_ref` / `conversationRef` aliases, cached current
+  conversation fallback, trimming, blank-value rejection, non-string rejection,
+  and latest-fallback lookup.
+- Validation: focused runtime conversation-ref and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. SDK runtime command payloads,
+  conversation-ref fallback behavior, replay/edit/retry paths, IPC channels,
+  credentials, permissions, trust boundaries, and storage are unchanged.
+
 ### 2026-06-21 Main Runtime Conversation Ref Normalizer Privacy
 
 - Finding: `ipc_runtime_conversation_ref.cjs` already exposed the composed
@@ -1076,7 +1093,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: removed the string normalizer from the public module surface while
   preserving resolver coverage for nested transport `payload.conversation_ref`,
   direct snake/camel aliases, cached fallback refs, trimming, blank values, and
-  non-string rejection.
+  non-string rejection; a later follow-up kept the resolver private behind the
+  same runtime facade.
 - Validation: focused runtime conversation-ref and main SDK boundary tests,
   targeted main IPC lint, docs listing, stale export scans, and diff checks.
 - Compatibility: no migration required. SDK runtime command payloads,

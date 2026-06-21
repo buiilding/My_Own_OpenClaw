@@ -424,12 +424,13 @@ boundary:
 
 - exposes `createRuntimeConversationRefRuntime(...)` so `ipc.cjs` composes the
   current conversation fallback reader once
-- prefers nested transport `payload.conversation_ref`
+- keeps conversation-ref resolution private behind the runtime facade; it
+  prefers nested transport `payload.conversation_ref`
 - falls back to direct `conversation_ref` and `conversationRef` aliases used by
   SDK runtime command/replay paths
 - uses the cached current conversation ref only when the input has no explicit
   conversation identity
-- keeps trim/null normalization private behind the conversation-ref resolver
+- keeps trim/null normalization private behind the conversation-ref runtime
 
 ### `ipc_backend_message_observers.cjs`
 

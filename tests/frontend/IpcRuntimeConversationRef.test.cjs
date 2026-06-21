@@ -6,44 +6,49 @@ const path = require('path');
 const runtimeConversationRefModule = require('../../frontend/src/main/ipc/ipc_runtime_conversation_ref.cjs');
 const {
   createRuntimeConversationRefRuntime,
-  resolveRuntimeConversationRef,
 } = runtimeConversationRefModule;
+
+function createResolver(fallbackConversationRef = null) {
+  return createRuntimeConversationRefRuntime({
+    getFallbackConversationRef: () => fallbackConversationRef,
+  });
+}
 
 describe('ipc_runtime_conversation_ref', () => {
   test('prefers nested backend transport conversation_ref over direct aliases', () => {
-    expect(resolveRuntimeConversationRef({
+    expect(createResolver('fallback-conv').resolve({
       conversation_ref: ' direct-snake ',
       conversationRef: 'direct-camel',
       payload: {
         conversation_ref: ' nested-transport ',
       },
-    }, 'fallback-conv')).toBe('nested-transport');
+    })).toBe('nested-transport');
   });
 
   test('falls back to direct snake_case then camelCase conversation refs', () => {
-    expect(resolveRuntimeConversationRef({
+    expect(createResolver('fallback-conv').resolve({
       conversation_ref: ' direct-snake ',
       conversationRef: 'direct-camel',
-    }, 'fallback-conv')).toBe('direct-snake');
-    expect(resolveRuntimeConversationRef({
+    })).toBe('direct-snake');
+    expect(createResolver('fallback-conv').resolve({
       conversationRef: ' direct-camel ',
-    }, 'fallback-conv')).toBe('direct-camel');
+    })).toBe('direct-camel');
   });
 
   test('uses the cached current conversation fallback only when input has no ref', () => {
-    expect(resolveRuntimeConversationRef({}, ' fallback-conv ')).toBe('fallback-conv');
-    expect(resolveRuntimeConversationRef({ payload: {} }, '')).toBeNull();
-    expect(resolveRuntimeConversationRef(null, null)).toBeNull();
+    expect(createResolver(' fallback-conv ').resolve({})).toBe('fallback-conv');
+    expect(createResolver('').resolve({ payload: {} })).toBeNull();
+    expect(createResolver(null).resolve(null)).toBeNull();
   });
 
   test('ignores blank and non-string values', () => {
-    expect(resolveRuntimeConversationRef({
+    expect(createResolver(' fallback-conv ').resolve({
       conversation_ref: ' ',
       conversationRef: 123,
       payload: {
         conversation_ref: [],
       },
-    }, ' fallback-conv ')).toBe('fallback-conv');
+    })).toBe('fallback-conv');
   });
 
   test('runtime resolves against the latest fallback conversation ref', () => {
@@ -79,5 +84,6 @@ describe('ipc_runtime_conversation_ref', () => {
     expect(helperSource).toContain('payload.conversation_ref');
     expect(helperSource).toContain('input.conversation_ref || input.conversationRef');
     expect(runtimeConversationRefModule.normalizeOptionalString).toBeUndefined();
+    expect(runtimeConversationRefModule.resolveRuntimeConversationRef).toBeUndefined();
   });
 });
