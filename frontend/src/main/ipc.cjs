@@ -523,7 +523,7 @@ const agentBackendEventRuntime = createAgentBackendEventRuntime({
     setCurrentConversationRef: (value) => {
       backendSessionState.setConversationRef(value);
     },
-    resolveSettingsSync: (msgId, wasSuccessful) => settingsSyncRuntime.resolveAck(
+    resolveSettingsAck: (msgId, wasSuccessful) => settingsSyncRuntime.resolveAck(
       msgId,
       wasSuccessful,
     ),

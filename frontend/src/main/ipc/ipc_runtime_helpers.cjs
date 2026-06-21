@@ -221,7 +221,7 @@ function processBackendMessageData(data, {
   setCurrentSessionId,
   setCurrentServerUserId,
   setCurrentConversationRef,
-  resolveSettingsSync,
+  resolveSettingsAck,
   setResponseOverlayPhase,
   getResponseOverlayPhase,
   broadcastToRenderers,
@@ -251,9 +251,9 @@ function processBackendMessageData(data, {
     log(`Error from agent backend: ${rendererData.payload?.message || 'Unknown error'}`);
   }
   if (rendererData?.type === 'settings-updated' && rendererData.id) {
-    resolveSettingsSync(rendererData.id, true);
+    resolveSettingsAck(rendererData.id, true);
   } else if (rendererData?.type === 'error' && rendererData.id) {
-    resolveSettingsSync(rendererData.id, false);
+    resolveSettingsAck(rendererData.id, false);
   }
   const overlayTransition = resolveBackendOverlayPhaseTransition(rendererData, getResponseOverlayPhase());
   if (overlayTransition) {

@@ -71,7 +71,7 @@ describe('ipc_runtime_helpers scripted provider augmentation', () => {
       setCurrentSessionId: jest.fn(),
       setCurrentServerUserId: jest.fn(),
       setCurrentConversationRef: jest.fn(),
-      resolveSettingsSync: jest.fn(),
+      resolveSettingsAck: jest.fn(),
       setResponseOverlayPhase: jest.fn(),
       getResponseOverlayPhase: jest.fn(() => 'idle'),
       broadcastToRenderers: jest.fn(),
@@ -86,6 +86,6 @@ describe('ipc_runtime_helpers scripted provider augmentation', () => {
 
     expect(deps.log).toHaveBeenCalledWith('Error from agent backend: settings failed');
     expect(deps.log).not.toHaveBeenCalledWith(expect.stringContaining('Error from backend'));
-    expect(deps.resolveSettingsSync).toHaveBeenCalledWith('settings-1', false);
+    expect(deps.resolveSettingsAck).toHaveBeenCalledWith('settings-1', false);
   });
 });

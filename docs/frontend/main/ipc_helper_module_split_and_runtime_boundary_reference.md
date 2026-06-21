@@ -759,18 +759,17 @@ projection. Electron main must not synthesize a duplicate local user message.
 
 ### `ipc_settings_sync.cjs`
 
-Owns settings ACK gate primitives used by `ipc.cjs`:
+Owns the shared settings payload contract used by Electron main config
+callers:
 
 - `isValidConfigPayload`
-- `waitForSettingsAck`
-- `resolveSettingsSync`
-- `clearPendingSettingsSyncs`
 
 ### `ipc_settings_sync_runtime.cjs`
 
 Owns settings-sync state and command orchestration:
 
-- pending settings ACK map lifecycle
+- pending settings ACK map lifecycle, including private wait/resolve/clear
+  mechanics and timeout logging
 - initial settings sync attempt gating
 - renderer/update-settings backend command send
 - queued list-models request state and flush after backend open

@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Settings ACK Gate Privacy
+
+- Finding: `ipc_settings_sync_runtime.cjs` owned the settings-sync ACK map and
+  initial-query gate, but the lower-level wait/resolve/clear ACK primitives
+  still leaked as public exports from `ipc_settings_sync.cjs`.
+- Change: kept ACK wait/resolve/clear mechanics private to the settings-sync
+  runtime and moved success, timeout, reset, and pending-promise cleanup
+  coverage through `createIpcSettingsSyncRuntime(...)`, leaving
+  `isValidConfigPayload(...)` as the narrow shared settings payload contract.
+- Validation: focused settings-sync helper/runtime tests, targeted main IPC
+  lint, docs listing, stale export-line scans, and diff checks before commit.
+- Compatibility/security: no IPC channel, settings payload, backend ACK,
+  timeout, credential, permission, or trust-boundary migration required;
+  settings sync behavior is unchanged.
+
 ### 2026-06-21 Main Clipboard Image Copy Runtime Privacy
 
 - Finding: `ipc_clipboard_image.cjs` owned trusted image clipboard copy

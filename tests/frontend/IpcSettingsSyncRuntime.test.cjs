@@ -97,6 +97,50 @@ describe('ipc_settings_sync_runtime', () => {
     expect(updateSettings).toHaveBeenCalledWith({ selected_model_id: 'model-2' });
   });
 
+  test('sendSettingsUpdate times out pending ACKs with source context', async () => {
+    jest.useFakeTimers();
+    const log = jest.fn();
+    const updateSettings = jest.fn(async () => 'settings-msg-timeout');
+    const runtime = createIpcSettingsSyncRuntime({
+      setLatestDesktopUiConfig: jest.fn(),
+      isBackendRuntimeConnected: () => true,
+      updateSettings,
+      log,
+      timeoutMs: 2500,
+    });
+
+    const promise = runtime.sendSettingsUpdate({ selected_model_id: 'model-timeout' }, 'query-gate');
+    await waitForPendingSettingsSync(runtime, updateSettings);
+
+    jest.advanceTimersByTime(2500);
+
+    await expect(promise).resolves.toBe(false);
+    expect(runtime.getPendingSettingsSyncPromise()).toBeNull();
+    expect(log).toHaveBeenCalledWith(
+      'Settings sync timeout (query-gate) for message settings-msg-timeout',
+    );
+    jest.useRealTimers();
+  });
+
+  test('reset clears pending settings ACKs with false', async () => {
+    const updateSettings = jest.fn(async () => 'settings-msg-reset');
+    const runtime = createIpcSettingsSyncRuntime({
+      setLatestDesktopUiConfig: jest.fn(),
+      isBackendRuntimeConnected: () => true,
+      updateSettings,
+      log: jest.fn(),
+      timeoutMs: 1000,
+    });
+
+    const promise = runtime.sendSettingsUpdate({ selected_model_id: 'model-reset' }, 'renderer');
+    await waitForPendingSettingsSync(runtime, updateSettings);
+
+    runtime.reset();
+
+    await expect(promise).resolves.toBe(false);
+    expect(runtime.getPendingSettingsSyncPromise()).toBeNull();
+  });
+
   test('sendSettingsUpdate reports Agent SDK runtime connection failures', async () => {
     const log = jest.fn();
     const updateSettings = jest.fn();

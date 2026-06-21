@@ -23,6 +23,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
+- `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `packages/windie-sdk-js/src/runtime/AgentClient.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
@@ -162,12 +163,13 @@ execution for synthetic calls.
 
 ## Settings Sync ACK Pipeline
 
-Core primitives (implemented in `ipc_settings_sync.cjs`, orchestrated by `ipc.cjs`):
+Core runtime methods and state are owned by `ipc_settings_sync_runtime.cjs`
+and composed by `ipc.cjs`:
 
 - `sendSettingsUpdate(config, source)`
-- `waitForSettingsAck(msgId, source)`
-- `resolveSettingsSync(msgId, wasSuccessful)`
-- `pendingSettingsSyncs` map with timeout
+- `resolveAck(msgId, wasSuccessful)`
+- `reset()`
+- pending settings ACK promise/map with timeout
 
 Rules:
 
@@ -175,8 +177,11 @@ Rules:
 - ACK resolves true on backend `settings-updated` with same id
 - ACK resolves false on backend `error` with same id
 - timeout (`SETTINGS_SYNC_TIMEOUT_MS=2500`) resolves false
+- reset resolves and clears stale pending ACK promises with false
 
-Connection reset always resolves and clears stale pending ACK promises.
+`ipc_settings_sync.cjs` only exposes `isValidConfigPayload(...)` as the shared
+settings payload contract for main-process callers. The ACK wait/resolve/clear
+primitives stay private to the composed settings-sync runtime.
 
 ## Initial Query Gate
 

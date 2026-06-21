@@ -3,16 +3,49 @@
  */
 
 const {
-  clearPendingSettingsSyncs,
   isValidConfigPayload,
-  resolveSettingsSync,
-  waitForSettingsAck,
 } = require('./ipc_settings_sync.cjs');
 const {
   filterBackendPayload,
 } = require('../../../../packages/windie-sdk-js/cjs/transport/backendPayloadContract.js');
 
 const MCP_ENABLED_CONFIG_KEY = 'agent_enabled_mcp_servers';
+
+function clearPendingSettingsSyncs(pendingSettingsSyncs) {
+  for (const { resolve, timer } of pendingSettingsSyncs.values()) {
+    clearTimeout(timer);
+    resolve(false);
+  }
+  pendingSettingsSyncs.clear();
+}
+
+function resolveSettingsAck(pendingSettingsSyncs, msgId, wasSuccessful) {
+  const pending = pendingSettingsSyncs.get(msgId);
+  if (!pending) {
+    return;
+  }
+  clearTimeout(pending.timer);
+  pendingSettingsSyncs.delete(msgId);
+  pending.resolve(Boolean(wasSuccessful));
+}
+
+function waitForSettingsAck(
+  pendingSettingsSyncs,
+  msgId,
+  source,
+  log,
+  timeoutMs,
+) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      pendingSettingsSyncs.delete(msgId);
+      log(`Settings sync timeout (${source}) for message ${msgId}`);
+      resolve(false);
+    }, timeoutMs);
+    timer.unref?.();
+    pendingSettingsSyncs.set(msgId, { resolve, timer });
+  });
+}
 
 function buildBackendSettingsPayload(config) {
   if (!isValidConfigPayload(config)) {
@@ -54,7 +87,7 @@ function createIpcSettingsSyncRuntime({
   }
 
   function resolveAck(msgId, wasSuccessful) {
-    resolveSettingsSync(pendingSettingsSyncs, msgId, wasSuccessful);
+    resolveSettingsAck(pendingSettingsSyncs, msgId, wasSuccessful);
   }
 
   async function preserveLocalOnlyConfigFields(config) {
@@ -128,11 +161,12 @@ function createIpcSettingsSyncRuntime({
       log,
       timeoutMs,
     );
-    pendingSettingsSyncPromise = ackPromise.finally(() => {
-      if (pendingSettingsSyncPromise === ackPromise) {
+    const trackedAckPromise = ackPromise.finally(() => {
+      if (pendingSettingsSyncPromise === trackedAckPromise) {
         pendingSettingsSyncPromise = null;
       }
     });
+    pendingSettingsSyncPromise = trackedAckPromise;
     return pendingSettingsSyncPromise;
   }
 
