@@ -105,17 +105,13 @@ describe('desktopRendererTraceRuntime', () => {
       workspaceMessageCount: 2,
       event: 'pill',
     }));
-    expect(consoleLog).toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.objectContaining({
+    expect(consoleLog).not.toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.anything());
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
       event: 'typing.show',
       view: 'minimal-chat-pill',
       activeConversationRef: 'conv-1',
       workspaceMessageCount: 2,
       extra: true,
-    }));
-    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
-      event: 'typing.show',
-      activeConversationRef: 'conv-1',
-      workspaceMessageCount: 2,
     }));
   });
 
@@ -762,14 +758,12 @@ describe('desktopRendererTraceRuntime', () => {
       awaitingVisible: true,
     });
 
-    expect(consoleLog).toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.objectContaining({
+    expect(consoleLog).not.toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.anything());
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
       event: 'renderer.overlay_view_model.resolved',
       view: 'minimal-response-overlay',
       conversationRef: ' conv-1 ',
       awaitingVisible: true,
-    }));
-    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
-      event: 'renderer.overlay_view_model.resolved',
     }));
 
     logRendererOverlayViewModelTrace('typing.show', {
