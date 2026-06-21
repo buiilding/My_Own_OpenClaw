@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Live Surface Selector Send Alias Removal
+
+- Finding: after surface hooks stopped consuming raw `isSending`,
+  `selectLiveTurnSurfaceState(...)` still returned that legacy send-latch alias
+  through `DesktopChatSurfaceSelectorRuntime.projectDesktopLiveTurnSurfaceState(...)`.
+  The remaining response-overlay use was diagnostic trace payload state, not a
+  lifecycle or view-model input.
+- Change: the live-surface selector contract no longer includes `isSending`.
+  `MinimalResponseOverlay` reads the raw send latch directly from the chat
+  store only for trace payloads, matching the minimal pill trace-only pattern
+  and keeping selector/view-model inputs on messages, pending turn, and SDK
+  projection data.
+- Validation target: focused selector and renderer app-runtime boundary tests
+  protect the removed alias and keep surface hooks/view models free of raw
+  send-latch inputs.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Chat Clipboard Runtime Facade
 
 - Finding: chat message copy actions and transparency-section copy buttons

@@ -105,6 +105,10 @@ All notable changes to WindieOS will be documented in this file.
   dashboard, minimal pill, and response-overlay surface hook boundaries; the
   full chat selector no longer exposes `isSending`, while live overlay traces
   may still read it as diagnostic store state. No migration required.
+- frontend/renderer: remove the legacy `isSending` alias from
+  `selectLiveTurnSurfaceState(...)` and the app-runtime live-surface selector;
+  response overlay keeps any raw send-latch access as an explicit trace-only
+  store read. No migration required.
 - frontend/renderer: route dashboard conversation rename/delete browser dialogs
   through `DesktopDashboardConversationDialogRuntime`, keeping `window.prompt`
   and `window.confirm` adapter details out of dashboard feature hooks. No

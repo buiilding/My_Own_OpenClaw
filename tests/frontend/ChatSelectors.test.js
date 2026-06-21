@@ -43,8 +43,12 @@ describe('chatSelectors', () => {
       latestCurrentTurnProjection: liveProjection,
     })).toEqual(expect.objectContaining({
       currentTurnProjection: liveProjection,
-      isSending: true,
+      thinkingStatus: 'thinking',
     }));
+    expect(projectDesktopLiveTurnSurfaceState({
+      activeWorkspace,
+      latestCurrentTurnProjection: liveProjection,
+    })).not.toHaveProperty('isSending');
   });
 
   test('selects only chat interface state fields', () => {
@@ -204,6 +208,7 @@ describe('chatSelectors', () => {
     });
 
     expect(selected.currentTurnProjection).toBe(liveProjection);
+    expect(selected).not.toHaveProperty('isSending');
   });
 
   test('defaults optional active-workspace fields when not present', () => {

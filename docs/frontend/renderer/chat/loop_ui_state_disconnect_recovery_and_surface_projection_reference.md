@@ -198,7 +198,10 @@ surface still prepares overlay presentation input and SDK overlay intent
 metadata, but phase, busy, awaiting, and response flags now come from
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`. The
 live-surface adapter exposes `isBusy` rather than a legacy `isSending` alias.
-decision to keep renderer-local pending typing through idle, hidden, stale,
+`selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`; minimal
+surfaces that include the legacy send latch in trace payloads read it
+separately as diagnostic store compatibility state, not as lifecycle input.
+The decision to keep renderer-local pending typing through idle, hidden, stale,
 terminal, or visible SDK projections lives with the visible lifecycle owner and
 requires an accepted renderer `pendingTurn`.
 

@@ -9,6 +9,25 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Live Surface Selector Send Alias Removal
+
+- Finding: `selectLiveTurnSurfaceState(...)` still exposed raw `isSending`
+  through `DesktopChatSurfaceSelectorRuntime.projectDesktopLiveTurnSurfaceState(...)`
+  after production lifecycle consumers had moved to visible lifecycle fields.
+  `MinimalResponseOverlay` only used the value for trace payloads, so the
+  live-surface selector contract still carried a lifecycle-shaped alias for a
+  diagnostic read.
+- Change: the live-surface selector no longer returns `isSending`. Response
+  overlay reads raw `isSending` directly from the store only for trace payloads,
+  matching the minimal pill trace-only pattern while keeping lifecycle and
+  hook/view-model inputs on messages, pending turn, and SDK projection data.
+- Validation target: `ChatSelectors.test.js` and
+  `RendererAppRuntimeBoundary.test.ts` protect the removed selector alias and
+  keep surface hooks/view models free of raw send-latch inputs.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Stream Completion Tracking Pending-Turn Gate
 
 - Finding: stream completion handling still let stale raw `isSending=true`

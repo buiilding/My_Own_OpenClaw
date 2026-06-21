@@ -29,11 +29,11 @@ const {
 function MinimalResponseOverlay() {
   const {
     messages,
-    isSending,
     thinkingStatus,
     currentTurnProjection,
     pendingTurn,
   } = useChatStore(useShallow(selectLiveTurnSurfaceState));
+  const isSending = useChatStore((state) => state.isSending);
   const shellRef = useRef(null);
   const responseboxHitTestActiveRef = useRef(null);
   const lastLoggedSurfaceStateRef = useRef('');

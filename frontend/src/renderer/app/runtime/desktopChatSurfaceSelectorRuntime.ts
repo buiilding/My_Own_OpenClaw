@@ -4,7 +4,6 @@
 
 type DesktopChatWorkspaceProjection = {
   messages: unknown[];
-  isSending: boolean;
   thinkingStatus: string | null;
   thinkingSourceEventType?: string | null;
   compactionDebugInfo?: unknown | null;
@@ -38,7 +37,6 @@ function projectDesktopLiveTurnSurfaceState({
 }) {
   return {
     messages: activeWorkspace.messages,
-    isSending: activeWorkspace.isSending,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
     currentTurnProjection: latestCurrentTurnProjection || activeWorkspace.currentTurnProjection || null,
