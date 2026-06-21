@@ -6,9 +6,13 @@ import { DesktopRendererConfigRuntimeClient } from '../../frontend/src/renderer/
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import {
+  DesktopChatStreamThinkingRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
+
+const {
   getCompactionFailedThinkingStatus,
   getCompactionStartedThinkingStatus,
-} from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
+} = DesktopChatStreamThinkingRuntime;
 import { runManualCompaction } from '../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntime';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient', () => ({

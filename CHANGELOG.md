@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose chat-stream thinking placeholders, compaction
+  labels, and reasoning text accumulation through
+  `DesktopChatStreamThinkingRuntime` instead of standalone helper exports,
+  keeping stream thinking presentation behind the renderer app-runtime facade.
+  No migration required.
 - frontend/renderer: expose voice PCM conversion, chunk-size normalization, and
   gateway binary framing through `DesktopVoiceAudioEncodingRuntime` instead of
   standalone helper exports, keeping voice-mode and wakeword capture audio

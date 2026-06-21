@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Stream Thinking Facade
+
+- Finding: `desktopChatStreamThinkingRuntime.ts` already owned reasoning-text
+  accumulation, generic thinking placeholders, and compaction lifecycle labels,
+  but still exported each helper as a standalone function consumed by stream
+  hooks, current-turn projection effects, manual compaction, and tests.
+- Change: made the thinking helpers private to the runtime module, exposed them
+  through `DesktopChatStreamThinkingRuntime`, and routed stream compaction,
+  local-user, current-turn projection, manual compaction, and focused tests
+  through that facade.
+- Validation: focused thinking runtime, compaction handlers, manual compaction,
+  current-turn projection effects, chat thinking state suites, renderer chat
+  boundary coverage, exact standalone helper export/import scan, docs list, and
+  diff hygiene.
+- Compatibility/security: no migration required. Thinking text truncation,
+  generic thinking placeholder behavior, compaction labels, current-turn
+  reasoning projection effects, IPC, storage, permissions, credentials, hosted
+  backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Voice Audio Encoding Facade
 
 - Finding: `desktopVoiceAudioEncodingRuntime.ts` already owned voice PCM16

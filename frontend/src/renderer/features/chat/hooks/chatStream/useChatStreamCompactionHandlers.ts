@@ -25,9 +25,7 @@ import {
   resolveCompactionUserId,
 } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import {
-  getCompactionCompletedThinkingStatus,
-  getCompactionStartedThinkingStatus,
-  resolveCompactionFailedThinkingStatus,
+  DesktopChatStreamThinkingRuntime,
 } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
 import type {
   StreamTrackingEventType,
@@ -35,6 +33,12 @@ import type {
 } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
 import { useLatestRef } from '../../../../app/runtime/desktopRendererHooksRuntimeClient';
+
+const {
+  getCompactionCompletedThinkingStatus,
+  getCompactionStartedThinkingStatus,
+  resolveCompactionFailedThinkingStatus,
+} = DesktopChatStreamThinkingRuntime;
 
 type SetThinkingStatus = (
   status: string | null,

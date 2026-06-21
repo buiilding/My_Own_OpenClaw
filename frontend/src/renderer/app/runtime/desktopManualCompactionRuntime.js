@@ -6,9 +6,13 @@ import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRunti
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
 import {
+  DesktopChatStreamThinkingRuntime,
+} from './desktopChatStreamThinkingRuntime';
+
+const {
   getCompactionFailedThinkingStatus,
   getCompactionStartedThinkingStatus,
-} from './desktopChatStreamThinkingRuntime';
+} = DesktopChatStreamThinkingRuntime;
 
 function waitForNextPaint() {
   return new Promise((resolve) => {

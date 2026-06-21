@@ -109,16 +109,16 @@ Resulting policy:
 - otherwise thinking state starts empty and waits for SDK `currentTurn.reasoningText`
   projection updates derived from backend `llm-thought` chunks
 
-Thinking status helpers from `desktopChatStreamThinkingRuntime.ts`:
+Thinking status methods from `DesktopChatStreamThinkingRuntime`:
 
-- `getGenericThinkingStatus()` returns the temporary placeholder for models
+- `DesktopChatStreamThinkingRuntime.getGenericThinkingStatus()` returns the temporary placeholder for models
   that report thinking support without a text stream, and
-  `isGenericThinkingStatus(...)` lets projection side effects replace that
+  `DesktopChatStreamThinkingRuntime.isGenericThinkingStatus(...)` lets projection side effects replace that
   placeholder when real reasoning text arrives.
-- `getCompactionStartedThinkingStatus()`,
-  `getCompactionCompletedThinkingStatus()`,
-  `getCompactionFailedThinkingStatus()`, and
-  `resolveCompactionFailedThinkingStatus(...)` provide live UI lifecycle labels
+- `DesktopChatStreamThinkingRuntime.getCompactionStartedThinkingStatus()`,
+  `DesktopChatStreamThinkingRuntime.getCompactionCompletedThinkingStatus()`,
+  `DesktopChatStreamThinkingRuntime.getCompactionFailedThinkingStatus()`, and
+  `DesktopChatStreamThinkingRuntime.resolveCompactionFailedThinkingStatus(...)` provide live UI lifecycle labels
   for manual and stream-driven compaction paths while keeping raw label strings
   private to the app-runtime adapter.
 - Final assistant thinking text comes from SDK current-turn reasoning

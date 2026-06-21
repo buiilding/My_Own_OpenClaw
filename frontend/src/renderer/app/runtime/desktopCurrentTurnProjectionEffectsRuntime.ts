@@ -4,10 +4,14 @@
 
 import type { CurrentTurnToolEvent } from './desktopConversationRuntimeContracts';
 import {
-  buildThinkingStatus,
-  isGenericThinkingStatus,
+  DesktopChatStreamThinkingRuntime,
 } from './desktopChatStreamThinkingRuntime';
 import type { recordTrackingEvent as recordTrackingEventRuntime } from './desktopChatStreamEventRuntime';
+
+const {
+  buildThinkingStatus,
+  isGenericThinkingStatus,
+} = DesktopChatStreamThinkingRuntime;
 
 export type ProjectionCursor = {
   assistantLength: number;

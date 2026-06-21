@@ -18,10 +18,14 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
 import { useChatStreamCompactionHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompactionHandlers';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import {
+  DesktopChatStreamThinkingRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
+
+const {
   getCompactionCompletedThinkingStatus,
   getCompactionFailedThinkingStatus,
   getCompactionStartedThinkingStatus,
-} from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
+} = DesktopChatStreamThinkingRuntime;
 
 function sdkEvent(type: string, overrides: Record<string, unknown> = {}) {
   return {

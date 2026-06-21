@@ -8,13 +8,15 @@ import {
   isLocalUserMessageConversationStreamEvent,
   resolveConversationStreamEventTurnRef,
 } from '../../../../app/runtime/desktopChatStreamEventRuntime';
-import { getGenericThinkingStatus } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
+import { DesktopChatStreamThinkingRuntime } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
 import {
   resolveConversationStreamEventPayload,
   resolveLocalUserMessageText,
 } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { type TranscriptModelContext } from '../../../../app/runtime/desktopChatStreamModelContextRuntime';
+
+const { getGenericThinkingStatus } = DesktopChatStreamThinkingRuntime;
 
 type UseChatStreamLocalUserHandlerDeps = {
   modelContextRef: { current: TranscriptModelContext };

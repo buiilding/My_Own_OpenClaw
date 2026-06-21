@@ -2,7 +2,9 @@
  * Covers chat stream formatting. behavior in the frontend test suite.
  */
 
-import {
+import { DesktopChatStreamThinkingRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
+
+const {
   buildThinkingStatus,
   getCompactionCompletedThinkingStatus,
   getCompactionFailedThinkingStatus,
@@ -10,7 +12,7 @@ import {
   getGenericThinkingStatus,
   isGenericThinkingStatus,
   resolveCompactionFailedThinkingStatus,
-} from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
+} = DesktopChatStreamThinkingRuntime;
 
 describe('desktopChatStreamThinkingRuntime', () => {
   test('trims thinking status to max window while appending chunks', () => {

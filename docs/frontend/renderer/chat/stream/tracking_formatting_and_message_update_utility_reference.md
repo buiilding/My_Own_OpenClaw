@@ -42,12 +42,13 @@ Core behavior:
 
 `turnRef ?? current.activeTurnRef` is used as the resolved active turn source, so late events without turn IDs still stay attached to current turn context.
 
-## Thinking Formatting (`desktopChatStreamThinkingRuntime.ts`)
+## Thinking Formatting (`DesktopChatStreamThinkingRuntime`)
 
-- `buildThinkingStatus` appends chunks and caps final string length at 5000 chars (tail-preserving truncation).
+- `DesktopChatStreamThinkingRuntime.buildThinkingStatus(...)` appends chunks
+  and caps final string length at 5000 chars (tail-preserving truncation).
 - Generic thinking placeholders and compaction lifecycle labels are exposed
-  through semantic helpers/predicates so chat hooks do not import raw status
-  constants from the app-runtime adapter.
+  through semantic facade methods/predicates so chat hooks do not import raw
+  status constants or standalone helper exports from the app-runtime adapter.
 - Tool-call, bundle-call, and tool-output display text is projected through the
   tool message-state builders used by chat-stream handlers and SDK display-row
   projection, not through separate chat-stream formatting exports.
