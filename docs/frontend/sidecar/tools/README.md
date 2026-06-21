@@ -18,7 +18,7 @@ title: "Local-Runtime Tools Docs Hub"
 - [Shell and Process Session Runtime Reference](shell_and_process_session_runtime_reference.md)
 - [Shell Output Formatting and Response Payload Contract Reference](system/shell_output_formatting_and_response_payload_contract_reference.md)
 - [Filesystem Read and Replace Runtime Reference](filesystem_read_replace_runtime_reference.md)
-- [Browser Runtime Contract And Browser Use Engine Reference](browser_runtime_contract_and_windie_runtime_reference.md)
+- [Browser Runtime Contract and Browser Use Engine Reference](browser_runtime_contract_and_windie_runtime_reference.md)
 - [Tool Registry Exposed Schema and Result Contract Reference](registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
 - [Wait, Window, and Stats Runtime Reference](system/wait_window_stats_runtime_reference.md)
@@ -28,7 +28,7 @@ title: "Local-Runtime Tools Docs Hub"
 ## Browser Tool Note
 
 The `browser` local-runtime Python tool runs through `BrowserUseEngineRuntime`, which adapts
-WindieOS canonical browser payloads to the maintained Browser Use CLI package.
+canonical local-runtime browser payloads to the maintained Browser Use CLI package.
 The local runtime no longer ships or routes browser actions through the retired
 `WindieBrowserRuntime` or a vendored `browser_use.browser` session subtree.
 

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/browser: describe the local-runtime Browser Use adapter as adapting
+  canonical local-runtime browser payloads and use product-neutral browser
+  contract title casing while keeping retired `WindieBrowserRuntime` notes as
+  removal guards. No migration required.
 - local-runtime/python: label the daemon entrypoint help, internal layer-log
   helper, and local `/health` service payload as `local_runtime_daemon` instead
   of sidecar-owned wording. The historical `sidecar_daemon.py` entrypoint

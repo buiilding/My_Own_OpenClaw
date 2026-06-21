@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Browser Payload Docs Boundary
+
+- Finding: the local-runtime browser tools hub still described
+  `BrowserUseEngineRuntime` as adapting "WindieOS canonical browser payloads"
+  and displayed the deep-page title with stale product/runtime wording, even
+  though the browser contract is now a local-runtime canonical payload
+  boundary.
+- Change: updated the docs hub and deep-page display title to product-neutral
+  local-runtime browser wording while keeping `WindieBrowserRuntime` references
+  only as explicit retired-path guards.
+- Validation: focused modular browser-contract docs guard, targeted stale
+  product-payload scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Browser action schemas,
+  Browser Use adapter code, local-runtime Python execution, permissions, CDP
+  launch policy, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Local-Runtime Daemon Health Label Boundary
 
 - Finding: the Python local-runtime daemon kept active sidecar-owned wording in

@@ -3,10 +3,10 @@ summary: "Deep reference for the local-runtime Browser Use engine adapter: canon
 read_when:
   - When changing `frontend/src/main/python/tools/browser/*` runtime dispatch, browser action coverage, or browser tool error mapping.
   - When tightening or extending the canonical `browser` tool contract and needing runtime/schema parity across local runtime and backend.
-title: "Browser Runtime Contract And Browser Use Engine Reference"
+title: "Browser Runtime Contract and Browser Use Engine Reference"
 ---
 
-# Browser Runtime Contract And Browser Use Engine Reference
+# Browser Runtime Contract and Browser Use Engine Reference
 
 ## Purpose
 

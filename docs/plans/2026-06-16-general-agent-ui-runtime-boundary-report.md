@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: local-runtime Python daemon help, internal layer-log
-  helper naming, and local `/health` service payload now use local-runtime
-  daemon ownership instead of sidecar-owned wording while preserving the
-  historical `sidecar_daemon.py` launch filename.
+- Latest completed slice: local-runtime browser docs now describe
+  `BrowserUseEngineRuntime` as adapting canonical local-runtime browser
+  payloads and display product-neutral browser contract title casing while
+  preserving retired `WindieBrowserRuntime` removal guards.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -47,6 +47,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `sidecar_daemon.py` host-skinned entrypoint, but active runtime help text,
   internal layer-log helper naming, and `/health` service diagnostics identify
   the running service as `local_runtime_daemon`.
+  Local-runtime browser docs describe canonical browser payloads as
+  local-runtime-owned and keep retired `WindieBrowserRuntime` mentions only as
+  removal guards.
   CLI test routing exposes `test local-runtime` as the owner-correct command
   for local-runtime Python pytest while preserving `test sidecar` and the
   `scripts/test-sidecar.sh` compatibility wrapper.
