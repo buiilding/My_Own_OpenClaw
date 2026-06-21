@@ -50,7 +50,7 @@ Toolbar behavior in provider-scoped view:
 - `Back to providers` resets `activeProviderView` and clears hover state
 - provider label shown in toolbar metadata
 
-Provider cards are derived by `toProviderCards(...)` in
+Provider cards are derived through `DesktopModelCardPresentationRuntime` in
 `desktopModelCardPresentationRuntime.js`:
 
 - grouped by normalized provider label
@@ -59,9 +59,8 @@ Provider cards are derived by `toProviderCards(...)` in
 
 ## Model Card Mapping Contract
 
-`toModelCard(model, isRecommended)` in
-`desktopModelCardPresentationRuntime.js` maps backend model objects to display
-card shape:
+`DesktopModelCardPresentationRuntime.toModelCard(model, isRecommended)` maps
+backend model objects to display card shape:
 
 - `id`, `provider`
 - descriptive metadata (`description`, `strengths`) inferred from provider family

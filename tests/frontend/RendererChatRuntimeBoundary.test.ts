@@ -2399,10 +2399,15 @@ describe('renderer chat runtime boundary', () => {
     expect(headerControlsSource).toContain('desktopChatModelOptionsRuntime');
     expect(modelsSectionSource).toContain('desktopModelSelectionRuntime');
     expect(modelsSectionSource).toContain('desktopModelCardPresentationRuntime');
+    expect(modelsSectionSource).toContain('DesktopModelCardPresentationRuntime');
     expect(modelsSectionSource).toContain('desktopProviderCredentialRuntime');
     expect(apiKeysSectionSource).toContain('desktopProviderCredentialRuntime');
     expect(modelRuntimeSource).toContain('buildModelConfigUpdate');
     expect(modelCardPresentationRuntimeSource).toContain('desktopRuntimeConfig');
+    expect(modelCardPresentationRuntimeSource).toContain('DesktopModelCardPresentationRuntime');
+    expect(modelCardPresentationRuntimeSource).not.toContain('export function toModelCard');
+    expect(modelCardPresentationRuntimeSource).not.toContain('export function normalizeProviderLabel');
+    expect(modelCardPresentationRuntimeSource).not.toContain('export function toProviderCards');
     expect(modelCardPresentationRuntimeSource).not.toContain('features/dashboard');
     expect(providerCredentialRuntimeSource).toContain('desktopRuntimeConfig');
     expect(providerCredentialRuntimeSource).toContain('DesktopProviderCredentialRuntime');

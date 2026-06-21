@@ -47,6 +47,11 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopAppearanceThemeRuntime` instead of standalone helper exports, keeping
   renderer-local theme config behind the app-runtime facade. No migration
   required.
+- frontend/renderer: expose dashboard model-card projection, provider label
+  normalization, and provider-card grouping through
+  `DesktopModelCardPresentationRuntime` instead of standalone helper exports,
+  keeping model catalog presentation rules behind the app-runtime facade. No
+  migration required.
 - frontend/renderer: expose permission post-grant config effects and
   external-grant follow-up probe policy through
   `DesktopPermissionGrantEffectsRuntime` instead of standalone helper exports,

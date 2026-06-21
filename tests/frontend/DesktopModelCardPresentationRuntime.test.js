@@ -3,10 +3,14 @@
  */
 
 import {
+  DesktopModelCardPresentationRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopModelCardPresentationRuntime';
+
+const {
   normalizeProviderLabel,
   toModelCard,
   toProviderCards,
-} from '../../frontend/src/renderer/app/runtime/desktopModelCardPresentationRuntime';
+} = DesktopModelCardPresentationRuntime;
 
 describe('desktopModelCardPresentationRuntime', () => {
   test('toModelCard prefers backend catalog metadata', () => {

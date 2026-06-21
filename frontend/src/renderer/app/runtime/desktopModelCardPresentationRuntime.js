@@ -28,7 +28,7 @@ function formatContextHint(contextHint) {
   return 'Context unknown';
 }
 
-export function toModelCard(model, isRecommended) {
+function toModelCard(model, isRecommended) {
   const displayName = model?.display_name || model?.displayName || model?.id || 'unknown-model';
   const contextHint = model?.context_window || model?.contextWindow || model?.context;
   const thinkingBadge = typeof model?.supports_thinking === 'boolean'
@@ -49,12 +49,12 @@ export function toModelCard(model, isRecommended) {
   };
 }
 
-export function normalizeProviderLabel(provider) {
+function normalizeProviderLabel(provider) {
   const value = provider === undefined || provider === null ? '' : String(provider).trim();
   return value || 'Unknown provider';
 }
 
-export function toProviderCards(models, selectedModelId, selectedProvider) {
+function toProviderCards(models, selectedModelId, selectedProvider) {
   const groups = new Map();
 
   models.forEach((model) => {
@@ -88,3 +88,9 @@ export function toProviderCards(models, selectedModelId, selectedProvider) {
       return left.provider.localeCompare(right.provider);
     });
 }
+
+export const DesktopModelCardPresentationRuntime = Object.freeze({
+  normalizeProviderLabel,
+  toModelCard,
+  toProviderCards,
+});

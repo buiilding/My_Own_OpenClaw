@@ -16,9 +16,7 @@ import {
 } from '../../../../app/runtime/desktopModelSelectionRuntime';
 import ApiKeysSection from './ApiKeysSection';
 import {
-  normalizeProviderLabel,
-  toModelCard,
-  toProviderCards,
+  DesktopModelCardPresentationRuntime,
 } from '../../../../app/runtime/desktopModelCardPresentationRuntime';
 import {
   ModelCard,
@@ -27,6 +25,12 @@ import {
 import { DesktopProviderCredentialRuntime } from '../../../../app/runtime/desktopProviderCredentialRuntime';
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
+
+const {
+  normalizeProviderLabel,
+  toModelCard,
+  toProviderCards,
+} = DesktopModelCardPresentationRuntime;
 
 function ModelsSection({ config, availableModels, onConfigChange, onClose = () => {} }) {
   const [modelResetWarning, setModelResetWarning] = useState('');

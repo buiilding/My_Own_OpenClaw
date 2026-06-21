@@ -162,7 +162,7 @@ and search matching policy. `MemorySection` keeps panel state, fetch
 orchestration, delete actions, and rendering while consuming projected rows
 from the app-runtime facade instead of section-local data helpers.
 
-`desktopModelCardPresentationRuntime.js` owns dashboard model-card projection,
+`DesktopModelCardPresentationRuntime` owns dashboard model-card projection,
 provider display fallback consumption through the renderer skin config, context
 hint formatting, thinking/recommended badges, provider label normalization, and
 provider-card grouping. `ModelsSection` keeps provider drilldown, hover state,

@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Model Card Presentation Facade
+
+- Finding: `desktopModelCardPresentationRuntime.js` already owned dashboard
+  model-card projection, provider label normalization, provider grouping, and
+  selected-provider sort policy, but still exported each helper as a standalone
+  function consumed by `ModelsSection` and focused tests.
+- Change: made the model-card projection helpers private to the runtime module,
+  exposed them through `DesktopModelCardPresentationRuntime`, and routed the
+  dashboard models panel plus focused runtime tests through that facade.
+- Validation: focused model-card runtime, dashboard models section, renderer
+  chat boundary, renderer skin/config boundary, exact standalone model-card
+  helper export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Backend model catalog payload
+  interpretation, skin-owned provider display fallbacks, provider label
+  fallback text, selected-provider sort ordering, provider API-key config
+  handling, IPC, storage, credentials, hosted backend URLs, provider policy,
+  and local execution trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Appearance Theme Facade
 
 - Finding: `desktopAppearanceThemeRuntime.js` already owned renderer-local

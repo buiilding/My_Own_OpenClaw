@@ -389,6 +389,10 @@ describe('renderer skin/config boundary', () => {
     expect(providerDisplaySource).toContain('PROVIDER_LABEL_OVERRIDES');
     expect(providerDisplaySource).toContain('OpenAI flagship model family');
     expect(modelCardPresentationRuntimeSource).toContain('desktopRuntimeConfig');
+    expect(modelCardPresentationRuntimeSource).toContain('DesktopModelCardPresentationRuntime');
+    expect(modelCardPresentationRuntimeSource).not.toContain('export function toModelCard');
+    expect(modelCardPresentationRuntimeSource).not.toContain('export function normalizeProviderLabel');
+    expect(modelCardPresentationRuntimeSource).not.toContain('export function toProviderCards');
     expect(modelCardPresentationRuntimeSource).not.toContain('providerModelDisplaySettings');
     expect(chatModelOptionsSource).toContain('desktopRuntimeConfig');
     expect(chatModelOptionsSource).not.toContain('providerModelDisplaySettings');
