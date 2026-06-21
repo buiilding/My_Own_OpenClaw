@@ -57,8 +57,8 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `fetch-artifact-image` | `main/ipc/ipc_artifact_handlers.cjs` | Fetches a backend artifact image through the authenticated artifact handler |
 | `get-system-state` | `main local-runtime bridge` | Proxies to local-runtime `get_system_state` |
 | `get-client-user-id` | `main/ipc/ipc_client_session_handlers.cjs` | Returns connection/user/session/conversation snapshot |
-| `copy-image-to-clipboard` | `main/ipc/ipc_clipboard_image.cjs` | Copies a trusted image URL/data payload into the OS clipboard |
-| `show-image-context-menu` | `main/ipc/ipc_image_context_menu.cjs` | Opens the trusted image context menu and clipboard actions |
+| `copy-image-to-clipboard` | `main/ipc/ipc_image_interaction_handlers.cjs` | Copies a trusted image URL/data payload into the OS clipboard through the clipboard image runtime |
+| `show-image-context-menu` | `main/ipc/ipc_image_interaction_handlers.cjs` | Opens the trusted image context menu and clipboard actions through the context-menu runtime |
 | `set-chatbox-visual-anchor-height` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Updates chatbox visual anchor height for overlay positioning |
 | `set-chatbox-hit-test-active` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Toggles chatbox overlay hit testing |
 | `set-responsebox-hit-test-active` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Toggles response overlay hit testing |

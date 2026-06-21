@@ -246,12 +246,6 @@ const {
   DESKTOP_RUNTIME_INVOKE_CHANNELS,
 } = require('./ipc/ipc_desktop_runtime_channels.cjs');
 const {
-  registerClipboardImageHandler,
-} = require('./ipc/ipc_clipboard_image.cjs');
-const {
-  registerImageContextMenuHandler,
-} = require('./ipc/ipc_image_context_menu.cjs');
-const {
   createImageInteractionHandlersRuntime,
 } = require('./ipc/ipc_image_interaction_handlers.cjs');
 const {
@@ -714,8 +708,6 @@ const imageInteractionHandlersRuntime = createImageInteractionHandlersRuntime({
   BrowserWindow,
   clipboard,
   nativeImage,
-  registerClipboardImageHandler,
-  registerImageContextMenuHandler,
   getBackendHttpUrl: () => backendEndpointState.getHttpUrl(),
   getBackendCandidates: () => backendEndpointState.getCandidates(),
 });

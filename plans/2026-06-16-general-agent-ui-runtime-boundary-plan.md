@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Image Child Registration Privacy
+
+- Finding: `ipc.cjs` still imported the focused clipboard image and image
+  context-menu IPC registration helpers only to inject them into the aggregate
+  image interaction runtime, leaving child channel registration as public
+  executable helpers.
+- Change: moved both `copy-image-to-clipboard` and `show-image-context-menu`
+  handler registration into `ipc_image_interaction_handlers.cjs`, kept child
+  registration helpers private, and exposed focused behavior through
+  `createClipboardImageRuntime(...)` and `createImageContextMenuRuntime(...)`.
+- Validation: focused clipboard image, context-menu, and image interaction
+  tests, targeted main IPC lint, syntax checks, docs listing, stale
+  registration-export scans, and diff checks before commit.
+- Compatibility/security: no IPC channel, artifact URL, redirect, content-type,
+  byte-limit, credential, permission, or trust-boundary migration required; the
+  aggregate owner still applies one trusted artifact-origin policy to both
+  image actions.
+
 ### 2026-06-21 Main Settings ACK Gate Privacy
 
 - Finding: `ipc_settings_sync_runtime.cjs` owned the settings-sync ACK map and
@@ -198,7 +216,9 @@ Date: 2026-06-16
   checks before commit.
 - Compatibility/security: no IPC payload, artifact URL, credential,
   permission, image trust-origin, or trust-boundary migration required; focused
-  clipboard and context-menu handler modules continue to own their IPC handlers.
+  clipboard and context-menu handler modules kept owning their IPC handlers at
+  this step. A later child-registration privacy slice moved those registrations
+  into the aggregate image interaction owner.
 
 ### 2026-06-21 Main Extension MCP Handler Registration Privacy
 

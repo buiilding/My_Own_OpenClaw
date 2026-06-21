@@ -47,7 +47,7 @@ flowchart LR
 | Backend receives refs but model gets no image | Backend query input resolution | `backend/src/api/services/query_execution_support/query_execution_inputs.py` | `tests/backend/test_query_execution_inputs.py`, artifact route/store tests |
 | Replayed message loses images | Message screenshot resolver and transcript replay | `desktopMessageScreenshotRuntime.js`, `desktopResolvedMessageScreenshotsRuntime.js`, transcript replay state | `DesktopMessageScreenshotRuntime.test.js`, `MessageContent.test.jsx`, SDK rehydrate projection tests, transcript tests |
 | Artifact image fails once and never recovers | App-runtime-backed artifact screenshot cache | `desktopArtifactRuntimeClient.ts`, `desktopResolvedMessageScreenshotsRuntime.js` | `MessageContent.test.jsx` retry-after-failure coverage |
-| Copy image to clipboard fails | Electron clipboard image IPC | `frontend/src/main/ipc/ipc_clipboard_image.cjs` | `IpcClipboardImageHandler.test.cjs` |
+| Copy image to clipboard fails | Electron image interaction IPC | `frontend/src/main/ipc/ipc_image_interaction_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs` | `IpcImageInteractionHandlers.test.cjs`, `IpcClipboardImageHandler.test.cjs` |
 
 Clipboard image IPC trust boundary:
 

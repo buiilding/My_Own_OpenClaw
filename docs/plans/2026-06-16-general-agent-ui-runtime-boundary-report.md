@@ -12,12 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main settings sync keeps the lower-level
-  ACK wait/resolve/clear mechanics private to `ipc_settings_sync_runtime.cjs`,
-  so ACK success, backend error resolution, timeout, reset, and pending-promise
-  cleanup are exercised through `createIpcSettingsSyncRuntime(...)` while
-  `ipc_settings_sync.cjs` remains the narrow shared settings payload validation
-  contract.
+- Latest completed slice: Electron main image interaction IPC registration
+  keeps focused clipboard/context-menu registration private to the aggregate
+  `ipc_image_interaction_handlers.cjs` owner, so `ipc.cjs` composes one image
+  interaction runtime while copy and native context-menu behavior are exercised
+  through `createClipboardImageRuntime(...)` and
+  `createImageContextMenuRuntime(...)`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

@@ -1,24 +1,20 @@
 /** @jest-environment node */
 
 const {
-  registerImageContextMenuHandler,
+  createImageContextMenuRuntime,
 } = require('../../frontend/src/main/ipc/ipc_image_context_menu.cjs');
+const imageContextMenuModule = require('../../frontend/src/main/ipc/ipc_image_context_menu.cjs');
 
 describe('ipc image context menu handler', () => {
-  function registerHandler(options) {
-    const invokeHandlers = {};
-    const ipcMain = {
-      handle: jest.fn((channel, handler) => {
-        invokeHandlers[channel] = handler;
-      }),
-    };
-    registerImageContextMenuHandler({
-      ipcMain,
+  function createRuntime(options) {
+    const runtime = createImageContextMenuRuntime({
       ...options,
     });
     return {
-      ipcMain,
-      handler: invokeHandlers['show-image-context-menu'],
+      show: (event, payload) => runtime.show({
+        event,
+        src: payload?.src,
+      }),
     };
   }
 
@@ -28,14 +24,14 @@ describe('ipc image context menu handler', () => {
     const Menu = {
       buildFromTemplate: jest.fn(() => builtMenu),
     };
-    const { handler } = registerHandler({
+    const { show } = createRuntime({
       Menu,
       BrowserWindow: null,
       clipboard: null,
       nativeImage: null,
     });
 
-    const result = await handler({ sender: {} }, {
+    const result = await show({ sender: {} }, {
       src: 'https://cdn.example/screenshot.png',
     });
 
@@ -72,14 +68,14 @@ describe('ipc image context menu handler', () => {
       createFromBuffer: jest.fn(),
     };
     const sender = {};
-    const { handler } = registerHandler({
+    const { show } = createRuntime({
       Menu,
       BrowserWindow,
       clipboard,
       nativeImage,
     });
 
-    const result = await handler({ sender }, {
+    const result = await show({ sender }, {
       src: 'data:image/png;base64,abc123',
     });
 
@@ -103,7 +99,7 @@ describe('ipc image context menu handler', () => {
       }),
     };
     const fetchImpl = jest.fn();
-    const { handler } = registerHandler({
+    const { show } = createRuntime({
       Menu,
       BrowserWindow: {
         fromWebContents: jest.fn(() => null),
@@ -117,7 +113,7 @@ describe('ipc image context menu handler', () => {
       trustedImageOrigins: ['https://backend.example.com'],
     });
 
-    const result = await handler({ sender: {} }, {
+    const result = await show({ sender: {} }, {
       src: 'https://cdn.example/screenshot.png',
     });
 
@@ -126,23 +122,20 @@ describe('ipc image context menu handler', () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
-  test('registers a safe IPC handler that returns structured failures', async () => {
-    const { handler } = registerHandler({
+  test('throws runtime errors for the aggregate IPC owner to structure', async () => {
+    const { show } = createRuntime({
       Menu: null,
       BrowserWindow: null,
       clipboard: null,
       nativeImage: null,
     });
 
-    expect(typeof handler).toBe('function');
-
-    const result = await handler(null, {
+    await expect(show(null, {
       src: 'https://cdn.example/screenshot.png',
-    });
+    })).rejects.toThrow('Native menu support is unavailable.');
+  });
 
-    expect(result).toEqual({
-      success: false,
-      error: 'Native menu support is unavailable.',
-    });
+  test('keeps lower-level context menu registration private behind the aggregate owner', () => {
+    expect(imageContextMenuModule.registerImageContextMenuHandler).toBeUndefined();
   });
 });

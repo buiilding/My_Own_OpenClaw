@@ -2,7 +2,6 @@
 
 const {
   createClipboardImageRuntime,
-  registerClipboardImageHandler,
 } = require('../../frontend/src/main/ipc/ipc_clipboard_image.cjs');
 const clipboardImageModule = require('../../frontend/src/main/ipc/ipc_clipboard_image.cjs');
 
@@ -202,35 +201,6 @@ describe('ipc clipboard image handler', () => {
 
   test('keeps lower-level clipboard copy private behind the runtime facade', () => {
     expect(clipboardImageModule.copyImageToClipboard).toBeUndefined();
-  });
-
-  test('registers a safe IPC handler that returns structured failure payloads', async () => {
-    const invokeHandlers = {};
-    const ipcMain = {
-      handle: jest.fn((channel, handler) => {
-        invokeHandlers[channel] = handler;
-      }),
-    };
-
-    registerClipboardImageHandler({
-      ipcMain,
-      clipboard: { writeImage: jest.fn() },
-      nativeImage: {
-        createFromDataURL: jest.fn(() => ({
-          isEmpty: jest.fn(() => true),
-        })),
-      },
-    });
-
-    expect(typeof invokeHandlers['copy-image-to-clipboard']).toBe('function');
-
-    const result = await invokeHandlers['copy-image-to-clipboard'](null, {
-      src: 'data:image/png;base64,broken',
-    });
-
-    expect(result).toEqual({
-      success: false,
-      error: 'Failed to decode image for clipboard copy.',
-    });
+    expect(clipboardImageModule.registerClipboardImageHandler).toBeUndefined();
   });
 });

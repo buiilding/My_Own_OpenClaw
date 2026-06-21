@@ -66,8 +66,7 @@ async function showImageContextMenu({
   return { success: true };
 }
 
-function registerImageContextMenuHandler({
-  ipcMain,
+function createImageContextMenuRuntime({
   Menu,
   BrowserWindow,
   clipboard,
@@ -76,30 +75,27 @@ function registerImageContextMenuHandler({
   trustedImageOrigins = [],
   getTrustedImageOrigins,
   backendHttpUrl,
-}) {
-  ipcMain.handle('show-image-context-menu', async (event, payload = {}) => {
-    try {
-      return await showImageContextMenu({
-        event,
-        src: payload?.src,
-        Menu,
-        BrowserWindow,
-        clipboard,
-        nativeImage,
-        fetchImpl,
-        trustedImageOrigins,
-        getTrustedImageOrigins,
-        backendHttpUrl,
-      });
-    } catch (error) {
-      return {
-        success: false,
-        error: String(error?.message || error || 'Failed to show image context menu.'),
-      };
-    }
-  });
+} = {}) {
+  function show(input = {}) {
+    return showImageContextMenu({
+      event: input.event,
+      src: input.src,
+      Menu,
+      BrowserWindow,
+      clipboard,
+      nativeImage,
+      fetchImpl,
+      trustedImageOrigins,
+      getTrustedImageOrigins,
+      backendHttpUrl,
+    });
+  }
+
+  return {
+    show,
+  };
 }
 
 module.exports = {
-  registerImageContextMenuHandler,
+  createImageContextMenuRuntime,
 };

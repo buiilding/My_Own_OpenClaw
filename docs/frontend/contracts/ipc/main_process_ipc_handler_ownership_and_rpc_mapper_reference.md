@@ -103,10 +103,11 @@ Notable behavior:
   and protected image fetch ensures install auth before calling
   `ipc_artifact_fetch.cjs`
 - clipboard image copy and image context-menu copy are registered by
-  `ipc_image_interaction_handlers.cjs`, which injects the same trusted backend
-  artifact-origin policy into `ipc_clipboard_image.cjs` and
-  `ipc_image_context_menu.cjs`; bounded `data:image/*` URLs are decoded
-  locally, while HTTP(S) fetches are limited to trusted backend-origin
+  `ipc_image_interaction_handlers.cjs`, which owns the shared trusted backend
+  artifact-origin policy while delegating copy/context-menu behavior to
+  `ipc_clipboard_image.cjs` and `ipc_image_context_menu.cjs`; bounded
+  `data:image/*` URLs are decoded locally, while HTTP(S) fetches are limited
+  to trusted backend-origin
   `/api/artifacts/...` URLs, use manual redirect validation, and require image
   content type plus bounded response size
 - helper-module split:

@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep lower-level clipboard image and image context-menu IPC
+  registration private to `ipc_image_interaction_handlers.cjs`, so
+  `ipc.cjs` composes one aggregate image-interaction runtime while focused
+  modules expose behavior runtimes for copy and context-menu actions. No
+  migration required.
 - frontend/main: keep lower-level settings ACK wait/resolve/clear primitives
   private to `ipc_settings_sync_runtime.cjs` and exercise ACK success,
   timeout, reset, and pending-promise cleanup through

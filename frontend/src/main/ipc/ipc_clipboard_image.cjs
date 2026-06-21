@@ -235,39 +235,6 @@ function createClipboardImageRuntime({
   };
 }
 
-function registerClipboardImageHandler({
-  ipcMain,
-  clipboard,
-  nativeImage,
-  fetchImpl = globalThis.fetch,
-  trustedImageOrigins = [],
-  getTrustedImageOrigins,
-  backendHttpUrl,
-}) {
-  const clipboardImageRuntime = createClipboardImageRuntime({
-    clipboard,
-    nativeImage,
-    fetchImpl,
-    trustedImageOrigins,
-    getTrustedImageOrigins,
-    backendHttpUrl,
-  });
-
-  ipcMain.handle('copy-image-to-clipboard', async (_event, payload = {}) => {
-    try {
-      return await clipboardImageRuntime.copy({
-        src: payload?.src,
-      });
-    } catch (error) {
-      return {
-        success: false,
-        error: String(error?.message || error || 'Failed to copy image to clipboard.'),
-      };
-    }
-  });
-}
-
 module.exports = {
   createClipboardImageRuntime,
-  registerClipboardImageHandler,
 };
