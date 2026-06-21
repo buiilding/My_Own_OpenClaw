@@ -456,18 +456,22 @@ describe('modular sdk refactor completion boundary', () => {
       read('tests/frontend/IpcMainBridge.query.test.cjs'),
       read('tests/frontend/IpcPersistenceConcurrency.test.cjs'),
       read('tests/frontend/IpcMainReplayCommands.test.cjs'),
+      read('tests/frontend/AppDiagnosticsStore.test.cjs'),
     ]).then(sources => sources.join('\n'));
     const retiredReplayWorkspace = ['/tmp', 'windie-workspace'].join('/');
     const retiredReplayRetryWorkspace = ['/tmp', 'windie-retry-workspace'].join('/');
+    const retiredDiagnosticsTempRoot = ['windie', 'diagnostics-'].join('-');
 
     expect(source).not.toContain('windieos-query-agents');
     expect(source).not.toContain('windieos-ipc-persist');
     expect(source).not.toContain(retiredReplayWorkspace);
     expect(source).not.toContain(retiredReplayRetryWorkspace);
+    expect(source).not.toContain(retiredDiagnosticsTempRoot);
     expect(source).toContain('project-alpha-query-agents');
     expect(source).toContain('project-alpha-ipc-persist');
     expect(source).toContain('/tmp/project-alpha-workspace');
     expect(source).toContain('/tmp/project-alpha-retry-workspace');
+    expect(source).toContain('agent-diagnostics-');
   });
 
   test('MCP runtime tests keep configured client info fixtures product-neutral', async () => {

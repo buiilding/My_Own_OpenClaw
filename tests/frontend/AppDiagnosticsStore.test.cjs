@@ -109,7 +109,7 @@ describe('app diagnostics store', () => {
   beforeEach(() => {
     configureAppDiagnosticsStore(mainHostSkin.diagnostics);
     previousDbPath = process.env.WINDIE_APP_DIAGNOSTICS_DB;
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-diagnostics-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-diagnostics-'));
     process.env.WINDIE_APP_DIAGNOSTICS_DB = path.join(tempDir, 'diagnostics.db');
   });
 

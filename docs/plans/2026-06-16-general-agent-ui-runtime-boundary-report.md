@@ -7799,3 +7799,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   runtime adapter, and workspace path normalization, edit/resend preparation,
   retry preparation, transcript session guards, provider policy, permissions,
   storage, and backend behavior are unchanged; no migration is required.
+- App diagnostics store tests now use a neutral `agent-diagnostics-*` temporary
+  diagnostics DB root instead of a Windie-flavored arbitrary temp directory.
+  The real host-skin diagnostics env key remains unchanged and covered.
+  Diagnostic path definitions, sanitization, SQLite persistence, host-skin
+  diagnostics DB configuration, provider policy, permissions, storage contracts,
+  and backend behavior are unchanged; no migration is required.

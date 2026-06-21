@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
+  in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
+  directory. No migration required.
+
 - tests/main: use neutral Project Alpha workspace path fixtures in IPC replay
   command coverage instead of Windie-flavored arbitrary workspace paths. No
   migration required.

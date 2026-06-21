@@ -18999,3 +18999,20 @@ Each completed slice should report:
   `windie:invoke`, workspace path normalization, edit/resend preparation, retry
   preparation, transcript session guards, provider policy, permissions, storage,
   and backend behavior are unchanged.
+
+### 2026-06-21 App diagnostics temp fixture neutrality
+
+- Finding: app diagnostics store tests still used a Windie-flavored arbitrary
+  temporary diagnostics DB root while diagnostics env-key ownership is already
+  supplied by the host skin.
+- Change: switched the disposable diagnostics temp root to
+  `agent-diagnostics-*` and extended the main temp-path guard over diagnostics
+  store coverage.
+- Validation: focused modular boundary test; exact retired diagnostics temp-root
+  scan, docs listing, and diff checks. The focused app diagnostics store suite
+  was attempted but blocked on this machine because the `sqlite3` CLI is not
+  installed (`spawnSync sqlite3 ENOENT`).
+- Compatibility: no migration required. Diagnostic path definitions,
+  sanitization, SQLite persistence, host-skin diagnostics DB configuration,
+  provider policy, permissions, storage contracts, and backend behavior are
+  unchanged.
