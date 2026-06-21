@@ -40,18 +40,23 @@ def test_local_runtime_service_copy_uses_local_runtime_terms():
             memory_handlers_module.__file__,
             Path(local_backend_module.__file__).parent / "core" / "ipc_protocol.py",
             Path(local_backend_module.__file__).parent / "folder_structure.md",
+            Path(local_backend_module.__file__).parent / "requirements.txt",
+            Path(local_backend_module.__file__).parent / "requirements.runtime.txt",
         ]
     )
 
     retired_runtime_label = "Python " + "sidecar runtime"
     retired_daemon_phrase = "sidecar " + "daemon"
+    retired_dependency_phrase = "Python " + "sidecar dependencies"
     retired_product_backend_service = "Local backend service for " + ("Windie" "OS")
 
     assert "Python local runtime" in sources
+    assert "Local-runtime Python dependencies" in sources
     assert "local runtime daemon" in sources
     assert "local-runtime storage/search" in sources
     assert retired_runtime_label not in sources
     assert retired_daemon_phrase not in sources
+    assert retired_dependency_phrase not in sources
     assert "sidecar " + "storage/search" not in sources
     assert retired_product_backend_service not in sources
     assert "Main local backend service" not in sources

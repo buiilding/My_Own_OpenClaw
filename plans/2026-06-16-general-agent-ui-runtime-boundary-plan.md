@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Python Dependency Label Boundary
+
+- Finding: `frontend/src/main/python/requirements*.txt` still described the
+  dependency sets as sidecar dependencies even though they are the dev and
+  packaged dependency manifests for the local-runtime Python implementation.
+- Change: updated the requirements comments to local-runtime Python dependency
+  wording and extended the local-runtime service copy guard to include both
+  dependency manifests.
+- Validation: focused local-runtime Python service pytest, exact stale
+  dependency-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Dependency versions, package
+  resolution, runtime build inputs, local tool execution, permissions,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Local-Runtime Browser Payload Docs Boundary
 
 - Finding: the local-runtime browser tools hub still described

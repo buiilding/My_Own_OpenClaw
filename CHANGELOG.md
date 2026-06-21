@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- local-runtime/python: label local-runtime requirements files as
+  local-runtime Python dependencies instead of sidecar dependency manifests.
+  No migration required.
 - docs/browser: describe the local-runtime Browser Use adapter as adapting
   canonical local-runtime browser payloads and use product-neutral browser
   contract title casing while keeping retired `WindieBrowserRuntime` notes as

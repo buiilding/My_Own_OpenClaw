@@ -1,6 +1,6 @@
-# Local-runtime Python sidecar dependencies (packaged app)
+# Local-runtime Python dependencies (packaged app)
 #
-# Full bundled runtime profile for the sidecar.
+# Full bundled profile for the local runtime.
 
 # Vector storage and search
 faiss-cpu>=1.7.4
