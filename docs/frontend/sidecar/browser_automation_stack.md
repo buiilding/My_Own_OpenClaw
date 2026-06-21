@@ -8,8 +8,8 @@ title: "Local-Runtime Browser Automation Stack"
 
 # Local-Runtime Browser Automation Stack
 
-The desktop runtime currently routes the canonical `browser` tool through local-runtime
-browser execution backed by a local-runtime Python Browser Use engine adapter. The old
+The Electron agent host currently routes the canonical `browser` tool through
+local-runtime browser execution backed by a local-runtime Python Browser Use engine adapter. The old
 first-party `WindieBrowserRuntime` and vendored `browser_use.browser` session
 runtime were removed from source; do not add new browser behavior to those
 retired paths.

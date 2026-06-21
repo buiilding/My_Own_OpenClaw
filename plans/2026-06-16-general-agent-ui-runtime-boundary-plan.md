@@ -20233,3 +20233,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Permission IDs, OS probes, grant
   actions, onboarding visibility, stored permission state, renderer
   presentation, provider policy, storage, and backend behavior are unchanged.
+
+### 2026-06-21 SDK host UI wording
+
+- Finding: SDK conversation/auth docs and the local-runtime browser stack still
+  used desktop-runtime labels for reusable host-facing contracts even though
+  the current split is SDK runtime contracts plus an Electron agent host.
+- Change: reworded the SDK conversation migration target to host UI/Electron
+  agent-host language, updated hosted-client auth endpoint wording, and routed
+  the browser stack entrypoint through the Electron agent host. Extended the
+  modular SDK docs guard so the older desktop-runtime SDK phrases stay retired.
+- Validation: focused modular boundary test, docs listing, exact retired SDK
+  desktop-runtime phrase scan, and diff checks.
+- Compatibility: no migration required. SDK conversation projections,
+  continuity service behavior, hosted auth, local-runtime browser routing,
+  provider policy, permissions, storage, and backend behavior are unchanged.

@@ -8345,3 +8345,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   setup. Permission IDs, OS probes, grant actions, onboarding visibility,
   stored permission state, renderer presentation, provider policy, storage, and
   backend behavior are unchanged; no migration is required.
+- SDK conversation/auth docs and the local-runtime browser stack now describe
+  reusable host-facing contracts through host UI and Electron agent-host labels
+  instead of desktop-runtime labels. SDK conversation projections, continuity
+  service behavior, hosted auth, local-runtime browser routing, provider
+  policy, permissions, storage, and backend behavior are unchanged; no
+  migration is required.

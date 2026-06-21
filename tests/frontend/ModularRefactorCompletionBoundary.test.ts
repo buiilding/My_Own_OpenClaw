@@ -291,6 +291,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).toContain('Python SDK remote auth/error wrappers');
     expect(sdkDocText).toContain('local runtime tool-result data');
     expect(sdkDocText).toContain('local-runtime-backed default conversation store');
+    expect(sdkDocText).toContain('Host UI Migration Target');
+    expect(sdkDocText).toContain('Electron agent-host runtime facades');
+    expect(sdkDocText).toContain('Electron agent host should');
     expect(apiReferenceText).toContain('local runtime process just to use hosted OCR or prediction routes');
     expect(apiReferenceText).toContain("backendUrl: 'https://backend.example.com'");
     expect(apiReferenceText).toContain('backend_url="https://backend.example.com"');
@@ -333,6 +336,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('WindieOS exposes SDK routes');
     expect(sdkDocText).not.toContain('WindieOS app needs during normal operation');
     expect(sdkDocText).not.toContain('WindieOS renderer skin state');
+    expect(sdkDocText).not.toContain('## Desktop Migration Target');
+    expect(sdkDocText).not.toContain('The desktop runtime should expose');
+    expect(sdkDocText).not.toContain('Electron desktop runtime facades');
     expect(apiReferenceText).not.toContain('local backend process just to use hosted OCR or prediction routes');
     expect(apiReferenceText).not.toContain(`backendUrl: '${retiredHostedUrl}'`);
     expect(apiReferenceText).not.toContain(`backend_url="${retiredHostedUrl}"`);

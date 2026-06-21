@@ -51,6 +51,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/permissions: use generic agent-host wording in the shared permission
   manifest and onboarding fixtures instead of older desktop-runtime copy. No
   migration required.
+- docs/sdk: route conversation migration and hosted-client auth wording through
+  host UI and Electron agent-host labels instead of desktop-runtime labels. No
+  migration required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

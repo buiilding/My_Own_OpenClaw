@@ -736,18 +736,18 @@ metadata; the matching `tool_bundle_output` becomes one model-visible tool
 result with the same bundle id. This keeps restart/edit/resend history valid
 without replaying a lossy display transcript.
 
-The desktop local snapshot loader uses this SDK projection path when generating
+The Electron host local snapshot loader uses this SDK projection path when generating
 rehydrate payloads from stored transcript rows. That is the first migration step
 away from separate renderer-only replay shaping.
 
-## Desktop Migration Target
+## Host UI Migration Target
 
-Desktop React should call runtime commands and render projections. It should not
+Host UIs should call runtime commands and render projections. They should not
 directly mutate transcript/replay state, interpret compaction lifecycle events,
-or route backend tool results after migration. The desktop runtime should expose
-a small first-party service surface backed by `ConversationContinuityService`
-instead of letting dashboard hooks, chat hooks, and storage adapters each own a
-piece of resume semantics.
+or route backend tool results after migration. The Electron agent host should
+expose a small first-party service surface backed by
+`ConversationContinuityService` instead of letting dashboard hooks, chat hooks,
+and storage adapters each own a piece of resume semantics.
 
 ## Evidence Notes
 
