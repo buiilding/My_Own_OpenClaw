@@ -9,6 +9,26 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 PendingTurn-Only Preflight And Replay Handoff
+
+- Finding: local visible-lifecycle preflight still accepted bare
+  `isSending=true`, and conversation retry/edit replay used that legacy send
+  latch while waiting for SDK continuity preparation instead of publishing a
+  renderer `pendingTurn`.
+- Change: visible-lifecycle preflight now requires an accepted `pendingTurn`.
+  Replay actions allocate a replay turn ref up front, publish a pending turn
+  through `DesktopConversationReplayRuntime` and the pending-turn IPC client,
+  and pass that same turn ref through `DesktopConversationContinuityService`
+  before live-turn dispatch.
+- Validation target: focused replay action, replay runtime, visible lifecycle,
+  live-surface, chat surface, and response-overlay tests protect pending
+  visibility during continuity preparation, stale raw `isSending`, and stable
+  replay pending row identity.
+- Compatibility/security: no IPC channel, SDK event payload, transcript
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required; the existing SDK/main replay command
+  `turnRef` field is used.
+
 ### 2026-06-21 Legacy Overlay Phase Reducer Removal
 
 - Finding: `DesktopOverlayTurnLifecycleRuntime` still exposed

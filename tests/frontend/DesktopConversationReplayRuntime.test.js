@@ -8,6 +8,7 @@ import {
 
 const {
   buildPreparedReplayDesktopChatTurn,
+  buildReplayPendingTurn,
   buildReplayContextMessages,
   buildReplayPreparationPayload,
   findReplayEditableUserMessageIndex,
@@ -240,6 +241,34 @@ describe('desktopConversationReplayRuntime', () => {
       turnId: 'turn-runtime',
       turnRef: 'turn-runtime',
       workspacePath: 'C:/workspace',
+    });
+  });
+
+  test('buildReplayPendingTurn keeps replay pending row identity stable', () => {
+    expect(buildReplayPendingTurn({
+      attachmentFilenames: ['one.png'],
+      conversationRef: 'conv-replay',
+      turnRef: 'turn-replay',
+      userMessageId: 'renderer-user-1',
+      text: 'retry this',
+      timestamp: '2026-06-21T00:00:00.000Z',
+    })).toEqual({
+      attachmentFilenames: ['one.png'],
+      conversationRef: 'conv-replay',
+      turnRef: 'turn-replay',
+      userMessageId: 'renderer-user-1',
+      text: 'retry this',
+      timestamp: '2026-06-21T00:00:00.000Z',
+    });
+
+    expect(buildReplayPendingTurn({
+      conversationRef: 'conv-replay',
+      turnRef: 'turn-fallback',
+      text: 'retry this',
+      timestamp: '2026-06-21T00:00:00.000Z',
+    })).toMatchObject({
+      attachmentFilenames: null,
+      userMessageId: 'turn-fallback-sdk-evt-000002-user_message',
     });
   });
 });

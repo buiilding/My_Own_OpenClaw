@@ -34,7 +34,6 @@ function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
 }
 
 export function useChatSurfaceController({
-  isSending,
   messages,
   currentTurnProjection = null,
   pendingTurn = null,
@@ -54,7 +53,6 @@ export function useChatSurfaceController({
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     currentTurnProjection,
     pendingTurn,
-    isSending,
     messages,
     visibleTurnLifecycle,
   });

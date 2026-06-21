@@ -9,6 +9,45 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 PendingTurn-Only Preflight Boundary
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)`
+  still treated bare `isSending=true` as enough to force local preflight when no
+  renderer pending turn existed, and chat surface/response overlay hooks passed
+  that raw field into the live-surface adapter.
+- Change: local visible-lifecycle preflight now requires a valid
+  `pendingTurn`; stale raw `isSending` can remain as store or trace state but
+  cannot independently create dashboard, pill, or response-overlay typing.
+  `DesktopLiveTurnSurfaceRuntime`, `useChatSurfaceController(...)`, and
+  `useResponseOverlayViewModel(...)` no longer consume `isSending` for
+  lifecycle handoff.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `LiveTurnSurfaceState.test.js`, `ChatSurfaceController.test.jsx`, and
+  `ChatBoxResponse.state.test.jsx` assert pending-turn preflight and stale raw
+  `isSending` without pending state.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Replay Pending-Turn Handoff
+
+- Finding: conversation retry and edit/resend replay still flipped raw
+  `isSending` before SDK continuity preparation returned, leaving replay
+  preparation latency dependent on the legacy send-latch fallback instead of a
+  renderer `pendingTurn`.
+- Change: replay actions now preallocate a replay turn ref, publish a
+  renderer pending turn through `DesktopConversationReplayRuntime`, broadcast
+  that pending turn to Electron main, and forward the same turn ref through the
+  continuity preparation command before dispatching the prepared turn.
+- Validation target: `ConversationReplayActions.test.jsx` covers pending replay
+  visibility before continuity preparation resolves, and
+  `DesktopConversationReplayRuntime.test.js` covers the replay pending-turn
+  shape.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  channel, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required; replay uses the existing
+  SDK/main `turnRef` preparation field.
+
 ### 2026-06-21 Legacy Overlay Phase Reducer Removal
 
 - Finding: `DesktopOverlayTurnLifecycleRuntime` still exposed

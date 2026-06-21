@@ -11,7 +11,6 @@ const {
   hasAuthoritativeSdkProjection,
   hasAuthoritativeSameTurnSdkReplacement,
   resolveVisibleTurnLifecycle,
-  resolveVisibleTurnLifecycleForPresentation,
   shouldUseLocalSendPreflight,
 } = DesktopVisibleTurnLifecycleRuntime;
 
@@ -261,23 +260,17 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
   });
 
   test('adapts visible lifecycle into legacy presentation fields for surface consumers', () => {
-    const visibleLifecycle = resolveVisibleTurnLifecycleForPresentation({
-      visibleTurnLifecycle: {
-        status: 'idle',
-        source: 'sdk',
-        conversationRef: 'conv-1',
-        turnRef: null,
-        awaitingAnchor: null,
-        entries: [],
-        terminalReason: null,
-        isBusy: false,
-        showTyping: false,
-      },
-      liveTurnPresentationInput: {
-        useLocalSendLatch: true,
-        conversationRef: 'conv-1',
+    const visibleLifecycle = resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pendingTurn({
         turnRef: 'turn-local',
-      },
+        userMessageId: 'user-local',
+        text: 'local send',
+      }),
+      currentTurnProjection: projection({
+        phase: 'idle',
+        turnRef: 'startup-hidden',
+      }),
       messages: [{
         id: 'user-local',
         sender: 'user',
@@ -371,6 +364,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
   });
 
   test('centralizes local send preflight handoff for live surface consumers', () => {
+    const pending = pendingTurn();
     const hiddenIdleProjection = projection({
       phase: 'idle',
       turnRef: 'startup-hidden',
@@ -393,8 +387,15 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(shouldUseLocalSendPreflight({
       currentTurnProjection: hiddenIdleProjection,
       isSending: true,
+      pendingTurn: pending,
       messages: [],
     })).toBe(true);
+
+    expect(shouldUseLocalSendPreflight({
+      currentTurnProjection: hiddenIdleProjection,
+      isSending: true,
+      messages: [],
+    })).toBe(false);
 
     expect(shouldUseLocalSendPreflight({
       currentTurnProjection: projection({
@@ -415,6 +416,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         },
       }),
       isSending: true,
+      pendingTurn: pending,
       messages: [{
         id: 'user-1',
         sender: 'user',
@@ -431,6 +433,11 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         presentation: undefined,
       }),
       isSending: true,
+      pendingTurn: pendingTurn({
+        turnRef: 'turn-2',
+        userMessageId: 'user-2',
+        text: 'second',
+      }),
       messages: [
         { id: 'user-1', sender: 'user', text: 'first', turnRef: 'turn-1' },
         { id: 'assistant-1', sender: 'assistant', text: 'done', turnRef: 'turn-1' },
@@ -458,6 +465,11 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         },
       }),
       isSending: true,
+      pendingTurn: pendingTurn({
+        turnRef: 'turn-2',
+        userMessageId: 'user-2',
+        text: 'second',
+      }),
       messages: [{
         id: 'user-2',
         sender: 'user',

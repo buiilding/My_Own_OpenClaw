@@ -153,65 +153,6 @@ function findAwaitingAnchor(messages, pendingTurn, currentTurnProjection) {
   return null;
 }
 
-function findLatestUserMessageAnchor(messages) {
-  if (!Array.isArray(messages)) {
-    return null;
-  }
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (message?.sender === 'user' && normalizeString(message.id)) {
-      return {
-        kind: 'user-message',
-        rowId: message.id.trim(),
-      };
-    }
-  }
-  return null;
-}
-
-function findLatestUserTurnRef(messages) {
-  if (!Array.isArray(messages)) {
-    return null;
-  }
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (message?.sender === 'user' && normalizeTurnRef(message.turnRef)) {
-      return message.turnRef.trim();
-    }
-  }
-  return null;
-}
-
-function hasSdkLiveTurnPresentation(currentTurnProjection) {
-  const presentation = currentTurnProjection?.presentation;
-  return Boolean(
-    presentation
-      && typeof presentation === 'object'
-      && typeof presentation.typingVisible === 'boolean'
-      && typeof presentation.overlayVisible === 'boolean',
-  );
-}
-
-function isHiddenSdkLiveTurnPresentation(presentation) {
-  if (!presentation || typeof presentation !== 'object') {
-    return false;
-  }
-  const overlayIntent = presentation.overlayIntent;
-  const entries = Array.isArray(presentation.entries) ? presentation.entries : [];
-  return (
-    presentation.isBusy !== true
-    && presentation.typingVisible !== true
-    && presentation.overlayVisible !== true
-    && presentation.hasVisibleContent !== true
-    && entries.length === 0
-    && (
-      !overlayIntent
-      || overlayIntent.mode === 'hidden'
-      || overlayIntent.visible === false
-    )
-  );
-}
-
 function resolveTerminalReason(currentTurnProjection) {
   const phase = normalizeProjectionPhase(currentTurnProjection);
   if (phase === 'error' || normalizeString(currentTurnProjection?.lastError)) {
@@ -313,82 +254,21 @@ function resolveVisibleTurnLifecycle({
 
 function shouldUseLocalSendPreflight({
   currentTurnProjection = null,
-  isSending = false,
   pendingTurn = null,
-  messages = [],
 } = {}) {
   const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
-  if (!normalizedPendingTurn && isSending !== true) {
+  if (!normalizedPendingTurn) {
     return false;
   }
   if (!currentTurnProjection) {
     return true;
   }
-  if (normalizedPendingTurn) {
-    return !hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, currentTurnProjection);
-  }
-  if (!isAuthoritativeSdkProjection(currentTurnProjection)) {
-    return true;
-  }
-
-  const phase = normalizeProjectionPhase(currentTurnProjection);
-  if (
-    isSending === true
-    && TERMINAL_PHASES.has(phase)
-    && hasVisibleTextOrError(currentTurnProjection)
-  ) {
-    return true;
-  }
-  const hasSdkPresentation = hasSdkLiveTurnPresentation(currentTurnProjection);
-  if (TERMINAL_PHASES.has(phase) && !hasSdkPresentation) {
-    return true;
-  }
-
-  const presentation = currentTurnProjection.presentation;
-  if (!isHiddenSdkLiveTurnPresentation(presentation)) {
-    return false;
-  }
-
-  const projectionTurnRef = normalizeTurnRef(currentTurnProjection?.turnRef);
-  const latestUserTurnRef = findLatestUserTurnRef(messages);
-  const isTerminalProjection = (
-    TERMINAL_PHASES.has(phase)
-    || presentation?.isTerminal === true
-  );
-  if (
-    isTerminalProjection
-    && projectionTurnRef
-    && latestUserTurnRef
-    && projectionTurnRef === latestUserTurnRef
-  ) {
-    return false;
-  }
-  return true;
+  return !hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, currentTurnProjection);
 }
 
 function resolveVisibleTurnLifecycleForPresentation({
   visibleTurnLifecycle,
-  liveTurnPresentationInput = null,
-  messages = [],
 } = {}) {
-  if (
-    liveTurnPresentationInput?.useLocalSendLatch === true
-    && visibleTurnLifecycle?.status !== 'local_pending'
-  ) {
-    // Compatibility until every send path creates pendingTurn before toggling isSending.
-    return {
-      ...visibleTurnLifecycle,
-      status: 'local_pending',
-      source: 'local',
-      conversationRef: liveTurnPresentationInput.conversationRef || visibleTurnLifecycle?.conversationRef || null,
-      turnRef: liveTurnPresentationInput.turnRef || visibleTurnLifecycle?.turnRef || null,
-      awaitingAnchor: findLatestUserMessageAnchor(messages),
-      entries: [],
-      terminalReason: null,
-      isBusy: true,
-      showTyping: true,
-    };
-  }
   return visibleTurnLifecycle;
 }
 

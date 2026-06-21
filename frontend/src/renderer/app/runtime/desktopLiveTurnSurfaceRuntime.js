@@ -46,23 +46,6 @@ function normalizeTurnRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function findLatestUserTurnRef(messages) {
-  if (!Array.isArray(messages)) {
-    return null;
-  }
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (message?.sender !== 'user') {
-      continue;
-    }
-    const turnRef = normalizeTurnRef(message.turnRef);
-    if (turnRef) {
-      return turnRef;
-    }
-  }
-  return null;
-}
-
 function normalizeConversationRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
@@ -131,22 +114,17 @@ function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
 
 function shouldUseSendPreflight({
   currentTurnProjection,
-  isSending,
-  messages,
   pendingTurn,
 }) {
   return shouldUseLocalSendPreflight({
     currentTurnProjection,
-    isSending,
     pendingTurn,
-    messages,
   });
 }
 
 function resolveLiveTurnPresentationInput({
   currentTurnProjection = null,
   pendingTurn = null,
-  isSending = false,
   messages = [],
   visibleTurnLifecycle = null,
 } = {}) {
@@ -158,12 +136,10 @@ function resolveLiveTurnPresentationInput({
   });
   const useLocalSendLatch = shouldUseSendPreflight({
     currentTurnProjection,
-    isSending,
-    messages,
     pendingTurn,
   });
   if (useLocalSendLatch) {
-    const turnRef = normalizeTurnRef(pendingTurn?.turnRef) || findLatestUserTurnRef(messages);
+    const turnRef = normalizeTurnRef(pendingTurn?.turnRef);
     const preflightGuardRef = getResponseOverlayPreflightGuardRef();
     const conversationRef = (
       normalizeConversationRef(pendingTurn?.conversationRef)

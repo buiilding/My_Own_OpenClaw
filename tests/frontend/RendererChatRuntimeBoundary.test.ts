@@ -1517,7 +1517,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).toContain('dispatchPreparedDesktopChatTurn');
     expect(source).toContain('buildReplayPreparationPayload');
+    expect(source).toContain('buildReplayPendingTurn');
     expect(source).toContain('buildPreparedReplayDesktopChatTurn');
+    expect(source).toContain('DesktopPendingTurnRuntimeClient.setPending');
     expect(source).toContain('findReplayEditableUserMessageIndex');
     expect(source).toContain('resolveReplayRetryMessageIndexes');
     expect(source).not.toContain("message.sender === 'user'");
@@ -1531,6 +1533,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.sendQuery');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
+    expect(replayRuntimeSource).toContain('buildReplayPendingTurn');
     expect(replayRuntimeSource).toContain('buildReplayContextMessages');
     expect(replayRuntimeSource).toContain('buildReplayPreparationPayload');
     expect(replayRuntimeSource).toContain('buildPreparedReplayDesktopChatTurn');
@@ -1541,6 +1544,7 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).not.toContain('export function resolveReplayRetryMessageIndexes');
     expect(replayRuntimeSource).not.toContain('export function buildReplayContextMessages');
     expect(replayRuntimeSource).not.toContain('export function buildReplayPreparationPayload');
+    expect(replayRuntimeSource).not.toContain('export function buildReplayPendingTurn');
     expect(replayRuntimeSource).not.toContain('export function buildPreparedReplayDesktopChatTurn');
     expect(replayRuntimeSource).toContain('screenshot_ref');
     expect(replayRuntimeSource).toContain('attachment_filenames');

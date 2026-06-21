@@ -19,10 +19,12 @@ import {
   DesktopConversationReplayRuntime,
 } from '../../../app/runtime/desktopConversationReplayRuntime';
 import { DesktopChatSendPreparationRuntime } from '../../../app/runtime/desktopChatSendPreparationRuntime';
+import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 const {
   buildPreparedReplayDesktopChatTurn,
+  buildReplayPendingTurn,
   buildReplayContextMessages,
   buildReplayPreparationPayload,
   findReplayEditableUserMessageIndex,
@@ -76,6 +78,7 @@ async function executeReplayAction({
   deferredQueryModelSelection,
   action,
   messageId,
+  pendingUserMessageId,
   addMessage,
 }) {
   const conversationRef = ensureConversationRef(
@@ -88,13 +91,23 @@ async function executeReplayAction({
     userId: sessionInfo.userId || undefined,
     updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
   });
+  const replayTurnRef = crypto.randomUUID();
+  const replayStartedAt = new Date().toISOString();
+  const pendingTurn = buildReplayPendingTurn({
+    conversationRef,
+    turnRef: replayTurnRef,
+    userMessageId: pendingUserMessageId,
+    text: queryText,
+    timestamp: replayStartedAt,
+  });
 
   setMessages(replayMessages, conversationRef);
   setThinkingStatus(null, conversationRef);
   if (typeof setThinkingSourceEventType === 'function') {
     setThinkingSourceEventType(null, conversationRef);
   }
-  setIsSending(true, conversationRef);
+  useChatStore.getState().acceptPendingTurn(pendingTurn);
+  DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
 
   try {
     const rewritePayload = {
@@ -104,6 +117,7 @@ async function executeReplayAction({
       text: queryText,
       payload: buildReplayPreparationPayload({ screenshotRef, screenshotUrl }),
       model: deferredQueryModelSelection || null,
+      turnRef: replayTurnRef,
       workspacePath: workspaceBinding.workspacePath || null,
     };
     const preparedReplayTurn = action === 'edit_resend'
@@ -129,6 +143,14 @@ async function executeReplayAction({
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
     setMessages(sourceMessages, conversationRef);
+    useChatStore.getState().clearPendingTurn({
+      conversationRef,
+      turnRef: replayTurnRef,
+    });
+    DesktopPendingTurnRuntimeClient.clear({
+      conversationRef,
+      turnRef: replayTurnRef,
+    });
     setIsSending(false, conversationRef);
     if (typeof addMessage === 'function') {
       const replayStep = error?.__desktopRuntimeReplayStep === 'send' ? 'send' : 'prepare';
@@ -203,6 +225,7 @@ export function useConversationReplayActions({
       deferredQueryModelSelection,
       action: 'edit_resend',
       messageId: userMessageId,
+      pendingUserMessageId: editUserMessage.id,
       addMessage,
     });
   }, [
@@ -247,6 +270,7 @@ export function useConversationReplayActions({
       deferredQueryModelSelection,
       action: 'retry',
       messageId: assistantMessageId,
+      pendingUserMessageId: retryUserMessage.id,
       addMessage,
     });
   }, [

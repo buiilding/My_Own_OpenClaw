@@ -241,8 +241,32 @@ function buildPreparedReplayDesktopChatTurn({
   };
 }
 
+function buildReplayPendingTurn({
+  attachmentFilenames = null,
+  conversationRef,
+  text,
+  timestamp,
+  turnRef,
+  userMessageId,
+}) {
+  const normalizedUserMessageId = typeof userMessageId === 'string' && userMessageId.trim()
+    ? userMessageId.trim()
+    : `${turnRef}-sdk-evt-000002-user_message`;
+  return {
+    conversationRef,
+    turnRef,
+    userMessageId: normalizedUserMessageId,
+    text,
+    timestamp,
+    attachmentFilenames: Array.isArray(attachmentFilenames) && attachmentFilenames.length > 0
+      ? attachmentFilenames
+      : null,
+  };
+}
+
 export const DesktopConversationReplayRuntime = Object.freeze({
   buildPreparedReplayDesktopChatTurn,
+  buildReplayPendingTurn,
   buildReplayContextMessages,
   buildReplayPreparationPayload,
   findReplayEditableUserMessageIndex,

@@ -12,6 +12,18 @@ const {
   resolveLiveTurnPresentationInput,
 } = DesktopLiveTurnSurfaceRuntime;
 
+function pendingTurn(overrides = {}) {
+  return {
+    conversationRef: 'conv-1',
+    turnRef: 'turn-pending',
+    userMessageId: 'user-pending',
+    text: 'start now',
+    timestamp: '2026-06-16T00:00:00.000Z',
+    attachmentFilenames: null,
+    ...overrides,
+  };
+}
+
 describe('desktopLiveTurnSurfaceRuntime', () => {
   test('uses SDK current turn as live surface authority', () => {
     const state = resolveLiveTurnPresentationInput({
@@ -32,13 +44,18 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
-  test('keeps a new send latch when terminal projection belongs to a previous turn', () => {
+  test('keeps local pending when terminal projection belongs to a previous turn', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {
         phase: 'complete',
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
       },
+      pendingTurn: pendingTurn({
+        turnRef: 'turn-2',
+        userMessageId: 'user-2',
+        text: 'second',
+      }),
       isSending: true,
       messages: [
         { id: 'user-1', sender: 'user', text: 'first', turnRef: 'turn-1' },
@@ -52,7 +69,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       isSending: true,
       isBusy: true,
       showAwaiting: true,
-      source: 'send-preflight',
+      source: 'pending-turn',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: false,
       turnRef: 'turn-2',
@@ -67,9 +84,10 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
-  test('uses only the local send latch when SDK current turn is not open yet', () => {
+  test('uses pending turn when SDK current turn is not open yet', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: null,
+      pendingTurn: pendingTurn(),
       isSending: true,
     });
 
@@ -77,7 +95,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'awaiting-first-chunk',
       isSending: true,
       isBusy: true,
-      source: 'send-preflight',
+      source: 'pending-turn',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: false,
       guardRef: preflightGuardRef,
@@ -91,14 +109,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
   test('uses pending turn before SDK current turn arrives', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: null,
-      pendingTurn: {
-        conversationRef: 'conv-1',
+      pendingTurn: pendingTurn({
         turnRef: 'turn-pending',
         userMessageId: 'user-pending',
         text: 'start now',
-        timestamp: '2026-06-16T00:00:00.000Z',
-        attachmentFilenames: null,
-      },
+      }),
       isSending: true,
     });
 
@@ -144,14 +159,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
           },
         },
       },
-      pendingTurn: {
-        conversationRef: 'conv-1',
+      pendingTurn: pendingTurn({
         turnRef: 'turn-pending',
         userMessageId: 'user-pending',
         text: 'start now',
-        timestamp: '2026-06-16T00:00:00.000Z',
-        attachmentFilenames: null,
-      },
+      }),
       isSending: true,
     });
 
@@ -167,7 +179,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
-  test('keeps send preflight when SDK presentation is hidden during handoff', () => {
+  test('uses SDK awaiting lifecycle when SDK presentation is hidden during handoff', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {
         phase: 'awaiting',
@@ -188,6 +200,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
           },
         },
       },
+      pendingTurn: pendingTurn({
+        turnRef: 'turn-2',
+        userMessageId: 'user-2',
+        text: 'second',
+      }),
       isSending: true,
       messages: [
         { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
@@ -198,14 +215,14 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'awaiting-first-chunk',
       isSending: true,
       isBusy: true,
-      source: 'send-preflight',
-      useLocalSendLatch: true,
+      source: 'sdk-current-turn',
+      useLocalSendLatch: false,
       useSdkLiveTurnPresentation: true,
       showAwaiting: true,
     });
   });
 
-  test('keeps send preflight through unanchored hidden idle SDK projection', () => {
+  test('keeps pending turn through unanchored hidden idle SDK projection', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {
         phase: 'idle',
@@ -226,6 +243,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
           },
         },
       },
+      pendingTurn: pendingTurn(),
       isSending: true,
       messages: [],
     });
@@ -233,7 +251,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       isSending: true,
-      source: 'send-preflight',
+      source: 'pending-turn',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: true,
     });
@@ -277,7 +295,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
-  test('keeps send preflight over previous terminal projection before optimistic row lands', () => {
+  test('keeps pending turn over previous terminal projection', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {
         phase: 'complete',
@@ -285,6 +303,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
         turnRef: 'turn-1',
         assistantText: 'previous complete response',
       },
+      pendingTurn: pendingTurn({
+        turnRef: 'turn-2',
+        userMessageId: 'user-2',
+        text: 'second',
+      }),
       isSending: true,
       messages: [
         { id: 'user-1', sender: 'user', text: 'first', turnRef: 'turn-1' },
@@ -295,7 +318,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       isSending: true,
-      source: 'send-preflight',
+      source: 'pending-turn',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: false,
     });
@@ -322,6 +345,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
           },
         },
       },
+      pendingTurn: pendingTurn({
+        turnRef: 'turn-2',
+        userMessageId: 'user-2',
+        text: 'second',
+      }),
       isSending: true,
       messages: [
         { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },

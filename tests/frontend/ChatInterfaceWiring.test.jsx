@@ -59,6 +59,8 @@ const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
 const mockSetTokenCounts = jest.fn();
 const mockAcceptStoppedTurn = jest.fn();
+const mockAcceptPendingTurn = jest.fn();
+const mockClearPendingTurn = jest.fn();
 const mockSetChatActiveConversationRef = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
@@ -91,6 +93,15 @@ const mockChatState = {
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   setTokenCounts: (...args) => mockSetTokenCounts(...args),
   acceptStoppedTurn: (...args) => mockAcceptStoppedTurn(...args),
+  acceptPendingTurn: (pendingTurn) => {
+    mockChatState.pendingTurn = pendingTurn;
+    mockChatState.isSending = true;
+    mockAcceptPendingTurn(pendingTurn);
+  },
+  clearPendingTurn: (...args) => {
+    mockChatState.pendingTurn = null;
+    mockClearPendingTurn(...args);
+  },
   setActiveConversationRef: (...args) => mockSetChatActiveConversationRef(...args),
 };
 
@@ -117,7 +128,10 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
-  useChatStore: (selector) => mockSelectStoreState(selector, mockChatState),
+  useChatStore: Object.assign(
+    (selector) => mockSelectStoreState(selector, mockChatState),
+    { getState: () => mockChatState },
+  ),
   selectChatInterfaceState: (state) => ({
     messages: state.messages,
     isSending: state.isSending,
@@ -274,7 +288,7 @@ describe('ChatInterface wiring', () => {
       payload: input.payload,
       model: input.model,
       workspacePath: input.workspacePath,
-      turnRef: null,
+      turnRef: input.turnRef,
     }));
     mockPrepareRetryTurn.mockClear();
     mockPrepareRetryTurn.mockImplementation(async (input) => ({
@@ -283,7 +297,7 @@ describe('ChatInterface wiring', () => {
       payload: input.payload,
       model: input.model,
       workspacePath: input.workspacePath,
-      turnRef: null,
+      turnRef: input.turnRef,
     }));
     mockClearMessages.mockClear();
     mockSetMessages.mockClear();
@@ -293,6 +307,8 @@ describe('ChatInterface wiring', () => {
     mockSetThinkingSourceEventType.mockClear();
     mockSetTokenCounts.mockClear();
     mockAcceptStoppedTurn.mockClear();
+    mockAcceptPendingTurn.mockClear();
+    mockClearPendingTurn.mockClear();
     mockSetChatActiveConversationRef.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
@@ -473,6 +489,14 @@ describe('ChatInterface wiring', () => {
       },
       { id: 'user-2', sender: 'user', text: 'Summarize it now' },
     ];
+    mockChatState.pendingTurn = {
+      conversationRef: 'conv_existing',
+      turnRef: 'turn_pending_2',
+      userMessageId: 'user-2',
+      text: 'Summarize it now',
+      timestamp: '2026-06-21T00:00:00.000Z',
+      attachmentFilenames: null,
+    };
 
     render(<ChatInterface />);
 
@@ -1493,6 +1517,14 @@ describe('ChatInterface wiring', () => {
     ];
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.isSending = true;
+    mockChatState.pendingTurn = {
+      conversationRef: 'conv_existing',
+      turnRef: 'turn_pending_1',
+      userMessageId: 'user-1',
+      text: 'hello',
+      timestamp: '2026-06-21T00:00:00.000Z',
+      attachmentFilenames: null,
+    };
 
     render(<ChatInterface />);
 
@@ -1539,7 +1571,7 @@ describe('ChatInterface wiring', () => {
     expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-2');
   });
 
-  test('keeps awaiting dot visible during a later turn while send latch is active over a terminal previous phase', () => {
+  test('keeps awaiting dot visible during a later turn while pending turn is active over a terminal previous phase', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'first task', type: 'user' },
       { id: 'assistant-1', sender: 'assistant', text: 'done', type: 'llm-text' },
@@ -1547,6 +1579,14 @@ describe('ChatInterface wiring', () => {
     ];
     mockChatState.streamTracking.phase = 'complete';
     mockChatState.isSending = true;
+    mockChatState.pendingTurn = {
+      conversationRef: 'conv_existing',
+      turnRef: 'turn_pending_2',
+      userMessageId: 'user-2',
+      text: 'second task',
+      timestamp: '2026-06-21T00:00:00.000Z',
+      attachmentFilenames: null,
+    };
 
     render(<ChatInterface />);
 
@@ -1712,13 +1752,18 @@ describe('ChatInterface wiring', () => {
       { id: 'user-1', sender: 'user', text: 'create a dashboard for this', type: 'user' },
     ], 'conv_existing');
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
-    expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv_existing');
+    expect(mockAcceptPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv_existing',
+      userMessageId: 'user-1',
+      text: 'create a dashboard for this',
+    }));
 
     const retryPayload = mockPrepareRetryTurn.mock.calls[0]?.[0];
     expect(retryPayload).toEqual(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
       text: 'create a dashboard for this',
+      turnRef: mockAcceptPendingTurn.mock.calls[0]?.[0].turnRef,
     }));
     expect(retryPayload).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
@@ -1744,7 +1789,11 @@ describe('ChatInterface wiring', () => {
       { id: 'user-1', sender: 'user', text: 'new prompt', type: 'user' },
     ], 'conv_existing');
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
-    expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv_existing');
+    expect(mockAcceptPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv_existing',
+      userMessageId: 'user-1',
+      text: 'new prompt',
+    }));
 
     const editPayload = mockPrepareEditAndResend.mock.calls[0]?.[0];
     expect(editPayload).toEqual(expect.objectContaining({
@@ -1752,6 +1801,7 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
       messageId: 'user-1',
       text: 'new prompt',
+      turnRef: mockAcceptPendingTurn.mock.calls[0]?.[0].turnRef,
     }));
     expect(editPayload).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({

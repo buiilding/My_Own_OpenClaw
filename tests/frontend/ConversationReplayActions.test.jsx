@@ -2,7 +2,7 @@
  * Covers conversation replay actions. behavior in the frontend test suite.
  */
 
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -83,6 +83,7 @@ describe('useConversationReplayActions', () => {
       }
       return null;
     });
+    jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
     mockPrepareEditAndResend.mockImplementation(async (input) => ({
       conversationRef: input.conversationRef,
       text: input.text,
@@ -164,6 +165,80 @@ describe('useConversationReplayActions', () => {
     }));
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
     expect(mockPrepareEditAndResend).not.toHaveBeenCalled();
+  });
+
+  test('retry replay publishes pending turn before continuity preparation resolves', async () => {
+    let resolvePreparation;
+    mockPrepareRetryTurn.mockImplementation((input) => new Promise((resolve) => {
+      resolvePreparation = () => resolve({
+        conversationRef: input.conversationRef,
+        text: input.text ?? 'first question',
+        payload: input.payload,
+        model: input.model,
+        workspacePath: input.workspacePath,
+        turnRef: input.turnRef,
+      });
+    }));
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-replay-pending');
+    const messages = [
+      {
+        id: 'user-1',
+        sender: 'user',
+        text: 'first question',
+        screenshotRef: null,
+        screenshotUrl: null,
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'first answer',
+      },
+    ];
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    useChatStore.getState().clearMessages('conv-existing');
+    useChatStore.getState().setMessages(messages, 'conv-existing');
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: useChatStore.getState().setMessages,
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      setIsSending: useChatStore.getState().setIsSending,
+    }));
+
+    let replayPromise;
+    await act(async () => {
+      replayPromise = result.current.handleTryAgainFromAssistant('assistant-1');
+    });
+
+    await waitFor(() => {
+      expect(useChatStore.getState().pendingTurn).toEqual(expect.objectContaining({
+        conversationRef: 'conv-existing',
+        turnRef: 'turn-replay-pending',
+        userMessageId: 'user-1',
+        text: 'first question',
+      }));
+    });
+    expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      turnRef: 'turn-replay-pending',
+    }));
+    expect(IpcBridge.send).toHaveBeenCalledWith(expect.any(String), {
+      type: 'pending',
+      pendingTurn: expect.objectContaining({
+        turnRef: 'turn-replay-pending',
+        userMessageId: 'user-1',
+      }),
+    });
+    expect(mockSendQuery).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolvePreparation();
+      await replayPromise;
+    });
+
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      turnRef: 'turn-replay-pending',
+    }));
   });
 
   test('retry replay drops inline screenshots from query payloads', async () => {

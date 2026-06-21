@@ -90,19 +90,19 @@ describe('ChatBoxResponse state behavior', () => {
     };
   }
 
-  test('shows awaiting indicator when no assistant response exists yet', async () => {
+  test('does not show awaiting indicator from raw isSending without pending turn or SDK current turn', () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
     useChatStore.setState({
       isSending: true,
+      currentTurnProjection: null,
+      latestCurrentTurnProjection: null,
     });
 
     render(<ChatBoxResponse />);
 
-    await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
-    });
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
   test('shows awaiting indicator from pending turn before SDK current-turn arrives', async () => {
@@ -475,13 +475,15 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.getByText('first chunk')).toBeInTheDocument();
   });
 
-  test('keeps awaiting indicator visible when query is sending and overlay phase is streaming', async () => {
+  test('keeps awaiting indicator visible for pending turn when overlay phase is streaming', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
-    useChatStore.setState({
-      isSending: true,
-    });
+    useChatStore.getState().acceptPendingTurn(pendingTurn({
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'run command',
+    }));
 
     render(<ChatBoxResponse />);
     emitOverlayPhase('streaming');
@@ -781,8 +783,12 @@ describe('ChatBoxResponse state behavior', () => {
     setChatState([
       { id: 'user-1', text: 'think', sender: 'user' },
     ]);
+    useChatStore.getState().acceptPendingTurn(pendingTurn({
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'think',
+    }));
     useChatStore.setState({
-      isSending: true,
       thinkingStatus: 'step 1\nstep 2',
     });
 
@@ -915,9 +921,11 @@ describe('ChatBoxResponse state behavior', () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
-    useChatStore.setState({
-      isSending: true,
-    });
+    useChatStore.getState().acceptPendingTurn(pendingTurn({
+      turnRef: 'turn-1',
+      userMessageId: 'user-1',
+      text: 'run command',
+    }));
 
     render(<ChatBoxResponse />);
 
@@ -1046,30 +1054,11 @@ describe('ChatBoxResponse state behavior', () => {
     });
 
     act(() => {
-      useChatStore.setState({
-        isSending: true,
-        messages: [
-          { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-1' },
-          {
-            id: 'assistant-1',
-            text: 'previous complete response',
-            sender: 'assistant',
-            type: 'llm-text',
-            isComplete: true,
-            turnRef: 'turn-1',
-          },
-          { id: 'user-2', text: 'again', sender: 'user', type: 'user', turnRef: 'turn-2' },
-        ],
-        currentTurnProjection: {
-          conversationRef: 'conv-test',
-          turnRef: 'turn-1',
-          phase: 'complete',
-          assistantText: 'previous complete response',
-          reasoningText: null,
-          toolEvents: [],
-          lastError: null,
-        },
-      });
+      useChatStore.getState().acceptPendingTurn(pendingTurn({
+        turnRef: 'turn-2',
+        userMessageId: 'user-2',
+        text: 'again',
+      }));
     });
 
     await waitFor(() => {
@@ -1145,39 +1134,11 @@ describe('ChatBoxResponse state behavior', () => {
 
     mockInvoke.mockClear();
     act(() => {
-      useChatStore.setState({
-        isSending: true,
-        messages: [
-          { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-1' },
-          {
-            id: 'assistant-1',
-            text: 'previous complete response',
-            sender: 'assistant',
-            type: 'llm-text',
-            isComplete: true,
-            turnRef: 'turn-1',
-          },
-          { id: 'user-2', text: 'again', sender: 'user', type: 'user', turnRef: 'turn-2' },
-        ],
-        currentTurnProjection: {
-          conversationRef: 'conv-test',
-          turnRef: 'turn-1',
-          phase: 'complete',
-          assistantText: 'previous complete response',
-          reasoningText: null,
-          toolEvents: [],
-          lastError: null,
-        },
-        latestCurrentTurnProjection: {
-          conversationRef: 'conv-test',
-          turnRef: 'turn-1',
-          phase: 'complete',
-          assistantText: 'previous complete response',
-          reasoningText: null,
-          toolEvents: [],
-          lastError: null,
-        },
-      });
+      useChatStore.getState().acceptPendingTurn(pendingTurn({
+        turnRef: 'turn-2',
+        userMessageId: 'user-2',
+        text: 'again',
+      }));
     });
 
     await waitFor(() => {
@@ -1204,7 +1165,7 @@ describe('ChatBoxResponse state behavior', () => {
     )).toBe(false);
   });
 
-  test('new local send shows awaiting before optimistic user row lands', async () => {
+  test('stale raw isSending alone does not hide previous response before pending turn lands', async () => {
     setChatState([
       { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-1' },
       {
@@ -1232,9 +1193,9 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+      expect(screen.getByText('previous complete response')).toBeInTheDocument();
     });
-    expect(screen.queryByText('previous complete response')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
   test('SDK presentation response bypasses local send latch and synthetic message fallback', async () => {

@@ -208,7 +208,7 @@ describe('useChatSurfaceController', () => {
     });
   });
 
-  test('keeps local send preflight busy when SDK presentation is hidden', () => {
+  test('uses SDK awaiting lifecycle when SDK presentation is hidden', () => {
     const { result } = renderController({
       presentationState: {
         isBusy: true,
@@ -217,6 +217,14 @@ describe('useChatSurfaceController', () => {
       },
       props: {
         isSending: true,
+        pendingTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-2',
+          userMessageId: 'user-2',
+          text: 'second',
+          timestamp: '2026-06-21T00:00:00.000Z',
+          attachmentFilenames: null,
+        },
         messages: [
           { id: 'user-2', type: 'user', sender: 'user', text: 'second', turnRef: 'turn-2' },
         ],
@@ -259,7 +267,7 @@ describe('useChatSurfaceController', () => {
       isBusy: true,
       canStop: true,
       liveTurnPhase: 'awaiting-first-chunk',
-      liveTurnSource: 'send-preflight',
+      liveTurnSource: 'sdk-current-turn',
     });
     expect(result.current.currentTurnPresentationState).toMatchObject({
       showChatboxAwaitingReply: true,
@@ -343,7 +351,7 @@ describe('useChatSurfaceController', () => {
     });
   });
 
-  test('keeps local send preflight busy before optimistic user row lands', () => {
+  test('does not let stale raw isSending create local preflight without pending turn', () => {
     const { result } = renderController({
       presentationState: {
         isBusy: true,
@@ -378,9 +386,12 @@ describe('useChatSurfaceController', () => {
       messages: expect.any(Array),
     }));
     expect(result.current).toMatchObject({
-      isBusy: true,
-      canStop: true,
-      liveTurnSource: 'send-preflight',
+      isBusy: false,
+      canStop: false,
+      liveTurnSource: 'current-turn',
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'terminal',
+      }),
     });
   });
 

@@ -51,6 +51,9 @@ Output statuses:
 is the shared handoff predicate for clearing renderer pending turns and
 suppressing local send preflight. SDK idle, wrong-turn terminal, stale, and
 visible-empty projections must not replace `local_pending`.
+Local send preflight requires a valid renderer `pendingTurn`; bare
+`isSending=true` is store/diagnostic compatibility state and does not create
+visible typing or busy lifecycle by itself.
 
 ## Overlay Turn Lifecycle Contract
 
@@ -192,8 +195,17 @@ local send-preflight handoff to
 surface still prepares overlay presentation input and SDK overlay intent
 metadata, but phase, busy, awaiting, and response flags now come from
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`. The
-decision to keep a renderer-local send latch through idle, hidden, stale,
-terminal, or visible SDK projections lives with the visible lifecycle owner.
+decision to keep renderer-local pending typing through idle, hidden, stale,
+terminal, or visible SDK projections lives with the visible lifecycle owner and
+requires an accepted renderer `pendingTurn`.
+
+Conversation replay actions now allocate a replay `turnRef` before SDK
+continuity preparation, publish a renderer `pendingTurn` through
+`DesktopConversationReplayRuntime.buildReplayPendingTurn(...)`, and forward the
+same `turnRef` to `DesktopConversationContinuityService.prepareEditAndResend`
+or `prepareRetryTurn`. That keeps edit/resend and retry in the same
+`local_pending -> SDK handoff` path as normal sends; replay preparation latency
+does not rely on bare `isSending` as a visible lifecycle authority.
 
 `useResponseOverlayViewModel(...)` also resolves the same visible lifecycle and
 applies `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
@@ -245,6 +257,7 @@ survive adaptation.
   replace local pending
 - shared presentation adapters map renderer visible lifecycle into legacy busy,
   awaiting-dot, chatbox, and response overlay presentation fields
+- bare `isSending=true` does not create local preflight without `pendingTurn`
 - the handoff predicate stays behind the visible lifecycle runtime facade
 
 `tests/frontend/ChatSurfaceController.test.jsx` validates:
@@ -256,26 +269,24 @@ survive adaptation.
 
 `tests/frontend/ChatLoopUiState.test.js` validates:
 
-- lifecycle-to-loop-ui mapping (`preflight/awaiting/active/terminal`)
-- visible-reply split inside the `active` lifecycle
-- terminal and idle lifecycles stay non-busy
+- chat loop transport recovery starts connected and not forced idle
+- disconnect/reconnect arms the recovery watchdog
+- changed snapshot signatures disarm recovery after reconnect progress
+- stale snapshots keep the recovery watchdog armed until timeout
 
 `tests/frontend/OverlayTurnLifecycle.test.js` validates:
 
-- local send latch maps to `preflight`
-- main awaiting phase maps to `awaiting`
-- active backend phases map to `active`
-- terminal phase + newly staged send stays `preflight`
-- disconnected transport forces `idle`
+- overlay lifecycle runtime exposes only semantic lifecycle value getters and
+  predicates
+- raw lifecycle constants, phase groups, and `phase + isSending` reducers stay
+  private/removed
 
 `tests/frontend/ChatLoopUiStateHook.test.jsx` validates:
 
-- active-loop disconnect immediately drops to `idle`
+- active-loop disconnect immediately forces transport idle
 - startup snapshots and live events without a boolean connection field are ignored
 - reconnect watchdog clears stale busy lock when no progress arrives
 - watchdog disarms when post-reconnect stream progress arrives
-- `tool-output` without visible assistant reply stays awaiting until streamed reply appears
-- duplicate terminal snapshots after reconnect do not re-arm busy state
 
 ## Drift Hotspots
 

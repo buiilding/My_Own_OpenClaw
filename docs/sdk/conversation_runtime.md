@@ -599,6 +599,11 @@ or `SdkConversationRuntime.retryTurn`. The renderer hook may identify which
 button was clicked, but revision cutting, rewritten persistence, rehydrate
 projection generation, model sync, and query send live behind the SDK runtime
 facade.
+The Electron renderer may publish a temporary replay `pendingTurn` with a
+preallocated `turnRef` before continuity preparation resolves so desktop
+surfaces stay in the same visible lifecycle handoff as normal sends. That
+pending state is UI projection only; the SDK continuity service still owns the
+rewrite/retry revision and the prepared replay turn.
 
 ## Stream Rule
 

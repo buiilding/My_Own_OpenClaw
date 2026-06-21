@@ -60,7 +60,6 @@ function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
 
 export function useResponseOverlayViewModel({
   messages = [],
-  isSending = false,
   thinkingStatus,
   currentTurnProjection = null,
   pendingTurn = null,
@@ -82,7 +81,6 @@ export function useResponseOverlayViewModel({
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     currentTurnProjection,
     pendingTurn,
-    isSending,
     messages,
     visibleTurnLifecycle,
   });

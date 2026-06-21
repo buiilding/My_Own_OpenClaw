@@ -47,6 +47,7 @@ type RewriteAndResendInput = {
   text?: string;
   payload?: JsonRecord;
   model?: AgentModelSelection | null;
+  turnRef?: string | null;
   workspacePath?: string | null;
 };
 
@@ -125,6 +126,7 @@ export const DesktopConversationContinuityService = {
         conversationRef: input.conversationRef,
         messageId: input.messageId,
         text: input.text ?? '',
+        turnRef: input.turnRef ?? undefined,
         payload: input.payload,
         model: input.model ?? undefined,
         workspace_path: input.workspacePath ?? null,
@@ -147,6 +149,7 @@ export const DesktopConversationContinuityService = {
         userId: input.userId,
         conversationRef: input.conversationRef,
         messageId: input.messageId,
+        turnRef: input.turnRef ?? undefined,
         payload: input.payload,
         model: input.model ?? undefined,
         workspace_path: input.workspacePath ?? null,

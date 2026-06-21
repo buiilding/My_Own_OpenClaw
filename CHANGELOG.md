@@ -68,6 +68,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: require renderer `pendingTurn` for local visible-lifecycle
+  preflight, removing the fallback where bare `isSending=true` could force
+  dashboard, pill, or response-overlay typing without an accepted pending turn.
+  No migration required.
+- frontend/renderer: route conversation retry and edit/resend replay through
+  renderer pending-turn state before SDK continuity preparation resolves, so
+  replay uses the same visible lifecycle handoff as normal sends instead of a
+  bare `isSending` preflight. No migration required.
 - frontend/renderer: route response-overlay manual dismissal through
   `DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox(...)`, keeping
   the hidden dismissed responsebox IPC payload shape out of the view model. No
