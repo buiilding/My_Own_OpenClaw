@@ -47,7 +47,7 @@ frontend/src/renderer/
 │   │   ├── desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
 │   │   ├── desktopCurrentTurnProjectionEffectsRuntime.ts # Renderer SDK current-turn projection side-effect facade
 │   │   ├── desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
-│   │   ├── desktopRendererTraceRuntime.ts # Renderer stream/chat-pill/live-surface diagnostic trace facade
+│   │   ├── desktopRendererTraceRuntime.ts # Renderer stream/chat-pill/overlay live-surface diagnostic trace facade
 │   │   ├── desktopManualCompactionRuntime.js # Renderer manual compaction command orchestration facade
 │   │   ├── desktopMessageClassRuntime.js # Renderer message row class-name assembly facade
 │   │   ├── desktopMessageInputRuntime.js # Renderer outgoing message payload normalization facade

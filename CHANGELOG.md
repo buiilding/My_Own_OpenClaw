@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlay: move response overlay view-model trace payload, event, and
+  reason mapping into `desktopRendererTraceRuntime` so
+  `useResponseOverlayViewModel` emits app-runtime-built live-surface trace
+  records instead of carrying trace field names and event labels locally. No
+  migration required.
 - renderer/overlay: move response overlay dismissal-target projection into
   `desktopCurrentTurnPresentationRuntime` so `useResponseOverlayViewModel`
   consumes one app-runtime helper for SDK overlay intent, turn refs, guard refs,

@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Response Overlay View-Model Trace Boundary
+
+- Finding: `useResponseOverlayViewModel.js` consumed app-runtime trace helpers
+  for adjacent response overlay diagnostics, but still assembled
+  `renderer.overlay_view_model.resolved`, `typing.show`/`typing.hide`,
+  `response_overlay.intent.*`, and view-model trace reason strings locally.
+- Change: added response overlay view-model trace payload, typing/intent event,
+  resolved-event logging, and generic log helpers to
+  `desktopRendererTraceRuntime.ts`, then routed the overlay view-model through
+  those helpers so the hook reports value-level inputs and change detection
+  instead of owning live-surface trace schema strings.
+- Validation: focused renderer trace runtime, response overlay state, renderer
+  app-runtime boundary coverage, docs listing, stale hook-local trace event
+  scan, and diff checks.
+- Compatibility: no migration required. Live-surface trace event names,
+  payload fields, debug query flags, IPC trace forwarding, overlay rendering,
+  storage, permissions, credentials, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-21 Renderer Response Overlay Dismissal Target Boundary
 
 - Finding: `useResponseOverlayViewModel.js` consumed app-runtime helpers for

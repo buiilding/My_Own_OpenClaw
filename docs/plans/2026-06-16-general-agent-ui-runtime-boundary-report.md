@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: response overlay dismissal-target projection now
-  stays behind `desktopCurrentTurnPresentationRuntime`, with the overlay
-  view-model consuming one app-runtime helper for SDK overlay intent, latest
-  entry id, turn ref, conversation ref, and stale guard ref instead of
-  assembling dismissal refs locally.
+- Latest completed slice: response overlay view-model trace payload, event,
+  and reason mapping now stays behind `desktopRendererTraceRuntime`, with the
+  overlay view-model reporting value-level inputs and change detection instead
+  of carrying live-surface trace schema strings locally.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -156,6 +155,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `desktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   instead of assembling SDK overlay intent, latest entry id, turn ref,
   conversation ref, and stale guard ref inside the overlay view-model hook.
+  Response overlay view-model live-surface trace payload, resolved-event,
+  typing-event, intent-event, and reason mapping now consumes
+  `desktopRendererTraceRuntime` helpers instead of carrying trace schema
+  strings inside the overlay view-model hook.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
@@ -599,6 +602,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Renderer Response Overlay View-Model Trace Boundary
+
+- Finding: `useResponseOverlayViewModel.js` consumed app-runtime trace helpers
+  for adjacent response overlay diagnostics, but still assembled
+  `renderer.overlay_view_model.resolved`, `typing.show`/`typing.hide`,
+  `response_overlay.intent.*`, and view-model trace reason strings locally.
+- Change: added response overlay view-model trace payload, typing/intent event,
+  resolved-event logging, and generic log helpers to
+  `desktopRendererTraceRuntime.ts`, then routed the overlay view-model through
+  those helpers so the hook reports value-level inputs and change detection
+  instead of owning live-surface trace schema strings.
+- Validation: focused renderer trace runtime, response overlay state, renderer
+  app-runtime boundary coverage, docs listing, stale hook-local trace event
+  scan, and diff checks.
+- Compatibility: no migration required. Live-surface trace event names,
+  payload fields, debug query flags, IPC trace forwarding, overlay rendering,
+  storage, permissions, credentials, hosted backend URLs, and provider policy
+  are unchanged.
 
 ### 2026-06-21 Renderer Response Overlay Dismissal Target Boundary
 

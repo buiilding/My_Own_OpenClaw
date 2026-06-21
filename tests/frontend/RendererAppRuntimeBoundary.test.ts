@@ -285,13 +285,25 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/minimalChatPill/components/MinimalResponseOverlay.jsx'),
       'utf8',
     );
+    const responseOverlayViewModelSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
+      'utf8',
+    );
 
     expect(traceRuntimeSource).toContain('buildRendererResponseOverlayStateTracePayload');
     expect(traceRuntimeSource).toContain('logRendererResponseOverlayStateTrace');
     expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceRenderTracePayload');
     expect(traceRuntimeSource).toContain('logRendererResponseSurfaceRenderTrace');
+    expect(traceRuntimeSource).toContain('buildRendererOverlayViewModelTracePayload');
+    expect(traceRuntimeSource).toContain('buildRendererOverlayTypingTraceEvent');
+    expect(traceRuntimeSource).toContain('buildRendererOverlayIntentTraceEvent');
+    expect(traceRuntimeSource).toContain('logRendererOverlayViewModelTrace');
+    expect(traceRuntimeSource).toContain('logRendererOverlayViewModelResolvedTrace');
     expect(responseOverlaySource).toContain('logRendererResponseOverlayStateTrace');
     expect(responseOverlaySource).toContain('logRendererResponseSurfaceRenderTrace');
+    expect(responseOverlayViewModelSource).toContain('buildRendererOverlayViewModelTracePayload');
+    expect(responseOverlayViewModelSource).toContain('logRendererOverlayViewModelTrace');
+    expect(responseOverlayViewModelSource).toContain('logRendererOverlayViewModelResolvedTrace');
     expect(responseOverlaySource).not.toContain('turn_id');
     expect(responseOverlaySource).not.toContain('is_visible');
     expect(responseOverlaySource).not.toContain('show_awaiting_reply');
@@ -302,6 +314,11 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlaySource).not.toContain('thinking_text_length');
     expect(responseOverlaySource).not.toContain('is_sending');
     expect(responseOverlaySource).not.toContain('message_count');
+    expect(responseOverlayViewModelSource).not.toContain("logRendererLiveSurfaceTrace");
+    expect(responseOverlayViewModelSource).not.toContain("'renderer.overlay_view_model.resolved'");
+    expect(responseOverlayViewModelSource).not.toContain("'typing.show'");
+    expect(responseOverlayViewModelSource).not.toContain("'response_overlay.intent.show_awaiting'");
+    expect(responseOverlayViewModelSource).not.toContain("renderer-view-model-awaiting");
   });
 
   test('response overlay phase contract stays behind the app runtime facade', async () => {

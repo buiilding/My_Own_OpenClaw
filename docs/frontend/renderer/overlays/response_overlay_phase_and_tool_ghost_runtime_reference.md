@@ -141,6 +141,12 @@ Contract ownership:
   field shaping. `useResponseOverlayWindowSync(...)` reports value-level sizing
   and turn inputs to `logRendererResponseSurfaceSizeTrace(...)`; the trace
   runtime maps those values to the existing diagnostic fields.
+- `desktopRendererTraceRuntime.ts` also owns response overlay view-model
+  live-surface trace payload, resolved-event, typing-event, intent-event, and
+  reason mapping. `useResponseOverlayViewModel(...)` reports value-level SDK,
+  presentation, and view-intent inputs, then logs the app-runtime-built trace
+  records when the resolved payload, typing visibility, or overlay intent mode
+  changes.
 - `useResponseOverlayScrollState(...)` owns fixed-height transcript scroll pinning and overflow affordance state.
 
 Rendering:
@@ -221,6 +227,13 @@ Under `WINDIE_DEBUG_STREAM_EVENTS=1` (main injects `?debug_stream=1`) or explici
   assemble trace fields such as `layout_mode`, `show_response`,
   `thinking_text_length`, `compact_hover`, `turn_ref`, or `stale_guard_ref`
   directly
+- response overlay view-model traces go through
+  `buildRendererOverlayViewModelTracePayload(...)`,
+  `logRendererOverlayViewModelResolvedTrace(...)`,
+  `buildRendererOverlayTypingTraceEvent(...)`, and
+  `buildRendererOverlayIntentTraceEvent(...)`, so the overlay view-model hook
+  does not assemble live-surface trace event names, reason strings, or payload
+  field names locally
 
 ## Tool-Ghost Status (Current)
 

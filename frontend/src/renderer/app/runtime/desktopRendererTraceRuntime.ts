@@ -81,6 +81,44 @@ export type RendererResponseSurfaceRenderTraceValues = {
   showAwaitingReply?: boolean;
 };
 
+export type RendererOverlayViewModelTraceValues = {
+  currentTurnProjection?: {
+    turnRef?: unknown;
+    conversationRef?: unknown;
+    phase?: unknown;
+  } | null;
+  currentTurnPhase?: unknown;
+  overlayIntent?: {
+    mode?: unknown;
+    conversationRef?: unknown;
+    turnRef?: unknown;
+    staleGuardRef?: unknown;
+  } | null;
+  currentTurnPresentationState?: {
+    showAssistantAwaitingDot?: boolean;
+    hasVisibleReply?: boolean;
+    isBusy?: boolean;
+    overlayTurnLifecycle?: unknown;
+  } | null;
+  responseOverlayEntries?: unknown[];
+  viewIntent?: {
+    showAwaitingReply?: boolean;
+    showResponse?: boolean;
+    visibleResponse?: {
+      id?: unknown;
+    } | null;
+    latestResponseOverlayEntryId?: unknown;
+  } | null;
+  useSdkLiveTurnPresentation?: boolean;
+  useLocalSendLatch?: boolean;
+};
+
+type RendererOverlayViewModelTraceEvent = {
+  event: string;
+  mode: 'awaiting' | 'response' | 'hidden';
+  reason: string;
+};
+
 let workspaceSnapshotResolver: RendererTraceWorkspaceSnapshotResolver | null = null;
 
 export function configureRendererTraceWorkspaceSnapshotResolver(
@@ -290,6 +328,103 @@ export function logRendererResponseSurfaceRenderTrace(
   values: RendererResponseSurfaceRenderTraceValues,
 ): void {
   logRendererChatPillTrace(buildRendererResponseSurfaceRenderTracePayload(values));
+}
+
+export function buildRendererOverlayViewModelTracePayload(
+  values: RendererOverlayViewModelTraceValues,
+): Record<string, unknown> {
+  const currentTurnProjection = values.currentTurnProjection;
+  const overlayIntent = values.overlayIntent;
+  const currentTurnPresentationState = values.currentTurnPresentationState;
+  const responseOverlayEntries = Array.isArray(values.responseOverlayEntries)
+    ? values.responseOverlayEntries
+    : [];
+  const viewIntent = values.viewIntent;
+  return {
+    source: 'renderer-overlay-view-model',
+    turnRef: traceString(currentTurnProjection?.turnRef) || null,
+    conversationRef: (
+      traceString(currentTurnProjection?.conversationRef)
+      || traceString(overlayIntent?.conversationRef)
+      || null
+    ),
+    phase: traceString(currentTurnProjection?.phase) || traceString(values.currentTurnPhase) || null,
+    overlayMode: traceString(overlayIntent?.mode) || null,
+    guardRef: (
+      traceString(overlayIntent?.staleGuardRef)
+      || traceString(overlayIntent?.turnRef)
+      || traceString(currentTurnProjection?.turnRef)
+      || null
+    ),
+    awaitingVisible: viewIntent?.showAwaitingReply === true,
+    responseVisible: viewIntent?.showResponse === true,
+    showAwaitingDot: currentTurnPresentationState?.showAssistantAwaitingDot === true,
+    hasVisibleReply: currentTurnPresentationState?.hasVisibleReply === true,
+    isBusy: currentTurnPresentationState?.isBusy === true,
+    overlayTurnLifecycle: traceString(currentTurnPresentationState?.overlayTurnLifecycle) || null,
+    entryCount: responseOverlayEntries.length,
+    visibleResponseId: traceString(viewIntent?.visibleResponse?.id) || null,
+    latestEntryId: traceString(viewIntent?.latestResponseOverlayEntryId) || null,
+    useSdkLiveTurnPresentation: values.useSdkLiveTurnPresentation === true,
+    useLocalSendLatch: values.useLocalSendLatch === true,
+  };
+}
+
+export function buildRendererOverlayTypingTraceEvent(
+  tracePayload: Record<string, unknown>,
+): RendererOverlayViewModelTraceEvent {
+  const awaitingVisible = tracePayload.awaitingVisible === true;
+  const responseVisible = tracePayload.responseVisible === true;
+  const useSdkLiveTurnPresentation = tracePayload.useSdkLiveTurnPresentation === true;
+  return {
+    event: awaitingVisible ? 'typing.show' : 'typing.hide',
+    mode: awaitingVisible ? 'awaiting' : (responseVisible ? 'response' : 'hidden'),
+    reason: awaitingVisible
+      ? (useSdkLiveTurnPresentation ? 'sdk-awaiting' : 'preflight-awaiting')
+      : (responseVisible ? 'response-visible' : 'not-awaiting'),
+  };
+}
+
+export function buildRendererOverlayIntentTraceEvent(
+  tracePayload: Record<string, unknown>,
+): RendererOverlayViewModelTraceEvent {
+  const awaitingVisible = tracePayload.awaitingVisible === true;
+  const responseVisible = tracePayload.responseVisible === true;
+  const mode = awaitingVisible ? 'awaiting' : (responseVisible ? 'response' : 'hidden');
+  return {
+    mode,
+    event: mode === 'awaiting'
+      ? 'response_overlay.intent.show_awaiting'
+      : (mode === 'response'
+        ? 'response_overlay.intent.show_response'
+        : 'response_overlay.intent.hide'),
+    reason: mode === 'awaiting'
+      ? 'renderer-view-model-awaiting'
+      : (mode === 'response'
+        ? 'renderer-view-model-response'
+        : 'renderer-view-model-hidden'),
+  };
+}
+
+export function logRendererOverlayViewModelTrace(
+  event: string,
+  tracePayload: Record<string, unknown>,
+  extra: Record<string, unknown> = {},
+): void {
+  logRendererLiveSurfaceTrace(
+    event,
+    {
+      ...tracePayload,
+      ...extra,
+    },
+    traceString(tracePayload.conversationRef) || null,
+  );
+}
+
+export function logRendererOverlayViewModelResolvedTrace(
+  tracePayload: Record<string, unknown>,
+): void {
+  logRendererOverlayViewModelTrace('renderer.overlay_view_model.resolved', tracePayload);
 }
 
 export function logRendererLiveSurfaceTrace(

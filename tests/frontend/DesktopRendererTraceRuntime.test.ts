@@ -11,8 +11,13 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntim
 }));
 
 import {
+  buildRendererOverlayIntentTraceEvent,
+  buildRendererOverlayTypingTraceEvent,
+  buildRendererOverlayViewModelTracePayload,
   buildRendererResponseSurfaceSizeTracePayload,
   configureRendererTraceWorkspaceSnapshotResolver,
+  logRendererOverlayViewModelTrace,
+  logRendererOverlayViewModelResolvedTrace,
   logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
   logRendererResponseSurfaceTrace,
@@ -165,5 +170,118 @@ describe('desktopRendererTraceRuntime', () => {
       width: 0,
       height: 0,
     });
+  });
+
+  test('builds response overlay view-model live trace payloads', () => {
+    expect(buildRendererOverlayViewModelTracePayload({
+      currentTurnProjection: {
+        conversationRef: ' conv-projection ',
+        turnRef: ' turn-projection ',
+        phase: ' streaming ',
+      },
+      currentTurnPhase: 'awaiting-first-chunk',
+      overlayIntent: {
+        conversationRef: ' conv-intent ',
+        turnRef: ' turn-intent ',
+        staleGuardRef: ' guard-intent ',
+        mode: ' response ',
+      },
+      currentTurnPresentationState: {
+        showAssistantAwaitingDot: true,
+        hasVisibleReply: true,
+        isBusy: true,
+        overlayTurnLifecycle: ' active ',
+      },
+      responseOverlayEntries: [{ id: 'entry-1' }, { id: 'entry-2' }],
+      viewIntent: {
+        showAwaitingReply: false,
+        showResponse: true,
+        visibleResponse: { id: ' visible-entry ' },
+        latestResponseOverlayEntryId: ' latest-entry ',
+      },
+      useSdkLiveTurnPresentation: true,
+      useLocalSendLatch: false,
+    })).toEqual({
+      source: 'renderer-overlay-view-model',
+      turnRef: 'turn-projection',
+      conversationRef: 'conv-projection',
+      phase: 'streaming',
+      overlayMode: 'response',
+      guardRef: 'guard-intent',
+      awaitingVisible: false,
+      responseVisible: true,
+      showAwaitingDot: true,
+      hasVisibleReply: true,
+      isBusy: true,
+      overlayTurnLifecycle: 'active',
+      entryCount: 2,
+      visibleResponseId: 'visible-entry',
+      latestEntryId: 'latest-entry',
+      useSdkLiveTurnPresentation: true,
+      useLocalSendLatch: false,
+    });
+  });
+
+  test('resolves response overlay view-model trace event labels and reasons', () => {
+    expect(buildRendererOverlayTypingTraceEvent({
+      awaitingVisible: true,
+      responseVisible: false,
+      useSdkLiveTurnPresentation: true,
+    })).toEqual({
+      event: 'typing.show',
+      mode: 'awaiting',
+      reason: 'sdk-awaiting',
+    });
+
+    expect(buildRendererOverlayTypingTraceEvent({
+      awaitingVisible: false,
+      responseVisible: true,
+    })).toEqual({
+      event: 'typing.hide',
+      mode: 'response',
+      reason: 'response-visible',
+    });
+
+    expect(buildRendererOverlayIntentTraceEvent({
+      awaitingVisible: false,
+      responseVisible: false,
+    })).toEqual({
+      event: 'response_overlay.intent.hide',
+      mode: 'hidden',
+      reason: 'renderer-view-model-hidden',
+    });
+  });
+
+  test('logs response overlay view-model traces with normalized conversation refs', () => {
+    setSearch('?debug_live_surface=1&view=minimal-response-overlay');
+
+    logRendererOverlayViewModelResolvedTrace({
+      conversationRef: ' conv-1 ',
+      awaitingVisible: true,
+    });
+
+    expect(consoleLog).toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.objectContaining({
+      event: 'renderer.overlay_view_model.resolved',
+      view: 'minimal-response-overlay',
+      conversationRef: ' conv-1 ',
+      awaitingVisible: true,
+    }));
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'renderer.overlay_view_model.resolved',
+    }));
+
+    logRendererOverlayViewModelTrace('typing.show', {
+      conversationRef: 'conv-2',
+      awaitingVisible: true,
+    }, {
+      reason: 'custom-reason',
+    });
+
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'typing.show',
+      conversationRef: 'conv-2',
+      awaitingVisible: true,
+      reason: 'custom-reason',
+    }));
   });
 });
