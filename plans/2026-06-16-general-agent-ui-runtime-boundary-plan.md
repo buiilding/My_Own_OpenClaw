@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Dashboard Conversation Reload Reason Cleanup
+
+- Finding: `useDashboardConversations` and `DashboardShell` still passed
+  reason strings such as `mount`, `local-runtime-ready`, and
+  `main-window-open-target` into `loadRecentConversations(...)`, but the loader
+  no longer accepted or consumed a reason argument. The app-runtime event
+  classifier also still returned unused reload reason fields.
+- Change: removed the stale reload-reason helper, constants, and action fields
+  from `DesktopDashboardConversationLoadRuntime`, and changed dashboard reload
+  callers to invoke `loadRecentConversations()` directly.
+- Validation: focused dashboard conversation load, use-dashboard-conversations,
+  dashboard shell, and renderer app boundary tests plus targeted renderer
+  source lint, docs listing, stale reload-reason scans, and diff checks before
+  commit.
+- Compatibility/security: no migration required. Recent chat loading, startup
+  retry, local-runtime-ready reloads, SDK conversation event reloads, title
+  polling, IPC, credentials, hosted backend policy, and local-runtime execution
+  are unchanged.
+
 ### 2026-06-21 Renderer Remaining Skin Facade Consumption
 
 - Finding: after the chat and settings skin slices, the onboarding slideshow

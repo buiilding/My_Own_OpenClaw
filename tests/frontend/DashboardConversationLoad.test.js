@@ -117,6 +117,7 @@ describe('desktopDashboardConversationLoadRuntime', () => {
     });
     expect(shouldReloadRecentConversationsForEventAction(userAction)).toBe(true);
     expect(getTitleVisibilityPollConversationRef(userAction)).toBeNull();
+    expect(userAction).not.toHaveProperty('reloadReason');
 
     const assistantAction = resolveRecentConversationEventAction({
       type: 'assistant_message',
@@ -124,12 +125,14 @@ describe('desktopDashboardConversationLoadRuntime', () => {
     });
     expect(shouldReloadRecentConversationsForEventAction(assistantAction)).toBe(false);
     expect(getTitleVisibilityPollConversationRef(assistantAction)).toBe('conv-assistant');
+    expect(assistantAction).not.toHaveProperty('reloadReason');
 
     const assistantWithoutRefAction = resolveRecentConversationEventAction({
       type: 'assistant_message',
     });
     expect(shouldReloadRecentConversationsForEventAction(assistantWithoutRefAction)).toBe(true);
     expect(getTitleVisibilityPollConversationRef(assistantWithoutRefAction)).toBeNull();
+    expect(assistantWithoutRefAction).not.toHaveProperty('reloadReason');
 
     const ignoredAction = resolveRecentConversationEventAction({
       type: 'tool_call',
@@ -137,6 +140,7 @@ describe('desktopDashboardConversationLoadRuntime', () => {
     });
     expect(shouldReloadRecentConversationsForEventAction(ignoredAction)).toBe(false);
     expect(getTitleVisibilityPollConversationRef(ignoredAction)).toBeNull();
+    expect(ignoredAction).not.toHaveProperty('reloadReason');
   });
 
   test('resolveRecentConversationsRetryDelayMs applies bounded exponential backoff', () => {

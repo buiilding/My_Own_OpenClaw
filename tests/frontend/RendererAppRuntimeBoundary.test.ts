@@ -866,6 +866,11 @@ describe('renderer app runtime boundary', () => {
     expect(runtimeSource).not.toContain('export function shouldReloadRecentConversationsForEventAction');
     expect(runtimeSource).not.toContain('export function getTitleVisibilityPollConversationRef');
     expect(runtimeSource).not.toContain('export function getRecentConversationsReloadReasonForEventAction');
+    expect(runtimeSource).not.toContain('getRecentConversationsReloadReasonForEventAction');
+    expect(runtimeSource).not.toContain('RECENT_CONVERSATION_EVENT_RELOAD_REASON');
+    expect(runtimeSource).not.toContain('reloadReason');
+    expect(runtimeSource).not.toContain('sdk-user-message');
+    expect(runtimeSource).not.toContain('sdk-assistant-message-no-conversation');
     expect(runtimeSource).not.toContain('export function getTitleVisibilityPollSchedule');
     expect(runtimeSource).not.toContain('export function isConversationVisibleInRecentConversations');
     expect(runtimeSource).not.toContain('export function shouldContinueTitleVisibilityPoll');
@@ -894,6 +899,9 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardHookSource).not.toContain("eventType === 'user_message'");
     expect(dashboardHookSource).not.toContain("eventType !== 'assistant_message'");
     expect(dashboardHookSource).not.toContain("'assistant_message'");
+    expect(dashboardHookSource).not.toContain('getRecentConversationsReloadReasonForEventAction');
+    expect(dashboardHookSource).not.toContain("'local-runtime-ready'");
+    expect(dashboardHookSource).not.toContain("'main-window-open-target'");
     expect(dashboardHookSource).not.toContain('utils/dashboardConversationLoad');
     expect(continuityServiceSource).toContain('DesktopDashboardConversationLoadRuntime');
     expect(continuityServiceSource).toContain('metadataListToDashboardConversations');

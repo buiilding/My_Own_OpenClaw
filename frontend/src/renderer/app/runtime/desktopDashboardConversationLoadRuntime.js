@@ -14,11 +14,6 @@ const RECENT_CONVERSATION_EVENT_ACTION = Object.freeze({
   POLL_TITLE_VISIBILITY: 'poll-title-visibility',
 });
 
-const RECENT_CONVERSATION_EVENT_RELOAD_REASON = Object.freeze({
-  USER_MESSAGE: 'sdk-user-message',
-  ASSISTANT_MESSAGE_WITHOUT_CONVERSATION: 'sdk-assistant-message-no-conversation',
-});
-
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim()
     ? value.trim()
@@ -150,27 +145,23 @@ function resolveRecentConversationEventAction(event) {
     return {
       action: RECENT_CONVERSATION_EVENT_ACTION.RELOAD,
       conversationRef: null,
-      reloadReason: RECENT_CONVERSATION_EVENT_RELOAD_REASON.USER_MESSAGE,
     };
   }
   if (eventType !== 'assistant_message') {
     return {
       action: RECENT_CONVERSATION_EVENT_ACTION.NONE,
       conversationRef: null,
-      reloadReason: '',
     };
   }
   if (!conversationRef) {
     return {
       action: RECENT_CONVERSATION_EVENT_ACTION.RELOAD,
       conversationRef: null,
-      reloadReason: RECENT_CONVERSATION_EVENT_RELOAD_REASON.ASSISTANT_MESSAGE_WITHOUT_CONVERSATION,
     };
   }
   return {
     action: RECENT_CONVERSATION_EVENT_ACTION.POLL_TITLE_VISIBILITY,
     conversationRef,
-    reloadReason: '',
   };
 }
 
@@ -182,12 +173,6 @@ function getTitleVisibilityPollConversationRef(action) {
   return action?.action === RECENT_CONVERSATION_EVENT_ACTION.POLL_TITLE_VISIBILITY
     ? action.conversationRef || null
     : null;
-}
-
-function getRecentConversationsReloadReasonForEventAction(action) {
-  return action?.action === RECENT_CONVERSATION_EVENT_ACTION.RELOAD
-    ? action.reloadReason || ''
-    : '';
 }
 
 function getTitleVisibilityPollSchedule() {
@@ -251,7 +236,6 @@ function shouldRetryRecentConversationsLoad({
 export const DesktopDashboardConversationLoadRuntime = Object.freeze({
   getDashboardConversationRef,
   getDashboardConversationRenamePromptValue,
-  getRecentConversationsReloadReasonForEventAction,
   getTitleVisibilityPollConversationRef,
   getTitleVisibilityPollSchedule,
   isConversationVisibleInRecentConversations,

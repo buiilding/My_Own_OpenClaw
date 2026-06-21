@@ -19,7 +19,6 @@ import {
 const {
   getDashboardConversationRef,
   getDashboardConversationRenamePromptValue,
-  getRecentConversationsReloadReasonForEventAction,
   getTitleVisibilityPollSchedule,
   getTitleVisibilityPollConversationRef,
   metadataListToDashboardConversations,
@@ -378,12 +377,12 @@ export function useDashboardConversations({
   }, []);
 
   useEffect(() => {
-    loadRecentConversations('mount');
+    loadRecentConversations();
   }, [loadRecentConversations]);
 
   useEffect(() => {
     const unsubscribe = DesktopLocalRuntimeStatusRuntimeClient.onReady(() => {
-      void loadRecentConversations('local-runtime-ready');
+      void loadRecentConversations();
     });
     return unsubscribe;
   }, [loadRecentConversations]);
@@ -419,7 +418,7 @@ export function useDashboardConversations({
     const removeListener = DesktopConversationRuntimeEventClient.onConversationEvent((event) => {
       const action = resolveRecentConversationEventAction(event);
       if (shouldReloadRecentConversationsForEventAction(action)) {
-        void loadRecentConversations(getRecentConversationsReloadReasonForEventAction(action));
+        void loadRecentConversations();
         return;
       }
       const conversationRef = getTitleVisibilityPollConversationRef(action);

@@ -257,7 +257,7 @@ function DashboardShell({
     }
     const removeListener = DesktopWindowRuntimeClient.onMainWindowOpenTarget((target) => {
       wakeDashboardShell();
-      void loadRecentConversations('main-window-open-target');
+      void loadRecentConversations();
       if (target === 'chat') {
         handleChatSurface({ focusComposer: true });
         return;

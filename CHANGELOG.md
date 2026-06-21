@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove unused dashboard recent-conversation reload reason
+  strings from the dashboard hook and conversation-load runtime facade, keeping
+  SDK event classification to action plus conversation identity only. No
+  migration required.
 - frontend/renderer: route onboarding slideshow and dashboard memory panel
   skin-copy reads through `DesktopRuntimeSkin` instead of direct
   `desktopRuntimeSkin` imports, finishing feature-level reads from the renderer
