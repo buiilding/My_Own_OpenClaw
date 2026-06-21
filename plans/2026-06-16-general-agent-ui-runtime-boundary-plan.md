@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Agent Capability Parser Privacy
+
+- Finding: `DesktopExtensionRuntimeClient` already owned
+  `agent-capability-event` normalization and manifest/catalog update
+  derivation, but still exported raw `normalizeAgentCapabilityEvent(...)` and
+  `resolveAgentCapabilityUpdate(...)` helpers for tests.
+- Change: made those helpers private to the extension runtime client and
+  updated focused extension tests to exercise normalized capability events and
+  value-level manifest/catalog updates through the public subscription facades.
+  Extended the renderer settings boundary guard against re-exporting those raw
+  helpers.
+- Validation: focused extension runtime client and renderer settings boundary
+  tests, exact raw-helper export scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. `agent-capability-event`
+  channel names, client-tool manifest and remote-tool catalog payload handling,
+  extension metadata loading, tool toggle config patches, permissions,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Settings Parser Privacy
 
 - Finding: `DesktopAppConfigRuntimeClient` already owned

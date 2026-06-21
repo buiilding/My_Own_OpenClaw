@@ -167,7 +167,7 @@ export function normalizeAgentRemoteToolCatalog(payload: unknown): AgentRemoteTo
   };
 }
 
-export function normalizeAgentCapabilityEvent(event: unknown): AgentCapabilityEvent | undefined {
+function normalizeAgentCapabilityEvent(event: unknown): AgentCapabilityEvent | undefined {
   const source = recordOrEmpty(event);
   const type = typeof source.type === 'string' ? source.type : undefined;
   const payload = recordOrEmpty(source.payload);
@@ -190,7 +190,7 @@ export function normalizeAgentCapabilityEvent(event: unknown): AgentCapabilityEv
   return type ? { type, payload } : undefined;
 }
 
-export function resolveAgentCapabilityUpdate(event: unknown): {
+function resolveAgentCapabilityUpdate(event: unknown): {
   manifestStatus: AgentToolManifestStatus | null;
   remoteToolCatalog: AgentRemoteToolCatalog | null;
 } {

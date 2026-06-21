@@ -23,6 +23,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
+import * as DesktopExtensionRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopExtensionRuntimeClient';
 import {
   DesktopExtensionRuntimeClient,
   getEmptyAgentExtensionRuntime,
@@ -38,17 +39,20 @@ import {
   getAgentSkillRuntimePresentation,
   isAgentLocalToolEnabled,
   isAgentRemoteToolEnabled,
-  normalizeAgentCapabilityEvent,
   normalizeAgentExtensionRuntime,
   normalizeAgentRemoteToolCatalog,
   normalizeAgentToolManifestStatus,
-  resolveAgentCapabilityUpdate,
 } from '../../frontend/src/renderer/app/runtime/desktopExtensionRuntimeClient';
 
 describe('DesktopExtensionRuntimeClient', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
     subscribedListener = null;
+  });
+
+  test('keeps raw agent capability event helpers private to the runtime client', () => {
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('normalizeAgentCapabilityEvent');
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('resolveAgentCapabilityUpdate');
   });
 
   test('normalizes extension runtime metadata at the runtime boundary', () => {
@@ -84,7 +88,7 @@ describe('DesktopExtensionRuntimeClient', () => {
     });
   });
 
-  test('normalizes capability event payloads into typed runtime fields', () => {
+  test('normalizes capability payload helpers at the runtime boundary', () => {
     expect(getEmptyAgentToolManifestStatus()).toEqual({
       accepted: [],
       rejected: [],
@@ -112,38 +116,6 @@ describe('DesktopExtensionRuntimeClient', () => {
       remote_tools: [{ name: 'web_search' }],
     });
 
-    expect(normalizeAgentCapabilityEvent({
-      type: 'client-tool-manifest',
-      payload: {
-        accepted: [{ name: 'read_file' }],
-        rejected: [{ name: 'bad_tool' }],
-      },
-    })).toEqual({
-      type: 'client-tool-manifest',
-      payload: {
-        accepted: [{ name: 'read_file' }],
-        rejected: [{ name: 'bad_tool' }],
-      },
-      manifestStatus: {
-        accepted: [{ name: 'read_file' }],
-        rejected: [{ name: 'bad_tool' }],
-      },
-    });
-
-    expect(normalizeAgentCapabilityEvent({
-      type: 'remote-tool-catalog',
-      payload: {
-        remote_tools: [{ name: 'web_search' }],
-      },
-    })).toEqual({
-      type: 'remote-tool-catalog',
-      payload: {
-        remote_tools: [{ name: 'web_search' }],
-      },
-      remoteToolCatalog: {
-        remote_tools: [{ name: 'web_search' }],
-      },
-    });
   });
 
   test('list and capability subscriptions return normalized payloads', async () => {
@@ -164,12 +136,29 @@ describe('DesktopExtensionRuntimeClient', () => {
       capabilityEvents.push(event);
     });
     subscribedListener?.({
+      type: 'client-tool-manifest',
+      payload: {
+        accepted: [{ name: 'read_file' }],
+        rejected: [{ name: 'bad_tool' }],
+      },
+    });
+    subscribedListener?.({
       type: 'remote-tool-catalog',
       payload: {
         remote_tools: [{ name: 'web_search' }],
       },
     });
     expect(capabilityEvents).toEqual([{
+      type: 'client-tool-manifest',
+      payload: {
+        accepted: [{ name: 'read_file' }],
+        rejected: [{ name: 'bad_tool' }],
+      },
+      manifestStatus: {
+        accepted: [{ name: 'read_file' }],
+        rejected: [{ name: 'bad_tool' }],
+      },
+    }, {
       type: 'remote-tool-catalog',
       payload: {
         remote_tools: [{ name: 'web_search' }],
@@ -185,20 +174,6 @@ describe('DesktopExtensionRuntimeClient', () => {
   });
 
   test('capability update subscriptions emit manifest and catalog values directly', () => {
-    expect(resolveAgentCapabilityUpdate({
-      type: 'client-tool-manifest',
-      payload: {
-        accepted: [{ name: 'read_file' }],
-        rejected: [],
-      },
-    })).toEqual({
-      manifestStatus: {
-        accepted: [{ name: 'read_file' }],
-        rejected: [],
-      },
-      remoteToolCatalog: null,
-    });
-
     const updates: unknown[] = [];
     const unsubscribe = DesktopExtensionRuntimeClient.onAgentCapabilityUpdate((
       manifestStatus,
@@ -208,6 +183,13 @@ describe('DesktopExtensionRuntimeClient', () => {
     });
 
     subscribedListener?.({
+      type: 'client-tool-manifest',
+      payload: {
+        accepted: [{ name: 'read_file' }],
+        rejected: [],
+      },
+    });
+    subscribedListener?.({
       type: 'remote-tool-catalog',
       payload: {
         remote_tools: [{ name: 'web_search' }],
@@ -215,6 +197,12 @@ describe('DesktopExtensionRuntimeClient', () => {
     });
 
     expect(updates).toEqual([{
+      manifestStatus: {
+        accepted: [{ name: 'read_file' }],
+        rejected: [],
+      },
+      remoteToolCatalog: null,
+    }, {
       manifestStatus: null,
       remoteToolCatalog: {
         remote_tools: [{ name: 'web_search' }],

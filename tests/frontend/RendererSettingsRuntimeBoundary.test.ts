@@ -328,8 +328,10 @@ describe('renderer settings runtime boundary', () => {
     expect(clientSource).not.toContain('export const EMPTY_AGENT_TOOL_MANIFEST_STATUS');
     expect(clientSource).not.toContain('export const EMPTY_AGENT_REMOTE_TOOL_CATALOG');
     expect(clientSource).toContain('normalizeAgentExtensionRuntime');
-    expect(clientSource).toContain('normalizeAgentCapabilityEvent');
-    expect(clientSource).toContain('resolveAgentCapabilityUpdate');
+    expect(clientSource).toContain('function normalizeAgentCapabilityEvent');
+    expect(clientSource).not.toContain('export function normalizeAgentCapabilityEvent');
+    expect(clientSource).toContain('function resolveAgentCapabilityUpdate');
+    expect(clientSource).not.toContain('export function resolveAgentCapabilityUpdate');
     expect(clientSource).toContain('getAgentRemoteToolPresentation');
     expect(clientSource).toContain('getAgentExtensionRuntimeErrorPresentation');
     expect(clientSource).toContain('getAgentLocalToolManifestPresentation');
