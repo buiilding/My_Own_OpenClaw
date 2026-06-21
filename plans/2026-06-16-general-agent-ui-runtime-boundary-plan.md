@@ -21809,3 +21809,17 @@ Each completed slice should report:
   browser validation/extraction behavior, wakeword launch behavior, trace
   payloads, logging destinations, IPC, storage, provider policy, permissions,
   and backend behavior are unchanged.
+
+### 2026-06-21 Python SDK local-runtime route test labels
+
+- Finding: Python SDK package tests still named local tool-call and tool-bundle
+  routing coverage as routing "to sidecar", and a missing local-runtime
+  discovery fixture still used `missing-sidecar.json`.
+- Change: renamed those tests and the fixture to local-runtime labels, and
+  extended the Python SDK package-boundary test guard to reject the retired
+  `_to_sidecar` and `missing-sidecar.json` labels.
+- Validation: focused Python SDK package/client tests, exact retired-label scan
+  for the touched tests, docs listing, and diff checks.
+- Compatibility: no migration required. Tests changed only; Python SDK
+  routing behavior, local-runtime execution payloads, discovery behavior, IPC,
+  storage, provider policy, permissions, and backend behavior are unchanged.

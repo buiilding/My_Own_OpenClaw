@@ -27,6 +27,8 @@ from windie._runtime_env import first_env_value  # noqa: E402
 
 def test_python_sdk_tests_use_boundary_docstrings():
     retired_suite_label = "behavior in the " + "sidecar test suite"
+    retired_route_label = "_to_" + "sidecar"
+    retired_discovery_fixture = "missing-" + "sidecar.json"
     expected_headers = {
         "test_windie_package_boundary.py": '"""Covers Python SDK package boundary behavior."""',
         "test_windie_sdk_client.py": '"""Covers Python SDK package client behavior."""',
@@ -37,6 +39,8 @@ def test_python_sdk_tests_use_boundary_docstrings():
         source = path.read_text(encoding="utf-8")
         assert source.splitlines()[0] == expected_headers[path.name]
         assert retired_suite_label not in source
+        assert retired_route_label not in source
+        assert retired_discovery_fixture not in source
 
 
 def test_windie_package_exports_public_client():

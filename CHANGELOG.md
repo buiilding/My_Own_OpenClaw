@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sdk-python: relabel Python SDK local-runtime routing tests and the
+  missing-discovery fixture away from sidecar route names, with a package
+  boundary guard for the retired labels. No migration required.
 - docs/runtime: relabel active browser, wakeword, trace, and failure-routing
   guidance through local-runtime browser/local-runtime Python wording instead
   of sidecar owner labels. No migration required.

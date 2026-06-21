@@ -676,7 +676,7 @@ async def test_wake_up_reports_generic_local_runtime_auto_start_failure(tmp_path
         backend_url="https://backend.example.com",
         default_user_id="dev-user",
         auto_start_local_runtime=False,
-        local_runtime_discovery_file=str(tmp_path / "missing-sidecar.json"),
+        local_runtime_discovery_file=str(tmp_path / "missing-local-runtime.json"),
     )
 
     with pytest.raises(
@@ -805,7 +805,7 @@ async def test_wake_up_registers_local_tools_plugins_and_mcps():
 
 
 @pytest.mark.asyncio
-async def test_python_agent_session_routes_tool_call_to_sidecar():
+async def test_python_agent_session_routes_tool_call_to_local_runtime():
     local_runtime = FakeLocalRuntime()
     websocket = FakeWebSocket(
         messages=[
@@ -1029,7 +1029,7 @@ async def test_python_agent_stream_and_run_match_high_level_sdk_shape():
 
 
 @pytest.mark.asyncio
-async def test_python_agent_session_routes_tool_bundle_to_sidecar():
+async def test_python_agent_session_routes_tool_bundle_to_local_runtime():
     local_runtime = FakeLocalRuntime()
     websocket = FakeWebSocket(
         messages=[

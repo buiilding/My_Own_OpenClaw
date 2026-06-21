@@ -9185,3 +9185,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   unchanged. Browser behavior, wakeword launch behavior, trace payloads, logging
   destinations, IPC, storage, provider policy, permissions, and backend behavior
   are unchanged; no migration is required.
+- Python SDK package/client tests now name local tool-call and tool-bundle
+  routing as local-runtime routing instead of sidecar routing, and the missing
+  discovery fixture now uses `missing-local-runtime.json`. The package-boundary
+  guard rejects the retired `_to_sidecar` and `missing-sidecar.json` labels.
+  Python SDK routing behavior, local-runtime execution payloads, discovery
+  behavior, IPC, storage, provider policy, permissions, and backend behavior are
+  unchanged; no migration is required.
