@@ -505,20 +505,24 @@ describe('modular sdk refactor completion boundary', () => {
     const source = await Promise.all([
       read('tests/frontend/ChatPillVisibilityIntentStore.test.cjs'),
       read('tests/frontend/CommitterBodyFormat.test.cjs'),
+      read('tests/frontend/ElectronLauncher.test.cjs'),
       read('tests/frontend/PythonInEnvScript.test.cjs'),
     ]).then(sources => sources.join('\n'));
     const retiredUserData = ['/tmp', 'windie-user-data'].join('/');
     const retiredCommitterRoot = ['windie', 'committer-'].join('-');
     const retiredCommitterAuthor = ['Windie', 'Test'].join(' ');
+    const retiredFrontendLogFile = ['/tmp', 'windie-frontend.log'].join('/');
     const retiredPythonEnvRoot = ['windie', 'python-in-env-'].join('-');
 
     expect(source).not.toContain(retiredUserData);
     expect(source).not.toContain(retiredCommitterRoot);
     expect(source).not.toContain(retiredCommitterAuthor);
+    expect(source).not.toContain(retiredFrontendLogFile);
     expect(source).not.toContain(retiredPythonEnvRoot);
     expect(source).toContain('/tmp/agent-user-data');
     expect(source).toContain('agent-committer-');
     expect(source).toContain('Agent Test');
+    expect(source).toContain('/tmp/agent-frontend.log');
     expect(source).toContain('agent-python-in-env-');
   });
 

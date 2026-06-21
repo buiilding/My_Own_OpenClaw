@@ -74,6 +74,10 @@ All notable changes to WindieOS will be documented in this file.
   helper coverage instead of Windie-flavored arbitrary test identities. No
   migration required.
 
+- tests/main: use a neutral frontend log override fixture in Electron launcher
+  coverage while preserving the `WINDIE_FRONTEND_LOG_FILE` compatibility key. No
+  migration required.
+
 - tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
   in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
   directory. No migration required.

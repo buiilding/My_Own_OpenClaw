@@ -49,8 +49,8 @@ describe('electron-launcher', () => {
   });
 
   test('resolveFrontendLogFile supports override and disabled values', () => {
-    expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: '/tmp/windie-frontend.log' }))
-      .toBe('/tmp/windie-frontend.log');
+    expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: '/tmp/agent-frontend.log' }))
+      .toBe('/tmp/agent-frontend.log');
     expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: 'logs/frontend.log' }))
       .toBe(path.resolve(__dirname, '../../logs/frontend.log'));
     expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: '0' })).toBeNull();

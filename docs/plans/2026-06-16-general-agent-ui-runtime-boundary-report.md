@@ -7860,3 +7860,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   fixtures instead of Windie-flavored arbitrary test identities. The committer
   body-format guard, scoped staging behavior, provider policy, permissions,
   storage, and backend behavior are unchanged; no migration is required.
+- Electron launcher coverage now uses a neutral frontend log override fixture
+  while preserving `WINDIE_FRONTEND_LOG_FILE` compatibility-key coverage. The
+  launcher env override behavior, default repo-local `.windie/logs` product
+  path, provider policy, permissions, storage, and backend behavior are
+  unchanged; no migration is required.

@@ -19147,3 +19147,16 @@ Each completed slice should report:
 - Compatibility: no migration required. The committer body-format guard, scoped
   staging behavior, provider policy, permissions, storage, and backend behavior
   are unchanged.
+
+### 2026-06-21 Electron launcher log override fixture neutrality
+
+- Finding: Electron launcher coverage still used a Windie-flavored arbitrary
+  frontend log override path while testing generic override handling.
+- Change: switched the sample override path to `/tmp/agent-frontend.log` and
+  extended the modular boundary guard while preserving the
+  `WINDIE_FRONTEND_LOG_FILE` compatibility key.
+- Validation: focused Electron launcher and modular boundary tests; exact
+  retired launcher log fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Launcher env override behavior, the
+  default repo-local `.windie/logs` product path, provider policy, permissions,
+  storage, and backend behavior are unchanged.
