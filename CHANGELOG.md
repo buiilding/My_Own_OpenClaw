@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/sdk: route SDK command-handler and query-broadcast helper imports to
+  SDK owner modules instead of the SDK package root, with focused main-boundary
+  coverage. No migration required.
 - main/sdk: narrow local-runtime status broadcaster imports from the SDK package
   root to the conversation-continuity owner module, with focused frontend
   coverage for the boundary. No migration required.

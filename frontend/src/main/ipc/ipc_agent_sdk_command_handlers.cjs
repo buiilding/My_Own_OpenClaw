@@ -4,7 +4,7 @@
 
 const {
   SDK_RUNTIME_COMMANDS,
-} = require('../../../../packages/windie-sdk-js/cjs/index.js');
+} = require('../../../../packages/windie-sdk-js/cjs/runtime/SdkRuntimeCommands.js');
 const {
   normalizeAppDiagnosticContext,
   recordConversationMetadataListDiagnostic,

@@ -9225,3 +9225,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   conversation metadata invalidation projection, SDK exports, storage, provider
   policy, permissions, backend behavior, and trust boundaries are unchanged; no
   migration is required.
+- Main-process SDK command-handler and query-broadcast helpers now import SDK
+  command names and conversation-event projection from their SDK owner modules
+  instead of the SDK package root. Focused main SDK boundary coverage prevents
+  root imports from returning in those helpers. SDK command strings,
+  query-send failure event projection, IPC channels, renderer payloads, storage,
+  provider policy, permissions, backend behavior, and trust boundaries are
+  unchanged; no migration is required.

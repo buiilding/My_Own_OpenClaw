@@ -21902,3 +21902,18 @@ Each completed slice should report:
   projection, local-runtime status payloads, IPC channels, SDK exports, storage,
   provider policy, permissions, backend behavior, and trust boundaries are
   unchanged.
+
+### 2026-06-21 main helper SDK owner imports
+
+- Finding: `ipc_agent_sdk_command_handlers.cjs` and `ipc_query_broadcast.cjs`
+  imported one SDK contract each through the SDK package root even though the
+  owning SDK modules are `runtime/SdkRuntimeCommands` and `conversation/events`.
+- Change: narrowed those main-process helper imports to their SDK owner modules
+  and added focused main SDK boundary coverage preventing root imports from
+  returning in those helpers.
+- Validation: focused main SDK runtime boundary Jest test, exact SDK root-import
+  scans for the touched helpers, docs listing, and diff checks.
+- Compatibility: no migration required. SDK command strings, query-send failure
+  conversation-event projection, IPC channels, renderer payloads, storage,
+  provider policy, permissions, backend behavior, and trust boundaries are
+  unchanged.

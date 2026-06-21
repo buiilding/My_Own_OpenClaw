@@ -4,7 +4,7 @@
 
 const {
   createConversationEvent,
-} = require('../../../../packages/windie-sdk-js/cjs/index.js');
+} = require('../../../../packages/windie-sdk-js/cjs/conversation/events.js');
 const {
   DESKTOP_RUNTIME_ON_CHANNELS,
 } = require('./ipc_desktop_runtime_channels.cjs');

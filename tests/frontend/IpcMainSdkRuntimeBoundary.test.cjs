@@ -10,6 +10,26 @@ function retiredProductName(suffix) {
 }
 
 describe('main ipc sdk runtime boundary', () => {
+  test('main helper modules import SDK contracts from owner modules', async () => {
+    const commandHandlersSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs'),
+      'utf8',
+    );
+    const queryBroadcastSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_query_broadcast.cjs'),
+      'utf8',
+    );
+
+    expect(commandHandlersSource).toContain(
+      'packages/windie-sdk-js/cjs/runtime/SdkRuntimeCommands.js',
+    );
+    expect(commandHandlersSource).not.toContain('packages/windie-sdk-js/cjs/index.js');
+    expect(queryBroadcastSource).toContain(
+      'packages/windie-sdk-js/cjs/conversation/events.js',
+    );
+    expect(queryBroadcastSource).not.toContain('packages/windie-sdk-js/cjs/index.js');
+  });
+
   test('ipc.cjs does not call low-level SDK runtime send methods directly', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
