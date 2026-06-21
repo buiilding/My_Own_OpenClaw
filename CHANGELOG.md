@@ -117,6 +117,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep memory admin user-id normalization private to the
   memory runtime client while preserving the public client method used by memory
   settings actions. No migration required.
+- frontend/renderer: keep pending-turn broadcast normalization private to the
+  pending-turn runtime client while preserving the conversation event client's
+  normalized subscription surface. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

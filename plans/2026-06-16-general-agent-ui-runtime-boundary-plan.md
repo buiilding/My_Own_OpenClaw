@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Pending-Turn Broadcast Helper Privacy
+
+- Finding: `DesktopPendingTurnRuntimeClient` already owned pending-turn send and
+  clear IPC, but exported the raw pending-turn broadcast classifier so the
+  conversation event client and tests could call it directly.
+- Change: made the pending-turn broadcast classifier private to the pending-turn
+  runtime client, exposed it as a runtime-client method, and routed
+  `DesktopConversationRuntimeEventClient.onPendingTurn(...)` through that method
+  so renderer consumers keep using normalized pending/clear actions.
+- Validation: focused pending-turn runtime client, conversation event client,
+  renderer chat boundary tests, exact raw-helper export scan, docs list, and
+  diff hygiene.
+- Compatibility/security: no migration required. The `windie:pending-turn`
+  channel name, pending/clear payload shapes, renderer pending-turn replay,
+  optimistic send UI, stop handling, permissions, credentials, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Memory Admin User Helper Privacy
 
 - Finding: `DesktopMemoryRuntimeClient` already exposed

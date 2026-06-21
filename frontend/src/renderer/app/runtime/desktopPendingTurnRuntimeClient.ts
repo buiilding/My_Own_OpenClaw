@@ -42,7 +42,7 @@ function normalizeOptionalString(value: unknown): string | null {
     : null;
 }
 
-export function resolveDesktopPendingTurnBroadcastAction(
+function resolveDesktopPendingTurnBroadcastAction(
   payload: unknown,
 ): DesktopPendingTurnBroadcastAction {
   const source = recordOrEmpty(payload);
@@ -60,6 +60,10 @@ export function resolveDesktopPendingTurnBroadcastAction(
 }
 
 export const DesktopPendingTurnRuntimeClient = {
+  resolveBroadcastAction(payload: unknown): DesktopPendingTurnBroadcastAction {
+    return resolveDesktopPendingTurnBroadcastAction(payload);
+  },
+
   setPending(pendingTurn: DesktopPendingTurn): void {
     IpcBridge.send(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN, {
       type: 'pending',

@@ -9,7 +9,7 @@ import type {
   SdkDisplayRow,
 } from './desktopConversationRuntimeContracts';
 import {
-  resolveDesktopPendingTurnBroadcastAction,
+  DesktopPendingTurnRuntimeClient,
   type DesktopPendingTurnBroadcastAction,
 } from './desktopPendingTurnRuntimeClient';
 
@@ -124,7 +124,7 @@ export const DesktopConversationRuntimeEventClient = {
   ): (() => void) | undefined {
     return subscribe(
       DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN,
-      (payload: unknown) => listener(resolveDesktopPendingTurnBroadcastAction(payload)),
+      (payload: unknown) => listener(DesktopPendingTurnRuntimeClient.resolveBroadcastAction(payload)),
     );
   },
 

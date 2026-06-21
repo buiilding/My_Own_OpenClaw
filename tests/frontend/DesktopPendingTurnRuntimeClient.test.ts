@@ -14,13 +14,15 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/channels', () => ({
   },
 }));
 
+import * as DesktopPendingTurnRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient';
 import {
-  resolveDesktopPendingTurnBroadcastAction,
+  DesktopPendingTurnRuntimeClient,
 } from '../../frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient';
 
 describe('DesktopPendingTurnRuntimeClient', () => {
   test('classifies pending broadcasts as pending actions', () => {
-    expect(resolveDesktopPendingTurnBroadcastAction({
+    expect(DesktopPendingTurnRuntimeModule).not.toHaveProperty('resolveDesktopPendingTurnBroadcastAction');
+    expect(DesktopPendingTurnRuntimeClient.resolveBroadcastAction({
       type: 'pending',
       pendingTurn: {
         conversationRef: 'conv-pending',
@@ -36,7 +38,7 @@ describe('DesktopPendingTurnRuntimeClient', () => {
   });
 
   test('classifies clear broadcasts with normalized filters', () => {
-    expect(resolveDesktopPendingTurnBroadcastAction({
+    expect(DesktopPendingTurnRuntimeClient.resolveBroadcastAction({
       type: 'clear',
       conversationRef: ' conv-clear ',
       turnRef: ' turn-clear ',
@@ -48,7 +50,7 @@ describe('DesktopPendingTurnRuntimeClient', () => {
   });
 
   test('falls back malformed broadcasts to pending actions without state data', () => {
-    expect(resolveDesktopPendingTurnBroadcastAction(null)).toEqual({
+    expect(DesktopPendingTurnRuntimeClient.resolveBroadcastAction(null)).toEqual({
       kind: 'pending',
       pendingTurn: undefined,
     });
