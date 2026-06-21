@@ -17,6 +17,7 @@ title: "Dashboard Sidebar, Search, and Profile Menu Runtime Reference"
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
+- `frontend/src/renderer/app/runtime/desktopDashboardNavigationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`
 - `frontend/src/renderer/styles/DashboardShell.css`
 - `tests/frontend/DashboardShell.test.jsx`
@@ -34,7 +35,7 @@ Every nav item has:
 
 - stable id
 - text label
-- lucide icon component
+- icon key mapped to a lucide icon component by the sidebar UI
 - active-state predicate from shell state booleans
 
 Expanded sidebar additionally renders:
@@ -52,7 +53,10 @@ Collapsed sidebar keeps:
 
 Module split ownership:
 
-- `DashboardSidebarNavigation` owns static nav item lists and collapsed filtering logic.
+- `desktopDashboardNavigationRuntime` owns static nav item descriptors and
+  collapsed filtering logic.
+- `DashboardSidebarNavigation` owns icon component mapping, shell callbacks,
+  and active-state rendering.
 - `DashboardSidebarUserMenu` owns profile menu state/rendering.
 - `DashboardSidebar` owns conversation row rendering and per-row action menu state.
 - `useDismissOnOutside` is shared by both profile menu and conversation kebab menu.
@@ -219,8 +223,8 @@ Recent-chat title visibility sync details:
 1. Changing group key names without updating both shell grouping logic and modal/sidebar render loops.
 2. Breaking `row.conversation || row` fallback can fail opening search results built from normalized result rows.
 3. Removing document listeners in shared outside-dismiss hook without cleanup causes leaked handlers and stale close behavior for both profile and conversation menus.
-4. Changing collapsed nav filtering (new-chat removal) without keeping collapsed header new-chat action can create duplicate/missing new-chat controls.
-5. Changing product nav ids (`memory/usage/models/mcps`) without matching shell predicates can break active-state highlighting.
+4. Changing collapsed nav filtering in `desktopDashboardNavigationRuntime.js` without keeping collapsed header new-chat action can create duplicate/missing new-chat controls.
+5. Changing panel nav ids (`memory/usage/models/mcps`) without matching shell predicates can break active-state highlighting.
 
 ## Related Pages
 

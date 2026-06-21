@@ -727,6 +727,29 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('dashboard sidebar navigation descriptors are owned by app runtime', async () => {
+    const navigationRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopDashboardNavigationRuntime.js'),
+      'utf8',
+    );
+    const sidebarNavigationSource = await fs.readFile(
+      path.join(rendererRoot, 'features/dashboard/components/sidebar/DashboardSidebarNavigation.jsx'),
+      'utf8',
+    );
+
+    expect(navigationRuntimeSource).toContain('getDashboardPrimaryNavItems');
+    expect(navigationRuntimeSource).toContain('getDashboardPanelNavItems');
+    expect(navigationRuntimeSource).toContain('resolveDashboardNavigationLabel');
+    expect(navigationRuntimeSource).toContain('hiddenWhenCollapsed');
+    expect(navigationRuntimeSource).not.toContain('features/dashboard');
+    expect(sidebarNavigationSource).toContain('desktopDashboardNavigationRuntime');
+    expect(sidebarNavigationSource).toContain('getDashboardPrimaryNavItems');
+    expect(sidebarNavigationSource).toContain('getDashboardPanelNavItems');
+    expect(sidebarNavigationSource).not.toContain('PRIMARY_NAV_ITEMS');
+    expect(sidebarNavigationSource).not.toContain('PRODUCT_NAV_ITEMS');
+    expect(sidebarNavigationSource).not.toContain("item.id !== 'new-chat'");
+  });
+
   test('chat stream stale-turn guard uses generic runtime packet wording', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/desktopChatStreamEventRuntime.ts'),

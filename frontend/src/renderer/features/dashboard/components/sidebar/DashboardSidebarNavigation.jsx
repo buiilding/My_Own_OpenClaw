@@ -11,18 +11,19 @@ import {
   Cpu,
   Cable,
 } from 'lucide-react';
+import {
+  getDashboardPanelNavItems,
+  getDashboardPrimaryNavItems,
+} from '../../../../app/runtime/desktopDashboardNavigationRuntime';
 
-const PRIMARY_NAV_ITEMS = Object.freeze([
-  { id: 'new-chat', label: 'New chat', icon: PenSquare },
-  { id: 'search', label: 'Search chats', icon: Search },
-]);
-
-const PRODUCT_NAV_ITEMS = Object.freeze([
-  { id: 'memory', label: 'Memory', icon: Brain },
-  { id: 'usage', label: 'Usage', icon: BarChart3 },
-  { id: 'models', label: 'Models', icon: Cpu },
-  { id: 'mcps', label: 'MCPs', icon: Cable },
-]);
+const DASHBOARD_NAV_ICONS = Object.freeze({
+  penSquare: PenSquare,
+  search: Search,
+  brain: Brain,
+  barChart3: BarChart3,
+  cpu: Cpu,
+  cable: Cable,
+});
 
 function SidebarItem({
   label,
@@ -69,50 +70,50 @@ export default function DashboardSidebarNavigation({
   modelsOpen,
   mcpsOpen,
 }) {
-  const primaryNavItems = collapsed
-    ? PRIMARY_NAV_ITEMS.filter((item) => item.id !== 'new-chat')
-    : PRIMARY_NAV_ITEMS;
+  const primaryNavItems = getDashboardPrimaryNavItems({ collapsed });
+  const panelNavItems = getDashboardPanelNavItems();
+  const primaryActions = {
+    'new-chat': onStartNewChat,
+    search: onOpenSearch,
+  };
+  const panelActions = {
+    memory: onOpenMemory,
+    usage: onOpenUsage,
+    models: onOpenModels,
+    mcps: onOpenMcps,
+  };
+  const activeByItemId = {
+    search: searchOpen,
+    memory: memoryOpen,
+    usage: usageOpen,
+    models: modelsOpen,
+    mcps: mcpsOpen,
+  };
+
+  const renderSidebarItem = (item, actionsById) => {
+    const Icon = DASHBOARD_NAV_ICONS[item.iconKey] || PenSquare;
+    return (
+      <SidebarItem
+        key={item.id}
+        label={item.label}
+        icon={Icon}
+        onClick={actionsById[item.id]}
+        isActive={activeByItemId[item.id] === true}
+        collapsed={collapsed}
+      />
+    );
+  };
 
   return (
     <>
       <nav className="cg-sidebar-nav">
-        {primaryNavItems.map((item) => (
-          <SidebarItem
-            key={item.id}
-            label={item.label}
-            icon={item.icon}
-            onClick={item.id === 'new-chat' ? onStartNewChat : onOpenSearch}
-            isActive={item.id === 'search' && searchOpen}
-            collapsed={collapsed}
-          />
-        ))}
+        {primaryNavItems.map((item) => renderSidebarItem(item, primaryActions))}
       </nav>
 
       <div className="cg-sidebar-divider" />
 
       <nav className="cg-sidebar-nav">
-        {PRODUCT_NAV_ITEMS.map((item) => (
-          <SidebarItem
-            key={item.id}
-            label={item.label}
-            icon={item.icon}
-            onClick={item.id === 'memory'
-              ? onOpenMemory
-              : item.id === 'usage'
-                ? onOpenUsage
-                : item.id === 'models'
-                  ? onOpenModels
-                  : onOpenMcps}
-            isActive={item.id === 'memory'
-              ? memoryOpen
-              : item.id === 'usage'
-                ? usageOpen
-                : item.id === 'models'
-                  ? modelsOpen
-                  : mcpsOpen}
-            collapsed={collapsed}
-          />
-        ))}
+        {panelNavItems.map((item) => renderSidebarItem(item, panelActions))}
       </nav>
     </>
   );

@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: settings tab descriptors now stay behind
-  `desktopSettingsTabRuntime`, with `SettingsSection` rendering sidebar tabs
-  from the app-runtime descriptor contract instead of a section-local registry.
+- Latest completed slice: dashboard sidebar navigation descriptors now stay
+  behind `desktopDashboardNavigationRuntime`, with
+  `DashboardSidebarNavigation` rendering primary and panel nav items from the
+  app-runtime descriptor contract instead of section-local registries.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -132,6 +133,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `desktopSettingsTabRuntime.getSettingsTabDescriptors()` and
   `resolveSettingsTabLabel()` instead of a section-local tab registry while
   keeping tab-content routing local to `SettingsSection`.
+  Dashboard sidebar navigation now consumes
+  `desktopDashboardNavigationRuntime.getDashboardPrimaryNavItems()` and
+  `getDashboardPanelNavItems()` instead of component-local nav registries
+  while keeping icon mapping, callbacks, and active-state rendering local to
+  `DashboardSidebarNavigation`.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.

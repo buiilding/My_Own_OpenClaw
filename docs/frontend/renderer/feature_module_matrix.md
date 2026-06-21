@@ -60,6 +60,7 @@ Shell:
 
 - `components/DashboardShell.jsx`
 - `hooks/useDashboardConversations.js`
+- `app/runtime/desktopDashboardNavigationRuntime.js`
 - `app/runtime/desktopDashboardConversationGroupRuntime.js`
 
 Sections:

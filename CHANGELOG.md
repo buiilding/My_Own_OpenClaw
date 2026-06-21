@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/dashboard: move dashboard sidebar navigation descriptors into
+  `desktopDashboardNavigationRuntime` so `DashboardSidebarNavigation` renders
+  primary and panel nav items from an app-runtime descriptor contract instead
+  of section-local registries. No migration required.
 - renderer/settings: move settings tab descriptors into
   `desktopSettingsTabRuntime` so `SettingsSection` renders tabs from an
   app-runtime descriptor contract instead of a section-local registry. No

@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Dashboard Navigation Descriptor Boundary
+
+- Finding: `DashboardSidebarNavigation.jsx` still owned the primary and panel
+  sidebar nav descriptor registries plus collapsed new-chat filtering, even
+  though adjacent dashboard and settings descriptor rules had moved behind
+  app-runtime facades.
+- Change: added `desktopDashboardNavigationRuntime.js` with ordered primary
+  and panel nav descriptors, collapsed filtering, ids, and label resolution;
+  routed `DashboardSidebarNavigation` through the runtime helper while leaving
+  lucide icon mapping, shell callbacks, and active-state rendering in the UI
+  component.
+- Validation: focused dashboard navigation runtime, dashboard sidebar, renderer
+  app-runtime boundary coverage, docs listing, stale component-local registry
+  scan, and diff checks.
+- Compatibility: no migration required. Sidebar nav ids, labels, collapsed
+  new-chat behavior, panel callbacks, active-state predicates, storage, IPC,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Settings Tab Descriptor Boundary
 
 - Finding: `SettingsSection.jsx` still owned the visible settings tab registry
