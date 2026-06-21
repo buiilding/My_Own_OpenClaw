@@ -33,7 +33,7 @@ WindieOS/
 │       └── core/                  # config, validation, logging, events, interfaces
 ├── frontend/                      # Electron desktop app, React renderer, local-runtime Python implementation
 │   └── src/
-│       ├── main/                  # Electron main, IPC, direct Agent SDK host wiring, local-runtime bridge
+│       ├── main/                  # Electron main, IPC, direct Electron agent-host wiring, local-runtime bridge
 │       ├── main/python/           # local-runtime Python implementation: tools, memory, browser, system
 │       ├── preload.js             # context-isolated IPC allowlist bridge
 │       ├── renderer/              # React app, chat, dashboard, settings, voice surfaces

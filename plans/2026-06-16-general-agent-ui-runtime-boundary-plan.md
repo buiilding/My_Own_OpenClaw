@@ -20405,3 +20405,21 @@ Each completed slice should report:
   metadata, agent-definition metadata, OS label values, SDK startup behavior,
   local-runtime launch, permissions, storage paths, provider policy, and backend
   behavior are unchanged.
+
+### 2026-06-21 architecture overview and Electron agent-host wording
+
+- Finding: the getting-started and architecture overview diagrams still labeled
+  the combined desktop UI/main/SDK layer as `Desktop Client / SDK Host`, and
+  active channel, architecture, inventory, main-process, diagnostics, node, and
+  workflow docs still called Electron main an `Agent SDK host` even after the
+  active split moved to Electron agent-host plus SDK runtime wording.
+- Change: reworded the diagrams to `Electron Agent Host + SDK Runtime`,
+  reworded Electron-main owner labels to Electron agent-host wording, and
+  updated the boundary guard to require the new labels while rejecting the old
+  desktop client/SDK host and Agent SDK host phrases.
+- Validation: focused modular boundary test, exact retired host-label scans,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Diagrams and tests only changed
+  wording; renderer modules, Electron main host behavior, SDK runtime contracts,
+  IPC channels, permissions, storage, provider policy, and backend behavior are
+  unchanged.

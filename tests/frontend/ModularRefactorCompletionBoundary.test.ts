@@ -1688,7 +1688,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local tool calls to local-runtime execution');
     expect(docText).toContain('before local execution');
     expect(docText).toContain('SDK/local-runtime conversation store owns durable conversation history');
-    expect(docText).toContain('renderer app-runtime send facade plus the Electron main Agent SDK host');
+    expect(docText).toContain('renderer app-runtime send facade plus the Electron main agent host');
     expect(docText).toContain('Local-runtime Python implementation (tools, memory, system, browser)');
     expect(docText).not.toContain('main-to-sidecar behavior');
     expect(docText).not.toContain('SDK sidecar `/rpc` failures');
@@ -1746,9 +1746,9 @@ describe('modular sdk refactor completion boundary', () => {
     ]);
     const docText = docs.join('\n');
 
-    expect(docText).toContain('renderer SDK command -> Electron Agent SDK host -> Agent SDK backend transport -> backend `/ws`');
-    expect(docText).toContain('overlay renderer SDK command -> Electron Agent SDK host -> Agent SDK backend transport -> backend `/ws`');
-    expect(docText).toContain('overlay renderer `windie:invoke` command `conversation.send` -> Electron main Agent SDK host -> Agent SDK backend transport -> `/ws` `query`');
+    expect(docText).toContain('renderer SDK command -> Electron agent host -> Agent SDK backend transport -> backend `/ws`');
+    expect(docText).toContain('overlay renderer SDK command -> Electron agent host -> Agent SDK backend transport -> backend `/ws`');
+    expect(docText).toContain('overlay renderer `windie:invoke` command `conversation.send` -> Electron main agent host -> Agent SDK backend transport -> `/ws` `query`');
     expect(docText).toContain('desktop SDK command path or backend websocket');
     expect(docText).not.toContain('renderer -> Electron IPC -> backend `/ws`');
     expect(docText).not.toContain('overlay renderer -> Electron IPC -> backend `/ws`');
@@ -1965,7 +1965,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Tool Policy or Local-Runtime Execution');
     expect(docText).toContain('Local-Runtime Python Tools');
     expect(docText).toContain('SDK/main local-runtime dispatch');
-    expect(docText).toContain('Electron main Agent SDK host');
+    expect(docText).toContain('Electron main agent host');
     expect(docText).toContain('SDK backend transport traces');
     expect(docText).toContain('Tool result reaches SDK/main but model does not continue');
     expect(docText).toContain('SDK tool-result relay plus backend tool-result ingestion/waiting/processing modules');
@@ -1976,7 +1976,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureOverviewText).toContain('renderer UI, Electron main agent host, SDK local runtime');
     expect(architectureOverviewText).toContain('SDK local runtime backed by the local-runtime Python implementation');
     expect(architectureOverviewText).toContain('Local-runtime Python implementation executes local tools');
-    expect(architectureOverviewText).toContain('Desktop Client / SDK Host');
+    expect(architectureOverviewText).toContain('Electron Agent Host + SDK Runtime');
+    expect(architectureOverviewText).not.toContain('Desktop Client / SDK Host');
     expect(architectureOverviewText).toContain('Sanitized message sent to SDK/renderer consumers');
     expect(architectureOverviewText).toContain('not enforced in the local-runtime Python implementation by default');
     expect(architectureOverviewText).toContain('SDK local-runtime memory backed by local-runtime Python modules');

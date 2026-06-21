@@ -8419,3 +8419,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   install registration metadata, agent-definition metadata, OS label values,
   SDK startup behavior, local-runtime launch, permissions, storage paths,
   provider policy, and backend behavior are unchanged; no migration is required.
+- The getting-started and architecture overview diagrams now name the combined
+  desktop UI/main/SDK layer as `Electron Agent Host + SDK Runtime`, and active
+  channel, architecture, inventory, main-process, diagnostics, node, and
+  workflow docs now route Electron-main owner labels through Electron
+  agent-host wording instead of the older desktop client/SDK host and Agent SDK
+  host phrases. The modular boundary guard now requires the current labels
+  while rejecting the retired diagram and host wording. Renderer modules,
+  Electron main host behavior, SDK runtime contracts, IPC channels,
+  permissions, storage, provider policy, and backend behavior are unchanged; no
+  migration is required.

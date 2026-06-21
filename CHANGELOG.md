@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/main: route remaining architecture overview diagrams and Electron main
+  owner labels through the Electron agent-host plus SDK runtime split instead
+  of older desktop client/SDK host and Agent SDK host wording. No migration
+  required.
 - tests/sdk: align the Agent SDK browser trace fixture with the local-runtime
   `dedicated_browser` result scope and add a modular boundary guard against the
   retired `windie_dedicated_browser` sample. No migration required.

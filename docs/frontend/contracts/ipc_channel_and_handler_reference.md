@@ -89,7 +89,7 @@ Behavior:
 ## IPC bridge channels (`ipc.cjs` composition, focused handler modules)
 
 - `windie:invoke` -> strict SDK-shaped command bridge registered by
-  `ipc_agent_sdk_command_handlers.cjs` with Agent SDK host dependencies
+  `ipc_agent_sdk_command_handlers.cjs` with Electron agent-host dependencies
   injected from `ipc.cjs`. Renderer facades and Electron main use the SDK
   `SDK_RUNTIME_COMMANDS` export for supported user-runtime commands such as
   `conversation.send`, `conversation.stop`, `settings.update`, `models.list`,

@@ -18,8 +18,8 @@ patching the wrong consumer.
 
 | Channel | User/developer entry | Primary transport | Owner docs |
 | --- | --- | --- | --- |
-| Dashboard chat | Main React dashboard composer | renderer SDK command -> Electron Agent SDK host -> Agent SDK backend transport -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Desktop Dashboard](../desktop/dashboard.md) |
-| Minimal chat pill | Floating overlay composer | overlay renderer SDK command -> Electron Agent SDK host -> Agent SDK backend transport -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Minimal Chat Pill](../desktop/minimal_chat_pill.md) |
+| Dashboard chat | Main React dashboard composer | renderer SDK command -> Electron agent host -> Agent SDK backend transport -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Desktop Dashboard](../desktop/dashboard.md) |
+| Minimal chat pill | Floating overlay composer | overlay renderer SDK command -> Electron agent host -> Agent SDK backend transport -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Minimal Chat Pill](../desktop/minimal_chat_pill.md) |
 | Backend agent stream | Main query/control protocol | WebSocket `/ws` | [Backend API and Transport](../backend/api/api_and_transport.md), [HTTP and WebSocket API Surface](../reference/http_api_surface.md) |
 | Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> local-runtime wakeword helper backed by the Python subprocess | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |

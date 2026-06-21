@@ -75,7 +75,7 @@ This is not the primary open-source SDK contract. The default client contract is
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                 Desktop Client / SDK Host                   │
+│              Electron Agent Host + SDK Runtime              │
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │  Renderer Process (React)                          │  │
 │  │  - ChatInterface                                     │  │
@@ -87,7 +87,7 @@ This is not the primary open-source SDK contract. The default client contract is
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │  Main Process (Node.js)                              │  │
 │  │  - IPC Bridge (ipc.cjs)                              │  │
-│  │  - Agent SDK host                                    │  │
+│  │  - Electron agent host                               │  │
 │  │  - Wakeword Bridge                                    │  │
 │  │  - Local Runtime Daemon (sidecar_daemon.py)            │  │
 │  └──────────────────────────────────────────────────────┘  │

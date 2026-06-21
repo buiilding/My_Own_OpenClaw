@@ -14,7 +14,7 @@ WindieOS failures are easiest to debug by locating the runtime boundary first.
 
 | Symptom | First place to inspect |
 | --- | --- |
-| No backend response | Electron main Agent SDK host, SDK backend transport traces, backend websocket logs, `backend/src/api/routes/websocket/*` |
+| No backend response | Electron main agent host, SDK backend transport traces, backend websocket logs, `backend/src/api/routes/websocket/*` |
 | Model list missing or stale | settings ACK path, `backend/src/llm/models/model_service.py`, `backend/src/llm/models/models_config.py` |
 | Tool call appears but does not execute | SDK runtime tool router, main local-runtime bridge, `frontend/src/main/python/tools/registry.py` |
 | Tool result reaches SDK/main but model does not continue | SDK tool-result relay plus backend tool-result ingestion/waiting/processing modules |

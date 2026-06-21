@@ -114,7 +114,7 @@ Responsibilities:
   helper runtime while config cache, persistence, and shortcut fallback stay in
   their owning main-process runtimes.
 - Delegates client session snapshot and transcript-session sync channel
-  registration to a focused helper runtime while keeping Agent SDK host session
+  registration to a focused helper runtime while keeping Electron agent-host session
   state in `ipc.cjs`.
 - Delegates renderer log and live-surface trace channel registration to a
   focused helper runtime while diagnostics runtimes keep normalization and
@@ -141,12 +141,12 @@ Responsibilities:
   layers, and host OS/workspace facts before calling the SDK builder; its
   runtime wrapper owns the latest-config/platform/SDK-builder injection.
 - Delegates extension and MCP registry channel registration to a focused helper
-  runtime while `ipc.cjs` supplies Agent SDK host state and
+  runtime while `ipc.cjs` supplies Electron agent-host state and
   `ipc_mcp_refresh_runtime.cjs` owns MCP startup/latest-config refresh helpers.
 
 Split boundary:
 
-- `ipc.cjs` is the Agent SDK host: it imports `Agent`, starts the desktop
+- `ipc.cjs` is the Electron agent host: it imports `Agent`, starts the desktop
   agent with only normal public startup inputs (`apiKey`, `workspace`,
   `appName`), subscribes to SDK rows/status/events/current-turn/connection
   outputs, and exposes thin `windie:*` IPC handlers that call Agent SDK methods.

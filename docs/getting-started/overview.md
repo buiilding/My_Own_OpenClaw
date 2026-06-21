@@ -71,7 +71,7 @@ Current focus areas:
 
 ```text
 ┌─────────────────────────────────────────────────┐
-│        Desktop Client / SDK Host (UI)           │
+│       Electron Agent Host + SDK Runtime         │
 │  ┌──────────────────────────────────────────┐  │
 │  │  React Components                        │  │
 │  │  - ChatInterface                         │  │
