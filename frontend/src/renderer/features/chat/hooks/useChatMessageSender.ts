@@ -5,7 +5,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
-import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
+import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import {
   type ChatSendSurface,
@@ -19,7 +19,7 @@ import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatP
 import { DesktopChatSendPreparationRuntime } from '../../../app/runtime/desktopChatSendPreparationRuntime';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
-const chatSkin = desktopRuntimeSkin.chat;
+const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 const {
   resolveChatPillSendLifecycle,
 } = DesktopChatPillSessionRuntime;

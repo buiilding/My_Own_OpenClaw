@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from 'react';
-import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
+import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { useChatStore } from '../stores/chatStore';
 import {
   DesktopRendererConfigRuntimeClient,
@@ -20,7 +20,7 @@ import {
 } from '../../../app/runtime/desktopConversationReplayRuntime';
 import { DesktopChatSendPreparationRuntime } from '../../../app/runtime/desktopChatSendPreparationRuntime';
 
-const chatSkin = desktopRuntimeSkin.chat;
+const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 const {
   buildPreparedReplayDesktopChatTurn,
   buildReplayContextMessages,

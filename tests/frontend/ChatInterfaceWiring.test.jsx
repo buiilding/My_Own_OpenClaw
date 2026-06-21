@@ -147,15 +147,21 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopDevUiRuntime', () => (
   },
 }));
 
-jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
-  desktopRuntimeSkin: {
+jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => {
+  const desktopRuntimeSkin = {
     chat: {
       emptyTitle: 'Welcome to Sample Desktop Demo',
       replayPreparationFailureMessage: 'Sample app could not prepare the conversation replay.',
       sendFailureMessage: 'Sample app is not connected right now.',
     },
-  },
-}));
+  };
+  return {
+    desktopRuntimeSkin,
+    DesktopRuntimeSkin: {
+      desktopRuntimeSkin,
+    },
+  };
+});
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
   DesktopLiveTurnRuntimeClient: {

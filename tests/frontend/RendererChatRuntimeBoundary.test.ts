@@ -104,6 +104,24 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeClientSource).not.toContain('export function buildDeferredQueryModelSelection');
   });
 
+  test('chat feature copy reads active skin through renderer skin facade', async () => {
+    const skinConsumerFiles = [
+      'components/ChatBrowserSessionControl.jsx',
+      'components/ChatInterface.jsx',
+      'hooks/useChatMessageSender.ts',
+      'hooks/useConversationReplayActions.js',
+    ];
+
+    for (const relativePath of skinConsumerFiles) {
+      const source = await fs.readFile(path.join(chatRoot, relativePath), 'utf8');
+      expect(source).toContain('DesktopRuntimeSkin');
+      expect(source).toContain('DesktopRuntimeSkin.desktopRuntimeSkin');
+      expect(source).not.toContain('import { desktopRuntimeSkin');
+      expect(source).not.toContain('const chatSkin = desktopRuntimeSkin');
+      expect(source).not.toContain('= desktopRuntimeSkin.chat');
+    }
+  });
+
   test('chat runtime hooks read app config through renderer config runtime facade', async () => {
     const hookFiles = [
       'components/ChatInterface.jsx',

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route chat feature skin-copy reads through
+  `DesktopRuntimeSkin` instead of importing the raw `desktopRuntimeSkin`
+  symbol, keeping chat UI copy on the renderer skin facade. No migration
+  required.
 - frontend/renderer: expose browser session control through
   `DesktopBrowserSessionRuntimeClient` instead of a standalone hook export,
   keeping chat browser controls on the app-runtime browser-session facade. No

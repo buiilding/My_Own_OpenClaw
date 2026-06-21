@@ -24,13 +24,19 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   })),
 }));
 
-jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
-  desktopRuntimeSkin: {
+jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => {
+  const desktopRuntimeSkin = {
     chat: {
       sendFailureMessage: "Sample app isn't connected right now. Try again when the connection is restored.",
     },
-  },
-}));
+  };
+  return {
+    desktopRuntimeSkin,
+    DesktopRuntimeSkin: {
+      desktopRuntimeSkin,
+    },
+  };
+});
 
 let mockActiveConversationRef: string | null = null;
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({

@@ -4,13 +4,13 @@
 
 import { Link2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
+import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { DesktopBrowserSessionRuntimeClient } from '../../../app/runtime/desktopBrowserSessionRuntimeClient';
 
 function ChatBrowserSessionControl() {
   const rootRef = useRef(null);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const copy = desktopRuntimeSkin.chat.browserSession;
+  const copy = DesktopRuntimeSkin.desktopRuntimeSkin.chat.browserSession;
   const {
     connected,
     connectBrowser,

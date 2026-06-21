@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Skin Facade Consumption
+
+- Finding: the renderer skin module already exposed `DesktopRuntimeSkin`, but
+  chat feature code still imported the raw `desktopRuntimeSkin` symbol directly
+  for empty-state, send-failure, replay-failure, and browser-session copy.
+- Change: routed chat feature skin reads through
+  `DesktopRuntimeSkin.desktopRuntimeSkin`, updated chat-focused skin mocks to
+  expose the facade shape, and added renderer chat boundary coverage so chat
+  copy consumers stay on the skin facade.
+- Validation: focused chat message sender, chat interface wiring,
+  conversation replay, chat browser control, and renderer chat boundary tests
+  plus targeted renderer source lint, docs listing, stale raw skin import scans,
+  and diff checks before commit.
+- Compatibility/security: no migration required. Active WindieOS skin copy,
+  chat presentation text, browser session copy, replay/send failure rows, IPC,
+  credentials, hosted backend policy, and local-runtime execution are
+  unchanged.
+
 ### 2026-06-21 Renderer Browser Session Control Runtime Facade
 
 - Finding: `desktopBrowserSessionRuntimeClient.js` owned browser-session

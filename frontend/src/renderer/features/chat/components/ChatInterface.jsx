@@ -18,7 +18,7 @@ import {
   useChatInterfaceStopShortcut,
 } from '../hooks/useChatInterfaceBindings';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
-import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
+import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
@@ -38,7 +38,7 @@ import {
 import { DesktopThreadFindRuntime } from '../../../app/runtime/desktopThreadFindRuntime';
 import '../../../styles/ChatInterface.css';
 
-const chatSkin = desktopRuntimeSkin.chat;
+const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 const {
   buildChatModelOptions,
   buildChatProviderOptions,
