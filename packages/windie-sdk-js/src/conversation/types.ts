@@ -241,8 +241,11 @@ export type SdkDisplayRowMetadata = {
   modelFacingToolCall?: JsonRecord | null;
   structuredPayload?: JsonRecord | null;
   screenshotRef?: string | null;
+  screenshot_ref?: string | null;
   screenshotUrl?: string | null;
+  screenshot_url?: string | null;
   screenshotRefs?: string[] | null;
+  screenshot_refs?: string[] | null;
   screenshot?: string | null;
   screenshotContentType?: string | null;
   sourceEventType?: string | null;

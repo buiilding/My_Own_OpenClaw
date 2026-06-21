@@ -168,6 +168,42 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
+  test('projects explicit snake_case screenshot metadata aliases into renderer attachments', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-user-snake-shot',
+        conversationRef: 'conv-snake-shot',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'look here',
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-06-21T12:00:00.000Z',
+          screenshot_ref: 'artifact-user-1',
+          screenshot_url: '/api/artifacts/artifact-user-1',
+          screenshot_refs: ['artifact-user-1', 'artifact-user-2'],
+        },
+      },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'msg-user-snake-shot',
+        sender: 'user',
+        screenshotRef: 'artifact-user-1',
+        screenshots: [
+          expect.objectContaining({
+            screenshotRef: 'artifact-user-1',
+            screenshotUrl: '/api/artifacts/artifact-user-1',
+          }),
+          expect.objectContaining({
+            screenshotRef: 'artifact-user-2',
+            screenshotUrl: expect.stringContaining('/api/artifacts/artifact-user-2'),
+          }),
+        ],
+      }),
+    ]);
+  });
+
   test('projects live SDK row raw screenshot refs into renderer screenshot attachments', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {

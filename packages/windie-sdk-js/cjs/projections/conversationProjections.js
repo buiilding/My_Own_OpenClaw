@@ -228,6 +228,7 @@ function sourceEventTypeFromPayload(payload) {
 }
 function displayRowMetadata(event) {
     const screenshotRef = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref');
+    const screenshotUrl = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url');
     const screenshotRefs = stringArrayField(event.payload, 'screenshotRefs', 'screenshot_refs')
         ?? (screenshotRef ? [screenshotRef] : null);
     return {
@@ -241,8 +242,11 @@ function displayRowMetadata(event) {
         bundleId: (0, toolOutputContent_js_1.stringField)(event.payload, 'bundleId', 'bundle_id'),
         toolCallId: (0, toolOutputContent_js_1.stringField)(event.payload, 'toolCallId', 'tool_call_id'),
         screenshotRef,
-        screenshotUrl: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url'),
+        screenshot_ref: screenshotRef,
+        screenshotUrl,
+        screenshot_url: screenshotUrl,
         screenshotRefs,
+        screenshot_refs: screenshotRefs,
         screenshot: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshot', 'image'),
         screenshotContentType: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotContentType', 'screenshot_content_type'),
         structuredPayload: structuredPayloadFrom(event.payload),

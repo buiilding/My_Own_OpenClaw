@@ -270,6 +270,7 @@ function sourceEventTypeFromPayload(payload: JsonRecord): string | null {
 
 function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   const screenshotRef = stringField(event.payload, 'screenshotRef', 'screenshot_ref');
+  const screenshotUrl = stringField(event.payload, 'screenshotUrl', 'screenshot_url');
   const screenshotRefs = stringArrayField(event.payload, 'screenshotRefs', 'screenshot_refs')
     ?? (screenshotRef ? [screenshotRef] : null);
   return {
@@ -283,8 +284,11 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
     bundleId: stringField(event.payload, 'bundleId', 'bundle_id'),
     toolCallId: stringField(event.payload, 'toolCallId', 'tool_call_id'),
     screenshotRef,
-    screenshotUrl: stringField(event.payload, 'screenshotUrl', 'screenshot_url'),
+    screenshot_ref: screenshotRef,
+    screenshotUrl,
+    screenshot_url: screenshotUrl,
     screenshotRefs,
+    screenshot_refs: screenshotRefs,
     screenshot: stringField(event.payload, 'screenshot', 'image'),
     screenshotContentType: stringField(event.payload, 'screenshotContentType', 'screenshot_content_type'),
     structuredPayload: structuredPayloadFrom(event.payload),

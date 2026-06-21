@@ -70,8 +70,11 @@ function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
     'modelFacingToolCall',
     'structuredPayload',
     'screenshotRef',
+    'screenshot_ref',
     'screenshotUrl',
+    'screenshot_url',
     'screenshotRefs',
+    'screenshot_refs',
     'screenshot',
     'screenshotContentType',
     'sourceEventType',
@@ -93,9 +96,9 @@ function displayTextFromRowContent(content: unknown): string {
 }
 
 function screenshotFieldsFromPayload(payload: Record<string, unknown>): Partial<ChatMessage> {
-  const screenshotRef = stringField(payload, 'screenshotRef');
-  const screenshotUrl = stringField(payload, 'screenshotUrl');
-  const screenshotRefs = stringArrayField(payload, 'screenshotRefs');
+  const screenshotRef = stringField(payload, 'screenshotRef', 'screenshot_ref');
+  const screenshotUrl = stringField(payload, 'screenshotUrl', 'screenshot_url');
+  const screenshotRefs = stringArrayField(payload, 'screenshotRefs', 'screenshot_refs');
   const screenshotState = resolveScreenshotAttachmentState({
     screenshot: stringField(payload, 'screenshot'),
     screenshotRef,

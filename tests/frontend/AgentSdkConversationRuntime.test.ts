@@ -634,7 +634,11 @@ describe('Agent SDK conversation runtime core', () => {
       metadata: expect.objectContaining({
         eventId: 'evt-user-metadata',
         screenshotRef: 'artifact-1',
+        screenshot_ref: 'artifact-1',
         screenshotUrl: '/api/artifacts/artifact-1',
+        screenshot_url: '/api/artifacts/artifact-1',
+        screenshotRefs: ['artifact-1'],
+        screenshot_refs: ['artifact-1'],
         raw: expect.objectContaining({
           attachmentFilenames: ['notes.txt'],
         }),

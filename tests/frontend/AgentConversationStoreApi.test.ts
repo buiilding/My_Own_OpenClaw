@@ -177,6 +177,109 @@ describe('Agent public conversation store APIs', () => {
 });
 
 describe('LocalRuntimeConversationStore event payload write params', () => {
+  test('merges query screenshot metadata from raw local-runtime events into display rows', async () => {
+    const userEvent: ConversationEvent = createConversationEvent({
+      eventId: 'evt-user',
+      type: 'user_message',
+      conversationRef: 'conv-shot',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'ui',
+      timestamp: '2026-06-21T12:00:00.000Z',
+      payload: {
+        text: 'hey',
+      },
+    });
+    const metadataEvent: ConversationEvent = createConversationEvent({
+      eventId: 'evt-user-metadata',
+      type: 'user_message_metadata',
+      conversationRef: 'conv-shot',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'sdk',
+      timestamp: '2026-06-21T12:00:01.000Z',
+      payload: {
+        text: 'hey',
+        screenshotRef: 'artifact-shot-1.jpg',
+        screenshot_ref: 'artifact-shot-1.jpg',
+        screenshotUrl: '/api/artifacts/artifact-shot-1.jpg',
+        screenshot_url: '/api/artifacts/artifact-shot-1.jpg',
+        screenshotRefs: ['artifact-shot-1.jpg'],
+        screenshot_refs: ['artifact-shot-1.jpg'],
+      },
+    });
+    const assistantEvent: ConversationEvent = createConversationEvent({
+      eventId: 'evt-assistant',
+      type: 'assistant_message',
+      conversationRef: 'conv-shot',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      timestamp: '2026-06-21T12:00:02.000Z',
+      payload: {
+        text: 'hi',
+      },
+    });
+    const rpc = jest.fn(async ({ method }) => {
+      if (method === 'conversation.load_events') {
+        return {
+          success: true,
+          data: {
+            events: [
+              {
+                message_index: 1,
+                metadata: {},
+                event_payload: userEvent,
+              },
+              {
+                message_index: 2,
+                metadata: {
+                  screenshot: 'legacy-inline-only.jpg',
+                },
+                event_payload: metadataEvent,
+              },
+              {
+                message_index: 3,
+                metadata: {},
+                event_payload: assistantEvent,
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+    const store = new LocalRuntimeConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+    });
+
+    const rows = await store.loadDisplayRows('conv-shot');
+
+    expect(rows.map(row => row.type)).toEqual([
+      'user_message',
+      'assistant_message',
+    ]);
+    expect(rows[0]).toMatchObject({
+      id: 'evt-user',
+      type: 'user_message',
+      content: 'hey',
+      metadata: expect.objectContaining({
+        eventId: 'evt-user-metadata',
+        screenshotRef: 'artifact-shot-1.jpg',
+        screenshot_ref: 'artifact-shot-1.jpg',
+        screenshotUrl: '/api/artifacts/artifact-shot-1.jpg',
+        screenshot_url: '/api/artifacts/artifact-shot-1.jpg',
+        screenshotRefs: ['artifact-shot-1.jpg'],
+        screenshot_refs: ['artifact-shot-1.jpg'],
+      }),
+    });
+    expect(rows[0]?.metadata?.screenshot).toBeNull();
+    expect(rows[0]?.metadata?.raw).toEqual(expect.objectContaining({
+      screenshot_refs: ['artifact-shot-1.jpg'],
+    }));
+  });
+
   test('loads generic metadata event payloads and ignores removed product metadata keys', async () => {
     const genericEvent: ConversationEvent = createConversationEvent({
       eventId: 'evt-generic',
