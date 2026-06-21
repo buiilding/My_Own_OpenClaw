@@ -133,6 +133,8 @@ Developer helpers:
 const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'AgentSdkConversationRuntime.test.ts',
   'ConversationRuntimeProjectionStream.test.ts',
+  'LiveTurnSurfaceState.test.js',
+  'ChatSurfaceController.test.jsx',
   'PendingTurnLiveSurfaceIntegration.test.js',
   'ChatPillSessionFlow.test.ts',
   'PendingStopLiveSurfaceIntegration.test.jsx',

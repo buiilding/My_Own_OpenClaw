@@ -21,6 +21,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: keep the dashboard awaiting indicator latched after a
+  pending dashboard send when SDK sends a same-turn projection that is visible
+  but has no real awaiting/content replacement yet, preventing the inline
+  typing state from flashing through idle during handoff. No migration
+  required.
 - backend/provider: stop the dev-only scripted model from replaying the same
   scripted tool command after matching tool outputs are already present in
   rebuilt model history, so `@script tool` and `@script batch` finish the turn

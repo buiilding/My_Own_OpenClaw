@@ -205,6 +205,63 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('keeps pending preflight when same-turn SDK projection has no real replacement yet', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'idle',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        presentation: {
+          typingVisible: false,
+          overlayVisible: true,
+          isBusy: false,
+          hasVisibleContent: false,
+          entries: [],
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            turnRef: 'turn-2',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-2',
+          },
+        },
+      },
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        userMessageId: 'user-2',
+        text: 'second',
+        timestamp: '2026-06-21T00:00:00.000Z',
+        attachmentFilenames: null,
+      },
+      isSending: true,
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      isBusy: true,
+      source: 'pending-turn',
+      useLocalSendLatch: true,
+      useSdkLiveTurnPresentation: true,
+      showAwaiting: true,
+      showResponse: false,
+      turnRef: 'turn-2',
+      conversationRef: 'conv-1',
+      guardRef: preflightGuardRef,
+      overlayIntent: {
+        visible: true,
+        mode: 'awaiting',
+        turnRef: 'turn-2',
+        conversationRef: 'conv-1',
+        staleGuardRef: preflightGuardRef,
+      },
+    });
+  });
+
   test('keeps send preflight through unanchored hidden idle SDK projection', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {
