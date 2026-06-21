@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Response Overlay Rendered Live Trace Boundary
+
+- Finding: `MinimalResponseOverlay.jsx` consumed app-runtime trace helpers for
+  overlay state and render traces, but still assembled the live-surface
+  `response_overlay.hit_test.set`, `typing.rendered.show`, and
+  `typing.rendered.hide` payloads locally.
+- Change: added response overlay hit-test and rendered-typing live trace
+  payload/logging helpers to `desktopRendererTraceRuntime.ts`, then routed
+  `MinimalResponseOverlay` through those helpers so the component reports only
+  interaction and rendered-state values instead of owning trace event labels,
+  reason strings, or payload field names.
+- Validation: focused renderer trace runtime, response overlay state, renderer
+  app-runtime boundary coverage, docs listing, stale component-local
+  live-trace event scan, and diff checks.
+- Compatibility: no migration required. Live-surface event names and payload
+  fields, hit-test IPC behavior, rendered typing indicator behavior, overlay
+  rendering, storage, permissions, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Renderer Response Overlay Window-Sync Live Trace Boundary
 
 - Finding: `useResponseOverlayWindowSync.js` routed stream-style size traces

@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: response overlay window-sync live size-report and
-  mount/unmount trace assembly now stays behind `desktopRendererTraceRuntime`,
-  with the window-sync hook reporting measured values instead of carrying
-  live-surface trace event labels, native-mode mapping, or payload field names
-  locally.
+- Latest completed slice: response overlay hit-test and rendered-typing
+  live-surface trace payload assembly now stays behind
+  `desktopRendererTraceRuntime`, with `MinimalResponseOverlay` reporting
+  interaction/render values instead of carrying trace event labels, reason
+  strings, or payload field names locally.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -164,6 +164,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   consume `desktopRendererTraceRuntime` helpers instead of carrying
   live-surface size-report, mount, unmount, reason, native-mode, or payload
   field mapping inside the window-sync hook.
+  Response overlay hit-test and rendered-typing live-surface traces now
+  consume `desktopRendererTraceRuntime` helpers instead of carrying
+  hit-test/typing-rendered event labels, reason strings, or payload field
+  mapping inside `MinimalResponseOverlay`.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
@@ -607,6 +611,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Renderer Response Overlay Rendered Live Trace Boundary
+
+- Finding: `MinimalResponseOverlay.jsx` consumed app-runtime trace helpers for
+  overlay state and render traces, but still assembled the live-surface
+  `response_overlay.hit_test.set`, `typing.rendered.show`, and
+  `typing.rendered.hide` payloads locally.
+- Change: added response overlay hit-test and rendered-typing live trace
+  payload/logging helpers to `desktopRendererTraceRuntime.ts`, then routed
+  `MinimalResponseOverlay` through those helpers so the component reports only
+  interaction and rendered-state values instead of owning trace event labels,
+  reason strings, or payload field names.
+- Validation: focused renderer trace runtime, response overlay state, renderer
+  app-runtime boundary coverage, docs listing, stale component-local
+  live-trace event scan, and diff checks.
+- Compatibility: no migration required. Live-surface event names and payload
+  fields, hit-test IPC behavior, rendered typing indicator behavior, overlay
+  rendering, storage, permissions, credentials, hosted backend URLs, and
+  provider policy are unchanged.
 
 ### 2026-06-21 Renderer Response Overlay Window-Sync Live Trace Boundary
 

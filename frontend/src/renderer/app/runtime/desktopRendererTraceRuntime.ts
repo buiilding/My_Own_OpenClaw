@@ -49,6 +49,33 @@ export type RendererResponseOverlayLifecycleTraceValues = {
   staleGuardRef?: unknown;
 };
 
+export type RendererResponseOverlayHitTestTraceValues = {
+  source?: string;
+  conversationRef?: unknown;
+  active?: boolean;
+};
+
+export type RendererResponseOverlayTypingRenderedTraceValues = {
+  source?: string;
+  typingRendered?: boolean;
+  currentTurnProjection?: {
+    turnRef?: unknown;
+    conversationRef?: unknown;
+    phase?: unknown;
+  } | null;
+  currentTurnId?: unknown;
+  overlayIntent?: {
+    mode?: unknown;
+    turnRef?: unknown;
+    staleGuardRef?: unknown;
+  } | null;
+  overlayLayoutMode?: unknown;
+  isVisible?: boolean;
+  showAwaitingReply?: boolean;
+  showResponse?: boolean;
+  responseOverlayEntryCount?: unknown;
+};
+
 export type RendererChatPillStateTraceValues = {
   source?: string;
   action?: string;
@@ -283,6 +310,77 @@ export function logRendererResponseOverlayLifecycleTrace(
       guardRef: traceString(values.staleGuardRef) || null,
     },
     traceString(values.conversationRef) || null,
+  );
+}
+
+export function buildRendererResponseOverlayHitTestTracePayload(
+  values: RendererResponseOverlayHitTestTraceValues,
+): Record<string, unknown> {
+  const active = values.active === true;
+  return {
+    source: traceString(values.source) || 'minimal-response-overlay-renderer',
+    reason: 'renderer-normal-hit-test-request',
+    active,
+    ignoreMouseEvents: !active,
+  };
+}
+
+export function logRendererResponseOverlayHitTestTrace(
+  values: RendererResponseOverlayHitTestTraceValues,
+): void {
+  logRendererLiveSurfaceTrace(
+    'response_overlay.hit_test.set',
+    buildRendererResponseOverlayHitTestTracePayload(values),
+    traceString(values.conversationRef) || null,
+  );
+}
+
+export function buildRendererResponseOverlayTypingRenderedTracePayload(
+  values: RendererResponseOverlayTypingRenderedTraceValues,
+): Record<string, unknown> {
+  const typingRendered = values.typingRendered === true;
+  const currentTurnProjection = values.currentTurnProjection;
+  const overlayIntent = values.overlayIntent;
+  const turnRef = (
+    traceString(currentTurnProjection?.turnRef)
+    || traceString(values.currentTurnId)
+    || null
+  );
+  return {
+    source: traceString(values.source) || 'minimal-response-overlay',
+    reason: typingRendered ? 'awaiting-indicator-rendered' : 'awaiting-indicator-not-rendered',
+    turnRef,
+    conversationRef: traceString(currentTurnProjection?.conversationRef) || null,
+    phase: traceString(currentTurnProjection?.phase) || 'idle',
+    overlayMode: (
+      traceString(overlayIntent?.mode)
+      || traceString(values.overlayLayoutMode)
+      || null
+    ),
+    guardRef: (
+      traceString(overlayIntent?.staleGuardRef)
+      || traceString(overlayIntent?.turnRef)
+      || traceString(currentTurnProjection?.turnRef)
+      || traceString(values.currentTurnId)
+      || null
+    ),
+    isVisible: values.isVisible === true,
+    showAwaitingReply: values.showAwaitingReply === true,
+    showResponse: values.showResponse === true,
+    layoutMode: traceString(values.overlayLayoutMode) || null,
+    entryCount: traceNumberOrZero(values.responseOverlayEntryCount),
+    hasVisibleContent: traceNumberOrZero(values.responseOverlayEntryCount) > 0,
+  };
+}
+
+export function logRendererResponseOverlayTypingRenderedTrace(
+  values: RendererResponseOverlayTypingRenderedTraceValues,
+): void {
+  const typingRendered = values.typingRendered === true;
+  logRendererLiveSurfaceTrace(
+    typingRendered ? 'typing.rendered.show' : 'typing.rendered.hide',
+    buildRendererResponseOverlayTypingRenderedTracePayload(values),
+    traceString(values.currentTurnProjection?.conversationRef) || null,
   );
 }
 

@@ -14,6 +14,8 @@ import {
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
   buildRendererOverlayViewModelTracePayload,
+  buildRendererResponseOverlayHitTestTracePayload,
+  buildRendererResponseOverlayTypingRenderedTracePayload,
   buildRendererResponseSurfaceSizeLiveTracePayload,
   buildRendererResponseSurfaceSizeTracePayload,
   configureRendererTraceWorkspaceSnapshotResolver,
@@ -21,7 +23,9 @@ import {
   logRendererOverlayViewModelResolvedTrace,
   logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
+  logRendererResponseOverlayHitTestTrace,
   logRendererResponseOverlayLifecycleTrace,
+  logRendererResponseOverlayTypingRenderedTrace,
   logRendererResponseSurfaceTrace,
   logRendererResponseSurfaceSizeTrace,
 } from '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime';
@@ -233,6 +237,90 @@ describe('desktopRendererTraceRuntime', () => {
       source: 'renderer-response-window-sync',
       turnRef: 'turn-life',
       guardRef: 'guard-life',
+    }));
+  });
+
+  test('builds response overlay hit-test live trace payloads', () => {
+    expect(buildRendererResponseOverlayHitTestTracePayload({
+      source: ' custom-hit-test ',
+      active: true,
+    })).toEqual({
+      source: 'custom-hit-test',
+      reason: 'renderer-normal-hit-test-request',
+      active: true,
+      ignoreMouseEvents: false,
+    });
+  });
+
+  test('builds response overlay rendered-typing live trace payloads', () => {
+    expect(buildRendererResponseOverlayTypingRenderedTracePayload({
+      typingRendered: false,
+      currentTurnProjection: {
+        turnRef: ' turn-projection ',
+        conversationRef: ' conv-projection ',
+        phase: ' streaming ',
+      },
+      currentTurnId: ' turn-fallback ',
+      overlayIntent: {
+        mode: ' response ',
+        turnRef: ' turn-intent ',
+        staleGuardRef: ' guard-intent ',
+      },
+      overlayLayoutMode: ' response ',
+      isVisible: true,
+      showAwaitingReply: false,
+      showResponse: true,
+      responseOverlayEntryCount: 2,
+    })).toEqual({
+      source: 'minimal-response-overlay',
+      reason: 'awaiting-indicator-not-rendered',
+      turnRef: 'turn-projection',
+      conversationRef: 'conv-projection',
+      phase: 'streaming',
+      overlayMode: 'response',
+      guardRef: 'guard-intent',
+      isVisible: true,
+      showAwaitingReply: false,
+      showResponse: true,
+      layoutMode: 'response',
+      entryCount: 2,
+      hasVisibleContent: true,
+    });
+  });
+
+  test('logs response overlay hit-test and rendered-typing traces through live surface channel', () => {
+    setSearch('?debug_live_surface=1&view=minimal-response-overlay');
+
+    logRendererResponseOverlayHitTestTrace({
+      conversationRef: 'conv-hit',
+      active: false,
+    });
+    logRendererResponseOverlayTypingRenderedTrace({
+      typingRendered: true,
+      currentTurnProjection: {
+        turnRef: 'turn-rendered',
+        conversationRef: 'conv-rendered',
+        phase: 'awaiting',
+      },
+      overlayLayoutMode: 'awaiting-typing',
+      isVisible: true,
+      showAwaitingReply: true,
+      showResponse: false,
+      responseOverlayEntryCount: 0,
+    });
+
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'response_overlay.hit_test.set',
+      source: 'minimal-response-overlay-renderer',
+      active: false,
+      ignoreMouseEvents: true,
+    }));
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'typing.rendered.show',
+      source: 'minimal-response-overlay',
+      reason: 'awaiting-indicator-rendered',
+      turnRef: 'turn-rendered',
+      conversationRef: 'conv-rendered',
     }));
   });
 

@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlay: move response overlay hit-test and rendered-typing
+  live-surface trace payloads into `desktopRendererTraceRuntime` so
+  `MinimalResponseOverlay` reports interaction/render values without owning
+  trace event labels, reason strings, or payload field names. No migration
+  required.
 - renderer/overlay: move response overlay window-sync live size-report and
   mount/unmount trace assembly into `desktopRendererTraceRuntime` so
   `useResponseOverlayWindowSync` reports measured values without owning

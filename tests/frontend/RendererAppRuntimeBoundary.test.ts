@@ -292,6 +292,10 @@ describe('renderer app runtime boundary', () => {
 
     expect(traceRuntimeSource).toContain('buildRendererResponseOverlayStateTracePayload');
     expect(traceRuntimeSource).toContain('logRendererResponseOverlayStateTrace');
+    expect(traceRuntimeSource).toContain('buildRendererResponseOverlayHitTestTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererResponseOverlayHitTestTrace');
+    expect(traceRuntimeSource).toContain('buildRendererResponseOverlayTypingRenderedTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererResponseOverlayTypingRenderedTrace');
     expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceRenderTracePayload');
     expect(traceRuntimeSource).toContain('logRendererResponseSurfaceRenderTrace');
     expect(traceRuntimeSource).toContain('buildRendererOverlayViewModelTracePayload');
@@ -300,7 +304,16 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).toContain('logRendererOverlayViewModelTrace');
     expect(traceRuntimeSource).toContain('logRendererOverlayViewModelResolvedTrace');
     expect(responseOverlaySource).toContain('logRendererResponseOverlayStateTrace');
+    expect(responseOverlaySource).toContain('logRendererResponseOverlayHitTestTrace');
+    expect(responseOverlaySource).toContain('logRendererResponseOverlayTypingRenderedTrace');
     expect(responseOverlaySource).toContain('logRendererResponseSurfaceRenderTrace');
+    expect(responseOverlaySource).not.toContain("logRendererLiveSurfaceTrace");
+    expect(responseOverlaySource).not.toContain("'response_overlay.hit_test.set'");
+    expect(responseOverlaySource).not.toContain("'typing.rendered.show'");
+    expect(responseOverlaySource).not.toContain("'typing.rendered.hide'");
+    expect(responseOverlaySource).not.toContain('awaiting-indicator-rendered');
+    expect(responseOverlaySource).not.toContain('awaiting-indicator-not-rendered');
+    expect(responseOverlaySource).not.toContain('ignoreMouseEvents');
     expect(responseOverlayViewModelSource).toContain('buildRendererOverlayViewModelTracePayload');
     expect(responseOverlayViewModelSource).toContain('logRendererOverlayViewModelTrace');
     expect(responseOverlayViewModelSource).toContain('logRendererOverlayViewModelResolvedTrace');

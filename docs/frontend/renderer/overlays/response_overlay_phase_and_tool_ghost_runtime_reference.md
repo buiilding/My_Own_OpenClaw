@@ -147,6 +147,11 @@ Contract ownership:
   live-surface event labels and payload shaping through
   `logRendererResponseOverlayLifecycleTrace(...)`; the window-sync hook reports
   only turn, guard, conversation, and lifecycle action values.
+- `desktopRendererTraceRuntime.ts` owns response overlay hit-test and
+  rendered-typing live-surface event labels, reason strings, and payload field
+  shaping through `logRendererResponseOverlayHitTestTrace(...)` and
+  `logRendererResponseOverlayTypingRenderedTrace(...)`; `MinimalResponseOverlay`
+  reports only interaction and rendered-state values.
 - `desktopRendererTraceRuntime.ts` also owns response overlay view-model
   live-surface trace payload, resolved-event, typing-event, intent-event, and
   reason mapping. `useResponseOverlayViewModel(...)` reports value-level SDK,
@@ -238,6 +243,12 @@ Under `WINDIE_DEBUG_STREAM_EVENTS=1` (main injects `?debug_stream=1`) or explici
   `logRendererResponseOverlayLifecycleTrace(...)`, so the window-sync hook does
   not assemble `renderer.response_overlay.mount` or
   `renderer.response_overlay.unmount` event names locally
+- response overlay hit-test and rendered-typing traces go through
+  `logRendererResponseOverlayHitTestTrace(...)` and
+  `logRendererResponseOverlayTypingRenderedTrace(...)`, so
+  `MinimalResponseOverlay` does not assemble `response_overlay.hit_test.set`,
+  `typing.rendered.show`, `typing.rendered.hide`, rendered-typing reason
+  strings, or `ignoreMouseEvents` fields locally
 - response overlay view-model traces go through
   `buildRendererOverlayViewModelTracePayload(...)`,
   `logRendererOverlayViewModelResolvedTrace(...)`,

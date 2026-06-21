@@ -11,8 +11,9 @@ import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScroll
 import MessageItem from '../../chat/components/message/MessageItem';
 import { resolveConversationToolSchemas } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import {
-  logRendererLiveSurfaceTrace,
+  logRendererResponseOverlayHitTestTrace,
   logRendererResponseOverlayStateTrace,
+  logRendererResponseOverlayTypingRenderedTrace,
   logRendererResponseSurfaceRenderTrace,
   logRendererResponseSurfaceTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
@@ -89,12 +90,10 @@ function MinimalResponseOverlay() {
     }
     responseboxHitTestActiveRef.current = nextActive;
     DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(nextActive).catch(() => {});
-    logRendererLiveSurfaceTrace('response_overlay.hit_test.set', {
-      source: 'minimal-response-overlay-renderer',
-      reason: 'renderer-normal-hit-test-request',
+    logRendererResponseOverlayHitTestTrace({
+      conversationRef: currentTurnProjection?.conversationRef || null,
       active: nextActive,
-      ignoreMouseEvents: !nextActive,
-    }, currentTurnProjection?.conversationRef || null);
+    });
   }, [currentTurnProjection?.conversationRef]);
 
   useEffect(() => {
@@ -144,29 +143,17 @@ function MinimalResponseOverlay() {
       return;
     }
     lastRenderedTypingVisibleRef.current = typingRendered;
-    logRendererLiveSurfaceTrace(
-      typingRendered ? 'typing.rendered.show' : 'typing.rendered.hide',
-      {
-        source: 'minimal-response-overlay',
-        reason: typingRendered ? 'awaiting-indicator-rendered' : 'awaiting-indicator-not-rendered',
-        turnRef: currentTurnProjection?.turnRef || currentTurnId || null,
-        conversationRef: currentTurnProjection?.conversationRef || null,
-        phase: currentTurnProjection?.phase || 'idle',
-        overlayMode: overlayIntent?.mode || overlayLayoutMode || null,
-        guardRef: overlayIntent?.staleGuardRef
-          || overlayIntent?.turnRef
-          || currentTurnProjection?.turnRef
-          || currentTurnId
-          || null,
-        isVisible,
-        showAwaitingReply,
-        showResponse,
-        layoutMode: overlayLayoutMode,
-        entryCount: responseOverlayEntries.length,
-        hasVisibleContent: responseOverlayEntries.length > 0,
-      },
-      currentTurnProjection?.conversationRef || null,
-    );
+    logRendererResponseOverlayTypingRenderedTrace({
+      typingRendered,
+      currentTurnProjection,
+      currentTurnId,
+      overlayIntent,
+      overlayLayoutMode,
+      isVisible,
+      showAwaitingReply,
+      showResponse,
+      responseOverlayEntryCount: responseOverlayEntries.length,
+    });
   }, [
     currentTurnId,
     currentTurnProjection?.conversationRef,
