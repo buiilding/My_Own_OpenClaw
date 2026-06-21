@@ -404,7 +404,7 @@ optimistic-row merging. The feature hooks delegate channel names,
 `IpcBridge.on(...)` calls, pending-turn broadcast classification, SDK projection
 payload validation, and display-row merge semantics to app runtime clients.
 
-`desktopChatStreamEventPayloadRuntime.ts` owns chat-stream payload alias
+`DesktopChatStreamEventPayloadRuntime` owns chat-stream payload alias
 normalization for mutable renderer side effects, including local-user
 `text`/`content` message text, terminal errors, token counts, compaction
 metadata, and tool-schema metadata. Event handlers keep turn/workspace side

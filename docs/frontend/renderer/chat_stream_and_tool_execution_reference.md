@@ -249,7 +249,7 @@ Pre-routing and workspace resolution:
 - handlers write into target conversation workspace instead of only active chat projection
 - transcript session sync runs only after event conversation identity resolves;
   transcript user binding reads the SDK event payload through
-  `desktopChatStreamEventPayloadRuntime.resolveConversationStreamEventUserId(...)`
+  `DesktopChatStreamEventPayloadRuntime.resolveConversationStreamEventUserId(...)`
 - ingress orchestration for projection sync, turn-map registration,
   transcript-session update, and handler dispatch is centralized in
   `desktopChatStreamIngressRuntime.ts`; `useChatStream` supplies handler and
@@ -367,7 +367,7 @@ Handler composition boundary:
   helpers for fail-fast guards, workspace routing, row targeting, and tracking
   updates instead of spelling SDK event names or raw identity fields locally.
 - Stream event payload extraction lives in
-  `desktopChatStreamEventPayloadRuntime.ts`; sub-handlers resolve a payload
+  `DesktopChatStreamEventPayloadRuntime`; sub-handlers resolve a payload
   value through that runtime before calling payload-specific projection helpers
   instead of reading `event.payload` directly.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
@@ -390,7 +390,7 @@ Turn guard + error suppression matrix:
 - `useChatStream` applies the same stale-turn guard to SDK-dispatched chat stream handlers
 - guard condition: `event.turn_ref` exists, workspace has `activeTurnRef`, and values mismatch
 - dropped stale events have no chat-store mutation and no transcript side effects
-- `turn_error` has one extra gate in `useChatStreamTerminalHandlers`: `shouldIgnoreStreamError(...)` suppresses benign settings-sync errors before UI mutation
+- `turn_error` has one extra gate in `useChatStreamTerminalHandlers`: `DesktopChatStreamEventPayloadRuntime.shouldIgnoreStreamError(...)` suppresses benign settings-sync errors before UI mutation
 
 Message targeting utilities:
 

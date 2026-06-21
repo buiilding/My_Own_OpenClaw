@@ -5,7 +5,7 @@
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopConversationSessionRuntimeClient } from './desktopConversationSessionRuntimeClient';
 import { DesktopChatStreamEventRuntime } from './desktopChatStreamEventRuntime';
-import { resolveConversationStreamEventUserId } from './desktopChatStreamEventPayloadRuntime';
+import { DesktopChatStreamEventPayloadRuntime } from './desktopChatStreamEventPayloadRuntime';
 import {
   type ConversationEvent,
 } from './desktopConversationRuntimeContracts';
@@ -25,6 +25,9 @@ const {
   resolveConversationStreamEventConversationRef,
   resolveConversationStreamEventTurnRef,
 } = DesktopChatStreamEventRuntime;
+const {
+  resolveConversationStreamEventUserId,
+} = DesktopChatStreamEventPayloadRuntime;
 
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;

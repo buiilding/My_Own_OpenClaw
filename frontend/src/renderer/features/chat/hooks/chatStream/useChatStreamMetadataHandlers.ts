@@ -5,10 +5,7 @@
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
-import {
-  resolveConversationStreamEventPayload,
-  resolveToolSchemasMetadataPayload,
-} from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
+import { DesktopChatStreamEventPayloadRuntime } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import {
   DesktopChatStreamMessageUpdateRuntime,
 } from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
@@ -33,6 +30,10 @@ const {
   resolveConversationStreamEventTurnRef,
   resolveConversationStreamEventTurnRefForUpdate,
 } = DesktopChatStreamEventRuntime;
+const {
+  resolveConversationStreamEventPayload,
+  resolveToolSchemasMetadataPayload,
+} = DesktopChatStreamEventPayloadRuntime;
 
 type ShouldIgnoreForStaleTurn = (
   event: { turnRef?: string | null },

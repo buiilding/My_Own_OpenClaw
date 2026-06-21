@@ -97,19 +97,19 @@ function booleanField(payload: EventPayload, key: string): boolean | null | unde
   return typeof payload[key] === 'boolean' ? payload[key] as boolean : undefined;
 }
 
-export function resolveConversationStreamEventPayload(
+function resolveConversationStreamEventPayload(
   event: ConversationStreamEventPayloadEvent | null | undefined,
 ): EventPayload | null {
   return recordOrNull(event?.payload);
 }
 
-export function resolveConversationStreamEventUserId(
+function resolveConversationStreamEventUserId(
   event: ConversationStreamEventPayloadEvent | null | undefined,
 ): string | null {
   return optionalString(resolveConversationStreamEventPayload(event)?.userId);
 }
 
-export function buildTokenCountsFromPayload(payload: EventPayload | null | undefined): TokenCounts {
+function buildTokenCountsFromPayload(payload: EventPayload | null | undefined): TokenCounts {
   const source = payload ?? {};
   const tokenCounts: TokenCounts = {};
   const promptTokens = finiteNumberField(source, 'prompt_tokens');
@@ -161,35 +161,35 @@ export function buildTokenCountsFromPayload(payload: EventPayload | null | undef
   return tokenCounts;
 }
 
-export function resolveTerminalErrorPayload(payload: EventPayload | null | undefined): ErrorPayload {
+function resolveTerminalErrorPayload(payload: EventPayload | null | undefined): ErrorPayload {
   return {
     message: payload?.message,
     content: payload?.content,
   };
 }
 
-export function resolveLocalUserMessageText(payload: EventPayload | null | undefined): string | null {
+function resolveLocalUserMessageText(payload: EventPayload | null | undefined): string | null {
   return stringOrNull(payload?.text) ?? stringOrNull(payload?.content);
 }
 
-export function resolveToolSchemasMetadataPayload(payload: EventPayload | null | undefined): EventPayload {
+function resolveToolSchemasMetadataPayload(payload: EventPayload | null | undefined): EventPayload {
   return {
     ...(payload ?? {}),
     tool_schemas: payload?.tool_schemas ?? payload?.toolSchemas,
   };
 }
 
-export function resolveCompactionSkippedReason(payload: EventPayload | null | undefined): string {
+function resolveCompactionSkippedReason(payload: EventPayload | null | undefined): string {
   return optionalString(payload?.skippedReason)
     ?? optionalString(payload?.skipped_reason)
     ?? '';
 }
 
-export function resolveCompactionErrorText(payload: EventPayload | null | undefined): string {
+function resolveCompactionErrorText(payload: EventPayload | null | undefined): string {
   return optionalString(payload?.error) ?? '';
 }
 
-export function getCompactionReplacementHistoryEntries(
+function getCompactionReplacementHistoryEntries(
   payload: EventPayload | null | undefined,
 ): JsonRecord[] {
   return arrayOrEmpty(
@@ -197,13 +197,13 @@ export function getCompactionReplacementHistoryEntries(
   ).map(recordOrNull).filter((entry): entry is JsonRecord => Boolean(entry));
 }
 
-export function hasCompactionReplacementHistoryEntries(
+function hasCompactionReplacementHistoryEntries(
   payload: EventPayload | null | undefined,
 ): boolean {
   return getCompactionReplacementHistoryEntries(payload).length > 0;
 }
 
-export function buildCompactionDebugInfo(
+function buildCompactionDebugInfo(
   payload: EventPayload | null | undefined,
   skippedReason = resolveCompactionSkippedReason(payload),
 ): CompactionDebugInfo {
@@ -228,7 +228,7 @@ export function buildCompactionDebugInfo(
   };
 }
 
-export function buildCompactedReplaySnapshot(
+function buildCompactedReplaySnapshot(
   event: CompactionEvent,
   conversationRef: string,
 ): CompactedReplaySnapshot | null {
@@ -252,11 +252,11 @@ export function buildCompactedReplaySnapshot(
   };
 }
 
-export function resolveCompactionUserId(payload: EventPayload | null | undefined): string {
+function resolveCompactionUserId(payload: EventPayload | null | undefined): string {
   return optionalString(payload?.userId) || 'default_user';
 }
 
-export function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined): boolean {
+function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined): boolean {
   const message = payload?.message;
   const content = payload?.content;
   const normalizedMessage = typeof message === 'string' ? message.toLowerCase() : '';
@@ -270,14 +270,14 @@ export function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined
   );
 }
 
-export function buildScreenshotAttachment(
+function buildScreenshotAttachment(
   screenshotRef: string | null | undefined,
   screenshotUrl?: string | null,
 ) {
   return DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment(screenshotRef, screenshotUrl);
 }
 
-export function resolveErrorText(payload: ErrorPayload | null | undefined): string {
+function resolveErrorText(payload: ErrorPayload | null | undefined): string {
   const content = payload?.content;
   if (typeof content === 'string' && content.length > 0) {
     return content;
@@ -288,3 +288,22 @@ export function resolveErrorText(payload: ErrorPayload | null | undefined): stri
   }
   return 'An error occurred';
 }
+
+export const DesktopChatStreamEventPayloadRuntime = Object.freeze({
+  resolveConversationStreamEventPayload,
+  resolveConversationStreamEventUserId,
+  buildTokenCountsFromPayload,
+  resolveTerminalErrorPayload,
+  resolveLocalUserMessageText,
+  resolveToolSchemasMetadataPayload,
+  resolveCompactionSkippedReason,
+  resolveCompactionErrorText,
+  getCompactionReplacementHistoryEntries,
+  hasCompactionReplacementHistoryEntries,
+  buildCompactionDebugInfo,
+  buildCompactedReplaySnapshot,
+  resolveCompactionUserId,
+  shouldIgnoreStreamError,
+  buildScreenshotAttachment,
+  resolveErrorText,
+});

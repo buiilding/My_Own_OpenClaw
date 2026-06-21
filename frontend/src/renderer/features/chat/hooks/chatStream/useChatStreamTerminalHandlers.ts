@@ -4,13 +4,7 @@
 
 import { useCallback } from 'react';
 import { useChatStore } from '../../stores/chatStore';
-import {
-  buildTokenCountsFromPayload,
-  resolveConversationStreamEventPayload,
-  resolveErrorText,
-  resolveTerminalErrorPayload,
-  shouldIgnoreStreamError,
-} from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
+import { DesktopChatStreamEventPayloadRuntime } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { DesktopChatStreamMessageUpdateRuntime } from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
@@ -19,6 +13,13 @@ import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopCh
 const {
   findLastAssistantLlmTextMessageId,
 } = DesktopChatStreamMessageUpdateRuntime;
+const {
+  buildTokenCountsFromPayload,
+  resolveConversationStreamEventPayload,
+  resolveErrorText,
+  resolveTerminalErrorPayload,
+  shouldIgnoreStreamError,
+} = DesktopChatStreamEventPayloadRuntime;
 const {
   resolveConversationStreamEventConversationRef,
   resolveConversationStreamEventTurnRef,

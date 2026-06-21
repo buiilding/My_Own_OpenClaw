@@ -2,7 +2,9 @@
  * Covers desktop chat stream event payload runtime behavior in the frontend test suite.
  */
 
-import {
+import { DesktopChatStreamEventPayloadRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime';
+
+const {
   buildCompactedReplaySnapshot,
   buildCompactionDebugInfo,
   buildScreenshotAttachment,
@@ -16,7 +18,7 @@ import {
   resolveTerminalErrorPayload,
   resolveToolSchemasMetadataPayload,
   shouldIgnoreStreamError,
-} from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime';
+} = DesktopChatStreamEventPayloadRuntime;
 
 describe('desktopChatStreamEventPayloadRuntime', () => {
   test('shouldIgnoreStreamError matches settings-update failures', () => {

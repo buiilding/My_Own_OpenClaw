@@ -53,14 +53,14 @@ Core behavior:
   tool message-state builders used by chat-stream handlers and SDK display-row
   projection, not through separate chat-stream formatting exports.
 
-## Event Payload Contracts (`desktopChatStreamEventPayloadRuntime.ts`)
+## Event Payload Contracts (`DesktopChatStreamEventPayloadRuntime`)
 
-- `shouldIgnoreStreamError` suppresses known settings-update transport noise through `desktopSettingsUpdateErrorRuntime` from user-visible assistant error rows.
-- `buildScreenshotAttachment` normalizes `screenshotRef` and derives URL from `buildRuntimeArtifactUrl(ref)` when URL missing.
+- `DesktopChatStreamEventPayloadRuntime.shouldIgnoreStreamError(...)` suppresses known settings-update transport noise through `DesktopSettingsUpdateErrorRuntime` from user-visible assistant error rows.
+- `DesktopChatStreamEventPayloadRuntime.buildScreenshotAttachment(...)` normalizes `screenshotRef` and derives URL through the artifact runtime client when URL is missing.
 - Tool-call and tool-output correlation id normalization is owned by the SDK
   helper surface imported through the SDK package, not by
-  `desktopChatStreamEventPayloadRuntime`.
-- `resolveErrorText` precedence:
+  `DesktopChatStreamEventPayloadRuntime`.
+- `DesktopChatStreamEventPayloadRuntime.resolveErrorText(...)` precedence:
 1. payload content string
 2. payload message string
 3. `"An error occurred"`

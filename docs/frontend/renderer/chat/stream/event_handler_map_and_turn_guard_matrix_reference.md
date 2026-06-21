@@ -102,7 +102,7 @@ Reason: `user_message` establishes turn/workspace state and seeds optimistic UI 
   predicates used by both `useChatStream` dispatch and sub-handler fail-fast
   guards.
 - `useChatStreamLocalUserHandler`: seeds local-user turn state and model
-  context from `user_message` events while `desktopChatStreamEventPayloadRuntime.ts`
+  context from `user_message` events while `DesktopChatStreamEventPayloadRuntime`
   owns `text`/`content` payload alias normalization.
 - `useChatStreamToolHandlers`: persists tool-call/tool-output/tool-bundle transcript rows only, and routes `tool-output` transcript rows through the shared `ConversationRuntime.ts` helper
 - `useChatStreamTerminalHandlers`:

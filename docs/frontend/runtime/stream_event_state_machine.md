@@ -90,7 +90,7 @@ through runtime helpers before routing workspace side effects, stale-turn
 checks, row targeting, and tracking updates; feature hooks should not read raw
 event identity fields directly.
 
-`desktopChatStreamEventPayloadRuntime.resolveConversationStreamEventPayload(...)`
+`DesktopChatStreamEventPayloadRuntime.resolveConversationStreamEventPayload(...)`
 owns record-safe payload access for SDK conversation events. Compaction,
 metadata, local-user, and terminal handlers resolve the payload through that
 runtime before calling payload-specific projection helpers, so handler modules
@@ -108,7 +108,7 @@ keep side effects without reading raw `event.payload` directly.
   - register `turn_ref -> conversation_ref` mapping from the normalized SDK turn
     identity helper
   - refresh transcript session binding (`activeConversationRef || resolvedConversationRef`)
-    with transcript user id read through `desktopChatStreamEventPayloadRuntime`
+    with transcript user id read through `DesktopChatStreamEventPayloadRuntime`
   - dispatch to SDK-normalized handlers through the chat hook callback
 4. optional renderer trace logging (`[StreamTrace][renderer][before|after]`) runs only when the window URL includes `debug_stream=1` so normal `electron:dev` sessions do not spam console output
 
@@ -149,7 +149,7 @@ Handler-level skip:
 Extra error gate:
 
 - SDK `turn_error` handling suppresses benign errors through
-  `shouldIgnoreStreamError(...)` before UI mutation.
+  `DesktopChatStreamEventPayloadRuntime.shouldIgnoreStreamError(...)` before UI mutation.
 
 ## Stream Tracking Model
 

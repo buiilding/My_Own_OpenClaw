@@ -81,7 +81,7 @@ When transcript sync is enabled:
 
 - ingress requires a resolved `conversationRef`
 - transcript sync receives the resolved `conversationRef` and SDK `userId`
-  payload value through `desktopChatStreamEventPayloadRuntime`
+  payload value through `DesktopChatStreamEventPayloadRuntime`
 
 When transcript sync is disabled:
 
@@ -105,7 +105,7 @@ through `DesktopConversationSessionRuntimeClient`, so ingress orchestration
 does not import chat session internals directly.
 Conversation and turn identity are resolved through
 `DesktopChatStreamEventRuntime`; transcript user binding is resolved through
-`desktopChatStreamEventPayloadRuntime`, so ingress orchestration does not read
+`DesktopChatStreamEventPayloadRuntime`, so ingress orchestration does not read
 raw `event.conversationRef`, `event.turnRef`, or `event.payload` fields
 directly.
 

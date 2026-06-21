@@ -94,7 +94,7 @@ local-user-message event.
 - resets stream-tracking for new turn (`awaiting-first-chunk`, `resetForTurn`)
 
 Synthetic send-failure `turn_error` events are handled through the normal
-renderer error path unless filtered by `shouldIgnoreStreamError(...)`.
+renderer error path unless filtered by `DesktopChatStreamEventPayloadRuntime.shouldIgnoreStreamError(...)`.
 
 ## Drift Hotspots
 

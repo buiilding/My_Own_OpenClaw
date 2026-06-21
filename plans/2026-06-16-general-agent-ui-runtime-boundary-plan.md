@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Stream Event Payload Runtime Facade
+
+- Finding: `desktopChatStreamEventPayloadRuntime.ts` already owned SDK
+  conversation payload access, transcript user id extraction, token/error
+  payload parsing, local-user text/content aliases, compaction debug/replay
+  projection, screenshot attachment normalization, and benign stream-error
+  filtering, but still exported those value helpers individually.
+- Change: exposed the payload normalization helpers through
+  `DesktopChatStreamEventPayloadRuntime` and routed stream ingress,
+  terminal/metadata/local-user/compaction handlers, and focused tests through
+  the facade. Event classification remains in `DesktopChatStreamEventRuntime`;
+  payload-specific normalization remains in this payload runtime.
+- Validation: focused payload runtime, stream handler, stream ingress, and
+  renderer chat-runtime boundary tests plus lint, stale standalone
+  export/import scans, docs listing, and diff checks.
+- Compatibility/security: no migration required. SDK conversation event names,
+  payload shapes, compaction replay snapshots, screenshot artifact URL
+  construction, stream-error filtering, IPC, storage, credentials, provider
+  policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-21 Renderer Current-Turn Projection Effects Facade
 
 - Finding: `desktopCurrentTurnProjectionEffectsRuntime.ts` already owned SDK

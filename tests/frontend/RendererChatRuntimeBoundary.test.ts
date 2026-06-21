@@ -296,7 +296,11 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).toContain('replacement_history_preview');
     expect(payloadRuntimeSource).toContain('summary_preview');
     expect(payloadRuntimeSource).toContain('toolSchemas');
+    expect(payloadRuntimeSource).toContain('export const DesktopChatStreamEventPayloadRuntime = Object.freeze');
     expect(payloadRuntimeSource).toContain('resolveConversationStreamEventPayload');
+    expect(payloadRuntimeSource).not.toContain('export function resolveConversationStreamEventPayload');
+    expect(payloadRuntimeSource).not.toContain('export function buildCompactionDebugInfo');
+    expect(compactionHookSource).toContain('DesktopChatStreamEventPayloadRuntime');
     expect(compactionHookSource).toContain('buildCompactionDebugInfo');
     expect(compactionHookSource).toContain('buildCompactedReplaySnapshot');
     expect(compactionHookSource).toContain('resolveCompactionErrorText');
@@ -314,6 +318,7 @@ describe('renderer chat runtime boundary', () => {
     expect(metadataHookSource).toContain('isAssistantMessageConversationStreamEvent');
     expect(metadataHookSource).toContain('isToolSchemasMetadataConversationStreamEvent');
     expect(metadataHookSource).toContain('DesktopChatStreamEventRuntime');
+    expect(metadataHookSource).toContain('DesktopChatStreamEventPayloadRuntime');
     expect(metadataHookSource).toContain('resolveToolSchemasMetadataPayload');
     expect(metadataHookSource).toContain('resolveConversationStreamEventPayload');
     expect(metadataHookSource).not.toContain('event.type === expectedType');
@@ -339,6 +344,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('unwrapTokenCountBackendEvent');
     expect(source).not.toContain('unwrapMemoryStoreBackendEvent');
     expect(source).not.toContain('types/backendEvents');
+    expect(source).toContain('DesktopChatStreamEventPayloadRuntime');
     expect(source).toContain('buildTokenCountsFromPayload');
     expect(source).toContain('resolveTerminalErrorPayload');
     expect(source).toContain('resolveConversationStreamEventPayload');
@@ -347,9 +353,12 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('usage_source');
     expect(source).not.toContain('cache_status');
     expect(source).toContain('ConversationEvent');
+    expect(payloadRuntimeSource).toContain('export const DesktopChatStreamEventPayloadRuntime = Object.freeze');
     expect(payloadRuntimeSource).toContain('prompt_tokens');
     expect(payloadRuntimeSource).toContain('usage_source');
     expect(payloadRuntimeSource).toContain('cache_status');
+    expect(payloadRuntimeSource).not.toContain('export function buildTokenCountsFromPayload');
+    expect(payloadRuntimeSource).not.toContain('export function resolveTerminalErrorPayload');
   });
 
   test('chat stream sub-handlers resolve SDK event identity through app runtime facade', async () => {
@@ -789,6 +798,7 @@ describe('renderer chat runtime boundary', () => {
     expect(streamSource).not.toContain('handleBackendStreamIngress');
     expect(ingressSource).toContain('resolveConversationStreamEventConversationRef');
     expect(ingressSource).toContain('resolveConversationStreamEventTurnRef');
+    expect(ingressSource).toContain('DesktopChatStreamEventPayloadRuntime');
     expect(ingressSource).toContain('resolveConversationStreamEventUserId');
     expect(ingressSource).toContain('export const DesktopChatStreamIngressRuntime = Object.freeze');
     expect(ingressSource).not.toContain('export function handleConversationEventIngress');
@@ -1374,6 +1384,7 @@ describe('renderer chat runtime boundary', () => {
     expect(handlerSource).not.toContain('event.payload?.content');
     expect(handlerSource).not.toContain('event.payload');
     expect(handlerSource).not.toContain('function readString');
+    expect(handlerSource).toContain('DesktopChatStreamEventPayloadRuntime');
     expect(handlerSource).toContain('resolveConversationStreamEventPayload');
     expect(handlerSource).toContain('resolveLocalUserMessageText');
     expect(handlerSource).not.toContain('payload?.screenshotRefs');

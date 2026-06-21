@@ -8,15 +8,7 @@ import type {
   ConversationEvent,
 } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
-import {
-  buildCompactedReplaySnapshot,
-  buildCompactionDebugInfo,
-  hasCompactionReplacementHistoryEntries,
-  resolveConversationStreamEventPayload,
-  resolveCompactionErrorText,
-  resolveCompactionSkippedReason,
-  resolveCompactionUserId,
-} from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
+import { DesktopChatStreamEventPayloadRuntime } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import {
   DesktopChatStreamThinkingRuntime,
 } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
@@ -40,6 +32,15 @@ const {
   resolveConversationStreamEventConversationRef,
   resolveConversationStreamEventTurnRef,
 } = DesktopChatStreamEventRuntime;
+const {
+  buildCompactedReplaySnapshot,
+  buildCompactionDebugInfo,
+  hasCompactionReplacementHistoryEntries,
+  resolveConversationStreamEventPayload,
+  resolveCompactionErrorText,
+  resolveCompactionSkippedReason,
+  resolveCompactionUserId,
+} = DesktopChatStreamEventPayloadRuntime;
 
 type SetThinkingStatus = (
   status: string | null,
