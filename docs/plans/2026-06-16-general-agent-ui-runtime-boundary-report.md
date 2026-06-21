@@ -7885,3 +7885,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   override behavior, default `.windie/logs` source-run paths, provider policy,
   permissions, storage, and backend behavior are unchanged; no migration is
   required.
+- IPC wake-up and host-copy runtime tests now use neutral injected agent
+  identity fixtures instead of WindieOS product names. The real WindieOS product
+  identity remains host-skin owned and covered by `MainHostSkinBoundary`.
+  AgentClient wake-up options, MCP client-info propagation, host-copy defaults,
+  permissions, provider policy, storage, and backend behavior are unchanged; no
+  migration is required.

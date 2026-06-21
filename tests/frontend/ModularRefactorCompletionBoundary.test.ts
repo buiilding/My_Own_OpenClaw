@@ -559,6 +559,20 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain("name: 'Desktop Agent'");
   });
 
+  test('main host-copy tests keep injected identity fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/IpcAgentWakeupRuntime.test.cjs'),
+      read('tests/frontend/IpcHostCopyRuntime.test.cjs'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain("getSdkAgentName: jest.fn(() => 'WindieOS')");
+    expect(source).not.toContain("sdkAgentName: 'WindieOS'");
+    expect(source).not.toContain("name: 'WindieOS'");
+    expect(source).toContain("getSdkAgentName: jest.fn(() => 'Sample Agent')");
+    expect(source).toContain("sdkAgentName: 'Sample Agent'");
+    expect(source).toContain("name: 'Sample Runtime'");
+  });
+
   test('renderer conversation metadata tests keep workspace fixtures product-neutral', async () => {
     const conversationMetadataText = await Promise.all([
       read('tests/frontend/ConversationGroups.test.js'),

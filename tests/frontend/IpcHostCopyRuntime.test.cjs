@@ -23,9 +23,9 @@ describe('ipc_host_copy_runtime', () => {
 
   test('configures identity and query-event copy from host skin input', () => {
     const identity = {
-      sdkAgentName: 'WindieOS',
+      sdkAgentName: 'Sample Agent',
       mcpClientInfo: {
-        name: 'WindieOS',
+        name: 'Sample Runtime',
         version: '1.2.3',
       },
     };
@@ -40,7 +40,7 @@ describe('ipc_host_copy_runtime', () => {
     });
 
     expect(runtime.getIdentity()).toBe(identity);
-    expect(runtime.getSdkAgentName()).toBe('WindieOS');
+    expect(runtime.getSdkAgentName()).toBe('Sample Agent');
     expect(runtime.getMcpClientInfo()).toBe(identity.mcpClientInfo);
     expect(runtime.getQueryEvents()).toBe(queryEvents);
   });

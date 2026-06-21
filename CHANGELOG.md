@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral injected agent identity fixtures in IPC wake-up and
+  host-copy runtime coverage instead of WindieOS product names. No migration
+  required.
+
 - tests/local-runtime: use neutral screenshot path fixtures for unowned
   screenshot temp dirs and `open_app` screenshot verification payloads instead
   of Windie-flavored arbitrary paths. No migration required.

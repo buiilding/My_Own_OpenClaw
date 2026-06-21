@@ -18,7 +18,7 @@ function createWakeupDeps(overrides = {}) {
       wakeUp: jest.fn(async () => agent),
     })),
     buildDesktopInstallAuth: jest.fn(() => ({ installToken: 'token-1' })),
-    getSdkAgentName: jest.fn(() => 'WindieOS'),
+    getSdkAgentName: jest.fn(() => 'Sample Agent'),
     isTest: jest.fn(() => false),
     getEnabledMcpServerSpecsForConfig: jest.fn(() => [{ id: 'server-1' }]),
     getDesktopUiConfigForMcpRegistry: jest.fn(() => ({ agent_enabled_mcp_servers: ['server-1'] })),
@@ -47,7 +47,7 @@ describe('ipc_agent_wakeup_runtime', () => {
     expect(deps.resolveWorkspacePathForAgent).not.toHaveBeenCalled();
     expect(client.wakeUp).toHaveBeenCalledWith({
       installAuth: { installToken: 'token-1' },
-      name: 'WindieOS',
+      name: 'Sample Agent',
       workspacePath: '/repo/explicit',
       builtins: 'default',
       mcps: [{ id: 'server-1' }],

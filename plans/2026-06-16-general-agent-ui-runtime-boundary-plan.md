@@ -19213,3 +19213,17 @@ Each completed slice should report:
 - Compatibility: no migration required. Launcher log override behavior, default
   `.windie/logs` source-run paths, provider policy, permissions, storage, and
   backend behavior are unchanged.
+
+### 2026-06-21 Main host-copy identity fixture neutrality
+
+- Finding: IPC wake-up and host-copy runtime tests still used WindieOS product
+  names as arbitrary injected agent identity fixtures, even though the generic
+  Electron agent host now receives product copy from `main_host_skin.cjs`.
+- Change: switched those test-only injected identity values to neutral
+  `Sample Agent` / `Sample Runtime` fixtures and added modular boundary
+  coverage so generic main-host tests do not drift back to product names.
+- Validation: focused IPC wake-up, host-copy, and modular boundary tests; exact
+  retired injected identity fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. AgentClient wake-up options, MCP
+  client-info propagation, host-copy defaults, permissions, provider policy,
+  storage, and backend behavior are unchanged.
