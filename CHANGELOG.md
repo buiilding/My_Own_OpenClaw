@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: rename Agent SDK query command payload bookkeeping inside
+  `ipc_agent_sdk_runtime_commands.cjs` from backend-payload wording to SDK
+  runtime command payload wording, keeping Electron main framed as the SDK host
+  adapter for renderer query intent. No migration required.
 - frontend/renderer: move provider model display label and fallback resolution
   helpers into the `DesktopRuntimeConfig` facade so concrete provider display
   skin config stays data-only while runtime consumers keep the same facade API.

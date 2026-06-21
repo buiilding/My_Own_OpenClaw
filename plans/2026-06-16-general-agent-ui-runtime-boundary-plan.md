@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Agent SDK Runtime Command Payload Naming
+
+- Finding: `ipc_agent_sdk_runtime_commands.cjs` separated renderer resources
+  and metadata from the query command payload before calling `agent.run(...)`,
+  but the local bookkeeping variable and module docs called the remaining
+  command body a backend payload.
+- Change: renamed that helper-local payload to SDK runtime command payload
+  wording and updated focused boundary docs/tests so Electron main reads as an
+  SDK host adapter for renderer query intent rather than a backend payload
+  owner.
+- Validation: focused main IPC runtime command and SDK boundary tests plus
+  targeted main source lint, docs listing, stale local backend-payload naming
+  scan, and diff checks before commit.
+- Compatibility/security: no migration required. SDK command names,
+  `agent.run(...)` inputs, query payload fields, resources, metadata,
+  workspace resolution, IPC channels, credentials, hosted backend policy, and
+  local-runtime execution are unchanged.
+
 ### 2026-06-21 Renderer Provider Display Config Facade Ownership
 
 - Finding: `providerModelDisplaySettings.js` exported provider model display

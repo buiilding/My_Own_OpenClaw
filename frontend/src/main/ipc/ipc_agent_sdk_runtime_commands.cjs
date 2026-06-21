@@ -21,19 +21,21 @@ function createAgentSdkRuntimeCommands(deps = {}) {
       const sourcePayload = isPlainObject(payload) ? payload : {};
       const resources = Array.isArray(sourcePayload.resources) ? sourcePayload.resources : undefined;
       const metadata = isPlainObject(sourcePayload.metadata) ? sourcePayload.metadata : undefined;
-      const backendPayload = { ...sourcePayload };
-      delete backendPayload.resources;
-      delete backendPayload.metadata;
+      const runtimeCommandPayload = { ...sourcePayload };
+      delete runtimeCommandPayload.resources;
+      delete runtimeCommandPayload.metadata;
       const agent = await ensureAgent({
         reason: 'query',
-        conversationRef: resolveConversationRefFromPayload(backendPayload),
-        workspacePath: resolveWorkspacePathForAgent(backendPayload),
+        conversationRef: resolveConversationRefFromPayload(runtimeCommandPayload),
+        workspacePath: resolveWorkspacePathForAgent(runtimeCommandPayload),
       });
-      const text = typeof backendPayload.text === 'string' ? backendPayload.text : '';
+      const text = typeof runtimeCommandPayload.text === 'string'
+        ? runtimeCommandPayload.text
+        : '';
       const result = await agent.run({
         text,
         turnRef: messageId || undefined,
-        payload: backendPayload,
+        payload: runtimeCommandPayload,
         resources,
         metadata,
       });

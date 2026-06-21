@@ -296,7 +296,7 @@ Owns Electron-main active Agent SDK adapter lifecycle state:
 Owns Electron-main Agent SDK command execution helpers:
 
 - sends renderer chat payloads through `agent.run(...)` while separating
-  resources and metadata from the backend payload
+  resources and metadata from the SDK runtime command payload
 - stops active turns through the active adapter and clears pending-turn state
   before dispatch
 - routes settings updates, model-list requests, and wakeword-detected events

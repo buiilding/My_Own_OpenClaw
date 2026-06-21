@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: provider model display label and fallback resolution
-  helpers now live on the `DesktopRuntimeConfig` facade instead of the concrete
-  provider display skin config, keeping that config data-only while preserving
-  the consumer API.
+- Latest completed slice: Electron main Agent SDK query command payload
+  bookkeeping now uses SDK runtime command payload wording instead of
+  backend-payload local naming, keeping main framed as the SDK host adapter for
+  renderer query intent.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

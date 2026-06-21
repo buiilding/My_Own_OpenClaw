@@ -32,6 +32,8 @@ function createCommands(overrides = {}) {
 }
 
 describe('ipc_agent_sdk_runtime_commands', () => {
+  const retiredBackendPayloadName = ['backend', 'Payload'].join('');
+
   test('sends query payloads through Agent SDK runtime with resources and metadata separated', async () => {
     const { commands, deps } = createCommands();
 
@@ -137,6 +139,8 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(mainSource).not.toContain('agent.requestModelList()');
     expect(mainSource).not.toContain('agent.wakewordDetected(payload)');
     expect(helperSource).toContain('agent.run({');
+    expect(helperSource).toContain('runtimeCommandPayload');
+    expect(helperSource).not.toContain(retiredBackendPayloadName);
     expect(helperSource).toContain('agent.stop({');
     expect(helperSource).toContain('agent.updateSettings(payload)');
     expect(helperSource).toContain('agent.requestModelList()');
