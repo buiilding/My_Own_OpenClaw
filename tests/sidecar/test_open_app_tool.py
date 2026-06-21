@@ -99,7 +99,7 @@ async def test_open_app_verify_screenshot_includes_screenshot_payload(monkeypatc
         return {
             "success": True,
             "data": {
-                "screenshot_path": "/tmp/windie-shot-test.jpg",
+                "screenshot_path": "/tmp/agent-shot-test.jpg",
                 "screenshot_content_type": "image/jpeg",
                 "compression": "jpeg",
                 "size": 123,
@@ -125,7 +125,7 @@ async def test_open_app_verify_screenshot_includes_screenshot_payload(monkeypatc
     assert result["success"] is True
     data = result["data"]
     assert data["verify_status"] == "screenshot_captured"
-    assert data["screenshot_path"] == "/tmp/windie-shot-test.jpg"
+    assert data["screenshot_path"] == "/tmp/agent-shot-test.jpg"
     assert data["screenshot_content_type"] == "image/jpeg"
 
 

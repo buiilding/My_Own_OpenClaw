@@ -7805,3 +7805,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Diagnostic path definitions, sanitization, SQLite persistence, host-skin
   diagnostics DB configuration, provider policy, permissions, storage contracts,
   and backend behavior are unchanged; no migration is required.
+- Local-runtime screenshot-related tests now use neutral screenshot path
+  fixtures for unowned screenshot temp directories and `open_app` screenshot
+  verification payloads instead of Windie-flavored arbitrary paths. Intentional
+  legacy-prefix rejection coverage remains in the bridge tests. Trusted
+  screenshot ownership checks, artifact materialization, unowned-path rejection,
+  sidecar `open_app` screenshot payload propagation, provider policy,
+  permissions, storage, and backend behavior are unchanged; no migration is
+  required.

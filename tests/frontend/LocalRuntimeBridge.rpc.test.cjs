@@ -413,7 +413,7 @@ describe('local_runtime_bridge RPC handlers', () => {
     });
     markReady();
 
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-unowned-shot-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-unowned-shot-'));
     const screenshotPath = path.join(tempDir, 'capture.jpg');
     await fsPromises.writeFile(screenshotPath, Buffer.from('do-not-read-or-delete'));
 

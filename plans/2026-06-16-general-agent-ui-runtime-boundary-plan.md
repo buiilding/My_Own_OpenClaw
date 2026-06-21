@@ -19016,3 +19016,19 @@ Each completed slice should report:
   sanitization, SQLite persistence, host-skin diagnostics DB configuration,
   provider policy, permissions, storage contracts, and backend behavior are
   unchanged.
+
+### 2026-06-21 Screenshot path fixture neutrality
+
+- Finding: local-runtime screenshot-related tests still used Windie-flavored
+  arbitrary screenshot paths for an unowned temp directory fixture and a sidecar
+  `open_app` screenshot verification payload.
+- Change: switched those non-legacy fixtures to neutral `agent-*` paths and
+  extended the local-runtime helper boundary guard over the bridge and sidecar
+  screenshot fixtures. Intentional legacy-prefix rejection tests remain in place.
+- Validation: focused local-runtime bridge, sidecar open-app, and modular
+  boundary tests; exact retired screenshot fixture scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Trusted screenshot ownership checks,
+  artifact materialization, unowned-path rejection, sidecar `open_app`
+  screenshot payload propagation, provider policy, permissions, storage, and
+  backend behavior are unchanged.
