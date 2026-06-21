@@ -60,7 +60,7 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 - includes only keys in the renderer-owned allowlist
 - ignores extra runtime, backend-owned, or non-renderer local-runtime config fields
 
-## Local Config Persistence (`desktopRendererConfigStorageRuntime`)
+## Local Config Persistence (`DesktopRendererConfigStorageRuntime`)
 
 Storage keys:
 
@@ -74,9 +74,10 @@ Removed storage keys:
 Renderer config persistence is intentionally single-key: config payload changes
 are broadcast by the `windieos-config` localStorage write itself, not by
 a separate version timestamp.
-`desktopRendererConfigStorageRuntime.js` owns both the active key accessor and
+`DesktopRendererConfigStorageRuntime` owns both the active key accessor and
 the storage-event predicate, so provider code routes cross-window sync through
-`isRendererConfigStorageEvent(...)` instead of importing raw skin storage keys.
+`DesktopRendererConfigStorageRuntime.isRendererConfigStorageEvent(...)`
+instead of importing raw skin storage keys.
 
 Storage compatibility note:
 
@@ -124,7 +125,7 @@ Current WindieOS skin defaults:
 - `appearance_mode: "system"`
 - `appearance_theme`: WindieOS skin-provided light/dark palette defaults
 
-Load semantics (`loadConfigFromStorage`):
+Load semantics (`DesktopRendererConfigStorageRuntime.loadConfigFromStorage`):
 
 - missing key -> fresh default object
 - removed `desktop-assistant-config` key -> ignored
@@ -139,7 +140,7 @@ Load semantics (`loadConfigFromStorage`):
 - deprecated or backend-owned keys are dropped during normalization instead of being re-saved or re-synced
 - stored localStorage provider secrets are normalized to empty strings on read
 
-Save semantics (`saveConfigToStorage`):
+Save semantics (`DesktopRendererConfigStorageRuntime.saveConfigToStorage`):
 
 - rejects non-object/array payloads
 - writes only `windieos-config`
@@ -188,7 +189,7 @@ This is the central dedupe guard preventing redundant writes and settings runtim
 
 ### Startup sources
 
-1. seed state from `loadConfigFromStorage()`
+1. seed state from `DesktopRendererConfigStorageRuntime.loadConfigFromStorage()`
 2. call `DesktopAppConfigRuntimeClient.loadRendererConfig()` and merge filtered disk config
 3. call `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()`
 4. subscribe through `DesktopClientSessionRuntimeClient.onIpcStatus(...)` and `DesktopAppConfigRuntimeClient.onSettingsEvent(...)`
@@ -199,7 +200,7 @@ This is the central dedupe guard preventing redundant writes and settings runtim
    provider-key merge, and final sanitization through app-config persistence
 2. `applyConfigIfChanged` gate
 3. optional save-status callback fire
-4. persist localStorage (`saveConfigToStorage`)
+4. persist localStorage (`DesktopRendererConfigStorageRuntime.saveConfigToStorage`)
 5. async disk save through `DesktopAppConfigRuntimeClient.saveRendererConfig(...)` with redacted provider credential fields
 6. runtime sync (`DesktopSettingsRuntimeClient.updateSettings`) for non-model settings only
 
@@ -221,8 +222,8 @@ When IPC status reports connected:
 
 On `window.storage` for `windieos-config`:
 
-- `isRendererConfigStorageEvent(...)` filters events to the active renderer
-  config storage key and localStorage area
+- `DesktopRendererConfigStorageRuntime.isRendererConfigStorageEvent(...)`
+  filters events to the active renderer config storage key and localStorage area
 - reload from localStorage
 - merge/filter
 - apply only when changed; `provider_api_keys` uses content-aware comparison so equivalent nested objects from another window are treated as no-ops

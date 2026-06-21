@@ -3,10 +3,7 @@
  */
 
 import {
-  getRendererConfigStorageKey,
-  isRendererConfigStorageEvent,
-  loadConfigFromStorage,
-  saveConfigToStorage,
+  DesktopRendererConfigStorageRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js';
 import {
   DesktopAppearanceThemeRuntime,
@@ -15,6 +12,12 @@ import {
 const {
   normalizeAppearanceTheme,
 } = DesktopAppearanceThemeRuntime;
+const {
+  getRendererConfigStorageKey,
+  isRendererConfigStorageEvent,
+  loadConfigFromStorage,
+  saveConfigToStorage,
+} = DesktopRendererConfigStorageRuntime;
 
 const CONFIG_KEY = getRendererConfigStorageKey();
 const DEFAULT_RENDERER_CONFIG = {

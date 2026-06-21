@@ -110,6 +110,10 @@ All notable changes to WindieOS will be documented in this file.
   probing through `DesktopWakewordCaptureGuardRuntime` instead of standalone
   helper exports, keeping wakeword retry guard policy behind the renderer
   app-runtime facade. No migration required.
+- frontend/renderer: expose renderer local config storage key, storage-event
+  matching, load, and save through `DesktopRendererConfigStorageRuntime`
+  instead of standalone helper exports, keeping localStorage persistence behind
+  the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

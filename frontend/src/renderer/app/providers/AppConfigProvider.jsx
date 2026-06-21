@@ -3,11 +3,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import {
-  isRendererConfigStorageEvent,
-  loadConfigFromStorage,
-  saveConfigToStorage,
-} from '../runtime/desktopRendererConfigStorageRuntime';
+import { DesktopRendererConfigStorageRuntime } from '../runtime/desktopRendererConfigStorageRuntime';
 import { AppConfigContext } from './AppConfigContext';
 import { useLatestRef } from '../runtime/desktopRendererHooksRuntimeClient';
 import {
@@ -30,6 +26,12 @@ import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeC
 import { DesktopShortcutRuntimeClient } from '../runtime/desktopShortcutRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../runtime/desktopVoiceRuntimeClient';
+
+const {
+  isRendererConfigStorageEvent,
+  loadConfigFromStorage,
+  saveConfigToStorage,
+} = DesktopRendererConfigStorageRuntime;
 
 function resolveInitialWakewordSuppressed() {
   if (typeof window === 'undefined') {

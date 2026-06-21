@@ -128,11 +128,11 @@ function clearStoredConfigUnsafe() {
   localStorage.removeItem(CONFIG_STORAGE_KEY);
 }
 
-export function getRendererConfigStorageKey() {
+function getRendererConfigStorageKey() {
   return CONFIG_STORAGE_KEY;
 }
 
-export function isRendererConfigStorageEvent(
+function isRendererConfigStorageEvent(
   event,
   storageArea = globalThis.window?.localStorage,
 ) {
@@ -147,7 +147,7 @@ export function isRendererConfigStorageEvent(
  * 
  * @returns {Object|null} - Stored config object or null if not found/invalid
  */
-export function loadConfigFromStorage() {
+function loadConfigFromStorage() {
   try {
     const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
     if (!stored) {
@@ -177,7 +177,7 @@ export function loadConfigFromStorage() {
  * 
  * @param {Object} config - Configuration object to save
  */
-export function saveConfigToStorage(config) {
+function saveConfigToStorage(config) {
   try {
     if (!config || typeof config !== 'object' || Array.isArray(config)) {
       console.warn('[ConfigStorage] Attempted to save invalid config:', config);
@@ -194,3 +194,10 @@ export function saveConfigToStorage(config) {
     return false;
   }
 }
+
+export const DesktopRendererConfigStorageRuntime = Object.freeze({
+  getRendererConfigStorageKey,
+  isRendererConfigStorageEvent,
+  loadConfigFromStorage,
+  saveConfigToStorage,
+});

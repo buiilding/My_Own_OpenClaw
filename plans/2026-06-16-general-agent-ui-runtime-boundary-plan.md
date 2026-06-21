@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Config Storage Facade
+
+- Finding: `desktopRendererConfigStorageRuntime.js` already owned renderer
+  local config defaults, single-key `windieos-config` persistence,
+  storage-event matching, provider secret stripping, and stored config
+  normalization, but still exported each localStorage helper directly.
+- Change: made the storage helpers private to the runtime module, exposed them
+  through `DesktopRendererConfigStorageRuntime`, and routed AppConfigProvider,
+  focused config-storage tests, provider test mocks, and docs through that
+  facade.
+- Validation: focused config storage, config filter, provider storage/IPC,
+  settings runtime boundary, exact standalone config-storage helper
+  export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. The `windieos-config`
+  storage key, removed legacy key behavior, localStorage payload shape,
+  provider API-key redaction, backend-owned speech provider exclusion,
+  cross-window storage sync, disk persistence, settings sync, IPC,
+  credentials, provider policy, hosted backend URLs, and local execution trust
+  boundaries are unchanged.
+
 ### 2026-06-21 Renderer Wakeword Capture Guard Facade
 
 - Finding: `desktopWakewordCaptureGuardRuntime.ts` already owned wakeword

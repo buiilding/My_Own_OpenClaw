@@ -235,7 +235,13 @@ describe('renderer settings runtime boundary', () => {
     expect(appConfigProviderSource).not.toContain('shortcutStatus?.usingFallback');
     expect(appConfigProviderSource).not.toContain('shortcutStatus?.resolvedAccelerator');
     expect(appConfigProviderSource).not.toContain('shortcutStatus.resolvedAccelerator');
+    expect(appConfigProviderSource).toContain('DesktopRendererConfigStorageRuntime');
     expect(configStorageSource).toContain('DesktopShortcutRuntimeClient.normalizeGlobalAgentStopShortcutAccelerator');
+    expect(configStorageSource).toContain('DesktopRendererConfigStorageRuntime');
+    expect(configStorageSource).not.toContain('export function getRendererConfigStorageKey');
+    expect(configStorageSource).not.toContain('export function isRendererConfigStorageEvent');
+    expect(configStorageSource).not.toContain('export function loadConfigFromStorage');
+    expect(configStorageSource).not.toContain('export function saveConfigToStorage');
     expect(shortcutClientSource).toContain('normalizeGlobalAgentStopShortcutAccelerator');
     expect(shortcutClientSource).toContain('function getGlobalAgentStopShortcutStatusPresentation');
     expect(shortcutClientSource).toContain('function resolveGlobalAgentStopShortcutFallbackAccelerator');
