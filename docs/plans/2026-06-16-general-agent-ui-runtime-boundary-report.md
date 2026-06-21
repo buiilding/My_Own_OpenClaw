@@ -7856,3 +7856,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   persistence, permission handler registration, `WINDIE_PYTHON_PATH`
   compatibility, provider policy, permissions, storage, and backend behavior
   are unchanged; no migration is required.
+- Committer helper coverage now uses neutral temp repository and Git author
+  fixtures instead of Windie-flavored arbitrary test identities. The committer
+  body-format guard, scoped staging behavior, provider policy, permissions,
+  storage, and backend behavior are unchanged; no migration is required.

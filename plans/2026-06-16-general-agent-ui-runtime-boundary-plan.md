@@ -19134,3 +19134,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Chat-pill intent persistence,
   permission handler registration, `WINDIE_PYTHON_PATH` compatibility, provider
   policy, permissions, storage, and backend behavior are unchanged.
+
+### 2026-06-21 Committer helper fixture neutrality
+
+- Finding: committer helper coverage still used a Windie-flavored temporary repo
+  prefix and Git author identity even though the test exercises generic commit
+  body formatting.
+- Change: switched those test-only identities to neutral `agent-*` fixtures and
+  extended the modular boundary guard over the committer helper coverage.
+- Validation: focused committer body format and modular boundary tests; exact
+  retired committer fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. The committer body-format guard, scoped
+  staging behavior, provider policy, permissions, storage, and backend behavior
+  are unchanged.

@@ -70,6 +70,10 @@ All notable changes to WindieOS will be documented in this file.
   permission IPC, and Python env wrapper coverage instead of Windie-flavored
   arbitrary paths. No migration required.
 
+- tests/main: use neutral temp repository and Git author fixtures in committer
+  helper coverage instead of Windie-flavored arbitrary test identities. No
+  migration required.
+
 - tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
   in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
   directory. No migration required.

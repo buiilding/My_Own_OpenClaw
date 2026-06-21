@@ -504,14 +504,21 @@ describe('modular sdk refactor completion boundary', () => {
   test('main helper tests keep runtime temp fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/ChatPillVisibilityIntentStore.test.cjs'),
+      read('tests/frontend/CommitterBodyFormat.test.cjs'),
       read('tests/frontend/PythonInEnvScript.test.cjs'),
     ]).then(sources => sources.join('\n'));
     const retiredUserData = ['/tmp', 'windie-user-data'].join('/');
+    const retiredCommitterRoot = ['windie', 'committer-'].join('-');
+    const retiredCommitterAuthor = ['Windie', 'Test'].join(' ');
     const retiredPythonEnvRoot = ['windie', 'python-in-env-'].join('-');
 
     expect(source).not.toContain(retiredUserData);
+    expect(source).not.toContain(retiredCommitterRoot);
+    expect(source).not.toContain(retiredCommitterAuthor);
     expect(source).not.toContain(retiredPythonEnvRoot);
     expect(source).toContain('/tmp/agent-user-data');
+    expect(source).toContain('agent-committer-');
+    expect(source).toContain('Agent Test');
     expect(source).toContain('agent-python-in-env-');
   });
 

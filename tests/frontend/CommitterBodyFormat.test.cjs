@@ -11,11 +11,11 @@ const repoRoot = path.resolve(__dirname, '../..');
 const committerPath = path.join(repoRoot, 'scripts', 'committer.sh');
 
 function createTempGitRepo() {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-committer-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-committer-'));
 
   spawnSync('git', ['init'], { cwd: tempDir, encoding: 'utf8' });
   spawnSync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir, encoding: 'utf8' });
-  spawnSync('git', ['config', 'user.name', 'Windie Test'], { cwd: tempDir, encoding: 'utf8' });
+  spawnSync('git', ['config', 'user.name', 'Agent Test'], { cwd: tempDir, encoding: 'utf8' });
 
   fs.writeFileSync(path.join(tempDir, 'note.txt'), 'initial\n', 'utf8');
   spawnSync('git', ['add', 'note.txt'], { cwd: tempDir, encoding: 'utf8' });
