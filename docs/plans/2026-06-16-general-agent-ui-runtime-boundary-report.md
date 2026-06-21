@@ -12,12 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main stop-target runtime keeps current-turn
-  stoppable projection and target resolution private to
-  `ipc_stop_target_runtime.cjs`, while SDK-current-turn priority, busy
-  presentation handling, pending-turn fallback, idle conversation fallback,
-  SDK-shaped stop payloads, and overlay completion remain covered through the
-  public stop-target runtime facade.
+- Latest completed slice: Electron main renderer-window runtime keeps registry
+  construction private to `ipc_renderer_windows.cjs`, while window tracking,
+  broadcast sender exclusion, reset/size access, overlay sync, current-turn
+  sync, pending-turn sync, and buffered replay remain covered through the
+  public renderer-window runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1083,6 +1082,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Compatibility: no migration required. SDK runtime command payloads,
   conversation-ref fallback behavior, replay/edit/retry paths, credentials,
   permissions, trust boundaries, and storage are unchanged.
+
+### 2026-06-21 Main Renderer Window Registry Privacy
+
+- Finding: `ipc_renderer_windows.cjs` already exposed the composed
+  renderer-window runtime facade, but `createRendererWindowRegistry(...)` still
+  leaked the lower-level mutable window registry helper as a public export and
+  `ipc.cjs` still constructed it directly before handing it back to the
+  runtime facade.
+- Change: removed the registry constructor from the public module surface and
+  let `createRendererWindowRuntime(...)` own the default registry while
+  preserving runtime coverage for window tracking, broadcast sender exclusion,
+  reset/size access, overlay sync, current-turn sync, pending-turn sync,
+  buffered replay, and injectable registry composition.
+- Validation: focused renderer-window and main SDK boundary tests, targeted
+  main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. IPC channels, renderer fan-out,
+  replay, window lifecycle, credentials, permissions, trust boundaries, and
+  storage are unchanged.
 
 ### 2026-06-21 Main Stop Target Resolver Helper Privacy
 

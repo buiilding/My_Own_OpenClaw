@@ -226,7 +226,6 @@ const {
   createAgentSdkInvokeHandlerRuntime,
 } = require('./ipc/ipc_agent_sdk_command_handlers.cjs');
 const {
-  createRendererWindowRegistry,
   createRendererWindowRuntime,
 } = require('./ipc/ipc_renderer_windows.cjs');
 const {
@@ -288,7 +287,6 @@ const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 const BACKEND_CONNECT_TIMEOUT_MS = 10000;
 const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
 const ipcHostCopyRuntime = createIpcHostCopyRuntime();
-const rendererWindowRegistry = createRendererWindowRegistry();
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const activeQueryContextState = createActiveQueryContextState();
@@ -329,7 +327,6 @@ const responseOverlayPhaseRuntime = createResponseOverlayPhaseRuntime({
 });
 const ipcEventReplayState = createIpcEventReplayState();
 const rendererWindowRuntime = createRendererWindowRuntime({
-  registry: rendererWindowRegistry,
   getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
   getLatestCurrentTurn: () => liveTurnState.getLatestCurrentTurn(),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),

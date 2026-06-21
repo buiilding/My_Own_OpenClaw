@@ -741,8 +741,8 @@ Owns renderer-window lifecycle and generic fan-out:
   conversation-event projection dependencies once for `ipc.cjs`
 - keeps lower-level window tracking and fan-out helpers private behind the
   runtime facade
-- `createRendererWindowRegistry`: owns the renderer window set plus track,
-  broadcast, reset, and size accessors for the IPC composition root
+- keeps renderer window registry construction private behind the runtime facade
+  while preserving track, broadcast, reset, and size accessors
 - runtime track: register + prune windows, sync current overlay phase after load
 - runtime track: optionally replays buffered in-flight turn events to late windows (`getReplayEvents`)
 - runtime track: replays the latest pending renderer-composed user turn

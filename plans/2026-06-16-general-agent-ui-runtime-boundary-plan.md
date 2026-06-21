@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Renderer Window Registry Privacy
+
+- Finding: `ipc_renderer_windows.cjs` already exposed
+  `createRendererWindowRuntime(...)` as the Electron main renderer-window
+  facade, but the lower-level `createRendererWindowRegistry(...)` state helper
+  still leaked as a public export and `ipc.cjs` still constructed it directly
+  before passing it back into the runtime facade.
+- Change: kept renderer-window registry construction private behind
+  `createRendererWindowRuntime(...)` while preserving window tracking,
+  broadcast sender exclusion, reset/size access, overlay sync, current-turn
+  sync, pending-turn sync, buffered replay, and injectable registry coverage
+  through the runtime facade.
+- Validation: focused renderer-window and main SDK boundary tests, targeted
+  main IPC lint, docs listing, stale export scans, and diff checks before
+  commit.
+- Compatibility/security: no IPC channel, renderer fan-out, replay, window
+  lifecycle, credential, permission, storage, or trust-boundary migration
+  required; renderer-window behavior is unchanged.
+
 ### 2026-06-21 Main Stop Target Resolver Helper Privacy
 
 - Finding: `ipc_stop_target_runtime.cjs` already exposed
@@ -452,7 +471,9 @@ Date: 2026-06-16
 - Change: kept `trackRendererWindow(...)` and `broadcastToRenderers(...)`
   private to the renderer-window helper module and moved overlay/current-turn,
   pending-turn, replay, and broadcast coverage through the runtime facade while
-  leaving the renderer-window registry state helper public for IPC composition.
+  leaving the renderer-window registry state helper public for IPC composition;
+  a later follow-up kept registry construction private behind the same runtime
+  facade.
 - Validation: focused renderer-window tests, targeted main IPC lint, docs
   listing, stale export-line scans, and diff checks before commit.
 - Compatibility/security: no IPC channel, renderer fan-out, replay, window

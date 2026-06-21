@@ -46,6 +46,10 @@ All notable changes to WindieOS will be documented in this file.
   to `ipc_stop_target_runtime.cjs` while preserving SDK-current-turn priority,
   pending-turn fallback, idle conversation fallback, and stop execution through
   `createMainStopTargetRuntime(...)`. No migration required.
+- frontend/main: keep renderer-window registry construction private to
+  `ipc_renderer_windows.cjs` while preserving track, broadcast, reset, size,
+  overlay sync, pending-turn sync, and replay behavior through
+  `createRendererWindowRuntime(...)`. No migration required.
 - frontend/main: keep connection-event handshake user and backend fallback
   endpoint resolvers private to `ipc_agent_connection_events.cjs` and cover
   snake_case handshake identity plus websocket/HTTP fallback aliases through
@@ -142,8 +146,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: keep lower-level renderer-window tracking and fan-out helpers
   private to `ipc_renderer_windows.cjs` and exercise overlay/current-turn,
   pending-turn, replay, and broadcast behavior through
-  `createRendererWindowRuntime(...)`, while leaving the renderer-window
-  registry state helper available for IPC composition. No migration required.
+  `createRendererWindowRuntime(...)`; a later follow-up kept renderer-window
+  registry construction private behind the same runtime facade. No migration
+  required.
 - frontend/main: keep the lower-level Electron `AgentClient` constructor helper
   private to `ipc_electron_agent_client_factory.cjs` and exercise managed
   backend endpoint, host callback, timeout, and test-mode client construction

@@ -106,6 +106,24 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source.match(directRuntimeSendPattern) || []).toEqual([]);
   });
 
+  test('renderer window registry construction stays behind the runtime facade', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+    const rendererWindowsSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_renderer_windows.cjs'),
+      'utf8',
+    );
+
+    expect(source).toContain('createRendererWindowRuntime({');
+    expect(source).not.toContain('createRendererWindowRegistry()');
+    expect(source).not.toContain('rendererWindowRegistry');
+    expect(rendererWindowsSource).toContain('function createRendererWindowRuntime');
+    expect(rendererWindowsSource).toContain('registry = createRendererWindowRegistry()');
+    expect(rendererWindowsSource).not.toContain('  createRendererWindowRegistry,');
+  });
+
   test('chat query helper names the connection gate as Agent SDK runtime readiness', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_chat_query_handlers.cjs'),

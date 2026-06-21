@@ -204,6 +204,5 @@ function createRendererWindowRuntime({
 }
 
 module.exports = {
-  createRendererWindowRegistry,
   createRendererWindowRuntime,
 };
