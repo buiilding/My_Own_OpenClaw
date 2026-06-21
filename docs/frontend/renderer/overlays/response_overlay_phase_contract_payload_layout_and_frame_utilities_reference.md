@@ -33,7 +33,8 @@ Shared phase/metadata source of truth:
 Renderer contract adapter:
 
 - `desktopResponseOverlayPhaseRuntime.js` reads JSON phases/metadata keys while
-  keeping the raw phase map and preflight guard ref private.
+  keeping the raw phase map, preflight guard ref, and individual helper
+  functions private behind `DesktopResponseOverlayPhaseRuntime`.
 - `getIdleResponseOverlayPhase()`,
   `getAwaitingFirstChunkResponseOverlayPhase()`,
   `getStreamingResponseOverlayPhase()`, `getToolCallResponseOverlayPhase()`,
@@ -46,7 +47,7 @@ Renderer contract adapter:
   parity snapshots for contract tests.
 - `isAwaitingFirstChunkResponseOverlayPhase(...)` and
   `isStreamingResponseOverlayPhase(...)` keep current-turn surface code on
-  behavior-level checks.
+  behavior-level checks through the facade rather than standalone exports.
 
 Main-process parity:
 

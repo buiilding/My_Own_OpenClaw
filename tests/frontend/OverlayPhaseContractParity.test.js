@@ -1,10 +1,6 @@
 /** @jest-environment node */
 
-import {
-  getResponseOverlayPhaseMap,
-  getResponseOverlayPhaseValues,
-  getResponseOverlayPreflightGuardRef,
-} from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
+import { DesktopResponseOverlayPhaseRuntime } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
 import responseOverlayPhaseContract from '../../frontend/src/shared/response_overlay_phase_contract.json';
 
 const {
@@ -15,6 +11,12 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_overlay_phase_contract.cjs');
 
 describe('overlay phase contract parity', () => {
+  const {
+    getResponseOverlayPhaseMap,
+    getResponseOverlayPhaseValues,
+    getResponseOverlayPreflightGuardRef,
+  } = DesktopResponseOverlayPhaseRuntime;
+
   test('keeps renderer and main phase sequence in lockstep', () => {
     expect(Array.from(mainPhaseSet)).toEqual(getResponseOverlayPhaseValues());
   });

@@ -2,17 +2,18 @@
  * Covers response overlay phase contract. behavior in the frontend test suite.
  */
 
-import {
-  getResponseOverlayPhaseMap,
-  getResponseOverlayPhaseValues,
-  getResponseOverlayPreflightGuardRef,
-} from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
-import * as ResponseOverlayPhaseRuntime from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
+import { DesktopResponseOverlayPhaseRuntime } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
 import responseOverlayPhaseContract from '../../frontend/src/shared/response_overlay_phase_contract.json';
 
 describe('responseOverlayPhaseContract', () => {
+  const {
+    getResponseOverlayPhaseMap,
+    getResponseOverlayPhaseValues,
+    getResponseOverlayPreflightGuardRef,
+  } = DesktopResponseOverlayPhaseRuntime;
+
   test('exposes canonical phase list and semantic phase map snapshot', () => {
-    expect(ResponseOverlayPhaseRuntime).not.toHaveProperty('RESPONSE_OVERLAY_PHASE');
+    expect(DesktopResponseOverlayPhaseRuntime).not.toHaveProperty('RESPONSE_OVERLAY_PHASE');
     expect(getResponseOverlayPhaseValues()).toEqual([
       'idle',
       'awaiting-first-chunk',
@@ -34,7 +35,7 @@ describe('responseOverlayPhaseContract', () => {
   });
 
   test('keeps canonical preflight source and renderer guard', () => {
-    expect(ResponseOverlayPhaseRuntime).not.toHaveProperty('RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF');
+    expect(DesktopResponseOverlayPhaseRuntime).not.toHaveProperty('RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF');
     expect(responseOverlayPhaseContract.preflight.source).toBe('renderer-send-preflight');
     expect(getResponseOverlayPreflightGuardRef()).toBe('renderer-send-preflight');
   });

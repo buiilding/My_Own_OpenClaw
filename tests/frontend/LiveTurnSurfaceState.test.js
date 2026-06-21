@@ -2,14 +2,12 @@
  * Covers live turn surface state. behavior in the frontend test suite.
  */
 
-import {
-  getResponseOverlayPreflightGuardRef,
-} from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
+import { DesktopResponseOverlayPhaseRuntime } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
 import {
   resolveLiveTurnPresentationInput,
 } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime';
 
-const preflightGuardRef = getResponseOverlayPreflightGuardRef();
+const preflightGuardRef = DesktopResponseOverlayPhaseRuntime.getResponseOverlayPreflightGuardRef();
 
 describe('desktopLiveTurnSurfaceRuntime', () => {
   test('uses SDK current turn as live surface authority', () => {

@@ -2,11 +2,13 @@
  * Provides the stream phase state module for the renderer UI.
  */
 
-import {
+import { DesktopResponseOverlayPhaseRuntime } from './desktopResponseOverlayPhaseRuntime';
+
+const {
   getAwaitingFirstChunkResponseOverlayPhase,
   getToolCallResponseOverlayPhase,
   getToolOutputResponseOverlayPhase,
-} from './desktopResponseOverlayPhaseRuntime';
+} = DesktopResponseOverlayPhaseRuntime;
 
 const OVERLAY_AWAITING_REPLY_PHASES = Object.freeze([
   getAwaitingFirstChunkResponseOverlayPhase(),

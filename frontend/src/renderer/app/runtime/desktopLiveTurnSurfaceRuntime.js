@@ -2,7 +2,9 @@
  * Resolves live current-turn surface state for renderer desktop UI surfaces.
  */
 
-import {
+import { DesktopResponseOverlayPhaseRuntime } from './desktopResponseOverlayPhaseRuntime';
+
+const {
   getAwaitingFirstChunkResponseOverlayPhase,
   getCompleteResponseOverlayPhase,
   getErrorResponseOverlayPhase,
@@ -13,7 +15,7 @@ import {
   getToolOutputResponseOverlayPhase,
   isAwaitingFirstChunkResponseOverlayPhase,
   isStreamingResponseOverlayPhase,
-} from './desktopResponseOverlayPhaseRuntime';
+} = DesktopResponseOverlayPhaseRuntime;
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
   awaiting: getAwaitingFirstChunkResponseOverlayPhase(),

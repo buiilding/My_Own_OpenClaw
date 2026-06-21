@@ -23123,3 +23123,20 @@ Each completed slice should report:
   native-mode projection, rounded frame measurement, renderer markup, IPC
   payloads, storage, local-runtime execution, provider policy, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer response overlay phase facade helper privacy
+
+- Finding: response-overlay phase values, parity snapshots, preflight guard
+  identity, and phase predicates lived in the renderer app runtime, but live
+  turn surface, stream phase, and focused tests still imported those helpers as
+  standalone exports.
+- Change: exposed response-overlay phase access through
+  `DesktopResponseOverlayPhaseRuntime` and kept the helper functions private to
+  `desktopResponseOverlayPhaseRuntime`.
+- Validation: focused response overlay phase/parity/live-turn surface and
+  renderer app-runtime boundary tests, targeted renderer ESLint, exact
+  source/doc scans, docs listing, and diff checks.
+- Compatibility: no migration required. Response-overlay phase strings,
+  preflight guard identity, current-turn surface projection, stream awaiting
+  detection, renderer markup, IPC payloads, storage, local-runtime execution,
+  provider policy, backend behavior, and trust boundaries are unchanged.
