@@ -7786,3 +7786,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   shutdown, resource upload sanitization, file conversation store persistence,
   provider policy, permissions, storage, and hosted backend behavior are
   unchanged; no migration is required.
+- Extension manifest tests now use neutral `agent-*` temporary contribution-root
+  fixtures instead of Windie-flavored arbitrary temp directories. The real
+  WindieOS host-skin env key remains covered separately from the disposable path
+  value. Extension contribution discovery, generic `AGENT_CONTRIBUTIONS_DIR`,
+  host-skin override support, plugin/skill/MCP manifest loading, local-runtime
+  tool registration, provider policy, permissions, storage, and backend
+  behavior are unchanged; no migration is required.

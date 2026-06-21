@@ -18971,3 +18971,17 @@ Each completed slice should report:
   discovery, launch, reuse, shutdown, resource upload sanitization, file
   conversation store persistence, provider policy, permissions, storage, and
   hosted backend behavior are unchanged.
+
+### 2026-06-21 Extension manifest temp root neutrality
+
+- Finding: extension manifest tests still used Windie-flavored temporary
+  contribution-root directories for arbitrary plugin/skill/MCP fixture trees.
+- Change: switched those disposable roots to neutral `agent-*` names while
+  preserving the host-skin `WINDIE_AGENT_CONTRIBUTIONS_DIR` env-key coverage,
+  and broadened the modular extension fixture guard over the manifest tests.
+- Validation: focused extension manifest and modular boundary tests; exact
+  retired contribution-root scan, docs listing, and diff checks.
+- Compatibility: no migration required. Extension contribution discovery,
+  generic `AGENT_CONTRIBUTIONS_DIR`, host-skin override support, plugin/skill/MCP
+  manifest loading, local-runtime tool registration, provider policy,
+  permissions, storage, and backend behavior are unchanged.

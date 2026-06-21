@@ -23,7 +23,7 @@ const {
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 function writeExtensionRegistry() {
-  const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
+  const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-contributions-'));
   const pluginDir = path.join(contributionRoot, 'plugins', 'notes');
   const skillDir = path.join(contributionRoot, 'skills', 'note-review');
   const mcpDir = path.join(contributionRoot, 'mcps', 'notes-memory');
@@ -188,7 +188,7 @@ describe('extension registry loader', () => {
   });
 
   test('does not expose plugin tools without an entrypoint', () => {
-    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-contributions-'));
     const pluginDir = path.join(contributionRoot, 'plugins', 'broken');
     fs.mkdirSync(path.join(pluginDir, 'schemas'), { recursive: true });
     fs.writeFileSync(
@@ -215,7 +215,7 @@ describe('extension registry loader', () => {
   });
 
   test('rejects removed extension manifest alias fields', () => {
-    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-contributions-'));
     const pluginDir = path.join(contributionRoot, 'plugins', 'alias-plugin');
     const mcpDir = path.join(contributionRoot, 'mcps', 'alias-mcp');
     fs.mkdirSync(path.join(pluginDir, 'schemas'), { recursive: true });
@@ -274,7 +274,7 @@ describe('extension registry loader', () => {
   });
 
   test('defaults blank skill priority instead of coercing it to zero', () => {
-    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-contributions-'));
     const skillDir = path.join(contributionRoot, 'skills', 'blank-priority');
     fs.mkdirSync(skillDir, { recursive: true });
     fs.writeFileSync(
@@ -301,7 +301,7 @@ describe('extension registry loader', () => {
 
   test('default contribution root ignores ambient cwd contribution folders', () => {
     const previousCwd = process.cwd();
-    const cwdContributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cwd-contributions-'));
+    const cwdContributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-cwd-contributions-'));
     fs.mkdirSync(path.join(cwdContributionRoot, 'plugins'), { recursive: true });
     process.chdir(cwdContributionRoot);
 
@@ -320,7 +320,7 @@ describe('extension registry loader', () => {
   });
 
   test('default contribution root honors configured host environment override', () => {
-    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-env-contributions-'));
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-host-contributions-'));
     process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR = contributionRoot;
     configureExtensionManifestRuntime(mainHostSkin.extensions);
 

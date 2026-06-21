@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/extensions: use neutral `agent-*` temporary contribution-root fixtures
+  in extension manifest tests instead of Windie-flavored arbitrary temp
+  directories. No migration required.
+
 - tests/sdk: use neutral `agent-*` temporary fixture roots in Agent SDK local
   runtime, conversation resource, and file-store tests instead of
   Windie-flavored arbitrary temp prefixes. No migration required.

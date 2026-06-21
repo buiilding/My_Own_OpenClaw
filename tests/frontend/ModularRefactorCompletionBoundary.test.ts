@@ -571,13 +571,25 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('extension scaffold tests keep contribution root fixtures product-neutral', async () => {
     const source = await read('tests/frontend/CreateWindieExtension.test.cjs');
+    const manifestSource = await read('tests/frontend/ExtensionManifest.test.cjs');
     const script = await read('scripts/create-windie-extension.cjs');
     const docs = await read('docs/development/extensions.md');
+    const retiredManifestRoots = [
+      ['windie', 'agent-contributions-'].join('-'),
+      ['windie', 'cwd-contributions-'].join('-'),
+      ['windie', 'env-contributions-'].join('-'),
+    ];
 
     expect(source).not.toContain('windie-contribution-scaffold-');
     expect(source).not.toContain('/tmp/windieos');
+    for (const retiredRoot of retiredManifestRoots) {
+      expect(manifestSource).not.toContain(retiredRoot);
+    }
     expect(source).toContain('agent-contribution-scaffold-');
     expect(source).toContain('/tmp/agent-contributions');
+    expect(manifestSource).toContain('agent-contributions-');
+    expect(manifestSource).toContain('agent-cwd-contributions-');
+    expect(manifestSource).toContain('agent-host-contributions-');
     expect(`${script}\n${docs}`).not.toContain('WindieOS repo/contribution root');
     expect(script).toContain('Contribution root. Defaults to .');
   });
