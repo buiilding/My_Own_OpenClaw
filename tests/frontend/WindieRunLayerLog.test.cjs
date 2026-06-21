@@ -36,7 +36,7 @@ describe('windie concurrent runner layer logs', () => {
   });
 
   test('writes Vite child stdout and stderr to the Vite layer log', async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-vite-run-log-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-vite-run-log-'));
     const logFile = path.join(tempDir, 'vite.log');
     const previous = process.env.WINDIE_VITE_LOG_FILE;
     process.env.WINDIE_VITE_LOG_FILE = logFile;

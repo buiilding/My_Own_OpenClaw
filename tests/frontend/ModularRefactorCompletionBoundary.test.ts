@@ -474,6 +474,30 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('agent-diagnostics-');
   });
 
+  test('main logging tests keep disposable temp fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/LayerLogSink.test.cjs'),
+      read('tests/frontend/WindieRunLayerLog.test.cjs'),
+    ]).then(sources => sources.join('\n'));
+    const retiredPrefixes = [
+      ['windie', 'layer-log-'].join('-'),
+      ['windie', 'layer-banner-'].join('-'),
+      ['windie', 'layer-default-prefix-'].join('-'),
+      ['windie', 'renderer-verbose-log-'].join('-'),
+      ['windie', 'renderer-verbose-disabled-'].join('-'),
+      ['windie', 'console-layer-log-'].join('-'),
+      ['windie', 'console-epipe-log-'].join('-'),
+      ['windie', 'console-unexpected-log-'].join('-'),
+      ['windie', 'vite-run-log-'].join('-'),
+    ];
+
+    for (const retiredPrefix of retiredPrefixes) {
+      expect(source).not.toContain(retiredPrefix);
+    }
+    expect(source).toContain('agent-layer-log-');
+    expect(source).toContain('agent-vite-run-log-');
+  });
+
   test('conversation replay database integration keeps temp fixtures product-neutral', async () => {
     const source = await read('tests/frontend/ConversationReplayDatabaseIntegration.test.tsx');
     const retiredReplayDbRoot = ['windie', 'replay-db-'].join('-');

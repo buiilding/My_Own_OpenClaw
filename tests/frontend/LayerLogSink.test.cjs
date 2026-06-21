@@ -126,7 +126,7 @@ describe('layer_log_sink', () => {
   });
 
   test('appends layer-owned lines', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-layer-log-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-layer-log-'));
     const logFile = path.join(tempDir, 'main.log');
 
     appendLayerLogLine('main', 'plain main message', {
@@ -137,7 +137,7 @@ describe('layer_log_sink', () => {
   });
 
   test('appends layer session banners', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-layer-banner-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-layer-banner-'));
     const logFile = path.join(tempDir, 'vite.log');
 
     expect(appendLayerLogSessionBanner('vite', {
@@ -153,7 +153,7 @@ describe('layer_log_sink', () => {
   });
 
   test('uses desktop-runtime default layer session prefix', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-layer-default-prefix-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-layer-default-prefix-'));
     const logFile = path.join(tempDir, 'main.log');
 
     expect(appendLayerLogSessionBanner('main', {
@@ -167,7 +167,7 @@ describe('layer_log_sink', () => {
   });
 
   test('appends renderer verbose log lines and banners', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-renderer-verbose-log-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-renderer-verbose-log-'));
     const logFile = path.join(tempDir, 'renderer.verbose.log');
     const env = { AGENT_RENDERER_VERBOSE_LOG_FILE: logFile };
 
@@ -186,7 +186,7 @@ describe('layer_log_sink', () => {
   });
 
   test('skips renderer verbose log lines when disabled', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-renderer-verbose-disabled-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-renderer-verbose-disabled-'));
     const logFile = path.join(tempDir, 'renderer.verbose.log');
 
     expect(appendRendererVerboseLogLine('hidden', {
@@ -199,7 +199,7 @@ describe('layer_log_sink', () => {
   });
 
   test('installs console logging without changing console output behavior', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-console-layer-log-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-console-layer-log-'));
     const logFile = path.join(tempDir, 'main.log');
     const originalLog = jest.fn();
     const consoleObject = { log: originalLog };
@@ -217,7 +217,7 @@ describe('layer_log_sink', () => {
   });
 
   test('ignores closed stdout write failures from wrapped console output', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-console-epipe-log-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-console-epipe-log-'));
     const logFile = path.join(tempDir, 'main.log');
     const epipeError = new Error('write EPIPE');
     epipeError.code = 'EPIPE';
@@ -238,7 +238,7 @@ describe('layer_log_sink', () => {
   });
 
   test('rethrows unexpected wrapped console output failures', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-console-unexpected-log-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-console-unexpected-log-'));
     const logFile = path.join(tempDir, 'main.log');
     const consoleObject = {
       log: jest.fn(() => {

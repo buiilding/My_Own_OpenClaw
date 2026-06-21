@@ -7837,3 +7837,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   precedence, `WINDIE_BROWSER_USE_*` aliases remain supported, Browser Use command
   resolution, session handling, provider policy, permissions, storage, and
   backend behavior are unchanged; no migration is required.
+- Main logging tests now use neutral `agent-*` disposable temp roots for layer
+  log sink and Vite runner log coverage instead of Windie-flavored arbitrary
+  temp directories. Host-skin `.windie/logs`, `WINDIE_*` log env keys, and
+  WindieOS log prefixes remain covered as product configuration; generic
+  layer-log resolution, console mirroring, renderer verbose logs, Vite runner
+  log routing, provider policy, permissions, storage, and backend behavior are
+  unchanged; no migration is required.

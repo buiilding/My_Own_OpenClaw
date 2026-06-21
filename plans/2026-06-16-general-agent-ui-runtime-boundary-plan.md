@@ -19089,3 +19089,19 @@ Each completed slice should report:
   still take precedence, `WINDIE_BROWSER_USE_*` aliases remain supported,
   Browser Use command resolution, session handling, provider policy,
   permissions, storage, and backend behavior are unchanged.
+
+### 2026-06-21 Main logging temp fixture neutrality
+
+- Finding: main logging coverage still used Windie-flavored arbitrary temp roots
+  for disposable layer log sink and Vite runner log files, even though the
+  generic sink now owns default path resolution and the WindieOS host skin owns
+  `.windie`/`WINDIE_*` configuration.
+- Change: switched the disposable log temp roots to neutral `agent-*` names and
+  added a modular boundary guard for logging temp fixtures. Host-skin
+  `.windie/logs`, `WINDIE_*` env keys, and WindieOS log prefixes remain
+  covered.
+- Validation: focused layer log sink, Vite runner log, and modular boundary
+  tests; exact retired logging temp-prefix scan, docs listing, and diff checks.
+- Compatibility: no migration required. Generic layer-log resolution, console
+  mirroring, renderer verbose logs, Vite runner log routing, provider policy,
+  permissions, storage, and backend behavior are unchanged.

@@ -58,6 +58,10 @@ All notable changes to WindieOS will be documented in this file.
   in compatibility env-alias coverage instead of Windie-flavored arbitrary
   values. No migration required.
 
+- tests/main: use neutral `agent-*` disposable temp roots in layer log sink and
+  Vite runner log coverage instead of Windie-flavored arbitrary temp
+  directories. No migration required.
+
 - tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
   in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
   directory. No migration required.
