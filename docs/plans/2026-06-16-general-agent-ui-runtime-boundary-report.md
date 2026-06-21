@@ -7831,3 +7831,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `WINDIE_*` aliases remain supported, mock seed storage/cleanup behavior,
   provider policy, permissions, and backend behavior are unchanged; no migration
   is required.
+- Browser Use engine tests now use neutral legacy home/CLI/session values for
+  WindieOS env-alias compatibility coverage instead of Windie-flavored
+  arbitrary sample values. Generic `AGENT_BROWSER_USE_*` aliases still take
+  precedence, `WINDIE_BROWSER_USE_*` aliases remain supported, Browser Use command
+  resolution, session handling, provider policy, permissions, storage, and
+  backend behavior are unchanged; no migration is required.

@@ -52,15 +52,15 @@ def test_browser_use_env_resolvers_prefer_generic_alias(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     generic_home = tmp_path / "generic-home"
-    windie_home = tmp_path / "windie-home"
+    legacy_home = tmp_path / "legacy-browser-home"
     monkeypatch.setenv(ENV_AGENT_BROWSER_USE_HOME, str(generic_home))
-    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_HOME, str(windie_home))
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_HOME, str(legacy_home))
     monkeypatch.setenv(ENV_AGENT_BROWSER_USE_SESSION, "agent-session")
-    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_SESSION, "windie-session")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_SESSION, "legacy-browser-session")
     monkeypatch.setenv(ENV_AGENT_BROWSER_USE_COMMAND_TIMEOUT_SECONDS, "7")
     monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS, "9")
     monkeypatch.setenv(ENV_AGENT_BROWSER_USE_CLI, "agent-browser-use")
-    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_CLI, "windie-browser-use")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_CLI, "legacy-browser-use")
 
     assert _browser_use_home() == str(generic_home)
     assert _browser_use_session() == "agent-session"
@@ -71,16 +71,16 @@ def test_browser_use_env_resolvers_prefer_generic_alias(
 def test_browser_use_env_resolvers_preserve_windie_alias(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    windie_home = tmp_path / "windie-home"
-    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_HOME, str(windie_home))
+    legacy_home = tmp_path / "legacy-browser-home"
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_HOME, str(legacy_home))
     monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_SESSION, "legacy-agent-session")
     monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS, "9")
-    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_CLI, "windie-browser-use")
+    monkeypatch.setenv(ENV_WINDIE_BROWSER_USE_CLI, "legacy-browser-use")
 
-    assert _browser_use_home() == str(windie_home)
+    assert _browser_use_home() == str(legacy_home)
     assert _browser_use_session() == "legacy-agent-session"
     assert _browser_use_timeout() == 9.0
-    assert _base_command() == ["windie-browser-use"]
+    assert _base_command() == ["legacy-browser-use"]
 
 
 def test_browser_runtime_source_copy_uses_local_runtime_terms() -> None:

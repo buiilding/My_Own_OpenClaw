@@ -629,9 +629,18 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('browser use engine tests keep legacy session fixtures product-neutral', async () => {
     const source = await read('tests/sidecar/tools/test_browser_use_engine.py');
+    const retiredHome = `"${['windie', 'home'].join('-')}"`;
+    const retiredCli = `"${['windie', 'browser-use'].join('-')}"`;
+    const retiredSession = `"${['windie', 'session'].join('-')}"`;
 
+    expect(source).not.toContain(retiredHome);
+    expect(source).not.toContain(retiredCli);
+    expect(source).not.toContain(retiredSession);
     expect(source).not.toContain('ENV_WINDIE_BROWSER_USE_SESSION, "windieos"');
     expect(source).not.toContain('_browser_use_session() == "windieos"');
+    expect(source).toContain('"legacy-browser-home"');
+    expect(source).toContain('"legacy-browser-use"');
+    expect(source).toContain('"legacy-browser-session"');
     expect(source).toContain('ENV_WINDIE_BROWSER_USE_SESSION, "legacy-agent-session"');
   });
 

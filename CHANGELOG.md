@@ -54,6 +54,10 @@ All notable changes to WindieOS will be documented in this file.
   alias coverage instead of Windie-flavored arbitrary user IDs. No migration
   required.
 
+- tests/browser: use neutral legacy Browser Use home, CLI, and session values
+  in compatibility env-alias coverage instead of Windie-flavored arbitrary
+  values. No migration required.
+
 - tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
   in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
   directory. No migration required.

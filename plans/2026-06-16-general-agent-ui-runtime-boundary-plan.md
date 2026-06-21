@@ -19075,3 +19075,17 @@ Each completed slice should report:
   take precedence, `WINDIE_*` aliases remain supported, mock seed
   storage/cleanup behavior, provider policy, permissions, and backend behavior
   are unchanged.
+
+### 2026-06-21 Browser Use alias fixture neutrality
+
+- Finding: Browser Use engine env-alias tests still used Windie-flavored
+  arbitrary home, CLI, and session values while verifying compatibility with
+  the legacy `WINDIE_BROWSER_USE_*` aliases.
+- Change: switched those compatibility sample values to neutral
+  `legacy-browser-*` fixtures and extended the browser-use boundary guard.
+- Validation: focused Browser Use engine and modular boundary tests; exact
+  retired Browser Use fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Generic `AGENT_BROWSER_USE_*` aliases
+  still take precedence, `WINDIE_BROWSER_USE_*` aliases remain supported,
+  Browser Use command resolution, session handling, provider policy,
+  permissions, storage, and backend behavior are unchanged.
