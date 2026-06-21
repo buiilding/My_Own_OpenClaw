@@ -142,19 +142,22 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("modelName: 'hey_jarvis'");
   });
 
-  test('shared permission manifest uses generic desktop-runtime descriptions', () => {
+  test('shared permission manifest uses generic agent-host descriptions', () => {
     const manifestSource = fs.readFileSync(permissionManifestPath, 'utf8');
     const manifest = JSON.parse(manifestSource);
 
     expect(manifestSource).not.toContain('WindieOS');
     expect(manifestSource).not.toContain('WindieOS browser');
     expect(manifestSource).not.toContain('desktop agent');
+    expect(manifestSource).not.toContain('desktop runtime');
     expect(manifest.permissions.find(permission => permission.permission_id === 'screen_capture')).toMatchObject({
-      description: expect.stringContaining('desktop runtime'),
+      description: expect.stringContaining('agent host'),
     });
-    expect(manifest.permissions.find(permission => permission.permission_id === 'browser_automation')).toMatchObject({
-      description: expect.stringContaining('dedicated browser'),
-    });
+    const browserPermission = manifest.permissions.find(
+      permission => permission.permission_id === 'browser_automation',
+    );
+    expect(browserPermission?.description).toContain('dedicated browser');
+    expect(browserPermission?.description).toContain('agent host');
   });
 
   test('hosted backend defaults live in host skin config', () => {

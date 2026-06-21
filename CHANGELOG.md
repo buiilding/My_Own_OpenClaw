@@ -48,6 +48,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/renderer: route chat attachment, tool-result, browser settings, and
   stream ownership wording through SDK/main local-runtime and local-runtime
   Python boundaries instead of sidecar owner labels. No migration required.
+- main/permissions: use generic agent-host wording in the shared permission
+  manifest and onboarding fixtures instead of older desktop-runtime copy. No
+  migration required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

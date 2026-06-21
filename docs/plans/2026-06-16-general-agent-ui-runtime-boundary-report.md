@@ -8339,3 +8339,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime tool execution, browser settings, permissions, storage,
   provider policy, and backend behavior are unchanged; no migration is
   required.
+- The shared permission manifest and onboarding slideshow fixtures now use
+  generic agent-host permission copy instead of older desktop-runtime wording
+  for screen capture, input control, macOS automation, and browser profile
+  setup. Permission IDs, OS probes, grant actions, onboarding visibility,
+  stored permission state, renderer presentation, provider policy, storage, and
+  backend behavior are unchanged; no migration is required.

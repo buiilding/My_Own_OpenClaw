@@ -498,6 +498,8 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('main permission workspace tests keep path fixtures product-neutral', async () => {
     const source = await Promise.all([
+      read('frontend/src/shared/permissions/permission_manifest.json'),
+      read('tests/frontend/DesktopOnboardingSlideshow.test.jsx'),
       read('tests/frontend/PermissionIpcRuntime.test.cjs'),
       read('tests/frontend/PermissionService.test.cjs'),
     ]).then(sources => sources.join('\n'));
@@ -509,7 +511,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain('windieos-untrusted-workspace');
     expect(source).not.toContain('mainHostSkin');
     expect(source).not.toContain('WindieOS');
+    expect(source).not.toContain('desktop runtime should use for browsing');
+    expect(source).not.toContain('desktop runtime to capture');
+    expect(source).not.toContain('desktop runtime to automate');
+    expect(source).not.toContain('desktop runtime to control macOS System Events');
     expect(source).not.toContain(retiredPermissionTempRoot);
+    expect(source).toContain('agent host should use for browsing');
+    expect(source).toContain('agent host to capture');
     expect(source).toContain('samplePermissionCopy');
     expect(source).toContain('Select sample workspace folder');
     expect(source).toContain('project-alpha-workspace');

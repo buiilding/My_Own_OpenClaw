@@ -20,7 +20,7 @@ const mockPermissionState = {
     {
       permission_id: 'screen_capture',
       label: 'Screen capture',
-      description: 'Allow the desktop runtime to capture the current screen for screenshot context and visual grounding.',
+      description: 'Allow the agent host to capture the current screen for screenshot context and visual grounding.',
       access_kind: 'os_permission',
       grant_action_label: 'Grant',
       required_now: true,
@@ -28,7 +28,7 @@ const mockPermissionState = {
     {
       permission_id: 'system_events_automation',
       label: 'System Events automation',
-      description: 'Allow the desktop runtime to control macOS System Events so window focusing and other UI automation steps do not prompt mid-task.',
+      description: 'Allow the agent host to control macOS System Events so window focusing and other UI automation steps do not prompt mid-task.',
       access_kind: 'os_permission',
       grant_action_label: 'Grant',
       required_now: true,
@@ -44,7 +44,7 @@ const mockPermissionState = {
     {
       permission_id: 'browser_automation',
       label: 'Browser automation',
-      description: 'Open the dedicated browser so you can sign in with the profile the desktop runtime should use for browsing, navigation, and web tasks.',
+      description: 'Open the dedicated browser so you can sign in with the profile the agent host should use for browsing, navigation, and web tasks.',
       access_kind: 'app_capability',
       grant_action_label: 'Open browser',
       required_now: false,
@@ -180,7 +180,7 @@ describe('DesktopOnboardingSlideshow', () => {
     expect(screen.getByText('Step 4 of 5')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Browser automation' })).toBeInTheDocument();
     expect(screen.getByText('App Capability')).toBeInTheDocument();
-    expect(screen.getByText('Open the dedicated browser so you can sign in with the profile the desktop runtime should use for browsing, navigation, and web tasks.')).toBeInTheDocument();
+    expect(screen.getByText('Open the dedicated browser so you can sign in with the profile the agent host should use for browsing, navigation, and web tasks.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open browser' })).toBeInTheDocument();
 
     await act(async () => {
@@ -326,7 +326,7 @@ describe('DesktopOnboardingSlideshow', () => {
       {
         permission_id: 'screen_capture',
         label: 'Screen capture',
-        description: 'Allow the desktop runtime to capture the current screen for screenshot context and visual grounding.',
+        description: 'Allow the agent host to capture the current screen for screenshot context and visual grounding.',
         access_kind: 'os_permission',
         grant_action_label: 'Grant',
         required_now: true,
@@ -348,7 +348,7 @@ describe('DesktopOnboardingSlideshow', () => {
       {
         permission_id: 'browser_automation',
         label: 'Browser automation',
-        description: 'Open the dedicated browser so you can sign in with the profile the desktop runtime should use for browsing, navigation, and web tasks.',
+        description: 'Open the dedicated browser so you can sign in with the profile the agent host should use for browsing, navigation, and web tasks.',
         access_kind: 'app_capability',
         grant_action_label: 'Open browser',
         required_now: false,

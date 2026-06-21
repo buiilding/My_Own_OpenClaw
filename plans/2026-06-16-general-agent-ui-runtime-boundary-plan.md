@@ -20216,3 +20216,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Renderer chat projection,
   attachment-context assembly, local-runtime tool execution, browser settings,
   permissions, storage, provider policy, and backend behavior are unchanged.
+
+### 2026-06-21 Permission manifest agent-host wording
+
+- Finding: the shared permission manifest and onboarding slideshow fixtures
+  still described screen capture, input control, macOS automation, and browser
+  profile setup as actions for "the desktop runtime" even though the current
+  main boundary is a generic Electron agent host plus permission adapters.
+- Change: reworded the shared permission copy and onboarding fixtures to
+  generic agent-host language and extended boundary coverage so retired
+  desktop-runtime permission-copy phrases stay out of the shared manifest and
+  onboarding fixtures.
+- Validation: focused main host-skin, onboarding slideshow, and modular
+  boundary tests; exact retired permission-copy phrase scan, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Permission IDs, OS probes, grant
+  actions, onboarding visibility, stored permission state, renderer
+  presentation, provider policy, storage, and backend behavior are unchanged.
