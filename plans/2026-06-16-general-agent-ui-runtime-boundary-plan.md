@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Modular Local-Runtime Hosted-Client Guard Label Boundary
+
+- Finding: `ModularRefactorCompletionBoundary.test.ts` still named the active
+  remote-client endpoint fixture guard as sidecar remote client test coverage
+  even though the guarded Python tests now use local-runtime hosted-client
+  wording.
+- Change: renamed that active modular guard label to local-runtime hosted client
+  wording while preserving reads from the real implementation test paths under
+  `tests/sidecar`.
+- Validation: focused modular completion boundary Jest coverage, exact stale
+  active remote-client guard-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Hosted-client endpoint
+  fixtures, generic and legacy backend endpoint aliases, implementation paths,
+  IPC, credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Modular Local-Runtime Helper Guard Label Boundary
 
 - Finding: `ModularRefactorCompletionBoundary.test.ts` still named active

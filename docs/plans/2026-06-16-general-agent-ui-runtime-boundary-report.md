@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: modular completion boundary guards now name
-  local-runtime helper and browser launcher fixture coverage instead of
-  stale owner wording while preserving reads from the real `tests/sidecar`
-  implementation test paths; the same validation pass restored the renderer
-  settings docs invariant phrase for renderer-local theme editor values.
+- Latest completed slice: the modular completion boundary guard for hosted
+  endpoint fixtures now names local-runtime hosted-client coverage instead of
+  stale remote-client owner wording while preserving reads from the real
+  implementation test paths.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -67,7 +66,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   conversation, tool, JSON-RPC, stdout, daemon, helper, platform,
   system-state, wakeword, hosted-client, and backend endpoint labels while
   preserving real `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar`
-  implementation paths. Agent SDK local-runtime provider and tool-coordinator
+  implementation paths.
+  The modular completion guard for remote endpoint fixtures names local-runtime
+  hosted-client coverage while still reading the concrete implementation tests.
+  Agent SDK local-runtime provider and tool-coordinator
   tests use neutral `AGENT_TEST_*` launch env, launch-context, daemon,
   tool-execution failure/unavailable, error, and conversation fixtures while
   Python SDK package/client tests use SDK-owned package labels and real Windie

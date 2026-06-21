@@ -1057,7 +1057,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('wss://backend.example.com/ws');
   });
 
-  test('sidecar remote client tests keep endpoint fixtures product-neutral', async () => {
+  test('local-runtime hosted client tests keep endpoint fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/sidecar/test_remote_api_client_base.py'),
       read('tests/sidecar/test_remote_semantic_client.py'),

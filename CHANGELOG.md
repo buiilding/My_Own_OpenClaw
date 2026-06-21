@@ -46,6 +46,9 @@ All notable changes to WindieOS will be documented in this file.
   real `tests/sidecar` implementation path reads, and restore the renderer
   settings docs wording guarded by the same boundary suite. No migration
   required.
+- frontend/tests: rename the modular completion guard for local-runtime
+  hosted-client endpoint fixtures away from stale remote-client owner wording
+  while preserving real implementation test path reads. No migration required.
 - sdk/tests: rename active Agent SDK local-runtime fixtures away from stale
   sidecar labels and add package-boundary coverage so reusable SDK runtime tests
   use local-runtime daemon/error/conversation wording. No migration required.
