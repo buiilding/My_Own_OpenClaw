@@ -50,6 +50,10 @@ function normalizeConversationRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function normalizeString(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
 function isPendingTurn(value) {
   return Boolean(
     value
@@ -83,12 +87,51 @@ function resolveVisibleLifecycleSurfacePhase(visibleTurnLifecycle, currentTurnPr
 
 function hasSdkLiveTurnPresentation(currentTurnProjection) {
   const presentation = currentTurnProjection?.presentation;
+  const overlayIntent = presentation?.overlayIntent;
   return Boolean(
     presentation
       && typeof presentation === 'object'
-      && typeof presentation.typingVisible === 'boolean'
-      && typeof presentation.overlayVisible === 'boolean',
+      && (
+        Array.isArray(presentation.entries)
+        || (
+          overlayIntent
+          && typeof overlayIntent === 'object'
+          && (
+            overlayIntent.mode === 'hidden'
+            || overlayIntent.mode === 'awaiting'
+            || overlayIntent.mode === 'response'
+          )
+        )
+      ),
   );
+}
+
+function hasProjectionVisibleOverlayContent(currentTurnProjection) {
+  const presentation = currentTurnProjection?.presentation;
+  const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
+  const toolEvents = Array.isArray(currentTurnProjection?.toolEvents)
+    ? currentTurnProjection.toolEvents
+    : [];
+  return Boolean(
+    normalizePhase(currentTurnProjection?.phase) === 'error'
+      || normalizeString(currentTurnProjection?.assistantText)
+      || normalizeString(currentTurnProjection?.reasoningText)
+      || normalizeString(currentTurnProjection?.lastError)
+      || presentation?.hasVisibleContent === true
+      || entries.length > 0
+      || toolEvents.some((event) => (
+        event?.kind === 'tool_call'
+        || event?.kind === 'tool_output'
+        || event?.kind === 'tool_progress'
+      )),
+  );
+}
+
+function resolveSdkOverlayIntentMode(currentTurnProjection) {
+  if (normalizePhase(currentTurnProjection?.phase) === 'awaiting') {
+    return 'awaiting';
+  }
+  return hasProjectionVisibleOverlayContent(currentTurnProjection) ? 'response' : 'hidden';
 }
 
 function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
@@ -100,9 +143,7 @@ function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
   ) {
     return intent;
   }
-  const mode = presentation?.overlayVisible
-    ? 'response'
-    : (presentation?.typingVisible ? 'awaiting' : 'hidden');
+  const mode = resolveSdkOverlayIntentMode(currentTurnProjection);
   return {
     visible: mode !== 'hidden',
     mode,

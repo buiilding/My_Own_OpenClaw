@@ -170,6 +170,59 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('uses SDK presentation entries without legacy presentation visibility flags', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'streaming',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        assistantText: 'Visible response',
+        presentation: {
+          hasVisibleContent: true,
+          entries: [
+            {
+              id: 'assistant-entry',
+              sender: 'assistant',
+              text: 'Visible response',
+              type: 'llm-text',
+            },
+          ],
+        },
+      },
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'streaming',
+      isBusy: true,
+      showAwaiting: false,
+      showResponse: true,
+      source: 'sdk-current-turn',
+      useLocalSendLatch: false,
+      useSdkLiveTurnPresentation: true,
+      entries: [
+        expect.objectContaining({
+          id: 'assistant-entry',
+          sender: 'assistant',
+          text: 'Visible response',
+          type: 'llm-text',
+        }),
+      ],
+      overlayIntent: {
+        visible: true,
+        mode: 'response',
+        turnRef: 'turn-2',
+        conversationRef: 'conv-1',
+        staleGuardRef: 'turn-2',
+      },
+      turnRef: 'turn-2',
+      conversationRef: 'conv-1',
+      guardRef: 'turn-2',
+    });
+  });
+
   test('uses SDK awaiting lifecycle when SDK presentation is hidden during handoff', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {

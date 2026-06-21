@@ -9,6 +9,25 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Live Surface SDK Presentation Visibility Flag Deletion
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
+  still treated SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` as the proof that SDK presentation data existed,
+  then rebuilt fallback overlay intent mode from those legacy booleans when
+  `presentation.overlayIntent` was absent.
+- Change: live-surface presentation recognition now keys off presentation
+  entries or an explicit overlay intent object, and fallback overlay intent is
+  derived from SDK phase plus visible content/progress evidence. SDK visibility
+  booleans are no longer read by the live-surface runtime.
+- Validation target: `LiveTurnSurfaceState.test.js` protects presentation
+  entries without legacy visibility flags, and
+  `RendererAppRuntimeBoundary.test.ts` rejects those fields in the live-surface
+  runtime.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Stop Target SDK Busy Fallback Removal
 
 - Finding: `DesktopStopTurnRuntime.resolveStopTurnTarget(...)` still accepted

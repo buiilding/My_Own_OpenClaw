@@ -198,6 +198,10 @@ surface still prepares overlay presentation input and SDK overlay intent
 metadata, but phase, busy, awaiting, and response flags now come from
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`. The
 live-surface adapter exposes `isBusy` rather than a legacy `isSending` alias.
+It recognizes SDK presentation rows from `presentation.entries` or an explicit
+overlay intent object rather than legacy SDK visibility booleans; when overlay
+intent is absent, fallback intent is derived from SDK phase and actual visible
+content/progress evidence.
 `selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`; minimal
 surfaces that include the legacy send latch in trace payloads read it
 separately as diagnostic store compatibility state, not as lifecycle input.

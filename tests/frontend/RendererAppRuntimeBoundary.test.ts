@@ -445,6 +445,8 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).toContain('DesktopResponseOverlayPhaseRuntime');
     expect(liveSurfaceSource).toContain('DesktopLiveTurnSurfaceRuntime');
     expect(liveSurfaceSource).not.toContain('isSending:');
+    expect(liveSurfaceSource).not.toContain('typingVisible');
+    expect(liveSurfaceSource).not.toContain('overlayVisible');
     expect(liveSurfaceSource).not.toContain('export function resolveSdkOverlayIntent');
     expect(liveSurfaceSource).not.toContain('export function resolveLiveTurnPresentationInput');
     expect(chatSurfaceControllerSource).toContain('desktopLiveTurnSurfaceRuntime');

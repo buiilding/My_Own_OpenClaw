@@ -109,6 +109,11 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`; live
   surface consumers now use visible-lifecycle `isBusy`, awaiting, and response
   fields only. No migration required.
+- frontend/renderer: delete live-surface runtime reads of SDK
+  `presentation.typingVisible` and `presentation.overlayVisible`; SDK
+  presentation rows are recognized from entries or explicit overlay intent, and
+  fallback overlay intent now comes from SDK phase plus visible content/progress
+  evidence. No migration required.
 - frontend/renderer: remove stale raw `isSending` prop plumbing from the
   dashboard, minimal pill, and response-overlay surface hook boundaries; the
   full chat selector no longer exposes `isSending`, while live overlay traces
