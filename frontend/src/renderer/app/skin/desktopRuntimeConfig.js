@@ -1,5 +1,5 @@
 /**
- * Exposes active renderer skin config through a generic desktop-runtime name.
+ * Exposes active renderer skin config through the generic chat desktop UI facade.
  */
 
 export { DEFAULT_MODEL_SELECTION } from './modelSelectionDefaults';

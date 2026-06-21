@@ -63,6 +63,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: sync the checked-in SDK runtime command CJS artifact with the source
   host-runtime wording and guard both outputs against stale desktop-runtime
   ownership copy. No migration required.
+- renderer/skin: describe the WindieOS skin/config facades as the active
+  generic chat desktop UI skin instead of desktop-runtime UI wording, without
+  changing facade filenames or storage keys. No migration required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

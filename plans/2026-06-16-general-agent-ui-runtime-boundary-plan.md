@@ -20296,3 +20296,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Command names, exports, runtime
   transport behavior, Electron host wiring, renderer clients, backend policy,
   storage, and permissions are unchanged.
+
+### 2026-06-21 renderer skin chat desktop UI wording
+
+- Finding: renderer skin comments, the architecture page, and the renderer app
+  runtime boundary guard still treated the skin/config facades as
+  desktop-runtime UI labels, which conflicts with the target generic chat
+  desktop UI package plus WindieOS skin/config split.
+- Change: reworded the WindieOS skin/config comments and frontend architecture
+  skin facade notes to generic chat desktop UI skin/config wording, and updated
+  the renderer app runtime guard to require the new label while rejecting the
+  old desktop-runtime UI phrase.
+- Validation: focused renderer app runtime boundary test, exact skin wording
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. The `desktopRuntimeSkin`/
+  `desktopRuntimeConfig` facade filenames, imports, storage keys, persisted
+  config, renderer runtime clients, IPC channels, permissions, and backend
+  behavior are unchanged.

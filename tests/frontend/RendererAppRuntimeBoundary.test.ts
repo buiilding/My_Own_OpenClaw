@@ -53,7 +53,7 @@ async function collectSourceNeedleOffenders(
 }
 
 describe('renderer app runtime boundary', () => {
-  test('renderer skin and app runtime contracts use desktop-runtime UI wording', async () => {
+  test('renderer skin and app runtime contracts use generic chat desktop UI wording', async () => {
     const skinSource = await fs.readFile(
       path.join(appRoot, 'skin/windieDesktopSkin.js'),
       'utf8',
@@ -63,7 +63,8 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(skinSource).toContain('generic desktop runtime UI');
+    expect(skinSource).toContain('generic chat desktop UI');
+    expect(skinSource).not.toContain('generic desktop runtime UI');
     expect(skinSource).not.toContain('generic desktop agent UI');
     expect(contractsSource).toContain('renderer feature clients');
     expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
@@ -94,13 +95,14 @@ describe('renderer app runtime boundary', () => {
     expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
   });
 
-  test('frontend architecture docs describe renderer skin facades with desktop-runtime wording', async () => {
+  test('frontend architecture docs describe renderer skin facades with chat desktop UI wording', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'),
       'utf8',
     );
 
-    expect(source).toContain('active desktop-runtime skin');
+    expect(source).toContain('active chat desktop UI skin');
+    expect(source).not.toContain('active desktop-runtime skin');
     expect(source).not.toContain(`active desktop-${'agent'} skin`);
   });
 

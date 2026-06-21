@@ -1,5 +1,5 @@
 /*
- * Exposes the active renderer skin stylesheet through a generic desktop-runtime name.
+ * Exposes the active renderer skin stylesheet through the generic chat desktop UI facade.
  */
 
 @import "./windieDesktopSkin.css";

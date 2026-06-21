@@ -1,5 +1,5 @@
 /**
- * Exposes the active renderer skin through a generic desktop-runtime name.
+ * Exposes the active renderer skin through the generic chat desktop UI facade.
  */
 
 export {

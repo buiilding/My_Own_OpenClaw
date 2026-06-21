@@ -1,5 +1,5 @@
 /**
- * WindieOS persisted renderer storage keys for the desktop-runtime skin.
+ * WindieOS persisted renderer storage keys for the chat desktop UI skin.
  */
 
 export const RENDERER_STORAGE_KEYS = Object.freeze({

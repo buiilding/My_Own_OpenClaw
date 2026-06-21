@@ -8371,3 +8371,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   UI-and-desktop-runtimes phrase. Command names, exports, runtime transport
   behavior, Electron host wiring, renderer clients, backend policy, storage,
   and permissions are unchanged; no migration is required.
+- Renderer skin/config comments and frontend architecture skin facade notes now
+  describe the active WindieOS skin as the generic chat desktop UI skin/config
+  instead of desktop-runtime UI wording, and the renderer app runtime guard
+  enforces the new label. Facade filenames, imports, storage keys, persisted
+  config, renderer runtime clients, IPC channels, permissions, and backend
+  behavior are unchanged; no migration is required.
