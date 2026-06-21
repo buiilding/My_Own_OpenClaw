@@ -51,6 +51,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/operations: route packaged backend endpoint validation through
   local-runtime backend-config tests instead of sidecar backend-config wording.
   No migration required.
+- docs/reference: describe hosted SDK route independence from the desktop app
+  and local-runtime process instead of the retired Electron-app-or-sidecar
+  wording. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

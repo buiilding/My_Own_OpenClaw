@@ -35,7 +35,8 @@ For gateway-level route assembly, auth, health checks, and hosted troubleshootin
 - prompt preview and query plan generation
 - debug model list, tool schemas, tool capabilities, config snapshot, and system prompt access
 
-These routes should expose backend-owned perception and introspection without requiring SDK consumers to start the Electron app or sidecar.
+These routes should expose backend-owned perception and introspection without
+requiring SDK consumers to start the desktop app or local-runtime process.
 
 ## Runs API
 

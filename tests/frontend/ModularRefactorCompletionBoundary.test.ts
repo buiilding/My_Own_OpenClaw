@@ -290,6 +290,7 @@ describe('modular sdk refactor completion boundary', () => {
     ]);
     const sdkDocText = sdkDocs.join('\n');
     const apiReferenceText = await read('docs/reference/api_reference.md');
+    const httpApiSurfaceText = await read('docs/reference/http_api_surface.md');
     const architectureText = await read('docs/development/agent_architecture_reference.md');
     const retiredHostedUrl = ['https://api', 'windieos', 'com'].join('.');
 
@@ -307,6 +308,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(apiReferenceText).toContain('local runtime process just to use hosted OCR or prediction routes');
     expect(apiReferenceText).toContain("backendUrl: 'https://backend.example.com'");
     expect(apiReferenceText).toContain('backend_url="https://backend.example.com"');
+    expect(httpApiSurfaceText).toContain('desktop app or local-runtime process');
+    expect(httpApiSurfaceText).not.toContain('Electron app or sidecar');
     expect(sdkDocText).not.toContain('sidecar runtime client');
     expect(sdkDocText).not.toContain('sidecar daemon');
     expect(sdkDocText).not.toContain('sidecar process');

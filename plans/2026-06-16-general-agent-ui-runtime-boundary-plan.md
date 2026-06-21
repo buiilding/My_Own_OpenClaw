@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Hosted SDK Route Surface Independence Label Boundary
+
+- Finding: the HTTP/websocket API surface map still said backend-owned SDK
+  perception and introspection routes should not require consumers to start the
+  Electron app or sidecar, while the SDK OCR/vision guide already names the
+  current boundary as desktop app plus local-runtime process independence.
+- Change: reworded the route-surface map to desktop app/local-runtime process
+  wording and extended the SDK docs boundary guard for the retired phrase.
+- Validation: focused modular SDK docs guard, exact stale-label scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. Hosted route paths, auth,
+  SDK client behavior, local-runtime startup, IPC, permissions, credentials,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Local-Runtime Backend-Config Validation Label Boundary
 
 - Finding: the release packaging workflow still routed packaged backend
