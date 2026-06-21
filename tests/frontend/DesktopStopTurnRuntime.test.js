@@ -3,10 +3,14 @@
  */
 
 import {
+  DesktopStopTurnRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime';
+
+const {
   isStopTurnTargetFromCurrentTurn,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
-} from '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime';
+} = DesktopStopTurnRuntime;
 
 describe('desktopStopTurnRuntime', () => {
   test('resolveStopTurnTarget prioritizes active SDK current-turn before pending turn', () => {

@@ -45,7 +45,7 @@ Dashboard stop behavior is owned by `useStopTurnHandler(...)`:
 
 1. no-op when not busy
 2. resolve stop target from SDK current turn, then pending turn, then idle
-3. classify the target with `desktopStopTurnRuntime` predicates before
+3. classify the target with `DesktopStopTurnRuntime` predicates before
    current-turn and pending-turn side effects
 4. atomically accept the stopped turn in chat store with `acceptStoppedTurn(...)`
 5. stop local audio playback

@@ -13,7 +13,7 @@ function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-export function buildStopQueryTrackingPatch(stoppedAt) {
+function buildStopQueryTrackingPatch(stoppedAt) {
   return {
     phase: 'complete',
     completedAt: stoppedAt,
@@ -29,7 +29,7 @@ function hasVisibleCurrentTurnContent(presentation) {
   );
 }
 
-export function buildStoppedCurrentTurnProjection(currentTurnProjection) {
+function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
     return null;
   }
@@ -63,11 +63,11 @@ export function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   };
 }
 
-export function isStopTurnTargetFromCurrentTurn(stopTarget) {
+function isStopTurnTargetFromCurrentTurn(stopTarget) {
   return stopTarget?.source === 'sdk-current-turn';
 }
 
-export function isStopTurnTargetFromPendingTurn(stopTarget) {
+function isStopTurnTargetFromPendingTurn(stopTarget) {
   return stopTarget?.source === 'pending-turn';
 }
 
@@ -91,7 +91,7 @@ function isPendingTurn(value) {
   );
 }
 
-export function resolveStopTurnTarget({
+function resolveStopTurnTarget({
   currentTurnProjection = null,
   pendingTurn = null,
   conversationRef = null,
@@ -124,3 +124,11 @@ export function resolveStopTurnTarget({
     canStop: false,
   };
 }
+
+export const DesktopStopTurnRuntime = Object.freeze({
+  buildStopQueryTrackingPatch,
+  buildStoppedCurrentTurnProjection,
+  isStopTurnTargetFromCurrentTurn,
+  isStopTurnTargetFromPendingTurn,
+  resolveStopTurnTarget,
+});

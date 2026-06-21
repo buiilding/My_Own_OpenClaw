@@ -7,10 +7,14 @@ import { useChatStore } from '../stores/chatStore';
 import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 import {
+  DesktopStopTurnRuntime,
+} from '../../../app/runtime/desktopStopTurnRuntime';
+
+const {
   isStopTurnTargetFromCurrentTurn,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
-} from '../../../app/runtime/desktopStopTurnRuntime';
+} = DesktopStopTurnRuntime;
 
 export function useStopTurnHandler({
   enabled = true,

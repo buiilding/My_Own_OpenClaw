@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Stop Turn Facade
+
+- Finding: `desktopStopTurnRuntime.js` already owned renderer stop-query
+  tracking patches, stopped current-turn terminal projection, current-vs-pending
+  stop-target predicates, and stop-target resolution from SDK current turn,
+  pending turn, or idle conversation fallback, but still exported each helper
+  as a standalone function consumed by the chat store, stop handler, and tests.
+- Change: made the stop-turn helpers private to the runtime module, exposed
+  them through `DesktopStopTurnRuntime`, and routed the chat stop hook, chat
+  store, and focused stop-turn tests through that facade.
+- Validation: focused stop-turn runtime, pending-stop live surface integration,
+  chat store, renderer chat boundary, exact standalone stop-turn helper
+  export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Stop target priority,
+  pending-turn `turnRef` preservation, current-turn terminal projection,
+  stop-query stream tracking fields, SDK stop command dispatch, IPC, storage,
+  credentials, hosted backend URLs, provider policy, and local execution trust
+  boundaries are unchanged.
+
 ### 2026-06-21 Renderer Permission Presentation Facade
 
 - Finding: `desktopPermissionPresentationRuntime.js` already owned renderer

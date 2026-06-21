@@ -22,14 +22,17 @@ import {
 } from './chatWorkspaceState';
 import type { ChatWorkspaceState } from './chatWorkspaceState';
 import {
-  buildStopQueryTrackingPatch,
-  buildStoppedCurrentTurnProjection,
+  DesktopStopTurnRuntime,
 } from '../../../app/runtime/desktopStopTurnRuntime';
 import {
   DesktopChatSurfaceSelectorRuntime,
 } from '../../../app/runtime/desktopChatSurfaceSelectorRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
+const {
+  buildStopQueryTrackingPatch,
+  buildStoppedCurrentTurnProjection,
+} = DesktopStopTurnRuntime;
 const {
   projectDesktopChatInterfaceState,
   projectDesktopLiveTurnSurfaceState,

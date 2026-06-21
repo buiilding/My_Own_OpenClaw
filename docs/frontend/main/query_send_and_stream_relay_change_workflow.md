@@ -95,7 +95,7 @@ runtime and calls `runtime.stop(...)`, which the same adapter maps into the
 current turn first, renderer pending turn second, and idle conversation fallback
 last. Pending-turn stops carry the pending `turnRef`; they are not turnless
 stops. Renderer surfaces share `useStopTurnHandler(...)`, which calls
-`desktopStopTurnRuntime.resolveStopTurnTarget(...)`, consumes the runtime's
+`DesktopStopTurnRuntime.resolveStopTurnTarget(...)`, consumes the runtime's
 stop-target source predicates for current-turn/pending-turn side effects, and
 then calls `chatStore.acceptStoppedTurn(...)` before dispatching
 `DesktopLiveTurnRuntimeClient.stop(...)`.

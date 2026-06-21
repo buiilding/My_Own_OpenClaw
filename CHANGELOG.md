@@ -62,6 +62,11 @@ All notable changes to WindieOS will be documented in this file.
   through `DesktopPermissionPresentationRuntime` instead of standalone helper
   exports, keeping renderer permission presentation rules behind the
   app-runtime facade. No migration required.
+- frontend/renderer: expose stop-query tracking patches, stopped current-turn
+  projection, and stop-target resolution/source predicates through
+  `DesktopStopTurnRuntime` instead of standalone helper exports, keeping
+  renderer stop-turn state rules behind the app-runtime facade. No migration
+  required.
 - frontend/renderer: expose permission post-grant config effects and
   external-grant follow-up probe policy through
   `DesktopPermissionGrantEffectsRuntime` instead of standalone helper exports,
