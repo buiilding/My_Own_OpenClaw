@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 CLI Local-Runtime Status Label Boundary
+
+- Finding: `<windie> status --json` still displayed `sidecar python` and
+  `backend, sidecar, frontend test wrappers` even though CLI docs describe the
+  checked Python/test surface as local-runtime-owned.
+- Change: renamed the displayed status check and test-wrapper detail to
+  local-runtime wording, added canonical `detail.commands.localRuntimePython`,
+  and retained `detail.commands.sidecarPython` as a compatibility alias for
+  existing automation.
+- Validation: focused Windie CLI status Jest coverage, exact stale status-label
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. The underlying `sidecar`
+  environment target, `scripts/test-sidecar.sh` wrapper, status command shape,
+  legacy JSON field, endpoint resolution, credentials, permissions, and tool
+  execution are unchanged.
+
 ### 2026-06-21 CLI Local-Runtime Log Alias Display Boundary
 
 - Finding: `<windie> logs sidecar` intentionally remained a compatibility

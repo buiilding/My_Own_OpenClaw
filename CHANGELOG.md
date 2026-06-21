@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/status: report the Python environment and test-wrapper status with
+  local-runtime labels while retaining the `sidecarPython` JSON compatibility
+  field next to the canonical `localRuntimePython` result. No migration
+  required.
 - cli/logs: make the `logs sidecar` compatibility alias initialize/read back
   as the canonical local-runtime log while preserving the alias command,
   `WINDIE_SIDECAR_LOG_FILE`, and sidecar log file path compatibility. No

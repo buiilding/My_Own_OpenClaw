@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: the `<windie> logs sidecar` compatibility alias now
-  initializes and reads back as the canonical local-runtime log while
-  preserving the alias command, legacy env override, and WindieOS sidecar log
-  file compatibility.
+- Latest completed slice: `<windie> status` now reports local-runtime Python
+  and local-runtime test-wrapper labels while retaining the legacy
+  `sidecarPython` JSON compatibility field next to the canonical
+  `localRuntimePython` result.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -36,6 +36,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
   prefix, bundled runtime copy, env keys, runs header, wakeword model, and
   browser warmup copy remain host-skin owned.
+  CLI status output reports the reusable Python environment and test wrappers
+  as local-runtime-owned; machine-readable status includes
+  `localRuntimePython` while retaining `sidecarPython` as a compatibility
+  alias for existing automation.
   CLI `logs sidecar` remains a compatibility alias for the same WindieOS
   local-runtime daemon log file, but its initialized/readback banner now uses
   the canonical local-runtime owner label.

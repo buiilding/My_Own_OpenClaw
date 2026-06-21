@@ -151,7 +151,13 @@ describe('windie CLI', () => {
     expect(result.status).toBe(0);
     const parsed = JSON.parse(result.stdout);
     expect(parsed.detail.repoRoot).toBe(repoRoot);
-    expect(parsed.checks.map((check) => check.name)).toContain('repo root');
+    expect(parsed.checks.map((check) => check.name)).toEqual(expect.arrayContaining([
+      'repo root',
+      'local-runtime python',
+    ]));
+    expect(parsed.checks.find((check) => check.name === 'test scripts')?.detail)
+      .toBe('backend, local-runtime, frontend test wrappers');
+    expect(parsed.detail.commands.localRuntimePython).toEqual(parsed.detail.commands.sidecarPython);
     expect(parsed.detail.endpoint.httpUrl).toBeTruthy();
   });
 

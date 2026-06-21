@@ -72,7 +72,7 @@ function collectStatus({ all = false } = {}) {
   const node = checkCommand('node');
   const npm = checkCommand('npm');
   const backendPython = checkPython('backend');
-  const sidecarPython = checkPython('sidecar');
+  const localRuntimePython = checkPython('sidecar');
   const frontendScripts = getFrontendScripts();
   const endpoint = getEndpointSnapshot();
 
@@ -97,9 +97,9 @@ function collectStatus({ all = false } = {}) {
       detail: backendPython.value || backendPython.error,
     },
     {
-      name: 'sidecar python',
-      ok: sidecarPython.ok,
-      detail: sidecarPython.value || sidecarPython.error,
+      name: 'local-runtime python',
+      ok: localRuntimePython.ok,
+      detail: localRuntimePython.value || localRuntimePython.error,
     },
     {
       name: 'docs navigation',
@@ -117,7 +117,7 @@ function collectStatus({ all = false } = {}) {
     {
       name: 'test scripts',
       ok: exists('scripts/test-backend.sh') && exists('scripts/test-sidecar.sh') && !!frontendScripts.test,
-      detail: 'backend, sidecar, frontend test wrappers',
+      detail: 'backend, local-runtime, frontend test wrappers',
     },
   ];
 
@@ -128,7 +128,8 @@ function collectStatus({ all = false } = {}) {
       node,
       npm,
       backendPython,
-      sidecarPython,
+      localRuntimePython,
+      sidecarPython: localRuntimePython,
     },
     files: {
       docsList: hasPlatformShim('docs-list'),
