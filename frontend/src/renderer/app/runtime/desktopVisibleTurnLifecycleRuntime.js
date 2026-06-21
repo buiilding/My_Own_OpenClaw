@@ -2,6 +2,16 @@
  * Owns renderer-visible turn lifecycle projection for desktop surfaces.
  */
 
+import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
+
+const {
+  getActiveOverlayTurnLifecycle,
+  getAwaitingOverlayTurnLifecycle,
+  getIdleOverlayTurnLifecycle,
+  getPreflightOverlayTurnLifecycle,
+  getTerminalOverlayTurnLifecycle,
+} = DesktopOverlayTurnLifecycleRuntime;
+
 const TERMINAL_PHASES = new Set(['complete', 'error']);
 const ACTIVE_PROGRESS_PHASES = new Set(['tool_call', 'tool_output']);
 const AWAITING_PHASES = new Set(['awaiting']);
@@ -159,6 +169,49 @@ function findLatestUserMessageAnchor(messages) {
   return null;
 }
 
+function findLatestUserTurnRef(messages) {
+  if (!Array.isArray(messages)) {
+    return null;
+  }
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message?.sender === 'user' && normalizeTurnRef(message.turnRef)) {
+      return message.turnRef.trim();
+    }
+  }
+  return null;
+}
+
+function hasSdkLiveTurnPresentation(currentTurnProjection) {
+  const presentation = currentTurnProjection?.presentation;
+  return Boolean(
+    presentation
+      && typeof presentation === 'object'
+      && typeof presentation.typingVisible === 'boolean'
+      && typeof presentation.overlayVisible === 'boolean',
+  );
+}
+
+function isHiddenSdkLiveTurnPresentation(presentation) {
+  if (!presentation || typeof presentation !== 'object') {
+    return false;
+  }
+  const overlayIntent = presentation.overlayIntent;
+  const entries = Array.isArray(presentation.entries) ? presentation.entries : [];
+  return (
+    presentation.isBusy !== true
+    && presentation.typingVisible !== true
+    && presentation.overlayVisible !== true
+    && presentation.hasVisibleContent !== true
+    && entries.length === 0
+    && (
+      !overlayIntent
+      || overlayIntent.mode === 'hidden'
+      || overlayIntent.visible === false
+    )
+  );
+}
+
 function resolveTerminalReason(currentTurnProjection) {
   const phase = normalizeProjectionPhase(currentTurnProjection);
   if (phase === 'error' || normalizeString(currentTurnProjection?.lastError)) {
@@ -258,6 +311,61 @@ function resolveVisibleTurnLifecycle({
   };
 }
 
+function shouldUseLocalSendPreflight({
+  currentTurnProjection = null,
+  isSending = false,
+  pendingTurn = null,
+  messages = [],
+} = {}) {
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  if (!normalizedPendingTurn && isSending !== true) {
+    return false;
+  }
+  if (!currentTurnProjection) {
+    return true;
+  }
+  if (normalizedPendingTurn) {
+    return !hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, currentTurnProjection);
+  }
+  if (!isAuthoritativeSdkProjection(currentTurnProjection)) {
+    return true;
+  }
+
+  const phase = normalizeProjectionPhase(currentTurnProjection);
+  if (
+    isSending === true
+    && TERMINAL_PHASES.has(phase)
+    && hasVisibleTextOrError(currentTurnProjection)
+  ) {
+    return true;
+  }
+  const hasSdkPresentation = hasSdkLiveTurnPresentation(currentTurnProjection);
+  if (TERMINAL_PHASES.has(phase) && !hasSdkPresentation) {
+    return true;
+  }
+
+  const presentation = currentTurnProjection.presentation;
+  if (!isHiddenSdkLiveTurnPresentation(presentation)) {
+    return false;
+  }
+
+  const projectionTurnRef = normalizeTurnRef(currentTurnProjection?.turnRef);
+  const latestUserTurnRef = findLatestUserTurnRef(messages);
+  const isTerminalProjection = (
+    TERMINAL_PHASES.has(phase)
+    || presentation?.isTerminal === true
+  );
+  if (
+    isTerminalProjection
+    && projectionTurnRef
+    && latestUserTurnRef
+    && projectionTurnRef === latestUserTurnRef
+  ) {
+    return false;
+  }
+  return true;
+}
+
 function resolveVisibleTurnLifecycleForPresentation({
   visibleTurnLifecycle,
   liveTurnPresentationInput = null,
@@ -284,10 +392,27 @@ function resolveVisibleTurnLifecycleForPresentation({
   return visibleTurnLifecycle;
 }
 
+function resolveOverlayTurnLifecycleForVisibleLifecycle(visibleTurnLifecycle) {
+  if (visibleTurnLifecycle?.status === 'local_pending') {
+    return getPreflightOverlayTurnLifecycle();
+  }
+  if (visibleTurnLifecycle?.status === 'awaiting') {
+    return getAwaitingOverlayTurnLifecycle();
+  }
+  if (visibleTurnLifecycle?.status === 'active') {
+    return getActiveOverlayTurnLifecycle();
+  }
+  if (visibleTurnLifecycle?.status === 'terminal') {
+    return getTerminalOverlayTurnLifecycle();
+  }
+  return getIdleOverlayTurnLifecycle();
+}
+
 function applyVisibleTurnLifecycleToPresentationState(presentationState, visibleTurnLifecycle) {
   const nextState = {
     ...presentationState,
     visibleTurnLifecycle,
+    overlayTurnLifecycle: resolveOverlayTurnLifecycleForVisibleLifecycle(visibleTurnLifecycle),
     isBusy: visibleTurnLifecycle?.isBusy === true,
   };
   if (
@@ -329,4 +454,5 @@ export const DesktopVisibleTurnLifecycleRuntime = Object.freeze({
   hasAuthoritativeSameTurnSdkReplacement,
   resolveVisibleTurnLifecycleForPresentation,
   resolveVisibleTurnLifecycle,
+  shouldUseLocalSendPreflight,
 });

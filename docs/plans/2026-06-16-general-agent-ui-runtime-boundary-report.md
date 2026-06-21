@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: dashboard awaiting-dot wiring is protected against
-  durable row-shape suppression, so `MessageList` receives the visible
-  lifecycle awaiting anchor directly, lagging session refs do not hide SDK
-  current-turn lifecycle, and `ChatInterfaceWiring.test.jsx` runs in the
-  core-loop pack.
+- Latest completed slice: visible lifecycle now owns live-surface local
+  send-preflight handoff and stamps legacy `overlayTurnLifecycle`, so
+  live-surface and response-overlay view code cannot inherit stale phase-derived
+  lifecycle after the renderer-owned lifecycle resolves.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

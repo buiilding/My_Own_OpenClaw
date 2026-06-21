@@ -68,6 +68,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: move local send-preflight handoff into
+  `DesktopVisibleTurnLifecycleRuntime` and stamp legacy `overlayTurnLifecycle`
+  presentation fields from the same owner, so live-surface and response-overlay
+  view logic no longer inherit stale phase-derived lifecycle state after
+  visible lifecycle adaptation. No migration required.
 - frontend/renderer: keep dashboard awaiting-dot routing on the
   renderer-owned visible lifecycle instead of suppressing it from durable
   live-progress row shape, and resolve active lifecycle against the SDK

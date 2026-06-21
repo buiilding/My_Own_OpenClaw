@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Visible Lifecycle Preflight And Overlay Adapter Tightening
+
+- Finding: live-surface local send-preflight handoff still lived beside
+  presentation input, and the shared lifecycle-to-presentation adapter still
+  left the legacy `overlayTurnLifecycle` field available for response-overlay
+  view code to read from stale phase-derived state.
+- Change: `DesktopVisibleTurnLifecycleRuntime` now owns local send-preflight
+  handoff for live-surface consumers and maps renderer visible lifecycle status
+  into the legacy overlay lifecycle field while preserving the field only as
+  adapter output.
+- Validation: `DesktopVisibleTurnLifecycleRuntime.test.js` covers preflight
+  handoff plus pending, active, and terminal adapter output.
+- Compatibility/security: no SDK event payload, IPC payload, transcript
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Dashboard Awaiting Anchor Row-Shape Cleanup
 
 - Finding: dashboard awaiting-dot routing no longer computed live progress

@@ -18,8 +18,7 @@ const {
   isStreamingResponseOverlayPhase,
 } = DesktopResponseOverlayPhaseRuntime;
 const {
-  hasAuthoritativeSdkProjection,
-  hasAuthoritativeSameTurnSdkReplacement,
+  shouldUseLocalSendPreflight,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
@@ -37,12 +36,6 @@ const CURRENT_TURN_BUSY_PHASES = new Set([
   'streaming',
   'tool_call',
   'tool_output',
-]);
-
-const CURRENT_TURN_TERMINAL_PHASES = new Set([
-  'complete',
-  'error',
-  'idle',
 ]);
 
 function normalizePhase(value) {
@@ -103,26 +96,6 @@ function hasSdkLiveTurnPresentation(currentTurnProjection) {
   );
 }
 
-function isHiddenSdkLiveTurnPresentation(presentation) {
-  if (!presentation || typeof presentation !== 'object') {
-    return false;
-  }
-  const overlayIntent = presentation.overlayIntent;
-  const entries = Array.isArray(presentation.entries) ? presentation.entries : [];
-  return (
-    presentation.isBusy !== true
-    && presentation.typingVisible !== true
-    && presentation.overlayVisible !== true
-    && presentation.hasVisibleContent !== true
-    && entries.length === 0
-    && (
-      !overlayIntent
-      || overlayIntent.mode === 'hidden'
-      || overlayIntent.visible === false
-    )
-  );
-}
-
 function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
   const intent = presentation?.overlayIntent;
   if (
@@ -149,52 +122,13 @@ function shouldUseSendPreflight({
   isSending,
   messages,
   pendingTurn,
-  useSdkLiveTurnPresentation,
 }) {
-  if (!isPendingTurn(pendingTurn) && isSending !== true) {
-    return false;
-  }
-  if (!currentTurnProjection) {
-    return true;
-  }
-  if (isPendingTurn(pendingTurn)) {
-    return !hasAuthoritativeSameTurnSdkReplacement(pendingTurn, currentTurnProjection);
-  }
-  if (isSending === true && !hasAuthoritativeSdkProjection(currentTurnProjection)) {
-    return true;
-  }
-  if (
-    useSdkLiveTurnPresentation
-    && !isHiddenSdkLiveTurnPresentation(currentTurnProjection.presentation)
-  ) {
-    return false;
-  }
-  if (
-    useSdkLiveTurnPresentation
-    && isHiddenSdkLiveTurnPresentation(currentTurnProjection.presentation)
-  ) {
-    const projectionPhase = normalizePhase(currentTurnProjection?.phase);
-    const projectionTurnRef = normalizeTurnRef(currentTurnProjection?.turnRef);
-    const latestUserTurnRef = findLatestUserTurnRef(messages);
-    const isTerminalProjection = (
-      CURRENT_TURN_TERMINAL_PHASES.has(projectionPhase)
-      || currentTurnProjection.presentation?.isTerminal === true
-    );
-    if (
-      isTerminalProjection
-      && projectionTurnRef
-      && latestUserTurnRef
-      && projectionTurnRef === latestUserTurnRef
-    ) {
-      return false;
-    }
-    return true;
-  }
-  const projectionPhase = normalizePhase(currentTurnProjection?.phase);
-  if (CURRENT_TURN_TERMINAL_PHASES.has(projectionPhase)) {
-    return true;
-  }
-  return !mapCurrentTurnProjectionPhase(projectionPhase);
+  return shouldUseLocalSendPreflight({
+    currentTurnProjection,
+    isSending,
+    pendingTurn,
+    messages,
+  });
 }
 
 function resolveLiveTurnPresentationInput({
@@ -209,7 +143,6 @@ function resolveLiveTurnPresentationInput({
     isSending,
     messages,
     pendingTurn,
-    useSdkLiveTurnPresentation,
   });
   if (useLocalSendLatch) {
     const turnRef = normalizeTurnRef(pendingTurn?.turnRef) || findLatestUserTurnRef(messages);

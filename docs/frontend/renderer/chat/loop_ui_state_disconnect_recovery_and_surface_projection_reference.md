@@ -215,13 +215,23 @@ controller resolves the active lifecycle against the SDK current-turn
 conversation ref when present, so a lagging session ref does not hide the
 visible same-turn projection.
 
+`DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)` delegates
+local send-preflight handoff to
+`DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)`. The live
+surface still prepares overlay presentation input, but the decision to keep a
+renderer-local send latch through idle, hidden, stale, terminal, or visible SDK
+projections lives with the visible lifecycle owner.
+
 `useResponseOverlayViewModel(...)` also resolves the same visible lifecycle and
 applies `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
 before deriving response-overlay view intent. The response overlay therefore
 shows awaiting only for renderer local pending or SDK awaiting lifecycle, and
 shows response only for visible SDK entries. Phase-only `streaming`,
 `tool_call`, or `tool_output` projections with no visible text, tool event,
-progress, error, or pending turn do not independently show typing.
+progress, error, or pending turn do not independently show typing. The
+visible-lifecycle adapter also stamps the legacy `overlayTurnLifecycle` field
+for response-overlay view code, so stale phase-derived lifecycle values do not
+survive adaptation.
 
 ## Surface Consumers
 
