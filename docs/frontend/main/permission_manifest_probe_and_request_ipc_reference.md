@@ -69,7 +69,7 @@ Current probe ownership:
     current runtime availability check (shell/PowerShell presence)
   - shell runtime availability alone reports `needs-action`
 - `browser_automation`:
-  - requires both frontend enablement and backend runtime verification; missing verifier now fails closed
+  - requires both renderer config enablement and local-runtime browser capability verification; missing verifier now fails closed
   - pre-grant guidance now tells users that the host-skinned app will open its dedicated browser so they can sign in with the profile the agent host should use
 
 Status payload shape:
@@ -136,7 +136,7 @@ read-modify-write persistence.
 Current persisted item:
 
 - `filesystem_workspace_access` selected folder paths
-  - sidecar shell commands use the first still-existing selected path as the default cwd when `directory` is omitted
+  - local-runtime shell commands use the first still-existing selected path as the default cwd when `directory` is omitted
 - `shell_execution` explicit authorization grant
   - probes still require the shell/PowerShell runtime verifier to pass, so the
     stored grant is not treated as runtime availability

@@ -303,10 +303,13 @@ describe('main host skin/config boundary', () => {
 
     expect(source).toContain('host-skinned app will open its dedicated browser');
     expect(source).toContain('profile the agent host should use');
+    expect(source).toContain('local-runtime browser capability verification');
     expect(source).toContain('register the host app in the Screen Recording list');
     expect(source).toContain('while the app re-probes');
     expect(source).toContain('user enables the app in System Settings');
     expect(source).toContain('same capture path used by auto-screenshot');
+    expect(source).toContain('local-runtime shell commands use');
+    expect(source).not.toContain('backend runtime verification');
     expect(source).not.toContain('WindieOS will open its dedicated browser');
     expect(source).not.toContain('profile WindieOS should use');
     expect(source).not.toContain('register WindieOS in the Screen Recording list');
@@ -314,6 +317,7 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain('enables WindieOS in System Settings');
     expect(source).not.toContain('WindieOS focuses the onboarding window');
     expect(source).not.toContain('same backend used by auto-screenshot');
+    expect(source).not.toContain('sidecar shell commands use');
   });
 
   test('query event builders keep product copy in the host skin', () => {

@@ -50,6 +50,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/main: route permission manifest request guidance through host-skinned
   app wording instead of hardcoded WindieOS product copy in the generic main
   process reference. No migration required.
+- docs/main: describe browser permission checks and workspace cwd behavior
+  through local-runtime capability/shell wording instead of backend or sidecar
+  ownership labels. No migration required.
 - docs/renderer: describe wakeword and dedicated-browser labels as
   renderer-skin-provided in active settings/voice references instead of
   hardcoding the WindieOS skin phrase. No migration required.

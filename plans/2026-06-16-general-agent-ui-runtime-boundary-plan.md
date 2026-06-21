@@ -22066,3 +22066,21 @@ Each completed slice should report:
   permission manifest payloads, permission probes/requests, onboarding behavior,
   local-runtime browser warm-up, screenshot verification, IPC channels, storage,
   provider policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 main permission docs local-runtime owner labels
+
+- Finding: the active main permission manifest/request reference still said
+  browser automation required backend runtime verification and that selected
+  workspace paths fed sidecar shell commands, even though the current owners are
+  local-runtime browser capability verification and local-runtime shell
+  execution.
+- Change: reworded those permission-reference lines through local-runtime
+  browser capability and local-runtime shell command ownership, and extended
+  main host-skin boundary coverage for the retired backend/sidecar labels in
+  the generic permission docs.
+- Validation: focused main host-skin boundary test, exact stale phrase scans for
+  the touched main permission docs, docs listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  permission manifest payloads, browser capability verification, workspace cwd
+  selection, shell execution, IPC channels, storage, provider policy, backend
+  behavior, and trust boundaries are unchanged.
