@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route dashboard conversation rename/delete browser dialogs
+  through `DesktopDashboardConversationDialogRuntime`, keeping `window.prompt`
+  and `window.confirm` adapter details out of dashboard feature hooks. No
+  migration required.
 - frontend/renderer: require renderer `pendingTurn` for local visible-lifecycle
   preflight, removing the fallback where bare `isSending=true` could force
   dashboard, pill, or response-overlay typing without an accepted pending turn.

@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Dashboard Conversation Dialog Boundary
+
+- Finding: `useDashboardConversations(...)` still called `window.prompt` and
+  `window.confirm` directly for conversation rename/delete actions, keeping
+  browser-dialog adapter details inside the dashboard feature hook.
+- Change: added `DesktopDashboardConversationDialogRuntime` to own dashboard
+  conversation rename and delete browser dialogs, then routed the dashboard
+  hook through that app-runtime facade.
+- Validation target: focused dashboard dialog runtime and dashboard dialog
+  boundary tests protect prompt/confirm behavior and reject raw browser-dialog
+  calls in the dashboard hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 PendingTurn-Only Preflight And Replay Handoff
 
 - Finding: local visible-lifecycle preflight still accepted bare

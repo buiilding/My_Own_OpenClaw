@@ -12,13 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: renderer local visible-lifecycle preflight now
-  requires accepted `pendingTurn` state instead of bare `isSending=true`, and
-  conversation retry/edit replay now enters that same path before SDK
-  continuity preparation resolves. Replay preallocates a turn ref, uses
-  `DesktopConversationReplayRuntime.buildReplayPendingTurn(...)`, broadcasts the
-  pending turn to Electron main, and forwards the same turn ref through
-  `DesktopConversationContinuityService`.
+- Latest completed slice: dashboard conversation rename/delete browser dialogs
+  now route through `DesktopDashboardConversationDialogRuntime`, keeping
+  `window.prompt` and `window.confirm` adapter details out of
+  `useDashboardConversations(...)`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

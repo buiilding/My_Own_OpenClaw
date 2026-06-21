@@ -12,6 +12,7 @@ title: "Dashboard Conversation Hook Search, Polling, and Group Bucket Contract R
 
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopDashboardConversationDialogRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
@@ -150,7 +151,9 @@ Shell behavior:
 
 ### Rename conversation
 
-- local optimistic title update only (`window.prompt`)
+- local optimistic title update only
+- browser prompt ownership lives in
+  `DesktopDashboardConversationDialogRuntime.requestDashboardConversationRenameTitle(...)`
 - updates both recent and searched lists in hook state
 
 ### Pin/unpin conversation
@@ -160,7 +163,8 @@ Shell behavior:
 
 ### Delete conversation
 
-- confirmation required (`window.confirm`)
+- confirmation required through
+  `DesktopDashboardConversationDialogRuntime.confirmDashboardConversationDelete(...)`
 - calls `DELETE_CONVERSATION`
 - removes row from recent + search + pinned state
 - if deleting active session conversation, clears transcript session and chat store state

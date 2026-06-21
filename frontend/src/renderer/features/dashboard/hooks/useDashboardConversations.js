@@ -13,13 +13,13 @@ import { DesktopConversationSessionRuntime } from '../../../app/runtime/desktopC
 import { DesktopActiveChatSessionRuntime } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import { DesktopDashboardConversationGroupRuntime } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
+import { DesktopDashboardConversationDialogRuntime } from '../../../app/runtime/desktopDashboardConversationDialogRuntime';
 import {
   DesktopDashboardConversationLoadRuntime,
 } from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
 
 const {
   getDashboardConversationRef,
-  getDashboardConversationRenamePromptValue,
   getTitleVisibilityPollSchedule,
   getTitleVisibilityPollConversationRef,
   metadataListToDashboardConversations,
@@ -45,6 +45,10 @@ const {
 const {
   logRendererDisplayRowsProjectionTrace,
 } = DesktopRendererTraceRuntime;
+const {
+  confirmDashboardConversationDelete,
+  requestDashboardConversationRenameTitle,
+} = DesktopDashboardConversationDialogRuntime;
 const {
   applyRendererConversationSelection,
 } = DesktopConversationSessionRuntime;
@@ -293,16 +297,8 @@ export function useDashboardConversations({
     if (!conversationRef) {
       return;
     }
-    const currentTitle = getDashboardConversationRenamePromptValue(conversation, '');
-    const nextTitleInput = window.prompt(
-      'Rename chat',
-      getDashboardConversationRenamePromptValue(conversation),
-    );
-    if (typeof nextTitleInput !== 'string') {
-      return;
-    }
-    const nextTitle = nextTitleInput.trim();
-    if (!nextTitle || nextTitle === currentTitle) {
+    const nextTitle = requestDashboardConversationRenameTitle(conversation);
+    if (!nextTitle) {
       return;
     }
     setRecentConversations((current) => renameDashboardConversationInList(
@@ -330,8 +326,7 @@ export function useDashboardConversations({
     if (!conversationRef) {
       return;
     }
-    const shouldDelete = window.confirm('Delete this chat? This cannot be undone.');
-    if (!shouldDelete) {
+    if (!confirmDashboardConversationDelete()) {
       return;
     }
 
