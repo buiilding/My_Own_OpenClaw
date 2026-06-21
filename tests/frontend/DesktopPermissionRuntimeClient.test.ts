@@ -17,10 +17,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 }));
 
 import * as DesktopPermissionRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient';
-import {
-  DesktopPermissionRuntimeClient,
-  mapPermissionStatusesByPermissionId,
-} from '../../frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient';
+import { DesktopPermissionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient';
 
 describe('DesktopPermissionRuntimeClient', () => {
   beforeEach(() => {
@@ -28,6 +25,7 @@ describe('DesktopPermissionRuntimeClient', () => {
   });
 
   test('keeps raw permission command envelope helpers private to the runtime client', () => {
+    expect(DesktopPermissionRuntimeModule).not.toHaveProperty('mapPermissionStatusesByPermissionId');
     expect(DesktopPermissionRuntimeModule).not.toHaveProperty('normalizePermissionStatusValue');
     expect(DesktopPermissionRuntimeModule).not.toHaveProperty('resolvePermissionManifestResult');
     expect(DesktopPermissionRuntimeModule).not.toHaveProperty('resolvePermissionStatusResult');
@@ -35,7 +33,7 @@ describe('DesktopPermissionRuntimeClient', () => {
   });
 
   test('normalizes permission status values and indexes them by permission id', () => {
-    expect(mapPermissionStatusesByPermissionId([
+    expect(DesktopPermissionRuntimeClient.mapPermissionStatusesByPermissionId([
       {
         permission_id: 'microphone',
         status: 'needs-action',

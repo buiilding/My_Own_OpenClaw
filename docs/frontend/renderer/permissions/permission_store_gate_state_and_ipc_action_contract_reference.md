@@ -46,8 +46,10 @@ Current runtime-consumer reality:
 ## Status Value Contract
 
 `DesktopPermissionRuntimeClient.mapPermissionStatusesByPermissionId(statuses)`
-fail-closes malformed payloads and returns an id-indexed map. The permission
-store consumes that value map instead of reading raw status payload fields.
+is the runtime-client facade for fail-closing malformed payloads and returning
+an id-indexed map. The permission store consumes that value map instead of
+importing standalone status-normalization helpers or reading raw status payload
+fields.
 
 Per-status normalization:
 
@@ -99,7 +101,7 @@ Callers:
 `permissionStore` owns renderer permission state only: manifest snapshot,
 gate derivation, onboarding persistence, and user-facing errors. Desktop
 transport, permission command result-envelope resolution, and raw status value
-normalization are delegated to `DesktopPermissionRuntimeClient`.
+normalization are delegated to `DesktopPermissionRuntimeClient` methods.
 
 Runtime client calls:
 

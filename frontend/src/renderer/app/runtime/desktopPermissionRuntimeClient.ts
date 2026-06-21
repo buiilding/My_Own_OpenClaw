@@ -66,7 +66,7 @@ function normalizePermissionStatusValue(status: unknown): PermissionStatusValue 
   };
 }
 
-export function mapPermissionStatusesByPermissionId(
+function mapPermissionStatusesByPermissionId(
   statuses: unknown,
 ): Record<string, PermissionStatusValue> {
   if (!Array.isArray(statuses)) {
@@ -147,5 +147,11 @@ export const DesktopPermissionRuntimeClient = {
 
   async checkPermissionStatuses(permissionIds: string[]): Promise<unknown[]> {
     return resolvePermissionStatusesResult(await this.checkPermissions(permissionIds));
+  },
+
+  mapPermissionStatusesByPermissionId(
+    statuses: unknown,
+  ): Record<string, PermissionStatusValue> {
+    return mapPermissionStatusesByPermissionId(statuses);
   },
 };

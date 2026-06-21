@@ -1189,10 +1189,14 @@ describe('renderer app runtime boundary', () => {
     expect(clientSource).not.toContain('export function resolvePermissionStatusResult');
     expect(clientSource).toContain('function resolvePermissionStatusesResult');
     expect(clientSource).not.toContain('export function resolvePermissionStatusesResult');
+    expect(clientSource).toContain('function mapPermissionStatusesByPermissionId');
+    expect(clientSource).not.toContain('export function mapPermissionStatusesByPermissionId');
     expect(storeSource).toContain('DesktopPermissionRuntimeClient.listPermissionManifest');
     expect(storeSource).toContain('DesktopPermissionRuntimeClient.runPermissionProbeStatus');
     expect(storeSource).toContain('DesktopPermissionRuntimeClient.requestPermissionStatus');
     expect(storeSource).toContain('DesktopPermissionRuntimeClient.checkPermissionStatuses');
+    expect(storeSource).toContain('DesktopPermissionRuntimeClient.mapPermissionStatusesByPermissionId');
+    expect(storeSource).not.toContain('mapPermissionStatusesByPermissionId,');
     expect(storeSource).not.toContain('result?.success');
     expect(storeSource).not.toContain('result.data');
     expect(storeSource).not.toContain('result?.data');

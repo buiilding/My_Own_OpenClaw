@@ -3,10 +3,7 @@
  */
 
 import { create } from 'zustand';
-import {
-  DesktopPermissionRuntimeClient,
-  mapPermissionStatusesByPermissionId,
-} from '../../../app/runtime/desktopPermissionRuntimeClient';
+import { DesktopPermissionRuntimeClient } from '../../../app/runtime/desktopPermissionRuntimeClient';
 import {
   loadPermissionOnboardingState,
   savePermissionOnboardingState,
@@ -43,7 +40,9 @@ function resolveGateState({
 }
 
 function buildStatusStateUpdate(currentState, statusPayload, options = {}) {
-  const incomingStatuses = mapPermissionStatusesByPermissionId(statusPayload);
+  const incomingStatuses = DesktopPermissionRuntimeClient.mapPermissionStatusesByPermissionId(
+    statusPayload,
+  );
   const statusesByPermissionId = options.replace === true
     ? incomingStatuses
     : {
@@ -91,7 +90,9 @@ export const usePermissionStore = create((set, get) => ({
         ? manifest.manifest_version
         : '';
       const permissions = Array.isArray(manifest.permissions) ? manifest.permissions : [];
-      const statusesByPermissionId = mapPermissionStatusesByPermissionId(manifest.statuses);
+      const statusesByPermissionId = DesktopPermissionRuntimeClient.mapPermissionStatusesByPermissionId(
+        manifest.statuses,
+      );
       const onboardingState = loadPermissionOnboardingState();
       const gateState = resolveGateState({
         permissions,

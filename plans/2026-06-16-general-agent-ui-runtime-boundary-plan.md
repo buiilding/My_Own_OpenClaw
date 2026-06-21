@@ -324,6 +324,25 @@ Each completed slice should report:
   and settings permission flows, OS permission requests, credentials, hosted
   backend URLs, and provider policy are unchanged.
 
+### 2026-06-21 Renderer Permission Status Map Facade
+
+- Finding: `DesktopPermissionRuntimeClient` owned permission status value
+  normalization, but still exported `mapPermissionStatusesByPermissionId(...)`
+  as a standalone helper that the permission store imported next to the runtime
+  client facade.
+- Change: made the status-map normalizer private to the permission runtime
+  client module, exposed it through
+  `DesktopPermissionRuntimeClient.mapPermissionStatusesByPermissionId(...)`,
+  and routed the permission store, focused tests, and permission docs through
+  the runtime-client method.
+- Validation: focused permission runtime client, permission store, and renderer
+  app-runtime boundary coverage, exact standalone helper export scan, docs
+  listing, and diff checks.
+- Compatibility/security: no migration required. Permission IPC channel names,
+  manifest/status payload acceptance, normalized status map shape,
+  onboarding/settings permission flows, OS permission requests, credentials,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Client Session Parser Privacy
 
 - Finding: `DesktopClientSessionRuntimeClient` already owned raw
