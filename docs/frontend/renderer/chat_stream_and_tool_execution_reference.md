@@ -393,9 +393,9 @@ Turn guard + error suppression matrix:
 
 Message targeting utilities:
 
-- `findLastMessageIdBySender`
-- `findLastAssistantLlmTextMessageId`
-- `findFirstMessageIdBySender`
+- `DesktopChatStreamMessageUpdateRuntime.findLastMessageIdBySender(...)`
+- `DesktopChatStreamMessageUpdateRuntime.findLastAssistantLlmTextMessageId(...)`
+- `DesktopChatStreamMessageUpdateRuntime.findFirstMessageIdBySender(...)`
 - `useStreamMessageUpdaters` resolves current message ids at update time for
   full-message and metadata update handlers.
 

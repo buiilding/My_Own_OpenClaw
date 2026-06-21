@@ -54,13 +54,13 @@ turn's transcript transparency.
 
 ### `updateFirstMessageBySender`
 
-- uses `findFirstMessageIdBySender`
+- uses `DesktopChatStreamMessageUpdateRuntime.findFirstMessageIdBySender(...)`
 - no turn scoping
 - no-op when no sender match
 
 ### `updateLastAssistantLlmTextMessage`
 
-- uses `findLastAssistantLlmTextMessageId(messages, turnRef?)`
+- uses `DesktopChatStreamMessageUpdateRuntime.findLastAssistantLlmTextMessageId(messages, turnRef?)`
 - turn-scoped lookup first when `turnRef` provided
 - no-op when no candidate
 

@@ -8,10 +8,14 @@ import {
   type ChatMessage,
 } from '../../stores/chatStore';
 import {
+  DesktopChatStreamMessageUpdateRuntime,
+} from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
+
+const {
   findFirstMessageIdBySender,
   findLastAssistantLlmTextMessageId,
   findLastMessageIdBySender,
-} from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
+} = DesktopChatStreamMessageUpdateRuntime;
 
 export function useStreamMessageUpdaters(
   updateMessage: (

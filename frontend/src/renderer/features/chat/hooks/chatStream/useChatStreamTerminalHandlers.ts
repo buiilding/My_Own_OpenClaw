@@ -12,13 +12,17 @@ import {
   shouldIgnoreStreamError,
 } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
-import { findLastAssistantLlmTextMessageId } from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
+import { DesktopChatStreamMessageUpdateRuntime } from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import {
   resolveConversationStreamEventConversationRef,
   resolveConversationStreamEventTurnRef,
   resolveConversationStreamEventTurnRefForUpdate,
 } from '../../../../app/runtime/desktopChatStreamEventRuntime';
+
+const {
+  findLastAssistantLlmTextMessageId,
+} = DesktopChatStreamMessageUpdateRuntime;
 
 type UseChatStreamTerminalHandlersDeps = {
   recordTrackingEvent: TrackEventFn<'token-count' | 'error'>;

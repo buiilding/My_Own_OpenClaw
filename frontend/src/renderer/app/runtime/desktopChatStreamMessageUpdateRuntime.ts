@@ -33,7 +33,7 @@ function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
   return normalizeToolSchemaList(value);
 }
 
-export function buildToolSchemasUpdate(payload: { tool_schemas?: unknown } | null | undefined) {
+function buildToolSchemasUpdate(payload: { tool_schemas?: unknown } | null | undefined) {
   return {
     toolSchemas: normalizeToolSchemas(payload?.tool_schemas),
   };
@@ -52,7 +52,7 @@ function findLastMessage(
   return null;
 }
 
-export function findLastMessageIdBySender(
+function findLastMessageIdBySender(
   messages: ChatStreamMessageTarget[],
   sender: string,
   turnRef?: string,
@@ -67,7 +67,7 @@ export function findLastMessageIdBySender(
   return lastMessage ? lastMessage.id : null;
 }
 
-export function findLastAssistantLlmTextMessageId(
+function findLastAssistantLlmTextMessageId(
   messages: ChatStreamMessageTarget[],
   turnRef?: string,
 ): string | null {
@@ -82,7 +82,7 @@ export function findLastAssistantLlmTextMessageId(
   return lastMessage ? lastMessage.id : null;
 }
 
-export function findFirstMessageIdBySender(
+function findFirstMessageIdBySender(
   messages: ChatStreamMessageTarget[],
   sender: string,
 ): string | null {
@@ -90,14 +90,14 @@ export function findFirstMessageIdBySender(
   return firstMessage ? firstMessage.id : null;
 }
 
-export function buildSystemPromptUpdate(payload: SystemPromptPayload | null | undefined) {
+function buildSystemPromptUpdate(payload: SystemPromptPayload | null | undefined) {
   return {
     content: normalizeIncomingText(payload?.content),
     toolSchemas: normalizeToolSchemas(payload?.tool_schemas),
   };
 }
 
-export function buildUserMessageFullUpdate(payload: UserMessageFullPayload | null | undefined) {
+function buildUserMessageFullUpdate(payload: UserMessageFullPayload | null | undefined) {
   const metadata = payload?.metadata;
   return {
     content: normalizeIncomingText(payload?.content),
@@ -107,8 +107,18 @@ export function buildUserMessageFullUpdate(payload: UserMessageFullPayload | nul
   };
 }
 
-export function buildAssistantMessageFullUpdate(payload: AssistantMessageFullPayload | null | undefined) {
+function buildAssistantMessageFullUpdate(payload: AssistantMessageFullPayload | null | undefined) {
   return {
     content: normalizeIncomingText(payload?.content),
   };
 }
+
+export const DesktopChatStreamMessageUpdateRuntime = Object.freeze({
+  buildToolSchemasUpdate,
+  findLastMessageIdBySender,
+  findLastAssistantLlmTextMessageId,
+  findFirstMessageIdBySender,
+  buildSystemPromptUpdate,
+  buildUserMessageFullUpdate,
+  buildAssistantMessageFullUpdate,
+});

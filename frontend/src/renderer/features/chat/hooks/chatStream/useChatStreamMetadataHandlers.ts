@@ -18,16 +18,20 @@ import {
   resolveToolSchemasMetadataPayload,
 } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import {
-  buildAssistantMessageFullUpdate,
-  buildSystemPromptUpdate,
-  buildToolSchemasUpdate,
-  buildUserMessageFullUpdate,
+  DesktopChatStreamMessageUpdateRuntime,
 } from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 import type {
   StreamTrackingEventType,
   StreamTrackingOptions,
 } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import type { ChatMessage } from '../../stores/chatStore';
+
+const {
+  buildAssistantMessageFullUpdate,
+  buildSystemPromptUpdate,
+  buildToolSchemasUpdate,
+  buildUserMessageFullUpdate,
+} = DesktopChatStreamMessageUpdateRuntime;
 
 type ShouldIgnoreForStaleTurn = (
   event: { turnRef?: string | null },

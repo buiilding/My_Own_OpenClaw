@@ -2,14 +2,16 @@
  * Covers desktop chat stream message update runtime behavior in the frontend test suite.
  */
 
-import {
+import { DesktopChatStreamMessageUpdateRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime';
+
+const {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
   findLastAssistantLlmTextMessageId,
   findFirstMessageIdBySender,
   findLastMessageIdBySender,
-} from '../../frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime';
+} = DesktopChatStreamMessageUpdateRuntime;
 
 describe('desktopChatStreamMessageUpdateRuntime', () => {
   const messages = [

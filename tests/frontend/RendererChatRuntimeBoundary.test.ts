@@ -1149,6 +1149,14 @@ describe('renderer chat runtime boundary', () => {
       expect(source).not.toContain('infrastructure/transcript/toolSchemaShape');
       expect(source).not.toContain('infrastructure/text/incomingTextNormalization');
       expect(source).toContain('desktopChatMessageRuntimeClient');
+      expect(source).toContain('export const DesktopChatStreamMessageUpdateRuntime = Object.freeze');
+      expect(source).not.toContain('export function buildToolSchemasUpdate');
+      expect(source).not.toContain('export function findLastMessageIdBySender');
+      expect(source).not.toContain('export function findLastAssistantLlmTextMessageId');
+      expect(source).not.toContain('export function findFirstMessageIdBySender');
+      expect(source).not.toContain('export function buildSystemPromptUpdate');
+      expect(source).not.toContain('export function buildUserMessageFullUpdate');
+      expect(source).not.toContain('export function buildAssistantMessageFullUpdate');
       expect(source).not.toContain('features/chat');
     }
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolCallMessageState');

@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Stream Message Update Facade
+
+- Finding: `desktopChatStreamMessageUpdateRuntime.ts` already owned
+  metadata payload update builders and live message-target selector rules, but
+  still exported each builder/selector as a standalone helper consumed by
+  stream metadata handlers, terminal token updates, selector hooks, and tests.
+- Change: made the message update builders/selectors private to the runtime
+  module, exposed them through `DesktopChatStreamMessageUpdateRuntime`, and
+  routed stream metadata, terminal token-count row updates, stream message
+  updater hooks, and focused tests through that facade.
+- Validation: focused message-update runtime, metadata handlers, chat thinking
+  state, renderer chat boundary, terminal-handler lint path, exact standalone
+  builder/selector export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Message target selection,
+  turn-scoped metadata no-op behavior, incoming text normalization, tool schema
+  normalization, token-count row updates, IPC, storage, permissions,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Chat Stream Tracking Facade
 
 - Finding: `desktopChatStreamTrackingRuntime.ts` already owned stream telemetry

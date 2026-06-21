@@ -65,11 +65,13 @@ Core behavior:
 2. payload message string
 3. `"An error occurred"`
 
-## Message Update Contracts (`desktopChatStreamMessageUpdateRuntime.ts`)
+## Message Update Contracts (`DesktopChatStreamMessageUpdateRuntime`)
 
 Message targeting:
 
-- `findLastMessageIdBySender` and `findLastAssistantLlmTextMessageId` support optional turn scoping.
+- `DesktopChatStreamMessageUpdateRuntime.findLastMessageIdBySender(...)` and
+  `DesktopChatStreamMessageUpdateRuntime.findLastAssistantLlmTextMessageId(...)`
+  support optional turn scoping.
 - `useStreamMessageUpdaters` resolves message ids from live workspace state at
   update time so metadata updates do not rely on stale render snapshots.
 - Assistant streaming text append/new behavior is owned by SDK current-turn
@@ -78,8 +80,11 @@ Message targeting:
 
 Metadata normalization:
 
-- `buildSystemPromptUpdate` and `buildToolSchemasUpdate` normalize supported `tool_schemas` into the canonical nested function-schema shape before storing.
-- `buildUserMessageFullUpdate` and `buildAssistantMessageFullUpdate` coerce non-string content to empty string.
+- `DesktopChatStreamMessageUpdateRuntime.buildSystemPromptUpdate(...)` and
+  `DesktopChatStreamMessageUpdateRuntime.buildToolSchemasUpdate(...)` normalize supported `tool_schemas` into the canonical nested function-schema shape before storing.
+- `DesktopChatStreamMessageUpdateRuntime.buildUserMessageFullUpdate(...)` and
+  `DesktopChatStreamMessageUpdateRuntime.buildAssistantMessageFullUpdate(...)`
+  coerce non-string content to empty string.
 - text repair/sanitization for stream chunks and transparency payload text is centralized in `incomingTextNormalization.ts` (mojibake repair + lone-surrogate replacement), shared with the desktop transcript projection/session runtimes.
 
 ## Test-Backed Invariants
