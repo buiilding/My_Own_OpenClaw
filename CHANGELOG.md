@@ -52,6 +52,10 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopModelCardPresentationRuntime` instead of standalone helper exports,
   keeping model catalog presentation rules behind the app-runtime facade. No
   migration required.
+- frontend/renderer: expose chat provider/model/reasoning option projection
+  through `DesktopChatModelOptionsRuntime` instead of standalone helper
+  exports, keeping chat model selector rules behind the app-runtime facade. No
+  migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

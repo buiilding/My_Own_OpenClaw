@@ -157,7 +157,7 @@ When `useChatLoopUiState` reports disconnected transport:
 
 ## Drift Hotspots
 
-1. Changing provider/model fallback rules without matching `desktopChatModelOptionsRuntime.js` helpers can leave impossible selected-model combinations.
+1. Changing provider/model fallback rules without matching `DesktopChatModelOptionsRuntime` methods can leave impossible selected-model combinations.
 2. Removing `waitForNextPaint()` before compaction can hide status transition timing in UI during manual compaction.
 3. Bypassing `DesktopLiveTurnRuntimeClient.stop(...)` can send stop signals outside the SDK runtime/transport boundary.
 

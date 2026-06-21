@@ -24,14 +24,7 @@ import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorks
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
 import { startNewChatSession } from '../../../app/runtime/desktopNewChatSessionRuntime';
 import {
-  buildChatModelOptions,
-  buildChatProviderOptions,
-  formatProviderLabel,
-  getAvailableModelPool,
-  resolveModelIdForReasoningMode,
-  resolveProviderModels,
-  resolveSelectedReasoningMode,
-  resolveSelectedModelOption,
+  DesktopChatModelOptionsRuntime,
 } from '../../../app/runtime/desktopChatModelOptionsRuntime';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
@@ -47,6 +40,16 @@ import { buildThreadFindState } from '../../../app/runtime/desktopThreadFindRunt
 import '../../../styles/ChatInterface.css';
 
 const chatSkin = desktopRuntimeSkin.chat;
+const {
+  buildChatModelOptions,
+  buildChatProviderOptions,
+  formatProviderLabel,
+  getAvailableModelPool,
+  resolveModelIdForReasoningMode,
+  resolveProviderModels,
+  resolveSelectedReasoningMode,
+  resolveSelectedModelOption,
+} = DesktopChatModelOptionsRuntime;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (

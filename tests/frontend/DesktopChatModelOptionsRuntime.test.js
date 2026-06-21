@@ -3,6 +3,10 @@
  */
 
 import {
+  DesktopChatModelOptionsRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime';
+
+const {
   buildChatModelOptions,
   buildChatProviderOptions,
   formatProviderLabel,
@@ -11,7 +15,7 @@ import {
   resolveProviderModels,
   resolveSelectedReasoningMode,
   resolveSelectedModelOption,
-} from '../../frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime';
+} = DesktopChatModelOptionsRuntime;
 
 describe('desktopChatModelOptionsRuntime', () => {
   test('formats known and hyphenated providers', () => {

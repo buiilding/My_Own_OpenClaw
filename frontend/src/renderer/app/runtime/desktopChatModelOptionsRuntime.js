@@ -151,15 +151,15 @@ function buildModelGroupKey(provider, runtimeModelId, familyId) {
   return normalizeString(familyId) || `${normalizeProvider(provider)}::${runtimeModelId}`;
 }
 
-export function formatProviderLabel(providerValue) {
+function formatProviderLabel(providerValue) {
   return formatProviderDisplayLabel(providerValue);
 }
 
-export function getAvailableModelPool(availableModels, modelMode) {
+function getAvailableModelPool(availableModels, modelMode) {
   return DesktopModelSelectionRuntime.getCurrentModels(availableModels, modelMode);
 }
 
-export function buildChatModelOptions({
+function buildChatModelOptions({
   availableModelPool,
   configuredModelId,
   configuredProvider,
@@ -302,7 +302,7 @@ export function buildChatModelOptions({
   return options;
 }
 
-export function buildChatProviderOptions({
+function buildChatProviderOptions({
   availableModelPool,
   configuredProvider,
 }) {
@@ -330,20 +330,20 @@ export function buildChatProviderOptions({
   return options;
 }
 
-export function resolveProviderModels(availableModelPool, provider) {
+function resolveProviderModels(availableModelPool, provider) {
   const normalizedSelectedProvider = normalizeProvider(provider);
   return availableModelPool.filter(
     (model) => normalizeProvider(model?.provider) === normalizedSelectedProvider,
   );
 }
 
-export function resolveSelectedModelOption(modelOptions, configuredModelId) {
+function resolveSelectedModelOption(modelOptions, configuredModelId) {
   return modelOptions.find(
     (option) => option.id === configuredModelId || option.runtimeModelId === configuredModelId,
   ) || modelOptions[0];
 }
 
-export function resolveSelectedReasoningMode(modelOption, configuredModelId) {
+function resolveSelectedReasoningMode(modelOption, configuredModelId) {
   const reasoningModes = Array.isArray(modelOption?.reasoningModeOptions)
     ? modelOption.reasoningModeOptions
     : [];
@@ -366,7 +366,7 @@ export function resolveSelectedReasoningMode(modelOption, configuredModelId) {
   return (medium || reasoningModes[0]).mode;
 }
 
-export function resolveModelIdForReasoningMode(modelOption, mode) {
+function resolveModelIdForReasoningMode(modelOption, mode) {
   const reasoningModes = Array.isArray(modelOption?.reasoningModeOptions)
     ? modelOption.reasoningModeOptions
     : [];
@@ -388,3 +388,14 @@ export function resolveModelIdForReasoningMode(modelOption, mode) {
   const medium = reasoningModes.find((option) => option.mode === 'medium');
   return (medium || reasoningModes[0]).modelId;
 }
+
+export const DesktopChatModelOptionsRuntime = Object.freeze({
+  buildChatModelOptions,
+  buildChatProviderOptions,
+  formatProviderLabel,
+  getAvailableModelPool,
+  resolveModelIdForReasoningMode,
+  resolveProviderModels,
+  resolveSelectedModelOption,
+  resolveSelectedReasoningMode,
+});

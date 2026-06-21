@@ -7380,8 +7380,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   OpenAI/OpenRouter inside generic model-option utilities instead of sharing the
   renderer provider display skin metadata.
 - Change: moved chat model provider label overrides into renderer skin/config
-  and kept the exported `formatProviderLabel(...)` helper as the generic UI
-  facade.
+  and then routed chat model-option projection through the
+  `DesktopChatModelOptionsRuntime` facade.
 - Finding: renderer config storage still embedded the default model mode,
   provider, and model id directly in the generic persistence normalizer.
 - Change: moved default model selection values into renderer skin/config and

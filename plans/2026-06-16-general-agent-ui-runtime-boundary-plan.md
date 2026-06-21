@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Model Options Facade
+
+- Finding: `desktopChatModelOptionsRuntime.js` already owned chat provider
+  label formatting, model pool selection, provider/model/reasoning option
+  projection, provider-scoped model resolution, selected option fallback, and
+  reasoning-mode model-id resolution, but exposed each helper as a standalone
+  function imported by chat UI and focused tests.
+- Change: made the chat model-option helpers private to the runtime module,
+  exposed them through `DesktopChatModelOptionsRuntime`, and routed
+  `ChatInterface`, `ChatInterfaceHeaderControls`, and focused model-option
+  tests through that facade.
+- Validation: focused chat model options, chat interface wiring, renderer chat
+  boundary, exact standalone chat model-option helper export/import scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. Backend model catalog
+  metadata, renderer config keys, provider API-key handling, deferred model
+  sync, selected-provider fallback, reasoning variant choice, IPC, storage,
+  credentials, provider policy, hosted backend URLs, and local execution trust
+  boundaries are unchanged.
+
 ### 2026-06-21 Renderer Stop Turn Facade
 
 - Finding: `desktopStopTurnRuntime.js` already owned renderer stop-query
