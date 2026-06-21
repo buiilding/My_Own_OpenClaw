@@ -9159,3 +9159,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   unchanged where they are repository identifiers. Browser feature-pack
   installation, Playwright/CDP behavior, IPC, storage, provider policy,
   permissions, and backend behavior are unchanged; no migration is required.
+- The local-runtime Python daemon reference now uses daemon/local-runtime
+  wording for discovery, feature flags, auth-token handling, and dynamic module
+  registration instead of sidecar-as-owner prose. Concrete identifiers such as
+  the doc title/path and `sidecar_daemon.py` remain unchanged. Daemon discovery
+  shape, token behavior, feature flags, tool registration, IPC, storage,
+  provider policy, permissions, and backend behavior are unchanged; no migration
+  is required.

@@ -21747,3 +21747,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Documentation labels changed only;
   browser feature-pack installation, Playwright/CDP behavior, test paths, IPC,
   storage, provider policy, permissions, and backend behavior are unchanged.
+
+### 2026-06-21 daemon reference local-runtime owner labels
+
+- Finding: the local-runtime Python daemon reference still used active sidecar
+  owner wording for discovery, feature flags, token handling, and dynamic module
+  registration.
+- Change: relabeled those phrases to daemon/local-runtime wording while
+  preserving concrete identifiers such as the document title/path and
+  `sidecar_daemon.py`.
+- Validation: focused daemon-reference stale-label scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Documentation labels changed only;
+  daemon discovery shape, auth token behavior, feature flags, dynamic tool
+  registration, IPC, storage, provider policy, permissions, and backend
+  behavior are unchanged.

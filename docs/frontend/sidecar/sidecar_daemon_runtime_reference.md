@@ -1,7 +1,7 @@
 ---
 summary: "Local-runtime Python daemon HTTP/WebSocket contract behind the SDK local-runtime boundary, discovery token model, dynamic module/plugin/MCP registration, and executor-only responsibility boundary."
 read_when:
-  - When changing the local-runtime Python daemon, local tool registration, daemon auth, sidecar discovery, or SDK local execution.
+  - When changing the local-runtime Python daemon, local tool registration, daemon auth, daemon discovery, or SDK local execution.
   - When deciding whether a capability belongs in backend policy or local executor code.
   - When debugging `baseUrl` discovery metadata rejected by daemon discovery reuse.
 title: "Sidecar Daemon Runtime Reference"
@@ -21,7 +21,7 @@ The daemon:
 - generates a random per-process token unless a test explicitly provides one
 - writes a discovery file containing `pid`, `host`, `port`, canonical `base_url`,
   `token`, `created_at`, and non-secret launch context for backend URL,
-  auth-state path, packaging mode, and sidecar feature flags
+  auth-state path, packaging mode, and local-runtime feature flags
 - is started/reused by the SDK auto-local-runtime provider from desktop launch options
   supplied by Electron main
 - owns the app-session `LocalRuntimeService` instance and its `LocalMemoryStore`
@@ -65,7 +65,7 @@ and waits for a fresh discovery file before routing local execution.
 
 Discovery reuse is restricted to loopback HTTP(S) origins. Hosts should reject
 discovery entries with non-loopback hosts, unsupported schemes, userinfo, paths,
-queries, or fragments before sending the sidecar token, and delete invalid
+queries, or fragments before sending the daemon token, and delete invalid
 reusable discovery files before launching a replacement daemon.
 
 ## Local Data Paths
@@ -141,7 +141,7 @@ Request:
 }
 ```
 
-The sidecar imports `module:function`, wraps either raw `args` handlers or keyword handlers, stores the schema in the dynamic manifest, and executes the tool through the same `ToolRegistry.execute_tool` path as built-ins.
+The daemon imports `module:function`, wraps either raw `args` handlers or keyword handlers, stores the schema in the dynamic manifest, and executes the tool through the same `ToolRegistry.execute_tool` path as built-ins.
 
 Module entrypoints must return native `tools.result.ToolResult` values.
 

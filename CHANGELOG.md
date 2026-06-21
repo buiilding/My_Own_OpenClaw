@@ -50,6 +50,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/browser: relabel active browser troubleshooting and feature-pack owner
   wording through local-runtime Python/local-runtime labels instead of sidecar
   owner wording. No migration required.
+- docs/frontend: relabel active local-runtime daemon discovery, feature-flag,
+  auth-token, and module-registration wording away from sidecar-as-owner prose.
+  No migration required.
 - docs/development: route setup, testing, validation, triage, contributing,
   and local-runtime workflow guidance through local-runtime Python wording while
   preserving concrete `tests/sidecar` paths. No migration required.
