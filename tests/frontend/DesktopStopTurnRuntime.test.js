@@ -67,6 +67,25 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
+  test('does not use SDK presentation busy as a stop target without active phase', () => {
+    expect(resolveStopTurnTarget({
+      currentTurnProjection: {
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-sdk',
+        phase: 'idle',
+        presentation: {
+          isBusy: true,
+        },
+      },
+      conversationRef: 'conv-session',
+    })).toEqual({
+      source: 'idle',
+      conversationRef: 'conv-session',
+      turnRef: null,
+      canStop: false,
+    });
+  });
+
   test('classifies stop target sources behind runtime predicates', () => {
     const currentTurnTarget = resolveStopTurnTarget({
       currentTurnProjection: {

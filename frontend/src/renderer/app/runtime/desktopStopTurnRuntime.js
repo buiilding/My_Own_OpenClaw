@@ -76,10 +76,7 @@ function isStoppableCurrentTurnProjection(currentTurnProjection) {
     return false;
   }
   const phase = normalizeRef(currentTurnProjection.phase);
-  return (
-    STOPPABLE_CURRENT_TURN_PHASES.has(phase)
-    || currentTurnProjection.presentation?.isBusy === true
-  );
+  return STOPPABLE_CURRENT_TURN_PHASES.has(phase);
 }
 
 function isPendingTurn(value) {

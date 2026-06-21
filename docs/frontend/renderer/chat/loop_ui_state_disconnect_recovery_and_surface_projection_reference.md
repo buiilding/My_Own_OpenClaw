@@ -230,6 +230,8 @@ survive adaptation.
 
 - consumes `useChatSurfaceController(...)`
 - uses visible lifecycle `isBusy` as the stop-query affordance gate
+- resolves Stop targets from active SDK phases or renderer `pendingTurn`; SDK
+  `presentation.isBusy` is rendering data and does not create a Stop target
 - disables assistant feedback/retry actions from visible lifecycle busy/Stop
   state instead of raw `isSending`
 - uses visible lifecycle awaiting anchor for `showAssistantAwaitingDot` instead

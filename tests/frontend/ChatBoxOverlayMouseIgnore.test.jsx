@@ -496,7 +496,12 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('keeps pill controls interactive during active loop phases and shows stop', async () => {
-    mockChatState.currentTurnProjection = { phase: 'streaming', turnRef: 'turn-active' };
+    mockChatState.currentTurnProjection = {
+      conversationRef: 'conv-overlay',
+      phase: 'streaming',
+      turnRef: 'turn-active',
+      assistantText: 'active stream',
+    };
     render(<MinimalChatPill />);
 
     expect(screen.getByRole('button', { name: 'Open config' })).toBeEnabled();
@@ -524,6 +529,7 @@ describe('ChatBox overlay mouse ignore', () => {
       conversationRef: 'conv-visible-turn',
       phase: 'streaming',
       turnRef: 'turn-visible',
+      assistantText: 'visible stream',
     };
     render(<MinimalChatPill />);
 
@@ -707,7 +713,11 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('focuses input from chatbox-focus while active loop keeps pill interactive', async () => {
-    mockChatState.currentTurnProjection = { phase: 'tool_call', turnRef: 'turn-active' };
+    mockChatState.currentTurnProjection = {
+      conversationRef: 'conv-overlay',
+      phase: 'tool_call',
+      turnRef: 'turn-active',
+    };
     const { container } = render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');
     await waitFor(() => {
@@ -729,14 +739,22 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('adds ambient loop glow class while active overlay phases are running', () => {
-    mockChatState.currentTurnProjection = { phase: 'tool_call', turnRef: 'turn-active' };
+    mockChatState.currentTurnProjection = {
+      conversationRef: 'conv-overlay',
+      phase: 'tool_call',
+      turnRef: 'turn-active',
+    };
     const { container, rerender } = render(<MinimalChatPill />);
     const shellWrap = container.querySelector('.chatbox-shell-wrap');
     expect(shellWrap).toBeTruthy();
 
     expect(shellWrap.classList.contains('loop-active')).toBe(true);
 
-    mockChatState.currentTurnProjection = { phase: 'complete', turnRef: 'turn-active' };
+    mockChatState.currentTurnProjection = {
+      conversationRef: 'conv-overlay',
+      phase: 'complete',
+      turnRef: 'turn-active',
+    };
     rerender(<MinimalChatPill />);
     expect(shellWrap.classList.contains('loop-active')).toBe(false);
   });
@@ -848,7 +866,12 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('renders stop button during active stream', async () => {
-    mockChatState.currentTurnProjection = { phase: 'streaming', turnRef: 'turn-active' };
+    mockChatState.currentTurnProjection = {
+      conversationRef: 'conv-overlay',
+      phase: 'streaming',
+      turnRef: 'turn-active',
+      assistantText: 'active stream',
+    };
     render(<MinimalChatPill />);
 
     expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();

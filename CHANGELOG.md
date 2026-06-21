@@ -109,6 +109,10 @@ All notable changes to WindieOS will be documented in this file.
   `selectLiveTurnSurfaceState(...)` and the app-runtime live-surface selector;
   response overlay keeps any raw send-latch access as an explicit trace-only
   store read. No migration required.
+- frontend/renderer: stop treating SDK `presentation.isBusy` as a Stop target
+  authority; Stop targeting now follows active SDK phases or renderer
+  `pendingTurn` while visible lifecycle owns Stop button availability. No
+  migration required.
 - frontend/renderer: route dashboard conversation rename/delete browser dialogs
   through `DesktopDashboardConversationDialogRuntime`, keeping `window.prompt`
   and `window.confirm` adapter details out of dashboard feature hooks. No

@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Stop Target SDK Busy Fallback Removal
+
+- Finding: `DesktopStopTurnRuntime.resolveStopTurnTarget(...)` still accepted
+  SDK `currentTurnProjection.presentation.isBusy=true` as enough to target a
+  current turn for Stop, even though Stop button availability is already gated
+  by the renderer visible lifecycle and ADR 006 lists SDK presentation busy as
+  a non-authority.
+- Change: Stop target resolution now chooses SDK current-turn targets only for
+  active/stoppable SDK phases, or renderer `pendingTurn` targets for local
+  pending sends. Busy-only SDK presentation no longer creates a stoppable turn
+  target.
+- Validation target: `DesktopStopTurnRuntime.test.js` protects the busy-only
+  rejection alongside active SDK phase and pending-turn Stop targeting.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Live Surface Selector Send Alias Removal
 
 - Finding: `selectLiveTurnSurfaceState(...)` still exposed raw `isSending`
