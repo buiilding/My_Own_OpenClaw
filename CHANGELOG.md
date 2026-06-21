@@ -70,6 +70,10 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopThreadFindRuntime` instead of a standalone helper export, keeping
   chat search indexing rules behind the renderer app-runtime facade. No
   migration required.
+- frontend/renderer: expose conversation replay row selection, tool-message
+  pairing, and prepared-turn shaping through `DesktopConversationReplayRuntime`
+  instead of standalone helper exports, keeping edit/resend and retry replay
+  rules behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

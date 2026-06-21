@@ -20,15 +20,18 @@ import {
   resolveRendererConversationSessionSnapshot,
 } from '../../../app/runtime/desktopConversationSessionRuntime';
 import {
+  DesktopConversationReplayRuntime,
+} from '../../../app/runtime/desktopConversationReplayRuntime';
+import { dispatchPreparedDesktopChatTurn } from '../../../app/runtime/desktopChatSendPreparationRuntime';
+
+const chatSkin = desktopRuntimeSkin.chat;
+const {
   buildPreparedReplayDesktopChatTurn,
   buildReplayContextMessages,
   buildReplayPreparationPayload,
   findReplayEditableUserMessageIndex,
   resolveReplayRetryMessageIndexes,
-} from '../../../app/runtime/desktopConversationReplayRuntime';
-import { dispatchPreparedDesktopChatTurn } from '../../../app/runtime/desktopChatSendPreparationRuntime';
-
-const chatSkin = desktopRuntimeSkin.chat;
+} = DesktopConversationReplayRuntime;
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   let conversationRef = resolveRendererConversationSessionSnapshot({

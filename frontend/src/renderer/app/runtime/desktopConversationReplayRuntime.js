@@ -93,7 +93,7 @@ function isReplayAssistantMessage(message) {
   return message?.sender === 'assistant';
 }
 
-export function findReplayEditableUserMessageIndex(messages, userMessageId) {
+function findReplayEditableUserMessageIndex(messages, userMessageId) {
   if (!Array.isArray(messages) || typeof userMessageId !== 'string' || !userMessageId) {
     return -1;
   }
@@ -102,7 +102,7 @@ export function findReplayEditableUserMessageIndex(messages, userMessageId) {
   );
 }
 
-export function resolveReplayRetryMessageIndexes(messages, assistantMessageId) {
+function resolveReplayRetryMessageIndexes(messages, assistantMessageId) {
   if (!Array.isArray(messages) || typeof assistantMessageId !== 'string' || !assistantMessageId) {
     return { assistantIndex: -1, userIndex: -1 };
   }
@@ -144,7 +144,7 @@ function findMatchingPendingToolCallIndex(pendingCalls, outputCorrelationId) {
   return -1;
 }
 
-export function buildReplayContextMessages(messages) {
+function buildReplayContextMessages(messages) {
   if (!Array.isArray(messages) || messages.length === 0) {
     return [];
   }
@@ -184,7 +184,7 @@ export function buildReplayContextMessages(messages) {
   });
 }
 
-export function buildReplayPreparationPayload({
+function buildReplayPreparationPayload({
   screenshotRef,
   screenshotUrl,
 }) {
@@ -198,7 +198,7 @@ export function buildReplayPreparationPayload({
   return payload;
 }
 
-export function buildPreparedReplayDesktopChatTurn({
+function buildPreparedReplayDesktopChatTurn({
   preparedReplayTurn,
   conversationRef,
   deferredQueryModelSelection,
@@ -238,3 +238,11 @@ export function buildPreparedReplayDesktopChatTurn({
     workspacePath: preparedReplayTurn.workspacePath ?? workspacePath ?? null,
   };
 }
+
+export const DesktopConversationReplayRuntime = Object.freeze({
+  buildPreparedReplayDesktopChatTurn,
+  buildReplayContextMessages,
+  buildReplayPreparationPayload,
+  findReplayEditableUserMessageIndex,
+  resolveReplayRetryMessageIndexes,
+});

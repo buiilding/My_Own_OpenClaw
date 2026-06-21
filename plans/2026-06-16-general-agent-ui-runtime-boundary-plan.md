@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Conversation Replay Facade
+
+- Finding: `desktopConversationReplayRuntime.js` already owned edit/resend and
+  retry row selection, replay context filtering, tool-call/tool-output pairing,
+  replay preparation payload construction, and prepared desktop chat turn
+  shaping, but still exported those rules as standalone helpers consumed by
+  `useConversationReplayActions` and focused tests.
+- Change: made the replay helpers private to the runtime module, exposed them
+  through `DesktopConversationReplayRuntime`, and routed replay actions plus
+  focused replay tests through that facade.
+- Validation: focused conversation replay runtime, replay action hook, renderer
+  chat boundary, exact standalone replay helper export/import scan, docs list,
+  and diff hygiene.
+- Compatibility/security: no migration required. Edit/resend and retry
+  sequencing, canonical SDK conversation rewrite preparation, tool-message
+  pairing, screenshot refs/URLs, attachment filename propagation, UI state, IPC,
+  storage, credentials, provider policy, hosted backend URLs, and local
+  execution trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Thread Find Facade
 
 - Finding: `desktopThreadFindRuntime.js` already owned chat thread-find match

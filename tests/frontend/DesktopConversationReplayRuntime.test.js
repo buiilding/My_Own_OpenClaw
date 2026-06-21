@@ -3,12 +3,16 @@
  */
 
 import {
+  DesktopConversationReplayRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime';
+
+const {
   buildPreparedReplayDesktopChatTurn,
   buildReplayContextMessages,
   buildReplayPreparationPayload,
   findReplayEditableUserMessageIndex,
   resolveReplayRetryMessageIndexes,
-} from '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime';
+} = DesktopConversationReplayRuntime;
 
 describe('desktopConversationReplayRuntime', () => {
   test('findReplayEditableUserMessageIndex only selects matching user rows', () => {

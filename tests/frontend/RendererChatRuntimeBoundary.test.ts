@@ -1435,6 +1435,7 @@ describe('renderer chat runtime boundary', () => {
 
     expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).toContain('desktopConversationReplayRuntime');
+    expect(source).toContain('DesktopConversationReplayRuntime');
     expect(source).not.toContain('utils/conversationReplayToolMessages');
     expect(source).toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).toContain('DesktopConversationContinuityService.prepareRetryTurn');
@@ -1459,6 +1460,12 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).toContain('buildPreparedReplayDesktopChatTurn');
     expect(replayRuntimeSource).toContain('findReplayEditableUserMessageIndex');
     expect(replayRuntimeSource).toContain('resolveReplayRetryMessageIndexes');
+    expect(replayRuntimeSource).toContain('DesktopConversationReplayRuntime');
+    expect(replayRuntimeSource).not.toContain('export function findReplayEditableUserMessageIndex');
+    expect(replayRuntimeSource).not.toContain('export function resolveReplayRetryMessageIndexes');
+    expect(replayRuntimeSource).not.toContain('export function buildReplayContextMessages');
+    expect(replayRuntimeSource).not.toContain('export function buildReplayPreparationPayload');
+    expect(replayRuntimeSource).not.toContain('export function buildPreparedReplayDesktopChatTurn');
     expect(replayRuntimeSource).toContain('screenshot_ref');
     expect(replayRuntimeSource).toContain('attachment_filenames');
     expect(replayRuntimeSource).not.toContain('features/chat');
