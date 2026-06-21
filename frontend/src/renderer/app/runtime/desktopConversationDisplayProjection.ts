@@ -7,10 +7,6 @@ import {
   buildChatMessagesFromSdkDisplayRows,
 } from '../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 
-export {
-  buildChatMessagesFromSdkDisplayRows,
-};
-
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.trim()
     ? turnRef.trim()
@@ -75,7 +71,7 @@ function mergePendingOptimisticUserMessages(
   return merged;
 }
 
-export function mergeRendererAnnotationsIntoSdkMessages(
+function mergeRendererAnnotationsIntoSdkMessages(
   sdkMessages: ChatMessage[],
   currentMessages: ChatMessage[],
 ): ChatMessage[] {
@@ -103,3 +99,8 @@ export function mergeRendererAnnotationsIntoSdkMessages(
     pendingOptimisticUserMessages(mergedSdkMessages, currentMessages),
   );
 }
+
+export const DesktopConversationDisplayProjection = Object.freeze({
+  buildChatMessagesFromSdkDisplayRows,
+  mergeRendererAnnotationsIntoSdkMessages,
+});

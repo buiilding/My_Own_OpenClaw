@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose SDK display-row projection and renderer annotation
+  merge rules through `DesktopConversationDisplayProjection` instead of
+  standalone helper exports, keeping chat and dashboard display projection
+  behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose manual compaction command orchestration through
   `DesktopManualCompactionRuntime` instead of a standalone async helper export,
   keeping model-selection handoff, thinking labels, and continuity compaction

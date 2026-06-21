@@ -5,8 +5,7 @@
 import { useEffect, useRef } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import {
-  buildChatMessagesFromSdkDisplayRows,
-  mergeRendererAnnotationsIntoSdkMessages,
+  DesktopConversationDisplayProjection,
 } from '../../../app/runtime/desktopConversationDisplayProjection';
 import {
   DesktopChatStreamEventRuntime,
@@ -30,6 +29,10 @@ const {
   createProjectionCursor,
   shouldAcceptCurrentTurnBeforeLocalSend,
 } = DesktopCurrentTurnProjectionEffectsRuntime;
+const {
+  buildChatMessagesFromSdkDisplayRows,
+  mergeRendererAnnotationsIntoSdkMessages,
+} = DesktopConversationDisplayProjection;
 
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());

@@ -9247,3 +9247,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   conversation runtime registry behavior, IPC wiring, renderer payloads,
   storage, provider policy, permissions, backend behavior, and trust boundaries
   are unchanged; no migration is required.
+- Renderer SDK display-row projection and renderer annotation merge now route
+  through `DesktopConversationDisplayProjection` instead of standalone helper
+  exports. Chat projection streaming, dashboard conversation resume, focused
+  display projection tests, and renderer boundary tests consume the facade
+  object while the runtime keeps optimistic renderer rows and annotation merge
+  rules private. Display rows, chat message shape, dashboard loading, IPC,
+  storage, local-runtime execution, provider policy, backend behavior, and
+  trust boundaries are unchanged; no migration is required.

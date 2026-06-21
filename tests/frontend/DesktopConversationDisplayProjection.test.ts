@@ -3,10 +3,14 @@
  */
 
 import {
-  buildChatMessagesFromSdkDisplayRows,
-  mergeRendererAnnotationsIntoSdkMessages,
+  DesktopConversationDisplayProjection,
 } from '../../frontend/src/renderer/app/runtime/desktopConversationDisplayProjection';
 import type { ChatMessage } from '../../frontend/src/renderer/app/runtime/desktopChatMessageTypes';
+
+const {
+  buildChatMessagesFromSdkDisplayRows,
+  mergeRendererAnnotationsIntoSdkMessages,
+} = DesktopConversationDisplayProjection;
 
 function message(overrides: Partial<ChatMessage>): ChatMessage {
   return {

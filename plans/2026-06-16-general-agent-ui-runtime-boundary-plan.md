@@ -24230,3 +24230,21 @@ Each completed slice should report:
   attachment object payloads, attachment-only fallback text, renderer markup,
   IPC payloads, storage, local-runtime execution, provider policy, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer display projection facade helper privacy
+
+- Finding: SDK display-row projection and renderer annotation merge rules lived
+  in the renderer app runtime, but chat, dashboard, and focused tests still
+  imported the projection helpers as standalone exports.
+- Change: exposed projection behavior through
+  `DesktopConversationDisplayProjection` and kept
+  `mergeRendererAnnotationsIntoSdkMessages` plus the imported
+  `buildChatMessagesFromSdkDisplayRows` projection behind the runtime facade.
+- Validation: focused display-projection and renderer chat-runtime boundary
+  tests, targeted renderer ESLint, exact source/doc scans, docs listing, and
+  diff checks.
+- Compatibility: no migration required. SDK display rows, renderer annotation
+  merge behavior, optimistic user-row preservation, dashboard conversation
+  resume projection, renderer markup, IPC payloads, storage, local-runtime
+  execution, provider policy, backend behavior, and trust boundaries are
+  unchanged.

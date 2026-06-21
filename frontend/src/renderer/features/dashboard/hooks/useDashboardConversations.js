@@ -3,7 +3,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { buildChatMessagesFromSdkDisplayRows } from '../../../app/runtime/desktopConversationDisplayProjection';
+import { DesktopConversationDisplayProjection } from '../../../app/runtime/desktopConversationDisplayProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopLocalRuntimeStatusRuntimeClient } from '../../../app/runtime/desktopLocalRuntimeStatusRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
@@ -41,6 +41,9 @@ const {
 const {
   resetActiveChatSession,
 } = DesktopActiveChatSessionRuntime;
+const {
+  buildChatMessagesFromSdkDisplayRows,
+} = DesktopConversationDisplayProjection;
 
 function useDashboardConversations({
   resolvedUserId,

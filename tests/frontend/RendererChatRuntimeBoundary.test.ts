@@ -941,6 +941,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).not.toContain('IpcBridge.on');
     expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(projectionSource).toContain('desktopConversationDisplayProjection');
+    expect(projectionSource).toContain('DesktopConversationDisplayProjection');
     expect(projectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(projectionSource).not.toContain('function mergeRendererAnnotations');
     expect(projectionSource).not.toContain('function pendingOptimisticUserMessages');
@@ -961,9 +962,12 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('function normalizeDisplayRowsProjectionEvent');
     expect(eventClientSource).not.toContain('export function normalizeCurrentTurnProjectionEvent');
     expect(eventClientSource).not.toContain('export function normalizeDisplayRowsProjectionEvent');
+    expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
     expect(displayProjectionSource).toContain('renderer-compose');
     expect(displayProjectionSource).toContain('sdkDisplayChatMessageProjection');
+    expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
+    expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).not.toContain('features/chat');
   });
 
@@ -979,8 +983,12 @@ describe('renderer chat runtime boundary', () => {
 
     expect(dashboardHookSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(dashboardHookSource).toContain('desktopConversationDisplayProjection');
+    expect(dashboardHookSource).toContain('DesktopConversationDisplayProjection');
     expect(displayProjectionSource).toContain('sdkDisplayChatMessageProjection');
+    expect(displayProjectionSource).toContain('export const DesktopConversationDisplayProjection = Object.freeze');
     expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
+    expect(displayProjectionSource).not.toContain('export function mergeRendererAnnotationsIntoSdkMessages');
+    expect(displayProjectionSource).not.toContain('export {\n  buildChatMessagesFromSdkDisplayRows');
     expect(displayProjectionSource).toContain("message.sender === 'user'");
     expect(displayProjectionSource).toContain("sourceEventType === 'renderer-compose'");
     expect(displayProjectionSource).toContain("sourceChannel === 'renderer-local'");
