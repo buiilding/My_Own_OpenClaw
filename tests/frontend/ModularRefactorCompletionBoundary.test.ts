@@ -797,12 +797,18 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('IPC query runtime tests keep injected query copy product-neutral', async () => {
-    const source = await read('tests/frontend/IpcQueryRuntime.test.cjs');
+    const source = await Promise.all([
+      read('tests/frontend/IpcQueryRuntime.test.cjs'),
+      read('tests/frontend/ChatMessageSender.test.tsx'),
+      read('tests/frontend/IpcMainBridge.query.test.cjs'),
+    ]).then(sources => sources.join('\n'));
 
     expect(source).not.toContain('mainHostSkin');
     expect(source).not.toContain('WindieOS lost connection');
+    expect(source).not.toContain("WindieOS isn't connected");
     expect(source).toContain('sampleQueryEventsCopy');
     expect(source).toContain('Sample app lost connection after accepting the message.');
+    expect(source).toContain("Sample app isn't connected right now.");
   });
 
   test('extension and MCP runtime tests keep injected env fixtures product-neutral', async () => {

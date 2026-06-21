@@ -24,6 +24,14 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   })),
 }));
 
+jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
+  desktopRuntimeSkin: {
+    chat: {
+      sendFailureMessage: "Sample app isn't connected right now. Try again when the connection is restored.",
+    },
+  },
+}));
+
 let mockActiveConversationRef: string | null = null;
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
   DesktopLiveTurnRuntimeClient: {
@@ -683,7 +691,7 @@ describe('useChatMessageSender', () => {
       expect.objectContaining({
         sender: 'assistant',
         type: 'error',
-        text: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the connection is restored.",
+        text: "Sample app isn't connected right now. Try again when the connection is restored.",
       }),
     );
   });

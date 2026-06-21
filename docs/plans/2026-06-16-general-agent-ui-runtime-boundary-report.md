@@ -11,10 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `3c06ecd48` (`test(main): neutralize diagnostics data path fixture`)
-- Latest completed slice: generic local-runtime launch-option tests now use
-  neutral injected host launch config instead of WindieOS host-skin launch
-  values.
+- Latest inspected plan checkpoint: `b4102f793` (`test(main): neutralize local runtime launch skin fixture`)
+- Latest completed slice: generic renderer/main query send-failure tests now
+  use neutral injected copy instead of WindieOS renderer/main skin strings.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -43,6 +42,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   real WindieOS debug env names remain host-skin owned.
   Generic IPC query runtime tests use sample interruption copy while real
   WindieOS query event copy remains host-skin owned.
+  Generic renderer chat-sender and main IPC query bridge tests use sample
+  send-failure copy while real WindieOS renderer chat copy and main
+  query-event copy remain skin/host-skin owned.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real

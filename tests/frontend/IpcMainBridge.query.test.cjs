@@ -13,6 +13,10 @@ const {
   BACKEND_RECONNECT_INTERVAL_MS,
 } = require('../../frontend/src/main/ipc.cjs');
 
+const sampleQueryEventsCopy = Object.freeze({
+  sendFailure: "Sample app isn't connected right now. Try again when the connection is restored.",
+});
+
 describe('ipc.cjs bridge query handling', () => {
   registerBridgeSuiteLifecycleHooks();
 
@@ -584,7 +588,9 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('keeps initial query context after transient query send failure', async () => {
-    const { handlers, getWs, mainWindow } = await setupQueryBridge();
+    const { handlers, getWs, mainWindow } = await setupQueryBridge({
+      queryEvents: sampleQueryEventsCopy,
+    });
 
     const WebSocketMock = require('ws');
     const originalSend = WebSocketMock.prototype.send;
@@ -608,7 +614,7 @@ describe('ipc.cjs bridge query handling', () => {
     expect(failNextQuerySend).toBe(false);
     expect(getLatestErrorEvent(mainWindow)).toEqual(expect.objectContaining({
       payload: expect.objectContaining({
-        message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the connection is restored.",
+        message: sampleQueryEventsCopy.sendFailure,
       }),
     }));
 

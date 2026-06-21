@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Query Send-Failure Fixture Neutralization
+
+- Finding: renderer chat-sender and main IPC query bridge tests still asserted
+  the WindieOS send-failure copy directly, even though renderer chat copy is
+  skin-owned and main query-event copy is injected through host copy.
+- Change: mocked a neutral renderer `desktopRuntimeSkin.chat` value in
+  `ChatMessageSender` coverage, let the IPC bridge harness accept injected
+  query-event copy, and extended the modular completion guard so generic query
+  tests keep sample send-failure fixtures.
+- Validation: focused chat sender, IPC query bridge, and modular boundary
+  tests, exact send-failure fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime query failure behavior,
+  WindieOS renderer skin copy, main host-skin query-event copy, IPC channels,
+  stored transcripts, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-20 Local Runtime Launch Host Fixture Neutralization
 
 - Finding: local-runtime launch-option unit tests still imported the WindieOS

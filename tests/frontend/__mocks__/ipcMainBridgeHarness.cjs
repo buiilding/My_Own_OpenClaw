@@ -196,7 +196,7 @@ function initIpc(options = {}) {
   });
   ipc.configureIpcHostCopyRuntime({
     identity: mainHostSkin.identity,
-    queryEvents: mainHostSkin.queryEvents,
+    queryEvents: options.queryEvents || mainHostSkin.queryEvents,
   });
   lastIpc = ipc;
 

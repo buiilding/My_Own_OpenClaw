@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/renderer, tests/main: use neutral injected query send-failure copy in
+  chat sender and IPC query bridge coverage instead of WindieOS skin strings.
+  No migration required.
 - tests/main: use a neutral injected local-runtime launch host fixture instead
   of importing WindieOS host-skin launch values. No migration required.
 - tests/main: use neutral injected diagnostics data-path fixtures instead of
