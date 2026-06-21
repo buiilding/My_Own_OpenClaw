@@ -152,6 +152,18 @@ The durable diagnostic should distinguish:
 - optimistic renderer row replacement drops image metadata
 - final user-message rendering drops image metadata
 
+Implemented diagnostic path:
+
+- `renderer.display_projection`, emitted by the renderer display projection
+  runtime through `diagnostics.append`
+- inspect with
+  `<windie> diagnostics list --path renderer.display_projection --limit 50`
+- persisted data includes projection counts such as `sdkUserImageCount`,
+  `sdkProjectedUserImageCount`, `currentOptimisticUserCount`, and
+  `mergedUserImageCount`
+- persisted data excludes chat text, screenshot URLs, screenshot refs, and image
+  bytes
+
 ### 5. Register the Regression
 
 Add the store/display-load test to the Core Loop Regression Pack and the broader

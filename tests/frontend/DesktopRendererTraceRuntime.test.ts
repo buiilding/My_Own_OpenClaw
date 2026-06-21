@@ -3,10 +3,17 @@
  */
 
 const mockSendLiveSurfaceTrace = jest.fn();
+const mockInvokeAgentSdkCommand = jest.fn();
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntimeClient', () => ({
   DesktopLiveSurfaceTraceRuntimeClient: {
     send: (...args: unknown[]) => mockSendLiveSurfaceTrace(...args),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
+  AgentSdkCommandInvokeClient: {
+    invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeAgentSdkCommand(...args),
   },
 }));
 
@@ -115,6 +122,7 @@ describe('desktopRendererTraceRuntime', () => {
 
   test('builds and emits display-row projection image-count traces', () => {
     setSearch('?debug_live_surface=1&view=main');
+    mockInvokeAgentSdkCommand.mockResolvedValue({ stored: true });
 
     expect(buildRendererDisplayRowsProjectionTracePayload({
       source: 'sdk-display-rows-stream',
@@ -152,6 +160,57 @@ describe('desktopRendererTraceRuntime', () => {
       conversationRef: 'conv-1',
       sdkUserImageCount: 1,
       mergedUserImageCount: 1,
+    }));
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
+      _diagnostics: expect.objectContaining({
+        path: 'renderer.display_projection',
+        traceId: expect.stringMatching(/^diag_/),
+        requestId: expect.stringMatching(/^req_/),
+        conversationRef: 'conv-1',
+      }),
+      stage: 'projected',
+      status: 'succeeded',
+      runtime: 'renderer',
+      data: expect.objectContaining({
+        action: 'display_rows_projected',
+        event: 'renderer.display_rows.projected',
+        source: 'sdk-display-rows-stream',
+        sdkUserImageCount: 1,
+        mergedUserImageCount: 1,
+      }),
+    }));
+  });
+
+  test('persists display-row projection diagnostics when live tracing is disabled', () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({ stored: true });
+
+    logRendererDisplayRowsProjectionTrace({
+      source: 'dashboard-open-conversation',
+      conversationRef: 'conv-2',
+      rowCount: 1,
+      sdkUserRowCount: 1,
+      sdkUserRowsWithImages: 1,
+      sdkUserImageCount: 1,
+      sdkProjectedUserImageCount: 1,
+      currentOptimisticUserCount: 1,
+      mergedUserImageCount: 1,
+    });
+
+    expect(mockSendLiveSurfaceTrace).not.toHaveBeenCalled();
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
+      _diagnostics: expect.objectContaining({
+        path: 'renderer.display_projection',
+        conversationRef: 'conv-2',
+      }),
+      data: expect.objectContaining({
+        source: 'dashboard-open-conversation',
+        rowCount: 1,
+        sdkUserRowsWithImages: 1,
+        sdkUserImageCount: 1,
+        sdkProjectedUserImageCount: 1,
+        currentOptimisticUserCount: 1,
+        mergedUserImageCount: 1,
+      }),
     }));
   });
 

@@ -211,6 +211,9 @@ App diagnostic paths:
   and app shutdown cleanup.
 - `renderer.interaction`: renderer UI interaction breadcrumbs normalized through
   Electron main without raw labels, chat text, or message text.
+- `renderer.display_projection`: renderer SDK display-row projection summaries
+  for dashboard/open-conversation and SDK stream paths. Rows store ids and image
+  counts only, not message text, screenshot URLs, refs, or image bytes.
 - `ipc.bridge`: compact Electron main bridge milestones formerly mirrored to
   stdout as `[ElectronTrace]`, including backend connection, renderer query
   send, backend event milestones, tool call/output markers, and settings update

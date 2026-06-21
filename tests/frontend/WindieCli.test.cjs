@@ -516,6 +516,10 @@ describe('windie CLI', () => {
         path: 'surface.visibility',
         owner: expect.stringContaining('surface runtime'),
       }),
+      expect.objectContaining({
+        path: 'renderer.display_projection',
+        purpose: expect.stringContaining('display-row projection image-count'),
+      }),
     ]));
   });
 

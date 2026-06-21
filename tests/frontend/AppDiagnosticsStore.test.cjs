@@ -14,6 +14,7 @@ const {
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
+  RENDERER_DISPLAY_PROJECTION_DIAGNOSTICS_PATH,
   RENDERER_INTERACTION_DIAGNOSTICS_PATH,
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
@@ -163,6 +164,10 @@ describe('app diagnostics store', () => {
       expect.objectContaining({
         path: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
         purpose: 'MCP dashboard enablement toggles and desktop UI config persistence lifecycle.',
+      }),
+      expect.objectContaining({
+        path: RENDERER_DISPLAY_PROJECTION_DIAGNOSTICS_PATH,
+        owner: 'Renderer display-row projection runtime through Electron main',
       }),
     ]));
   });
@@ -384,6 +389,67 @@ describe('app diagnostics store', () => {
         hasTargetLabel: true,
       }),
     }));
+    expect(JSON.stringify(events[0])).not.toContain('do not store');
+  });
+
+  test('persists sanitized renderer display projection diagnostics without content', () => {
+    expect(RENDERER_DISPLAY_PROJECTION_DIAGNOSTICS_PATH).toBe('renderer.display_projection');
+
+    appendDiagnosticEvent({
+      traceId: 'display-projection-diag-test',
+      spanId: 'display-projection-span-test',
+      path: RENDERER_DISPLAY_PROJECTION_DIAGNOSTICS_PATH,
+      stage: 'projected',
+      status: 'succeeded',
+      runtime: 'renderer',
+      conversationRef: 'conv-1',
+      data: {
+        action: 'display_rows_projected',
+        event: 'renderer.display_rows.projected',
+        source: 'dashboard-open-conversation',
+        rowCount: 2,
+        sdkUserRowCount: 1,
+        sdkUserRowsWithImages: 1,
+        sdkUserImageCount: 1,
+        sdkMessageCount: 2,
+        sdkProjectedUserMessageCount: 1,
+        sdkProjectedUserMessagesWithImages: 1,
+        sdkProjectedUserImageCount: 1,
+        currentMessageCount: 1,
+        currentOptimisticUserCount: 1,
+        mergedMessageCount: 2,
+        mergedUserMessageCount: 1,
+        mergedUserMessagesWithImages: 1,
+        mergedUserImageCount: 1,
+        screenshotUrl: 'https://example.com/do-not-store.png',
+        screenshotBytes: 'do-not-store',
+        messageText: 'do not store',
+      },
+    });
+
+    const events = readDiagnosticEvents({
+      pathFilter: RENDERER_DISPLAY_PROJECTION_DIAGNOSTICS_PATH,
+      limit: 10,
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual(expect.objectContaining({
+      traceId: 'display-projection-diag-test',
+      stage: 'projected',
+      runtime: 'renderer',
+      conversationRef: 'conv-1',
+      data: expect.objectContaining({
+        action: 'display_rows_projected',
+        event: 'renderer.display_rows.projected',
+        source: 'dashboard-open-conversation',
+        rowCount: 2,
+        sdkUserImageCount: 1,
+        sdkProjectedUserImageCount: 1,
+        currentOptimisticUserCount: 1,
+        mergedUserImageCount: 1,
+      }),
+    }));
+    expect(JSON.stringify(events[0])).not.toContain('example.com/do-not-store');
+    expect(JSON.stringify(events[0])).not.toContain('do-not-store');
     expect(JSON.stringify(events[0])).not.toContain('do not store');
   });
 

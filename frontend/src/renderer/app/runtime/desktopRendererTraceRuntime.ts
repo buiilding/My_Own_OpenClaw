@@ -3,6 +3,7 @@
  */
 
 import { DesktopLiveSurfaceTraceRuntimeClient } from './desktopLiveSurfaceTraceRuntimeClient';
+import { DesktopRendererDisplayProjectionDiagnosticsClient } from './desktopRendererDisplayProjectionDiagnosticsClient';
 import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
 
 export type RendererTraceWorkspaceSnapshot = {
@@ -742,9 +743,11 @@ function buildRendererDisplayRowsProjectionTracePayload(
 function logRendererDisplayRowsProjectionTrace(
   values: RendererDisplayRowsProjectionTraceValues,
 ): void {
+  const payload = buildRendererDisplayRowsProjectionTracePayload(values);
+  DesktopRendererDisplayProjectionDiagnosticsClient.appendDisplayRowsProjectionDiagnostic(payload);
   logRendererLiveSurfaceTrace(
     'renderer.display_rows.projected',
-    buildRendererDisplayRowsProjectionTracePayload(values),
+    payload,
     traceString(values.conversationRef) || null,
   );
 }

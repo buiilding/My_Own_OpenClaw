@@ -21,6 +21,7 @@ const LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH = 'local_runtime.lifecycle';
 const WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH = 'wakeword.lifecycle';
 const SURFACE_VISIBILITY_DIAGNOSTICS_PATH = 'surface.visibility';
 const RENDERER_INTERACTION_DIAGNOSTICS_PATH = 'renderer.interaction';
+const RENDERER_DISPLAY_PROJECTION_DIAGNOSTICS_PATH = 'renderer.display_projection';
 const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
 const DEFAULT_APP_DATA_DIR_NAME = 'desktop-runtime';
 const DEFAULT_DATA_PATH_ENV = Object.freeze({
@@ -50,6 +51,10 @@ const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
   [RENDERER_INTERACTION_DIAGNOSTICS_PATH]: {
     owner: 'Renderer interaction logger through Electron main',
     purpose: 'Sanitized UI interaction breadcrumbs without labels, chat text, or message content.',
+  },
+  [RENDERER_DISPLAY_PROJECTION_DIAGNOSTICS_PATH]: {
+    owner: 'Renderer display-row projection runtime through Electron main',
+    purpose: 'Sanitized SDK display-row projection image-count summaries without chat text, screenshot URLs, or image bytes.',
   },
   [IPC_BRIDGE_DIAGNOSTICS_PATH]: {
     owner: 'Electron main IPC bridge',
@@ -147,6 +152,20 @@ const ALLOWED_DATA_KEYS = new Set([
   'phase',
   'mode',
   'source',
+  'rowCount',
+  'sdkMessageCount',
+  'sdkUserRowCount',
+  'sdkUserRowsWithImages',
+  'sdkUserImageCount',
+  'sdkProjectedUserMessageCount',
+  'sdkProjectedUserMessagesWithImages',
+  'sdkProjectedUserImageCount',
+  'currentMessageCount',
+  'currentOptimisticUserCount',
+  'mergedMessageCount',
+  'mergedUserMessageCount',
+  'mergedUserMessagesWithImages',
+  'mergedUserImageCount',
   'userHidden',
   'focus',
   'restoreResponseOverlay',
@@ -644,6 +663,7 @@ module.exports = {
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
+  RENDERER_DISPLAY_PROJECTION_DIAGNOSTICS_PATH,
   RENDERER_INTERACTION_DIAGNOSTICS_PATH,
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,

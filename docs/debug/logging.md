@@ -151,6 +151,18 @@ Rows include action, event, view, target tag/type/role, and safe counts. They do
 not store raw labels or message text because those can contain chat titles or
 user content.
 
+Renderer display-row projection image-count summaries are persisted under:
+
+```bash
+<windie> diagnostics list --path renderer.display_projection --limit 50
+```
+
+Use this path when a screenshot-bearing user message reaches the SDK but does
+not appear in dashboard. The diagnostic stores projection counts only, including
+SDK user-image rows, SDK-projected image rows, optimistic user rows, and merged
+visible user-image rows. It does not store chat text, screenshot URLs, screenshot
+refs, or image bytes.
+
 Renderer interaction logging is intentionally narrow. Feature code should use
 the renderer app runtime client instead of importing the infrastructure logger
 directly:

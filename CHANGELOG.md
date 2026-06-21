@@ -21,6 +21,9 @@ All notable changes to WindieOS will be documented in this file.
   live-surface trace and regression coverage for replacing optimistic
   text-only user rows with SDK display rows carrying screenshot metadata. No
   migration required.
+- frontend/diagnostics: add durable `renderer.display_projection` app
+  diagnostics for display-row image-count summaries so chat-pill screenshot
+  projection failures can be inspected after the flow. No migration required.
 - cli/tests: add `<windie> test user-facing` as the product-level regression
   pack umbrella, keeping `core-loop` as one focused subset and registering the
   scripted-provider tool-loop invariant alongside it. No migration required.
