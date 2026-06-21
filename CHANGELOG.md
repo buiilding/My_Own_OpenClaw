@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: move current renderer conversation session-info projection and
+  empty fallback into `desktopConversationSessionRuntime` so chat, minimal pill,
+  and dashboard consumers use one app-runtime helper instead of a feature-local
+  empty session singleton. No migration required.
 - renderer/dashboard: move dashboard sidebar navigation descriptors into
   `desktopDashboardNavigationRuntime` so `DashboardSidebarNavigation` renders
   primary and panel nav items from an app-runtime descriptor contract instead

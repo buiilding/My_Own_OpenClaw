@@ -169,6 +169,10 @@ The desktop transcript session runtime is the source for active transcript ident
 
 - `setActiveConversationRef(...)` updates cached session info and emits session update event when changed
 - pending transcript queues flush only when both `conversationRef` and `userId` are available
+- current renderer session-info projection combines transcript identity with
+  active chat-store conversation refs through
+  `desktopConversationSessionRuntime.resolveCurrentRendererConversationSessionInfo(...)`;
+  feature hooks should not carry their own empty session snapshot constants
 
 Chat store reset and transcript-session ref updates are separate concerns; new-chat path updates both through `startNewChatSession` + the desktop transcript session runtime.
 

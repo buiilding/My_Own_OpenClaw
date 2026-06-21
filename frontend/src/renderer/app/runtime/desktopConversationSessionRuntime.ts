@@ -110,6 +110,14 @@ type RendererConversationSessionSnapshotOptions = {
   userId?: unknown;
 };
 
+type CurrentRendererConversationSessionInfoOptions = {
+  transcriptSessionInfo?: {
+    conversationRef?: unknown;
+    userId?: unknown;
+  } | null;
+  activeConversationRef?: unknown;
+};
+
 type InitializeLocalConversationSessionOptions = {
   createConversationRef: () => string;
   selectConversationRef: (conversationRef: string) => void;
@@ -175,6 +183,23 @@ export function resolveRendererConversationSessionSnapshot({
     ).conversationRef,
     userId: normalizeConversationRef(userId),
   };
+}
+
+export function resolveCurrentRendererConversationSessionInfo({
+  transcriptSessionInfo,
+  activeConversationRef,
+}: CurrentRendererConversationSessionInfoOptions): MainSessionSnapshot {
+  const nextSnapshot = resolveRendererConversationSessionSnapshot({
+    transcriptConversationRef: transcriptSessionInfo?.conversationRef,
+    storeConversationRef: activeConversationRef,
+    userId: transcriptSessionInfo?.userId,
+  });
+
+  if (!nextSnapshot.conversationRef && !nextSnapshot.userId) {
+    return EMPTY_MAIN_SESSION_SNAPSHOT;
+  }
+
+  return nextSnapshot;
 }
 
 export function initializeLocalConversationSession({

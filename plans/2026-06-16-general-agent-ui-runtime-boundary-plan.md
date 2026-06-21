@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Conversation Session Info Projection Boundary
+
+- Finding: `useRendererConversationSessionInfo.js` already consumed transcript
+  session and conversation-session app-runtime helpers, but still owned the
+  stable empty `{ conversationRef: null, userId: null }` snapshot and combined
+  transcript/store fallback projection inside the chat feature.
+- Change: added `resolveCurrentRendererConversationSessionInfo(...)` to
+  `desktopConversationSessionRuntime.ts` so current session-info projection and
+  empty fallback are owned by the app-runtime session facade, then routed
+  `useRendererConversationSessionInfo()` through that helper.
+- Validation: focused conversation session runtime and renderer app-runtime
+  boundary coverage, docs listing, stale feature-local empty snapshot scan, and
+  diff checks.
+- Compatibility: no migration required. Conversation refs, user ids,
+  transcript-session events, active chat ref fallback, session storage, IPC,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Dashboard Navigation Descriptor Boundary
 
 - Finding: `DashboardSidebarNavigation.jsx` still owned the primary and panel

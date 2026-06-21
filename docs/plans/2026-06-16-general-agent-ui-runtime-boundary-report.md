@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: dashboard sidebar navigation descriptors now stay
-  behind `desktopDashboardNavigationRuntime`, with
-  `DashboardSidebarNavigation` rendering primary and panel nav items from the
-  app-runtime descriptor contract instead of section-local registries.
+- Latest completed slice: current renderer conversation session-info
+  projection now stays behind `desktopConversationSessionRuntime`, with
+  `useRendererConversationSessionInfo()` consuming the app-runtime helper
+  instead of owning a feature-local empty session singleton.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -138,6 +138,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `getDashboardPanelNavItems()` instead of component-local nav registries
   while keeping icon mapping, callbacks, and active-state rendering local to
   `DashboardSidebarNavigation`.
+  Current renderer conversation session info now consumes
+  `desktopConversationSessionRuntime.resolveCurrentRendererConversationSessionInfo(...)`
+  for transcript/store fallback projection and stable empty session fallback
+  instead of carrying that singleton in the chat feature hook.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.

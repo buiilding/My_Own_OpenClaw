@@ -11,6 +11,7 @@ import {
   ensureConversationRefForSend,
   hydrateConversationSessionFromMainSnapshot,
   initializeLocalConversationSession,
+  resolveCurrentRendererConversationSessionInfo,
   resolveRendererConversationSessionSnapshot,
 } from '../../frontend/src/renderer/app/runtime/desktopConversationSessionRuntime';
 
@@ -80,6 +81,50 @@ describe('conversationSessionRuntime', () => {
       conversationRef: 'conv-store',
       userId: null,
     });
+  });
+
+  test('resolveCurrentRendererConversationSessionInfo combines transcript info and active chat refs', () => {
+    expect(resolveCurrentRendererConversationSessionInfo({
+      transcriptSessionInfo: {
+        conversationRef: ' conv-session ',
+        userId: ' user-1 ',
+      },
+      activeConversationRef: 'conv-store',
+    })).toEqual({
+      conversationRef: 'conv-session',
+      userId: 'user-1',
+    });
+
+    expect(resolveCurrentRendererConversationSessionInfo({
+      transcriptSessionInfo: {
+        conversationRef: null,
+        userId: null,
+      },
+      activeConversationRef: ' conv-store ',
+    })).toEqual({
+      conversationRef: 'conv-store',
+      userId: null,
+    });
+  });
+
+  test('resolveCurrentRendererConversationSessionInfo returns stable empty session info', () => {
+    const firstEmpty = resolveCurrentRendererConversationSessionInfo({
+      transcriptSessionInfo: null,
+      activeConversationRef: null,
+    });
+    const secondEmpty = resolveCurrentRendererConversationSessionInfo({
+      transcriptSessionInfo: {
+        conversationRef: '',
+        userId: '',
+      },
+      activeConversationRef: '',
+    });
+
+    expect(firstEmpty).toEqual({
+      conversationRef: null,
+      userId: null,
+    });
+    expect(secondEmpty).toBe(firstEmpty);
   });
 
   test('initializeLocalConversationSession creates, selects, and annotates a new local conversation', () => {

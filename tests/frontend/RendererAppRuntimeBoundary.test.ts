@@ -930,6 +930,25 @@ describe('renderer app runtime boundary', () => {
     );
   });
 
+  test('renderer conversation session info projection stays behind app runtime', async () => {
+    const sessionRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopConversationSessionRuntime.ts'),
+      'utf8',
+    );
+    const sessionInfoHookSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/session/useRendererConversationSessionInfo.js'),
+      'utf8',
+    );
+
+    expect(sessionRuntimeSource).toContain('resolveCurrentRendererConversationSessionInfo');
+    expect(sessionRuntimeSource).toContain('EMPTY_MAIN_SESSION_SNAPSHOT');
+    expect(sessionRuntimeSource).not.toContain('features/chat');
+    expect(sessionInfoHookSource).toContain('resolveCurrentRendererConversationSessionInfo');
+    expect(sessionInfoHookSource).not.toContain('EMPTY_RENDERER_SESSION_INFO');
+    expect(sessionInfoHookSource).not.toContain('resolveRendererConversationSessionSnapshot');
+    expect(sessionInfoHookSource).not.toContain('conversationRef: null');
+  });
+
   test('chat stream ingress projects conversation sessions through runtime client', async () => {
     const ingressSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopChatStreamIngressRuntime.ts'),

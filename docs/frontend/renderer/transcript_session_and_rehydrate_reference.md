@@ -16,6 +16,7 @@ title: "Transcript Session and Rehydrate Reference"
 
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`
+- `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js`
@@ -86,6 +87,13 @@ Responsibility split:
 Renderer consumers subscribe through `useDesktopTranscriptSessionInfo()` for
 stable transcript identity snapshots without making dashboard the owner of
 app-level session state.
+
+Renderer chat, minimal pill, and dashboard consumers read their current
+conversation session info through `useRendererConversationSessionInfo()`, which
+delegates transcript/session plus active-chat fallback projection to
+`desktopConversationSessionRuntime.resolveCurrentRendererConversationSessionInfo(...)`.
+That app-runtime helper owns the stable empty `{ conversationRef: null, userId:
+null }` fallback so feature hooks do not duplicate session snapshot constants.
 
 Transcript conversation pagination helper:
 
