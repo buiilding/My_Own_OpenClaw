@@ -22182,3 +22182,21 @@ Each completed slice should report:
   memory lookup RPC names, SDK-provided embeddings, local-runtime dispatch, IPC
   channels, storage, provider policy, backend behavior, and trust boundaries are
   unchanged.
+
+### 2026-06-21 frontend architecture local-runtime Python labels
+
+- Finding: the active frontend architecture reference still used sidecar owner
+  wording for the local-runtime Python responsibility section, bundled runtime
+  reinstall guidance, renderer skin fallback guidance, and the `main/sidecar`
+  folder comment even though the concrete implementation is now described as
+  the local-runtime Python boundary behind SDK/main contracts.
+- Change: reworded those active architecture labels through local-runtime
+  Python and hosted-backend ownership while preserving concrete repository
+  paths such as `frontend/src/main/sidecar` and `frontend/src/main/python`, and
+  extended the modular boundary guard for the retired phrases.
+- Validation: focused modular boundary test, exact stale phrase scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  local-runtime bridge paths, Python implementation paths, daemon launch,
+  hosted backend integration, IPC, storage, provider policy, permissions,
+  backend behavior, and trust boundaries are unchanged.

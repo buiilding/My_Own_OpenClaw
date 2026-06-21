@@ -42,7 +42,7 @@ frontend/src/
 │   ├── ipc/                               # focused IPC helper runtimes and channel contracts
 │   ├── permissions/                       # permission service, permission IPC, sudo handler, capability domains, state store
 │   ├── sdk/                               # SDK desktop integration helpers and local tool/surface lifecycle hooks
-│   ├── sidecar/                           # local runtime bridge, daemon manager, RPC transports, readiness, stop policy
+│   ├── sidecar/                           # local-runtime bridge, daemon manager, RPC transports, readiness, stop policy
 │   ├── surfaces/                          # BrowserWindow creation, overlays, surface state, window policy, display affinity
 │   ├── wakeword/                          # wakeword subprocess bridge and supervisor
 │   └── python/                            # Local-runtime Python implementation (tools, memory, system, browser)
@@ -309,7 +309,7 @@ Primary modules:
     refreshes extension MCP tools; the MCP runtime default remains generic.
   - Layer-log product prefixes should be supplied by this boundary on app/script
     paths; the shared log sink default remains generic.
-  - Bundled wakeword and sidecar reinstall guidance should read from this
+  - Bundled wakeword and local-runtime reinstall guidance should read from this
     boundary on WindieOS app paths; reusable launch helpers keep generic
     fallback wording.
   - Local browser warmup and OpenAI Codex OAuth callback copy should read from
@@ -419,8 +419,8 @@ Primary modules:
     product copy, app-specific tool catalog choices, destructive-action labels,
     panel wording, empty-state text, and renderer-local runtime fallback
     messages from this generic skin facade instead of importing the WindieOS
-    skin/config directly or hard-coding WindieOS wording and sidecar/backend
-    runtime names inline.
+    skin/config directly or hard-coding WindieOS wording and
+    local-runtime/hosted-backend runtime names inline.
 - `renderer/app/skin/desktopRuntimeConfig.js`:
   - Generic renderer-facing facade over active model selection, provider
     credential, provider display, storage-key, and appearance-theme defaults
@@ -530,7 +530,7 @@ Primary modules:
 - Electron main owns screenshot-capture window policy through the local tool lifecycle and platform screenshot/content-protection runtimes; renderer surface orchestration is limited to system-capture focus logging.
 - `infrastructure/audio/PlayerService.ts`: chunk queue decode/playback.
 
-## Sidecar Responsibilities (`frontend/src/main/python`)
+## Local-Runtime Python Responsibilities (`frontend/src/main/python`)
 
 - `local_backend.py`:
   - JSON-RPC method registry for tool/system-state/transcript/memory operations.
