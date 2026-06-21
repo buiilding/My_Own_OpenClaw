@@ -78,15 +78,17 @@ actions:
 `useChatStream` suppresses assistant error rows for settings failures via:
 
 - `shouldIgnoreStreamError(...)`
-- `desktopSettingsUpdateErrorRuntime` matching the shared backend failure text
+- `DesktopSettingsUpdateErrorRuntime.isSettingsUpdateErrorPayload(...)`
+  matching the shared backend failure text
 
 This prevents settings-update failures from appearing as chat conversation errors while still allowing `AppStatusProvider` to reflect failure state.
 
 ## Drift Hotspot: Error Text Coupling
 
 `DesktopAppConfigRuntimeClient` and `shouldIgnoreStreamError(...)` both route
-through `desktopSettingsUpdateErrorRuntime` for the settings-update failure
-substring.
+through `DesktopSettingsUpdateErrorRuntime` for the settings-update failure
+substring, keeping the raw classifier helpers private to
+`desktopSettingsUpdateErrorRuntime.ts`.
 
 If backend error text changes, update that shared runtime classifier plus the
 save-status and chat-error suppression coverage together.

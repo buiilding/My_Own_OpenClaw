@@ -62,6 +62,10 @@ describe('renderer settings runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts'),
       'utf8',
     );
+    const settingsUpdateErrorRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts'),
+      'utf8',
+    );
     const appStatusProviderSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/providers/AppStatusProvider.jsx'),
       'utf8',
@@ -92,7 +96,10 @@ describe('renderer settings runtime boundary', () => {
     expect(appConfigClientSource).toContain('function resolveDesktopSettingsSaveStatusAction');
     expect(appConfigClientSource).not.toContain('export function resolveDesktopSettingsSaveStatusAction');
     expect(appConfigClientSource).toContain('onSettingsSaveStatusAction');
-    expect(appConfigClientSource).toContain('isSettingsUpdateError');
+    expect(appConfigClientSource).toContain('DesktopSettingsUpdateErrorRuntime');
+    expect(settingsUpdateErrorRuntimeSource).toContain('export const DesktopSettingsUpdateErrorRuntime = Object.freeze');
+    expect(settingsUpdateErrorRuntimeSource).not.toContain('export function isSettingsUpdateErrorText');
+    expect(settingsUpdateErrorRuntimeSource).not.toContain('export function isSettingsUpdateErrorPayload');
     expect(sessionClientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
     expect(sessionClientSource).toContain('ON_CHANNELS.IPC_STATUS');
     expect(sessionClientSource).toContain('function resolveDesktopClientIpcStatusValues');

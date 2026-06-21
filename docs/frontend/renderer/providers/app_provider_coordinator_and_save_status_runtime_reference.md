@@ -136,7 +136,10 @@ Electron host transport is routed through app runtime clients:
 - `DesktopAppConfigRuntimeClient` owns renderer config disk persistence,
   normalized settings-event fan-out, settings-update failure classification,
   and value-level save-status actions for status-provider consumers.
-- `desktopSettingsUpdateErrorRuntime.ts` owns the shared settings-update failure text classifier used by settings-event normalization and chat stream error suppression.
+- `DesktopSettingsUpdateErrorRuntime` owns the shared settings-update failure
+  text classifier used by settings-event normalization and chat stream error
+  suppression while keeping raw classifier helpers private to
+  `desktopSettingsUpdateErrorRuntime.ts`.
 - `DesktopClientSessionRuntimeClient` owns main-session snapshots and
   value-level IPC status fan-out for transcript user id, connection state, and
   global-stop shortcut status.

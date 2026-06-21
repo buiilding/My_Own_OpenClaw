@@ -9,11 +9,11 @@ export type SettingsUpdateErrorPayload = {
   message?: unknown;
 };
 
-export function isSettingsUpdateErrorText(value: unknown): boolean {
+function isSettingsUpdateErrorText(value: unknown): boolean {
   return typeof value === 'string' && value.includes(SETTINGS_UPDATE_ERROR_TEXT);
 }
 
-export function isSettingsUpdateErrorPayload(
+function isSettingsUpdateErrorPayload(
   payload: SettingsUpdateErrorPayload | null | undefined,
 ): boolean {
   return (
@@ -21,3 +21,8 @@ export function isSettingsUpdateErrorPayload(
     || isSettingsUpdateErrorText(payload?.content)
   );
 }
+
+export const DesktopSettingsUpdateErrorRuntime = Object.freeze({
+  isSettingsUpdateErrorText,
+  isSettingsUpdateErrorPayload,
+});

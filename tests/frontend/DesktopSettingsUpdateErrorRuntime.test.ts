@@ -2,12 +2,14 @@
  * Covers desktop settings-update error classification in the frontend test suite.
  */
 
-import {
-  isSettingsUpdateErrorPayload,
-  isSettingsUpdateErrorText,
-} from '../../frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime';
+import { DesktopSettingsUpdateErrorRuntime } from '../../frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime';
 
 describe('desktopSettingsUpdateErrorRuntime', () => {
+  const {
+    isSettingsUpdateErrorPayload,
+    isSettingsUpdateErrorText,
+  } = DesktopSettingsUpdateErrorRuntime;
+
   test('matches settings-update failure text from runtime events', () => {
     expect(isSettingsUpdateErrorText('Failed to update settings: write failed')).toBe(true);
     expect(isSettingsUpdateErrorText('Database timeout')).toBe(false);

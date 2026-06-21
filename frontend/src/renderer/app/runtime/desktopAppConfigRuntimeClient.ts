@@ -3,7 +3,11 @@
  */
 
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
-import { isSettingsUpdateErrorText } from './desktopSettingsUpdateErrorRuntime';
+import { DesktopSettingsUpdateErrorRuntime } from './desktopSettingsUpdateErrorRuntime';
+
+const {
+  isSettingsUpdateErrorText,
+} = DesktopSettingsUpdateErrorRuntime;
 
 export type DesktopSettingsEventPayload = {
   type?: string;

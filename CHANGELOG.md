@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose settings-update failure classifiers through
+  `DesktopSettingsUpdateErrorRuntime` instead of standalone helper exports,
+  keeping config save-status and chat stream error suppression behind the
+  renderer app-runtime facade. No migration required.
 - frontend/renderer: expose active stream stale-turn comparison through
   `DesktopChatStreamTurnGuardRuntime` instead of a standalone helper export,
   keeping stream turn-acceptance checks behind the renderer app-runtime facade.

@@ -9,7 +9,11 @@ import type {
   ConversationEvent,
   JsonRecord,
 } from './desktopConversationRuntimeContracts';
-import { isSettingsUpdateErrorPayload } from './desktopSettingsUpdateErrorRuntime';
+import { DesktopSettingsUpdateErrorRuntime } from './desktopSettingsUpdateErrorRuntime';
+
+const {
+  isSettingsUpdateErrorPayload,
+} = DesktopSettingsUpdateErrorRuntime;
 
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
   'failed to parse streamed tool-call arguments',

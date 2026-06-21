@@ -56,6 +56,11 @@ Backend-owned speech/transcription runtime policy is intentionally excluded from
 
 All outbound config updates use this boundary before settings runtime sync.
 
+Settings-update failure classification is exposed through
+`DesktopSettingsUpdateErrorRuntime`; raw classifier helpers stay private to the
+renderer app-runtime module so config save status and chat stream error
+suppression share one boundary.
+
 ## Renderer Provider Roles
 
 ### `AppConfigProvider`

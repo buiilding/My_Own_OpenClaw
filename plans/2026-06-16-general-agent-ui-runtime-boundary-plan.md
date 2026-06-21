@@ -23309,3 +23309,22 @@ Each completed slice should report:
   normalization, stale-turn rejection, terminal handoff exceptions, renderer
   markup, IPC payloads, storage, local-runtime execution, provider policy,
   backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer settings update error facade helper privacy
+
+- Finding: settings-update failure text classification lived in the renderer
+  app runtime, but config save-status normalization, chat stream error
+  suppression, and focused tests still imported classifier helpers as
+  standalone exports.
+- Change: exposed settings-update failure classification through
+  `DesktopSettingsUpdateErrorRuntime` and kept
+  `isSettingsUpdateErrorText` and `isSettingsUpdateErrorPayload` private to
+  `desktopSettingsUpdateErrorRuntime`.
+- Validation: focused settings-update classifier, app-config runtime client,
+  stream event payload runtime, renderer settings-runtime boundary tests,
+  targeted renderer ESLint, exact source/doc scans, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Settings-update failure matching,
+  config save-status actions, chat stream error suppression, renderer markup,
+  IPC payloads, storage, local-runtime execution, provider policy, backend
+  behavior, and trust boundaries are unchanged.
