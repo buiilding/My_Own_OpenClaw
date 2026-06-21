@@ -83,6 +83,12 @@ class ScriptedProvider(LLMProvider):
                 tool_call = _parse_single_tool_command(body)
             except ValueError as exc:
                 return _script_error_response(exc)
+            if _scripted_tool_turn_completed(
+                messages,
+                user_message_index=prompt_info["index"],
+                tool_calls=[tool_call],
+            ):
+                return _tool_completion_response([tool_call])
             content = _tool_acknowledgement([tool_call])
             return {
                 "content": content,
@@ -94,6 +100,12 @@ class ScriptedProvider(LLMProvider):
                 tool_calls = _parse_batch_tool_command(body)
             except ValueError as exc:
                 return _script_error_response(exc)
+            if _scripted_tool_turn_completed(
+                messages,
+                user_message_index=prompt_info["index"],
+                tool_calls=tool_calls,
+            ):
+                return _tool_completion_response(tool_calls)
             content = _tool_acknowledgement(tool_calls)
             return {
                 "content": content,
@@ -133,11 +145,14 @@ def _split_stream_chunks(content: str) -> List[str]:
 
 
 def _extract_latest_user_prompt_info(messages: List[LLMMessage]) -> Dict[str, Any]:
-    for message in reversed(messages or []):
+    for index in range(len(messages or []) - 1, -1, -1):
+        message = messages[index]
         if message.get("role") != "user":
             continue
-        return _extract_prompt_info_from_content(message.get("content", ""))
-    return {"text": "", "image_count": 0}
+        prompt_info = _extract_prompt_info_from_content(message.get("content", ""))
+        prompt_info["index"] = index
+        return prompt_info
+    return {"text": "", "image_count": 0, "index": -1}
 
 
 def _extract_prompt_info_from_content(content: Any) -> Dict[str, Any]:
@@ -257,8 +272,74 @@ def _tool_acknowledgement(tool_calls: List[Dict[str, Any]]) -> str:
     return f"Scripted runtime queued {len(tool_calls)} tool call(s): {names}."
 
 
+def _tool_completion_response(
+    tool_calls: List[Dict[str, Any]]
+) -> NormalizedLLMResponse:
+    names = ", ".join(call["name"] for call in tool_calls)
+    return {
+        "content": f"Scripted runtime completed {len(tool_calls)} tool call(s): {names}.",
+        "finish_reason": "stop",
+    }
+
+
 def _script_error_response(exc: ValueError) -> NormalizedLLMResponse:
     return {
         "content": f"Scripted command error: {exc}",
         "finish_reason": "stop",
     }
+
+
+def _scripted_tool_turn_completed(
+    messages: List[LLMMessage],
+    *,
+    user_message_index: int,
+    tool_calls: List[Dict[str, Any]],
+) -> bool:
+    expected_ids = [
+        tool_call.get("id")
+        for tool_call in tool_calls
+        if isinstance(tool_call.get("id"), str) and tool_call.get("id")
+    ]
+    if not expected_ids or user_message_index < 0:
+        return False
+
+    messages_after_user = messages[user_message_index + 1 :]
+    assistant_index = _find_scripted_assistant_tool_turn_index(
+        messages_after_user,
+        expected_ids=expected_ids,
+    )
+    if assistant_index is None:
+        return False
+
+    completed_ids = set()
+    for message in messages_after_user[assistant_index + 1 :]:
+        if message.get("role") != "tool":
+            continue
+        tool_call_id = message.get("tool_call_id")
+        if isinstance(tool_call_id, str) and tool_call_id in expected_ids:
+            completed_ids.add(tool_call_id)
+    return set(expected_ids).issubset(completed_ids)
+
+
+def _find_scripted_assistant_tool_turn_index(
+    messages: List[LLMMessage],
+    *,
+    expected_ids: List[str],
+) -> Optional[int]:
+    expected_id_set = set(expected_ids)
+    for index, message in enumerate(messages):
+        if message.get("role") != "assistant":
+            continue
+        tool_calls = message.get("tool_calls")
+        if not isinstance(tool_calls, list):
+            continue
+        tool_call_ids = {
+            tool_call.get("id")
+            for tool_call in tool_calls
+            if isinstance(tool_call, dict)
+            and isinstance(tool_call.get("id"), str)
+            and tool_call.get("id")
+        }
+        if expected_id_set.issubset(tool_call_ids):
+            return index
+    return None

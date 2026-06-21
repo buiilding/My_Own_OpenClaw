@@ -100,6 +100,14 @@ If a replayed or resumed image is missing:
 5. check `desktopResolvedMessageScreenshotsRuntime.js` fetch/cache behavior for remote
    artifact URLs
 
+If the missing image was sent from the chat pill while the dashboard still shows
+the earlier optimistic text-only user row, enable `[LiveSurfaceTrace]` and check
+`renderer.display_rows.projected`. `sdkUserImageCount` means the SDK display row
+contained screenshot metadata, `sdkProjectedUserImageCount` means
+`sdkDisplayChatMessageProjection.ts` converted it into renderer message image
+state, and `mergedUserImageCount` means the renderer store kept that image after
+replacing the optimistic row.
+
 If a row shows one image instead of multiple:
 
 1. confirm SDK display metadata has `screenshot_refs` with all artifact ids

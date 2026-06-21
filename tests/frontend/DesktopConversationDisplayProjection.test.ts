@@ -9,6 +9,7 @@ import type { ChatMessage } from '../../frontend/src/renderer/app/runtime/deskto
 
 const {
   buildChatMessagesFromSdkDisplayRows,
+  buildDisplayProjectionTraceSummary,
   mergeRendererAnnotationsIntoSdkMessages,
 } = DesktopConversationDisplayProjection;
 
@@ -150,5 +151,49 @@ describe('desktopConversationDisplayProjection', () => {
       [sdkUserSameTurn],
       [optimisticUser],
     )).toEqual([sdkUserSameTurn]);
+  });
+
+  test('summarizes display projection image counts without exposing content', () => {
+    const optimisticUser = message({
+      id: 'turn-1-sdk-evt-000002-user_message',
+      sender: 'user',
+      text: 'inspect recent commits',
+      turnRef: 'turn-1',
+      sourceEventType: 'renderer-compose',
+      sourceChannel: 'renderer-local',
+      isComplete: true,
+    });
+    const sdkUser = message({
+      id: 'turn-1-sdk-evt-000002-user_message',
+      sender: 'user',
+      text: 'inspect recent commits',
+      turnRef: 'turn-1',
+      screenshots: [
+        {
+          screenshotRef: 'artifact-1',
+          screenshotUrl: '/api/artifacts/artifact-1',
+        },
+      ],
+      isComplete: true,
+    });
+
+    expect(buildDisplayProjectionTraceSummary({
+      rows: [{
+        id: 'turn-1-sdk-evt-000002-user_message',
+        role: 'user',
+        type: 'user_message',
+        metadata: {
+          screenshotRefs: ['artifact-1'],
+        },
+      }],
+      sdkMessages: [sdkUser],
+      currentMessages: [optimisticUser],
+      mergedMessages: [sdkUser],
+    })).toEqual(expect.objectContaining({
+      currentOptimisticUserCount: 1,
+      sdkUserImageCount: 1,
+      sdkProjectedUserImageCount: 1,
+      mergedUserImageCount: 1,
+    }));
   });
 });

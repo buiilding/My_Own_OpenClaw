@@ -66,6 +66,8 @@ tables below use `<windie>` for the active platform shim.
 | `<windie> test backend [pytest args...]` | Run backend pytest. |
 | `<windie> test local-runtime [pytest args...]` | Run local-runtime Python pytest. |
 | `<windie> test frontend [jest args...]` | Run frontend Jest CI tests. |
+| `<windie> test core-loop [jest args...]` | Run the Core Loop Regression Pack for chat pill, dashboard, overlay, SDK projection, conversation runtime, IPC, replay, stop, tool-row, and surface-lease invariants. |
+| `<windie> test user-facing` | Run the User-Facing Regression Pack umbrella over product-visible behavior invariants. |
 | `<windie> test all` | Run backend, local-runtime Python, and frontend tests. |
 | `<windie> test pick <area>` | Print or run test-selection presets. |
 | `<windie> docs list` | List docs front matter and `read_when` hints. |

@@ -6,6 +6,25 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- docs/plans: add the renderer-owned typing state migration plan for
+  implementing ADR 006, including lifecycle reducer phases, legacy authority
+  deletion targets, owner predicates, and core-loop regression requirements. No
+  migration required.
+- docs/adr: add ADR 006 for renderer-owned typing state, defining the target
+  architecture where one renderer app-runtime visible turn lifecycle projection
+  owns dashboard, pill, overlay, typing, and busy state while SDK projection
+  remains backend-event owned. No migration required.
+- frontend/renderer: add a sanitized `renderer.display_rows.projected`
+  live-surface trace and regression coverage for replacing optimistic
+  text-only user rows with SDK display rows carrying screenshot metadata. No
+  migration required.
+- cli/tests: add `<windie> test user-facing` as the product-level regression
+  pack umbrella, keeping `core-loop` as one focused subset and registering the
+  scripted-provider tool-loop invariant alongside it. No migration required.
+- cli/tests: add `<windie> test core-loop` as the first concrete Core Loop
+  Regression Pack route for chat pill, dashboard, overlay, SDK projection,
+  conversation runtime, IPC, replay, stop, tool-row, and surface-lease
+  invariants. No migration required.
 - backend/provider: add a dev-only `scripted` provider that streams
   deterministic `@script` replies, tool calls, batch tool calls, and
   model-visible image counts without paid inference. `<windie> start dev`
@@ -14,6 +33,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- backend/provider: stop the dev-only scripted model from replaying the same
+  scripted tool command after matching tool outputs are already present in
+  rebuilt model history, so `@script tool` and `@script batch` finish the turn
+  instead of looping forever. No migration required.
 - docs/renderer: restore the renderer folder-structure source-map line for
   `desktopToolGhostRuntime.ts` so the debug tool-ghost runtime entry no longer
   carries literal mojibake placeholders. No migration required.
@@ -38,6 +61,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: move tool and extension operating contracts from `AGENTS.md` into
+  the tool-contract docs, keeping agent instructions focused on workflow while
+  preserving schema, MCP result, computer-use screenshot, and extension routing
+  rules. No migration required.
+- docs/agents: make the bug-invariant discipline explicit so user-visible and
+  runtime bugs are routed through owner, replay, regression-proof, and
+  owner-correct fix steps, with core-loop UI bugs added to a named regression
+  pack. No migration required.
 - frontend/main: keep focused-window activation private to
   `window_platform_policy.cjs` while visibility code consumes it through
   `createWindowPlatformPolicy(...)`. No migration required.

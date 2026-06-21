@@ -1,0 +1,66 @@
+---
+summary: "User-Facing Regression Pack for product-visible bugs, preserving owner-specific tests while providing one focused validation route for discovered behavior invariants."
+read_when:
+  - When fixing any user-visible bug and deciding whether its regression proof should join the product-level pack.
+  - When a bug affects chat, dashboard, overlays, tools, providers, persistence, permissions, startup, install, or another product-visible behavior.
+  - When choosing between owner-specific tests and the user-facing regression pack.
+title: "User-Facing Regression Pack"
+---
+
+# User-Facing Regression Pack
+
+The User-Facing Regression Pack is the product-level umbrella for bugs a user
+can hit through normal WindieOS behavior. It does not own the tests themselves:
+each regression stays in the smallest owner-correct test file, and this pack
+only curates the focused command routes that should run together.
+
+Run it with:
+
+```bash
+<windie> test user-facing
+```
+
+Use this pack after fixing a user-visible regression when the behavior could
+reappear through normal product use. Use narrower owner tests while iterating.
+
+## Current Categories
+
+| Category | Route | Purpose |
+| --- | --- | --- |
+| Core loop UI | `<windie> test core-loop` | Chat pill, dashboard, response overlay, SDK projection, conversation runtime, IPC, replay, stop, tool-row, and surface-lease invariants. |
+| Scripted provider tool loop | `<windie> test backend -- tests/backend/test_scripted_provider.py -q` | Dev-visible scripted model behavior, including the invariant that completed scripted tool calls do not replay forever after tool output enters model history. |
+
+## Adding A User-Visible Bug
+
+For every user-visible bug:
+
+1. Name the symptom, invariant, owner runtime, smallest replay or reproduction
+   timeline, regression proof, and owner-correct fix.
+2. Add or extend the test at the owning layer: backend, local-runtime, SDK,
+   Electron main, renderer, or docs/CLI.
+3. Add that test file or focused route to this pack only when the behavior is
+   product-visible and likely to be relevant across future changes.
+4. Keep narrow subsets, such as [Core Loop Regression Pack](core_loop_regression_pack.md),
+   for high-churn areas where agents need a fast preflight.
+
+Do not move tests into an umbrella-only file just to make the pack easy to run.
+The pack is a route over owner tests, not a replacement for owner tests.
+
+## Scope
+
+Belongs here:
+
+- Chat pill, dashboard, overlay, conversation runtime, SDK projection, and IPC
+  behavior a user can see.
+- Tool execution, tool-result, provider, and model behavior that changes the
+  user's turn outcome.
+- Persistence, replay, stop/cancel, permissions, startup, and install behavior
+  that can regress normal product use.
+
+Does not belong here:
+
+- Pure internal refactors with no product-visible behavior.
+- Exhaustive low-level parity checks that are already covered by a runtime's
+  normal suite and do not protect a discovered user-facing bug.
+- One-off environment failures unless WindieOS should expose a durable
+  diagnostic or product behavior for that failure.

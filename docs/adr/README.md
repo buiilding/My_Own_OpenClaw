@@ -16,6 +16,7 @@ Use ADRs for durable technical decisions that should outlive one implementation 
 | --- | --- | --- |
 | [ADR 004: Browser Extension Auto-Attach Boundary](004-browser-extension-auto-attach.md) | proposed | Keep browser-extension auto-attach as future extension-mode work; current browser control remains dedicated-profile/CDP owned. |
 | [ADR 005: Client Tool Manifest Source of Truth](005-frontend-tool-schema-source-of-truth.md) | accepted | Use client/local-runtime executable tool manifests while preserving backend-owned model-facing policy and no runtime backend imports. |
+| [ADR 006: Renderer-Owned Typing State](006-renderer-owned-typing-state.md) | accepted target | Use one renderer app-runtime visible turn lifecycle projection for dashboard, pill, overlay, typing, and busy state while keeping SDK backend projection separate from renderer-local pending sends. |
 
 ## When To Add An ADR
 

@@ -117,6 +117,8 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('<windie> start customer');
     expect(result.stdout).toContain('<windie> start all');
     expect(result.stdout).toContain('<windie> test local-runtime');
+    expect(result.stdout).toContain('<windie> test core-loop [jest args...]');
+    expect(result.stdout).toContain('<windie> test user-facing');
     expect(result.stdout).not.toContain('<windie> test sidecar');
     expect(result.stdout).toContain('<windie> logs frontend');
     expect(result.stdout).toContain('<windie> logs vite');
@@ -285,6 +287,42 @@ describe('windie CLI', () => {
     expect(getSpawnPlan(['test', 'frontend', '--', 'WindieCli'])).toMatchObject({
       command: 'npm',
       args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'test:ci', '--', 'WindieCli'],
+      cwd: repoRoot,
+    });
+    const coreLoopPlan = getSpawnPlan(['test', 'core-loop', '--', '--listTests']);
+    expect(coreLoopPlan).toMatchObject({
+      command: 'npm',
+      cwd: repoRoot,
+    });
+    expect(coreLoopPlan.args.slice(0, 5)).toEqual([
+      '--prefix',
+      path.join(repoRoot, 'frontend'),
+      'run',
+      'test:ci',
+      '--',
+    ]);
+    expect(coreLoopPlan.args).toEqual(expect.arrayContaining([
+      'AgentSdkConversationRuntime.test.ts',
+      'PendingTurnLiveSurfaceIntegration.test.js',
+      'ResponseOverlayPhaseHandler.test.cjs',
+      'LocalRuntimeExecuteToolRuntime.test.cjs',
+      '--listTests',
+    ]));
+    const userFacingPlan = getSpawnPlan(['test', 'user-facing']);
+    expect(userFacingPlan.concurrent).toHaveLength(2);
+    expect(userFacingPlan.concurrent[0]).toMatchObject({
+      label: 'core-loop',
+      command: 'npm',
+      cwd: repoRoot,
+    });
+    expect(userFacingPlan.concurrent[0].args).toEqual(expect.arrayContaining([
+      'AgentSdkConversationRuntime.test.ts',
+      'PendingTurnLiveSurfaceIntegration.test.js',
+    ]));
+    expect(userFacingPlan.concurrent[1]).toMatchObject({
+      label: 'scripted-provider',
+      command: path.join(repoRoot, 'scripts/test-backend.sh'),
+      args: ['tests/backend/test_scripted_provider.py', '-q'],
       cwd: repoRoot,
     });
   });

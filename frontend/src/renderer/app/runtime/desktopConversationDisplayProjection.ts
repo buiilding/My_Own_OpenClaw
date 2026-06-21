@@ -7,6 +7,25 @@ import {
   buildChatMessagesFromSdkDisplayRows,
 } from '../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 
+type DisplayProjectionTraceInput = {
+  currentMessages?: ChatMessage[];
+  mergedMessages?: ChatMessage[];
+  rows?: unknown[];
+  sdkMessages?: ChatMessage[];
+};
+
+function recordFromUnknown(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function stringArrayFromUnknown(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+    : [];
+}
+
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.trim()
     ? turnRef.trim()
@@ -100,7 +119,118 @@ function mergeRendererAnnotationsIntoSdkMessages(
   );
 }
 
+function countMessageImages(message: ChatMessage): number {
+  if (Array.isArray(message.screenshots) && message.screenshots.length > 0) {
+    return message.screenshots.filter((attachment) => (
+      Boolean(attachment?.screenshot)
+      || Boolean(attachment?.screenshotRef)
+      || Boolean(attachment?.screenshotUrl)
+    )).length;
+  }
+  return (
+    message.screenshot
+    || message.screenshotRef
+    || message.screenshotUrl
+  ) ? 1 : 0;
+}
+
+function countSdkRowImages(row: unknown): number {
+  const record = recordFromUnknown(row);
+  const metadata = recordFromUnknown(record?.metadata);
+  if (!metadata) {
+    return 0;
+  }
+  const screenshotRefs = stringArrayFromUnknown(metadata.screenshotRefs);
+  if (screenshotRefs.length > 0) {
+    return screenshotRefs.length;
+  }
+  return (
+    metadata.screenshot
+    || metadata.screenshotRef
+    || metadata.screenshotUrl
+  ) ? 1 : 0;
+}
+
+function summarizeUserMessageImages(messages: ChatMessage[]): {
+  userImageCount: number;
+  userMessageCount: number;
+  userMessagesWithImages: number;
+} {
+  let userImageCount = 0;
+  let userMessageCount = 0;
+  let userMessagesWithImages = 0;
+  for (const message of messages) {
+    if (message.sender !== 'user') {
+      continue;
+    }
+    userMessageCount += 1;
+    const imageCount = countMessageImages(message);
+    userImageCount += imageCount;
+    if (imageCount > 0) {
+      userMessagesWithImages += 1;
+    }
+  }
+  return {
+    userImageCount,
+    userMessageCount,
+    userMessagesWithImages,
+  };
+}
+
+function summarizeSdkUserRows(rows: unknown[]): {
+  sdkUserImageCount: number;
+  sdkUserRowCount: number;
+  sdkUserRowsWithImages: number;
+} {
+  let sdkUserImageCount = 0;
+  let sdkUserRowCount = 0;
+  let sdkUserRowsWithImages = 0;
+  for (const row of rows) {
+    const record = recordFromUnknown(row);
+    if (record?.role !== 'user' && record?.type !== 'user_message') {
+      continue;
+    }
+    sdkUserRowCount += 1;
+    const imageCount = countSdkRowImages(row);
+    sdkUserImageCount += imageCount;
+    if (imageCount > 0) {
+      sdkUserRowsWithImages += 1;
+    }
+  }
+  return {
+    sdkUserImageCount,
+    sdkUserRowCount,
+    sdkUserRowsWithImages,
+  };
+}
+
+function buildDisplayProjectionTraceSummary({
+  currentMessages = [],
+  mergedMessages = [],
+  rows = [],
+  sdkMessages = [],
+}: DisplayProjectionTraceInput): Record<string, unknown> {
+  const sdkRowSummary = summarizeSdkUserRows(rows);
+  const sdkMessageSummary = summarizeUserMessageImages(sdkMessages);
+  const mergedMessageSummary = summarizeUserMessageImages(mergedMessages);
+  return {
+    rowCount: rows.length,
+    sdkMessageCount: sdkMessages.length,
+    currentMessageCount: currentMessages.length,
+    mergedMessageCount: mergedMessages.length,
+    currentOptimisticUserCount: currentMessages.filter(isOptimisticUserMessage).length,
+    ...sdkRowSummary,
+    sdkProjectedUserImageCount: sdkMessageSummary.userImageCount,
+    sdkProjectedUserMessageCount: sdkMessageSummary.userMessageCount,
+    sdkProjectedUserMessagesWithImages: sdkMessageSummary.userMessagesWithImages,
+    mergedUserImageCount: mergedMessageSummary.userImageCount,
+    mergedUserMessageCount: mergedMessageSummary.userMessageCount,
+    mergedUserMessagesWithImages: mergedMessageSummary.userMessagesWithImages,
+  };
+}
+
 export const DesktopConversationDisplayProjection = Object.freeze({
+  buildDisplayProjectionTraceSummary,
   buildChatMessagesFromSdkDisplayRows,
   mergeRendererAnnotationsIntoSdkMessages,
 });

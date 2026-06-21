@@ -12,6 +12,7 @@ import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desk
 import { DesktopConversationSessionRuntime } from '../../../app/runtime/desktopConversationSessionRuntime';
 import { DesktopActiveChatSessionRuntime } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import { DesktopDashboardConversationGroupRuntime } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
+import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import {
   DesktopDashboardConversationLoadRuntime,
 } from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
@@ -39,7 +40,11 @@ const {
 } = DesktopActiveChatSessionRuntime;
 const {
   buildChatMessagesFromSdkDisplayRows,
+  buildDisplayProjectionTraceSummary,
 } = DesktopConversationDisplayProjection;
+const {
+  logRendererDisplayRowsProjectionTrace,
+} = DesktopRendererTraceRuntime;
 const {
   applyRendererConversationSelection,
 } = DesktopConversationSessionRuntime;
@@ -239,6 +244,19 @@ export function useDashboardConversations({
         return;
       }
       const projectedMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
+      const latestWorkspace = typeof getChatWorkspaceState === 'function'
+        ? getChatWorkspaceState(conversationRef)
+        : null;
+      logRendererDisplayRowsProjectionTrace({
+        source: 'dashboard-open-conversation',
+        conversationRef,
+        ...buildDisplayProjectionTraceSummary({
+          rows: displayRows,
+          sdkMessages: projectedMessages,
+          currentMessages: Array.isArray(latestWorkspace?.messages) ? latestWorkspace.messages : [],
+          mergedMessages: projectedMessages,
+        }),
+      });
       try {
         await DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection(workspaceBinding.workspacePath || null);
       } catch (workspaceError) {

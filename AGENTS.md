@@ -102,6 +102,13 @@ Architecture rules:
 
 - Be unbiased and logical first. Inspect live code, docs, diagnostics, and
   recent history before answering implementation questions or editing.
+- Treat every user-visible or runtime bug as a discovered invariant. Before
+  fixing, name the symptom, invariant, owner runtime, smallest replay or
+  reproduction timeline, regression proof, and owner-correct fix. Keep the proof
+  proportional: a unit test, integration test, diagnostic assertion, screenshot
+  check, or focused command is enough when it protects the behavior. Register
+  product-visible behavior in the User-Facing Regression Pack, while keeping the
+  actual test at the owner-correct layer.
 - Prefer the direct owner-correct path: fix root causes at the owning runtime,
   normalize inputs at boundaries, fail fast on invalid state, and split distinct
   states into named handlers instead of stacking nested fallbacks.
@@ -120,6 +127,25 @@ Architecture rules:
   related frontend changes.
 - Preserve unrelated dirty worktree changes. Report only files and behavior you
   changed, and stop only if unexpected changes affect files you are editing.
+
+Core-loop UI bug rule:
+
+- The goal is not to fix chat pill, dashboard, overlay, conversation runtime,
+  SDK projection, IPC, or replay bugs one at a time. The goal is to convert each
+  human-discovered bug into a named invariant with a replayable regression
+  check. Prefer event-timeline tests that feed known sequences into the owning
+  renderer or runtime path, for example `user_send_accepted`,
+  `pending_turn_created`, `sdk_current_turn_idle`,
+  `sdk_current_turn_awaiting`, `assistant_delta`, and `streaming_complete`, then
+  assert the visible projection never enters an invalid state.
+- Do not accept a core-loop UI fix that only changes the visible component
+  unless that component owns the broken state. Fix the owning producer or
+  boundary contract first, then delete fallback state only after the invariant
+  is protected.
+- Add protected core-loop behaviors to the Core Loop Regression Pack subset and
+  the broader User-Facing Regression Pack. Run the core-loop subset before
+  future chat pill, dashboard, overlay, conversation runtime, SDK projection, or
+  IPC changes are considered complete.
 
 For architectural or product-flow questions, explain conceptually first:
 describe how the runtime works, where a change fits, what boundaries change, and
@@ -145,52 +171,6 @@ Completion artifacts:
 - Final summaries, PR summaries, and commit bodies should explain what changed,
   why the owning layer changed, the previous behavior, the new path, validation,
   and migration/security notes when relevant.
-
-Tool and extension contracts:
-
-- Tools execute on the Python sidecar unless they are explicit backend remote
-  tools such as `web_search`. Frontend/sidecar own local tool implementations
-  and executable manifests; backend validates client manifests, enforces schema
-  and trust boundaries, applies provider projection, owns backend remote tools,
-  and owns final prompt compilation.
-- Local tool schemas are client-side and assembled from selected built-ins plus
-  added tools, plugins, MCPs, and extension contributions. Backend default
-  built-in schemas are fallback/hosted defaults; the client manifest may
-  overwrite the active local tool surface.
-- Tool changes should update the client manifest, docs, and focused tests while
-  preserving schema parity without importing backend code into frontend/sidecar.
-- MCP tool results should preserve the raw MCP result for every MCP tool, current
-  and future. The MCP adapter may wrap results in WindieOS native tool
-  call/tool output envelopes while preserving MCP `content`,
-  `structuredContent`, and other returned fields without summarizing,
-  flattening, or discarding them. Model-facing
-  `data.output` should contain the MCP result content, and `data.mcp_result`
-  should keep the raw object for inspection. If an MCP result contains image
-  content, additively promote it into WindieOS native image fields such as
-  `data.screenshot` and `data.screenshot_content_type` without rewriting or
-  removing the raw MCP result.
-- Computer-use tools should return automatic post-action screenshot context in
-  their tool outputs. Tool bundles that include any computer-use action should
-  also return screenshot context for the bundle output; capture once after the
-  bundle unless an explicit successful screenshot step already provides the
-  needed image.
-- Built-in grounded tools should preserve the model-schema vs prepared-argument
-  distinction. Use `backend_grounding` only when OCR/vision/prediction prepares
-  executable sidecar arguments; otherwise use `passthrough`.
-- Example: backend may resolve higher-level screen intent into coordinates while
-  frontend receives and executes a simpler action such as `click(100, 200)`.
-- Prefer parity tests that verify schemas and registries stay aligned.
-- Extension contribution types should stay separated inside one package:
-  metadata in `extensions/<id>/extension.json`, plugin code in
-  `plugin/index.cjs`, MCP server config in `mcp/servers.json`, skills in
-  `skills/<skill-id>/SKILL.md`, sidecar schemas in `tools/`, and sidecar code in
-  `python/`.
-- Python sidecar tools use `name`, `schema`, and `entrypoint`; main-process
-  plugins use `api.registerTool({ name, schema, execute })` and may call
-  `api.registerMcpServer(...)`; skills become prompt layers, not executable
-  tools.
-- Keep `docs/development/extensions.md` as the canonical extension authoring
-  guide and `docs/plugins/README.md` as the routing hub.
 
 ## Coding Standards
 
