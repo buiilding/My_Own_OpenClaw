@@ -6,7 +6,8 @@ import { act, renderHook } from '@testing-library/react';
 
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';

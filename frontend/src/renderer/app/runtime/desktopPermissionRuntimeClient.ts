@@ -2,7 +2,8 @@
  * Coordinates desktop permission runtime commands for renderer permission UI.
  */
 
-import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS } from '../../infrastructure/ipc/channels';
 
 export type PermissionStatusValue = {
   permission_id: string;

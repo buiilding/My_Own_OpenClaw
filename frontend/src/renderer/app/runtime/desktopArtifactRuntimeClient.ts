@@ -13,7 +13,8 @@ import {
   resolveReplayScreenshotState,
   resolveScreenshotAttachmentState,
 } from '../../infrastructure/services/screenshotMessageState';
-import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS } from '../../infrastructure/ipc/channels';
 import { DesktopRuntimeEndpointClient } from './desktopRuntimeEndpointClient';
 
 export type FetchArtifactImageRequest = {

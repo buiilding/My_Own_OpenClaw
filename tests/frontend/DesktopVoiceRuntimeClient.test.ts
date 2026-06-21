@@ -6,9 +6,11 @@ import * as DesktopVoiceRuntimeModule from '../../frontend/src/renderer/app/runt
 import { DesktopVoiceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
 import {
   IpcBridge,
+} from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import {
   ON_CHANNELS,
   SEND_CHANNELS,
-} from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+} from '../../frontend/src/renderer/infrastructure/ipc/channels';
 
 const mockInvokeAgentSdkCommand = jest.fn(async () => undefined);
 

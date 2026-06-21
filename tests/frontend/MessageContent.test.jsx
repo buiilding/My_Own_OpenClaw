@@ -6,7 +6,8 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import MessageContent from '../../frontend/src/renderer/features/chat/components/MessageContent';
-import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 
 jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => ({
   toSanitizedMarkdownHtml: jest.fn((text) => text),

@@ -1634,6 +1634,10 @@ describe('renderer app runtime boundary', () => {
   });
 
   test('renderer IPC channel module validates shape without duplicating product wire values', async () => {
+    const bridgeSource = await fs.readFile(
+      path.join(rendererRoot, 'infrastructure/ipc/bridge.ts'),
+      'utf8',
+    );
     const source = await fs.readFile(
       path.join(rendererRoot, 'infrastructure/ipc/channels.ts'),
       'utf8',
@@ -1647,6 +1651,8 @@ describe('renderer app runtime boundary', () => {
     expect(source).toContain('must be a non-empty string');
     expect(source).not.toContain('EXPECTED_SHARED_CHANNEL_REGISTRY =');
     expect(source).not.toContain('windie:');
+    expect(bridgeSource).toContain('export class IpcBridge');
+    expect(bridgeSource).not.toContain('export { SEND_CHANNELS');
     expect(sharedRegistry).toContain('windie:invoke');
     expect(sharedRegistry).toContain('windie:current-turn');
   });

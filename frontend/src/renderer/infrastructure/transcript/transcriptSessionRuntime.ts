@@ -2,7 +2,8 @@
  * Coordinates the transcript session runtime for the renderer UI.
  */
 
-import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../ipc/bridge';
+import { IpcBridge } from '../ipc/bridge';
+import { ON_CHANNELS, SEND_CHANNELS } from '../ipc/channels';
 import { normalizeOptionalIncomingText } from '../text/incomingTextNormalization';
 import {
   emitSessionUpdateEvent,

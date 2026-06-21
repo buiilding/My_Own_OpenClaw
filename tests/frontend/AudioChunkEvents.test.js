@@ -13,7 +13,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import * as DesktopAudioRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopAudioRuntimeClient';
 import { DesktopAudioRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopAudioRuntimeClient';
-import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 
 const unsubscribe = jest.fn();
 

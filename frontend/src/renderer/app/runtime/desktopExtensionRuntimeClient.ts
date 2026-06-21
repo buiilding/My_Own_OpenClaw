@@ -2,7 +2,8 @@
  * Coordinates desktop extension metadata and capability events.
  */
 
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/channels';
 
 export type AgentExtensionRuntimeSnapshot = {
   plugins: unknown[];

@@ -5,7 +5,8 @@
 import { DesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { DesktopRuntimeEndpointClient } from './desktopRuntimeEndpointClient';
 import { DesktopWakewordEventRuntime } from './desktopWakewordEventRuntime';
-import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/channels';
 
 const {
   createDesktopRuntimeTransport,

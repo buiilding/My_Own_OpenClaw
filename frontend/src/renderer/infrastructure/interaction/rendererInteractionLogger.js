@@ -2,7 +2,8 @@
  * Provides the renderer interaction logger module for the renderer UI.
  */
 
-import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
+import { IpcBridge } from '../ipc/bridge';
+import { SEND_CHANNELS } from '../ipc/channels';
 
 const MAX_LABEL_LENGTH = 120;
 const MESSAGE_TEXT_REDACTION = '[redacted]';

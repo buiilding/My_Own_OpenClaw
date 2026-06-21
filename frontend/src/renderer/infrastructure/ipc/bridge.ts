@@ -24,7 +24,6 @@ declare global {
     ipc?: RawIpcInterface;
   }
 }
-
 /**
  * Get the raw IPC interface from window
  */
@@ -106,8 +105,3 @@ export class IpcBridge {
     getRawIpc().once(channel, handler);
   }
 }
-
-/**
- * Export channel constants for convenience
- */
-export { SEND_CHANNELS, INVOKE_CHANNELS, ON_CHANNELS };

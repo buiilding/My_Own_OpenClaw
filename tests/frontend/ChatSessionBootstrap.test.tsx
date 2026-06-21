@@ -5,7 +5,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { useChatSessionBootstrap } from '../../frontend/src/renderer/features/chat/hooks/useChatSessionBootstrap';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({

@@ -44,6 +44,10 @@ Compile-time channel safety comes from `channels.ts`:
 Missing families, missing keys, or drifted channel string values throw before
 the exported channel constants can be used by renderer callers.
 
+`bridge.ts` does not re-export channel constants. Renderer callers that need
+channel names import them from `channels.ts`, while callers that need IPC
+transport behavior import `IpcBridge` from `bridge.ts`.
+
 ## Runtime Validation Policy
 
 Bridge precomputes set lookups:
@@ -126,6 +130,7 @@ If cleanup ignored:
 3. changing validation environment check can unintentionally enable/disable dev checks.
 4. altering `getRawIpc` error semantics can break test diagnostics and runtime onboarding hints.
 5. forgetting to return cleanup function from preload `on` path breaks renderer unsubscription contract.
+6. re-exporting channel constants from `bridge.ts` recreates a duplicate owner path for channel names.
 
 ## Change Checklist
 

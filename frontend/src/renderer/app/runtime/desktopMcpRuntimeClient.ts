@@ -2,7 +2,8 @@
  * Coordinates desktop MCP registry commands for renderer surfaces.
  */
 
-import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS } from '../../infrastructure/ipc/channels';
 
 export type McpServerEnablementInput = {
   id: string;

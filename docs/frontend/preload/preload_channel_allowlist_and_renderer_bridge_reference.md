@@ -177,6 +177,9 @@ Invalid `on/once` channel behavior:
 - development-only runtime channel validation with `Set` membership checks
 - prod fast path (no validation) because preload already enforces allowlists
 
+`bridge.ts` intentionally exports only `IpcBridge`; renderer callers import
+channel constants from `channels.ts` so channel ownership stays in one module.
+
 Dev-mode validation trigger:
 
 - `process.env.NODE_ENV === 'development'`

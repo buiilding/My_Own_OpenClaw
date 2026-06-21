@@ -2,7 +2,8 @@
  * Covers ipc bridge. behavior in the frontend test suite.
  */
 
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { clearMockIpc, installMockIpc } from './ipcBridge.testUtils';
 
 describe('IpcBridge', () => {

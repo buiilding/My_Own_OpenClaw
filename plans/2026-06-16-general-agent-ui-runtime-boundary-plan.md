@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer IPC Bridge Channel Owner Split
+
+- Finding: `frontend/src/renderer/infrastructure/ipc/channels.ts` already
+  owned shared channel-registry validation and typed channel constants, but
+  `bridge.ts` still re-exported those constants as a convenience alias beside
+  `IpcBridge`.
+- Change: removed the bridge channel-constant re-export path, routed renderer
+  app-runtime, infrastructure, and focused tests to import channel names from
+  `channels.ts`, and kept `bridge.ts` focused on preload-backed IPC behavior.
+- Validation: focused IPC bridge/channel, app-runtime boundary, app config,
+  transcript/session, audio, voice, artifact, permission, MCP, workspace,
+  window, message-content, and conversation tests plus targeted lint, docs
+  validation, stale bridge channel import scans, and diff checks.
+- Compatibility/security: no migration required. This is renderer-internal
+  import ownership cleanup only; IPC channel values, preload allowlists,
+  bridge validation, listener cleanup, storage, credentials, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-21 Renderer Dashboard Hook Owner Export
 
 - Finding: `useDashboardConversations.js` already delegated reusable dashboard

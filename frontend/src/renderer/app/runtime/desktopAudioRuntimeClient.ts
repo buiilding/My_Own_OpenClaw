@@ -3,7 +3,8 @@
  */
 
 import { PlayerService } from '../../infrastructure/audio/PlayerService';
-import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { ON_CHANNELS } from '../../infrastructure/ipc/channels';
 
 export type DesktopAudioChunk = {
   audio: string;

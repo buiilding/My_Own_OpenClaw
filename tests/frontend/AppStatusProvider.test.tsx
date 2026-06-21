@@ -5,7 +5,7 @@
 import React from 'react';
 import { act, renderHook } from '@testing-library/react';
 
-import { ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { AppStatusProvider } from '../../frontend/src/renderer/app/providers/AppStatusProvider';
 import { useAppStatusContext } from '../../frontend/src/renderer/app/providers/AppStatusContext';
 

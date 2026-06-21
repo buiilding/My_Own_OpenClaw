@@ -2,8 +2,8 @@
  * Stores and retrieves browser session state for the renderer UI.
  */
 
-import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
-import { DESKTOP_RUNTIME_INVOKE_CHANNELS } from '../ipc/channels';
+import { IpcBridge } from '../ipc/bridge';
+import { DESKTOP_RUNTIME_INVOKE_CHANNELS, INVOKE_CHANNELS } from '../ipc/channels';
 import { DesktopConversationRuntimeContracts } from '../../app/runtime/desktopConversationRuntimeContracts';
 import {
   getLocalRuntimeStatusSnapshot,

@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove the renderer IPC bridge channel-constant re-export
+  path so `bridge.ts` exports only `IpcBridge` behavior while channel constants
+  remain owned by `channels.ts`. No migration required.
 - frontend/renderer: export `useDashboardConversations` directly from its
   hook owner declaration instead of a passive export block, keeping dashboard
   conversation state ownership explicit while preserving the existing import

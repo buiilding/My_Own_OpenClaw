@@ -2,7 +2,8 @@
  * Coordinates window commands for renderer app-runtime clients.
  */
 
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/channels';
 
 export type ShowChatboxOptions = {
   focus?: boolean;

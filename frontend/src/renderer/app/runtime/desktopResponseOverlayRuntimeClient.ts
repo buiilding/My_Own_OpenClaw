@@ -2,7 +2,8 @@
  * Coordinates response overlay window commands for renderer app-runtime clients.
  */
 
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/channels';
 
 export type ResponseboxSizePayload = {
   visible: boolean;

@@ -7,7 +7,7 @@ import { useChatMessageSender } from '../../frontend/src/renderer/features/chat/
 import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';

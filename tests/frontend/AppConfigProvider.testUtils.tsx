@@ -7,10 +7,12 @@ import { act, renderHook } from '@testing-library/react';
 
 import {
   IpcBridge,
+} from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import {
   INVOKE_CHANNELS,
   ON_CHANNELS,
   SEND_CHANNELS,
-} from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+} from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { AppConfigProvider } from '../../frontend/src/renderer/app/providers/AppConfigProvider';
 import { useAppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
 import {

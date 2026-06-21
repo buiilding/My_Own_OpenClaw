@@ -2,7 +2,8 @@
  * Stores and retrieves local runtime status state for the renderer UI.
  */
 
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../ipc/bridge';
+import { IpcBridge } from '../ipc/bridge';
+import { INVOKE_CHANNELS, ON_CHANNELS } from '../ipc/channels';
 
 const EMPTY_LOCAL_RUNTIME_STATUS = Object.freeze({
   ready: false,

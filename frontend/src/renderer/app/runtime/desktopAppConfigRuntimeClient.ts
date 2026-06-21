@@ -2,7 +2,8 @@
  * Coordinates desktop app config persistence and settings event fan-out.
  */
 
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/channels';
 import { DesktopSettingsUpdateErrorRuntime } from './desktopSettingsUpdateErrorRuntime';
 
 const {

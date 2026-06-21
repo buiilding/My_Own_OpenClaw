@@ -2,7 +2,8 @@
  * Coordinates desktop workspace selection commands and subscriptions for renderer clients.
  */
 
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/channels';
 import {
   areWorkspaceBindingsEqual,
   clearAllConversationWorkspaceBindings,

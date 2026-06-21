@@ -23,7 +23,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/sessionInfoStor
 
 import * as TranscriptSessionRuntimeModule from '../../frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime';
 import { createTranscriptSessionRuntime } from '../../frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime';
-import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { readSessionInfoFromStorage } from '../../frontend/src/renderer/infrastructure/transcript/sessionInfoStorage';
 
 function createRuntimeAndHandler() {
