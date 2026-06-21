@@ -29,7 +29,7 @@ Runtime invariant:
 
 - only one active transcription replacement region is tracked at a time
 - append, replace, input-change, and paste offset rules are owned by
-  `desktopTranscriptionRegionRuntime.ts`; `useTranscription` keeps React state
+  `DesktopTranscriptionRegionRuntime`; `useTranscription` keeps React state
   and mutable refs around that app-runtime facade.
 
 ## Transcript Update State Machine
@@ -37,8 +37,8 @@ Runtime invariant:
 `useTranscription.updateTranscription(text)` behavior:
 
 1. ignore empty text
-2. if region inactive -> append text to end (`appendTranscriptionText`) and activate new range
-3. if region active -> replace only prior region (`replaceTranscriptionText`) and update bounds
+2. if region inactive -> append text to end (`DesktopTranscriptionRegionRuntime.appendTranscriptionText`) and activate new range
+3. if region active -> replace only prior region (`DesktopTranscriptionRegionRuntime.replaceTranscriptionText`) and update bounds
 
 Effect:
 
@@ -49,7 +49,7 @@ Effect:
 On every manual input change:
 
 1. compute `diff = newValue.length - oldValue.length`
-2. apply `updateRegionAfterInputChange(...)` rules:
+2. apply `DesktopTranscriptionRegionRuntime.updateRegionAfterInputChange(...)` rules:
 - cursor before region start: shift start/end by `diff`
 - cursor after region end: keep region unchanged
 - cursor inside region: invalidate region (reset empty)
@@ -61,8 +61,8 @@ This preserves replacement targeting only when edit happened outside the live tr
 
 `handlePaste` path:
 
-1. builds next value from selection range (`buildValueAfterPaste`)
-2. adjusts region with `updateRegionAfterPaste(...)`:
+1. builds next value from selection range (`DesktopTranscriptionRegionRuntime.buildValueAfterPaste`)
+2. adjusts region with `DesktopTranscriptionRegionRuntime.updateRegionAfterPaste(...)`:
 - replacement before region -> shift start/end by net length delta
 - paste after region -> region unchanged
 - replacement inside or overlapping region -> invalidate region

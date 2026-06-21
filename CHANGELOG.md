@@ -98,6 +98,10 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopActiveChatSessionRuntime` instead of a standalone helper export,
   keeping transcript/session reset policy behind the renderer app-runtime
   facade. No migration required.
+- frontend/renderer: expose transcription-region edit reconciliation through
+  `DesktopTranscriptionRegionRuntime` instead of standalone helper exports,
+  keeping voice dictation text replacement and paste-offset rules behind the
+  renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

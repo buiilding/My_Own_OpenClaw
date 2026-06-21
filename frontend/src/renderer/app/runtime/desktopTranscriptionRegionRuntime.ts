@@ -8,7 +8,7 @@ type TranscriptionRegion = {
   active: boolean;
 };
 
-export function createEmptyTranscriptionRegion(): TranscriptionRegion {
+function createEmptyTranscriptionRegion(): TranscriptionRegion {
   return {
     start: 0,
     end: 0,
@@ -16,7 +16,7 @@ export function createEmptyTranscriptionRegion(): TranscriptionRegion {
   };
 }
 
-export function appendTranscriptionText(currentValue: string, transcriptionText: string): { value: string; region: TranscriptionRegion } {
+function appendTranscriptionText(currentValue: string, transcriptionText: string): { value: string; region: TranscriptionRegion } {
   const value = currentValue + transcriptionText;
   return {
     value,
@@ -28,7 +28,7 @@ export function appendTranscriptionText(currentValue: string, transcriptionText:
   };
 }
 
-export function replaceTranscriptionText(
+function replaceTranscriptionText(
   currentValue: string,
   region: TranscriptionRegion,
   transcriptionText: string,
@@ -47,7 +47,7 @@ export function replaceTranscriptionText(
   };
 }
 
-export function updateRegionAfterInputChange(
+function updateRegionAfterInputChange(
   region: TranscriptionRegion,
   oldValue: string,
   newValue: string,
@@ -77,7 +77,7 @@ export function updateRegionAfterInputChange(
   return createEmptyTranscriptionRegion();
 }
 
-export function buildValueAfterPaste(
+function buildValueAfterPaste(
   currentValue: string,
   pastedText: string,
   selectionStart: number | null,
@@ -91,7 +91,7 @@ export function buildValueAfterPaste(
   };
 }
 
-export function updateRegionAfterPaste(
+function updateRegionAfterPaste(
   region: TranscriptionRegion,
   selectionStart: number | null,
   selectionEnd: number | null,
@@ -124,3 +124,12 @@ export function updateRegionAfterPaste(
 
   return createEmptyTranscriptionRegion();
 }
+
+export const DesktopTranscriptionRegionRuntime = Object.freeze({
+  appendTranscriptionText,
+  buildValueAfterPaste,
+  createEmptyTranscriptionRegion,
+  replaceTranscriptionText,
+  updateRegionAfterInputChange,
+  updateRegionAfterPaste,
+});

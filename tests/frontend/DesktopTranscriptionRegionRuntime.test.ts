@@ -3,13 +3,17 @@
  */
 
 import {
+  DesktopTranscriptionRegionRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime';
+
+const {
   appendTranscriptionText,
   buildValueAfterPaste,
   createEmptyTranscriptionRegion,
   replaceTranscriptionText,
   updateRegionAfterInputChange,
   updateRegionAfterPaste,
-} from '../../frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime';
+} = DesktopTranscriptionRegionRuntime;
 
 describe('desktopTranscriptionRegionRuntime', () => {
   test('appends transcription text and marks active region at end', () => {

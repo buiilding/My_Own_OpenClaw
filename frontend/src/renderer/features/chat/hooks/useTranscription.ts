@@ -3,14 +3,16 @@
  */
 
 import { useState, useRef, useCallback } from 'react';
-import {
+import { DesktopTranscriptionRegionRuntime } from '../../../app/runtime/desktopTranscriptionRegionRuntime';
+
+const {
   appendTranscriptionText,
   buildValueAfterPaste,
   createEmptyTranscriptionRegion,
   replaceTranscriptionText,
   updateRegionAfterInputChange,
   updateRegionAfterPaste,
-} from '../../../app/runtime/desktopTranscriptionRegionRuntime';
+} = DesktopTranscriptionRegionRuntime;
 
 /**
  * Hook to manage input state and voice transcription updates.

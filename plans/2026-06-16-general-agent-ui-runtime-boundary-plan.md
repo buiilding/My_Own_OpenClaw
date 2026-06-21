@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Transcription Region Facade
+
+- Finding: `desktopTranscriptionRegionRuntime.ts` already owned voice
+  dictation append/replace state, active transcription-region invalidation, and
+  paste/input offset reconciliation for the chat composer, but still exported
+  each edit helper as a standalone function consumed by `useTranscription` and
+  focused tests.
+- Change: made the transcription-region helpers private to the runtime module,
+  exposed them through `DesktopTranscriptionRegionRuntime`, and routed the chat
+  transcription hook, focused region tests, docs, and boundary guards through
+  that facade.
+- Validation: focused transcription-region runtime, transcription hook,
+  renderer chat boundary, exact standalone transcription-region helper
+  export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Voice dictation text
+  replacement, manual typing invalidation, paste-offset reconciliation,
+  composer state, microphone/session behavior, IPC, storage, credentials,
+  provider policy, hosted backend URLs, and local execution trust boundaries
+  are unchanged.
+
 ### 2026-06-21 Renderer Active Chat Session Reset Facade
 
 - Finding: `desktopActiveChatSessionRuntime.ts` already owned the shared
