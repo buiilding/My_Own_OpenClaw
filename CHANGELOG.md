@@ -114,6 +114,10 @@ All notable changes to WindieOS will be documented in this file.
   matching, load, and save through `DesktopRendererConfigStorageRuntime`
   instead of standalone helper exports, keeping localStorage persistence behind
   the renderer app-runtime facade. No migration required.
+- frontend/renderer: expose permission onboarding localStorage key, load, and
+  save through `DesktopPermissionOnboardingStorageRuntime` instead of
+  standalone helper exports, keeping onboarding gate persistence behind the
+  renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

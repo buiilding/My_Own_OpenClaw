@@ -406,6 +406,7 @@ describe('renderer skin/config boundary', () => {
   test('persisted renderer storage keys live in renderer skin config', () => {
     const configFacadeSource = fs.readFileSync(skinConfigFacadePath, 'utf8');
     const storageSettingsSource = fs.readFileSync(storageSettingsPath, 'utf8');
+    const permissionStorageSource = fs.readFileSync(permissionStoragePath, 'utf8');
     const storageOwnerSources = [
       configStoragePath,
       memoryPreferencePath,
@@ -437,7 +438,12 @@ describe('renderer skin/config boundary', () => {
     expect(appConfigProviderSource).not.toContain('RENDERER_STORAGE_KEYS');
     expect(appConfigProviderSource).not.toContain("'windieos-config'");
     expect(callerTestSources.join('\n')).toContain('DesktopMemoryRetrievalPreferenceRuntime');
+    expect(callerTestSources.join('\n')).toContain('DesktopPermissionOnboardingStorageRuntime');
     expect(callerTestSources.join('\n')).toContain('getPermissionOnboardingStorageKey');
+    expect(permissionStorageSource).toContain('DesktopPermissionOnboardingStorageRuntime');
+    expect(permissionStorageSource).not.toContain('export function getPermissionOnboardingStorageKey');
+    expect(permissionStorageSource).not.toContain('export function loadPermissionOnboardingState');
+    expect(permissionStorageSource).not.toContain('export function savePermissionOnboardingState');
     for (const source of callerTestSources) {
       expect(source).not.toContain('RENDERER_STORAGE_KEYS');
       expect(source).not.toContain('desktopRuntimeConfig');

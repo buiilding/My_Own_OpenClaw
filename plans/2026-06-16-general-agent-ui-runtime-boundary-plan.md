@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Permission Onboarding Storage Facade
+
+- Finding: `desktopPermissionOnboardingStorageRuntime.js` already owned the
+  permission onboarding localStorage key, fail-closed persisted state load, and
+  completion snapshot save behavior, but still exported each storage helper
+  directly.
+- Change: made the storage helpers private to the runtime module, exposed them
+  through `DesktopPermissionOnboardingStorageRuntime`, and routed the
+  permission store, focused storage/store tests, and permission docs through
+  that facade.
+- Validation: focused permission storage, permission store, app permission
+  gate, renderer skin/config boundary, exact standalone permission-storage
+  helper export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. The
+  `windieos-permission-onboarding` storage key, retired
+  `desktop-agent-permission-onboarding` ignore behavior, persisted payload
+  shape, onboarding gate recomputation, permission IPC, storage, credentials,
+  provider policy, hosted backend URLs, and local execution trust boundaries
+  are unchanged.
+
 ### 2026-06-21 Renderer Config Storage Facade
 
 - Finding: `desktopRendererConfigStorageRuntime.js` already owned renderer

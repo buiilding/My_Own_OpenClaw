@@ -10,7 +10,7 @@ import { RENDERER_STORAGE_KEYS } from '../skin/desktopRuntimeConfig';
 
 const PERMISSION_ONBOARDING_STORAGE_KEY = RENDERER_STORAGE_KEYS.permissionOnboarding;
 
-export function getPermissionOnboardingStorageKey() {
+function getPermissionOnboardingStorageKey() {
   return PERMISSION_ONBOARDING_STORAGE_KEY;
 }
 
@@ -18,7 +18,7 @@ function readFromStorage() {
   return readJsonObjectFromLocalStorage(PERMISSION_ONBOARDING_STORAGE_KEY);
 }
 
-export function loadPermissionOnboardingState() {
+function loadPermissionOnboardingState() {
   const parsed = readFromStorage();
   if (!parsed) {
     return {
@@ -35,6 +35,12 @@ export function loadPermissionOnboardingState() {
   };
 }
 
-export function savePermissionOnboardingState(state) {
+function savePermissionOnboardingState(state) {
   writeJsonObjectToLocalStorage(PERMISSION_ONBOARDING_STORAGE_KEY, state);
 }
+
+export const DesktopPermissionOnboardingStorageRuntime = Object.freeze({
+  getPermissionOnboardingStorageKey,
+  loadPermissionOnboardingState,
+  savePermissionOnboardingState,
+});

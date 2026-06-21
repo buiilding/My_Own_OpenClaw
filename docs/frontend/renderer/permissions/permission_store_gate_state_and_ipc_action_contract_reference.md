@@ -176,7 +176,7 @@ On guard failure:
 
 ## Persistence Contract
 
-`desktopPermissionOnboardingStorageRuntime.js` owns the active localStorage key:
+`DesktopPermissionOnboardingStorageRuntime` owns the active localStorage key:
 
 - `windieos-permission-onboarding`
 
@@ -187,7 +187,8 @@ Retired `desktop-agent-permission-onboarding` state is not read or migrated.
 That intentionally resets onboarding completion for installs that only have the
 old namespace.
 
-`loadPermissionOnboardingState()` fail-closes malformed/missing values to:
+`DesktopPermissionOnboardingStorageRuntime.loadPermissionOnboardingState()`
+fail-closes malformed/missing values to:
 
 - `manifest_version: ""`
 - `completed: false`

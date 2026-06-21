@@ -3,10 +3,14 @@
  */
 
 import {
+  DesktopPermissionOnboardingStorageRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime';
+
+const {
   getPermissionOnboardingStorageKey,
   loadPermissionOnboardingState,
   savePermissionOnboardingState,
-} from '../../frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime';
+} = DesktopPermissionOnboardingStorageRuntime;
 
 describe('permission onboarding storage', () => {
   const STORAGE_KEY = getPermissionOnboardingStorageKey();

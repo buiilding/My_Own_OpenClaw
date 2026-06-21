@@ -4,10 +4,12 @@
 
 import { create } from 'zustand';
 import { DesktopPermissionRuntimeClient } from '../../../app/runtime/desktopPermissionRuntimeClient';
-import {
+import { DesktopPermissionOnboardingStorageRuntime } from '../../../app/runtime/desktopPermissionOnboardingStorageRuntime';
+
+const {
   loadPermissionOnboardingState,
   savePermissionOnboardingState,
-} from '../../../app/runtime/desktopPermissionOnboardingStorageRuntime';
+} = DesktopPermissionOnboardingStorageRuntime;
 
 function resolveGateState({
   permissions,
