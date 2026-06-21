@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: dashboard search modal focus scheduling and
-  Escape-key close subscriptions now route through
-  `DesktopDashboardSearchModalRuntime`; `SearchChatsModal` keeps rendering,
-  query input, backdrop click, and callback routing local without owning raw
-  `window` timer or listener wiring.
+- Latest completed slice: response-overlay view intent no longer imports the
+  legacy overlay lifecycle adapter; stale visible-response suppression now
+  reads `visibleTurnLifecycle.status` directly from the renderer-owned
+  lifecycle projection.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Response Overlay View Legacy Lifecycle Import Removal
+
+- Finding: `DesktopResponseOverlayViewRuntime` still imported
+  `DesktopOverlayTurnLifecycleRuntime` and consumed the legacy
+  `overlayTurnLifecycle` field for stale visible-response suppression even
+  though `visibleTurnLifecycle.status` is now the renderer-owned lifecycle
+  authority.
+- Change: response-overlay view intent now checks
+  `currentTurnPresentationState.visibleTurnLifecycle.status` directly. The
+  runtime no longer depends on the overlay lifecycle adapter for awaiting-state
+  detection.
+- Validation target: focused response-overlay view contract, chat pill session
+  flow, and renderer app-runtime boundary tests protect local-pending
+  suppression, active response visibility, and rejection of the old runtime
+  import.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Dashboard Search Modal Lifecycle Runtime
 
 - Finding: `SearchChatsModal` still owned raw `window.setTimeout(...)` /
