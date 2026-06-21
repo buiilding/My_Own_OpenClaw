@@ -10,15 +10,57 @@ const {
 } = require('../../frontend/src/main/sidecar/local_runtime_launch_options.cjs');
 const launchOptionsModule = require('../../frontend/src/main/sidecar/local_runtime_launch_options.cjs');
 const localRuntimeUtilsModule = require('../../frontend/src/main/sidecar/local_runtime_utils.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 const TEST_BACKEND_HTTP_URL = 'https://backend.example.com';
+const retiredProductEnvPrefix = ['WINDIE'].join('');
+const existingRuntimeEntrypointPath = path.join(
+  __dirname,
+  '../../frontend/src/main/python/sidecar_daemon.py',
+);
+
+const sampleLocalRuntimeHostConfig = Object.freeze({
+  daemonEntrypoint: 'sample_runtime_daemon.py',
+  bundledRuntime: Object.freeze({
+    missingPythonRuntime: 'Bundled Python runtime not found in app resources. Please reinstall Sample Desktop.',
+  }),
+  runtimePaths: Object.freeze({
+    env: Object.freeze({
+      pythonPath: 'SAMPLE_PYTHON_PATH',
+    }),
+  }),
+  env: Object.freeze({
+    backendHttpUrl: 'SAMPLE_BACKEND_HTTP_URL',
+    backendAuthStatePath: 'SAMPLE_BACKEND_AUTH_STATE_PATH',
+    semanticSummarizer: 'SAMPLE_ENABLE_SEMANTIC_SUMMARIZER',
+    packagedApp: 'SAMPLE_PACKAGED_APP',
+    browserFeaturePackAutoinstall: 'SAMPLE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL',
+    sourcePath: 'SAMPLE_LOCAL_RUNTIME_SOURCE_PATH',
+    sourceStamp: 'SAMPLE_LOCAL_RUNTIME_SOURCE_STAMP',
+    permissionStatePath: 'SAMPLE_PERMISSION_STATE_PATH',
+    userDataDir: 'SAMPLE_USER_DATA_DIR',
+    logLevel: 'SAMPLE_LOCAL_RUNTIME_LOG_LEVEL',
+    verboseStderr: 'SAMPLE_VERBOSE_LOCAL_RUNTIME_STDERR',
+  }),
+});
+
+function createExistingRuntimeLaunchTarget() {
+  return {
+    kind: 'python',
+    command: 'python',
+    args: [existingRuntimeEntrypointPath],
+    cwd: path.dirname(existingRuntimeEntrypointPath),
+    resolvedPath: existingRuntimeEntrypointPath,
+  };
+}
+
+function retiredEnvKey(...parts) {
+  return [retiredProductEnvPrefix, ...parts].join('_');
+}
 
 function createHostSkinLocalRuntimeLaunchPlan(options = {}) {
   return createDesktopLocalRuntimeLaunchPlan({
-    daemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint,
+    daemonEntrypoint: sampleLocalRuntimeHostConfig.daemonEntrypoint,
+    resolveLaunchTarget: createExistingRuntimeLaunchTarget,
     ...options,
   });
 }
@@ -47,7 +89,7 @@ describe('desktop local runtime launch options', () => {
       AGENT_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
     })).toBe(true);
     expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
-      WINDIE_VERBOSE_SIDECAR_STDERR: '1',
+      [retiredEnvKey('VERBOSE', 'SIDECAR', 'STDERR')]: '1',
     })).toBe(false);
   });
 
@@ -58,11 +100,11 @@ describe('desktop local runtime launch options', () => {
       verboseStderr: 'AGENT_VERBOSE_LOCAL_RUNTIME_STDERR',
     });
     expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
-      WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
+      SAMPLE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
     })).toBe(false);
     expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
-      WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
-    }, mainHostSkin.localRuntime.env)).toBe(true);
+      SAMPLE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
+    }, sampleLocalRuntimeHostConfig.env)).toBe(true);
   });
 
   test('does not keep hard-coded Node deprecation stderr suppressors', () => {
@@ -95,10 +137,10 @@ describe('desktop local runtime launch options', () => {
     expect(source).not.toContain('writeSidecarDaemonLogLine');
     expect(source).not.toContain(['SIDECAR', 'SOURCE', 'STAMP', 'FILES'].join('_'));
     expect(source).not.toContain("'sidecar_daemon.py'");
-    expect(source).not.toContain('WINDIE_SIDECAR_SOURCE_PATH');
-    expect(source).not.toContain('WINDIE_SIDECAR_SOURCE_STAMP');
-    expect(source).not.toContain('WINDIE_LOCAL_RUNTIME_SOURCE_PATH');
-    expect(source).not.toContain('WINDIE_LOCAL_RUNTIME_SOURCE_STAMP');
+    expect(source).not.toContain(retiredEnvKey('SIDECAR', 'SOURCE', 'PATH'));
+    expect(source).not.toContain(retiredEnvKey('SIDECAR', 'SOURCE', 'STAMP'));
+    expect(source).not.toContain(retiredEnvKey('LOCAL', 'RUNTIME', 'SOURCE', 'PATH'));
+    expect(source).not.toContain(retiredEnvKey('LOCAL', 'RUNTIME', 'SOURCE', 'STAMP'));
     expect(source).not.toContain(['resolveSidecar', 'SourceStamp'].join(''));
     expect(source).not.toContain(['buildSidecar', 'LaunchContextFromEnv'].join(''));
   });
@@ -123,7 +165,7 @@ describe('desktop local runtime launch options', () => {
   test('uses configured host local-runtime daemon entrypoint', () => {
     let requestedEntrypoint = null;
     const plan = createDesktopLocalRuntimeLaunchPlan({
-      daemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint,
+      daemonEntrypoint: sampleLocalRuntimeHostConfig.daemonEntrypoint,
       resolveLaunchTarget: (entrypoint) => {
         requestedEntrypoint = entrypoint;
         return {
@@ -135,19 +177,19 @@ describe('desktop local runtime launch options', () => {
     });
 
     expect(plan.ok).toBe(true);
-    expect(requestedEntrypoint).toBe('sidecar_daemon.py');
+    expect(requestedEntrypoint).toBe('sample_runtime_daemon.py');
   });
 
   test('uses host skin copy for packaged missing Python guidance', () => {
     const plan = createDesktopLocalRuntimeLaunchPlan({
       isPackaged: true,
-      copy: mainHostSkin.bundledRuntime,
+      copy: sampleLocalRuntimeHostConfig.bundledRuntime,
       resolveLaunchTarget: () => ({ kind: 'python', command: null }),
     });
 
     expect(plan.ok).toBe(false);
     expect(plan.error)
-      .toBe('Bundled Python runtime not found in app resources. Please reinstall WindieOS.');
+      .toBe('Bundled Python runtime not found in app resources. Please reinstall Sample Desktop.');
   });
 
   test('uses generic packaged missing Python fallback without host skin copy', () => {
@@ -176,13 +218,13 @@ describe('desktop local runtime launch options', () => {
   test('uses configured host Python path env in dev missing command guidance', () => {
     const plan = createDesktopLocalRuntimeLaunchPlan({
       isPackaged: false,
-      runtimePaths: mainHostSkin.runtimePaths,
+      runtimePaths: sampleLocalRuntimeHostConfig.runtimePaths,
       resolveLaunchTarget: () => ({ kind: 'python', command: null }),
     });
 
     expect(plan.ok).toBe(false);
     expect(plan.error)
-      .toBe('Python executable not found. Install Python 3 or set WINDIE_PYTHON_PATH to the local-runtime Python executable.');
+      .toBe('Python executable not found. Install Python 3 or set SAMPLE_PYTHON_PATH to the local-runtime Python executable.');
   });
 
   test('uses generic local-runtime wording for missing daemon script errors', () => {
@@ -229,46 +271,48 @@ describe('desktop local runtime launch options', () => {
     expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_STAMP)
       .toContain('local_backend_memory_handlers.py:');
     expect(plan.options.launchContext.AGENT_USER_DATA_DIR).toBe('/tmp/agent-data');
-    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_PATH).toBeUndefined();
-    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP).toBeUndefined();
-    expect(plan.options.launchContext.WINDIE_USER_DATA_DIR).toBeUndefined();
-    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_PATH).toBeUndefined();
-    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP).toBeUndefined();
+    expect(plan.options.launchContext[retiredEnvKey('LOCAL', 'RUNTIME', 'SOURCE', 'PATH')])
+      .toBeUndefined();
+    expect(plan.options.launchContext[retiredEnvKey('LOCAL', 'RUNTIME', 'SOURCE', 'STAMP')])
+      .toBeUndefined();
+    expect(plan.options.launchContext[retiredEnvKey('USER', 'DATA', 'DIR')]).toBeUndefined();
+    expect(plan.options.launchContext[retiredEnvKey('SIDECAR', 'SOURCE', 'PATH')]).toBeUndefined();
+    expect(plan.options.launchContext[retiredEnvKey('SIDECAR', 'SOURCE', 'STAMP')]).toBeUndefined();
   });
 
   test('uses configured host local-runtime daemon env keys in launch context', () => {
-    const originalSemanticSummarizer = process.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER;
+    const originalSemanticSummarizer = process.env.SAMPLE_ENABLE_SEMANTIC_SUMMARIZER;
     const originalAgentSemanticSummarizer = process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER;
-    const originalWindieLogLevel = process.env.WINDIE_SIDECAR_LOG_LEVEL;
+    const originalSampleLogLevel = process.env.SAMPLE_LOCAL_RUNTIME_LOG_LEVEL;
     const originalAgentLocalRuntimeLogLevel = process.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL;
     let plan;
     try {
-      process.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER = '0';
+      process.env.SAMPLE_ENABLE_SEMANTIC_SUMMARIZER = '0';
       process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER = '1';
-      process.env.WINDIE_SIDECAR_LOG_LEVEL = 'DEBUG';
+      process.env.SAMPLE_LOCAL_RUNTIME_LOG_LEVEL = 'DEBUG';
       process.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL = 'INFO';
       plan = createHostSkinLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: TEST_BACKEND_HTTP_URL },
-        localRuntimeEnv: mainHostSkin.localRuntime.env,
+        localRuntimeEnv: sampleLocalRuntimeHostConfig.env,
         authStatePath: '/tmp/auth.json',
         permissionStatePath: '/tmp/permissions.json',
         userDataRoot: '/tmp/legacy-agent-data',
       });
     } finally {
       if (typeof originalSemanticSummarizer === 'string') {
-        process.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER = originalSemanticSummarizer;
+        process.env.SAMPLE_ENABLE_SEMANTIC_SUMMARIZER = originalSemanticSummarizer;
       } else {
-        delete process.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER;
+        delete process.env.SAMPLE_ENABLE_SEMANTIC_SUMMARIZER;
       }
       if (typeof originalAgentSemanticSummarizer === 'string') {
         process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER = originalAgentSemanticSummarizer;
       } else {
         delete process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER;
       }
-      if (typeof originalWindieLogLevel === 'string') {
-        process.env.WINDIE_SIDECAR_LOG_LEVEL = originalWindieLogLevel;
+      if (typeof originalSampleLogLevel === 'string') {
+        process.env.SAMPLE_LOCAL_RUNTIME_LOG_LEVEL = originalSampleLogLevel;
       } else {
-        delete process.env.WINDIE_SIDECAR_LOG_LEVEL;
+        delete process.env.SAMPLE_LOCAL_RUNTIME_LOG_LEVEL;
       }
       if (typeof originalAgentLocalRuntimeLogLevel === 'string') {
         process.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL = originalAgentLocalRuntimeLogLevel;
@@ -286,20 +330,20 @@ describe('desktop local runtime launch options', () => {
     expect(plan.options.env.AGENT_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
     expect(plan.options.env.AGENT_USER_DATA_DIR).toBe('/tmp/legacy-agent-data');
     expect(plan.options.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL).toBe('DEBUG');
-    expect(plan.options.env.WINDIE_BACKEND_HTTP_URL).toBe(TEST_BACKEND_HTTP_URL);
-    expect(plan.options.env.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
-    expect(plan.options.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');
-    expect(plan.options.env.WINDIE_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
-    expect(plan.options.env.WINDIE_USER_DATA_DIR).toBe('/tmp/legacy-agent-data');
-    expect(plan.options.env.WINDIE_SIDECAR_LOG_LEVEL).toBe('DEBUG');
-    expect(plan.options.env.WINDIE_PACKAGED_APP).toBe('0');
-    expect(plan.options.env.WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
-    expect(plan.options.launchContext.WINDIE_BACKEND_HTTP_URL).toBe(TEST_BACKEND_HTTP_URL);
-    expect(plan.options.launchContext.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
-    expect(plan.options.launchContext.WINDIE_USER_DATA_DIR).toBe('/tmp/legacy-agent-data');
-    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_PATH)
+    expect(plan.options.env.SAMPLE_BACKEND_HTTP_URL).toBe(TEST_BACKEND_HTTP_URL);
+    expect(plan.options.env.SAMPLE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
+    expect(plan.options.env.SAMPLE_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');
+    expect(plan.options.env.SAMPLE_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
+    expect(plan.options.env.SAMPLE_USER_DATA_DIR).toBe('/tmp/legacy-agent-data');
+    expect(plan.options.env.SAMPLE_LOCAL_RUNTIME_LOG_LEVEL).toBe('DEBUG');
+    expect(plan.options.env.SAMPLE_PACKAGED_APP).toBe('0');
+    expect(plan.options.env.SAMPLE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
+    expect(plan.options.launchContext.SAMPLE_BACKEND_HTTP_URL).toBe(TEST_BACKEND_HTTP_URL);
+    expect(plan.options.launchContext.SAMPLE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
+    expect(plan.options.launchContext.SAMPLE_USER_DATA_DIR).toBe('/tmp/legacy-agent-data');
+    expect(plan.options.launchContext.SAMPLE_LOCAL_RUNTIME_SOURCE_PATH)
       .toBe(plan.launchTarget.resolvedPath);
-    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP)
+    expect(plan.options.launchContext.SAMPLE_LOCAL_RUNTIME_SOURCE_STAMP)
       .toContain('sidecar_daemon.py:');
     expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_PATH).toBeUndefined();
     expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_STAMP).toBeUndefined();
@@ -377,11 +421,11 @@ describe('desktop local runtime launch options', () => {
     try {
       process.env = {
         ...originalEnv,
-        WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
+        SAMPLE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
       };
       const plan = createHostSkinLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: TEST_BACKEND_HTTP_URL },
-        localRuntimeEnv: mainHostSkin.localRuntime.env,
+        localRuntimeEnv: sampleLocalRuntimeHostConfig.env,
       });
 
       expect(plan.ok).toBe(true);

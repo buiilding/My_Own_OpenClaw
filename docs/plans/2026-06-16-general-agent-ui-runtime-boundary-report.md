@@ -11,9 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `434703e51` (`test(main): neutralize permission copy fixture`)
-- Latest completed slice: generic diagnostics store tests now use neutral
-  injected data-path config instead of WindieOS host-skin diagnostics values.
+- Latest inspected plan checkpoint: `3c06ecd48` (`test(main): neutralize diagnostics data path fixture`)
+- Latest completed slice: generic local-runtime launch-option tests now use
+  neutral injected host launch config instead of WindieOS host-skin launch
+  values.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -53,6 +54,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic extension manifest and MCP runtime tests use sample env maps while
   real WindieOS contribution-root and MCP enablement env names remain host-skin
   owned.
+  Generic local-runtime launch-option tests use sample host launch config while
+  real WindieOS daemon entrypoint, runtime path, bundled-runtime copy, and
+  local-runtime env names remain host-skin owned.
   Generic runtime-path and wakeword bridge tests use sample host config and
   neutral packaged resource roots while real WindieOS env/model/path values
   remain host-skin owned. Local-runtime bridge RPC tests use neutral injected

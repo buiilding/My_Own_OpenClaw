@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local Runtime Launch Host Fixture Neutralization
+
+- Finding: local-runtime launch-option unit tests still imported the WindieOS
+  host skin for daemon entrypoint, env, runtime-path, and bundled-runtime copy
+  values, even though the generic launch helper already accepts those as
+  injected host configuration and the WindieOS-specific mapping is covered by
+  the main host-skin boundary test.
+- Change: replaced the unit-test dependency on `mainHostSkin` with a neutral
+  `sampleLocalRuntimeHostConfig`, kept real daemon source-stamp coverage through
+  an explicit mocked launch target, and added a modular completion guard so
+  launch-option tests stay on injected sample host fixtures.
+- Validation: focused local-runtime launch-option and modular boundary tests,
+  exact scan for retired host-skin imports and literal Windie env keys in the
+  launch-option unit test, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime launch behavior, WindieOS
+  host-skin env mappings, daemon entrypoint compatibility, packaged runtime
+  guidance, source-stamp construction, permissions, storage, credentials,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-20 Main Window Surface Label Cleanup
 
 - Finding: generic Electron main window, overlay, display-affinity, and

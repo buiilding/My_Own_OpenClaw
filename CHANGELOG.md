@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use a neutral injected local-runtime launch host fixture instead
+  of importing WindieOS host-skin launch values. No migration required.
 - tests/main: use neutral injected diagnostics data-path fixtures instead of
   WindieOS host-skin diagnostics values. No migration required.
 - tests/main: use neutral injected permission copy fixtures instead of WindieOS

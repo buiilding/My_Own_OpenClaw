@@ -1007,6 +1007,17 @@ describe('modular sdk refactor completion boundary', () => {
     expect(combined).toContain('agent-main-log-');
   });
 
+  test('local-runtime launch option tests keep injected host fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/LocalRuntimeLaunchOptions.test.cjs');
+    const retiredHostEnvPrefix = ['WINDIE', ''].join('_');
+
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain(retiredHostEnvPrefix);
+    expect(source).toContain('sampleLocalRuntimeHostConfig');
+    expect(source).toContain('SAMPLE_LOCAL_RUNTIME_SOURCE_PATH');
+    expect(source).toContain('SAMPLE_VERBOSE_LOCAL_RUNTIME_STDERR');
+  });
+
   test('main IPC lifecycle explicit endpoint override fixtures stay product-neutral', async () => {
     const source = await read('tests/frontend/IpcMainBridge.lifecycle.test.cjs');
     const retiredOverrideHost = ['windie', 'example', 'com'].join('.');
