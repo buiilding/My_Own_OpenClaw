@@ -47,6 +47,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/tests: rename active local-runtime Python test labels away from
   local-backend and sidecar-tool owner wording while preserving concrete
   implementation file paths. No migration required.
+- sidecar/tests: route local-runtime Python bootstrap path test labels away from
+  sidecar-suite and local-backend smoke-test wording while preserving concrete
+  bootstrap file paths. No migration required.
 - renderer/chat: move chat send lifecycle chat-pill trace payload shaping into
   `desktopRendererTraceRuntime` so `desktopChatSendPreparationRuntime` reports
   send-start, screenshot-decision, and query-dispatched values without owning

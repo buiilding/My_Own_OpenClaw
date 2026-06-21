@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: active local-runtime Python tests now use
-  local-runtime service/tool-helper labels instead of local-backend or
-  sidecar-tool owner labels, with focused guard coverage preventing those exact
-  active test labels from returning.
+- Latest completed slice: the local-runtime Python bootstrap path tests now use
+  local-runtime bootstrap labels instead of sidecar-suite or local-backend
+  smoke-test wording, with focused guard coverage preventing those exact active
+  test labels from returning.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -55,13 +55,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic settings section tests use sample settings skin and browser
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
-  Local-runtime Python service/browser registry tests use owner-correct
-  local-runtime service and tool-helper labels while preserving real
-  `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar` implementation
-  paths. Agent SDK local-runtime provider and tool-coordinator tests use neutral
-  `AGENT_TEST_*` launch env, launch-context, daemon, tool-execution failure,
-  error, and conversation fixtures while real Windie compatibility env aliases
-  remain explicitly covered by
+  Local-runtime Python service/browser registry/bootstrap tests use
+  owner-correct local-runtime service, tool-helper, and bootstrap labels while
+  preserving real `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar`
+  implementation paths. Agent SDK local-runtime provider and tool-coordinator
+  tests use neutral `AGENT_TEST_*` launch env, launch-context, daemon,
+  tool-execution failure, error, and conversation fixtures while real Windie
+  compatibility env aliases remain explicitly covered by
   `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
   Generic local-runtime bridge screenshot tests preserve retired namespace
   rejection coverage while avoiding direct legacy WindieOS screenshot temp
@@ -632,6 +632,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Local-Runtime Python Bootstrap Label Boundary
+
+- Finding: `test_bootstrap_paths.py` still described bootstrap path coverage as
+  sidecar test-suite behavior and named its local tool registry smoke test after
+  local-backend bootstrap, even though the concrete `local_backend.py` file is
+  now an implementation detail behind the local-runtime Python bootstrap
+  boundary.
+- Change: renamed the active bootstrap test docstring and smoke-test name to
+  local-runtime Python bootstrap wording and expanded the existing source guard
+  to reject the exact retired labels while preserving concrete bootstrap file
+  paths.
+- Validation: focused bootstrap-path pytest coverage and exact stale bootstrap
+  label scan.
+- Compatibility/security: no migration required. Runtime code, import
+  bootstrap behavior, JSON-RPC methods, local tool schemas, daemon entrypoint,
+  IPC, storage, credentials, and trust boundaries are unchanged.
 
 ### 2026-06-21 Local-Runtime Python Test Label Boundary
 

@@ -1,4 +1,4 @@
-"""Covers bootstrap paths behavior in the sidecar test suite."""
+"""Covers local-runtime Python bootstrap path behavior."""
 
 import os
 import subprocess
@@ -46,14 +46,28 @@ def test_bootstrap_paths_source_uses_local_runtime_terms():
     ).read_text(encoding="utf-8")
     retired_helper_name = "ensure_" + "sidecar_python_path"
     retired_dir_name = "sidecar" + "_python_dir"
+    retired_docstring = (
+        "Covers bootstrap paths behavior in the " + "sidecar test suite."
+    )
+    retired_smoke_test = (
+        "test_"
+        + "local_backend_bootstrap_supports_client_local_tool_registry_from_runtime_cwd"
+    )
 
+    assert "Covers local-runtime Python bootstrap path behavior." in source
+    assert (
+        "test_local_runtime_bootstrap_supports_client_local_tool_registry_from_runtime_cwd"
+        in source
+    )
     assert retired_helper_name not in source
     assert retired_helper_name not in helper_source
     assert retired_dir_name not in source
     assert retired_dir_name not in helper_source
+    assert retired_docstring not in source
+    assert retired_smoke_test not in source
 
 
-def test_local_backend_bootstrap_supports_client_local_tool_registry_from_runtime_cwd():
+def test_local_runtime_bootstrap_supports_client_local_tool_registry_from_runtime_cwd():
     repo_root = Path(__file__).resolve().parents[2]
     local_runtime_dir = repo_root / "frontend" / "src" / "main" / "python"
     script = """

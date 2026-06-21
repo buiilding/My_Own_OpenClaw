@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Python Bootstrap Label Boundary
+
+- Finding: `test_bootstrap_paths.py` still described bootstrap path coverage as
+  sidecar test-suite behavior and named its local tool registry smoke test after
+  local-backend bootstrap, even though the concrete `local_backend.py` file is
+  now an implementation detail behind the local-runtime Python bootstrap
+  boundary.
+- Change: renamed the active bootstrap test docstring and smoke-test name to
+  local-runtime Python bootstrap wording and expanded the existing source guard
+  to reject the exact retired labels while preserving concrete bootstrap file
+  paths.
+- Validation: focused bootstrap-path pytest coverage and exact stale bootstrap
+  label scan.
+- Compatibility/security: no migration required. Runtime code, import
+  bootstrap behavior, JSON-RPC methods, local tool schemas, daemon entrypoint,
+  IPC, storage, credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Local-Runtime Python Test Label Boundary
 
 - Finding: active local-runtime Python tests still described the owner boundary
