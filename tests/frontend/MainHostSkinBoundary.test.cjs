@@ -60,6 +60,10 @@ const permissionManifestReferencePath = path.resolve(
   __dirname,
   '../../docs/frontend/main/permission_manifest_probe_and_request_ipc_reference.md',
 );
+const queryPayloadReferencePath = path.resolve(
+  __dirname,
+  '../../docs/frontend/main/query_payload_and_relay_reference.md',
+);
 const mainMarkerConsumerPaths = [
   layerLogSinkPath,
   path.join(mainRoot, 'surfaces/main_window_overlay_runtime.cjs'),
@@ -348,6 +352,13 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain("WindieOS isn't connected");
     expect(source).not.toContain('WindieOS lost connection');
     expect(source).not.toContain('backend reconnects');
+  });
+
+  test('query relay docs use local-runtime bootstrap wording', () => {
+    const source = fs.readFileSync(queryPayloadReferencePath, 'utf8');
+
+    expect(source).toContain('local-runtime/tool runtime bootstrap');
+    expect(source).not.toContain('sidecar/tool runtime bootstrap');
   });
 
   test('query send-failure broadcast builds sdk events without backend normalizer import', () => {

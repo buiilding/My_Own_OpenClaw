@@ -45,7 +45,7 @@ Endpoint context for Agent SDK runtime calls:
 
 - websocket send target, origin, hosted defaults, and endpoint environment
   overrides are owned by `AgentClient` managed backend options
-- socket construction, sidecar/tool runtime bootstrap, envelope sends,
+- socket construction, local-runtime/tool runtime bootstrap, envelope sends,
   current-turn projection, and display-row projection are owned by
   the SDK `AgentClient.wakeUp(...)` + `agent.conversation(...)` path;
   `ipc.cjs` imports the SDK directly and only forwards SDK outputs to renderer

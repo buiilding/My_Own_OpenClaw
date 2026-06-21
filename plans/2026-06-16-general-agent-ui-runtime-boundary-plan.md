@@ -22100,3 +22100,19 @@ Each completed slice should report:
   renderer state ownership, local-runtime bridge behavior, IPC channels, tool
   execution, storage, provider policy, backend behavior, and trust boundaries
   are unchanged.
+
+### 2026-06-21 main query relay local-runtime bootstrap label
+
+- Finding: the main query payload/relay reference still described SDK-owned
+  socket construction and tool bootstrap as "sidecar/tool runtime bootstrap",
+  leaving a sidecar implementation label in a generic Electron main/SDK relay
+  description.
+- Change: reworded that bootstrap line to local-runtime/tool runtime ownership
+  and added main host-skin boundary coverage for the retired sidecar/tool
+  runtime bootstrap phrase.
+- Validation: focused main host-skin boundary test, exact stale phrase scan for
+  the touched query relay reference, docs listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  query payload filtering, SDK wake-up, local-runtime bootstrap behavior,
+  websocket sends, IPC channels, storage, provider policy, backend behavior, and
+  trust boundaries are unchanged.
