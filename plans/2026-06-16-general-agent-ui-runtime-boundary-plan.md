@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Settings Skin Fixture Neutralization
+
+- Finding: `SettingsSection` coverage still asserted WindieOS settings,
+  browser, shortcut fallback, and memory-delete copy directly, even though the
+  settings tabs consume product labels through `desktopRuntimeSkin.settings`
+  and permission reason/remediation strings through the permission store.
+- Change: mocked a neutral sample settings skin, replaced product-specific
+  mocked browser permission copy with sample desktop copy, and added a modular
+  completion guard so settings section tests stay product-neutral.
+- Validation: focused settings section and modular boundary tests plus exact
+  product-copy scan.
+- Compatibility: no migration required. Renderer settings behavior, WindieOS
+  renderer skin copy, permission store contracts, IPC channels, storage,
+  credentials, local authority, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Onboarding Skin Fixture Neutralization
 
 - Finding: `DesktopOnboardingSlideshow` coverage still asserted WindieOS

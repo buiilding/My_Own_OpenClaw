@@ -69,6 +69,114 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => mockAppConfigContext,
 }));
 
+jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
+  desktopRuntimeSkin: {
+    settings: {
+      agent: {
+        title: 'Agent',
+        customInstructions: {
+          label: 'Custom instructions',
+          description: 'Saved locally and included with each workspace query.',
+        },
+        extensions: {
+          label: 'Extensions',
+          description: 'Extension contributions are grouped by tools, prompt skills, and MCP servers.',
+          emptyPlugins: 'No local tool plugins loaded',
+        },
+        localTools: {
+          label: 'Local tools',
+          description: 'These are included in the client tool manifest when enabled.',
+          ids: ['mouse_control'],
+        },
+        remoteTools: {
+          label: 'Cloud tools',
+          description: 'These execute through the hosted sample runtime when available.',
+          unavailableFallback: 'Unavailable',
+          ids: ['web_search'],
+        },
+        toolAcceptance: {
+          pending: 'Waiting for runtime acceptance',
+          rejectedPrefix: 'Rejected',
+          acceptedSummary: 'Accepted schema',
+          argumentResolutionFallback: 'passthrough',
+          executionTargetLabels: {
+            backend: 'cloud runtime',
+            local_runtime: 'local runtime',
+          },
+        },
+      },
+      general: {
+        title: 'General',
+        wakeword: {
+          label: 'Wakeword Listening (Hey Jarvis)',
+          description: 'Allow wakeword detection when the chat pill is hidden.',
+          suppressedDescription: 'Listening is paused while the chatbox is visible.',
+        },
+        speechAfterWakeword: {
+          label: 'Speech-To-Text After "Hey Jarvis"',
+          description: 'After wakeword, open chat pill and transcribe speech into the input field.',
+        },
+        toolLogs: {
+          label: 'View tool logs',
+          description: 'Show raw tool-call and tool-output cards in chat.',
+        },
+        globalStopShortcut: {
+          label: 'Global Stop Shortcut',
+          descriptionPrefix: 'Ends the active agent loop from anywhere. Current binding:',
+          fallbackPrefix: 'Requested shortcut unavailable on this system. Sample Desktop switched to',
+          fallbackSuffix: 'and saved that binding locally.',
+          registrationFailure: 'Global stop shortcut could not be registered. Choose another binding if you need stop-from-anywhere behavior.',
+          focusedWindowHint: 'Focused chat and dashboard windows still support Esc for stop.',
+        },
+      },
+      browser: {
+        title: 'Browser',
+        browserName: 'Sample Browser',
+        description: 'Open the dedicated browser profile Sample Desktop uses for sign-in state, browsing, navigation, and web tasks.',
+        actionLabel: 'Open Sample Browser',
+        actionDescription: 'Reopen the persistent browser window Sample Desktop manages so you can sign in or verify the session it should reuse later.',
+        openingLabel: 'Opening...',
+        openErrorFallback: 'Unable to open Sample Browser.',
+        openErrorPrefix: 'Unable to open Sample Browser:',
+      },
+      workspace: {
+        title: 'Workspace',
+        activeWorkspaceLabel: 'Active workspace',
+        description: 'Sample Desktop uses the active workspace as the default folder for file reads, shell commands, and repo-aware tasks when a tool call does not provide its own directory.',
+        emptyWorkspace: 'No workspace selected yet.',
+        changeWorkspaceLabel: 'Change workspace',
+        selectingWorkspaceLabel: 'Opening...',
+        updatedFallback: 'Active workspace updated.',
+        updateFailureFallback: 'Failed to change active workspace.',
+      },
+      memory: {
+        title: 'Memory',
+        deleteMemories: {
+          label: 'Delete saved memories',
+          description: 'Deletes saved episodic interaction memories and semantic memories. Chat transcripts remain.',
+          actionLabel: 'Delete memories',
+          pendingLabel: 'Deleting...',
+          confirmMessage: 'Delete saved episodic interaction memories and semantic memories? Chat transcripts will be kept.',
+          successMessage: 'Saved memories deleted.',
+        },
+        deleteChats: {
+          label: 'Delete chat history',
+          description: 'Deletes saved chat transcripts, revisions, and titles. Memories remain.',
+          actionLabel: 'Delete chats',
+          pendingLabel: 'Deleting...',
+          confirmMessage: 'Delete saved chat transcripts, revisions, and titles? Memories will be kept.',
+          successMessage: 'Chat history deleted.',
+        },
+        requireUserMessage: 'Connect Sample Desktop before deleting saved data.',
+        destructiveFailureFallback: 'Failed to complete destructive action',
+      },
+    },
+  },
+  formatToolAcceptanceRuntimeSummary: (acceptedTool) => (
+    `${acceptedTool.name || 'tool'} uses ${acceptedTool.argument_resolution || 'passthrough'}`
+  ),
+}));
+
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient', () => ({
   useDesktopTranscriptSessionInfo: () => mockTranscriptSessionInfo,
 }));
@@ -182,7 +290,7 @@ describe('SettingsSection', () => {
           permission_id: 'browser_automation',
           status: 'needs-action',
           granted: false,
-          reason: 'Open the WindieOS browser and sign in with the profile WindieOS should use for browser help.',
+          reason: 'Open the Sample Desktop browser and sign in with the profile Sample Desktop should use for browser help.',
           details: {},
         },
       },
@@ -197,7 +305,7 @@ describe('SettingsSection', () => {
       permission_id: 'browser_automation',
       status: 'granted',
       granted: true,
-      reason: 'WindieOS browser is ready. Sign in with the profile WindieOS should use for browser help.',
+      reason: 'Sample Desktop browser is ready. Sign in with the profile Sample Desktop should use for browser help.',
       details: {},
     });
   });
@@ -287,7 +395,7 @@ describe('SettingsSection', () => {
     renderSettingsSection();
 
     expect(screen.getByText(/Requested shortcut unavailable on this system/)).toHaveTextContent(
-      'Requested shortcut unavailable on this system. WindieOS switched to Ctrl + Shift + . and saved that binding locally.',
+      'Requested shortcut unavailable on this system. Sample Desktop switched to Ctrl + Shift + . and saved that binding locally.',
     );
   });
 
@@ -354,7 +462,7 @@ describe('SettingsSection', () => {
       expect(mockRunPermissionProbe).toHaveBeenCalledWith('browser_automation');
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open Windie Browser' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open Sample Browser' }));
 
     await waitFor(() => {
       expect(mockRequestPermission).toHaveBeenCalledWith('browser_automation');
@@ -363,7 +471,7 @@ describe('SettingsSection', () => {
       });
     });
 
-    expect(screen.getByText('WindieOS browser is ready. Sign in with the profile WindieOS should use for browser help.')).toBeInTheDocument();
+    expect(screen.getByText('Sample Desktop browser is ready. Sign in with the profile Sample Desktop should use for browser help.')).toBeInTheDocument();
     expect(screen.getByText('Enabled')).toBeInTheDocument();
   });
 
@@ -372,18 +480,18 @@ describe('SettingsSection', () => {
       permission_id: 'browser_automation',
       status: 'needs-action',
       granted: false,
-      reason: 'WindieOS could not open the browser yet. Retry Open browser.',
+      reason: 'Sample Desktop could not open the browser yet. Retry Open browser.',
       details: {
-        remediation: 'Retry Open browser after checking that the WindieOS browser runtime is installed and available.',
+        remediation: 'Retry Open browser after checking that the Sample Desktop browser runtime is installed and available.',
       },
     });
 
     renderSettingsSection({ initialTab: 'browser' });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open Windie Browser' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open Sample Browser' }));
 
-    expect(await screen.findByText('WindieOS could not open the browser yet. Retry Open browser.')).toBeInTheDocument();
-    expect(screen.getByText('Retry Open browser after checking that the WindieOS browser runtime is installed and available.')).toBeInTheDocument();
+    expect(await screen.findByText('Sample Desktop could not open the browser yet. Retry Open browser.')).toBeInTheDocument();
+    expect(screen.getByText('Retry Open browser after checking that the Sample Desktop browser runtime is installed and available.')).toBeInTheDocument();
     expect(mockAppConfigContext.updateConfig).not.toHaveBeenCalledWith({
       browser_automation_enabled: true,
     });
@@ -394,10 +502,10 @@ describe('SettingsSection', () => {
 
     renderSettingsSection({ initialTab: 'browser' });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open Windie Browser' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open Sample Browser' }));
 
     expect(await screen.findByText(
-      'Unable to open Windie Browser: Browser permission IPC failed',
+      'Unable to open Sample Browser: Browser permission IPC failed',
     )).toBeInTheDocument();
     expect(mockAppConfigContext.updateConfig).not.toHaveBeenCalledWith({
       browser_automation_enabled: true,
@@ -592,6 +700,6 @@ describe('SettingsSection', () => {
 
     expect(window.confirm).not.toHaveBeenCalled();
     expect(mockClearChatHistory).not.toHaveBeenCalled();
-    expect(screen.getByText('Connect WindieOS before deleting saved data.')).toBeInTheDocument();
+    expect(screen.getByText('Connect Sample Desktop before deleting saved data.')).toBeInTheDocument();
   });
 });

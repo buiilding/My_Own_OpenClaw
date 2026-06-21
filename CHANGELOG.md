@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/renderer: use neutral injected settings skin and permission copy in
+  settings section coverage instead of WindieOS product strings. No migration
+  required.
 - tests/renderer: use neutral injected onboarding skin and permission copy in
   desktop onboarding slideshow coverage instead of WindieOS product strings. No
   migration required.

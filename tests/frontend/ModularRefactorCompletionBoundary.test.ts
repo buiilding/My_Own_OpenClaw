@@ -426,6 +426,17 @@ describe('modular sdk refactor completion boundary', () => {
     expect(workspaceSurfaceText).toContain('D:\\\\Assistants\\\\project-alpha');
   });
 
+  test('renderer settings section tests keep skin copy fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/SettingsSection.test.jsx');
+
+    expect(source).not.toContain('WindieOS');
+    expect(source).not.toContain('Windie Browser');
+    expect(source).not.toContain('Connect WindieOS before deleting saved data.');
+    expect(source).toContain('Sample Desktop');
+    expect(source).toContain('Sample Browser');
+    expect(source).toContain('Connect Sample Desktop before deleting saved data.');
+  });
+
   test('renderer chat wiring tests keep skin copy fixtures product-neutral', async () => {
     const source = await read('tests/frontend/ChatInterfaceWiring.test.jsx');
 
