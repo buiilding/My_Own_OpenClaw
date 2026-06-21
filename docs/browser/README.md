@@ -1,5 +1,5 @@
 ---
-summary: "Browser automation hub for WindieOS dedicated browser runtime, action dispatch, snapshots, session UI, files, downloads, and troubleshooting."
+summary: "Browser automation hub for the desktop dedicated browser runtime, action dispatch, snapshots, session UI, files, downloads, and troubleshooting."
 read_when:
   - When changing browser automation, browser session UI, dedicated browser launch, CDP snapshots, browser files, or browser tests.
   - When debugging browser tool failures across backend, renderer, Electron main, local-runtime execution, and local-runtime Python adapters.

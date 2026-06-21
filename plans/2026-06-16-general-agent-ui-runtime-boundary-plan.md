@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Desktop Electron Workflow Summary Wording
+
+- Finding: browser, IPC, and main-process first-read summaries still assigned
+  generic dedicated-browser and Electron IPC/main-process runtime ownership to
+  WindieOS product labels, even though the bodies route behavior through the
+  desktop host, SDK/local-runtime path, local-runtime browser adapter, and
+  WindieOS skin/config.
+- Change: reworded those summaries and the IPC trust-boundary opener to use
+  desktop Electron/runtime terminology, and extended the modular boundary guard
+  for the retired product-owned summary phrases.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, IPC channel names,
+  browser action payloads, SDK local-runtime routing, local-runtime daemon
+  behavior, storage, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Agent Architecture Desktop App Source Map
 
 - Finding: the agent architecture source-map reference still described the

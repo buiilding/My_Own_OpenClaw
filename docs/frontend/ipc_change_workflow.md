@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for safely adding, changing, or removing WindieOS Electron IPC channels across shared registry, preload allowlist, main handlers, renderer bridge, and tests."
+summary: "Workflow for safely adding, changing, or removing desktop Electron IPC channels across shared registry, preload allowlist, main handlers, renderer bridge, and tests."
 read_when:
   - When adding, renaming, deleting, or repurposing an Electron IPC channel.
   - When debugging invoke/send/on drift between preload, renderer constants, and main-process handlers.
@@ -9,7 +9,7 @@ title: "IPC Change Workflow"
 
 # IPC Change Workflow
 
-WindieOS IPC is a trust boundary. The renderer can only use channels exposed by preload, and preload receives its allowlist from the shared channel registry passed by the main process. Do not add ad hoc `ipcRenderer` access to renderer code.
+Desktop Electron IPC is a trust boundary. The renderer can only use channels exposed by preload, and preload receives its allowlist from the shared channel registry passed by the main process. Do not add ad hoc `ipcRenderer` access to renderer code.
 
 Use this workflow for Electron IPC only: renderer <-> preload <-> Electron main. If the change crosses into SDK local-runtime or Python JSON-RPC methods, continue into [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md). If the channel relays backend websocket messages, continue into [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md) or [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md), depending on whether the changed contract is desktop query input or backend stream output.
 

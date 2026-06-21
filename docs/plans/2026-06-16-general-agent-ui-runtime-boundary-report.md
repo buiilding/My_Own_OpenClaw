@@ -11,12 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `f93a82288` (`docs(frontend): frame desktop app architecture`)
-- Latest completed slice: the agent architecture source-map reference now
-  describes Electron main, React renderer, preload, and local-runtime behavior
-  as desktop app runtime surfaces instead of a monolithic WindieOS frontend, and
-  names Electron main as desktop host policy plus local-runtime supervision
-  rather than sidecar supervision.
+- Latest inspected plan checkpoint: `a037e31eb` (`docs(development): frame desktop app source map`)
+- Latest completed slice: browser, IPC, and main-process first-read summaries
+  now use desktop Electron/runtime wording instead of assigning generic
+  dedicated-browser or IPC/main-process ownership to WindieOS product labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -110,7 +108,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   React renderer, preload, and local-runtime behavior as desktop app runtime
   surfaces instead of a monolithic WindieOS frontend, and names Electron main
   as desktop host policy plus local-runtime supervision rather than sidecar
-  supervision.
+  supervision. Browser, IPC, and main-process first-read summaries now use
+  desktop Electron/runtime wording for generic host responsibilities while
+  keeping WindieOS product identity in skin/config and launch configuration.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
@@ -8051,6 +8051,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   while preserving `WINDIE_WAKEWORD_MODEL_DIR` alias coverage. Wakeword model
   directory precedence, generic `AGENT_*` env preference, WindieOS alias
   compatibility, provider policy, permissions, storage, and backend behavior are
+  unchanged; no migration is required.
+- Browser, IPC, and main-process first-read summaries now describe the generic
+  desktop Electron/browser runtime boundaries instead of assigning those host
+  responsibilities to WindieOS product labels. Runtime code, IPC channel names,
+  browser action payloads, SDK local-runtime routing, local-runtime daemon
+  behavior, storage, credentials, hosted backend URLs, and provider policy are
   unchanged; no migration is required.
 - Logging docs now use a neutral frontend log override path example while
   preserving the `WINDIE_FRONTEND_LOG_FILE` WindieOS override key. Launcher log

@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS Electron main-process behavior across IPC registration, windows, overlays, backend endpoint forwarding, permissions, local-runtime bridge, wakeword, and VM worker lifecycle."
+summary: "Workflow for changing desktop Electron main-process behavior across IPC registration, windows, overlays, backend endpoint forwarding, permissions, local-runtime bridge, wakeword, and VM worker lifecycle."
 read_when:
   - When changing Electron main-process startup, IPC handlers, preload channel exposure, window visibility, overlays, endpoint routing, SDK local-runtime host wiring, permission probes, wakeword bridge behavior, or VM worker mode.
   - When a renderer symptom may actually belong to Electron main orchestration, IPC transport, local-runtime host context, or platform window policy.

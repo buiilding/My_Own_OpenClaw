@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route browser, IPC, and main-process workflow summaries
+  through desktop Electron/runtime wording instead of product-owned generic
+  runtime labels. No migration required.
 - docs/browser: describe the Chrome launcher dedicated-profile and connect
   policy through host-skinned desktop/local-runtime wording instead of
   WindieOS desktop launch copy. No migration required.
