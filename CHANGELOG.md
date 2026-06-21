@@ -59,6 +59,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/main: route the screenshot visibility reference through local-runtime
   execution wording instead of sidecar invocation wording. No migration
   required.
+- docs/memory: route the memory IPC/RPC reference through local-runtime
+  JSON-RPC and memory-store call wording instead of sidecar call labels. No
+  migration required.
 - docs/renderer: route malformed local-runtime result remediation through the
   local-runtime/main bridge label in the renderer state workflow instead of the
   sidecar/main bridge label. No migration required.

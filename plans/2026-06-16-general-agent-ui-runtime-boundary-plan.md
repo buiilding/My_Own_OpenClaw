@@ -22133,3 +22133,20 @@ Each completed slice should report:
   screenshot task routing, window visibility behavior, local-runtime execution,
   IPC channels, storage, provider policy, backend behavior, and trust boundaries
   are unchanged.
+
+### 2026-06-21 memory IPC/RPC local-runtime call labels
+
+- Finding: the memory IPC/RPC mapping reference still described SDK
+  memory-storage calls, debug parameters, and camelCase-to-snake_case mapping as
+  sidecar calls/conversions even though the active contract is SDK
+  local-runtime JSON-RPC.
+- Change: reworded the generic memory contract through local-runtime
+  `store_memory_by_embedding`, local-runtime store params, and Python JSON-RPC
+  snake_case labels, with boundary coverage for the retired sidecar memory-call
+  phrases.
+- Validation: focused modular refactor boundary test, exact stale phrase scan
+  for the touched memory IPC/RPC reference, docs listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  memory RPC names, payloads, SDK local-runtime store behavior, backend
+  embeddings, IPC channels, storage schemas, provider policy, backend behavior,
+  and trust boundaries are unchanged.

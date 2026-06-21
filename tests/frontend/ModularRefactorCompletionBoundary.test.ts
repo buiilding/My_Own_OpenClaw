@@ -1401,6 +1401,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime-backed chat-event store');
     expect(docText).toContain('local-runtime-backed store adapters');
     expect(docText).toContain('local-runtime-backed local tool');
+    expect(docText).toContain('SDK/local-runtime camelCase to Python JSON-RPC snake_case conversions include');
+    expect(docText).toContain('then calls local-runtime\n`store_memory_by_embedding`');
+    expect(docText).toContain('SDK local-runtime store params sent to the local runtime');
+    expect(docText).toContain('SDK then called local-runtime `store_memory_by_embedding`');
     expect(docText).toContain('canonical local-runtime events');
     expect(docText).toContain('local-runtime conversation_events rows');
     expect(docText).toContain('local-runtime event store path');
@@ -1422,6 +1426,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('canonical sidecar `conversation_events`');
     expect(docText).not.toContain('sidecar event store path');
     expect(docText).not.toContain('sidecar transcript storage');
+    expect(docText).not.toContain('SDK/local-runtime camelCase to sidecar snake_case conversions include');
+    expect(docText).not.toContain('then calls sidecar\n`store_memory_by_embedding`');
+    expect(docText).not.toContain('SDK local-runtime store params sent to the sidecar');
+    expect(docText).not.toContain('SDK then called sidecar `store_memory_by_embedding`');
     expect(docText).not.toContain('Electron relay | `frontend/src/main/ipc.cjs`');
     expect(docText).not.toContain('Backend receive and renderer broadcast logs');
     expect(docText).not.toContain('Before/after event handling and workspace state');

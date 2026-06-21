@@ -66,7 +66,7 @@ Removed text-query memory search:
 - prompt memory search uses SDK-owned backend embeddings and
   `search_memory_by_embedding`.
 
-SDK/local-runtime camelCase to sidecar snake_case conversions include:
+SDK/local-runtime camelCase to Python JSON-RPC snake_case conversions include:
 
 - `userId` -> `user_id`
 - `conversationId` / `conversationRef` -> `conversation_id`
@@ -93,12 +93,12 @@ continuity service and the local-runtime-backed chat-event store. The legacy
 transcript-row IPC/RPC path has been removed.
 
 Completed-turn memory storage is SDK-owned. The SDK formats the memory text,
-calls backend `/api/embeddings/`, and then calls sidecar
+calls backend `/api/embeddings/`, and then calls local-runtime
 `store_memory_by_embedding` with the content, embedding, embedding space
 version, user id, memory type, and conversation id. Electron/renderer IPC does
 not expose a direct memory-storage channel.
 
-## Sidecar Response Envelope
+## Local-Runtime Response Envelope
 
 Local-runtime memory handlers return:
 
@@ -160,14 +160,14 @@ If chats do not reload:
    `conversation.load`
 2. inspect Electron main `windie:invoke` command handling
 3. if the SDK command reaches local persistence but data is missing, inspect
-   the SDK local-runtime store params sent to the sidecar
+   the SDK local-runtime store params sent to the local runtime
 4. verify local-runtime memory store is initialized and `conversation_events` rows exist
 
 If memory injection is empty:
 
 1. verify the SDK context enrichment pipeline called backend embeddings before query send
 2. verify the SDK completed-turn handler called backend embeddings after assistant completion
-3. verify the SDK then called sidecar `store_memory_by_embedding`
+3. verify the SDK then called local-runtime `store_memory_by_embedding`
 4. verify embedding service health and FAISS/SQLite vector mappings
 
 ## Related Pages
