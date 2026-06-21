@@ -9130,3 +9130,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   identifiers. Command behavior, conda env names, test paths, IPC paths,
   storage, provider policy, permissions, and backend behavior are unchanged; no
   migration is required.
+- Development architecture and MCP docs now describe frontend/local-runtime
+  Python import boundaries and CUA driver lookup with local-runtime owner
+  labels instead of sidecar-as-owner wording. Concrete `tests/sidecar` and
+  `frontend/src/main/sidecar/...` paths remain unchanged where they are real
+  repository identifiers. Import boundaries, MCP discovery, driver resolution,
+  storage, provider policy, permissions, and backend behavior are unchanged; no
+  migration is required.

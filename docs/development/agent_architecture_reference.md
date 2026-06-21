@@ -90,9 +90,9 @@ Local-runtime Python tool implementation files
   -> backend manifest validation and policy projection
 ```
 
-Frontend and sidecar must not import backend code for parity. Backend should use
-schemas, manifests, transport contracts, and tests to understand client/local-runtime
-capability.
+Frontend and the local-runtime Python implementation must not import backend
+code for parity. Backend should use schemas, manifests, transport contracts,
+and tests to understand client/local-runtime capability.
 
 ## Backend Agent Runtime
 
@@ -126,10 +126,10 @@ websocket query
 ```
 
 Agent classes are backend-owned. Do not mirror their state machines in Electron,
-renderer, SDK clients, or the sidecar. Those runtimes may transport events,
-render projections, execute local tools, or return tool results, but backend
-keeps prompt policy, provider routing, history compaction, and model-facing loop
-control.
+renderer, SDK clients, or the local runtime. Those runtimes may transport
+events, render projections, execute local tools, or return tool results, but
+backend keeps prompt policy, provider routing, history compaction, and
+model-facing loop control.
 
 ### Agent Loop Shape
 

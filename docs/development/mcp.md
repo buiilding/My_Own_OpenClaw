@@ -196,10 +196,11 @@ binary is not on `PATH`, the MCPs dashboard reports `Not installed`; if CUA
 starts but macOS automation grants are missing, the status reports
 `Needs permission`.
 
-On macOS, the sidecar also resolves `cua-driver` to the installed
-`/Applications/CuaDriver.app/Contents/MacOS/cua-driver` binary, then
-`~/.local/bin/cua-driver`, before surfacing `Not installed`. This keeps the GUI
-app from depending on interactive shell PATH setup after the CUA installer runs.
+On macOS, the local-runtime Python implementation also resolves `cua-driver`
+to the installed `/Applications/CuaDriver.app/Contents/MacOS/cua-driver`
+binary, then `~/.local/bin/cua-driver`, before surfacing `Not installed`. This
+keeps the GUI app from depending on interactive shell PATH setup after the CUA
+installer runs.
 
 MCP enablement, registration, discovery, and execution emit persistent app
 diagnostics:

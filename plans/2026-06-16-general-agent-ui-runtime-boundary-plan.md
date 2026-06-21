@@ -21684,3 +21684,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Documentation labels changed only;
   command behavior, conda env names, test paths, IPC paths, storage, provider
   policy, permissions, and backend behavior are unchanged.
+
+### 2026-06-21 development architecture local-runtime owner labels
+
+- Finding: the development architecture reference still said frontend and
+  "sidecar" must not import backend code and warned against mirroring backend
+  state machines in "the sidecar"; the MCP guide also described CUA driver
+  lookup as sidecar-owned.
+- Change: updated those references to local-runtime Python/local-runtime owner
+  wording while preserving concrete repository paths such as
+  `tests/sidecar` and `frontend/src/main/sidecar/local_runtime_bridge.cjs`.
+- Validation: docs listing, exact stale-label scans for the touched references,
+  and diff checks.
+- Compatibility: no migration required. Documentation labels changed only;
+  import boundaries, MCP discovery, driver resolution behavior, test paths, IPC
+  paths, storage, provider policy, permissions, and backend behavior are
+  unchanged.
