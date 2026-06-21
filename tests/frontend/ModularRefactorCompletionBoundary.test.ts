@@ -2282,10 +2282,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime Python executor');
     expect(docText).toContain('local-runtime executable registry');
     expect(docText).toContain('Local-runtime registry/schema implementation');
+    expect(docText).toContain('relative `directory` values resolve from the selected workspace folder when configured');
     expect(docText).not.toContain(' or sidecar executor');
     expect(docText).not.toContain('and sidecar executor');
     expect(docText).not.toContain('vs sidecar executor');
     expect(docText).not.toContain('schema owners, sidecar executors');
+    expect(docText).not.toContain('selected workspace folder when one has been opened in WindieOS');
     expect(docText).not.toContain('backend owners, sidecar executors');
     expect(docText).not.toContain('Built-in sidecar executors');
     expect(docText).not.toContain('Plugin sidecar executors');

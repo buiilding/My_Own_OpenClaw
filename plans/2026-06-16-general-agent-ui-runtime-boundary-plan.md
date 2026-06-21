@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Tool Catalog Workspace Directory Label
+
+- Finding: the architecture tool catalog still described `run_shell_command`
+  relative directory resolution as using a workspace folder opened in WindieOS,
+  while the backend and local-runtime schemas use generic selected-workspace
+  wording.
+- Change: aligned the catalog sentence to "selected workspace folder when
+  configured" and extended the modular tool-routing docs guard for the retired
+  product-specific phrase.
+- Validation: focused modular tool-routing docs guard, exact stale-label scan,
+  docs list, and diff hygiene.
+- Compatibility/security: no migration required. Tool schemas, generated
+  manifests, local-runtime path resolution, workspace access state, shell
+  execution behavior, permissions, IPC payloads, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Native Search Replay SDK-Normalized Label
 
 - Finding: architecture and renderer tool-event docs still described

@@ -491,7 +491,7 @@ top-level `explanation` field when required by that tool's schema.
 - **get_system_stats**: System statistics
 - **get_open_windows**: List open windows
 - **open_app**: Launch GUI app as a detached desktop process with optional window/screenshot verification
-- **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; omitted or relative `directory` values resolve from the selected workspace folder when one has been opened in WindieOS and otherwise from the user home directory; repository/log search should prefer `rg` and exclude generated directories like `node_modules`, `frontend/release`, `frontend/python-runtime`, and `.git` unless explicitly needed; use `process` for background sessions and high-volume output)
+- **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; omitted or relative `directory` values resolve from the selected workspace folder when configured and otherwise from the user home directory; repository/log search should prefer `rg` and exclude generated directories like `node_modules`, `frontend/release`, `frontend/python-runtime`, and `.git` unless explicitly needed; use `process` for background sessions and high-volume output)
 - **read_file**: Read text, PDF, or image files (relative `file_path` values resolve from the selected workspace folder when available and otherwise from the user home directory)
 - **replace**: Modify text files atomically (relative `file_path` values resolve from the selected workspace folder when available and otherwise from the user home directory)
 - **process**: Manage background shell sessions (poll/log/write/kill)
