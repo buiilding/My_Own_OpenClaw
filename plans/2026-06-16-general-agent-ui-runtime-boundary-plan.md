@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 CLI Deep Doctor Local-Runtime Diagnostic Boundary
+
+- Finding: `<windie> doctor --deep --json` still named its backend port probe
+  as `local backend port` and the Python import probe as `sidecar import`,
+  while command docs described the slow probes as sidecar imports.
+- Change: renamed the diagnostic checks to `backend port` and
+  `local-runtime import`, updated the import success detail to
+  local-runtime service wording, and aligned the command matrix description.
+- Validation: focused Windie CLI deep-doctor JSON Jest coverage, exact stale
+  doctor-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. The probed backend port,
+  Python `local_backend.py` import, `sidecar` environment target, process
+  execution, endpoint resolution, credentials, permissions, IPC, and tool
+  execution are unchanged.
+
 ### 2026-06-21 CLI Local-Runtime Status Label Boundary
 
 - Finding: `<windie> status --json` still displayed `sidecar python` and

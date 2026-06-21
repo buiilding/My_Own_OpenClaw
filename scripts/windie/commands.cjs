@@ -1108,11 +1108,11 @@ async function runDoctor(args) {
   if (deep) {
     const backendPortOpen = await portOpen('127.0.0.1', 8765);
     diagnostics.push({
-      name: 'local backend port',
+      name: 'backend port',
       ok: backendPortOpen,
       detail: backendPortOpen ? '127.0.0.1:8765 is accepting connections' : '127.0.0.1:8765 is closed',
     });
-    const sidecarImport = capture(
+    const localRuntimeImport = capture(
       script(process.platform === 'win32' ? 'scripts/python-in-env.cmd' : 'scripts/python-in-env.sh'),
       [
         'sidecar',
@@ -1123,9 +1123,11 @@ async function runDoctor(args) {
       { cwd: REPO_ROOT },
     );
     diagnostics.push({
-      name: 'sidecar import',
-      ok: sidecarImport.ok,
-      detail: sidecarImport.ok ? 'local_backend imports' : sidecarImport.stderr || sidecarImport.error,
+      name: 'local-runtime import',
+      ok: localRuntimeImport.ok,
+      detail: localRuntimeImport.ok
+        ? 'local-runtime service imports'
+        : localRuntimeImport.stderr || localRuntimeImport.error,
     });
   }
 

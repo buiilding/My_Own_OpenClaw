@@ -161,6 +161,25 @@ describe('windie CLI', () => {
     expect(parsed.detail.endpoint.httpUrl).toBeTruthy();
   });
 
+  test('returns local-runtime labels for deep doctor diagnostics', () => {
+    const result = runCli(['doctor', '--deep', '--json']);
+
+    expect(result.status).toBe(0);
+    const parsed = JSON.parse(result.stdout);
+    const checksByName = Object.fromEntries(
+      parsed.checks.map((check) => [check.name, check]),
+    );
+    const retiredLocalBackendPort = ['local', 'backend', 'port'].join(' ');
+    const retiredSidecarImport = ['sidecar', 'import'].join(' ');
+    const retiredImportDetail = ['local_backend', 'imports'].join(' ');
+
+    expect(checksByName['backend port']).toBeDefined();
+    expect(checksByName['local-runtime import']).toBeDefined();
+    expect(checksByName['local-runtime import'].detail).not.toBe(retiredImportDetail);
+    expect(checksByName[retiredSidecarImport]).toBeUndefined();
+    expect(checksByName[retiredLocalBackendPort]).toBeUndefined();
+  });
+
   test('status endpoint snapshot ignores removed packaged default env aliases', () => {
     expect(getEndpointSnapshot({
       WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL: 'https://packaged.example.com',

@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/doctor: rename deep diagnostic labels from local-backend/sidecar import
+  wording to backend port and local-runtime import checks while preserving the
+  same port probe and Python `local_backend.py` import. No migration required.
 - cli/status: report the Python environment and test-wrapper status with
   local-runtime labels while retaining the `sidecarPython` JSON compatibility
   field next to the canonical `localRuntimePython` result. No migration

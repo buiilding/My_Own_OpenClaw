@@ -24,7 +24,7 @@ tables below use `<windie>` for the active platform shim.
 | `<windie> status --json` | Machine-readable status output. |
 | `<windie> doctor` | Local diagnostic pass. |
 | `<windie> doctor --fix` | Safe repairs only. |
-| `<windie> doctor --deep` | Slower probes such as ports and sidecar imports. |
+| `<windie> doctor --deep` | Slower probes such as backend port and local-runtime import checks. |
 | `<windie> doctor --json` | Machine-readable diagnostic output. |
 | `<windie> diagnostics paths [--json]` | List persistent app diagnostic paths. |
 | `<windie> diagnostics list [--path <path>] [--limit <n>] [--json]` | List persistent app diagnostic rows. |
