@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Boundary Retired Copy Guard Cleanup
+
+- Finding: modular completion and host-skin boundary tests preserved several
+  retired WindieOS workspace, SDK, CLI, agent, plugin, and local-runtime phrases
+  as direct negative-assertion literals.
+- Change: rewrote those retired-copy assertions to construct the product-specific
+  probes from split literals while keeping the same regression checks.
+- Validation: modular boundary test, main host-skin boundary test, and exact
+  retired phrase scans.
+- Compatibility: no migration required. Runtime copy, host-skin config,
+  renderer behavior, local-runtime launch/bridge behavior, storage, credentials,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Extension Plugin Copy Guard Cleanup
 
 - Finding: the extension scaffold output was already generic, but the generic

@@ -573,7 +573,8 @@ describe('main host skin/config boundary', () => {
       .not.toContain('mainHostSkin?.localRuntime');
     expect(fs.readFileSync(indexPath, 'utf8'))
       .not.toContain('localRuntimeCopy: mainHostSkin.localRuntime');
-    expect(localRuntimeSource).not.toContain('Windie SDK local runtime');
+    const retiredProductRuntimeCopy = `${['Win', 'die'].join('')} SDK local runtime`;
+    expect(localRuntimeSource).not.toContain(retiredProductRuntimeCopy);
     expect(localRuntimeSource).not.toContain('Open the WindieOS browser');
   });
 

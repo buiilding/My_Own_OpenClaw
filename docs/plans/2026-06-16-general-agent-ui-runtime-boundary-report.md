@@ -11,10 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `02580c7c2` (`test(sidecar): neutralize browser launcher wording`)
-- Latest completed slice: extension scaffold and public example tests now build
-  retired product-specific plugin-copy guards from split literals instead of
-  carrying direct WindieOS starter plugin phrases.
+- Latest inspected plan checkpoint: `08826a1e0` (`test(extensions): neutralize plugin copy guards`)
+- Latest completed slice: modular completion and host-skin boundary tests now
+  build retired product-specific copy guards from split literals instead of
+  carrying direct WindieOS workspace, SDK, CLI, agent, plugin, or local-runtime
+  phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -72,6 +73,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic extension scaffold and public example tests keep retired plugin-copy
   regression guards without storing the old WindieOS starter plugin phrases as
   direct literals.
+  Generic modular completion and host-skin boundary tests keep retired
+  workspace, SDK, CLI, agent, plugin, and local-runtime copy regression guards
+  without storing those old WindieOS phrases as direct literals.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real

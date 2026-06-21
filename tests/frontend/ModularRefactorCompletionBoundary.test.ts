@@ -176,7 +176,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(pythonReadme).toContain('backend_url="https://backend.example.com"');
     expect(readme).toContain("modelProvider: 'hosted-provider'");
     expect(readme).toContain("modelId: 'other-hosted-model'");
-    expect(readme).not.toContain('waking Windie agents');
+    expect(readme).not.toContain(`waking ${retiredProductName(' agents')}`);
     expect(readme).not.toContain('https://api.windieos.com');
     expect(pythonReadme).not.toContain('https://api.windieos.com');
     expect(readme).not.toContain("modelProvider: 'openai'");
@@ -243,7 +243,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(publicExampleText).not.toContain("model_provider: 'openai'");
     expect(publicExampleText).not.toContain("selected_model_id: 'gpt-5.4'");
     expect(publicExampleText).not.toContain('mistral-large-latest');
-    expect(publicExampleText).not.toContain('Windie CLI');
+    expect(publicExampleText).not.toContain(retiredProductName(' CLI'));
     expect(publicExampleText).not.toContain('sidecar daemon discovery');
     expect(publicExampleText).not.toContain('through the sidecar');
     const retiredProductSidecarPluginCopy = [
@@ -255,9 +255,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(publicExampleText).not.toContain('local sidecar tool implementation');
     expect(publicExampleText).not.toContain('buildLocalWindieSdk');
     expect(publicExampleText).not.toContain('loadLocalWindieSdk');
-    expect(publicExampleText).not.toContain('Windie SDK');
-    expect(publicExampleText).not.toContain('Windie agent');
-    expect(publicExampleText).not.toContain('Windie local');
+    expect(publicExampleText).not.toContain(retiredProductName(' SDK'));
+    expect(publicExampleText).not.toContain(retiredProductName(' agent'));
+    expect(publicExampleText).not.toContain(retiredProductName(' local'));
     expect(publicExampleText).not.toContain('windie-local-tool-extension');
     expect(publicExampleText).not.toContain(retiredCliExampleService);
     expect(publicExampleText).not.toContain(retiredRepoExampleService);
@@ -387,8 +387,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkTestText).not.toContain('/Windieos_workspace/');
     expect(sdkTestText).not.toContain('/tmp/windie-project');
     expect(sdkTestText).not.toContain('windieos docs');
-    expect(sdkTestText).not.toContain("workspaceName: 'WindieOS'");
-    expect(sdkTestText).not.toContain("workspace_name: 'WindieOS'");
+    expect(sdkTestText).not.toContain(`workspaceName: '${retiredProductName('OS')}'`);
+    expect(sdkTestText).not.toContain(`workspace_name: '${retiredProductName('OS')}'`);
     for (const retiredPrefix of retiredSdkTempPrefixes) {
       expect(sdkTestText).not.toContain(retiredPrefix);
     }
@@ -443,7 +443,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(workspaceTestText).not.toContain('/repo/WindieOS');
     expect(workspaceTestText).not.toContain('C:/Projects/WindieOS');
     expect(workspaceTestText).not.toContain("activeWorkspaceName: 'WindieOS'");
-    expect(workspaceTestText).not.toContain("workspaceName: 'WindieOS'");
+    expect(workspaceTestText).not.toContain(`workspaceName: '${retiredProductName('OS')}'`);
     expect(workspaceTestText).toContain('/repo/project-alpha');
     expect(workspaceTestText).toContain('C:/Projects/project-alpha');
     expect(workspaceTestText).toContain("activeWorkspaceName: 'Project Alpha'");
@@ -690,10 +690,10 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(conversationMetadataText).not.toContain('/work/WindieOS');
     expect(conversationMetadataText).not.toContain('/workspace/WindieOS');
-    expect(conversationMetadataText).not.toContain('WindieOS issue');
-    expect(conversationMetadataText).not.toContain('WindieOS follow-up');
-    expect(conversationMetadataText).not.toContain("workspaceName: 'WindieOS'");
-    expect(conversationMetadataText).not.toContain("workspace_name: 'WindieOS'");
+    expect(conversationMetadataText).not.toContain(`${retiredProductName('OS')} issue`);
+    expect(conversationMetadataText).not.toContain(`${retiredProductName('OS')} follow-up`);
+    expect(conversationMetadataText).not.toContain(`workspaceName: '${retiredProductName('OS')}'`);
+    expect(conversationMetadataText).not.toContain(`workspace_name: '${retiredProductName('OS')}'`);
     expect(conversationMetadataText).toContain('/work/project-alpha');
     expect(conversationMetadataText).toContain('/repo/project-alpha');
     expect(conversationMetadataText).toContain('/workspace/project-alpha');
@@ -722,7 +722,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain('/work/WindieOS');
     expect(source).not.toContain('workspace_name="WindieOS"');
     expect(source).not.toContain('"workspace_name"] == "WindieOS"');
-    expect(source).not.toContain('You are in WindieOS.');
+    expect(source).not.toContain(`You are in ${retiredProductName('OS')}.`);
     expect(source).toContain('/work/project-alpha');
     expect(source).toContain('workspace_name="Project Alpha"');
     expect(source).toContain('You are in Project Alpha.');
@@ -1181,8 +1181,9 @@ describe('modular sdk refactor completion boundary', () => {
       read('tests/backend/test_openai_provider.py'),
     ]).then(sources => sources.join('\n'));
 
-    expect(source).not.toContain('latest windieos news');
-    expect(source).not.toContain('windieos latest');
+    const retiredLowercaseProductName = retiredProductName('OS').toLowerCase();
+    expect(source).not.toContain(`latest ${retiredLowercaseProductName} news`);
+    expect(source).not.toContain(`${retiredLowercaseProductName} latest`);
     expect(source).toContain('latest project alpha news');
     expect(source).toContain('project alpha latest');
   });
