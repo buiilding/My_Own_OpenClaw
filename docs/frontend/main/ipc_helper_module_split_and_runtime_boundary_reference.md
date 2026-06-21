@@ -120,6 +120,9 @@ Owns renderer chat query and stop handler construction:
   state, Agent SDK command, settings, artifact URL, trace, display, and
   send-failure dependencies once
 - keeps the lower-level chat query handler factory private to the runtime helper
+- uses `ipc_query_send_runtime.cjs` through `createRendererQuerySendRuntime(...)`
+  so query preparation and send-failure execution stay behind a composed
+  dependency facade
 - accepts per-initialization window lookup and overlay pre-capture callbacks
   from `initializeIpc(...)`
 - keeps renderer chat send/stop orchestration behind the SDK-shaped

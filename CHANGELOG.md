@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep lower-level renderer query-send prepare and failure
+  helpers private to `ipc_query_send_runtime.cjs` and exercise query acceptance
+  through `createRendererQuerySendRuntime(...)`, preserving chat-query handler
+  composition through `createChatQueryHandlerRuntime(...)`. No migration
+  required.
 - frontend/main: keep the lower-level pending-turn clear helper private to
   `ipc_pending_turn_handlers.cjs` and exercise targeted clear plus optional
   renderer fan-out through `createPendingTurnRuntime(...).clear()`, while

@@ -1,8 +1,10 @@
 /** @jest-environment node */
 
+const querySendRuntimeModule = require('../../frontend/src/main/ipc/ipc_query_send_runtime.cjs');
+
 const {
-  prepareRendererQuerySend,
-} = require('../../frontend/src/main/ipc/ipc_query_send_runtime.cjs');
+  createRendererQuerySendRuntime,
+} = querySendRuntimeModule;
 
 function buildDeps(overrides = {}) {
   return {
@@ -47,6 +49,11 @@ function buildDeps(overrides = {}) {
 }
 
 describe('ipc_query_send_runtime', () => {
+  test('keeps lower-level query send helpers private behind the runtime facade', () => {
+    expect(querySendRuntimeModule.prepareRendererQuerySend).toBeUndefined();
+    expect(querySendRuntimeModule.handleRendererQuerySendFailure).toBeUndefined();
+  });
+
   test('prepares query context without broadcasting a synthetic local user message', async () => {
     const deps = buildDeps();
     const order = [];
@@ -60,8 +67,9 @@ describe('ipc_query_send_runtime', () => {
         queryUsedInitialContext: false,
       };
     });
+    const runtime = createRendererQuerySendRuntime({ deps });
 
-    await prepareRendererQuerySend({
+    await runtime.prepare({
       event: { sender: { id: 1 } },
       payload: { text: 'hello', conversation_ref: 'conv-test' },
       currentConversationRef: 'conv-test',
@@ -69,7 +77,6 @@ describe('ipc_query_send_runtime', () => {
       currentServerUserId: 'user-server',
       currentUserId: 'user-local',
       isFirstQuery: false,
-      deps,
     });
 
     expect(order).toEqual(['build-query-payload']);

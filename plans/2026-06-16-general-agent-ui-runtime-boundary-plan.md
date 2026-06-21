@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Renderer Query Send Runtime Privacy
+
+- Finding: `ipc_chat_query_handlers.cjs` already exposed
+  `createChatQueryHandlerRuntime(...)` as the Electron main chat-query
+  composition facade, but it still imported lower-level query-send prepare and
+  failure helpers as public exports from `ipc_query_send_runtime.cjs`.
+- Change: added `createRendererQuerySendRuntime(...)` so query preparation and
+  send-failure execution stay private to the query-send helper module behind a
+  composed dependency facade consumed by the chat-query runtime.
+- Validation: focused query-send and chat-query handler tests, targeted main IPC
+  lint, docs listing, stale export-line scans, and diff checks before commit.
+- Compatibility/security: no IPC channel, query payload, replay, overlay phase,
+  display-affinity, credential, permission, or trust-boundary migration
+  required; query acceptance and send-failure behavior are unchanged.
+
 ### 2026-06-21 Main Pending Turn Clear Privacy
 
 - Finding: `ipc_pending_turn_handlers.cjs` already exposed

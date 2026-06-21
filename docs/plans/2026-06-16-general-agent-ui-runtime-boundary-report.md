@@ -12,12 +12,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main pending-turn clear execution keeps the
-  lower-level state-clear helper private to `ipc_pending_turn_handlers.cjs`, so
-  production and focused tests use `createPendingTurnRuntime(...).clear()` as
-  the composition boundary while preserving targeted clear matching, optional
-  renderer fan-out, pending-turn payload normalization, and SDK current-turn
-  cleanup matching behavior.
+- Latest completed slice: Electron main renderer query-send preparation and
+  send-failure execution keep the lower-level helpers private to
+  `ipc_query_send_runtime.cjs`, so chat-query handling uses
+  `createRendererQuerySendRuntime(...)` inside
+  `createChatQueryHandlerRuntime(...)` while preserving overlay pre-capture,
+  active display affinity, event replay seeding, SDK payload building, and
+  synthetic send-failure behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

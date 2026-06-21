@@ -112,7 +112,29 @@ function handleRendererQuerySendFailure({
   });
 }
 
+function createRendererQuerySendRuntime({
+  deps,
+} = {}) {
+  async function prepare(input = {}) {
+    return prepareRendererQuerySend({
+      ...input,
+      deps,
+    });
+  }
+
+  function handleFailure(input = {}) {
+    return handleRendererQuerySendFailure({
+      ...input,
+      deps,
+    });
+  }
+
+  return {
+    handleFailure,
+    prepare,
+  };
+}
+
 module.exports = {
-  handleRendererQuerySendFailure,
-  prepareRendererQuerySend,
+  createRendererQuerySendRuntime,
 };

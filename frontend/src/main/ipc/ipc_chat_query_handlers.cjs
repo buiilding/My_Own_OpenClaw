@@ -3,8 +3,7 @@
  */
 
 const {
-  handleRendererQuerySendFailure,
-  prepareRendererQuerySend,
+  createRendererQuerySendRuntime,
 } = require('./ipc_query_send_runtime.cjs');
 
 function normalizePayload(payloadInput) {
@@ -32,6 +31,8 @@ function createChatQueryHandlers({
   resolvePreferredArtifactHttpUrl,
   deps,
 }) {
+  const rendererQuerySendRuntime = createRendererQuerySendRuntime({ deps });
+
   async function handleRendererChatQuery(event, payloadInput = {}) {
     let payload = normalizePayload(payloadInput);
     let queryMessageId = null;
@@ -49,7 +50,7 @@ function createChatQueryHandlers({
     const state = getState();
     let preparedQuery = null;
     try {
-      preparedQuery = await prepareRendererQuerySend({
+      preparedQuery = await rendererQuerySendRuntime.prepare({
         event,
         payload,
         currentConversationRef: state.currentConversationRef,
@@ -58,7 +59,6 @@ function createChatQueryHandlers({
         currentUserId: state.currentUserId,
         backendHttpUrl: resolvePreferredArtifactHttpUrl(),
         isFirstQuery: state.isFirstQuery,
-        deps,
       });
     } catch (error) {
       deps.log(`Rejected renderer query: ${error?.message || error}`);
@@ -112,14 +112,13 @@ function createChatQueryHandlers({
     const latestState = getState();
     if (!messageId) {
       setActiveQueryContext(null);
-      handleRendererQuerySendFailure({
+      rendererQuerySendRuntime.handleFailure({
         payload,
         queryMessageId,
         currentSessionId: latestState.currentSessionId,
         currentServerUserId: latestState.currentServerUserId,
         currentUserId: latestState.currentUserId,
         currentConversationRef: latestState.currentConversationRef,
-        deps,
       });
       return { ok: false, error: 'Failed to send query through Agent SDK runtime' };
     }

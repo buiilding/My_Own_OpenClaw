@@ -160,6 +160,7 @@ describe('ipc_chat_query_handlers runtime', () => {
     expect(mainSource).not.toContain('createChatQueryHandlers({');
     expect(helperSource).toContain('function createChatQueryHandlerRuntime');
     expect(helperSource).toContain('return createChatQueryHandlers({');
+    expect(helperSource).toContain('createRendererQuerySendRuntime({ deps })');
     expect(chatQueryHandlersModule.createChatQueryHandlers).toBeUndefined();
     expect(helperSource).not.toContain(retiredHandlersExport);
   });
