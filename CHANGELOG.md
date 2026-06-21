@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- docs/plans: add the renderer-owned typing state migration plan for
+  implementing ADR 006, including lifecycle reducer phases, legacy authority
+  deletion targets, owner predicates, and core-loop regression requirements. No
+  migration required.
 - docs/adr: add ADR 006 for renderer-owned typing state, defining the target
   architecture where one renderer app-runtime visible turn lifecycle projection
   owns dashboard, pill, overlay, typing, and busy state while SDK projection
