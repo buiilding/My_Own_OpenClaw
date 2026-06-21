@@ -83,6 +83,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route app-config persistence provider secret redaction
   through the provider credential runtime facade instead of a duplicate
   provider-key loop. No migration required.
+- frontend/renderer: keep app-config update filtering inside the config
+  persistence merge helper instead of filtering again in `AppConfigProvider`.
+  No migration required.
 - docs/memory and docs/concepts: describe `session_id` as hosted backend
   runtime identity instead of generic backend runtime/session wording. No
   migration required.

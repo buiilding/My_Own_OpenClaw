@@ -1603,6 +1603,23 @@ Each completed slice should report:
   secret redaction, live settings sync, credentials, hosted backend URLs, and
   provider policy are unchanged.
 
+### 2026-06-21 Renderer App Config Provider Filter Ownership
+
+- Finding: `AppConfigProvider` filtered incoming config patches with
+  `filterRendererConfig(...)` before calling `mergeRendererProviderConfig(...)`,
+  even though the merge helper already sanitizes both base and patch inputs
+  through the renderer config allowlist.
+- Change: removed the redundant provider-level filter call so app config update
+  filtering remains owned by `appConfigPersistence.js` while
+  `AppConfigProvider` coordinates state, persistence, and runtime sync.
+- Validation: focused AppConfigProvider, app-config persistence, config filter,
+  and renderer settings boundary tests, exact provider import scan, docs list,
+  and diff hygiene.
+- Compatibility/security: no migration required. Renderer config allowlist
+  behavior, provider credential merge/redaction, localStorage and disk
+  persistence, settings sync, credentials, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Renderer Appearance Theme Runtime Boundary
 
 - Finding: renderer config storage, theme application, and the dashboard

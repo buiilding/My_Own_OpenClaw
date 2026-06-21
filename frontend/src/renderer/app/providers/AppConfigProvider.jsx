@@ -3,7 +3,6 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { filterRendererConfig } from '../runtime/desktopRendererConfigFilterRuntime';
 import {
   isRendererConfigStorageEvent,
   loadConfigFromStorage,
@@ -96,7 +95,7 @@ export function AppConfigProvider({ children }) {
 
   const buildMergedRendererConfig = useCallback((incomingConfig) => {
     return sanitizeRendererProviderConfig(
-      mergeRendererProviderConfig(configRef.current, filterRendererConfig(incomingConfig)),
+      mergeRendererProviderConfig(configRef.current, incomingConfig),
     );
   }, [configRef]);
 

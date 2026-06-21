@@ -481,6 +481,8 @@ describe('renderer settings runtime boundary', () => {
     expect(providerSource).not.toContain('data?.enabled');
     expect(providerSource).not.toContain('data.enabled');
     expect(providerSource).not.toContain('extractTranscriptUserId');
+    expect(providerSource).not.toContain('desktopRendererConfigFilterRuntime');
+    expect(providerSource).not.toContain('filterRendererConfig');
     expect(providerSource).not.toContain('features/settings/hooks/useSettingsManagement');
     expect(providerSource).not.toContain('useSettingsManagement');
     expect(settingsEventClientSource).toContain('handleModelsListed');
