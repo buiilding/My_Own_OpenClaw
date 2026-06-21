@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level pending-turn clear helper private to
+  `ipc_pending_turn_handlers.cjs` and exercise targeted clear plus optional
+  renderer fan-out through `createPendingTurnRuntime(...).clear()`, while
+  leaving pending-turn payload normalization and SDK-current-turn matching
+  helpers available for focused coverage. No migration required.
 - frontend/main: keep the lower-level main stop-target trigger helper private
   to `ipc_stop_target_runtime.cjs` and exercise SDK stop execution through
   `createMainStopTargetRuntime(...).trigger()`, while leaving pure stop-target

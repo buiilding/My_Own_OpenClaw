@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Pending Turn Clear Privacy
+
+- Finding: `ipc_pending_turn_handlers.cjs` already exposed
+  `createPendingTurnRuntime(...)` as the Electron main composition facade, but
+  focused tests still imported the lower-level executable
+  `clearPendingTurnState(...)` helper directly.
+- Change: kept `clearPendingTurnState(...)` private to the pending-turn helper
+  module and moved targeted clear plus optional renderer fan-out coverage
+  through `createPendingTurnRuntime(...).clear()` while leaving pure payload
+  normalization and SDK-current-turn matching helpers public for deterministic
+  coverage.
+- Validation: focused pending-turn handler tests, targeted main IPC lint, docs
+  listing, stale export-line scans, and diff checks before commit.
+- Compatibility/security: no IPC channel, pending-turn payload, renderer
+  broadcast, SDK cleanup, credential, permission, or trust-boundary migration
+  required; pending-turn clear behavior is unchanged.
+
 ### 2026-06-21 Main Stop Target Trigger Privacy
 
 - Finding: `ipc_stop_target_runtime.cjs` already exposed

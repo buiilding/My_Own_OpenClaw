@@ -171,7 +171,6 @@ function createPendingTurnRuntime({
 }
 
 module.exports = {
-  clearPendingTurnState,
   createPendingTurnRuntime,
   normalizePendingTurnPayload,
   pendingTurnMatchesCurrentTurn,

@@ -582,11 +582,13 @@ Owns pending renderer turn IPC handler registration and payload acceptance:
   live state and renderer fan-out once
 - keeps lower-level pending-turn handler registration private behind the
   runtime facade
+- keeps lower-level pending-turn clear execution private behind the
+  `createPendingTurnRuntime(...).clear()` facade
 - pending-turn payload normalization and required identity checks
 - removed snake_case clear alias rejection
-- pending-turn cache clear and SDK-current-turn match primitives consumed by
-  `ipc.cjs` stop and SDK current-turn cleanup paths, while explicit target
-  matching remains private inside the clear path
+- SDK-current-turn match primitives consumed by `ipc.cjs` stop and SDK
+  current-turn cleanup paths, while explicit target matching remains private
+  inside the clear path
 - pending/clear broadcasts through the shared SDK desktop transport pending-turn
   channel constant
 

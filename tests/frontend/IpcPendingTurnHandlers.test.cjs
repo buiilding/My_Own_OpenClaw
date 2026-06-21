@@ -8,7 +8,6 @@ const path = require('path');
 const pendingTurnHandlers = require('../../frontend/src/main/ipc/ipc_pending_turn_handlers.cjs');
 
 const {
-  clearPendingTurnState,
   createPendingTurnRuntime,
   normalizePendingTurnPayload,
   pendingTurnMatchesCurrentTurn,
@@ -159,15 +158,17 @@ describe('pending turn IPC handlers', () => {
       turnRef: 'turn-1',
     };
     const broadcastToRenderers = jest.fn();
-
-    expect(clearPendingTurnState({
-      getLatestPendingTurn: () => latestPendingTurn,
-      setLatestPendingTurn: (pendingTurn) => {
-        latestPendingTurn = pendingTurn;
+    const runtime = createPendingTurnRuntime({
+      liveTurnState: {
+        getLatestPendingTurn: () => latestPendingTurn,
+        setLatestPendingTurn: (pendingTurn) => {
+          latestPendingTurn = pendingTurn;
+        },
       },
       broadcastToRenderers,
-      broadcast: true,
-    })).toBe(true);
+    });
+
+    expect(runtime.clear({ broadcast: true })).toBe(true);
 
     expect(latestPendingTurn).toBeNull();
     expect(broadcastToRenderers).toHaveBeenCalledWith('windie:pending-turn', {
@@ -183,14 +184,19 @@ describe('pending turn IPC handlers', () => {
       turnRef: 'turn-1',
     };
     const broadcastToRenderers = jest.fn();
-
-    expect(pendingTurnHandlers).not.toHaveProperty('pendingTurnMatchesTarget');
-    expect(clearPendingTurnState({
-      getLatestPendingTurn: () => latestPendingTurn,
-      setLatestPendingTurn: (pendingTurn) => {
-        latestPendingTurn = pendingTurn;
+    const runtime = createPendingTurnRuntime({
+      liveTurnState: {
+        getLatestPendingTurn: () => latestPendingTurn,
+        setLatestPendingTurn: (pendingTurn) => {
+          latestPendingTurn = pendingTurn;
+        },
       },
       broadcastToRenderers,
+    });
+
+    expect(pendingTurnHandlers).not.toHaveProperty('pendingTurnMatchesTarget');
+    expect(pendingTurnHandlers).not.toHaveProperty('clearPendingTurnState');
+    expect(runtime.clear({
       broadcast: true,
       conversationRef: 'conv-2',
       turnRef: 'turn-1',
@@ -289,6 +295,8 @@ describe('pending turn IPC handlers', () => {
     expect(mainSource).not.toContain('clearPendingTurnState({');
     expect(mainSource).not.toContain('ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
     expect(helperSource).toContain('function createPendingTurnRuntime');
+    expect(helperSource).toContain('return clearPendingTurnState({');
+    expect(helperSource).not.toContain('  clearPendingTurnState,');
     expect(helperSource).toContain('ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
     expect(pendingTurnHandlers.registerPendingTurnHandlers).toBeUndefined();
   });
