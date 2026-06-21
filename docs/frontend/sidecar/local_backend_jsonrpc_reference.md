@@ -15,7 +15,7 @@ dispatches them through `LocalRuntimeService.protocol.handle_request(...)`.
 ## Core Modules
 
 - Electron bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- Sidecar daemon: `frontend/src/main/python/sidecar_daemon.py`
+- Local-runtime daemon: `frontend/src/main/python/sidecar_daemon.py`
 - LocalRuntimeService implementation: `frontend/src/main/python/local_backend.py`
 - Local-runtime memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
 - JSON-RPC protocol implementation: `frontend/src/main/python/core/ipc_protocol.py`

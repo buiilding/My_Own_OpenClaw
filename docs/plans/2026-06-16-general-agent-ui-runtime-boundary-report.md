@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: local-runtime Python requirements comments now
-  describe local-runtime Python dependencies instead of sidecar dependency
-  manifests, and the local-runtime service wording guard covers those files.
+- Latest completed slice: the local-runtime JSON-RPC reference labels the
+  concrete `sidecar_daemon.py` module as the local-runtime daemon instead of a
+  sidecar daemon.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -51,6 +51,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   removal guards.
   Local-runtime Python dependency manifests use local-runtime wording for dev
   and packaged dependency sets instead of sidecar dependency labels.
+  The local-runtime JSON-RPC reference now labels the concrete
+  `sidecar_daemon.py` launch module by its active local-runtime daemon owner.
   CLI test routing exposes `test local-runtime` as the owner-correct command
   for local-runtime Python pytest while preserving `test sidecar` and the
   `scripts/test-sidecar.sh` compatibility wrapper.

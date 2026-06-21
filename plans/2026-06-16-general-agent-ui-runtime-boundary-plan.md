@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime JSON-RPC Daemon Label Boundary
+
+- Finding: `docs/frontend/sidecar/local_backend_jsonrpc_reference.md` still
+  labeled the concrete `sidecar_daemon.py` module as "Sidecar daemon" in the
+  core module list, despite the surrounding JSON-RPC reference describing the
+  SDK local-runtime daemon boundary.
+- Change: changed that core module label to "Local-runtime daemon" while
+  preserving the concrete historical `sidecar_daemon.py` path.
+- Validation: exact stale-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. JSON-RPC method names,
+  daemon launch path, discovery files, token auth, local tool execution,
+  memory storage, IPC, permissions, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Local-Runtime Python Dependency Label Boundary
 
 - Finding: `frontend/src/main/python/requirements*.txt` still described the
