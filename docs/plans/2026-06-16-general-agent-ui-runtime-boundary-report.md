@@ -43,6 +43,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   real WindieOS debug env names remain host-skin owned.
   Generic IPC query runtime tests use sample interruption copy while real
   WindieOS query event copy remains host-skin owned.
+  Generic layer-log sink tests use sample logging config while real WindieOS log
+  env keys, aliases, filenames, and directories remain host-skin owned.
   Generic extension manifest and MCP runtime tests use sample env maps while
   real WindieOS contribution-root and MCP enablement env names remain host-skin
   owned.
@@ -7979,6 +7981,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   enablement env resolution, plugin/skill/MCP manifest loading, client tool
   manifest projection, permissions, storage, provider policy, and backend
   behavior are unchanged; no migration is required.
+- Generic layer-log sink tests now use neutral sample logging config instead of
+  importing WindieOS host-skin logging values. Real WindieOS log env keys,
+  aliases, filenames, and directories remain covered by host-skin boundary
+  tests. Layer-log env-key resolution, host-provided log directory handling, log
+  file resolution, permissions, storage, provider policy, and backend behavior
+  are unchanged; no migration is required.
 - Generic runtime-path and wakeword bridge tests now use neutral injected host
   config fixtures instead of importing WindieOS host-skin values. Real WindieOS
   env, wakeword model, packaged-entrypoint, and runtime-path ownership remains

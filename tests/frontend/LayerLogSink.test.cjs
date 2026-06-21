@@ -20,11 +20,22 @@ const {
   resolveRendererVerboseLogEnvKey,
   resolveRendererVerboseLogFile,
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 const retiredDesktopAgentMarker = (suffix) => `__desktop${'Agent'}${suffix}`;
+const sampleLogConfig = Object.freeze({
+  logDirSegments: Object.freeze(['.sample-runtime', 'logs']),
+  layerOverrides: Object.freeze({
+    'local-runtime': Object.freeze({
+      aliases: Object.freeze(['worker']),
+      envTokens: Object.freeze(['LOCAL_RUNTIME', 'WORKER']),
+      fileName: 'worker.log',
+    }),
+  }),
+  env: Object.freeze({
+    layerLogFilePrefix: 'SAMPLE',
+    rendererVerboseLogFile: 'SAMPLE_RENDERER_VERBOSE_LOG_FILE',
+  }),
+});
 
 describe('layer_log_sink', () => {
   beforeEach(() => {
@@ -80,49 +91,57 @@ describe('layer_log_sink', () => {
   test('accepts host-provided log directory config', () => {
     const repoRoot = path.resolve(__dirname, '../..');
 
-    expect(configureLayerLogSink({ logDirSegments: ['.windie', 'logs'] }))
-      .toBe(path.join(repoRoot, '.windie', 'logs'));
-    expect(getLayerLogDirectory()).toBe(path.join(repoRoot, '.windie', 'logs'));
+    expect(configureLayerLogSink({ logDirSegments: ['.sample-runtime', 'logs'] }))
+      .toBe(path.join(repoRoot, '.sample-runtime', 'logs'));
+    expect(getLayerLogDirectory()).toBe(path.join(repoRoot, '.sample-runtime', 'logs'));
     expect(resolveLayerLogFile('main', {})).toBe(
-      path.join(repoRoot, '.windie', 'logs', 'main.log'),
+      path.join(repoRoot, '.sample-runtime', 'logs', 'main.log'),
     );
     expect(resolveRendererVerboseLogFile({})).toBe(
-      path.join(repoRoot, '.windie', 'logs', 'renderer.verbose.log'),
+      path.join(repoRoot, '.sample-runtime', 'logs', 'renderer.verbose.log'),
     );
   });
 
   test('accepts host-provided log env config', () => {
-    configureLayerLogSink(mainHostSkin.logging);
+    configureLayerLogSink(sampleLogConfig);
 
-    expect(resolveLayerLogEnvKey('main')).toBe('WINDIE_MAIN_LOG_FILE');
-    expect(resolveLayerLogEnvKey('local-runtime')).toBe('WINDIE_LOCAL_RUNTIME_LOG_FILE');
+    expect(resolveLayerLogEnvKey('main')).toBe('SAMPLE_MAIN_LOG_FILE');
+    expect(resolveLayerLogEnvKey('local-runtime')).toBe('SAMPLE_LOCAL_RUNTIME_LOG_FILE');
     expect(resolveLayerLogEnvKeys('local-runtime')).toEqual([
-      'WINDIE_LOCAL_RUNTIME_LOG_FILE',
-      'WINDIE_SIDECAR_LOG_FILE',
+      'SAMPLE_LOCAL_RUNTIME_LOG_FILE',
+      'SAMPLE_WORKER_LOG_FILE',
     ]);
-    expect(resolveRendererVerboseLogEnvKey()).toBe('WINDIE_RENDERER_VERBOSE_LOG_FILE');
-    expect(resolveLayerLogFile('renderer', { WINDIE_RENDERER_LOG_FILE: '/tmp/renderer.log' }))
+    expect(resolveRendererVerboseLogEnvKey()).toBe('SAMPLE_RENDERER_VERBOSE_LOG_FILE');
+    expect(resolveLayerLogFile('renderer', { SAMPLE_RENDERER_LOG_FILE: '/tmp/renderer.log' }))
       .toBe('/tmp/renderer.log');
     expect(resolveLayerLogFile('local-runtime', {})).toBe(
-      path.join(path.resolve(__dirname, '../..'), '.windie', 'logs', 'sidecar.log'),
+      path.join(path.resolve(__dirname, '../..'), '.sample-runtime', 'logs', 'worker.log'),
     );
-    expect(resolveLayerLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: '/tmp/sidecar.log' }))
-      .toBe('/tmp/sidecar.log');
-    expect(resolveLayerLogFile('sidecar', { WINDIE_LOCAL_RUNTIME_LOG_FILE: '0' }))
+    expect(resolveLayerLogFile('worker', { SAMPLE_WORKER_LOG_FILE: '/tmp/worker.log' }))
+      .toBe('/tmp/worker.log');
+    expect(resolveLayerLogFile('worker', { SAMPLE_LOCAL_RUNTIME_LOG_FILE: '0' }))
       .toBeNull();
-    expect(resolveRendererVerboseLogFile({ WINDIE_RENDERER_VERBOSE_LOG_FILE: '0' }))
+    expect(resolveRendererVerboseLogFile({ SAMPLE_RENDERER_VERBOSE_LOG_FILE: '0' }))
       .toBeNull();
   });
 
-  test('generic log sink source does not hardcode WindieOS log env names', () => {
+  test('generic log sink source does not hardcode product log env names', () => {
     const source = fs.readFileSync(
       path.resolve(__dirname, '../../frontend/src/main/logging/layer_log_sink.cjs'),
       'utf8',
     );
+    const windiePrefix = ['WINDIE', ''].join('_');
+    const windieRendererVerboseLogFile = [
+      'WINDIE',
+      'RENDERER',
+      'VERBOSE',
+      'LOG',
+      'FILE',
+    ].join('_');
 
     expect(source).toContain('AGENT_RENDERER_VERBOSE_LOG_FILE');
-    expect(source).not.toContain('WINDIE_RENDERER_VERBOSE_LOG_FILE');
-    expect(source).not.toContain('WINDIE_');
+    expect(source).not.toContain(windieRendererVerboseLogFile);
+    expect(source).not.toContain(windiePrefix);
   });
 
   test('appends layer-owned lines', () => {

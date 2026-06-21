@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral injected layer-log host config fixtures instead of
+  WindieOS host-skin logging values. No migration required.
 - tests/main: use neutral injected extension/MCP env fixtures instead of
   WindieOS host-skin env values. No migration required.
 - tests/main: use neutral injected IPC query interruption copy instead of

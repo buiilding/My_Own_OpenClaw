@@ -19364,6 +19364,21 @@ Each completed slice should report:
   interrupted-query event shaping, injected host copy wiring, permissions,
   storage, provider policy, and backend behavior are unchanged.
 
+### 2026-06-21 Layer-log host config fixture neutrality
+
+- Finding: the generic layer-log sink tests still imported WindieOS host-skin
+  logging config to exercise host-provided log env, alias, and filename
+  behavior.
+- Change: replaced that import with a test-local sample logging config and
+  extended the modular boundary guard so generic layer-log coverage stays
+  product-neutral.
+- Validation: focused layer-log sink, host-skin boundary, and modular boundary
+  tests; exact retired layer-log fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Layer-log env-key resolution,
+  host-provided log directory handling, aliases, log file resolution,
+  host-skin wiring, permissions, storage, provider policy, and backend behavior
+  are unchanged.
+
 ### 2026-06-21 Extension and MCP env fixture neutrality
 
 - Finding: generic extension manifest and MCP runtime tests still imported

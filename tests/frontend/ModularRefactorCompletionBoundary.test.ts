@@ -507,8 +507,13 @@ describe('modular sdk refactor completion boundary', () => {
     for (const retiredPrefix of retiredPrefixes) {
       expect(source).not.toContain(retiredPrefix);
     }
+    const windieLogEnvPrefix = ['WINDIE', ''].join('_');
     expect(layerLogSinkSource).not.toContain('[WindieOS]');
+    expect(layerLogSinkSource).not.toContain('mainHostSkin');
+    expect(layerLogSinkSource).not.toContain(windieLogEnvPrefix);
     expect(layerLogSinkSource).toContain('[SampleApp]');
+    expect(layerLogSinkSource).toContain('sampleLogConfig');
+    expect(layerLogSinkSource).toContain('SAMPLE_RENDERER_VERBOSE_LOG_FILE');
     expect(source).toContain('agent-layer-log-');
     expect(source).toContain('agent-vite-run-log-');
   });
