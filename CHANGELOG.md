@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: narrow package-root tool-correlation exports to the canonical public
+  identity resolvers while keeping lower-level pairing and dedupe key builders
+  in the owner module. No migration required for first-party callers.
 - sdk: stop exporting trace recorder, turn-input pipeline, and default resource
   resolver internals from the package root while preserving the public
   conversation runtime/projection surface. No migration required for

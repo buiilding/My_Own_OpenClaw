@@ -648,8 +648,12 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
   SDK events and snake_case backend payloads. The runtime reducer also uses
   these helpers for pending tool waits, so provider-safe `toolCallId` can close
   a pending tool when request ids are unavailable. Electron store/projection
-  adapters and renderer chat utilities may call these helpers through the SDK
-  barrel, but they should not maintain separate backend-alias parsers.
+  adapters and renderer chat utilities may call the canonical identity
+  resolvers through the SDK barrel, but they should not maintain separate
+  backend-alias parsers. Lower-level pairing and dedupe key builders such as
+  `resolveToolPairKeys(...)`, `resolveToolOutputDedupeKey(...)`, and
+  `resolveToolOutputCorrelationKeys(...)` are SDK projection/runtime internals
+  owned by `tools/toolCorrelationIds`, not package-root API.
 - the Electron main-process SDK tool router accepts canonical SDK identity fields
   (`requestId`, `toolCallId`, `correlationId`, `bundleId`) before emitting
   backend wire payloads.

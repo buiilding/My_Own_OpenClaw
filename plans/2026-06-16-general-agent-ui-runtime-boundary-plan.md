@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 SDK Tool Correlation Root Export Narrowing
+
+- Finding: the SDK package root exported every helper from
+  `tools/toolCorrelationIds`, including low-level pairing and dedupe key
+  builders used by projections and stream internals rather than normal callers.
+- Change: kept the canonical public identity resolvers available from the
+  package root, removed lower-level pairing/dedupe helpers from the root and
+  checked-in CJS entrypoint, and added package-boundary coverage so those
+  internals remain owner-module-only.
+- Validation: focused SDK package-boundary, conversation-runtime, AgentClient,
+  renderer app/API/chat boundary, and conversation replay tests plus CJS root
+  smoke checks, docs listing, stale root-export scans, and diff checks.
+- Compatibility/security: no migration required for first-party callers.
+  Public identity resolver behavior, renderer SDK facade direct owner-module
+  imports, replay/tool pairing behavior, projections, local-runtime execution,
+  hosted backend payloads, IPC, credentials, storage, and provider policy are
+  unchanged.
+
 ### 2026-06-21 SDK Trace Resource Helper Package-Root Narrowing
 
 - Finding: the SDK package root still exported trace recorder, turn-input

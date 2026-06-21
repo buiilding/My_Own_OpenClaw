@@ -104,6 +104,11 @@ describe('@windie/sdk package boundary', () => {
     expect(resolveToolEventCorrelationId).toBeDefined();
     expect(resolveToolOutputCorrelationId).toBeDefined();
     expect(resolveToolWaitId).toBeDefined();
+    expect('resolveCorrelationId' in AgentSdkPackage).toBe(false);
+    expect('resolveToolBundleCorrelationId' in AgentSdkPackage).toBe(false);
+    expect('resolveToolOutputCorrelationKeys' in AgentSdkPackage).toBe(false);
+    expect('resolveToolOutputDedupeKey' in AgentSdkPackage).toBe(false);
+    expect('resolveToolPairKeys' in AgentSdkPackage).toBe(false);
     expect(moduleTool({
       name: 'save_note',
       module: 'example.tools:save_note',

@@ -29,7 +29,13 @@ export * from './transport/BackendSocketFactory.js';
 export * from './transport/HostedBackendHttpClient.js';
 export * from './transport/ManagedAgentSession.js';
 export * from './tools/ToolExecutionCoordinator.js';
-export * from './tools/toolCorrelationIds.js';
+export {
+  resolveModelFacingToolCallId,
+  resolveToolCallCorrelationId,
+  resolveToolEventCorrelationId,
+  resolveToolOutputCorrelationId,
+  resolveToolWaitId,
+} from './tools/toolCorrelationIds.js';
 export {
   agentBuiltins,
 } from './tools/builtins.js';
