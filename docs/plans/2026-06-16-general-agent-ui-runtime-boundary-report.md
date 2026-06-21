@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `8ea824f4b` (`test(main): neutralize endpoint host fixture`)
-- Latest completed slice: generic permission service tests now use neutral
-  injected permission copy instead of WindieOS host-skin permission copy.
+- Latest inspected plan checkpoint: `434703e51` (`test(main): neutralize permission copy fixture`)
+- Latest completed slice: generic diagnostics store tests now use neutral
+  injected data-path config instead of WindieOS host-skin diagnostics values.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -42,6 +42,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   real WindieOS debug env names remain host-skin owned.
   Generic IPC query runtime tests use sample interruption copy while real
   WindieOS query event copy remains host-skin owned.
+  Generic diagnostics store tests use sample data-path env config while real
+  WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
   WindieOS permission copy remains host-skin owned.
   Generic backend endpoint tests use sample hosted endpoint defaults while real
@@ -8003,6 +8005,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   manifest listing, probe/request flows, workspace folder selection, stored
   permission state, OS permission prompts, provider policy, storage, and backend
   behavior are unchanged; no migration is required.
+- Generic diagnostics store tests now use neutral sample diagnostics data-path
+  config instead of importing WindieOS host-skin diagnostics values. Real
+  WindieOS diagnostics env names and data directory ownership remain covered by
+  host-skin boundary tests. Diagnostics path definitions, source guards,
+  data-path env resolution, local-runtime error classification, permissions,
+  storage schema, provider policy, and backend behavior are unchanged; no
+  migration is required. Full diagnostics persistence validation remains
+  blocked in this local environment because the external `sqlite3` executable
+  is not installed (`spawnSync sqlite3 ENOENT`).
 - Generic runtime-path and wakeword bridge tests now use neutral injected host
   config fixtures instead of importing WindieOS host-skin values. Real WindieOS
   env, wakeword model, packaged-entrypoint, and runtime-path ownership remains

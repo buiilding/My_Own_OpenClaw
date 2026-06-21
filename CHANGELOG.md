@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral injected diagnostics data-path fixtures instead of
+  WindieOS host-skin diagnostics values. No migration required.
 - tests/main: use neutral injected permission copy fixtures instead of WindieOS
   host-skin permission copy. No migration required.
 - tests/main: use neutral injected backend endpoint defaults instead of

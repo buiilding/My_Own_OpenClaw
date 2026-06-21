@@ -490,6 +490,19 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('agent-mcp-diagnostics-');
   });
 
+  test('main diagnostics store tests keep injected data-path fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/AppDiagnosticsStore.test.cjs');
+    const windieDiagnosticsDbEnv = ['WINDIE', 'APP', 'DIAGNOSTICS', 'DB'].join('_');
+    const windieUserDataDirEnv = ['WINDIE', 'USER', 'DATA', 'DIR'].join('_');
+
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain(windieDiagnosticsDbEnv);
+    expect(source).not.toContain(windieUserDataDirEnv);
+    expect(source).toContain('sampleDiagnosticsConfig');
+    expect(source).toContain('SAMPLE_APP_DIAGNOSTICS_DB');
+    expect(source).toContain('SAMPLE_USER_DATA_DIR');
+  });
+
   test('main logging tests keep disposable temp fixtures product-neutral', async () => {
     const layerLogSinkSource = await read('tests/frontend/LayerLogSink.test.cjs');
     const source = await Promise.all([

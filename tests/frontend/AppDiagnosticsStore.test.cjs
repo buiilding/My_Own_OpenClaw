@@ -21,13 +21,22 @@ const {
   configureAppDiagnosticsStore,
   listDiagnosticPathDefinitions,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 const MCP_EXECUTION_DIAGNOSTICS_PATH = 'mcp.execution';
 const MCP_REGISTRATION_DIAGNOSTICS_PATH = 'mcp.registration';
 const SAMPLE_WAKEWORD_MODEL = 'sample_wakeword';
+const sampleDiagnosticsConfig = Object.freeze({
+  dataPaths: Object.freeze({
+    appDataDirName: 'sample-agent',
+    env: Object.freeze({
+      diagnosticsDb: 'SAMPLE_APP_DIAGNOSTICS_DB',
+      userDataDir: 'SAMPLE_USER_DATA_DIR',
+    }),
+  }),
+  localRuntimeErrorMarkers: Object.freeze(['sample-local-runtime']),
+});
+const windieDiagnosticsDbEnv = ['WINDIE', 'APP', 'DIAGNOSTICS', 'DB'].join('_');
+const windieUserDataDirEnv = ['WINDIE', 'USER', 'DATA', 'DIR'].join('_');
 
 function sqlString(value) {
   return `'${String(value).replace(/'/g, "''")}'`;
@@ -45,7 +54,7 @@ function parseJsonField(value) {
 }
 
 function readDiagnosticEvents({ pathFilter = '', traceId = '', limit = 50 } = {}) {
-  const dbPath = process.env.WINDIE_APP_DIAGNOSTICS_DB;
+  const dbPath = process.env.SAMPLE_APP_DIAGNOSTICS_DB;
   const conditions = [];
   if (pathFilter) {
     conditions.push(`path = ${sqlString(pathFilter)}`);
@@ -108,18 +117,18 @@ describe('app diagnostics store', () => {
   let tempDir;
 
   beforeEach(() => {
-    configureAppDiagnosticsStore(mainHostSkin.diagnostics);
-    previousDbPath = process.env.WINDIE_APP_DIAGNOSTICS_DB;
+    configureAppDiagnosticsStore(sampleDiagnosticsConfig);
+    previousDbPath = process.env.SAMPLE_APP_DIAGNOSTICS_DB;
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-diagnostics-'));
-    process.env.WINDIE_APP_DIAGNOSTICS_DB = path.join(tempDir, 'diagnostics.db');
+    process.env.SAMPLE_APP_DIAGNOSTICS_DB = path.join(tempDir, 'diagnostics.db');
   });
 
   afterEach(() => {
-    configureAppDiagnosticsStore(mainHostSkin.diagnostics);
+    configureAppDiagnosticsStore(sampleDiagnosticsConfig);
     if (previousDbPath === undefined) {
-      delete process.env.WINDIE_APP_DIAGNOSTICS_DB;
+      delete process.env.SAMPLE_APP_DIAGNOSTICS_DB;
     } else {
-      process.env.WINDIE_APP_DIAGNOSTICS_DB = previousDbPath;
+      process.env.SAMPLE_APP_DIAGNOSTICS_DB = previousDbPath;
     }
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
@@ -179,7 +188,7 @@ describe('app diagnostics store', () => {
 
     expect(stored).toEqual(expect.objectContaining({
       stored: true,
-      database: process.env.WINDIE_APP_DIAGNOSTICS_DB,
+      database: process.env.SAMPLE_APP_DIAGNOSTICS_DB,
       traceId: 'diag-test',
       spanId: 'span-test',
     }));
@@ -280,7 +289,7 @@ describe('app diagnostics store', () => {
     expect(storeSource).not.toContain('sidecar');
   });
 
-  test('diagnostics data path env names are supplied by host skin config', () => {
+  test('diagnostics data path env names are supplied by host config', () => {
     const storeSource = fs.readFileSync(
       path.resolve(__dirname, '../../frontend/src/main/diagnostics/app_diagnostics_store.cjs'),
       'utf8',
@@ -289,8 +298,8 @@ describe('app diagnostics store', () => {
     expect(storeSource).toContain('dataPathConfig');
     expect(storeSource).toContain('AGENT_APP_DIAGNOSTICS_DB');
     expect(storeSource).toContain('AGENT_USER_DATA_DIR');
-    expect(storeSource).not.toContain('WINDIE_APP_DIAGNOSTICS_DB');
-    expect(storeSource).not.toContain('WINDIE_USER_DATA_DIR');
+    expect(storeSource).not.toContain(windieDiagnosticsDbEnv);
+    expect(storeSource).not.toContain(windieUserDataDirEnv);
   });
 
   test('persists sanitized surface visibility diagnostics', () => {

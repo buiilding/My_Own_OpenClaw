@@ -19364,6 +19364,24 @@ Each completed slice should report:
   interrupted-query event shaping, injected host copy wiring, permissions,
   storage, provider policy, and backend behavior are unchanged.
 
+### 2026-06-21 Diagnostics data-path fixture neutrality
+
+- Finding: the generic diagnostics store tests still imported WindieOS
+  host-skin diagnostics config to exercise configured diagnostics data-path env
+  behavior.
+- Change: replaced that import with a test-local sample diagnostics data-path
+  config and extended the modular boundary guard so diagnostics store fixtures
+  stay product-neutral.
+- Validation: focused non-persistence diagnostics store config/source tests,
+  host-skin boundary tests, modular boundary tests, exact retired diagnostics
+  fixture scan, docs listing, and diff checks. Full diagnostics persistence
+  validation remains blocked in this local environment because `sqlite3` is not
+  installed (`spawnSync sqlite3 ENOENT`).
+- Compatibility: no migration required. Diagnostics path definitions, data-path
+  env resolution, local-runtime error classification, host-skin wiring,
+  permissions, storage schema, provider policy, and backend behavior are
+  unchanged.
+
 ### 2026-06-21 Permission copy fixture neutrality
 
 - Finding: the generic permission service tests still imported WindieOS
