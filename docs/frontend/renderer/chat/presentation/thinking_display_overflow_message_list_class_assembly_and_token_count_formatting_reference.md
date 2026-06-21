@@ -118,8 +118,9 @@ instead.
 - `message-type-${type}` for typed rows (`tool-call`, `tool-output`, `error`, etc.)
 - `message-has-screenshot` when screenshot attachment fields resolve true
 
-Screenshot presence for row classes and user-message routing is resolved
-through `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`.
+Screenshot presence for row classes and user-message routing is resolved through
+`DesktopMessageScreenshotRuntime` in
+`frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`.
 The React-only async artifact image fetch/cache hook remains in
 `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`.
 

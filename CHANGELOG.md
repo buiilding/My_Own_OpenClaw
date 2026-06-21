@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose message screenshot descriptor, detection, and
+  static-source helpers through `DesktopMessageScreenshotRuntime` instead of
+  standalone helper exports, keeping screenshot presentation state behind the
+  renderer app-runtime facade. No migration required.
 - frontend/renderer: expose permission post-grant config effects and
   external-grant follow-up probe policy through
   `DesktopPermissionGrantEffectsRuntime` instead of standalone helper exports,

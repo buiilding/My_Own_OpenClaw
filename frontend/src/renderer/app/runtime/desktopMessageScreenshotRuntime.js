@@ -24,7 +24,7 @@ function resolveAttachmentSrc(attachment) {
   return null;
 }
 
-export function resolveStaticScreenshotAttachmentSrc(attachment) {
+function resolveStaticScreenshotAttachmentSrc(attachment) {
   if (!attachment || typeof attachment !== 'object') {
     return null;
   }
@@ -38,7 +38,7 @@ export function resolveStaticScreenshotAttachmentSrc(attachment) {
   return null;
 }
 
-export function resolveMessageScreenshotAttachments(message) {
+function resolveMessageScreenshotAttachments(message) {
   if (Array.isArray(message?.screenshots) && message.screenshots.length > 0) {
     return message.screenshots
       .map((attachment) => DesktopArtifactRuntimeClient.resolveScreenshotAttachmentState({
@@ -73,10 +73,17 @@ export function resolveMessageScreenshotAttachments(message) {
   return [];
 }
 
-export function hasMessageScreenshot(message) {
+function hasMessageScreenshot(message) {
   return resolveMessageScreenshotAttachments(message).length > 0;
 }
 
-export function isUserMessageWithScreenshot(message) {
+function isUserMessageWithScreenshot(message) {
   return message?.sender === 'user' && hasMessageScreenshot(message);
 }
+
+export const DesktopMessageScreenshotRuntime = Object.freeze({
+  hasMessageScreenshot,
+  isUserMessageWithScreenshot,
+  resolveMessageScreenshotAttachments,
+  resolveStaticScreenshotAttachmentSrc,
+});

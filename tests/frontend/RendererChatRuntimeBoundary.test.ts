@@ -1081,10 +1081,12 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain('utils/message/messageScreenshots');
     expect(classRuntimeSource).toContain('desktopMessageScreenshotRuntime');
     expect(classRuntimeSource).toContain('DesktopMessageClassRuntime');
+    expect(classRuntimeSource).toContain('DesktopMessageScreenshotRuntime');
     expect(classRuntimeSource).not.toContain('export function buildMessageClassName');
     expect(classRuntimeSource).not.toContain('features/chat');
     expect(contentRuntimeSource).toContain('desktopMessageScreenshotRuntime');
     expect(contentRuntimeSource).toContain('DesktopMessageContentRuntime');
+    expect(contentRuntimeSource).toContain('DesktopMessageScreenshotRuntime');
     expect(contentRuntimeSource).toContain('isErrorMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export function resolveMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export function isErrorMessageContentPresentation');
@@ -1092,6 +1094,11 @@ describe('renderer chat runtime boundary', () => {
     expect(contentRuntimeSource).not.toContain('export function isAssistantResponseMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export const MESSAGE_CONTENT_RENDER_KIND');
     expect(contentRuntimeSource).not.toContain('features/chat');
+    expect(screenshotRuntimeSource).toContain('export const DesktopMessageScreenshotRuntime = Object.freeze');
+    expect(screenshotRuntimeSource).not.toContain('export function resolveStaticScreenshotAttachmentSrc');
+    expect(screenshotRuntimeSource).not.toContain('export function resolveMessageScreenshotAttachments');
+    expect(screenshotRuntimeSource).not.toContain('export function hasMessageScreenshot');
+    expect(screenshotRuntimeSource).not.toContain('export function isUserMessageWithScreenshot');
     expect(screenshotRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageListClasses.js'),

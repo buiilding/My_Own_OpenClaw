@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Message Screenshot Facade
+
+- Finding: `desktopMessageScreenshotRuntime.js` already owned renderer message
+  screenshot descriptor normalization, static source selection, screenshot
+  presence detection, and user-message screenshot routing, but still exported
+  each helper as a standalone function consumed by other app-runtime modules and
+  focused tests.
+- Change: made the screenshot descriptor helpers private to the runtime module,
+  exposed them through `DesktopMessageScreenshotRuntime`, and routed message
+  class, content, resolved screenshot, and focused screenshot tests through that
+  facade.
+- Validation: focused message screenshot runtime, message content, message row
+  class, async resolved screenshot, renderer chat boundary, exact standalone
+  screenshot helper export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Inline screenshot data URL
+  handling, explicit screenshotRef/screenshotUrl precedence, URL-to-ref
+  inference via `DesktopArtifactRuntimeClient`, async artifact fetch/cache
+  behavior, SDK display projection, IPC, storage, credentials, hosted backend
+  URLs, provider policy, and local artifact trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Permission Grant Effects Facade
 
 - Finding: `desktopPermissionGrantEffectsRuntime.js` already owned renderer

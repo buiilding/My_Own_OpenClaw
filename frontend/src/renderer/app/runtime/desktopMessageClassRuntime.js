@@ -2,7 +2,11 @@
  * Provides renderer message row class-name assembly for presentation surfaces.
  */
 
-import { hasMessageScreenshot } from './desktopMessageScreenshotRuntime';
+import { DesktopMessageScreenshotRuntime } from './desktopMessageScreenshotRuntime';
+
+const {
+  hasMessageScreenshot,
+} = DesktopMessageScreenshotRuntime;
 
 function buildMessageClassName(message) {
   const classNames = ['message', `message-${message.sender}`];

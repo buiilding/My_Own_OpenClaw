@@ -54,9 +54,9 @@ URLs such as `/api/artifacts/<id>`. That lets replay preserve a canonical
 `screenshotMessageState.js` keeps the low-level normalization rules and defaults
 to the runtime endpoint store for owner-level infrastructure tests. Renderer
 feature code should call screenshot presentation helpers through
-`desktopMessageScreenshotRuntime.js`, which delegates artifact URL and
-attachment-state work to `DesktopArtifactRuntimeClient`. That client injects
-the app runtime artifact URL builder and keeps endpoint-derived URLs behind the
+`DesktopMessageScreenshotRuntime`, which delegates artifact URL and
+attachment-state work to `DesktopArtifactRuntimeClient`. That client injects the
+app runtime artifact URL builder and keeps endpoint-derived URLs behind the
 renderer runtime boundary.
 
 `buildMessageScreenshotState(...)` uses
@@ -96,7 +96,7 @@ If a replayed or resumed image is missing:
 2. verify `DesktopArtifactRuntimeClient` has the active runtime HTTP URL before
    deriving artifact URLs
 3. confirm `screenshot` is actual inline image data, not an artifact id
-4. check `desktopMessageScreenshotRuntime.js` for attachment descriptor state
+4. check `DesktopMessageScreenshotRuntime` for attachment descriptor state
 5. check `desktopResolvedMessageScreenshotsRuntime.js` fetch/cache behavior for remote
    artifact URLs
 

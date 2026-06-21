@@ -3,12 +3,16 @@
  */
 
 import {
+  DesktopMessageScreenshotRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime';
+import { DesktopArtifactRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient';
+
+const {
   hasMessageScreenshot,
   isUserMessageWithScreenshot,
   resolveMessageScreenshotAttachments,
   resolveStaticScreenshotAttachmentSrc,
-} from '../../frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime';
-import { DesktopArtifactRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient';
+} = DesktopMessageScreenshotRuntime;
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient', () => {
   const imageUtils = jest.requireActual(

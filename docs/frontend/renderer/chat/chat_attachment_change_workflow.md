@@ -141,7 +141,7 @@ Clipboard image IPC trust boundary:
 
 1. Confirm the original user row stored `screenshotRef`, `screenshotUrl`, or `screenshots[]`.
 2. Confirm transcript persistence retained those fields.
-3. Confirm `desktopMessageScreenshotRuntime.js` resolves refs/URLs/inline fallback.
+3. Confirm `DesktopMessageScreenshotRuntime` resolves refs/URLs/inline fallback.
 4. Confirm artifact URL builder has the active backend HTTP URL.
 5. Confirm backend artifact fetch route still serves the ref.
 

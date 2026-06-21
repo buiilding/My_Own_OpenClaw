@@ -5,9 +5,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
 import {
+  DesktopMessageScreenshotRuntime,
+} from './desktopMessageScreenshotRuntime';
+
+const {
   resolveMessageScreenshotAttachments,
   resolveStaticScreenshotAttachmentSrc,
-} from './desktopMessageScreenshotRuntime';
+} = DesktopMessageScreenshotRuntime;
 
 const artifactImagePromiseCache = new Map();
 

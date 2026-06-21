@@ -2,7 +2,11 @@
  * Resolves renderer message content presentation kinds for chat surfaces.
  */
 
-import { isUserMessageWithScreenshot } from './desktopMessageScreenshotRuntime';
+import { DesktopMessageScreenshotRuntime } from './desktopMessageScreenshotRuntime';
+
+const {
+  isUserMessageWithScreenshot,
+} = DesktopMessageScreenshotRuntime;
 
 const MESSAGE_CONTENT_RENDER_KIND = Object.freeze({
   ERROR: 'error',
