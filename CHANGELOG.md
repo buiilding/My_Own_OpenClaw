@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose active stream stale-turn comparison through
+  `DesktopChatStreamTurnGuardRuntime` instead of a standalone helper export,
+  keeping stream turn-acceptance checks behind the renderer app-runtime facade.
+  No migration required.
 - frontend/renderer: expose debug tool-ghost click timing through
   `DesktopToolGhostRuntime` instead of a standalone helper export, keeping
   motion-duration and hide-loop timing behind the renderer app-runtime facade.

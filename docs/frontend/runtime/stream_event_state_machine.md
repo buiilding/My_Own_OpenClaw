@@ -124,7 +124,8 @@ This is workspace routing, not active-chat filtering. Background conversations k
 All chat-stream handlers except `user_message` call
 `shouldIgnoreConversationEventForStaleTurn(...)` before mutating workspace UI
 state. The guard is implemented by `desktopChatStreamEventRuntime.ts` and the
-pure turn comparison in `desktopChatStreamTurnGuardRuntime.ts`:
+pure turn comparison exposed through
+`DesktopChatStreamTurnGuardRuntime.isStaleTurnForActiveStream(...)`:
 
 - compare incoming SDK turn identity with workspace `streamTracking.activeTurnRef`
 - drop when values differ

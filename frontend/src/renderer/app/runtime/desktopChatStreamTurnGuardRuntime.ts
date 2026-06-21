@@ -2,7 +2,7 @@
  * Coordinates the desktop chat stream turn guard runtime for the renderer UI.
  */
 
-export function isStaleTurnForActiveStream(
+function isStaleTurnForActiveStream(
   eventTurnRef: string | null | undefined,
   activeTurnRef: string | null | undefined,
 ): boolean {
@@ -21,3 +21,7 @@ export function isStaleTurnForActiveStream(
   }
   return normalizedActiveTurnRef !== normalizedEventTurnRef;
 }
+
+export const DesktopChatStreamTurnGuardRuntime = Object.freeze({
+  isStaleTurnForActiveStream,
+});

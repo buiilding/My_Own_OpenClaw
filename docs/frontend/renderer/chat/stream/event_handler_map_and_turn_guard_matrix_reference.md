@@ -55,6 +55,10 @@ except `user_message`:
 - and active turn differs from event turn
 - then handler returns with no side effects
 
+The pure active-turn comparison is exposed through
+`DesktopChatStreamTurnGuardRuntime.isStaleTurnForActiveStream(...)`; the raw
+predicate stays private to `desktopChatStreamTurnGuardRuntime.ts`.
+
 Pending-next-turn exception:
 
 - when the workspace is in a terminal phase (`idle`/`complete`/`error`) and `isSending === true`,

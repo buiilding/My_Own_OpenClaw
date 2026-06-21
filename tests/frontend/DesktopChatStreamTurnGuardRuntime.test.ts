@@ -2,9 +2,13 @@
  * Covers desktop chat stream turn guard runtime. behavior in the frontend test suite.
  */
 
-import { isStaleTurnForActiveStream } from '../../frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime';
+import { DesktopChatStreamTurnGuardRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime';
 
 describe('DesktopChatStreamTurnGuardRuntime', () => {
+  const {
+    isStaleTurnForActiveStream,
+  } = DesktopChatStreamTurnGuardRuntime;
+
   test('treats missing event turn refs as non-stale', () => {
     expect(isStaleTurnForActiveStream(undefined, 'turn-1')).toBe(false);
     expect(isStaleTurnForActiveStream(null, 'turn-1')).toBe(false);

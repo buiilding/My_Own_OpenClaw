@@ -87,7 +87,8 @@ Because routing is per-workspace, background conversation events do not leak int
 
 `useChatStream` applies `shouldIgnoreConversationEventForStaleTurn(...)` before
 most handlers. The predicate delegates to `desktopChatStreamEventRuntime.ts`,
-`desktopChatStreamTurnGuardRuntime.ts`, and terminal-handoff predicates:
+`DesktopChatStreamTurnGuardRuntime.isStaleTurnForActiveStream(...)`, and
+terminal-handoff predicates:
 
 - guard condition: event has `turnRef` and workspace has active turn and those values differ
 - guarded handlers: all streamed assistant/tool/system/transparency/token/memory/error handlers

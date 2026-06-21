@@ -23292,3 +23292,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Tool-ghost motion duration, hide-loop
   timing, debug markup, IPC payloads, storage, local-runtime execution,
   provider policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer chat stream turn guard facade helper privacy
+
+- Finding: active stream stale-turn comparison lived in the renderer app
+  runtime, but stream event routing and focused tests still imported the
+  predicate as a standalone export.
+- Change: exposed stale-turn comparison through
+  `DesktopChatStreamTurnGuardRuntime` and kept
+  `isStaleTurnForActiveStream` private to
+  `desktopChatStreamTurnGuardRuntime`.
+- Validation: focused turn-guard, stream event runtime, renderer app-runtime
+  boundary tests, targeted renderer ESLint, exact source/doc scans, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Missing-turn handling, whitespace
+  normalization, stale-turn rejection, terminal handoff exceptions, renderer
+  markup, IPC payloads, storage, local-runtime execution, provider policy,
+  backend behavior, and trust boundaries are unchanged.

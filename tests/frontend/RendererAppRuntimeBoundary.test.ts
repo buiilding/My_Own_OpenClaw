@@ -879,9 +879,16 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopChatStreamEventRuntime.ts'),
       'utf8',
     );
+    const turnGuardRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatStreamTurnGuardRuntime.ts'),
+      'utf8',
+    );
 
     expect(source).toContain('runtime packets can re-anchor stream state');
     expect(source).not.toContain('backend packets can re-anchor stream state');
+    expect(source).toContain('DesktopChatStreamTurnGuardRuntime');
+    expect(turnGuardRuntimeSource).toContain('export const DesktopChatStreamTurnGuardRuntime = Object.freeze');
+    expect(turnGuardRuntimeSource).not.toContain('export function isStaleTurnForActiveStream');
   });
 
   test('live-turn and agent runtime transport facades use SDK-shaped command invoke for SDK runtime commands', async () => {

@@ -7,7 +7,7 @@ import {
   type StreamTrackingEventType,
   type StreamTrackingOptions,
 } from './desktopChatStreamTrackingRuntime';
-import { isStaleTurnForActiveStream } from './desktopChatStreamTurnGuardRuntime';
+import { DesktopChatStreamTurnGuardRuntime } from './desktopChatStreamTurnGuardRuntime';
 import {
   hasTerminalPendingHandoff,
   isAwaitingFirstChunkMismatch,
@@ -15,6 +15,10 @@ import {
   shouldIgnoreForTerminalPendingHandoff,
   type StreamGuardWorkspace,
 } from './desktopChatStreamTerminalHandoffRuntime';
+
+const {
+  isStaleTurnForActiveStream,
+} = DesktopChatStreamTurnGuardRuntime;
 
 type ShouldIgnoreForStaleTurnDeps = {
   getWorkspaceState: (conversationRef?: string | null) => StreamGuardWorkspace;
