@@ -1404,6 +1404,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK backend-event handling and main fan-out');
     expect(docText).toContain('Renderer SDK conversation-event consumption');
     expect(docText).toContain('SDK-normalized conversation events, current-turn projections');
+    expect(docText).toContain('live-turn app-runtime client and SDK command path');
+    expect(docText).toContain('renderer app-runtime continuity service');
     expect(docText).not.toContain('WindieOS SDK-backed transcript projections');
     expect(docText).not.toContain('Memory hub for ' + 'Windie' + 'OS transcript persistence');
     expect(docText).not.toContain('Windie' + 'OS has several memory-like systems');
@@ -1520,6 +1522,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('desktop runtime clients');
     expect(docText).not.toContain('desktop runtime adapters');
     expect(docText).not.toContain('desktop runtime transport maps that SDK command');
+    expect(docText).not.toContain('desktop live-turn runtime');
+    expect(docText).not.toContain('desktop continuity service');
     expect(docText).not.toContain('Desktop runtime clients and SDK command facades');
     expect(docText).not.toContain('desktop live-turn runtime facade');
     expect(docText).not.toContain('desktop continuity runtime');
@@ -1549,6 +1553,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/main/query_payload_and_relay_reference.md',
       'docs/frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md',
       'docs/frontend/renderer/chat_stream_and_tool_execution_reference.md',
+      'docs/frontend/renderer/desktop_runtime_transport_command_contract_reference.md',
       'docs/frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md',
       'docs/frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md',
       'docs/frontend/renderer/renderer_runtime.md',
@@ -1578,6 +1583,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK desktop transport adapter maps');
     expect(docText).toContain('shared SDK desktop transport pending-turn');
     expect(docText).toContain('SDK desktop transport channel names');
+    expect(docText).toContain('SDK Desktop Transport Command Contract Reference');
     expect(docText).toContain('Client-to-backend transcription messages');
     expect(docText).toContain('renderer transcript/history side-effect handlers consume SDK conversation');
     expect(docText).toContain('agent display name');
@@ -1623,6 +1629,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Frontend-owned payloads:');
     expect(docText).not.toContain('Sidecar-owned payloads:');
     expect(docText).not.toContain('The desktop runtime transport maps');
+    expect(docText).not.toContain('Desktop Runtime Transport Command Contract Reference');
     expect(docText).not.toContain('the desktop runtime transport adapter maps');
     expect(docText).not.toContain('desktop runtime transport\nadapter');
     expect(docText).not.toContain('desktop runtime transport\n  typed chat IPC payload shape');

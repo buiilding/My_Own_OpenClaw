@@ -1,5 +1,5 @@
 /**
- * Persists renderer permission onboarding gate state for the desktop runtime.
+ * Persists renderer permission onboarding gate state for the app runtime.
  */
 
 import {

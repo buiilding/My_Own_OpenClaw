@@ -20364,3 +20364,23 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime modules, exports, imports,
   command names, IPC channels, storage keys, provider policy, permissions, and
   backend behavior are unchanged.
+
+### 2026-06-21 renderer transcript and transport contract wording
+
+- Finding: active renderer docs/comments still described permission onboarding
+  storage, live-turn send flow, continuity rehydrate flow, inventory entries,
+  renderer hub links, and the transport contract title as desktop-runtime
+  ownership even though the current owner labels are renderer app-runtime
+  clients and the SDK desktop transport adapter.
+- Change: reworded those active labels to app-runtime continuity/live-turn,
+  SDK desktop transport adapter, and Electron-host boundary wording while
+  preserving concrete module names such as `desktopRuntimeTransport.ts` and
+  `DesktopConversationContinuityService`. Updated renderer hub links and
+  extended modular boundary coverage so the retired live-turn/continuity/
+  transport title phrases stay out of active docs.
+- Validation: focused renderer boundary tests, exact active-label scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Storage keys, runtime modules, exports,
+  imports, command names, IPC channels, transcript projection, continuity
+  rehydrate behavior, permissions, provider policy, storage, and backend
+  behavior are unchanged.

@@ -8400,3 +8400,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   names and exported `Desktop*RuntimeClient` symbols, runtime modules, imports,
   command names, IPC channels, storage keys, provider policy, permissions, and
   backend behavior are unchanged; no migration is required.
+- Renderer permission onboarding storage, transcript send/rehydrate docs,
+  inventory entries, renderer hub links, and the transport contract title now
+  use app-runtime live-turn/continuity and SDK desktop transport wording instead
+  of desktop-runtime owner labels. Concrete `desktopRuntimeTransport.ts` and
+  `DesktopConversationContinuityService` names, storage keys, runtime modules,
+  imports, command names, IPC channels, transcript projection, continuity
+  rehydrate behavior, permissions, provider policy, storage, and backend
+  behavior are unchanged; no migration is required.

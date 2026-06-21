@@ -152,7 +152,7 @@ Backend remains source of truth for non-renderer runtime fields.
 ## Related Docs
 
 - [Frontend Renderer Docs Hub](README.md)
-- [Desktop Runtime Transport Command Contract Reference](desktop_runtime_transport_command_contract_reference.md)
+- [SDK Desktop Transport Command Contract Reference](desktop_runtime_transport_command_contract_reference.md)
 - [App Startup VM-Mode and Permission Onboarding Runtime Reference](app_startup_vm_mode_and_permission_onboarding_runtime_reference.md)
 - [Renderer Permissions Docs Hub](permissions/README.md)
 - [Frontend Renderer Provider Docs Hub](providers/README.md)

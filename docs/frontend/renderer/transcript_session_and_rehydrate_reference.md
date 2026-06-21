@@ -155,7 +155,7 @@ desktop IPC channel constants directly.
 `useChatMessageSender`:
 
 - ensures active conversation ref exists
-- sends the user turn through the desktop live-turn runtime and SDK command path
+- sends the user turn through the live-turn app-runtime client and SDK command path
 
 `startNewChatSession(...)`:
 
@@ -179,7 +179,7 @@ Renderer transcript rows remain visible projections and do not execute tools.
 1. list conversations from the SDK conversation library (`recordKind: "chat_event"`)
 2. load selected conversation SDK events via the chat-event store adapter (cursor-paginated local RPC)
 3. project SDK display messages for the renderer
-4. ask the desktop conversation continuity service to rehydrate the backend inference session through `DesktopConversationContinuityService.rehydrateFromStore(...)`
+4. ask the renderer app-runtime continuity service to rehydrate the backend inference session through `DesktopConversationContinuityService.rehydrateFromStore(...)`
    - rehydrate payload shaping is centralized in SDK projection helpers so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payloads
 5. set active transcript conversation/session info
 6. replace renderer chat store with projected SDK display messages
@@ -217,7 +217,7 @@ If transcript rows never appear:
 If resumed conversation loses screenshot/tool linkage:
 
 1. inspect SDK display and rehydrate projection mapping
-   (`sdkDisplayChatMessageProjection.ts` and the desktop continuity service)
+   (`sdkDisplayChatMessageProjection.ts` and the renderer continuity service)
 2. verify screenshot ref propagation
 3. verify `correlation_id` + `tool_name` survive list/get round-trip
 

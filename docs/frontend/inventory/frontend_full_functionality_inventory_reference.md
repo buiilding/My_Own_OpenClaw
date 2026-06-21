@@ -286,7 +286,7 @@ Functionality:
 
 Primary files:
 
-- Desktop runtime transport: `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
+- SDK desktop transport adapter: `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - IPC bridge/channels: `frontend/src/renderer/infrastructure/ipc/*`
 - Transcript writer/session/queues: `frontend/src/renderer/infrastructure/transcript/*`
 - Renderer artifact/display helpers: `frontend/src/renderer/infrastructure/services/*`
