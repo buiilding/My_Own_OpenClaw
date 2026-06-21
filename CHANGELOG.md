@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: route screenshot and overlay capture policy labels through desktop
+  overlay UI wording instead of product-owned overlay surface labels. No
+  migration required.
 - docs/runtime: route websocket event, observability, failure, and tool
   execution workflow first-read copy through shared backend/SDK/runtime wording
   instead of product-owned generic contract labels. No migration required.

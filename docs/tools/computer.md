@@ -28,7 +28,7 @@ This is the canonical computer use screenshot guide.
 
 - Renderer query screenshots and local-runtime tool screenshots are different paths.
 - Backend OCR/vision services can prepare coordinates before local execution.
-- Linux is the only platform that should hide WindieOS overlay surfaces for screenshot capture and restore them after capture.
+- Linux is the only platform that should hide desktop overlay surfaces for screenshot capture and restore them after capture.
 - Windows and macOS should not add capture-time hide/show for the minimal chat pill or response overlay.
 - Windows and macOS content protection should only be enabled during SDK
   screenshot-capture leases and disabled immediately after capture.

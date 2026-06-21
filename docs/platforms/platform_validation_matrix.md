@@ -48,7 +48,7 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 
 | Surface | macOS | Windows | Linux |
 | --- | --- | --- | --- |
-| screenshot excludes WindieOS UI | Send from minimal pill, verify the SDK screenshot tool does not show protected overlays. | Send from minimal pill, verify the SDK screenshot tool does not show protected overlays. | Send from minimal pill, verify overlays hide then restore without flicker. |
+| screenshot excludes desktop overlay UI | Send from minimal pill, verify the SDK screenshot tool does not show protected overlays. | Send from minimal pill, verify the SDK screenshot tool does not show protected overlays. | Send from minimal pill, verify overlays hide then restore without flicker. |
 | content protection | Confirm protection is active only during SDK screenshot-capture leases and disabled after capture. | Confirm protection is active only during SDK screenshot-capture leases and disabled after capture. | Confirm content protection path is a no-op and Electron main hide/restore owns SDK-local screenshot capture. |
 | screen capture permission | Reset or deny Screen Recording, run onboarding grant, verify native prompt or documented fallback. | Verify screenshot works without macOS-style permission flow. | Verify screenshot dependencies are present and failure text routes to Linux docs. |
 | input control permission | Reset or deny Accessibility, run input probe, verify grant flow and mouse/keyboard tool behavior. | Run PowerShell cursor probe and a local mouse/keyboard smoke. | Verify GNOME accessibility, X11 `xdotool`, or `ydotool` route before editing tool logic. |

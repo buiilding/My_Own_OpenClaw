@@ -1,8 +1,8 @@
 ---
-summary: "Cross-platform screenshot, overlay visibility, and content-protection policy for WindieOS chat pill, response overlay, and tool screenshots."
+summary: "Cross-platform screenshot, overlay visibility, and content-protection policy for desktop chat pill, response overlay, and tool screenshots."
 read_when:
   - When changing screenshot capture, response overlay phases, chat pill visibility, content protection, or capture-time window policy.
-  - When debugging overlay flicker, screenshots that include WindieOS UI, focus steals, or platform-specific content-protection regressions.
+  - When debugging overlay flicker, screenshots that include desktop overlay UI, focus steals, or platform-specific content-protection regressions.
 title: "Screenshot and Overlay Policy"
 ---
 
@@ -14,7 +14,7 @@ Screenshot and overlay behavior is platform-specific because Electron content pr
 
 | Behavior | macOS | Windows | Linux |
 | --- | --- | --- | --- |
-| hide WindieOS overlays for screenshot capture | no | no | yes, through the shared Linux hide/restore contract |
+| hide desktop overlay surfaces for screenshot capture | no | no | yes, through the shared Linux hide/restore contract |
 | use Electron `setContentProtection` | yes, during SDK screenshot-capture leases only | yes, during SDK screenshot-capture leases only | no; Linux uses hide/restore instead |
 | content protection idle behavior | disabled outside screenshot-capture leases | disabled outside screenshot-capture leases | no-op |
 | minimal chat pill capture behavior | no capture-time hide/show | no capture-time hide/show | hide-only collapse path; restore after capture |
@@ -26,7 +26,7 @@ system screenshots. Screenshot exclusion is not an active-loop state; it is a
 short lease around SDK-local screenshot execution:
 
 1. SDK calls Electron's local tool lifecycle immediately before `screenshot`.
-2. Electron main enables content protection for WindieOS overlay windows.
+2. Electron main enables content protection for desktop overlay windows.
 3. The local-runtime screenshot task runs.
 4. Electron main disables content protection in the release callback.
 
@@ -41,7 +41,7 @@ short lease around SDK-local screenshot execution:
 
 ## Linux-Specific Contract
 
-Linux is the only OS where WindieOS overlay surfaces may need hide/restore for SDK-local screenshot capture. That policy belongs to Electron main's local tool lifecycle and platform screenshot visibility bridge, not renderer surface orchestration.
+Linux is the only OS where desktop overlay surfaces may need hide/restore for SDK-local screenshot capture. That policy belongs to Electron main's local tool lifecycle and platform screenshot visibility bridge, not renderer surface orchestration.
 
 Rules:
 

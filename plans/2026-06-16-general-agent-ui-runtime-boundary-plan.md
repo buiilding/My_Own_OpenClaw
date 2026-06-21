@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Platform Overlay Capture Policy Wording
+
+- Finding: screenshot/overlay policy, platform routing, validation, computer
+  tool, docs hub, and triage docs still named generic Electron-owned overlay
+  capture symptoms as WindieOS UI/overlay surfaces, even though product identity
+  belongs in skin/config and the policy owner is the desktop host plus platform
+  adapters.
+- Change: reworded screenshot exclusion, hide/restore, and content-protection
+  labels around desktop overlay UI/surfaces, and extended modular boundary
+  guards for the retired product-owned capture-policy phrases.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, screenshot lease policy,
+  platform adapters, Electron content-protection behavior, IPC channels, SDK
+  projections, storage, credentials, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-21 Runtime Contract Workflow Summary Wording
 
 - Finding: websocket event, observability, error/failure, tool schema, tool
