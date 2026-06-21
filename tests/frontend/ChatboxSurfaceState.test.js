@@ -4,6 +4,7 @@
 
 import {
   resolveCurrentTurnPresentationState,
+  resolveSdkCurrentTurnPresentationState,
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 
 describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
@@ -90,5 +91,85 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     expect(state.showAssistantAwaitingDot).toBe(true);
     expect(state.showChatboxAwaitingReply).toBe(true);
     expect(state.showChatboxResponse).toBe(false);
+  });
+
+  test('projects SDK awaiting presentation with the SDK anchor row', () => {
+    const state = resolveSdkCurrentTurnPresentationState({
+      currentTurnProjection: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        presentation: {
+          hasVisibleContent: false,
+          typingVisible: true,
+          overlayVisible: true,
+          isBusy: true,
+          isTerminal: false,
+          awaitingAnchor: {
+            kind: 'user-message',
+            rowId: 'user-row-1',
+          },
+          overlayIntent: {
+            visible: true,
+            mode: 'awaiting',
+            turnRef: 'turn-1',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-1',
+          },
+        },
+      },
+      fallbackState: {
+        awaitingDotTargetMessageId: 'fallback-row',
+      },
+    });
+
+    expect(state).toMatchObject({
+      loopUiState: 'awaiting-reply',
+      isBusy: true,
+      isAwaitingReply: true,
+      awaitingDotTargetMessageId: 'user-row-1',
+      chatboxSurfaceState: 'awaiting-reply',
+      overlayTurnLifecycle: 'awaiting',
+    });
+  });
+
+  test('projects SDK overlay response entries and dismissal state', () => {
+    const state = resolveSdkCurrentTurnPresentationState({
+      currentTurnProjection: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        presentation: {
+          hasVisibleContent: true,
+          typingVisible: false,
+          overlayVisible: true,
+          isBusy: false,
+          isTerminal: true,
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            turnRef: 'turn-1',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-1',
+          },
+        },
+      },
+      responseOverlayEntries: [
+        { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
+      ],
+      dismissedResponseId: 'assistant-1',
+      includeOverlayIntent: true,
+    });
+
+    expect(state).toMatchObject({
+      activeResponse: null,
+      visibleResponse: null,
+      hasVisibleReply: true,
+      showChatboxResponse: true,
+      chatboxSurfaceState: 'response',
+      overlayTurnLifecycle: 'terminal',
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+        turnRef: 'turn-1',
+      }),
+    });
   });
 });

@@ -7,7 +7,13 @@ import {
   isChatLoopBusy,
   resolveChatLoopUiState,
 } from './desktopChatLoopUiRuntime';
-import { getIdleOverlayTurnLifecycle } from './desktopOverlayTurnLifecycleRuntime';
+import {
+  getActiveOverlayTurnLifecycle,
+  getAwaitingOverlayTurnLifecycle,
+  getIdleOverlayTurnLifecycle,
+  getTerminalOverlayTurnLifecycle,
+} from './desktopOverlayTurnLifecycleRuntime';
+import { resolveSdkOverlayIntent } from './desktopLiveTurnSurfaceRuntime';
 
 const CHATBOX_SURFACE_STATE = Object.freeze({
   COMPACT: 'compact',
@@ -85,6 +91,42 @@ function hasVisibleChatboxResponse(activeResponse, dismissedResponseId) {
   return Boolean(activeResponse && activeResponse.id !== dismissedResponseId);
 }
 
+function hasOwn(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+function resolveSdkAwaitingDotTargetMessageId(presentation, fallbackState) {
+  if (!presentation || !hasOwn(presentation, 'awaitingAnchor')) {
+    return fallbackState?.awaitingDotTargetMessageId ?? null;
+  }
+  const anchor = presentation.awaitingAnchor;
+  if (
+    anchor
+    && anchor.kind === 'user-message'
+    && typeof anchor.rowId === 'string'
+    && anchor.rowId.trim()
+  ) {
+    return anchor.rowId;
+  }
+  return null;
+}
+
+function resolveSdkOverlayLifecycle(presentation, overlayIntent) {
+  if (!presentation) {
+    return getIdleOverlayTurnLifecycle();
+  }
+  if (overlayIntent?.mode === 'awaiting') {
+    return getAwaitingOverlayTurnLifecycle();
+  }
+  if (overlayIntent?.mode === 'response' && presentation.isBusy) {
+    return getActiveOverlayTurnLifecycle();
+  }
+  if (presentation.isTerminal) {
+    return getTerminalOverlayTurnLifecycle();
+  }
+  return getIdleOverlayTurnLifecycle();
+}
+
 function resolveChatboxSurfaceState({
   loopUiState,
   activeResponse,
@@ -151,4 +193,50 @@ export function resolveCurrentTurnPresentationState({
     showChatboxAwaitingReply: shouldShowChatboxAwaitingReply(chatboxSurfaceState),
     showChatboxResponse: shouldShowChatboxResponse(chatboxSurfaceState),
   };
+}
+
+export function resolveSdkCurrentTurnPresentationState({
+  currentTurnProjection = null,
+  fallbackState = null,
+  responseOverlayEntries = [],
+  dismissedResponseId = null,
+  includeOverlayIntent = false,
+} = {}) {
+  const presentation = currentTurnProjection?.presentation;
+  if (!presentation) {
+    return null;
+  }
+  const latestEntry = responseOverlayEntries.length > 0
+    ? responseOverlayEntries[responseOverlayEntries.length - 1]
+    : null;
+  const visibleResponse = (
+    latestEntry && latestEntry.id !== dismissedResponseId
+      ? latestEntry
+      : null
+  );
+  const overlayIntent = resolveSdkOverlayIntent(presentation, currentTurnProjection);
+  const awaitingVisible = overlayIntent.mode === 'awaiting';
+  const responseVisible = overlayIntent.mode === 'response';
+  const overlayTurnLifecycle = resolveSdkOverlayLifecycle(presentation, overlayIntent);
+  const state = {
+    activeResponse: visibleResponse,
+    hasVisibleReply: presentation.hasVisibleContent === true,
+    loopUiState: responseVisible ? 'active-response' : (awaitingVisible ? 'awaiting-reply' : 'idle'),
+    isBusy: presentation.isBusy === true,
+    isAwaitingReply: awaitingVisible,
+    showAssistantAwaitingDot: awaitingVisible,
+    awaitingDotTargetMessageId: awaitingVisible
+      ? resolveSdkAwaitingDotTargetMessageId(presentation, fallbackState)
+      : null,
+    visibleResponse,
+    chatboxSurfaceState: responseVisible ? 'response' : (awaitingVisible ? 'awaiting-reply' : 'compact'),
+    showChatboxAwaitingReply: awaitingVisible,
+    showChatboxResponse: responseVisible,
+    isTransportConnected: true,
+    overlayTurnLifecycle,
+  };
+  if (includeOverlayIntent) {
+    state.overlayIntent = overlayIntent;
+  }
+  return state;
 }

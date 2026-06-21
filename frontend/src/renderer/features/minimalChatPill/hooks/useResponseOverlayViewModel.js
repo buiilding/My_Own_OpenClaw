@@ -10,15 +10,10 @@ import {
   useChatStore,
 } from '../../chat/stores/chatStore';
 import {
-  getActiveOverlayTurnLifecycle,
-  getAwaitingOverlayTurnLifecycle,
-  getIdleOverlayTurnLifecycle,
-  getTerminalOverlayTurnLifecycle,
-} from '../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
-import {
   resolveLiveTurnPresentationInput,
   resolveSdkOverlayIntent,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
+import { resolveSdkCurrentTurnPresentationState } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
   buildCurrentTurnMessagesFromProjection,
   buildCurrentTurnMessagesFromPresentation,
@@ -34,58 +29,6 @@ import { logRendererLiveSurfaceTrace } from '../../../app/runtime/desktopRendere
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
   return buildCurrentTurnMessagesFromProjection(currentTurnProjection)
     .filter(isVisibleResponseOverlayMessage);
-}
-
-function resolveSdkOverlayLifecycle(presentation, overlayIntent) {
-  if (!presentation) {
-    return getIdleOverlayTurnLifecycle();
-  }
-  if (overlayIntent?.mode === 'awaiting') {
-    return getAwaitingOverlayTurnLifecycle();
-  }
-  if (overlayIntent?.mode === 'response' && presentation.isBusy) {
-    return getActiveOverlayTurnLifecycle();
-  }
-  if (presentation.isTerminal) {
-    return getTerminalOverlayTurnLifecycle();
-  }
-  return getIdleOverlayTurnLifecycle();
-}
-
-function buildSdkCurrentTurnPresentationState({
-  currentTurnProjection,
-  responseOverlayEntries,
-  dismissedResponseId,
-}) {
-  const presentation = currentTurnProjection?.presentation;
-  const latestEntry = responseOverlayEntries.length > 0
-    ? responseOverlayEntries[responseOverlayEntries.length - 1]
-    : null;
-  const visibleResponse = (
-    latestEntry && latestEntry.id !== dismissedResponseId
-      ? latestEntry
-      : null
-  );
-  const overlayIntent = resolveSdkOverlayIntent(presentation, currentTurnProjection);
-  const awaitingVisible = overlayIntent.mode === 'awaiting';
-  const responseVisible = overlayIntent.mode === 'response';
-  const overlayTurnLifecycle = resolveSdkOverlayLifecycle(presentation, overlayIntent);
-  return {
-    activeResponse: visibleResponse,
-    hasVisibleReply: presentation?.hasVisibleContent === true,
-    loopUiState: responseVisible ? 'active-response' : (awaitingVisible ? 'awaiting-reply' : 'idle'),
-    isBusy: presentation?.isBusy === true,
-    isAwaitingReply: awaitingVisible,
-    showAssistantAwaitingDot: awaitingVisible,
-    awaitingDotTargetMessageId: null,
-    visibleResponse,
-    chatboxSurfaceState: responseVisible ? 'response' : (awaitingVisible ? 'awaiting-reply' : 'compact'),
-    showChatboxAwaitingReply: awaitingVisible,
-    showChatboxResponse: responseVisible,
-    isTransportConnected: true,
-    overlayTurnLifecycle,
-    overlayIntent,
-  };
 }
 
 export function useResponseOverlayViewModel({
@@ -199,10 +142,11 @@ export function useResponseOverlayViewModel({
   const resolvedCurrentTurnPresentationState = useMemo(
     () => {
       if (useSdkLiveTurnPresentation && !useLocalSendLatch) {
-        return buildSdkCurrentTurnPresentationState({
+        return resolveSdkCurrentTurnPresentationState({
           currentTurnProjection,
           responseOverlayEntries,
           dismissedResponseId,
+          includeOverlayIntent: true,
         });
       }
       if (useLocalSendLatch) {

@@ -403,13 +403,18 @@ describe('renderer app runtime boundary', () => {
     expect(presentationSourceChannelsSource).not.toContain('export const SDK_DISPLAY_ROWS_SOURCE_CHANNEL');
     expect(currentTurnPresentationSource).toContain('desktopChatLoopUiRuntime');
     expect(currentTurnPresentationSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(currentTurnPresentationSource).toContain('resolveSdkCurrentTurnPresentationState');
+    expect(currentTurnPresentationSource).toContain('resolveSdkOverlayIntent');
     expect(currentTurnPresentationSource).not.toContain('export const VISIBLE_ASSISTANT_REPLY_TYPE_SET');
     expect(currentTurnPresentationSource).not.toContain('features/chat');
     expect(currentTurnPresentationSource).not.toContain('features/minimalChatPill');
+    expect(overlayViewModelSource).toContain('resolveSdkCurrentTurnPresentationState');
     expect(overlayViewModelSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(overlayViewModelSource).toContain('isVisibleResponseOverlayMessage');
     expect(overlayViewModelSource).toContain('isResponseOverlayProgressMessage');
     expect(overlayViewModelSource).toContain('isResponseOverlaySourceTaggedMessage');
+    expect(overlayViewModelSource).not.toContain('function buildSdkCurrentTurnPresentationState');
+    expect(overlayViewModelSource).not.toContain('function resolveSdkOverlayLifecycle');
     expect(overlayViewModelSource).not.toContain("message.type === 'tool-call'");
     expect(overlayViewModelSource).not.toContain("message.type === 'tool-output'");
     expect(overlayViewModelSource).not.toContain("message.type === 'search-source'");
@@ -420,10 +425,13 @@ describe('renderer app runtime boundary', () => {
     expect(overlayViewModelSource).not.toContain("entry.type === 'tool-explanation'");
     expect(chatInterfaceSource).toContain('useChatSurfaceController');
     expect(chatSurfaceControllerSource).toContain('useCurrentTurnPresentationState');
+    expect(chatSurfaceControllerSource).toContain('resolveSdkCurrentTurnPresentationState');
     expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');
     expect(chatInterfaceSource).not.toContain('VISIBLE_ASSISTANT_REPLY_TYPE_SET');
     expect(chatInterfaceSource).not.toContain('allowedTypes:');
     expect(chatSurfaceControllerSource).not.toContain('allowedTypes');
+    expect(chatSurfaceControllerSource).not.toContain('function buildSdkCurrentTurnPresentationState');
+    expect(chatSurfaceControllerSource).not.toContain('function resolveSdkAwaitingDotTargetMessageId');
     expect(chatInterfaceSource).not.toContain('desktopCurrentTurnMessageRuntime');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/state/chatBoxResponseState.js'),
@@ -456,6 +464,10 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopResponseOverlayViewRuntime.ts'),
       'utf8',
     );
+    const currentTurnPresentationSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopCurrentTurnPresentationRuntime.js'),
+      'utf8',
+    );
     const overlayViewModelSource = await fs.readFile(
       path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
       'utf8',
@@ -474,7 +486,8 @@ describe('renderer app runtime boundary', () => {
     expect(chatLoopUiStateSource).toContain('desktopStreamPhaseRuntime');
     expect(overlayLifecycleHookSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
-    expect(overlayViewModelSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(currentTurnPresentationSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(overlayViewModelSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('overlayTurnLifecycleContract');
     expect(overlayViewModelSource).not.toContain('overlayTurnLifecycleContract');
     await expect(fs.stat(

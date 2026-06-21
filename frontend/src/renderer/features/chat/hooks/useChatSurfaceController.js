@@ -8,57 +8,8 @@ import { runManualCompaction as runManualCompactionCommand } from '../../../app/
 import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
 import {
   resolveLiveTurnPresentationInput,
-  resolveSdkOverlayIntent,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
-
-function hasOwn(object, key) {
-  return Object.prototype.hasOwnProperty.call(object, key);
-}
-
-function resolveSdkAwaitingDotTargetMessageId(presentation, fallbackState) {
-  if (!presentation || !hasOwn(presentation, 'awaitingAnchor')) {
-    return fallbackState?.awaitingDotTargetMessageId ?? null;
-  }
-  const anchor = presentation.awaitingAnchor;
-  if (
-    anchor
-    && anchor.kind === 'user-message'
-    && typeof anchor.rowId === 'string'
-    && anchor.rowId.trim()
-  ) {
-    return anchor.rowId;
-  }
-  return null;
-}
-
-function buildSdkCurrentTurnPresentationState(currentTurnProjection, fallbackState) {
-  const presentation = currentTurnProjection?.presentation;
-  if (!presentation) {
-    return null;
-  }
-  const overlayIntentMode = resolveSdkOverlayIntent(presentation, currentTurnProjection).mode;
-  const awaitingVisible = overlayIntentMode === 'awaiting';
-  const responseVisible = overlayIntentMode === 'response';
-  return {
-    activeResponse: null,
-    hasVisibleReply: presentation.hasVisibleContent === true,
-    loopUiState: responseVisible ? 'active-response' : (awaitingVisible ? 'awaiting-reply' : 'idle'),
-    isBusy: presentation.isBusy === true,
-    isAwaitingReply: awaitingVisible,
-    showAssistantAwaitingDot: awaitingVisible,
-    awaitingDotTargetMessageId: awaitingVisible
-      ? resolveSdkAwaitingDotTargetMessageId(presentation, fallbackState)
-      : null,
-    visibleResponse: null,
-    chatboxSurfaceState: responseVisible ? 'response' : (awaitingVisible ? 'awaiting-reply' : 'compact'),
-    showChatboxAwaitingReply: awaitingVisible,
-    showChatboxResponse: responseVisible,
-    isTransportConnected: true,
-    overlayTurnLifecycle: awaitingVisible
-      ? 'awaiting'
-      : (responseVisible && presentation.isBusy ? 'active' : (presentation.isTerminal ? 'terminal' : 'idle')),
-  };
-}
+import { resolveSdkCurrentTurnPresentationState } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {
@@ -97,7 +48,10 @@ export function useChatSurfaceController({
     liveTurnPresentationInput.useSdkLiveTurnPresentation
     && !liveTurnPresentationInput.useLocalSendLatch
   )
-    ? buildSdkCurrentTurnPresentationState(currentTurnProjection, currentTurnPresentationState)
+    ? resolveSdkCurrentTurnPresentationState({
+      currentTurnProjection,
+      fallbackState: currentTurnPresentationState,
+    })
     : currentTurnPresentationState;
   const isBusy = resolvedCurrentTurnPresentationState.isBusy === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;

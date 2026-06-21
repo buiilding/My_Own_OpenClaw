@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: dashboard search snippet matched-role prefix display
-  now stays behind `desktopDashboardConversationGroupRuntime`, with
-  `SearchChatsModal` rendering the app-runtime projected snippet string instead
-  of computing search metadata presentation locally.
+- Latest completed slice: SDK current-turn presentation-state projection now
+  stays behind `desktopCurrentTurnPresentationRuntime`, with dashboard chat and
+  response overlay hooks sharing the app-runtime helper for overlay intent,
+  lifecycle, awaiting anchors, and visible response state instead of computing
+  SDK presentation semantics locally.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -146,6 +147,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `desktopDashboardConversationGroupRuntime.getDashboardSearchSnippetDisplayText(...)`
   for matched-role snippet prefix display instead of recomputing the
   case-insensitive prefix check inside `SearchChatsModal`.
+  Dashboard chat and response overlay hooks now consume
+  `desktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
+  for SDK current-turn presentation state instead of duplicating overlay intent,
+  lifecycle, awaiting-anchor, and visible-response projection inside feature
+  hooks.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
@@ -589,6 +595,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Renderer SDK Current-Turn Presentation Boundary
+
+- Finding: `useChatSurfaceController.js` and
+  `useResponseOverlayViewModel.js` still duplicated SDK current-turn
+  presentation-state reduction from overlay intent, awaiting anchor,
+  lifecycle, and visible response-entry fields even though current-turn surface
+  projection belonged with `desktopCurrentTurnPresentationRuntime.js`.
+- Change: added
+  `resolveSdkCurrentTurnPresentationState(...)` to the current-turn
+  presentation runtime and routed both feature hooks through the shared helper,
+  keeping dismissal inputs and UI composition local while moving SDK
+  presentation semantics behind the app-runtime facade.
+- Validation: focused chatbox surface, chat surface controller, renderer
+  app-runtime boundary coverage, docs listing, stale feature-local SDK
+  presentation-builder scan, and diff checks.
+- Compatibility: no migration required. SDK `currentTurn` payloads, overlay
+  intent fields, lifecycle string values, awaiting-dot target selection,
+  response overlay dismissal behavior, IPC, storage, permissions, credentials,
+  hosted backend URLs, and provider policy are unchanged.
 
 ### 2026-06-21 Renderer App-Runtime Helper Export Boundary
 

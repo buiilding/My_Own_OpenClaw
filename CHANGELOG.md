@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: move SDK current-turn presentation-state projection into
+  `desktopCurrentTurnPresentationRuntime` so dashboard chat and response
+  overlay hooks share one app-runtime helper for overlay intent, lifecycle,
+  awaiting anchor, and visible response state instead of duplicating SDK
+  presentation rules in feature hooks. No migration required.
 - renderer/dashboard: move dashboard search snippet matched-role prefix display
   into `desktopDashboardConversationGroupRuntime` so `SearchChatsModal` renders
   a runtime-projected snippet string instead of reimplementing search metadata

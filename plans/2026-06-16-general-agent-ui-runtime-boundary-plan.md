@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer SDK Current-Turn Presentation Boundary
+
+- Finding: `useChatSurfaceController.js` and
+  `useResponseOverlayViewModel.js` each assembled SDK current-turn
+  presentation state from `presentation.overlayIntent`, awaiting anchors,
+  lifecycle flags, and response entries even though
+  `desktopCurrentTurnPresentationRuntime.js` already owned current-turn surface
+  projection.
+- Change: added `resolveSdkCurrentTurnPresentationState(...)` to the
+  current-turn presentation runtime and routed both feature hooks through that
+  app-runtime helper, leaving the hooks with wiring, dismissal inputs, and UI
+  composition instead of SDK presentation semantics.
+- Validation: focused chatbox surface, chat surface controller, renderer
+  app-runtime boundary coverage, docs listing, stale feature-local SDK
+  presentation-builder scan, and diff checks.
+- Compatibility: no migration required. SDK `currentTurn` payloads, overlay
+  intent fields, lifecycle string values, awaiting-dot targeting, response
+  overlay dismissal behavior, IPC, storage, permissions, credentials, hosted
+  backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Dashboard Search Snippet Display Boundary
 
 - Finding: `desktopDashboardConversationGroupRuntime.js` already owned
