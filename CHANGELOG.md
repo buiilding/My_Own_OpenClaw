@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- docs/plans: add the screenshot metadata display-row plan for fixing chat-pill
+  query screenshots that reach SDK `user_message_metadata` but disappear from
+  dashboard rows. No migration required.
 - docs/plans: add the renderer-owned typing state migration plan for
   implementing ADR 006, including lifecycle reducer phases, legacy authority
   deletion targets, owner predicates, and core-loop regression requirements. No
