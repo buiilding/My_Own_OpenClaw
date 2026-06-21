@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: keep message-content render-kind constants private to the
+  app-runtime content classifier, exposing semantic predicates for
+  `MessageContent` routing. No migration required.
 - renderer/chat: keep chat-stream generic thinking and compaction status labels
   private to the app-runtime thinking helper, exposing semantic label helpers
   and predicates for stream hooks. No migration required.

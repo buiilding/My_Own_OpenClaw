@@ -8550,3 +8550,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   failed-error fallback behavior, stream projection side effects, transcript
   rows, IPC channels, storage, provider policy, permissions, and backend
   behavior are unchanged; no migration is required.
+- The renderer message-content runtime now keeps the raw render-kind table
+  private to `desktopMessageContentRuntime.js`; `MessageContent` uses semantic
+  content-presentation predicates for React routing while the runtime preserves
+  the same `renderKind` string values. Boundary coverage prevents
+  `MESSAGE_CONTENT_RENDER_KIND` from returning as a public export or component
+  dependency. Message content routing, assistant thinking/markdown rendering,
+  screenshot user rows, tool row rendering, transcript rows, IPC channels,
+  storage, provider policy, permissions, and backend behavior are unchanged; no
+  migration is required.

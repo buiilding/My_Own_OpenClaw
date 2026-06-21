@@ -78,7 +78,9 @@ Assistant message thinking presentation:
 
 `MessageContent` consumes
 `frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js` to resolve a
-single render kind before selecting React-only content components.
+single render kind before selecting React-only content components. The runtime
+keeps the raw render-kind table private and exposes semantic predicates for
+React routing.
 
 The runtime owns row classification for:
 
@@ -91,7 +93,15 @@ The runtime owns row classification for:
 - generic markdown fallback rows
 
 This keeps raw SDK/display-row message-type branching out of the React
-component while preserving the existing content components and markup.
+component while preserving the existing content components and markup. It also
+keeps raw render-kind constants out of the component; callers should use
+`isErrorMessageContentPresentation(...)`,
+`isToolOutputMessageContentPresentation(...)`,
+`isToolCallMessageContentPresentation(...)`,
+`isToolExplanationMessageContentPresentation(...)`,
+`isToolActionsSummaryMessageContentPresentation(...)`,
+`isUserScreenshotMessageContentPresentation(...)`, and
+`isAssistantResponseMessageContentPresentation(...)` instead.
 
 ## Message CSS Class Assembly Contract
 

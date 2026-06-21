@@ -4,7 +4,13 @@
 
 import PropTypes from 'prop-types';
 import {
-  MESSAGE_CONTENT_RENDER_KIND,
+  isAssistantResponseMessageContentPresentation,
+  isErrorMessageContentPresentation,
+  isToolActionsSummaryMessageContentPresentation,
+  isToolCallMessageContentPresentation,
+  isToolExplanationMessageContentPresentation,
+  isToolOutputMessageContentPresentation,
+  isUserScreenshotMessageContentPresentation,
   resolveMessageContentPresentation,
 } from '../../../app/runtime/desktopMessageContentRuntime';
 import AssistantThinkingSection from './message/content/AssistantThinkingSection';
@@ -24,7 +30,7 @@ export default function MessageContent({
 }) {
   const contentPresentation = resolveMessageContentPresentation(message);
 
-  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.ERROR) {
+  if (isErrorMessageContentPresentation(contentPresentation)) {
     return (
       <ErrorMessage
         message={message}
@@ -35,7 +41,7 @@ export default function MessageContent({
     );
   }
 
-  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.TOOL_OUTPUT) {
+  if (isToolOutputMessageContentPresentation(contentPresentation)) {
     return (
       <ToolOutputMessage
         message={message}
@@ -46,7 +52,7 @@ export default function MessageContent({
     );
   }
 
-  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.TOOL_CALL) {
+  if (isToolCallMessageContentPresentation(contentPresentation)) {
     return (
       <ToolCallMessage
         message={message}
@@ -57,7 +63,7 @@ export default function MessageContent({
     );
   }
 
-  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.TOOL_EXPLANATION) {
+  if (isToolExplanationMessageContentPresentation(contentPresentation)) {
     return (
       <ToolExplanationMessage
         message={message}
@@ -68,11 +74,11 @@ export default function MessageContent({
     );
   }
 
-  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.TOOL_ACTIONS_SUMMARY) {
+  if (isToolActionsSummaryMessageContentPresentation(contentPresentation)) {
     return <ToolActionsSummaryMessage message={message} />;
   }
 
-  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.USER_WITH_SCREENSHOT) {
+  if (isUserScreenshotMessageContentPresentation(contentPresentation)) {
     return (
       <UserMessage
         message={message}
@@ -83,7 +89,7 @@ export default function MessageContent({
     );
   }
 
-  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.ASSISTANT_RESPONSE) {
+  if (isAssistantResponseMessageContentPresentation(contentPresentation)) {
     return (
       <div className="assistant-message-content">
         <AssistantThinkingSection

@@ -4,7 +4,7 @@
 
 import { isUserMessageWithScreenshot } from './desktopMessageScreenshotRuntime';
 
-export const MESSAGE_CONTENT_RENDER_KIND = Object.freeze({
+const MESSAGE_CONTENT_RENDER_KIND = Object.freeze({
   ERROR: 'error',
   TOOL_OUTPUT: 'tool-output',
   TOOL_CALL: 'tool-call',
@@ -59,4 +59,40 @@ export function resolveMessageContentPresentation(message) {
   }
 
   return { renderKind: MESSAGE_CONTENT_RENDER_KIND.MARKDOWN };
+}
+
+function hasRenderKind(contentPresentation, renderKind) {
+  return contentPresentation?.renderKind === renderKind;
+}
+
+export function isErrorMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.ERROR);
+}
+
+export function isToolOutputMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_OUTPUT);
+}
+
+export function isToolCallMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_CALL);
+}
+
+export function isToolExplanationMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_EXPLANATION);
+}
+
+export function isToolActionsSummaryMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_ACTIONS_SUMMARY);
+}
+
+export function isUserScreenshotMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.USER_WITH_SCREENSHOT);
+}
+
+export function isAssistantResponseMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.ASSISTANT_RESPONSE);
+}
+
+export function isMarkdownMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.MARKDOWN);
 }

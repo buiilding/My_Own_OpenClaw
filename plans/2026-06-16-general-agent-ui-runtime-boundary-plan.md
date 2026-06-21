@@ -20669,3 +20669,19 @@ Each completed slice should report:
   lifecycle labels, failed-error fallback behavior, stream projection side
   effects, transcript rows, IPC channels, storage, provider policy,
   permissions, and backend behavior are unchanged.
+
+### 2026-06-21 renderer message-content render-kind helper privacy
+
+- Finding: `desktopMessageContentRuntime.js` owned message content
+  classification, but exported the raw `MESSAGE_CONTENT_RENDER_KIND` table to
+  `MessageContent`, which then compared enum values directly for React routing.
+- Change: made the raw render-kind table private, exposed semantic
+  content-presentation predicates, and updated `MessageContent` plus focused
+  tests to route through the helper surface while preserving returned
+  `renderKind` string values.
+- Validation: focused message-content runtime and renderer chat-runtime
+  boundary tests, exact raw-export/import scan, docs listing, and diff checks.
+- Compatibility: no migration required. Message render-kind string values,
+  content routing, assistant thinking/markdown rendering, screenshot user rows,
+  tool row rendering, transcript rows, IPC channels, storage, provider policy,
+  permissions, and backend behavior are unchanged.
