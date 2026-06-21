@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/tests: rename the private-export compatibility guard labels for retired
+  local-runtime modules while keeping the removed historical module-name
+  assertions intact. No migration required.
 - docs/runtime: update active validation, browser, memory, tool, platform,
   install, release, and development examples to use `python-in-env
   local-runtime`, `<windie> test local-runtime`, and `<windie> build

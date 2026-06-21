@@ -77,7 +77,7 @@ describe('@windie/sdk private helper exports', () => {
     expect(rootModule.createManagedWebSocketSession).toBeUndefined();
   });
 
-  test('sidecar store compatibility module is removed', () => {
+  test('retired local-runtime store compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/stores/LocalRuntimeConversationStore.js');
     const removedModulePath = removedCjsPath('stores', retiredSidecarStoreName);
 
@@ -114,7 +114,7 @@ describe('@windie/sdk private helper exports', () => {
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('retired local sidecar runtime compatibility modules are removed', () => {
+  test('retired local-runtime compatibility modules are removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/LocalRuntime.js');
     const removedLocalSidecarModulePath = removedCjsPath(
       'runtime',

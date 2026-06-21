@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: active validation, browser, memory, tool, platform,
-  install, release, and development docs now teach `python-in-env
-  local-runtime`, `<windie> test local-runtime`, and `<windie> build
-  local-runtime` as the primary local-runtime Python commands while preserving
-  compatibility alias documentation in CLI-specific tables.
+- Latest completed slice: SDK private-export compatibility guard labels now
+  describe retired local-runtime modules without presenting sidecar as the
+  active owner, while retaining the exact removed historical module-name
+  assertions.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -41,6 +40,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   wrapper, test, and build commands; historical plan/report records and
   CLI-specific compatibility alias rows still mention the old names where the
   alias itself is the subject.
+  SDK private-export compatibility tests use local-runtime wording for active
+  guard labels while preserving concrete removed sidecar compatibility module
+  sentinels so stale public CJS files stay absent.
   CLI test routing exposes `test local-runtime` as the owner-correct command
   for local-runtime Python pytest while preserving `test sidecar` and the
   `scripts/test-sidecar.sh` compatibility wrapper.

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 SDK Private Export Compatibility Guard Labels
+
+- Finding: the SDK private-export guard suite still described retired
+  compatibility checks as sidecar-owned in active test labels, even though the
+  canonical modules under test are now local-runtime SDK modules.
+- Change: renamed the active Jest descriptions to local-runtime wording while
+  preserving the concrete removed historical module-name sentinels that prove
+  stale CJS compatibility files and exports remain absent.
+- Validation: focused SDK private-export Jest coverage, exact stale-label scan,
+  docs list, and diff hygiene.
+- Compatibility/security: no migration required. Public SDK exports, package
+  names, removed compatibility-module assertions, runtime behavior, IPC,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Local-Runtime Validation Command Docs Boundary
 
 - Finding: after adding canonical `local-runtime` CLI and wrapper targets,
