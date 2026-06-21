@@ -11,6 +11,7 @@ title: "Settings Section General + Memory Tabs Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
+- `frontend/src/renderer/app/runtime/desktopSettingsTabRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/GeneralSettingsTab.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/AgentSettingsTab.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/MemorySettingsTab.jsx`
@@ -36,6 +37,11 @@ Current visible tab ids:
 - `browser`
 - `memory`
 - `onboarding`
+
+The ordered tab descriptors live in
+`desktopSettingsTabRuntime.getSettingsTabDescriptors()`. `SettingsSection`
+maps descriptor `iconKey` values to lucide icons, owns active-tab state, and
+routes tab ids to concrete tab components through `renderTabContent()`.
 
 Routing model:
 
@@ -245,7 +251,9 @@ Exception:
 ## Drift Hotspots
 
 1. Replacing context-driven wakeword setter with direct config patches can desync suppression-aware wakeword state.
-2. Adding new settings tabs requires updating both the shared `SETTINGS_TABS` registry and `renderTabContent()` routing in `SettingsSection.jsx`.
+2. Adding new settings tabs requires updating both
+   `desktopSettingsTabRuntime.js` descriptors and `renderTabContent()` routing
+   in `SettingsSection.jsx`.
 3. Theme editor values should remain renderer-local unless a future runtime theme engine explicitly consumes them.
 4. Treating local-only `voice` selector as persisted config without wiring provider updates.
 

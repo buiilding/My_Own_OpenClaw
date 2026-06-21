@@ -96,6 +96,7 @@ frontend/src/renderer/
 │   │   ├── desktopShortcutRuntimeClient.ts # Renderer shortcut label, predicate, option, and config-normalization facade
 │   │   ├── desktopSettingsEventRuntimeClient.ts # Renderer settings-event handler facade for providers
 │   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
+│   │   ├── desktopSettingsTabRuntime.js # Renderer settings tab descriptor facade
 │   │   ├── desktopTranscriptSessionInfoRuntimeClient.js # Renderer transcript session info subscription facade
 │   │   ├── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
 │   │   ├── desktopVoiceAudioEncodingRuntime.ts # Renderer voice PCM conversion, chunk normalization, and gateway frame facade

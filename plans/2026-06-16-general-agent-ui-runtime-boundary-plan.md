@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Settings Tab Descriptor Boundary
+
+- Finding: `SettingsSection.jsx` still owned the visible settings tab registry
+  and fallback label lookup, even though adjacent settings and appearance
+  descriptor rules had moved behind app-runtime facades.
+- Change: added `desktopSettingsTabRuntime.js` with ordered tab descriptors,
+  tab ids, and fallback label resolution; routed `SettingsSection` through the
+  runtime helper while leaving icon component mapping and tab-content routing
+  in the section.
+- Validation: focused settings tab runtime, settings section, renderer
+  app-runtime boundary coverage, docs listing, stale section-local registry
+  scan, and diff checks.
+- Compatibility: no migration required. Settings tab ids, labels, initial-tab
+  routing, fallback placeholder behavior, config keys, storage, permissions,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Appearance Editor Descriptor Boundary
 
 - Finding: `desktopAppearanceThemeRuntime.js` already owned appearance mode

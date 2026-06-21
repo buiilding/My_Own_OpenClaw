@@ -21,17 +21,22 @@ import GeneralSettingsTab from './settings/GeneralSettingsTab';
 import MemorySettingsTab from './settings/MemorySettingsTab';
 import OnboardingSettingsTab from './settings/OnboardingSettingsTab';
 import WorkspaceSettingsTab from './settings/WorkspaceSettingsTab';
+import {
+  getSettingsTabDescriptors,
+  resolveSettingsTabLabel,
+} from '../../../../app/runtime/desktopSettingsTabRuntime';
 import '../../../../styles/SettingsSurface.css';
 
-const SETTINGS_TABS = Object.freeze([
-  { id: 'general', icon: Settings, label: 'General' },
-  { id: 'appearance', icon: Palette, label: 'Appearance' },
-  { id: 'agent', icon: Bot, label: 'Agent' },
-  { id: 'workspace', icon: FolderOpen, label: 'Workspace' },
-  { id: 'browser', icon: Globe, label: 'Browser' },
-  { id: 'memory', icon: Database, label: 'Memory' },
-  { id: 'onboarding', icon: Sparkles, label: 'Onboarding' },
-]);
+const SETTINGS_TAB_ICONS = Object.freeze({
+  settings: Settings,
+  palette: Palette,
+  bot: Bot,
+  folderOpen: FolderOpen,
+  globe: Globe,
+  database: Database,
+  sparkles: Sparkles,
+});
+const SETTINGS_TABS = getSettingsTabDescriptors();
 
 const appearanceThemeSectionShape = PropTypes.shape({
   accent: PropTypes.string,
@@ -92,8 +97,23 @@ function SettingsSection({
       return <OnboardingSettingsTab />;
     }
 
-    const tab = SETTINGS_TABS.find((item) => item.id === activeTab);
-    return <PlaceholderTab title={tab?.label || 'Settings'} />;
+    return <PlaceholderTab title={resolveSettingsTabLabel(activeTab)} />;
+  };
+
+  const renderSettingsTabButton = (tab) => {
+    const Icon = SETTINGS_TAB_ICONS[tab.iconKey] || Settings;
+    return (
+      <button
+        key={tab.id}
+        type="button"
+        className={`settings-surface-tab${activeTab === tab.id ? ' active' : ''}`}
+        onClick={() => setActiveTab(tab.id)}
+        data-testid={`settings-tab-${tab.id}`}
+      >
+        <Icon size={15} />
+        <span>{tab.label}</span>
+      </button>
+    );
   };
 
   return (
@@ -109,18 +129,7 @@ function SettingsSection({
         </button>
 
         <nav className="settings-surface-tab-list">
-          {SETTINGS_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`settings-surface-tab${activeTab === tab.id ? ' active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-              data-testid={`settings-tab-${tab.id}`}
-            >
-              <tab.icon size={15} />
-              <span>{tab.label}</span>
-            </button>
-          ))}
+          {SETTINGS_TABS.map(renderSettingsTabButton)}
         </nav>
       </aside>
 

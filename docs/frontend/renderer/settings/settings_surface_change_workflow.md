@@ -42,7 +42,7 @@ flowchart LR
 
 | Change or symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
-| Add, remove, rename, or reorder a settings tab | Renderer settings shell | `SettingsSection.jsx`, `SETTINGS_TABS`, `renderTabContent()` | `tests/frontend/SettingsSection.test.jsx`, settings docs |
+| Add, remove, rename, or reorder a settings tab | Renderer settings shell | `desktopSettingsTabRuntime.js`, `SettingsSection.jsx`, `renderTabContent()` | `tests/frontend/DesktopSettingsTabRuntime.test.js`, `tests/frontend/SettingsSection.test.jsx`, settings docs |
 | Toggle emits config but value disappears after reload | Renderer config allowlist/storage | `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`, `desktopRendererConfigStorageRuntime.js`, `appConfigPersistence.js` | [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md) |
 | Setting saves locally but backend ignores it | Backend patch validation or main sync | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `backend/src/api/handlers/settings.py`, backend validation docs | backend settings/update tests |
 | General wakeword listening toggle is wrong | AppConfig context wakeword state | `GeneralSettingsTab.jsx`, `AppConfigProvider.jsx`, wakeword bridge/runtime docs | wakeword/voice tests |
@@ -75,7 +75,7 @@ flowchart LR
    - Presentation-only: affects renderer display only.
 
 2. Update the owning tab and shell.
-   - Add tab metadata in `SETTINGS_TABS`.
+   - Add tab metadata in `desktopSettingsTabRuntime.js`.
    - Add explicit `renderTabContent()` routing.
   - Keep the tab id stable if existing links or initial-tab opens use it.
    - Update `SettingsSection.propTypes` when props change.
@@ -114,7 +114,7 @@ flowchart LR
 
 | Change type | Focused validation |
 | --- | --- |
-| Settings tab routing, initial tab, close behavior | `cd frontend && npm run test -- SettingsSection` |
+| Settings tab routing, initial tab, close behavior | `cd frontend && npm run test -- DesktopSettingsTabRuntime SettingsSection` |
 | General tab config/authority controls | `cd frontend && npm run test -- GeneralSettingsTab SettingsSection` |
 | Config allowlist/storage/provider merge | `cd frontend && npm run test -- configFilter configStorage AppConfigProvider.storageAndIpc AppConfigPersistence DesktopSettingsEventRuntimeClient` |
 | Settings ACK/main sync | `cd frontend && npm run test -- IpcSettingsSync AppConfigEvents` plus backend settings tests when payload shape changes |

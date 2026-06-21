@@ -1103,6 +1103,25 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('settings tab descriptors are owned by app runtime', async () => {
+    const settingsTabRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopSettingsTabRuntime.js'),
+      'utf8',
+    );
+    const settingsSectionSource = await fs.readFile(
+      path.join(rendererRoot, 'features/dashboard/components/sections/SettingsSection.jsx'),
+      'utf8',
+    );
+
+    expect(settingsTabRuntimeSource).toContain('getSettingsTabDescriptors');
+    expect(settingsTabRuntimeSource).toContain('resolveSettingsTabLabel');
+    expect(settingsTabRuntimeSource).not.toContain('features/dashboard');
+    expect(settingsSectionSource).toContain('desktopSettingsTabRuntime');
+    expect(settingsSectionSource).toContain('getSettingsTabDescriptors');
+    expect(settingsSectionSource).toContain('resolveSettingsTabLabel');
+    expect(settingsSectionSource).not.toContain('SETTINGS_TABS = Object.freeze');
+  });
+
   test('chat surface selector projection stays behind app runtime facade', async () => {
     const selectorRuntimeSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopChatSurfaceSelectorRuntime.ts'),

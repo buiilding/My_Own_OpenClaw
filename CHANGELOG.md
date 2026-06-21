@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/settings: move settings tab descriptors into
+  `desktopSettingsTabRuntime` so `SettingsSection` renders tabs from an
+  app-runtime descriptor contract instead of a section-local registry. No
+  migration required.
 - renderer/appearance: move Appearance settings mode, section, and field
   descriptors into `desktopAppearanceThemeRuntime` so the settings tab renders
   from the same app-runtime facade that owns theme fallback and normalization.

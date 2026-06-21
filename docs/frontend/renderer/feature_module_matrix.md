@@ -67,7 +67,7 @@ Sections:
 - `MemorySection` (+ `MemoryItem` + `desktopMemoryPresentationRuntime`)
 - `ModelsSection` (+ provider/model/API-key components and
   `desktopModelCardPresentationRuntime` / `desktopProviderCredentialRuntime`)
-- `SettingsSection`
+- `SettingsSection` (+ `desktopSettingsTabRuntime`)
 - `UsageSection`
 
 ## Settings Module

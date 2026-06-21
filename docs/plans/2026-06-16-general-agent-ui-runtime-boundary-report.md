@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Appearance settings mode, section, and field
-  descriptors now stay behind `desktopAppearanceThemeRuntime`, with
-  `AppearanceSettingsTab` rendering controls from the app-runtime theme
-  contract instead of tab-local descriptor tables.
+- Latest completed slice: settings tab descriptors now stay behind
+  `desktopSettingsTabRuntime`, with `SettingsSection` rendering sidebar tabs
+  from the app-runtime descriptor contract instead of a section-local registry.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -129,6 +128,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `getAppearanceThemeSectionDescriptors()`, and
   `getAppearanceThemeFieldDescriptors()` instead of component-local descriptor
   tables.
+  Settings sidebar tabs now consume
+  `desktopSettingsTabRuntime.getSettingsTabDescriptors()` and
+  `resolveSettingsTabLabel()` instead of a section-local tab registry while
+  keeping tab-content routing local to `SettingsSection`.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
