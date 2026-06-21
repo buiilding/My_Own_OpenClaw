@@ -8,7 +8,6 @@ const path = require('path');
 const {
   buildClientSessionSnapshot,
   createClientSessionHandlersRuntime,
-  registerClientSessionHandlers,
 } = require('../../frontend/src/main/ipc/ipc_client_session_handlers.cjs');
 
 function createHarness(overrides = {}) {
@@ -42,14 +41,14 @@ function createHarness(overrides = {}) {
     state.currentUserId = nextState.currentUserId;
   });
 
-  registerClientSessionHandlers({
-    ipcMain,
+  const runtime = createClientSessionHandlersRuntime({
     getClientSessionState: () => ({ ...state }),
     getRuntimeEndpointSnapshot: () => ({ ...endpoints }),
     setTranscriptSessionState,
     broadcastToRenderers,
     ...overrides.runtime,
   });
+  runtime.register({ ipcMain });
 
   return {
     broadcastToRenderers,
@@ -223,6 +222,8 @@ describe('client session IPC handlers', () => {
     expect(mainSource).not.toContain("ipcMain.on('transcript-session-sync'");
     expect(helperSource).toContain('function createClientSessionHandlersRuntime');
     expect(helperSource).toContain('return registerClientSessionHandlers({');
+    const clientSessionHandlersModule = require('../../frontend/src/main/ipc/ipc_client_session_handlers.cjs');
+    expect(clientSessionHandlersModule.registerClientSessionHandlers).toBeUndefined();
     expect(helperSource).toContain("ipcMain.handle('get-client-user-id'");
     expect(helperSource).toContain("ipcMain.on('transcript-session-sync'");
   });

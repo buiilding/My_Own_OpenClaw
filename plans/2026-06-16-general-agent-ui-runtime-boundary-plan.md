@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Client Session Runtime Registration Privacy
+
+- Finding: `ipc_client_session_handlers.cjs` exposed
+  `createClientSessionHandlersRuntime(...)` for `ipc.cjs` and initialization
+  composition, but still publicly exported the lower-level
+  `registerClientSessionHandlers(...)` helper even though production already
+  routes `get-client-user-id` and `transcript-session-sync` registration
+  through the runtime facade.
+- Change: kept the lower-level client-session registration helper private to
+  `ipc_client_session_handlers.cjs`, updated focused and broad boundary tests
+  to exercise session snapshot and transcript sync behavior through
+  `createClientSessionHandlersRuntime(...)`, and documented the runtime helper
+  as the public composition boundary.
+- Validation: focused client-session handler and main SDK boundary tests plus
+  targeted main IPC lint, docs listing, stale export-line scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. Client-session snapshot
+  payloads, runtime endpoint fields, transcript-session sync state updates,
+  renderer broadcast behavior, IPC channels, credentials, provider policy,
+  permissions, storage, backend behavior, and local-runtime execution are
+  unchanged.
+
 ### 2026-06-21 Main Agent Connection Events Runtime Handler Privacy
 
 - Finding: `ipc_agent_connection_events.cjs` exposed

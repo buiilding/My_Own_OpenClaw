@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level client-session IPC registration helper
+  private to `ipc_client_session_handlers.cjs` and exercise session snapshot
+  and transcript sync behavior through `createClientSessionHandlersRuntime(...)`,
+  preserving the Electron main initialization composition boundary. No
+  migration required.
 - frontend/main: keep the lower-level Agent SDK connection-event and backend
   fallback handlers private to `ipc_agent_connection_events.cjs` and exercise
   connection lifecycle behavior through `createAgentConnectionEventsRuntime(...)`,

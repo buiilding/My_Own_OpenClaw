@@ -360,6 +360,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('registerClientSessionHandlers({');
     expect(clientSessionHandlersSource).toContain('function createClientSessionHandlersRuntime');
     expect(clientSessionHandlersSource).toContain('return registerClientSessionHandlers({');
+    expect(clientSessionHandlersSource).not.toContain('  registerClientSessionHandlers,');
     expect(source).toContain('createExtensionMcpHandlersRuntime({');
     expect(source).not.toContain('extensionMcpHandlersRuntime.register({ ipcMain })');
     expect(initializationRuntimeSource).toContain('extensionMcpHandlersRuntime.register({ ipcMain })');

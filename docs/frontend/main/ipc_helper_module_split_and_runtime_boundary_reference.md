@@ -540,6 +540,8 @@ Owns client session IPC handler registration:
 - exposes `createClientSessionHandlersRuntime(...)` so `ipc.cjs` composes
   session snapshot, endpoint snapshot, transcript-session state update, and
   renderer broadcast dependencies once
+- keeps the lower-level client-session registration helper private to the
+  runtime helper
 - client snapshot payload construction from injected Electron agent-host state and
   runtime endpoint URLs
 - transcript-session sync state updates through `ipc_transcript_session_sync.cjs`

@@ -91,5 +91,4 @@ function createClientSessionHandlersRuntime({
 module.exports = {
   buildClientSessionSnapshot,
   createClientSessionHandlersRuntime,
-  registerClientSessionHandlers,
 };
