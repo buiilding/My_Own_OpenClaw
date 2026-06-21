@@ -144,5 +144,4 @@ function createDesktopUiConfigPersistenceRuntime({
 
 module.exports = {
   createDesktopUiConfigPersistenceRuntime,
-  createMcpEnablementTraceId,
 };

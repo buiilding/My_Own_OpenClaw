@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main agent-definition context keeps
-  generated/supplied definition merging private to
-  `ipc_agent_definition_context.cjs`, with supplied arrays and generated
-  runtime defaults covered through
-  `createAgentDefinitionContextRuntime(...).attach(...)`.
+- Latest completed slice: Electron main desktop UI config persistence keeps
+  MCP enablement diagnostic trace-id generation private to
+  `ipc_desktop_ui_config_persistence_runtime.cjs`, with deterministic IDs
+  covered through `recordMcpEnablementDiagnostic(...)`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1067,6 +1066,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
   contracts, IPC channels, storage, provider policy, and hosted backend
   behavior are unchanged.
+
+### 2026-06-21 Main Desktop UI Config Diagnostic Trace Privacy
+
+- Finding: `ipc_desktop_ui_config_persistence_runtime.cjs` already owned MCP
+  enablement preservation, save diagnostics, and injected deterministic
+  clock/random sources, but `createMcpEnablementTraceId(...)` still leaked as a
+  focused-test-only helper export.
+- Change: removed the trace-id builder from the public module surface and
+  moved deterministic ID coverage through
+  `createDesktopUiConfigPersistenceRuntime(...)`
+  `.recordMcpEnablementDiagnostic(...)`.
+- Validation: focused desktop UI config persistence tests, targeted main IPC
+  lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. Desktop UI config payloads, MCP
+  enablement allowlists, diagnostic event shape, provider-secret redaction,
+  credentials, permissions, trust boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Agent Definition Context Merge Privacy
 

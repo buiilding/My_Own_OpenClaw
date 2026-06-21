@@ -809,6 +809,8 @@ Owns Electron-main desktop UI config persistence semantics around the disk I/O h
   only after successful persistence
 - records MCP enablement diagnostics for save success/failure, preservation
   source, and enabled-server counts
+- keeps diagnostic trace-id generation private behind the runtime-owned
+  diagnostic recorder
 
 ### `ipc_desktop_ui_config_handlers.cjs`
 

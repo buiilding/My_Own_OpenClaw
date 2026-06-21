@@ -54,6 +54,10 @@ All notable changes to WindieOS will be documented in this file.
   `ipc_image_interaction_handlers.cjs` and cover active backend plus candidate
   artifact origins through the aggregate image interaction runtime. No
   migration required.
+- frontend/main: keep MCP enablement diagnostic trace-id generation private to
+  `ipc_desktop_ui_config_persistence_runtime.cjs` and exercise deterministic
+  diagnostic IDs through `recordMcpEnablementDiagnostic(...)`. No migration
+  required.
 - frontend/main: keep lower-level clipboard image and image context-menu IPC
   registration private to `ipc_image_interaction_handlers.cjs`, so
   `ipc.cjs` composes one aggregate image-interaction runtime while focused

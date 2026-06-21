@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Desktop UI Config Diagnostic Trace Privacy
+
+- Finding: `ipc_desktop_ui_config_persistence_runtime.cjs` owned MCP
+  enablement preservation and diagnostics, but the deterministic diagnostic
+  trace-id helper still leaked as a public test-only export.
+- Change: kept `createMcpEnablementTraceId(...)` private to the persistence
+  runtime owner and moved deterministic trace-id coverage through
+  `createDesktopUiConfigPersistenceRuntime(...)`
+  `.recordMcpEnablementDiagnostic(...)`.
+- Validation: focused desktop UI config persistence tests, targeted main IPC
+  lint, docs listing, stale export scans, and diff checks before commit.
+- Compatibility/security: no desktop UI config payload, MCP enablement
+  allowlist, diagnostic event shape, credential, permission, or trust-boundary
+  migration required; diagnostic trace-id behavior is unchanged.
+
 ### 2026-06-21 Main Agent Definition Context Merge Privacy
 
 - Finding: `ipc_agent_definition_context.cjs` already exposed

@@ -3,10 +3,10 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const desktopUiConfigPersistenceModule = require('../../frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs');
 const {
   createDesktopUiConfigPersistenceRuntime,
-  createMcpEnablementTraceId,
-} = require('../../frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs');
+} = desktopUiConfigPersistenceModule;
 
 function isValidConfigPayload(config) {
   return Boolean(config) && typeof config === 'object' && !Array.isArray(config);
@@ -170,11 +170,27 @@ describe('ipc_desktop_ui_config_persistence_runtime', () => {
     }));
   });
 
-  test('builds deterministic MCP enablement diagnostic trace ids from injected clock and random source', () => {
-    expect(createMcpEnablementTraceId({
-      now: () => 456,
-      random: () => 0.25,
-    })).toBe('mcp-enable-456-4');
+  test('builds deterministic MCP enablement diagnostic trace ids through the runtime facade', () => {
+    const { deps, runtime } = createHarness({
+      deps: {
+        now: () => 456,
+        random: () => 0.25,
+      },
+    });
+
+    expect(runtime.recordMcpEnablementDiagnostic({
+      stage: 'config_probe',
+      status: 'succeeded',
+    })).toEqual({
+      stored: true,
+      event: expect.objectContaining({
+        runtime: 'electron-main',
+        traceId: 'mcp-enable-456-4',
+        stage: 'config_probe',
+        status: 'succeeded',
+      }),
+    });
+    expect(deps.appendDiagnosticEvent).toHaveBeenCalledTimes(1);
   });
 
   test('ipc.cjs delegates desktop UI config persistence semantics to the helper module', async () => {
@@ -196,5 +212,6 @@ describe('ipc_desktop_ui_config_persistence_runtime', () => {
     expect(helperSource).toContain('function resolveMcpEnablementPreserveSource');
     expect(helperSource).toContain('function recordMcpEnablementDiagnostic');
     expect(helperSource).toContain('function countMcpEnabledServersInConfig');
+    expect(desktopUiConfigPersistenceModule.createMcpEnablementTraceId).toBeUndefined();
   });
 });
