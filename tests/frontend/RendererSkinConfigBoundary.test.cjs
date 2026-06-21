@@ -255,6 +255,8 @@ describe('renderer skin/config boundary', () => {
     expect(providerCredentialRuntimeSource).toContain('desktopRuntimeConfig');
     expect(providerCredentialRuntimeSource).not.toContain('providerCredentialSettings');
     expect(providerCredentialRuntimeSource).toContain('stripProviderApiKeySecrets');
+    expect(providerCredentialRuntimeSource).toContain('getProviderApiKeySpecs');
+    expect(providerCredentialRuntimeSource).not.toContain('export { PROVIDER_API_KEY_SPECS }');
     expect(configStorageSource).not.toContain('openai: { enabled: false');
     expect(providerCredentialRuntimeSource).not.toContain('OpenAI API Key');
     expect(fs.existsSync(path.join(dashboardSectionsRoot, 'providerApiKeys.js'))).toBe(false);

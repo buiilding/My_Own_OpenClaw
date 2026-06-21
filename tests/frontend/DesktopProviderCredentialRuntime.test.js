@@ -3,8 +3,8 @@
  */
 
 import {
+  getProviderApiKeySpecs,
   normalizeProviderApiKeys,
-  PROVIDER_API_KEY_SPECS,
   stripProviderApiKeySecrets,
 } from '../../frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js';
 
@@ -17,11 +17,23 @@ describe('desktopProviderCredentialRuntime', () => {
     });
 
     expect(Object.keys(normalized).sort()).toEqual(
-      PROVIDER_API_KEY_SPECS.map((provider) => provider.id).sort(),
+      getProviderApiKeySpecs().map((provider) => provider.id).sort(),
     );
     expect(normalized.openai).toEqual({ enabled: true, api_key: 'sk-openai' });
     expect(normalized.anthropic).toEqual({ enabled: false, api_key: '' });
     expect(normalized.unknown).toBeUndefined();
+  });
+
+  test('exposes skin-configured provider API key control specs through a semantic helper', () => {
+    expect(getProviderApiKeySpecs()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'openai',
+          title: 'OpenAI API Key',
+          placeholder: 'Enter your OpenAI API Key',
+        }),
+      ]),
+    );
   });
 
   test('strips provider API key secrets after normalization', () => {

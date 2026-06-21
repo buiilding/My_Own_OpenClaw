@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Provider Credential Spec Export Boundary
+
+- Finding: `desktopProviderCredentialRuntime.js` already owned
+  skin-configured provider API-key normalization and secret stripping, but it
+  still re-exported the raw `PROVIDER_API_KEY_SPECS` skin table for dashboard
+  UI and tests to map directly.
+- Change: replaced the raw spec re-export with
+  `getProviderApiKeySpecs()`, routed `ApiKeysSection` and focused provider
+  credential tests through the semantic helper, and updated boundary coverage
+  plus docs to keep skin provider spec tables behind the credential runtime.
+- Validation: focused provider credential, models section, renderer skin/config
+  boundary coverage, docs listing, raw spec export scan, and diff checks.
+- Compatibility: no migration required. Provider credential config shape,
+  provider ids, dashboard labels/placeholders, localStorage and disk redaction,
+  settings sync, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Appearance Theme Runtime Boundary
 
 - Finding: renderer config storage, theme application, and the dashboard

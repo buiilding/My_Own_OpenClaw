@@ -6,10 +6,12 @@ import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
+  getProviderApiKeySpecs,
   normalizeProviderApiKeys,
-  PROVIDER_API_KEY_SPECS,
 } from '../../../../app/runtime/desktopProviderCredentialRuntime';
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
+
+const PROVIDER_API_KEY_CONTROLS = getProviderApiKeySpecs();
 
 function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
   const [expanded, setExpanded] = useState(false);
@@ -44,7 +46,7 @@ function ApiKeysSection({ providerApiKeys, onProviderApiKeysChange }) {
 
       {expanded ? (
         <div id="models-api-keys-content" className="model-surface-api-keys-content">
-          {PROVIDER_API_KEY_SPECS.map((provider) => {
+          {PROVIDER_API_KEY_CONTROLS.map((provider) => {
             const value = normalizedProviderApiKeys[provider.id] || { enabled: false, api_key: '' };
             return (
               <div key={provider.id} className="model-surface-api-provider-row">

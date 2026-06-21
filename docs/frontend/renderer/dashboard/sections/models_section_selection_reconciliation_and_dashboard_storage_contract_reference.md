@@ -105,7 +105,8 @@ Outbound config update on model select (`buildModelConfigUpdate`):
 `ApiKeysSection` behavior:
 
 - collapsed by default (`expanded=false`)
-- toggles each provider key via `PROVIDER_API_KEY_SPECS`
+- toggles each provider key via
+  `desktopProviderCredentialRuntime.getProviderApiKeySpecs()`
 - value/input updates call `onProviderApiKeysChange(...)`
 
 Provider credential runtime normalization (`normalizeProviderApiKeys`) guarantees fixed provider key set:

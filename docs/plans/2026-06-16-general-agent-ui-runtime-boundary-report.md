@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: renderer appearance-mode fallback, system-theme
-  resolution, and theme section normalization moved behind
-  `desktopAppearanceThemeRuntime`, while raw palette values remain skin-owned.
+- Latest completed slice: renderer provider API-key display specs now stay
+  behind `desktopProviderCredentialRuntime`, with dashboard controls using a
+  semantic spec helper instead of a raw skin table re-export.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -108,6 +108,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   route connect/reuse, CDP port, Electron status, and Browser Use
   result-normalization wording through the desktop connect path, hosted backend
   policy, Electron UI, and local-runtime browser adapter.
+  Dashboard provider API-key controls now consume provider display specs through
+  `desktopProviderCredentialRuntime.getProviderApiKeySpecs()` instead of a raw
+  skin spec table re-export.
   The frontend module file index now splits browser ownership across hosted
   backend policy/schema exposure, SDK/main local-runtime dispatch,
   local-runtime Python browser adapter mechanics, and Browser Use session

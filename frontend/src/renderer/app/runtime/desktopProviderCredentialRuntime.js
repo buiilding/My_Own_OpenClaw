@@ -7,10 +7,12 @@ import {
   PROVIDER_API_KEY_SPECS,
 } from '../skin/desktopRuntimeConfig';
 
-export { PROVIDER_API_KEY_SPECS };
-
 function isPlainRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+export function getProviderApiKeySpecs() {
+  return PROVIDER_API_KEY_SPECS;
 }
 
 export function normalizeProviderApiKeys(input = null) {
