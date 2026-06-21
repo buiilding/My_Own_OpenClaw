@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Presentation Source Channel Facade
+
+- Finding: `desktopPresentationSourceChannels.js` already hid the SDK-derived
+  presentation source-channel strings, but still exported each raw getter and
+  predicate as standalone helpers consumed by current-turn, thread, source-badge,
+  projection-stream, and display-row projection paths.
+- Change: made the source-channel getters and current-turn predicate private to
+  the presentation-source module, exposed them through
+  `DesktopPresentationSourceChannels`, and routed renderer consumers plus the
+  transcript display-row projection through that facade.
+- Validation: focused app-runtime and chat boundary coverage, exact standalone
+  helper export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Presentation source-channel
+  string values, source badges, current-turn live-row filtering, display-row
+  projection metadata, IPC, storage, permissions, credentials, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Model Thinking Facade
 
 - Finding: `desktopModelThinkingRuntime.ts` already owned selected-model

@@ -15,6 +15,7 @@ title: "Message Action Controls, Source Badge, and Dev-UI Tagging Reference"
 - `frontend/src/renderer/features/chat/components/message/UserMessageActions.jsx`
 - `frontend/src/renderer/features/chat/components/message/MessageSourceBadge.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
+- `frontend/src/renderer/app/runtime/desktopPresentationSourceChannels.js`
 - `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDevUiRuntime.js`
@@ -108,7 +109,9 @@ The source portion of the badge is resolved via
 - known event/channel names map to fixed labels
 - renderer presentation metadata uses `sdk:conversation-event`,
   `sdk:current-turn`, and `sdk:display-rows` for SDK-derived rows; these are
-  dev/source labels, not IPC channel names
+  dev/source labels, not IPC channel names, and callers resolve them through
+  `DesktopPresentationSourceChannels` rather than importing raw string helper
+  exports
 - known event labels use renderer/SDK projection terms such as `assistant
   stream`, `tool output`, and `user message` instead of backend API wording
 - unknown event types use `<event> event` fallback

@@ -14,9 +14,9 @@ import {
   buildRemoteScreenshotAttachments,
   resolveScreenshotAttachmentState,
 } from '../services/screenshotMessageState';
-import { getSdkDisplayRowsSourceChannel } from '../../app/runtime/desktopPresentationSourceChannels';
+import { DesktopPresentationSourceChannels } from '../../app/runtime/desktopPresentationSourceChannels';
 
-const sdkDisplayRowsSourceChannel = getSdkDisplayRowsSourceChannel();
+const sdkDisplayRowsSourceChannel = DesktopPresentationSourceChannels.getSdkDisplayRowsSourceChannel();
 
 function recordField(record: Record<string, unknown> | null | undefined, key: string): unknown {
   return record && typeof record === 'object' ? record[key] : undefined;

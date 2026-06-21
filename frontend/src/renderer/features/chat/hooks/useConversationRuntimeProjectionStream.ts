@@ -14,7 +14,7 @@ import {
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import { logRendererCurrentTurnAppliedTrace } from '../../../app/runtime/desktopRendererTraceRuntime';
-import { getSdkCurrentTurnSourceChannel } from '../../../app/runtime/desktopPresentationSourceChannels';
+import { DesktopPresentationSourceChannels } from '../../../app/runtime/desktopPresentationSourceChannels';
 import {
   applyCurrentTurnProjectionSideEffects,
   buildProjectionCursorKey,
@@ -23,7 +23,7 @@ import {
   type ProjectionCursor,
 } from '../../../app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
 
-const sdkCurrentTurnSourceChannel = getSdkCurrentTurnSourceChannel();
+const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());

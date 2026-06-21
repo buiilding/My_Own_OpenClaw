@@ -6,18 +6,25 @@ const SDK_CONVERSATION_EVENT_SOURCE_CHANNEL = 'sdk:conversation-event';
 const SDK_CURRENT_TURN_SOURCE_CHANNEL = 'sdk:current-turn';
 const SDK_DISPLAY_ROWS_SOURCE_CHANNEL = 'sdk:display-rows';
 
-export function getSdkConversationEventSourceChannel() {
+function getSdkConversationEventSourceChannel() {
   return SDK_CONVERSATION_EVENT_SOURCE_CHANNEL;
 }
 
-export function getSdkCurrentTurnSourceChannel() {
+function getSdkCurrentTurnSourceChannel() {
   return SDK_CURRENT_TURN_SOURCE_CHANNEL;
 }
 
-export function getSdkDisplayRowsSourceChannel() {
+function getSdkDisplayRowsSourceChannel() {
   return SDK_DISPLAY_ROWS_SOURCE_CHANNEL;
 }
 
-export function isSdkCurrentTurnSourceChannel(sourceChannel) {
+function isSdkCurrentTurnSourceChannel(sourceChannel) {
   return sourceChannel === SDK_CURRENT_TURN_SOURCE_CHANNEL;
 }
+
+export const DesktopPresentationSourceChannels = Object.freeze({
+  getSdkConversationEventSourceChannel,
+  getSdkCurrentTurnSourceChannel,
+  getSdkDisplayRowsSourceChannel,
+  isSdkCurrentTurnSourceChannel,
+});

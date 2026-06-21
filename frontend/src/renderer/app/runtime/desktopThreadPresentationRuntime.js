@@ -6,7 +6,9 @@ import {
   buildCurrentTurnMessagesFromPresentation,
   buildCurrentTurnMessagesFromProjection,
 } from './desktopCurrentTurnMessageRuntime';
-import { isSdkCurrentTurnSourceChannel } from './desktopPresentationSourceChannels';
+import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
+
+const { isSdkCurrentTurnSourceChannel } = DesktopPresentationSourceChannels;
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {

@@ -2,14 +2,16 @@
  * Provides renderer message source tag labels for presentation surfaces.
  */
 
-import {
-  getSdkConversationEventSourceChannel,
-  getSdkCurrentTurnSourceChannel,
-  getSdkDisplayRowsSourceChannel,
-} from './desktopPresentationSourceChannels';
+import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 import {
   DesktopMessageTokenUsageRuntime,
 } from './desktopMessageTokenUsageRuntime';
+
+const {
+  getSdkConversationEventSourceChannel,
+  getSdkCurrentTurnSourceChannel,
+  getSdkDisplayRowsSourceChannel,
+} = DesktopPresentationSourceChannels;
 
 const sdkConversationEventSourceChannel = getSdkConversationEventSourceChannel();
 const sdkCurrentTurnSourceChannel = getSdkCurrentTurnSourceChannel();

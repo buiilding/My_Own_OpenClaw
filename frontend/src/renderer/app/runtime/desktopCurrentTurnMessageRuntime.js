@@ -9,9 +9,9 @@ import {
   buildToolCallMessageState,
   buildToolOutputChatMessageState,
 } from './desktopChatMessageRuntimeClient';
-import { getSdkCurrentTurnSourceChannel } from './desktopPresentationSourceChannels';
+import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 
-const sdkCurrentTurnSourceChannel = getSdkCurrentTurnSourceChannel();
+const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 
 function asObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : null;

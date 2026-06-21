@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose SDK-derived presentation source channel labels
+  through `DesktopPresentationSourceChannels` instead of standalone helper
+  exports, keeping current-turn, display-row, and source-badge channel labels
+  behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model thinking capability resolution
   through `DesktopModelThinkingRuntime` instead of a standalone helper export,
   keeping catalog-backed thinking fallback policy behind the renderer
