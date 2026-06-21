@@ -89,6 +89,7 @@ Tests and docs:
   <windie> test backend [args...]
   <windie> test local-runtime [args...]
   <windie> test frontend [args...]
+  <windie> test core-loop [jest args...]
   <windie> test all
   <windie> test pick <area>
   <windie> docs list
@@ -127,6 +128,24 @@ Developer helpers:
   <windie> tools manifest generate
   <windie> mock backend
 `;
+
+const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
+  'AgentSdkConversationRuntime.test.ts',
+  'ConversationRuntimeProjectionStream.test.ts',
+  'PendingTurnLiveSurfaceIntegration.test.js',
+  'ChatPillSessionFlow.test.ts',
+  'PendingStopLiveSurfaceIntegration.test.jsx',
+  'DesktopStopTurnRuntime.test.js',
+  'DesktopLiveTurnRuntimeClient.test.ts',
+  'IpcConversationEventProjection.test.cjs',
+  'IpcLiveTurnState.test.cjs',
+  'ResponseOverlayPhaseHandler.test.cjs',
+  'ResponseOverlayVisibilityPolicy.test.cjs',
+  'ToolCallMessageState.test.js',
+  'ToolOutputMessageState.test.ts',
+  'LocalRuntimeExecuteToolRuntime.test.cjs',
+  'SurfaceRuntime.test.cjs',
+]);
 
 function hasFlag(args, flag) {
   return args.includes(flag);
@@ -1252,6 +1271,19 @@ function runTest(args) {
       cwd: REPO_ROOT,
     });
   }
+  if (target === 'core-loop') {
+    return runForeground('npm', [
+      '--prefix',
+      FRONTEND_DIR,
+      'run',
+      'test:ci',
+      '--',
+      ...CORE_LOOP_REGRESSION_PACK_TESTS,
+      ...rest,
+    ], {
+      cwd: REPO_ROOT,
+    });
+  }
   if (target === 'all') {
     return runForeground(script('scripts/test.sh'), rest, { cwd: REPO_ROOT });
   }
@@ -1275,7 +1307,7 @@ function runTest(args) {
     }
     return;
   }
-  throw new Error('Usage: <windie> test backend|local-runtime|frontend|all|pick <area>');
+  throw new Error('Usage: <windie> test backend|local-runtime|frontend|core-loop|all|pick <area>');
 }
 
 function printDocsSearch(topic, usage) {
@@ -1721,6 +1753,21 @@ function getSpawnPlan(argv) {
     return {
       command: 'npm',
       args: ['--prefix', FRONTEND_DIR, 'run', 'test:ci', '--', ...stripSeparator(args.slice(1))],
+      cwd: REPO_ROOT,
+    };
+  }
+  if (command === 'test' && args[0] === 'core-loop') {
+    return {
+      command: 'npm',
+      args: [
+        '--prefix',
+        FRONTEND_DIR,
+        'run',
+        'test:ci',
+        '--',
+        ...CORE_LOOP_REGRESSION_PACK_TESTS,
+        ...stripSeparator(args.slice(1)),
+      ],
       cwd: REPO_ROOT,
     };
   }

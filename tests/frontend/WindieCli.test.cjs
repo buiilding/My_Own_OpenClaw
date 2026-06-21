@@ -117,6 +117,7 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('<windie> start customer');
     expect(result.stdout).toContain('<windie> start all');
     expect(result.stdout).toContain('<windie> test local-runtime');
+    expect(result.stdout).toContain('<windie> test core-loop [jest args...]');
     expect(result.stdout).not.toContain('<windie> test sidecar');
     expect(result.stdout).toContain('<windie> logs frontend');
     expect(result.stdout).toContain('<windie> logs vite');
@@ -287,6 +288,25 @@ describe('windie CLI', () => {
       args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'test:ci', '--', 'WindieCli'],
       cwd: repoRoot,
     });
+    const coreLoopPlan = getSpawnPlan(['test', 'core-loop', '--', '--listTests']);
+    expect(coreLoopPlan).toMatchObject({
+      command: 'npm',
+      cwd: repoRoot,
+    });
+    expect(coreLoopPlan.args.slice(0, 5)).toEqual([
+      '--prefix',
+      path.join(repoRoot, 'frontend'),
+      'run',
+      'test:ci',
+      '--',
+    ]);
+    expect(coreLoopPlan.args).toEqual(expect.arrayContaining([
+      'AgentSdkConversationRuntime.test.ts',
+      'PendingTurnLiveSurfaceIntegration.test.js',
+      'ResponseOverlayPhaseHandler.test.cjs',
+      'LocalRuntimeExecuteToolRuntime.test.cjs',
+      '--listTests',
+    ]));
   });
 
   test('routes docs list through node instead of the platform shell shim', () => {

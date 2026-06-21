@@ -27,6 +27,7 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 - [Error and Failure Change Workflow](error_failure_change_workflow.md) routes exception mapping, websocket/HTTP errors, IPC failures, local-runtime ToolResult failures, renderer error UI, retries, and sanitized logs.
 - [Diagnostic Flags](diagnostic_flags.md) maps backend, Electron, renderer, local-runtime Python, VM worker, and packaged-app debug flags.
 - [Runtime Traces](runtime_traces.md) covers stream, chat pill, screenshot, overlay, and local-runtime trace paths.
+- [Core Loop Regression Pack](core_loop_regression_pack.md) is the named focused suite for chat pill, dashboard, overlay, SDK projection, conversation runtime, IPC, replay, stop, tool-row, and surface-lease invariants.
 - [Endpoint and Network Debugging](endpoint_and_network_debugging.md) routes hosted/local endpoint, websocket, install auth, Cloudflare, and local-runtime backend URL failures.
 - [Process Health Checklist](process_health_checklist.md) maps backend, Electron, renderer, local-runtime Python process, wakeword, VM worker, and Cloudflare process health checks.
 - [Symptom Playbooks](symptom_playbooks.md) maps common failures to code roots and validation.

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- cli/tests: add `<windie> test core-loop` as the first concrete Core Loop
+  Regression Pack route for chat pill, dashboard, overlay, SDK projection,
+  conversation runtime, IPC, replay, stop, tool-row, and surface-lease
+  invariants. No migration required.
 - backend/provider: add a dev-only `scripted` provider that streams
   deterministic `@script` replies, tool calls, batch tool calls, and
   model-visible image counts without paid inference. `<windie> start dev`
