@@ -5,7 +5,10 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Circle, PenSquare, X } from 'lucide-react';
-import { getDashboardConversationGroupDescriptors } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
+import {
+  getDashboardConversationGroupDescriptors,
+  getDashboardSearchSnippetDisplayText,
+} from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
 import { conversationGroupsPropType } from './shared/conversationGroupPropTypes';
 
 const CONVERSATION_GROUP_DESCRIPTORS = getDashboardConversationGroupDescriptors();
@@ -122,39 +125,30 @@ function SearchChatsModal({
                 <div key={groupKey} className="cg-search-group">
                   <p className="cg-search-group-label">{label}</p>
                   <div className="cg-search-group-items">
-                    {rows.map((item) => (
-                      (() => {
-                        const snippetText = typeof item.snippet === 'string' ? item.snippet : '';
-                        const prefix = item.matchedRole ? `${item.matchedRole}: ` : '';
-                        const shouldPrefix = Boolean(
-                          prefix
-                          && snippetText
-                          && !snippetText.toLowerCase().startsWith(prefix.toLowerCase()),
-                        );
-                        return (
-                          <button
-                            key={`${groupKey}-${item.key}`}
-                            type="button"
-                            className={`cg-search-chat-item${item.key === activeConversationRef ? ' active' : ''}`}
-                            onClick={() => {
-                              onClose();
-                              onOpenConversation(item.conversation || item);
-                            }}
-                          >
-                            <Circle size={12} strokeWidth={1.8} className="cg-search-chat-icon" />
-                            <span className="cg-search-chat-content">
-                              <span className="cg-search-chat-title">{item.title}</span>
-                              {snippetText ? (
-                                <span className="cg-search-chat-snippet">
-                                  {shouldPrefix ? prefix : ''}
-                                  {snippetText}
-                                </span>
-                              ) : null}
-                            </span>
-                          </button>
-                        );
-                      })()
-                    ))}
+                    {rows.map((item) => {
+                      const snippetDisplayText = getDashboardSearchSnippetDisplayText(item);
+                      return (
+                        <button
+                          key={`${groupKey}-${item.key}`}
+                          type="button"
+                          className={`cg-search-chat-item${item.key === activeConversationRef ? ' active' : ''}`}
+                          onClick={() => {
+                            onClose();
+                            onOpenConversation(item.conversation || item);
+                          }}
+                        >
+                          <Circle size={12} strokeWidth={1.8} className="cg-search-chat-icon" />
+                          <span className="cg-search-chat-content">
+                            <span className="cg-search-chat-title">{item.title}</span>
+                            {snippetDisplayText ? (
+                              <span className="cg-search-chat-snippet">
+                                {snippetDisplayText}
+                              </span>
+                            ) : null}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );

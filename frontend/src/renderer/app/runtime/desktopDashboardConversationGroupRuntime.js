@@ -56,6 +56,31 @@ function normalizeMatchedRole(role) {
   return role;
 }
 
+function getDashboardSearchSnippetText(item) {
+  return typeof item?.snippet === 'string' ? item.snippet : '';
+}
+
+function getDashboardSearchMatchedRolePrefix(item) {
+  const matchedRole = typeof item?.matchedRole === 'string'
+    ? item.matchedRole.trim()
+    : '';
+  return matchedRole ? `${matchedRole}: ` : '';
+}
+
+function getDashboardSearchSnippetDisplayText(item) {
+  const snippetText = getDashboardSearchSnippetText(item);
+  if (!snippetText) {
+    return '';
+  }
+
+  const prefix = getDashboardSearchMatchedRolePrefix(item);
+  if (!prefix || snippetText.toLowerCase().startsWith(prefix.toLowerCase())) {
+    return snippetText;
+  }
+
+  return `${prefix}${snippetText}`;
+}
+
 function normalizeWorkspaceGroupKey(conversation) {
   const workspacePath = typeof conversation?.workspace_path === 'string'
     ? conversation.workspace_path.trim()
@@ -190,4 +215,5 @@ export {
   getDashboardConversationGroupDescriptors,
   getDashboardConversationGroupKeys,
   getDashboardConversationGroupLabel,
+  getDashboardSearchSnippetDisplayText,
 };

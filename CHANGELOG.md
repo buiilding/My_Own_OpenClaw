@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/dashboard: move dashboard search snippet matched-role prefix display
+  into `desktopDashboardConversationGroupRuntime` so `SearchChatsModal` renders
+  a runtime-projected snippet string instead of reimplementing search metadata
+  presentation rules. No migration required.
 - renderer/chat: move current renderer conversation session-info projection and
   empty fallback into `desktopConversationSessionRuntime` so chat, minimal pill,
   and dashboard consumers use one app-runtime helper instead of a feature-local

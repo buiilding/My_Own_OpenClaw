@@ -101,9 +101,11 @@ rendering:
 - `getDashboardConversationGroupDescriptors()`
 - `getDashboardConversationGroupKeys()`
 - `getDashboardConversationGroupLabel(groupKey)`
+- `getDashboardSearchSnippetDisplayText(item)`
 
 Search UI components render group order and labels from these helpers instead
-of carrying local bucket tables.
+of carrying local bucket tables, and render snippet text from the search
+snippet display helper instead of recomputing matched-role prefix rules.
 
 Each item shape:
 
@@ -120,6 +122,10 @@ When `includeSearchMetadata=true`, adds:
 
 - `snippet` (trimmed)
 - `matchedRole` normalized (`user -> You`, `assistant -> Assistant`)
+
+The search snippet display helper prefixes snippets with the normalized
+`matchedRole` label only when the snippet does not already begin with the same
+role prefix.
 
 ## Conversation Action Handlers
 

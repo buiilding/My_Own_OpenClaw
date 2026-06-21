@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Dashboard Search Snippet Display Boundary
+
+- Finding: `desktopDashboardConversationGroupRuntime.js` already owned
+  dashboard grouping, search metadata normalization, matched-role labels, and
+  group display descriptors, but `SearchChatsModal.jsx` still recomputed the
+  matched-role prefix comparison for snippets.
+- Change: added `getDashboardSearchSnippetDisplayText(...)` to the dashboard
+  conversation group runtime and routed `SearchChatsModal` through that helper
+  so the component renders a projected snippet string instead of owning the
+  search metadata presentation rule.
+- Validation: focused conversation group runtime and renderer app-runtime
+  boundary coverage, docs listing, stale modal-local prefix-rule scan, and diff
+  checks.
+- Compatibility: no migration required. Search result row shapes, snippets,
+  matched-role labels, group ids, open-conversation routing, storage, IPC,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Conversation Session Info Projection Boundary
 
 - Finding: `useRendererConversationSessionInfo.js` already consumed transcript

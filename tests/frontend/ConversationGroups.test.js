@@ -8,6 +8,7 @@ import {
   getDashboardConversationGroupDescriptors,
   getDashboardConversationGroupKeys,
   getDashboardConversationGroupLabel,
+  getDashboardSearchSnippetDisplayText,
 } from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime';
 
 function isoDaysAgo(days) {
@@ -71,6 +72,28 @@ describe('conversationGroups', () => {
       snippet: 'hello world',
       matchedRole: 'You',
     }));
+  });
+
+  test('builds search snippet display text with matched-role prefix rules', () => {
+    expect(getDashboardSearchSnippetDisplayText({
+      snippet: 'hello world',
+      matchedRole: 'Assistant',
+    })).toBe('Assistant: hello world');
+
+    expect(getDashboardSearchSnippetDisplayText({
+      snippet: 'assistant: already labeled',
+      matchedRole: 'Assistant',
+    })).toBe('assistant: already labeled');
+
+    expect(getDashboardSearchSnippetDisplayText({
+      snippet: 'plain snippet',
+      matchedRole: '',
+    })).toBe('plain snippet');
+
+    expect(getDashboardSearchSnippetDisplayText({
+      snippet: '',
+      matchedRole: 'You',
+    })).toBe('');
   });
 
   test('groups conversations by workspace and sorts pinned chats first within each group', () => {

@@ -178,7 +178,12 @@ Each row expects:
 
 Snippet prefix rule:
 
-- when `matchedRole` exists, prefix label is shown only if snippet does not already start with same role text.
+- `desktopDashboardConversationGroupRuntime.getDashboardSearchSnippetDisplayText(...)`
+  owns matched-role prefix display.
+- when `matchedRole` exists, prefix label is shown only if snippet does not
+  already start with the same role text.
+- `SearchChatsModal` renders the returned snippet display string and should not
+  reimplement the prefix comparison.
 
 Row click behavior:
 

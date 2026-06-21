@@ -713,15 +713,19 @@ describe('renderer app runtime boundary', () => {
     expect(runtimeSource).toContain('buildConversationGroups');
     expect(runtimeSource).toContain('buildWorkspaceConversationGroups');
     expect(runtimeSource).toContain('getDashboardConversationGroupDescriptors');
+    expect(runtimeSource).toContain('getDashboardSearchSnippetDisplayText');
     expect(runtimeSource).toContain("key: 'previous7Days'");
     expect(runtimeSource).not.toContain('features/dashboard');
     expect(dashboardHookSource).toContain('desktopDashboardConversationGroupRuntime');
     expect(dashboardHookSource).not.toContain('utils/conversationGroups');
     expect(searchModalSource).toContain('desktopDashboardConversationGroupRuntime');
     expect(searchModalSource).toContain('getDashboardConversationGroupDescriptors');
+    expect(searchModalSource).toContain('getDashboardSearchSnippetDisplayText');
     expect(searchModalSource).not.toContain('GROUP_LABELS');
     expect(searchModalSource).not.toContain('GROUP_ORDER');
     expect(searchModalSource).not.toContain("previous7Days: 'Previous 7 days'");
+    expect(searchModalSource).not.toContain('startsWith(prefix');
+    expect(searchModalSource).not.toContain('matchedRole ?');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/dashboard/utils/conversationGroups.js'),
     )).rejects.toThrow();

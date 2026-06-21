@@ -187,9 +187,10 @@ title-poll rules to this app-runtime facade.
 `desktopDashboardConversationGroupRuntime.js` owns dashboard conversation
 time-bucket descriptors, time-bucket and workspace grouping rules, including
 title fallbacks, pinned ordering, search metadata normalization, group display
-labels, and matched-role labels.
+labels, matched-role labels, and search snippet matched-role prefix display.
 `useDashboardConversations` keeps state and actions while delegating reusable
-grouping policy to this app-runtime facade instead of a feature utility.
+grouping and search-row presentation policy to this app-runtime facade instead
+of a feature utility or modal-local prefix comparison.
 
 `desktopToolGhostRuntime.ts` owns the debug tool-ghost click animation
 timing used by `ToolGhostDebugApp`. The debug app keeps rendering and timer

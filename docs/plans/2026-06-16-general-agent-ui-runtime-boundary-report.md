@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: current renderer conversation session-info
-  projection now stays behind `desktopConversationSessionRuntime`, with
-  `useRendererConversationSessionInfo()` consuming the app-runtime helper
-  instead of owning a feature-local empty session singleton.
+- Latest completed slice: dashboard search snippet matched-role prefix display
+  now stays behind `desktopDashboardConversationGroupRuntime`, with
+  `SearchChatsModal` rendering the app-runtime projected snippet string instead
+  of computing search metadata presentation locally.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -142,6 +142,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `desktopConversationSessionRuntime.resolveCurrentRendererConversationSessionInfo(...)`
   for transcript/store fallback projection and stable empty session fallback
   instead of carrying that singleton in the chat feature hook.
+  Dashboard search rows now consume
+  `desktopDashboardConversationGroupRuntime.getDashboardSearchSnippetDisplayText(...)`
+  for matched-role snippet prefix display instead of recomputing the
+  case-insensitive prefix check inside `SearchChatsModal`.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
