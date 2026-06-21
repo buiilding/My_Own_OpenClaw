@@ -296,8 +296,8 @@ describe('renderer skin/config boundary', () => {
   test('provider model display fallbacks live in renderer skin config', () => {
     const configFacadeSource = fs.readFileSync(skinConfigFacadePath, 'utf8');
     const providerDisplaySource = fs.readFileSync(providerModelDisplaySettingsPath, 'utf8');
-    const modelCardDataSource = fs.readFileSync(
-      path.join(dashboardSectionsRoot, 'modelCardData.js'),
+    const modelCardPresentationRuntimeSource = fs.readFileSync(
+      path.join(rendererRoot, 'app/runtime/desktopModelCardPresentationRuntime.js'),
       'utf8',
     );
     const chatModelOptionsSource = fs.readFileSync(
@@ -309,13 +309,13 @@ describe('renderer skin/config boundary', () => {
     expect(providerDisplaySource).toContain('PROVIDER_MODEL_DISPLAY_FALLBACKS');
     expect(providerDisplaySource).toContain('PROVIDER_LABEL_OVERRIDES');
     expect(providerDisplaySource).toContain('OpenAI flagship model family');
-    expect(modelCardDataSource).toContain('desktopRuntimeConfig');
-    expect(modelCardDataSource).not.toContain('providerModelDisplaySettings');
+    expect(modelCardPresentationRuntimeSource).toContain('desktopRuntimeConfig');
+    expect(modelCardPresentationRuntimeSource).not.toContain('providerModelDisplaySettings');
     expect(chatModelOptionsSource).toContain('desktopRuntimeConfig');
     expect(chatModelOptionsSource).not.toContain('providerModelDisplaySettings');
-    expect(modelCardDataSource).not.toContain("provider.includes('openai')");
-    expect(modelCardDataSource).not.toContain('OpenAI flagship model family');
-    expect(modelCardDataSource).not.toContain('Agentic coding model');
+    expect(modelCardPresentationRuntimeSource).not.toContain("provider.includes('openai')");
+    expect(modelCardPresentationRuntimeSource).not.toContain('OpenAI flagship model family');
+    expect(modelCardPresentationRuntimeSource).not.toContain('Agentic coding model');
     expect(chatModelOptionsSource).not.toContain("lowerProvider === 'openai'");
     expect(chatModelOptionsSource).not.toContain("return 'OpenRouter'");
   });

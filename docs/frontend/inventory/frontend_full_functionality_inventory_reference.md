@@ -234,7 +234,7 @@ Primary files:
 - Sidebar/search: `DashboardSidebar.jsx`, `SearchChatsModal.jsx`
 - Sections:
   - `MemorySection.jsx`, `MemoryItem.jsx`, `desktopMemoryPresentationRuntime.js`
-  - `ModelsSection.jsx`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js`, `ApiKeysSection.jsx`
+  - `ModelsSection.jsx`, `desktopModelCardPresentationRuntime.js`, `modelCards.jsx`, `providerApiKeys.js`, `ApiKeysSection.jsx`
   - `SettingsSection.jsx`, `UsageSection.jsx`
 - Utilities/hooks:
   - `app/runtime/desktopModelSelectionRuntime.js`

@@ -75,7 +75,7 @@ Frontend:
 - `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
 - `tests/frontend/ModelsSection.test.jsx`
-- `tests/frontend/ModelCardData.test.js`
+- `tests/frontend/DesktopModelCardPresentationRuntime.test.js`
 - `tests/frontend/ModelSelectionUtils.test.js`
 
 ## Release and Packaging Validation

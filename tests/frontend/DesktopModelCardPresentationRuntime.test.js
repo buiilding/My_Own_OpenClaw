@@ -1,14 +1,14 @@
 /**
- * Covers model card data. behavior in the frontend test suite.
+ * Covers desktop model-card presentation runtime behavior in the frontend test suite.
  */
 
 import {
   normalizeProviderLabel,
   toModelCard,
   toProviderCards,
-} from '../../frontend/src/renderer/features/dashboard/components/sections/modelCardData';
+} from '../../frontend/src/renderer/app/runtime/desktopModelCardPresentationRuntime';
 
-describe('modelCardData', () => {
+describe('desktopModelCardPresentationRuntime', () => {
   test('toModelCard prefers backend catalog metadata', () => {
     expect(toModelCard({
       id: 'gemini-2.5-flash@@gemini-2-5-flash-nonthinking',

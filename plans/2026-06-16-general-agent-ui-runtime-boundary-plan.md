@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Dashboard Model Card Presentation Runtime Boundary
+
+- Finding: `ModelsSection` already used `desktopModelSelectionRuntime` for
+  selected-model reconciliation, but dashboard-local `modelCardData.js` still
+  owned provider grouping, model-card projection, context hint formatting,
+  thinking/recommended badges, and renderer-skin provider display fallback
+  consumption.
+- Change: moved the helper into `desktopModelCardPresentationRuntime.js`,
+  routed `ModelsSection` through that app-runtime projection facade, renamed
+  focused coverage to `DesktopModelCardPresentationRuntime.test.js`, updated
+  provider/model docs, and extended renderer boundary coverage to keep the old
+  dashboard helper path retired.
+- Validation: focused model-card, models section, renderer chat boundary, skin
+  config boundary, docs listing, stale helper path scan, and diff checks.
+- Compatibility: no migration required. Model catalog payloads, selected-model
+  config keys, provider API-key storage, SDK/main settings commands, renderer
+  skin config values, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Dashboard Memory Presentation Runtime Boundary
 
 - Finding: `MemorySection` already used `DesktopMemoryRuntimeClient` for

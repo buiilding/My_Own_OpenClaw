@@ -40,7 +40,7 @@ header controls, and persisted selected model config.
 | Change or symptom | Primary owner files | Tests to inspect or add |
 | --- | --- | --- |
 | Add, remove, rename, or regroup a backend model | `backend/src/llm/models/models_config.py`, `backend/src/llm/models/model_service.py`, provider modules under `backend/src/llm/providers` | `tests/backend/test_models_config.py`, `tests/backend/test_model_service.py`, provider factory/provider tests |
-| Dashboard Models section cards, provider drilldown, or API-key controls change | `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`, `modelCardData.js`, `modelCards.jsx`, `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`, `providerApiKeys.js`, `ApiKeysSection.jsx` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelCardData.test.js`, `tests/frontend/ModelSelectionUtils.test.js` |
+| Dashboard Models section cards, provider drilldown, or API-key controls change | `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`, `frontend/src/renderer/app/runtime/desktopModelCardPresentationRuntime.js`, `modelCards.jsx`, `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`, `providerApiKeys.js`, `ApiKeysSection.jsx` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/DesktopModelCardPresentationRuntime.test.js`, `tests/frontend/ModelSelectionUtils.test.js` |
 | Chat header provider/model/reasoning selector changes | `frontend/src/renderer/features/chat/components/ChatInterface.jsx`, `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`, `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts` | `tests/frontend/ChatInterfaceWiring.test.jsx`, `tests/frontend/DesktopChatModelOptionsRuntime.test.js`, `tests/frontend/ModelThinkingCapabilities.test.ts` |
 | Selected model resets after reload or across windows | `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`, `desktopRendererConfigFilterRuntime.js`, `app/providers/AppConfigProvider.jsx`, `app/providers/appConfigPersistence.js` | `tests/frontend/configStorage.test.js`, `tests/frontend/configFilter.test.js`, `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` |
 | Model list is stale or missing in renderer | `frontend/src/renderer/app/providers/AppConfigProvider.jsx`, `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`, `frontend/src/main/ipc.cjs`, `backend/src/api/handlers/settings.py` | `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts`, `tests/backend/test_api_handlers.py` |
@@ -114,7 +114,7 @@ Catalog rules:
 Read:
 
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/modelCardData.js`
+- `frontend/src/renderer/app/runtime/desktopModelCardPresentationRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/modelCards.jsx`
 - `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`
@@ -199,7 +199,7 @@ Dashboard model UI change:
 
 - `cd frontend && npm run test -- ModelsSection`
 - `cd frontend && npm run test -- ModelSelectionUtils`
-- `cd frontend && npm run test -- ModelCardData`
+- `cd frontend && npm run test -- DesktopModelCardPresentationRuntime`
 
 Chat selector or reasoning-mode change:
 

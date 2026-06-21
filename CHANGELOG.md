@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/models: move dashboard model-card and provider-card projection into
+  `desktopModelCardPresentationRuntime.js`, retiring the section-local
+  `modelCardData.js` helper while preserving model selection, grouping, and
+  skin-config provider fallbacks. No migration required.
 - renderer/memory: move dashboard memory row projection and search filtering
   into `desktopMemoryPresentationRuntime.js`, deleting section-local memory
   helper files while preserving list, search, refresh, and delete behavior. No

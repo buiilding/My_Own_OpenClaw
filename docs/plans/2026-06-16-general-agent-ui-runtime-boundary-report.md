@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `95fdac01e` (`test(frontend): neutralize metadata labels`)
-- Latest completed slice: dashboard memory row projection and search filtering
-  now live in `desktopMemoryPresentationRuntime.js`; `MemorySection` consumes
-  the app-runtime facade and the old section-local memory helper files are
+- Latest completed slice: dashboard model-card and provider-card projection now
+  live in `desktopModelCardPresentationRuntime.js`; `ModelsSection` consumes
+  the app-runtime facade and the old section-local `modelCardData.js` helper is
   retired.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
@@ -86,6 +86,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   own episodic transcript parsing, semantic summary/facts projection, runtime
   memory delete-routing fields, procedural placeholders, active-type fallback,
   and search matching policy.
+  The dashboard models panel now keeps provider drilldown, hover state,
+  selection side effects, catalog refresh, and API-key rendering while
+  app-runtime model-card presentation helpers own provider grouping, context
+  hint formatting, badges, and renderer-skin provider display fallbacks.
   The Chrome launcher reference names host-skinned desktop launch and dedicated
   desktop connect ownership while documenting the WindieOS browser profile path
   only as the active product-skin configuration.

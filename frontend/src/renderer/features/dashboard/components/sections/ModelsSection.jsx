@@ -19,7 +19,7 @@ import {
   normalizeProviderLabel,
   toModelCard,
   toProviderCards,
-} from './modelCardData';
+} from '../../../../app/runtime/desktopModelCardPresentationRuntime';
 import {
   ModelCard,
   ProviderCard,

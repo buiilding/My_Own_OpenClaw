@@ -72,6 +72,6 @@ Focused frontend tests:
 
 ```bash
 cd frontend
-<windie> test frontend -- ChatInterfaceWiring.test.jsx ModelThinkingCapabilities.test.ts ModelCardData.test.js MarkdownMessage.test.jsx
+<windie> test frontend -- ChatInterfaceWiring.test.jsx ModelThinkingCapabilities.test.ts DesktopModelCardPresentationRuntime.test.js MarkdownMessage.test.jsx
 ```
 

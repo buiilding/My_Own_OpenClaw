@@ -2141,6 +2141,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js'),
       'utf8',
     );
+    const modelCardPresentationRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopModelCardPresentationRuntime.js'),
+      'utf8',
+    );
 
     expect(chatModelOptionsSource).toContain('desktopModelSelectionRuntime');
     expect(chatModelOptionsSource).toContain('desktopRuntimeConfig');
@@ -2149,9 +2153,15 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).toContain('desktopChatModelOptionsRuntime');
     expect(headerControlsSource).toContain('desktopChatModelOptionsRuntime');
     expect(modelsSectionSource).toContain('desktopModelSelectionRuntime');
+    expect(modelsSectionSource).toContain('desktopModelCardPresentationRuntime');
     expect(modelRuntimeSource).toContain('buildModelConfigUpdate');
+    expect(modelCardPresentationRuntimeSource).toContain('desktopRuntimeConfig');
+    expect(modelCardPresentationRuntimeSource).not.toContain('features/dashboard');
     await expect(fs.stat(
       path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/components/sections/modelCardData.js'),
     )).rejects.toThrow();
     await expect(fs.stat(
       path.join(chatRoot, 'utils/chatModelOptions.js'),

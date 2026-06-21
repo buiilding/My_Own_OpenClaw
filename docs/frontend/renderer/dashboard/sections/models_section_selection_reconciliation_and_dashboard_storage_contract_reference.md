@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for dashboard ModelsSection runtime: provider-first navigation, model/provider reconciliation, helper-module card mapping, and provider API-key config payload contracts."
+summary: "Deep reference for dashboard ModelsSection runtime: provider-first navigation, model/provider reconciliation, app-runtime card projection, and provider API-key config payload contracts."
 read_when:
   - When changing `ModelsSection` provider/model selection flow or reconciliation behavior.
-  - When modifying model card/provider card helper modules or API-key payload normalization.
+  - When modifying model card/provider card app-runtime projection or API-key payload normalization.
 title: "Models Section Selection Reconciliation and Dashboard Storage Contract Reference"
 ---
 
@@ -12,13 +12,13 @@ title: "Models Section Selection Reconciliation and Dashboard Storage Contract R
 
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/modelCardData.js`
+- `frontend/src/renderer/app/runtime/desktopModelCardPresentationRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/modelCards.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`
 - `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`
 - `tests/frontend/ModelSelectionUtils.test.js`
 - `tests/frontend/ModelsSection.test.jsx`
-- `tests/frontend/ModelCardData.test.js`
+- `tests/frontend/DesktopModelCardPresentationRuntime.test.js`
 
 ## ModelsSection Runtime Contract
 
@@ -49,7 +49,8 @@ Toolbar behavior in provider-scoped view:
 - `Back to providers` resets `activeProviderView` and clears hover state
 - provider label shown in toolbar metadata
 
-Provider cards are derived by `toProviderCards(...)`:
+Provider cards are derived by `toProviderCards(...)` in
+`desktopModelCardPresentationRuntime.js`:
 
 - grouped by normalized provider label
 - sorted selected-provider group first, then alphabetical provider order
@@ -57,7 +58,9 @@ Provider cards are derived by `toProviderCards(...)`:
 
 ## Model Card Mapping Contract
 
-`toModelCard(model, isRecommended)` maps backend model objects to display card shape:
+`toModelCard(model, isRecommended)` in
+`desktopModelCardPresentationRuntime.js` maps backend model objects to display
+card shape:
 
 - `id`, `provider`
 - descriptive metadata (`description`, `strengths`) inferred from provider family

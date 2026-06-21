@@ -80,4 +80,4 @@ npm run audit:knip
 - Tool message/mapping helper behavior is covered directly by chat stream and SDK projection tests.
 - Chat header provider/model/reasoning option projection is covered directly by `tests/frontend/DesktopChatModelOptionsRuntime.test.js`.
 - Shared renderer model selection/filter/reconciliation runtime behavior is covered directly by `tests/frontend/ModelSelectionUtils.test.js`.
-- Dashboard model card and provider behavior is covered directly by `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelCardData.test.js`, and `tests/frontend/ModelSelectionUtils.test.js`.
+- Dashboard model card and provider behavior is covered directly by `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/DesktopModelCardPresentationRuntime.test.js`, and `tests/frontend/ModelSelectionUtils.test.js`.
