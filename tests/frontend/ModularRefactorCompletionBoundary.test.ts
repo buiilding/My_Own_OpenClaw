@@ -743,15 +743,24 @@ describe('modular sdk refactor completion boundary', () => {
     const retiredUnownedShotRoot = ['windie', 'unowned-shot-'].join('-');
     const retiredOpenAppScreenshot = ['/tmp', 'windie-shot-test.jpg'].join('/');
     const retiredMcpPathRoot = ['windie', 'mcp-path-'].join('-');
+    const retiredUserDataRoot = ['/tmp', 'windie-data'].join('/');
+    const retiredLocalRuntimeLogRoot = ['windie', 'local-runtime-log-'].join('-');
+    const retiredMainLogRoot = ['windie', 'main-log-'].join('-');
 
     expect(combined).not.toContain('https://api.windieos.com');
     expect(combined).not.toContain(retiredUnownedShotRoot);
     expect(combined).not.toContain(retiredOpenAppScreenshot);
     expect(combined).not.toContain(retiredMcpPathRoot);
+    expect(combined).not.toContain(retiredUserDataRoot);
+    expect(combined).not.toContain(retiredLocalRuntimeLogRoot);
+    expect(combined).not.toContain(retiredMainLogRoot);
     expect(combined).toContain('https://backend.example.com');
     expect(combined).toContain('agent-unowned-shot-');
     expect(combined).toContain('/tmp/agent-shot-test.jpg');
     expect(combined).toContain('agent-mcp-path-');
+    expect(combined).toContain('/tmp/legacy-agent-data');
+    expect(combined).toContain('agent-local-runtime-log-');
+    expect(combined).toContain('agent-main-log-');
   });
 
   test('main IPC lifecycle explicit endpoint override fixtures stay product-neutral', async () => {

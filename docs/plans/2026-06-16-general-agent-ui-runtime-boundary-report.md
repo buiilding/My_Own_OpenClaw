@@ -7844,3 +7844,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   layer-log resolution, console mirroring, renderer verbose logs, Vite runner
   log routing, provider policy, permissions, storage, and backend behavior are
   unchanged; no migration is required.
+- Local-runtime launch option tests now use neutral user-data and log temp
+  fixtures instead of Windie-flavored arbitrary paths. Host-skin
+  `WINDIE_USER_DATA_DIR`, local-runtime env-key mapping, sidecar daemon
+  entrypoint compatibility, generic launch context construction, log routing,
+  provider policy, permissions, storage, and backend behavior are unchanged; no
+  migration is required.

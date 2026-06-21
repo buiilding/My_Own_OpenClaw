@@ -19105,3 +19105,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Generic layer-log resolution, console
   mirroring, renderer verbose logs, Vite runner log routing, provider policy,
   permissions, storage, and backend behavior are unchanged.
+
+### 2026-06-21 Local-runtime launch fixture neutrality
+
+- Finding: local-runtime launch option coverage still used Windie-flavored
+  arbitrary user-data and temp log paths while testing host-env compatibility
+  and generic local-runtime log routing.
+- Change: switched the sample user-data and disposable log paths to neutral
+  `legacy-agent`/`agent-*` fixtures and extended the local-runtime helper
+  boundary guard.
+- Validation: focused local-runtime launch option and modular boundary tests;
+  exact retired launch fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Host-skin `WINDIE_USER_DATA_DIR`,
+  local-runtime env-key mapping, sidecar daemon entrypoint compatibility,
+  generic launch context construction, log routing, provider policy,
+  permissions, storage, and backend behavior are unchanged.

@@ -252,7 +252,7 @@ describe('desktop local runtime launch options', () => {
         localRuntimeEnv: mainHostSkin.localRuntime.env,
         authStatePath: '/tmp/auth.json',
         permissionStatePath: '/tmp/permissions.json',
-        userDataRoot: '/tmp/windie-data',
+        userDataRoot: '/tmp/legacy-agent-data',
       });
     } finally {
       if (typeof originalSemanticSummarizer === 'string') {
@@ -284,19 +284,19 @@ describe('desktop local runtime launch options', () => {
     expect(plan.options.env.AGENT_PACKAGED_APP).toBe('0');
     expect(plan.options.env.AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
     expect(plan.options.env.AGENT_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
-    expect(plan.options.env.AGENT_USER_DATA_DIR).toBe('/tmp/windie-data');
+    expect(plan.options.env.AGENT_USER_DATA_DIR).toBe('/tmp/legacy-agent-data');
     expect(plan.options.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL).toBe('DEBUG');
     expect(plan.options.env.WINDIE_BACKEND_HTTP_URL).toBe(TEST_BACKEND_HTTP_URL);
     expect(plan.options.env.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
     expect(plan.options.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');
     expect(plan.options.env.WINDIE_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
-    expect(plan.options.env.WINDIE_USER_DATA_DIR).toBe('/tmp/windie-data');
+    expect(plan.options.env.WINDIE_USER_DATA_DIR).toBe('/tmp/legacy-agent-data');
     expect(plan.options.env.WINDIE_SIDECAR_LOG_LEVEL).toBe('DEBUG');
     expect(plan.options.env.WINDIE_PACKAGED_APP).toBe('0');
     expect(plan.options.env.WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
     expect(plan.options.launchContext.WINDIE_BACKEND_HTTP_URL).toBe(TEST_BACKEND_HTTP_URL);
     expect(plan.options.launchContext.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
-    expect(plan.options.launchContext.WINDIE_USER_DATA_DIR).toBe('/tmp/windie-data');
+    expect(plan.options.launchContext.WINDIE_USER_DATA_DIR).toBe('/tmp/legacy-agent-data');
     expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_PATH)
       .toBe(plan.launchTarget.resolvedPath);
     expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP)
@@ -331,7 +331,7 @@ describe('desktop local runtime launch options', () => {
 
   test('local runtime daemon lines write to local-runtime log layer and stderr stream', () => {
     const originalEnv = process.env;
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-local-runtime-log-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-local-runtime-log-'));
     const logFile = path.join(tempDir, 'local-runtime.log');
     const stderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
@@ -398,7 +398,7 @@ describe('desktop local runtime launch options', () => {
 
   test('process spawn events write generic local runtime launch logs', () => {
     const originalEnv = process.env;
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-main-log-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-main-log-'));
     const logFile = path.join(tempDir, 'main.log');
     const retiredBridgeLog = `[Main][${'Sidecar' + 'Bridge'}] spawned sidecar daemon`;
 
