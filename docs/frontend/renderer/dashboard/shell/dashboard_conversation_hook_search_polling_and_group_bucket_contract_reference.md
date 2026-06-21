@@ -95,6 +95,16 @@ grouping facade with metadata enabled.
 - `previous7Days`
 - `older`
 
+The same runtime owns the ordered group descriptors consumed by search-modal
+rendering:
+
+- `getDashboardConversationGroupDescriptors()`
+- `getDashboardConversationGroupKeys()`
+- `getDashboardConversationGroupLabel(groupKey)`
+
+Search UI components render group order and labels from these helpers instead
+of carrying local bucket tables.
+
 Each item shape:
 
 - `key`

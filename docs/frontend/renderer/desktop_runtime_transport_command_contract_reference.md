@@ -183,8 +183,9 @@ orchestration while delegating reusable list-load, row-update, pin-state, and
 title-poll rules to this app-runtime facade.
 
 `desktopDashboardConversationGroupRuntime.js` owns dashboard conversation
-time-bucket and workspace grouping rules, including title fallbacks, pinned
-ordering, search metadata normalization, and matched-role labels.
+time-bucket descriptors, time-bucket and workspace grouping rules, including
+title fallbacks, pinned ordering, search metadata normalization, group display
+labels, and matched-role labels.
 `useDashboardConversations` keeps state and actions while delegating reusable
 grouping policy to this app-runtime facade instead of a feature utility.
 

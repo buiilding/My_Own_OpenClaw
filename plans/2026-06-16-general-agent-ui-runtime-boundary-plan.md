@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Dashboard Conversation Group Descriptor Boundary
+
+- Finding: `desktopDashboardConversationGroupRuntime.js` already owned
+  dashboard conversation bucket keys, time/workspace grouping, pinned ordering,
+  and search metadata normalization, but `SearchChatsModal.jsx` still owned a
+  local order/label table for the same time buckets.
+- Change: moved the ordered dashboard group descriptors behind
+  `getDashboardConversationGroupDescriptors()`, plus focused key/label helpers,
+  and routed the search modal through that app-runtime contract instead of
+  section-local constants.
+- Validation: focused conversation group runtime coverage, renderer
+  app-runtime boundary coverage, docs listing, stale modal-local descriptor
+  scan, and diff checks.
+- Compatibility: no migration required. Conversation bucket ids, search
+  debounce/fetch behavior, row shapes, matched-role snippets, workspace
+  grouping, storage, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Dashboard Memory Type Descriptor Boundary
 
 - Finding: `desktopMemoryPresentationRuntime.js` already owned dashboard

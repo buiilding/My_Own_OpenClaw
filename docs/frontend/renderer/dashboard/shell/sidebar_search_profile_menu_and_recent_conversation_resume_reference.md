@@ -91,15 +91,15 @@ Accessibility contract:
 
 Source input shape from shell:
 
-- grouped arrays `today`, `yesterday`, `previous7Days`, `older`
-- each row carries `{ key, title, conversation }`
+- workspace groups from `buildWorkspaceConversationGroups(...)`
+- each workspace group carries `{ key, title, workspacePath, items }`
+- each row carries `{ key, title, conversation, isPinned }`
 
 Render order:
 
-1. today
-2. yesterday
-3. previous 7 days
-4. older
+1. workspace groups with pinned conversations
+2. remaining workspace groups by recency
+3. rows inside each workspace group with pinned chats first, then by recency
 
 Click behavior:
 
@@ -147,14 +147,16 @@ Search fetch policy (owned by `useDashboardConversations`):
 
 ### Search groups and labels
 
-Group order is fixed:
+Search group order and labels are owned by
+`desktopDashboardConversationGroupRuntime.getDashboardConversationGroupDescriptors()`.
+The current descriptor order is:
 
 1. `today`
 2. `yesterday`
 3. `previous7Days`
 4. `older`
 
-Group display labels:
+Current labels are:
 
 - `Today`
 - `Yesterday`

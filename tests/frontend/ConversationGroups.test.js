@@ -5,6 +5,9 @@
 import {
   buildConversationGroups,
   buildWorkspaceConversationGroups,
+  getDashboardConversationGroupDescriptors,
+  getDashboardConversationGroupKeys,
+  getDashboardConversationGroupLabel,
 } from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime';
 
 function isoDaysAgo(days) {
@@ -14,6 +17,23 @@ function isoDaysAgo(days) {
 }
 
 describe('conversationGroups', () => {
+  test('exposes ordered dashboard group descriptors for search rendering', () => {
+    expect(getDashboardConversationGroupDescriptors()).toEqual([
+      { key: 'today', label: 'Today' },
+      { key: 'yesterday', label: 'Yesterday' },
+      { key: 'previous7Days', label: 'Previous 7 days' },
+      { key: 'older', label: 'Older' },
+    ]);
+    expect(getDashboardConversationGroupKeys()).toEqual([
+      'today',
+      'yesterday',
+      'previous7Days',
+      'older',
+    ]);
+    expect(getDashboardConversationGroupLabel('previous7Days')).toBe('Previous 7 days');
+    expect(getDashboardConversationGroupLabel('unknown')).toBe('');
+  });
+
   test('buckets conversations by timestamp and preserves pin flags', () => {
     const groups = buildConversationGroups([
       { conversation_id: 'today-1', title: 'Today', last_timestamp: isoDaysAgo(0) },

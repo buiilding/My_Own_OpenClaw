@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: dashboard memory type descriptors now stay behind
-  `desktopMemoryPresentationRuntime`, with `MemorySection` rendering tabs from
-  the app-runtime projection contract instead of a section-local table.
+- Latest completed slice: dashboard conversation time-bucket descriptors now
+  stay behind `desktopDashboardConversationGroupRuntime`, with
+  `SearchChatsModal` rendering group order and labels from the app-runtime
+  grouping contract instead of a modal-local table.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -118,6 +119,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `getMemoryRetrievalInjectionStorageKey()` and
   `getPermissionOnboardingStorageKey()` from their app-runtime owners instead
   of importing renderer skin storage keys directly.
+  Dashboard search modal group labels and order now come from
+  `desktopDashboardConversationGroupRuntime.getDashboardConversationGroupDescriptors()`
+  instead of component-local constants, while bucket ids and search metadata
+  normalization remain unchanged.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.

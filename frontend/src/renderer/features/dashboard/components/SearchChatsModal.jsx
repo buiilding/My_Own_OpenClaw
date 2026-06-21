@@ -5,16 +5,10 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Circle, PenSquare, X } from 'lucide-react';
+import { getDashboardConversationGroupDescriptors } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
 import { conversationGroupsPropType } from './shared/conversationGroupPropTypes';
 
-const GROUP_LABELS = Object.freeze({
-  today: 'Today',
-  yesterday: 'Yesterday',
-  previous7Days: 'Previous 7 days',
-  older: 'Older',
-});
-
-const GROUP_ORDER = Object.freeze(['today', 'yesterday', 'previous7Days', 'older']);
+const CONVERSATION_GROUP_DESCRIPTORS = getDashboardConversationGroupDescriptors();
 
 function SearchChatsModal({
   isOpen,
@@ -56,7 +50,9 @@ function SearchChatsModal({
   const normalizedQuery = query.trim();
   const useSearchResults = normalizedQuery.length >= 2;
   const activeGroups = useSearchResults ? searchConversationGroups : recentConversationGroups;
-  const hasResults = GROUP_ORDER.some((key) => (activeGroups[key]?.length || 0) > 0);
+  const hasResults = CONVERSATION_GROUP_DESCRIPTORS.some(
+    ({ key }) => (activeGroups[key]?.length || 0) > 0,
+  );
 
   if (!isOpen) {
     return null;
@@ -116,7 +112,7 @@ function SearchChatsModal({
           ) : useSearchResults && searchError ? (
             <div className="cg-search-empty">{searchError}</div>
           ) : hasResults ? (
-            GROUP_ORDER.map((groupKey) => {
+            CONVERSATION_GROUP_DESCRIPTORS.map(({ key: groupKey, label }) => {
               const rows = activeGroups[groupKey] || [];
               if (rows.length === 0) {
                 return null;
@@ -124,7 +120,7 @@ function SearchChatsModal({
 
               return (
                 <div key={groupKey} className="cg-search-group">
-                  <p className="cg-search-group-label">{GROUP_LABELS[groupKey]}</p>
+                  <p className="cg-search-group-label">{label}</p>
                   <div className="cg-search-group-items">
                     {rows.map((item) => (
                       (() => {

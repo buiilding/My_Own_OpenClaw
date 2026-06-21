@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/dashboard: move search-modal conversation group order and labels
+  into `desktopDashboardConversationGroupRuntime` so dashboard search renders
+  from the same app-runtime grouping contract that owns bucket keys and search
+  metadata normalization. No migration required.
 - renderer/memory: move dashboard memory type descriptors into
   `desktopMemoryPresentationRuntime` so `MemorySection` renders tabs from the
   app-runtime presentation contract instead of a section-local table. No

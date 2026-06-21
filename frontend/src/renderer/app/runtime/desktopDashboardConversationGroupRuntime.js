@@ -2,6 +2,27 @@
  * Owns renderer dashboard conversation grouping rules for the app runtime.
  */
 
+const CONVERSATION_TIME_GROUP_DESCRIPTORS = Object.freeze([
+  Object.freeze({ key: 'today', label: 'Today' }),
+  Object.freeze({ key: 'yesterday', label: 'Yesterday' }),
+  Object.freeze({ key: 'previous7Days', label: 'Previous 7 days' }),
+  Object.freeze({ key: 'older', label: 'Older' }),
+]);
+
+function getDashboardConversationGroupDescriptors() {
+  return CONVERSATION_TIME_GROUP_DESCRIPTORS.map((descriptor) => ({ ...descriptor }));
+}
+
+function getDashboardConversationGroupKeys() {
+  return CONVERSATION_TIME_GROUP_DESCRIPTORS.map((descriptor) => descriptor.key);
+}
+
+function getDashboardConversationGroupLabel(groupKey) {
+  return CONVERSATION_TIME_GROUP_DESCRIPTORS.find(
+    (descriptor) => descriptor.key === groupKey,
+  )?.label || '';
+}
+
 function getConversationTimeBuckets() {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -163,4 +184,10 @@ function buildWorkspaceConversationGroups(conversations, options = {}) {
     });
 }
 
-export { buildConversationGroups, buildWorkspaceConversationGroups };
+export {
+  buildConversationGroups,
+  buildWorkspaceConversationGroups,
+  getDashboardConversationGroupDescriptors,
+  getDashboardConversationGroupKeys,
+  getDashboardConversationGroupLabel,
+};
