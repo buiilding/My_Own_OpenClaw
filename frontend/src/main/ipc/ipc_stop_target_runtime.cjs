@@ -111,6 +111,4 @@ function createMainStopTargetRuntime({
 
 module.exports = {
   createMainStopTargetRuntime,
-  isStoppableCurrentTurnProjection,
-  resolveMainStopTarget,
 };

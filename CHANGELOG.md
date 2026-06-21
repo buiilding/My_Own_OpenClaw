@@ -42,6 +42,10 @@ All notable changes to WindieOS will be documented in this file.
   matching private to `ipc_pending_turn_handlers.cjs` while preserving handler
   registration, clear, and match behavior through `createPendingTurnRuntime(...)`.
   No migration required.
+- frontend/main: keep main stop-target projection and resolver helpers private
+  to `ipc_stop_target_runtime.cjs` while preserving SDK-current-turn priority,
+  pending-turn fallback, idle conversation fallback, and stop execution through
+  `createMainStopTargetRuntime(...)`. No migration required.
 - frontend/main: keep connection-event handshake user and backend fallback
   endpoint resolvers private to `ipc_agent_connection_events.cjs` and cover
   snake_case handshake identity plus websocket/HTTP fallback aliases through
@@ -127,14 +131,14 @@ All notable changes to WindieOS will be documented in this file.
   required.
 - frontend/main: keep the lower-level pending-turn clear helper private to
   `ipc_pending_turn_handlers.cjs` and exercise targeted clear plus optional
-  renderer fan-out through `createPendingTurnRuntime(...).clear()`, while
-  leaving pending-turn payload normalization and SDK-current-turn matching
-  helpers available for focused coverage. No migration required.
+  renderer fan-out through `createPendingTurnRuntime(...).clear()`; a later
+  follow-up kept pending-turn payload normalization and SDK-current-turn
+  matching private behind the same runtime facade. No migration required.
 - frontend/main: keep the lower-level main stop-target trigger helper private
   to `ipc_stop_target_runtime.cjs` and exercise SDK stop execution through
-  `createMainStopTargetRuntime(...).trigger()`, while leaving pure stop-target
-  projection and resolver helpers available for focused coverage. No migration
-  required.
+  `createMainStopTargetRuntime(...).trigger()`; a later follow-up kept pure
+  stop-target projection and resolver helpers private behind the same runtime
+  facade. No migration required.
 - frontend/main: keep lower-level renderer-window tracking and fan-out helpers
   private to `ipc_renderer_windows.cjs` and exercise overlay/current-turn,
   pending-turn, replay, and broadcast behavior through

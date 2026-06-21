@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Stop Target Resolver Helper Privacy
+
+- Finding: `ipc_stop_target_runtime.cjs` already exposed
+  `createMainStopTargetRuntime(...)` as the Electron main stop-target facade,
+  but the pure current-turn stoppable predicate and stop-target resolver still
+  leaked as public helper exports after the executable trigger helper was made
+  private.
+- Change: kept `isStoppableCurrentTurnProjection(...)` and
+  `resolveMainStopTarget(...)` private to the stop-target owner while
+  preserving SDK-current-turn priority, busy-presentation handling,
+  pending-turn fallback, idle conversation fallback, SDK-shaped stop payloads,
+  and overlay completion coverage through `createMainStopTargetRuntime(...)`.
+- Validation: focused stop-target runtime and main SDK boundary tests, targeted
+  main IPC lint, docs listing, stale export scans, and diff checks before
+  commit.
+- Compatibility/security: no IPC channel, global shortcut, SDK stop payload,
+  overlay phase, credential, permission, storage, or trust-boundary migration
+  required; stop-target behavior is unchanged.
+
 ### 2026-06-21 Main Pending Turn Runtime Helper Privacy
 
 - Finding: `ipc_pending_turn_handlers.cjs` already exposed
@@ -398,9 +417,9 @@ Date: 2026-06-16
   `clearPendingTurnState(...)` helper directly.
 - Change: kept `clearPendingTurnState(...)` private to the pending-turn helper
   module and moved targeted clear plus optional renderer fan-out coverage
-  through `createPendingTurnRuntime(...).clear()` while leaving pure payload
-  normalization and SDK-current-turn matching helpers public for deterministic
-  coverage.
+  through `createPendingTurnRuntime(...).clear()`; a later follow-up kept pure
+  payload normalization and SDK-current-turn matching helpers private behind
+  the same runtime facade.
 - Validation: focused pending-turn handler tests, targeted main IPC lint, docs
   listing, stale export-line scans, and diff checks before commit.
 - Compatibility/security: no IPC channel, pending-turn payload, renderer
@@ -415,8 +434,9 @@ Date: 2026-06-16
   `triggerMainStopTarget(...)` helper directly.
 - Change: kept `triggerMainStopTarget(...)` private to the stop-target helper
   module and moved SDK stop execution and overlay-completion coverage through
-  `createMainStopTargetRuntime(...).trigger()` while leaving pure projection
-  and target resolver helpers public for deterministic coverage.
+  `createMainStopTargetRuntime(...).trigger()`; a later follow-up kept pure
+  projection and target resolver helpers private behind the same runtime
+  facade.
 - Validation: focused stop-target runtime tests, targeted main IPC lint, docs
   listing, stale export-line scans, and diff checks before commit.
 - Compatibility/security: no IPC channel, global shortcut, SDK stop payload,

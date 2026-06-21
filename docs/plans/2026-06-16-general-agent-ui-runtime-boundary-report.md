@@ -12,12 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main pending-turn handlers keep payload
-  normalization and SDK-current-turn matching private to
-  `ipc_pending_turn_handlers.cjs`, while pending envelope normalization,
-  incomplete-payload rejection, attachment filename filtering, clear behavior,
-  renderer fan-out, and current-turn cleanup matching remain covered through
-  the public pending-turn runtime facade.
+- Latest completed slice: Electron main stop-target runtime keeps current-turn
+  stoppable projection and target resolution private to
+  `ipc_stop_target_runtime.cjs`, while SDK-current-turn priority, busy
+  presentation handling, pending-turn fallback, idle conversation fallback,
+  SDK-shaped stop payloads, and overlay completion remain covered through the
+  public stop-target runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1083,6 +1083,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Compatibility: no migration required. SDK runtime command payloads,
   conversation-ref fallback behavior, replay/edit/retry paths, credentials,
   permissions, trust boundaries, and storage are unchanged.
+
+### 2026-06-21 Main Stop Target Resolver Helper Privacy
+
+- Finding: `ipc_stop_target_runtime.cjs` already exposed the composed
+  stop-target runtime facade, but `isStoppableCurrentTurnProjection(...)` and
+  `resolveMainStopTarget(...)` still leaked lower-level projection and
+  resolution helpers as public exports.
+- Change: removed those helpers from the public module surface while preserving
+  runtime coverage for SDK-current-turn priority, busy-presentation handling,
+  pending-turn fallback, idle conversation fallback, SDK-shaped stop payloads,
+  and overlay completion.
+- Validation: focused stop-target runtime and main SDK boundary tests, targeted
+  main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. IPC channels, global shortcuts, SDK
+  stop payloads, overlay phase behavior, credentials, permissions, trust
+  boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Pending Turn Runtime Helper Privacy
 
