@@ -46,6 +46,10 @@ All notable changes to WindieOS will be documented in this file.
   in conversation replay database integration coverage instead of a
   Windie-flavored arbitrary temp directory. No migration required.
 
+- tests/local-runtime: use neutral MCP execution fixtures for non-screenshot
+  path handling instead of Windie-flavored arbitrary MCP path/query data. No
+  migration required.
+
 - tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
   in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
   directory. No migration required.

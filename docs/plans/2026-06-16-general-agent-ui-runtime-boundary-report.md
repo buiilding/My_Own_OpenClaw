@@ -7819,3 +7819,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   behavior, replay/rehydrate projections, edit/resend and retry preparation,
   provider policy, permissions, storage schema, and backend behavior are
   unchanged; no migration is required.
+- Local-runtime MCP execution tests now use neutral MCP path/query fixtures for
+  non-screenshot result handling instead of Windie-flavored arbitrary data. MCP
+  tools still route through SDK/main local-runtime dispatch, non-screenshot
+  `screenshot_path` values are still stripped without read/upload/delete,
+  provider policy, permissions, storage, and backend behavior are unchanged; no
+  migration is required.

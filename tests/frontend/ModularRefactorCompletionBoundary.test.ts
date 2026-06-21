@@ -692,18 +692,22 @@ describe('modular sdk refactor completion boundary', () => {
     const source = await Promise.all([
       read('tests/frontend/LocalRuntimeLaunchOptions.test.cjs'),
       read('tests/frontend/LocalRuntimeBridge.rpc.test.cjs'),
+      read('tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs'),
       read('tests/sidecar/test_open_app_tool.py'),
     ]);
     const combined = source.join('\n');
     const retiredUnownedShotRoot = ['windie', 'unowned-shot-'].join('-');
     const retiredOpenAppScreenshot = ['/tmp', 'windie-shot-test.jpg'].join('/');
+    const retiredMcpPathRoot = ['windie', 'mcp-path-'].join('-');
 
     expect(combined).not.toContain('https://api.windieos.com');
     expect(combined).not.toContain(retiredUnownedShotRoot);
     expect(combined).not.toContain(retiredOpenAppScreenshot);
+    expect(combined).not.toContain(retiredMcpPathRoot);
     expect(combined).toContain('https://backend.example.com');
     expect(combined).toContain('agent-unowned-shot-');
     expect(combined).toContain('/tmp/agent-shot-test.jpg');
+    expect(combined).toContain('agent-mcp-path-');
   });
 
   test('main IPC lifecycle explicit endpoint override fixtures stay product-neutral', async () => {

@@ -90,27 +90,27 @@ describe('local_runtime_execute_tool_runtime', () => {
 
     const result = await runtime.executeTool(null, {
       toolName: 'mcp_memory__search',
-      args: { query: 'windie' },
+      args: { query: 'project notes' },
     });
 
     expect(sendRequest).toHaveBeenCalledWith(
       'execute_tool',
       {
         tool_name: 'mcp_memory__search',
-        args: { query: 'windie' },
+        args: { query: 'project notes' },
       },
       expect.objectContaining({ timeoutMs: expect.any(Number) }),
     );
     expect(result).toEqual({
       success: true,
       data: {
-        output: 'mcp_memory__search:windie',
+        output: 'mcp_memory__search:project notes',
       },
     });
   });
 
   test('does not materialize or delete screenshot paths returned by non-screenshot tools', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-mcp-path-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-mcp-path-'));
     const untrustedPath = path.join(tempDir, 'secret.txt');
     await fsPromises.writeFile(untrustedPath, 'do-not-read-or-delete');
 
@@ -137,7 +137,7 @@ describe('local_runtime_execute_tool_runtime', () => {
     try {
       const result = await runtime.executeTool(null, {
         toolName: 'mcp_memory__search',
-        args: { query: 'windie' },
+        args: { query: 'project notes' },
       });
 
       expect(global.fetch).not.toHaveBeenCalled();

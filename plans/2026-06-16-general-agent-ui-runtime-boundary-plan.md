@@ -19046,3 +19046,18 @@ Each completed slice should report:
   local-runtime store RPC behavior, replay/rehydrate projections, edit/resend
   and retry preparation, provider policy, permissions, storage schema, and
   backend behavior are unchanged.
+
+### 2026-06-21 MCP execution fixture neutrality
+
+- Finding: local-runtime MCP execution coverage still used a Windie-flavored
+  arbitrary temp root and query text while testing that non-screenshot MCP
+  results cannot trigger screenshot-path materialization.
+- Change: switched the disposable MCP path root and query fixture to neutral
+  data and extended the local-runtime helper boundary guard over the execution
+  runtime test.
+- Validation: focused local-runtime execute-tool and modular boundary tests;
+  exact retired MCP fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. MCP tools still route through SDK/main
+  local-runtime dispatch, non-screenshot `screenshot_path` values are still
+  stripped without read/upload/delete, provider policy, permissions, storage,
+  and backend behavior are unchanged.
