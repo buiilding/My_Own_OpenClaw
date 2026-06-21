@@ -41,7 +41,7 @@ function normalizeReadableFiles(readableFiles) {
   return readableFiles.filter((readableFile) => isReadableFileAttachment(readableFile));
 }
 
-export function buildOutgoingMessage(
+function buildOutgoingMessage(
   inputValue,
   isSending,
   clipboardImages = [],
@@ -70,3 +70,7 @@ export function buildOutgoingMessage(
     readableFiles: normalizedReadableFiles,
   };
 }
+
+export const DesktopMessageInputRuntime = Object.freeze({
+  buildOutgoingMessage,
+});

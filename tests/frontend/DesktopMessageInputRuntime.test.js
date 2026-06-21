@@ -2,11 +2,13 @@
  * Covers desktop message input runtime behavior in the frontend test suite.
  */
 
-import {
-  buildOutgoingMessage,
-} from '../../frontend/src/renderer/app/runtime/desktopMessageInputRuntime';
+import { DesktopMessageInputRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageInputRuntime';
 
 describe('desktopMessageInputRuntime', () => {
+  const {
+    buildOutgoingMessage,
+  } = DesktopMessageInputRuntime;
+
   test('returns null for blank/whitespace-only messages', () => {
     expect(buildOutgoingMessage('', false)).toBeNull();
     expect(buildOutgoingMessage('   \n\t', false)).toBeNull();

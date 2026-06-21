@@ -18,7 +18,7 @@ The core rule is: the composer owns selection and preview; renderer send prepara
 ```mermaid
 flowchart LR
     A["MessageInput paste or file picker"] --> B["clipboardImages and readableFiles state"]
-    B --> C["buildOutgoingMessage"]
+    B --> C["DesktopMessageInputRuntime.buildOutgoingMessage"]
     C --> D["useChatMessageSender"]
     D --> E["typed TurnInputResource handles"]
     E --> F["DesktopLiveTurnRuntimeClient.sendQuery"]
@@ -66,7 +66,7 @@ Clipboard image IPC trust boundary:
    - Query screenshot: sender-triggered screenshot capture, not a composer preview.
 
 2. Preserve composer payload shape.
-   - `buildOutgoingMessage(...)` may return a string for text-only sends.
+   - `DesktopMessageInputRuntime.buildOutgoingMessage(...)` may return a string for text-only sends.
    - It must return an object payload when images or readable files are attached.
    - Attachment-only sends should use the existing fallback text rather than blocking submission.
    - Clear the composer draft immediately after local send acceptance so renderer

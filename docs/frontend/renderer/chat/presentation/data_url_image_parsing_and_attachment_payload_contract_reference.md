@@ -95,7 +95,8 @@ Readable files (non-image):
 
 ## Outgoing Message Payload Coupling
 
-`buildOutgoingMessage(...)` consumes parsed image and readable-file collections:
+`DesktopMessageInputRuntime.buildOutgoingMessage(...)` consumes parsed image
+and readable-file collections:
 
 - drops invalid clipboard/readable entries with normalization helpers
 - blocks send when `isSending=true`

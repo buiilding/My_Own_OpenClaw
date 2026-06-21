@@ -4,11 +4,15 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { useTranscription } from './useTranscription';
-import { buildOutgoingMessage } from '../../../app/runtime/desktopMessageInputRuntime';
+import { DesktopMessageInputRuntime } from '../../../app/runtime/desktopMessageInputRuntime';
 import {
   parseClipboardImageItems,
   parseSelectedComposerFiles,
 } from '../../../app/runtime/desktopComposerAttachmentRuntime';
+
+const {
+  buildOutgoingMessage,
+} = DesktopMessageInputRuntime;
 
 export function useChatComposerDraft({
   isSubmitBlocked = false,

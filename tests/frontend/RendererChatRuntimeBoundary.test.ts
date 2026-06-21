@@ -2103,8 +2103,10 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(composerDraftSource).toContain('desktopMessageInputRuntime');
+    expect(composerDraftSource).toContain('DesktopMessageInputRuntime');
     expect(composerDraftSource).not.toContain('utils/message/messageInput');
-    expect(messageInputRuntimeSource).toContain('buildOutgoingMessage');
+    expect(messageInputRuntimeSource).toContain('export const DesktopMessageInputRuntime = Object.freeze');
+    expect(messageInputRuntimeSource).not.toContain('export function buildOutgoingMessage');
     expect(messageInputRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageInput.js'),

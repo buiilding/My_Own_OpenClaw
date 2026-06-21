@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose outgoing composer message payload normalization
+  through `DesktopMessageInputRuntime` instead of a standalone helper export,
+  keeping submit blocking, whitespace trimming, and attachment payload shaping
+  behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose settings-update failure classifiers through
   `DesktopSettingsUpdateErrorRuntime` instead of standalone helper exports,
   keeping config save-status and chat stream error suppression behind the

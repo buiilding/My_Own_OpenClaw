@@ -40,9 +40,9 @@ Expected outcome:
 - all user-send and stream updates mutate `chatStore` through the same setter functions
 - future store action changes can be updated once in `useChatCommonActions` and fan out to both hooks
 
-## Input Normalization Contract (`desktopMessageInputRuntime.js`)
+## Input Normalization Contract (`DesktopMessageInputRuntime`)
 
-`buildOutgoingMessage(inputValue, isSending, clipboardImages?, readableFiles?)` behavior:
+`DesktopMessageInputRuntime.buildOutgoingMessage(inputValue, isSending, clipboardImages?, readableFiles?)` behavior:
 
 1. if `isSending === true`, returns `null` (hard submit block)
 2. otherwise trims text
@@ -59,7 +59,8 @@ Clipboard image validity gate:
 - `base64` must be non-empty string
 - singular `clipboardImage` is not part of the send contract.
 
-`MessageInput.submitMessageValue(...)` only calls `onSendMessage` when `buildOutgoingMessage(...)` returns non-null.
+`MessageInput.submitMessageValue(...)` only calls `onSendMessage` when
+`DesktopMessageInputRuntime.buildOutgoingMessage(...)` returns non-null.
 
 ## MessageInput Voice Boundary
 
@@ -98,7 +99,7 @@ This limits unnecessary updates when stream/send logic repeats identical flags.
 ## Drift Hotspots
 
 1. Adding logic to `useChatCommonActions` can silently fork mutation paths between sender and stream hooks.
-2. Bypassing `buildOutgoingMessage` in new input surfaces can reintroduce whitespace sends, duplicate send attempts, or clipboard payload shape drift.
+2. Bypassing `DesktopMessageInputRuntime.buildOutgoingMessage(...)` in new input surfaces can reintroduce whitespace sends, duplicate send attempts, or clipboard payload shape drift.
 3. Reintroducing a separate voice auto-send path would bypass the current composer-first dictation contract and can create inconsistent trim/block behavior.
 
 ## Related Pages

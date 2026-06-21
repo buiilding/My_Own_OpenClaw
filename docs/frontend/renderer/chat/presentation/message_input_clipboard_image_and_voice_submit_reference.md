@@ -57,7 +57,8 @@ All submit paths call `submitMessageValue(...)`.
 
 `submitMessageValue(...)` behavior:
 
-1. build outgoing payload through `buildOutgoingMessage(input, isSending, clipboardImages, selectedReadableFiles)`.
+1. build outgoing payload through
+   `DesktopMessageInputRuntime.buildOutgoingMessage(input, isSending, clipboardImages, selectedReadableFiles)`.
 2. if payload is null, abort.
 3. call `onSendMessage(payload)`.
 4. clear input/transcription.
@@ -165,7 +166,8 @@ Loop-lock side controls:
 
 Hard send guard:
 
-- if `isSending=true`, `buildOutgoingMessage(...)` returns null.
+- if `isSending=true`, `DesktopMessageInputRuntime.buildOutgoingMessage(...)`
+  returns null.
 
 ## Menu Runtime Notes
 
@@ -193,7 +195,7 @@ The menu does not alter outbound query payload; it only opens the native file-pi
 1. Changing data-URL parse helpers without updating clipboard/file attachment utilities can break preview/base64 payload shaping.
 2. Re-introducing config-driven microphone enablement can make the button look live while doing nothing.
 3. Removing preview reset after submit can leak stale image/file payloads across messages.
-4. Replacing `buildOutgoingMessage` with ad-hoc payload construction can desync sender hook payload union.
+4. Replacing `DesktopMessageInputRuntime.buildOutgoingMessage(...)` with ad-hoc payload construction can desync sender hook payload union.
 
 ## Related Pages
 

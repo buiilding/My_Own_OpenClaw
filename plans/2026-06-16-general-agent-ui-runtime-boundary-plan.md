@@ -23328,3 +23328,20 @@ Each completed slice should report:
   config save-status actions, chat stream error suppression, renderer markup,
   IPC payloads, storage, local-runtime execution, provider policy, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer message input facade helper privacy
+
+- Finding: outgoing composer payload normalization lived in the renderer app
+  runtime, but composer draft code and focused tests still imported the builder
+  as a standalone export.
+- Change: exposed outgoing message construction through
+  `DesktopMessageInputRuntime` and kept `buildOutgoingMessage` private to
+  `desktopMessageInputRuntime`.
+- Validation: focused message-input, composer draft, renderer chat-runtime
+  boundary tests, targeted renderer ESLint, exact source/doc scans, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Submit blocking, whitespace trimming,
+  clipboard image filtering, readable-file filtering, text-only string payloads,
+  attachment object payloads, attachment-only fallback text, renderer markup,
+  IPC payloads, storage, local-runtime execution, provider policy, backend
+  behavior, and trust boundaries are unchanged.
