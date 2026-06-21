@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep app/tray icon path and native-image helpers private to
+  `main_window_icon_runtime.cjs` while window/tray creation consume
+  `createMainWindowIconRuntime(...)`. No migration required.
 - frontend/main: keep SDK live-turn overlay intent parsing and dismissed-response
   filtering private to `live_turn_surface_controller.cjs` while Electron main
   injects only the dismissed-guard lookup. No migration required.

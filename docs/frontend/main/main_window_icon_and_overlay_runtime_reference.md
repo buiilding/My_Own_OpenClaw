@@ -29,19 +29,23 @@ Helper modules own shared primitives:
 
 ## Icon Runtime Contract (`main_window_icon_runtime.cjs`)
 
-### `resolveAppIconPathRuntime(...)`
+`createMainWindowIconRuntime(...)` is the public Electron-main facade for
+icon path resolution and native-image creation. Lower-level path, app-image,
+and tray-image helpers stay private to the icon runtime owner.
+
+### `iconRuntime.resolveAppIconPath(...)`
 
 Candidate search order:
 
-1. `frontend/src/main/assets/icons/windieos.app.png` relative to module `__dirname`
-2. packaged resources path candidate: `${process.resourcesPath}/src/main/assets/icons/windieos.app.png`
-3. cwd fallback candidate: `${process.cwd()}/src/main/assets/icons/windieos.app.png`
+1. `frontend/src/main/assets/icons/<configured-app-icon>` relative to module `__dirname`
+2. packaged resources path candidate: `${process.resourcesPath}/src/main/assets/icons/<configured-app-icon>`
+3. cwd fallback candidate: `${process.cwd()}/src/main/assets/icons/<configured-app-icon>`
 
 Returns first existing path (`existsSync`) or `null`.
 
-### `resolveAppIconNativeImage(...)`
+### `iconRuntime.resolveAppIcon(...)`
 
-- resolves icon path via injected `resolveAppIconPath` (defaults to `resolveAppIconPathRuntime`)
+- resolves icon path via injected `resolveAppIconPath` or the facade path resolver
 - returns `nativeImage.createFromPath(...)` only when non-empty image
 - returns `null` when no valid path/image is available
 - logs warning when path resolves but image is empty/unreadable
@@ -52,7 +56,7 @@ Used by:
 - `createChatWindow` (chat overlay icon)
 - `createResponseWindow` (response overlay icon)
 
-### `resolveTrayIconNativeImage(...)`
+### `iconRuntime.resolveTrayIcon(...)`
 
 - attempts `nativeImage.createFromPath(iconPath)` when provided
 - if path image is empty/unreadable, logs warning and falls back to embedded data URL icon
@@ -110,9 +114,10 @@ Used by:
 
 `tests/frontend/MainWindowIconRuntime.test.cjs`:
 
-- path runtime returns first existing candidate
-- app icon resolver returns null when no path resolves
-- tray icon resolver falls back to data-url icon when path image is empty
+- icon runtime exposes the facade while keeping lower-level helpers private
+- facade path resolver returns first existing candidate
+- facade app icon resolver returns null when no path resolves
+- facade tray icon resolver falls back to data-url icon when path image is empty
 
 `tests/frontend/MainWindowOverlayRuntime.test.cjs`:
 

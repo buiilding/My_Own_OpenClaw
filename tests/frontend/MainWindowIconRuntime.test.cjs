@@ -8,17 +8,28 @@ jest.mock('electron', () => ({
 }));
 
 const {
-  resolveAppIconNativeImage,
-  resolveAppIconPathRuntime,
-  resolveTrayIconNativeImage,
+  createMainWindowIconRuntime,
 } = require('../../frontend/src/main/surfaces/main_window_icon_runtime.cjs');
 
 describe('main_window_icon_runtime', () => {
-  test('resolveAppIconPathRuntime returns the first existing configured icon candidate', () => {
+  const iconRuntime = createMainWindowIconRuntime();
+
+  test('createMainWindowIconRuntime keeps lower-level icon helpers private', () => {
+    const iconRuntimeModule = require('../../frontend/src/main/surfaces/main_window_icon_runtime.cjs');
+
+    expect(typeof iconRuntime.resolveAppIconPath).toBe('function');
+    expect(typeof iconRuntime.resolveAppIcon).toBe('function');
+    expect(typeof iconRuntime.resolveTrayIcon).toBe('function');
+    expect(iconRuntimeModule.resolveAppIconPathRuntime).toBeUndefined();
+    expect(iconRuntimeModule.resolveAppIconNativeImage).toBeUndefined();
+    expect(iconRuntimeModule.resolveTrayIconNativeImage).toBeUndefined();
+  });
+
+  test('resolveAppIconPath returns the first existing configured icon candidate', () => {
     const existsSync = jest.fn((candidate) => String(candidate).includes('cwd')
       && String(candidate).includes('brand.app.png'));
 
-    expect(resolveAppIconPathRuntime({
+    expect(iconRuntime.resolveAppIconPath({
       existsSync,
       resourcesPath: '/resources',
       cwd: '/cwd',
@@ -26,12 +37,12 @@ describe('main_window_icon_runtime', () => {
     })).toBe(require('path').join('/cwd', 'src', 'main', 'assets', 'icons', 'brand.app.png'));
   });
 
-  test('resolveAppIconPathRuntime keeps configured icon resolution inside the icon asset folder', () => {
+  test('resolveAppIconPath keeps configured icon resolution inside the icon asset folder', () => {
     const existsSync = jest.fn((candidate) => String(candidate).endsWith(
       require('path').join('icons', 'brand.png'),
     ));
 
-    const resolvedPath = resolveAppIconPathRuntime({
+    const resolvedPath = iconRuntime.resolveAppIconPath({
       existsSync,
       resourcesPath: '',
       cwd: '/cwd',
@@ -44,17 +55,17 @@ describe('main_window_icon_runtime', () => {
     expect(resolvedPath).not.toContain('..');
   });
 
-  test('resolveAppIconNativeImage returns null when no path resolves', () => {
-    expect(resolveAppIconNativeImage({
+  test('resolveAppIcon returns null when no path resolves', () => {
+    expect(iconRuntime.resolveAppIcon({
       resolveAppIconPath: () => null,
     })).toBeNull();
   });
 
-  test('resolveTrayIconNativeImage falls back to data-url image when path is unreadable', () => {
+  test('resolveTrayIcon falls back to data-url image when path is unreadable', () => {
     const { nativeImage } = require('electron');
     nativeImage.createFromPath.mockReturnValueOnce({ isEmpty: () => true });
 
-    const icon = resolveTrayIconNativeImage({
+    const icon = iconRuntime.resolveTrayIcon({
       iconPath: '/tmp/missing.png',
       warn: jest.fn(),
     });

@@ -3,9 +3,7 @@
  */
 
 const {
-  resolveAppIconNativeImage,
-  resolveAppIconPathRuntime,
-  resolveTrayIconNativeImage,
+  createMainWindowIconRuntime,
 } = require('./main_window_icon_runtime.cjs');
 const {
   attachRendererConsoleLogging,
@@ -27,6 +25,7 @@ const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 164;
 const DEFAULT_OVERLAY_QUERY_CAPTURE_FOCUS_WAIT_MS = 120;
 const PENDING_COLLAPSE_TO_CHAT_PILL_KEY = '__desktopRuntimePendingCollapseToChatPill';
+const mainWindowIconRuntime = createMainWindowIconRuntime();
 
 function normalizeOverlayQueryCaptureFocusWaitMs(value) {
   if (typeof value !== 'number' && typeof value !== 'string') {
@@ -173,7 +172,7 @@ function resolveAppIconPathResolver({
   if (typeof resolveAppIconPath === 'function') {
     return resolveAppIconPath;
   }
-  return () => resolveAppIconPathRuntime({
+  return () => mainWindowIconRuntime.resolveAppIconPath({
     iconFileName: appIconFileName,
   });
 }
@@ -219,7 +218,7 @@ function createMainWindow({
   wakewordStderrLogMarkers = null,
   localRuntimeBridgeCopy = null,
   resolveAppIconPath = null,
-  resolveAppIcon = resolveAppIconNativeImage,
+  resolveAppIcon = mainWindowIconRuntime.resolveAppIcon,
   log = console.log,
   warn = console.warn,
 }) {
@@ -368,7 +367,7 @@ function createChatWindow({
   appIconFileName = null,
   rendererLogPrefix = null,
   resolveAppIconPath = null,
-  resolveAppIcon = resolveAppIconNativeImage,
+  resolveAppIcon = mainWindowIconRuntime.resolveAppIcon,
   log = console.log,
   warn = console.warn,
 }) {
@@ -467,7 +466,7 @@ function createResponseWindow({
   appIconFileName = null,
   rendererLogPrefix = null,
   resolveAppIconPath = null,
-  resolveAppIcon = resolveAppIconNativeImage,
+  resolveAppIcon = mainWindowIconRuntime.resolveAppIcon,
   log = console.log,
   warn = console.warn,
 }) {
@@ -560,7 +559,7 @@ function createTray({
     appIconFileName,
     resolveAppIconPath: resolveTrayIconPath,
   });
-  const icon = resolveTrayIconNativeImage({
+  const icon = mainWindowIconRuntime.resolveTrayIcon({
     iconPath: trayIconPathResolver(),
     warn,
   });

@@ -9,6 +9,26 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Window Icon Runtime Facade
+
+- Finding: `main_window_icon_runtime.cjs` owned app/tray icon path resolution
+  and native-image fallback behavior, but exported lower-level
+  `resolveAppIconPathRuntime(...)`, `resolveAppIconNativeImage(...)`, and
+  `resolveTrayIconNativeImage(...)` helpers directly to
+  `main_window_runtime.cjs` and focused tests.
+- Change: added `createMainWindowIconRuntime(...)` as the public Electron main
+  icon facade and routed dashboard, chat, response, and tray bootstrap through
+  `resolveAppIconPath(...)`, `resolveAppIcon(...)`, and
+  `resolveTrayIcon(...)`, keeping the path/image primitives private to the
+  icon runtime owner.
+- Validation: focused main-window icon/runtime/skin tests, targeted
+  main-window lint, docs listing, stale export/import scans, and diff checks
+  before commit.
+- Compatibility/security: no app icon filename config, tray fallback image,
+  BrowserWindow icon option, tray construction, native window mutation, IPC
+  channel, credential, permission, storage, or trust-boundary migration
+  required; icon resolution and fallback behavior are unchanged.
+
 ### 2026-06-21 Main SDK Live-Turn Surface Intent Privacy
 
 - Finding: `live_turn_surface_controller.cjs` owned SDK current-turn overlay

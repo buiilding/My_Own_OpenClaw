@@ -147,8 +147,8 @@ Close behavior:
   - `Show App` -> `showMainWindow({ focus: true })`
   - `Quit` -> mark quitting and call `app.quit()`
 - double-click opens app
-- tray icon creation delegates to `resolveTrayIconNativeImage(...)`:
-  - path candidate resolution from `resolveAppIconPathRuntime(...)`
+- tray icon creation delegates through `createMainWindowIconRuntime(...)`:
+  - path candidate resolution from `iconRuntime.resolveAppIconPath(...)`
   - fallback to embedded data-url icon when path image is empty/unreadable
 
 ## Drift Hotspots

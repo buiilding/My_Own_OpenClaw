@@ -16,7 +16,7 @@ function normalizeIconFileName(iconFileName) {
   return nodePath.basename(iconFileName.trim());
 }
 
-function resolveAppIconPathRuntime({
+function resolveConfiguredAppIconPath({
   existsSync = fs.existsSync,
   resourcesPath = process.resourcesPath,
   cwd = process.cwd(),
@@ -41,7 +41,7 @@ function resolveAppIconPathRuntime({
   return null;
 }
 
-function resolveTrayIconNativeImage({
+function resolveTrayIconImage({
   iconPath,
   warn = console.warn,
 } = {}) {
@@ -55,8 +55,8 @@ function resolveTrayIconNativeImage({
   return nativeImage.createFromDataURL(TRAY_ICON_FALLBACK_DATA_URL);
 }
 
-function resolveAppIconNativeImage({
-  resolveAppIconPath = resolveAppIconPathRuntime,
+function resolveAppIconImage({
+  resolveAppIconPath = resolveConfiguredAppIconPath,
   warn = console.warn,
 } = {}) {
   const iconPath = resolveAppIconPath();
@@ -71,8 +71,14 @@ function resolveAppIconNativeImage({
   return null;
 }
 
+function createMainWindowIconRuntime() {
+  return Object.freeze({
+    resolveAppIconPath: resolveConfiguredAppIconPath,
+    resolveAppIcon: resolveAppIconImage,
+    resolveTrayIcon: resolveTrayIconImage,
+  });
+}
+
 module.exports = {
-  resolveAppIconNativeImage,
-  resolveAppIconPathRuntime,
-  resolveTrayIconNativeImage,
+  createMainWindowIconRuntime,
 };
