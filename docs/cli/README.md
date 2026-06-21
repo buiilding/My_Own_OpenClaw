@@ -47,7 +47,8 @@ surface. The command tables below use `<windie>` for the active platform shim.
 | `<windie> logs sidecar` | Compatibility alias for local-runtime daemon logs. |
 | `<windie> logs backend --remote --host windie-prod` | Tail remote backend logs through the guarded backend log command. |
 | `<windie> test backend` | Run backend tests. |
-| `<windie> test sidecar` | Run local-runtime Python tests. |
+| `<windie> test local-runtime` | Run local-runtime Python tests. |
+| `<windie> test sidecar` | Compatibility alias for local-runtime Python tests. |
 | `<windie> test frontend` | Run frontend Jest CI tests. |
 | `<windie> test all` | Run backend, local-runtime Python, and frontend validation. |
 | `<windie> docs list` | List docs with front matter and read hints. |

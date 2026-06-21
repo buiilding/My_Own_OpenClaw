@@ -22,7 +22,7 @@ PowerShell and `./scripts/python-in-env.sh` on Unix-like shells.
 | docs front matter and read hints | `<windie> docs list` |
 | whitespace in changed files | `git diff --check` |
 | backend tests | `<windie> test backend` |
-| local-runtime Python tests | `<windie> test sidecar` |
+| local-runtime Python tests | `<windie> test local-runtime` (`<windie> test sidecar` remains a compatibility alias) |
 | backend + local-runtime Python + frontend CI when dependencies exist | `<windie> test all` |
 | frontend Jest CI | `<windie> test frontend` |
 | frontend lint | `cd frontend && npm run lint` |

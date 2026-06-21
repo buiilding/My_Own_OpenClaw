@@ -65,7 +65,8 @@ tables below use `<windie>` for the active platform shim.
 | Command | Purpose |
 | --- | --- |
 | `<windie> test backend [pytest args...]` | Run backend pytest. |
-| `<windie> test sidecar [pytest args...]` | Run local-runtime Python pytest. |
+| `<windie> test local-runtime [pytest args...]` | Run local-runtime Python pytest. |
+| `<windie> test sidecar [pytest args...]` | Compatibility alias for local-runtime Python pytest. |
 | `<windie> test frontend [jest args...]` | Run frontend Jest CI tests. |
 | `<windie> test all` | Run backend, local-runtime Python, and frontend tests. |
 | `<windie> test pick <area>` | Print or run test-selection presets. |

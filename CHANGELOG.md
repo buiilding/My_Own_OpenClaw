@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/test: add `test local-runtime` as the primary local-runtime Python test
+  command and keep `test sidecar` as a compatibility alias for the existing
+  wrapper. No migration required.
 - cli/build: add `build local-runtime` as the primary bundled Python
   local-runtime build command and keep `build sidecar-runtime` as a
   compatibility alias for the existing npm build script. No migration required.

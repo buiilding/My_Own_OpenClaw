@@ -116,6 +116,8 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('<windie> start dev');
     expect(result.stdout).toContain('<windie> start customer');
     expect(result.stdout).toContain('<windie> start all');
+    expect(result.stdout).toContain('<windie> test local-runtime');
+    expect(result.stdout).toContain('<windie> test sidecar');
     expect(result.stdout).toContain('<windie> logs frontend');
     expect(result.stdout).toContain('<windie> logs vite');
     expect(result.stdout).toContain('<windie> logs main');
@@ -269,6 +271,12 @@ describe('windie CLI', () => {
         cwd: repoRoot,
       });
     expect(getSpawnPlan(['test', 'sidecar', '--', 'tests/sidecar/test_tool_registry.py', '-q']))
+      .toMatchObject({
+        command: path.join(repoRoot, 'scripts/test-sidecar.sh'),
+        args: ['tests/sidecar/test_tool_registry.py', '-q'],
+        cwd: repoRoot,
+      });
+    expect(getSpawnPlan(['test', 'local-runtime', '--', 'tests/sidecar/test_tool_registry.py', '-q']))
       .toMatchObject({
         command: path.join(repoRoot, 'scripts/test-sidecar.sh'),
         args: ['tests/sidecar/test_tool_registry.py', '-q'],

@@ -88,7 +88,8 @@ Lifecycle and logs:
 
 Tests and docs:
   <windie> test backend [args...]
-  <windie> test sidecar [args...]
+  <windie> test local-runtime [args...]
+  <windie> test sidecar [args...]  # alias
   <windie> test frontend [args...]
   <windie> test all
   <windie> test pick <area>
@@ -1246,7 +1247,7 @@ function runTest(args) {
   if (target === 'backend') {
     return runForeground(script('scripts/test-backend.sh'), rest, { cwd: REPO_ROOT });
   }
-  if (target === 'sidecar') {
+  if (target === 'local-runtime' || target === 'sidecar') {
     return runForeground(script('scripts/test-sidecar.sh'), rest, { cwd: REPO_ROOT });
   }
   if (target === 'frontend') {
@@ -1277,7 +1278,7 @@ function runTest(args) {
     }
     return;
   }
-  throw new Error('Usage: <windie> test backend|sidecar|frontend|all|pick <area>');
+  throw new Error('Usage: <windie> test backend|local-runtime|sidecar|frontend|all|pick <area>');
 }
 
 function printDocsSearch(topic, usage) {
@@ -1716,7 +1717,7 @@ function getSpawnPlan(argv) {
   if (command === 'test' && args[0] === 'backend') {
     return { command: script('scripts/test-backend.sh'), args: stripSeparator(args.slice(1)), cwd: REPO_ROOT };
   }
-  if (command === 'test' && args[0] === 'sidecar') {
+  if (command === 'test' && (args[0] === 'local-runtime' || args[0] === 'sidecar')) {
     return { command: script('scripts/test-sidecar.sh'), args: stripSeparator(args.slice(1)), cwd: REPO_ROOT };
   }
   if (command === 'test' && args[0] === 'frontend') {

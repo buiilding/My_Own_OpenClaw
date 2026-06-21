@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 CLI Local-Runtime Test Command Boundary
+
+- Finding: the Windie CLI only exposed `test sidecar` for local-runtime Python
+  pytest, so help/docs taught the historical sidecar command as the primary
+  test surface even though the wrapper now uses the canonical local-runtime
+  Python env target internally.
+- Change: added `test local-runtime` as the primary CLI command, kept
+  `test sidecar` as a compatibility alias, and added spawn-plan coverage for
+  both routes.
+- Validation: focused Windie CLI help/test-route Jest coverage, exact
+  sidecar-primary test-command scan for CLI docs/help, docs list, and diff
+  hygiene.
+- Compatibility/security: no migration required. The existing
+  `scripts/test-sidecar.sh` wrapper, pytest target paths, local-runtime Python
+  environment selection, permissions, credentials, IPC, and tool execution are
+  unchanged.
+
 ### 2026-06-21 CLI Local-Runtime Build Command Boundary
 
 - Finding: the Windie CLI only exposed `build sidecar-runtime` for the bundled
