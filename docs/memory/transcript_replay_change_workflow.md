@@ -112,8 +112,8 @@ flowchart LR
 | Dashboard resume actions | `<windie> test frontend -- ConversationReplayActions DashboardConversationLoad DesktopConversationStore UseDashboardConversations` |
 | Rehydrate payload construction | `<windie> test frontend -- AgentSdkConversationRuntime ConversationContinuityService DesktopConversationReplayRuntime` |
 | Backend rehydrate normalization/linkage/transparency | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py tests/backend/test_rehydrate_transparency_resolution.py` |
-| Local-runtime transcript storage/list/window/delete | `./scripts/python-in-env sidecar pytest tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py tests/sidecar/test_local_store_delete_cleanup.py` |
-| Local-runtime conversation search | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py` |
+| Local-runtime transcript storage/list/window/delete | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py tests/sidecar/test_local_store_delete_cleanup.py` |
+| Local-runtime conversation search | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py` |
 | Docs-only transcript workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 ## Debug Playbooks

@@ -199,4 +199,4 @@ Wakeword detection runs as a separate Python subprocess:
   - If `directory` is omitted, `run_shell_command` starts in the user-selected workspace folder when `filesystem_workspace_access` has a stored selected path; otherwise it falls back to the OS user home directory.
   - Relative `directory` values such as `.` or `src/components` resolve from that same default base directory instead of requiring absolute paths.
   - Use `process` to list/poll/log/write/kill backgrounded shell sessions.
-- Run: `<windie> test sidecar` (preferred), or `./scripts/python-in-env sidecar python -m pytest tests/sidecar`.
+- Run: `<windie> test local-runtime` (preferred), or `./scripts/python-in-env local-runtime python -m pytest tests/sidecar`.

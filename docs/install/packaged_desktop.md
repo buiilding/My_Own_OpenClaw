@@ -36,7 +36,7 @@ policy:
 <windie> package win
 ```
 
-Windows package builds still need Bash because `<windie> build sidecar-runtime`
+Windows package builds still need Bash because `<windie> build local-runtime`
 calls `../scripts/build-sidecar-runtime`. Use Git Bash or ensure Bash is on
 `PATH` before running the package command.
 
@@ -51,7 +51,7 @@ Package targets:
 The bundled local-runtime Python archive is built with:
 
 ```bash
-<windie> build sidecar-runtime
+<windie> build local-runtime
 ```
 
 That command calls `../scripts/build-sidecar-runtime`. Runtime dependencies are listed under `frontend/src/main/python/requirements*.txt`.

@@ -62,7 +62,7 @@ Focused tests:
 
 ```bash
 <windie> test backend
-<windie> test sidecar
+<windie> test local-runtime
 <windie> test frontend
 ```
 

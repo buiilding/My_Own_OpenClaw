@@ -69,7 +69,7 @@ Inspect:
 Validate:
 
 ```bash
-<windie> test sidecar tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py -q
+<windie> test local-runtime tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py -q
 ```
 
 ## Semantic Memory Is Missing
@@ -84,7 +84,7 @@ Inspect:
 Validate:
 
 ```bash
-<windie> test sidecar tests/sidecar/test_memory_summarizer.py tests/sidecar/test_conversation_semanticization_runtime.py tests/sidecar/test_remote_semantic_client.py -q
+<windie> test local-runtime tests/sidecar/test_memory_summarizer.py tests/sidecar/test_conversation_semanticization_runtime.py tests/sidecar/test_remote_semantic_client.py -q
 <windie> test backend tests/backend/test_memory_routes.py tests/backend/test_semantic_parser_service.py -q
 ```
 
@@ -99,6 +99,6 @@ Inspect:
 Validate:
 
 ```bash
-<windie> test sidecar tests/sidecar/test_local_backend.py tests/sidecar/test_chat_event_store.py -q
+<windie> test local-runtime tests/sidecar/test_local_backend.py tests/sidecar/test_chat_event_store.py -q
 <windie> test backend tests/backend/test_memory_routes.py -q
 ```

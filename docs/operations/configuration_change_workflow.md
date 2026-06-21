@@ -173,7 +173,7 @@ Primary files:
 Validation:
 
 - focused local-runtime Python pytest.
-- `<windie> build sidecar-runtime` if runtime dependencies or packaged launch env changed.
+- `<windie> build local-runtime` if runtime dependencies or packaged launch env changed.
 - target OS package smoke when packaged env behavior changed.
 
 ## Review Checklist

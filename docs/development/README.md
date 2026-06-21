@@ -33,7 +33,7 @@ Use this hub when you are about to edit code. It routes a change to the right su
 | Backend | FastAPI routes, websocket messages, agent loop, LLM providers, model-facing tools, inference routes, artifacts, memory APIs | [Backend Hub](../backend/README.md), [Agent Development Workflow](agent_development_workflow.md) | `<windie> test backend` or focused `./scripts/python-in-env backend python -m pytest tests/backend/...` |
 | Electron main | windows, overlays, IPC handlers, SDK-runtime adapter, local-runtime host/status context, permissions, packaged runtime env | [Frontend Main Hub](../frontend/main/README.md), [Frontend Runtime Hub](../frontend/runtime/README.md) | focused frontend Jest tests under `tests/frontend`, `<windie> test frontend` |
 | Renderer | React UI, chat/dashboard/settings/memory/model surfaces, transcript queue, projected tool state, audio playback | [Frontend Renderer Hub](../frontend/renderer/README.md) | focused frontend Jest tests, `cd frontend && npm run lint` for touched UI code |
-| Local runtime implementation | local JSON-RPC, computer/filesystem/system/browser tools, local memory, wakeword services, backend HTTP clients | [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md) | `<windie> test sidecar` or focused `./scripts/python-in-env sidecar python -m pytest tests/sidecar/...` |
+| Local runtime implementation | local JSON-RPC, computer/filesystem/system/browser tools, local memory, wakeword services, backend HTTP clients | [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md) | `<windie> test local-runtime` or focused `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/...` |
 | Docs | agent routing maps, domain hubs, implementation references, runbooks | [Documentation Hub](../getting-started/docs_hub.md) | `<windie> docs list` and link checks for touched docs |
 | Packaging/operations | Electron Builder, bundled Python runtime, local reinstall helpers, release workflow, hosted backend ops | [Operations Hub](../operations/README.md) | target OS package/smoke helper plus `<windie> docs list` |
 
@@ -42,11 +42,11 @@ Use this hub when you are about to edit code. It routes a change to the right su
 Repo-root scripts:
 
 - `<windie> docs list` or `<windie> docs list`
-- Windows PowerShell: `scripts\python-in-env.cmd <backend|sidecar|frontend> <cmd...>`
-- Unix-like shells: `./scripts/python-in-env.sh <backend|sidecar|frontend> <cmd...>`
+- Windows PowerShell: `scripts\python-in-env.cmd <backend|local-runtime|sidecar|frontend> <cmd...>`
+- Unix-like shells: `./scripts/python-in-env.sh <backend|local-runtime|sidecar|frontend> <cmd...>`
 - `<windie> test all`
 - `<windie> test backend`
-- `<windie> test sidecar`
+- `<windie> test local-runtime`
 - `<windie> start backend`
 - `<windie> start frontend`
 - `<windie> start desktop`

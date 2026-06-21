@@ -220,7 +220,7 @@ For plugin, skill, or MCP contract changes, run:
 cd frontend
 npm test -- --runTestsByPath ../tests/frontend/ExtensionManifest.test.cjs ../tests/frontend/McpRuntime.test.cjs ../tests/frontend/AgentSdkClient.test.ts --runInBand
 cd ..
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_tool_manifest.py tests/sidecar/test_sidecar_daemon.py tests/sidecar/test_repo_agent_example.py -q
+./scripts/python-in-env local-runtime python -m pytest tests/sidecar/test_tool_manifest.py tests/sidecar/test_sidecar_daemon.py tests/sidecar/test_repo_agent_example.py -q
 ```
 
 Run backend client-manifest tests if the manifest shape changes:

@@ -220,7 +220,7 @@ Then run full suites relevant to your change:
 
 ```bash
 <windie> test backend
-<windie> test sidecar
+<windie> test local-runtime
 ```
 
 ## Local Runtime Result Contract

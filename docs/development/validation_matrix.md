@@ -16,7 +16,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | --- | --- |
 | docs listing/front matter | `<windie> docs list` |
 | all Python backend tests | `<windie> test backend` |
-| all local-runtime Python tests | `<windie> test sidecar` |
+| all local-runtime Python tests | `<windie> test local-runtime` |
 | backend + sidecar + frontend CI tests when `frontend/node_modules` exists | `<windie> test all` |
 | frontend Jest CI | `<windie> test frontend` |
 | frontend typecheck | `cd frontend && npm run typecheck` |
@@ -33,7 +33,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | backend route/handler/schema | `./scripts/python-in-env backend python -m pytest tests/backend/<focused_test>.py` | run `<windie> test backend` for shared API or session behavior |
 | backend agent loop/history/tool processing | focused backend test under `tests/backend` | run `<windie> test backend` for loop or history contract changes |
 | LLM provider/model catalog | focused provider/model tests under `tests/backend` | run backend provider/model suite and `<windie> docs list` |
-| local-runtime tool implementation | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/<focused_test>.py` | run `<windie> test sidecar` for registry or shared result changes |
+| local-runtime tool implementation | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/<focused_test>.py` | run `<windie> test local-runtime` for registry or shared result changes |
 | frontend renderer state/UI | `<windie> test frontend -- <test_file>` | run `cd frontend && npm run lint && <windie> test frontend` for broader UI changes |
 | Electron main/IPC | focused `tests/frontend/*.test.cjs` or related Jest test | run `<windie> test frontend` for shared bridge changes |
 | transcript/replay | focused transcript tests | include backend rehydrate/history tests when backend replay shape changes |

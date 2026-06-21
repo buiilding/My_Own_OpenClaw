@@ -68,7 +68,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 | Vision route behavior | SDK route tests plus focused vision service/provider tests |
 | SDK/backend wire contract | `./scripts/python-in-env backend pytest tests/backend/test_sdk_runtime_backend_contract.py -q`; skips only when Node/npm or `packages/windie-sdk-js/node_modules` are unavailable |
 | TypeScript client change | `<windie> test frontend -- AgentSdkClient` |
-| Python SDK package client change | `<windie> test sidecar -- tests/sidecar/test_windie_sdk_client.py -q` |
+| Python SDK package client change | `<windie> test local-runtime -- tests/sidecar/test_windie_sdk_client.py -q` |
 | Public route surface change | Docs-list plus focused Markdown link check for SDK/web/reference docs |
 
 ## Related Docs

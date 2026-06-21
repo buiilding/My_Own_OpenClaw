@@ -1,5 +1,5 @@
 ---
-summary: "Sidecar filesystem tool reference for `read_file` and `replace`: path/encoding guards, windowed read contracts, replace legacy field guard removal, canonical replacements[] edit mode, lenient-vs-strict replacement matching, and patch-chunk application semantics."
+summary: "Local-runtime filesystem tool reference for `read_file` and `replace`: path/encoding guards, windowed read contracts, replace legacy field guard removal, canonical replacements[] edit mode, lenient-vs-strict replacement matching, and patch-chunk application semantics."
 read_when:
   - When changing sidecar filesystem tool behavior, especially read pagination or replace matching rules.
   - When debugging replace legacy field guard behavior, top-level old_string/new_string payloads, replace ambiguity failures, patch-chunk context misses, or read-file truncation messages.

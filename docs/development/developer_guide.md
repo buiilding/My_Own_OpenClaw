@@ -256,7 +256,7 @@ tests/backend/
 
 **Run Tests**:
 ```bash
-<windie> test sidecar
+<windie> test local-runtime
 ```
 
 **Test Structure**:

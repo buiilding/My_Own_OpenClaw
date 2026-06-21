@@ -17,11 +17,11 @@ Run from the repository root:
 
 | Command | Builds | Notes |
 | --- | --- | --- |
-| `<windie> package <platform>` | Electron Builder targets for the chosen OS | Runs `<windie> build sidecar-runtime` and frontend builds first |
+| `<windie> package <platform>` | Electron Builder targets for the chosen OS | Runs `<windie> build local-runtime` and frontend builds first |
 | `<windie> package mac` | macOS DMG and ZIP | Must run on macOS |
 | `<windie> package win` | Windows NSIS installer | Must run on Windows |
 | `<windie> package linux` | Linux AppImage, DEB, RPM | Must run on Linux |
-| `<windie> build sidecar-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-sidecar-runtime.sh` |
+| `<windie> build local-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-sidecar-runtime.sh` |
 
 ## Runtime Build Ownership
 

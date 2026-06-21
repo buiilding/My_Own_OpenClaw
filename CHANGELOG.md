@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: update active validation, browser, memory, tool, platform,
+  install, release, and development examples to use `python-in-env
+  local-runtime`, `<windie> test local-runtime`, and `<windie> build
+  local-runtime` as the primary local-runtime Python commands. No migration
+  required.
 - cli/test: add `test local-runtime` as the primary local-runtime Python test
   command and keep `test sidecar` as a compatibility alias for the existing
   wrapper. No migration required.

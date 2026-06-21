@@ -29,7 +29,7 @@ WindieOS failures are easiest to debug by locating the runtime boundary first.
 <windie> docs list
 git status --short --branch
 <windie> test backend
-<windie> test sidecar
+<windie> test local-runtime
 <windie> test frontend
 cd frontend && npm run lint
 ```

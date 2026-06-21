@@ -282,9 +282,9 @@ Validate:
 | SDK transcript writes/session storage | `<windie> test frontend -- DesktopConversationContinuityService DesktopConversationStore SdkDisplayChatMessageProjection TranscriptStorage TranscriptSession` |
 | Frontend config persistence | `<windie> test frontend -- configStorage AppConfigPersistence AppConfigProvider` |
 | Electron install auth state | focused frontend install-auth/IPC tests plus backend auth tests if contract changes |
-| Local-runtime SQLite/memory schema | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_store_init.py tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py` |
+| Local-runtime SQLite/memory schema | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/test_local_store_init.py tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py` |
 | Local-runtime FAISS/vector mapping | local-runtime memory delete/search/init tests and corrupted-index coverage |
-| Semanticization/watermark | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_memory_summarizer.py` plus semanticization tests |
+| Semanticization/watermark | `./scripts/python-in-env local-runtime python -m pytest tests/sidecar/test_memory_summarizer.py` plus semanticization tests |
 | Backend artifacts | `./scripts/python-in-env backend pytest tests/backend/test_artifacts_store.py` plus artifact route tests |
 | Backend install-auth DB | `./scripts/python-in-env backend pytest tests/backend/test_install_auth.py` |
 | Backend tool/result caches | `./scripts/python-in-env backend pytest tests/backend/test_tool_result_storage.py tests/backend/test_resolved_tool_call_storage.py tests/backend/test_cache_layer.py` |

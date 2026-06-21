@@ -21,9 +21,9 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 | docs whitespace and patch hygiene | `git diff --check` |
 | frontend focused tests | `cd frontend && npm run test -- <pattern>` |
 | frontend CI suite | `<windie> test frontend` |
-| local-runtime Python focused tests | `./scripts/python-in-env sidecar pytest <path>` |
-| local-runtime Python suite | `<windie> test sidecar` |
-| bundled Python runtime build | `<windie> build sidecar-runtime` |
+| local-runtime Python focused tests | `./scripts/python-in-env local-runtime pytest <path>` |
+| local-runtime Python suite | `<windie> test local-runtime` |
+| bundled Python runtime build | `<windie> build local-runtime` |
 | macOS package | `<windie> package mac` |
 | Windows package | `<windie> package win` |
 | Linux package | `<windie> package linux` |
@@ -95,7 +95,7 @@ Run broader validation when:
 Suggested broader checks:
 
 - `<windie> test frontend`
-- `<windie> test sidecar`
+- `<windie> test local-runtime`
 - `<windie> test backend` when backend tool schemas, OCR/vision, or hosted route payloads changed
 - target OS package build and smoke helper when installed-app behavior changed
 

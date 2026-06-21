@@ -12,9 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: `<windie> test local-runtime` is now the primary CLI
-  command for local-runtime Python tests, while `<windie> test sidecar` remains
-  as a compatibility alias for the existing wrapper.
+- Latest completed slice: active validation, browser, memory, tool, platform,
+  install, release, and development docs now teach `python-in-env
+  local-runtime`, `<windie> test local-runtime`, and `<windie> build
+  local-runtime` as the primary local-runtime Python commands while preserving
+  compatibility alias documentation in CLI-specific tables.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -35,6 +37,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
   prefix, bundled runtime copy, env keys, runs header, wakeword model, and
   browser warmup copy remain host-skin owned.
+  Active local-runtime validation docs use the canonical `local-runtime`
+  wrapper, test, and build commands; historical plan/report records and
+  CLI-specific compatibility alias rows still mention the old names where the
+  alias itself is the subject.
   CLI test routing exposes `test local-runtime` as the owner-correct command
   for local-runtime Python pytest while preserving `test sidecar` and the
   `scripts/test-sidecar.sh` compatibility wrapper.

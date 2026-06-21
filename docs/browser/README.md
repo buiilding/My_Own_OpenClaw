@@ -42,7 +42,7 @@ Do not edit the renderer to compensate for local-runtime browser payload bugs. S
 
 ```bash
 <windie> test backend tests/backend/test_browser_remote_tool.py -q
-<windie> test sidecar tests/sidecar/test_browser_registry.py tests/sidecar/test_feature_pack_installer.py -q
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
+<windie> test local-runtime tests/sidecar/test_browser_registry.py tests/sidecar/test_feature_pack_installer.py -q
+./scripts/python-in-env local-runtime python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
 <windie> test frontend -- ChatBrowserSessionControl.test.jsx
 ```

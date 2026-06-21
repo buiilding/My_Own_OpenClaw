@@ -113,13 +113,13 @@ When changing platform adapters or system state:
 
 | Changed surface | Focused validation |
 | --- | --- |
-| JSON-RPC protocol or method registry | `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_local_backend.py` |
-| Tool registry/schema/result | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py tests/sidecar/test_tool_result.py` |
+| JSON-RPC protocol or method registry | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_local_backend.py` |
+| Tool registry/schema/result | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py tests/sidecar/test_tool_result.py` |
 | Filesystem/shell/computer/system tool | Focused `tests/sidecar/test_*_tool.py` for that tool family |
-| Browser runtime | `./scripts/python-in-env sidecar pytest tests/sidecar/tools` plus focused browser runtime tests |
-| Memory runtime/storage | `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` |
-| Backend config/remote semantic client | `./scripts/python-in-env sidecar pytest tests/sidecar/test_backend_config.py tests/sidecar/test_remote_semantic_client.py` |
-| Wakeword service | `./scripts/python-in-env sidecar pytest tests/sidecar/test_wakeword_service.py` plus frontend wakeword bridge tests if framing changes |
+| Browser runtime | `./scripts/python-in-env local-runtime pytest tests/sidecar/tools` plus focused browser runtime tests |
+| Memory runtime/storage | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` |
+| Backend config/remote semantic client | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_backend_config.py tests/sidecar/test_remote_semantic_client.py` |
+| Wakeword service | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_wakeword_service.py` plus frontend wakeword bridge tests if framing changes |
 | Docs-only sidecar workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Review Checklist

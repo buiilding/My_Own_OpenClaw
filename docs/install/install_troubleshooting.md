@@ -46,14 +46,14 @@ Frontend:
 Local-runtime Python:
 
 ```bash
-<windie> test sidecar
+<windie> test local-runtime
 WINDIE_SIDECAR_LOG_LEVEL=DEBUG <windie> start dev
 ```
 
 Packaging:
 
 ```bash
-<windie> build sidecar-runtime
+<windie> build local-runtime
 <windie> package mac
 ```
 

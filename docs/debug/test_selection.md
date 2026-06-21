@@ -14,12 +14,12 @@ Use focused tests while iterating, then run the broad suite for the touched runt
 
 ```bash
 <windie> test backend
-<windie> test sidecar
+<windie> test local-runtime
 <windie> test frontend
 cd frontend && npm run lint
 ```
 
-`<windie> test backend` and `<windie> test sidecar` use
+`<windie> test backend` and `<windie> test local-runtime` use
 the platform `scripts/python-in-env` wrapper, so do not manually activate conda environments. Use
 `<windie> test pick <area>` to find common focused validation commands.
 
@@ -44,10 +44,10 @@ the platform `scripts/python-in-env` wrapper, so do not manually activate conda 
 | Permissions/onboarding | `<windie> test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx DesktopOnboardingSlideshow.test.jsx` |
 | Artifacts/screenshots | `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx AgentSdkConversationRuntime.test.ts LocalRuntimeExecuteToolRuntime.test.cjs` |
 | Voice/wakeword | `<windie> test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts` |
-| Local-runtime Python protocol/tools | `<windie> test sidecar -- tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q` |
-| Sidecar filesystem/shell | `<windie> test sidecar -- tests/sidecar/test_read_file_tool.py tests/sidecar/test_replace_tool.py tests/sidecar/test_shell_process_tool.py -q` |
-| Sidecar browser | `<windie> test sidecar -- tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine_runtime.py tests/sidecar/tools/test_browser_schemas.py -q` |
-| Local-runtime memory | `<windie> test sidecar -- tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search_helpers.py -q` |
+| Local-runtime Python protocol/tools | `<windie> test local-runtime -- tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q` |
+| Local-runtime filesystem/shell | `<windie> test local-runtime -- tests/sidecar/test_read_file_tool.py tests/sidecar/test_replace_tool.py tests/sidecar/test_shell_process_tool.py -q` |
+| Local-runtime browser | `<windie> test local-runtime -- tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine_runtime.py tests/sidecar/tools/test_browser_schemas.py -q` |
+| Local-runtime memory | `<windie> test local-runtime -- tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search_helpers.py -q` |
 
 ## Contract Changes
 
@@ -55,7 +55,7 @@ Run tests on both sides of the boundary when a payload crosses processes.
 
 | Contract | Run |
 | --- | --- |
-| Backend model-facing tool schema and local-runtime executable tools | `<windie> test backend -- tests/backend/test_remote_tool_contract.py -q` plus `<windie> test sidecar -- tests/sidecar/test_shared_tool_schema_parity.py -q` |
+| Backend model-facing tool schema and local-runtime executable tools | `<windie> test backend -- tests/backend/test_remote_tool_contract.py -q` plus `<windie> test local-runtime -- tests/sidecar/test_shared_tool_schema_parity.py -q` |
 | SDK result envelope and renderer tool display | `<windie> test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `<windie> test frontend -- AgentSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolOutputContent` |
 | Response overlay phase names | `<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
 | Transcript/replay/display rows | `<windie> test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |

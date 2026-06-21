@@ -28,7 +28,7 @@ Use the repo launchers:
 
 ```bash
 ./scripts/python-in-env backend python --version
-./scripts/python-in-env sidecar python --version
+./scripts/python-in-env local-runtime python --version
 cd frontend && node --version
 ```
 

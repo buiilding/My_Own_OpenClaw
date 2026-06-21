@@ -194,10 +194,10 @@ Provider projection should happen after canonical schema filtering. Do not make 
 | --- | --- |
 | backend catalog/name registration | `./scripts/python-in-env backend pytest tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py tests/backend/test_remote_tools.py` |
 | client manifest validation | `./scripts/python-in-env backend pytest tests/backend/test_client_tool_manifest.py` plus Electron client manifest builder tests when client payload generation changes |
-| backend tool schema fields | tool-specific backend schema tests plus `./scripts/python-in-env sidecar pytest tests/sidecar/test_shared_tool_schema_parity.py` when parity applies |
+| backend tool schema fields | tool-specific backend schema tests plus `./scripts/python-in-env local-runtime pytest tests/sidecar/test_shared_tool_schema_parity.py` when parity applies |
 | policy/profile/capability visibility | `./scripts/python-in-env backend pytest tests/backend/test_tool_policy.py tests/backend/test_tool_selection.py tests/backend/test_provider_health_policy.py` |
 | parser/preparation validation | `./scripts/python-in-env backend pytest tests/backend/test_tool_preparer.py tests/backend/test_interaction_tool_call_bridge.py` plus backend-tool validation tests |
-| local-runtime executable tool | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py` plus tool-specific local-runtime Python tests |
+| local-runtime executable tool | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py` plus tool-specific local-runtime Python tests |
 | SDK/main dispatch/result envelope | focused `cd frontend && npm run test -- AgentSdkClient AgentSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` tests |
 | bundle/result/history | backend result/bundle/history tests plus SDK/main bundle execution tests |
 | docs-only tool workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |

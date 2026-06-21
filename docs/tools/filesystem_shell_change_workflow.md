@@ -127,10 +127,10 @@ flowchart LR
 | --- | --- |
 | Backend filesystem/system schema, prompt visibility, or policy | `./scripts/python-in-env backend pytest tests/backend/test_tool_registry_schema.py tests/backend/test_tool_specs.py tests/backend/test_tool_policy.py tests/backend/test_system_use_schema_contract.py` |
 | Backend tool dispatch/result continuation | `./scripts/python-in-env backend pytest tests/backend/test_tool_result_orchestrator.py tests/backend/test_tool_result_receiver.py tests/backend/test_tool_result_router.py tests/backend/test_tool_result_handler.py` |
-| Local-runtime `read_file` behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_read_file_tool.py` |
-| Local-runtime `replace` behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_replace_engine.py tests/sidecar/test_replace_tool.py` |
-| Local-runtime shell/process behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py` |
-| Local-runtime registry/result normalization | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py` |
+| Local-runtime `read_file` behavior | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_read_file_tool.py` |
+| Local-runtime `replace` behavior | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_replace_engine.py tests/sidecar/test_replace_tool.py` |
+| Local-runtime shell/process behavior | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py` |
+| Local-runtime registry/result normalization | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_tool_registry.py` |
 | Electron bridge argument shaping and local tool failures | `cd frontend && npm run test -- LocalRuntimeToolArgs LocalRuntimeBridge.lifecycle` |
 | SDK/main dispatch/result envelope behavior | `cd frontend && npm run test -- AgentSdkClient AgentSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` |
 | Tool event parsing and display projection | `cd frontend && npm run test -- DesktopChatStreamEventPayloadRuntime ChatBoxResponse ChatStreamToolHandlers` |

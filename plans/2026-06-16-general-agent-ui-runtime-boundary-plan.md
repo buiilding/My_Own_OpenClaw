@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Validation Command Docs Boundary
+
+- Finding: after adding canonical `local-runtime` CLI and wrapper targets,
+  active browser, memory, tool, platform, install, release, and development
+  docs still taught `python-in-env sidecar`, `<windie> test sidecar`, or
+  `<windie> build sidecar-runtime` as primary local-runtime validation
+  commands.
+- Change: updated active docs outside historical plan/report records and
+  CLI-specific alias tables to use `python-in-env local-runtime`,
+  `<windie> test local-runtime`, and `<windie> build local-runtime`, and
+  renamed sidecar filesystem/browser test-selection rows to local-runtime
+  labels.
+- Validation: targeted active-doc command scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. The compatibility aliases,
+  concrete `tests/sidecar` paths, Python local-runtime code, packaging scripts,
+  permissions, credentials, IPC, and tool execution are unchanged.
+
 ### 2026-06-21 CLI Local-Runtime Test Command Boundary
 
 - Finding: the Windie CLI only exposed `test sidecar` for local-runtime Python

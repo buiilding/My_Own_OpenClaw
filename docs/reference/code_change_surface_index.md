@@ -103,7 +103,7 @@ If a change seems to belong to two rows, change the producer first and then upda
 | Changed surface | Minimum focused validation |
 | --- | --- |
 | Backend agent, tools, providers, routes, SDK, OCR/vision, memory, or runs | `<windie> test backend` or narrower `./scripts/python-in-env backend pytest ...` |
-| Local-runtime tool implementations, browser, shell/filesystem/computer/system, or local memory | `<windie> test sidecar` or narrower `./scripts/python-in-env sidecar pytest ...` |
+| Local-runtime tool implementations, browser, shell/filesystem/computer/system, or local memory | `<windie> test local-runtime` or narrower `./scripts/python-in-env local-runtime pytest ...` |
 | Renderer UI, stores, websocket clients, transcript, settings, voice, permissions, or landing | `cd frontend && npm run test -- <pattern>` or `<windie> test frontend` |
 | IPC, preload, tool execution, screenshot/overlay, or endpoint forwarding | Add both frontend tests and a boundary smoke/manual check when the behavior depends on Electron runtime |
 | Docs-only changes | `<windie> docs list`, `git diff --check`, and focused Markdown link checks for touched files |

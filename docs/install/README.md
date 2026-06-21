@@ -34,7 +34,7 @@ WindieOS install docs cover source-mode development, packaged desktop validation
 - Focused Vite dev server: `<windie> start frontend`
 - Focused Electron dev app: `<windie> start desktop`
 - Frontend package build: `<windie> package mac`, `<windie> package win`, or `<windie> package linux`
-- Local-runtime Python build: `<windie> build sidecar-runtime`
+- Local-runtime Python build: `<windie> build local-runtime`
 - Command health summary: `<windie> status --all`
 - Diagnostic pass: `<windie> doctor --deep`
 

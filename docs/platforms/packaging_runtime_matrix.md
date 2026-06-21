@@ -22,7 +22,7 @@ For implementation routing, start with [Release and Packaging Change Workflow](.
 
 All package commands run the frontend release check before producing
 distributable artifacts. That check runs frontend typecheck, lint, and tests;
-only then do package commands run `<windie> build sidecar-runtime`,
+only then do package commands run `<windie> build local-runtime`,
 `<windie> build frontend`, and Electron Builder.
 
 ## Bundled Runtime Rules
@@ -47,7 +47,7 @@ only then do package commands run `<windie> build sidecar-runtime`,
 
 For platform packaging changes:
 
-1. Run `<windie> build sidecar-runtime`.
+1. Run `<windie> build local-runtime`.
 2. Run the platform package command on the target OS.
 3. Inspect package contents for `resources/python-runtime`.
 4. Launch the installed app, not only Electron dev.

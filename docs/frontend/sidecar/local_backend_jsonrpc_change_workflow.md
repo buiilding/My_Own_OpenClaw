@@ -185,9 +185,9 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 
 | Changed surface | Validation |
 | --- | --- |
-| JSON-RPC protocol validation | `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py` |
-| LocalRuntimeService method registry or handler | `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py` plus focused local-runtime Python tests |
-| Memory RPC method or SDK local-runtime caller | `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` plus focused SDK local-runtime store tests |
+| JSON-RPC protocol validation | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_json_rpc_protocol.py` |
+| LocalRuntimeService method registry or handler | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_local_backend.py` plus focused local-runtime Python tests |
+| Memory RPC method or SDK local-runtime caller | `./scripts/python-in-env local-runtime pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` plus focused SDK local-runtime store tests |
 | Electron bridge handler | `cd frontend && npm run test -- LocalRuntimeBridge.rpc` |
 | Execute-tool bridge behavior | `cd frontend && npm run test -- LocalRuntimeBridge ToolExecution` plus focused local-runtime Python tool tests |
 | Preload/renderer IPC channel addition | `cd frontend && npm run test -- PreloadIpcChannels IpcBridge` |

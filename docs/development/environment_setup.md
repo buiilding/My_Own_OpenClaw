@@ -61,7 +61,7 @@ Repo scripts can route commands into the canonical conda envs when present:
 Use:
 
 ```bash
-./scripts/python-in-env.sh <backend|sidecar|frontend> <cmd...>
+./scripts/python-in-env.sh <backend|local-runtime|sidecar|frontend> <cmd...>
 ```
 
 If conda or the target env is unavailable, this script falls back to your current shell environment.

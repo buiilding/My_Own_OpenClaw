@@ -54,7 +54,7 @@ The release path has two different jobs:
 
 When touching `scripts/build-sidecar-runtime`, `requirements.runtime.txt`, or runtime path resolution:
 
-- Confirm `<windie> build sidecar-runtime` still creates `frontend/python-runtime`.
+- Confirm `<windie> build local-runtime` still creates `frontend/python-runtime`.
 - Confirm runtime dependencies come from `frontend/src/main/python/requirements.runtime.txt`, not the dev requirements set.
 - Confirm packaged launch code resolves bytecode sidecar entrypoints and bundled Python before any source-mode fallback.
 - Confirm POSIX packaged launches do not inherit host `PYTHONPATH` or rely on host `PYTHONHOME`.
@@ -107,7 +107,7 @@ Start with the installed-app signal, not the dev app:
 | Package script/config docs only | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 | `frontend/package.json` package script change | `cd frontend && npm run release:check`, `<windie> build frontend`, target package command on target OS |
 | Runtime path resolver change | `cd frontend && npm run test -- RuntimePaths`, installed app smoke on target OS |
-| Local-runtime Python requirement/build change | `<windie> build sidecar-runtime`, `<windie> test sidecar`, target package command |
+| Local-runtime Python requirement/build change | `<windie> build local-runtime`, `<windie> test local-runtime`, target package command |
 | Backend endpoint packaged-default change | frontend endpoint tests, sidecar backend-config tests, installed app websocket smoke |
 | Reinstall helper change | run the matching helper on that OS; verify reset scope and launch logs |
 | Release workflow change | workflow syntax review, dry-run/manual dispatch reasoning, matching smoke helper, release doc update |

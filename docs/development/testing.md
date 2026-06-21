@@ -26,7 +26,7 @@ cd /path/to/WindieOS
 
 ```bash
 cd /path/to/WindieOS
-<windie> test sidecar
+<windie> test local-runtime
 ```
 
 ## Frontend Tests

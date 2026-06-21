@@ -470,7 +470,7 @@ contracts.
 - [**Commit and Changelog Workflow**](development/commit_and_changelog_workflow.md) - Commit scope, Conventional Commit subjects, changelog entries, and validation reporting
 - [**Validation Commands**](cli/validation_commands.md) - Command-focused validation guide for docs, backend, sidecar, frontend, IPC, provider, packaging, and config changes
 - [**Developer Guide**](development/developer_guide.md) - Comprehensive development guide
-- Developer Guide includes current Windie CLI automation (`<windie> docs list`, `<windie> test all`, `<windie> test backend`, `<windie> test sidecar`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
+- Developer Guide includes current Windie CLI automation (`<windie> docs list`, `<windie> test all`, `<windie> test backend`, `<windie> test local-runtime`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
 - [**Tool Development Guide**](development/tool_development.md) - Creating custom tools
 - [**API Reference**](reference/api_reference.md) - Complete API documentation
 - [**Extension Points**](architecture/extension_points.md) - How to extend the system

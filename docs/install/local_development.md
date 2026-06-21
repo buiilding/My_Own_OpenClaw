@@ -80,7 +80,7 @@ Convenience scripts also exist:
 
 ```bash
 <windie> test backend
-<windie> test sidecar
+<windie> test local-runtime
 <windie> test frontend
 cd frontend && npm run lint
 ```
@@ -89,7 +89,7 @@ Windows PowerShell:
 
 ```powershell
 <windie> test backend
-<windie> test sidecar
+<windie> test local-runtime
 <windie> test frontend
 cd frontend; npm.cmd run lint
 ```
