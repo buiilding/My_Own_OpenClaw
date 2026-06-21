@@ -28,7 +28,10 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 
 `ChatInterface` derives loop state via:
 
-- `useCurrentTurnPresentationState({ phase: streamPhase, isSending, messages, allowedTypes: VISIBLE_ASSISTANT_REPLY_TYPE_SET })`
+- `useChatSurfaceController({ isSending, messages, currentTurnProjection, pendingTurn, ... })`
+- `useCurrentTurnPresentationState(...)` inside that controller uses the
+  app-runtime default visible-assistant reply types, keeping the raw type set
+  private to `desktopCurrentTurnPresentationRuntime.js`.
 
 Derived flags:
 

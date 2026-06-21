@@ -235,6 +235,10 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/chat/components/ChatInterface.jsx'),
       'utf8',
     );
+    const chatSurfaceControllerSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
+      'utf8',
+    );
     const minimalPillSource = await fs.readFile(
       path.join(rendererRoot, 'features/minimalChatPill/components/MinimalChatPill.jsx'),
       'utf8',
@@ -352,6 +356,10 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/chat/components/ChatInterface.jsx'),
       'utf8',
     );
+    const chatSurfaceControllerSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
+      'utf8',
+    );
     const threadPresentationSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopThreadPresentationRuntime.js'),
       'utf8',
@@ -387,6 +395,7 @@ describe('renderer app runtime boundary', () => {
     expect(presentationSourceChannelsSource).not.toContain('export const SDK_DISPLAY_ROWS_SOURCE_CHANNEL');
     expect(currentTurnPresentationSource).toContain('desktopChatLoopUiRuntime');
     expect(currentTurnPresentationSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(currentTurnPresentationSource).not.toContain('export const VISIBLE_ASSISTANT_REPLY_TYPE_SET');
     expect(currentTurnPresentationSource).not.toContain('features/chat');
     expect(currentTurnPresentationSource).not.toContain('features/minimalChatPill');
     expect(overlayViewModelSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -401,8 +410,12 @@ describe('renderer app runtime boundary', () => {
     expect(overlayViewModelSource).not.toContain("entry.type === 'tool-output'");
     expect(overlayViewModelSource).not.toContain("entry.type === 'search-source'");
     expect(overlayViewModelSource).not.toContain("entry.type === 'tool-explanation'");
-    expect(chatInterfaceSource).toContain('desktopCurrentTurnPresentationRuntime');
+    expect(chatInterfaceSource).toContain('useChatSurfaceController');
+    expect(chatSurfaceControllerSource).toContain('useCurrentTurnPresentationState');
     expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');
+    expect(chatInterfaceSource).not.toContain('VISIBLE_ASSISTANT_REPLY_TYPE_SET');
+    expect(chatInterfaceSource).not.toContain('allowedTypes:');
+    expect(chatSurfaceControllerSource).not.toContain('allowedTypes');
     expect(chatInterfaceSource).not.toContain('desktopCurrentTurnMessageRuntime');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/state/chatBoxResponseState.js'),

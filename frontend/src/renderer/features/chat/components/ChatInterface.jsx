@@ -40,9 +40,6 @@ import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartupRuntimeClient';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
-  VISIBLE_ASSISTANT_REPLY_TYPE_SET,
-} from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
-import {
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,
 } from '../../../app/runtime/desktopThreadPresentationRuntime';
@@ -198,7 +195,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     messages,
     currentTurnProjection,
     pendingTurn,
-    allowedTypes: VISIBLE_ASSISTANT_REPLY_TYPE_SET,
     sessionInfo,
     setThinkingStatus,
     setThinkingSourceEventType,

@@ -8559,3 +8559,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   screenshot user rows, tool row rendering, transcript rows, IPC channels,
   storage, provider policy, permissions, and backend behavior are unchanged; no
   migration is required.
+- The renderer current-turn presentation runtime now keeps the default
+  visible-assistant reply type set private to
+  `desktopCurrentTurnPresentationRuntime.js`; dashboard chat uses the runtime
+  default instead of importing `VISIBLE_ASSISTANT_REPLY_TYPE_SET` and passing it
+  through `useChatSurfaceController`. The lower-level runtime override remains
+  available for focused tests or specialized callers. Visible assistant reply
+  filtering still allows `llm-text` and `error`, and awaiting-dot behavior,
+  response-pane selection, chatbox surface state, transcript rows, IPC
+  channels, storage, provider policy, permissions, and backend behavior are
+  unchanged; no migration is required.

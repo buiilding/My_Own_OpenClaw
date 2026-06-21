@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: keep the default visible-assistant reply type set private to
+  the current-turn presentation runtime and let dashboard chat use that runtime
+  default instead of importing the raw set. No migration required.
 - renderer/chat: keep message-content render-kind constants private to the
   app-runtime content classifier, exposing semantic predicates for
   `MessageContent` routing. No migration required.

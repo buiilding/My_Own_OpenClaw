@@ -20685,3 +20685,20 @@ Each completed slice should report:
   content routing, assistant thinking/markdown rendering, screenshot user rows,
   tool row rendering, transcript rows, IPC channels, storage, provider policy,
   permissions, and backend behavior are unchanged.
+
+### 2026-06-21 renderer visible-reply type-set privacy
+
+- Finding: `desktopCurrentTurnPresentationRuntime.js` owned the default
+  visible-assistant reply type policy, but exported
+  `VISIBLE_ASSISTANT_REPLY_TYPE_SET` to `ChatInterface`, which passed the raw
+  set back through `useChatSurfaceController`.
+- Change: made the default visible-reply type set private to the current-turn
+  presentation runtime, removed the dashboard `allowedTypes` handoff, and kept
+  the lower-level optional override for focused tests or specialized callers.
+- Validation: focused current-turn presentation, chat interface wiring, and
+  renderer app-runtime boundary tests, exact raw-export/import scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Visible assistant reply filtering
+  still allows `llm-text` and `error`, awaiting-dot behavior, response-pane
+  selection, chatbox surface state, transcript rows, IPC channels, storage,
+  provider policy, permissions, and backend behavior are unchanged.

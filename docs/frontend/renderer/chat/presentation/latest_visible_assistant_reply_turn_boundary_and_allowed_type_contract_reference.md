@@ -23,9 +23,8 @@ title: "Current-Turn Presentation and Visible Assistant Reply Contract Reference
 
 Exported functions:
 
-- `findLastUserIndex(messages)`
 - `findLatestVisibleAssistantReply(messages, allowedTypes)`
-- `resolveChatTurnPresentationState({ messages, loopUiState, dismissedResponseId, allowedTypes, activeResponse })`
+- `resolveCurrentTurnPresentationState({ phase, lifecycle, messages, dismissedResponseId, allowedTypes, activeResponse })`
 
 ## Turn-Boundary Scan Contract
 
@@ -54,13 +53,16 @@ Operational implication:
 
 ## Allowed-Type Ownership Boundary
 
-The helper does not hardcode message types. Caller supplies the allowed set.
+The runtime owns the default visible-assistant reply type set privately:
 
-Current call sites pass:
+- `llm-text`
+- `error`
 
-- `new Set(["llm-text", "error"])`
-
-This keeps type-filter policy explicit at component call sites.
+`ChatInterface` and `useChatSurfaceController` use that default by omitting
+`allowedTypes`, so React feature code does not import raw type-set constants.
+Focused tests and future specialized callers may still pass `allowedTypes` to
+`findLatestVisibleAssistantReply(...)` or
+`resolveCurrentTurnPresentationState(...)` when they need an explicit override.
 
 ## Shared Presentation Contract
 
