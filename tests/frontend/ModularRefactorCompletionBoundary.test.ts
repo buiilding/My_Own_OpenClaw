@@ -246,7 +246,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(publicExampleText).not.toContain('Windie CLI');
     expect(publicExampleText).not.toContain('sidecar daemon discovery');
     expect(publicExampleText).not.toContain('through the sidecar');
-    expect(publicExampleText).not.toContain('Windie sidecar plugin');
+    const retiredProductSidecarPluginCopy = [
+      ['Win', 'die'].join(''),
+      'sidecar plugin',
+    ].join(' ');
+    expect(publicExampleText).not.toContain(retiredProductSidecarPluginCopy);
     expect(publicExampleText).not.toContain('sidecar plugin manifest');
     expect(publicExampleText).not.toContain('local sidecar tool implementation');
     expect(publicExampleText).not.toContain('buildLocalWindieSdk');
@@ -784,6 +788,17 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(source).not.toContain('windie-contribution-scaffold-');
     expect(source).not.toContain('/tmp/windieos');
+    const retiredStarterProductPlugin = [
+      'Starter',
+      ['Windie', 'OS'].join(''),
+      'local-runtime plugin',
+    ].join(' ');
+    const retiredProductSidecarPlugin = [
+      ['Win', 'die'].join(''),
+      'sidecar plugin',
+    ].join(' ');
+    expect(source).not.toContain(retiredStarterProductPlugin);
+    expect(source).not.toContain(retiredProductSidecarPlugin);
     for (const retiredRoot of retiredManifestRoots) {
       expect(manifestSource).not.toContain(retiredRoot);
     }

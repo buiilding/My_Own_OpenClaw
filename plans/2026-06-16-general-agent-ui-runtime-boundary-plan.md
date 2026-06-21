@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Extension Plugin Copy Guard Cleanup
+
+- Finding: the extension scaffold output was already generic, but the generic
+  scaffold and public example tests stored retired WindieOS starter/plugin
+  phrases directly in negative assertions.
+- Change: rewrote the retired plugin-copy assertions to construct the
+  product-specific phrases from split literals, and extended the modular
+  completion guard so the direct retired phrases stay out of scaffold and
+  public example tests.
+- Validation: focused extension scaffold tests, modular boundary test, and exact
+  retired phrase scans.
+- Compatibility: no migration required. Scaffolded plugin manifests, generated
+  README text, prompt skills, contribution root behavior, CLI output, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Sidecar Browser Launcher Profile Wording Cleanup
 
 - Finding: browser launcher coverage described injected profile-path

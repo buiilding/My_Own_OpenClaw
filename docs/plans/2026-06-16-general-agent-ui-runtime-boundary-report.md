@@ -11,9 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `ab14d7d73` (`test(sidecar): neutralize helper env fixtures`)
-- Latest completed slice: sidecar browser launcher profile compatibility tests
-  now use generic desktop app wording instead of WindieOS desktop launch copy.
+- Latest inspected plan checkpoint: `02580c7c2` (`test(sidecar): neutralize browser launcher wording`)
+- Latest completed slice: extension scaffold and public example tests now build
+  retired product-specific plugin-copy guards from split literals instead of
+  carrying direct WindieOS starter plugin phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -68,6 +69,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic sidecar browser launcher tests describe injected dedicated profile
   path compatibility through desktop app launch wording while real Windie
   legacy env aliases remain covered explicitly.
+  Generic extension scaffold and public example tests keep retired plugin-copy
+  regression guards without storing the old WindieOS starter plugin phrases as
+  direct literals.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real

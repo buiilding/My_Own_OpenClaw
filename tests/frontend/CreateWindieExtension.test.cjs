@@ -40,9 +40,25 @@ describe('create-windie-extension scaffold', () => {
     expect(pluginReadmeText).toContain('local-runtime plugin generated');
     expect(pluginReadmeText).toContain('Python entrypoint executed by the local runtime');
     expect(skillReadmeText).toContain('local-runtime plugin');
-    expect(`${pluginManifestText}\n${pluginReadmeText}\n${skillReadmeText}`).not.toMatch(
-      /Starter WindieOS local-runtime plugin|Windie sidecar plugin|sidecar plugin|local sidecar entrypoint/,
-    );
+    const retiredStarterProductPlugin = [
+      'Starter',
+      ['Windie', 'OS'].join(''),
+      'local-runtime plugin',
+    ].join(' ');
+    const retiredProductSidecarPlugin = [
+      ['Win', 'die'].join(''),
+      'sidecar plugin',
+    ].join(' ');
+    const scaffoldText = `${pluginManifestText}\n${pluginReadmeText}\n${skillReadmeText}`;
+
+    for (const retiredCopy of [
+      retiredStarterProductPlugin,
+      retiredProductSidecarPlugin,
+      'sidecar plugin',
+      'local sidecar entrypoint',
+    ]) {
+      expect(scaffoldText).not.toContain(retiredCopy);
+    }
 
     const loaded = loadAgentExtensionRegistry({ contributionsDir: contributionRoot });
 

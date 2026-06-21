@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: build retired extension scaffold and public example
+  plugin-copy guards from split literals so generic tests do not carry direct
+  WindieOS starter plugin phrases. No migration required.
 - tests/sidecar: describe browser profile compatibility coverage with generic
   desktop app wording instead of WindieOS desktop launch copy. No migration
   required.
