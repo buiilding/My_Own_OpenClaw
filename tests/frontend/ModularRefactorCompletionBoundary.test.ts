@@ -1475,6 +1475,8 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/debug/symptom_playbooks.md',
       'docs/development/agent_architecture_reference.md',
       'docs/channels/websocket_event_contract_change_workflow.md',
+      'docs/development/agent_routing_quick_cards.md',
+      'docs/getting-started/docs_hub.md',
       'docs/frontend/ipc_change_workflow.md',
       'docs/frontend/contracts/ipc_channel_and_handler_reference.md',
       'docs/frontend/inventory/frontend_functionality_capability_catalog_reference.md',
@@ -1531,6 +1533,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('current non-dashboard main runtime');
     expect(docText).not.toContain('backend event consumers via main rebroadcast');
     expect(docText).not.toContain('Electron rebroadcast path');
+    expect(docText).not.toContain('Electron rebroadcast, renderer guards');
+    expect(docText).not.toContain('Electron rebroadcast, and renderer guards');
     expect(docText).not.toContain('transport rebroadcast');
     expect(docText).not.toContain('Electron main rebroadcast');
     expect(docText).not.toContain('Main process receives WebSocket event');

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Websocket Event Routing Summary Wording
+
+- Finding: docs hub, repository docs index, and agent routing quick cards still
+  summarized backend event routing as Electron rebroadcast / renderer guards,
+  even though current ownership flows through backend formatter output, Agent
+  SDK projection, typed Electron fan-out, and renderer consumers.
+- Change: reworded those routing summaries and extended modular boundary
+  coverage for the retired Electron rebroadcast summary phrases.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, websocket event names,
+  formatter schemas, IPC channels, SDK projection events, storage, credentials,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Platform Overlay Capture Policy Wording
 
 - Finding: screenshot/overlay policy, platform routing, validation, computer

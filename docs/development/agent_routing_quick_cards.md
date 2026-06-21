@@ -128,7 +128,7 @@ Owner: backend event contract and formatter, with Electron relay and renderer co
 
 Start with [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md), [Streaming and Events](../concepts/streaming_and_events.md), and [WebSocket Event Reference](../reference/websocket_event_reference.md).
 
-Validate event names, payload fields, correlation identifiers, terminal events, stale-turn filtering, Electron rebroadcast, and renderer guards. Update reference docs when persisted or public event shape changes.
+Validate event names, payload fields, correlation identifiers, terminal events, stale-turn filtering, Agent SDK projection, typed Electron fan-out, and renderer consumers. Update reference docs when persisted or public event shape changes.
 
 Avoid: accepting unknown renderer event shapes as a compatibility path instead of fixing the formatter or contract.
 
