@@ -4,9 +4,8 @@
 
 import {
   DesktopShortcutRuntimeClient,
-  getGlobalAgentStopShortcutStatusPresentation,
-  resolveGlobalAgentStopShortcutFallbackAccelerator,
 } from '../../frontend/src/renderer/app/runtime/desktopShortcutRuntimeClient';
+import * as DesktopShortcutRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopShortcutRuntimeClient';
 
 describe('DesktopShortcutRuntimeClient', () => {
   const originalNavigatorPlatform = window.navigator.platform;
@@ -31,7 +30,8 @@ describe('DesktopShortcutRuntimeClient', () => {
       registrationFailed: true,
     };
 
-    const presentation = getGlobalAgentStopShortcutStatusPresentation(status);
+    expect(DesktopShortcutRuntimeModule).not.toHaveProperty('getGlobalAgentStopShortcutStatusPresentation');
+    const presentation = DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutStatusPresentation(status);
 
     expect(presentation).toEqual({
       showFallbackNotice: true,
@@ -44,12 +44,12 @@ describe('DesktopShortcutRuntimeClient', () => {
   });
 
   test('keeps fallback notice hidden when the runtime status is incomplete', () => {
-    expect(getGlobalAgentStopShortcutStatusPresentation(null)).toEqual({
+    expect(DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutStatusPresentation(null)).toEqual({
       showFallbackNotice: false,
       fallbackLabel: '',
       showRegistrationFailure: false,
     });
-    expect(getGlobalAgentStopShortcutStatusPresentation({
+    expect(DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutStatusPresentation({
       requestedAccelerator: 'CommandOrControl+Alt+.',
       resolvedAccelerator: 'CommandOrControl+Alt+.',
       usingFallback: true,
@@ -62,7 +62,8 @@ describe('DesktopShortcutRuntimeClient', () => {
   });
 
   test('resolves persistable global stop shortcut fallback accelerators', () => {
-    expect(resolveGlobalAgentStopShortcutFallbackAccelerator({
+    expect(DesktopShortcutRuntimeModule).not.toHaveProperty('resolveGlobalAgentStopShortcutFallbackAccelerator');
+    expect(DesktopShortcutRuntimeClient.resolveGlobalAgentStopShortcutFallbackAccelerator({
       resolvedAccelerator: ' CommandOrControl+Shift+. ',
       usingFallback: true,
       registrationFailed: false,
@@ -74,12 +75,12 @@ describe('DesktopShortcutRuntimeClient', () => {
         registrationFailed: true,
       }),
     ).toBeNull();
-    expect(resolveGlobalAgentStopShortcutFallbackAccelerator({
+    expect(DesktopShortcutRuntimeClient.resolveGlobalAgentStopShortcutFallbackAccelerator({
       resolvedAccelerator: '   ',
       usingFallback: true,
       registrationFailed: false,
     })).toBeNull();
-    expect(resolveGlobalAgentStopShortcutFallbackAccelerator({
+    expect(DesktopShortcutRuntimeClient.resolveGlobalAgentStopShortcutFallbackAccelerator({
       resolvedAccelerator: 'CommandOrControl+Shift+.',
       usingFallback: false,
       registrationFailed: false,

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Shortcut Runtime Helper Privacy
+
+- Finding: `DesktopShortcutRuntimeClient` already exposed public methods for
+  global stop shortcut status presentation and fallback accelerator resolution,
+  but the raw helpers were still exported directly for tests.
+- Change: made shortcut status presentation and fallback accelerator resolution
+  private to the shortcut runtime client and moved focused coverage through the
+  client methods used by general settings and app-config sync.
+- Validation: focused shortcut runtime client and renderer settings boundary
+  tests, exact raw-helper export scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Shortcut labels, accelerator
+  normalization, fallback persistence behavior, global stop registration state,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Extension Runtime Helper Privacy
 
 - Finding: `DesktopExtensionRuntimeClient` already exposed public methods for

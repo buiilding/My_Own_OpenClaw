@@ -221,8 +221,10 @@ describe('renderer settings runtime boundary', () => {
     expect(appConfigProviderSource).not.toContain('shortcutStatus.resolvedAccelerator');
     expect(configStorageSource).toContain('DesktopShortcutRuntimeClient.normalizeGlobalAgentStopShortcutAccelerator');
     expect(shortcutClientSource).toContain('normalizeGlobalAgentStopShortcutAccelerator');
-    expect(shortcutClientSource).toContain('getGlobalAgentStopShortcutStatusPresentation');
-    expect(shortcutClientSource).toContain('resolveGlobalAgentStopShortcutFallbackAccelerator');
+    expect(shortcutClientSource).toContain('function getGlobalAgentStopShortcutStatusPresentation');
+    expect(shortcutClientSource).toContain('function resolveGlobalAgentStopShortcutFallbackAccelerator');
+    expect(shortcutClientSource).not.toContain('export function getGlobalAgentStopShortcutStatusPresentation');
+    expect(shortcutClientSource).not.toContain('export function resolveGlobalAgentStopShortcutFallbackAccelerator');
     await expect(fs.stat(
       path.resolve(__dirname, '../../frontend/src/renderer/utils/configStorage.js'),
     )).rejects.toThrow();

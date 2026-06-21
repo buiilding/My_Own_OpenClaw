@@ -129,6 +129,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep extension runtime normalization, presentation, and
   tool-toggle helpers private to the extension runtime client while preserving
   public dashboard settings client methods. No migration required.
+- frontend/renderer: keep global stop shortcut status presentation and fallback
+  resolution helpers private to the shortcut runtime client while preserving
+  public shortcut client methods. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

@@ -26,7 +26,7 @@ function optionalText(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
-export function getGlobalAgentStopShortcutStatusPresentation(
+function getGlobalAgentStopShortcutStatusPresentation(
   status: unknown,
 ): DesktopGlobalStopShortcutStatusPresentation {
   const source = recordOrEmpty(status);
@@ -48,7 +48,7 @@ export function getGlobalAgentStopShortcutStatusPresentation(
   };
 }
 
-export function resolveGlobalAgentStopShortcutFallbackAccelerator(
+function resolveGlobalAgentStopShortcutFallbackAccelerator(
   status: unknown,
 ): string | null {
   const source = recordOrEmpty(status);
