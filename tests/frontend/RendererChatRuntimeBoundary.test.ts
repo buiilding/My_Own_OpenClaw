@@ -980,10 +980,13 @@ describe('renderer chat runtime boundary', () => {
       expect(source).toContain('desktopMarkdownRuntimeClient');
     }
     expect(chatInterfaceSource).toContain('desktopThreadFindRuntime');
+    expect(chatInterfaceSource).toContain('DesktopThreadFindRuntime');
     expect(chatInterfaceSource).not.toContain('utils/message/threadFindState');
     expect(markdownMessageRuntimeSource).toContain('export const DesktopMarkdownMessageRuntime = Object.freeze');
     expect(markdownMessageRuntimeSource).not.toContain('export function buildMarkdownRenderModel');
     expect(threadFindRuntimeSource).toContain('DesktopMarkdownMessageRuntime');
+    expect(threadFindRuntimeSource).toContain('DesktopThreadFindRuntime');
+    expect(threadFindRuntimeSource).not.toContain('export function buildThreadFindState');
     expect(markdownMessageSource).toContain('DesktopMarkdownMessageRuntime');
     expect(threadFindRuntimeSource).not.toContain('import { buildMarkdownRenderModel }');
     expect(markdownMessageSource).not.toContain('import { buildMarkdownRenderModel }');

@@ -2,7 +2,11 @@
  * Covers desktop thread find runtime behavior in the frontend test suite.
  */
 
-import { buildThreadFindState } from '../../frontend/src/renderer/app/runtime/desktopThreadFindRuntime';
+import {
+  DesktopThreadFindRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopThreadFindRuntime';
+
+const { buildThreadFindState } = DesktopThreadFindRuntime;
 
 describe('desktopThreadFindRuntime', () => {
   test('indexes matches across markdown, tool call, and tool output messages', () => {

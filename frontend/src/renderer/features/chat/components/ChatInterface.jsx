@@ -36,7 +36,7 @@ import {
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,
 } from '../../../app/runtime/desktopThreadPresentationRuntime';
-import { buildThreadFindState } from '../../../app/runtime/desktopThreadFindRuntime';
+import { DesktopThreadFindRuntime } from '../../../app/runtime/desktopThreadFindRuntime';
 import '../../../styles/ChatInterface.css';
 
 const chatSkin = desktopRuntimeSkin.chat;
@@ -50,6 +50,7 @@ const {
   resolveSelectedReasoningMode,
   resolveSelectedModelOption,
 } = DesktopChatModelOptionsRuntime;
+const { buildThreadFindState } = DesktopThreadFindRuntime;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (

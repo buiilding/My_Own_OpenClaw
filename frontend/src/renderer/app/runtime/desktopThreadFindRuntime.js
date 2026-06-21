@@ -57,7 +57,7 @@ function resolveSearchableMessageText(message) {
   }).plainText;
 }
 
-export function buildThreadFindState(messages, query) {
+function buildThreadFindState(messages, query) {
   const normalizedMessages = Array.isArray(messages) ? messages : [];
   const normalizedQuery = typeof query === 'string' ? query.trim() : '';
   if (!normalizedQuery || normalizedMessages.length === 0) {
@@ -91,3 +91,7 @@ export function buildThreadFindState(messages, query) {
     messageMatchIndexesById,
   };
 }
+
+export const DesktopThreadFindRuntime = Object.freeze({
+  buildThreadFindState,
+});

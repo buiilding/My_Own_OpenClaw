@@ -66,6 +66,10 @@ All notable changes to WindieOS will be documented in this file.
   retry policy through `DesktopDashboardConversationLoadRuntime` instead of
   standalone helper exports, keeping dashboard conversation loading rules
   behind the app-runtime facade. No migration required.
+- frontend/renderer: expose thread-find match projection through
+  `DesktopThreadFindRuntime` instead of a standalone helper export, keeping
+  chat search indexing rules behind the renderer app-runtime facade. No
+  migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

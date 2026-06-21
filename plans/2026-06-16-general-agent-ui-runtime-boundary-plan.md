@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Thread Find Facade
+
+- Finding: `desktopThreadFindRuntime.js` already owned chat thread-find match
+  projection across markdown-rendered text, tool-call previews, tool outputs,
+  explanation/error rows, and hidden action summaries, but still exported
+  `buildThreadFindState(...)` as a standalone helper consumed by
+  `ChatInterface` and focused tests.
+- Change: made the thread-find projection helper private to the runtime module,
+  exposed it through `DesktopThreadFindRuntime`, and routed chat find state plus
+  focused thread-find tests through that facade.
+- Validation: focused thread-find runtime, chat interface wiring, renderer chat
+  boundary, exact standalone thread-find helper export/import scan, docs list,
+  and diff hygiene.
+- Compatibility/security: no migration required. Find indexing behavior,
+  sanitized markdown/plain-text extraction, tool-call/tool-output search text,
+  hidden action-summary exclusion, UI state, IPC, storage, credentials, provider
+  policy, hosted backend URLs, and local execution trust boundaries are
+  unchanged.
+
 ### 2026-06-21 Renderer Dashboard Conversation Load Facade
 
 - Finding: `desktopDashboardConversationLoadRuntime.js` already owned recent

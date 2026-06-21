@@ -114,6 +114,11 @@ The old direct `document.createElement("div")` container construction was
 removed for the deprecation audit; stale searches for that API should route to
 this renderer markdown contract.
 
+Thread-find match projection is exposed through
+`DesktopThreadFindRuntime.buildThreadFindState(...)`, keeping message search
+indexing rules behind the renderer app-runtime facade rather than as a
+standalone helper export.
+
 Structured JSON support:
 
 - if assistant output parses as JSON and matches supported fields (`markdown`, `content`, `text`, `answer`, `output`, or `blocks[]`), renderer converts JSON payload to markdown client-side before parse/sanitize.
