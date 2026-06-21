@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Agent SDK local-runtime fixture names now use
-  local-runtime daemon, tool-execution failure, error, and conversation labels,
-  with package-boundary coverage preventing active SDK client and
-  conversation-runtime tests from reintroducing stale sidecar fixture wording.
+- Latest completed slice: active local-runtime Python tests now use
+  local-runtime service/tool-helper labels instead of local-backend or
+  sidecar-tool owner labels, with focused guard coverage preventing those exact
+  active test labels from returning.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -55,7 +55,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic settings section tests use sample settings skin and browser
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
-  Agent SDK local-runtime provider and tool-coordinator tests use neutral
+  Local-runtime Python service/browser registry tests use owner-correct
+  local-runtime service and tool-helper labels while preserving real
+  `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar` implementation
+  paths. Agent SDK local-runtime provider and tool-coordinator tests use neutral
   `AGENT_TEST_*` launch env, launch-context, daemon, tool-execution failure,
   error, and conversation fixtures while real Windie compatibility env aliases
   remain explicitly covered by
@@ -629,6 +632,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Local-Runtime Python Test Label Boundary
+
+- Finding: active local-runtime Python tests still described the owner boundary
+  as local-backend behavior and sidecar tool helpers in docstrings, test names,
+  and helper path constants, even though `local_backend.py` and the sidecar
+  directory are implementation details behind the local-runtime boundary.
+- Change: renamed those active test labels to local-runtime service/tool-helper
+  wording and added a focused test-file guard for the exact retired labels while
+  preserving concrete `local_backend.py`, `sidecar_daemon.py`, and
+  `tests/sidecar` paths where they identify real files or commands.
+- Validation: focused sidecar local-backend/browser-registry pytest coverage
+  and exact stale active-test label scan.
+- Compatibility/security: no migration required. Runtime code, JSON-RPC method
+  names, local tool schemas, daemon entrypoint, IPC, storage, credentials, and
+  trust boundaries are unchanged.
 
 ### 2026-06-21 Agent SDK Tool-Coordinator Failure Fixture Boundary
 

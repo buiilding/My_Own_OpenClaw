@@ -1,4 +1,4 @@
-"""Covers local backend behavior in the sidecar test suite."""
+"""Covers local-runtime Python service behavior."""
 
 import asyncio
 import logging
@@ -32,7 +32,7 @@ RETIRED_DIRECT_CHAT_METHODS = {
 }
 
 
-def test_local_backend_runtime_copy_uses_local_runtime_terms():
+def test_local_runtime_service_copy_uses_local_runtime_terms():
     sources = "\n".join(
         Path(module_path).read_text(encoding="utf-8")
         for module_path in [
@@ -58,6 +58,32 @@ def test_local_backend_runtime_copy_uses_local_runtime_terms():
     assert "Initializing local backend" not in sources
     assert "Shutting down local backend" not in sources
     assert "Get detailed backend status" not in sources
+
+
+def test_local_runtime_python_tests_use_boundary_labels():
+    test_sources = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in [
+            Path(__file__),
+            Path(__file__).parent / "test_browser_registry.py",
+        ]
+    )
+
+    retired_docstring = (
+        "Covers " + "local " + "backend behavior in the sidecar test suite."
+    )
+    retired_backend_test = "test_" + "local_backend_runtime_copy_uses_local_runtime_terms"
+    retired_helper_paths = "SIDECAR_" + "TOOL_HELPER_PATHS"
+    retired_helper_test = "test_" + "sidecar_tool_helper_copy_uses_local_runtime_terms"
+
+    assert "Covers local-runtime Python service behavior." in test_sources
+    assert "test_local_runtime_service_copy_uses_local_runtime_terms" in test_sources
+    assert "LOCAL_RUNTIME_TOOL_HELPER_PATHS" in test_sources
+    assert "test_local_runtime_tool_helper_copy_uses_local_runtime_terms" in test_sources
+    assert retired_docstring not in test_sources
+    assert retired_backend_test not in test_sources
+    assert retired_helper_paths not in test_sources
+    assert retired_helper_test not in test_sources
 
 
 class DummyRegistry:

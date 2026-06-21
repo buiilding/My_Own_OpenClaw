@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Python Test Label Boundary
+
+- Finding: active local-runtime Python tests still described the owner boundary
+  as local-backend behavior and sidecar tool helpers in docstrings, test names,
+  and helper path constants, even though `local_backend.py` and the sidecar
+  directory are implementation details behind the local-runtime boundary.
+- Change: renamed those active test labels to local-runtime service/tool-helper
+  wording and added a focused test-file guard for the exact retired labels while
+  preserving concrete `local_backend.py`, `sidecar_daemon.py`, and
+  `tests/sidecar` paths where they identify real files or commands.
+- Validation: focused sidecar local-backend/browser-registry pytest coverage
+  and exact stale active-test label scan.
+- Compatibility/security: no migration required. Runtime code, JSON-RPC method
+  names, local tool schemas, daemon entrypoint, IPC, storage, credentials, and
+  trust boundaries are unchanged.
+
 ### 2026-06-21 Agent SDK Tool-Coordinator Failure Fixture Boundary
 
 - Finding: `AgentSdkConversationRuntime.test.ts` still used `sidecar failed`
