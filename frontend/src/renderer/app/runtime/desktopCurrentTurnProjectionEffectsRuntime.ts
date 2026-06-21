@@ -6,7 +6,7 @@ import type { CurrentTurnToolEvent } from './desktopConversationRuntimeContracts
 import {
   DesktopChatStreamThinkingRuntime,
 } from './desktopChatStreamThinkingRuntime';
-import type { recordTrackingEvent as recordTrackingEventRuntime } from './desktopChatStreamEventRuntime';
+import type { DesktopChatStreamRecordTrackingEvent } from './desktopChatStreamEventRuntime';
 
 const {
   buildThinkingStatus,
@@ -44,7 +44,7 @@ type CurrentTurnProjectionSideEffectDeps = {
   setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
   setThinkingSourceEventType: (sourceEventType: string | null, conversationRef?: string | null) => void;
   updateStreamTracking: (updater: (current: unknown) => unknown, conversationRef?: string | null) => void;
-  recordTrackingEvent: typeof recordTrackingEventRuntime;
+  recordTrackingEvent: DesktopChatStreamRecordTrackingEvent;
 };
 
 type ApplyCurrentTurnProjectionSideEffectsInput = {

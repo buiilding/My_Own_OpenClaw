@@ -301,6 +301,7 @@ describe('renderer chat runtime boundary', () => {
     expect(compactionHookSource).toContain('buildCompactedReplaySnapshot');
     expect(compactionHookSource).toContain('resolveCompactionErrorText');
     expect(compactionHookSource).toContain('resolveConversationStreamEventPayload');
+    expect(compactionHookSource).toContain('DesktopChatStreamEventRuntime');
     expect(compactionHookSource).toContain('isCompactionStartedConversationStreamEvent');
     expect(compactionHookSource).toContain('isCompactionCompletedConversationStreamEvent');
     expect(compactionHookSource).toContain('isCompactionSkippedConversationStreamEvent');
@@ -312,6 +313,7 @@ describe('renderer chat runtime boundary', () => {
     expect(metadataHookSource).toContain('isUserMessageMetadataConversationStreamEvent');
     expect(metadataHookSource).toContain('isAssistantMessageConversationStreamEvent');
     expect(metadataHookSource).toContain('isToolSchemasMetadataConversationStreamEvent');
+    expect(metadataHookSource).toContain('DesktopChatStreamEventRuntime');
     expect(metadataHookSource).toContain('resolveToolSchemasMetadataPayload');
     expect(metadataHookSource).toContain('resolveConversationStreamEventPayload');
     expect(metadataHookSource).not.toContain('event.type === expectedType');
@@ -373,14 +375,19 @@ describe('renderer chat runtime boundary', () => {
       expect(source).not.toContain('event.conversationRef');
       expect(source).not.toContain('event.turnRef');
       expect(source).not.toContain('event.payload');
+      expect(source).toContain('DesktopChatStreamEventRuntime');
       expect(
         helperNeedles.some((needle) => source.includes(needle)),
       ).toBe(true);
     }
 
+    expect(runtimeSource).toContain('export const DesktopChatStreamEventRuntime = Object.freeze');
     expect(runtimeSource).toContain('resolveConversationStreamEventConversationRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRefForUpdate');
+    expect(runtimeSource).not.toContain('export function resolveConversationStreamEventConversationRef');
+    expect(runtimeSource).not.toContain('export function resolveConversationStreamEventTurnRef');
+    expect(runtimeSource).not.toContain('export function resolveConversationStreamEventTurnRefForUpdate');
   });
 
   test('chat stream backend ingress normalization stays behind the app runtime', async () => {
@@ -595,6 +602,7 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).toContain('desktopChatStreamEventRuntime');
+    expect(source).toContain('DesktopChatStreamEventRuntime');
     expect(source).toContain('isAssistantMessageConversationStreamEvent');
     expect(source).toContain('isCompactionCompletedConversationStreamEvent');
     expect(source).toContain('isCompactionFailedConversationStreamEvent');
@@ -634,6 +642,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('chatStreamTracking');
     expect(runtimeSource).toContain('DesktopChatStreamTrackingRuntime');
     expect(runtimeSource).toContain('DesktopChatStreamTerminalHandoffRuntime');
+    expect(runtimeSource).toContain('export const DesktopChatStreamEventRuntime = Object.freeze');
     expect(runtimeSource).toContain('isAssistantMessageConversationStreamEvent');
     expect(runtimeSource).toContain('isCompactionCompletedConversationStreamEvent');
     expect(runtimeSource).toContain('isCompactionFailedConversationStreamEvent');
@@ -649,6 +658,9 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain('resolveConversationStreamEventConversationRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRef');
     expect(runtimeSource).toContain('resolveConversationStreamEventTurnRefForUpdate');
+    expect(runtimeSource).not.toContain('export function isSupportedConversationStreamEvent');
+    expect(runtimeSource).not.toContain('export function isToolDisplayOnlyConversationStreamEvent');
+    expect(runtimeSource).not.toContain('export function recordTrackingEvent');
     expect(runtimeSource).toContain("'user_message'");
     expect(runtimeSource).toContain("'compaction_started'");
     expect(runtimeSource).toContain("'compaction_applied'");

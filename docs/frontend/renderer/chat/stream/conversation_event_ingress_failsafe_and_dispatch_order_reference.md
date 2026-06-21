@@ -104,7 +104,7 @@ Conversation selection and transcript user-binding helper rules are routed
 through `DesktopConversationSessionRuntimeClient`, so ingress orchestration
 does not import chat session internals directly.
 Conversation and turn identity are resolved through
-`desktopChatStreamEventRuntime`; transcript user binding is resolved through
+`DesktopChatStreamEventRuntime`; transcript user binding is resolved through
 `desktopChatStreamEventPayloadRuntime`, so ingress orchestration does not read
 raw `event.conversationRef`, `event.turnRef`, or `event.payload` fields
 directly.

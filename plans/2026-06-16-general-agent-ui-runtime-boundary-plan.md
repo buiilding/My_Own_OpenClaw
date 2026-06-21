@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Stream Event Runtime Facade
+
+- Finding: `desktopChatStreamEventRuntime.ts` already owned SDK conversation
+  event vocabulary, conversation/turn identity normalization, stale-turn
+  guards, and stream tracking updates, but exported those rules as standalone
+  helpers. Feature hooks, current-turn projection side effects, and focused
+  tests could still treat the helpers as loose module-level API instead of the
+  renderer app-runtime stream-event facade.
+- Change: exposed the stream event classification, identity, stale-turn, and
+  tracking helpers through `DesktopChatStreamEventRuntime`, kept the tracking
+  callback signature as a type-only contract, and routed stream ingress,
+  dispatcher, sub-handlers, current-turn projection effects, and tests through
+  the facade. The payload runtime remains separate and unchanged for payload
+  alias normalization.
+- Validation: focused stream event runtime, chat stream handler, renderer
+  app-runtime boundary, and renderer chat-runtime boundary tests plus lint,
+  stale standalone export/import scans, docs listing, and diff checks.
+- Compatibility/security: no migration required. SDK conversation event names,
+  payloads, stale-turn policy, stream tracking semantics, IPC, storage,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-21 Renderer New Chat Session Facade
 
 - Finding: `desktopNewChatSessionRuntime.ts` already owned active chat reset,

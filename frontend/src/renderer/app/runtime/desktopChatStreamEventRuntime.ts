@@ -47,19 +47,19 @@ function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-export function resolveConversationStreamEventConversationRef(
+function resolveConversationStreamEventConversationRef(
   event: ConversationStreamEventIdentityEvent | null | undefined,
 ): string | null {
   return optionalString(event?.conversationRef);
 }
 
-export function resolveConversationStreamEventTurnRef(
+function resolveConversationStreamEventTurnRef(
   event: ConversationStreamEventIdentityEvent | null | undefined,
 ): string | null {
   return optionalString(event?.turnRef);
 }
 
-export function resolveConversationStreamEventTurnRefForUpdate(
+function resolveConversationStreamEventTurnRefForUpdate(
   event: ConversationStreamEventIdentityEvent | null | undefined,
 ): string | undefined {
   return resolveConversationStreamEventTurnRef(event) ?? undefined;
@@ -100,88 +100,88 @@ type ConversationTypeEvent = {
   type?: string | null;
 };
 
-export function isSupportedConversationStreamEvent(
+function isSupportedConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return typeof event?.type === 'string'
     && SUPPORTED_CONVERSATION_STREAM_EVENT_TYPES.has(event.type);
 }
 
-export function isToolDisplayOnlyConversationStreamEvent(
+function isToolDisplayOnlyConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return typeof event?.type === 'string'
     && TOOL_DISPLAY_ONLY_CONVERSATION_STREAM_EVENT_TYPES.has(event.type);
 }
 
-export function isCompactionStartedConversationStreamEvent(
+function isCompactionStartedConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'compaction_started';
 }
 
-export function isCompactionCompletedConversationStreamEvent(
+function isCompactionCompletedConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return typeof event?.type === 'string'
     && COMPACTION_COMPLETED_CONVERSATION_STREAM_EVENT_TYPES.has(event.type);
 }
 
-export function isCompactionSkippedConversationStreamEvent(
+function isCompactionSkippedConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'compaction_skipped';
 }
 
-export function isCompactionFailedConversationStreamEvent(
+function isCompactionFailedConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'compaction_failed';
 }
 
-export function isSystemPromptConversationStreamEvent(
+function isSystemPromptConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'system_prompt';
 }
 
-export function isUserMessageMetadataConversationStreamEvent(
+function isUserMessageMetadataConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'user_message_metadata';
 }
 
-export function isAssistantMessageConversationStreamEvent(
+function isAssistantMessageConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'assistant_message';
 }
 
-export function isToolSchemasMetadataConversationStreamEvent(
+function isToolSchemasMetadataConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'tool_schemas_metadata';
 }
 
-export function isLocalUserMessageConversationStreamEvent(
+function isLocalUserMessageConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'user_message';
 }
 
-export function isTurnCompletedConversationStreamEvent(
+function isTurnCompletedConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'turn_completed';
 }
 
-export function isTurnErrorConversationStreamEvent(
+function isTurnErrorConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'turn_error';
 }
 
-export function isUsageUpdatedConversationStreamEvent(
+function isUsageUpdatedConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'usage_updated';
@@ -220,7 +220,7 @@ function shouldIgnoreForStaleTurn(
   return isStaleTurnForActiveStream(eventTurnRef, activeTurnRef);
 }
 
-export function shouldIgnoreConversationEventForStaleTurn(
+function shouldIgnoreConversationEventForStaleTurn(
   event: ConversationTurnRefEvent,
   conversationRef?: string | null,
   deps?: ShouldIgnoreForStaleTurnDeps,
@@ -235,7 +235,7 @@ type UpdateStreamTracking = (
   conversationRef?: string | null,
 ) => void;
 
-export function recordTrackingEvent(
+function recordTrackingEvent(
   updateStreamTracking: UpdateStreamTracking,
   eventType: StreamTrackingEventType,
   turnRef: string | null | undefined,
@@ -248,3 +248,27 @@ export function recordTrackingEvent(
     conversationRef,
   );
 }
+
+export type DesktopChatStreamRecordTrackingEvent = typeof recordTrackingEvent;
+
+export const DesktopChatStreamEventRuntime = Object.freeze({
+  resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventTurnRef,
+  resolveConversationStreamEventTurnRefForUpdate,
+  isSupportedConversationStreamEvent,
+  isToolDisplayOnlyConversationStreamEvent,
+  isCompactionStartedConversationStreamEvent,
+  isCompactionCompletedConversationStreamEvent,
+  isCompactionSkippedConversationStreamEvent,
+  isCompactionFailedConversationStreamEvent,
+  isSystemPromptConversationStreamEvent,
+  isUserMessageMetadataConversationStreamEvent,
+  isAssistantMessageConversationStreamEvent,
+  isToolSchemasMetadataConversationStreamEvent,
+  isLocalUserMessageConversationStreamEvent,
+  isTurnCompletedConversationStreamEvent,
+  isTurnErrorConversationStreamEvent,
+  isUsageUpdatedConversationStreamEvent,
+  shouldIgnoreConversationEventForStaleTurn,
+  recordTrackingEvent,
+});

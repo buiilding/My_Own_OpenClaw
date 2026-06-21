@@ -4,10 +4,7 @@
 
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
-import {
-  isLocalUserMessageConversationStreamEvent,
-  resolveConversationStreamEventTurnRef,
-} from '../../../../app/runtime/desktopChatStreamEventRuntime';
+import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 import { DesktopChatStreamThinkingRuntime } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
 import {
   resolveConversationStreamEventPayload,
@@ -17,6 +14,10 @@ import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { type TranscriptModelContext } from '../../../../app/runtime/desktopChatStreamModelContextRuntime';
 
 const { getGenericThinkingStatus } = DesktopChatStreamThinkingRuntime;
+const {
+  isLocalUserMessageConversationStreamEvent,
+  resolveConversationStreamEventTurnRef,
+} = DesktopChatStreamEventRuntime;
 
 type UseChatStreamLocalUserHandlerDeps = {
   modelContextRef: { current: TranscriptModelContext };

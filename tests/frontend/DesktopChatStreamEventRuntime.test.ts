@@ -3,7 +3,9 @@
  */
 
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import {
+import { DesktopChatStreamEventRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
+
+const {
   isAssistantMessageConversationStreamEvent,
   isCompactionCompletedConversationStreamEvent,
   isCompactionFailedConversationStreamEvent,
@@ -23,7 +25,7 @@ import {
   resolveConversationStreamEventTurnRef,
   resolveConversationStreamEventTurnRefForUpdate,
   shouldIgnoreConversationEventForStaleTurn,
-} from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
+} = DesktopChatStreamEventRuntime;
 
 function createEvent(overrides: Record<string, unknown> = {}) {
   return {

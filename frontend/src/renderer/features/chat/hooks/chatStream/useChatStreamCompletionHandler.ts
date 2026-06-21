@@ -5,11 +5,13 @@
 import { useCallback } from 'react';
 import { useChatStore } from '../../stores/chatStore';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
-import {
+import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
+
+const {
   isTurnCompletedConversationStreamEvent,
   resolveConversationStreamEventConversationRef,
   resolveConversationStreamEventTurnRef,
-} from '../../../../app/runtime/desktopChatStreamEventRuntime';
+} = DesktopChatStreamEventRuntime;
 
 type UseChatStreamCompletionHandlerOptions = {
   recordTrackingEvent: (

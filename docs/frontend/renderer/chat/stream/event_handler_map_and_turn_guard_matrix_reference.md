@@ -98,7 +98,7 @@ Reason: `user_message` establishes turn/workspace state and seeds optimistic UI 
 
 ## Side-Effect Ownership After Dispatch
 
-- `desktopChatStreamEventRuntime.ts`: owns SDK conversation event identity
+- `DesktopChatStreamEventRuntime`: owns SDK conversation event identity
   predicates used by both `useChatStream` dispatch and sub-handler fail-fast
   guards.
 - `useChatStreamLocalUserHandler`: seeds local-user turn state and model

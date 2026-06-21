@@ -4,15 +4,7 @@
 
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
-import {
-  isAssistantMessageConversationStreamEvent,
-  isSystemPromptConversationStreamEvent,
-  isToolSchemasMetadataConversationStreamEvent,
-  isUserMessageMetadataConversationStreamEvent,
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
-  resolveConversationStreamEventTurnRefForUpdate,
-} from '../../../../app/runtime/desktopChatStreamEventRuntime';
+import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 import {
   resolveConversationStreamEventPayload,
   resolveToolSchemasMetadataPayload,
@@ -32,6 +24,15 @@ const {
   buildToolSchemasUpdate,
   buildUserMessageFullUpdate,
 } = DesktopChatStreamMessageUpdateRuntime;
+const {
+  isAssistantMessageConversationStreamEvent,
+  isSystemPromptConversationStreamEvent,
+  isToolSchemasMetadataConversationStreamEvent,
+  isUserMessageMetadataConversationStreamEvent,
+  resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventTurnRef,
+  resolveConversationStreamEventTurnRefForUpdate,
+} = DesktopChatStreamEventRuntime;
 
 type ShouldIgnoreForStaleTurn = (
   event: { turnRef?: string | null },

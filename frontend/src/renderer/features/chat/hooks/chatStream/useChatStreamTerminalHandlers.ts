@@ -14,15 +14,16 @@ import {
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { DesktopChatStreamMessageUpdateRuntime } from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
-import {
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
-  resolveConversationStreamEventTurnRefForUpdate,
-} from '../../../../app/runtime/desktopChatStreamEventRuntime';
+import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 
 const {
   findLastAssistantLlmTextMessageId,
 } = DesktopChatStreamMessageUpdateRuntime;
+const {
+  resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventTurnRef,
+  resolveConversationStreamEventTurnRefForUpdate,
+} = DesktopChatStreamEventRuntime;
 
 type UseChatStreamTerminalHandlersDeps = {
   recordTrackingEvent: TrackEventFn<'token-count' | 'error'>;

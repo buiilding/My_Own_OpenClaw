@@ -7,14 +7,7 @@ import type {
   CompactedReplaySnapshot,
   ConversationEvent,
 } from '../../../../app/runtime/desktopConversationRuntimeContracts';
-import {
-  isCompactionCompletedConversationStreamEvent,
-  isCompactionFailedConversationStreamEvent,
-  isCompactionSkippedConversationStreamEvent,
-  isCompactionStartedConversationStreamEvent,
-  resolveConversationStreamEventConversationRef,
-  resolveConversationStreamEventTurnRef,
-} from '../../../../app/runtime/desktopChatStreamEventRuntime';
+import { DesktopChatStreamEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 import {
   buildCompactedReplaySnapshot,
   buildCompactionDebugInfo,
@@ -39,6 +32,14 @@ const {
   getCompactionStartedThinkingStatus,
   resolveCompactionFailedThinkingStatus,
 } = DesktopChatStreamThinkingRuntime;
+const {
+  isCompactionCompletedConversationStreamEvent,
+  isCompactionFailedConversationStreamEvent,
+  isCompactionSkippedConversationStreamEvent,
+  isCompactionStartedConversationStreamEvent,
+  resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventTurnRef,
+} = DesktopChatStreamEventRuntime;
 
 type SetThinkingStatus = (
   status: string | null,

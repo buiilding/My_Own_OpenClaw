@@ -9,8 +9,7 @@ import {
   mergeRendererAnnotationsIntoSdkMessages,
 } from '../../../app/runtime/desktopConversationDisplayProjection';
 import {
-  recordTrackingEvent as recordTrackingEventRuntime,
-  shouldIgnoreConversationEventForStaleTurn,
+  DesktopChatStreamEventRuntime,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import { logRendererCurrentTurnAppliedTrace } from '../../../app/runtime/desktopRendererTraceRuntime';
@@ -24,6 +23,10 @@ import {
 } from '../../../app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
+const {
+  recordTrackingEvent: recordTrackingEventRuntime,
+  shouldIgnoreConversationEventForStaleTurn,
+} = DesktopChatStreamEventRuntime;
 
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());

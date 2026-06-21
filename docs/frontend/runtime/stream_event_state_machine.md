@@ -37,7 +37,7 @@ Renderer chat now consumes SDK `ConversationEvent` objects from
 `windie:conversation-event`. Those events are projected from backend websocket
 events by the SDK backend-event normalizer before they reach `useChatStream`.
 
-`desktopChatStreamEventRuntime.isSupportedConversationStreamEvent(...)` owns the
+`DesktopChatStreamEventRuntime.isSupportedConversationStreamEvent(...)` owns the
 supported SDK conversation event vocabulary consumed by the chat stream
 dispatcher:
 
@@ -58,13 +58,13 @@ dispatcher:
 - `tool_schemas_metadata`
 - `usage_updated`
 
-`desktopChatStreamEventRuntime.isToolDisplayOnlyConversationStreamEvent(...)`
+`DesktopChatStreamEventRuntime.isToolDisplayOnlyConversationStreamEvent(...)`
 owns the subset of tool and tool-bundle events that `useChatStream` should
 acknowledge without mutating message text. Their display rows are projected by
 the SDK current-turn listener, so the chat stream hook only prevents them from
 falling through to completion handling.
 
-`desktopChatStreamEventRuntime.isCompactionStartedConversationStreamEvent(...)`,
+`DesktopChatStreamEventRuntime.isCompactionStartedConversationStreamEvent(...)`,
 `isCompactionCompletedConversationStreamEvent(...)`, and
 `isCompactionFailedConversationStreamEvent(...)` own the compaction event groups
 used by the chat stream dispatcher and compaction sub-handlers. A specific
@@ -73,7 +73,7 @@ skipped-vs-applied branch before handlers mutate thinking/debug state or replay
 snapshots.
 
 Metadata and transparency dispatch classification also belongs to
-`desktopChatStreamEventRuntime`: system prompt, user message metadata, assistant
+`DesktopChatStreamEventRuntime`: system prompt, user message metadata, assistant
 message metadata, and tool schema metadata predicates route SDK events to the
 renderer metadata handlers. The handlers own payload projection into existing
 rows; the feature hook only wires predicate to handler.
@@ -84,7 +84,7 @@ The same runtime facade owns local-user and terminal telemetry predicates for
 strings directly; they map runtime predicates to renderer side effects and let
 the SDK current-turn projection own live response state.
 
-`desktopChatStreamEventRuntime` also owns normalized SDK conversation-event
+`DesktopChatStreamEventRuntime` also owns normalized SDK conversation-event
 identity values. Chat stream hooks resolve `conversationRef` and `turnRef`
 through runtime helpers before routing workspace side effects, stale-turn
 checks, row targeting, and tracking updates; feature hooks should not read raw
@@ -104,7 +104,7 @@ keep side effects without reading raw `event.payload` directly.
 2. reject missing or malformed conversation identity
 3. call `DesktopChatStreamIngressRuntime.handleConversationEventIngress(...)` to:
   - sync active conversation projection after resolving conversation identity
-    through `desktopChatStreamEventRuntime`
+    through `DesktopChatStreamEventRuntime`
   - register `turn_ref -> conversation_ref` mapping from the normalized SDK turn
     identity helper
   - refresh transcript session binding (`activeConversationRef || resolvedConversationRef`)
@@ -114,7 +114,7 @@ keep side effects without reading raw `event.payload` directly.
 
 Conversation resolution order:
 
-1. normalized explicit SDK conversation identity from `desktopChatStreamEventRuntime`
+1. normalized explicit SDK conversation identity from `DesktopChatStreamEventRuntime`
 2. quarantine when no conversation identity exists
 
 This is workspace routing, not active-chat filtering. Background conversations keep receiving their own events.
@@ -123,7 +123,7 @@ This is workspace routing, not active-chat filtering. Background conversations k
 
 All chat-stream handlers except `user_message` call
 `shouldIgnoreConversationEventForStaleTurn(...)` before mutating workspace UI
-state. The guard is implemented by `desktopChatStreamEventRuntime.ts` and the
+state. The guard is implemented by `DesktopChatStreamEventRuntime` and the
 pure turn comparison exposed through
 `DesktopChatStreamTurnGuardRuntime.isStaleTurnForActiveStream(...)`:
 

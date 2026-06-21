@@ -23,6 +23,17 @@ import {
 } from '../../../app/runtime/desktopChatStreamIngressRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import {
+  DesktopChatStreamEventRuntime,
+} from '../../../app/runtime/desktopChatStreamEventRuntime';
+import {
+  type StreamTrackingEventType,
+  type StreamTrackingOptions,
+} from '../../../app/runtime/desktopChatStreamTrackingRuntime';
+
+const {
+  handleConversationEventIngress,
+} = DesktopChatStreamIngressRuntime;
+const {
   isAssistantMessageConversationStreamEvent,
   isCompactionCompletedConversationStreamEvent,
   isCompactionFailedConversationStreamEvent,
@@ -35,18 +46,10 @@ import {
   isTurnErrorConversationStreamEvent,
   isUserMessageMetadataConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
-  recordTrackingEvent as recordTrackingEventRuntime,
+  recordTrackingEvent: recordTrackingEventRuntime,
   resolveConversationStreamEventConversationRef,
   shouldIgnoreConversationEventForStaleTurn,
-} from '../../../app/runtime/desktopChatStreamEventRuntime';
-import {
-  type StreamTrackingEventType,
-  type StreamTrackingOptions,
-} from '../../../app/runtime/desktopChatStreamTrackingRuntime';
-
-const {
-  handleConversationEventIngress,
-} = DesktopChatStreamIngressRuntime;
+} = DesktopChatStreamEventRuntime;
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {

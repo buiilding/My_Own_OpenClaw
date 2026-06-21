@@ -946,6 +946,10 @@ describe('renderer app runtime boundary', () => {
 
     expect(source).toContain('runtime packets can re-anchor stream state');
     expect(source).not.toContain('backend packets can re-anchor stream state');
+    expect(source).toContain('export const DesktopChatStreamEventRuntime = Object.freeze');
+    expect(source).not.toContain('export function resolveConversationStreamEventConversationRef');
+    expect(source).not.toContain('export function isSupportedConversationStreamEvent');
+    expect(source).not.toContain('export function recordTrackingEvent');
     expect(source).toContain('DesktopChatStreamTurnGuardRuntime');
     expect(turnGuardRuntimeSource).toContain('export const DesktopChatStreamTurnGuardRuntime = Object.freeze');
     expect(turnGuardRuntimeSource).not.toContain('export function isStaleTurnForActiveStream');
