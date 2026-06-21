@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: local-runtime platform/system-state/wakeword Python
-  tests now use local-runtime platform, system-state, and wakeword docstrings
-  instead of sidecar-suite wording, with focused guard coverage preventing
-  those active platform headers from returning.
+- Latest completed slice: local-runtime hosted-backend client/config Python
+  tests now use local-runtime hosted-client and backend endpoint labels instead
+  of sidecar-suite/sidecar-remote-client wording, with focused guard coverage
+  preventing those active hosted-client headers from returning.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -57,14 +57,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer-skin/permission-copy owned.
   Local-runtime Python service/browser registry/bootstrap,
   memory/conversation, executable tool, core/protocol, and
-  platform/system-state/wakeword tests use owner-correct local-runtime service,
-  tool-helper, bootstrap, memory, conversation, tool, JSON-RPC, stdout, daemon,
-  helper, platform, system-state, and wakeword labels while preserving real
-  `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar` implementation
-  paths. Agent SDK local-runtime provider and tool-coordinator tests use
-  neutral `AGENT_TEST_*` launch env, launch-context, daemon, tool-execution
-  failure/unavailable, error, and conversation fixtures while real Windie
-  compatibility env aliases remain explicitly covered by
+  platform/system-state/wakeword, and hosted-backend client/config tests use
+  owner-correct local-runtime service, tool-helper, bootstrap, memory,
+  conversation, tool, JSON-RPC, stdout, daemon, helper, platform,
+  system-state, wakeword, hosted-client, and backend endpoint labels while
+  preserving real `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar`
+  implementation paths. Agent SDK local-runtime provider and tool-coordinator
+  tests use neutral `AGENT_TEST_*` launch env, launch-context, daemon,
+  tool-execution failure/unavailable, error, and conversation fixtures while
+  real Windie compatibility env aliases remain explicitly covered by
   `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
   Generic local-runtime bridge screenshot tests preserve retired namespace
   rejection coverage while avoiding direct legacy WindieOS screenshot temp
@@ -635,6 +636,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Local-Runtime Hosted Client Test Label Boundary
+
+- Finding: active local-runtime Python hosted-backend client tests still
+  introduced backend config, shared remote API client, remote semantic client,
+  and remote client helper coverage as sidecar test-suite behavior, while the
+  remote API client reference and adjacent backend/provider workflow docs still
+  used sidecar remote-client wording.
+- Change: renamed those active test module docstrings to local-runtime
+  hosted-client/backend-endpoint wording, updated the backend-config docs
+  assertion to the current local-runtime missing-config phrase, routed remote
+  client docs/workflow labels through local-runtime wording, and added a
+  focused backend-config guard for the active hosted-client test headers.
+- Validation: focused local-runtime hosted-client/config pytest coverage,
+  exact stale hosted-client label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Runtime code, backend endpoint
+  env precedence, HTTP session lifecycle, semantic summarize payloads, auth
+  headers, IPC, credentials, and trust boundaries are unchanged.
 
 ### 2026-06-21 Local-Runtime Platform Test Label Boundary
 

@@ -1,4 +1,4 @@
-"""Covers remote semantic client behavior in the sidecar test suite."""
+"""Covers local-runtime remote semantic client behavior."""
 
 import pytest
 

@@ -1,4 +1,4 @@
-"""Covers backend config behavior in the sidecar test suite."""
+"""Covers local-runtime backend endpoint config behavior."""
 
 from pathlib import Path
 
@@ -10,6 +10,27 @@ from windie._backend_config import get_backend_http_url  # noqa: E402
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+HOSTED_CLIENT_TEST_LABEL_PATHS = [
+    REPO_ROOT / "tests" / "sidecar" / "remote_client_test_utils.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_backend_config.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_remote_api_client_base.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_remote_semantic_client.py",
+]
+
+
+def test_local_runtime_hosted_client_tests_use_boundary_docstrings():
+    retired_suite_label = "behavior in the " + "sidecar test suite"
+    expected_headers = {
+        "remote_client_test_utils.py": '"""Covers local-runtime hosted-client test utilities."""',
+        "test_backend_config.py": '"""Covers local-runtime backend endpoint config behavior."""',
+        "test_remote_api_client_base.py": '"""Covers local-runtime hosted API client base behavior."""',
+        "test_remote_semantic_client.py": '"""Covers local-runtime remote semantic client behavior."""',
+    }
+
+    for path in HOSTED_CLIENT_TEST_LABEL_PATHS:
+        source = path.read_text(encoding="utf-8")
+        assert source.splitlines()[0] == expected_headers[path.name]
+        assert retired_suite_label not in source
 
 
 def test_get_backend_http_url_requires_configured_backend(monkeypatch):
@@ -96,7 +117,7 @@ def test_python_sdk_backend_config_source_uses_sdk_local_runtime_wording():
     assert "Python sidecar" not in source
 
 
-def test_sidecar_architecture_docs_describe_required_injected_backend_url():
+def test_local_runtime_backend_config_docs_describe_required_injected_backend_url():
     docs = "\n".join(
         (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         for relative_path in [
@@ -108,6 +129,6 @@ def test_sidecar_architecture_docs_describe_required_injected_backend_url():
         ]
     )
 
-    assert "missing sidecar endpoint config raises" in docs
+    assert "missing local-runtime backend endpoint config raises" in docs
     assert "then default `https://api.windieos.com`" not in docs
     assert "hosted default URL would duplicate endpoint ownership" in docs

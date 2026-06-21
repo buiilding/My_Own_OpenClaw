@@ -46,7 +46,7 @@ Do not treat API work as only a router edit. Most changes move through several l
 3. **Trace registration.** Confirm where the router/message handler/formatter is registered before editing implementation.
 4. **Update models and validation first.** Keep request/response schemas precise and test invalid payloads.
 5. **Update service logic separately.** Put business/service behavior in route service/helper modules or existing backend services, not huge route functions.
-6. **Update clients and consumers.** Renderer, SDK clients, VM worker, or sidecar remote clients may depend on route fields and status codes.
+6. **Update clients and consumers.** Renderer, SDK clients, VM worker, or local-runtime remote clients may depend on route fields and status codes.
 7. **Update formatter and event docs if websocket output changed.**
 8. **Add tests at every changed boundary.** Route tests for HTTP, websocket parse/handler tests for incoming messages, formatter/schema tests for outgoing events, auth tests for protected routes.
 

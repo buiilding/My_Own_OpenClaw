@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Hosted Client Test Label Boundary
+
+- Finding: active local-runtime Python hosted-backend client tests still
+  introduced backend config, shared remote API client, remote semantic client,
+  and remote client helper coverage as sidecar test-suite behavior, while the
+  remote API client reference and adjacent backend/provider workflow docs still
+  used sidecar remote-client wording.
+- Change: renamed those active test module docstrings to local-runtime
+  hosted-client/backend-endpoint wording, updated the backend-config docs
+  assertion to the current local-runtime missing-config phrase, routed remote
+  client docs/workflow labels through local-runtime wording, and added a
+  focused backend-config guard for the active hosted-client test headers.
+- Validation: focused local-runtime hosted-client/config pytest coverage,
+  exact stale hosted-client label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Runtime code, backend endpoint
+  env precedence, HTTP session lifecycle, semantic summarize payloads, auth
+  headers, IPC, credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Local-Runtime Platform Test Label Boundary
 
 - Finding: active local-runtime Python platform, system-state, and wakeword

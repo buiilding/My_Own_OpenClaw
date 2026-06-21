@@ -230,7 +230,7 @@ provider health and tool policy together.
 - Vendor mode loads credentials from configured env vars.
 - Provider wrappers preserve `provider_id`, `model_id`, `dimension`, and
   embedding-space metadata.
-- Memory routes and sidecar remote clients handle provider unavailability
+- Memory routes and local-runtime remote clients handle provider unavailability
   without corrupting local memory state.
 - Config/default changes do not silently mix incompatible embedding spaces.
 

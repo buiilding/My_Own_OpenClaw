@@ -1,4 +1,4 @@
-"""Covers remote api client base behavior in the sidecar test suite."""
+"""Covers local-runtime hosted API client base behavior."""
 
 import pytest
 
@@ -63,9 +63,10 @@ def test_remote_api_client_requires_backend_url(monkeypatch):
 
 def test_remote_api_client_source_uses_sdk_hosted_wording():
     source = _source_for(RemoteApiClientBase)
+    retired_client_label = "backend-backed " + "sidecar HTTP clients"
 
     assert "Python SDK hosted HTTP clients" in source
-    assert "backend-backed sidecar HTTP clients" not in source
+    assert retired_client_label not in source
 
 
 @pytest.mark.asyncio

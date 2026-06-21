@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for sidecar `RemoteApiClientBase`: backend URL normalization, shared aiohttp session lifecycle, timeout wiring, success-envelope enforcement, and standardized network/request error wrappers."
+summary: "Deep reference for local-runtime `RemoteApiClientBase`: backend URL normalization, shared aiohttp session lifecycle, timeout wiring, success-envelope enforcement, and standardized network/request error wrappers."
 read_when:
   - When changing `windie/_remote_api_client_base.py` or remote clients that inherit from it (`remote_semantic_client`).
-  - When debugging inconsistent HTTP error messages, success=false handling, or repeated session allocation in sidecar remote clients.
+  - When debugging inconsistent HTTP error messages, success=false handling, or repeated session allocation in local-runtime remote clients.
 title: "Remote API Client Base Session Lifecycle, Timeout, and Error-Wrapper Contract Reference"
 ---
 

@@ -1,4 +1,4 @@
-"""Covers remote client utils behavior in the sidecar test suite."""
+"""Covers local-runtime hosted-client test utilities."""
 
 import sys
 import types
