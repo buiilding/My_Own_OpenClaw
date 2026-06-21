@@ -148,7 +148,7 @@ async function sendListModels(): Promise<void> {
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.MODELS_LIST);
 }
 
-export function createDesktopRuntimeTransport(workspacePath: string | null = null): AgentRuntimeTransport {
+function createDesktopRuntimeTransport(workspacePath: string | null = null): AgentRuntimeTransport {
   const normalizedWorkspacePath = optionalString(workspacePath);
   return {
     connect: async () => undefined,
@@ -189,3 +189,7 @@ export function createDesktopRuntimeTransport(workspacePath: string | null = nul
     close: async () => undefined,
   };
 }
+
+export const DesktopRuntimeTransport = Object.freeze({
+  createDesktopRuntimeTransport,
+});

@@ -983,6 +983,8 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.MODELS_LIST');
     expect(agentRuntimeTransportSource).toContain('SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED');
     expect(agentRuntimeTransportSource).toContain('AgentRuntimeTransport');
+    expect(agentRuntimeTransportSource).toContain('export const DesktopRuntimeTransport = Object.freeze');
+    expect(agentRuntimeTransportSource).not.toContain('export function createDesktopRuntimeTransport');
     expect(agentRuntimeTransportSource).not.toContain('BackendTransport');
     expect(agentRuntimeTransportSource).not.toContain('WINDIE_SEND');
     expect(agentRuntimeTransportSource).not.toContain('WINDIE_STOP');

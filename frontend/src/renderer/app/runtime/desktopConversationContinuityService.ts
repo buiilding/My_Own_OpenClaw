@@ -20,7 +20,7 @@ import {
   loadDesktopTraceTimeline,
   type DesktopTraceTimelineOptions,
 } from '../../infrastructure/transcript/desktopConversationStore';
-import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
+import { DesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { AgentSdkCommandInvokeClient } from './agentSdkCommandInvokeClient';
 import { DesktopDashboardConversationLoadRuntime } from './desktopDashboardConversationLoadRuntime';
@@ -30,6 +30,9 @@ import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;
+const {
+  createDesktopRuntimeTransport,
+} = DesktopRuntimeTransport;
 const {
   metadataListToDashboardConversations,
 } = DesktopDashboardConversationLoadRuntime;

@@ -6,7 +6,11 @@ import {
   buildModelSettingsPatch,
   type AgentModelSelection,
 } from './desktopConversationRuntimeContracts';
-import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
+import { DesktopRuntimeTransport } from './desktopRuntimeTransport';
+
+const {
+  createDesktopRuntimeTransport,
+} = DesktopRuntimeTransport;
 
 type RuntimeSettingsPatch = Record<string, unknown>;
 

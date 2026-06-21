@@ -2,7 +2,7 @@
  * Covers SDK desktop transport adapter behavior in the frontend test suite.
  */
 
-import { createDesktopRuntimeTransport } from '../../frontend/src/renderer/app/runtime/desktopRuntimeTransport';
+import { DesktopRuntimeTransport } from '../../frontend/src/renderer/app/runtime/desktopRuntimeTransport';
 import { AgentSdkCommandInvokeClient } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
@@ -14,6 +14,9 @@ jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient',
 const {
   invokeAgentSdkCommand,
 } = AgentSdkCommandInvokeClient;
+const {
+  createDesktopRuntimeTransport,
+} = DesktopRuntimeTransport;
 const mockInvokeAgentSdkCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 
 describe('desktopRuntimeTransport', () => {

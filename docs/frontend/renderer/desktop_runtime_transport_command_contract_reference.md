@@ -81,7 +81,9 @@ title: "SDK Desktop Transport Command Contract Reference"
 
 `desktopRuntimeTransport.ts` is the renderer-side adapter from SDK-style
 conversation runtime calls into the main-process `windie:invoke` command
-surface.
+surface. The module exposes `DesktopRuntimeTransport` as the app-runtime facade;
+its `createDesktopRuntimeTransport(...)` factory stays private to the facade so
+callers import the runtime owner instead of a standalone helper export.
 
 Renderer runtime facades and Electron main import command names from the SDK
 package `SDK_RUNTIME_COMMANDS` export. The SDK package owns the string

@@ -24287,3 +24287,20 @@ Each completed slice should report:
   channel usage, command payloads, command result handling, renderer markup,
   IPC payloads, storage, local-runtime execution, provider policy, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer desktop runtime transport facade helper privacy
+
+- Finding: SDK desktop runtime transport creation lived in the renderer app
+  runtime, but conversation continuity, settings, voice, and focused tests still
+  imported the factory as a standalone export.
+- Change: exposed transport construction through `DesktopRuntimeTransport` and
+  kept `createDesktopRuntimeTransport` behind the runtime facade that owns SDK
+  command dispatch, query payload normalization, return-value handling, and
+  removed alias rejection.
+- Validation: focused desktop runtime transport, settings, voice, renderer
+  app-runtime boundary tests, targeted renderer ESLint, exact source/doc scans,
+  docs listing, and diff checks.
+- Compatibility: no migration required. SDK command names, `windie:invoke`
+  channel usage, snake_case query payloads, removed camelCase alias rejection,
+  renderer markup, IPC payloads, storage, local-runtime execution, provider
+  policy, backend behavior, and trust boundaries are unchanged.

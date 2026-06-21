@@ -2,10 +2,14 @@
  * Coordinates the voice app-runtime client for the renderer UI.
  */
 
-import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
+import { DesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { DesktopRuntimeEndpointClient } from './desktopRuntimeEndpointClient';
 import { DesktopWakewordEventRuntime } from './desktopWakewordEventRuntime';
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
+
+const {
+  createDesktopRuntimeTransport,
+} = DesktopRuntimeTransport;
 
 const SET_LANGUAGE_PAYLOAD = JSON.stringify({
   type: 'set_langs',

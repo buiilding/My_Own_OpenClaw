@@ -9275,3 +9275,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   names, IPC channel strings, command payloads, command result shapes, storage,
   local-runtime execution, provider policy, backend behavior, and trust
   boundaries are unchanged; no migration is required.
+- Renderer SDK desktop runtime transport construction now routes through
+  `DesktopRuntimeTransport` instead of a standalone factory export. Conversation
+  continuity, settings, voice, and focused transport tests consume the facade
+  object while the runtime keeps SDK command transport creation private. SDK
+  command names, snake_case query payloads, removed camelCase alias rejection,
+  IPC channel usage, storage, local-runtime execution, provider policy, backend
+  behavior, and trust boundaries are unchanged; no migration is required.

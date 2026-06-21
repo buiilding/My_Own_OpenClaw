@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose SDK desktop runtime transport construction through
+  `DesktopRuntimeTransport` instead of a standalone factory export, keeping
+  SDK command transport creation, payload normalization, and command return
+  handling behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose SDK command invocation through
   `AgentSdkCommandInvokeClient` instead of a standalone async helper export,
   keeping bridge lookup, `windie:invoke` fallback dispatch, and result
