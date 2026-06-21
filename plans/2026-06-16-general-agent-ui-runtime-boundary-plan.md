@@ -18925,12 +18925,14 @@ Each completed slice should report:
 
 ### 2026-06-20 Endpoint fallback docs contract alignment
 
-- Finding: the install and endpoint setup docs already described local backend
-  origins as explicit overrides, but troubleshooting, platform setup, and
-  communication-flow docs still claimed source/packaged runs silently fell back
-  from hosted endpoints to local loopback candidates.
+- Finding: endpoint setup docs already described local backend origins as
+  explicit overrides, but installation, troubleshooting, platform setup, and
+  communication-flow docs still implied source/packaged runs used hosted-first
+  candidate lists or silently fell back from hosted endpoints to local loopback
+  candidates.
 - Change: aligned those docs with the current hosted-default/no-local-auto-
-  fallback contract and added modular boundary coverage across the endpoint docs.
+  fallback contract and added modular boundary coverage across the endpoint
+  docs.
 - Validation: focused modular boundary test; exact stale fallback wording scan,
   docs listing, and diff checks.
 - Compatibility: no migration required. Endpoint resolution, hosted defaults,

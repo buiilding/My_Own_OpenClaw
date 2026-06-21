@@ -650,11 +650,13 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/install/local_backend_and_endpoint_setup.md'),
     ]);
     const docText = docs.join('\n');
-    const staleLoopbackFallback = ['fall back to `ws://127.0.0.1:8765/ws`'].join('');
+    const staleLoopbackFallback = ['fall back to', ' `ws://127.0.0.1:8765/ws`'].join('');
     const staleFallbackLocal = ['fallback local:', ' `ws://127.0.0.1:8765/ws`'].join('');
     const staleLocalSecond = ['local-second', ' candidate order'].join('');
     const staleDevFallback = ['Dev fallback', ' (no overrides)'].join('');
     const stalePackagedFallback = ['Packaged fallback', ' default'].join('');
+    const staleHostedFirstCandidates = ['hosted-first', ' endpoint candidates'].join('');
+    const staleHostedFirstList = ['hosted-first', ' candidate list'].join('');
 
     expect(docText).toContain('Local backend origins are explicit');
     expect(docText).toContain('do not silently switch to a local backend');
@@ -663,6 +665,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain(staleLocalSecond);
     expect(docText).not.toContain(staleDevFallback);
     expect(docText).not.toContain(stalePackagedFallback);
+    expect(docText).not.toContain(staleHostedFirstCandidates);
+    expect(docText).not.toContain(staleHostedFirstList);
   });
 
   test('endpoint runtime tests keep arbitrary test hosts product-neutral', async () => {
