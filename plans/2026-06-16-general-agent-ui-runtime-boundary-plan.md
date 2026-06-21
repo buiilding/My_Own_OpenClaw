@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Browser and Local Runtime Workflow Owner Wording
+
+- Finding: the browser workflow, browser tool docs, local-runtime tool
+  workflow, local-runtime Python workflow, JSON-RPC workflow, and browser
+  automation stack still used WindieOS-owned or sidecar-root wording for
+  generic desktop browser/local-runtime implementation responsibilities.
+- Change: reworded those first-read paths around desktop browser automation,
+  local-runtime tool execution, local-runtime Python implementation, and
+  local-runtime implementation roots, and extended modular boundary guards for
+  the retired product-owned and sidecar-root phrases.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, IPC channel names,
+  JSON-RPC method names, tool schemas, browser action payloads, SDK
+  local-runtime routing, local-runtime daemon behavior, storage, credentials,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Desktop Electron Workflow Summary Wording
 
 - Finding: browser, IPC, and main-process first-read summaries still assigned

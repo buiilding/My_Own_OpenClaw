@@ -11,10 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `a037e31eb` (`docs(development): frame desktop app source map`)
-- Latest completed slice: browser, IPC, and main-process first-read summaries
-  now use desktop Electron/runtime wording instead of assigning generic
-  dedicated-browser or IPC/main-process ownership to WindieOS product labels.
+- Latest inspected plan checkpoint: `df85f1010` (`docs(frontend): route electron workflow summaries`)
+- Latest completed slice: browser and local-runtime first-read workflows now
+  use desktop/local-runtime implementation wording instead of assigning generic
+  browser automation, local-runtime tools, JSON-RPC methods, or implementation
+  roots to WindieOS product or sidecar-root labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -111,6 +112,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   supervision. Browser, IPC, and main-process first-read summaries now use
   desktop Electron/runtime wording for generic host responsibilities while
   keeping WindieOS product identity in skin/config and launch configuration.
+  Browser and local-runtime first-read workflows now use desktop browser,
+  local-runtime tool execution, local-runtime Python implementation, and
+  local-runtime implementation-root wording for generic local responsibilities.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
@@ -6297,7 +6301,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ### 2026-06-16 Main Host Permission Skin Slice
 
 - Compaction recovery: recent commits and current uncommitted work were inspected before continuing. Sidecar `process` and screenshot `ToolResult` refactors landed separately while this slice was in progress and were treated as unrelated context.
-- Finding: `main/index.cjs` still embedded WindieOS browser automation and macOS automation permission fallback copy inside the Electron composition root.
+- Finding: `main/index.cjs` still embedded product browser-automation and macOS automation permission fallback copy inside the Electron composition root.
 - Decision: introduce a main host skin/config module for product-specific host copy while keeping OS/window/permission adapter logic in main.
 - Change: browser automation local-backend, Chromium install, runtime unavailable, install failure, and browser-open failure messages now come from the main host skin.
 - Change: macOS System Events Automation probe and request fallback messages now come from the main host skin.
@@ -8058,6 +8062,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   browser action payloads, SDK local-runtime routing, local-runtime daemon
   behavior, storage, credentials, hosted backend URLs, and provider policy are
   unchanged; no migration is required.
+- Browser and local-runtime first-read workflows now describe generic desktop
+  browser automation, local-runtime tool execution, local-runtime Python
+  implementation, JSON-RPC methods, and local-runtime implementation roots
+  without product-owned or sidecar-root labels. Runtime code, IPC channel
+  names, JSON-RPC method names, tool schemas, browser action payloads, SDK
+  local-runtime routing, local-runtime daemon behavior, storage, credentials,
+  hosted backend URLs, and provider policy are unchanged; no migration is
+  required.
 - Logging docs now use a neutral frontend log override path example while
   preserving the `WINDIE_FRONTEND_LOG_FILE` WindieOS override key. Launcher log
   override behavior, default `.windie/logs` source-run paths, provider policy,

@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS local-runtime tools across backend model schema, SDK runtime dispatch, Electron local-runtime bridge, Python JSON-RPC implementation, and local-runtime tests."
+summary: "Workflow for changing desktop local-runtime tools across backend model schema, SDK runtime dispatch, Electron local-runtime bridge, Python JSON-RPC implementation, and local-runtime tests."
 read_when:
   - When adding, changing, or debugging a local executable tool.
   - When a model-visible tool call reaches the SDK runtime but fails in local-runtime execution.
@@ -9,7 +9,7 @@ title: "Local-Runtime Tool Change Workflow"
 
 # Local-Runtime Tool Change Workflow
 
-WindieOS tool execution crosses four layers:
+Local-runtime tool execution crosses four layers:
 
 1. Backend exposes model-facing tool schemas and receives tool results.
 2. SDK runtime interprets streamed tool-call events and builds backend result envelopes.
@@ -41,7 +41,7 @@ Do not make local-runtime Python import backend schemas. Keep parity in explicit
 
 ## Tool Families
 
-| Family | Backend schema roots | Sidecar roots | Focused tests |
+| Family | Backend schema roots | Local-runtime implementation roots | Focused tests |
 | --- | --- | --- | --- |
 | Computer/mouse/keyboard/screenshot/window | `backend/src/tools/computer`, `backend/src/tools/remote_tools` | `frontend/src/main/python/tools/computer`, platform adapters | `tests/backend/test_computer_use_schema_contract.py`, `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_screenshot_tool.py` |
 | Browser | `backend/src/tools/browser` | `frontend/src/main/python/tools/browser` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_tool.py`, browser schema/runtime tests |
@@ -56,7 +56,7 @@ Do not make local-runtime Python import backend schemas. Keep parity in explicit
 | Tool name and call id | Backend event plus SDK tool coordinator | Preserve ids through execution and result submission. |
 | Success/failure status | Local-runtime result and SDK result envelope | Failures should be explicit and serializable, not thrown away. |
 | Screenshot/artifact refs | Electron capture/upload plus backend artifact route | Upload artifacts before backend result submission when model history needs durable refs. |
-| Display/window context | Electron bridge, renderer-visible surface state, sidecar platform tools | Capture context at the boundary closest to the UI event, then pass normalized payloads. |
+| Display/window context | Electron bridge, renderer-visible surface state, local-runtime platform tools | Capture context at the boundary closest to the UI event, then pass normalized payloads. |
 | Backend history entry | Backend tool-result handler | Tool output must re-enter backend history under the correct conversation/turn. |
 
 ## Common Drift Patterns

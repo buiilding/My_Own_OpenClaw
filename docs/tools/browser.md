@@ -8,7 +8,7 @@ title: "Browser Tool"
 
 # Browser Tool
 
-WindieOS browser automation uses the official Browser Use runtime as the local
+The browser tool path uses the official Browser Use runtime as the local
 browser execution engine. The hosted backend keeps agent orchestration and
 model-facing tool policy, Electron main and renderer keep permission gates and
 visible status, and the local-runtime Python browser adapter normalizes Browser

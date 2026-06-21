@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS browser automation across backend schema, shared contract, local-runtime execution, local-runtime Python Browser Use adapters, CDP launch, Electron bridge, renderer browser session readiness UI, files, and tests."
+summary: "Workflow for changing desktop browser automation across backend schema, shared contract, local-runtime execution, local-runtime Python Browser Use adapters, CDP launch, Electron bridge, renderer browser session readiness UI, files, and tests."
 read_when:
   - When adding, removing, renaming, or changing browser actions, browser schemas, CDP launch behavior, browser profile isolation, snapshots, refs, extraction, browser files, downloads, browser session readiness, or session controls.
   - When debugging browser actions that parse in the backend but fail in local-runtime validation, browser UI state that is stale, wrong-profile launches, CDP connection failures, snapshot/ref drift, or browser-local file path issues.

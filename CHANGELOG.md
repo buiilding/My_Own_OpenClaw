@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route browser and local-runtime workflow first-read copy
+  through desktop/local-runtime implementation wording instead of
+  product-owned or sidecar-root labels. No migration required.
 - docs/frontend: route browser, IPC, and main-process workflow summaries
   through desktop Electron/runtime wording instead of product-owned generic
   runtime labels. No migration required.

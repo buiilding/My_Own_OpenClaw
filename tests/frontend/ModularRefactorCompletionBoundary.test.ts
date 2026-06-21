@@ -2491,6 +2491,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain(retiredProductName('OS Browser Use session'));
     expect(docText).not.toContain(retiredProductName(' browser CDP port'));
     expect(docText).not.toContain(retiredProductName(' Dedicated Browser'));
+    expect(docText).not.toContain(`${retiredProductName('OS')} browser automation`);
+    expect(docText).not.toContain(`Workflow for changing ${retiredProductName('OS')} browser automation`);
+    expect(docText).not.toContain(`${retiredProductName('OS')} currently routes the canonical \`browser\` tool`);
     expect(docText).not.toContain('Backend-Sidecar Browser Schema');
     expect(docText).not.toContain('Frontend/sidecar manifest');
     expect(docText).not.toContain('Python sidecar registry');
@@ -3142,6 +3145,14 @@ describe('modular sdk refactor completion boundary', () => {
         `Workflow for safely adding, changing, or removing ${retiredProductName('OS')} Electron IPC channels`,
         `Workflow for changing ${retiredProductName('OS')} Electron main-process behavior`,
         `${retiredProductName('OS')} IPC is a trust boundary`,
+        `Workflow for changing ${retiredProductName('OS')} local-runtime tools`,
+        `${retiredProductName('OS')} tool execution crosses four layers`,
+        `Workflow for changing ${retiredProductName('OS')} local-runtime Python implementation behavior`,
+        `Workflow for adding, changing, or debugging ${retiredProductName('OS')} local-runtime JSON-RPC methods`,
+        'Sidecar roots',
+        'sidecar platform tools',
+        'Do not make sidecar depend on conda',
+        'import backend code into the sidecar to reuse those schemas',
         'SDK local runtime + sidecar callback wiring',
         'Frontend Tool Execution Service',
         'Electron Frontend',
