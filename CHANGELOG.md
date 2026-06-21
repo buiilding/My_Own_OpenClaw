@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/memory: move dashboard memory type descriptors into
+  `desktopMemoryPresentationRuntime` so `MemorySection` renders tabs from the
+  app-runtime presentation contract instead of a section-local table. No
+  migration required.
 - renderer/storage: expose memory retrieval and permission onboarding storage
   keys through their app-runtime owners so tests and callers do not import raw
   renderer skin storage keys. No migration required.

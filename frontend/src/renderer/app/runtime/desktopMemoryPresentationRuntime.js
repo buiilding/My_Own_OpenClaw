@@ -2,6 +2,27 @@
  * Provides dashboard memory presentation projection for the renderer app-runtime.
  */
 
+const DASHBOARD_MEMORY_TYPES = Object.freeze([
+  Object.freeze({
+    id: 'episodic',
+    label: 'Episodic',
+    iconKey: 'clock',
+    description: 'Interaction memories and short-lived context snapshots',
+  }),
+  Object.freeze({
+    id: 'semantic',
+    label: 'Semantic',
+    iconKey: 'bookOpen',
+    description: 'Facts, preferences and distilled long-term knowledge',
+  }),
+  Object.freeze({
+    id: 'procedural',
+    label: 'Procedural',
+    iconKey: 'workflow',
+    description: 'Skills, routines and workflows',
+  }),
+]);
+
 function parseSemanticContent(content) {
   const normalized = (content || '').replace(/\r\n/g, '\n').trim();
   if (!normalized) {
@@ -133,7 +154,11 @@ export function buildProceduralMemoriesForDashboard() {
   return [];
 }
 
-export function resolveDashboardMemoryTypeInfo(activeType, memoryTypes) {
+export function getDashboardMemoryTypes() {
+  return DASHBOARD_MEMORY_TYPES;
+}
+
+export function resolveDashboardMemoryTypeInfo(activeType, memoryTypes = DASHBOARD_MEMORY_TYPES) {
   return memoryTypes.find((type) => type.id === activeType) || memoryTypes[0];
 }
 

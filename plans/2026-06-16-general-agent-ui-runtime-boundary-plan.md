@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Dashboard Memory Type Descriptor Boundary
+
+- Finding: `desktopMemoryPresentationRuntime.js` already owned dashboard
+  memory row projection, type fallback, and search filtering, but
+  `MemorySection.jsx` still owned the frozen tab descriptor table for
+  episodic/semantic/procedural labels and descriptions.
+- Change: moved dashboard memory type descriptors into
+  `getDashboardMemoryTypes()` on the memory presentation runtime, left the
+  section with only icon rendering, and updated focused runtime/boundary/docs
+  coverage to keep tab descriptors with the app-runtime projection owner.
+- Validation: focused memory presentation, memory section, renderer chat
+  boundary coverage, docs listing, stale section-local descriptor scan, and
+  diff checks.
+- Compatibility: no migration required. Memory tab ids, labels,
+  descriptions, counts, list/delete calls, retrieval toggle storage,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Feature Storage Key Accessor Boundary
 
 - Finding: memory retrieval and permission onboarding storage runtimes owned

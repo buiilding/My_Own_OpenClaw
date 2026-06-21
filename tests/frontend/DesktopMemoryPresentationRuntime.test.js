@@ -4,21 +4,36 @@
 
 import {
   filterDashboardMemoriesByQuery,
+  getDashboardMemoryTypes,
   resolveDashboardMemoryTypeInfo,
 } from '../../frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime';
 
-const MEMORY_TYPES = Object.freeze([
-  { id: 'episodic', label: 'Episodic' },
-  { id: 'semantic', label: 'Semantic' },
-  { id: 'procedural', label: 'Procedural' },
-]);
-
 describe('desktopMemoryPresentationRuntime', () => {
+  test('provides dashboard memory type descriptors', () => {
+    expect(getDashboardMemoryTypes()).toEqual([
+      expect.objectContaining({
+        id: 'episodic',
+        label: 'Episodic',
+        iconKey: 'clock',
+      }),
+      expect.objectContaining({
+        id: 'semantic',
+        label: 'Semantic',
+        iconKey: 'bookOpen',
+      }),
+      expect.objectContaining({
+        id: 'procedural',
+        label: 'Procedural',
+        iconKey: 'workflow',
+      }),
+    ]);
+  });
+
   test('resolveDashboardMemoryTypeInfo falls back to first type when missing', () => {
-    expect(resolveDashboardMemoryTypeInfo('semantic', MEMORY_TYPES)).toEqual(
+    expect(resolveDashboardMemoryTypeInfo('semantic')).toEqual(
       expect.objectContaining({ id: 'semantic' }),
     );
-    expect(resolveDashboardMemoryTypeInfo('missing', MEMORY_TYPES)).toEqual(MEMORY_TYPES[0]);
+    expect(resolveDashboardMemoryTypeInfo('missing')).toEqual(getDashboardMemoryTypes()[0]);
   });
 
   test('filterDashboardMemoriesByQuery includes episodic assistantResponse field', () => {

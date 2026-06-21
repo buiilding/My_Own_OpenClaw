@@ -45,6 +45,8 @@ title: "Dashboard Memory Management and Resume Reference"
 `MemorySection` (opened from dashboard modal) owns:
 
 - memory-type tabs: `episodic`, `semantic`, `procedural`
+- memory tab labels/descriptions are projected by
+  `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()`
 - retrieval injection toggle (`Inject memory into prompts`) persisted through
   `desktopMemoryRetrievalPreferenceRuntime.js`; that runtime owns the active
   localStorage key (`windieos-memory-retrieval-injection-enabled`) and the

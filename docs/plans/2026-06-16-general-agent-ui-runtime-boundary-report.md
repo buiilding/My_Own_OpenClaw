@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: memory retrieval and permission onboarding storage
-  keys now stay behind their app-runtime storage owners, with tests using
-  semantic key accessors instead of raw renderer skin storage keys.
+- Latest completed slice: dashboard memory type descriptors now stay behind
+  `desktopMemoryPresentationRuntime`, with `MemorySection` rendering tabs from
+  the app-runtime projection contract instead of a section-local table.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -118,6 +118,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `getMemoryRetrievalInjectionStorageKey()` and
   `getPermissionOnboardingStorageKey()` from their app-runtime owners instead
   of importing renderer skin storage keys directly.
+  Dashboard memory tabs now consume
+  `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
+  episodic/semantic/procedural labels and descriptions.
   The frontend module file index now splits browser ownership across hosted
   backend policy/schema exposure, SDK/main local-runtime dispatch,
   local-runtime Python browser adapter mechanics, and Browser Use session

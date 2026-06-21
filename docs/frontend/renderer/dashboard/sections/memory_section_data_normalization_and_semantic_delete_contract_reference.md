@@ -58,6 +58,7 @@ Store-change refresh:
 
 Presentation projection helpers:
 
+- type tabs -> `getDashboardMemoryTypes()`
 - episodic -> `normalizeEpisodicMemoriesForDashboard(...)`
 - semantic -> `normalizeSemanticMemoriesForDashboard(...)`
 - procedural -> `buildProceduralMemoriesForDashboard()` (currently empty array)
@@ -66,7 +67,8 @@ Presentation projection helpers:
 
 These helpers live in `desktopMemoryPresentationRuntime.js` so dashboard UI
 code consumes a reusable memory presentation projection instead of owning
-local-runtime memory parsing rules inside section-local files.
+local-runtime memory parsing rules or tab descriptor tables inside
+section-local files.
 
 ### Episodic normalization
 
@@ -126,6 +128,7 @@ After delete:
 
 - load path calls episodic + semantic list channels (not conversation list APIs)
 - semantic tab render + procedural empty state
+- memory type labels/descriptions render from the app-runtime descriptor list
 - left close button delegates `onClose`
 - semantic delete uses the memory runtime client with expected payload
 - episodic delete uses the memory runtime client with expected payload

@@ -21,6 +21,7 @@ import {
 import {
   buildProceduralMemoriesForDashboard,
   filterDashboardMemoriesByQuery,
+  getDashboardMemoryTypes,
   normalizeEpisodicMemoriesForDashboard,
   normalizeSemanticMemoriesForDashboard,
   resolveDashboardMemoryTypeInfo,
@@ -28,26 +29,12 @@ import {
 import MemoryItem from './MemoryItem';
 
 const memoryPanelSkin = desktopRuntimeSkin.memoryPanel;
-const MEMORY_TYPES = Object.freeze([
-  {
-    id: 'episodic',
-    label: 'Episodic',
-    icon: Clock,
-    description: 'Interaction memories and short-lived context snapshots',
-  },
-  {
-    id: 'semantic',
-    label: 'Semantic',
-    icon: BookOpen,
-    description: 'Facts, preferences and distilled long-term knowledge',
-  },
-  {
-    id: 'procedural',
-    label: 'Procedural',
-    icon: Workflow,
-    description: 'Skills, routines and workflows',
-  },
-]);
+const MEMORY_TYPE_ICONS = Object.freeze({
+  bookOpen: BookOpen,
+  clock: Clock,
+  workflow: Workflow,
+});
+const MEMORY_TYPES = getDashboardMemoryTypes();
 
 function MemorySection({ onClose = () => {} }) {
   const [activeType, setActiveType] = useState('episodic');
@@ -97,7 +84,7 @@ function MemorySection({ onClose = () => {} }) {
   }, [loadMemories]);
 
   const activeTypeInfo = useMemo(() => {
-    return resolveDashboardMemoryTypeInfo(activeType, MEMORY_TYPES);
+    return resolveDashboardMemoryTypeInfo(activeType);
   }, [activeType]);
 
   const filteredMemories = useMemo(() => {
@@ -159,7 +146,7 @@ function MemorySection({ onClose = () => {} }) {
       <div className="dashboard-panel-body">
         <div className="memory-surface-type-row">
           {MEMORY_TYPES.map((type) => {
-            const Icon = type.icon;
+            const Icon = MEMORY_TYPE_ICONS[type.iconKey] || MessageSquare;
             const isActive = activeType === type.id;
             const count = (memoriesByType[type.id] || []).length;
 

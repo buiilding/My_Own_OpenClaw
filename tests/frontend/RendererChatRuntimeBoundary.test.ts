@@ -497,8 +497,12 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(memorySectionSource).toContain('desktopMemoryPresentationRuntime');
+    expect(memorySectionSource).toContain('getDashboardMemoryTypes');
+    expect(memorySectionSource).not.toContain('const MEMORY_TYPES = Object.freeze');
     expect(memorySectionSource).not.toContain('./memorySectionData');
     expect(memorySectionSource).not.toContain('./memorySectionState');
+    expect(runtimeSource).toContain('DASHBOARD_MEMORY_TYPES');
+    expect(runtimeSource).toContain('getDashboardMemoryTypes');
     expect(runtimeSource).toContain('normalizeEpisodicMemoriesForDashboard');
     expect(runtimeSource).toContain('normalizeSemanticMemoriesForDashboard');
     await expect(fs.stat(
