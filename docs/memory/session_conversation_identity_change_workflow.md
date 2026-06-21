@@ -35,7 +35,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 | --- | --- | --- | --- |
 | `user_id` / `userId` | yes | hosted backend identity, Electron main status, renderer transcript state | Use authenticated hosted identity when available. Scope backend sessions, local transcript rows, memory, settings, and search by user. |
 | `conversation_ref` / `conversationRef` | yes | renderer transcript runtime and backend session registry | Use as the stable conversation/thread key across transcript, backend history, replay, rehydrate, stale-event filtering, and VM run metadata. |
-| `session_id` / `sessionId` | no | backend runtime/websocket | Treat as live runtime context. Do not use it as durable conversation identity when `conversation_ref` exists. |
+| `session_id` / `sessionId` | no | hosted backend runtime/websocket | Treat as live runtime context. Do not use it as durable conversation identity when `conversation_ref` exists. |
 | `turn_ref` | no | renderer send path and backend stream events | Use to correlate one user turn, stream events, stop-query, stale-turn filtering, and tool execution. |
 | `tool_call_id` | yes within model history | backend/provider history and transcript tool rows | Preserve across transcript, replay, rehydrate, and strict provider history. |
 | `request_id` / `correlation_id` | no to semi-durable | backend tool wait path, SDK/main tool coordinator, transcript projection persistence | Use to resolve in-flight tool results and reconstruct UI/tool rows. Preserve until result/history conversion completes. |

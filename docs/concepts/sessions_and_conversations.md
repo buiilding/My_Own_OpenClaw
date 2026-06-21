@@ -13,7 +13,7 @@ WindieOS uses several related identifiers. Do not collapse them into one concept
 | Concept | Primary owner | Purpose |
 | --- | --- | --- |
 | `user_id` | hosted backend identity plus Electron main/renderer snapshots | scopes backend sessions, local transcript rows, memory search, settings, and install auth state |
-| `session_id` | backend session/runtime and websocket events | identifies a live backend runtime session and stream context |
+| `session_id` | hosted backend runtime session and websocket events | identifies a live hosted backend runtime session and stream context |
 | `conversation_ref` | renderer transcript runtime and backend session registry | stable conversation/thread key for transcript replay, backend history, VM runs, and stale-turn filtering |
 | transcript row id/index | local-runtime memory store and renderer transcript queue | persists visible chat rows, replay state, and dashboard conversation lists |
 | turn/message id | renderer send path and backend stream events | correlates one user turn, local optimistic row, stream events, and tool execution |

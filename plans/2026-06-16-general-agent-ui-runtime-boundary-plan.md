@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Hosted-Backend Session Identity Concept Boundary
+
+- Finding: the memory identity workflow and sessions/conversations concept
+  guide still described `session_id` through generic backend runtime/session
+  wording, while the session/transcript reference now treats it as hosted
+  backend runtime identity rather than durable conversation identity.
+- Change: reworded both identity tables to hosted backend runtime wording and
+  extended the transcript session identity guard to cover those docs.
+- Validation: focused transcript session sync docs guard, exact stale-label
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Identifier field names,
+  websocket payloads, transcript sync rejection behavior, backend session
+  registry behavior, local-runtime storage, IPC payloads, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Workflow Owner Bucket Local-Runtime Label Boundary
 
 - Finding: the credential-token workflow still routed client header edits to

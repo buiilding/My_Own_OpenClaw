@@ -82,6 +82,8 @@ describe('ipc_transcript_session_sync', () => {
       'docs/frontend/main/ipc_query_runtime_and_transcript_sync_helper_reference.md',
       'docs/frontend/renderer/transcript/contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md',
       'docs/reference/session_and_transcript_reference.md',
+      'docs/memory/session_conversation_identity_change_workflow.md',
+      'docs/concepts/sessions_and_conversations.md',
       'docs/frontend/renderer/settings/settings_surface_change_workflow.md',
     ].map((relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8')).join('\n');
 
@@ -91,6 +93,8 @@ describe('ipc_transcript_session_sync', () => {
     expect(docs).toContain('hosted backend runtime behavior');
     expect(docs).toContain('hosted backend websocket/session runtime');
     expect(docs).toContain('hosted backend session manager');
+    expect(docs).toContain('hosted backend runtime/websocket');
+    expect(docs).toContain('hosted backend runtime session and websocket events');
     expect(docs).toContain('| local-runtime transcript row |');
     expect(docs).not.toContain('to backend runtime sessions');
     expect(docs).not.toContain('belong to backend runtime session context');
@@ -99,6 +103,8 @@ describe('ipc_transcript_session_sync', () => {
     expect(docs).not.toContain('| string | backend websocket/session runtime |');
     expect(docs).not.toContain('| backend session manager |');
     expect(docs).not.toContain('join to a backend runtime');
+    expect(docs).not.toContain('| backend runtime/websocket |');
+    expect(docs).not.toContain('| `session_id` | backend session/runtime and websocket events |');
     expect(docs).not.toContain('| sidecar transcript row |');
   });
 
