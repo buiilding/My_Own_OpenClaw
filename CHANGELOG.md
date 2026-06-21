@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: describe wakeword and dedicated-browser labels as
+  renderer-skin-provided in active settings/voice references instead of
+  hardcoding the WindieOS skin phrase. No migration required.
 - docs/frontend: route frontend runtime-surface labels and the Electron main
   lifecycle owner row through local-runtime wording instead of sidecar
   lifecycle shorthand. No migration required.

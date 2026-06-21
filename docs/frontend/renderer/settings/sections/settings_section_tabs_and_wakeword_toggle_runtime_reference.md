@@ -49,7 +49,7 @@ Routing model:
 - `appearance` renders renderer-local theme editing controls for light/dark accent, background, foreground, fonts, translucent sidebar, and contrast values
 - `agent` renders custom instructions, extension runtime diagnostics, and local/remote tool toggles
 - `workspace` renders workspace permission/status controls
-- `browser` renders Windie browser permission/status controls
+- `browser` renders skin-named dedicated browser permission/status controls
 - `memory` renders destructive local-data controls for memory/chat resets
 - `onboarding` renders an action to reopen onboarding
 - unknown tabs, including retired `data-controls` links, fall back to `PlaceholderTab` title rendering
@@ -81,7 +81,7 @@ Suppression helper text appears only when:
 
 ### 2) Config patch toggle via `onConfigChange`
 
-`Speech-To-Text After "Hey Jarvis"` toggle emits:
+The skin-provided wakeword STT toggle emits:
 
 - `{ wakeword_stt_enabled: boolean }`
 

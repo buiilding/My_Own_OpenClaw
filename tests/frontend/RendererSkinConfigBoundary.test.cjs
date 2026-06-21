@@ -28,6 +28,14 @@ const rendererStateWorkflowPath = path.resolve(
   __dirname,
   '../../docs/frontend/renderer/renderer_state_change_workflow.md',
 );
+const rendererSettingsSectionReferencePath = path.resolve(
+  __dirname,
+  '../../docs/frontend/renderer/settings/sections/settings_section_tabs_and_wakeword_toggle_runtime_reference.md',
+);
+const rendererVoiceReferencePath = path.resolve(
+  __dirname,
+  '../../docs/frontend/renderer/voice_capture_and_wakeword_controller_reference.md',
+);
 const memoryRetrievalPreferenceTestPath = path.resolve(
   __dirname,
   'MemoryRetrievalPreference.test.js',
@@ -126,6 +134,22 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain('No sidecar plugins loaded');
       expect(source).not.toContain('Connect WindieOS before deleting saved data.');
     }
+  });
+
+  test('renderer settings docs route wakeword and browser copy through the skin', () => {
+    const settingsReferenceSource = fs.readFileSync(rendererSettingsSectionReferencePath, 'utf8');
+    const voiceReferenceSource = fs.readFileSync(rendererVoiceReferencePath, 'utf8');
+    const docText = [
+      settingsReferenceSource,
+      voiceReferenceSource,
+    ].join('\n');
+
+    expect(docText).toContain('skin-named dedicated browser permission/status controls');
+    expect(docText).toContain('skin-provided wakeword STT toggle');
+    expect(docText).toContain('skin-configured wakeword activation');
+    expect(docText).not.toContain('Windie browser permission/status controls');
+    expect(docText).not.toContain('Speech-To-Text After "Hey Jarvis"');
+    expect(docText).not.toContain('for "Hey Jarvis" activation');
   });
 
   test('settings surface source uses generic renderer UI naming', () => {

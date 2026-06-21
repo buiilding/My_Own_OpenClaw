@@ -21983,3 +21983,19 @@ Each completed slice should report:
   file paths, docs navigation targets, local-runtime launch behavior, IPC,
   storage, provider policy, permissions, backend behavior, and trust boundaries
   are unchanged.
+
+### 2026-06-21 renderer wakeword and browser skin-copy docs
+
+- Finding: active renderer settings and voice references still described the
+  browser settings tab and wakeword STT flow with concrete WindieOS skin copy
+  such as the dedicated browser name and wake phrase, even though the renderer
+  settings components read those labels from the active renderer skin.
+- Change: routed the docs through skin-provided wakeword/browser wording and
+  added renderer skin-boundary coverage so the concrete active skin labels do
+  not return to the generic renderer settings/voice references.
+- Validation: focused renderer skin boundary Jest test, exact stale-copy scan
+  for the touched docs, docs listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  active WindieOS skin copy, renderer settings behavior, wakeword/STT config
+  payloads, browser permission behavior, storage, IPC, provider policy,
+  permissions, backend behavior, and trust boundaries are unchanged.

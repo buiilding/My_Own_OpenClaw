@@ -35,7 +35,7 @@ title: "Voice Capture and Wakeword Controller Reference"
 Renderer runs two independent voice paths:
 
 1. live voice transcription (`useVoiceMode`) for temporary composer dictation sessions
-2. passive wakeword detection (`useWakewordDetection`) for "Hey Jarvis" activation
+2. passive wakeword detection (`useWakewordDetection`) for skin-configured wakeword activation
 
 They share microphone primitives but have different transport paths:
 
