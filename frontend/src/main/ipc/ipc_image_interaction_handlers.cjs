@@ -118,6 +118,5 @@ function createImageInteractionHandlersRuntime({
 }
 
 module.exports = {
-  buildTrustedImageOrigins,
   createImageInteractionHandlersRuntime,
 };

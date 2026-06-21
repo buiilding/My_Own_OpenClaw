@@ -9,6 +9,19 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Image Trusted-Origin Helper Privacy
+
+- Finding: after image IPC registration moved into
+  `ipc_image_interaction_handlers.cjs`, the trusted image-origin builder still
+  leaked as a public helper even though the aggregate runtime owns that policy.
+- Change: kept trusted-origin construction private to the aggregate image
+  interaction owner and covered active backend plus candidate artifact origins
+  through registered `copy-image-to-clipboard` behavior.
+- Validation: focused image interaction tests, targeted main IPC lint, docs
+  listing, stale export scans, and diff checks before commit.
+- Compatibility/security: no IPC channel, artifact-origin trust policy,
+  redirect, credential, permission, or trust-boundary migration required.
+
 ### 2026-06-21 Main Image Child Registration Privacy
 
 - Finding: `ipc.cjs` still imported the focused clipboard image and image

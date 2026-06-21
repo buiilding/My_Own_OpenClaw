@@ -3,9 +3,9 @@
 const fs = require('fs/promises');
 const path = require('path');
 const {
-  buildTrustedImageOrigins,
   createImageInteractionHandlersRuntime,
 } = require('../../frontend/src/main/ipc/ipc_image_interaction_handlers.cjs');
+const imageInteractionHandlersModule = require('../../frontend/src/main/ipc/ipc_image_interaction_handlers.cjs');
 
 function imageResponse({
   status = 200,
@@ -42,22 +42,6 @@ function createIpcMainHarness() {
 }
 
 describe('ipc image interaction handlers', () => {
-  test('builds trusted origins from active backend endpoint and candidates', () => {
-    expect(buildTrustedImageOrigins({
-      getBackendHttpUrl: () => 'https://backend.example.com',
-      getBackendCandidates: () => [
-        { httpUrl: 'https://candidate-a.backend.example.com' },
-        { httpUrl: '' },
-        {},
-        { httpUrl: 'https://candidate-b.backend.example.com' },
-      ],
-    })).toEqual([
-      'https://backend.example.com',
-      'https://candidate-a.backend.example.com',
-      'https://candidate-b.backend.example.com',
-    ]);
-  });
-
   test('registers clipboard and context menu IPC handlers with the same trusted origin policy', async () => {
     const { ipcMain, invokeHandlers } = createIpcMainHarness();
     const popup = jest.fn();
@@ -108,6 +92,14 @@ describe('ipc image interaction handlers', () => {
     })).resolves.toEqual({ success: true });
     expect(fetchImpl).toHaveBeenCalledWith(
       'https://candidate.backend.example.com/api/artifacts/image.png',
+      { redirect: 'manual' },
+    );
+
+    await expect(invokeHandlers['copy-image-to-clipboard'](null, {
+      src: 'https://backend.example.com/api/artifacts/image.png',
+    })).resolves.toEqual({ success: true });
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'https://backend.example.com/api/artifacts/image.png',
       { redirect: 'manual' },
     );
 
@@ -199,5 +191,9 @@ describe('ipc image interaction handlers', () => {
     expect(helperSource).toContain("ipcMain.handle('show-image-context-menu'");
     const helperModule = require('../../frontend/src/main/ipc/ipc_image_interaction_handlers.cjs');
     expect(helperModule.registerImageInteractionHandlers).toBeUndefined();
+  });
+
+  test('keeps trusted image origin construction private to the aggregate owner', () => {
+    expect(imageInteractionHandlersModule.buildTrustedImageOrigins).toBeUndefined();
   });
 });

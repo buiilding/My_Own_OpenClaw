@@ -12,12 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main image interaction IPC registration
-  keeps focused clipboard/context-menu registration private to the aggregate
-  `ipc_image_interaction_handlers.cjs` owner, so `ipc.cjs` composes one image
-  interaction runtime while copy and native context-menu behavior are exercised
-  through `createClipboardImageRuntime(...)` and
-  `createImageContextMenuRuntime(...)`.
+- Latest completed slice: Electron main image interaction keeps trusted
+  image-origin construction private to the aggregate
+  `ipc_image_interaction_handlers.cjs` owner, with active backend and candidate
+  artifact origins covered through registered `copy-image-to-clipboard`
+  behavior instead of direct helper imports.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

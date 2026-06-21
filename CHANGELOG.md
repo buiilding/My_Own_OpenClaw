@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep trusted image-origin construction private to
+  `ipc_image_interaction_handlers.cjs` and cover active backend plus candidate
+  artifact origins through the aggregate image interaction runtime. No
+  migration required.
 - frontend/main: keep lower-level clipboard image and image context-menu IPC
   registration private to `ipc_image_interaction_handlers.cjs`, so
   `ipc.cjs` composes one aggregate image-interaction runtime while focused
