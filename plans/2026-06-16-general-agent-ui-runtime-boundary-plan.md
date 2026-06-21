@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Stream Ingress Facade
+
+- Finding: `desktopChatStreamIngressRuntime.ts` already owned SDK
+  conversation-event pre-dispatch orchestration, including conversation identity
+  validation, active conversation projection sync, turn-map registration,
+  transcript binding, and final handler dispatch, but still exported
+  `handleConversationEventIngress(...)` as a standalone function.
+- Change: made `handleConversationEventIngress(...)` private to the runtime
+  module, exposed it through `DesktopChatStreamIngressRuntime`, and routed
+  `useChatStream` plus focused ingress tests through that facade.
+- Validation: focused stream ingress, chat thinking transcript/background
+  routing, renderer chat boundary, exact standalone ingress export/import scan,
+  docs list, and diff hygiene.
+- Compatibility/security: no migration required. Conversation identity
+  validation, fail-safe side-channel isolation, active conversation projection,
+  turn-map registration, transcript session binding, handler dispatch, IPC,
+  storage, permissions, credentials, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-21 Renderer Chat Stream Terminal Handoff Facade
 
 - Finding: `desktopChatStreamTerminalHandoffRuntime.ts` already owned

@@ -102,7 +102,7 @@ keep side effects without reading raw `event.payload` directly.
 
 1. receive the SDK `ConversationEvent` from `windie:conversation-event`
 2. reject missing or malformed conversation identity
-3. call `handleConversationEventIngress(...)` to:
+3. call `DesktopChatStreamIngressRuntime.handleConversationEventIngress(...)` to:
   - sync active conversation projection after resolving conversation identity
     through `desktopChatStreamEventRuntime`
   - register `turn_ref -> conversation_ref` mapping from the normalized SDK turn

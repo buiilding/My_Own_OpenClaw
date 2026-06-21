@@ -19,7 +19,7 @@ import { useChatStreamCompactionHandlers } from './chatStream/useChatStreamCompa
 import { useChatStreamMetadataHandlers } from './chatStream/useChatStreamMetadataHandlers';
 import { useChatStreamCompletionHandler } from './chatStream/useChatStreamCompletionHandler';
 import {
-  handleConversationEventIngress,
+  DesktopChatStreamIngressRuntime,
 } from '../../../app/runtime/desktopChatStreamIngressRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import {
@@ -43,6 +43,10 @@ import {
   type StreamTrackingEventType,
   type StreamTrackingOptions,
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
+
+const {
+  handleConversationEventIngress,
+} = DesktopChatStreamIngressRuntime;
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {

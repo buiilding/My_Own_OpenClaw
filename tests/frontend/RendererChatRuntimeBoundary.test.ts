@@ -390,6 +390,8 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).toContain('desktopChatStreamIngressRuntime');
+    expect(source).toContain('DesktopChatStreamIngressRuntime');
+    expect(source).not.toContain('import {\n  handleConversationEventIngress');
     expect(source).not.toContain('chatStreamBackendIngress');
     expect(source).not.toContain('normalizeBackendEventToConversationEvent');
   });
@@ -763,6 +765,8 @@ describe('renderer chat runtime boundary', () => {
     expect(ingressSource).toContain('resolveConversationStreamEventConversationRef');
     expect(ingressSource).toContain('resolveConversationStreamEventTurnRef');
     expect(ingressSource).toContain('resolveConversationStreamEventUserId');
+    expect(ingressSource).toContain('export const DesktopChatStreamIngressRuntime = Object.freeze');
+    expect(ingressSource).not.toContain('export function handleConversationEventIngress');
     expect(ingressSource).not.toContain('event.conversationRef');
     expect(ingressSource).not.toContain('event.turnRef');
     expect(ingressSource).not.toContain('event.payload');

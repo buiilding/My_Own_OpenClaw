@@ -2,8 +2,12 @@
  * Covers desktop chat stream ingress runtime. behavior in the frontend test suite.
  */
 
-import { handleConversationEventIngress } from '../../frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime';
+import { DesktopChatStreamIngressRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
+
+const {
+  handleConversationEventIngress,
+} = DesktopChatStreamIngressRuntime;
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {

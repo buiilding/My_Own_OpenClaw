@@ -20,7 +20,7 @@ title: "Conversation Event Ingress Fail-Safe and Dispatch Order Reference"
 
 ## Ingress Ownership Boundary
 
-`handleConversationEventIngress(...)` owns renderer pre-dispatch orchestration
+`DesktopChatStreamIngressRuntime.handleConversationEventIngress(...)` owns renderer pre-dispatch orchestration
 for SDK `ConversationEvent` payloads received on `windie:conversation-event`:
 
 - non-empty conversation identity validation
@@ -92,7 +92,8 @@ When transcript sync is disabled:
 Listener flow:
 
 1. receive SDK-normalized `windie:conversation-event`
-2. call `handleConversationEventIngress(...)` with store and handler callbacks
+2. call `DesktopChatStreamIngressRuntime.handleConversationEventIngress(...)`
+   with store and handler callbacks
 3. app runtime validates conversation identity and runs ingress bookkeeping
 4. ingress dispatches the SDK-normalized conversation event for the
    resolved conversation/turn

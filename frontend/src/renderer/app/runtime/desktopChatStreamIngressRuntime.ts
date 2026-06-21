@@ -61,7 +61,7 @@ function syncTranscriptSessionFromConversationEvent({
   );
 }
 
-export function handleConversationEventIngress(
+function handleConversationEventIngress(
   event: ConversationEvent | null,
   deps: HandleConversationEventIngressDeps,
 ): boolean {
@@ -100,3 +100,7 @@ export function handleConversationEventIngress(
   }
   return deps.dispatchConversationEvent(event, conversationRef);
 }
+
+export const DesktopChatStreamIngressRuntime = Object.freeze({
+  handleConversationEventIngress,
+});

@@ -37,8 +37,8 @@ It does not:
 
 ## Conversation Ref Resolution Contract
 
-`handleConversationEventIngress(event, deps)` requires a non-empty SDK
-`event.conversationRef`.
+`DesktopChatStreamIngressRuntime.handleConversationEventIngress(event, deps)`
+requires a non-empty SDK `event.conversationRef`.
 
 This keeps first-class identity strict:
 
@@ -53,7 +53,7 @@ This keeps first-class identity strict:
 
 `useChatStream` routes SDK conversation events with this sequence:
 
-1. `handleConversationEventIngress` rejects missing `conversationRef`
+1. `DesktopChatStreamIngressRuntime.handleConversationEventIngress(...)` rejects missing `conversationRef`
 2. `applyEventChatConversationProjection` promotes explicit user-message
    conversation refs and preserves the current active conversation for late
    non-user events
