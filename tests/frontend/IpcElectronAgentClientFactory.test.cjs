@@ -7,7 +7,6 @@ const {
   buildDesktopLocalRuntimeLaunchOptionsForAgent,
   buildDesktopLocalRuntimeOptions,
   buildManagedBackendEndpoints,
-  createElectronAgentClient,
   createElectronAgentClientFactoryRuntime,
 } = require('../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
 
@@ -103,9 +102,11 @@ describe('ipc_electron_agent_client_factory', () => {
     const onBackendFallback = jest.fn();
     const logMainRuntime = jest.fn();
 
-    createElectronAgentClient({
+    const runtime = createElectronAgentClientFactoryRuntime({
       AgentClient: FakeAgentClient,
       backendEndpointState: createEndpointState(),
+      getDesktopLocalRuntimeLaunchConfig: () => null,
+      getWebSocketImpl: () => null,
       reconnectIntervalMs: 1000,
       connectTimeoutMs: 10000,
       idleDisconnectTimeoutMs: 1800000,
@@ -119,6 +120,7 @@ describe('ipc_electron_agent_client_factory', () => {
       isTest: true,
       logMainRuntime,
     });
+    runtime.createClient();
 
     expect(constructedOptions).toHaveLength(1);
     expect(constructedOptions[0]).toMatchObject({
@@ -194,5 +196,7 @@ describe('ipc_electron_agent_client_factory', () => {
     expect(factorySource).toContain('function createElectronAgentClientFactoryRuntime');
     expect(factorySource).toContain('new AgentClient({');
     expect(factorySource).toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent({');
+    const factoryModule = require('../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
+    expect(factoryModule.createElectronAgentClient).toBeUndefined();
   });
 });

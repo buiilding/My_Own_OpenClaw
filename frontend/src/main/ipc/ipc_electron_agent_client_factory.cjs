@@ -159,6 +159,5 @@ module.exports = {
   buildDesktopLocalRuntimeLaunchOptionsForAgent,
   buildDesktopLocalRuntimeOptions,
   buildManagedBackendEndpoints,
-  createElectronAgentClient,
   createElectronAgentClientFactoryRuntime,
 };

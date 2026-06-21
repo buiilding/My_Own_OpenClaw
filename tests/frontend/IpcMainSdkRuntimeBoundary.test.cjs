@@ -290,6 +290,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).toContain('function createElectronAgentClientFactoryRuntime');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
+    expect(electronAgentClientFactorySource).not.toContain('  createElectronAgentClient,');
     expect(source).not.toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
     expect(source).toContain('createAgentWakeupRuntime({');

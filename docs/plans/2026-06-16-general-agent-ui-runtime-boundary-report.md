@@ -12,12 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main Agent SDK wake-up orchestration keeps
-  the lower-level wake-up function private to `ipc_agent_wakeup_runtime.cjs`,
-  so production and focused tests use `createAgentWakeupRuntime(...)` as the
-  composition boundary while preserving install-auth gating, explicit/fallback
-  workspace resolution, MCP/test-mode option shaping, direct wake-up adapter
-  construction, diagnostics, and logging behavior.
+- Latest completed slice: Electron main `AgentClient` construction keeps the
+  lower-level constructor helper private to
+  `ipc_electron_agent_client_factory.cjs`, so production and focused tests use
+  `createElectronAgentClientFactoryRuntime(...)` as the composition boundary
+  while preserving managed backend endpoint shaping, host callbacks, timeout
+  policy, test-mode local-runtime disabling, and factory logging behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

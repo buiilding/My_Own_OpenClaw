@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level Electron `AgentClient` constructor helper
+  private to `ipc_electron_agent_client_factory.cjs` and exercise managed
+  backend endpoint, host callback, timeout, and test-mode client construction
+  through `createElectronAgentClientFactoryRuntime(...)`, while leaving focused
+  option-builder helpers available. No migration required.
 - frontend/main: keep the lower-level Agent SDK wake-up function private to
   `ipc_agent_wakeup_runtime.cjs` and exercise install-auth, workspace, MCP,
   test-mode option, adapter, and diagnostic behavior through

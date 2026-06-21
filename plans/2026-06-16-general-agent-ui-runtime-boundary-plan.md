@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Electron Agent Client Constructor Privacy
+
+- Finding: `ipc_electron_agent_client_factory.cjs` already exposed
+  `createElectronAgentClientFactoryRuntime(...)` as the Electron main
+  composition facade, but focused tests still imported the lower-level
+  `AgentClient` constructor helper directly.
+- Change: kept `createElectronAgentClient(...)` private to the factory module
+  and moved managed endpoint, callback, timeout, test-mode, and logging
+  coverage through the runtime facade while leaving focused endpoint and
+  local-runtime option builders public.
+- Validation: focused Electron agent-client factory and main SDK boundary
+  tests, targeted main IPC lint, docs listing, stale export-line scans, and
+  diff checks before commit.
+- Compatibility/security: no SDK client option, backend endpoint, websocket,
+  install-auth, local-runtime launch, credential, permission, or trust-boundary
+  migration required; constructed `AgentClient` behavior is unchanged.
+
 ### 2026-06-21 Main Agent Wakeup Function Privacy
 
 - Finding: `ipc_agent_wakeup_runtime.cjs` already exposed
