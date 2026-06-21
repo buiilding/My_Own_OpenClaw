@@ -18,7 +18,9 @@ The current runtime path is:
 2. `frontend/src/main/python/tools/browser/browser_use_engine.py` ensures the dedicated Chrome profile is available through CDP.
 3. Browser Use launches or reuses the named daemon session with `--cdp-url` and performs the browser action.
 
-WindieOS no longer keeps a direct browser-controller execution path in this stack. `chrome_launcher.py` only owns the dedicated profile launch boundary used by the Browser Use adapter.
+The local-runtime browser stack no longer keeps a direct browser-controller
+execution path. `chrome_launcher.py` only owns the dedicated profile launch
+boundary used by the Browser Use adapter.
 
 | Runtime value | Current behavior |
 | --- | --- |
@@ -46,9 +48,19 @@ sessions, or intentionally reusing a legacy Browser Use daemon session. Legacy
 2. invokes Browser Use `state` with `--cdp-url` targeting that profile,
 3. returns `mode = "browser_use"` and `scope = "dedicated_browser"`.
 
-Browser Use treats `--headed` and `--cdp-url` as explicit daemon-config checks. WindieOS passes them only when starting or recovering the dedicated session, then omits them for normal reuse so Browser Use does not compare the daemon's live CDP URL against every fresh CLI invocation. A state file for a running non-dedicated Browser Use session is treated as disconnected; `connect` closes that stale daemon and waits briefly before starting Browser Use against the dedicated profile.
+Browser Use treats `--headed` and `--cdp-url` as explicit daemon-config checks.
+The local-runtime Browser Use adapter passes them only when starting or
+recovering the dedicated session, then omits them for normal reuse so Browser
+Use does not compare the daemon's live CDP URL against every fresh CLI
+invocation. A state file for a running non-dedicated Browser Use session is
+treated as disconnected; `connect` closes that stale daemon and waits briefly
+before starting Browser Use against the dedicated profile.
 
-For browser-internal URLs (`chrome://`, `chrome-extension://`, `devtools://`, and `about:`), WindieOS does not call Browser Use CLI `open` because that command normalizes non-web schemes to `https://...`. The adapter uses Browser Use's Python `browser.goto(...)` wrapper for same-tab internal navigation while leaving normal web navigation on Browser Use `open`.
+For browser-internal URLs (`chrome://`, `chrome-extension://`, `devtools://`,
+and `about:`), the adapter does not call Browser Use CLI `open` because that
+command normalizes non-web schemes to `https://...`. The adapter uses Browser
+Use's Python `browser.goto(...)` wrapper for same-tab internal navigation while
+leaving normal web navigation on Browser Use `open`.
 
 If you change Browser Use session behavior, align:
 
@@ -62,8 +74,8 @@ If you change Browser Use session behavior, align:
 
 The local-runtime Python browser adapter no longer stores live Playwright/CDP
 objects for normal browser tool execution. Browser Use owns that state in its
-daemon. WindieOS should keep only adapter state, Browser Use home/session
-settings, and normalized tool results.
+daemon. The desktop/local-runtime browser path should keep only adapter state,
+Browser Use home/session settings, and normalized tool results.
 
 ## Feature Packs
 

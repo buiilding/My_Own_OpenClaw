@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Dedicated Browser Runtime Adapter Wording
+
+- Finding: the dedicated browser runtime guide still described Browser Use
+  daemon attach/reuse mechanics, internal-URL handling, and live browser state
+  retention as WindieOS behavior instead of local-runtime browser adapter
+  behavior.
+- Change: reworded those mechanics through the local-runtime Browser Use adapter
+  and desktop/local-runtime browser path, while preserving WindieOS-specific env
+  alias and profile-path notes as product configuration.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Browser Use daemon state, dedicated
+  CDP/profile behavior, internal URL navigation, browser result normalization,
+  storage, credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Chrome Launcher Reference Host-Skin Wording
 
 - Finding: the Chrome launcher reference still described host-injected
