@@ -42,6 +42,9 @@ All notable changes to WindieOS will be documented in this file.
   through SDK local-runtime ownership labels instead of active sidecar owner
   shorthand, and remove mojibake from its process diagram. No migration
   required.
+- docs/transcript: label `sessionId` producer and owner entries as hosted
+  backend websocket/session runtime ownership instead of generic backend
+  runtime shorthand. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

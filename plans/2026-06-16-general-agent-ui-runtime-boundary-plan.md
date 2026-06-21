@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Hosted-Backend Session Identifier Map Boundary
+
+- Finding: the session/transcript identifier map still described `sessionId`
+  first production and canonical ownership through generic backend
+  websocket/session runtime labels, even though the field is hosted-backend
+  runtime identity and not durable chat identity.
+- Change: reworded the `sessionId` identifier row to hosted backend
+  websocket/session runtime and hosted backend session manager ownership, and
+  extended the transcript sync docs guard for the retired map labels.
+- Validation: focused IPC transcript session sync Jest coverage, exact
+  stale-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Identifier field names,
+  websocket payloads, transcript sync rejection behavior, local-runtime JSON-RPC
+  aliases, storage, IPC, permissions, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Local-Runtime Python Architecture Label Boundary
 
 - Finding: `docs/architecture/python_sidecar.md` already described the SDK
