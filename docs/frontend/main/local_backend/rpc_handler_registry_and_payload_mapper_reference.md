@@ -135,7 +135,7 @@ interfaces. Preserve these rules there:
 Removed mapping:
 
 - `search-memory` and `mapSearchMemoryPayload(...)` are not registered. Prompt
-  memory lookup is SDK-owned and calls sidecar `search_memory_by_embedding`
+  memory lookup is SDK-owned and calls local-runtime `search_memory_by_embedding`
   with an SDK-provided embedding.
 
 ## Test-Backed Invariants

@@ -22167,3 +22167,18 @@ Each completed slice should report:
   shell argument mapping, sudo rewrite behavior, local-runtime tool execution,
   IPC channels, storage, provider policy, backend behavior, and trust
   boundaries are unchanged.
+
+### 2026-06-21 local-runtime bridge memory lookup owner label
+
+- Finding: the local-runtime bridge handler reference still said prompt memory
+  lookup calls sidecar `search_memory_by_embedding`, even though the active
+  owner is SDK local-runtime JSON-RPC.
+- Change: reworded the removed mapping note to call local-runtime
+  `search_memory_by_embedding` and added modular boundary coverage for the
+  retired sidecar memory lookup phrase.
+- Validation: focused modular refactor boundary test, exact stale phrase scan
+  for the touched local-runtime bridge reference, docs listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  memory lookup RPC names, SDK-provided embeddings, local-runtime dispatch, IPC
+  channels, storage, provider policy, backend behavior, and trust boundaries are
+  unchanged.

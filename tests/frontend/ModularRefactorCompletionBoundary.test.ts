@@ -2214,6 +2214,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');
     expect(localRuntimePayloadDocText).toContain('local-runtime Python `ToolResult`');
     expect(localRuntimePayloadDocText).toContain('owned by the local-runtime shell tool');
+    expect(localRuntimePayloadDocText).toContain('calls local-runtime `search_memory_by_embedding`');
     expect(localRuntimePayloadDocText).not.toContain('Frontend/sidecar must not import');
     expect(localRuntimePayloadDocText).not.toContain('Sidecar `ToolResult`');
     expect(localRuntimePayloadDocText).not.toContain('the sidecar execute another');
@@ -2222,6 +2223,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(localRuntimePayloadDocText).not.toContain('Sidecar/platform runtime');
     expect(localRuntimePayloadDocText).not.toContain('Sidecar shell sudo rewrite');
     expect(localRuntimePayloadDocText).not.toContain('owned by the sidecar shell tool');
+    expect(localRuntimePayloadDocText).not.toContain('calls sidecar `search_memory_by_embedding`');
     expect(docText).not.toContain('Windie Agent owns client-local');
     expect(docText).not.toContain('Sidecar Plugin Tool Registration');
     expect(docText).not.toContain('sidecar plugin');

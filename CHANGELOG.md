@@ -65,6 +65,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/main: route sudo shell rewrite ownership through local-runtime shell
   tool wording in IPC and local-runtime bridge references. No migration
   required.
+- docs/main: route prompt memory lookup wording through local-runtime
+  `search_memory_by_embedding` in the local-runtime bridge reference. No
+  migration required.
 - docs/renderer: route malformed local-runtime result remediation through the
   local-runtime/main bridge label in the renderer state workflow instead of the
   sidecar/main bridge label. No migration required.
