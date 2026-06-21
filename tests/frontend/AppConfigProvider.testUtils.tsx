@@ -29,7 +29,9 @@ import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/render
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient');
 jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime', () => ({
-  filterRendererConfig: (config: Record<string, any>) => config,
+  DesktopRendererConfigFilterRuntime: {
+    filterRendererConfig: (config: Record<string, any>) => config,
+  },
 }));
 jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime', () => ({
   getRendererConfigStorageKey: jest.fn(() => 'windieos-config'),

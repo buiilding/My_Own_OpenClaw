@@ -26,7 +26,7 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 - `tests/frontend/AppConfigProvider.models.test.tsx`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 
-## Renderer-Owned Config Allowlist (`desktopRendererConfigFilterRuntime`)
+## Renderer-Owned Config Allowlist (`DesktopRendererConfigFilterRuntime`)
 
 `RENDERER_CONFIG_FIELDS` currently allows:
 
@@ -54,7 +54,7 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 - `speech_provider`
 - `stt_provider`
 
-`filterRendererConfig(config)` behavior:
+`DesktopRendererConfigFilterRuntime.filterRendererConfig(config)` behavior:
 
 - non-object input -> `{}`
 - includes only keys in the renderer-owned allowlist
@@ -162,7 +162,8 @@ Electron desktop UI config persistence are scrubbed.
 `sanitizeRendererProviderConfig`:
 
 - returns `{}` for non-plain objects
-- applies the renderer-owned config allowlist
+- applies the renderer-owned config allowlist through
+  `DesktopRendererConfigFilterRuntime.filterRendererConfig(...)`
 - drops keys whose value is `undefined`
 
 `mergeRendererProviderConfig(base, patch)`:

@@ -3,8 +3,12 @@
  */
 
 import {
-  filterRendererConfig,
+  DesktopRendererConfigFilterRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js';
+
+const {
+  filterRendererConfig,
+} = DesktopRendererConfigFilterRuntime;
 
 describe('configFilter', () => {
   test('filterRendererConfig keeps only allowed fields', () => {

@@ -33,7 +33,7 @@ const RENDERER_CONFIG_FIELDS = [
  * @param {Object} config - Full runtime settings/config object
  * @returns {Object} - Filtered configuration with only renderer-managed fields
  */
-export function filterRendererConfig(config) {
+function filterRendererConfig(config) {
   if (!config || typeof config !== 'object') {
     return {};
   }
@@ -46,3 +46,7 @@ export function filterRendererConfig(config) {
   }
   return filtered;
 }
+
+export const DesktopRendererConfigFilterRuntime = Object.freeze({
+  filterRendererConfig,
+});

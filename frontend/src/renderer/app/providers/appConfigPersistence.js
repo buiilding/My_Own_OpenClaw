@@ -3,8 +3,12 @@
  */
 
 import { hasShallowConfigChanges } from './configComparison';
-import { filterRendererConfig } from '../runtime/desktopRendererConfigFilterRuntime';
+import { DesktopRendererConfigFilterRuntime } from '../runtime/desktopRendererConfigFilterRuntime';
 import { DesktopProviderCredentialRuntime } from '../runtime/desktopProviderCredentialRuntime';
+
+const {
+  filterRendererConfig,
+} = DesktopRendererConfigFilterRuntime;
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);

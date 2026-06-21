@@ -90,6 +90,10 @@ All notable changes to WindieOS will be documented in this file.
   row classification through `DesktopCurrentTurnMessageRuntime` instead of
   standalone helper exports, keeping overlay message presentation behind the
   renderer app-runtime facade. No migration required.
+- frontend/renderer: expose renderer-owned config allowlist filtering through
+  `DesktopRendererConfigFilterRuntime` instead of a standalone helper export,
+  keeping local settings persistence filtering behind the renderer app-runtime
+  facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

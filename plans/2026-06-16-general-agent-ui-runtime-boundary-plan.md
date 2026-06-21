@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Config Filter Facade
+
+- Finding: `desktopRendererConfigFilterRuntime.js` already owned the
+  renderer-managed settings allowlist used before local persistence and
+  provider config merging, but still exported `filterRendererConfig(...)` as a
+  standalone helper consumed by config persistence and focused tests.
+- Change: made the allowlist filter private to the runtime module, exposed it
+  through `DesktopRendererConfigFilterRuntime`, and routed config persistence,
+  focused config-filter tests, and provider test mocks through that facade.
+- Validation: focused config filter, config storage/provider persistence,
+  settings runtime boundary, exact standalone config-filter helper export/import
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Renderer-managed key
+  allowlisting, backend-owned speech provider exclusion, provider-key secret
+  stripping, localStorage/disk persistence behavior, settings sync, IPC,
+  credentials, provider policy, hosted backend URLs, and local execution trust
+  boundaries are unchanged.
+
 ### 2026-06-21 Renderer Current Turn Message Facade
 
 - Finding: `desktopCurrentTurnMessageRuntime.js` already owned SDK
