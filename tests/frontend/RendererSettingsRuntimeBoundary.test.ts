@@ -185,6 +185,31 @@ describe('renderer settings runtime boundary', () => {
     }
   });
 
+  test('memory settings destructive confirmation routes through app runtime facade', async () => {
+    const memorySettingsActionsSource = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/features/dashboard/components/sections/settings/useMemorySettingsActions.js',
+      ),
+      'utf8',
+    );
+    const dialogRuntimeSource = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/app/runtime/desktopMemorySettingsDialogRuntime.js',
+      ),
+      'utf8',
+    );
+
+    expect(memorySettingsActionsSource).toContain('DesktopMemorySettingsDialogRuntime');
+    expect(memorySettingsActionsSource).toContain(
+      'DesktopMemorySettingsDialogRuntime.confirmMemorySettingsDestructiveAction',
+    );
+    expect(memorySettingsActionsSource).not.toContain('window.confirm');
+    expect(dialogRuntimeSource).toContain('host.confirm');
+    expect(dialogRuntimeSource).not.toContain('export function getDialogHost');
+  });
+
   test('browser settings status detail presentation routes through permission runtime', async () => {
     const source = await fs.readFile(
       path.resolve(

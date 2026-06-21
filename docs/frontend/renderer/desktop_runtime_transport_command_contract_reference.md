@@ -318,9 +318,11 @@ normalized workspace result/event envelopes or raw workspace name/path fields.
 `desktopMemoryRuntimeClient.ts` owns SDK-shaped memory list/delete/clear
 commands, active-user resolution for destructive memory settings actions, and
 the desktop memory-store change fan-out. Dashboard memory UI owns tabs, search,
-normalization, user confirmation, and delete presentation while delegating
-memory runtime commands, active-user sentinel handling, and refresh
-subscriptions to this client.
+normalization, and delete presentation while delegating memory runtime
+commands, active-user sentinel handling, and refresh subscriptions to this
+client. `desktopMemorySettingsDialogRuntime.js` owns browser confirmation for
+destructive memory settings actions so the settings hook stays on runtime
+intent and status orchestration.
 
 `desktopMcpRuntimeClient.ts` owns desktop MCP registry list, refresh,
 enablement commands, MCP registry payload normalization, enablement result

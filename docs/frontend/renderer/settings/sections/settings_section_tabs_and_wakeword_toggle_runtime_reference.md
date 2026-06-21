@@ -220,6 +220,9 @@ permission presentation.
 
 These are user-facing SDK commands. The settings tab owns presentation and user
 intent only; Electron main owns the IPC hop and calls public SDK APIs.
+Browser confirmation for these destructive actions is owned by
+`DesktopMemorySettingsDialogRuntime`, so `useMemorySettingsActions()` does not
+call `window.confirm` directly.
 
 ## Payload and Persistence Boundary
 
@@ -234,6 +237,8 @@ Exception:
   `conversations.clearAll` commands over `window.agentSdk.invoke`.
   `DesktopMemoryRuntimeClient` also owns active-user resolution for destructive
   chat-history deletion, including the non-actionable `default_user` sentinel.
+  `DesktopMemorySettingsDialogRuntime` owns browser confirmation for the
+  destructive settings actions.
 - retired `data-controls` links fall through to the generic placeholder instead of mounting hidden permission UI.
 
 ## Test-Backed Invariants
@@ -246,6 +251,8 @@ Exception:
 - wakeword STT toggle emits exact payload `{ wakeword_stt_enabled: true }`
 - tool log visibility toggle emits exact payload `{ show_tool_logs: true }`
 - memory-tab destructive actions call the correct IPC channels and success callbacks
+- memory-tab destructive confirmation stays behind the app-runtime dialog
+  facade instead of direct browser-dialog calls in the settings hook
 
 ## Drift Hotspots
 

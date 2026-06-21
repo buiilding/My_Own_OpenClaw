@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Memory Settings Dialog Boundary
+
+- Finding: `useMemorySettingsActions(...)` still called `window.confirm`
+  directly for destructive memory/chat deletion actions, keeping browser-dialog
+  adapter details inside the settings feature hook.
+- Change: added `DesktopMemorySettingsDialogRuntime` to own destructive memory
+  settings browser confirmations, then routed the settings hook through that
+  app-runtime facade.
+- Validation target: focused memory settings dialog runtime and renderer
+  settings runtime boundary tests protect confirm behavior and reject raw
+  browser-dialog calls in the settings hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Live Surface Send Alias Removal
 
 - Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`

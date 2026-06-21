@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import { DesktopMemoryRuntimeClient } from '../../../../../app/runtime/desktopMemoryRuntimeClient';
+import { DesktopMemorySettingsDialogRuntime } from '../../../../../app/runtime/desktopMemorySettingsDialogRuntime';
 import { DesktopTranscriptSessionInfoRuntimeClient } from '../../../../../app/runtime/desktopTranscriptSessionInfoRuntimeClient';
 import { DesktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 
@@ -39,7 +40,9 @@ export function useMemorySettingsActions() {
       return false;
     }
 
-    const confirmed = window.confirm(confirmMessage);
+    const confirmed = DesktopMemorySettingsDialogRuntime.confirmMemorySettingsDestructiveAction(
+      confirmMessage,
+    );
     if (!confirmed) {
       return false;
     }

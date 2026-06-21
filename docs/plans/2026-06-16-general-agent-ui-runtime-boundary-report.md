@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: `DesktopLiveTurnSurfaceRuntime` no longer emits the
-  legacy `isSending` alias; live surface consumers and tests assert
-  visible-lifecycle `isBusy`, awaiting, response, phase, and source fields.
+- Latest completed slice: memory settings destructive browser confirmation now
+  routes through `DesktopMemorySettingsDialogRuntime`; the settings action hook
+  owns destructive intent/status only and no longer calls `window.confirm`
+  directly.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

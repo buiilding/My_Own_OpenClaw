@@ -157,10 +157,13 @@ If a test stem is not available in the current checkout, search by the component
 ### Memory Reset Deletes the Wrong Thing
 
 1. Confirm whether the requested action is memory reset or chat-history reset.
-2. Confirm `useMemorySettingsActions` invokes the matching IPC channel.
-3. Confirm the local runtime deletes only the intended local store records.
-4. Confirm dashboard/chat state refreshes after success.
-5. Confirm semantic/vector artifacts are rebuilt or cleared only when needed.
+2. Confirm `useMemorySettingsActions` asks `DesktopMemorySettingsDialogRuntime`
+   for destructive browser confirmation before running.
+3. Confirm `useMemorySettingsActions` invokes the matching memory runtime
+   client command.
+4. Confirm the local runtime deletes only the intended local store records.
+5. Confirm dashboard/chat state refreshes after success.
+6. Confirm semantic/vector artifacts are rebuilt or cleared only when needed.
 
 ## Review Checklist
 

@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route memory settings destructive browser confirmation
+  through `DesktopMemorySettingsDialogRuntime`, keeping `window.confirm`
+  adapter details out of the settings action hook. No migration required.
 - frontend/renderer: remove the legacy `isSending` alias from
   `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`; live
   surface consumers now use visible-lifecycle `isBusy`, awaiting, and response
