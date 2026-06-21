@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Workspace Update Parser Privacy
+
+- Finding: `DesktopWorkspaceRuntimeClient` already owned
+  `workspace-access-updated` event normalization through workspace access,
+  selection, and active-workspace subscription facades, but still exported the
+  raw update parser for focused tests.
+- Change: made the raw workspace access update parser private to the workspace
+  runtime client, kept public workspace selection equality, empty-selection,
+  presentation, binding, command, and subscription helpers intact, and updated
+  focused tests to exercise update normalization through subscriptions.
+- Validation: focused workspace runtime client, renderer settings boundary, and
+  renderer chat boundary tests, exact raw-helper export scan, docs list, and
+  diff hygiene.
+- Compatibility/security: no migration required. Workspace IPC channel names,
+  permission request/check behavior, active workspace selection payloads,
+  settings UI copy, conversation workspace bindings, local filesystem
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Response Overlay Payload Helper Privacy
 
 - Finding: `DesktopResponseOverlayRuntimeClient` already owned response

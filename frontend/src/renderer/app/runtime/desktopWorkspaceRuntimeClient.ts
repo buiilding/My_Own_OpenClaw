@@ -124,7 +124,7 @@ function recordOrEmpty(value: unknown): Record<string, unknown> {
     : {};
 }
 
-export function normalizeWorkspaceAccessUpdatedPayload(
+function normalizeWorkspaceAccessUpdatedPayload(
   payload: unknown,
 ): DesktopWorkspaceAccessUpdatedPayload {
   const source = recordOrEmpty(payload);

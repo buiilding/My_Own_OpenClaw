@@ -1848,7 +1848,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.onWorkspaceSelectionUpdated');
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspace');
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.requestGrantedActiveWorkspace');
-    expect(workspaceClientSource).toContain('normalizeWorkspaceAccessUpdatedPayload');
+    expect(workspaceClientSource).toContain('function normalizeWorkspaceAccessUpdatedPayload');
+    expect(workspaceClientSource).not.toContain('export function normalizeWorkspaceAccessUpdatedPayload');
     expect(workspaceClientSource).toContain('onWorkspaceAccessUpdated');
     expect(workspaceClientSource).toContain('onWorkspaceSelectionUpdated');
     expect(workspaceClientSource).toContain('fetchActiveWorkspaceSelection');

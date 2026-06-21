@@ -25,12 +25,12 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
+import * as DesktopWorkspaceRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 import {
   DesktopWorkspaceRuntimeClient,
   areActiveWorkspaceSelectionsEqual,
   getActiveWorkspacePresentation,
   getEmptyActiveWorkspaceSelection,
-  normalizeWorkspaceAccessUpdatedPayload,
 } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 
 describe('DesktopWorkspaceRuntimeClient', () => {
@@ -39,53 +39,8 @@ describe('DesktopWorkspaceRuntimeClient', () => {
     subscribedListener = null;
   });
 
-  test('normalizes workspace access update payloads at the runtime boundary', () => {
-    expect(normalizeWorkspaceAccessUpdatedPayload({
-      granted: true,
-      source: 'workspace_picker',
-      workspacePath: '/repo/project-alpha/',
-    })).toEqual({
-      granted: true,
-      source: 'workspace_picker',
-      isWorkspacePickerSelection: true,
-      workspaceName: 'project-alpha',
-      workspacePath: '/repo/project-alpha/',
-      workspace: {
-        activeWorkspaceName: 'project-alpha',
-        activeWorkspacePath: '/repo/project-alpha/',
-        selectedPaths: ['/repo/project-alpha/'],
-      },
-    });
-
-    expect(normalizeWorkspaceAccessUpdatedPayload({
-      granted: true,
-      source: 'startup_sync',
-      workspacePath: '/repo/project-alpha',
-    })).toEqual({
-      granted: true,
-      source: 'startup_sync',
-      isWorkspacePickerSelection: false,
-      workspaceName: 'project-alpha',
-      workspacePath: '/repo/project-alpha',
-      workspace: {
-        activeWorkspaceName: 'project-alpha',
-        activeWorkspacePath: '/repo/project-alpha',
-        selectedPaths: ['/repo/project-alpha'],
-      },
-    });
-
-    expect(normalizeWorkspaceAccessUpdatedPayload(null)).toEqual({
-      granted: false,
-      source: '',
-      isWorkspacePickerSelection: false,
-      workspaceName: '',
-      workspacePath: '',
-      workspace: {
-        activeWorkspaceName: '',
-        activeWorkspacePath: '',
-        selectedPaths: [],
-      },
-    });
+  test('keeps raw workspace access update parsing private to the runtime client', () => {
+    expect(DesktopWorkspaceRuntimeModule).not.toHaveProperty('normalizeWorkspaceAccessUpdatedPayload');
   });
 
   test('compares active workspace selections by value-level name and path', () => {
@@ -156,22 +111,71 @@ describe('DesktopWorkspaceRuntimeClient', () => {
     subscribedListener?.({
       granted: true,
       source: 'workspace_picker',
+      workspacePath: '/repo/project-alpha/',
+    });
+    subscribedListener?.({
+      granted: true,
+      source: 'startup_sync',
+      workspacePath: '/repo/project-alpha',
+    });
+    subscribedListener?.(null);
+    subscribedListener?.({
+      granted: true,
+      source: 'workspace_picker',
       workspaceName: 'Repo',
       workspacePath: '/tmp/repo',
     });
 
-    expect(updates).toEqual([{
-      granted: true,
-      source: 'workspace_picker',
-      isWorkspacePickerSelection: true,
-      workspaceName: 'Repo',
-      workspacePath: '/tmp/repo',
-      workspace: {
-        activeWorkspaceName: 'Repo',
-        activeWorkspacePath: '/tmp/repo',
-        selectedPaths: ['/tmp/repo'],
+    expect(updates).toEqual([
+      {
+        granted: true,
+        source: 'workspace_picker',
+        isWorkspacePickerSelection: true,
+        workspaceName: 'project-alpha',
+        workspacePath: '/repo/project-alpha/',
+        workspace: {
+          activeWorkspaceName: 'project-alpha',
+          activeWorkspacePath: '/repo/project-alpha/',
+          selectedPaths: ['/repo/project-alpha/'],
+        },
       },
-    }]);
+      {
+        granted: true,
+        source: 'startup_sync',
+        isWorkspacePickerSelection: false,
+        workspaceName: 'project-alpha',
+        workspacePath: '/repo/project-alpha',
+        workspace: {
+          activeWorkspaceName: 'project-alpha',
+          activeWorkspacePath: '/repo/project-alpha',
+          selectedPaths: ['/repo/project-alpha'],
+        },
+      },
+      {
+        granted: false,
+        source: '',
+        isWorkspacePickerSelection: false,
+        workspaceName: '',
+        workspacePath: '',
+        workspace: {
+          activeWorkspaceName: '',
+          activeWorkspacePath: '',
+          selectedPaths: [],
+        },
+      },
+      {
+        granted: true,
+        source: 'workspace_picker',
+        isWorkspacePickerSelection: true,
+        workspaceName: 'Repo',
+        workspacePath: '/tmp/repo',
+        workspace: {
+          activeWorkspaceName: 'Repo',
+          activeWorkspacePath: '/tmp/repo',
+          selectedPaths: ['/tmp/repo'],
+        },
+      },
+    ]);
 
     unsubscribe?.();
     expect(subscribedListener).toBeNull();

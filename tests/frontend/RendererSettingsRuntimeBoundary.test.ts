@@ -132,7 +132,8 @@ describe('renderer settings runtime boundary', () => {
     expect(source).toContain('DesktopWorkspaceRuntimeClient.getEmptyActiveWorkspaceSelection');
     expect(source).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspace');
     expect(source).toContain('DesktopWorkspaceRuntimeClient.requestGrantedActiveWorkspace');
-    expect(workspaceClientSource).toContain('normalizeWorkspaceAccessUpdatedPayload');
+    expect(workspaceClientSource).toContain('function normalizeWorkspaceAccessUpdatedPayload');
+    expect(workspaceClientSource).not.toContain('export function normalizeWorkspaceAccessUpdatedPayload');
     expect(workspaceClientSource).toContain('onWorkspaceAccessUpdated');
     expect(workspaceClientSource).toContain('onWorkspaceSelectionUpdated');
     expect(workspaceClientSource).toContain('areActiveWorkspaceSelectionsEqual');
