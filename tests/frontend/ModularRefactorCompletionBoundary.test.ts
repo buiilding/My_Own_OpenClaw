@@ -999,6 +999,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('ENV_WINDIE_BROWSER_USE_SESSION, "legacy-agent-session"');
   });
 
+  test('SDK conversation runtime browser trace fixtures use generic browser scope', async () => {
+    const source = await read('tests/frontend/AgentSdkConversationRuntime.test.ts');
+
+    expect(source).not.toContain('windie_dedicated_browser');
+    expect(source).toContain("scope: 'dedicated_browser'");
+  });
+
   test('mock memory seed tests keep legacy user fixtures product-neutral', async () => {
     const source = await read('tests/sidecar/test_dev_seed_mock_memory.py');
     const retiredMockUser = `"${['windie', 'mock'].join('-')}"`;

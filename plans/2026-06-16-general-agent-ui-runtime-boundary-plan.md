@@ -20169,3 +20169,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Debug flag resolution, wakeword startup
   error mapping, stderr marker handling, host-skin wiring, permissions,
   storage, provider policy, and backend behavior are unchanged.
+
+### 2026-06-21 SDK browser trace scope fixture neutrality
+
+- Finding: the Agent SDK conversation runtime browser trace test still used the
+  retired `windie_dedicated_browser` scope sample even though the local-runtime
+  browser adapter and browser docs now expose the generic `dedicated_browser`
+  result scope.
+- Change: switched the SDK trace fixture and assertion to `dedicated_browser`
+  and added modular boundary coverage so SDK runtime tests do not reintroduce
+  the product-shaped browser scope.
+- Validation: focused Agent SDK conversation runtime and modular boundary
+  tests; exact retired browser-scope scan, docs listing, and diff checks.
+- Compatibility: no migration required. Browser tool result tracing, sensitive
+  URL/title scrubbing, local-runtime browser adapter behavior, provider policy,
+  permissions, storage, and backend behavior are unchanged.

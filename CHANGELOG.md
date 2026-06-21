@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sdk: align the Agent SDK browser trace fixture with the local-runtime
+  `dedicated_browser` result scope and add a modular boundary guard against the
+  retired `windie_dedicated_browser` sample. No migration required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

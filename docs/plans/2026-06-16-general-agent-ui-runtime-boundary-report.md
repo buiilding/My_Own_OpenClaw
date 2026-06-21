@@ -8318,3 +8318,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   error mapping, stderr marker handling, host-skin wiring, permissions,
   storage, provider policy, and backend behavior are unchanged; no migration is
   required.
+- Agent SDK conversation runtime browser trace tests now use the generic
+  `dedicated_browser` result scope instead of the retired
+  `windie_dedicated_browser` sample. The local-runtime browser adapter already
+  emits `dedicated_browser`, and the modular boundary guard now blocks the old
+  product-shaped scope from SDK runtime fixtures. Browser tool result tracing,
+  sensitive URL/title scrubbing, local-runtime browser adapter behavior,
+  provider policy, permissions, storage, and backend behavior are unchanged; no
+  migration is required.

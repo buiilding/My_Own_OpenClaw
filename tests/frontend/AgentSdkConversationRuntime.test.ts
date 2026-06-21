@@ -6559,7 +6559,7 @@ describe('Agent SDK conversation runtime core', () => {
           success: true,
           data: {
             mode: 'browser_use',
-            scope: 'windie_dedicated_browser',
+            scope: 'dedicated_browser',
             connected: true,
             tabs: [
               { title: 'Secret Docs', url: 'https://example.test/secret-token' },
@@ -6617,7 +6617,7 @@ describe('Agent SDK conversation runtime core', () => {
     expect(timeline[1].data).toEqual(expect.objectContaining({
       action: 'connect',
       mode: 'browser_use',
-      scope: 'windie_dedicated_browser',
+      scope: 'dedicated_browser',
       connected: true,
       tabCount: 1,
       hasCurrentUrl: false,
