@@ -18953,3 +18953,21 @@ Each completed slice should report:
   Example mock backend behavior, file conversation store behavior,
   plugin/module-tool execution, local-runtime daemon discovery, provider policy,
   permissions, storage, and hosted backend behavior are unchanged.
+
+### 2026-06-21 Agent SDK temp fixture neutrality
+
+- Finding: Agent SDK frontend tests still used Windie-flavored temporary
+  directory prefixes for arbitrary local-runtime daemon/provider/launcher,
+  resource-resolution, and file-store fixtures even though those roots are not
+  product-owned storage locations.
+- Change: switched those disposable temp roots to neutral `agent-*` names and
+  broadened modular boundary coverage across the Agent SDK file-store test plus
+  exact retired temp-prefix checks.
+- Validation: focused Agent SDK client, conversation runtime, file store, and
+  modular boundary tests; exact retired temp-prefix scan, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Current package identifiers and repo
+  paths under `packages/windie-sdk-*` are unchanged. SDK local-runtime
+  discovery, launch, reuse, shutdown, resource upload sanitization, file
+  conversation store persistence, provider policy, permissions, storage, and
+  hosted backend behavior are unchanged.

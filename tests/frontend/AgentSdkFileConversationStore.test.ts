@@ -44,7 +44,7 @@ describe('FileConversationStore', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-file-store-'));
+    tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-file-store-'));
   });
 
   afterEach(async () => {

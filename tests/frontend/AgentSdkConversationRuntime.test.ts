@@ -4221,7 +4221,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('default turn resource resolver rejects raw screenshot paths before backend send', async () => {
-    const tempDir = await mkdtemp(join(tmpdir(), 'windie-sdk-query-shot-'));
+    const tempDir = await mkdtemp(join(tmpdir(), 'agent-query-shot-'));
     const screenshotPath = join(tempDir, 'query-shot.jpg');
     await writeFile(screenshotPath, new Uint8Array([1, 2, 3, 4]));
     const artifactUploader = createMockArtifactUploader();

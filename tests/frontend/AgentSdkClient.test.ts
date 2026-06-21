@@ -2890,7 +2890,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('wakeUp can explicitly reuse a discovered local runtime for local tools', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-daemon-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-daemon-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     await fsPromises.writeFile(
       discoveryFile,
@@ -2955,7 +2955,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('createAgentLocalRuntimeProvider reuses discovery metadata directly', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-provider-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     await fsPromises.writeFile(
       discoveryFile,
@@ -2989,7 +2989,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('createAgentLocalRuntimeProvider reports generic discovery timeout wording', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-timeout-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-provider-timeout-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     await fsPromises.writeFile(
@@ -3014,7 +3014,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('createAgentLocalRuntimeProvider requires host-supplied launch command or daemon script', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-no-launch-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-provider-no-launch-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const originalAgentDaemonScriptEnv = process.env.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT;
     const originalDaemonScriptEnv = process.env.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
@@ -3133,7 +3133,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('createAgentLocalRuntimeProvider rejects camelCase discovery metadata', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-discovery-alias-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-provider-discovery-alias-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     await fsPromises.writeFile(
@@ -3195,7 +3195,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('createAgentLocalRuntimeProvider ignores non-loopback discovery metadata', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-loopback-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-provider-loopback-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     await fsPromises.writeFile(
@@ -3252,7 +3252,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('createAgentLocalRuntimeProvider restarts a discovered daemon by default', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-restart-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-provider-restart-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const daemonScript = path.join(tempDir, 'sidecar_daemon.py');
     const launcherScript = path.join(tempDir, 'python-in-env');
@@ -3326,7 +3326,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('createAgentLocalRuntimeProvider starts a desktop command with explicit env, cwd, and launch context', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-command-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-provider-command-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     const markerFile = path.join(tempDir, 'marker.json');
@@ -3391,7 +3391,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('createAgentLocalRuntimeProvider replaces stale launch-context discovery before reuse', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-stale-launch-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-provider-stale-launch-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     await fsPromises.writeFile(
@@ -3467,7 +3467,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('createAgentLocalRuntimeProvider accepts discovery launch context supersets', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-launch-superset-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-provider-launch-superset-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     await fsPromises.writeFile(
       discoveryFile,
@@ -3994,7 +3994,7 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('createAgentLocalRuntimeProvider can start the daemon through a launcher prefix', async () => {
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-launcher-'));
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-launcher-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const daemonScript = path.join(tempDir, 'sidecar_daemon.py');
     const launcherScript = path.join(tempDir, 'python-in-env');

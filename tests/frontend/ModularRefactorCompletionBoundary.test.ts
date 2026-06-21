@@ -361,7 +361,23 @@ describe('modular sdk refactor completion boundary', () => {
       read('tests/frontend/AgentSdkClient.test.ts'),
       read('tests/frontend/AgentConversationStoreApi.test.ts'),
       read('tests/frontend/AgentSdkConversationRuntime.test.ts'),
+      read('tests/frontend/AgentSdkFileConversationStore.test.ts'),
     ]).then(sources => sources.join('\n'));
+    const retiredSdkTempPrefixes = [
+      ['windie', 'sdk-daemon-'].join('-'),
+      ['windie', 'sdk-provider-'].join('-'),
+      ['windie', 'sdk-provider-timeout-'].join('-'),
+      ['windie', 'sdk-provider-no-launch-'].join('-'),
+      ['windie', 'sdk-provider-discovery-alias-'].join('-'),
+      ['windie', 'sdk-provider-loopback-'].join('-'),
+      ['windie', 'sdk-provider-restart-'].join('-'),
+      ['windie', 'sdk-provider-command-'].join('-'),
+      ['windie', 'sdk-provider-stale-launch-'].join('-'),
+      ['windie', 'sdk-provider-launch-superset-'].join('-'),
+      ['windie', 'sdk-launcher-'].join('-'),
+      ['windie', 'sdk-query-shot-'].join('-'),
+      ['windie', 'file-store-'].join('-'),
+    ];
 
     expect(sdkTestText).not.toContain('/work/WindieOS');
     expect(sdkTestText).not.toContain('/Windieos_workspace/');
@@ -369,11 +385,18 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkTestText).not.toContain('windieos docs');
     expect(sdkTestText).not.toContain("workspaceName: 'WindieOS'");
     expect(sdkTestText).not.toContain("workspace_name: 'WindieOS'");
+    for (const retiredPrefix of retiredSdkTempPrefixes) {
+      expect(sdkTestText).not.toContain(retiredPrefix);
+    }
     expect(sdkTestText).toContain('/work/project-alpha');
     expect(sdkTestText).toContain('/tmp/project-alpha');
     expect(sdkTestText).toContain('/Users/dev/workspaces/project-alpha');
     expect(sdkTestText).toContain('project docs');
     expect(sdkTestText).toContain("workspaceName: 'Project Alpha'");
+    expect(sdkTestText).toContain('agent-sdk-daemon-');
+    expect(sdkTestText).toContain('agent-sdk-provider-');
+    expect(sdkTestText).toContain('agent-query-shot-');
+    expect(sdkTestText).toContain('agent-file-store-');
   });
 
   test('renderer workspace runtime tests keep workspace fixtures product-neutral', async () => {

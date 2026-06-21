@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sdk: use neutral `agent-*` temporary fixture roots in Agent SDK local
+  runtime, conversation resource, and file-store tests instead of
+  Windie-flavored arbitrary temp prefixes. No migration required.
+
 - examples/sdk: use neutral `agent-*` service, store, and note filename
   samples in public SDK examples instead of Windie-flavored arbitrary fixture
   data. No migration required.

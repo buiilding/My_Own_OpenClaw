@@ -7778,3 +7778,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   behavior, file conversation store behavior, plugin/module-tool execution,
   local-runtime daemon discovery, provider policy, permissions, storage, and
   hosted backend behavior are unchanged; no migration is required.
+- Agent SDK frontend tests now use neutral `agent-*` temporary fixture roots for
+  local-runtime provider, daemon, launcher, resource-resolution, and file-store
+  coverage instead of Windie-flavored arbitrary temp prefixes. Real package
+  paths under `packages/windie-sdk-*` remain unchanged because they are current
+  repo/package identifiers. SDK local-runtime discovery, launch, reuse,
+  shutdown, resource upload sanitization, file conversation store persistence,
+  provider policy, permissions, storage, and hosted backend behavior are
+  unchanged; no migration is required.
