@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: macOS System Events permission-service coverage now
-  names the local-runtime automation verifier instead of sidecar-verifier
-  wording while preserving the injected verifier behavior.
+- Latest completed slice: renderer app-runtime boundary coverage now names
+  SDK-owned transport/internal IPC channels instead of sidecar/internal IPC
+  wording while preserving direct-channel rejection.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -45,6 +45,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   real WindieOS debug env names remain host-skin owned.
   Generic IPC query runtime tests use sample interruption copy while real
   WindieOS query event copy remains host-skin owned.
+  Renderer app-runtime boundary tests keep app/features on SDK/runtime facades
+  rather than direct SDK-owned transport and conversation/history IPC channels.
   Generic renderer chat-sender and main IPC query bridge tests use sample
   send-failure copy while real WindieOS renderer chat copy and main
   query-event copy remain skin/host-skin owned.

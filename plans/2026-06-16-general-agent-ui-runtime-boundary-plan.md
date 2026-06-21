@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer App SDK Transport IPC Guard Label Boundary
+
+- Finding: `RendererAppRuntimeBoundary.test.ts` still named its direct-channel
+  guard as SDK-owned sidecar/internal IPC coverage even though the forbidden
+  values are SDK-owned desktop transport and conversation/history IPC channels.
+- Change: renamed the active guard label to SDK-owned transport/internal IPC
+  wording while preserving the exact forbidden channel/value assertions.
+- Validation: focused renderer app-runtime boundary Jest coverage, exact stale
+  renderer sidecar/internal IPC guard-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Renderer runtime facade usage,
+  SDK desktop transport channels, conversation/history IPC channel names, app
+  config, storage, credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Main Permission Local-Runtime Automation Verifier Label Boundary
 
 - Finding: `PermissionService.test.cjs` still named the macOS System Events

@@ -1325,7 +1325,7 @@ describe('renderer app runtime boundary', () => {
     expect(runtimeClientSource).toContain('useAppConfigContext');
   });
 
-  test('renderer app and feature code does not call SDK-owned sidecar/internal IPC channels', async () => {
+  test('renderer app and feature code does not call SDK-owned transport/internal IPC channels', async () => {
     const roots = [
       path.join(rendererRoot, 'app'),
       path.join(rendererRoot, 'features'),
