@@ -22116,3 +22116,20 @@ Each completed slice should report:
   query payload filtering, SDK wake-up, local-runtime bootstrap behavior,
   websocket sends, IPC channels, storage, provider policy, backend behavior, and
   trust boundaries are unchanged.
+
+### 2026-06-21 main screenshot visibility local-runtime invocation label
+
+- Finding: the Linux screenshot window visibility reference still said
+  SDK/main computer-use execution prepares the desktop surface before invoking
+  the sidecar, even though the current owner is local-runtime execution behind
+  the Electron main bridge.
+- Change: reworded the behavior sentence to local-runtime invocation and added
+  focused window-visibility coverage so the sidecar invocation label does not
+  return to the generic screenshot visibility behavior docs.
+- Validation: focused local-runtime window visibility test, exact stale phrase
+  scan for the touched screenshot visibility reference, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  screenshot task routing, window visibility behavior, local-runtime execution,
+  IPC channels, storage, provider policy, backend behavior, and trust boundaries
+  are unchanged.

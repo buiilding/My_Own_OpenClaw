@@ -56,6 +56,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/main: route the query relay bootstrap description through
   local-runtime/tool runtime wording instead of sidecar/tool runtime wording. No
   migration required.
+- docs/main: route the screenshot visibility reference through local-runtime
+  execution wording instead of sidecar invocation wording. No migration
+  required.
 - docs/renderer: route malformed local-runtime result remediation through the
   local-runtime/main bridge label in the renderer state workflow instead of the
   sidecar/main bridge label. No migration required.

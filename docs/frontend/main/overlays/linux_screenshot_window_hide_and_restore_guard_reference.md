@@ -32,8 +32,8 @@ Used in local-runtime bridge:
 Implication:
 
 - no Electron-main window hide/restore is performed by this seam today
-- SDK/main computer-use execution prepares the desktop surface before invoking the
-  sidecar; dashboard-visible turns are handed to the minimal pill by Electron
+- SDK/main computer-use execution prepares the desktop surface before invoking
+  the local runtime; dashboard-visible turns are handed to the minimal pill by Electron
   main before local execution starts
 - renderer code does not own screenshot hide/restore
 
