@@ -2,12 +2,12 @@
  * WindieOS provider model display fallbacks for the renderer skin.
  */
 
-const DEFAULT_PROVIDER_MODEL_DISPLAY = Object.freeze({
+export const DEFAULT_PROVIDER_MODEL_DISPLAY = Object.freeze({
   description: 'General-purpose model suitable for chat, coding and reasoning tasks.',
   strengths: Object.freeze(['Reasoning', 'General', 'Productivity', 'Flexible']),
 });
 
-const PROVIDER_MODEL_DISPLAY_FALLBACKS = Object.freeze([
+export const PROVIDER_MODEL_DISPLAY_FALLBACKS = Object.freeze([
   Object.freeze({
     patterns: Object.freeze(['openai']),
     description: 'OpenAI flagship model family for chat, coding, and agent workflows.',
@@ -50,33 +50,8 @@ const PROVIDER_MODEL_DISPLAY_FALLBACKS = Object.freeze([
   }),
 ]);
 
-const PROVIDER_LABEL_OVERRIDES = Object.freeze({
+export const PROVIDER_LABEL_OVERRIDES = Object.freeze({
   openai: 'OpenAI',
   openrouter: 'OpenRouter',
   scripted: 'Scripted',
 });
-
-export function formatProviderDisplayLabel(providerValue) {
-  const provider = String(providerValue || '').trim();
-  if (!provider) {
-    return provider;
-  }
-  const lowerProvider = provider.toLowerCase();
-  const override = PROVIDER_LABEL_OVERRIDES[lowerProvider];
-  if (override) {
-    return override;
-  }
-  return provider
-    .split('-')
-    .filter(Boolean)
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join('-');
-}
-
-export function resolveProviderModelDisplay(provider) {
-  const normalizedProvider = String(provider || '').trim().toLowerCase();
-  const fallback = PROVIDER_MODEL_DISPLAY_FALLBACKS.find((entry) => (
-    entry.patterns.some((pattern) => normalizedProvider.includes(pattern))
-  ));
-  return fallback || DEFAULT_PROVIDER_MODEL_DISPLAY;
-}

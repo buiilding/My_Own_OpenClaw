@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: move provider model display label and fallback resolution
+  helpers into the `DesktopRuntimeConfig` facade so concrete provider display
+  skin config stays data-only while runtime consumers keep the same facade API.
+  No migration required.
 - frontend/renderer: move the tool-acceptance runtime summary formatter from
   the concrete WindieOS skin file into the `DesktopRuntimeSkin` facade so the
   skin stays data-only while consumers keep the same facade API. No migration

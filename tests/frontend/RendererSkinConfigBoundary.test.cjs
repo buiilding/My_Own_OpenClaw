@@ -394,9 +394,13 @@ describe('renderer skin/config boundary', () => {
 
     expect(configFacadeSource).toContain("from './providerModelDisplaySettings'");
     expect(configFacadeSource).toContain('DesktopRuntimeConfig');
+    expect(configFacadeSource).toContain('function formatProviderDisplayLabel');
+    expect(configFacadeSource).toContain('function resolveProviderModelDisplay');
     expect(providerDisplaySource).toContain('PROVIDER_MODEL_DISPLAY_FALLBACKS');
     expect(providerDisplaySource).toContain('PROVIDER_LABEL_OVERRIDES');
     expect(providerDisplaySource).toContain('OpenAI flagship model family');
+    expect(providerDisplaySource).not.toContain('export function formatProviderDisplayLabel');
+    expect(providerDisplaySource).not.toContain('export function resolveProviderModelDisplay');
     expect(modelCardPresentationRuntimeSource).toContain('desktopRuntimeConfig');
     expect(modelCardPresentationRuntimeSource).toContain('DesktopModelCardPresentationRuntime');
     expect(modelCardPresentationRuntimeSource).not.toContain('export function toModelCard');

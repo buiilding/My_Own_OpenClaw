@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Provider Display Config Facade Ownership
+
+- Finding: `providerModelDisplaySettings.js` exported provider model display
+  data plus `formatProviderDisplayLabel(...)` and
+  `resolveProviderModelDisplay(...)`, while runtime consumers already called
+  those helpers through `DesktopRuntimeConfig`.
+- Change: moved the helper implementations into `desktopRuntimeConfig.js` and
+  left the concrete provider display skin config as frozen data constants.
+- Validation: focused renderer skin/config boundary tests plus targeted skin
+  source lint, docs listing, stale direct provider display helper export scans,
+  and diff checks before commit.
+- Compatibility/security: no migration required. Model/provider labels,
+  provider model card descriptions, active skin config values, IPC,
+  credentials, hosted backend policy, and local-runtime execution are
+  unchanged.
+
 ### 2026-06-21 Renderer Skin Formatter Facade Ownership
 
 - Finding: `windieDesktopSkin.js` exported both the concrete WindieOS skin data
