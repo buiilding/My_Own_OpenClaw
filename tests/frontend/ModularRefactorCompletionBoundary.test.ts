@@ -1418,10 +1418,13 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/inventory/frontend_full_functionality_inventory_reference.md'),
       read('docs/frontend/runtime/tool_execution_and_streaming.md'),
       read('docs/frontend/renderer/chat_stream_and_tool_execution_reference.md'),
+      read('docs/frontend/renderer/chat/chat_attachment_change_workflow.md'),
+      read('docs/frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md'),
       read(
         'docs/frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md',
       ),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
+      read('docs/frontend/renderer/settings/settings_surface_change_workflow.md'),
       read('docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
       read('docs/getting-started/docs_hub.md'),
       read('docs/operations/evidence_collection_runbook.md'),
@@ -1450,6 +1453,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK result envelope builder');
     expect(docText).toContain('SDK tool coordination');
     expect(docText).toContain('local runtime daemon startup/reuse');
+    expect(docText).toContain('local-runtime `read_file` behavior');
+    expect(docText).toContain('local-runtime/native result');
+    expect(docText).toContain('Electron/local-runtime browser runtime');
     expect(docText).not.toContain('SDK desktop runtime');
     expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('tool runner uses `turn_ref`');
@@ -1479,6 +1485,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('before sidecar execution');
     expect(docText).not.toContain('sidecar daemon startup/reuse');
     expect(docText).not.toContain('Python sidecar daemon execution');
+    expect(docText).not.toContain('main-process SDK runtime and sidecar');
+    expect(docText).not.toContain('sidecar `read_file`');
+    expect(docText).not.toContain('sidecar/native result');
+    expect(docText).not.toContain('Electron/sidecar browser runtime');
+    expect(docText).not.toContain('Confirm sidecar deletes only the intended local store records');
   });
 
   test('runtime routing docs use Agent SDK boundary wording', async () => {

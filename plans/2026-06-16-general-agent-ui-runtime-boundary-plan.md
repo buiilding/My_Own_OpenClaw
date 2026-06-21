@@ -20199,3 +20199,20 @@ Each completed slice should report:
   `windie` import package, explicit backend URL contract, install auth
   behavior, local-runtime startup, provider policy, permissions, and backend
   behavior are unchanged.
+
+### 2026-06-21 Renderer local-runtime owner wording
+
+- Finding: active renderer docs still described readable-file resource
+  resolution, browser settings, tool-result output, and chat stream local tool
+  execution through sidecar owner labels even though renderer-facing ownership
+  is SDK/main local-runtime execution with local-runtime Python as the concrete
+  implementation.
+- Change: reworded those docs to local-runtime `read_file`,
+  Electron/local-runtime browser runtime, local-runtime/native result, and
+  SDK/main local-runtime execution wording, then extended modular boundary
+  coverage over the affected renderer docs.
+- Validation: focused modular boundary test, docs listing, exact retired
+  renderer sidecar-owner phrase scan, and diff checks.
+- Compatibility: no migration required. Renderer chat projection,
+  attachment-context assembly, local-runtime tool execution, browser settings,
+  permissions, storage, provider policy, and backend behavior are unchanged.

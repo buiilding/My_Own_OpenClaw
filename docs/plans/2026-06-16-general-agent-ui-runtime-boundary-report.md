@@ -8332,3 +8332,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   remain unchanged and covered by package-boundary tests. Explicit backend URL
   handling, install auth behavior, local-runtime startup, provider policy,
   permissions, and backend behavior are unchanged; no migration is required.
+- Renderer docs now route chat attachment readable-file resolution, stream
+  local-tool ownership, browser settings, and tool-result output wording
+  through SDK/main local-runtime and local-runtime Python boundaries instead of
+  sidecar owner labels. Renderer chat projection, attachment-context assembly,
+  local-runtime tool execution, browser settings, permissions, storage,
+  provider policy, and backend behavior are unchanged; no migration is
+  required.

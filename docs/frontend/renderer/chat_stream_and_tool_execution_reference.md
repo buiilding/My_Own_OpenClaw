@@ -363,7 +363,7 @@ Handler composition boundary:
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - SDK `turn_error` transcript/error materialization plus SDK `usage_updated` terminal behavior is delegated to `useChatStreamTerminalHandlers`
 - SDK current-turn `toolEvents` active-turn display and phase tracking is delegated through `useConversationRuntimeProjectionStream` to `desktopCurrentTurnProjectionEffectsRuntime.ts`.
-- SDK `tool_call`/`tool_output`/`tool_bundle_call` transcript persistence is delegated to `useChatStreamToolHandlers`; local tool execution remains owned by the main-process SDK runtime and sidecar.
+- SDK `tool_call`/`tool_output`/`tool_bundle_call` transcript persistence is delegated to `useChatStreamToolHandlers`; local tool execution remains owned by SDK/main local-runtime execution and the local-runtime Python implementation.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.
 - SDK `turn_completed` finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`

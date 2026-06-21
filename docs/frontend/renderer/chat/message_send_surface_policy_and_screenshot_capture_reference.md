@@ -135,7 +135,7 @@ Readable file injection path:
 
 - for each `readableFiles[]` item, renderer submits a required `readable_file`
   resource.
-- SDK default resource resolvers invoke sidecar `read_file`.
+- SDK default resource resolvers invoke the local-runtime `read_file` tool.
 - successful `output` values are concatenated into hidden attachment context.
 - failed or empty required readable-file results emit a SDK turn error after
   the base user row is visible.

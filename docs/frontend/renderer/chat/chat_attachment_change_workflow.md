@@ -37,7 +37,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | Pasted image is not previewed | Composer paste parsing | `MessageInput.jsx`, `desktopComposerAttachmentRuntime.js` | `tests/frontend/MessageInput.test.jsx`, `DesktopComposerAttachmentRuntime.test.js` |
 | Selected image file is treated like readable text | File attachment bucketing | `desktopComposerAttachmentRuntime.js`, `desktopAttachmentPresentationRuntime.js`, `MessageInput.jsx` | `DesktopComposerAttachmentRuntime.test.js`, `MessageInput.test.jsx`, `AttachmentPresentationRuntime.test.js` |
-| Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | sidecar `read_file` behavior and SDK runtime tests |
+| Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | local-runtime `read_file` behavior and SDK runtime tests |
 | Attachment-only send is blocked | Composer outgoing payload builder | `desktopMessageInputRuntime.js`, `MessageInput.jsx` | `DesktopMessageInputRuntime.test.js`, `MessageInput.test.jsx` |
 | Send failure clears text or attachment previews | Composer draft lifecycle | `useChatComposerDraft.js`, `MessageInput.jsx` | `ChatComposerDraft.test.jsx`, `MessageInput.test.jsx` |
 | SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `desktopChatSendPayloadRuntime.ts`, `desktopChatSendPreparationRuntime.ts`, `ConversationRuntime.ts` | `DesktopChatSendPayloadRuntime.test.ts`, `ChatMessageSender.test.tsx`, `AgentSdkConversationRuntime.test.ts` |
@@ -82,7 +82,7 @@ Clipboard image IPC trust boundary:
 4. Preserve readable-file behavior.
    - Non-image selected files become visible filename chips.
    - Renderer send submits `readable_file` resources with file path and filename.
-   - SDK resource resolvers use sidecar `read_file` to build hidden `attachment_context`.
+   - SDK resource resolvers use the local-runtime `read_file` tool to build hidden `attachment_context`.
    - Raw file content should not appear in the visible user row.
    - Required file read failures become SDK turn errors after the base user row
      appears, so the renderer does not block row emission.
@@ -133,7 +133,7 @@ Clipboard image IPC trust boundary:
 
 1. Confirm selected file is in `readableFiles[]`, not `clipboardImages[]`.
 2. Confirm `desktopChatSendPreparationRuntime.ts` submitted a `readable_file` resource.
-3. Confirm `DefaultTurnResourceResolvers` called sidecar `read_file`.
+3. Confirm `DefaultTurnResourceResolvers` called the local-runtime `read_file` tool.
 4. Confirm successful `output` was added to `attachment_context` before backend transport.
 5. Confirm the visible transcript row only stores filename metadata.
 

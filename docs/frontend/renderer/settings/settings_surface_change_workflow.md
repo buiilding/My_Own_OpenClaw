@@ -61,7 +61,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | General | `GeneralSettingsTab.jsx` | wakeword listening, wakeword STT, tool log visibility, global stop shortcut | mixed: context setters and config patches |
 | Workspace | `WorkspaceSettingsTab.jsx` | active workspace display and folder selection | `DesktopWorkspaceRuntimeClient` update fan-out plus Electron workspace permission/runtime path |
-| Browser | `BrowserSettingsTab.jsx` | dedicated browser permission/status and open-browser action | renderer permission store plus Electron/sidecar browser runtime |
+| Browser | `BrowserSettingsTab.jsx` | dedicated browser permission/status and open-browser action | renderer permission store plus Electron/local-runtime browser runtime |
 | Memory | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js` | local memory reset and chat-history reset | renderer action hook, main IPC, local-runtime memory admin |
 | Onboarding | `OnboardingSettingsTab.jsx` | permission/onboarding reset or status controls | renderer permission/onboarding store |
 
@@ -158,7 +158,7 @@ If a test stem is not available in the current checkout, search by the component
 
 1. Confirm whether the requested action is memory reset or chat-history reset.
 2. Confirm `useMemorySettingsActions` invokes the matching IPC channel.
-3. Confirm sidecar deletes only the intended local store records.
+3. Confirm the local runtime deletes only the intended local store records.
 4. Confirm dashboard/chat state refreshes after success.
 5. Confirm semantic/vector artifacts are rebuilt or cleared only when needed.
 

@@ -219,7 +219,7 @@ Correlation contract is inherited from the SDK result envelope:
 SDK/main result envelopes preserve tool text in the canonical `output` field
 before backend relay:
 
-- single tool results normalize `data.output` from the sidecar/native result
+- single tool results normalize `data.output` from the local-runtime/native result
 - bundle results preserve each step's output and top-level screenshot metadata
 - backend history stores the normalized result payload instead of relying on a
   renderer formatter layer

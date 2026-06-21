@@ -45,6 +45,9 @@ All notable changes to WindieOS will be documented in this file.
   `windie` SDK wording to Python SDK package wording, with modular boundary
   coverage preserving the current public package/import name. No migration
   required.
+- docs/renderer: route chat attachment, tool-result, browser settings, and
+  stream ownership wording through SDK/main local-runtime and local-runtime
+  Python boundaries instead of sidecar owner labels. No migration required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration
