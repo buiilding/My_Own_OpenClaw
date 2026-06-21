@@ -69,6 +69,9 @@ All notable changes to WindieOS will be documented in this file.
   docstrings and remote-client docs away from sidecar remote-client wording,
   with a focused guard for the active hosted-client headers. No migration
   required.
+- sidecar/tests: route Python SDK package/client and repo-agent example test
+  docstrings away from sidecar-suite wording, with a focused guard for those
+  active headers. No migration required.
 - renderer/chat: move chat send lifecycle chat-pill trace payload shaping into
   `desktopRendererTraceRuntime` so `desktopChatSendPreparationRuntime` reports
   send-start, screenshot-decision, and query-dispatched values without owning

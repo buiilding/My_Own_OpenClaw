@@ -1,4 +1,4 @@
-"""Covers Python SDK package client behavior in the sidecar test suite."""
+"""Covers Python SDK package client behavior."""
 
 import asyncio
 import json

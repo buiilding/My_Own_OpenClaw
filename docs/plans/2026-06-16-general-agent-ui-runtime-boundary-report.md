@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: local-runtime hosted-backend client/config Python
-  tests now use local-runtime hosted-client and backend endpoint labels instead
-  of sidecar-suite/sidecar-remote-client wording, with focused guard coverage
-  preventing those active hosted-client headers from returning.
+- Latest completed slice: Python SDK package/client and repo-agent example
+  Python tests now use SDK/package and local-runtime example labels instead of
+  sidecar-suite wording, with focused guard coverage preventing those active
+  headers from returning.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -65,7 +65,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   implementation paths. Agent SDK local-runtime provider and tool-coordinator
   tests use neutral `AGENT_TEST_*` launch env, launch-context, daemon,
   tool-execution failure/unavailable, error, and conversation fixtures while
-  real Windie compatibility env aliases remain explicitly covered by
+  Python SDK package/client tests use SDK-owned package labels and real Windie
+  compatibility env aliases remain explicitly covered by
   `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
   Generic local-runtime bridge screenshot tests preserve retired namespace
   rejection coverage while avoiding direct legacy WindieOS screenshot temp
@@ -636,6 +637,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Python SDK Package Test Label Boundary
+
+- Finding: active Python SDK package/client tests and the repo-agent extension
+  example test still introduced their coverage as sidecar test-suite behavior,
+  even though the package boundary belongs to the reusable Python SDK and the
+  repo-agent example is exercised through the local-runtime extension/tool
+  registry boundary.
+- Change: renamed those active test module docstrings to Python SDK package and
+  local-runtime repo-agent example wording, and added a focused package-boundary
+  guard for the exact active headers.
+- Validation: focused Python SDK package/client and repo-agent example pytest
+  coverage, exact stale sidecar-suite header scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Runtime code, Python SDK
+  exports, local-runtime discovery, extension tool registration, backend
+  endpoint config, IPC, credentials, and trust boundaries are unchanged.
 
 ### 2026-06-21 Local-Runtime Hosted Client Test Label Boundary
 

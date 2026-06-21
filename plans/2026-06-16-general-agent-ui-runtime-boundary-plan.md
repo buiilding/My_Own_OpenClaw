@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Python SDK Package Test Label Boundary
+
+- Finding: active Python SDK package/client tests and the repo-agent extension
+  example test still introduced their coverage as sidecar test-suite behavior,
+  even though the package boundary belongs to the reusable Python SDK and the
+  repo-agent example is exercised through the local-runtime extension/tool
+  registry boundary.
+- Change: renamed those active test module docstrings to Python SDK package and
+  local-runtime repo-agent example wording, and added a focused package-boundary
+  guard for the exact active headers.
+- Validation: focused Python SDK package/client and repo-agent example pytest
+  coverage, exact stale sidecar-suite header scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Runtime code, Python SDK
+  exports, local-runtime discovery, extension tool registration, backend
+  endpoint config, IPC, credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Local-Runtime Hosted Client Test Label Boundary
 
 - Finding: active local-runtime Python hosted-backend client tests still

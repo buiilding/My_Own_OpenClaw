@@ -1,4 +1,4 @@
-"""Covers Python SDK package boundary behavior in the sidecar test suite."""
+"""Covers Python SDK package boundary behavior."""
 
 import tomllib
 from pathlib import Path
@@ -10,6 +10,11 @@ from tests.sidecar.remote_client_test_utils import (
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PYTHON_SDK_PYPROJECT = REPO_ROOT / "packages" / "windie-sdk-python" / "pyproject.toml"
+PYTHON_SDK_TEST_LABEL_PATHS = [
+    REPO_ROOT / "tests" / "sidecar" / "test_windie_package_boundary.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_windie_sdk_client.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_repo_agent_example.py",
+]
 
 ensure_aiohttp_with_stubs()
 ensure_frontend_python_path()
@@ -18,6 +23,20 @@ import windie  # noqa: E402
 from windie import AgentSdkClient  # noqa: E402
 from windie.sdk import AgentSdkClient as SdkAgentSdkClient  # noqa: E402
 from windie._runtime_env import first_env_value  # noqa: E402
+
+
+def test_python_sdk_tests_use_boundary_docstrings():
+    retired_suite_label = "behavior in the " + "sidecar test suite"
+    expected_headers = {
+        "test_windie_package_boundary.py": '"""Covers Python SDK package boundary behavior."""',
+        "test_windie_sdk_client.py": '"""Covers Python SDK package client behavior."""',
+        "test_repo_agent_example.py": '"""Covers local-runtime repo-agent extension example behavior."""',
+    }
+
+    for path in PYTHON_SDK_TEST_LABEL_PATHS:
+        source = path.read_text(encoding="utf-8")
+        assert source.splitlines()[0] == expected_headers[path.name]
+        assert retired_suite_label not in source
 
 
 def test_windie_package_exports_public_client():

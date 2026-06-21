@@ -1,4 +1,4 @@
-"""Covers repo agent example behavior in the sidecar test suite."""
+"""Covers local-runtime repo-agent extension example behavior."""
 
 from pathlib import Path
 
