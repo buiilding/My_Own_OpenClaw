@@ -19,7 +19,7 @@ export type OutgoingUserMessagePayload = string | {
   readableFiles?: ReadableFilePayload[] | null;
 };
 
-export function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
+function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
   text: string;
   clipboardImages: ClipboardImagePayload[];
   readableFiles: ReadableFilePayload[];
@@ -71,7 +71,7 @@ export function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
   };
 }
 
-export function normalizeAttachmentFilenames(
+function normalizeAttachmentFilenames(
   clipboardImages: ClipboardImagePayload[],
   readableFiles: ReadableFilePayload[],
 ): string[] {
@@ -92,3 +92,8 @@ export function normalizeAttachmentFilenames(
   }
   return Array.from(deduped);
 }
+
+export const DesktopChatSendPayloadRuntime = Object.freeze({
+  normalizeOutgoingPayload,
+  normalizeAttachmentFilenames,
+});

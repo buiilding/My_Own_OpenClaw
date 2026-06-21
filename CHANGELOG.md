@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose chat-send payload normalization and first-user-message
+  predicates through `DesktopChatSendPayloadRuntime` and
+  `DesktopChatSendStateRuntime` instead of standalone helper exports, keeping
+  send preparation rules behind renderer app-runtime facades. No migration
+  required.
 - frontend/renderer: expose chat-pill send lifecycle and response-overlay view
   intent through `DesktopChatPillSessionRuntime` instead of standalone helper
   exports, keeping minimal-pill session rules behind the renderer app-runtime

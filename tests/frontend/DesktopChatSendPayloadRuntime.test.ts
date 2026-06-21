@@ -2,12 +2,14 @@
  * Covers chat message sender payloads. behavior in the frontend test suite.
  */
 
-import {
-  normalizeAttachmentFilenames,
-  normalizeOutgoingPayload,
-} from '../../frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime';
+import { DesktopChatSendPayloadRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime';
 
 describe('desktopChatSendPayloadRuntime', () => {
+  const {
+    normalizeAttachmentFilenames,
+    normalizeOutgoingPayload,
+  } = DesktopChatSendPayloadRuntime;
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

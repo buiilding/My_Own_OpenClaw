@@ -23227,3 +23227,22 @@ Each completed slice should report:
   return-to-chatbox policy, response-overlay view intent, turn-id selection,
   renderer markup, IPC payloads, storage, local-runtime execution, provider
   policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer chat send payload/state facade helper privacy
+
+- Finding: chat-send payload normalization, attachment filename projection, and
+  first-user-message detection lived in renderer app runtime files, but send
+  preparation and focused tests still imported the helpers as standalone
+  exports.
+- Change: exposed send payload behavior through
+  `DesktopChatSendPayloadRuntime`, exposed first-user-message checks through
+  `DesktopChatSendStateRuntime`, and kept `normalizeOutgoingPayload`,
+  `normalizeAttachmentFilenames`, and `hasUserMessages` private to their
+  owning modules.
+- Validation: focused chat-send payload, chat-send state, chat sender,
+  renderer chat-runtime boundary tests, targeted renderer ESLint, exact
+  source/doc scans, docs listing, and diff checks.
+- Compatibility: no migration required. Payload shapes, attachment filename
+  de-duplication, first-message detection, SDK turn resource assembly,
+  renderer markup, IPC payloads, storage, local-runtime execution, provider
+  policy, backend behavior, and trust boundaries are unchanged.

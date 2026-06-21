@@ -1695,10 +1695,12 @@ describe('renderer chat runtime boundary', () => {
     expect(traceRuntimeSource).toContain('buildRendererChatSendLifecycleTracePayload');
     expect(traceRuntimeSource).toContain('logRendererChatSendLifecycleTrace');
     expect(traceRuntimeSource).toContain('include_query_screenshot');
-    expect(payloadRuntimeSource).toContain('normalizeOutgoingPayload');
-    expect(payloadRuntimeSource).toContain('normalizeAttachmentFilenames');
+    expect(payloadRuntimeSource).toContain('export const DesktopChatSendPayloadRuntime = Object.freeze');
+    expect(payloadRuntimeSource).not.toContain('export function normalizeOutgoingPayload');
+    expect(payloadRuntimeSource).not.toContain('export function normalizeAttachmentFilenames');
     expect(payloadRuntimeSource).not.toContain('features/chat');
-    expect(stateRuntimeSource).toContain('hasUserMessages');
+    expect(stateRuntimeSource).toContain('export const DesktopChatSendStateRuntime = Object.freeze');
+    expect(stateRuntimeSource).not.toContain('export function hasUserMessages');
     expect(stateRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/messageSender/chatMessageSenderPayloads.ts'),

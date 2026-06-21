@@ -18,16 +18,21 @@ import {
   resolveRendererConversationSessionSnapshot,
 } from './desktopConversationSessionRuntime';
 import {
-  normalizeAttachmentFilenames,
-  normalizeOutgoingPayload,
+  DesktopChatSendPayloadRuntime,
   type ClipboardImagePayload,
   type OutgoingUserMessagePayload,
   type ReadableFilePayload,
 } from './desktopChatSendPayloadRuntime';
-import {
-  hasUserMessages,
-} from './desktopChatSendStateRuntime';
+import { DesktopChatSendStateRuntime } from './desktopChatSendStateRuntime';
 import { logRendererChatSendLifecycleTrace } from './desktopRendererTraceRuntime';
+
+const {
+  normalizeAttachmentFilenames,
+  normalizeOutgoingPayload,
+} = DesktopChatSendPayloadRuntime;
+const {
+  hasUserMessages,
+} = DesktopChatSendStateRuntime;
 
 type AppConfigLike = Record<string, unknown> | null | undefined;
 

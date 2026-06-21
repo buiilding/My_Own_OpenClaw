@@ -70,6 +70,12 @@ Normalized shape:
 
 Invalid object payloads are ignored (no send side effect).
 
+`DesktopChatSendPayloadRuntime.normalizeOutgoingPayload(...)` owns payload
+shape normalization and
+`DesktopChatSendPayloadRuntime.normalizeAttachmentFilenames(...)` owns
+attachment filename projection. The raw helper functions stay private behind the
+renderer app-runtime facade.
+
 `clipboardImages[]` metadata fields:
 
 - `base64`
@@ -134,6 +140,10 @@ deferred model selection and sends the prepared SDK turn input through
 `DesktopLiveTurnRuntimeClient.sendQuery`. Replay-prepared turns may still pass
 stored screenshot refs as legacy resolved payload because replay reuses durable
 transcript metadata rather than composer resources.
+
+`DesktopChatSendStateRuntime.hasUserMessages(...)` owns the first-user-message
+predicate used by send preparation. The raw predicate stays private behind the
+renderer app-runtime facade.
 
 Send lifecycle chat-pill traces go through `desktopRendererTraceRuntime.ts`.
 `desktopChatSendPreparationRuntime.ts` reports send-start,
