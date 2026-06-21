@@ -79,7 +79,7 @@ Browser Use home/session settings, and normalized tool results.
 
 ## Feature Packs
 
-Browser dependencies can be installed as a sidecar feature pack.
+Browser dependencies can be installed as a local-runtime feature pack.
 
 Relevant files:
 

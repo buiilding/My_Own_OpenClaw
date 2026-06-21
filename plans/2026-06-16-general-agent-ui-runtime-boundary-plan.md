@@ -21733,3 +21733,17 @@ Each completed slice should report:
   new hyphenated local-runtime failures now receive the generic local-runtime
   error code. IPC, storage schema, provider policy, permissions, backend
   behavior, and product skin config remain unchanged.
+
+### 2026-06-21 browser docs local-runtime owner labels
+
+- Finding: active browser troubleshooting and dedicated browser runtime docs
+  still described Playwright ownership and browser dependency installation as
+  sidecar-owned behavior.
+- Change: relabeled those phrases to the local-runtime Python browser adapter
+  and local-runtime feature packs while preserving concrete `tests/sidecar` and
+  `frontend/src/main/sidecar/...` repository paths.
+- Validation: focused browser-doc stale-label scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Documentation labels changed only;
+  browser feature-pack installation, Playwright/CDP behavior, test paths, IPC,
+  storage, provider policy, permissions, and backend behavior are unchanged.

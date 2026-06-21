@@ -9152,3 +9152,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Validation used the focused diagnostics source guard and main host-skin
   boundary test; the full diagnostics persistence suite still requires a local
   `sqlite3` CLI.
+- Browser troubleshooting and dedicated browser runtime docs now describe
+  Playwright version ownership and browser dependency installation as
+  local-runtime Python/local-runtime behavior instead of sidecar-owned behavior.
+  Concrete `tests/sidecar` and `frontend/src/main/sidecar/...` paths remain
+  unchanged where they are repository identifiers. Browser feature-pack
+  installation, Playwright/CDP behavior, IPC, storage, provider policy,
+  permissions, and backend behavior are unchanged; no migration is required.

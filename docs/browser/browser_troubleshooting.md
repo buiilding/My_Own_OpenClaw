@@ -26,7 +26,7 @@ Checks:
   valid?
 - Is anything else already bound to port `9333`?
 - Does `/json/version` respond on the expected CDP URL?
-- Is the sidecar using Playwright `>=1.59.0`?
+- Is the local-runtime Python browser adapter using Playwright `>=1.59.0`?
 - Did browser feature-pack installation succeed?
 
 If the log contains `Protocol error (Browser.setDownloadBehavior): Browser context

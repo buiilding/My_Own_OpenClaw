@@ -47,6 +47,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: classify hyphenated `local-runtime` diagnostic failures with
   the generic `local_runtime_unavailable` code even without WindieOS skin legacy
   markers. No migration required.
+- docs/browser: relabel active browser troubleshooting and feature-pack owner
+  wording through local-runtime Python/local-runtime labels instead of sidecar
+  owner wording. No migration required.
 - docs/development: route setup, testing, validation, triage, contributing,
   and local-runtime workflow guidance through local-runtime Python wording while
   preserving concrete `tests/sidecar` paths. No migration required.
