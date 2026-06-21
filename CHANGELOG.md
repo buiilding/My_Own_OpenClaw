@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose resolved message screenshot hooks through
+  `DesktopResolvedMessageScreenshotsRuntime` instead of standalone hook
+  exports, keeping async artifact screenshot resolution behind the app-runtime
+  facade. No migration required.
 - main/ipc: rename direct wake-up adapter backend-event unsubscribe
   bookkeeping to SDK backend-event subscription wording while preserving the
   `subscribeRawBackendEvents` SDK hook. No migration required.

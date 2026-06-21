@@ -59,7 +59,7 @@ async function resolveArtifactAttachmentSrc(attachment) {
   return pending;
 }
 
-export function useResolvedMessageScreenshotSrcList(message) {
+function useResolvedMessageScreenshotSrcList(message) {
   const attachments = useMemo(() => resolveMessageScreenshotAttachments(message), [message]);
   const initialSources = useMemo(
     () => attachments
@@ -111,6 +111,11 @@ export function useResolvedMessageScreenshotSrcList(message) {
   return resolvedSources;
 }
 
-export function useResolvedMessageScreenshotSrc(message) {
+function useResolvedMessageScreenshotSrc(message) {
   return useResolvedMessageScreenshotSrcList(message)[0] || null;
 }
+
+export const DesktopResolvedMessageScreenshotsRuntime = Object.freeze({
+  useResolvedMessageScreenshotSrc,
+  useResolvedMessageScreenshotSrcList,
+});

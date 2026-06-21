@@ -5,7 +5,9 @@
 import { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { DesktopArtifactRuntimeClient } from '../../../../../app/runtime/desktopArtifactRuntimeClient';
-import { useResolvedMessageScreenshotSrcList } from '../../../../../app/runtime/desktopResolvedMessageScreenshotsRuntime';
+import {
+  DesktopResolvedMessageScreenshotsRuntime,
+} from '../../../../../app/runtime/desktopResolvedMessageScreenshotsRuntime';
 import MarkdownMessage from './MarkdownMessage';
 
 export default function UserMessage({
@@ -14,7 +16,7 @@ export default function UserMessage({
   findMatchIndexes = [],
   activeFindMatchIndex = null,
 }) {
-  const screenshotSources = useResolvedMessageScreenshotSrcList(message);
+  const screenshotSources = DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList(message);
   const attachmentFilenames = Array.isArray(message.attachmentFilenames)
     ? message.attachmentFilenames.filter((filename) => typeof filename === 'string' && filename.length > 0)
     : [];

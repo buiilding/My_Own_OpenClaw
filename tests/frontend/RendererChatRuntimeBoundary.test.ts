@@ -859,6 +859,8 @@ describe('renderer chat runtime boundary', () => {
     expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.resolveScreenshotAttachmentState');
     expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.normalizeArtifactImageContentType');
     expect(resolvedScreenshotSource).toContain('desktopMessageScreenshotRuntime');
+    expect(resolvedScreenshotSource).toContain('export const DesktopResolvedMessageScreenshotsRuntime = Object.freeze');
+    expect(resolvedScreenshotSource).not.toContain('export function useResolvedMessageScreenshotSrc');
     expect(resolvedScreenshotSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
     expect(replayActionsSource).toContain('DesktopArtifactRuntimeClient.resolveReplayScreenshotState');
     expect(composerAttachmentSource).toContain('DesktopArtifactRuntimeClient.resolveArtifactImageExtension');
@@ -1871,6 +1873,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/content/UserMessage.jsx'),
       'utf8',
     );
+    const toolOutputSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/content/ToolOutputMessage.jsx'),
+      'utf8',
+    );
     const clientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts'),
       'utf8',
@@ -1878,13 +1884,16 @@ describe('renderer chat runtime boundary', () => {
 
     expect(resolverSource).not.toContain('FETCH_ARTIFACT_IMAGE');
     expect(resolverSource).not.toContain('IpcBridge.invoke');
+    expect(resolverSource).toContain('DesktopResolvedMessageScreenshotsRuntime');
     expect(resolverSource).toContain('DesktopArtifactRuntimeClient.fetchArtifactImage');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/useResolvedMessageScreenshots.js'),
     )).rejects.toThrow();
     expect(userMessageSource).not.toContain('SHOW_IMAGE_CONTEXT_MENU');
     expect(userMessageSource).not.toContain('IpcBridge.invoke');
+    expect(userMessageSource).toContain('DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList');
     expect(userMessageSource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
+    expect(toolOutputSource).toContain('DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrc');
     expect(clientSource).toContain('INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU');
   });

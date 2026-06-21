@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Resolved Screenshot Runtime Facade
+
+- Finding: `desktopResolvedMessageScreenshotsRuntime.js` owned async
+  artifact-backed screenshot source resolution for message rows, but still
+  exported `useResolvedMessageScreenshotSrcList(...)` and
+  `useResolvedMessageScreenshotSrc(...)` as standalone hooks consumed directly
+  by chat message components.
+- Change: exposed both hooks through
+  `DesktopResolvedMessageScreenshotsRuntime`, routed user/tool message
+  components through that app-runtime facade object, and added renderer
+  chat-runtime boundary coverage so the standalone hook exports stay removed.
+- Validation: focused message content and renderer chat-runtime boundary tests,
+  targeted lint for the touched renderer files, docs listing, stale standalone
+  hook export scans, and diff checks.
+- Compatibility/security: no migration required. Screenshot attachment
+  projection, authenticated artifact image fetch, native image context menu
+  routing, IPC channels, credentials, storage, hosted backend policy, and
+  local-runtime execution are unchanged.
+
 ### 2026-06-21 Main Direct Wake Adapter Backend-Event Subscription Naming
 
 - Finding: the Electron main direct wake-up adapter consumed the SDK
