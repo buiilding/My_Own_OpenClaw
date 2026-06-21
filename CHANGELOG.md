@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/tests: rename active Agent SDK local-runtime fixtures away from stale
+  sidecar labels and add package-boundary coverage so reusable SDK runtime tests
+  use local-runtime daemon/error/conversation wording. No migration required.
 - renderer/chat: move chat send lifecycle chat-pill trace payload shaping into
   `desktopRendererTraceRuntime` so `desktopChatSendPreparationRuntime` reports
   send-start, screenshot-decision, and query-dispatched values without owning

@@ -3254,7 +3254,7 @@ describe('Agent SDK client behavior', () => {
   test('createAgentLocalRuntimeProvider restarts a discovered daemon by default', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-provider-restart-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
-    const daemonScript = path.join(tempDir, 'sidecar_daemon.py');
+    const daemonScript = path.join(tempDir, 'local_runtime_daemon.py');
     const launcherScript = path.join(tempDir, 'python-in-env');
     await fsPromises.writeFile(daemonScript, 'print("daemon")\n', 'utf8');
     await fsPromises.writeFile(
@@ -3650,7 +3650,7 @@ describe('Agent SDK client behavior', () => {
       id: 'rpc-err',
       error: {
         code: -32000,
-        message: 'sidecar failed',
+        message: 'local runtime failed',
       },
     }) as any);
     const client = new AgentLocalRuntimeHttpClient({
@@ -3662,7 +3662,7 @@ describe('Agent SDK client behavior', () => {
     await expect(client.rpc({
       id: 'rpc-err',
       method: 'search_memory_by_embedding',
-    })).rejects.toThrow('sidecar failed');
+    })).rejects.toThrow('local runtime failed');
   });
 
   test('LocalRuntimeConversationStore routes conversation commands through local runtime rpc', async () => {
@@ -3673,9 +3673,9 @@ describe('Agent SDK client behavior', () => {
           data: {
             conversations: [
               {
-                conversation_id: 'conv-sidecar',
+                conversation_id: 'conv-local-runtime',
                 revision_id: 'rev-1',
-                title: 'Sidecar',
+                title: 'Local runtime',
                 last_message: 'hello',
                 last_timestamp: '2026-05-22T00:00:00.000Z',
                 entry_count: 1,
@@ -3713,24 +3713,24 @@ describe('Agent SDK client behavior', () => {
 
     await expect(store.listMetadata()).resolves.toEqual([
       expect.objectContaining({
-        conversationRef: 'conv-sidecar',
-        title: 'Sidecar',
+        conversationRef: 'conv-local-runtime',
+        title: 'Local runtime',
       }),
     ]);
-    await expect(store.loadForDisplay('conv-sidecar')).resolves.toMatchObject({
+    await expect(store.loadForDisplay('conv-local-runtime')).resolves.toMatchObject({
       messages: [
         expect.objectContaining({ text: 'hello' }),
       ],
     });
     await store.rewriteConversation({
-      conversationRef: 'conv-sidecar',
+      conversationRef: 'conv-local-runtime',
       baseRevisionId: 'rev-1',
       newRevisionId: 'rev-2',
       preservedEvents: [
         {
           eventId: 'evt-rewrite',
           type: 'user_message',
-          conversationRef: 'conv-sidecar',
+          conversationRef: 'conv-local-runtime',
           revisionId: 'rev-2',
           timestamp: '2026-05-22T00:01:00.000Z',
           source: 'sdk',
@@ -3740,13 +3740,13 @@ describe('Agent SDK client behavior', () => {
       removedEventIds: ['evt-1'],
       reason: 'edit_resend',
     });
-    await store.deleteConversation('conv-sidecar');
+    await store.deleteConversation('conv-local-runtime');
     await store.clearConversations();
 
     expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
       method: 'conversation.replace',
       params: expect.objectContaining({
-        conversation_id: 'conv-sidecar',
+        conversation_id: 'conv-local-runtime',
         revision_id: 'rev-2',
         revision_updated_at: expect.any(String),
         events: [
@@ -3996,7 +3996,7 @@ describe('Agent SDK client behavior', () => {
   test('createAgentLocalRuntimeProvider can start the daemon through a launcher prefix', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'agent-sdk-launcher-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
-    const daemonScript = path.join(tempDir, 'sidecar_daemon.py');
+    const daemonScript = path.join(tempDir, 'local_runtime_daemon.py');
     const launcherScript = path.join(tempDir, 'python-in-env');
     await fsPromises.writeFile(daemonScript, 'print("daemon")\n', 'utf8');
     await fsPromises.writeFile(
@@ -4004,7 +4004,7 @@ describe('Agent SDK client behavior', () => {
       [
         '#!/usr/bin/env node',
         "const fs = require('node:fs');",
-        "if (process.argv[2] !== 'sidecar' || process.argv[3] !== 'python') process.exit(2);",
+        "if (process.argv[2] !== 'local-runtime' || process.argv[3] !== 'python') process.exit(2);",
         "const discoveryIndex = process.argv.indexOf('--discovery-file');",
         'if (discoveryIndex < 0) process.exit(3);',
         "fs.writeFileSync(process.argv[discoveryIndex + 1], JSON.stringify({ base_url: 'http://127.0.0.1:43125', token: 'launcher-token' }));",
@@ -4017,7 +4017,7 @@ describe('Agent SDK client behavior', () => {
       discoveryFile,
       daemonScript,
       pythonCommand: process.execPath,
-      pythonArgs: [launcherScript, 'sidecar', 'python'],
+      pythonArgs: [launcherScript, 'local-runtime', 'python'],
       pollIntervalMs: 1,
       startTimeoutMs: 2000,
       fetchImpl: mockFetch,

@@ -365,6 +365,24 @@ describe('@windie/sdk package boundary', () => {
     expect(runtime.registerModuleTool).toBeDefined();
   });
 
+  test('SDK local-runtime tests avoid stale sidecar fixture labels', () => {
+    const sdkClientTestSource = fs.readFileSync(
+      path.resolve(__dirname, '../../tests/frontend/AgentSdkClient.test.ts'),
+      'utf8',
+    );
+
+    expect(sdkClientTestSource).not.toContain("const daemonScript = path.join(tempDir, 'sidecar_daemon.py')");
+    expect(sdkClientTestSource).not.toContain("message: 'sidecar failed'");
+    expect(sdkClientTestSource).not.toContain("conversation_id: 'conv-sidecar'");
+    expect(sdkClientTestSource).not.toContain("title: 'Sidecar'");
+    expect(sdkClientTestSource).not.toContain("pythonArgs: [launcherScript, 'sidecar', 'python']");
+    expect(sdkClientTestSource).toContain("const daemonScript = path.join(tempDir, 'local_runtime_daemon.py')");
+    expect(sdkClientTestSource).toContain("message: 'local runtime failed'");
+    expect(sdkClientTestSource).toContain("conversation_id: 'conv-local-runtime'");
+    expect(sdkClientTestSource).toContain("title: 'Local runtime'");
+    expect(sdkClientTestSource).toContain("pythonArgs: [launcherScript, 'local-runtime', 'python']");
+  });
+
   test('exports canonical tool correlation alias resolution', () => {
     expect(resolveToolCallCorrelationId({
       correlation_id: '   ',

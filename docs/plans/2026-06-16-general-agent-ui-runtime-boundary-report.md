@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: chat send lifecycle chat-pill trace payload shaping
-  now stays behind `desktopRendererTraceRuntime`, with
-  `desktopChatSendPreparationRuntime` reporting send lifecycle values instead
-  of carrying trace field names such as `turn_id` and
-  `include_query_screenshot` locally.
+- Latest completed slice: Agent SDK local-runtime fixture names now use
+  local-runtime daemon, error, and conversation labels, with package-boundary
+  coverage preventing active SDK runtime tests from reintroducing stale
+  sidecar fixture wording.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -56,9 +55,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic settings section tests use sample settings skin and browser
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
-  Agent SDK local-runtime provider tests use neutral `AGENT_TEST_*` launch env
-  and launch-context fixtures while real Windie compatibility env aliases
-  remain explicitly covered by `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
+  Agent SDK local-runtime provider tests use neutral `AGENT_TEST_*` launch env,
+  launch-context, daemon, error, and conversation fixtures while real Windie
+  compatibility env aliases remain explicitly covered by
+  `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
   Generic local-runtime bridge screenshot tests preserve retired namespace
   rejection coverage while avoiding direct legacy WindieOS screenshot temp
   literals.
@@ -628,6 +628,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Agent SDK Local-Runtime Fixture Boundary
+
+- Finding: reusable Agent SDK runtime tests still used active fixture names such
+  as `sidecar_daemon.py`, `sidecar failed`, and `conv-sidecar` even though the
+  SDK source and public runtime contract now describe local-runtime daemon,
+  error, and conversation behavior.
+- Change: renamed those active fixtures in `AgentSdkClient.test.ts` to
+  local-runtime wording and added `AgentSdkPackageBoundary` coverage for the
+  exact stale fixture strings so removal guards can still mention retired
+  sidecar modules without active SDK examples teaching the old owner label.
+- Validation: focused Agent SDK client/package-boundary Jest coverage and exact
+  stale-fixture scan over the SDK client test.
+- Compatibility/security: no migration required. Runtime code, SDK exports,
+  local-runtime daemon startup, discovery metadata, IPC channels, backend
+  transport payloads, storage, credentials, and trust boundaries are unchanged.
 
 ### 2026-06-21 Renderer Chat Send Lifecycle Trace Boundary
 

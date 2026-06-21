@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Agent SDK Local-Runtime Fixture Boundary
+
+- Finding: reusable Agent SDK runtime tests still used active fixture names such
+  as `sidecar_daemon.py`, `sidecar failed`, and `conv-sidecar` even though the
+  SDK source and public runtime contract now describe local-runtime daemon,
+  error, and conversation behavior.
+- Change: renamed those active fixtures in `AgentSdkClient.test.ts` to
+  local-runtime wording and added `AgentSdkPackageBoundary` coverage for the
+  exact stale fixture strings so removal guards can still mention retired
+  sidecar modules without active SDK examples teaching the old owner label.
+- Validation: focused Agent SDK client/package-boundary Jest coverage and exact
+  stale-fixture scan over the SDK client test.
+- Compatibility/security: no migration required. Runtime code, SDK exports,
+  local-runtime daemon startup, discovery metadata, IPC channels, backend
+  transport payloads, storage, credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Chat Send Lifecycle Trace Boundary
 
 - Finding: `desktopChatSendPreparationRuntime.ts` owned send lifecycle timing,
