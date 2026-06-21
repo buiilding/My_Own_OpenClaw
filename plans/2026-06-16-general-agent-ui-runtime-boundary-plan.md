@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 SDK Agent Stream Event Runtime Facade
+
+- Finding: `runtime/AgentStreamEvents.ts` owned `agent.stream(...)` stream-event
+  projection and tool-output dedupe key derivation, but exported
+  `toAgentStreamEvents(...)`, `toolOutputStreamKey(...)`, and
+  `toolOutputStreamKeys(...)` directly to SDK runtime consumers.
+- Change: added `createAgentStreamEventRuntime(...)` as the public SDK runtime
+  facade for stream projection and tool-output dedupe keys, then routed
+  `Agent.stream(...)` and `AgentChatSession.stream(...)` through the facade
+  while keeping the lower-level mapper and key helpers private to
+  `AgentStreamEvents`.
+- Validation: focused Agent SDK conversation-runtime, private-export, and
+  package-boundary tests, TypeScript SDK CJS build, SDK type checks, docs
+  listing, stale export scans, and diff checks before commit.
+- Compatibility/security: no public package-root stream event types,
+  `agent.stream(...)` output shape, dedupe behavior, local-runtime execution,
+  backend transport, credential, permission, storage, or trust-boundary
+  migration required; stream behavior is unchanged.
+
 ### 2026-06-21 Main Overlay Phase Contract Runtime Facade
 
 - Finding: `ipc_overlay_phase_contract.cjs` owned response-overlay scalar

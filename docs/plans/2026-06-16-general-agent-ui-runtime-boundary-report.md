@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main response-overlay contract keeps scalar
-  and metadata normalization private to `ipc_overlay_phase_contract.cjs`, while
-  overlay state, backend-event transition mapping, phase parity, and renderer
-  fan-out remain covered through the public overlay contract runtime facade.
+- Latest completed slice: the TypeScript SDK stream-event runtime keeps
+  stream projection and tool-output dedupe helpers private to
+  `runtime/AgentStreamEvents`, while `Agent.stream(...)`,
+  `AgentChatSession.stream(...)`, and public stream event types remain covered
+  through the public SDK stream-event runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1066,6 +1067,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
   contracts, IPC channels, storage, provider policy, and hosted backend
   behavior are unchanged.
+
+### 2026-06-21 SDK Agent Stream Event Runtime Facade
+
+- Finding: `runtime/AgentStreamEvents.ts` already owned `agent.stream(...)`
+  stream-event projection and tool-output dedupe key derivation, but exposed
+  `toAgentStreamEvents(...)`, `toolOutputStreamKey(...)`, and
+  `toolOutputStreamKeys(...)` directly to SDK runtime consumers.
+- Change: added `createAgentStreamEventRuntime(...)` as the SDK runtime facade
+  for stream projection and tool-output dedupe keys. `Agent.stream(...)` and
+  `AgentChatSession.stream(...)` now consume that facade while lower-level
+  mapper/key helpers stay private to `AgentStreamEvents`; checked-in CJS output
+  was regenerated for the changed SDK runtime files.
+- Validation: focused Agent SDK conversation-runtime, private-export, and
+  package-boundary tests, TypeScript SDK CJS build, SDK type checks, docs
+  listing, stale export scans, and diff checks.
+- Compatibility: no migration required. Public package-root stream event types,
+  `agent.stream(...)` output shape, dedupe behavior, local-runtime execution,
+  backend transport, credentials, permissions, trust boundaries, and storage are
+  unchanged.
 
 ### 2026-06-21 Main Overlay Phase Contract Runtime Facade
 

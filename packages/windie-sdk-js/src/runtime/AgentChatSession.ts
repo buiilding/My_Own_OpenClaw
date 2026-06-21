@@ -7,8 +7,7 @@ import type {
   RehydrateSnapshot,
 } from '../conversation/types.js';
 import {
-  toAgentStreamEvents,
-  toolOutputStreamKeys,
+  createAgentStreamEventRuntime,
   type AgentStreamEvent,
 } from './AgentStreamEvents.js';
 import type {
@@ -25,6 +24,8 @@ import type {
 function normalizeSendInput(input: string | SendInput): SendInput {
   return typeof input === 'string' ? { text: input } : input;
 }
+
+const agentStreamEventRuntime = createAgentStreamEventRuntime();
 
 export class AgentChatSession {
   constructor(readonly conversationRef: string, private readonly runtime: SdkConversationRuntime) {}
@@ -52,12 +53,12 @@ export class AgentChatSession {
   async *stream(input: string | SendInput): AsyncIterableIterator<AgentStreamEvent> {
     const seenToolOutputs = new Set<string>();
     for await (const runtimeEvent of this.runtime.stream(normalizeSendInput(input))) {
-      const streamEvents = toAgentStreamEvents(runtimeEvent);
+      const streamEvents = agentStreamEventRuntime.toStreamEvents(runtimeEvent);
       if (streamEvents.length === 0) {
         continue;
       }
       if (runtimeEvent.type === 'conversation_event') {
-        const keys = toolOutputStreamKeys(runtimeEvent.event);
+        const keys = agentStreamEventRuntime.toolOutputStreamKeys(runtimeEvent.event);
         if (keys.some(key => seenToolOutputs.has(key))) {
           continue;
         }

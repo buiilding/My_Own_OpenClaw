@@ -934,10 +934,11 @@ content type, kind, and length metadata. The helper now threads only the current
 field path during recursion; the removed `parent` parameter was not part of the
 public SDK contract.
 The package root exports the public stream event types such as
-`AgentStreamEvent`. Mapper and dedupe helpers such as `toAgentStreamEvents(...)`
-and `toolOutputStreamKeys(...)` are implementation helpers for SDK runtime
-classes and remain owned by the `runtime/AgentStreamEvents` module rather than
-the package entrypoint.
+`AgentStreamEvent`. Mapper and dedupe behavior is exposed to SDK runtime
+classes through `createAgentStreamEventRuntime(...)`, while lower-level helpers
+such as `toAgentStreamEvents(...)` and `toolOutputStreamKeys(...)` remain
+private to the `runtime/AgentStreamEvents` module and outside the package
+entrypoint.
 
 `conversation(options)` returns an SDK conversation runtime backed by the agent
 session transport. It is the migration path for clients that need local event

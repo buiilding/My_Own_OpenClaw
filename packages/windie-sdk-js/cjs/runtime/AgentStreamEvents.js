@@ -3,9 +3,7 @@
  * Provides the agent stream events module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toolOutputStreamKey = toolOutputStreamKey;
-exports.toolOutputStreamKeys = toolOutputStreamKeys;
-exports.toAgentStreamEvents = toAgentStreamEvents;
+exports.createAgentStreamEventRuntime = createAgentStreamEventRuntime;
 const toolCorrelationIds_js_1 = require("../tools/toolCorrelationIds.js");
 function toolOutputStreamKey(event) {
     return toolOutputStreamKeys(event)[0] ?? null;
@@ -155,6 +153,13 @@ function toAgentStreamEvents(runtimeEvent) {
         ];
     }
     return [];
+}
+function createAgentStreamEventRuntime() {
+    return {
+        toStreamEvents: toAgentStreamEvents,
+        toolOutputStreamKey,
+        toolOutputStreamKeys,
+    };
 }
 function locatorFromSnapshot(snapshot) {
     return {

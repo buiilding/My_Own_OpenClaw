@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/js: keep stream-event projection and tool-output dedupe helpers private
+  to `runtime/AgentStreamEvents` while `Agent` and `AgentChatSession` consume
+  `createAgentStreamEventRuntime(...)`. No migration required.
 - frontend/main: keep response-overlay scalar and metadata normalization private
   to `ipc_overlay_phase_contract.cjs` while state and backend-event mappers use
   `createResponseOverlayPhaseContractRuntime(...)`. No migration required.

@@ -8,6 +8,7 @@ const AgentStreamEvents_js_1 = require("./AgentStreamEvents.js");
 function normalizeSendInput(input) {
     return typeof input === 'string' ? { text: input } : input;
 }
+const agentStreamEventRuntime = (0, AgentStreamEvents_js_1.createAgentStreamEventRuntime)();
 class AgentChatSession {
     constructor(conversationRef, runtime) {
         this.conversationRef = conversationRef;
@@ -31,12 +32,12 @@ class AgentChatSession {
     async *stream(input) {
         const seenToolOutputs = new Set();
         for await (const runtimeEvent of this.runtime.stream(normalizeSendInput(input))) {
-            const streamEvents = (0, AgentStreamEvents_js_1.toAgentStreamEvents)(runtimeEvent);
+            const streamEvents = agentStreamEventRuntime.toStreamEvents(runtimeEvent);
             if (streamEvents.length === 0) {
                 continue;
             }
             if (runtimeEvent.type === 'conversation_event') {
-                const keys = (0, AgentStreamEvents_js_1.toolOutputStreamKeys)(runtimeEvent.event);
+                const keys = agentStreamEventRuntime.toolOutputStreamKeys(runtimeEvent.event);
                 if (keys.some(key => seenToolOutputs.has(key))) {
                     continue;
                 }

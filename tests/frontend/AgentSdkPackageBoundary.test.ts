@@ -313,6 +313,7 @@ describe('@windie/sdk package boundary', () => {
     expect(source).not.toContain('AgentPrepareEditAndResendOptions');
     expect(source).not.toContain('AgentPrepareRetryTurnOptions');
     expect(event.state).toBe('thinking');
+    expect('createAgentStreamEventRuntime' in AgentSdkPackage).toBe(false);
     expect('toAgentStreamEvents' in AgentSdkPackage).toBe(false);
     expect('toolOutputStreamKeys' in AgentSdkPackage).toBe(false);
   });

@@ -17,6 +17,7 @@ const DefaultTurnResourceResolvers_js_1 = require("./DefaultTurnResourceResolver
 const AgentChatSession_js_1 = require("./AgentChatSession.js");
 const AgentStreamEvents_js_1 = require("./AgentStreamEvents.js");
 const LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH = 'local_runtime.lifecycle';
+const agentStreamEventRuntime = (0, AgentStreamEvents_js_1.createAgentStreamEventRuntime)();
 function logMemoryRetrievalDiagnostic(diagnostic) {
     const details = [
         `stage=${diagnostic.stage}`,
@@ -128,10 +129,10 @@ class Agent {
             payload,
             model,
         })) {
-            const streamEvents = (0, AgentStreamEvents_js_1.toAgentStreamEvents)(runtimeEvent);
+            const streamEvents = agentStreamEventRuntime.toStreamEvents(runtimeEvent);
             if (streamEvents.length > 0) {
                 if (runtimeEvent.type === 'conversation_event') {
-                    const keys = (0, AgentStreamEvents_js_1.toolOutputStreamKeys)(runtimeEvent.event);
+                    const keys = agentStreamEventRuntime.toolOutputStreamKeys(runtimeEvent.event);
                     if (keys.some(key => seenToolOutputs.has(key))) {
                         continue;
                     }

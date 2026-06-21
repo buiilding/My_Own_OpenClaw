@@ -67,12 +67,12 @@ import {
 import { createDefaultTurnResourceResolvers } from './DefaultTurnResourceResolvers.js';
 import { AgentChatSession } from './AgentChatSession.js';
 import {
-  toAgentStreamEvents,
-  toolOutputStreamKeys,
+  createAgentStreamEventRuntime,
   type AgentStreamEvent,
 } from './AgentStreamEvents.js';
 
 const LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH = 'local_runtime.lifecycle';
+const agentStreamEventRuntime = createAgentStreamEventRuntime();
 
 export type AgentQueryOptions = Partial<Omit<AgentQueryInput, 'text' | 'conversationRef'>> & {
   conversationRef?: string;
@@ -264,10 +264,10 @@ export class Agent {
       payload,
       model,
     })) {
-      const streamEvents = toAgentStreamEvents(runtimeEvent);
+      const streamEvents = agentStreamEventRuntime.toStreamEvents(runtimeEvent);
       if (streamEvents.length > 0) {
         if (runtimeEvent.type === 'conversation_event') {
-          const keys = toolOutputStreamKeys(runtimeEvent.event);
+          const keys = agentStreamEventRuntime.toolOutputStreamKeys(runtimeEvent.event);
           if (keys.some(key => seenToolOutputs.has(key))) {
             continue;
           }

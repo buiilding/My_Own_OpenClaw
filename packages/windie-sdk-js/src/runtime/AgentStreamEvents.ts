@@ -117,18 +117,18 @@ type ConversationLocator = {
   turnRef: string | null;
 };
 
-export function toolOutputStreamKey(event: ConversationEvent): string | null {
+function toolOutputStreamKey(event: ConversationEvent): string | null {
   return toolOutputStreamKeys(event)[0] ?? null;
 }
 
-export function toolOutputStreamKeys(event: ConversationEvent): string[] {
+function toolOutputStreamKeys(event: ConversationEvent): string[] {
   if (event.type !== 'tool_output' && event.type !== 'tool_bundle_output') {
     return [];
   }
   return resolveToolOutputCorrelationKeys(event.payload);
 }
 
-export function toAgentStreamEvents(runtimeEvent: AgentRuntimeEvent): AgentStreamEvent[] {
+function toAgentStreamEvents(runtimeEvent: AgentRuntimeEvent): AgentStreamEvent[] {
   if (runtimeEvent.type === 'turn_started') {
     return [];
   }
@@ -269,6 +269,14 @@ export function toAgentStreamEvents(runtimeEvent: AgentRuntimeEvent): AgentStrea
     ];
   }
   return [];
+}
+
+export function createAgentStreamEventRuntime() {
+  return {
+    toStreamEvents: toAgentStreamEvents,
+    toolOutputStreamKey,
+    toolOutputStreamKeys,
+  };
 }
 
 function locatorFromSnapshot(snapshot: AgentRuntimeEvent['snapshot']): ConversationLocator {

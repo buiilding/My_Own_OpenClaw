@@ -19,9 +19,7 @@ import {
   type AgentStreamEvent,
 } from '../../packages/windie-sdk-js/src';
 import {
-  toAgentStreamEvents,
-  toolOutputStreamKey,
-  toolOutputStreamKeys,
+  createAgentStreamEventRuntime,
 } from '../../packages/windie-sdk-js/src/runtime/AgentStreamEvents';
 import {
   createInitialConversationRuntimeState,
@@ -36,6 +34,8 @@ import {
 import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+const agentStreamEventRuntime = createAgentStreamEventRuntime();
 
 function event(
   type: ConversationEvent['type'],
@@ -1447,7 +1447,7 @@ describe('Agent SDK conversation runtime core', () => {
       correlationId: 'corr-read',
       args: { path: 'README.md' },
     });
-    const streamEvents = toAgentStreamEvents({
+    const streamEvents = agentStreamEventRuntime.toStreamEvents({
       type: 'conversation_event',
       event: toolCall,
     } as any);
@@ -1469,15 +1469,15 @@ describe('Agent SDK conversation runtime core', () => {
       correlationId: 'corr-read',
       output: 'result',
     });
-    expect(toolOutputStreamKey(toolOutput)).toBe('tool-call:call-read');
-    expect(toolOutputStreamKeys(toolOutput)).toEqual([
+    expect(agentStreamEventRuntime.toolOutputStreamKey(toolOutput)).toBe('tool-call:call-read');
+    expect(agentStreamEventRuntime.toolOutputStreamKeys(toolOutput)).toEqual([
       'tool-call:call-read',
       'request:req-read',
     ]);
   });
 
   test('agent stream projection ignores direct snake_case SDK tool identity aliases', () => {
-    const toolCallEvents = toAgentStreamEvents({
+    const toolCallEvents = agentStreamEventRuntime.toStreamEvents({
       type: 'conversation_event',
       event: event('tool_call', {
         tool_name: 'read_file',
@@ -1500,7 +1500,7 @@ describe('Agent SDK conversation runtime core', () => {
       ],
     }));
 
-    const toolOutputEvents = toAgentStreamEvents({
+    const toolOutputEvents = agentStreamEventRuntime.toStreamEvents({
       type: 'conversation_event',
       event: event('tool_output', {
         tool_name: 'read_file',
@@ -1527,7 +1527,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('agent stream projection exposes injected user message content', () => {
-    const streamEvents = toAgentStreamEvents({
+    const streamEvents = agentStreamEventRuntime.toStreamEvents({
       type: 'conversation_event',
       event: event('user_message', {
         text: 'what do you remember?',
@@ -1555,7 +1555,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('agent stream projection exposes memory retrieval diagnostics without error state', () => {
-    const streamEvents = toAgentStreamEvents({
+    const streamEvents = agentStreamEventRuntime.toStreamEvents({
       type: 'conversation_event',
       event: event('memory_retrieval_diagnostic', {
         stage: 'search_empty',
@@ -1585,7 +1585,7 @@ describe('Agent SDK conversation runtime core', () => {
       error: new Error('projection failed'),
     };
 
-    const streamEvents: AgentStreamEvent[] = toAgentStreamEvents(runtimeEvent);
+    const streamEvents: AgentStreamEvent[] = agentStreamEventRuntime.toStreamEvents(runtimeEvent);
 
     expect(streamEvents).toEqual([
       {
@@ -1604,7 +1604,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('agent stream projection uses generic fallback error wording', () => {
-    const streamEvents = toAgentStreamEvents({
+    const streamEvents = agentStreamEventRuntime.toStreamEvents({
       type: 'conversation_event',
       event: event('turn_error', {}),
     } as any);
@@ -1624,7 +1624,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('agent stream projection ignores memory store invalidation events', () => {
-    const streamEvents = toAgentStreamEvents({
+    const streamEvents = agentStreamEventRuntime.toStreamEvents({
       type: 'conversation_event',
       event: event('memory_store_changed', {
         userId: 'user-sdk-runtime',
@@ -1640,7 +1640,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('agent stream projection ignores durable trace events', () => {
-    const streamEvents = toAgentStreamEvents({
+    const streamEvents = agentStreamEventRuntime.toStreamEvents({
       type: 'conversation_event',
       event: event('trace_event', {
         schemaVersion: 1,

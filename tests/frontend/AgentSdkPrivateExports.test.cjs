@@ -144,7 +144,10 @@ describe('@windie/sdk private helper exports', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/AgentStreamEvents.js');
     const removedModulePath = removedCjsPath('runtime', retiredProductName('AgentStreamEvents'));
 
-    expect(canonicalModule.toAgentStreamEvents).toBeDefined();
+    expect(canonicalModule.createAgentStreamEventRuntime).toBeDefined();
+    expect(canonicalModule.toAgentStreamEvents).toBeUndefined();
+    expect(canonicalModule.toolOutputStreamKey).toBeUndefined();
+    expect(canonicalModule.toolOutputStreamKeys).toBeUndefined();
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
