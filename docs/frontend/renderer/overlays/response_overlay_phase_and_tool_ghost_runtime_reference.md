@@ -234,6 +234,11 @@ camelCase value fields. The runtime client maps those values to host payload
 fields such as `compact_hover`, `turn_ref`, `stale_guard_ref`, and
 `dismissed`.
 
+Manual response dismissal uses
+`DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox(...)` so the view
+model passes only turn/guard refs while the runtime client owns the hidden
+`dismissed` size payload shape.
+
 Response overlay hit-test commands use
 `DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(...)`.
 `MinimalResponseOverlay` reports boolean active state only; the runtime client

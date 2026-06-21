@@ -2399,7 +2399,8 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).not.toContain('payload.visible');
     expect(syncSource).toContain('setResponseboxSizeValues');
     expect(syncSource).not.toContain('setResponseboxSize({');
-    expect(viewModelSource).toContain('setResponseboxSizeValues');
+    expect(viewModelSource).toContain('hideDismissedResponsebox');
+    expect(viewModelSource).not.toContain('setResponseboxSizeValues');
     expect(viewModelSource).not.toContain('setResponseboxSize({');
     expect(clientSource).toContain('function normalizeResponseOverlayVisibilityPayload');
     expect(clientSource).not.toContain('export function normalizeResponseOverlayVisibilityPayload');
@@ -2436,7 +2437,7 @@ describe('renderer chat runtime boundary', () => {
     expect(overlaySource).not.toContain('setResponseboxHitTestActive({');
     expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxSize');
     expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility');
-    expect(viewModelSource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxSize');
+    expect(viewModelSource).toContain('DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox');
     expect(clientSource).toContain('INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE');
     expect(clientSource).toContain('INVOKE_CHANNELS.SET_RESPONSEBOX_HIT_TEST_ACTIVE');
     expect(clientSource).toContain('ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY');

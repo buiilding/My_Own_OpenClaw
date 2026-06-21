@@ -25,6 +25,11 @@ export type ResponseboxSizeValues = {
   dismissed?: boolean;
 };
 
+export type ResponseboxDismissalValues = {
+  turnRef?: string | null;
+  guardRef?: string | null;
+};
+
 export type ResponseboxHitTestPayload = {
   active: boolean;
 };
@@ -93,6 +98,18 @@ export const DesktopResponseOverlayRuntimeClient = {
     return DesktopResponseOverlayRuntimeClient.setResponseboxSize(
       buildResponseboxSizePayload(values),
     );
+  },
+
+  hideDismissedResponsebox(values: ResponseboxDismissalValues = {}): Promise<unknown> {
+    const turnRef = optionalStringOrNull(values.turnRef);
+    return DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
+      visible: false,
+      width: 0,
+      height: 0,
+      turnRef,
+      staleGuardRef: optionalStringOrNull(values.guardRef) || turnRef,
+      dismissed: true,
+    });
   },
 
   setResponseboxHitTestActive(payload: ResponseboxHitTestPayload): Promise<unknown> {

@@ -293,13 +293,9 @@ export function useResponseOverlayViewModel({
       responseEntryId: viewIntent.latestResponseOverlayEntryId,
     };
     dismissResponseOverlayEntry(dismissalTarget);
-    DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
-      visible: false,
-      width: 0,
-      height: 0,
+    DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox({
       turnRef: dismissalTarget.turnRef,
-      staleGuardRef: dismissalTarget.guardRef || dismissalTarget.turnRef,
-      dismissed: true,
+      guardRef: dismissalTarget.guardRef,
     }).catch((error) => {
       console.warn('[MinimalResponseOverlay] Failed to dismiss response overlay:', error);
     });

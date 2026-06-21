@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Response Overlay Dismissal Payload Boundary
+
+- Finding: `useResponseOverlayViewModel(...)` still assembled the hidden
+  responsebox dismissal payload fields (`visible`, `width`, `height`,
+  `dismissed`, turn ref, and stale guard ref) directly while closing a visible
+  response.
+- Change: `DesktopResponseOverlayRuntimeClient` now owns
+  `hideDismissedResponsebox(...)`, which maps turn/guard values into the host
+  `set-responsebox-size` dismissal payload. The response overlay view model
+  now passes only dismissal refs.
+- Validation target: `DesktopResponseOverlayRuntimeClient.test.ts` covers the
+  dismissed hide payload and guard fallback, and
+  `RendererChatRuntimeBoundary.test.ts` rejects generic size-payload assembly
+  from the response overlay view model.
+- Compatibility/security: no IPC channel, payload wire shape, SDK event
+  payload, transcript storage, renderer config, permission, credential, local
+  execution, storage, or trust-boundary migration required.
+
 ### 2026-06-21 Message-Only Current-Turn Presentation Adapter
 
 - Finding: `DesktopCurrentTurnPresentationRuntime` still imported

@@ -125,6 +125,42 @@ describe('DesktopResponseOverlayRuntimeClient', () => {
     );
   });
 
+  test('dismissed responsebox helper invokes hidden dismissed payloads with guard refs', async () => {
+    await DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox({
+      turnRef: ' turn-dismissed ',
+      guardRef: ' guard-dismissed ',
+    });
+    await DesktopResponseOverlayRuntimeClient.hideDismissedResponsebox({
+      turnRef: ' turn-fallback ',
+      guardRef: '',
+    });
+
+    expect(mockInvoke).toHaveBeenNthCalledWith(
+      1,
+      'set-responsebox-size',
+      {
+        visible: false,
+        width: 0,
+        height: 0,
+        turn_ref: 'turn-dismissed',
+        stale_guard_ref: 'guard-dismissed',
+        dismissed: true,
+      },
+    );
+    expect(mockInvoke).toHaveBeenNthCalledWith(
+      2,
+      'set-responsebox-size',
+      {
+        visible: false,
+        width: 0,
+        height: 0,
+        turn_ref: 'turn-fallback',
+        stale_guard_ref: 'turn-fallback',
+        dismissed: true,
+      },
+    );
+  });
+
   test('value-level hit-test commands invoke responsebox hit-test payloads', async () => {
     await DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(true);
     await DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(1);
