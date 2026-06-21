@@ -1,4 +1,4 @@
-"""Covers shell process tool behavior in the sidecar test suite."""
+"""Covers local-runtime shell process tool behavior."""
 
 import asyncio
 import json

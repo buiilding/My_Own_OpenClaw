@@ -1,4 +1,4 @@
-"""Covers browser file store behavior in the sidecar test suite."""
+"""Covers local-runtime browser file store behavior."""
 
 from pathlib import Path
 

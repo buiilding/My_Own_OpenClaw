@@ -1,4 +1,4 @@
-"""Covers scroll tool behavior in the sidecar test suite."""
+"""Covers local-runtime scroll tool behavior."""
 
 import sys
 from types import SimpleNamespace

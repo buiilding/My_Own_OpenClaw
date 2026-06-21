@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Tool Test Label Boundary
+
+- Finding: active local-runtime executable tool tests still introduced their
+  coverage as sidecar test-suite behavior, and the tool registry parity failure
+  message still described drift as a sidecar registry problem even though the
+  executable tool contract belongs to the local-runtime tool boundary.
+- Change: renamed the active tool, schema, manifest, registry, filesystem,
+  shell, computer, system, and browser tool test docstrings to local-runtime
+  wording, changed the registry parity failure copy to local-runtime wording,
+  and added a focused registry-test guard for the exact active tool headers.
+- Validation: focused local-runtime tool pytest coverage for the registry
+  header guard and selected tool suites, exact stale tool-test label scan, docs
+  list, and diff hygiene. A broader run including
+  `tests/sidecar/test_shell_process_tool.py` still fails the existing Windows
+  heredoc assertions unrelated to this label-only change.
+- Compatibility/security: no migration required. Runtime code, executable tool
+  schemas, backend schema parity, SDK tool dispatch, IPC, filesystem/shell/
+  browser/computer authority, credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Local-Runtime Memory Test Label Boundary
 
 - Finding: active local-runtime Python memory and conversation tests still

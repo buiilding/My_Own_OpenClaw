@@ -1,4 +1,4 @@
-"""Covers system tools behavior in the sidecar test suite."""
+"""Covers local-runtime system tools behavior."""
 
 import builtins
 from pathlib import Path

@@ -1,4 +1,4 @@
-"""Covers keyboard tool behavior in the sidecar test suite."""
+"""Covers local-runtime keyboard tool behavior."""
 
 import sys
 from types import SimpleNamespace

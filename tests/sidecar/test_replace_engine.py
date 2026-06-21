@@ -1,4 +1,4 @@
-"""Covers replace engine behavior in the sidecar test suite."""
+"""Covers local-runtime replace engine behavior."""
 
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 

@@ -1,4 +1,4 @@
-"""Covers read file tool behavior in the sidecar test suite."""
+"""Covers local-runtime read-file tool behavior."""
 
 import base64
 import json

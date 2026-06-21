@@ -1,4 +1,4 @@
-"""Covers screenshot tool behavior in the sidecar test suite."""
+"""Covers local-runtime screenshot tool behavior."""
 
 import sys
 from pathlib import Path

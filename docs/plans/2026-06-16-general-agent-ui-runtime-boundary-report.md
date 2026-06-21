@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: local-runtime memory and conversation Python tests
-  now use local-runtime memory/conversation docstrings instead of sidecar-suite
-  wording, with focused guard coverage preventing those headers from returning.
+- Latest completed slice: local-runtime executable tool Python tests now use
+  local-runtime tool docstrings and registry drift copy instead of
+  sidecar-suite/sidecar-registry wording, with focused guard coverage
+  preventing those active tool headers from returning.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -54,14 +55,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic settings section tests use sample settings skin and browser
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
-  Local-runtime Python service/browser registry/bootstrap and
-  memory/conversation tests use owner-correct local-runtime service,
-  tool-helper, bootstrap, memory, and conversation labels while preserving real
-  `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar` implementation
-  paths. Agent SDK local-runtime provider and tool-coordinator tests use
-  neutral `AGENT_TEST_*` launch env, launch-context, daemon, tool-execution
-  failure/unavailable, error, and conversation fixtures while real Windie
-  compatibility env aliases remain explicitly covered by
+  Local-runtime Python service/browser registry/bootstrap,
+  memory/conversation, and executable tool tests use owner-correct
+  local-runtime service, tool-helper, bootstrap, memory, conversation, and tool
+  labels while preserving real `local_backend.py`, `sidecar_daemon.py`, and
+  `tests/sidecar` implementation paths. Agent SDK local-runtime provider and
+  tool-coordinator tests use neutral `AGENT_TEST_*` launch env,
+  launch-context, daemon, tool-execution failure/unavailable, error, and
+  conversation fixtures while real Windie compatibility env aliases remain
+  explicitly covered by
   `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
   Generic local-runtime bridge screenshot tests preserve retired namespace
   rejection coverage while avoiding direct legacy WindieOS screenshot temp
@@ -632,6 +634,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Local-Runtime Tool Test Label Boundary
+
+- Finding: active local-runtime executable tool tests still introduced their
+  coverage as sidecar test-suite behavior, and the tool registry parity failure
+  message still described drift as a sidecar registry problem even though the
+  executable tool contract belongs to the local-runtime tool boundary.
+- Change: renamed the active tool, schema, manifest, registry, filesystem,
+  shell, computer, system, and browser tool test docstrings to local-runtime
+  wording, changed the registry parity failure copy to local-runtime wording,
+  and added a focused registry-test guard for the exact active tool headers.
+- Validation: focused local-runtime tool pytest coverage for the registry
+  header guard and selected tool suites, exact stale tool-test label scan, docs
+  list, and diff hygiene. A broader run including
+  `tests/sidecar/test_shell_process_tool.py` still fails the existing Windows
+  heredoc assertions unrelated to this label-only change.
+- Compatibility/security: no migration required. Runtime code, executable tool
+  schemas, backend schema parity, SDK tool dispatch, IPC, filesystem/shell/
+  browser/computer authority, credentials, and trust boundaries are unchanged.
 
 ### 2026-06-21 Local-Runtime Memory Test Label Boundary
 

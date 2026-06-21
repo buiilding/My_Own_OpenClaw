@@ -1,4 +1,4 @@
-"""Covers shared/local tool schema behavior in the sidecar test suite."""
+"""Covers local-runtime shared tool schema parity behavior."""
 
 from __future__ import annotations
 

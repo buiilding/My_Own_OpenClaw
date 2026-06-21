@@ -1,4 +1,4 @@
-"""Covers local tool output contract behavior in the sidecar test suite."""
+"""Covers local-runtime tool output contract behavior."""
 
 from __future__ import annotations
 

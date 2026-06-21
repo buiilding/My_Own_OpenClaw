@@ -1,4 +1,4 @@
-"""Covers replace tool behavior in the sidecar test suite."""
+"""Covers local-runtime replace tool behavior."""
 
 import json
 from pathlib import Path

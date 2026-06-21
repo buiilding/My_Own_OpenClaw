@@ -1,8 +1,9 @@
-"""Covers tool registry behavior in the sidecar test suite."""
+"""Covers local-runtime tool registry behavior."""
 
 import json
-import pytest
 from pathlib import Path
+
+import pytest
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
@@ -14,6 +15,65 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 GENERATED_MANIFEST_PATH = (
     REPO_ROOT / "frontend" / "src" / "main" / "generated" / "builtin_tool_manifest.json"
 )
+LOCAL_RUNTIME_TOOL_TEST_LABEL_PATHS = [
+    REPO_ROOT / "tests" / "sidecar" / "test_read_file_tool.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_replace_tool.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_replace_engine.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_shell_process_tool.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_shell_process_registry.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_shell_output_formatting.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_screenshot_tool.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_mouse_tool.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_keyboard_tool.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_open_app_tool.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_scroll_tool.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_scroll_config.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_system_tools.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_local_tool_output_contract.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_shared_tool_schema_parity.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_tool_registry.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_tool_schemas.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_tool_manifest.py",
+    REPO_ROOT / "tests" / "sidecar" / "test_tool_result.py",
+    REPO_ROOT / "tests" / "sidecar" / "tools" / "test_browser_schemas.py",
+    REPO_ROOT / "tests" / "sidecar" / "tools" / "test_browser_file_store.py",
+]
+
+
+def test_local_runtime_tool_tests_use_boundary_docstrings():
+    retired_suite_label = "behavior in the " + "sidecar test suite"
+    retired_browser_schema_label = (
+        "Sidecar " + "tests for the shared strict browser schema contract."
+    )
+    expected_headers = {
+        "test_read_file_tool.py": '"""Covers local-runtime read-file tool behavior."""',
+        "test_replace_tool.py": '"""Covers local-runtime replace tool behavior."""',
+        "test_replace_engine.py": '"""Covers local-runtime replace engine behavior."""',
+        "test_shell_process_tool.py": '"""Covers local-runtime shell process tool behavior."""',
+        "test_shell_process_registry.py": '"""Covers local-runtime shell process registry behavior."""',
+        "test_shell_output_formatting.py": '"""Covers local-runtime shell output formatting behavior."""',
+        "test_screenshot_tool.py": '"""Covers local-runtime screenshot tool behavior."""',
+        "test_mouse_tool.py": '"""Covers local-runtime mouse tool behavior."""',
+        "test_keyboard_tool.py": '"""Covers local-runtime keyboard tool behavior."""',
+        "test_open_app_tool.py": '"""Covers local-runtime open-app tool behavior."""',
+        "test_scroll_tool.py": '"""Covers local-runtime scroll tool behavior."""',
+        "test_scroll_config.py": '"""Covers local-runtime scroll config behavior."""',
+        "test_system_tools.py": '"""Covers local-runtime system tools behavior."""',
+        "test_local_tool_output_contract.py": '"""Covers local-runtime tool output contract behavior."""',
+        "test_shared_tool_schema_parity.py": '"""Covers local-runtime shared tool schema parity behavior."""',
+        "test_tool_registry.py": '"""Covers local-runtime tool registry behavior."""',
+        "test_tool_schemas.py": '"""Covers local-runtime tool schema behavior."""',
+        "test_tool_manifest.py": '"""Covers local-runtime tool manifest behavior."""',
+        "test_tool_result.py": '"""Covers local-runtime tool result behavior."""',
+        "test_browser_schemas.py": '"""Covers local-runtime browser schema contract behavior."""',
+        "test_browser_file_store.py": '"""Covers local-runtime browser file store behavior."""',
+    }
+
+    for path in LOCAL_RUNTIME_TOOL_TEST_LABEL_PATHS:
+        source = path.read_text(encoding="utf-8")
+        assert source.splitlines()[0] == expected_headers[path.name]
+        assert retired_suite_label not in source
+        assert retired_browser_schema_label not in source
 
 
 def test_tool_registry_copy_qualifies_python_local_runtime_owner():
@@ -75,8 +135,8 @@ def test_registered_tools_match_exposed_tool_set():
     extra_in_registered = sorted(registered - exposed)
 
     assert (registered | optional_missing) == exposed, (
-        "Sidecar tool registry drift detected.\n"
-        "All tools registered in the sidecar must be exposed to backend schemas, and vice versa.\n"
+        "Local-runtime tool registry drift detected.\n"
+        "All local-runtime tools must be exposed to backend schemas, and vice versa.\n"
         f"Missing from registered tools: {missing_from_registered}\n"
         f"Extra registered tools (not exposed): {extra_in_registered}"
     )
@@ -89,7 +149,7 @@ def test_exposed_tool_names_match_generated_builtin_manifest():
     assert ToolRegistry.get_exposed_tool_names() == generated_tool_names
 
 
-def test_sidecar_registry_tests_do_not_import_backend_package():
+def test_local_runtime_registry_tests_do_not_import_backend_package():
     source = Path(__file__).read_text(encoding="utf-8")
     assert "backend" + ".src" not in source
 

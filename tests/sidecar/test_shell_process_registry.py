@@ -1,4 +1,4 @@
-"""Covers shell process registry behavior in the sidecar test suite."""
+"""Covers local-runtime shell process registry behavior."""
 
 import asyncio
 import os

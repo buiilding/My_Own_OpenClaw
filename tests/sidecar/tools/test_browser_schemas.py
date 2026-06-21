@@ -1,4 +1,4 @@
-"""Sidecar tests for the shared strict browser schema contract."""
+"""Covers local-runtime browser schema contract behavior."""
 
 from __future__ import annotations
 

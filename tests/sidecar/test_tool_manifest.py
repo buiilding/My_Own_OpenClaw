@@ -1,4 +1,4 @@
-"""Covers tool manifest behavior in the sidecar test suite."""
+"""Covers local-runtime tool manifest behavior."""
 
 import asyncio
 import json

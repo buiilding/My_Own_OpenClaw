@@ -1,4 +1,4 @@
-"""Covers tool schemas behavior in the sidecar test suite."""
+"""Covers local-runtime tool schema behavior."""
 
 import pytest
 from pydantic import ValidationError
