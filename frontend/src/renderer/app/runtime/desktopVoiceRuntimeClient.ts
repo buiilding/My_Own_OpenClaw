@@ -81,6 +81,56 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+function normalizeTranscriptionGatewayMessage(rawData: unknown): DesktopTranscriptionGatewayEvent | null {
+  if (rawData instanceof ArrayBuffer || rawData instanceof Blob) {
+    return null;
+  }
+
+  const data = JSON.parse(rawData as string);
+  if (!isRecord(data)) {
+    return { type: 'unknown', messageType: null };
+  }
+
+  switch (data.type) {
+    case 'status':
+      return {
+        type: 'status',
+        clientId: typeof data.client_id === 'string' ? data.client_id : null,
+      };
+
+    case 'realtime':
+      return {
+        type: 'realtime',
+        text: typeof data.translation === 'string'
+          ? data.translation
+          : typeof data.text === 'string'
+            ? data.text
+            : '',
+        isFinal: parseBoolean(data.is_final),
+      };
+
+    case 'utterance_end':
+      return { type: 'utterance_end' };
+
+    case 'trace_event': {
+      const payload = isRecord(data.payload) ? data.payload : {};
+      return {
+        type: 'trace_event',
+        path: typeof payload.path === 'string' ? payload.path : null,
+        stage: typeof payload.stage === 'string' ? payload.stage : null,
+        status: typeof payload.status === 'string' ? payload.status : null,
+        runtime: typeof payload.runtime === 'string' ? payload.runtime : null,
+      };
+    }
+
+    default:
+      return {
+        type: 'unknown',
+        messageType: typeof data.type === 'string' ? data.type : null,
+      };
+  }
+}
+
 export function resolveWakewordStatusReady(status: WakewordStatusPayload | null | undefined): boolean {
   return status?.ready === true;
 }
@@ -240,61 +290,11 @@ export const DesktopVoiceRuntimeClient = {
     return true;
   },
 
-  normalizeTranscriptionGatewayMessage(rawData: unknown): DesktopTranscriptionGatewayEvent | null {
-    if (rawData instanceof ArrayBuffer || rawData instanceof Blob) {
-      return null;
-    }
-
-    const data = JSON.parse(rawData as string);
-    if (!isRecord(data)) {
-      return { type: 'unknown', messageType: null };
-    }
-
-    switch (data.type) {
-      case 'status':
-        return {
-          type: 'status',
-          clientId: typeof data.client_id === 'string' ? data.client_id : null,
-        };
-
-      case 'realtime':
-        return {
-          type: 'realtime',
-          text: typeof data.translation === 'string'
-            ? data.translation
-            : typeof data.text === 'string'
-              ? data.text
-              : '',
-          isFinal: parseBoolean(data.is_final),
-        };
-
-      case 'utterance_end':
-        return { type: 'utterance_end' };
-
-      case 'trace_event': {
-        const payload = isRecord(data.payload) ? data.payload : {};
-        return {
-          type: 'trace_event',
-          path: typeof payload.path === 'string' ? payload.path : null,
-          stage: typeof payload.stage === 'string' ? payload.stage : null,
-          status: typeof payload.status === 'string' ? payload.status : null,
-          runtime: typeof payload.runtime === 'string' ? payload.runtime : null,
-        };
-      }
-
-      default:
-        return {
-          type: 'unknown',
-          messageType: typeof data.type === 'string' ? data.type : null,
-        };
-    }
-  },
-
   dispatchTranscriptionGatewayMessage(
     rawData: unknown,
     handlers: TranscriptionGatewayMessageHandlers,
   ): void {
-    const event = DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(rawData);
+    const event = normalizeTranscriptionGatewayMessage(rawData);
     if (!event) {
       handlers.onBinaryMessage?.();
       return;

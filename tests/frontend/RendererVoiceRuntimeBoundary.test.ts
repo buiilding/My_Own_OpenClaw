@@ -27,12 +27,19 @@ describe('renderer voice runtime boundary', () => {
       __dirname,
       '../../frontend/src/renderer/features/voice/hooks/useVoiceMode.ts',
     );
+    const runtimeClientPath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts',
+    );
     const source = await fs.readFile(voiceModeHookPath, 'utf8');
+    const runtimeSource = await fs.readFile(runtimeClientPath, 'utf8');
 
     expect(source).toContain('DesktopVoiceRuntimeClient.createTranscriptionWebSocket');
     expect(source).toContain('DesktopVoiceRuntimeClient.isTranscriptionWebSocketActive');
     expect(source).toContain('DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage');
     expect(source).not.toContain('DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage');
+    expect(runtimeSource).toContain('const event = normalizeTranscriptionGatewayMessage(rawData);');
+    expect(runtimeSource).not.toContain('DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendDefaultTranscriptionLanguage');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionStartOverIfOpen');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionAudioMessageIfOpen');

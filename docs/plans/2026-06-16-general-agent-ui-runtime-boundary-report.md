@@ -8504,3 +8504,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   trace timelines, SDK command strings, persisted transcript data, storage,
   provider policy, permissions, and backend behavior are unchanged; no
   migration is required.
+- The renderer voice app-runtime client now keeps transcription gateway message
+  normalization private to `desktopVoiceRuntimeClient.ts`; public callers use
+  `dispatchTranscriptionGatewayMessage(...)` for status, realtime, trace,
+  unknown, and binary gateway events. Boundary coverage prevents voice feature
+  hooks from reaching for a raw normalizer again. Voice gateway websocket URL
+  derivation, setup/start-over messages, realtime text projection, trace event
+  projection, wakeword IPC channels, SDK command names, storage, provider
+  policy, permissions, and backend behavior are unchanged; no migration is
+  required.

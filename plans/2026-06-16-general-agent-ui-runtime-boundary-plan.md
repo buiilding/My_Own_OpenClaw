@@ -20583,3 +20583,21 @@ Each completed slice should report:
   store behavior, trace timelines, SDK command strings, persisted transcript
   data, storage, provider policy, permissions, and backend behavior are
   unchanged.
+
+### 2026-06-21 renderer voice gateway parser privacy
+
+- Finding: `DesktopVoiceRuntimeClient` already owned transcription gateway
+  message parsing and dispatch for voice-mode hooks, but still exposed the raw
+  `normalizeTranscriptionGatewayMessage` parser on its public client object
+  even though production callers only need value-level dispatch.
+- Change: made transcription gateway message normalization private to the voice
+  app-runtime module and kept `dispatchTranscriptionGatewayMessage(...)` as the
+  public client surface. Updated focused tests to observe status, realtime,
+  trace, unknown, and binary behavior through the dispatcher and added boundary
+  coverage so feature hooks cannot depend on the raw normalizer again.
+- Validation: focused voice runtime client and renderer voice boundary tests,
+  raw-normalizer public-surface scan, docs listing, and diff checks.
+- Compatibility: no migration required. Voice gateway websocket URL
+  derivation, setup/start-over messages, realtime text projection, trace event
+  projection, wakeword IPC channels, SDK command names, storage, provider
+  policy, permissions, and backend behavior are unchanged.

@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/voice: keep transcription gateway message normalization private to
+  the voice app-runtime client while preserving public dispatch behavior. No
+  migration required.
 - renderer/transcript: import SDK display-row, conversation-store, trace, and
   command contracts from SDK owner modules instead of the package root. No
   migration required.

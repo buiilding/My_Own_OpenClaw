@@ -222,72 +222,6 @@ describe('DesktopVoiceRuntimeClient', () => {
     expect(openWebsocket.close).toHaveBeenCalledTimes(1);
   });
 
-  test('normalizes transcription gateway messages', () => {
-    expect(
-      DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(JSON.stringify({
-        type: 'status',
-        client_id: 'client-1',
-      })),
-    ).toEqual({ type: 'status', clientId: 'client-1' });
-
-    expect(
-      DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(JSON.stringify({
-        type: 'realtime',
-        translation: 'translated text',
-        text: 'raw text',
-        is_final: 'true',
-      })),
-    ).toEqual({ type: 'realtime', text: 'translated text', isFinal: true });
-
-    expect(
-      DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(JSON.stringify({
-        type: 'realtime',
-        text: 'raw text',
-        is_final: false,
-      })),
-    ).toEqual({ type: 'realtime', text: 'raw text', isFinal: false });
-
-    expect(
-      DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(JSON.stringify({
-        type: 'utterance_end',
-      })),
-    ).toEqual({ type: 'utterance_end' });
-
-    expect(
-      DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(JSON.stringify({
-        type: 'trace_event',
-        payload: {
-          path: 'voice.transcription',
-          stage: 'audio_frame',
-          status: 'succeeded',
-          runtime: 'backend',
-          data: {
-            byteLength: 4,
-            text: 'must not surface',
-          },
-        },
-      })),
-    ).toEqual({
-      type: 'trace_event',
-      path: 'voice.transcription',
-      stage: 'audio_frame',
-      status: 'succeeded',
-      runtime: 'backend',
-    });
-
-    expect(
-      DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(JSON.stringify({
-        type: 'custom',
-      })),
-    ).toEqual({ type: 'unknown', messageType: 'custom' });
-  });
-
-  test('returns null for binary transcription gateway messages', () => {
-    expect(
-      DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(new ArrayBuffer(8)),
-    ).toBeNull();
-  });
-
   test('dispatches transcription gateway messages to value-level handlers', () => {
     const handlers = {
       onBinaryMessage: jest.fn(),
@@ -308,15 +242,25 @@ describe('DesktopVoiceRuntimeClient', () => {
       is_final: true,
     }), handlers);
     DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(JSON.stringify({
+      type: 'realtime',
+      translation: 'translated text',
+      text: 'raw text',
+      is_final: 'true',
+    }), handlers);
+    DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(JSON.stringify({
       type: 'utterance_end',
     }), handlers);
     DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(JSON.stringify({
       type: 'trace_event',
       payload: {
         path: 'voice.transcription',
-        stage: 'decode',
+        stage: 'audio_frame',
         status: 'succeeded',
         runtime: 'backend',
+        data: {
+          byteLength: 4,
+          text: 'must not surface',
+        },
       },
     }), handlers);
     DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(JSON.stringify({
@@ -324,12 +268,14 @@ describe('DesktopVoiceRuntimeClient', () => {
     }), handlers);
     DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(new ArrayBuffer(4), handlers);
 
+    expect('normalizeTranscriptionGatewayMessage' in DesktopVoiceRuntimeClient).toBe(false);
     expect(handlers.onClientId).toHaveBeenCalledWith('client-1');
-    expect(handlers.onRealtimeText).toHaveBeenCalledWith('hello', true);
+    expect(handlers.onRealtimeText).toHaveBeenNthCalledWith(1, 'hello', true);
+    expect(handlers.onRealtimeText).toHaveBeenNthCalledWith(2, 'translated text', true);
     expect(handlers.onUtteranceEnd).toHaveBeenCalledTimes(1);
     expect(handlers.onTraceEvent).toHaveBeenCalledWith({
       path: 'voice.transcription',
-      stage: 'decode',
+      stage: 'audio_frame',
       status: 'succeeded',
       runtime: 'backend',
     });
