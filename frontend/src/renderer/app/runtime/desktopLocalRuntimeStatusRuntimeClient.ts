@@ -7,7 +7,7 @@ import {
   subscribeLocalRuntimeStatusStore,
 } from '../../infrastructure/runtime/localRuntimeStatusStore';
 
-export function isLocalRuntimeStatusReady(snapshot: unknown): boolean {
+function isLocalRuntimeStatusReady(snapshot: unknown): boolean {
   return Boolean(
     snapshot
     && typeof snapshot === 'object'

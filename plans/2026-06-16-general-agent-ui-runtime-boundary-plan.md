@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Local-Runtime Status Predicate Privacy
+
+- Finding: `DesktopLocalRuntimeStatusRuntimeClient` already owned raw
+  local-runtime status snapshots through public `isReady()` and `onReady()`
+  methods, but still exported the raw readiness predicate for focused tests.
+- Change: made the local-runtime readiness predicate private to the status
+  runtime client and updated focused coverage to exercise readiness projection
+  through the public runtime client methods.
+- Validation: focused local-runtime status client and renderer chat boundary
+  tests, exact raw-helper export scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Local-runtime status store
+  subscriptions, readiness payload semantics, chat startup behavior, local
+  runtime process status, permissions, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Renderer Window Command Helper Privacy
 
 - Finding: `DesktopWindowRuntimeClient` already owned chatbox and main-window

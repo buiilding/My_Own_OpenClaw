@@ -10,10 +10,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/runtime/localRuntimeStatus
   subscribeLocalRuntimeStatusStore: (listener: () => void) => mockSubscribe(listener),
 }));
 
-import {
-  DesktopLocalRuntimeStatusRuntimeClient,
-  isLocalRuntimeStatusReady,
-} from '../../frontend/src/renderer/app/runtime/desktopLocalRuntimeStatusRuntimeClient';
+import * as DesktopLocalRuntimeStatusRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopLocalRuntimeStatusRuntimeClient';
+import { DesktopLocalRuntimeStatusRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLocalRuntimeStatusRuntimeClient';
 
 describe('DesktopLocalRuntimeStatusRuntimeClient', () => {
   beforeEach(() => {
@@ -21,13 +19,19 @@ describe('DesktopLocalRuntimeStatusRuntimeClient', () => {
     mockSubscribe.mockReset();
   });
 
-  test('projects raw local-runtime status snapshots to readiness values', () => {
-    expect(isLocalRuntimeStatusReady({ ready: true, status: 'ready' })).toBe(true);
-    expect(isLocalRuntimeStatusReady({ ready: false, status: 'starting' })).toBe(false);
-    expect(isLocalRuntimeStatusReady(null)).toBe(false);
+  test('keeps raw local-runtime status readiness parsing private to the runtime client', () => {
+    expect(DesktopLocalRuntimeStatusRuntimeModule).not.toHaveProperty('isLocalRuntimeStatusReady');
+  });
 
-    mockGetSnapshot.mockReturnValue({ ready: true, status: 'ready' });
+  test('projects raw local-runtime status snapshots to readiness values', () => {
+    mockGetSnapshot.mockReturnValueOnce({ ready: true, status: 'ready' });
     expect(DesktopLocalRuntimeStatusRuntimeClient.isReady()).toBe(true);
+
+    mockGetSnapshot.mockReturnValueOnce({ ready: false, status: 'starting' });
+    expect(DesktopLocalRuntimeStatusRuntimeClient.isReady()).toBe(false);
+
+    mockGetSnapshot.mockReturnValueOnce(null);
+    expect(DesktopLocalRuntimeStatusRuntimeClient.isReady()).toBe(false);
   });
 
   test('ready subscriptions notify only through the value-level ready helper', () => {

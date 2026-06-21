@@ -841,7 +841,8 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('IpcBridge.on');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
     expect(localRuntimeStatusClientSource).toContain('onReady');
-    expect(localRuntimeStatusClientSource).toContain('isLocalRuntimeStatusReady');
+    expect(localRuntimeStatusClientSource).toContain('function isLocalRuntimeStatusReady');
+    expect(localRuntimeStatusClientSource).not.toContain('export function isLocalRuntimeStatusReady');
     expect(localRuntimeStatusClientSource).toContain('subscribeLocalRuntimeStatusStore');
     expect(localRuntimeStatusClientSource).toContain('getLocalRuntimeStatusSnapshot');
   });
