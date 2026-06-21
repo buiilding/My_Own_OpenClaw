@@ -65,6 +65,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/memory and docs/concepts: describe `session_id` as hosted backend
   runtime identity instead of generic backend runtime/session wording. No
   migration required.
+- docs/memory: spell out desktop UI, local-runtime memory store, and hosted
+  backend ownership in memory hub/workflow intros instead of collapsed
+  desktop/backend runtime shorthand. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

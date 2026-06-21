@@ -9,9 +9,9 @@ title: "Memory Change Workflow"
 
 # Memory Change Workflow
 
-The desktop/backend runtime has multiple memory systems. Treating them as one
-store causes wrong-layer fixes. Start by identifying which memory layer owns the
-symptom.
+The desktop UI, local-runtime memory store, and hosted backend have multiple
+memory systems. Treating them as one store causes wrong-layer fixes. Start by
+identifying which memory layer owns the symptom.
 
 ## Pick the Owner
 

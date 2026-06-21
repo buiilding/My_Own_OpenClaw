@@ -8,8 +8,8 @@ title: "Memory Hub"
 
 # Memory Hub
 
-The desktop/backend runtime has several memory-like systems. They must not be
-treated as one store.
+The desktop UI, local-runtime memory store, and hosted backend have several
+memory-like systems. They must not be treated as one store.
 
 ## Memory Layers
 

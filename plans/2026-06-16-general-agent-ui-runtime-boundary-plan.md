@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Memory Docs Runtime Ownership Intro Boundary
+
+- Finding: the memory hub and memory change workflow still introduced the
+  layer map as "desktop/backend runtime" memory systems, collapsing renderer,
+  local-runtime memory storage, and hosted backend history into a two-bucket
+  shorthand.
+- Change: reworded both intros to spell out desktop UI, local-runtime memory
+  store, and hosted backend ownership, and extended the memory docs boundary
+  guard for the retired shorthand.
+- Validation: focused modular memory docs guard, exact stale-label scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. Memory stores, transcript row
+  schemas, local-runtime JSON-RPC methods, backend history/rehydrate behavior,
+  IPC payloads, storage files, credentials, permissions, hosted backend URLs,
+  and provider policy are unchanged.
+
 ### 2026-06-21 Hosted-Backend Session Identity Concept Boundary
 
 - Finding: the memory identity workflow and sessions/conversations concept

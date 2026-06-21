@@ -1356,6 +1356,11 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('architecture memory overview routes ownership through local runtime', async () => {
     const memorySystem = await read('docs/architecture/memory_system.md');
+    const memoryDocs = await Promise.all([
+      read('docs/memory/README.md'),
+      read('docs/memory/memory_change_workflow.md'),
+    ]);
+    const memoryDocText = memoryDocs.join('\n');
 
     expect(memorySystem).toContain('SDK local-runtime memory boundary');
     expect(memorySystem).toContain('Local-runtime memory implementation (local-runtime Python-backed)');
@@ -1368,6 +1373,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(memorySystem).not.toContain('The sidecar stores memory');
     expect(memorySystem).not.toContain('passes embeddings to the sidecar');
     expect(memorySystem).not.toContain('sidecar JSON-RPC envelope');
+    expect(memoryDocText).toContain('desktop UI, local-runtime memory store, and hosted backend');
+    expect(memoryDocText).not.toContain('desktop/backend runtime');
   });
 
   test('core architecture flow docs avoid mojibake in debug paths', async () => {
