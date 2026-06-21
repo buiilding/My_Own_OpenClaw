@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level Agent SDK connection-event and backend
+  fallback handlers private to `ipc_agent_connection_events.cjs` and exercise
+  connection lifecycle behavior through `createAgentConnectionEventsRuntime(...)`,
+  preserving the Electron main connection-event composition boundary. No
+  migration required.
 - frontend/main: keep the lower-level Agent SDK backend-close cleanup handler
   private to `ipc_agent_backend_close_runtime.cjs` and exercise close cleanup
   behavior through `createAgentBackendCloseRuntime(...)`, preserving the

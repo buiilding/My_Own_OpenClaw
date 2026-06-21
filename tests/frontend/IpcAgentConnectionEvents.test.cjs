@@ -5,8 +5,6 @@ const path = require('path');
 
 const {
   createAgentConnectionEventsRuntime,
-  handleAgentBackendFallbackEvent,
-  handleAgentConnectionEvent,
   resolveBackendFallbackIndex,
   resolveHandshakeUserId,
 } = require('../../frontend/src/main/ipc/ipc_agent_connection_events.cjs');
@@ -30,6 +28,16 @@ function createConnectionDeps(overrides = {}) {
 }
 
 describe('ipc_agent_connection_events', () => {
+  function handleConnectionEvent(event, deps) {
+    const runtime = createAgentConnectionEventsRuntime(deps);
+    return runtime.handleConnection(event);
+  }
+
+  function handleBackendFallbackEvent(endpointPayload, deps) {
+    const runtime = createAgentConnectionEventsRuntime(deps);
+    return runtime.handleBackendFallback(endpointPayload);
+  }
+
   test('resolves handshake user id only from backend handshake payloads', () => {
     expect(resolveHandshakeUserId({
       handshake: { user_id: 'server-user' },
@@ -43,7 +51,7 @@ describe('ipc_agent_connection_events', () => {
   test('handles backend open events by updating session state and broadcasting status', () => {
     const deps = createConnectionDeps();
 
-    handleAgentConnectionEvent({
+    handleConnectionEvent({
       type: 'open',
       handshake: { user_id: 'server-user' },
     }, deps);
@@ -71,7 +79,7 @@ describe('ipc_agent_connection_events', () => {
       reason: 'network',
     };
 
-    handleAgentConnectionEvent(event, deps);
+    handleConnectionEvent(event, deps);
 
     expect(deps.traceBackendConnection).toHaveBeenCalledWith(event);
     expect(deps.logMainRuntime).toHaveBeenCalledWith('[Main][Backend] closed code=1006 reason=network');
@@ -82,15 +90,15 @@ describe('ipc_agent_connection_events', () => {
   test('handles backend error, handshake-error, and message-error diagnostics', () => {
     const deps = createConnectionDeps();
 
-    handleAgentConnectionEvent({
+    handleConnectionEvent({
       type: 'error',
       error: new Error('socket exploded'),
     }, deps);
-    handleAgentConnectionEvent({
+    handleConnectionEvent({
       type: 'handshake-error',
       error: 'bad handshake',
     }, deps);
-    handleAgentConnectionEvent({
+    handleConnectionEvent({
       type: 'message-error',
       error: 'bad json',
     }, deps);
@@ -134,7 +142,7 @@ describe('ipc_agent_connection_events', () => {
       log: jest.fn(),
     };
 
-    handleAgentBackendFallbackEvent({
+    handleBackendFallbackEvent({
       httpUrl: 'https://fallback.test',
     }, deps);
     expect(deps.setActiveBackendEndpoint).toHaveBeenCalledWith(1);
@@ -143,7 +151,7 @@ describe('ipc_agent_connection_events', () => {
     expect(deps.log).toHaveBeenCalledWith('Primary backend unavailable. Falling back to wss://fallback.test/ws.');
 
     deps.setActiveBackendEndpoint.mockClear();
-    handleAgentBackendFallbackEvent({
+    handleBackendFallbackEvent({
       httpUrl: 'https://missing.test',
     }, deps);
     expect(deps.setActiveBackendEndpoint).not.toHaveBeenCalled();
@@ -199,6 +207,9 @@ describe('ipc_agent_connection_events', () => {
     expect(mainSource).not.toContain("event.type === 'open'");
     expect(mainSource).not.toContain("candidate.wsUrl === endpointPayload.wsUrl");
     expect(helperSource).toContain('createAgentConnectionEventsRuntime');
+    const connectionEventsModule = require('../../frontend/src/main/ipc/ipc_agent_connection_events.cjs');
+    expect(connectionEventsModule.handleAgentConnectionEvent).toBeUndefined();
+    expect(connectionEventsModule.handleAgentBackendFallbackEvent).toBeUndefined();
     expect(helperSource).toContain("event.type === 'open'");
     expect(helperSource).toContain("candidate.wsUrl === endpointPayload.wsUrl");
   });

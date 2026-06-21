@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Agent Connection Events Runtime Handler Privacy
+
+- Finding: `ipc_agent_connection_events.cjs` exposed
+  `createAgentConnectionEventsRuntime(...)` for `ipc.cjs` composition, but
+  still publicly exported the lower-level `handleAgentConnectionEvent(...)`
+  and `handleAgentBackendFallbackEvent(...)` helpers even though production
+  already routes SDK backend connection events and fallback selection through
+  the runtime facade.
+- Change: kept the lower-level connection-event and backend-fallback handlers
+  private to `ipc_agent_connection_events.cjs`, updated focused and broad
+  boundary tests to exercise lifecycle behavior through
+  `createAgentConnectionEventsRuntime(...)`, and documented the runtime helper
+  as the public composition boundary.
+- Validation: focused connection-event runtime and main SDK boundary tests plus
+  targeted main IPC lint, docs listing, stale export-line scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. Backend open/close/error
+  event adaptation, handshake user-id projection, endpoint fallback selection,
+  settings-sync reset, overlay idle reset, replay clearing, status broadcast,
+  IPC payloads, credentials, provider policy, permissions, storage, backend
+  behavior, and local-runtime execution are unchanged.
+
 ### 2026-06-21 Main Agent Backend Close Runtime Handler Privacy
 
 - Finding: `ipc_agent_backend_close_runtime.cjs` exposed

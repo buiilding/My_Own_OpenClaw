@@ -75,7 +75,8 @@ Guard:
 Open event adaptation lives in the `createAgentConnectionEventsRuntime(...)`
 instance from `ipc_agent_connection_events.cjs`. `ipc.cjs` injects the
 main-process state setters, trace/log callbacks, endpoint state, and close
-handler once when composing the IPC runtime. On open:
+handler once when composing the IPC runtime, while the lower-level connection
+event and fallback handlers stay private to that runtime helper. On open:
 
 1. mark connected in `ipc_backend_connection_gate_state.cjs`
 2. reset first-query/settings-sync flags for this connection
