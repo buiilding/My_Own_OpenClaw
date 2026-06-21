@@ -556,8 +556,9 @@ Owns pending renderer turn IPC handler registration and payload acceptance:
   live state and renderer fan-out once
 - pending-turn payload normalization and required identity checks
 - removed snake_case clear alias rejection
-- pending-turn cache clear/match primitives consumed by `ipc.cjs` stop and
-  SDK current-turn cleanup paths
+- pending-turn cache clear and SDK-current-turn match primitives consumed by
+  `ipc.cjs` stop and SDK current-turn cleanup paths, while explicit target
+  matching remains private inside the clear path
 - pending/clear broadcasts through the shared desktop runtime pending-turn
   channel constant
 

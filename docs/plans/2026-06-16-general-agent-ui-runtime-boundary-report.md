@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: desktop host OS display-name normalization now has a
-  single Electron-main owner in `ipc_desktop_host_os_runtime.cjs`;
-  install-auth tests import that owner directly and the install-auth runtime no
-  longer re-exports the helper alias.
+- Latest completed slice: pending-turn explicit target matching now stays
+  private inside `ipc_pending_turn_handlers.cjs`; the public Electron-main
+  helper surface exposes clear/current-turn primitives without the stale
+  `pendingTurnMatchesTarget(...)` export.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -546,6 +546,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Main Pending-Turn Runtime Export Boundary
+
+- Finding: `ipc_pending_turn_handlers.cjs` already owned pending-turn payload
+  normalization, renderer fan-out, and explicit clear filtering, but exported
+  the private `pendingTurnMatchesTarget(...)` helper even though no caller used
+  it outside the module.
+- Change: removed the stale export, kept target matching inside
+  `clearPendingTurnState(...)`, and added focused coverage that the public
+  helper surface excludes the private matcher while clear filtering still
+  rejects mismatched targets.
+- Validation: focused pending-turn/main SDK boundary coverage, docs listing,
+  stale export scan, and diff checks.
+- Compatibility: no migration required. Pending-turn IPC payloads, renderer
+  replay/fan-out, stop cleanup, SDK current-turn cleanup, storage contracts,
+  provider policy, and hosted backend behavior are unchanged.
 
 ### 2026-06-21 Agent Architecture Desktop App Source Map
 

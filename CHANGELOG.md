@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: keep pending-turn explicit target matching private inside
+  `ipc_pending_turn_handlers.cjs` and remove the stale
+  `pendingTurnMatchesTarget(...)` export. No migration required.
 - main/ipc: route desktop host OS name normalization directly through
   `ipc_desktop_host_os_runtime.cjs` and remove the install-auth runtime
   re-export alias. No migration required.

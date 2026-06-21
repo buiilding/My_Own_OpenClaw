@@ -5,13 +5,15 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const pendingTurnHandlers = require('../../frontend/src/main/ipc/ipc_pending_turn_handlers.cjs');
+
 const {
   clearPendingTurnState,
   createPendingTurnRuntime,
   normalizePendingTurnPayload,
   pendingTurnMatchesCurrentTurn,
   registerPendingTurnHandlers,
-} = require('../../frontend/src/main/ipc/ipc_pending_turn_handlers.cjs');
+} = pendingTurnHandlers;
 
 function createHarness() {
   const listeners = {};
@@ -155,6 +157,31 @@ describe('pending turn IPC handlers', () => {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
     });
+  });
+
+  test('keeps target matching private behind clear-pending state', () => {
+    let latestPendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    };
+    const broadcastToRenderers = jest.fn();
+
+    expect(pendingTurnHandlers).not.toHaveProperty('pendingTurnMatchesTarget');
+    expect(clearPendingTurnState({
+      getLatestPendingTurn: () => latestPendingTurn,
+      setLatestPendingTurn: (pendingTurn) => {
+        latestPendingTurn = pendingTurn;
+      },
+      broadcastToRenderers,
+      broadcast: true,
+      conversationRef: 'conv-2',
+      turnRef: 'turn-1',
+    })).toBe(false);
+    expect(latestPendingTurn).toEqual({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    });
+    expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
 
   test('runtime composes pending-turn state and renderer fan-out once', () => {

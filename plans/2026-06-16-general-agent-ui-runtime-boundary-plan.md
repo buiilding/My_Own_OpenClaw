@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Pending-Turn Runtime Export Boundary
+
+- Finding: `ipc_pending_turn_handlers.cjs` already kept explicit
+  pending-turn target filtering inside `clearPendingTurnState(...)`, but it
+  still exported the private `pendingTurnMatchesTarget(...)` helper as a stale
+  second surface with no external caller.
+- Change: removed the stale target-matcher export, added focused coverage that
+  clear filtering remains behaviorally owned by the pending-turn runtime, and
+  documented the helper surface as public clear/current-turn primitives plus a
+  private target matcher.
+- Validation: focused pending-turn/main SDK boundary coverage, docs listing,
+  stale export scan, and diff checks.
+- Compatibility: no migration required. IPC channel names, pending/clear
+  payloads, renderer fan-out, stop cleanup, SDK current-turn cleanup, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Main Desktop Host OS Runtime Boundary
 
 - Finding: `ipc_desktop_host_os_runtime.cjs` already owned generic desktop host
