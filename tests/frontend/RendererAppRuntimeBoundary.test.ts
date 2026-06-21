@@ -933,6 +933,10 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopDashboardConversationGroupRuntime.js'),
       'utf8',
     );
+    const searchModalRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopDashboardSearchModalRuntime.js'),
+      'utf8',
+    );
     const dashboardHookSource = await fs.readFile(
       path.join(rendererRoot, 'features/dashboard/hooks/useDashboardConversations.js'),
       'utf8',
@@ -955,8 +959,19 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('utils/conversationGroups');
     expect(searchModalSource).toContain('desktopDashboardConversationGroupRuntime');
     expect(searchModalSource).toContain('DesktopDashboardConversationGroupRuntime');
+    expect(searchModalSource).toContain('desktopDashboardSearchModalRuntime');
+    expect(searchModalSource).toContain('DesktopDashboardSearchModalRuntime.startSearchModalLifecycle');
     expect(searchModalSource).toContain('getDashboardConversationGroupDescriptors');
     expect(searchModalSource).toContain('getDashboardSearchSnippetDisplayText');
+    expect(searchModalRuntimeSource).toContain('addEventListener');
+    expect(searchModalRuntimeSource).toContain('removeEventListener');
+    expect(searchModalRuntimeSource).toContain('setTimeout');
+    expect(searchModalRuntimeSource).toContain('clearTimeout');
+    expect(searchModalRuntimeSource).not.toContain('features/dashboard');
+    expect(searchModalSource).not.toContain('window.setTimeout');
+    expect(searchModalSource).not.toContain('window.clearTimeout');
+    expect(searchModalSource).not.toContain('window.addEventListener');
+    expect(searchModalSource).not.toContain('window.removeEventListener');
     expect(searchModalSource).not.toContain('GROUP_LABELS');
     expect(searchModalSource).not.toContain('GROUP_ORDER');
     expect(searchModalSource).not.toContain("previous7Days: 'Previous 7 days'");

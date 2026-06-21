@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route dashboard search modal focus and Escape-key browser
+  lifecycle wiring through `DesktopDashboardSearchModalRuntime`, keeping raw
+  timer and `window` listener adapters out of `SearchChatsModal`. No migration
+  required.
 - frontend/renderer: route chat interface menu-dismiss, stop-shortcut, and
   thread-find shortcut window subscriptions through
   `DesktopChatInterfaceBindingsRuntime`, keeping raw browser listener wiring

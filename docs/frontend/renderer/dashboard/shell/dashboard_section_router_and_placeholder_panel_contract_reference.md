@@ -18,6 +18,7 @@ title: "Dashboard Shell Modal Routing Contract Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/app/runtime/desktopChatEvents.js`
+- `frontend/src/renderer/app/runtime/desktopDashboardSearchModalRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDashboardLayoutRuntime.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
@@ -113,8 +114,9 @@ Result payload expectations:
 
 Search modal behavior:
 
-- focuses input after open (`setTimeout` focus handoff).
-- `Escape` closes modal.
+- focuses input after open through
+  `DesktopDashboardSearchModalRuntime.startSearchModalLifecycle(...)`.
+- `Escape` closes modal through the same lifecycle runtime.
 - overlay click-outside closes modal.
 - `New chat` button closes modal then dispatches new-chat action.
 

@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Dashboard Search Modal Lifecycle Runtime
+
+- Finding: `SearchChatsModal` still owned raw `window.setTimeout(...)` /
+  `clearTimeout(...)` focus scheduling and `window.addEventListener(...)` /
+  `removeEventListener(...)` Escape-key close wiring.
+- Change: added `DesktopDashboardSearchModalRuntime` as the renderer
+  app-runtime browser lifecycle adapter for dashboard search modal focus and
+  Escape close behavior. The component keeps rendering, query input, backdrop
+  click, and callback routing local while delegating timer/listener plumbing to
+  the runtime facade.
+- Validation target: focused dashboard search modal runtime, dashboard shell,
+  and renderer app-runtime boundary tests protect deferred focus,
+  Escape-to-close cleanup, modal search/open behavior, and rejection of raw
+  window timer/listener wiring in `SearchChatsModal`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Chat Interface Binding Subscription Runtime
 
 - Finding: `useChatInterfaceBindings(...)` still owned raw

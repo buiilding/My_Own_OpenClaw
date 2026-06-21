@@ -20,6 +20,7 @@ title: "Dashboard Sidebar, Search, and Profile Menu Runtime Reference"
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/app/runtime/desktopDashboardNavigationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopDashboardSearchModalRuntime.js`
 - `frontend/src/renderer/styles/DashboardShell.css`
 - `tests/frontend/DashboardShell.test.jsx`
 - `tests/frontend/ConversationGroups.test.js`
@@ -132,11 +133,12 @@ Fallback behavior:
 ### Open/close lifecycle
 
 - modal is mounted only when `isOpen=true`.
-- opens with delayed input focus (`20ms` timeout).
+- opens with delayed input focus (`20ms` timeout) through
+  `DesktopDashboardSearchModalRuntime`.
 - closes on:
   - overlay backdrop click
   - close icon click
-  - `Escape` key
+  - `Escape` key through `DesktopDashboardSearchModalRuntime`
 
 ### Result source switching
 
