@@ -9110,3 +9110,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   workspace record shape, active-workspace projection, stream state, persisted
   transcript data, IPC channels, provider policy, permissions, and backend
   behavior are unchanged; no migration is required.
+- The renderer live-turn runtime client now owns a neutral SDK command failure
+  fallback inside `desktopLiveTurnRuntimeClient.ts` instead of importing the
+  WindieOS skin for `runtime.sendCommandFailure`; the unused skin field was
+  removed and boundary coverage prevents app-runtime modules from importing
+  renderer skin copy. SDK command names, send/stop payloads, IPC channels,
+  transcript state, storage, provider policy, permissions, and backend behavior
+  are unchanged; no migration is required.

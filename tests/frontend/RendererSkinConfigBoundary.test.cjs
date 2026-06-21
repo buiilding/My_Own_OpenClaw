@@ -196,7 +196,6 @@ describe('renderer skin/config boundary', () => {
       'features/chat/hooks/useConversationReplayActions.js',
       'features/chat/components/ChatInterface.jsx',
       'features/chat/components/ChatBrowserSessionControl.jsx',
-      'app/runtime/desktopLiveTurnRuntimeClient.ts',
     ].map((relativePath) => fs.readFileSync(path.join(rendererRoot, relativePath), 'utf8'));
 
     for (const source of consumers) {

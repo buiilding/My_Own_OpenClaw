@@ -167,9 +167,6 @@ export const windieDesktopSkin = Object.freeze({
       disconnectLabel: 'Disconnect browser',
     }),
   }),
-  runtime: Object.freeze({
-    sendCommandFailure: `Failed to send command to ${productName} runtime`,
-  }),
 });
 
 export function formatToolAcceptanceRuntimeSummary(acceptedTool) {

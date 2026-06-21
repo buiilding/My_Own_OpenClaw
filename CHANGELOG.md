@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: keep live-turn command failure fallback copy inside the
+  generic app-runtime client and remove the unused WindieOS skin runtime-copy
+  field, with boundary coverage preventing app-runtime modules from importing
+  renderer skin copy. No migration required.
 - docs/jsonrpc: label the concrete `sidecar_daemon.py` module as the
   local-runtime daemon in the JSON-RPC reference. No migration required.
 - local-runtime/python: label local-runtime requirements files as

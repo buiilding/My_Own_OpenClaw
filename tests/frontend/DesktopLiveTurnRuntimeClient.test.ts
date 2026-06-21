@@ -82,6 +82,18 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
   });
 
+  test('sendQuery throws a generic runtime fallback when command invoke fails without an error', async () => {
+    mockInvokeAgentSdkCommand.mockResolvedValue({ ok: false });
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
+    );
+
+    await expect(DesktopLiveTurnRuntimeClient.sendQuery({
+      text: 'hello',
+      conversationRef: 'conv-send',
+    })).rejects.toThrow('Failed to send command to the desktop runtime');
+  });
+
   test('stop routes through SDK-shaped command invoke with the active turn ref', async () => {
     const { DesktopLiveTurnRuntimeClient } = require(
       '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',

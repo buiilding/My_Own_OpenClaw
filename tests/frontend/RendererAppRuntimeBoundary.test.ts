@@ -1287,6 +1287,27 @@ describe('renderer app runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('app runtime modules do not import renderer skin copy', async () => {
+    const files = await listSourceFiles(path.join(appRoot, 'runtime'));
+    const offenders: string[] = [];
+    const forbiddenSkinNeedles = [
+      'desktopRuntimeSkin',
+      'windieDesktopSkin',
+      '../skin/desktopRuntimeSkin',
+      '../skin/windieDesktopSkin',
+    ];
+
+    for (const file of files) {
+      const relativePath = normalizeRelativePath(path.relative(appRoot, file));
+      const source = await fs.readFile(file, 'utf8');
+      if (forbiddenSkinNeedles.some((needle) => source.includes(needle))) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   test('renderer feature modules stay behind app runtime facades for provider and transport state', async () => {
     const featureRoot = path.join(rendererRoot, 'features');
     const runtimeClientSource = await fs.readFile(

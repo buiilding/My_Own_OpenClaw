@@ -21636,3 +21636,19 @@ Each completed slice should report:
   workspace record shape, active-workspace projection, stream state, persisted
   transcript data, IPC channels, provider policy, permissions, and backend
   behavior are unchanged.
+
+### 2026-06-21 renderer live-turn skin-copy boundary
+
+- Finding: `desktopLiveTurnRuntimeClient.ts` owned the generic SDK command
+  invoke error boundary, but imported `desktopRuntimeSkin.runtime` for a single
+  WindieOS send-command fallback string.
+- Change: moved the fallback to neutral app-runtime copy, removed the unused
+  `runtime.sendCommandFailure` field from the WindieOS renderer skin, removed
+  the live-turn runtime client from skin-copy consumer expectations, and added
+  boundary coverage that app-runtime modules do not import renderer skin copy.
+- Validation: focused live-turn runtime, renderer skin/config boundary, and
+  app-runtime skin-copy boundary tests, docs listing, exact skin-copy scans,
+  and diff checks.
+- Compatibility: no migration required. SDK command names, send/stop payloads,
+  IPC channels, transcript state, storage, provider policy, permissions, and
+  backend behavior are unchanged.

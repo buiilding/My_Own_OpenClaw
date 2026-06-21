@@ -10,7 +10,8 @@ import {
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { getMemoryRetrievalInjectionEnabled } from './desktopMemoryRetrievalPreferenceRuntime';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
-import { desktopRuntimeSkin } from '../skin/desktopRuntimeSkin';
+
+const SEND_COMMAND_FAILURE_FALLBACK = 'Failed to send command to the desktop runtime';
 
 type CaptureMeta = {
   source_w?: number;
@@ -70,7 +71,7 @@ function throwIfFailedIpcResult(result: unknown): void {
   }
   const message = 'error' in result && typeof result.error === 'string' && result.error.trim()
     ? result.error.trim()
-    : desktopRuntimeSkin.runtime.sendCommandFailure;
+    : SEND_COMMAND_FAILURE_FALLBACK;
   throw new Error(message);
 }
 
