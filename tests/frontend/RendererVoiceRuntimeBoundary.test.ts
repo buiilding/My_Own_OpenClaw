@@ -79,13 +79,19 @@ describe('renderer voice runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts'),
       'utf8',
     );
+    const audioCleanupRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts'),
+      'utf8',
+    );
 
     for (const source of [voiceModeSource, detectionSource]) {
       expect(source).toContain('desktopVoiceAudioEncodingRuntime');
       expect(source).toContain('DesktopVoiceAudioEncodingRuntime');
       expect(source).toContain('desktopVoiceAudioCaptureCleanupRuntime');
+      expect(source).toContain('DesktopVoiceAudioCaptureCleanupRuntime');
       expect(source).toContain('desktopVoiceAudioProcessorNodeRuntime');
       expect(source).not.toContain('import { float32ToPcm16');
+      expect(source).not.toContain('import { cleanupAudioCaptureNodes');
       expect(source).not.toContain('../utils/audioEncoding');
       expect(source).not.toContain('../utils/audioCaptureCleanup');
       expect(source).not.toContain('../utils/audioProcessorNode');
@@ -94,6 +100,10 @@ describe('renderer voice runtime boundary', () => {
     expect(audioEncodingRuntimeSource).not.toContain('export function float32ToPcm16');
     expect(audioEncodingRuntimeSource).not.toContain('export function normalizeAudioCaptureChunkSize');
     expect(audioEncodingRuntimeSource).not.toContain('export function buildGatewayAudioMessage');
+    expect(audioCleanupRuntimeSource).toContain('export const DesktopVoiceAudioCaptureCleanupRuntime = Object.freeze');
+    expect(audioCleanupRuntimeSource).not.toContain('export function cleanupAudioCaptureNodes');
+    expect(audioCleanupRuntimeSource).not.toContain('export function takeAudioContext');
+    expect(audioCleanupRuntimeSource).not.toContain('export async function closeAudioContextSafely');
 
     await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/audioEncoding.ts'))).rejects.toThrow();
     await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/audioCaptureCleanup.ts'))).rejects.toThrow();

@@ -102,6 +102,10 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopTranscriptionRegionRuntime` instead of standalone helper exports,
   keeping voice dictation text replacement and paste-offset rules behind the
   renderer app-runtime facade. No migration required.
+- frontend/renderer: expose shared microphone capture node cleanup and
+  AudioContext teardown through `DesktopVoiceAudioCaptureCleanupRuntime`
+  instead of standalone helper exports, keeping voice and wakeword teardown
+  rules behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

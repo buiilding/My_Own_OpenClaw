@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Voice Audio Cleanup Facade
+
+- Finding: `desktopVoiceAudioCaptureCleanupRuntime.ts` already owned shared
+  microphone capture teardown for voice mode and wakeword detection, including
+  AudioWorklet/source/media-stream ref cleanup, detached AudioContext close
+  ownership, and expected already-closed error suppression, but still exported
+  each helper directly.
+- Change: made the cleanup helpers private to the runtime module, exposed them
+  through `DesktopVoiceAudioCaptureCleanupRuntime`, and routed voice mode,
+  wakeword detection, focused cleanup tests, docs, and boundary guards through
+  that facade.
+- Validation: focused voice audio cleanup, voice mode, wakeword detection,
+  renderer voice boundary, exact standalone audio-cleanup helper export/import
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. AudioWorklet processor
+  disconnect, source-node disconnect, media-track stopping, AudioContext close
+  handling, microphone/session behavior, wakeword capture behavior, IPC,
+  storage, credentials, provider policy, hosted backend URLs, and local
+  execution trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Transcription Region Facade
 
 - Finding: `desktopTranscriptionRegionRuntime.ts` already owned voice

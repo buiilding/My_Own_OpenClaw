@@ -5,11 +5,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
 import { DesktopVoiceAudioEncodingRuntime } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
-import {
-  cleanupAudioCaptureNodes,
-  closeAudioContextSafely,
-  takeAudioContext,
-} from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
+import { DesktopVoiceAudioCaptureCleanupRuntime } from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
 import { createAudioCaptureProcessorNode } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import { DesktopWakewordEventRuntime } from '../../../app/runtime/desktopWakewordEventRuntime';
 import { logVoiceDebugTrace } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
@@ -22,6 +18,12 @@ import {
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { useWakewordBridgeEvents } from './useWakewordBridgeEvents';
+
+const {
+  cleanupAudioCaptureNodes,
+  closeAudioContextSafely,
+  takeAudioContext,
+} = DesktopVoiceAudioCaptureCleanupRuntime;
 
 const WAKEWORD_COOLDOWN_MS = 2000;
 const CAPTURE_RETRY_DELAY_MS = 3000;

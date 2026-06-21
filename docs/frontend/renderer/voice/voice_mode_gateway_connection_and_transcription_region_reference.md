@@ -130,7 +130,8 @@ Shutdown path (`stopAudioCapture` + `disconnectWebSocket`):
   status updates do not rebuild capture callbacks or encourage duplicate socket
   connection attempts
 
-`takeAudioContext(...)` ensures close happens on a detached reference to prevent duplicate-close races.
+`DesktopVoiceAudioCaptureCleanupRuntime.takeAudioContext(...)` ensures close
+happens on a detached reference to prevent duplicate-close races.
 
 ## Transcription Region Replacement Rules
 

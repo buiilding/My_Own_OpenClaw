@@ -90,7 +90,7 @@ Also provides explicit setter helpers to keep assignment patterns consistent.
 
 ## Audio Node Cleanup Contract
 
-`cleanupAudioCaptureNodes(...)` always:
+`DesktopVoiceAudioCaptureCleanupRuntime.cleanupAudioCaptureNodes(...)` always:
 
 - disconnects the AudioWorklet processor node
 - nulls `processorNodeRef.current.port.onmessage`
@@ -102,12 +102,12 @@ This function is intentionally synchronous and idempotent across repeated calls.
 
 ## AudioContext Teardown Contract
 
-`takeAudioContext(audioContextRef)`:
+`DesktopVoiceAudioCaptureCleanupRuntime.takeAudioContext(audioContextRef)`:
 
 - returns current context
 - atomically nulls ref before close attempt
 
-`closeAudioContextSafely(audioContext, onUnexpectedCloseError)`:
+`DesktopVoiceAudioCaptureCleanupRuntime.closeAudioContextSafely(audioContext, onUnexpectedCloseError)`:
 
 - no-op when context missing or already closed
 - attempts `audioContext.close()`

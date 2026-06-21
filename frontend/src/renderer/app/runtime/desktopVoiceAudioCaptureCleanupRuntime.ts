@@ -16,7 +16,7 @@ function isAlreadyClosedAudioContextError(error: unknown): boolean {
     || message.includes('already closed');
 }
 
-export function cleanupAudioCaptureNodes(
+function cleanupAudioCaptureNodes(
   processorNodeRef: ProcessorNodeRef,
   sourceNodeRef: SourceNodeRef,
   mediaStreamRef: MediaStreamRef,
@@ -38,13 +38,13 @@ export function cleanupAudioCaptureNodes(
   }
 }
 
-export function takeAudioContext(audioContextRef: AudioContextRef): AudioContext | null {
+function takeAudioContext(audioContextRef: AudioContextRef): AudioContext | null {
   const audioContext = audioContextRef.current;
   audioContextRef.current = null;
   return audioContext;
 }
 
-export async function closeAudioContextSafely(
+async function closeAudioContextSafely(
   audioContext: AudioContext | null,
   onUnexpectedCloseError?: (error: unknown) => void,
 ): Promise<void> {
@@ -60,3 +60,9 @@ export async function closeAudioContextSafely(
     }
   }
 }
+
+export const DesktopVoiceAudioCaptureCleanupRuntime = Object.freeze({
+  cleanupAudioCaptureNodes,
+  closeAudioContextSafely,
+  takeAudioContext,
+});
