@@ -8448,3 +8448,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `desktopClientSessionRuntimeClient` names, backend fixture paths, websocket
   payloads, IPC channels, session snapshots, permissions, storage, provider
   policy, and backend behavior are unchanged; no migration is required.
+- Backend session/config, prompt-constructor, gateway lifecycle, API,
+  deployment, and renderer session-runtime comments now describe
+  client-supplied OS/capability metadata, Electron client install/packaging,
+  and renderer client-session adapter ownership instead of older
+  desktop-client OS/session labels. Boundary coverage now blocks the retired
+  desktop-client OS/capability, hosted-client, packaged-client, and renderer
+  session comment phrases. Concrete `DesktopClientSessionRuntimeClient` names,
+  session config storage, prompt rendering, websocket payloads, install
+  registration, IPC channels, permissions, storage, provider policy, and
+  backend behavior are unchanged; no migration is required.

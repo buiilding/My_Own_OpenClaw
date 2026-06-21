@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: describe session OS/capability overrides and install-client
+  setup through client-supplied and Electron client labels instead of older
+  desktop-client wording. No migration required.
 - docs/boundary: route cross-cutting backend-import and websocket/session
   contract wording through Electron client, renderer app-runtime, and
   local-runtime owner labels instead of older desktop-client labels. No

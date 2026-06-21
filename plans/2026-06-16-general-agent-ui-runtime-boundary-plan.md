@@ -20465,3 +20465,23 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime modules, imports, websocket
   payloads, contract fixtures, IPC channels, session snapshots, permissions,
   storage, provider policy, and backend behavior are unchanged.
+
+### 2026-06-21 client OS/session context wording
+
+- Finding: backend session/config, prompt-constructor, gateway lifecycle, API,
+  deployment, and renderer session-runtime comments still described
+  client-supplied OS/capability metadata and session snapshots as desktop
+  client behavior even though backend stores client-provided prompt context,
+  Electron clients perform install registration, and the renderer owns an
+  app-runtime client-session adapter.
+- Change: reworded those active labels to client-supplied OS/capability,
+  Electron client install/packaging, and renderer client-session wording while
+  preserving concrete `DesktopClientSessionRuntimeClient` names and session
+  payload contracts. Extended modular and renderer boundary coverage for the
+  retired desktop-client OS/session phrases.
+- Validation: focused modular and renderer boundary tests, exact retired-label
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Session config storage, prompt
+  rendering, install registration, websocket payloads, renderer adapter
+  exports, IPC channels, permissions, storage, provider policy, and backend
+  behavior are unchanged.

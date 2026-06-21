@@ -467,6 +467,10 @@ describe('renderer app runtime boundary', () => {
       ),
       'utf8',
     );
+    const clientSessionRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopClientSessionRuntimeClient.ts'),
+      'utf8',
+    );
 
     expect(source).toContain('## Renderer App-Runtime Client Inventory');
     expect(source).toContain('Real SDK-command boundary');
@@ -484,6 +488,8 @@ describe('renderer app runtime boundary', () => {
     expect(source.match(/`desktopWorkspaceRuntimeClient\.ts` owns/g) || []).toHaveLength(1);
     expect(rendererStateWorkflowSource).toContain('dispatch through desktop app-runtime facades and SDK-shaped command clients');
     expect(rendererStateWorkflowSource).not.toContain('dispatch to existing IPC/backend clients');
+    expect(clientSessionRuntimeSource).toContain('Coordinates renderer client-session and transport snapshot commands.');
+    expect(clientSessionRuntimeSource).not.toContain('Coordinates desktop client session');
     await expect(fs.stat(
       path.resolve(
         __dirname,

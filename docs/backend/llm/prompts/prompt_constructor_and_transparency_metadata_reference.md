@@ -39,7 +39,7 @@ dict-shaped metadata plumbing.
 Session-scoped system prompt context:
 
 - the backend system prompt template now renders both `{os}` and `{workspace_path}`
-- desktop client OS remains user-scoped session context
+- client OS remains user-scoped session context
 - `workspace_path` is conversation-scoped context supplied on query/rehydrate payloads
 - hosted desktop runtimes supply pre-resolved `agent_definition.agents_md`
   layers on query payloads so prompt construction does not depend on backend

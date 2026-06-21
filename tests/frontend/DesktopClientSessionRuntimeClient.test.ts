@@ -1,5 +1,5 @@
 /**
- * Covers desktop client session runtime client behavior in the frontend test suite.
+ * Covers renderer client-session runtime behavior in the frontend test suite.
  */
 
 const mockInvoke = jest.fn();

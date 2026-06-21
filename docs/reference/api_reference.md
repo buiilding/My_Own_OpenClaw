@@ -116,7 +116,7 @@ backend-owned; clients cannot unlock them by sending handshake fields.
 
 ### Install Registration (Hosted)
 
-Hosted desktop clients bootstrap identity with a no-login registration call.
+Hosted Electron clients bootstrap identity with a no-login registration call.
 The returned install token is stored locally and reused for subsequent REST and
 WebSocket calls.
 

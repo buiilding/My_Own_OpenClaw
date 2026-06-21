@@ -36,7 +36,7 @@ For feature roadmap details, see `../planning/future_plan.md`.
 
 ## Fast Path: Self-Hosted `api.windieos.com` via Cloudflare Tunnel
 
-For immediate remote access from packaged desktop clients, use the Cloudflared
+For immediate remote access from packaged Electron clients, use the Cloudflared
 runbook:
 
 - `docs/operations/cloudflared_self_host_windieos.md`

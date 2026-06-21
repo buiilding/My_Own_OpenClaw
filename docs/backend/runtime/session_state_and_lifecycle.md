@@ -26,7 +26,7 @@ Responsibilities split:
 
 - `SessionManager`: thin orchestration facade over the extracted runtime services below.
 - `SessionRegistry`: conversation-keyed active-session registry, latest conversation refs, per-user locks.
-- `SessionConfigService`: effective session-config assembly, user overrides, desktop client operating-system prompt rewrites.
+- `SessionConfigService`: effective session-config assembly, user overrides, client-supplied operating-system prompt rewrites.
 - `ActiveQueryTracker`: active query task tracking, scoped cancellation, pending stop-query race guards.
 - `AgentSession`: per-user orchestrator wrapping history, executor, tool result handler.
 - `SessionRuntimeState`: mutable runtime containers owned by one `AgentSession`.

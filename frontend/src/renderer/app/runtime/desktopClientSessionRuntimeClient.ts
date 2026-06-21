@@ -1,5 +1,5 @@
 /**
- * Coordinates desktop client session and transport snapshot commands.
+ * Coordinates renderer client-session and transport snapshot commands.
  */
 
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
