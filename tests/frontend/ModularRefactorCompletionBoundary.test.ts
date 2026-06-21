@@ -74,7 +74,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkRuntimeCommandsCjsSource).toContain('UI and host runtimes');
     expect(sdkRuntimeCommandsCjsSource).not.toContain('UI and desktop runtimes');
     expect(ipcSource).not.toContain('windieAgentWebSocketImpl');
-    expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
+    expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/runtime/AgentClient.js')");
+    expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/runtime/AgentDefinition.js')");
+    expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/runtime/TraceRecorder.js')");
+    expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/conversation/events.js')");
+    expect(ipcSource).not.toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
     expect(ipcSource).not.toContain(`${retiredProductName('Agent')}.startDesktop`);
     expect(ipcSource).not.toMatch(/require\(['"].*agent_host\.cjs['"]\)/);
     expect(ipcSource).not.toMatch(/create\w*AgentHost/);

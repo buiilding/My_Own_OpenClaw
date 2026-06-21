@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: move IPC replay and conversation-runtime registry `AgentClient`
+  mocks from the SDK package root to the SDK owner module after the main IPC
+  import split. No migration required.
 - main/sdk: split the central Electron main IPC import of SDK runtime exports
   across SDK owner modules instead of the SDK package root. No migration
   required.

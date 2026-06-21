@@ -50,9 +50,11 @@ describe('ipc.cjs replay command handling', () => {
     };
     const wakeUp = jest.fn(async () => agent);
     const AgentClient = jest.fn().mockImplementation(() => ({ wakeUp }));
-    const sdkActual = jest.requireActual('../../packages/windie-sdk-js/cjs/index.js');
+    const sdkActual = jest.requireActual(
+      '../../packages/windie-sdk-js/cjs/runtime/AgentClient.js',
+    );
 
-    jest.doMock('../../packages/windie-sdk-js/cjs/index.js', () => ({
+    jest.doMock('../../packages/windie-sdk-js/cjs/runtime/AgentClient.js', () => ({
       ...sdkActual,
       AgentClient,
     }));
@@ -73,7 +75,7 @@ describe('ipc.cjs replay command handling', () => {
   }
 
   afterEach(() => {
-    jest.dontMock('../../packages/windie-sdk-js/cjs/index.js');
+    jest.dontMock('../../packages/windie-sdk-js/cjs/runtime/AgentClient.js');
   });
 
   test('routes edit/resend preparation through the real windie:invoke command bridge', async () => {

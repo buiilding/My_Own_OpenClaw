@@ -96,9 +96,11 @@ describe('ipc.cjs conversation runtime registry', () => {
     };
     const wakeUp = jest.fn(async () => agent);
     const AgentClient = jest.fn().mockImplementation(() => ({ wakeUp }));
-    const sdkActual = jest.requireActual('../../packages/windie-sdk-js/cjs/index.js');
+    const sdkActual = jest.requireActual(
+      '../../packages/windie-sdk-js/cjs/runtime/AgentClient.js',
+    );
 
-    jest.doMock('../../packages/windie-sdk-js/cjs/index.js', () => ({
+    jest.doMock('../../packages/windie-sdk-js/cjs/runtime/AgentClient.js', () => ({
       ...sdkActual,
       AgentClient,
     }));
@@ -131,7 +133,7 @@ describe('ipc.cjs conversation runtime registry', () => {
   }
 
   afterEach(() => {
-    jest.dontMock('../../packages/windie-sdk-js/cjs/index.js');
+    jest.dontMock('../../packages/windie-sdk-js/cjs/runtime/AgentClient.js');
   });
 
   test('keeps conversation A runtime attached when sending in conversation B', async () => {

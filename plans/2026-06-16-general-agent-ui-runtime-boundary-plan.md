@@ -21934,3 +21934,18 @@ Each completed slice should report:
   building/default checks, trace recording, conversation-event projection, IPC
   wiring, renderer payloads, storage, provider policy, permissions, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 main IPC SDK owner-module test mocks
+
+- Finding: after `ipc.cjs` moved `AgentClient` to the SDK owner module, replay
+  and conversation-runtime registry tests still mocked the SDK package root,
+  which no longer intercepted the central main IPC import.
+- Change: moved those focused `AgentClient` mocks to
+  `packages/windie-sdk-js/cjs/runtime/AgentClient.js` and updated the modular
+  boundary assertion to expect owner-module imports in `ipc.cjs`.
+- Validation: focused replay, registry, and modular boundary Jest tests; exact
+  production main/renderer SDK root-import scan; docs listing; and diff checks.
+- Compatibility: no migration required. Test mocks and assertions changed only;
+  AgentClient behavior, replay commands, conversation runtime registry behavior,
+  IPC wiring, renderer payloads, storage, provider policy, permissions, backend
+  behavior, and trust boundaries are unchanged.

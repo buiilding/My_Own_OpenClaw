@@ -9240,3 +9240,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   recording, conversation-event projection, IPC wiring, renderer payloads,
   storage, provider policy, permissions, backend behavior, and trust boundaries
   are unchanged; no migration is required.
+- IPC replay and conversation-runtime registry tests now mock `AgentClient`
+  through the SDK owner module, and the modular boundary assertion now expects
+  owner-module imports in `ipc.cjs`. Test behavior remains aligned with the
+  central main IPC import split. AgentClient behavior, replay commands,
+  conversation runtime registry behavior, IPC wiring, renderer payloads,
+  storage, provider policy, permissions, backend behavior, and trust boundaries
+  are unchanged; no migration is required.
