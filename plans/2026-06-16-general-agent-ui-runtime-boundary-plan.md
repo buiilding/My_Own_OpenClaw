@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Conversation Replay Local-Runtime SQLite Label Boundary
+
+- Finding: `ConversationReplayDatabaseIntegration.test.tsx` still named the
+  replay preparation failure guard as sidecar SQLite cutoff rewrite coverage
+  even though replay preparation calls the local-runtime conversation rewrite
+  command.
+- Change: renamed the active test label and unexpected-RPC fixture error to
+  local-runtime wording while preserving the forced rewrite-failure fixture and
+  replay preparation assertions.
+- Validation: focused conversation replay database Jest coverage, exact stale
+  sidecar SQLite cutoff rewrite label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Replay edit/resend behavior,
+  local-runtime conversation rewrite command semantics, transcript rows,
+  backend rehydrate gating, storage, credentials, and trust boundaries are
+  unchanged.
+
 ### 2026-06-21 Renderer App SDK Transport IPC Guard Label Boundary
 
 - Finding: `RendererAppRuntimeBoundary.test.ts` still named its direct-channel

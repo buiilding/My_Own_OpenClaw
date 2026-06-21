@@ -305,7 +305,7 @@ try:
         else:
             print(json.dumps({
                 "success": False,
-                "error": f"Unexpected sidecar RPC: {method}",
+                "error": f"Unexpected local-runtime RPC: {method}",
             }))
     else:
         raise RuntimeError(f"Unexpected action: {action}")
@@ -690,7 +690,7 @@ describe('conversation replay database integration', () => {
     expectReplayPreparationErrorMessage();
   });
 
-  test('reports preparation failure when sidecar SQLite cutoff rewrite fails', async () => {
+  test('reports preparation failure when local-runtime SQLite cutoff rewrite fails', async () => {
     history.rewriteFailure = 'forced sqlite rewrite failure';
     const { result } = renderReplayHook(BASE_MESSAGES);
 

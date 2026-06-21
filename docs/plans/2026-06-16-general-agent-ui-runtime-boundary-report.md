@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: renderer app-runtime boundary coverage now names
-  SDK-owned transport/internal IPC channels instead of sidecar/internal IPC
-  wording while preserving direct-channel rejection.
+- Latest completed slice: conversation replay database coverage now names the
+  local-runtime SQLite cutoff rewrite path instead of sidecar SQLite wording
+  while preserving replay preparation failure behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -47,6 +47,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   WindieOS query event copy remains host-skin owned.
   Renderer app-runtime boundary tests keep app/features on SDK/runtime facades
   rather than direct SDK-owned transport and conversation/history IPC channels.
+  Conversation replay database tests describe edit/resend cutoff rewrites as
+  local-runtime SQLite behavior while the renderer owns preparation error
+  projection.
   Generic renderer chat-sender and main IPC query bridge tests use sample
   send-failure copy while real WindieOS renderer chat copy and main
   query-event copy remain skin/host-skin owned.

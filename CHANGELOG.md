@@ -61,6 +61,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/tests: rename the app-runtime boundary guard away from
   sidecar/internal IPC wording while preserving rejection of direct SDK-owned
   transport and conversation/history IPC channels. No migration required.
+- renderer/tests: rename the conversation replay database failure guard and
+  fixture error away from sidecar RPC/SQLite wording while preserving
+  local-runtime SQLite cutoff rewrite failure behavior. No migration required.
 - sdk/tests: rename active Agent SDK local-runtime fixtures away from stale
   sidecar labels and add package-boundary coverage so reusable SDK runtime tests
   use local-runtime daemon/error/conversation wording. No migration required.
