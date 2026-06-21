@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: keep SDK presentation source-channel strings private to
+  `desktopPresentationSourceChannels.js` and expose semantic accessors instead
+  of raw exported constants. No migration required.
 - renderer/runtime: keep the raw new-chat DOM event name private to the
   app-runtime helper while preserving dispatch/subscribe behavior. No migration
   required.

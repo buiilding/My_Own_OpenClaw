@@ -6,7 +6,7 @@ import {
   buildCurrentTurnMessagesFromPresentation,
   buildCurrentTurnMessagesFromProjection,
 } from './desktopCurrentTurnMessageRuntime';
-import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from './desktopPresentationSourceChannels';
+import { isSdkCurrentTurnSourceChannel } from './desktopPresentationSourceChannels';
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {
@@ -58,7 +58,7 @@ export function hasCurrentTurnLiveProgressMessages(messages) {
 
 function isTextlessCurrentTurnThinkingMessage(message) {
   return (
-    message?.sourceChannel === SDK_CURRENT_TURN_SOURCE_CHANNEL
+    isSdkCurrentTurnSourceChannel(message?.sourceChannel)
     && message?.sender === 'assistant'
     && (!message.type || message.type === 'llm-text')
     && !normalizeText(message.text)
@@ -68,7 +68,7 @@ function isTextlessCurrentTurnThinkingMessage(message) {
 
 function isVisibleCurrentTurnMessage(message) {
   return (
-    message?.sourceChannel === SDK_CURRENT_TURN_SOURCE_CHANNEL
+    isSdkCurrentTurnSourceChannel(message?.sourceChannel)
     && message?.sender === 'assistant'
     && (
       normalizeText(message.text)
@@ -137,7 +137,7 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
   const liveText = normalizeText(liveMessage?.text);
   const liveThinkingText = normalizeText(liveMessage?.thinkingText);
   return messages.some((message) => {
-    if (!message || message.sourceChannel === SDK_CURRENT_TURN_SOURCE_CHANNEL) {
+    if (!message || isSdkCurrentTurnSourceChannel(message.sourceChannel)) {
       return false;
     }
     if (liveId && message.id === liveId) {

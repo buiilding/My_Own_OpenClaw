@@ -8479,3 +8479,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   DOM event name, dashboard dispatch, chat subscription behavior, IPC channels,
   SDK command names, storage, provider policy, permissions, and backend
   behavior are unchanged; no migration is required.
+- SDK presentation source-channel string values are now private to
+  `desktopPresentationSourceChannels.js`; app-runtime helpers, chat projection
+  hooks, and transcript display-row projection use semantic accessors or the
+  current-turn predicate instead of raw exported constants. Boundary coverage
+  prevents the source-channel constants from becoming public exports again.
+  Source-channel values, chat message projection, trace payloads, transcript
+  display rows, IPC channels, SDK command names, storage, provider policy,
+  permissions, and backend behavior are unchanged; no migration is required.

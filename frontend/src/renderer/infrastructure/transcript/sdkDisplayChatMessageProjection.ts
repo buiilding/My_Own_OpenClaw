@@ -14,7 +14,9 @@ import {
   buildRemoteScreenshotAttachments,
   resolveScreenshotAttachmentState,
 } from '../services/screenshotMessageState';
-import { SDK_DISPLAY_ROWS_SOURCE_CHANNEL } from '../../app/runtime/desktopPresentationSourceChannels';
+import { getSdkDisplayRowsSourceChannel } from '../../app/runtime/desktopPresentationSourceChannels';
+
+const sdkDisplayRowsSourceChannel = getSdkDisplayRowsSourceChannel();
 
 function recordField(record: Record<string, unknown> | null | undefined, key: string): unknown {
   return record && typeof record === 'object' ? record[key] : undefined;
@@ -217,7 +219,7 @@ function buildToolProgressMessage(message: DisplayMessage): ChatMessage {
     sourceEventType: typeof sourceEventType === 'string' && sourceEventType.trim()
       ? sourceEventType
       : 'web-search-progress',
-    sourceChannel: SDK_DISPLAY_ROWS_SOURCE_CHANNEL,
+    sourceChannel: sdkDisplayRowsSourceChannel,
     turnRef: message.turnRef ?? undefined,
     timestamp: message.timestamp,
     toolName: message.toolName ?? undefined,

@@ -3,13 +3,17 @@
  */
 
 import {
-  SDK_CONVERSATION_EVENT_SOURCE_CHANNEL,
-  SDK_CURRENT_TURN_SOURCE_CHANNEL,
-  SDK_DISPLAY_ROWS_SOURCE_CHANNEL,
+  getSdkConversationEventSourceChannel,
+  getSdkCurrentTurnSourceChannel,
+  getSdkDisplayRowsSourceChannel,
 } from './desktopPresentationSourceChannels';
 import {
   resolveMessageTokenUsageTag,
 } from './desktopMessageTokenUsageRuntime';
+
+const sdkConversationEventSourceChannel = getSdkConversationEventSourceChannel();
+const sdkCurrentTurnSourceChannel = getSdkCurrentTurnSourceChannel();
+const sdkDisplayRowsSourceChannel = getSdkDisplayRowsSourceChannel();
 
 const SOURCE_EVENT_LABELS = {
   'llm-thought': 'thinking token',
@@ -35,9 +39,9 @@ const SOURCE_EVENT_LABELS = {
 };
 
 const SOURCE_CHANNEL_LABELS = {
-  [SDK_CONVERSATION_EVENT_SOURCE_CHANNEL]: 'sdk:conversation-event',
-  [SDK_CURRENT_TURN_SOURCE_CHANNEL]: 'sdk:current-turn',
-  [SDK_DISPLAY_ROWS_SOURCE_CHANNEL]: 'sdk:display-rows',
+  [sdkConversationEventSourceChannel]: 'sdk:conversation-event',
+  [sdkCurrentTurnSourceChannel]: 'sdk:current-turn',
+  [sdkDisplayRowsSourceChannel]: 'sdk:display-rows',
   'renderer-local': 'renderer-local',
   'sdk-local-runtime': 'sdk-local-runtime',
   transcript: 'transcript',
@@ -81,7 +85,7 @@ export function resolveThinkingSourceBadgePresentation(sourceEventType) {
   return {
     badgeText: resolveSourceTag(
       resolvedSourceEventType,
-      SDK_CONVERSATION_EVENT_SOURCE_CHANNEL,
+      sdkConversationEventSourceChannel,
     ),
     title: `source_event=${resolvedSourceEventType}`,
   };

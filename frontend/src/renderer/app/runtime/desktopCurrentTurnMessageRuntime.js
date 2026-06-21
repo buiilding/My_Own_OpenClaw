@@ -9,7 +9,9 @@ import {
   buildToolCallMessageState,
   buildToolOutputChatMessageState,
 } from './desktopChatMessageRuntimeClient';
-import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from './desktopPresentationSourceChannels';
+import { getSdkCurrentTurnSourceChannel } from './desktopPresentationSourceChannels';
+
+const sdkCurrentTurnSourceChannel = getSdkCurrentTurnSourceChannel();
 
 function asObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
@@ -67,7 +69,7 @@ function buildProjectedToolCallMessage({
       toolCallDetails: bundleState.toolCallDetails ?? null,
       correlationId: bundleState.correlationId ?? null,
       sourceEventType: toolEvent.kind,
-      sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
+      sourceChannel: sdkCurrentTurnSourceChannel,
       turnRef: turnRef || undefined,
     });
   }
@@ -95,7 +97,7 @@ function buildProjectedToolCallMessage({
     toolCallDetails: toolCallState.toolCallDetails ?? null,
     correlationId: toolCallState.correlationId ?? null,
     sourceEventType: toolEvent.kind,
-    sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
+    sourceChannel: sdkCurrentTurnSourceChannel,
     turnRef: turnRef || undefined,
   });
 }
@@ -153,7 +155,7 @@ function buildProjectedToolOutputMessage({
     id: `${baseId}:tool:${toolEvent.id}`,
     outputText: toolEvent.text || formatProjectedToolOutputText(toolOutputDetails),
     sourceEventType: toolEvent.kind,
-    sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
+    sourceChannel: sdkCurrentTurnSourceChannel,
     screenshot: screenshotRef ? null : screenshot,
     screenshotRef,
     screenshotUrl,
@@ -187,7 +189,7 @@ function buildProjectedToolProgressMessage({
     sender: 'assistant',
     type: 'search-source',
     sourceEventType: toolEvent.kind,
-    sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
+    sourceChannel: sdkCurrentTurnSourceChannel,
     turnRef: turnRef || undefined,
     toolName: toolEvent.toolName || undefined,
     success: toolEvent.status === 'success' ? true : undefined,
@@ -233,7 +235,7 @@ export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
     sender: 'user',
     turnRef: turnRef || undefined,
     sourceEventType: 'sdk-current-turn',
-    sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
+    sourceChannel: sdkCurrentTurnSourceChannel,
   }];
 
   if (hasReasoning && !hasText) {
@@ -244,7 +246,7 @@ export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
       type: 'llm-text',
       thinkingText: reasoningText,
       sourceEventType: 'reasoning_delta',
-      sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
+      sourceChannel: sdkCurrentTurnSourceChannel,
       turnRef: turnRef || undefined,
       isComplete: false,
     });
@@ -271,7 +273,7 @@ export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
       type: 'llm-text',
       thinkingText: hasReasoning ? reasoningText : null,
       sourceEventType: 'assistant_delta',
-      sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
+      sourceChannel: sdkCurrentTurnSourceChannel,
       turnRef: turnRef || undefined,
       isComplete: phase === 'complete',
     });
@@ -284,7 +286,7 @@ export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
       sender: 'assistant',
       type: 'error',
       sourceEventType: 'runtime_error',
-      sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
+      sourceChannel: sdkCurrentTurnSourceChannel,
       turnRef: turnRef || undefined,
       isComplete: true,
     });
@@ -297,7 +299,7 @@ function buildBaseMessageFields(entry, currentTurnProjection) {
   return {
     id: entry.id,
     sourceEventType: entry.sourceEventType || null,
-    sourceChannel: entry.sourceChannel || SDK_CURRENT_TURN_SOURCE_CHANNEL,
+    sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
     turnRef: entry.turnRef || currentTurnProjection?.turnRef || undefined,
     modelId: entry.modelId || null,
     modelProvider: entry.modelProvider || null,
@@ -419,7 +421,7 @@ function buildToolOutputMessage(entry, currentTurnProjection) {
     id: entry.id,
     outputText: text,
     sourceEventType: entry.sourceEventType || 'tool_output',
-    sourceChannel: entry.sourceChannel || SDK_CURRENT_TURN_SOURCE_CHANNEL,
+    sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
     screenshot: normalizeOptionalText(entry.screenshot),
     screenshotRef: normalizeOptionalText(entry.screenshotRef),
     screenshotUrl: normalizeOptionalText(entry.screenshotUrl),

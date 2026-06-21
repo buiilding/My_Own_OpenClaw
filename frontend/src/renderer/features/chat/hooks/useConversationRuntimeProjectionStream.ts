@@ -14,7 +14,7 @@ import {
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import { logRendererLiveSurfaceTrace } from '../../../app/runtime/desktopRendererTraceRuntime';
-import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../../../app/runtime/desktopPresentationSourceChannels';
+import { getSdkCurrentTurnSourceChannel } from '../../../app/runtime/desktopPresentationSourceChannels';
 import {
   applyCurrentTurnProjectionSideEffects,
   buildProjectionCursorKey,
@@ -22,6 +22,8 @@ import {
   shouldAcceptCurrentTurnBeforeLocalSend,
   type ProjectionCursor,
 } from '../../../app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
+
+const sdkCurrentTurnSourceChannel = getSdkCurrentTurnSourceChannel();
 
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());
@@ -62,7 +64,7 @@ export function useConversationRuntimeProjectionStream(): void {
         })
       );
       logRendererLiveSurfaceTrace('renderer.current_turn.applied', {
-        source: SDK_CURRENT_TURN_SOURCE_CHANNEL,
+        source: sdkCurrentTurnSourceChannel,
         turnRef: currentTurn.turnRef ?? null,
         conversationRef,
         phase: currentTurn.phase,

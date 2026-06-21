@@ -336,6 +336,10 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopCurrentTurnPresentationRuntime.js'),
       'utf8',
     );
+    const presentationSourceChannelsSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopPresentationSourceChannels.js'),
+      'utf8',
+    );
 
     expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
     expect(currentTurnMessageSource).toContain('desktopPresentationSourceChannels');
@@ -347,8 +351,16 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).not.toContain('features/minimalChatPill');
     expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
+    expect(threadPresentationSource).toContain('isSdkCurrentTurnSourceChannel');
     expect(threadPresentationSource).not.toContain('features/chat');
     expect(threadPresentationSource).not.toContain('features/minimalChatPill');
+    expect(presentationSourceChannelsSource).toContain('getSdkConversationEventSourceChannel');
+    expect(presentationSourceChannelsSource).toContain('getSdkCurrentTurnSourceChannel');
+    expect(presentationSourceChannelsSource).toContain('getSdkDisplayRowsSourceChannel');
+    expect(presentationSourceChannelsSource).toContain('isSdkCurrentTurnSourceChannel');
+    expect(presentationSourceChannelsSource).not.toContain('export const SDK_CONVERSATION_EVENT_SOURCE_CHANNEL');
+    expect(presentationSourceChannelsSource).not.toContain('export const SDK_CURRENT_TURN_SOURCE_CHANNEL');
+    expect(presentationSourceChannelsSource).not.toContain('export const SDK_DISPLAY_ROWS_SOURCE_CHANNEL');
     expect(currentTurnPresentationSource).toContain('desktopChatLoopUiRuntime');
     expect(currentTurnPresentationSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(currentTurnPresentationSource).not.toContain('features/chat');

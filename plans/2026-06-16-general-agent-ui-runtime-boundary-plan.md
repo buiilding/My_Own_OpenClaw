@@ -20532,3 +20532,18 @@ Each completed slice should report:
 - Compatibility: no migration required. DOM event name, dashboard dispatch,
   chat subscription behavior, IPC channels, SDK command names, storage,
   provider policy, permissions, and backend behavior are unchanged.
+
+### 2026-06-21 renderer presentation source-channel helper surface
+
+- Finding: `desktopPresentationSourceChannels.js` owned SDK presentation
+  source-channel labels, but exported the raw source-channel constants directly
+  to app-runtime helpers, chat hooks, and transcript projection code.
+- Change: made the raw source-channel constants private, exposed semantic
+  accessors plus a current-turn source predicate, and updated callers to use
+  those helpers while preserving emitted `sourceChannel` values.
+- Validation: focused renderer app/chat boundary and projection tests, exact
+  exported-constant scan, docs listing, and diff checks.
+- Compatibility: no migration required. Source-channel string values, chat
+  message projection, trace payloads, transcript display rows, IPC channels,
+  SDK command names, storage, provider policy, permissions, and backend
+  behavior are unchanged.
