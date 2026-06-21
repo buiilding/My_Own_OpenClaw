@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main connection-event adaptation keeps
-  handshake user-id extraction and backend fallback endpoint alias matching
-  private to `ipc_agent_connection_events.cjs`, with snake_case handshake
-  identity, camelCase alias rejection, and websocket/HTTP fallback aliases
-  covered through `createAgentConnectionEventsRuntime(...)`.
+- Latest completed slice: Electron main agent-definition context keeps
+  generated/supplied definition merging private to
+  `ipc_agent_definition_context.cjs`, with supplied arrays and generated
+  runtime defaults covered through
+  `createAgentDefinitionContextRuntime(...).attach(...)`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1067,6 +1067,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
   contracts, IPC channels, storage, provider policy, and hosted backend
   behavior are unchanged.
+
+### 2026-06-21 Main Agent Definition Context Merge Privacy
+
+- Finding: `ipc_agent_definition_context.cjs` already exposed the composed
+  Electron main agent-definition context runtime and kept lower-level
+  attachment private, but `mergeAgentDefinitionContext(...)` still leaked as a
+  focused-test-only helper export.
+- Change: removed the merge helper from the public module surface and moved
+  generated/supplied definition merge coverage through
+  `createAgentDefinitionContextRuntime(...).attach(...)`, preserving the
+  runtime facade as the only public executable path.
+- Validation: focused agent-definition context and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. Query IPC payloads, SDK
+  `agent_definition` shape, repo `AGENTS.md` prompt layers, extension skill
+  prompt layers, workspace facts, host OS facts, credentials, permissions, and
+  provider policy are unchanged.
 
 ### 2026-06-21 Main Pending-Turn Runtime Export Boundary
 

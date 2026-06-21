@@ -14,10 +14,10 @@ const {
   loadExtensionSkillPromptLayers,
 } = require('../../frontend/src/main/extensions/extension_manifest.cjs');
 
+const agentDefinitionContextModule = require('../../frontend/src/main/ipc/ipc_agent_definition_context.cjs');
 const {
   createAgentDefinitionContextRuntime,
-  mergeAgentDefinitionContext,
-} = require('../../frontend/src/main/ipc/ipc_agent_definition_context.cjs');
+} = agentDefinitionContextModule;
 
 function createGeneratedDefinition(overrides = {}) {
   return {
@@ -40,9 +40,14 @@ describe('ipc_agent_definition_context', () => {
   });
 
   test('merges supplied agent definition arrays while preserving generated runtime defaults', () => {
-    expect(mergeAgentDefinitionContext(
-      createGeneratedDefinition(),
-      {
+    const runtime = createAgentDefinitionContextRuntime({
+      buildAgentDefinition: jest.fn(() => createGeneratedDefinition()),
+      isDefaultAgentDefinition: () => false,
+    });
+
+    expect(runtime.attach({
+      text: 'hello',
+      agent_definition: {
         id: 'supplied-agent',
         runtime: { workspace_path: 'C:/other' },
         prompt_layers: [{ id: 'supplied-layer' }],
@@ -50,7 +55,7 @@ describe('ipc_agent_definition_context', () => {
         skills: [{ id: 'supplied-skill' }],
         plugins: [{ id: 'supplied-plugin' }],
       },
-    )).toMatchObject({
+    }).agent_definition).toMatchObject({
       id: 'supplied-agent',
       runtime: {
         operating_system: 'Windows',
@@ -188,8 +193,7 @@ describe('ipc_agent_definition_context', () => {
     expect(mainSource).toContain('agentDefinitionContextRuntime.attach(payload)');
     expect(mainSource).not.toContain('attachAgentDefinitionContextRuntime(payload');
     expect(helperSource).toContain('function createAgentDefinitionContextRuntime');
-    const helperModule = require('../../frontend/src/main/ipc/ipc_agent_definition_context.cjs');
-    expect(helperModule.attachAgentDefinitionContext).toBeUndefined();
-    expect(typeof helperModule.mergeAgentDefinitionContext).toBe('function');
+    expect(agentDefinitionContextModule.attachAgentDefinitionContext).toBeUndefined();
+    expect(agentDefinitionContextModule.mergeAgentDefinitionContext).toBeUndefined();
   });
 });

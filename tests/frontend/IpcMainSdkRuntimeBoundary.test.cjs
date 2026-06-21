@@ -326,6 +326,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('agentDefinitionContextRuntime.attach(payload)');
     expect(agentDefinitionContextSource).toContain('function createAgentDefinitionContextRuntime');
     expect(agentDefinitionContextSource).not.toContain('  attachAgentDefinitionContext,');
+    expect(agentDefinitionContextSource).not.toContain('  mergeAgentDefinitionContext,');
     expect(source).toContain('createChatQueryHandlerRuntime({');
     expect(source).toContain('createIpcInitializationRuntime({');
     expect(source).toContain('ipcInitializationRuntime.initialize(win, options)');

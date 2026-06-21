@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Agent Definition Context Merge Privacy
+
+- Finding: `ipc_agent_definition_context.cjs` already exposed
+  `createAgentDefinitionContextRuntime(...)` as the Electron main composition
+  facade and kept lower-level attachment private, but the generated/supplied
+  definition merge helper still leaked as a public test-only export.
+- Change: kept `mergeAgentDefinitionContext(...)` private to the
+  agent-definition context owner and moved supplied array plus generated
+  runtime-default coverage through
+  `createAgentDefinitionContextRuntime(...).attach(...)`.
+- Validation: focused agent-definition context and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no IPC payload, prompt-layer, workspace, credential,
+  permission, or trust-boundary migration required; agent-definition merge
+  behavior is unchanged.
+
 ### 2026-06-21 Main Connection Event Resolver Privacy
 
 - Finding: `ipc_agent_connection_events.cjs` already kept the lower-level

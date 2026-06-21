@@ -136,5 +136,4 @@ function createAgentDefinitionContextRuntime({
 
 module.exports = {
   createAgentDefinitionContextRuntime,
-  mergeAgentDefinitionContext,
 };
