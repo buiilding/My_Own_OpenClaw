@@ -102,6 +102,7 @@ describe('renderer app runtime boundary', () => {
 
     expect(offenders).toEqual([]);
     expect(contractsSource).toContain("packages/windie-sdk-js/src");
+    expect(contractsSource).not.toContain("export * from '../../../../../packages/windie-sdk-js/src';");
     expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
   });
 

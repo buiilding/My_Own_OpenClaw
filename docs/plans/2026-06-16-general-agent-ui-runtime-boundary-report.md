@@ -8487,3 +8487,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Source-channel values, chat message projection, trace payloads, transcript
   display rows, IPC channels, SDK command names, storage, provider policy,
   permissions, and backend behavior are unchanged; no migration is required.
+- The renderer app-runtime `desktopConversationRuntimeContracts.ts` facade now
+  re-exports only the SDK owner modules used by renderer app/feature code:
+  conversation types, continuity service/listeners, SDK command names,
+  model-selection helpers, and tool correlation helpers. Boundary coverage
+  prevents the previous full SDK package-root wildcard export from returning.
+  Renderer imports from the facade, SDK owner exports, IPC command strings,
+  conversation continuity, stream handling, trace/replay correlation,
+  settings/model payloads, storage, provider policy, permissions, and backend
+  behavior are unchanged; no migration is required.

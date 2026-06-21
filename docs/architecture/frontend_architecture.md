@@ -83,7 +83,8 @@ Current runtime behavior also relies on these explicit seams:
   `app/runtime/desktopConversationLibraryClient.js`. SDK conversation/runtime
   contracts enter renderer app code through the app-runtime conversation
   contracts facade at `app/runtime/desktopConversationRuntimeContracts.ts`,
-  which imports the standalone `packages/windie-sdk-js` package directly.
+  which imports only the SDK owner modules for conversation types,
+  continuity, command names, model selection, and tool correlation helpers.
   Desktop-specific adapters are allowed behind SDK interfaces such as
   `ConversationStore` and `AgentRuntimeTransport`; the app facades may use
   lower-level SDK modules, but renderer feature code should not reimplement SDK
@@ -519,8 +520,9 @@ Primary modules:
 
 - `infrastructure/ipc/bridge.ts`: typed channel wrappers over preload API.
 - `app/runtime/desktopConversationRuntimeContracts.ts`: app-runtime
-  conversation contracts facade over `packages/windie-sdk-js`, used by renderer
-  feature modules that need SDK conversation/runtime types.
+  conversation contracts facade over narrow `packages/windie-sdk-js` owner
+  modules, used by renderer feature modules that need SDK conversation/runtime
+  types.
 - `app/runtime/desktopConversationContinuityService.ts` and `app/runtime/desktopConversationLibraryClient.js`: replay, rehydrate, list/load/delete/search through the SDK `LocalRuntimeConversationStore` via the desktop conversation store factory.
 - `app/runtime/desktopTranscriptSessionRuntimeClient.ts`: active transcript conversation/user identity facade.
 - `features/chat/session/useRendererConversationSessionInfo.js`: merged renderer current-session reader for user-facing surfaces.

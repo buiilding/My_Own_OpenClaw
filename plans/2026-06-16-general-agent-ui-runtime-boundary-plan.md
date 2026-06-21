@@ -20547,3 +20547,22 @@ Each completed slice should report:
   message projection, trace payloads, transcript display rows, IPC channels,
   SDK command names, storage, provider policy, permissions, and backend
   behavior are unchanged.
+
+### 2026-06-21 renderer conversation contract facade narrowing
+
+- Finding: `desktopConversationRuntimeContracts.ts` was the intended renderer
+  app-runtime facade for SDK conversation/runtime contracts, but still
+  re-exported the full SDK package root even though renderer consumers only
+  need conversation types, continuity, SDK command names, model-selection
+  helpers, and tool correlation helpers.
+- Change: replaced the wildcard package-root re-export with explicit exports
+  from the SDK owner modules and tightened renderer app/API/chat boundary
+  coverage against restoring the wildcard facade.
+- Validation: focused renderer app/API/chat boundary tests, affected renderer
+  runtime tests, exact wildcard export scan, direct SDK import review, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Renderer imports from
+  `desktopConversationRuntimeContracts.ts`, SDK owner exports, IPC command
+  strings, conversation continuity, stream handling, trace/replay correlation,
+  settings/model payloads, storage, provider policy, permissions, and backend
+  behavior are unchanged.

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: narrow `desktopConversationRuntimeContracts.ts` to explicit
+  SDK conversation, continuity, command, model-selection, and tool-correlation
+  owner exports instead of re-exporting the full SDK package root. No migration
+  required.
 - renderer/runtime: keep SDK presentation source-channel strings private to
   `desktopPresentationSourceChannels.js` and expose semantic accessors instead
   of raw exported constants. No migration required.

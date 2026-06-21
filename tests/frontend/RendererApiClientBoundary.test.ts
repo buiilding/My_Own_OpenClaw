@@ -77,14 +77,19 @@ describe('renderer api client boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('renderer app-runtime contracts import SDK package contracts directly', async () => {
+  test('renderer app-runtime contracts import narrow SDK owner contracts directly', async () => {
     const source = await fs.readFile(
       path.join(rendererRoot, 'app/runtime/desktopConversationRuntimeContracts.ts'),
       'utf8',
     );
     const retiredProductType = `${'Wind' + 'ie'}ModelSelection`;
 
-    expect(source).toContain("export * from '../../../../../packages/windie-sdk-js/src';");
+    expect(source).toContain("packages/windie-sdk-js/src/conversation/types.js");
+    expect(source).toContain("packages/windie-sdk-js/src/runtime/ConversationContinuityService.js");
+    expect(source).toContain("packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.js");
+    expect(source).toContain("packages/windie-sdk-js/src/settings/modelSelection.js");
+    expect(source).toContain("packages/windie-sdk-js/src/tools/toolCorrelationIds.js");
+    expect(source).not.toContain("export * from '../../../../../packages/windie-sdk-js/src';");
     expect(source).not.toContain(`${retiredProductType} as AgentModelSelection`);
     expect(source).not.toContain('infrastructure/api/agentSdkClient');
   });
