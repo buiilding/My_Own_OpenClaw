@@ -25,6 +25,30 @@ def _assigns_dunder_all(path: Path) -> bool:
     return False
 
 
+def _api_router_names() -> list[str]:
+    routes_path = REPO_ROOT / "backend/src/api/routes/__init__.py"
+    tree = ast.parse(routes_path.read_text(encoding="utf-8"), filename=str(routes_path))
+    for node in tree.body:
+        target_name = None
+        value = None
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            target_name = node.target.id
+            value = node.value
+        elif isinstance(node, ast.Assign):
+            target_name = next(
+                (target.id for target in node.targets if isinstance(target, ast.Name)),
+                None,
+            )
+            value = node.value
+
+        if target_name == "API_ROUTERS" and isinstance(value, ast.Tuple):
+            return [
+                element.id for element in value.elts if isinstance(element, ast.Name)
+            ]
+
+    raise AssertionError("API_ROUTERS tuple not found")
+
+
 def test_session_manager_is_no_longer_the_owner_of_transition_alias_state():
     manager_source = _read("backend/src/agent/session/manager.py")
 
@@ -86,6 +110,36 @@ def test_api_topology_map_does_not_document_removed_package_exports():
     assert "Schema package exports" not in source_map
     assert "Package router export" not in source_map
     assert "Exports:" not in source_map
+
+
+def test_backend_route_registration_docs_match_router_tuple_order():
+    router_names = _api_router_names()
+    app_assembly_reference = _read(
+        "docs/backend/api/app_assembly_and_container_dependency_reference.md"
+    )
+    runtime_reference = _read(
+        "docs/backend/runtime/backend_runtime_surface_query_tool_loop_and_vm_runs_reference.md"
+    )
+
+    assert router_names == [
+        "auth_router",
+        "websocket_router",
+        "transcription_router",
+        "runs_router",
+        "artifacts_router",
+        "sdk_router",
+        "embeddings_router",
+        "semantic_router",
+    ]
+    for previous_router, next_router in zip(router_names, router_names[1:]):
+        assert runtime_reference.index(previous_router) < runtime_reference.index(
+            next_router
+        )
+
+    for router_name in router_names:
+        display_name = router_name.removesuffix("_router")
+        assert f"{display_name} router" in app_assembly_reference
+        assert router_name in runtime_reference
 
 
 def test_backend_runtime_docs_use_sdk_client_boundary_wording():

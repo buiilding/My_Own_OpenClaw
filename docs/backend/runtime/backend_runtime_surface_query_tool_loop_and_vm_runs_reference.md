@@ -34,13 +34,18 @@ Canonical files:
 
 `API_ROUTERS` currently includes:
 
-1. `websocket_router` from `backend.src.api.routes.websocket.router`
-2. `runs_router` from `backend.src.api.routes.runs.router`
-3. `artifacts_router` from `backend.src.api.routes.artifacts.router`
-4. `embeddings_router` from `backend.src.api.routes.memory.embeddings.router`
-5. `semantic_router` from `backend.src.api.routes.memory.semantic.router`
+1. `auth_router` from `backend.src.api.auth.router`
+2. `websocket_router` from `backend.src.api.routes.websocket.router`
+3. `transcription_router` from `backend.src.api.routes.transcription.router`
+4. `runs_router` from `backend.src.api.routes.runs.router`
+5. `artifacts_router` from `backend.src.api.routes.artifacts.router`
+6. `sdk_router` from `backend.src.api.routes.sdk.router`
+7. `embeddings_router` from `backend.src.api.routes.memory.embeddings.router`
+8. `semantic_router` from `backend.src.api.routes.memory.semantic.router`
 
-This means VM run-control APIs are part of the same canonical backend app registration path as `/ws`.
+This means install auth, websocket query streaming, transcription, VM
+run-control, artifacts, hosted SDK developer routes, and memory routes are all
+part of the same canonical backend app registration path.
 
 ## Query Execution Runtime Split
 

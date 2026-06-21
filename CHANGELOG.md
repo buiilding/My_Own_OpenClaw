@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/docs: align app-assembly and runtime route-surface references with
+  the live `API_ROUTERS` order and add a guard so documented router order
+  cannot drift from the backend source tuple. No migration required.
 - backend: lock backend package entrypoints to the documented route
   registration surface so package-level compatibility facades cannot reappear
   unnoticed. No migration required.

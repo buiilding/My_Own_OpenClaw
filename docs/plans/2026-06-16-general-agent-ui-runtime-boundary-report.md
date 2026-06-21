@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: backend package entrypoints are guarded so
-  `backend/src/api/routes/__init__.py` remains the only live backend source
-  package entrypoint, and the backend source-map docs now name it as the route
-  registration exception rather than a compatibility export facade.
+- Latest completed slice: backend app-assembly/runtime docs now mirror the
+  live `API_ROUTERS` tuple order for auth, websocket, transcription, runs,
+  artifacts, SDK, embeddings, and semantic routers, with a guard that parses
+  the source tuple and keeps route-surface docs aligned.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

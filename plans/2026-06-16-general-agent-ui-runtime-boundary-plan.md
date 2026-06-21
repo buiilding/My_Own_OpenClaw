@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Backend Route Registration Surface Docs Guard
+
+- Finding: `API_ROUTERS` registers auth, websocket, transcription, runs,
+  artifacts, SDK, embeddings, and semantic routers in a single backend app
+  assembly order, but app-assembly/runtime docs still listed an older subset
+  and order.
+- Change: updated the backend app-assembly and runtime surface references to
+  mirror the live source order and added an architecture guard that parses the
+  `API_ROUTERS` tuple from source and verifies the route-surface docs name the
+  same routers in order.
+- Validation: focused backend architecture guardrail tests, backend docs
+  listing, route-registration searches, and diff checks.
+- Compatibility/security: no migration required. Route registration behavior,
+  install auth, websocket query streaming, transcription, VM runs, artifacts,
+  hosted SDK routes, memory routes, auth headers, provider policy, credentials,
+  storage, IPC, and local-runtime execution are unchanged; the guard only keeps
+  backend route-surface documentation aligned with source.
+
 ### 2026-06-21 Backend Package Entrypoint Boundary Guard
 
 - Finding: backend source-map docs already require concrete owner-module

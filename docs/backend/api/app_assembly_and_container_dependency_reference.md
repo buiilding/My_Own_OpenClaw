@@ -40,10 +40,14 @@ Router list source:
 
 Current registration order:
 
-1. websocket router (`/ws`)
-2. artifact router (`/api/artifacts`)
-3. memory embeddings router (`/api/embeddings`)
-4. memory semantic router (`/api/semantic`)
+1. auth router (`/api/install`)
+2. websocket router (`/ws`)
+3. transcription router (`/ws/transcription`)
+4. runs router (`/api/runs`)
+5. artifacts router (`/api/artifacts`)
+6. sdk router (`/api/sdk`)
+7. embeddings router (`/api/embeddings`)
+8. semantic router (`/api/semantic`)
 
 `register_api_routes(...)` includes routers in tuple order.
 
