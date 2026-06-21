@@ -12,12 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main AgentClient factory keeps managed
-  endpoint shaping and desktop local-runtime option builders private to
-  `ipc_electron_agent_client_factory.cjs`, while managed endpoint mapping,
-  launch-plan construction, launch errors, test-mode disable behavior, dynamic
-  host options, callbacks, timeout policy, websocket injection, and logging
-  remain covered through the public factory runtime facade.
+- Latest completed slice: Electron main pending-turn handlers keep payload
+  normalization and SDK-current-turn matching private to
+  `ipc_pending_turn_handlers.cjs`, while pending envelope normalization,
+  incomplete-payload rejection, attachment filename filtering, clear behavior,
+  renderer fan-out, and current-turn cleanup matching remain covered through
+  the public pending-turn runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1082,6 +1082,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   targeted main IPC lint, docs listing, stale export scans, and diff checks.
 - Compatibility: no migration required. SDK runtime command payloads,
   conversation-ref fallback behavior, replay/edit/retry paths, credentials,
+  permissions, trust boundaries, and storage are unchanged.
+
+### 2026-06-21 Main Pending Turn Runtime Helper Privacy
+
+- Finding: `ipc_pending_turn_handlers.cjs` already exposed the composed
+  pending-turn runtime facade, but `normalizePendingTurnPayload(...)` and
+  `pendingTurnMatchesCurrentTurn(...)` still leaked lower-level payload and
+  matching helpers as public exports.
+- Change: removed those helpers from the public module surface while preserving
+  runtime coverage for pending envelope normalization, incomplete-payload
+  rejection, attachment filename filtering, clear behavior, renderer fan-out,
+  and SDK-current-turn cleanup matching.
+- Validation: focused pending-turn handler and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. IPC channels, pending-turn payload
+  shape, renderer fan-out, SDK current-turn cleanup, credentials,
   permissions, trust boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Electron Agent Client Factory Helper Privacy

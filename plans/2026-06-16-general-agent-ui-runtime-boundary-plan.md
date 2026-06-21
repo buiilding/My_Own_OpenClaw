@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Pending Turn Runtime Helper Privacy
+
+- Finding: `ipc_pending_turn_handlers.cjs` already exposed
+  `createPendingTurnRuntime(...)` as the Electron main pending-turn facade, but
+  pending-turn payload normalization and SDK-current-turn matching still leaked
+  as public helper exports after registration, clear, and target matching were
+  made private.
+- Change: kept `normalizePendingTurnPayload(...)` and
+  `pendingTurnMatchesCurrentTurn(...)` private to the pending-turn owner while
+  preserving pending envelope normalization, incomplete-payload rejection,
+  attachment filename filtering, clear behavior, renderer fan-out, and
+  SDK-current-turn cleanup matching through `createPendingTurnRuntime(...)`.
+- Validation: focused pending-turn handler and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no IPC channel, pending-turn payload shape,
+  renderer fan-out, SDK current-turn cleanup, credential, permission, storage,
+  or trust-boundary migration required; pending-turn behavior is unchanged.
+
 ### 2026-06-21 Main Electron Agent Client Factory Helper Privacy
 
 - Finding: `ipc_electron_agent_client_factory.cjs` already exposed

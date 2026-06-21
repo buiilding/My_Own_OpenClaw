@@ -138,7 +138,6 @@ const {
 } = require('./ipc/ipc_renderer_diagnostics_handlers.cjs');
 const {
   createPendingTurnRuntime,
-  pendingTurnMatchesCurrentTurn,
 } = require('./ipc/ipc_pending_turn_handlers.cjs');
 const {
   createIpcLiveTurnState,
@@ -574,7 +573,7 @@ const directWakeUpAgentAdapterDepsRuntime = createDirectWakeUpAgentAdapterDepsRu
     currentTurnProjection,
   ),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
-  pendingTurnMatchesCurrentTurn,
+  pendingTurnMatchesCurrentTurn: pendingTurnRuntime.matchesCurrentTurn,
   clearLatestPendingTurn,
   logLiveSurfaceTrace,
   summarizeCurrentTurn,

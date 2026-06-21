@@ -164,14 +164,17 @@ function createPendingTurnRuntime({
     });
   }
 
+  function matchesCurrentTurn(pendingTurn, currentTurn) {
+    return pendingTurnMatchesCurrentTurn(pendingTurn, currentTurn);
+  }
+
   return {
     clear,
+    matchesCurrentTurn,
     register,
   };
 }
 
 module.exports = {
   createPendingTurnRuntime,
-  normalizePendingTurnPayload,
-  pendingTurnMatchesCurrentTurn,
 };

@@ -9,8 +9,6 @@ const pendingTurnHandlers = require('../../frontend/src/main/ipc/ipc_pending_tur
 
 const {
   createPendingTurnRuntime,
-  normalizePendingTurnPayload,
-  pendingTurnMatchesCurrentTurn,
 } = pendingTurnHandlers;
 
 function createHarness() {
@@ -45,8 +43,10 @@ function createHarness() {
 }
 
 describe('pending turn IPC handlers', () => {
-  test('normalizes pending-turn envelopes and attachment filenames', () => {
-    expect(normalizePendingTurnPayload({
+  test('normalizes pending-turn envelopes and attachment filenames through the runtime', () => {
+    const { getLatestPendingTurn, listeners } = createHarness();
+
+    listeners['windie:pending-turn']({}, {
       type: 'pending',
       pendingTurn: {
         conversationRef: ' conv-1 ',
@@ -56,7 +56,9 @@ describe('pending turn IPC handlers', () => {
         timestamp: ' 2026-06-19T00:00:00.000Z ',
         attachmentFilenames: [' one.png ', '', 42, 'two.png'],
       },
-    })).toEqual({
+    });
+
+    expect(getLatestPendingTurn()).toEqual({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       userMessageId: 'user-1',
@@ -66,13 +68,19 @@ describe('pending turn IPC handlers', () => {
     });
   });
 
-  test('rejects incomplete pending-turn payloads', () => {
-    expect(normalizePendingTurnPayload({
+  test('rejects incomplete pending-turn payloads through the runtime', () => {
+    const { broadcastToRenderers, getLatestPendingTurn, liveTurnState, listeners } = createHarness();
+
+    listeners['windie:pending-turn']({}, {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       text: 'missing user message id',
       timestamp: '2026-06-19T00:00:00.000Z',
-    })).toBeNull();
+    });
+
+    expect(getLatestPendingTurn()).toBeNull();
+    expect(liveTurnState.setLatestPendingTurn).not.toHaveBeenCalled();
+    expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
 
   test('stores and broadcasts normalized pending turns', () => {
@@ -263,11 +271,13 @@ describe('pending turn IPC handlers', () => {
   });
 
   test('matches SDK current turns by conversation and turn ref', () => {
-    expect(pendingTurnMatchesCurrentTurn(
+    const runtime = createPendingTurnRuntime();
+
+    expect(runtime.matchesCurrentTurn(
       { conversationRef: 'conv-1', turnRef: 'turn-1' },
       { conversationRef: 'conv-1', turnRef: 'turn-1' },
     )).toBe(true);
-    expect(pendingTurnMatchesCurrentTurn(
+    expect(runtime.matchesCurrentTurn(
       { conversationRef: 'conv-1', turnRef: 'turn-1' },
       { conversationRef: 'conv-1', turnRef: 'turn-2' },
     )).toBe(false);
@@ -288,6 +298,8 @@ describe('pending turn IPC handlers', () => {
     );
 
     expect(mainSource).toContain('createPendingTurnRuntime({');
+    expect(mainSource).toContain('pendingTurnMatchesCurrentTurn: pendingTurnRuntime.matchesCurrentTurn');
+    expect(mainSource).not.toContain('pendingTurnMatchesCurrentTurn,');
     expect(mainSource).toContain('pendingTurnRuntime.clear(input)');
     expect(mainSource).not.toContain('pendingTurnRuntime.register({ ipcMain })');
     expect(initializationSource).toContain('pendingTurnRuntime.register({ ipcMain })');
@@ -296,8 +308,13 @@ describe('pending turn IPC handlers', () => {
     expect(mainSource).not.toContain('ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
     expect(helperSource).toContain('function createPendingTurnRuntime');
     expect(helperSource).toContain('return clearPendingTurnState({');
+    expect(helperSource).toContain('matchesCurrentTurn');
     expect(helperSource).not.toContain('  clearPendingTurnState,');
+    expect(helperSource).not.toContain('  normalizePendingTurnPayload,');
+    expect(helperSource).not.toContain('  pendingTurnMatchesCurrentTurn,');
     expect(helperSource).toContain('ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
     expect(pendingTurnHandlers.registerPendingTurnHandlers).toBeUndefined();
+    expect(pendingTurnHandlers.normalizePendingTurnPayload).toBeUndefined();
+    expect(pendingTurnHandlers.pendingTurnMatchesCurrentTurn).toBeUndefined();
   });
 });

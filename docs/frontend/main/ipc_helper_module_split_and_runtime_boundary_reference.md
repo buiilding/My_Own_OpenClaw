@@ -599,11 +599,13 @@ Owns pending renderer turn IPC handler registration and payload acceptance:
   runtime facade
 - keeps lower-level pending-turn clear execution private behind the
   `createPendingTurnRuntime(...).clear()` facade
-- pending-turn payload normalization and required identity checks
+- keeps pending-turn payload normalization and required identity checks private
+  behind handler registration
 - removed snake_case clear alias rejection
-- SDK-current-turn match primitives consumed by `ipc.cjs` stop and SDK
-  current-turn cleanup paths, while explicit target matching remains private
-  inside the clear path
+- SDK-current-turn matching is supplied through
+  `createPendingTurnRuntime(...).matchesCurrentTurn()` for SDK current-turn
+  cleanup paths, while explicit target matching remains private inside the
+  clear path
 - pending/clear broadcasts through the shared SDK desktop transport pending-turn
   channel constant
 
