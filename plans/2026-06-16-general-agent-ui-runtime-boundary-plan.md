@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Renderer Window Helper Privacy
+
+- Finding: `ipc_renderer_windows.cjs` already exposed
+  `createRendererWindowRuntime(...)` as the Electron main composition facade,
+  but focused tests still imported lower-level window tracking helpers
+  directly.
+- Change: kept `trackRendererWindow(...)` and `broadcastToRenderers(...)`
+  private to the renderer-window helper module and moved overlay/current-turn,
+  pending-turn, replay, and broadcast coverage through the runtime facade while
+  leaving the renderer-window registry state helper public for IPC composition.
+- Validation: focused renderer-window tests, targeted main IPC lint, docs
+  listing, stale export-line scans, and diff checks before commit.
+- Compatibility/security: no IPC channel, renderer fan-out, replay, window
+  lifecycle, permission, credential, or trust-boundary migration required;
+  renderer-window behavior is unchanged.
+
 ### 2026-06-21 Main Electron Agent Client Constructor Privacy
 
 - Finding: `ipc_electron_agent_client_factory.cjs` already exposed

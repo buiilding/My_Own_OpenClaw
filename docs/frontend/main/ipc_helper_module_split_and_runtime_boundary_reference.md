@@ -714,14 +714,16 @@ Owns renderer-window lifecycle and generic fan-out:
 - `createRendererWindowRuntime`: composes renderer window registry, overlay
   phase, SDK current-turn sync, pending-turn sync, buffered replay, and
   conversation-event projection dependencies once for `ipc.cjs`
+- keeps lower-level window tracking and fan-out helpers private behind the
+  runtime facade
 - `createRendererWindowRegistry`: owns the renderer window set plus track,
   broadcast, reset, and size accessors for the IPC composition root
-- `trackRendererWindow`: register + prune windows, sync current overlay phase after load
-- `trackRendererWindow`: optionally replays buffered in-flight turn events to late windows (`getReplayEvents`)
-- `trackRendererWindow`: replays the latest pending renderer-composed user turn
+- runtime track: register + prune windows, sync current overlay phase after load
+- runtime track: optionally replays buffered in-flight turn events to late windows (`getReplayEvents`)
+- runtime track: replays the latest pending renderer-composed user turn
   through `windie:pending-turn` when a secondary renderer mounts before SDK
   current-turn projection has replaced the optimistic row
-- `broadcastToRenderers`: channel payload fan-out with optional source-window exclusion
+- runtime broadcast: channel payload fan-out with optional source-window exclusion
 
 ### `ipc_query_broadcast.cjs`
 

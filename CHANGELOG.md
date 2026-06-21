@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep lower-level renderer-window tracking and fan-out helpers
+  private to `ipc_renderer_windows.cjs` and exercise overlay/current-turn,
+  pending-turn, replay, and broadcast behavior through
+  `createRendererWindowRuntime(...)`, while leaving the renderer-window
+  registry state helper available for IPC composition. No migration required.
 - frontend/main: keep the lower-level Electron `AgentClient` constructor helper
   private to `ipc_electron_agent_client_factory.cjs` and exercise managed
   backend endpoint, host callback, timeout, and test-mode client construction

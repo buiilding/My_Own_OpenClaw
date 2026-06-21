@@ -3,7 +3,6 @@
 const {
   createRendererWindowRegistry,
   createRendererWindowRuntime,
-  trackRendererWindow,
 } = require('../../frontend/src/main/ipc/ipc_renderer_windows.cjs');
 const fs = require('fs/promises');
 const path = require('path');
@@ -30,7 +29,6 @@ function createWindowMock() {
 
 describe('ipc_renderer_windows', () => {
   test('syncs latest SDK current turn when a renderer window is tracked', () => {
-    const rendererWindows = new Set();
     const win = createWindowMock();
     const currentTurn = {
       conversationRef: 'conv-1',
@@ -42,12 +40,11 @@ describe('ipc_renderer_windows', () => {
       lastError: null,
     };
 
-    trackRendererWindow({
-      win,
-      rendererWindows,
+    const runtime = createRendererWindowRuntime({
       getResponseOverlayPhase: () => 'tool-output',
       getLatestCurrentTurn: () => currentTurn,
     });
+    runtime.track(win);
 
     expect(win.webContents.send).toHaveBeenCalledWith('response-overlay-phase', {
       phase: 'tool-output',
@@ -57,7 +54,6 @@ describe('ipc_renderer_windows', () => {
   });
 
   test('syncs latest pending turn when a renderer window is tracked', () => {
-    const rendererWindows = new Set();
     const win = createWindowMock();
     const pendingTurn = {
       conversationRef: 'conv-1',
@@ -68,12 +64,11 @@ describe('ipc_renderer_windows', () => {
       attachmentFilenames: null,
     };
 
-    trackRendererWindow({
-      win,
-      rendererWindows,
+    const runtime = createRendererWindowRuntime({
       getResponseOverlayPhase: () => 'idle',
       getLatestPendingTurn: () => pendingTurn,
     });
+    runtime.track(win);
 
     expect(win.webContents.send).toHaveBeenCalledWith('windie:pending-turn', {
       type: 'pending',
@@ -82,15 +77,13 @@ describe('ipc_renderer_windows', () => {
   });
 
   test('does not send current-turn sync when none exists', () => {
-    const rendererWindows = new Set();
     const win = createWindowMock();
 
-    trackRendererWindow({
-      win,
-      rendererWindows,
+    const runtime = createRendererWindowRuntime({
       getResponseOverlayPhase: () => 'idle',
       getLatestCurrentTurn: () => null,
     });
+    runtime.track(win);
 
     expect(win.webContents.send).toHaveBeenCalledWith('response-overlay-phase', {
       phase: 'idle',
@@ -176,12 +169,15 @@ describe('ipc_renderer_windows', () => {
     expect(mainSource).toContain('createRendererWindowRuntime({');
     expect(mainSource).toContain('rendererWindowRuntime.track(win)');
     expect(mainSource).toContain('rendererWindowRuntime.broadcast(channel, payload, sourceWebContents)');
-    expect(mainSource).toContain('rendererWindowRuntime.reset()');
+    expect(mainSource).toContain('rendererWindowRuntime,');
     expect(mainSource).not.toContain('rendererWindowRegistry.track({');
     expect(mainSource).not.toContain('rendererWindowRegistry.broadcast({');
     expect(mainSource).not.toContain('let rendererWindows = new Set()');
     expect(mainSource).not.toContain('rendererWindows = new Set()');
     expect(helperSource).toContain('function createRendererWindowRuntime');
     expect(helperSource).toContain('const rendererWindows = new Set();');
+    const helperModule = require('../../frontend/src/main/ipc/ipc_renderer_windows.cjs');
+    expect(helperModule.trackRendererWindow).toBeUndefined();
+    expect(helperModule.broadcastToRenderers).toBeUndefined();
   });
 });

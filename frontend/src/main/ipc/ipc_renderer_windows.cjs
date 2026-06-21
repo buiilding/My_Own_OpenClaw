@@ -204,8 +204,6 @@ function createRendererWindowRuntime({
 }
 
 module.exports = {
-  broadcastToRenderers,
   createRendererWindowRegistry,
   createRendererWindowRuntime,
-  trackRendererWindow,
 };
