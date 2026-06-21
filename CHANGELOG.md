@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose send-surface return-to-chatbox policy through
+  `DesktopMessageSendUiRuntime` instead of a standalone helper export, keeping
+  main-window versus overlay send behavior behind the renderer app-runtime
+  facade. No migration required.
 - frontend/renderer: expose chat-send payload normalization and first-user-message
   predicates through `DesktopChatSendPayloadRuntime` and
   `DesktopChatSendStateRuntime` instead of standalone helper exports, keeping

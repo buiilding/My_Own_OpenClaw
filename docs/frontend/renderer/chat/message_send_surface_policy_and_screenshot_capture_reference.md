@@ -54,6 +54,10 @@ Surface consequences:
 sender-surface lifecycle projection and keeps the raw chat-pill send/view
 helpers private behind the renderer app-runtime facade.
 
+`DesktopMessageSendUiRuntime.resolveMessageSendUiBehavior(...)` owns the
+main-window versus overlay-chatbox return-to-chatbox policy. The raw resolver
+stays private behind the renderer app-runtime facade.
+
 ## Outgoing Payload Contract
 
 `sendMessage(payload)` accepts:

@@ -2,11 +2,13 @@
  * Covers message send ui policy. behavior in the frontend test suite.
  */
 
-import {
-  resolveMessageSendUiBehavior,
-} from '../../frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime';
+import { DesktopMessageSendUiRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime';
 
 describe('desktopMessageSendUiRuntime', () => {
+  const {
+    resolveMessageSendUiBehavior,
+  } = DesktopMessageSendUiRuntime;
+
   test('defaults per UI surface are explicit', () => {
     expect(resolveMessageSendUiBehavior({
       senderSurface: 'main-window',

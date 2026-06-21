@@ -23246,3 +23246,19 @@ Each completed slice should report:
   de-duplication, first-message detection, SDK turn resource assembly,
   renderer markup, IPC payloads, storage, local-runtime execution, provider
   policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer message send UI facade helper privacy
+
+- Finding: main-window versus overlay-chatbox return-to-chatbox policy lived in
+  the renderer app runtime, but chat-pill session code and focused tests still
+  imported the behavior resolver as a standalone export.
+- Change: exposed send-surface UI policy through `DesktopMessageSendUiRuntime`
+  and kept `resolveMessageSendUiBehavior` private to
+  `desktopMessageSendUiRuntime`.
+- Validation: focused message-send UI policy, chat-pill session, chat sender,
+  renderer app-runtime boundary tests, targeted renderer ESLint, exact
+  source/doc scans, docs listing, and diff checks.
+- Compatibility: no migration required. Main-window and overlay-chatbox default
+  policies, explicit return-to-chatbox overrides, screenshot-driven auto
+  behavior, renderer markup, IPC payloads, storage, local-runtime execution,
+  provider policy, backend behavior, and trust boundaries are unchanged.

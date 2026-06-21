@@ -39,7 +39,7 @@ function resolveReturnToChatboxOnSend(
   return includeQueryScreenshot;
 }
 
-export function resolveMessageSendUiBehavior(
+function resolveMessageSendUiBehavior(
   args: ResolveMessageSendUiBehaviorArgs,
 ): MessageSendUiBehavior {
   const policy = args.returnToChatboxPolicy
@@ -54,3 +54,7 @@ export function resolveMessageSendUiBehavior(
     ),
   };
 }
+
+export const DesktopMessageSendUiRuntime = Object.freeze({
+  resolveMessageSendUiBehavior,
+});

@@ -3,11 +3,15 @@
  */
 
 import {
-  resolveMessageSendUiBehavior,
+  DesktopMessageSendUiRuntime,
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
 } from './desktopMessageSendUiRuntime';
 import { resolveResponseOverlayViewContract } from './desktopResponseOverlayViewRuntime';
+
+const {
+  resolveMessageSendUiBehavior,
+} = DesktopMessageSendUiRuntime;
 
 type TurnRefMessage = {
   turnRef?: string | null;
