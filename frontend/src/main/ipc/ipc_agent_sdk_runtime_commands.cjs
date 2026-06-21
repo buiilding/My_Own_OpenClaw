@@ -6,7 +6,7 @@ function isPlainObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function createAgentSdkRuntimeCommands(deps = {}) {
+function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
   const {
     ensureAgent,
     getActiveAgent = () => null,
@@ -92,5 +92,5 @@ function createAgentSdkRuntimeCommands(deps = {}) {
 }
 
 module.exports = {
-  createAgentSdkRuntimeCommands,
+  createAgentSdkRuntimeCommandsRuntime,
 };

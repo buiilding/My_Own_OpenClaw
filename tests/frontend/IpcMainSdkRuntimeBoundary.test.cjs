@@ -18,6 +18,10 @@ describe('main ipc sdk runtime boundary', () => {
     'createAgentRuntime',
     'Lifecycle',
   ].join('')}(`;
+  const retiredAgentSdkRuntimeCommandsFactorySignature = `function ${[
+    'createAgentSdkRuntime',
+    'Commands',
+  ].join('')}(`;
 
   test('main helper modules import SDK contracts from owner modules', async () => {
     const ipcSource = await fs.readFile(
@@ -373,7 +377,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('sendStopQueryToBackend');
     expect(source).not.toContain('requestModelListFromBackend');
     expect(source).not.toContain('sendWakewordDetectedToBackend');
-    expect(source).toContain('createAgentSdkRuntimeCommands({');
+    expect(source).toContain('createAgentSdkRuntimeCommandsRuntime({');
     expect(source).toContain('sendQueryThroughAgentSdkRuntime');
     expect(source).toContain('stopQueryThroughAgentSdkRuntime');
     expect(source).toContain('requestModelListThroughAgentSdkRuntime');
@@ -384,6 +388,12 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('agent.requestModelList()');
     expect(source).not.toContain('agent.wakewordDetected(payload)');
     expect(agentSdkRuntimeCommandsSource).toContain('agent.run({');
+    expect(agentSdkRuntimeCommandsSource).toContain(
+      'function createAgentSdkRuntimeCommandsRuntime',
+    );
+    expect(agentSdkRuntimeCommandsSource).not.toContain(
+      retiredAgentSdkRuntimeCommandsFactorySignature,
+    );
     expect(agentSdkRuntimeCommandsSource).toContain('agent.stop({');
     expect(agentSdkRuntimeCommandsSource).toContain('agent.updateSettings(payload)');
     expect(agentSdkRuntimeCommandsSource).toContain('agent.requestModelList()');

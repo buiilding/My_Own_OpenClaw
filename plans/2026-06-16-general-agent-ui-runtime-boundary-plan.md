@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Agent SDK Runtime Commands Factory Naming
+
+- Finding: `ipc_agent_sdk_runtime_commands.cjs` owned Electron-main Agent SDK
+  command execution, but exposed `createAgentSdkRuntimeCommands(...)` while
+  surrounding split IPC helpers expose explicit runtime factory names.
+- Change: renamed the factory to `createAgentSdkRuntimeCommandsRuntime(...)`,
+  updated `ipc.cjs`, focused tests, and boundary docs so the composition root
+  continues to read as a set of explicit Electron agent-host runtime helpers.
+- Validation: focused Agent SDK runtime command and main SDK boundary tests
+  plus targeted main IPC lint, docs listing, stale factory-name scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. Query dispatch, stop
+  pending-turn cleanup, settings update, model-list request, wakeword-detected
+  dispatch, command payload shape, resource/metadata separation, IPC channels,
+  credentials, provider policy, permissions, storage, and local-runtime
+  execution are unchanged.
+
 ### 2026-06-21 Main Agent Runtime Lifecycle Factory Naming
 
 - Finding: `ipc_agent_runtime_lifecycle.cjs` owned the Electron-main active

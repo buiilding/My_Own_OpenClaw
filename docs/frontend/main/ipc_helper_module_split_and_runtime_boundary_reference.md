@@ -299,6 +299,8 @@ Owns Electron-main active Agent SDK adapter lifecycle state:
 
 Owns Electron-main Agent SDK command execution helpers:
 
+- exposes `createAgentSdkRuntimeCommandsRuntime(...)` so `ipc.cjs` wires SDK
+  command execution as an explicit runtime helper
 - sends renderer chat payloads through `agent.run(...)` while separating
   resources and metadata from the SDK runtime command payload
 - stops active turns through the active adapter and clears pending-turn state

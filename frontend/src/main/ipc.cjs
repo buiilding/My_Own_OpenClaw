@@ -85,7 +85,7 @@ const {
   createAgentRuntimeLifecycleRuntime,
 } = require('./ipc/ipc_agent_runtime_lifecycle.cjs');
 const {
-  createAgentSdkRuntimeCommands,
+  createAgentSdkRuntimeCommandsRuntime,
 } = require('./ipc/ipc_agent_sdk_runtime_commands.cjs');
 const {
   createBackendMessageObserverRegistry,
@@ -415,7 +415,7 @@ const {
   updateSettingsThroughAgentSdkRuntime,
   requestModelListThroughAgentSdkRuntime,
   sendWakewordDetectedThroughAgentSdkRuntime,
-} = createAgentSdkRuntimeCommands({
+} = createAgentSdkRuntimeCommandsRuntime({
   ensureAgent,
   getActiveAgent: () => agentRuntimeLifecycle.getActiveAgent(),
   resolveConversationRefFromPayload,

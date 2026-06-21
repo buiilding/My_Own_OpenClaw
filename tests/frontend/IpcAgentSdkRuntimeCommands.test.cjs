@@ -4,7 +4,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const {
-  createAgentSdkRuntimeCommands,
+  createAgentSdkRuntimeCommandsRuntime,
 } = require('../../frontend/src/main/ipc/ipc_agent_sdk_runtime_commands.cjs');
 
 function createCommands(overrides = {}) {
@@ -27,12 +27,13 @@ function createCommands(overrides = {}) {
   };
   return {
     deps,
-    commands: createAgentSdkRuntimeCommands(deps),
+    commands: createAgentSdkRuntimeCommandsRuntime(deps),
   };
 }
 
 describe('ipc_agent_sdk_runtime_commands', () => {
   const retiredBackendPayloadName = ['backend', 'Payload'].join('');
+  const retiredFactorySignature = `function ${['createAgentSdkRuntime', 'Commands'].join('')}(`;
 
   test('sends query payloads through Agent SDK runtime with resources and metadata separated', async () => {
     const { commands, deps } = createCommands();
@@ -132,13 +133,15 @@ describe('ipc_agent_sdk_runtime_commands', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('createAgentSdkRuntimeCommands({');
+    expect(mainSource).toContain('createAgentSdkRuntimeCommandsRuntime({');
     expect(mainSource).not.toContain('agent.run({');
     expect(mainSource).not.toContain('agent.stop({');
     expect(mainSource).not.toContain('agent.updateSettings(payload)');
     expect(mainSource).not.toContain('agent.requestModelList()');
     expect(mainSource).not.toContain('agent.wakewordDetected(payload)');
     expect(helperSource).toContain('agent.run({');
+    expect(helperSource).toContain('function createAgentSdkRuntimeCommandsRuntime');
+    expect(helperSource).not.toContain(retiredFactorySignature);
     expect(helperSource).toContain('runtimeCommandPayload');
     expect(helperSource).not.toContain(retiredBackendPayloadName);
     expect(helperSource).toContain('agent.stop({');
