@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Python Architecture Label Boundary
+
+- Finding: `docs/architecture/python_sidecar.md` already described the SDK
+  local-runtime boundary, but active prose still named the distribution,
+  Conda resolution, hosted URL fallback, shared helper, service-script support,
+  packaging, troubleshooting, tests, and detached app lifetime through sidecar
+  ownership labels.
+- Change: reworded those active references through local-runtime Python
+  ownership while preserving concrete filenames such as `sidecar_daemon.py`
+  and `tests/sidecar/`, and replaced the mojibake process-diagram arrows with
+  ASCII arrows.
+- Validation: focused first-read architecture docs guard, exact stale-label
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Daemon filenames, JSON-RPC
+  methods, health/status payloads, launch env compatibility aliases, tool
+  execution, memory storage, IPC, permissions, credentials, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Local-Runtime JSON-RPC Daemon Label Boundary
 
 - Finding: `docs/frontend/sidecar/local_backend_jsonrpc_reference.md` still

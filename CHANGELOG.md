@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: route the Local-Runtime Python implementation reference
+  through SDK local-runtime ownership labels instead of active sidecar owner
+  shorthand, and remove mojibake from its process diagram. No migration
+  required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

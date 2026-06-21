@@ -22,7 +22,7 @@ product boundary is:
 - call the hosted backend only for local-runtime hosted helper services such as semantic summarization
 - call the hosted backend through transport-only clients instead of importing backend Python packages
 
-The intended open-source distribution is UI + sidecar + SDK. Users should not need to run backend services locally in order to use hosted OCR, prediction, or agent APIs.
+The intended open-source distribution is UI + local-runtime Python + SDK. Users should not need to run backend services locally in order to use hosted OCR, prediction, or agent APIs.
 
 Release contract:
 - End users do not need Python preinstalled.
@@ -43,9 +43,9 @@ Release contract:
 ## Process Model
 
 ```
-Electron Main (Node) ── launch facts/host helpers ──> SDK local runtime
-SDK local runtime ── HTTP /rpc JSON-RPC ──> sidecar_daemon.py
-sidecar_daemon.py ── in-process dispatch ──> LocalRuntimeService
+Electron Main (Node) -- launch facts/host helpers --> SDK local runtime
+SDK local runtime -- HTTP /rpc JSON-RPC --> sidecar_daemon.py
+sidecar_daemon.py -- in-process dispatch --> LocalRuntimeService
 ```
 
 The bridge:
@@ -53,14 +53,14 @@ The bridge:
 - In dev/source runs, resolves `WINDIE_PYTHON_PATH` -> `CONDA_PREFIX` -> `python3`/`py`.
 - Frontend npm Electron launchers now snapshot the caller's active `CONDA_PREFIX` into
   `WINDIE_PYTHON_PATH` before entering `bash -lc`, so login-shell startup files cannot
-  silently switch the sidecar back to a base Conda interpreter.
+  silently switch local-runtime Python back to a base Conda interpreter.
 - Local-runtime Python implementation modules do not import backend Python
   packages at startup. Client-side tool exposure and memory-type normalization
   are kept local to the local-runtime implementation, while tests enforce
   parity against backend tool contracts.
 - Backend-bound Python SDK clients require an explicit `backend_url` or injected
   `AGENT_BACKEND_HTTP_URL`; `WINDIE_BACKEND_HTTP_URL` remains a WindieOS
-  compatibility alias and there is no hosted URL fallback inside the sidecar.
+  compatibility alias and there is no hosted URL fallback inside local-runtime Python.
 - On Linux, the Electron launcher filters one known harmless Chromium
   `StartTransientUnit ... UnitExists` stderr line during startup; on macOS it also
   filters the Chromium `SetApplicationIsDaemon ... paramErr` LaunchServices warning
@@ -68,7 +68,7 @@ The bridge:
   in dev logs.
 - Marks the local runtime ready only after the SDK local runtime provider
   resolves a usable daemon client.
-- Workspace-aware path resolution now lives in one shared sidecar helper so shell and filesystem tools resolve relative paths from the same selected workspace base instead of each tool re-implementing permission-state parsing.
+- Workspace-aware path resolution now lives in one shared local-runtime helper so shell and filesystem tools resolve relative paths from the same selected workspace base instead of each tool re-implementing permission-state parsing.
 
 ## JSON-RPC Methods
 
@@ -85,8 +85,8 @@ Registered in `LocalRuntimeService._initialize_methods()`:
 Protocol output notes:
 - The active desktop path sends JSON-RPC envelopes over the daemon `/rpc` HTTP
   endpoint.
-- `core/stdout_json.py::write_json_line()` remains shared support for sidecar
-  service scripts that emit JSON lines. Electron bridge helpers reach
+- `core/stdout_json.py::write_json_line()` remains shared support for
+  local-runtime Python service scripts that emit JSON lines. Electron bridge helpers reach
   `LocalRuntimeService` through the daemon, not through a direct stdin/stdout
   `local_backend.py` process.
 
@@ -169,7 +169,7 @@ Wakeword detection runs as a separate Python subprocess:
 - Runtime build prefetches wakeword models into bundled runtime and verifies required model markers.
 - Runtime bundles browser Python dependencies, but does not preinstall Playwright Chromium.
 - Runtime packaging should assume a hosted backend is available for backend-owned
-  APIs; bundling the sidecar does not imply bundling a backend server.
+  APIs; bundling local-runtime Python does not imply bundling a backend server.
 - Build is idempotent for bundled assets:
   - If wakeword model assets already exist, prefetch download is skipped.
 - Packaged app disables browser feature-pack runtime auto-install and expects the full local-runtime Python deps to be bundled.
@@ -177,14 +177,14 @@ Wakeword detection runs as a separate Python subprocess:
 
 ## Troubleshooting
 
-- If the sidecar doesn’t start, verify your Python path and dependencies in
+- If local-runtime Python doesn't start, verify your Python path and dependencies in
   `frontend/src/main/python/requirements.txt`.
 - Check `sidecar_daemon.py` stderr and `LocalRuntimeService` logs for
   initialization errors.
 
 ## Testing
 
-- Sidecar unit tests live in `tests/sidecar/`.
+- Local-runtime Python unit tests live in `tests/sidecar/`.
 - Core coverage:
   - `tests/sidecar/test_local_backend.py` (JSON-RPC handlers, tool execution, memory wiring)
   - `tests/sidecar/test_sidecar_daemon.py` (daemon HTTP status, tool manifest, execution, dynamic module/plugin/MCP registration, event-control channel, shutdown)
@@ -194,7 +194,7 @@ Wakeword detection runs as a separate Python subprocess:
   - `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs` validates SDK local-runtime bootstrap and readiness/status transitions.
   - `tests/frontend/WakewordBridge.test.cjs` validates stale partial wakeword `stderr` buffers are cleared across stop/start restart.
 - Shell command sessions:
-  - Use `open_app` for detached GUI launches that should survive sidecar/agent exit.
+  - Use `open_app` for detached GUI launches that should survive local-runtime/agent exit.
 - `run_shell_command` supports `yield_after_seconds`, `env`, and best-effort `pty` (PTY on Unix; fallback on Windows).
   - If `directory` is omitted, `run_shell_command` starts in the user-selected workspace folder when `filesystem_workspace_access` has a stored selected path; otherwise it falls back to the OS user home directory.
   - Relative `directory` values such as `.` or `src/components` resolve from that same default base directory instead of requiring absolute paths.

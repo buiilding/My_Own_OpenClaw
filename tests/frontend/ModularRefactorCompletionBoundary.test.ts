@@ -1338,6 +1338,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar Python 3.11 environment');
     expect(docText).not.toContain('sidecar Python 3.11 interpreter');
     expect(docText).not.toContain('Python sidecar for hosted API calls');
+    expect(docText).not.toContain('UI + sidecar + SDK');
+    expect(docText).not.toContain('silently switch the sidecar');
+    expect(docText).not.toContain('hosted URL fallback inside the sidecar');
+    expect(docText).not.toContain('one shared sidecar helper');
+    expect(docText).not.toContain('shared support for sidecar service scripts');
+    expect(docText).not.toContain('bundling the sidecar does not imply bundling a backend server');
+    expect(docText).not.toContain('If the sidecar doesn');
+    expect(docText).not.toContain('Sidecar unit tests live');
+    expect(docText).not.toContain('survive sidecar/agent exit');
     expect(docText).not.toContain('System prompt sent to frontend');
     expect(docText).not.toContain('Tool schemas sent to frontend');
   });
