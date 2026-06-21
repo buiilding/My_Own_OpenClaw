@@ -29,7 +29,14 @@ export * from './transport/HostedBackendHttpClient.js';
 export * from './transport/ManagedAgentSession.js';
 export * from './tools/ToolExecutionCoordinator.js';
 export * from './tools/toolCorrelationIds.js';
-export * from './tools/builtins.js';
+export {
+  agentBuiltins,
+} from './tools/builtins.js';
+export type {
+  AgentBuiltinSelection,
+  AgentBuiltinToolSelection,
+  AgentBuiltinToolSet,
+} from './tools/builtins.js';
 export * from './settings/modelSelection.js';
 export {
   AgentSession,

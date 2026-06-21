@@ -331,6 +331,10 @@ groups. Valid current shapes are `"default"`, `"none"`, or an array such as
 longer has a dedicated wake guard or compatibility error branch in
 `AgentClient.wakeUp(...)`; callers must move to `builtins` instead of expecting
 the SDK runtime to special-case stale `builtinTools` input.
+The package root exposes the public `agentBuiltins` helper and builtin
+selection types. The lower-level `shouldIncludeBuiltinTool(...)` matcher is an
+`AgentClient` implementation helper and stays importable only from the
+`tools/builtins` owner module, not from the package entrypoint.
 
 await agent.ask("Read the repo instructions and summarize the tests.");
 

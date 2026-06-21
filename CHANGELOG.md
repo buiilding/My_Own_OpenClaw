@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: stop exporting the internal `shouldIncludeBuiltinTool` matcher from the
+  package root while keeping `agentBuiltins` and builtin selection types public.
+  No migration required for first-party callers; SDK internals import the
+  matcher from its owner module.
 - frontend/renderer: remove the renderer IPC bridge channel-constant re-export
   path so `bridge.ts` exports only `IpcBridge` behavior while channel constants
   remain owned by `channels.ts`. No migration required.

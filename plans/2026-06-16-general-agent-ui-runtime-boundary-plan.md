@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 SDK Builtin Matcher Package-Root Narrowing
+
+- Finding: `shouldIncludeBuiltinTool(...)` is an `AgentClient`
+  implementation helper for filtering local-runtime builtin manifests, but the
+  SDK package root still published it through the `tools/builtins` wildcard
+  export beside the public `agentBuiltins` caller helper.
+- Change: narrowed the package root to export only `agentBuiltins` and builtin
+  selection types from `tools/builtins`, kept the matcher in its owner module
+  for SDK internals, and added package-boundary coverage so the helper does not
+  reappear at the root.
+- Validation: focused SDK package-boundary tests, root export scans, docs
+  listing, and diff checks.
+- Compatibility/security: no migration required for first-party callers.
+  Builtin selection values, manifest filtering behavior, local-runtime tool
+  execution, hosted backend payloads, IPC, storage, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Renderer IPC Bridge Channel Owner Split
 
 - Finding: `frontend/src/renderer/infrastructure/ipc/channels.ts` already

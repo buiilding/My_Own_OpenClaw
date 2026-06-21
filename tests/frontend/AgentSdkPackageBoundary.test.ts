@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import * as AgentSdkPackage from '../../packages/windie-sdk-js/src';
 import {
   AgentClient,
   Agent,
@@ -112,6 +113,7 @@ describe('@windie/sdk package boundary', () => {
       execution_target: 'local_runtime',
       argument_resolution: 'passthrough',
     });
+    expect('shouldIncludeBuiltinTool' in AgentSdkPackage).toBe(false);
   });
 
   test('exports generic agent session contracts', async () => {

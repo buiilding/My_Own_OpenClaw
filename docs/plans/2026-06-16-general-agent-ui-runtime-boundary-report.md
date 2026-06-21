@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: the local-runtime JSON-RPC reference labels the
-  concrete `sidecar_daemon.py` module as the local-runtime daemon instead of a
-  sidecar daemon.
+- Latest completed slice: the SDK package root exports the public
+  `agentBuiltins` helper and builtin selection types without publishing the
+  internal `shouldIncludeBuiltinTool(...)` matcher.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
