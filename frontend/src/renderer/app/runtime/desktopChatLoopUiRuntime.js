@@ -3,7 +3,7 @@
  */
 
 import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
-import { isOverlayAwaitingReplyPhase } from './desktopStreamPhaseRuntime';
+import { DesktopStreamPhaseRuntime } from './desktopStreamPhaseRuntime';
 
 const {
   isOverlayTurnLifecycleActive,
@@ -11,6 +11,9 @@ const {
   isOverlayTurnLifecycleIdle,
   isOverlayTurnLifecycleTerminal,
 } = DesktopOverlayTurnLifecycleRuntime;
+const {
+  isOverlayAwaitingReplyPhase,
+} = DesktopStreamPhaseRuntime;
 
 const CHAT_LOOP_UI_STATE = Object.freeze({
   IDLE: 'idle',

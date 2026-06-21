@@ -18,6 +18,10 @@ const OVERLAY_AWAITING_REPLY_PHASES = Object.freeze([
 
 const OVERLAY_AWAITING_REPLY_PHASE_SET = new Set(OVERLAY_AWAITING_REPLY_PHASES);
 
-export function isOverlayAwaitingReplyPhase(phase) {
+function isOverlayAwaitingReplyPhase(phase) {
   return typeof phase === 'string' && OVERLAY_AWAITING_REPLY_PHASE_SET.has(phase);
 }
+
+export const DesktopStreamPhaseRuntime = Object.freeze({
+  isOverlayAwaitingReplyPhase,
+});

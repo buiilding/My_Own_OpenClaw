@@ -90,6 +90,11 @@ Resolution precedence:
 5. other `active` lifecycle with visible assistant reply => `active-response`
 6. otherwise => `idle`
 
+Tool-awaiting phase checks are owned by
+`DesktopStreamPhaseRuntime.isOverlayAwaitingReplyPhase(...)`; the stream-phase
+predicate helper and awaiting phase set stay private behind that renderer
+app-runtime facade.
+
 Helper predicates:
 
 - `DesktopChatLoopUiRuntime.isChatLoopBusy(loopUiState)` (`idle` => false, others => true)

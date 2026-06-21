@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose stream-phase awaiting-reply checks through
+  `DesktopStreamPhaseRuntime` instead of a standalone helper export, keeping
+  response-overlay phase predicates behind the renderer app-runtime facade. No
+  migration required.
 - frontend/renderer: expose current-turn presentation and response-overlay
   dismissal projection through `DesktopCurrentTurnPresentationRuntime` instead
   of standalone helper exports, keeping chat/overlay presentation rules behind

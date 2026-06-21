@@ -23195,3 +23195,19 @@ Each completed slice should report:
   projection, response-overlay dismissal target refs, renderer markup, IPC
   payloads, storage, local-runtime execution, provider policy, backend behavior,
   and trust boundaries are unchanged.
+
+### 2026-06-21 renderer stream phase facade helper privacy
+
+- Finding: response-overlay awaiting-reply stream phase detection lived in the
+  renderer app runtime, but chat-loop state and focused tests still imported
+  the predicate as a standalone export.
+- Change: exposed stream-phase awaiting checks through
+  `DesktopStreamPhaseRuntime` and kept `isOverlayAwaitingReplyPhase` private to
+  `desktopStreamPhaseRuntime`.
+- Validation: focused stream-phase, chat-loop state, renderer app-runtime
+  boundary tests, targeted renderer ESLint, exact source/doc scans, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Awaiting-reply phase membership,
+  chat-loop awaiting/active-response selection, renderer markup, IPC payloads,
+  storage, local-runtime execution, provider policy, backend behavior, and
+  trust boundaries are unchanged.

@@ -402,6 +402,8 @@ describe('renderer app runtime boundary', () => {
     expect(phaseRuntimeSource).not.toContain('export function getResponseOverlayPreflightGuardRef');
     expect(phaseRuntimeSource).not.toContain('export function isStreamingResponseOverlayPhase');
     expect(streamPhaseSource).not.toContain('features/chat');
+    expect(streamPhaseSource).toContain('export const DesktopStreamPhaseRuntime = Object.freeze');
+    expect(streamPhaseSource).not.toContain('export function isOverlayAwaitingReplyPhase');
     expect(liveSurfaceSource).not.toContain('features/chat');
     expect(liveSurfaceSource).not.toContain('features/minimalChatPill');
     expect(streamPhaseSource).not.toContain('RESPONSE_OVERLAY_PHASE.');
@@ -574,6 +576,7 @@ describe('renderer app runtime boundary', () => {
     expect(chatLoopUiStateSource).not.toContain('features/chat');
     expect(chatLoopUiStateSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(chatLoopUiStateSource).toContain('desktopStreamPhaseRuntime');
+    expect(chatLoopUiStateSource).toContain('DesktopStreamPhaseRuntime');
     expect(overlayLifecycleHookSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(currentTurnPresentationSource).toContain('desktopOverlayTurnLifecycleRuntime');
