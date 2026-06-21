@@ -3,6 +3,9 @@
  */
 
 import {
+  getAppearanceModeDescriptors,
+  getAppearanceThemeFieldDescriptors,
+  getAppearanceThemeSectionDescriptors,
   normalizeAppearanceMode,
   normalizeAppearanceTheme,
   resolveAppearanceThemeSection,
@@ -10,6 +13,27 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js';
 
 describe('desktopAppearanceThemeRuntime', () => {
+  test('exposes appearance editor descriptors for settings rendering', () => {
+    expect(getAppearanceModeDescriptors()).toEqual([
+      { value: 'light', label: 'Light', iconKey: 'sun' },
+      { value: 'dark', label: 'Dark', iconKey: 'moon' },
+      { value: 'system', label: 'System', iconKey: 'monitor' },
+    ]);
+    expect(getAppearanceThemeSectionDescriptors()).toEqual([
+      { id: 'light', title: 'Light theme' },
+      { id: 'dark', title: 'Dark theme' },
+    ]);
+    expect(getAppearanceThemeFieldDescriptors()).toEqual([
+      { key: 'accent', label: 'Accent', kind: 'color' },
+      { key: 'background', label: 'Background', kind: 'color' },
+      { key: 'foreground', label: 'Foreground', kind: 'color' },
+      { key: 'ui_font', label: 'UI font', kind: 'font' },
+      { key: 'code_font', label: 'Code font', kind: 'font' },
+      { key: 'translucent_sidebar', label: 'Translucent sidebar', kind: 'toggle' },
+      { key: 'contrast', label: 'Contrast', kind: 'range' },
+    ]);
+  });
+
   test('normalizes appearance mode to supported renderer values', () => {
     expect(normalizeAppearanceMode('light')).toBe('light');
     expect(normalizeAppearanceMode('dark')).toBe('dark');

@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Appearance Editor Descriptor Boundary
+
+- Finding: `desktopAppearanceThemeRuntime.js` already owned appearance mode
+  fallback, effective theme resolution, and light/dark theme normalization, but
+  `AppearanceSettingsTab.jsx` still owned local descriptor tables for theme
+  modes, editable theme sections, and editable theme fields.
+- Change: moved Appearance settings mode/section/field descriptors behind
+  `getAppearanceModeDescriptors()`, `getAppearanceThemeSectionDescriptors()`,
+  and `getAppearanceThemeFieldDescriptors()`, leaving the tab with icon
+  component mapping, control rendering, and config patch emission.
+- Validation: focused appearance runtime, settings section, renderer
+  skin/config boundary coverage, docs listing, stale tab-local descriptor scan,
+  and diff checks.
+- Compatibility: no migration required. Appearance config keys, persisted
+  `appearance_mode`/`appearance_theme` payloads, CSS variable application,
+  palette defaults, storage, credentials, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Dashboard Conversation Group Descriptor Boundary
 
 - Finding: `desktopDashboardConversationGroupRuntime.js` already owned

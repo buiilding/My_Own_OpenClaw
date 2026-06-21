@@ -144,9 +144,9 @@ Typical keys:
 - provider API keys
 - provider API-key entries are normalized and scrubbed for renderer persistence
   through `desktopProviderCredentialRuntime.js`
-- appearance palettes live in the renderer skin while mode fallback, theme
-  section normalization, and effective light/dark resolution are owned by
-  `desktopAppearanceThemeRuntime.js`
+- appearance palettes live in the renderer skin while editor descriptors, mode
+  fallback, theme section normalization, and effective light/dark resolution
+  are owned by `desktopAppearanceThemeRuntime.js`
 - provider OAuth credentials can still be persisted/synced, but no OAuth controls are exposed in the renderer settings UI
 - browser automation feature toggle (`browser_automation_enabled`)
 

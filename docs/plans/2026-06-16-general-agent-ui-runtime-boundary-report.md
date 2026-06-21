@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: dashboard conversation time-bucket descriptors now
-  stay behind `desktopDashboardConversationGroupRuntime`, with
-  `SearchChatsModal` rendering group order and labels from the app-runtime
-  grouping contract instead of a modal-local table.
+- Latest completed slice: Appearance settings mode, section, and field
+  descriptors now stay behind `desktopAppearanceThemeRuntime`, with
+  `AppearanceSettingsTab` rendering controls from the app-runtime theme
+  contract instead of tab-local descriptor tables.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -97,8 +97,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   internal URL navigation, and browser state retention through the
   local-runtime browser adapter rather than product ownership wording.
   Renderer appearance storage, theme application, and dashboard Appearance UI
-  now share an app-runtime appearance facade for fallback/normalization instead
-  of interpreting the raw skin palette table independently.
+  now share an app-runtime appearance facade for fallback/normalization and
+  Appearance editor descriptors instead of interpreting the raw skin palette or
+  carrying tab-local mode/field tables independently.
   The Browser Control guide names hosted backend browser policy, Electron UI
   status/readiness, and local-runtime Python Chrome/CDP ownership while keeping
   WindieOS env aliases as product launch configuration.
@@ -123,6 +124,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `desktopDashboardConversationGroupRuntime.getDashboardConversationGroupDescriptors()`
   instead of component-local constants, while bucket ids and search metadata
   normalization remain unchanged.
+  Appearance settings controls now consume
+  `desktopAppearanceThemeRuntime.getAppearanceModeDescriptors()`,
+  `getAppearanceThemeSectionDescriptors()`, and
+  `getAppearanceThemeFieldDescriptors()` instead of component-local descriptor
+  tables.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.

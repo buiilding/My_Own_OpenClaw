@@ -390,6 +390,9 @@ describe('renderer skin/config boundary', () => {
     expect(appearanceSettingsSource).toContain("accent: '#339CFF'");
     expect(appearanceThemeRuntimeSource).toContain('desktopRuntimeConfig');
     expect(appearanceThemeRuntimeSource).toContain('normalizeAppearanceTheme');
+    expect(appearanceThemeRuntimeSource).toContain('getAppearanceModeDescriptors');
+    expect(appearanceThemeRuntimeSource).toContain('getAppearanceThemeSectionDescriptors');
+    expect(appearanceThemeRuntimeSource).toContain('getAppearanceThemeFieldDescriptors');
     expect(configStorageSource).toContain('desktopRuntimeConfig');
     expect(configStorageSource).toContain('desktopAppearanceThemeRuntime');
     expect(configStorageSource).not.toContain('DEFAULT_APPEARANCE_THEME');
@@ -399,8 +402,14 @@ describe('renderer skin/config boundary', () => {
     expect(applyAppearanceThemeSource).not.toContain('DEFAULT_APPEARANCE_THEME');
     expect(applyAppearanceThemeSource).not.toContain('../utils/configStorage');
     expect(appearanceTabSource).toContain('desktopAppearanceThemeRuntime');
+    expect(appearanceTabSource).toContain('getAppearanceModeDescriptors');
+    expect(appearanceTabSource).toContain('getAppearanceThemeSectionDescriptors');
+    expect(appearanceTabSource).toContain('getAppearanceThemeFieldDescriptors');
     expect(appearanceTabSource).not.toContain('DEFAULT_APPEARANCE_THEME');
     expect(appearanceTabSource).not.toContain('utils/configStorage');
+    expect(appearanceTabSource).not.toContain('THEME_MODE_OPTIONS = Object.freeze');
+    expect(appearanceTabSource).not.toContain('THEME_SECTIONS = Object.freeze');
+    expect(appearanceTabSource).not.toContain('THEME_FIELDS = Object.freeze');
   });
 
   test('renderer config helpers describe the settings runtime boundary', () => {

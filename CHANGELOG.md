@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/appearance: move Appearance settings mode, section, and field
+  descriptors into `desktopAppearanceThemeRuntime` so the settings tab renders
+  from the same app-runtime facade that owns theme fallback and normalization.
+  No migration required.
 - renderer/dashboard: move search-modal conversation group order and labels
   into `desktopDashboardConversationGroupRuntime` so dashboard search renders
   from the same app-runtime grouping contract that owns bucket keys and search

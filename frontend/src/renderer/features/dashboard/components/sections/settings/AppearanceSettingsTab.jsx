@@ -5,28 +5,24 @@
 import PropTypes from 'prop-types';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { SettingsToggle } from './settingsControls';
-import { normalizeAppearanceTheme } from '../../../../../app/runtime/desktopAppearanceThemeRuntime';
+import {
+  getAppearanceModeDescriptors,
+  getAppearanceThemeFieldDescriptors,
+  getAppearanceThemeSectionDescriptors,
+  normalizeAppearanceMode,
+  normalizeAppearanceTheme,
+} from '../../../../../app/runtime/desktopAppearanceThemeRuntime';
 
-const THEME_MODE_OPTIONS = Object.freeze([
-  { value: 'light', label: 'Light', icon: Sun },
-  { value: 'dark', label: 'Dark', icon: Moon },
-  { value: 'system', label: 'System', icon: Monitor },
-]);
+const THEME_MODE_ICONS = Object.freeze({
+  sun: Sun,
+  moon: Moon,
+  monitor: Monitor,
+});
 
-const THEME_SECTIONS = Object.freeze([
-  { id: 'light', title: 'Light theme' },
-  { id: 'dark', title: 'Dark theme' },
-]);
-
-const THEME_FIELDS = Object.freeze([
-  { key: 'accent', label: 'Accent', kind: 'color' },
-  { key: 'background', label: 'Background', kind: 'color' },
-  { key: 'foreground', label: 'Foreground', kind: 'color' },
-  { key: 'ui_font', label: 'UI font', kind: 'font' },
-  { key: 'code_font', label: 'Code font', kind: 'font' },
-  { key: 'translucent_sidebar', label: 'Translucent sidebar', kind: 'toggle' },
-  { key: 'contrast', label: 'Contrast', kind: 'range' },
-]);
+const THEME_MODE_OPTIONS = getAppearanceModeDescriptors();
+const THEME_SECTIONS = getAppearanceThemeSectionDescriptors();
+const THEME_FIELDS = getAppearanceThemeFieldDescriptors();
+const THEME_SECTION_IDS = THEME_SECTIONS.map((section) => section.id);
 
 function getPillTextColor(value) {
   return String(value || '').toUpperCase() === '#FFFFFF' ? 'var(--agent-black)' : '#ffffff';
@@ -34,9 +30,7 @@ function getPillTextColor(value) {
 
 function AppearanceSettingsTab({ config, onConfigChange }) {
   const appearanceTheme = normalizeAppearanceTheme(config?.appearance_theme);
-  const appearanceMode = ['light', 'dark', 'system'].includes(config?.appearance_mode)
-    ? config.appearance_mode
-    : 'system';
+  const appearanceMode = normalizeAppearanceMode(config?.appearance_mode);
 
   const updateAppearanceMode = (mode) => {
     onConfigChange({ appearance_mode: mode });
@@ -65,7 +59,7 @@ function AppearanceSettingsTab({ config, onConfigChange }) {
         </div>
         <div className="settings-surface-theme-mode-segment" role="group" aria-label="Theme mode">
           {THEME_MODE_OPTIONS.map((option) => {
-            const Icon = option.icon;
+            const Icon = THEME_MODE_ICONS[option.iconKey] || Monitor;
             const isActive = appearanceMode === option.value;
             return (
               <button
@@ -209,7 +203,7 @@ AppearanceSettingsTab.propTypes = {
 };
 
 ThemeField.propTypes = {
-  themeId: PropTypes.oneOf(['light', 'dark']).isRequired,
+  themeId: PropTypes.oneOf(THEME_SECTION_IDS).isRequired,
   field: PropTypes.shape({
     key: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,

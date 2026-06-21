@@ -6,6 +6,28 @@ import { DEFAULT_APPEARANCE_THEME } from '../skin/desktopRuntimeConfig';
 
 const VALID_APPEARANCE_MODES = new Set(['light', 'dark', 'system']);
 const HEX_COLOR_PATTERN = /^#[0-9A-F]{6}$/i;
+const APPEARANCE_MODE_DESCRIPTORS = Object.freeze([
+  Object.freeze({ value: 'light', label: 'Light', iconKey: 'sun' }),
+  Object.freeze({ value: 'dark', label: 'Dark', iconKey: 'moon' }),
+  Object.freeze({ value: 'system', label: 'System', iconKey: 'monitor' }),
+]);
+const APPEARANCE_THEME_SECTION_DESCRIPTORS = Object.freeze([
+  Object.freeze({ id: 'light', title: 'Light theme' }),
+  Object.freeze({ id: 'dark', title: 'Dark theme' }),
+]);
+const APPEARANCE_THEME_FIELD_DESCRIPTORS = Object.freeze([
+  Object.freeze({ key: 'accent', label: 'Accent', kind: 'color' }),
+  Object.freeze({ key: 'background', label: 'Background', kind: 'color' }),
+  Object.freeze({ key: 'foreground', label: 'Foreground', kind: 'color' }),
+  Object.freeze({ key: 'ui_font', label: 'UI font', kind: 'font' }),
+  Object.freeze({ key: 'code_font', label: 'Code font', kind: 'font' }),
+  Object.freeze({ key: 'translucent_sidebar', label: 'Translucent sidebar', kind: 'toggle' }),
+  Object.freeze({ key: 'contrast', label: 'Contrast', kind: 'range' }),
+]);
+
+function cloneDescriptor(descriptor) {
+  return { ...descriptor };
+}
 
 function toPlainRecord(value) {
   return (
@@ -26,6 +48,18 @@ function normalizeHexColor(value, fallback) {
 
 export function normalizeAppearanceMode(value) {
   return VALID_APPEARANCE_MODES.has(value) ? value : 'system';
+}
+
+export function getAppearanceModeDescriptors() {
+  return APPEARANCE_MODE_DESCRIPTORS.map(cloneDescriptor);
+}
+
+export function getAppearanceThemeSectionDescriptors() {
+  return APPEARANCE_THEME_SECTION_DESCRIPTORS.map(cloneDescriptor);
+}
+
+export function getAppearanceThemeFieldDescriptors() {
+  return APPEARANCE_THEME_FIELD_DESCRIPTORS.map(cloneDescriptor);
 }
 
 export function resolveSystemAppearanceTheme(matchMediaImpl) {
