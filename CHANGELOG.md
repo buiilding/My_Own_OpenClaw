@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlay: move response overlay dismissal-target projection into
+  `desktopCurrentTurnPresentationRuntime` so `useResponseOverlayViewModel`
+  consumes one app-runtime helper for SDK overlay intent, turn refs, guard refs,
+  and latest entry id instead of assembling dismissal refs locally. No
+  migration required.
 - renderer/chat: move SDK current-turn presentation-state projection into
   `desktopCurrentTurnPresentationRuntime` so dashboard chat and response
   overlay hooks share one app-runtime helper for overlay intent, lifecycle,

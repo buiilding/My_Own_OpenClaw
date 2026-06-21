@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Response Overlay Dismissal Target Boundary
+
+- Finding: `useResponseOverlayViewModel.js` consumed app-runtime helpers for
+  response entries and SDK presentation state, but still assembled the
+  response overlay dismissal target locally from SDK overlay intent, latest
+  entry id, turn ref, conversation ref, and stale guard ref.
+- Change: added `resolveResponseOverlayDismissalTarget(...)` to
+  `desktopCurrentTurnPresentationRuntime.js` and routed the overlay view-model
+  through it, leaving the hook with store lookup and close action wiring rather
+  than SDK guard-ref projection.
+- Validation: focused chatbox surface, response overlay state, renderer
+  app-runtime boundary coverage, docs listing, stale hook-local dismissal-target
+  scan, and diff checks.
+- Compatibility: no migration required. Dismissal key shape, response overlay
+  close behavior, SDK overlay intent fields, turn/guard refs, IPC, storage,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer SDK Current-Turn Presentation Boundary
 
 - Finding: `useChatSurfaceController.js` and

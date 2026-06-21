@@ -4,6 +4,7 @@
 
 import {
   resolveCurrentTurnPresentationState,
+  resolveResponseOverlayDismissalTarget,
   resolveSdkCurrentTurnPresentationState,
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 
@@ -171,5 +172,54 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
         turnRef: 'turn-1',
       }),
     });
+  });
+
+  test('resolves SDK response overlay dismissal target from overlay intent', () => {
+    expect(resolveResponseOverlayDismissalTarget({
+      currentTurnProjection: {
+        conversationRef: 'conv-projection',
+        turnRef: 'turn-projection',
+        presentation: {
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            conversationRef: 'conv-intent',
+            turnRef: 'turn-intent',
+            staleGuardRef: 'guard-intent',
+          },
+        },
+      },
+      responseOverlayEntries: [
+        { id: 'entry-1', turnRef: 'turn-entry' },
+      ],
+      useSdkLiveTurnPresentation: true,
+    })).toEqual({
+      conversationRef: 'conv-intent',
+      turnRef: 'turn-intent',
+      guardRef: 'guard-intent',
+      responseEntryId: 'entry-1',
+    });
+  });
+
+  test('resolves legacy response overlay dismissal target from entry and projection refs', () => {
+    expect(resolveResponseOverlayDismissalTarget({
+      currentTurnProjection: {
+        conversationRef: 'conv-projection',
+        turnRef: 'turn-projection',
+      },
+      responseOverlayEntries: [
+        { id: 'entry-1' },
+        { id: 'entry-2', turnRef: 'turn-entry' },
+      ],
+    })).toEqual({
+      conversationRef: 'conv-projection',
+      turnRef: 'turn-entry',
+      guardRef: 'turn-entry',
+      responseEntryId: 'entry-2',
+    });
+
+    expect(resolveResponseOverlayDismissalTarget({
+      responseOverlayEntries: [{ turnRef: 'turn-entry' }],
+    })).toBeNull();
   });
 });

@@ -11,9 +11,11 @@ import {
 } from '../../chat/stores/chatStore';
 import {
   resolveLiveTurnPresentationInput,
-  resolveSdkOverlayIntent,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
-import { resolveSdkCurrentTurnPresentationState } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
+import {
+  resolveResponseOverlayDismissalTarget,
+  resolveSdkCurrentTurnPresentationState,
+} from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
   buildCurrentTurnMessagesFromProjection,
   buildCurrentTurnMessagesFromPresentation,
@@ -82,39 +84,11 @@ export function useResponseOverlayViewModel({
   );
 
   const responseOverlayDismissalTarget = useMemo(() => {
-    if (responseOverlayEntries.length === 0) {
-      return null;
-    }
-    const latestEntry = responseOverlayEntries[responseOverlayEntries.length - 1];
-    if (!latestEntry?.id) {
-      return null;
-    }
-    const sdkOverlayIntent = useSdkLiveTurnPresentation
-      ? resolveSdkOverlayIntent(currentTurnProjection?.presentation, currentTurnProjection)
-      : null;
-    const turnRef = (
-      sdkOverlayIntent?.turnRef
-      || latestEntry.turnRef
-      || currentTurnProjection?.turnRef
-      || null
-    );
-    const conversationRef = (
-      sdkOverlayIntent?.conversationRef
-      || currentTurnProjection?.conversationRef
-      || null
-    );
-    const guardRef = (
-      sdkOverlayIntent?.staleGuardRef
-      || sdkOverlayIntent?.turnRef
-      || turnRef
-      || null
-    );
-    return {
-      conversationRef,
-      turnRef,
-      guardRef,
-      responseEntryId: latestEntry.id,
-    };
+    return resolveResponseOverlayDismissalTarget({
+      currentTurnProjection,
+      responseOverlayEntries,
+      useSdkLiveTurnPresentation,
+    });
   }, [
     currentTurnProjection,
     responseOverlayEntries,

@@ -127,6 +127,9 @@ Contract ownership:
 - `desktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
   owns SDK presentation-state reduction for overlay intent, lifecycle,
   awaiting anchors, and visible response entries.
+- `desktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
+  owns the dismissal target projection from SDK overlay intent, current-turn
+  refs, latest response entry id, and stale guard ref.
 - `useResponseOverlayViewModel(...)` owns the renderer-side composition boundary:
   response-entry derivation, rendered markdown payloads, closeability, and
   stale-response suppression during preflight/awaiting.

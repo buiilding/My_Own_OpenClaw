@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: SDK current-turn presentation-state projection now
-  stays behind `desktopCurrentTurnPresentationRuntime`, with dashboard chat and
-  response overlay hooks sharing the app-runtime helper for overlay intent,
-  lifecycle, awaiting anchors, and visible response state instead of computing
-  SDK presentation semantics locally.
+- Latest completed slice: response overlay dismissal-target projection now
+  stays behind `desktopCurrentTurnPresentationRuntime`, with the overlay
+  view-model consuming one app-runtime helper for SDK overlay intent, latest
+  entry id, turn ref, conversation ref, and stale guard ref instead of
+  assembling dismissal refs locally.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -152,6 +152,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   for SDK current-turn presentation state instead of duplicating overlay intent,
   lifecycle, awaiting-anchor, and visible-response projection inside feature
   hooks.
+  Response overlay dismissal target projection now consumes
+  `desktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
+  instead of assembling SDK overlay intent, latest entry id, turn ref,
+  conversation ref, and stale guard ref inside the overlay view-model hook.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
@@ -595,6 +599,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Renderer Response Overlay Dismissal Target Boundary
+
+- Finding: `useResponseOverlayViewModel.js` already consumed app-runtime
+  current-turn presentation and response-entry helpers, but still built the
+  dismissal target locally from SDK overlay intent, latest response entry,
+  projection turn/conversation refs, and stale guard ref.
+- Change: added
+  `resolveResponseOverlayDismissalTarget(...)` to
+  `desktopCurrentTurnPresentationRuntime.js` and routed the overlay view-model
+  through it so the hook only handles dismissal state lookup and close action
+  wiring.
+- Validation: focused chatbox surface, response overlay state, renderer
+  app-runtime boundary coverage, docs listing, stale hook-local
+  dismissal-target scan, and diff checks.
+- Compatibility: no migration required. Dismissal key shape, response overlay
+  close behavior, SDK overlay intent fields, turn/guard refs, IPC, storage,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
 
 ### 2026-06-21 Renderer SDK Current-Turn Presentation Boundary
 
