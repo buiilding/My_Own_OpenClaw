@@ -2,7 +2,7 @@
  * Owns renderer onboarding slide-state rules for the app startup runtime.
  */
 
-export function buildOnboardingSlideState({ permissions, activeSlideIndex }) {
+function buildOnboardingSlideState({ permissions, activeSlideIndex }) {
   const permissionSlides = Array.isArray(permissions) ? permissions : [];
   const permissionSlideCount = permissionSlides.length > 0 ? permissionSlides.length : 1;
   const totalSlides = permissionSlideCount + 1;
@@ -31,3 +31,7 @@ export function buildOnboardingSlideState({ permissions, activeSlideIndex }) {
       : 'Use this anytime an agent loop needs to end right away.',
   };
 }
+
+export const DesktopOnboardingSlideRuntime = Object.freeze({
+  buildOnboardingSlideState,
+});

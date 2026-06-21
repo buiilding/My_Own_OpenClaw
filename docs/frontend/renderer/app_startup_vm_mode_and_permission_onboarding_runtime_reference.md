@@ -116,7 +116,7 @@ Implementation split:
 
 - `AppContent` owns startup-surface IPC handoff (`show-main-window` for onboarding/VM, `show-chatbox` for normal desktop startup)
 - `DesktopOnboardingSlideshow` owns shell routing and footer controls only
-- `desktopOnboardingSlideRuntime.buildOnboardingSlideState(...)` is the pure
+- `DesktopOnboardingSlideRuntime.buildOnboardingSlideState(...)` is the pure
   app-runtime slide-index/slide-kind model
 - `PermissionOnboardingSlide` renders the active permission card only
 - `StopShortcutOnboardingSlide` renders the keybind-only final slide

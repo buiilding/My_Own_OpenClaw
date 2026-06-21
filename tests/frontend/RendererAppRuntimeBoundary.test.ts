@@ -1303,8 +1303,11 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(slideRuntimeSource).toContain('buildOnboardingSlideState');
+    expect(slideRuntimeSource).toContain('export const DesktopOnboardingSlideRuntime = Object.freeze');
+    expect(slideRuntimeSource).not.toContain('export function buildOnboardingSlideState');
     expect(slideRuntimeSource).not.toContain('features/onboarding');
     expect(slideshowSource).toContain('desktopOnboardingSlideRuntime');
+    expect(slideshowSource).toContain('DesktopOnboardingSlideRuntime');
     expect(slideshowSource).not.toContain('utils/onboardingSlides');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/onboarding/utils/onboardingSlides.js'),

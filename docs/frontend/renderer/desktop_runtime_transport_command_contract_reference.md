@@ -384,7 +384,7 @@ rows. Permission surfaces import this app-runtime facade instead of reaching
 into another feature's utility folder, scanning raw permission ids, indexing
 raw status maps, or reading raw status/detail fields directly.
 
-`desktopOnboardingSlideRuntime.js` owns the pure renderer onboarding slide-state
+`DesktopOnboardingSlideRuntime` owns the pure renderer onboarding slide-state
 rules: permission-slide counts, active slide clamping, permission-vs-stop-slide
 classification, and title/body copy selection. `DesktopOnboardingSlideshow`
 keeps UI routing, controls, and rendering while delegating reusable startup

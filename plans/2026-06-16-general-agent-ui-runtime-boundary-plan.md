@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Onboarding Slide Facade
+
+- Finding: `desktopOnboardingSlideRuntime.js` already owned pure startup
+  onboarding slide state, including permission-slide counts, active-index
+  clamping, permission-vs-stop-slide classification, and slide title/body copy,
+  but still exported `buildOnboardingSlideState(...)` as a standalone helper.
+- Change: made the slide-state builder private to the onboarding runtime
+  module, exposed it through `DesktopOnboardingSlideRuntime`, and routed the
+  onboarding slideshow plus focused slide-state tests through that facade.
+- Validation: focused onboarding slide-state, onboarding slideshow, renderer
+  app boundary, exact standalone slide-state helper export/import scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. Permission filtering,
+  placeholder permission-slide behavior, active-index clamping, final stop-slide
+  title/body copy, IPC, storage, permissions, credentials, hosted backend URLs,
+  and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Dashboard Layout Facade
 
 - Finding: `desktopDashboardLayoutRuntime.js` already owned the renderer-only
