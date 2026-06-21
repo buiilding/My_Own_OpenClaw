@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose manual compaction command orchestration through
+  `DesktopManualCompactionRuntime` instead of a standalone async helper export,
+  keeping model-selection handoff, thinking labels, and continuity compaction
+  dispatch behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose chat send preparation and prepared-turn dispatch
   through `DesktopChatSendPreparationRuntime` instead of standalone async
   helper exports, keeping send preflight, pending-turn acceptance, SDK

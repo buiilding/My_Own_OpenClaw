@@ -1638,6 +1638,8 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).toContain('DesktopConversationContinuityService.compactHistory');
+    expect(source).toContain('export const DesktopManualCompactionRuntime = Object.freeze');
+    expect(source).not.toContain('export async function runManualCompaction');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.compactHistory');
     expect(source).not.toContain('features/chat');
     await expect(fs.stat(

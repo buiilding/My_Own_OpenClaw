@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Manual Compaction Runtime Facade
+
+- Finding: `desktopManualCompactionRuntime.js` already owned manual compaction
+  command orchestration across deferred model selection, thinking status
+  labels, next-paint timing, and continuity-service compaction dispatch, but
+  still exported `runManualCompaction(...)` as a standalone async helper.
+- Change: exposed manual compaction through `DesktopManualCompactionRuntime`
+  and routed the chat surface controller plus focused tests through that
+  renderer app-runtime facade.
+- Validation: focused manual compaction, chat surface controller, and renderer
+  chat-runtime boundary tests plus lint, stale standalone export/import scans,
+  docs listing, and diff checks.
+- Compatibility/security: no migration required. Manual compaction request
+  behavior, deferred model selection, thinking labels, IPC, storage,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-21 Renderer Chat Send Preparation Runtime Facade
 
 - Finding: `desktopChatSendPreparationRuntime.ts` already owned outgoing chat

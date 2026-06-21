@@ -15,7 +15,9 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useCurrentTurnPresent
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntime', () => ({
-  runManualCompaction: (...args) => mockRunManualCompaction(...args),
+  DesktopManualCompactionRuntime: {
+    runManualCompaction: (...args) => mockRunManualCompaction(...args),
+  },
 }));
 
 function renderController({

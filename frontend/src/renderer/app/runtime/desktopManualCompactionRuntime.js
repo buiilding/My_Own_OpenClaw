@@ -24,7 +24,7 @@ function waitForNextPaint() {
   });
 }
 
-export async function runManualCompaction({
+async function runManualCompaction({
   config,
   conversationRef,
   setThinkingStatus,
@@ -50,3 +50,7 @@ export async function runManualCompaction({
     setThinkingSourceEventType('context-compaction-failed');
   }
 }
+
+export const DesktopManualCompactionRuntime = Object.freeze({
+  runManualCompaction,
+});

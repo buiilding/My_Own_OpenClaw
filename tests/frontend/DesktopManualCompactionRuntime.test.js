@@ -13,7 +13,11 @@ const {
   getCompactionFailedThinkingStatus,
   getCompactionStartedThinkingStatus,
 } = DesktopChatStreamThinkingRuntime;
-import { runManualCompaction } from '../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntime';
+import { DesktopManualCompactionRuntime } from '../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntime';
+
+const {
+  runManualCompaction,
+} = DesktopManualCompactionRuntime;
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient', () => ({
   DesktopRendererConfigRuntimeClient: {

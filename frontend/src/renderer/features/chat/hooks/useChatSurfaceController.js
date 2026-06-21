@@ -4,7 +4,7 @@
 
 import { useCallback } from 'react';
 import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
-import { runManualCompaction as runManualCompactionCommand } from '../../../app/runtime/desktopManualCompactionRuntime';
+import { DesktopManualCompactionRuntime } from '../../../app/runtime/desktopManualCompactionRuntime';
 import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
 import {
   DesktopLiveTurnSurfaceRuntime,
@@ -17,6 +17,9 @@ const {
 const {
   resolveLiveTurnPresentationInput,
 } = DesktopLiveTurnSurfaceRuntime;
+const {
+  runManualCompaction: runManualCompactionCommand,
+} = DesktopManualCompactionRuntime;
 
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {
