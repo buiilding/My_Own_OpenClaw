@@ -10,7 +10,12 @@ title: "Browser Change Workflow"
 
 Use this workflow when a browser change could cross the backend model-facing tool, shared browser contract, local-runtime browser execution, local-runtime Python Browser Use adapters, Electron tool bridge, renderer browser controls, or browser-owned file/profile state.
 
-WindieOS currently adapts its canonical browser tool contract to the maintained Browser Use CLI daemon through local-runtime Python. WindieOS owns the agent loop, policy, transport, and result normalization; Browser Use owns browser sessions, CDP/Playwright action mechanics, DOM state, element indexes, and daemon lifecycle. Future extension auto-attach remains a separate design boundary covered by [ADR 004](../adr/004-browser-extension-auto-attach.md).
+The hosted backend exposes the canonical browser tool contract, SDK/main
+dispatch routes browser calls to local execution, and the local-runtime Python
+browser adapter adapts that contract to the maintained Browser Use CLI daemon.
+Browser Use owns browser sessions, CDP/Playwright action mechanics, DOM state,
+element indexes, and daemon lifecycle. Future extension auto-attach remains a
+separate design boundary covered by [ADR 004](../adr/004-browser-extension-auto-attach.md).
 
 ## Runtime Invariants
 
@@ -19,8 +24,8 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
   remote browser tool and local-runtime validation backed by local-runtime
   Python adapters.
 - The local runtime owns browser tool execution; the current local-runtime Python
-  adapters own Browser Use invocation, browser-local file helpers, and WindieOS
-  result normalization.
+  adapters own Browser Use invocation, browser-local file helpers, and
+  normalized browser tool results.
 - Browser Use owns Playwright/CDP objects, browser sessions, tabs, numeric element indexes, snapshots, and browser action mechanics.
 - Electron main relays `execute_tool` requests and does not inspect Playwright objects.
 - Renderer browser controls call the scoped `RUN_BROWSER_ACTION` IPC channel;
@@ -75,7 +80,7 @@ Edit:
 - `frontend/src/main/python/windie_shared/browser_contract_catalog.py` for action contract registration.
 - `frontend/src/main/python/windie_shared/browser_contract_schema.py` if grouped schema emission needs new field handling.
 - `backend/src/tools/browser/**` wrappers only if backend-specific adaptation changes.
-- `frontend/src/main/python/tools/browser/browser_use_engine.py` for runtime handlers and WindieOS result normalization.
+- `frontend/src/main/python/tools/browser/browser_use_engine.py` for runtime handlers and normalized browser tool results.
 - `frontend/src/main/python/tools/browser/browser_tool.py` only if validation or error mapping changes.
 - renderer browser session controls only if users need a visible control for the action.
 
@@ -86,7 +91,7 @@ Validate:
 - `BrowserUseEngineRuntime.execute()` covers the canonical runtime action set or returns explicit unsupported-action errors for Browser Use CLI gaps.
 - connected-page actions require an active browser session.
 - model-visible docs and prompt/tool-schema snapshots are updated when the visible schema changes.
-- Local-runtime Python browser registry tests skip only when Playwright itself is missing; WindieOS browser module import failures should fail collection.
+- Local-runtime Python browser registry tests skip only when Playwright itself is missing; local browser module import failures should fail collection.
 
 ### Change action payload fields
 

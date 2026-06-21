@@ -2446,6 +2446,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime browser execution');
     expect(docText).toContain('local-runtime Python Browser Use adapters');
     expect(docText).toContain('local-runtime Python browser adapter');
+    expect(docText).toContain('hosted backend keeps agent orchestration');
+    expect(docText).toContain('The hosted backend exposes the canonical browser tool contract');
+    expect(docText).toContain('local-runtime Python browser adapter normalizes Browser');
     expect(docText).toContain('Local-Runtime Browser State');
     expect(docText).toContain('dedicated browser runtime');
     expect(docText).toContain('controlled browser session');
@@ -2475,6 +2478,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('WindieOS connect will');
     expect(docText).not.toContain('Cannot Connect to Windie Browser');
     expect(docText).not.toContain('WindieOS browser profile');
+    expect(docText).not.toContain('WindieOS owns the agent loop and policy');
+    expect(docText).not.toContain('WindieOS owns the agent loop, policy, transport, and result normalization');
+    expect(docText).not.toContain('WindieOS keeps agent orchestration');
+    expect(docText).not.toContain('WindieOS should only own adapter/result boundaries');
+    expect(docText).not.toContain('WindieOS result normalization');
     expect(docText).not.toContain('Backend-Sidecar Browser Schema');
     expect(docText).not.toContain('Frontend/sidecar manifest');
     expect(docText).not.toContain('Python sidecar registry');

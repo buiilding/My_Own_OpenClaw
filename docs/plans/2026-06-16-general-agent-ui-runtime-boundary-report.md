@@ -11,11 +11,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `7c48327f7` (`docs(browser): route dedicated runtime through adapter`)
-- Latest completed slice: the Browser Control guide now separates hosted
-  backend model-facing browser policy, Electron permission/status UI, and
-  local-runtime Python browser adapter launch/session mechanics instead of
-  assigning dedicated Chrome/CDP behavior to product ownership wording.
+- Latest inspected plan checkpoint: `59f051e87` (`docs(browser): clarify browser control ownership`)
+- Latest completed slice: the browser hub, browser change workflow, and browser
+  tool overview now summarize ownership through hosted backend policy,
+  SDK/main dispatch, Electron UI, local-runtime Python Browser Use adapters,
+  and Browser Use mechanics instead of broad product-owned adapter/result
+  wording.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -90,6 +91,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   The Browser Control guide names hosted backend browser policy, Electron UI
   status/readiness, and local-runtime Python Chrome/CDP ownership while keeping
   WindieOS env aliases as product launch configuration.
+  The browser hub, browser workflow, and browser tool overview now route their
+  first-read ownership summaries through hosted backend, SDK/main, Electron UI,
+  local-runtime adapter, and Browser Use responsibilities.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real

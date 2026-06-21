@@ -8,7 +8,11 @@ title: "Browser Hub"
 
 # Browser Hub
 
-WindieOS browser automation is a first-class local tool path. The backend exposes the model-facing browser tool, while the local runtime executes that contract through the local-runtime Python Browser Use adapter. WindieOS owns the agent loop and policy; Browser Use owns browser automation mechanics.
+WindieOS browser automation is a first-class local tool path. The hosted
+backend owns the model-facing browser tool, agent loop, and policy; Electron
+main and renderer own permission/readiness UI and status controls; the local
+runtime executes the contract through the local-runtime Python Browser Use
+adapter. Browser Use owns browser automation mechanics.
 
 ## Browser Pages
 

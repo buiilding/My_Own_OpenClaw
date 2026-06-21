@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Browser Hub Ownership Summary Wording
+
+- Finding: the browser hub, browser change workflow, and browser tool overview
+  still summarized browser automation through broad WindieOS ownership of agent
+  policy, transport, result normalization, and adapter boundaries even though
+  the current split is hosted backend policy, Electron permission/status UI, and
+  local-runtime Python Browser Use adapter execution.
+- Change: reworded those first-read summaries and workflow bullets to name the
+  hosted backend, SDK/main dispatch, Electron UI, local-runtime adapter, and
+  Browser Use responsibilities directly.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Browser action schemas, Browser Use
+  invocation, result payload shape, UI status controls, storage, credentials,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Browser Control Ownership Wording
 
 - Finding: the Browser Control guide still assigned dedicated Chrome/CDP launch,
