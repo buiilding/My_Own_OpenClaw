@@ -415,7 +415,7 @@ shared by new-chat, dashboard conversation delete, and clear-chat flows. Chat
 and dashboard modules pass their store setter callbacks into this runtime
 helper so transcript/session reset policy does not live under either feature.
 
-`desktopModelSelectionRuntime.js` owns renderer selected-model reconciliation
+`DesktopModelSelectionRuntime` owns renderer selected-model reconciliation
 and config patch shaping shared by chat model-option helpers and the dashboard
 Models settings UI. Feature modules keep display, grouping, and control policy
 while delegating model/provider fallback and mismatch rules to this app-runtime

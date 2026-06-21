@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Model Selection Facade
+
+- Finding: `desktopModelSelectionRuntime.js` already owned shared renderer
+  model-pool resolution, selected-model config patch construction, missing
+  selection reconciliation, provider canonicalization, and fallback selection,
+  but still exported each helper as a standalone function consumed by the
+  dashboard models panel, chat model option runtime, and focused tests.
+- Change: made the model-selection helpers private to the runtime module,
+  exposed them through `DesktopModelSelectionRuntime`, and routed dashboard
+  and chat model-option consumers plus focused tests through that facade.
+- Validation: focused model-selection utilities, dashboard models section,
+  chat model options, renderer chat boundary, exact standalone model-selection
+  helper export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Model catalog input shapes,
+  selected model/provider config payloads, missing-model warning text,
+  provider canonicalization order, chat model-pool resolution, IPC, storage,
+  credentials, hosted backend URLs, provider policy, and local execution trust
+  boundaries are unchanged.
+
 ### 2026-06-21 Renderer Model Card Presentation Facade
 
 - Finding: `desktopModelCardPresentationRuntime.js` already owned dashboard

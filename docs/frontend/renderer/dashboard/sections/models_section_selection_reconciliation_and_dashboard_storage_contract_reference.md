@@ -83,7 +83,7 @@ backend model objects to display card shape:
 - `provider-mismatch`: auto-select canonical provider match for selected id
 - `valid`: no-op
 
-Canonicalization rules in `desktopModelSelectionRuntime`:
+Canonicalization rules in `DesktopModelSelectionRuntime`:
 
 - candidate models for same id sorted by provider asc
 - first sorted provider chosen for mismatch recovery
@@ -92,7 +92,8 @@ Fallback selection:
 
 - `getFallbackModelSelection(currentModels)` returns first model or empty selection
 
-Outbound config update on model select (`buildModelConfigUpdate`):
+Outbound config update on model select
+(`DesktopModelSelectionRuntime.buildModelConfigUpdate`):
 
 - `model_mode`
 - `selected_model_id`

@@ -3,7 +3,7 @@
  */
 
 import { formatProviderDisplayLabel } from '../skin/desktopRuntimeConfig';
-import { getCurrentModels } from './desktopModelSelectionRuntime';
+import { DesktopModelSelectionRuntime } from './desktopModelSelectionRuntime';
 
 const REASONING_MODE_ORDER = ['none', 'low', 'medium', 'high', 'xhigh'];
 const REASONING_MODE_LABELS = Object.freeze({
@@ -156,7 +156,7 @@ export function formatProviderLabel(providerValue) {
 }
 
 export function getAvailableModelPool(availableModels, modelMode) {
-  return getCurrentModels(availableModels, modelMode);
+  return DesktopModelSelectionRuntime.getCurrentModels(availableModels, modelMode);
 }
 
 export function buildChatModelOptions({

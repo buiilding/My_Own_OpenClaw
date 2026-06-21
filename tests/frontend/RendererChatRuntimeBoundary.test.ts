@@ -2391,6 +2391,7 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(chatModelOptionsSource).toContain('desktopModelSelectionRuntime');
+    expect(chatModelOptionsSource).toContain('DesktopModelSelectionRuntime');
     expect(chatModelOptionsSource).toContain('desktopRuntimeConfig');
     expect(chatModelOptionsSource).not.toContain('export const getAvailableModelPool = getCurrentModels');
     expect(chatModelOptionsSource).not.toContain('features/chat');
@@ -2398,11 +2399,16 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).toContain('desktopChatModelOptionsRuntime');
     expect(headerControlsSource).toContain('desktopChatModelOptionsRuntime');
     expect(modelsSectionSource).toContain('desktopModelSelectionRuntime');
+    expect(modelsSectionSource).toContain('DesktopModelSelectionRuntime');
     expect(modelsSectionSource).toContain('desktopModelCardPresentationRuntime');
     expect(modelsSectionSource).toContain('DesktopModelCardPresentationRuntime');
     expect(modelsSectionSource).toContain('desktopProviderCredentialRuntime');
     expect(apiKeysSectionSource).toContain('desktopProviderCredentialRuntime');
-    expect(modelRuntimeSource).toContain('buildModelConfigUpdate');
+    expect(modelRuntimeSource).toContain('DesktopModelSelectionRuntime');
+    expect(modelRuntimeSource).not.toContain('export function getCurrentModels');
+    expect(modelRuntimeSource).not.toContain('export function buildModelConfigUpdate');
+    expect(modelRuntimeSource).not.toContain('export function evaluateModelSelection');
+    expect(modelRuntimeSource).not.toContain('export function getFallbackModelSelection');
     expect(modelCardPresentationRuntimeSource).toContain('desktopRuntimeConfig');
     expect(modelCardPresentationRuntimeSource).toContain('DesktopModelCardPresentationRuntime');
     expect(modelCardPresentationRuntimeSource).not.toContain('export function toModelCard');

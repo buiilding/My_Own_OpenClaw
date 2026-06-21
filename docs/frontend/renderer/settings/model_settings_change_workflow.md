@@ -124,9 +124,9 @@ Dashboard rules:
 
 - `ModelsSection` groups models by provider first, then shows provider-scoped
   model cards.
-- `evaluateModelSelection(...)` resets missing selected ids and fixes provider
+- `DesktopModelSelectionRuntime.evaluateModelSelection(...)` resets missing selected ids and fixes provider
   mismatch when a model id is shared by multiple providers.
-- `buildModelConfigUpdate(...)` must preserve `model_mode`,
+- `DesktopModelSelectionRuntime.buildModelConfigUpdate(...)` must preserve `model_mode`,
   `speech_mode_enabled`, and `interaction_mode` while changing the selected
   model/provider.
 - Legacy catalog entries can trigger a one-time refresh through

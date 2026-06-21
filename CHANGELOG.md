@@ -52,6 +52,11 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopModelCardPresentationRuntime` instead of standalone helper exports,
   keeping model catalog presentation rules behind the app-runtime facade. No
   migration required.
+- frontend/renderer: expose selected-model pool resolution, config patch
+  construction, reconciliation, and fallback selection through
+  `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping
+  dashboard/chat model selection rules behind the app-runtime facade. No
+  migration required.
 - frontend/renderer: expose permission post-grant config effects and
   external-grant follow-up probe policy through
   `DesktopPermissionGrantEffectsRuntime` instead of standalone helper exports,

@@ -9,10 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import {
-  buildModelConfigUpdate,
-  evaluateModelSelection,
-  getCurrentModels,
-  getFallbackModelSelection,
+  DesktopModelSelectionRuntime,
 } from '../../../../app/runtime/desktopModelSelectionRuntime';
 import ApiKeysSection from './ApiKeysSection';
 import {
@@ -31,6 +28,12 @@ const {
   toModelCard,
   toProviderCards,
 } = DesktopModelCardPresentationRuntime;
+const {
+  buildModelConfigUpdate,
+  evaluateModelSelection,
+  getCurrentModels,
+  getFallbackModelSelection,
+} = DesktopModelSelectionRuntime;
 
 function ModelsSection({ config, availableModels, onConfigChange, onClose = () => {} }) {
   const [modelResetWarning, setModelResetWarning] = useState('');

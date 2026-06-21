@@ -14,13 +14,13 @@ function compareProvidersAscending(left, right) {
   return leftProvider.localeCompare(rightProvider);
 }
 
-export function getCurrentModels(availableModels, modelMode) {
+function getCurrentModels(availableModels, modelMode) {
   const localModels = Array.isArray(availableModels?.local) ? availableModels.local : [];
   const onlineModels = Array.isArray(availableModels?.online) ? availableModels.online : [];
   return modelMode === 'local' ? localModels : onlineModels;
 }
 
-export function buildModelConfigUpdate(params) {
+function buildModelConfigUpdate(params) {
   const {
     modelMode,
     interactionMode,
@@ -44,7 +44,7 @@ export function buildModelConfigUpdate(params) {
   };
 }
 
-export function evaluateModelSelection({ selectedModelId, selectedProvider, currentModels }) {
+function evaluateModelSelection({ selectedModelId, selectedProvider, currentModels }) {
   if (selectedModelId === undefined || selectedModelId === null || selectedModelId === '') {
     return { status: 'empty' };
   }
@@ -81,6 +81,13 @@ export function evaluateModelSelection({ selectedModelId, selectedProvider, curr
   return { status: 'valid', model: canonicalModel };
 }
 
-export function getFallbackModelSelection(currentModels) {
+function getFallbackModelSelection(currentModels) {
   return currentModels[0] || EMPTY_MODEL_SELECTION;
 }
+
+export const DesktopModelSelectionRuntime = Object.freeze({
+  buildModelConfigUpdate,
+  evaluateModelSelection,
+  getCurrentModels,
+  getFallbackModelSelection,
+});

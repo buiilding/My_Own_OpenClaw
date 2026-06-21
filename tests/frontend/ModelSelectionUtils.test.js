@@ -3,11 +3,15 @@
  */
 
 import {
+  DesktopModelSelectionRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopModelSelectionRuntime';
+
+const {
   buildModelConfigUpdate,
   evaluateModelSelection,
   getCurrentModels,
   getFallbackModelSelection,
-} from '../../frontend/src/renderer/app/runtime/desktopModelSelectionRuntime';
+} = DesktopModelSelectionRuntime;
 
 describe('desktopModelSelectionRuntime', () => {
   const sampleModels = [
