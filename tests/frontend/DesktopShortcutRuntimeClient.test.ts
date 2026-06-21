@@ -86,4 +86,36 @@ describe('DesktopShortcutRuntimeClient', () => {
       registrationFailed: false,
     })).toBeNull();
   });
+
+  test('compares global stop shortcut status values through shortcut fields', () => {
+    const currentStatus = {
+      requestedAccelerator: 'CommandOrControl+Alt+.',
+      resolvedAccelerator: 'CommandOrControl+Shift+.',
+      usingFallback: true,
+      registrationFailed: false,
+      ignoredMetadata: 'current',
+    };
+
+    expect(DesktopShortcutRuntimeModule).not.toHaveProperty('areGlobalAgentStopShortcutStatusesEqual');
+    expect(DesktopShortcutRuntimeClient.areGlobalAgentStopShortcutStatusesEqual(
+      currentStatus,
+      {
+        requestedAccelerator: 'CommandOrControl+Alt+.',
+        resolvedAccelerator: 'CommandOrControl+Shift+.',
+        usingFallback: true,
+        registrationFailed: false,
+        ignoredMetadata: 'next',
+      },
+    )).toBe(true);
+    expect(DesktopShortcutRuntimeClient.areGlobalAgentStopShortcutStatusesEqual(
+      currentStatus,
+      {
+        requestedAccelerator: 'CommandOrControl+Alt+.',
+        resolvedAccelerator: 'CommandOrControl+Alt+.',
+        usingFallback: false,
+        registrationFailed: false,
+      },
+    )).toBe(false);
+    expect(DesktopShortcutRuntimeClient.areGlobalAgentStopShortcutStatusesEqual(null, null)).toBe(true);
+  });
 });

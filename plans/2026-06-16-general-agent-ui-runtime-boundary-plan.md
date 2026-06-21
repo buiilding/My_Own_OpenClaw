@@ -1638,6 +1638,24 @@ Each completed slice should report:
   persistence, settings sync, credentials, hosted backend URLs, and provider
   policy are unchanged.
 
+### 2026-06-21 Renderer Global Stop Shortcut Status Equality
+
+- Finding: `DesktopShortcutRuntimeClient` owned global stop shortcut status
+  presentation and fallback persistence, but `AppConfigProvider` still compared
+  raw shortcut status objects with `JSON.stringify(...)` before updating
+  provider state.
+- Change: added
+  `DesktopShortcutRuntimeClient.areGlobalAgentStopShortcutStatusesEqual(...)`
+  and routed `AppConfigProvider` through that field-level equality helper so
+  shortcut status semantics stay in the shortcut runtime client.
+- Validation: focused shortcut runtime client, AppConfigProvider storage/IPC,
+  and renderer settings boundary tests, exact provider `JSON.stringify` status
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. IPC status payload shape,
+  global stop shortcut status projection, fallback accelerator persistence,
+  local config storage, settings sync, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Renderer Appearance Theme Runtime Boundary
 
 - Finding: renderer config storage, theme application, and the dashboard

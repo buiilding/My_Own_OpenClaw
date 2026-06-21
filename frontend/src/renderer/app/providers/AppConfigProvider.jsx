@@ -161,10 +161,11 @@ export function AppConfigProvider({ children }) {
     } = statusValues;
     runtimeConnectedRef.current = isConnected;
 
-    const previousShortcutStatus = globalAgentStopShortcutStatusRef.current;
     const shortcutStatusChanged = (
-      JSON.stringify(previousShortcutStatus || null)
-      !== JSON.stringify(shortcutStatus || null)
+      !DesktopShortcutRuntimeClient.areGlobalAgentStopShortcutStatusesEqual(
+        globalAgentStopShortcutStatusRef.current,
+        shortcutStatus,
+      )
     );
     if (shortcutStatusChanged) {
       setGlobalAgentStopShortcutStatus(shortcutStatus);

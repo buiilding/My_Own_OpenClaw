@@ -64,6 +64,20 @@ function resolveGlobalAgentStopShortcutFallbackAccelerator(
   return trimmedAccelerator || null;
 }
 
+function areGlobalAgentStopShortcutStatusesEqual(
+  currentStatus: unknown,
+  nextStatus: unknown,
+): boolean {
+  const current = recordOrEmpty(currentStatus);
+  const next = recordOrEmpty(nextStatus);
+  return (
+    current.requestedAccelerator === next.requestedAccelerator
+    && current.resolvedAccelerator === next.resolvedAccelerator
+    && current.usingFallback === next.usingFallback
+    && current.registrationFailed === next.registrationFailed
+  );
+}
+
 export const DesktopShortcutRuntimeClient = {
   getAgentStopShortcutLabel,
 
@@ -74,6 +88,8 @@ export const DesktopShortcutRuntimeClient = {
   getGlobalAgentStopShortcutStatusPresentation,
 
   resolveGlobalAgentStopShortcutFallbackAccelerator,
+
+  areGlobalAgentStopShortcutStatusesEqual,
 
   normalizeGlobalAgentStopShortcutAccelerator,
 
