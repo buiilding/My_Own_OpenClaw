@@ -281,6 +281,8 @@ Owns Electron-main Agent SDK wake-up orchestration:
 
 Owns Electron-main active Agent SDK adapter lifecycle state:
 
+- exposes `createAgentRuntimeLifecycleRuntime(...)` so `ipc.cjs` wires active
+  Agent SDK adapter lifecycle as an explicit runtime helper
 - shares one pending wake-up operation across concurrent callers
 - caches and returns the active direct wake-up adapter after startup
 - forwards backend traffic and idle-sync notifications into the active adapter

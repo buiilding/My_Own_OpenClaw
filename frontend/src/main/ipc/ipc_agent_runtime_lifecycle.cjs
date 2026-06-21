@@ -2,7 +2,7 @@
  * Owns Electron main active Agent SDK adapter lifecycle state.
  */
 
-function createAgentRuntimeLifecycle(deps = {}) {
+function createAgentRuntimeLifecycleRuntime(deps = {}) {
   const {
     startAgent,
     getAgentClient,
@@ -113,5 +113,5 @@ function createAgentRuntimeLifecycle(deps = {}) {
 }
 
 module.exports = {
-  createAgentRuntimeLifecycle,
+  createAgentRuntimeLifecycleRuntime,
 };

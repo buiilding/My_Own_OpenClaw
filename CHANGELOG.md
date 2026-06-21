@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: rename the Electron main active Agent SDK adapter lifecycle
+  helper factory to `createAgentRuntimeLifecycleRuntime(...)`, keeping
+  `ipc.cjs` composed from explicit runtime helper factories while preserving
+  pending wake-up coalescing, active adapter caching, hosted-backend connection
+  checks, and local-runtime ensure behavior. No migration required.
 - frontend/main: rename the Electron main AgentClient cache helper factory to
   `createAgentClientLifecycleRuntime(...)`, keeping `ipc.cjs` composed from
   explicit runtime helper factories while preserving lazy SDK client creation

@@ -82,7 +82,7 @@ const {
   createAgentWakeupRuntime,
 } = require('./ipc/ipc_agent_wakeup_runtime.cjs');
 const {
-  createAgentRuntimeLifecycle,
+  createAgentRuntimeLifecycleRuntime,
 } = require('./ipc/ipc_agent_runtime_lifecycle.cjs');
 const {
   createAgentSdkRuntimeCommands,
@@ -401,7 +401,7 @@ const agentClientLifecycle = createAgentClientLifecycleRuntime({
   createAgentClient: () => electronAgentClientFactoryRuntime.createClient(),
   logMainRuntime,
 });
-const agentRuntimeLifecycle = createAgentRuntimeLifecycle({
+const agentRuntimeLifecycle = createAgentRuntimeLifecycleRuntime({
   startAgent,
   getAgentClient,
   getAgentClientIfInitialized: () => agentClientLifecycle.getAgentClientIfInitialized(),

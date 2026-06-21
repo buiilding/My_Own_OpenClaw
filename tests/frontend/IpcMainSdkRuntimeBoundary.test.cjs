@@ -14,6 +14,10 @@ describe('main ipc sdk runtime boundary', () => {
     'createAgentClient',
     'Lifecycle',
   ].join('')}(`;
+  const retiredAgentRuntimeLifecycleFactorySignature = `function ${[
+    'createAgentRuntime',
+    'Lifecycle',
+  ].join('')}(`;
 
   test('main helper modules import SDK contracts from owner modules', async () => {
     const ipcSource = await fs.readFile(
@@ -493,10 +497,14 @@ describe('main ipc sdk runtime boundary', () => {
     expect(responseOverlayPhaseRuntimeSource).toContain('isAgentLoopStopShortcutPhase(getPhase())');
     expect(source).not.toContain('[Main][SDK] creating_client backend=');
     expect(electronAgentClientFactorySource).toContain('[Main][SDK] creating_client backend=');
-    expect(source).toContain('createAgentRuntimeLifecycle({');
+    expect(source).toContain('createAgentRuntimeLifecycleRuntime({');
     expect(source).not.toContain('let activeAgent');
     expect(source).not.toContain('let pendingAgentStartPromise');
     expect(source).not.toContain('pendingAgentStartPromise = startAgent({');
+    expect(agentRuntimeLifecycleSource).toContain('function createAgentRuntimeLifecycleRuntime');
+    expect(agentRuntimeLifecycleSource).not.toContain(
+      retiredAgentRuntimeLifecycleFactorySignature,
+    );
     expect(agentRuntimeLifecycleSource).toContain('let activeAgent = null;');
     expect(agentRuntimeLifecycleSource).toContain('let pendingAgentStartPromise = null;');
     expect(agentRuntimeLifecycleSource).toContain('pendingAgentStartPromise = startAgent({');

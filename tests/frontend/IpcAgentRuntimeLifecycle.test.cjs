@@ -4,7 +4,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const {
-  createAgentRuntimeLifecycle,
+  createAgentRuntimeLifecycleRuntime,
 } = require('../../frontend/src/main/ipc/ipc_agent_runtime_lifecycle.cjs');
 
 function deferred() {
@@ -18,11 +18,13 @@ function deferred() {
 }
 
 describe('ipc_agent_runtime_lifecycle', () => {
+  const retiredFactorySignature = `function ${['createAgentRuntime', 'Lifecycle'].join('')}(`;
+
   test('coalesces concurrent starts and reuses the active agent adapter', async () => {
     const agent = { id: 'agent-1' };
     const start = deferred();
     const startAgent = jest.fn(() => start.promise);
-    const lifecycle = createAgentRuntimeLifecycle({
+    const lifecycle = createAgentRuntimeLifecycleRuntime({
       startAgent,
       getAgentClient: jest.fn(),
     });
@@ -49,7 +51,7 @@ describe('ipc_agent_runtime_lifecycle', () => {
       syncBackendIdleTimer: jest.fn(),
       isConnected: jest.fn(() => true),
     };
-    const lifecycle = createAgentRuntimeLifecycle({
+    const lifecycle = createAgentRuntimeLifecycleRuntime({
       startAgent: jest.fn(async () => agent),
       getAgentClient: jest.fn(),
     });
@@ -67,7 +69,7 @@ describe('ipc_agent_runtime_lifecycle', () => {
   test('returns known client local runtime before active agent fallback', async () => {
     const clientRuntime = { source: 'client' };
     const agentRuntime = { source: 'agent' };
-    const lifecycle = createAgentRuntimeLifecycle({
+    const lifecycle = createAgentRuntimeLifecycleRuntime({
       startAgent: jest.fn(async () => ({ localRuntime: agentRuntime })),
       getAgentClient: jest.fn(),
       getAgentClientIfInitialized: jest.fn(() => ({
@@ -86,7 +88,7 @@ describe('ipc_agent_runtime_lifecycle', () => {
       localRuntime: jest.fn(async () => runtime),
     };
     const logMainRuntime = jest.fn();
-    const lifecycle = createAgentRuntimeLifecycle({
+    const lifecycle = createAgentRuntimeLifecycleRuntime({
       startAgent: jest.fn(),
       getAgentClient: jest.fn(() => client),
       logMainRuntime,
@@ -107,7 +109,7 @@ describe('ipc_agent_runtime_lifecycle', () => {
     const agent = {
       ensureConnected: jest.fn(async () => true),
     };
-    const lifecycle = createAgentRuntimeLifecycle({
+    const lifecycle = createAgentRuntimeLifecycleRuntime({
       startAgent: jest.fn(async () => agent),
       getAgentClient: jest.fn(),
     });
@@ -130,7 +132,7 @@ describe('ipc_agent_runtime_lifecycle', () => {
       ensureConnected: jest.fn(async () => true),
     };
     let currentConversationRef = 'conv-current';
-    const lifecycle = createAgentRuntimeLifecycle({
+    const lifecycle = createAgentRuntimeLifecycleRuntime({
       startAgent: jest.fn(async () => agent),
       getAgentClient: jest.fn(),
       getCurrentConversationRef: () => currentConversationRef,
@@ -156,7 +158,7 @@ describe('ipc_agent_runtime_lifecycle', () => {
 
   test('reset clears the active agent and can close it', async () => {
     const agent = { close: jest.fn() };
-    const lifecycle = createAgentRuntimeLifecycle({
+    const lifecycle = createAgentRuntimeLifecycleRuntime({
       startAgent: jest.fn(async () => agent),
       getAgentClient: jest.fn(),
     });
@@ -178,10 +180,12 @@ describe('ipc_agent_runtime_lifecycle', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('createAgentRuntimeLifecycle({');
+    expect(mainSource).toContain('createAgentRuntimeLifecycleRuntime({');
     expect(mainSource).not.toContain('let activeAgent');
     expect(mainSource).not.toContain('let pendingAgentStartPromise');
     expect(mainSource).not.toContain('pendingAgentStartPromise = startAgent({');
+    expect(helperSource).toContain('function createAgentRuntimeLifecycleRuntime');
+    expect(helperSource).not.toContain(retiredFactorySignature);
     expect(mainSource).toContain('agentRuntimeLifecycle.ensureCurrentBackendConnection(reason, timeoutMs)');
     expect(mainSource).not.toContain('agentRuntimeLifecycle.ensureBackendConnection({');
     expect(mainSource).not.toContain('conversationRef: backendSessionState.getConversationRef()');

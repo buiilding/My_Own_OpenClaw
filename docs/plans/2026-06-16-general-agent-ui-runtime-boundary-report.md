@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main AgentClient cache lifecycle now exposes
-  `createAgentClientLifecycleRuntime(...)`, keeping `ipc.cjs` composed from
-  explicit runtime helper factories while removing stale unused
-  composition-root wrappers and preserving lazy SDK client creation plus
-  local-runtime shutdown behavior.
+- Latest completed slice: Electron main active Agent SDK adapter lifecycle now
+  exposes `createAgentRuntimeLifecycleRuntime(...)`, keeping `ipc.cjs`
+  composed from explicit runtime helper factories while preserving pending
+  wake-up coalescing, active adapter caching, hosted-backend connection checks,
+  and local-runtime ensure behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

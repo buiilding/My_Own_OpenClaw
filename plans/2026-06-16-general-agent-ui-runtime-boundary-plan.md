@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Agent Runtime Lifecycle Factory Naming
+
+- Finding: `ipc_agent_runtime_lifecycle.cjs` owned the Electron-main active
+  Agent SDK adapter lifecycle, but exposed `createAgentRuntimeLifecycle(...)`
+  while surrounding split IPC helpers expose explicit runtime factory names.
+- Change: renamed the factory to `createAgentRuntimeLifecycleRuntime(...)`,
+  updated `ipc.cjs`, focused tests, and boundary docs so the composition root
+  continues to read as a set of explicit Electron agent-host runtime helpers.
+- Validation: focused Agent runtime lifecycle and main SDK boundary tests plus
+  targeted main IPC lint, docs listing, stale factory-name scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. Pending wake-up coalescing,
+  active adapter caching, backend traffic/idle forwarding, local-runtime ensure
+  logging, hosted-backend connection checks, IPC channels, credentials,
+  provider policy, permissions, storage, and local-runtime execution are
+  unchanged.
+
 ### 2026-06-21 Main AgentClient Lifecycle Runtime Factory Naming
 
 - Finding: `ipc_agent_client_lifecycle.cjs` owned the Electron-main
