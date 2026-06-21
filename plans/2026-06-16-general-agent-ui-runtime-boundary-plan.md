@@ -21823,3 +21823,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Tests changed only; Python SDK
   routing behavior, local-runtime execution payloads, discovery behavior, IPC,
   storage, provider policy, permissions, and backend behavior are unchanged.
+
+### 2026-06-21 browser schema local-runtime test labels
+
+- Finding: the local-runtime browser schema test module already described the
+  shared browser contract correctly, but three test function names still used
+  `test_sidecar_*` owner labels for local-runtime browser behavior.
+- Change: renamed those tests to local-runtime browser labels while leaving the
+  shared schema and backend-import boundary assertions unchanged.
+- Validation: focused browser schema tests, exact retired-label scan for the
+  touched module, docs listing, and diff checks.
+- Compatibility: no migration required. Tests changed only; browser schema
+  generation, local-runtime browser validation, backend import boundaries, IPC,
+  storage, provider policy, permissions, and backend behavior are unchanged.

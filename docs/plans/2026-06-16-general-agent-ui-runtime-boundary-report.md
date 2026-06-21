@@ -9192,3 +9192,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Python SDK routing behavior, local-runtime execution payloads, discovery
   behavior, IPC, storage, provider policy, permissions, and backend behavior are
   unchanged; no migration is required.
+- Local-runtime browser schema tests now use local-runtime browser function
+  names instead of `test_sidecar_*` labels. The shared schema assertions and
+  backend-import boundary checks are unchanged, so browser schema generation,
+  validation behavior, IPC, storage, provider policy, permissions, and backend
+  behavior are unchanged; no migration is required.

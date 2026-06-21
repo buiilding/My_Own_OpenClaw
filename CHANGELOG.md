@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/browser: rename local-runtime browser schema test functions away from
+  sidecar route labels while preserving shared-contract coverage. No migration
+  required.
 - tests/sdk-python: relabel Python SDK local-runtime routing tests and the
   missing-discovery fixture away from sidecar route names, with a package
   boundary guard for the retired labels. No migration required.

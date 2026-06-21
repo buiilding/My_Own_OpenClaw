@@ -103,7 +103,7 @@ def _collect_any_of_shapes(node: object) -> list[list[str | None]]:
     return shapes
 
 
-def test_sidecar_browser_control_args_use_shared_grouped_schema() -> None:
+def test_local_runtime_browser_control_args_use_shared_grouped_schema() -> None:
     schema = build_browser_tool_parameters_schema()
 
     assert BrowserControlArgs.__module__.startswith("windie_shared.browser_contract")
@@ -164,7 +164,7 @@ def test_grouped_schema_does_not_emit_unsupported_composition_keys() -> None:
         assert not _contains_schema_key(schema, key), key
 
 
-def test_sidecar_action_contract_is_canonical_only() -> None:
+def test_local_runtime_browser_action_contract_is_canonical_only() -> None:
     assert "open" not in BROWSER_CANONICAL_ACTIONS
     assert "type" not in BROWSER_CANONICAL_ACTIONS
     assert "switch_tab" not in BROWSER_CANONICAL_ACTIONS
@@ -431,7 +431,7 @@ def test_schema_registry_and_validation_reject_removed_aliases() -> None:
         )
 
 
-def test_sidecar_browser_runtime_modules_do_not_import_backend_package() -> None:
+def test_local_runtime_browser_modules_do_not_import_backend_package() -> None:
     browser_dir = (
         Path(__file__).resolve().parents[3]
         / "frontend"
