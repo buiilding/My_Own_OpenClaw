@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Desktop Dashboard Surface Wording
+
+- Finding: dashboard and desktop surfaces docs still described generic renderer
+  surface ownership as WindieOS dashboard/desktop workspace behavior, even
+  though product identity belongs in skin/config and the dashboard is a desktop
+  workspace surface.
+- Change: reworded the dashboard and surfaces hub around desktop workspace and
+  desktop runtime surface ownership, and added stale-phrase guards for the
+  retired product-owned dashboard surface labels.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, renderer components, IPC
+  channels, SDK projections, config storage, credentials, hosted backend URLs,
+  and provider policy are unchanged.
+
 ### 2026-06-21 Desktop Overlay Surface Policy Wording
 
 - Finding: minimal chat pill, Linux, Windows, and overlay phase workflow docs

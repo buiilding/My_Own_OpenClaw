@@ -8,7 +8,7 @@ title: "Dashboard"
 
 # Dashboard
 
-The dashboard is the main WindieOS desktop workspace. The renderer owns the
+The dashboard is the main desktop workspace surface. The renderer owns
 dashboard presentation and section state, while Electron main and Agent SDK
 runtime clients own backend connection, config persistence, and
 local-runtime-backed memory operations.

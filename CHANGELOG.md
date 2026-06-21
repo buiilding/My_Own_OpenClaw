@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: route desktop dashboard and surface hub wording through generic desktop
+  workspace/surface labels instead of product-owned renderer surface labels. No
+  migration required.
 - docs: route desktop, Linux, Windows, and overlay workflow screenshot-capture
   labels through desktop overlay surface wording instead of product-owned
   overlay labels. No migration required.

@@ -1,5 +1,5 @@
 ---
-summary: "Desktop shell surfaces hub for WindieOS dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifact-backed attachments."
+summary: "Desktop shell surfaces hub for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifact-backed attachments."
 read_when:
   - When changing user-visible desktop shell surfaces.
   - When deciding whether a feature belongs in dashboard, chat pill, response overlay, onboarding, settings, or voice code.
@@ -8,7 +8,7 @@ title: "Desktop Surfaces"
 
 # Desktop Surfaces
 
-WindieOS is not only a chat UI. It is a set of desktop surfaces coordinated by Electron main and React renderer roots.
+The desktop runtime is not only a chat UI. It is a set of desktop surfaces coordinated by Electron main and React renderer roots.
 
 ## Surface Pages
 

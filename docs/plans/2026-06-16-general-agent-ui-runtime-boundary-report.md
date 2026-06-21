@@ -11,10 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `02aced2f3` (`docs(channels): route websocket summary labels`)
-- Latest completed slice: minimal chat pill, Linux, Windows, and overlay phase
-  workflow docs now describe screenshot hide/restore policy through desktop
-  overlay surfaces/policy instead of product-owned overlay labels.
+- Latest inspected plan checkpoint: `d80edcaf8` (`docs(platform): align desktop overlay policy labels`)
+- Latest completed slice: dashboard and desktop surfaces docs now use generic
+  desktop workspace/surface wording instead of product-owned renderer surface
+  labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -128,6 +128,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Minimal chat pill, Linux, Windows, and overlay phase workflow docs now
   describe screenshot hide/restore policy through desktop overlay
   surfaces/policy instead of product-owned overlay labels.
+  Dashboard and desktop surfaces docs now use generic desktop
+  workspace/surface wording instead of product-owned renderer surface labels.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
@@ -8113,6 +8115,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   screenshot lease policy, platform adapters, Electron content-protection
   behavior, IPC channels, SDK projections, storage, credentials, hosted backend
   URLs, and provider policy are unchanged; no migration is required.
+- Dashboard and desktop surfaces docs now describe the dashboard as a desktop
+  workspace surface and the surfaces hub as the desktop runtime surface map
+  instead of product-owned renderer surface labels. Runtime code, renderer
+  components, IPC channels, SDK projections, config storage, credentials,
+  hosted backend URLs, and provider policy are unchanged; no migration is
+  required.
 - Logging docs now use a neutral frontend log override path example while
   preserving the `WINDIE_FRONTEND_LOG_FILE` WindieOS override key. Launcher log
   override behavior, default `.windie/logs` source-run paths, provider policy,
