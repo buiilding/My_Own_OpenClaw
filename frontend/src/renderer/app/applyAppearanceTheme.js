@@ -3,10 +3,14 @@
  */
 
 import {
+  DesktopAppearanceThemeRuntime,
+} from './runtime/desktopAppearanceThemeRuntime';
+
+const {
   normalizeAppearanceMode,
   resolveAppearanceThemeSection,
   resolveEffectiveAppearanceTheme,
-} from './runtime/desktopAppearanceThemeRuntime';
+} = DesktopAppearanceThemeRuntime;
 
 function applyThemeVariables(target, theme) {
   target.style.setProperty('--agent-accent', theme.accent);

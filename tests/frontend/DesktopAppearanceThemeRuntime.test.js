@@ -3,6 +3,10 @@
  */
 
 import {
+  DesktopAppearanceThemeRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js';
+
+const {
   getAppearanceModeDescriptors,
   getAppearanceThemeFieldDescriptors,
   getAppearanceThemeSectionDescriptors,
@@ -10,7 +14,7 @@ import {
   normalizeAppearanceTheme,
   resolveAppearanceThemeSection,
   resolveEffectiveAppearanceTheme,
-} from '../../frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js';
+} = DesktopAppearanceThemeRuntime;
 
 describe('desktopAppearanceThemeRuntime', () => {
   test('exposes appearance editor descriptors for settings rendering', () => {

@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Appearance Theme Facade
+
+- Finding: `desktopAppearanceThemeRuntime.js` already owned renderer-local
+  theme descriptors, mode fallback, effective/system theme resolution, theme
+  normalization, and CSS-variable section projection, but still exported each
+  helper as a standalone function consumed by config storage, theme
+  application, the Appearance settings tab, and tests.
+- Change: made the appearance helper functions private to the runtime module,
+  exposed them through `DesktopAppearanceThemeRuntime`, and routed storage,
+  theme application, settings UI, and focused tests through that facade.
+- Validation: focused appearance runtime, config storage, theme application,
+  settings section, renderer skin/config boundary, exact standalone appearance
+  helper export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. The persisted
+  `appearance_mode`/`appearance_theme` shapes, localStorage key, theme
+  descriptor values, CSS variable output, system-theme fallback behavior, IPC,
+  storage redaction, credentials, permissions, hosted backend URLs, provider
+  policy, and local execution trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Message Screenshot Facade
 
 - Finding: `desktopMessageScreenshotRuntime.js` already owned renderer message

@@ -6,12 +6,16 @@ import PropTypes from 'prop-types';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { SettingsToggle } from './settingsControls';
 import {
+  DesktopAppearanceThemeRuntime,
+} from '../../../../../app/runtime/desktopAppearanceThemeRuntime';
+
+const {
   getAppearanceModeDescriptors,
   getAppearanceThemeFieldDescriptors,
   getAppearanceThemeSectionDescriptors,
   normalizeAppearanceMode,
   normalizeAppearanceTheme,
-} from '../../../../../app/runtime/desktopAppearanceThemeRuntime';
+} = DesktopAppearanceThemeRuntime;
 
 const THEME_MODE_ICONS = Object.freeze({
   sun: Sun,

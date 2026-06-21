@@ -97,10 +97,10 @@ desktop skin can replace them without changing
 Appearance mode descriptors, theme editor section/field descriptors, appearance
 mode fallback, theme section normalization, system theme resolution, and
 CSS-variable theme section projection live in
-`desktopAppearanceThemeRuntime.js`. Storage, `applyAppearanceTheme(...)`, and
-the dashboard Appearance tab consume that app-runtime facade instead of reading
-the raw skin palette table or carrying tab-local editor descriptor tables
-directly.
+`DesktopAppearanceThemeRuntime` in `desktopAppearanceThemeRuntime.js`.
+Storage, `applyAppearanceTheme(...)`, and the dashboard Appearance tab consume
+that app-runtime facade instead of reading the raw skin palette table or
+carrying tab-local editor descriptor tables directly.
 
 Provider key entry normalization and renderer-persistence secret stripping live
 in `desktopProviderCredentialRuntime.js`, which consumes those skin defaults

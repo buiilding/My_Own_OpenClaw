@@ -120,7 +120,7 @@ fallback fields directly.
 
 ## Appearance Tab Ownership Model
 
-`desktopAppearanceThemeRuntime.js` owns renderer-local theme editor values and
+`DesktopAppearanceThemeRuntime` owns renderer-local theme editor values and
 descriptors:
 
 - light, dark, or system theme mode
@@ -129,10 +129,9 @@ descriptors:
 - light and dark translucent sidebar toggles
 - light and dark contrast slider values
 
-`AppearanceSettingsTab` consumes `getAppearanceModeDescriptors()`,
-`getAppearanceThemeSectionDescriptors()`, and
-`getAppearanceThemeFieldDescriptors()` for the editable surface, maps returned
-icon keys to lucide icons, renders controls, and emits renderer config patches.
+`AppearanceSettingsTab` consumes descriptor and normalization helpers through
+`DesktopAppearanceThemeRuntime`, maps returned icon keys to lucide icons,
+renders controls, and emits renderer config patches.
 
 The values are persisted through renderer config as `appearance_mode` and
 `appearance_theme` and are local-only. They are not sent to the hosted backend

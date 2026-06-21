@@ -46,23 +46,23 @@ function normalizeHexColor(value, fallback) {
   return HEX_COLOR_PATTERN.test(trimmed) ? trimmed : fallback;
 }
 
-export function normalizeAppearanceMode(value) {
+function normalizeAppearanceMode(value) {
   return VALID_APPEARANCE_MODES.has(value) ? value : 'system';
 }
 
-export function getAppearanceModeDescriptors() {
+function getAppearanceModeDescriptors() {
   return APPEARANCE_MODE_DESCRIPTORS.map(cloneDescriptor);
 }
 
-export function getAppearanceThemeSectionDescriptors() {
+function getAppearanceThemeSectionDescriptors() {
   return APPEARANCE_THEME_SECTION_DESCRIPTORS.map(cloneDescriptor);
 }
 
-export function getAppearanceThemeFieldDescriptors() {
+function getAppearanceThemeFieldDescriptors() {
   return APPEARANCE_THEME_FIELD_DESCRIPTORS.map(cloneDescriptor);
 }
 
-export function resolveSystemAppearanceTheme(matchMediaImpl) {
+function resolveSystemAppearanceTheme(matchMediaImpl) {
   if (typeof matchMediaImpl !== 'function') {
     return 'dark';
   }
@@ -74,7 +74,7 @@ export function resolveSystemAppearanceTheme(matchMediaImpl) {
   }
 }
 
-export function resolveEffectiveAppearanceTheme(mode, matchMediaImpl = globalThis.window?.matchMedia) {
+function resolveEffectiveAppearanceTheme(mode, matchMediaImpl = globalThis.window?.matchMedia) {
   const normalizedMode = normalizeAppearanceMode(mode);
   return normalizedMode === 'system' ? resolveSystemAppearanceTheme(matchMediaImpl) : normalizedMode;
 }
@@ -102,7 +102,7 @@ function normalizeAppearanceThemeSection(overrides = null, defaults) {
   };
 }
 
-export function normalizeAppearanceTheme(overrides = null) {
+function normalizeAppearanceTheme(overrides = null) {
   const source = toPlainRecord(overrides);
   return {
     light: normalizeAppearanceThemeSection(source.light, DEFAULT_APPEARANCE_THEME.light),
@@ -110,9 +110,20 @@ export function normalizeAppearanceTheme(overrides = null) {
   };
 }
 
-export function resolveAppearanceThemeSection(config, themeId) {
+function resolveAppearanceThemeSection(config, themeId) {
   const defaults = themeId === 'light'
     ? DEFAULT_APPEARANCE_THEME.light
     : DEFAULT_APPEARANCE_THEME.dark;
   return normalizeAppearanceThemeSection(config?.appearance_theme?.[themeId], defaults);
 }
+
+export const DesktopAppearanceThemeRuntime = Object.freeze({
+  getAppearanceModeDescriptors,
+  getAppearanceThemeFieldDescriptors,
+  getAppearanceThemeSectionDescriptors,
+  normalizeAppearanceMode,
+  normalizeAppearanceTheme,
+  resolveAppearanceThemeSection,
+  resolveEffectiveAppearanceTheme,
+  resolveSystemAppearanceTheme,
+});

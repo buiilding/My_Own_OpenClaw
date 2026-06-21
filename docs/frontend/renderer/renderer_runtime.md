@@ -146,7 +146,8 @@ Typical keys:
   through `desktopProviderCredentialRuntime.js`
 - appearance palettes live in the renderer skin while editor descriptors, mode
   fallback, theme section normalization, and effective light/dark resolution
-  are owned by `desktopAppearanceThemeRuntime.js`
+  are owned by `DesktopAppearanceThemeRuntime` in
+  `desktopAppearanceThemeRuntime.js`
 - provider OAuth credentials can still be persisted/synced, but no OAuth controls are exposed in the renderer settings UI
 - browser automation feature toggle (`browser_automation_enabled`)
 

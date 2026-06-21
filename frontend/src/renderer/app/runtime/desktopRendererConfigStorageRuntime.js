@@ -8,12 +8,16 @@ import {
   RENDERER_STORAGE_KEYS,
 } from '../skin/desktopRuntimeConfig';
 import {
-  normalizeAppearanceMode,
-  normalizeAppearanceTheme,
+  DesktopAppearanceThemeRuntime,
 } from './desktopAppearanceThemeRuntime';
 import {
   DesktopProviderCredentialRuntime,
 } from './desktopProviderCredentialRuntime';
+
+const {
+  normalizeAppearanceMode,
+  normalizeAppearanceTheme,
+} = DesktopAppearanceThemeRuntime;
 
 /**
  * Local storage utilities for configuration persistence.

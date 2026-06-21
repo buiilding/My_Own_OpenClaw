@@ -42,6 +42,11 @@ All notable changes to WindieOS will be documented in this file.
   static-source helpers through `DesktopMessageScreenshotRuntime` instead of
   standalone helper exports, keeping screenshot presentation state behind the
   renderer app-runtime facade. No migration required.
+- frontend/renderer: expose appearance mode descriptors, theme normalization,
+  system theme resolution, and CSS-variable section projection through
+  `DesktopAppearanceThemeRuntime` instead of standalone helper exports, keeping
+  renderer-local theme config behind the app-runtime facade. No migration
+  required.
 - frontend/renderer: expose permission post-grant config effects and
   external-grant follow-up probe policy through
   `DesktopPermissionGrantEffectsRuntime` instead of standalone helper exports,

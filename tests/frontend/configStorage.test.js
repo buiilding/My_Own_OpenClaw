@@ -9,8 +9,12 @@ import {
   saveConfigToStorage,
 } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js';
 import {
-  normalizeAppearanceTheme,
+  DesktopAppearanceThemeRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js';
+
+const {
+  normalizeAppearanceTheme,
+} = DesktopAppearanceThemeRuntime;
 
 const CONFIG_KEY = getRendererConfigStorageKey();
 const DEFAULT_RENDERER_CONFIG = {
