@@ -8,6 +8,7 @@ import {
   isOverlayTurnLifecycleBusy,
   resolveOverlayTurnLifecycle,
 } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
+import * as OverlayTurnLifecycleRuntime from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 describe('desktopOverlayTurnLifecycleRuntime', () => {
   test('treats local send latch as preflight before main phase advances', () => {
@@ -57,6 +58,7 @@ describe('desktopOverlayTurnLifecycleRuntime', () => {
   });
 
   test('busy and awaiting helpers track only active lifecycle states', () => {
+    expect(OverlayTurnLifecycleRuntime).not.toHaveProperty('OVERLAY_TURN_PHASE_GROUPS');
     expect(isOverlayTurnLifecycleBusy(OVERLAY_TURN_LIFECYCLE.IDLE)).toBe(false);
     expect(isOverlayTurnLifecycleBusy(OVERLAY_TURN_LIFECYCLE.TERMINAL)).toBe(false);
     expect(isOverlayTurnLifecycleBusy(OVERLAY_TURN_LIFECYCLE.PREFLIGHT)).toBe(true);

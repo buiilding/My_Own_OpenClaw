@@ -73,7 +73,7 @@ export function getDashboardConversationRef(conversation) {
   return normalizeOptionalString(conversation?.conversation_id);
 }
 
-export function getDashboardConversationTitle(conversation) {
+function getDashboardConversationTitle(conversation) {
   return normalizeOptionalString(conversation?.title);
 }
 
@@ -84,7 +84,7 @@ export function getDashboardConversationRenamePromptValue(
   return getDashboardConversationTitle(conversation) || fallbackTitle;
 }
 
-export function isDashboardConversationRef(conversation, conversationRef) {
+function isDashboardConversationRef(conversation, conversationRef) {
   return getDashboardConversationRef(conversation) === normalizeOptionalString(conversationRef);
 }
 

@@ -22,6 +22,7 @@ import {
   shouldReloadRecentConversationsForEventAction,
   togglePinnedConversationRef,
 } from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
+import * as DashboardConversationLoadRuntime from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
 
 describe('desktopDashboardConversationLoadRuntime', () => {
   test('metadataToDashboardConversation normalizes SDK metadata for dashboard rows', () => {
@@ -84,6 +85,8 @@ describe('desktopDashboardConversationLoadRuntime', () => {
     expect(getDashboardConversationRef(null)).toBe('');
     expect(getDashboardConversationRenamePromptValue(conversations[0])).toBe('First');
     expect(getDashboardConversationRenamePromptValue(conversations[1])).toBe('New chat');
+    expect(DashboardConversationLoadRuntime).not.toHaveProperty('getDashboardConversationTitle');
+    expect(DashboardConversationLoadRuntime).not.toHaveProperty('isDashboardConversationRef');
 
     expect(renameDashboardConversationInList(
       conversations,

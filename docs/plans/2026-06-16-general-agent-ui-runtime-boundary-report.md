@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: pending-turn explicit target matching now stays
-  private inside `ipc_pending_turn_handlers.cjs`; the public Electron-main
-  helper surface exposes clear/current-turn primitives without the stale
-  `pendingTurnMatchesTarget(...)` export.
+- Latest completed slice: renderer app-runtime dashboard row title/ref match
+  helpers and overlay lifecycle phase-group tables now stay private inside
+  their owner modules; public consumers use row list-update helpers and
+  lifecycle resolver APIs.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -546,6 +546,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Renderer App-Runtime Helper Export Boundary
+
+- Finding: `desktopDashboardConversationLoadRuntime.js` and
+  `desktopOverlayTurnLifecycleRuntime.js` exported internal title/ref matching
+  and JSON phase-group tables after earlier runtime extraction work, even
+  though no renderer consumer imported those helpers directly.
+- Change: made those implementation details private, kept the public
+  row-update and lifecycle resolver behavior unchanged, added export-surface
+  guards, and updated dashboard/overlay docs plus the renderer source map.
+- Validation: focused dashboard conversation load, overlay lifecycle, renderer
+  app-runtime boundary coverage, app-runtime stale export scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Dashboard row projection, rename,
+  delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
+  contracts, IPC channels, storage, provider policy, and hosted backend
+  behavior are unchanged.
 
 ### 2026-06-21 Main Pending-Turn Runtime Export Boundary
 

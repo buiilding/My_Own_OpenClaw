@@ -42,7 +42,8 @@ and `removePinnedConversationRef(...)` own dashboard row identity, title prompt
 fallbacks, and in-memory row/pin updates. The hook owns user prompts,
 confirmation, SDK delete calls, workspace-binding cleanup, and active-session
 reset side effects, but it should not inspect raw row ids or map/filter row
-lists itself for rename, delete, or pin actions.
+lists itself for rename, delete, or pin actions. Internal title extraction and
+row-id match helpers stay private behind those exported list-update helpers.
 
 `desktopDashboardConversationLoadRuntime.resolveRecentConversationEventAction(...)`
 owns SDK conversation event type classification for recent-list refresh and

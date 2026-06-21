@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: keep dashboard row title/match helpers and overlay
+  lifecycle phase groups private inside their app-runtime owner modules,
+  leaving only the list-update and lifecycle resolver APIs public. No migration
+  required.
 - main/ipc: keep pending-turn explicit target matching private inside
   `ipc_pending_turn_handlers.cjs` and remove the stale
   `pendingTurnMatchesTarget(...)` export. No migration required.

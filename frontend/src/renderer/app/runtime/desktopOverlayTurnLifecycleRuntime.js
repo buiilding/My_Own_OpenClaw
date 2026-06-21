@@ -20,7 +20,7 @@ export const OVERLAY_TURN_LIFECYCLE = Object.freeze({
   TERMINAL: lifecycleStates[4] || 'terminal',
 });
 
-export const OVERLAY_TURN_PHASE_GROUPS = Object.freeze({
+const OVERLAY_TURN_PHASE_GROUPS = Object.freeze({
   awaiting: Object.freeze(Array.isArray(overlayTurnLifecycleContract?.phase_groups?.awaiting)
     ? overlayTurnLifecycleContract.phase_groups.awaiting
     : []),

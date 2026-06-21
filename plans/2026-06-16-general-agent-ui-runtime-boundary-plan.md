@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer App-Runtime Helper Export Boundary
+
+- Finding: renderer app-runtime modules already owned dashboard row title/ref
+  matching and overlay lifecycle phase-group tables internally, but still
+  exported those implementation details even though consumers only needed row
+  list-update helpers and lifecycle resolver APIs.
+- Change: made `getDashboardConversationTitle(...)`,
+  `isDashboardConversationRef(...)`, and `OVERLAY_TURN_PHASE_GROUPS` private
+  to their owner modules, added focused export-surface guards, and updated the
+  dashboard/overlay docs and renderer source map to describe the narrower
+  public facades.
+- Validation: focused dashboard conversation load, overlay lifecycle, renderer
+  app-runtime boundary coverage, app-runtime stale export scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Dashboard row projection, rename,
+  delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
+  contracts, IPC channels, storage, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Main Pending-Turn Runtime Export Boundary
 
 - Finding: `ipc_pending_turn_handlers.cjs` already kept explicit

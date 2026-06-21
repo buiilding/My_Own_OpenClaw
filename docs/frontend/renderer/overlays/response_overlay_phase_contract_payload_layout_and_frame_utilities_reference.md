@@ -74,7 +74,8 @@ Shared lifecycle source of truth:
 
 Renderer adapters:
 
-- `desktopOverlayTurnLifecycleRuntime.js` exposes lifecycle constants and resolver helpers:
+- `desktopOverlayTurnLifecycleRuntime.js` exposes lifecycle constants and
+  resolver helpers while keeping JSON phase-group tables private:
   - `IDLE`
   - `PREFLIGHT`
   - `AWAITING`
