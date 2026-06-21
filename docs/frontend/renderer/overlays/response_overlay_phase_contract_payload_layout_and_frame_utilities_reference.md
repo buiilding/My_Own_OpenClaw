@@ -32,9 +32,21 @@ Shared phase/metadata source of truth:
 
 Renderer contract adapter:
 
-- `desktopResponseOverlayPhaseRuntime.js` reads JSON phases/metadata keys and derives:
-  - `RESPONSE_OVERLAY_PHASE` enum object (`IDLE`, `AWAITING_FIRST_CHUNK`, `STREAMING`, `TOOL_CALL`, `TOOL_OUTPUT`, `COMPLETE`, `ERROR`)
-  - renderer preflight guard-ref constant; main process owns the preflight source
+- `desktopResponseOverlayPhaseRuntime.js` reads JSON phases/metadata keys while
+  keeping the raw phase map and preflight guard ref private.
+- `getIdleResponseOverlayPhase()`,
+  `getAwaitingFirstChunkResponseOverlayPhase()`,
+  `getStreamingResponseOverlayPhase()`, `getToolCallResponseOverlayPhase()`,
+  `getToolOutputResponseOverlayPhase()`, `getCompleteResponseOverlayPhase()`,
+  and `getErrorResponseOverlayPhase()` expose semantic phase values for
+  renderer app-runtime callers.
+- `getResponseOverlayPreflightGuardRef()` exposes the renderer send-preflight
+  guard identity without exporting a raw constant.
+- `getResponseOverlayPhaseValues()` and `getResponseOverlayPhaseMap()` expose
+  parity snapshots for contract tests.
+- `isAwaitingFirstChunkResponseOverlayPhase(...)` and
+  `isStreamingResponseOverlayPhase(...)` keep current-turn surface code on
+  behavior-level checks.
 
 Main-process parity:
 

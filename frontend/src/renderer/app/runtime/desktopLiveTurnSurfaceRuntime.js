@@ -3,18 +3,26 @@
  */
 
 import {
-  RESPONSE_OVERLAY_PHASE,
-  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+  getAwaitingFirstChunkResponseOverlayPhase,
+  getCompleteResponseOverlayPhase,
+  getErrorResponseOverlayPhase,
+  getIdleResponseOverlayPhase,
+  getResponseOverlayPreflightGuardRef,
+  getStreamingResponseOverlayPhase,
+  getToolCallResponseOverlayPhase,
+  getToolOutputResponseOverlayPhase,
+  isAwaitingFirstChunkResponseOverlayPhase,
+  isStreamingResponseOverlayPhase,
 } from './desktopResponseOverlayPhaseRuntime';
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
-  awaiting: RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,
-  streaming: RESPONSE_OVERLAY_PHASE.STREAMING,
-  tool_call: RESPONSE_OVERLAY_PHASE.TOOL_CALL,
-  tool_output: RESPONSE_OVERLAY_PHASE.TOOL_OUTPUT,
-  complete: RESPONSE_OVERLAY_PHASE.COMPLETE,
-  error: RESPONSE_OVERLAY_PHASE.ERROR,
-  idle: RESPONSE_OVERLAY_PHASE.IDLE,
+  awaiting: getAwaitingFirstChunkResponseOverlayPhase(),
+  streaming: getStreamingResponseOverlayPhase(),
+  tool_call: getToolCallResponseOverlayPhase(),
+  tool_output: getToolOutputResponseOverlayPhase(),
+  complete: getCompleteResponseOverlayPhase(),
+  error: getErrorResponseOverlayPhase(),
+  idle: getIdleResponseOverlayPhase(),
 });
 
 const CURRENT_TURN_BUSY_PHASES = new Set([
@@ -192,13 +200,14 @@ export function resolveLiveTurnPresentationInput({
   });
   if (useLocalSendLatch) {
     const turnRef = normalizeTurnRef(pendingTurn?.turnRef) || findLatestUserTurnRef(messages);
+    const preflightGuardRef = getResponseOverlayPreflightGuardRef();
     const conversationRef = (
       normalizeConversationRef(pendingTurn?.conversationRef)
       || currentTurnProjection?.conversationRef
       || null
     );
     return {
-      phase: RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,
+      phase: getAwaitingFirstChunkResponseOverlayPhase(),
       isSending: true,
       isBusy: true,
       showAwaiting: true,
@@ -211,12 +220,12 @@ export function resolveLiveTurnPresentationInput({
         mode: 'awaiting',
         turnRef,
         conversationRef,
-        staleGuardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+        staleGuardRef: preflightGuardRef,
       },
       entries: [],
       turnRef,
       conversationRef,
-      guardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+      guardRef: preflightGuardRef,
     };
   }
 
@@ -226,7 +235,7 @@ export function resolveLiveTurnPresentationInput({
     const showAwaiting = overlayIntent.mode === 'awaiting';
     const showResponse = overlayIntent.mode === 'response';
     return {
-      phase: mapCurrentTurnProjectionPhase(currentTurnProjection?.phase) || RESPONSE_OVERLAY_PHASE.IDLE,
+      phase: mapCurrentTurnProjectionPhase(currentTurnProjection?.phase) || getIdleResponseOverlayPhase(),
       isSending: presentation.isBusy === true,
       isBusy: presentation.isBusy === true,
       showAwaiting,
@@ -248,8 +257,8 @@ export function resolveLiveTurnPresentationInput({
       phase: currentTurnPhase,
       isSending: isCurrentTurnProjectionBusy(currentTurnProjection?.phase),
       isBusy: isCurrentTurnProjectionBusy(currentTurnProjection?.phase),
-      showAwaiting: currentTurnPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,
-      showResponse: currentTurnPhase === RESPONSE_OVERLAY_PHASE.STREAMING,
+      showAwaiting: isAwaitingFirstChunkResponseOverlayPhase(currentTurnPhase),
+      showResponse: isStreamingResponseOverlayPhase(currentTurnPhase),
       source: 'current-turn',
       useLocalSendLatch: false,
       useSdkLiveTurnPresentation: false,
@@ -262,7 +271,7 @@ export function resolveLiveTurnPresentationInput({
   }
 
   return {
-    phase: RESPONSE_OVERLAY_PHASE.IDLE,
+    phase: getIdleResponseOverlayPhase(),
     isSending: false,
     isBusy: false,
     showAwaiting: false,

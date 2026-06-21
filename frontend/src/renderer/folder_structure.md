@@ -65,7 +65,7 @@ frontend/src/renderer/
 │   │   ├── desktopTranscriptionRegionRuntime.ts # Renderer transcription-region edit reconciliation facade
 │   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle resolver/predicate facade
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
-│   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase enum and preflight guard facade
+│   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase helper and parity snapshot facade
 │   │   ├── desktopResponseOverlayViewRuntime.ts # Renderer response overlay visibility and layout intent facade
 │   │   ├── desktopToolGhostRuntime.ts # Renderer debug tool-ghost timing facade
 │   │   ├── desktopStreamPhaseRuntime.js # Renderer response-overlay awaiting-reply phase predicate facade

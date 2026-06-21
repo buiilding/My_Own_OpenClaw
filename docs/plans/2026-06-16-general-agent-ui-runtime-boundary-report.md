@@ -8579,3 +8579,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Lifecycle string values, chat-loop state, awaiting-dot behavior,
   stale-response suppression, IPC channels, storage, provider policy,
   permissions, and backend behavior are unchanged; no migration is required.
+- The renderer response-overlay phase runtime now keeps the raw
+  `RESPONSE_OVERLAY_PHASE` map and preflight guard ref private to
+  `desktopResponseOverlayPhaseRuntime.js`; stream phase reduction, live-turn
+  surface projection, contract tests, and renderer/main parity checks use
+  semantic phase helpers, behavior predicates, the preflight guard accessor, or
+  explicit parity snapshots instead. Boundary coverage prevents the raw phase
+  constants from returning as public app-runtime exports or renderer production
+  dependencies. Phase string values, preflight guard identity,
+  awaiting/streaming display booleans, IPC channel names, storage, provider
+  policy, permissions, and backend behavior are unchanged; no migration is
+  required.

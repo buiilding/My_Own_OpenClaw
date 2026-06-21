@@ -20719,3 +20719,20 @@ Each completed slice should report:
   lifecycle mapping, chat-loop state, awaiting-dot behavior, stale response
   suppression, IPC channels, storage, provider policy, permissions, and backend
   behavior are unchanged.
+
+### 2026-06-21 renderer response-overlay phase helper privacy
+
+- Finding: `desktopResponseOverlayPhaseRuntime.js` owned the JSON-backed
+  response-overlay phase contract, but still exported the raw
+  `RESPONSE_OVERLAY_PHASE` map and preflight guard ref to renderer app-runtime
+  consumers and focused contract tests.
+- Change: made the raw phase map and guard ref private to the phase adapter,
+  exposed semantic phase value helpers, predicates, the preflight guard
+  accessor, and parity snapshot helpers, then updated stream/live-turn runtime
+  callers and focused tests to use that helper surface.
+- Validation: focused phase contract, phase parity, stream/live-turn, renderer
+  boundary, docs listing, exact raw-export/import scan, and diff checks.
+- Compatibility: no migration required. Phase string values, preflight guard
+  identity, SDK current-turn surface projection, awaiting/streaming display
+  booleans, IPC channel names, storage, provider policy, permissions, and
+  backend behavior are unchanged.

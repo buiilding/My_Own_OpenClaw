@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlay: keep response-overlay phase constants and preflight guard
+  private to the app-runtime phase adapter, exposing semantic phase helpers,
+  predicates, and parity snapshots. No migration required.
 - renderer/overlay: keep overlay turn lifecycle constants private to the
   app-runtime lifecycle adapter, exposing semantic lifecycle helpers and
   predicates for chat-loop and overlay view callers. No migration required.

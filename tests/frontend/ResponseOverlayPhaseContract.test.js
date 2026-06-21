@@ -3,14 +3,17 @@
  */
 
 import {
-  RESPONSE_OVERLAY_PHASE,
-  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+  getResponseOverlayPhaseMap,
+  getResponseOverlayPhaseValues,
+  getResponseOverlayPreflightGuardRef,
 } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
+import * as ResponseOverlayPhaseRuntime from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
 import responseOverlayPhaseContract from '../../frontend/src/shared/response_overlay_phase_contract.json';
 
 describe('responseOverlayPhaseContract', () => {
-  test('exports canonical phase list and enum object', () => {
-    expect(Object.values(RESPONSE_OVERLAY_PHASE)).toEqual([
+  test('exposes canonical phase list and semantic phase map snapshot', () => {
+    expect(ResponseOverlayPhaseRuntime).not.toHaveProperty('RESPONSE_OVERLAY_PHASE');
+    expect(getResponseOverlayPhaseValues()).toEqual([
       'idle',
       'awaiting-first-chunk',
       'streaming',
@@ -19,7 +22,7 @@ describe('responseOverlayPhaseContract', () => {
       'complete',
       'error',
     ]);
-    expect(RESPONSE_OVERLAY_PHASE).toEqual({
+    expect(getResponseOverlayPhaseMap()).toEqual({
       IDLE: 'idle',
       AWAITING_FIRST_CHUNK: 'awaiting-first-chunk',
       STREAMING: 'streaming',
@@ -31,7 +34,8 @@ describe('responseOverlayPhaseContract', () => {
   });
 
   test('keeps canonical preflight source and renderer guard', () => {
+    expect(ResponseOverlayPhaseRuntime).not.toHaveProperty('RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF');
     expect(responseOverlayPhaseContract.preflight.source).toBe('renderer-send-preflight');
-    expect(RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF).toBe('renderer-send-preflight');
+    expect(getResponseOverlayPreflightGuardRef()).toBe('renderer-send-preflight');
   });
 });

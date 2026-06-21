@@ -1,8 +1,9 @@
 /** @jest-environment node */
 
 import {
-  RESPONSE_OVERLAY_PHASE as rendererPhaseEnum,
-  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF as rendererPreflightGuardRef,
+  getResponseOverlayPhaseMap,
+  getResponseOverlayPhaseValues,
+  getResponseOverlayPreflightGuardRef,
 } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
 import responseOverlayPhaseContract from '../../frontend/src/shared/response_overlay_phase_contract.json';
 
@@ -15,15 +16,15 @@ const {
 
 describe('overlay phase contract parity', () => {
   test('keeps renderer and main phase sequence in lockstep', () => {
-    expect(Array.from(mainPhaseSet)).toEqual(Object.values(rendererPhaseEnum));
+    expect(Array.from(mainPhaseSet)).toEqual(getResponseOverlayPhaseValues());
   });
 
   test('keeps renderer and main phase enum mapping in lockstep', () => {
-    expect(createResponseOverlayPhaseEnum()).toEqual(rendererPhaseEnum);
+    expect(createResponseOverlayPhaseEnum()).toEqual(getResponseOverlayPhaseMap());
   });
 
   test('keeps renderer and main preflight identity in lockstep', () => {
     expect(mainPreflightSource).toBe(responseOverlayPhaseContract.preflight.source);
-    expect(mainPreflightGuardRef).toBe(rendererPreflightGuardRef);
+    expect(mainPreflightGuardRef).toBe(getResponseOverlayPreflightGuardRef());
   });
 });

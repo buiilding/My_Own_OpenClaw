@@ -3,11 +3,13 @@
  */
 
 import {
-  RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+  getResponseOverlayPreflightGuardRef,
 } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
 import {
   resolveLiveTurnPresentationInput,
 } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime';
+
+const preflightGuardRef = getResponseOverlayPreflightGuardRef();
 
 describe('desktopLiveTurnSurfaceRuntime', () => {
   test('uses SDK current turn as live surface authority', () => {
@@ -53,13 +55,13 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: false,
       turnRef: 'turn-2',
-      guardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+      guardRef: preflightGuardRef,
       overlayIntent: {
         visible: true,
         mode: 'awaiting',
         turnRef: 'turn-2',
         conversationRef: 'conv-1',
-        staleGuardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+        staleGuardRef: preflightGuardRef,
       },
     });
   });
@@ -77,10 +79,10 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       source: 'send-preflight',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: false,
-      guardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+      guardRef: preflightGuardRef,
       overlayIntent: expect.objectContaining({
         mode: 'awaiting',
-        staleGuardRef: RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
+        staleGuardRef: preflightGuardRef,
       }),
     });
   });
