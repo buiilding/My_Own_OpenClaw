@@ -103,6 +103,105 @@ async def test_scripted_batch_emits_multiple_tool_calls():
 
 
 @pytest.mark.asyncio
+async def test_scripted_tool_stops_after_matching_tool_output():
+    provider = ScriptedProvider()
+    messages = [
+        _user_message('@script tool screenshot {"delay":0}'),
+        {
+            "role": "assistant",
+            "content": "Scripted runtime queued 1 tool call(s): screenshot.",
+            "tool_calls": [
+                {
+                    "id": "scripted_call_1",
+                    "name": "screenshot",
+                    "arguments": {
+                        "delay": 0,
+                        "explanation": "Validate the scripted model tool path.",
+                    },
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "content": "Screenshot captured successfully.",
+            "tool_call_id": "scripted_call_1",
+        },
+    ]
+
+    events = await _collect_stream(provider, messages)
+
+    assert (
+        "".join(event.content for event in events if isinstance(event, ChunkEvent))
+        == "Scripted runtime completed 1 tool call(s): screenshot."
+    )
+    assert provider.get_last_stream_response_payload() == {
+        "content": "Scripted runtime completed 1 tool call(s): screenshot.",
+        "finish_reason": "stop",
+    }
+
+
+@pytest.mark.asyncio
+async def test_scripted_batch_waits_for_all_matching_tool_outputs():
+    provider = ScriptedProvider()
+    messages = [
+        _user_message(
+            "@script batch ["
+            '{"tool":"screenshot","args":{}},'
+            '{"tool":"filesystem_read","args":{"path":"README.md"}}'
+            "]"
+        ),
+        {
+            "role": "assistant",
+            "content": "Scripted runtime queued 2 tool call(s): screenshot, read_file.",
+            "tool_calls": [
+                {
+                    "id": "scripted_call_1",
+                    "name": "screenshot",
+                    "arguments": {
+                        "explanation": "Validate the scripted model tool path.",
+                    },
+                },
+                {
+                    "id": "scripted_call_2",
+                    "name": "read_file",
+                    "arguments": {
+                        "file_path": "README.md",
+                        "explanation": "Validate the scripted model tool path.",
+                    },
+                },
+            ],
+        },
+        {
+            "role": "tool",
+            "content": "Screenshot captured successfully.",
+            "tool_call_id": "scripted_call_1",
+        },
+    ]
+
+    await _collect_stream(provider, messages)
+
+    assert provider.get_last_stream_response_payload()["finish_reason"] == "tool_calls"
+
+    messages.append(
+        {
+            "role": "tool",
+            "content": "README contents.",
+            "tool_call_id": "scripted_call_2",
+        }
+    )
+    events = await _collect_stream(provider, messages)
+
+    assert (
+        "".join(event.content for event in events if isinstance(event, ChunkEvent))
+        == "Scripted runtime completed 2 tool call(s): screenshot, read_file."
+    )
+    assert provider.get_last_stream_response_payload() == {
+        "content": "Scripted runtime completed 2 tool call(s): screenshot, read_file.",
+        "finish_reason": "stop",
+    }
+
+
+@pytest.mark.asyncio
 async def test_scripted_image_command_reports_provider_prompt_image_parts():
     provider = ScriptedProvider()
 

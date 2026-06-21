@@ -14,6 +14,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- backend/provider: stop the dev-only scripted model from replaying the same
+  scripted tool command after matching tool outputs are already present in
+  rebuilt model history, so `@script tool` and `@script batch` finish the turn
+  instead of looping forever. No migration required.
 - docs/renderer: restore the renderer folder-structure source-map line for
   `desktopToolGhostRuntime.ts` so the debug tool-ghost runtime entry no longer
   carries literal mojibake placeholders. No migration required.
