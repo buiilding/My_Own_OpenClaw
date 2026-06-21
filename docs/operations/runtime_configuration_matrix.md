@@ -130,7 +130,7 @@ Local macOS reinstall intentionally clears Apple signing/notarization env before
 
 ## Add-a-Config Checklist
 
-1. Choose the owner first: backend, Electron main, renderer, sidecar, or release CI.
+1. Choose the owner first: backend, Electron main, renderer, local-runtime implementation, or release CI.
 2. Add the field in the owner layer and document its default.
 3. Propagate only normalized values to downstream processes.
 4. Add tests at the owner boundary and at every protocol boundary that receives the propagated value.

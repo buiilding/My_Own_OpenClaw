@@ -59,6 +59,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: route the workspace-context prompt ownership rule through
   local-runtime Python wording instead of sidecar tool ownership wording. No
   migration required.
+- docs/security and docs/operations: list credential-header and configuration
+  workflow owners through local-runtime implementation wording instead of
+  sidecar owner buckets. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

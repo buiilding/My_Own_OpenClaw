@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Workflow Owner Bucket Local-Runtime Label Boundary
+
+- Finding: the credential-token workflow still routed client header edits to
+  "Electron, SDK, or sidecar", and the runtime configuration matrix still
+  listed sidecar as a top-level owner choice in the add-config checklist.
+- Change: reworded both workflow owner buckets to local-runtime implementation
+  wording and added exact retired-phrase guards for the security and
+  configuration docs.
+- Validation: focused modular runtime docs guard, exact stale-label scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. Credential header semantics,
+  endpoint/auth policy, runtime env names, configuration defaults, local-runtime
+  launch behavior, IPC payloads, storage, credentials, permissions, hosted
+  backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Workspace Context Local-Runtime Prompt Boundary
 
 - Finding: the workspace-context workflow still said sidecar local tools may

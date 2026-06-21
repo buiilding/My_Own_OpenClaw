@@ -188,7 +188,8 @@ Edit:
 - `backend/src/api/auth/http_middleware.py` for path exemptions, status codes, and header enforcement.
 - `backend/src/api/auth/context.py` only if request-local identity shape changes.
 - `backend/src/main.py` or app assembly only if middleware/service wiring changes.
-- Client header code in Electron, SDK, or sidecar only after backend semantics are clear.
+- Client header code in Electron, SDK, or the local-runtime implementation only
+  after backend semantics are clear.
 
 Validate:
 
