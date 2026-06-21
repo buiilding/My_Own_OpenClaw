@@ -42,6 +42,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: make the bug-invariant discipline explicit so user-visible and
+  runtime bugs are routed through owner, replay, regression-proof, and
+  owner-correct fix steps, with core-loop UI bugs added to a named regression
+  pack. No migration required.
 - frontend/main: rename Agent SDK query command payload bookkeeping inside
   `ipc_agent_sdk_runtime_commands.cjs` from backend-payload wording to SDK
   runtime command payload wording, keeping Electron main framed as the SDK host

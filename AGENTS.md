@@ -102,6 +102,11 @@ Architecture rules:
 
 - Be unbiased and logical first. Inspect live code, docs, diagnostics, and
   recent history before answering implementation questions or editing.
+- Treat every user-visible or runtime bug as a discovered invariant. Before
+  fixing, name the symptom, invariant, owner runtime, smallest replay or
+  reproduction timeline, regression proof, and owner-correct fix. Keep the proof
+  proportional: a unit test, integration test, diagnostic assertion, screenshot
+  check, or focused command is enough when it protects the behavior.
 - Prefer the direct owner-correct path: fix root causes at the owning runtime,
   normalize inputs at boundaries, fail fast on invalid state, and split distinct
   states into named handlers instead of stacking nested fallbacks.
@@ -120,6 +125,24 @@ Architecture rules:
   related frontend changes.
 - Preserve unrelated dirty worktree changes. Report only files and behavior you
   changed, and stop only if unexpected changes affect files you are editing.
+
+Core-loop UI bug rule:
+
+- The goal is not to fix chat pill, dashboard, overlay, conversation runtime,
+  SDK projection, IPC, or replay bugs one at a time. The goal is to convert each
+  human-discovered bug into a named invariant with a replayable regression
+  check. Prefer event-timeline tests that feed known sequences into the owning
+  renderer or runtime path, for example `user_send_accepted`,
+  `pending_turn_created`, `sdk_current_turn_idle`,
+  `sdk_current_turn_awaiting`, `assistant_delta`, and `streaming_complete`, then
+  assert the visible projection never enters an invalid state.
+- Do not accept a core-loop UI fix that only changes the visible component
+  unless that component owns the broken state. Fix the owning producer or
+  boundary contract first, then delete fallback state only after the invariant
+  is protected.
+- Add protected core-loop behaviors to the Core Loop Regression Pack and run
+  that pack before future chat pill, dashboard, overlay, conversation runtime,
+  SDK projection, or IPC changes are considered complete.
 
 For architectural or product-flow questions, explain conceptually first:
 describe how the runtime works, where a change fits, what boundaries change, and
