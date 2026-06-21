@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Backend-Config Validation Label Boundary
+
+- Finding: the release packaging workflow still routed packaged backend
+  endpoint validation through "sidecar backend-config tests" even though the
+  current owner label is local-runtime backend configuration.
+- Change: reworded the validation row to local-runtime backend-config tests and
+  extended the modular runtime docs guard for the retired validation label.
+- Validation: focused modular runtime docs guard, exact stale-label scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. Endpoint env names, packaged
+  defaults, local-runtime backend config behavior, IPC, permissions,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer App-Runtime Failure Label Boundary
 
 - Finding: `DesktopLiveTurnRuntimeClient` still used a "desktop runtime"

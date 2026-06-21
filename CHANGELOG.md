@@ -48,6 +48,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/app-runtime: report SDK command invoke fallback failures through
   renderer app-runtime wording instead of the retired desktop-runtime label. No
   migration required.
+- docs/operations: route packaged backend endpoint validation through
+  local-runtime backend-config tests instead of sidecar backend-config wording.
+  No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

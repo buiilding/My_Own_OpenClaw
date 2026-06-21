@@ -110,7 +110,7 @@ Start with the installed-app signal, not the dev app:
 | `frontend/package.json` package script change | `cd frontend && npm run release:check`, `<windie> build frontend`, target package command on target OS |
 | Runtime path resolver change | `cd frontend && npm run test -- RuntimePaths`, installed app smoke on target OS |
 | Local-runtime Python requirement/build change | `<windie> build local-runtime`, `<windie> test local-runtime`, target package command |
-| Backend endpoint packaged-default change | frontend endpoint tests, sidecar backend-config tests, installed app websocket smoke |
+| Backend endpoint packaged-default change | frontend endpoint tests, local-runtime backend-config tests, installed app websocket smoke |
 | Reinstall helper change | run the matching helper on that OS; verify reset scope and launch logs |
 | Release workflow change | workflow syntax review, dry-run/manual dispatch reasoning, matching smoke helper, release doc update |
 

@@ -1415,6 +1415,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK local-runtime store params sent to the local runtime');
     expect(docText).toContain('SDK then called local-runtime `store_memory_by_embedding`');
     expect(docText).toContain('canonical local-runtime events');
+    expect(docText).toContain('local-runtime backend-config tests');
     expect(docText).toContain('local-runtime conversation_events rows');
     expect(docText).toContain('local-runtime event store path');
     expect(docText).toContain('returns sanitized search metadata');
@@ -1435,6 +1436,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('canonical sidecar `conversation_events`');
     expect(docText).not.toContain('sidecar event store path');
     expect(docText).not.toContain('sidecar transcript storage');
+    expect(docText).not.toContain('sidecar backend-config tests');
     expect(docText).not.toContain('SDK/local-runtime camelCase to sidecar snake_case conversions include');
     expect(docText).not.toContain('then calls sidecar\n`store_memory_by_embedding`');
     expect(docText).not.toContain('SDK local-runtime store params sent to the sidecar');
