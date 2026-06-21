@@ -1,5 +1,5 @@
 /**
- * Adapts a direct AgentClient wakeUp result to Electron main runtime methods.
+ * Adapts a direct AgentClient wakeUp result to Electron agent-host methods.
  */
 
 const {

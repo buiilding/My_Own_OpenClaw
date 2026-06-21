@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Direct Wake-Up Adapter Agent-Host Label
+
+- Finding: `ipc_direct_wake_up_agent_adapter.cjs` still described its adapter
+  target as Electron main runtime methods, even though the owning boundary is
+  the Electron agent host adapting direct `AgentClient.wakeUp` results.
+- Change: reworded the source header to Electron agent-host methods and
+  extended the modular wake-up boundary guard for the retired Electron main
+  runtime phrase.
+- Validation: focused modular wake-up boundary test, exact stale-label scan,
+  and diff hygiene.
+- Compatibility/security: no migration required. Agent wake-up flow,
+  conversation runtime handles, local-runtime lifecycle, IPC channels, backend
+  websocket wiring, permissions, credentials, and provider policy are unchanged.
+
 ### 2026-06-21 Tool Catalog Workspace Directory Label
 
 - Finding: the architecture tool catalog still described `run_shell_command`

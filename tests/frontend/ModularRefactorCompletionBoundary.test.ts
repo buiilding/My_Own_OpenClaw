@@ -63,6 +63,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(agentWakeupRuntimeSource).toContain('createDirectWakeUpAgentAdapter({');
     expect(ipcSource).not.toContain('agent.conversation({');
     expect(directWakeUpAdapterSource).toContain('agent.conversation({');
+    expect(directWakeUpAdapterSource).toContain('Electron agent-host methods');
+    expect(directWakeUpAdapterSource).not.toContain('Electron main runtime methods');
     expect(ipcSource).toContain('hostOptionState.getLocalToolLifecycle()');
     expect(ipcSource).toContain('hostOptionState.getAgentWebSocketImpl()');
     expect(ipcSource).not.toContain('let localToolLifecycle = null');
