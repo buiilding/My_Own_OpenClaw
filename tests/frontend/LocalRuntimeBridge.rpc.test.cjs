@@ -18,6 +18,8 @@ const {
   mainHostSkin,
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
 
+const TEST_BACKEND_HTTP_URL = 'https://backend.example.com';
+
 function createOwnedScreenshotTempPath(
   label,
   dirName = 'desktop-runtime-screenshots',
@@ -199,7 +201,7 @@ describe('local_runtime_bridge RPC handlers', () => {
 
   test('screenshot host channel uploads temp-path responses and returns artifact refs', async () => {
     const { handlers, stdoutHandler } = initBridge({
-      backendHttpUrl: 'https://api.windieos.com',
+      backendHttpUrl: TEST_BACKEND_HTTP_URL,
       getArtifactUploadHeaders: async () => ({
         Authorization: 'Bearer test-install-token',
       }),
@@ -246,7 +248,7 @@ describe('local_runtime_bridge RPC handlers', () => {
 
       expect(fetchMock).toHaveBeenCalled();
       const [uploadUrl, uploadOptions] = fetchMock.mock.calls[0];
-      if (String(uploadUrl) !== 'https://api.windieos.com/api/artifacts/') {
+      if (String(uploadUrl) !== `${TEST_BACKEND_HTTP_URL}/api/artifacts/`) {
         throw new Error(`unexpected upload url: ${String(uploadUrl)}`);
       }
       if (uploadOptions?.method !== 'POST') {
@@ -699,7 +701,7 @@ describe('local_runtime_bridge RPC handlers', () => {
 
   test('screenshot host channel falls back to inline screenshot when artifact upload fails', async () => {
     const { handlers, stdoutHandler } = initBridge({
-      backendHttpUrl: 'https://api.windieos.com',
+      backendHttpUrl: TEST_BACKEND_HTTP_URL,
       getArtifactUploadHeaders: async () => ({
         Authorization: 'Bearer test-install-token',
       }),
@@ -741,7 +743,7 @@ describe('local_runtime_bridge RPC handlers', () => {
 
       expect(fetchMock).toHaveBeenCalled();
       const [uploadUrl, uploadOptions] = fetchMock.mock.calls[0];
-      if (String(uploadUrl) !== 'https://api.windieos.com/api/artifacts/') {
+      if (String(uploadUrl) !== `${TEST_BACKEND_HTTP_URL}/api/artifacts/`) {
         throw new Error(`unexpected upload url: ${String(uploadUrl)}`);
       }
       if (uploadOptions?.method !== 'POST') {

@@ -14,6 +14,8 @@ const {
   mainHostSkin,
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
 
+const TEST_BACKEND_HTTP_URL = 'https://backend.example.com';
+
 function createHostSkinLocalRuntimeLaunchPlan(options = {}) {
   return createDesktopLocalRuntimeLaunchPlan({
     daemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint,
@@ -209,12 +211,12 @@ describe('desktop local runtime launch options', () => {
       userDataDir: 'AGENT_USER_DATA_DIR',
     });
     const plan = createHostSkinLocalRuntimeLaunchPlan({
-      backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+      backendEndpoints: { httpUrl: TEST_BACKEND_HTTP_URL },
       userDataRoot: '/tmp/agent-data',
     });
 
     expect(plan.ok).toBe(true);
-    expect(plan.options.env.AGENT_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
+    expect(plan.options.env.AGENT_BACKEND_HTTP_URL).toBe(TEST_BACKEND_HTTP_URL);
     expect(plan.options.env.AGENT_PACKAGED_APP).toBe('0');
     expect(plan.options.env.AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
     expect(plan.options.env.AGENT_USER_DATA_DIR).toBe('/tmp/agent-data');
@@ -246,7 +248,7 @@ describe('desktop local runtime launch options', () => {
       process.env.WINDIE_SIDECAR_LOG_LEVEL = 'DEBUG';
       process.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL = 'INFO';
       plan = createHostSkinLocalRuntimeLaunchPlan({
-        backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+        backendEndpoints: { httpUrl: TEST_BACKEND_HTTP_URL },
         localRuntimeEnv: mainHostSkin.localRuntime.env,
         authStatePath: '/tmp/auth.json',
         permissionStatePath: '/tmp/permissions.json',
@@ -276,7 +278,7 @@ describe('desktop local runtime launch options', () => {
     }
 
     expect(plan.ok).toBe(true);
-    expect(plan.options.env.AGENT_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
+    expect(plan.options.env.AGENT_BACKEND_HTTP_URL).toBe(TEST_BACKEND_HTTP_URL);
     expect(plan.options.env.AGENT_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
     expect(plan.options.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');
     expect(plan.options.env.AGENT_PACKAGED_APP).toBe('0');
@@ -284,7 +286,7 @@ describe('desktop local runtime launch options', () => {
     expect(plan.options.env.AGENT_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
     expect(plan.options.env.AGENT_USER_DATA_DIR).toBe('/tmp/windie-data');
     expect(plan.options.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL).toBe('DEBUG');
-    expect(plan.options.env.WINDIE_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
+    expect(plan.options.env.WINDIE_BACKEND_HTTP_URL).toBe(TEST_BACKEND_HTTP_URL);
     expect(plan.options.env.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
     expect(plan.options.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');
     expect(plan.options.env.WINDIE_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
@@ -292,7 +294,7 @@ describe('desktop local runtime launch options', () => {
     expect(plan.options.env.WINDIE_SIDECAR_LOG_LEVEL).toBe('DEBUG');
     expect(plan.options.env.WINDIE_PACKAGED_APP).toBe('0');
     expect(plan.options.env.WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
-    expect(plan.options.launchContext.WINDIE_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
+    expect(plan.options.launchContext.WINDIE_BACKEND_HTTP_URL).toBe(TEST_BACKEND_HTTP_URL);
     expect(plan.options.launchContext.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
     expect(plan.options.launchContext.WINDIE_USER_DATA_DIR).toBe('/tmp/windie-data');
     expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_PATH)
@@ -306,7 +308,7 @@ describe('desktop local runtime launch options', () => {
 
   test('desktop launch owns a fresh local runtime instead of reusing discovered daemons', () => {
     const plan = createHostSkinLocalRuntimeLaunchPlan({
-      backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+      backendEndpoints: { httpUrl: TEST_BACKEND_HTTP_URL },
     });
 
     expect(plan.ok).toBe(true);
@@ -318,7 +320,7 @@ describe('desktop local runtime launch options', () => {
 
   test('desktop launch uses a generic daemon discovery path by default', () => {
     const plan = createHostSkinLocalRuntimeLaunchPlan({
-      backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+      backendEndpoints: { httpUrl: TEST_BACKEND_HTTP_URL },
     });
 
     expect(plan.ok).toBe(true);
@@ -339,7 +341,7 @@ describe('desktop local runtime launch options', () => {
         AGENT_LOCAL_RUNTIME_LOG_FILE: logFile,
       };
       const plan = createHostSkinLocalRuntimeLaunchPlan({
-        backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+        backendEndpoints: { httpUrl: TEST_BACKEND_HTTP_URL },
       });
 
       expect(plan.ok).toBe(true);
@@ -378,7 +380,7 @@ describe('desktop local runtime launch options', () => {
         WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
       };
       const plan = createHostSkinLocalRuntimeLaunchPlan({
-        backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+        backendEndpoints: { httpUrl: TEST_BACKEND_HTTP_URL },
         localRuntimeEnv: mainHostSkin.localRuntime.env,
       });
 
@@ -406,7 +408,7 @@ describe('desktop local runtime launch options', () => {
         AGENT_MAIN_LOG_FILE: logFile,
       };
       const plan = createHostSkinLocalRuntimeLaunchPlan({
-        backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+        backendEndpoints: { httpUrl: TEST_BACKEND_HTTP_URL },
       });
 
       expect(plan.ok).toBe(true);

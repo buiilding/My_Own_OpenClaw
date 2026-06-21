@@ -616,6 +616,17 @@ describe('modular sdk refactor completion boundary', () => {
     expect(combined).toContain('https://backend.example.com');
   });
 
+  test('local-runtime main helper tests keep endpoint fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/LocalRuntimeLaunchOptions.test.cjs'),
+      read('tests/frontend/LocalRuntimeBridge.rpc.test.cjs'),
+    ]);
+    const combined = source.join('\n');
+
+    expect(combined).not.toContain('https://api.windieos.com');
+    expect(combined).toContain('https://backend.example.com');
+  });
+
   test('endpoint runtime tests keep arbitrary test hosts product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/IpcArtifactHandlers.test.cjs'),

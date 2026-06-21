@@ -18875,3 +18875,21 @@ Each completed slice should report:
   context-menu copy behavior, handler registration, install auth header
   forwarding, permissions, storage, provider policy, and local-runtime behavior
   are unchanged.
+
+### 2026-06-20 Local-runtime main endpoint fixture neutrality
+
+- Finding: local-runtime launch option and RPC bridge tests used the WindieOS
+  hosted backend URL as explicit fixture data even though those tests cover
+  generic main/local-runtime env propagation and artifact upload construction,
+  not product-hosted defaults.
+- Change: switched those fixtures to neutral `https://backend.example.com`
+  values and extended modular boundary coverage for the local-runtime main
+  helper tests.
+- Validation: focused local-runtime launch option, local-runtime RPC bridge,
+  and modular boundary tests; exact retired hosted endpoint scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Host env alias compatibility, daemon
+  launch env propagation, artifact upload URL construction, screenshot
+  temp-path ownership, SDK local-runtime routing, hosted backend defaults in
+  product-owned config/docs, provider policy, permissions, and storage are
+  unchanged.

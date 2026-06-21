@@ -7743,3 +7743,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   clipboard copy behavior, native context-menu copy behavior, handler
   registration, install auth header forwarding, permissions, storage, provider
   policy, and local-runtime behavior are unchanged; no migration is required.
+- Local-runtime launch option and RPC bridge tests now use neutral
+  `https://backend.example.com` endpoint fixtures instead of WindieOS hosted URL
+  samples. The WindieOS hosted defaults remain product-owned in the host skin
+  and endpoint resolver coverage. Daemon launch env propagation, host env alias
+  compatibility, artifact upload URL construction, screenshot temp-path
+  ownership, SDK local-runtime routing, permissions, storage, provider policy,
+  and hosted backend behavior are unchanged; no migration is required.

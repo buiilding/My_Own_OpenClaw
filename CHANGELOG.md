@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral backend endpoint fixtures in local-runtime launch
+  option and RPC bridge coverage instead of WindieOS hosted URL samples. No
+  migration required.
+
 - tests/main: use neutral endpoint fixtures in artifact fetch, artifact handler,
   clipboard image, image context-menu, and image interaction IPC helper
   coverage instead of WindieOS hosted URL samples. No migration required.
