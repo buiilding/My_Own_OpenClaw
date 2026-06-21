@@ -54,7 +54,7 @@ function createMockBackend() {
       return;
     }
     res.writeHead(200, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ ok: true, service: 'windie-cli-agent-example' }));
+    res.end(JSON.stringify({ ok: true, service: 'agent-cli-example' }));
   });
   const sockets = new Set();
   const wss = new WebSocketServer({ server, path: '/ws' });
@@ -119,7 +119,7 @@ const {
 
 const backend = await createMockBackend();
 const store = new FileConversationStore({
-  directory: path.join(os.tmpdir(), 'windie-cli-agent-example-store'),
+  directory: path.join(os.tmpdir(), 'agent-cli-example-store'),
 });
 const client = new AgentClient({
   backendUrl: backend.backendUrl,

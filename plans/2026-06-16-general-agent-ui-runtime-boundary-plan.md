@@ -18938,3 +18938,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Endpoint resolution, hosted defaults,
   explicit local/self-host overrides, SDK websocket routing, provider policy,
   permissions, storage, and local-runtime behavior are unchanged.
+
+### 2026-06-21 Public SDK example fixture neutrality
+
+- Finding: public SDK examples had already moved to Agent SDK labels, but some
+  arbitrary mock-backend service names, temporary store directories, and local
+  note filenames still used Windie-flavored sample data.
+- Change: switched those example-only values to neutral `agent-*` names and
+  extended modular boundary coverage over the local-tool Python example file.
+- Validation: focused modular boundary test; exact retired example fixture scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Current package names (`@windie/sdk`,
+  `windie-sdk`, and repo paths under `packages/windie-sdk-*`) are unchanged.
+  Example mock backend behavior, file conversation store behavior,
+  plugin/module-tool execution, local-runtime daemon discovery, provider policy,
+  permissions, storage, and hosted backend behavior are unchanged.

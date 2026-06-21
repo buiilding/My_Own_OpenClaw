@@ -7771,3 +7771,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Endpoint resolution, hosted defaults, explicit local and self-host overrides,
   SDK websocket routing, provider policy, permissions, storage, and
   local-runtime behavior are unchanged; no migration is required.
+- Public SDK examples now use neutral `agent-*` sample service names, temporary
+  store directories, and note filenames instead of Windie-flavored arbitrary
+  fixture data. The real `@windie/sdk`, `windie-sdk`, and repo package paths
+  remain unchanged because they are current package names. Example mock backend
+  behavior, file conversation store behavior, plugin/module-tool execution,
+  local-runtime daemon discovery, provider policy, permissions, storage, and
+  hosted backend behavior are unchanged; no migration is required.

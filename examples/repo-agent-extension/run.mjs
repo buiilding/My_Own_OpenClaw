@@ -23,7 +23,7 @@ function send(socket, type, payload = {}, extra = {}) {
 function createMockBackend() {
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ ok: true, service: 'windie-repo-agent-example' }));
+    res.end(JSON.stringify({ ok: true, service: 'agent-repo-example' }));
   });
   const wss = new WebSocketServer({ server, path: '/ws' });
   const sockets = new Set();

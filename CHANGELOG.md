@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- examples/sdk: use neutral `agent-*` service, store, and note filename
+  samples in public SDK examples instead of Windie-flavored arbitrary fixture
+  data. No migration required.
+
 - docs/endpoints: align getting-started and architecture endpoint fallback
   wording with the current hosted-default/no-local-auto-fallback contract. No
   migration required.

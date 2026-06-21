@@ -198,8 +198,10 @@ describe('modular sdk refactor completion boundary', () => {
     const customUiRun = await read('examples/custom-ui/run.mjs');
     const localToolReadme = await read('examples/local-tool-extension/README.md');
     const localToolRun = await read('examples/local-tool-extension/run.mjs');
+    const localToolPython = await read('examples/local-tool-extension/python/save_note.py');
     const repoAgentReadme = await read('examples/repo-agent-extension/README.md');
     const repoAgentManifest = await read('examples/repo-agent-extension/plugin.json');
+    const repoAgentRun = await read('examples/repo-agent-extension/run.mjs');
     const simpleChatReadme = await read('examples/simple-chat-cli/README.md');
     const simpleChatRun = await read('examples/simple-chat-cli/run.mjs');
     const publicExampleText = [
@@ -211,11 +213,16 @@ describe('modular sdk refactor completion boundary', () => {
       customUiRun,
       localToolReadme,
       localToolRun,
+      localToolPython,
       repoAgentReadme,
       repoAgentManifest,
+      repoAgentRun,
       simpleChatReadme,
       simpleChatRun,
     ].join('\n');
+    const retiredCliExampleService = ['windie', 'cli-agent-example'].join('-');
+    const retiredRepoExampleService = ['windie', 'repo-agent-example'].join('-');
+    const retiredNoteFile = ['windie', 'note.txt'].join('-');
 
     expect(publicExampleText).toContain('Agent SDK runtime');
     expect(publicExampleText).toContain('loadLocalAgentSdk');
@@ -248,6 +255,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(publicExampleText).not.toContain('Windie agent');
     expect(publicExampleText).not.toContain('Windie local');
     expect(publicExampleText).not.toContain('windie-local-tool-extension');
+    expect(publicExampleText).not.toContain(retiredCliExampleService);
+    expect(publicExampleText).not.toContain(retiredRepoExampleService);
+    expect(publicExampleText).not.toContain(retiredNoteFile);
+    expect(publicExampleText).toContain('agent-cli-example');
+    expect(publicExampleText).toContain('agent-repo-example');
+    expect(publicExampleText).toContain('agent-note.txt');
   });
 
   test('sdk docs describe local runtime contracts without sidecar-facing public wording', async () => {
