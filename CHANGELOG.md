@@ -58,6 +58,10 @@ All notable changes to WindieOS will be documented in this file.
   `ipc_desktop_ui_config_persistence_runtime.cjs` and exercise deterministic
   diagnostic IDs through `recordMcpEnablementDiagnostic(...)`. No migration
   required.
+- frontend/main: keep client-session snapshot construction private to
+  `ipc_client_session_handlers.cjs` and exercise renderer-facing session
+  payloads through the registered `get-client-user-id` handler. No migration
+  required.
 - frontend/main: keep lower-level clipboard image and image context-menu IPC
   registration private to `ipc_image_interaction_handlers.cjs`, so
   `ipc.cjs` composes one aggregate image-interaction runtime while focused

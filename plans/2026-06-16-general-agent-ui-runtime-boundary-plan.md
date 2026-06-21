@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Client Session Snapshot Privacy
+
+- Finding: `ipc_client_session_handlers.cjs` already exposed
+  `createClientSessionHandlersRuntime(...)` as the Electron main composition
+  facade and kept lower-level registration private, but the snapshot builder
+  still leaked as a public test-only helper export.
+- Change: kept `buildClientSessionSnapshot(...)` private to the
+  client-session handler owner and moved renderer-facing session payload
+  coverage through the registered `get-client-user-id` handler.
+- Validation: focused client-session handler and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no IPC channel, client session payload,
+  transcript-session sync, endpoint snapshot, credential, permission, or
+  trust-boundary migration required; client-session snapshot behavior is
+  unchanged.
+
 ### 2026-06-21 Main Desktop UI Config Diagnostic Trace Privacy
 
 - Finding: `ipc_desktop_ui_config_persistence_runtime.cjs` owned MCP

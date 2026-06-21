@@ -5,10 +5,10 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const clientSessionHandlersModule = require('../../frontend/src/main/ipc/ipc_client_session_handlers.cjs');
 const {
-  buildClientSessionSnapshot,
   createClientSessionHandlersRuntime,
-} = require('../../frontend/src/main/ipc/ipc_client_session_handlers.cjs');
+} = clientSessionHandlersModule;
 
 function createHarness(overrides = {}) {
   const handlers = {};
@@ -62,17 +62,10 @@ function createHarness(overrides = {}) {
 }
 
 describe('client session IPC handlers', () => {
-  test('builds the renderer-facing client session snapshot', () => {
-    expect(buildClientSessionSnapshot({
-      currentUserId: 'user-1',
-      currentConversationRef: 'conv-1',
-      currentServerUserId: 'server-user-1',
-      currentSessionId: 'session-1',
-      isConnected: true,
-      runtimeWsUrl: 'wss://runtime.example/ws',
-      runtimeHttpUrl: 'https://runtime.example',
-      globalAgentStopShortcutStatus: { enabled: true },
-    })).toEqual({
+  test('builds the renderer-facing client session snapshot through the registered handler', async () => {
+    const { handlers } = createHarness();
+
+    await expect(handlers['get-client-user-id']()).resolves.toEqual({
       userId: 'user-1',
       conversationRef: 'conv-1',
       serverUserId: 'server-user-1',
@@ -222,8 +215,8 @@ describe('client session IPC handlers', () => {
     expect(mainSource).not.toContain("ipcMain.on('transcript-session-sync'");
     expect(helperSource).toContain('function createClientSessionHandlersRuntime');
     expect(helperSource).toContain('return registerClientSessionHandlers({');
-    const clientSessionHandlersModule = require('../../frontend/src/main/ipc/ipc_client_session_handlers.cjs');
     expect(clientSessionHandlersModule.registerClientSessionHandlers).toBeUndefined();
+    expect(clientSessionHandlersModule.buildClientSessionSnapshot).toBeUndefined();
     expect(helperSource).toContain("ipcMain.handle('get-client-user-id'");
     expect(helperSource).toContain("ipcMain.on('transcript-session-sync'");
   });

@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main desktop UI config persistence keeps
-  MCP enablement diagnostic trace-id generation private to
-  `ipc_desktop_ui_config_persistence_runtime.cjs`, with deterministic IDs
-  covered through `recordMcpEnablementDiagnostic(...)`.
+- Latest completed slice: Electron main client-session handling keeps
+  renderer-facing snapshot construction private to
+  `ipc_client_session_handlers.cjs`, with payload shape covered through the
+  registered `get-client-user-id` handler.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1066,6 +1066,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
   contracts, IPC channels, storage, provider policy, and hosted backend
   behavior are unchanged.
+
+### 2026-06-21 Main Client Session Snapshot Privacy
+
+- Finding: `ipc_client_session_handlers.cjs` already exposed the composed
+  client-session IPC runtime and kept lower-level handler registration
+  private, but `buildClientSessionSnapshot(...)` still leaked as a
+  focused-test-only helper export.
+- Change: removed the snapshot builder from the public module surface and
+  moved renderer-facing session payload coverage through the registered
+  `get-client-user-id` handler.
+- Validation: focused client-session handler and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. Client-session IPC channels,
+  renderer-facing payload shape, transcript-session sync, runtime endpoint
+  snapshot fields, credentials, permissions, trust boundaries, and storage are
+  unchanged.
 
 ### 2026-06-21 Main Desktop UI Config Diagnostic Trace Privacy
 
