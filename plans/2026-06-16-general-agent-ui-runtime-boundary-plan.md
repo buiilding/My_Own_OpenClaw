@@ -22217,3 +22217,20 @@ Each completed slice should report:
   SDK wake-up behavior, hosted backend websocket construction, Electron IPC,
   local-runtime startup, provider policy, permissions, storage, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 transcript session hosted-backend identity labels
+
+- Finding: transcript-session and session identity references still described
+  `sessionId` drift as binding durable chat state to generic backend runtime
+  sessions or identity, even though the active boundary treats `sessionId` as
+  hosted-backend runtime context while `conversationRef` owns durable chat
+  identity.
+- Change: reworded the active transcript/session docs through hosted-backend
+  runtime session/identity wording and added focused transcript-session sync
+  coverage so the generic backend-runtime labels do not return.
+- Validation: focused transcript-session sync test, exact stale phrase scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  transcript-session payload parsing, removed alias rejection, renderer/main
+  sync behavior, hosted backend session ids, IPC, storage, provider policy,
+  permissions, backend behavior, and trust boundaries are unchanged.

@@ -47,7 +47,7 @@ Removed session identity keys are rejected:
 - `sessionId`
 - `session_id`
 
-These keys belong to backend runtime session context, not durable transcript
+These keys belong to hosted backend runtime session context, not durable transcript
 conversation identity.
 
 ## Payload-Type Gate
@@ -108,7 +108,7 @@ The transcript session runtime merges these via session-state update rules, pres
 
 ## Drift Hotspots
 
-1. Reintroducing `sessionId` as a chat identity alias can rebind durable conversation state to backend session runtime ids.
+1. Reintroducing `sessionId` as a chat identity alias can rebind durable conversation state to hosted backend runtime session ids.
 2. Removing trim/null normalization can preserve whitespace ids and break session identity comparisons.
 3. Returning empty object instead of `null` for non-session payloads can trigger unintended writer updates.
 4. Rebroadcasting inbound sync packets can create renderer/main echo loops.

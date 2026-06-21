@@ -158,7 +158,7 @@ Returns:
 ## Drift Hotspots
 
 1. Reintroducing ad-hoc payload mutation in `ipc.cjs` can desync renderer query and automated query behavior.
-2. Reintroducing `sessionId`/`session_id` as chat identity aliases can bind durable conversation state to backend runtime sessions.
+2. Reintroducing `sessionId`/`session_id` as chat identity aliases can bind durable conversation state to hosted backend runtime sessions.
 3. Failing to preserve explicit `null` semantics can prevent intended conversation/session clears.
 4. Sending attachment context/filenames in outbound backend payload can leak UI-only metadata into backend protocol surfaces.
 

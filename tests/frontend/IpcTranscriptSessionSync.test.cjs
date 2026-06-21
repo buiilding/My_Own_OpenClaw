@@ -1,8 +1,13 @@
 /** @jest-environment node */
 
+const fs = require('fs');
+const path = require('path');
+
 const {
   applyTranscriptSessionSync,
 } = require('../../frontend/src/main/ipc/ipc_transcript_session_sync.cjs');
+
+const repoRoot = path.resolve(__dirname, '..', '..');
 
 describe('ipc_transcript_session_sync', () => {
   test('broadcasts normalized sync payload and returns next bridge session state', () => {
@@ -70,6 +75,24 @@ describe('ipc_transcript_session_sync', () => {
     );
 
     expect(broadcastToRenderers).not.toHaveBeenCalled();
+  });
+
+  test('session identity docs use hosted backend runtime wording', () => {
+    const docs = [
+      'docs/frontend/main/ipc_query_runtime_and_transcript_sync_helper_reference.md',
+      'docs/frontend/renderer/transcript/contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md',
+      'docs/reference/session_and_transcript_reference.md',
+      'docs/frontend/renderer/settings/settings_surface_change_workflow.md',
+    ].map((relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8')).join('\n');
+
+    expect(docs).toContain('hosted backend runtime sessions');
+    expect(docs).toContain('hosted backend runtime session context');
+    expect(docs).toContain('hosted backend runtime identity');
+    expect(docs).toContain('hosted backend runtime behavior');
+    expect(docs).not.toContain('to backend runtime sessions');
+    expect(docs).not.toContain('belong to backend runtime session context');
+    expect(docs).not.toContain('`sessionId` is backend runtime identity');
+    expect(docs).not.toContain('if backend runtime behavior changes');
   });
 
   test('broadcasts resolved conversation ref when payload only changes user id', () => {

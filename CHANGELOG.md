@@ -44,6 +44,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/main: describe the SDK-managed backend lifecycle in the IPC helper
   reference as hosted-backend runtime ownership instead of generic backend
   runtime shorthand. No migration required.
+- docs/transcript: describe `sessionId` drift risks as hosted-backend runtime
+  identity instead of generic backend runtime identity in transcript/session
+  references. No migration required.
 - renderer/browser: route browser-session diagnostics through the renderer
   app-runtime conversation contract facade instead of importing SDK command
   names directly from the SDK owner module. No migration required.

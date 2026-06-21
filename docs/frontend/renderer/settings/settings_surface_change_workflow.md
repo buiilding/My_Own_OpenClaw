@@ -85,7 +85,7 @@ flowchart LR
    - Add allowlist projection in `desktopRendererConfigFilterRuntime.js`.
    - Update `AppConfigProvider` or hook usage if the field has special merge/defer semantics.
    - Update Electron disk persistence only if payload shape changes.
-   - Update backend settings validation/session rewire only if backend runtime behavior changes.
+   - Update backend settings validation/session rewire only if hosted backend runtime behavior changes.
 
 4. For authority controls, update the authority path.
    - Permission controls should go through `permissionStore` and permission services.
