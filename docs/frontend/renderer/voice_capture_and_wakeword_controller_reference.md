@@ -39,7 +39,7 @@ Renderer runs two independent voice paths:
 
 They share microphone primitives but have different transport paths:
 
-- transcription path: renderer -> desktop voice runtime facade -> transcription gateway WebSocket (`<backend>/ws/transcription`)
+- transcription path: renderer -> voice app-runtime client -> transcription gateway WebSocket (`<backend>/ws/transcription`)
 - wakeword path: renderer -> `DesktopVoiceRuntimeClient` -> Electron
   wakeword bridge -> local-runtime wakeword helper backed by the Python
   wakeword service

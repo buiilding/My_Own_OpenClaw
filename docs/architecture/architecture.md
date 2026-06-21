@@ -127,7 +127,7 @@ This is not the primary open-source SDK contract. The default client contract is
 - **State Management**: Zustand store for chat state, Context API for app config
 - **Hooks**: Feature-specific hooks (useChatStream, useChatMessageSender)
 - **Infrastructure**: SDK runtime facades, projection builders, artifact helpers, IpcBridge
-- **Runtime Clients**: Desktop runtime clients and SDK command facades for
+- **Runtime Clients**: Renderer app-runtime clients and SDK command facades for
   renderer-to-main requests, SDK projections, and artifact URL helpers
 
 #### Main Process (Node.js)

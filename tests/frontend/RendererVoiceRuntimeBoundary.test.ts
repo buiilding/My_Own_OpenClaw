@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 describe('renderer voice runtime boundary', () => {
-  test('wakeword controller uses the desktop voice runtime facade for wakeword notifications', async () => {
+  test('wakeword controller uses the voice app-runtime client for wakeword notifications', async () => {
     const wakewordControllerPath = path.resolve(
       __dirname,
       '../../frontend/src/renderer/app/WakewordController.jsx',
@@ -22,7 +22,7 @@ describe('renderer voice runtime boundary', () => {
     expect(source).not.toContain('IpcBridge.invoke');
   });
 
-  test('voice mode hook delegates transcription protocol details to the desktop voice runtime', async () => {
+  test('voice mode hook delegates transcription protocol details to the voice app-runtime client', async () => {
     const voiceModeHookPath = path.resolve(
       __dirname,
       '../../frontend/src/renderer/features/voice/hooks/useVoiceMode.ts',
@@ -77,7 +77,7 @@ describe('renderer voice runtime boundary', () => {
     await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/audioProcessorNode.ts'))).rejects.toThrow();
   });
 
-  test('wakeword hooks delegate bridge IPC to the desktop voice runtime', async () => {
+  test('wakeword hooks delegate bridge IPC to the voice app-runtime client', async () => {
     const detectionHookPath = path.resolve(
       __dirname,
       '../../frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts',
@@ -151,7 +151,7 @@ describe('renderer voice runtime boundary', () => {
     await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/voiceDebugTrace.ts'))).rejects.toThrow();
   });
 
-  test('renderer source topology routes voice through the desktop voice runtime facade', async () => {
+  test('renderer source topology routes voice through the voice app-runtime client', async () => {
     const folderStructurePath = path.resolve(
       __dirname,
       '../../frontend/src/renderer/folder_structure.md',
@@ -182,7 +182,9 @@ describe('renderer voice runtime boundary', () => {
     ).join('\n');
 
     expect(docText).toContain('provider-specific translation');
+    expect(docText).toContain('voice app-runtime client');
     expect(docText).toContain('renderer-facing code treats provider/model config as backend-owned route');
+    expect(docText).not.toContain('desktop voice runtime facade');
     expect(docText).not.toContain('WindieOS-local gateway protocol');
     expect(docText).not.toContain('Nova-Voice');
     expect(docText).not.toContain('OpenAI Realtime');

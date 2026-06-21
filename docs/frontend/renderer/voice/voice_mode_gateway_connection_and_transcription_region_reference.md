@@ -64,7 +64,7 @@ Inbound message handling:
 
 Runtime/provider boundary:
 
-- renderer speaks through the desktop voice runtime facade and the desktop
+- renderer speaks through the voice app-runtime client and the desktop
   transcription gateway protocol only
 - backend owns provider selection, provider-specific session setup, and gateway
   translation behind `/ws/transcription`

@@ -8384,3 +8384,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer docs/tests. Test assertions, runtime modules, imports, command names,
   IPC channels, storage, permissions, and backend behavior are unchanged; no
   migration is required.
+- Active architecture docs, the renderer send-flow source map, and voice
+  docs/tests now route renderer ownership through app-runtime clients/facades,
+  live-turn/continuity app-runtime, and the voice app-runtime client instead of
+  desktop-runtime owner labels; active agent architecture and IPC/transport
+  guidance now uses renderer app-runtime facade wording too. Concrete
+  `DesktopLiveTurnRuntimeClient` and `DesktopVoiceRuntimeClient` module names,
+  runtime modules, imports, command names, IPC channels, voice gateway
+  protocol, storage, permissions, provider policy, and backend behavior are
+  unchanged; no migration is required.

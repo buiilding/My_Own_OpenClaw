@@ -20329,3 +20329,21 @@ Each completed slice should report:
 - Compatibility: no migration required. Test assertions, runtime modules,
   imports, command names, IPC channels, storage, permissions, and backend
   behavior are unchanged.
+
+### 2026-06-21 renderer architecture and voice app-runtime wording
+
+- Finding: active architecture docs, the renderer send-flow source map, and
+  voice docs/tests still described renderer owners as desktop runtime clients,
+  desktop live-turn/continuity runtimes, a renderer runtime facade, or desktop
+  voice runtime facades.
+- Change: reworded those labels to renderer app-runtime clients/facades,
+  live-turn/continuity app-runtime, and voice app-runtime client wording while
+  preserving concrete module names such as `DesktopLiveTurnRuntimeClient` and
+  `DesktopVoiceRuntimeClient`. Also routed active agent architecture and
+  IPC/transport guidance to renderer app-runtime facade wording. Extended
+  modular boundary coverage for the retired active labels.
+- Validation: focused renderer voice and modular boundary tests, exact active
+  label scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime modules, imports, command
+  names, IPC channels, voice gateway protocol, storage, permissions, provider
+  policy, and backend behavior are unchanged.

@@ -69,6 +69,12 @@ All notable changes to WindieOS will be documented in this file.
 - tests/renderer: rename active renderer API/chat boundary guards from desktop
   runtime facades/clients/adapters to app-runtime clients and SDK desktop
   transport adapter wording. No migration required.
+- docs/renderer: route active architecture, send-flow, and voice docs through
+  renderer app-runtime client/facade wording instead of desktop-runtime owner
+  labels. No migration required.
+- docs/runtime: route active agent architecture and IPC/transport guidance
+  through renderer app-runtime client/facade wording instead of renderer or
+  desktop runtime facade owner labels. No migration required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

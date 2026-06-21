@@ -1520,6 +1520,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('desktop runtime clients');
     expect(docText).not.toContain('desktop runtime adapters');
     expect(docText).not.toContain('desktop runtime transport maps that SDK command');
+    expect(docText).not.toContain('Desktop runtime clients and SDK command facades');
+    expect(docText).not.toContain('desktop live-turn runtime facade');
+    expect(docText).not.toContain('desktop continuity runtime');
+    expect(docText).not.toContain('renderer runtime facade');
+    expect(docText).not.toContain('renderer runtime facades');
+    expect(docText).not.toContain('desktop voice runtime facade');
   });
 
   test('runtime routing docs use Agent SDK boundary wording', async () => {

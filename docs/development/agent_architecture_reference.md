@@ -301,7 +301,7 @@ portion as the dashboard instead of maintaining a divergent response model.
 
 ## Runtime Flow Cheatsheet
 
-- Query send: renderer chat sender -> desktop live-turn runtime facade ->
+- Query send: renderer chat sender -> renderer live-turn app-runtime client ->
   `windie:invoke` command `conversation.send` -> Electron main query payload
   builder -> Agent SDK runtime -> backend websocket.
 - Backend loop: websocket `query` -> query handler/service -> agent session ->

@@ -290,7 +290,7 @@ frontend/src/renderer/
        ├─> Add to chatStore
        ├─> Main-window sender path: send query directly (no screenshot capture, no window handoff)
        ├─> Overlay sender path: optional query_screenshot_request SDK resource
-       └─> DesktopLiveTurnRuntimeClient.sendQuery() - Send through the renderer runtime facade
+       └─> DesktopLiveTurnRuntimeClient.sendQuery() - Send through the renderer app-runtime client
            ↓
 3. SDK RUNTIME TRANSPORT
    └─> app/runtime/desktopRuntimeTransport.ts
