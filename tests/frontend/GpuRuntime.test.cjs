@@ -4,9 +4,10 @@ const {
   configureGpuRuntime,
   resolveGpuEnvConfig,
 } = require('../../frontend/src/main/app/gpu_runtime.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const sampleGpuEnv = Object.freeze({
+  forceSoftwareRendering: 'SAMPLE_FORCE_SOFTWARE_RENDERING',
+});
 
 describe('gpu_runtime configureGpuRuntime', () => {
   test('keeps hardware acceleration enabled by default', () => {
@@ -48,12 +49,12 @@ describe('gpu_runtime configureGpuRuntime', () => {
 
   test('uses configured host software rendering env key', () => {
     const app = { disableHardwareAcceleration: jest.fn() };
-    const env = { WINDIE_FORCE_SOFTWARE_RENDERING: '1' };
+    const env = { SAMPLE_FORCE_SOFTWARE_RENDERING: '1' };
 
     const result = configureGpuRuntime({
       app,
       env,
-      gpuEnv: mainHostSkin.gpu.env,
+      gpuEnv: sampleGpuEnv,
     });
 
     expect(result).toEqual({ softwareRenderingForced: true });

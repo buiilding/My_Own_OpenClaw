@@ -749,6 +749,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('x-sample-runs-key');
   });
 
+  test('GPU runtime tests keep injected env fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/GpuRuntime.test.cjs');
+
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain('WINDIE_FORCE_SOFTWARE_RENDERING');
+    expect(source).toContain('sampleGpuEnv');
+    expect(source).toContain('SAMPLE_FORCE_SOFTWARE_RENDERING');
+  });
+
   test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/voice/WakewordDetectionHook.test.ts'),

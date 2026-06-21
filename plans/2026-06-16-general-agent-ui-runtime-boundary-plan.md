@@ -19320,6 +19320,20 @@ Each completed slice should report:
   auth injection, host-skin configuration, permissions, storage, provider
   policy, and backend behavior are unchanged.
 
+### 2026-06-21 GPU runtime env fixture neutrality
+
+- Finding: generic GPU runtime tests still imported the WindieOS host skin only
+  to reuse the product software-rendering env key as an arbitrary configured
+  host env fixture.
+- Change: replaced that import with a test-local sample GPU env map and added a
+  modular boundary guard so generic GPU runtime coverage stays product-neutral.
+- Validation: focused GPU runtime, host-skin boundary, and modular boundary
+  tests; exact retired GPU fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. GPU env-key normalization, hardware
+  acceleration defaults, Linux software-rendering env side effects, host-skin
+  configuration, permissions, storage, provider policy, and backend behavior
+  are unchanged.
+
 ### 2026-06-21 Runtime path and wakeword host config fixture neutrality
 
 - Finding: generic runtime-path and wakeword bridge tests imported the
