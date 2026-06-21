@@ -21868,3 +21868,20 @@ Each completed slice should report:
   method names, params, local-runtime Python handlers, SDK/main command
   contracts, IPC, storage, provider policy, permissions, backend behavior, and
   trust boundaries are unchanged.
+
+### 2026-06-21 local-runtime daemon test labels
+
+- Finding: `tests/sidecar/test_sidecar_daemon.py` already documented and
+  asserted local-runtime daemon behavior, but its test function names still used
+  `test_sidecar_daemon_*` owner labels even when the behavior under test was
+  generic local-runtime daemon health, discovery, JSON-RPC, dynamic tool, MCP,
+  diagnostics, and shutdown behavior.
+- Change: renamed the focused test functions to `test_local_runtime_daemon_*`
+  labels while keeping the concrete `sidecar_daemon.py` module name, imports,
+  assertions, fixtures, and daemon behavior unchanged.
+- Validation: focused local-runtime daemon test module, exact retired-label
+  function scan for the touched module, docs listing, and diff checks.
+- Compatibility: no migration required. Tests changed only; daemon module paths,
+  endpoint behavior, discovery files, JSON-RPC methods, dynamic tool/MCP
+  handling, diagnostics, IPC, storage, provider policy, permissions, backend
+  behavior, and trust boundaries are unchanged.

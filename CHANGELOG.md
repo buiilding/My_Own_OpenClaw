@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/local-runtime: rename local-runtime daemon lifecycle test functions away
+  from `test_sidecar_daemon_*` owner labels while preserving the concrete
+  `sidecar_daemon.py` module coverage. No migration required.
 - docs/local-runtime: route the local backend JSON-RPC change workflow away
   from sidecar JSON-RPC/module/capability shortcut labels and through
   local-runtime JSON-RPC plus local-runtime Python wording. No migration

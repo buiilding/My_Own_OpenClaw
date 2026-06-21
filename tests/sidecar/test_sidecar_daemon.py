@@ -23,7 +23,7 @@ from sidecar_daemon import (  # noqa: E402
 )
 
 
-def test_sidecar_daemon_identity_copy_is_product_neutral():
+def test_local_runtime_daemon_identity_copy_is_product_neutral():
     source = Path(sidecar_daemon.__file__).read_text(encoding="utf-8")
     retired_local_sidecar_prefix = "[Local" + "Sidecar]"
     retired_product_name = "Windie" "OS"
@@ -61,13 +61,13 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
     assert "class SidecarDaemon" not in source
 
 
-def test_sidecar_daemon_default_discovery_path_is_generic():
+def test_local_runtime_daemon_default_discovery_path_is_generic():
     assert sidecar_daemon.DEFAULT_DISCOVERY_FILE == (
         Path(tempfile.gettempdir()) / "desktop-runtime" / "local-runtime-daemon.json"
     )
 
 
-def test_sidecar_daemon_user_data_root_prefers_generic_env(tmp_path: Path, monkeypatch):
+def test_local_runtime_daemon_user_data_root_prefers_generic_env(tmp_path: Path, monkeypatch):
     generic_root = tmp_path / "generic"
     windie_root = tmp_path / "windie"
     monkeypatch.setenv(sidecar_daemon.ENV_AGENT_USER_DATA_DIR, str(generic_root))
@@ -76,7 +76,7 @@ def test_sidecar_daemon_user_data_root_prefers_generic_env(tmp_path: Path, monke
     assert sidecar_daemon.app_user_data_root() == generic_root
 
 
-def test_sidecar_daemon_user_data_root_preserves_windie_env_alias(
+def test_local_runtime_daemon_user_data_root_preserves_windie_env_alias(
     tmp_path: Path, monkeypatch
 ):
     windie_root = tmp_path / "windie"
@@ -86,7 +86,7 @@ def test_sidecar_daemon_user_data_root_preserves_windie_env_alias(
     assert sidecar_daemon.app_user_data_root() == windie_root
 
 
-def test_sidecar_daemon_test_platform_prefers_generic_env(monkeypatch, tmp_path):
+def test_local_runtime_daemon_test_platform_prefers_generic_env(monkeypatch, tmp_path):
     captured = {}
 
     def fake_user_data_root(**kwargs):
@@ -105,7 +105,7 @@ def test_sidecar_daemon_test_platform_prefers_generic_env(monkeypatch, tmp_path)
     assert captured["platform_name"] == "linux"
 
 
-def test_sidecar_daemon_test_platform_preserves_windie_env_alias(monkeypatch, tmp_path):
+def test_local_runtime_daemon_test_platform_preserves_windie_env_alias(monkeypatch, tmp_path):
     captured = {}
 
     def fake_user_data_root(**kwargs):
@@ -124,7 +124,7 @@ def test_sidecar_daemon_test_platform_preserves_windie_env_alias(monkeypatch, tm
     assert captured["platform_name"] == "win32"
 
 
-def test_sidecar_daemon_diagnostics_path_prefers_generic_env(
+def test_local_runtime_daemon_diagnostics_path_prefers_generic_env(
     tmp_path: Path, monkeypatch
 ):
     generic_db = tmp_path / "generic.db"
@@ -135,7 +135,7 @@ def test_sidecar_daemon_diagnostics_path_prefers_generic_env(
     assert sidecar_daemon.diagnostics_database_path() == generic_db
 
 
-def test_sidecar_daemon_diagnostics_path_preserves_windie_env_alias(
+def test_local_runtime_daemon_diagnostics_path_preserves_windie_env_alias(
     tmp_path: Path, monkeypatch
 ):
     windie_db = tmp_path / "windie.db"
@@ -383,7 +383,7 @@ async def test_mcp_stdout_reader_failure_fails_pending_request(
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_rejects_missing_or_invalid_token():
+async def test_local_runtime_daemon_rejects_missing_or_invalid_token():
     daemon = LocalRuntimeDaemon(token="test-token")
     missing = await daemon._auth_middleware(FakeRequest(), daemon.handle_health)
     invalid = await daemon._auth_middleware(
@@ -412,7 +412,7 @@ async def test_sidecar_daemon_rejects_missing_or_invalid_token():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_health_endpoint_reports_generic_service():
+async def test_local_runtime_daemon_health_endpoint_reports_generic_service():
     daemon = LocalRuntimeDaemon(token="test-token")
 
     response = await daemon.handle_health(FakeRequest())
@@ -429,7 +429,7 @@ async def test_sidecar_daemon_health_endpoint_reports_generic_service():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_status_endpoint_reports_runtime_boundary():
+async def test_local_runtime_daemon_status_endpoint_reports_runtime_boundary():
     daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["notes"] = FakeMcpClient()
 
@@ -448,7 +448,7 @@ async def test_sidecar_daemon_status_endpoint_reports_runtime_boundary():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_discovery_file_records_launch_context(
+async def test_local_runtime_daemon_discovery_file_records_launch_context(
     tmp_path: Path,
     monkeypatch,
 ):
@@ -486,7 +486,7 @@ async def test_sidecar_daemon_discovery_file_records_launch_context(
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_tools_endpoint_lists_builtin_and_dynamic_tools():
+async def test_local_runtime_daemon_tools_endpoint_lists_builtin_and_dynamic_tools():
     daemon = LocalRuntimeDaemon(token="test-token")
 
     async def save_note(args):
@@ -517,7 +517,7 @@ async def test_sidecar_daemon_tools_endpoint_lists_builtin_and_dynamic_tools():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_errors():
+async def test_local_runtime_daemon_execute_tool_endpoint_normalizes_missing_tool_errors():
     daemon = LocalRuntimeDaemon(token="test-token")
     ws = FakeEventSocket()
     daemon.events.add(ws)
@@ -542,7 +542,7 @@ async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_erro
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_execute_tool_requires_canonical_tool_name():
+async def test_local_runtime_daemon_execute_tool_requires_canonical_tool_name():
     local_runtime = FakeLocalRuntimeWithExecuteTool()
     daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
 
@@ -557,7 +557,7 @@ async def test_sidecar_daemon_execute_tool_requires_canonical_tool_name():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_execute_tool_rejects_mcp_metadata_aliases():
+async def test_local_runtime_daemon_execute_tool_rejects_mcp_metadata_aliases():
     local_runtime = FakeLocalRuntimeWithExecuteTool()
     daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
 
@@ -581,7 +581,7 @@ async def test_sidecar_daemon_execute_tool_rejects_mcp_metadata_aliases():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_execute_tool_log_labels_passive_browser_session_sync(
+async def test_local_runtime_daemon_execute_tool_log_labels_passive_browser_session_sync(
     capsys,
 ):
     local_runtime = FakeLocalRuntimeWithExecuteTool()
@@ -601,7 +601,7 @@ async def test_sidecar_daemon_execute_tool_log_labels_passive_browser_session_sy
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_execute_tool_log_includes_active_browser_action(capsys):
+async def test_local_runtime_daemon_execute_tool_log_includes_active_browser_action(capsys):
     local_runtime = FakeLocalRuntimeWithExecuteTool()
     daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
 
@@ -618,7 +618,7 @@ async def test_sidecar_daemon_execute_tool_log_includes_active_browser_action(ca
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_binds_local_runtime_event_sink_to_event_socket():
+async def test_local_runtime_daemon_binds_local_runtime_event_sink_to_event_socket():
     local_runtime = FakeLocalRuntimeWithEventSink()
     daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
     ws = FakeEventSocket()
@@ -640,7 +640,7 @@ async def test_sidecar_daemon_binds_local_runtime_event_sink_to_event_socket():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_rpc_endpoint_uses_local_runtime_protocol():
+async def test_local_runtime_daemon_rpc_endpoint_uses_local_runtime_protocol():
     daemon = LocalRuntimeDaemon(token="test-token")
 
     response = await daemon.handle_rpc(
@@ -664,7 +664,7 @@ async def test_sidecar_daemon_rpc_endpoint_uses_local_runtime_protocol():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_registers_module_tool_without_restart(
+async def test_local_runtime_daemon_registers_module_tool_without_restart(
     tmp_path: Path,
     monkeypatch,
 ):
@@ -711,7 +711,7 @@ async def test_sidecar_daemon_registers_module_tool_without_restart(
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_registers_plugin_tools_without_restart(tmp_path: Path):
+async def test_local_runtime_daemon_registers_plugin_tools_without_restart(tmp_path: Path):
     plugin_dir = tmp_path / "note_plugin"
     plugin_dir.mkdir()
     (plugin_dir / "plugin.json").write_text(
@@ -766,7 +766,7 @@ async def test_sidecar_daemon_registers_plugin_tools_without_restart(tmp_path: P
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_registers_mcp_tools_without_restart():
+async def test_local_runtime_daemon_registers_mcp_tools_without_restart():
     daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["notes"] = FakeMcpClient()
 
@@ -816,7 +816,7 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_preserves_mcp_structured_content():
+async def test_local_runtime_daemon_preserves_mcp_structured_content():
     daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["cua-driver"] = FakeStructuredMcpClient()
 
@@ -860,7 +860,7 @@ async def test_sidecar_daemon_preserves_mcp_structured_content():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_omits_promoted_mcp_image_bytes_from_output():
+async def test_local_runtime_daemon_omits_promoted_mcp_image_bytes_from_output():
     daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["vision"] = FakeImageMcpClient()
 
@@ -907,7 +907,7 @@ async def test_sidecar_daemon_omits_promoted_mcp_image_bytes_from_output():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_records_mcp_execution_diagnostics(
+async def test_local_runtime_daemon_records_mcp_execution_diagnostics(
     tmp_path: Path, monkeypatch
 ):
     diagnostics_db = tmp_path / "diagnostics.db"
@@ -988,7 +988,7 @@ async def test_sidecar_daemon_records_mcp_execution_diagnostics(
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_records_mcp_registration_diagnostics(
+async def test_local_runtime_daemon_records_mcp_registration_diagnostics(
     tmp_path: Path, monkeypatch
 ):
     diagnostics_db = tmp_path / "diagnostics.db"
@@ -1042,7 +1042,7 @@ async def test_sidecar_daemon_records_mcp_registration_diagnostics(
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_reconciles_removed_mcp_tools():
+async def test_local_runtime_daemon_reconciles_removed_mcp_tools():
     daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["notes"] = FakeMcpClient()
 
@@ -1070,7 +1070,7 @@ async def test_sidecar_daemon_reconciles_removed_mcp_tools():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_events_channel_handles_control_messages():
+async def test_local_runtime_daemon_events_channel_handles_control_messages():
     daemon = LocalRuntimeDaemon(token="test-token")
     ws = FakeEventSocket()
 
@@ -1098,7 +1098,7 @@ async def test_sidecar_daemon_events_channel_handles_control_messages():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_shutdown_endpoint_signals_daemon_loop():
+async def test_local_runtime_daemon_shutdown_endpoint_signals_daemon_loop():
     daemon = LocalRuntimeDaemon(token="test-token")
     shutdown_event = asyncio.Event()
     daemon.bind_shutdown_event(shutdown_event)
@@ -1110,7 +1110,7 @@ async def test_sidecar_daemon_shutdown_endpoint_signals_daemon_loop():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_close_shuts_down_browser_runtime(monkeypatch):
+async def test_local_runtime_daemon_close_shuts_down_browser_runtime(monkeypatch):
     local_runtime = FakeLocalRuntimeWithShutdown()
     shutdown_calls = []
 

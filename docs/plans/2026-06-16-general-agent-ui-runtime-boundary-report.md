@@ -9212,3 +9212,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   SDK/main command contracts, IPC, storage, provider policy, permissions,
   backend behavior, and trust boundaries are unchanged; no migration is
   required.
+- Local-runtime daemon lifecycle tests now use `test_local_runtime_daemon_*`
+  function labels instead of `test_sidecar_daemon_*` owner labels. The concrete
+  `sidecar_daemon.py` module name and all imports, assertions, fixtures,
+  endpoint behavior, discovery files, JSON-RPC methods, dynamic tool/MCP
+  handling, diagnostics, IPC, storage, provider policy, permissions, backend
+  behavior, and trust boundaries are unchanged; no migration is required.
