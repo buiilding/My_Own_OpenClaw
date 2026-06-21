@@ -16,10 +16,11 @@ Date: 2026-06-21
   stale-turn filtering during next-turn re-anchor, leaving a stale send latch
   able to open a transport handoff window without an accepted renderer pending
   turn.
-- Change: terminal and awaiting-first-chunk handoff predicates now require a
-  valid renderer `pendingTurn`; `streamTracking.phase` remains transport
-  state for stale-packet filtering, but `isSending` is no longer the proof that
-  a new renderer-owned turn exists.
+- Change: terminal and awaiting-first-chunk handoff predicates now require the
+  incoming event turn to match renderer `pendingTurn.turnRef`;
+  `streamTracking.phase` remains transport state for stale-packet filtering,
+  but `isSending` is no longer the proof that a new renderer-owned turn exists,
+  and unrelated non-pending turn refs stay filtered.
 - Validation target: `DesktopChatStreamTerminalHandoffRuntime.test.ts`,
   `DesktopChatStreamEventRuntime.test.ts`, and
   `RendererChatRuntimeBoundary.test.ts` protect pending-turn re-anchor,

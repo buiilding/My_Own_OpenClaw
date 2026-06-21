@@ -134,7 +134,7 @@ pure turn comparison exposed through
 
 Guard exception:
 
-- if the workspace has a renderer `pendingTurn` while stream phase is terminal (`idle|complete|error`), stale-turn guard is temporarily relaxed so first packets of the new turn are not dropped due to lagging turn-reset bookkeeping. Bare `isSending=true` is diagnostic compatibility state and does not open this transport handoff window.
+- if the workspace has a renderer `pendingTurn` whose `turnRef` matches the incoming event while stream phase is terminal (`idle|complete|error`), stale-turn guard is temporarily relaxed so first packets of the new turn are not dropped due to lagging turn-reset bookkeeping. Bare `isSending=true` is diagnostic compatibility state and does not open this transport handoff window, and unrelated non-pending turn refs are still rejected.
 - when terminal handoff has already re-anchored to the current `turn_ref`, same-turn packets are still allowed only if the workspace tail is the SDK user row for that new turn; assistant-tailed completed/error workspaces still reject trailing old-turn packets.
 - terminal-handoff packet policy now lives in
   `DesktopChatStreamTerminalHandoffRuntime` as pure predicates so re-anchor

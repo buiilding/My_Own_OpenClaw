@@ -140,6 +140,35 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(true);
   });
 
+  test('terminal pending handoff only keeps packets for the renderer pending turn', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      pendingTurn: pendingTurn('turn-new'),
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-old',
+        phase: 'complete',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          pendingTurn: pendingTurn('turn-new'),
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-old',
+            phase: 'complete',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turnRef: 'turn-unrelated' }), null)).toBe(true);
+  });
+
   test('classifies supported SDK conversation stream event types', () => {
     for (const type of [
       'user_message',

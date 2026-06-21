@@ -61,10 +61,13 @@ predicate stays private to `desktopChatStreamTurnGuardRuntime.ts`.
 
 Pending-next-turn exception:
 
-- when the workspace is in a terminal phase (`idle`/`complete`/`error`) and `isSending === true`,
-  stale-turn guard does **not** reject mismatched `turn_ref`.
-- this allows first chunks for the next turn to pass even if backend `local-user-message`
-  echo arrives late or is missing.
+- when the workspace is in a terminal phase (`idle`/`complete`/`error`) and
+  renderer `pendingTurn.turnRef` matches the incoming `turn_ref`, stale-turn
+  guard does **not** reject the mismatched active stream turn.
+- bare `isSending === true` is diagnostic compatibility state and does not
+  open this exception; unrelated non-pending turn refs are still rejected.
+- this allows first chunks for the next accepted renderer turn to pass even if
+  backend `local-user-message` echo arrives late or is missing.
 
 Guarded events:
 

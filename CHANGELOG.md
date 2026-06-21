@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: require chat stream terminal re-anchor handoff events to
+  match renderer `pendingTurn.turnRef`, so stale `isSending` and unrelated
+  turn refs no longer open stale-turn filtering exceptions. No migration
+  required.
 - frontend/renderer: move onboarding external permission grant watching into
   `DesktopPermissionGrantEffectsRuntime`, keeping focus/visibility listeners
   and recheck timers out of the onboarding feature hook. No migration required.

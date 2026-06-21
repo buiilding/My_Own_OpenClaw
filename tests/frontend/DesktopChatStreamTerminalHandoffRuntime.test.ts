@@ -13,12 +13,10 @@ const {
 
 function createWorkspace({
   phase = 'complete',
-  isSending = true,
   lastMessage = null,
   pendingTurn = { turnRef: 'turn-new' },
 } = {}) {
   return {
-    isSending,
     messages: lastMessage ? [lastMessage] : [],
     pendingTurn,
     streamTracking: {
@@ -44,10 +42,18 @@ describe('DesktopChatStreamTerminalHandoffRuntime', () => {
     expect(isAwaitingFirstChunkMismatch(
       createWorkspace({
         phase: 'awaiting-first-chunk',
-        isSending: true,
         pendingTurn: null,
       }),
       'turn-new',
+      'turn-old',
+    )).toBe(false);
+
+    expect(isAwaitingFirstChunkMismatch(
+      createWorkspace({
+        phase: 'awaiting-first-chunk',
+        pendingTurn: { turnRef: 'turn-new' },
+      }),
+      'turn-unrelated',
       'turn-old',
     )).toBe(false);
   });
@@ -59,7 +65,6 @@ describe('DesktopChatStreamTerminalHandoffRuntime', () => {
     expect(hasTerminalPendingHandoff(createWorkspace({ phase: 'streaming' }))).toBe(false);
     expect(hasTerminalPendingHandoff(createWorkspace({
       phase: 'complete',
-      isSending: true,
       pendingTurn: null,
     }))).toBe(false);
   });
@@ -115,6 +120,14 @@ describe('DesktopChatStreamTerminalHandoffRuntime', () => {
       eventTurnRef: 'turn-new',
       lastMessage: null,
       expected: false,
+    },
+    {
+      caseName: 'complete phase ignores unrelated non-pending packets during handoff',
+      phase: 'complete',
+      activeTurnRef: 'turn-old',
+      eventTurnRef: 'turn-unrelated',
+      lastMessage: null,
+      expected: true,
     },
     {
       caseName: 'idle phase never ignores same-turn packets during handoff',

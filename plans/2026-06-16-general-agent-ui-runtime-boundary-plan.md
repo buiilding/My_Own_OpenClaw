@@ -16,9 +16,10 @@ Date: 2026-06-16
   even though renderer-owned typing state now uses `pendingTurn` as the local
   turn authority.
 - Change: chat stream terminal handoff and awaiting-first-chunk mismatch
-  predicates now require a valid renderer `pendingTurn`; stream phase remains
-  transport state, while stale send-latch compatibility state no longer opens
-  stale-turn filtering exceptions.
+  predicates now require the incoming event turn to match the renderer
+  `pendingTurn.turnRef`; stream phase remains transport state, while stale
+  send-latch compatibility state and unrelated non-pending turn refs no longer
+  open stale-turn filtering exceptions.
 - Validation target: focused stream terminal handoff, stream event runtime, and
   renderer chat boundary tests protect pending-turn handoff and reject raw
   `isSending` in the terminal handoff runtime.
