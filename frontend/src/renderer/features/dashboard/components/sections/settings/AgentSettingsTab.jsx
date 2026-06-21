@@ -6,14 +6,13 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   DesktopRuntimeSkin,
-  desktopRuntimeSkin,
 } from '../../../../../app/skin/desktopRuntimeSkin';
 import {
   DesktopExtensionRuntimeClient,
 } from '../../../../../app/runtime/desktopExtensionRuntimeClient';
 import { SettingsToggle } from './settingsControls';
 
-const agentSettingsSkin = desktopRuntimeSkin.settings.agent;
+const agentSettingsSkin = DesktopRuntimeSkin.desktopRuntimeSkin.settings.agent;
 const {
   formatToolAcceptanceRuntimeSummary,
 } = DesktopRuntimeSkin;

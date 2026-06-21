@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
+import { DesktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import PermissionStatusBadge from '../../../../permissions/components/PermissionStatusBadge';
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';
 import { DesktopPermissionGrantEffectsRuntime } from '../../../../../app/runtime/desktopPermissionGrantEffectsRuntime';
@@ -19,7 +19,7 @@ const {
 } = DesktopPermissionPresentationRuntime;
 
 const BROWSER_PERMISSION_ID = 'browser_automation';
-const browserSettingsSkin = desktopRuntimeSkin.settings.browser;
+const browserSettingsSkin = DesktopRuntimeSkin.desktopRuntimeSkin.settings.browser;
 const {
   applyPermissionGrantEffects,
 } = DesktopPermissionGrantEffectsRuntime;

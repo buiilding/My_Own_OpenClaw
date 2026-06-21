@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Settings Skin Facade Consumption
+
+- Finding: dashboard settings tab code still imported the raw
+  `desktopRuntimeSkin` symbol directly for agent, browser, general, memory, and
+  workspace settings copy even though the renderer skin module already exposes
+  the `DesktopRuntimeSkin` facade.
+- Change: routed settings tab and memory action skin reads through
+  `DesktopRuntimeSkin.desktopRuntimeSkin`, updated the shared settings test
+  mock to expose the facade shape, and added renderer settings boundary
+  coverage so settings copy consumers stay on the skin facade.
+- Validation: focused settings section, agent settings, general settings, and
+  renderer settings boundary tests plus targeted renderer source lint, docs
+  listing, stale raw settings skin import scans, and diff checks before commit.
+- Compatibility/security: no migration required. Active WindieOS settings copy,
+  provider/permission/workspace behavior, memory destructive-action copy, IPC,
+  credentials, hosted backend policy, and local-runtime execution are
+  unchanged.
+
 ### 2026-06-21 Renderer Chat Skin Facade Consumption
 
 - Finding: the renderer skin module already exposed `DesktopRuntimeSkin`, but

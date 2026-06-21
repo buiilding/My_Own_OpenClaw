@@ -5,9 +5,9 @@
 import { useState } from 'react';
 import { DesktopMemoryRuntimeClient } from '../../../../../app/runtime/desktopMemoryRuntimeClient';
 import { DesktopTranscriptSessionInfoRuntimeClient } from '../../../../../app/runtime/desktopTranscriptSessionInfoRuntimeClient';
-import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
+import { DesktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 
-const memorySettingsSkin = desktopRuntimeSkin.settings.memory;
+const memorySettingsSkin = DesktopRuntimeSkin.desktopRuntimeSkin.settings.memory;
 
 export function useMemorySettingsActions() {
   const sessionInfo = DesktopTranscriptSessionInfoRuntimeClient.useDesktopTranscriptSessionInfo();

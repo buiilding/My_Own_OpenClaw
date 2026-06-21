@@ -5,10 +5,10 @@
 import PropTypes from 'prop-types';
 import { DesktopRendererConfigRuntimeClient } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopShortcutRuntimeClient } from '../../../../../app/runtime/desktopShortcutRuntimeClient';
-import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
+import { DesktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import { SettingsToggle, SelectDropdown } from './settingsControls';
 
-const generalSettingsSkin = desktopRuntimeSkin.settings.general;
+const generalSettingsSkin = DesktopRuntimeSkin.desktopRuntimeSkin.settings.general;
 
 function GeneralSettingsTab({ config, onConfigChange }) {
   const {

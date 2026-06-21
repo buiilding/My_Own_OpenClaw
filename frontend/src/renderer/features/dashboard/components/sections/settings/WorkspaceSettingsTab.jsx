@@ -3,10 +3,10 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
+import { DesktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import { DesktopWorkspaceRuntimeClient } from '../../../../../app/runtime/desktopWorkspaceRuntimeClient';
 
-const workspaceSettingsSkin = desktopRuntimeSkin.settings.workspace;
+const workspaceSettingsSkin = DesktopRuntimeSkin.desktopRuntimeSkin.settings.workspace;
 
 function getWorkspacePresentation(workspace) {
   return DesktopWorkspaceRuntimeClient.getActiveWorkspacePresentation(workspace, {

@@ -69,8 +69,8 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => mockAppConfigContext,
 }));
 
-jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
-  desktopRuntimeSkin: {
+jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => {
+  const desktopRuntimeSkin = {
     settings: {
       agent: {
         title: 'Agent',
@@ -171,13 +171,17 @@ jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
         destructiveFailureFallback: 'Failed to complete destructive action',
       },
     },
-  },
-  DesktopRuntimeSkin: {
-    formatToolAcceptanceRuntimeSummary: (acceptedTool) => (
-      `${acceptedTool.name || 'tool'} uses ${acceptedTool.argument_resolution || 'passthrough'}`
-    ),
-  },
-}));
+  };
+  return {
+    desktopRuntimeSkin,
+    DesktopRuntimeSkin: {
+      desktopRuntimeSkin,
+      formatToolAcceptanceRuntimeSummary: (acceptedTool) => (
+        `${acceptedTool.name || 'tool'} uses ${acceptedTool.argument_resolution || 'passthrough'}`
+      ),
+    },
+  };
+});
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient', () => ({
   DesktopTranscriptSessionInfoRuntimeClient: {

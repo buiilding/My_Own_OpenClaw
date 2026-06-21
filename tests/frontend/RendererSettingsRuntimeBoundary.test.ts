@@ -160,6 +160,31 @@ describe('renderer settings runtime boundary', () => {
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.SET_ACTIVE_WORKSPACE');
   });
 
+  test('settings tab copy reads active skin through renderer skin facade', async () => {
+    const settingsSkinConsumerFiles = [
+      'AgentSettingsTab.jsx',
+      'BrowserSettingsTab.jsx',
+      'GeneralSettingsTab.jsx',
+      'MemorySettingsTab.jsx',
+      'WorkspaceSettingsTab.jsx',
+      'useMemorySettingsActions.js',
+    ];
+
+    for (const relativePath of settingsSkinConsumerFiles) {
+      const source = await fs.readFile(
+        path.resolve(
+          __dirname,
+          `../../frontend/src/renderer/features/dashboard/components/sections/settings/${relativePath}`,
+        ),
+        'utf8',
+      );
+      expect(source).toContain('DesktopRuntimeSkin');
+      expect(source).toContain('DesktopRuntimeSkin.desktopRuntimeSkin');
+      expect(source).not.toContain('import { desktopRuntimeSkin');
+      expect(source).not.toContain('= desktopRuntimeSkin.settings');
+    }
+  });
+
   test('browser settings status detail presentation routes through permission runtime', async () => {
     const source = await fs.readFile(
       path.resolve(

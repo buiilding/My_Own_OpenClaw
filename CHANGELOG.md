@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route dashboard settings skin-copy reads through
+  `DesktopRuntimeSkin` instead of direct `desktopRuntimeSkin` imports, keeping
+  settings copy on the renderer skin facade. No migration required.
 - frontend/renderer: route chat feature skin-copy reads through
   `DesktopRuntimeSkin` instead of importing the raw `desktopRuntimeSkin`
   symbol, keeping chat UI copy on the renderer skin facade. No migration
