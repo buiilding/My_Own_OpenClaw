@@ -101,8 +101,12 @@ async function createWorkletNode(
   }
 }
 
-export async function createAudioCaptureProcessorNode(
+async function createAudioCaptureProcessorNode(
   params: AudioProcessorFactoryParams,
 ): Promise<AudioWorkletNode> {
   return createWorkletNode(params);
 }
+
+export const DesktopVoiceAudioProcessorNodeRuntime = Object.freeze({
+  createAudioCaptureProcessorNode,
+});

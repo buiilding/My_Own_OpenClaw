@@ -126,6 +126,11 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopVoiceDebugTraceRuntime` instead of a standalone
   `logVoiceDebugTrace()` export, keeping `debug_voice=1` parsing and trace
   emission behind the renderer app-runtime facade. No migration required.
+- frontend/renderer: expose AudioWorklet capture processor construction through
+  `DesktopVoiceAudioProcessorNodeRuntime` instead of a standalone
+  `createAudioCaptureProcessorNode()` export, keeping voice/wakeword capture
+  processor setup behind the renderer app-runtime facade. No migration
+  required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

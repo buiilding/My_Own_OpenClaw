@@ -2,7 +2,9 @@
  * Covers voice audio processor node. behavior in the frontend test suite.
  */
 
-import { createAudioCaptureProcessorNode } from '../../frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime';
+import { DesktopVoiceAudioProcessorNodeRuntime } from '../../frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime';
+
+const { createAudioCaptureProcessorNode } = DesktopVoiceAudioProcessorNodeRuntime;
 
 type MockWorkletNodeInstance = {
   connect: jest.Mock<void, [unknown]>;

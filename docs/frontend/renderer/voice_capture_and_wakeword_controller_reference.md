@@ -130,6 +130,9 @@ Reconnect policy:
 - `getUserMedia` with mono/16kHz + echo/noise controls
 - `AudioContext` at 16kHz
 - required `AudioWorkletNode` capture processor (`desktop-runtime-capture-processor`) with chunk size 4096
+- construction routed through
+  `DesktopVoiceAudioProcessorNodeRuntime.createAudioCaptureProcessorNode(...)`
+  so capture hooks do not own AudioWorklet setup or fallback policy
 - every capture callback:
   - read Float32 input
   - convert to PCM16 (`DesktopVoiceAudioEncodingRuntime.float32ToPcm16`)

@@ -65,7 +65,8 @@ intent.
 
 This is the canonical route for ScriptProcessor fallback voice capture removed.
 
-`createAudioCaptureProcessorNode(...)` behavior:
+`DesktopVoiceAudioProcessorNodeRuntime.createAudioCaptureProcessorNode(...)`
+behavior:
 
 - requires an `AudioWorkletNode` capture processor (`desktop-runtime-capture-processor`)
 - worklet path batches render quanta into configured chunk-size frames before posting to main thread

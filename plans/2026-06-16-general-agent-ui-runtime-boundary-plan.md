@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Voice Audio Processor Facade
+
+- Finding: `desktopVoiceAudioProcessorNodeRuntime.ts` already owned the
+  AudioWorklet-only capture processor setup, worklet module cache, and
+  initialization error contract, but still exported
+  `createAudioCaptureProcessorNode()` as a standalone helper.
+- Change: made the constructor private to the runtime module, exposed it through
+  `DesktopVoiceAudioProcessorNodeRuntime`, and routed voice mode, wakeword
+  detection, focused processor tests, voice boundary coverage, and voice docs
+  through that facade.
+- Validation: focused processor-node, voice mode, wakeword detection, renderer
+  voice boundary, exact standalone processor helper export/import scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. The required AudioWorklet path,
+  processor name, chunking behavior, worklet module cache, initialization error
+  text, wakeword and dictation transports, storage, credentials, provider
+  policy, hosted backend URLs, and local execution trust boundaries are
+  unchanged.
+
 ### 2026-06-21 Renderer Voice Debug Trace Facade
 
 - Finding: `desktopVoiceDebugTraceRuntime.ts` already owned the renderer

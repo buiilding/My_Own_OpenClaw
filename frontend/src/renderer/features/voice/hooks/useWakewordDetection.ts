@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
 import { DesktopVoiceAudioEncodingRuntime } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
 import { DesktopVoiceAudioCaptureCleanupRuntime } from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
-import { createAudioCaptureProcessorNode } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
+import { DesktopVoiceAudioProcessorNodeRuntime } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import { DesktopWakewordEventRuntime } from '../../../app/runtime/desktopWakewordEventRuntime';
 import { DesktopVoiceDebugTraceRuntime } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
 import { DesktopWakewordCaptureGuardRuntime } from '../../../app/runtime/desktopWakewordCaptureGuardRuntime';
@@ -19,6 +19,7 @@ const {
   closeAudioContextSafely,
   takeAudioContext,
 } = DesktopVoiceAudioCaptureCleanupRuntime;
+const { createAudioCaptureProcessorNode } = DesktopVoiceAudioProcessorNodeRuntime;
 const {
   clearWakewordCaptureGuard,
   getWakewordCaptureGuard,

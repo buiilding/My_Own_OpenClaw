@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DesktopVoiceAudioEncodingRuntime } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
 import { DesktopVoiceAudioCaptureCleanupRuntime } from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
-import { createAudioCaptureProcessorNode } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
+import { DesktopVoiceAudioProcessorNodeRuntime } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
@@ -16,6 +16,7 @@ const {
   closeAudioContextSafely,
   takeAudioContext,
 } = DesktopVoiceAudioCaptureCleanupRuntime;
+const { createAudioCaptureProcessorNode } = DesktopVoiceAudioProcessorNodeRuntime;
 const { logVoiceDebugTrace } = DesktopVoiceDebugTraceRuntime;
 
 const MAX_RECONNECT_ATTEMPTS = 5;
