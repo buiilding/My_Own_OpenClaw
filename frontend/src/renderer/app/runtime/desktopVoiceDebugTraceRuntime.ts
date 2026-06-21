@@ -1,5 +1,5 @@
 /**
- * Provides gated voice debug tracing for the renderer runtime.
+ * Provides gated voice debug tracing for the renderer app-runtime.
  */
 
 type VoiceTraceDetails = Record<string, unknown>;

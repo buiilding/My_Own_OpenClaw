@@ -1,5 +1,5 @@
 /**
- * Provides dashboard memory presentation projection for the renderer runtime.
+ * Provides dashboard memory presentation projection for the renderer app-runtime.
  */
 
 function parseSemanticContent(content) {

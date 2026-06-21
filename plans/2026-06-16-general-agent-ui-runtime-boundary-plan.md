@@ -20501,3 +20501,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Agent-definition defaults, prompt
   payloads, SDK builder behavior, Electron handoff, hosted API behavior,
   permissions, storage, provider policy, and backend behavior are unchanged.
+
+### 2026-06-21 renderer app-runtime helper labels
+
+- Finding: renderer app-runtime helper headers still described several helpers
+  as generic renderer runtime clients or consumers, which blurred the current
+  split between the renderer app-runtime package and the broader React renderer
+  process.
+- Change: reworded those helper headers to renderer app-runtime
+  clients/consumers and added a renderer boundary guard against the retired
+  source comment phrases.
+- Validation: focused renderer boundary test, exact source scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Runtime modules, exports, imports, IPC
+  channels, SDK command names, renderer projections, permissions, storage,
+  provider policy, and backend behavior are unchanged.

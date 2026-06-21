@@ -1,5 +1,5 @@
 /**
- * Provides desktop voice audio processor node helpers for the renderer runtime.
+ * Provides voice audio processor node helpers for the renderer app-runtime.
  */
 
 const CAPTURE_WORKLET_NAME = 'desktop-runtime-capture-processor';

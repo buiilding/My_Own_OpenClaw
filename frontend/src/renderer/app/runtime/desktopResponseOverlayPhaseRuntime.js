@@ -1,5 +1,5 @@
 /**
- * Defines response overlay phase contracts for the renderer runtime.
+ * Defines response overlay phase contracts for the renderer app-runtime.
  */
 
 import responseOverlayPhaseContract from '../../../shared/response_overlay_phase_contract.json';

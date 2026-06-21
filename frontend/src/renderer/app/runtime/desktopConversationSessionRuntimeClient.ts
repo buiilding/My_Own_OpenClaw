@@ -1,5 +1,5 @@
 /**
- * Coordinates desktop conversation session helper rules for renderer runtime clients.
+ * Coordinates conversation session helper rules for renderer app-runtime clients.
  */
 
 import {

@@ -1,5 +1,5 @@
 /**
- * Resolves response overlay view intent for renderer runtime consumers.
+ * Resolves response overlay view intent for renderer app-runtime consumers.
  */
 
 import {

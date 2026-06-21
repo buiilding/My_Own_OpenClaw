@@ -70,6 +70,16 @@ describe('renderer app runtime boundary', () => {
     expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
   });
 
+  test('app runtime helper comments use renderer app-runtime labels', async () => {
+    const offenders = await collectSourceNeedleOffenders(path.join(appRoot, 'runtime'), [
+      'renderer runtime clients',
+      'renderer runtime consumers',
+      'for the renderer runtime',
+    ]);
+
+    expect(offenders).toEqual([]);
+  });
+
   test('app runtime SDK consumers route through the conversation contracts facade', async () => {
     const files = await listSourceFiles(path.join(appRoot, 'runtime'));
     const offenders: string[] = [];

@@ -1,5 +1,5 @@
 /**
- * Provides dashboard model-card presentation projection for the renderer runtime.
+ * Provides dashboard model-card presentation projection for the renderer app-runtime.
  */
 
 import { resolveProviderModelDisplay } from '../skin/desktopRuntimeConfig';

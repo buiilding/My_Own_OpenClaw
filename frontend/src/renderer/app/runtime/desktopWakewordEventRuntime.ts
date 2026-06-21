@@ -1,5 +1,5 @@
 /**
- * Provides wakeword event normalization helpers for the renderer runtime.
+ * Provides wakeword event normalization helpers for the renderer app-runtime.
  */
 
 export function getChunkSizeWarning(rawChunkSize: number, normalizedChunkSize: number): string | null {

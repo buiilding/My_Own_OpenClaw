@@ -1,5 +1,5 @@
 /**
- * Provides model thinking capability resolution for renderer runtime consumers.
+ * Provides model thinking capability resolution for renderer app-runtime consumers.
  */
 
 type ModelCapabilityDescriptor = {

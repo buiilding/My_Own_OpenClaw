@@ -1,5 +1,5 @@
 /**
- * Coordinates desktop artifact image commands for renderer runtime clients.
+ * Coordinates artifact image commands for renderer app-runtime clients.
  */
 
 import {

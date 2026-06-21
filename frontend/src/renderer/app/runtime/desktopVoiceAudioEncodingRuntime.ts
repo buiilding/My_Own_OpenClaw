@@ -1,5 +1,5 @@
 /**
- * Provides desktop voice audio encoding helpers for the renderer runtime.
+ * Provides voice audio encoding helpers for the renderer app-runtime.
  */
 
 const VALID_AUDIO_CAPTURE_CHUNK_SIZES = [256, 512, 1024, 1280, 2048, 4096, 8192, 16384];

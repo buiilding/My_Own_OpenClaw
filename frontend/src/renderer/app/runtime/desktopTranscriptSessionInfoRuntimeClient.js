@@ -1,5 +1,5 @@
 /**
- * Coordinates transcript session info subscriptions for renderer runtime clients.
+ * Coordinates transcript session info subscriptions for renderer app-runtime clients.
  */
 
 import { useSyncExternalStore } from 'react';

@@ -1,5 +1,5 @@
 /**
- * Provides stop-turn target and terminal projection helpers for renderer runtime consumers.
+ * Provides stop-turn target and terminal projection helpers for renderer app-runtime consumers.
  */
 
 const STOPPABLE_CURRENT_TURN_PHASES = new Set([

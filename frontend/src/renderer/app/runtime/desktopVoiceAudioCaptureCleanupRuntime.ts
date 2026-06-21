@@ -1,5 +1,5 @@
 /**
- * Provides desktop voice audio capture cleanup helpers for the renderer runtime.
+ * Provides voice audio capture cleanup helpers for the renderer app-runtime.
  */
 
 import type { MutableRefObject } from 'react';

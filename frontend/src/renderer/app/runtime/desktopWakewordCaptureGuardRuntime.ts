@@ -1,5 +1,5 @@
 /**
- * Provides wakeword capture guard helpers for the renderer runtime.
+ * Provides wakeword capture guard helpers for the renderer app-runtime.
  */
 
 type WakewordCaptureGuard = {

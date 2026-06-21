@@ -8465,3 +8465,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   phrases. Agent-definition defaults, prompt payloads, SDK builder behavior,
   Electron handoff, hosted API behavior, permissions, storage, provider policy,
   and backend behavior are unchanged; no migration is required.
+- Renderer app-runtime helper headers now use renderer app-runtime
+  clients/consumers and renderer app-runtime helper wording instead of generic
+  renderer runtime clients/consumers. Renderer boundary coverage now scans the
+  app-runtime source for the retired comment phrases. Runtime modules, exports,
+  imports, IPC channels, SDK command names, renderer projections, permissions,
+  storage, provider policy, and backend behavior are unchanged; no migration is
+  required.

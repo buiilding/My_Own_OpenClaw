@@ -1,5 +1,5 @@
 /**
- * Defines overlay turn lifecycle contract values for renderer runtime consumers.
+ * Defines overlay turn lifecycle contract values for renderer app-runtime consumers.
  */
 
 import overlayTurnLifecycleContract from '../../../shared/overlay_turn_lifecycle_contract.json';

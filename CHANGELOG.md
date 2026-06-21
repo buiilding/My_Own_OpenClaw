@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: describe app-runtime helper headers with renderer
+  app-runtime labels instead of generic renderer runtime clients/consumers. No
+  migration required.
 - docs/sdk: replace remaining desktop-host and hosted-desktop runtime wording
   with host-runtime and hosted Electron labels. No migration required.
 - docs/backend: describe session OS/capability overrides and install-client
