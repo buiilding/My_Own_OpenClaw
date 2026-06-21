@@ -168,6 +168,11 @@ describe('appConfigPersistence', () => {
     ).toEqual({
       provider_api_keys: {
         openai: { enabled: true, api_key: '' },
+        anthropic: { enabled: false, api_key: '' },
+        google: { enabled: false, api_key: '' },
+        openrouter: { enabled: false, api_key: '' },
+        mistral: { enabled: false, api_key: '' },
+        kimi_coding: { enabled: false, api_key: '' },
       },
     });
   });

@@ -80,6 +80,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route provider credential spec, normalization, and secret
   stripping helpers through the provider credential runtime facade instead of
   standalone helper exports. No migration required.
+- frontend/renderer: route app-config persistence provider secret redaction
+  through the provider credential runtime facade instead of a duplicate
+  provider-key loop. No migration required.
 - docs/memory and docs/concepts: describe `session_id` as hosted backend
   runtime identity instead of generic backend runtime/session wording. No
   migration required.

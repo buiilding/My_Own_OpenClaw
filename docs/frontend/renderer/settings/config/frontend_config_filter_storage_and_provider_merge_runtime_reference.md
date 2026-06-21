@@ -146,8 +146,9 @@ Save semantics (`saveConfigToStorage`):
 - strips provider `api_key` before serializing to localStorage
 - returns boolean success/failure
 
-Disk persistence uses the same redaction rule. `AppConfigProvider` builds a
-redacted persistence payload before calling
+Disk persistence uses the same provider credential runtime redaction rule.
+`AppConfigProvider` builds a redacted persistence payload through
+`DesktopProviderCredentialRuntime.stripProviderApiKeySecrets(...)` before calling
 `DesktopAppConfigRuntimeClient.saveRendererConfig(...)`, and Electron main
 defensively redacts provider secrets again on both `save-frontend-config` and
 disk `load-frontend-config` legacy-named routes.

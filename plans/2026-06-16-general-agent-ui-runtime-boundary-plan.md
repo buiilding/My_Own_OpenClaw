@@ -1584,6 +1584,25 @@ Each completed slice should report:
   redaction, settings sync, credentials, hosted backend URLs, and provider
   policy are unchanged.
 
+### 2026-06-21 Renderer Provider Credential Persistence Redaction
+
+- Finding: `appConfigPersistence.js` still carried a duplicate
+  `provider_api_keys` redaction loop even though
+  `DesktopProviderCredentialRuntime.stripProviderApiKeySecrets(...)` owned
+  renderer provider credential redaction and normalization.
+- Change: routed app-config persistence payload redaction through
+  `DesktopProviderCredentialRuntime.stripProviderApiKeySecrets(...)` so
+  localStorage and disk persistence use the same configured provider set and
+  secret-scrubbing rule as provider credential runtime coverage.
+- Validation: focused app-config persistence, AppConfigProvider storage/IPC,
+  config storage, provider credential runtime, and renderer skin/config
+  boundary tests, exact duplicate redaction-loop scan, docs list, and diff
+  hygiene.
+- Compatibility/security: no migration required. Provider credential config
+  shape, provider ids, dashboard labels/placeholders, localStorage and disk
+  secret redaction, live settings sync, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Renderer Appearance Theme Runtime Boundary
 
 - Finding: renderer config storage, theme application, and the dashboard

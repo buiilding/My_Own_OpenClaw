@@ -4,6 +4,7 @@
 
 import { hasShallowConfigChanges } from './configComparison';
 import { filterRendererConfig } from '../runtime/desktopRendererConfigFilterRuntime';
+import { DesktopProviderCredentialRuntime } from '../runtime/desktopProviderCredentialRuntime';
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -73,16 +74,9 @@ export function sanitizeRendererProviderConfig(config) {
 export function buildRendererConfigPersistencePayload(config) {
   const sanitized = sanitizeRendererProviderConfig(config);
   if (isPlainObject(sanitized.provider_api_keys)) {
-    const providerApiKeys = {};
-    for (const [provider, entry] of Object.entries(sanitized.provider_api_keys)) {
-      providerApiKeys[provider] = isPlainObject(entry)
-        ? {
-          ...entry,
-          api_key: '',
-        }
-        : entry;
-    }
-    sanitized.provider_api_keys = providerApiKeys;
+    sanitized.provider_api_keys = DesktopProviderCredentialRuntime.stripProviderApiKeySecrets(
+      sanitized.provider_api_keys,
+    );
   }
   return sanitized;
 }
