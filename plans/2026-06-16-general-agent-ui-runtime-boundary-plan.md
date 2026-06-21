@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Memory Backing Label Boundary
+
+- Finding: the local runtime memory guide still said the current backing
+  implementation runs in the Python sidecar, even though the active boundary is
+  SDK local-runtime memory backed by the local-runtime Python implementation.
+- Change: reworded the active implementation sentence to local-runtime Python
+  implementation while preserving stale sidecar search-routing hints, and
+  extended the memory docs guard for the retired sentence.
+- Validation: focused modular memory docs guard, exact stale-label scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. Memory JSON-RPC method names,
+  transcript/semantic store schemas, local-runtime Python paths, SDK memory
+  calls, IPC payloads, storage files, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Memory Docs Runtime Ownership Intro Boundary
 
 - Finding: the memory hub and memory change workflow still introduced the

@@ -9,10 +9,10 @@ title: "Local Runtime Memory"
 # Local Runtime Memory
 
 The SDK local-runtime memory boundary owns local episodic and semantic memory
-persistence and search. The current backing implementation runs in the Python
-sidecar, and renderer/Electron main callers reach it through the SDK
-local-runtime JSON-RPC path. Backend code must not import local-runtime memory
-implementation code.
+persistence and search. The current backing implementation runs in the
+local-runtime Python implementation, and renderer/Electron main callers reach
+it through the SDK local-runtime JSON-RPC path. Backend code must not import
+local-runtime memory implementation code.
 
 ## Code Ownership
 

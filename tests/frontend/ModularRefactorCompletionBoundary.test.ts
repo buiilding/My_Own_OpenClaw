@@ -1359,6 +1359,7 @@ describe('modular sdk refactor completion boundary', () => {
     const memoryDocs = await Promise.all([
       read('docs/memory/README.md'),
       read('docs/memory/memory_change_workflow.md'),
+      read('docs/memory/sidecar_local_memory.md'),
     ]);
     const memoryDocText = memoryDocs.join('\n');
 
@@ -1374,7 +1375,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(memorySystem).not.toContain('passes embeddings to the sidecar');
     expect(memorySystem).not.toContain('sidecar JSON-RPC envelope');
     expect(memoryDocText).toContain('desktop UI, local-runtime memory store, and hosted backend');
+    expect(memoryDocText).toContain('current backing implementation runs in the\nlocal-runtime Python implementation');
     expect(memoryDocText).not.toContain('desktop/backend runtime');
+    expect(memoryDocText).not.toContain('current backing implementation runs in the Python\nsidecar');
   });
 
   test('core architecture flow docs avoid mojibake in debug paths', async () => {
