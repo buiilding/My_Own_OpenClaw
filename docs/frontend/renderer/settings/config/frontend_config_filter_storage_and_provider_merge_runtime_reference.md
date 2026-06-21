@@ -14,6 +14,7 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 
 - `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
@@ -89,6 +90,12 @@ The generic storage runtime assembles defaults through the
 specs, and appearance palettes live in the active renderer skin so another
 desktop skin can replace them without changing
 `desktopRendererConfigStorageRuntime.js`.
+
+Appearance mode fallback, theme section normalization, system theme resolution,
+and CSS-variable theme section projection live in
+`desktopAppearanceThemeRuntime.js`. Storage, `applyAppearanceTheme(...)`, and
+the dashboard Appearance tab consume that app-runtime facade instead of reading
+the raw skin palette table directly.
 
 Provider key entry normalization and renderer-persistence secret stripping live
 in `desktopProviderCredentialRuntime.js`, which consumes those skin defaults

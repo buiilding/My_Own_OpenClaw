@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: renderer app-runtime dashboard row title/ref match
-  helpers and overlay lifecycle phase-group tables now stay private inside
-  their owner modules; public consumers use row list-update helpers and
-  lifecycle resolver APIs.
+- Latest completed slice: renderer appearance-mode fallback, system-theme
+  resolution, and theme section normalization moved behind
+  `desktopAppearanceThemeRuntime`, while raw palette values remain skin-owned.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -96,6 +95,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   The dedicated browser runtime guide routes Browser Use daemon attach/reuse,
   internal URL navigation, and browser state retention through the
   local-runtime browser adapter rather than product ownership wording.
+  Renderer appearance storage, theme application, and dashboard Appearance UI
+  now share an app-runtime appearance facade for fallback/normalization instead
+  of interpreting the raw skin palette table independently.
   The Browser Control guide names hosted backend browser policy, Electron UI
   status/readiness, and local-runtime Python Chrome/CDP ownership while keeping
   WindieOS env aliases as product launch configuration.

@@ -4,10 +4,13 @@
 
 import { DesktopShortcutRuntimeClient } from './desktopShortcutRuntimeClient';
 import {
-  DEFAULT_APPEARANCE_THEME,
   DEFAULT_MODEL_SELECTION,
   RENDERER_STORAGE_KEYS,
 } from '../skin/desktopRuntimeConfig';
+import {
+  normalizeAppearanceMode,
+  normalizeAppearanceTheme,
+} from './desktopAppearanceThemeRuntime';
 import {
   normalizeProviderApiKeys,
   stripProviderApiKeySecrets,
@@ -42,52 +45,8 @@ const DEFAULT_RENDERER_CONFIG = {
   include_query_screenshot: true,
   provider_api_keys: normalizeProviderApiKeys(),
   appearance_mode: 'system',
-  appearance_theme: DEFAULT_APPEARANCE_THEME,
+  appearance_theme: normalizeAppearanceTheme(),
 };
-
-function normalizeHexColor(value, fallback) {
-  if (typeof value !== 'string') {
-    return fallback;
-  }
-  const trimmed = value.trim().toUpperCase();
-  return /^#[0-9A-F]{6}$/.test(trimmed) ? trimmed : fallback;
-}
-
-function normalizeAppearanceThemeSection(overrides = null, defaults) {
-  const source = toPlainRecord(overrides);
-  const contrast = Number(source.contrast);
-  const normalizedContrast = Number.isFinite(contrast)
-    ? Math.min(100, Math.max(0, Math.round(contrast)))
-    : defaults.contrast;
-
-  return {
-    accent: normalizeHexColor(source.accent, defaults.accent),
-    background: normalizeHexColor(source.background, defaults.background),
-    foreground: normalizeHexColor(source.foreground, defaults.foreground),
-    ui_font: typeof source.ui_font === 'string' && source.ui_font.trim()
-      ? source.ui_font
-      : defaults.ui_font,
-    code_font: typeof source.code_font === 'string' && source.code_font.trim()
-      ? source.code_font
-      : defaults.code_font,
-    translucent_sidebar: typeof source.translucent_sidebar === 'boolean'
-      ? source.translucent_sidebar
-      : defaults.translucent_sidebar,
-    contrast: normalizedContrast,
-  };
-}
-
-function normalizeAppearanceTheme(overrides = null) {
-  const source = toPlainRecord(overrides);
-  return {
-    light: normalizeAppearanceThemeSection(source.light, DEFAULT_APPEARANCE_THEME.light),
-    dark: normalizeAppearanceThemeSection(source.dark, DEFAULT_APPEARANCE_THEME.dark),
-  };
-}
-
-function normalizeAppearanceMode(value) {
-  return ['light', 'dark', 'system'].includes(value) ? value : DEFAULT_RENDERER_CONFIG.appearance_mode;
-}
 
 function filterKnownRendererConfigFields(overrides = null) {
   const source = toPlainRecord(overrides);

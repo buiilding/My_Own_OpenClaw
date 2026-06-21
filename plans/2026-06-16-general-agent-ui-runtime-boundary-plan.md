@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Appearance Theme Runtime Boundary
+
+- Finding: renderer config storage, theme application, and the dashboard
+  Appearance tab each interpreted skin-owned appearance defaults directly,
+  leaving fallback/normalization rules duplicated across app-runtime and UI
+  callers.
+- Change: added `desktopAppearanceThemeRuntime.js` as the app-runtime owner for
+  appearance-mode fallback, system-theme resolution, theme section
+  normalization, and resolved section projection; routed config storage,
+  `applyAppearanceTheme(...)`, and `AppearanceSettingsTab` through it while
+  keeping the WindieOS palette in the renderer skin config.
+- Validation: focused appearance runtime, config storage, theme application,
+  settings section, renderer skin/config boundary coverage, docs listing, raw
+  default-import scan, and diff checks.
+- Compatibility: no migration required. Appearance config keys, localStorage
+  payloads, CSS variable names, renderer skin palette values, settings sync,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer App-Runtime Helper Export Boundary
 
 - Finding: renderer app-runtime modules already owned dashboard row title/ref

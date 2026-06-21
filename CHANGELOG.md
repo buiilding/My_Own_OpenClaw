@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/appearance: move appearance-mode and theme fallback normalization
+  into `desktopAppearanceThemeRuntime`, so storage, theme application, and the
+  settings UI share one app-runtime facade over skin-owned defaults. No
+  migration required.
 - renderer/chat: keep the default chat workspace key private to the workspace
   state owner and initialize chat-store workspaces through a semantic helper.
   No migration required.

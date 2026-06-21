@@ -7,7 +7,9 @@ import {
   saveConfigToStorage,
 } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js';
 import {
-  DEFAULT_APPEARANCE_THEME,
+  normalizeAppearanceTheme,
+} from '../../frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js';
+import {
   RENDERER_STORAGE_KEYS,
 } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig.js';
 
@@ -37,7 +39,7 @@ const DEFAULT_RENDERER_CONFIG = {
     kimi_coding: { enabled: false, api_key: '' },
   },
   appearance_mode: 'system',
-  appearance_theme: DEFAULT_APPEARANCE_THEME,
+  appearance_theme: normalizeAppearanceTheme(),
 };
 
 describe('configStorage', () => {

@@ -5,7 +5,7 @@
 import PropTypes from 'prop-types';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { SettingsToggle } from './settingsControls';
-import { DEFAULT_APPEARANCE_THEME } from '../../../../../app/skin/desktopRuntimeConfig';
+import { normalizeAppearanceTheme } from '../../../../../app/runtime/desktopAppearanceThemeRuntime';
 
 const THEME_MODE_OPTIONS = Object.freeze([
   { value: 'light', label: 'Light', icon: Sun },
@@ -28,25 +28,12 @@ const THEME_FIELDS = Object.freeze([
   { key: 'contrast', label: 'Contrast', kind: 'range' },
 ]);
 
-function normalizeThemeConfig(config) {
-  return {
-    light: {
-      ...DEFAULT_APPEARANCE_THEME.light,
-      ...(config?.appearance_theme?.light || {}),
-    },
-    dark: {
-      ...DEFAULT_APPEARANCE_THEME.dark,
-      ...(config?.appearance_theme?.dark || {}),
-    },
-  };
-}
-
 function getPillTextColor(value) {
   return String(value || '').toUpperCase() === '#FFFFFF' ? 'var(--agent-black)' : '#ffffff';
 }
 
 function AppearanceSettingsTab({ config, onConfigChange }) {
-  const appearanceTheme = normalizeThemeConfig(config);
+  const appearanceTheme = normalizeAppearanceTheme(config?.appearance_theme);
   const appearanceMode = ['light', 'dark', 'system'].includes(config?.appearance_mode)
     ? config.appearance_mode
     : 'system';

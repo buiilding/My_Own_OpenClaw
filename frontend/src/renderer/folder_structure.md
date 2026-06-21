@@ -89,6 +89,7 @@ frontend/src/renderer/
 │   │   ├── desktopPermissionOnboardingStorageRuntime.js # Renderer permission onboarding localStorage persistence facade
 │   │   ├── desktopRendererHooksRuntimeClient.ts # Renderer shared React hook facade for feature clients
 │   │   ├── desktopRendererConfigFilterRuntime.js # Renderer app-config allowlist facade
+│   │   ├── desktopAppearanceThemeRuntime.js # Renderer appearance theme normalization and fallback facade
 │   │   ├── desktopRendererConfigStorageRuntime.js # Renderer app-config local persistence facade
 │   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 │   │   ├── desktopPresentationSourceChannels.js # Renderer presentation source-channel labels
