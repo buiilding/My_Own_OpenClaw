@@ -118,6 +118,19 @@ function hasAuthoritativeSameTurnSdkReplacement(pendingTurn, currentTurnProjecti
   );
 }
 
+function resolvePendingTurnForCurrentProjection({
+  pendingTurn = null,
+  currentTurnProjection = null,
+} = {}) {
+  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+  if (!normalizedPendingTurn) {
+    return null;
+  }
+  return hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, currentTurnProjection)
+    ? null
+    : pendingTurn;
+}
+
 function findAwaitingAnchor(messages, pendingTurn, currentTurnProjection) {
   const presentationAnchor = currentTurnProjection?.presentation?.awaitingAnchor;
   if (
@@ -330,8 +343,7 @@ function applyVisibleTurnLifecycleToPresentationState(presentationState, visible
 
 export const DesktopVisibleTurnLifecycleRuntime = Object.freeze({
   applyVisibleTurnLifecycleToPresentationState,
-  hasAuthoritativeSdkProjection: isAuthoritativeSdkProjection,
-  hasAuthoritativeSameTurnSdkReplacement,
+  resolvePendingTurnForCurrentProjection,
   resolveVisibleTurnLifecycleForPresentation,
   resolveVisibleTurnLifecycle,
   shouldUseLocalSendPreflight,

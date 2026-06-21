@@ -8,8 +8,7 @@ import {
 
 const {
   applyVisibleTurnLifecycleToPresentationState,
-  hasAuthoritativeSdkProjection,
-  hasAuthoritativeSameTurnSdkReplacement,
+  resolvePendingTurnForCurrentProjection,
   resolveVisibleTurnLifecycle,
   shouldUseLocalSendPreflight,
 } = DesktopVisibleTurnLifecycleRuntime;
@@ -61,10 +60,13 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(visibleLifecycleModule.hasAuthoritativeSdkProjection).toBeUndefined();
     expect(visibleLifecycleModule.hasAuthoritativeSameTurnSdkReplacement).toBeUndefined();
     expect(visibleLifecycleModule.resolveVisibleTurnLifecycle).toBeUndefined();
+    expect(visibleLifecycleModule.resolvePendingTurnForCurrentProjection).toBeUndefined();
     expect(visibleLifecycleModule.buildCurrentTurnPresentationSnapshotSignature).toBeUndefined();
     expect(visibleLifecycleModule.isCurrentTurnPresentationOverlayLifecycleBusy).toBeUndefined();
     expect(visibleLifecycleModule.resolveCurrentTurnPresentationOverlayLifecycle).toBeUndefined();
     expect(visibleLifecycleModule.shouldUseLocalSendPreflight).toBeUndefined();
+    expect(DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSdkProjection).toBeUndefined();
+    expect(DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSameTurnSdkReplacement).toBeUndefined();
   });
 
   test('keeps local pending through idle, empty, and wrong-turn SDK projections until same-turn authority arrives', () => {
@@ -94,9 +96,10 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       showTyping: true,
     });
 
-    expect(hasAuthoritativeSameTurnSdkReplacement(pending, projection({
-      phase: 'idle',
-    }))).toBe(false);
+    expect(resolvePendingTurnForCurrentProjection({
+      pendingTurn: pending,
+      currentTurnProjection: projection({ phase: 'idle' }),
+    })).toBe(pending);
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
@@ -107,12 +110,10 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       showTyping: true,
     });
 
-    expect(hasAuthoritativeSameTurnSdkReplacement(pending, projection({
-      phase: 'streaming',
-    }))).toBe(false);
-    expect(hasAuthoritativeSdkProjection(projection({
-      phase: 'streaming',
-    }))).toBe(false);
+    expect(resolvePendingTurnForCurrentProjection({
+      pendingTurn: pending,
+      currentTurnProjection: projection({ phase: 'streaming' }),
+    })).toBe(pending);
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
@@ -123,19 +124,29 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       showTyping: true,
     });
 
-    expect(hasAuthoritativeSdkProjection(projection({
-      phase: 'streaming',
-      assistantText: 'visible response',
-    }))).toBe(true);
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      currentTurnProjection: projection({
+        phase: 'streaming',
+        assistantText: 'visible response',
+      }),
+      messages,
+    })).toMatchObject({
+      status: 'active',
+      showTyping: false,
+    });
 
-    expect(hasAuthoritativeSameTurnSdkReplacement(pending, projection({
-      turnRef: 'turn-previous',
-      phase: 'complete',
-      presentation: {
-        isTerminal: true,
-        entries: [],
-      },
-    }))).toBe(false);
+    expect(resolvePendingTurnForCurrentProjection({
+      pendingTurn: pending,
+      currentTurnProjection: projection({
+        turnRef: 'turn-previous',
+        phase: 'complete',
+        presentation: {
+          isTerminal: true,
+          entries: [],
+        },
+      }),
+    })).toBe(pending);
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
@@ -169,7 +180,10 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       },
     });
 
-    expect(hasAuthoritativeSameTurnSdkReplacement(pending, awaitingProjection)).toBe(true);
+    expect(resolvePendingTurnForCurrentProjection({
+      pendingTurn: pending,
+      currentTurnProjection: awaitingProjection,
+    })).toBeNull();
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
@@ -200,7 +214,10 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         message: 'Searching',
       }],
     });
-    expect(hasAuthoritativeSameTurnSdkReplacement(pending, progressProjection)).toBe(true);
+    expect(resolvePendingTurnForCurrentProjection({
+      pendingTurn: pending,
+      currentTurnProjection: progressProjection,
+    })).toBeNull();
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
@@ -224,7 +241,10 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         }],
       },
     });
-    expect(hasAuthoritativeSameTurnSdkReplacement(pending, textProjection)).toBe(true);
+    expect(resolvePendingTurnForCurrentProjection({
+      pendingTurn: pending,
+      currentTurnProjection: textProjection,
+    })).toBeNull();
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,
@@ -246,7 +266,10 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         entries: [],
       },
     });
-    expect(hasAuthoritativeSameTurnSdkReplacement(pending, terminalProjection)).toBe(true);
+    expect(resolvePendingTurnForCurrentProjection({
+      pendingTurn: pending,
+      currentTurnProjection: terminalProjection,
+    })).toBeNull();
     expect(resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pending,

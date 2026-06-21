@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: memory settings destructive browser confirmation now
-  routes through `DesktopMemorySettingsDialogRuntime`; the settings action hook
-  owns destructive intent/status only and no longer calls `window.confirm`
-  directly.
+- Latest completed slice: chat-store pending clearing now routes through
+  `DesktopVisibleTurnLifecycleRuntime.resolvePendingTurnForCurrentProjection(...)`;
+  lower-level SDK handoff predicates stay private to the visible lifecycle
+  runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

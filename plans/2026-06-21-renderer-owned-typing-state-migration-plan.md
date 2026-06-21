@@ -9,6 +9,26 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Pending-Turn Handoff Resolver Facade
+
+- Finding: `chatStore.ts` still consumed
+  `DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSameTurnSdkReplacement(...)`
+  directly to clear renderer pending turns, exposing the raw SDK-replacement
+  predicate as surface area even though visible lifecycle owns the handoff
+  decision.
+- Change: `DesktopVisibleTurnLifecycleRuntime` now exposes
+  `resolvePendingTurnForCurrentProjection(...)` as the store-facing pending
+  handoff contract. The lower-level authoritative SDK projection predicates are
+  private to the lifecycle runtime, and `chatStore.ts` receives either the
+  preserved pending turn or `null` from that owner.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatStore.test.ts`, and `RendererChatRuntimeBoundary.test.ts` protect the
+  resolver behavior, non-authoritative SDK idle preservation, and removed raw
+  predicate facade.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Live Surface Send Alias Removal
 
 - Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
@@ -309,10 +329,10 @@ Date: 2026-06-21
   still used separate predicates, so SDK idle, wrong-turn, or visible-empty
   projections could drift from the visible lifecycle rules in ADR 006.
 - Change: added `desktopVisibleTurnLifecycleRuntime` as the renderer app-runtime
-  owner for visible lifecycle projection and the
-  `hasAuthoritativeSameTurnSdkReplacement(...)` predicate, then routed
-  `chatStore.ts` pending clearing and `desktopLiveTurnSurfaceRuntime.js`
-  pending-turn handoff through that predicate.
+  owner for visible lifecycle projection and same-turn SDK handoff rules, then
+  routed `chatStore.ts` pending clearing through
+  `resolvePendingTurnForCurrentProjection(...)` and live-surface pending-turn
+  handoff through the same runtime owner.
 - Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js` protects the
   replay from `local_pending` through SDK idle, visible-empty, awaiting, active,
   terminal, and wrong-turn terminal states, and is registered in
@@ -457,16 +477,16 @@ The exact type can be refined during implementation, but the important rule is
 that dashboard, pill, overlay, Stop, busy, and typing should read from this
 projection rather than recomputing lifecycle independently.
 
-## Authoritative Handoff Predicate
+## Authoritative Handoff Resolver
 
-Centralize the predicate currently duplicated across store and surface logic:
+Centralize pending-turn handoff behind the visible lifecycle owner:
 
 ```text
-hasAuthoritativeSameTurnSdkReplacement(pendingTurn, currentTurnProjection)
+resolvePendingTurnForCurrentProjection({ pendingTurn, currentTurnProjection })
 ```
 
-It should return true only when SDK projection belongs to the same conversation
-and turn and represents one of:
+The public facade should return `null` only when SDK projection belongs to the
+same conversation and turn and represents one of:
 
 - SDK awaiting acceptance for the turn
 - visible reasoning text
@@ -478,7 +498,7 @@ and turn and represents one of:
 - visible error content
 - terminal complete/error/stopped for the turn
 
-It should return false for:
+It should keep the original pending turn for:
 
 - no SDK projection
 - wrong conversation
@@ -488,8 +508,9 @@ It should return false for:
 - visible-but-empty projection with no content, progress, awaiting, or terminal
   authority
 
-This predicate should be used for both pending-turn clearing and visible
-lifecycle handoff, so those decisions cannot drift again.
+The lower-level same-turn authority predicate should remain private to the
+visible lifecycle runtime. Store and surface consumers should use the facade so
+pending-turn clearing and visible lifecycle handoff cannot drift again.
 
 ## Cleanup Targets
 

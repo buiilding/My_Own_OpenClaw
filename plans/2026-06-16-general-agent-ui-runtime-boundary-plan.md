@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Visible Lifecycle Pending Resolver Facade
+
+- Finding: `chatStore.ts` still consumed
+  `DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSameTurnSdkReplacement(...)`
+  directly, so the store owned the `pendingTurn -> null` clearing branch even
+  though visible lifecycle is the renderer app-runtime owner.
+- Change: added
+  `DesktopVisibleTurnLifecycleRuntime.resolvePendingTurnForCurrentProjection(...)`
+  as the public pending-turn handoff facade and kept the lower-level SDK
+  authority predicates private to the runtime.
+- Validation target: focused visible lifecycle runtime and renderer chat
+  boundary tests protect pending keep/clear behavior and reject production
+  store imports of the lower-level handoff predicate.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Memory Settings Dialog Boundary
 
 - Finding: `useMemorySettingsActions(...)` still called `window.confirm`
@@ -317,8 +334,9 @@ Date: 2026-06-16
   lifecycle rules.
 - Change: added `desktopVisibleTurnLifecycleRuntime` as the renderer
   app-runtime owner for visible lifecycle projection and same-turn SDK
-  replacement detection, then routed chat pending clearing and live-surface
-  pending-turn handoff through `hasAuthoritativeSameTurnSdkReplacement(...)`.
+  replacement detection, then routed chat pending clearing through the visible
+  lifecycle pending resolver and live-surface pending-turn handoff through the
+  same runtime owner.
 - Validation: focused visible lifecycle, chat store, live-surface, and
   pending-turn integration tests, plus registration in the Core Loop
   Regression Pack.

@@ -41,7 +41,7 @@ const {
   projectDesktopLiveTurnSurfaceState,
 } = DesktopChatSurfaceSelectorRuntime;
 const {
-  hasAuthoritativeSameTurnSdkReplacement,
+  resolvePendingTurnForCurrentProjection,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 export type { ChatMessage, TokenCounts };
@@ -611,12 +611,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => {
       const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
       const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      const nextPendingTurn = hasAuthoritativeSameTurnSdkReplacement(
-        currentWorkspace.pendingTurn,
+      const nextPendingTurn = resolvePendingTurnForCurrentProjection({
+        pendingTurn: currentWorkspace.pendingTurn,
         currentTurnProjection,
-      )
-        ? null
-        : currentWorkspace.pendingTurn;
+      });
       const latestUpdate = state.latestCurrentTurnProjection === currentTurnProjection
         ? {}
         : { latestCurrentTurnProjection: currentTurnProjection };

@@ -68,6 +68,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: keep visible-lifecycle SDK handoff predicates private to
+  `DesktopVisibleTurnLifecycleRuntime`; chat store pending clearing now asks
+  `resolvePendingTurnForCurrentProjection(...)` for the resolved pending-turn
+  value instead of branching on lower-level authority predicates. No migration
+  required.
 - frontend/renderer: route memory settings destructive browser confirmation
   through `DesktopMemorySettingsDialogRuntime`, keeping `window.confirm`
   adapter details out of the settings action hook. No migration required.

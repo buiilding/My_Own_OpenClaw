@@ -1722,6 +1722,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'stores/chatStore.ts'),
       'utf8',
     );
+    const visibleLifecycleSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js'),
+      'utf8',
+    );
 
     expect(offenders).toEqual([]);
     expect(clientSource).toContain('DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
@@ -1730,9 +1734,13 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('resolveBroadcastAction(payload');
     expect(eventClientSource).toContain('DesktopPendingTurnRuntimeClient.resolveBroadcastAction(payload)');
     expect(chatStoreSource).toContain('DesktopPendingTurnBroadcastAction');
+    expect(chatStoreSource).toContain('resolvePendingTurnForCurrentProjection');
+    expect(chatStoreSource).not.toContain('hasAuthoritativeSameTurnSdkReplacement');
     expect(chatStoreSource).toContain("action.kind === 'clear'");
     expect(chatStoreSource).not.toContain("source.type === 'clear'");
     expect(chatStoreSource).not.toContain('source.pendingTurn');
+    expect(visibleLifecycleSource).toContain('function hasAuthoritativeSameTurnSdkReplacement');
+    expect(visibleLifecycleSource).not.toContain('hasAuthoritativeSameTurnSdkReplacement,');
   });
 
   test('chat stop-turn state is owned by app runtime', async () => {

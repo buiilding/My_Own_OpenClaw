@@ -351,6 +351,42 @@ describe('chatStore', () => {
     expect(state.isSending).toBe(true);
   });
 
+  test('setCurrentTurnProjection keeps pending turn through non-authoritative same-turn SDK idle', () => {
+    useChatStore.getState().acceptPendingTurn({
+      conversationRef: 'conv-sdk-idle',
+      turnRef: 'turn-sdk-idle',
+      userMessageId: 'user-sdk-idle',
+      text: 'handoff idle',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: null,
+    });
+
+    useChatStore.getState().setCurrentTurnProjection({
+      conversationRef: 'conv-sdk-idle',
+      turnRef: 'turn-sdk-idle',
+      phase: 'idle',
+      assistantText: '',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        typingVisible: false,
+        overlayVisible: false,
+        isBusy: false,
+        hasVisibleContent: false,
+        entries: [],
+      },
+    });
+
+    const state = useChatStore.getState();
+    expect(state.pendingTurn).toEqual(expect.objectContaining({
+      conversationRef: 'conv-sdk-idle',
+      turnRef: 'turn-sdk-idle',
+    }));
+    expect(state.currentTurnProjection?.turnRef).toBe('turn-sdk-idle');
+    expect(state.isSending).toBe(true);
+  });
+
   test('clearPendingTurn clears only the matching pending turn', () => {
     useChatStore.getState().acceptPendingTurn({
       conversationRef: 'conv-clear',

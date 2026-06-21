@@ -47,10 +47,12 @@ Output statuses:
 - `terminal`: SDK completed or errored the same turn
 - `idle`: no visible active turn for the conversation
 
-`DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSameTurnSdkReplacement(...)`
-is the shared handoff predicate for clearing renderer pending turns and
-suppressing local send preflight. SDK idle, wrong-turn terminal, stale, and
-visible-empty projections must not replace `local_pending`.
+`DesktopVisibleTurnLifecycleRuntime.resolvePendingTurnForCurrentProjection(...)`
+owns pending-turn handoff for store updates, while
+`DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)` owns
+surface preflight suppression. Both use the same visible lifecycle authority so
+SDK idle, wrong-turn terminal, stale, and visible-empty projections do not
+replace `local_pending`.
 Local send preflight requires a valid renderer `pendingTurn`; bare
 `isSending=true` is store/diagnostic compatibility state and does not create
 visible typing or busy lifecycle by itself.
