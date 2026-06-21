@@ -95,6 +95,8 @@ describe('renderer settings runtime boundary', () => {
     expect(appConfigClientSource).toContain('isSettingsUpdateError');
     expect(sessionClientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
     expect(sessionClientSource).toContain('ON_CHANNELS.IPC_STATUS');
+    expect(sessionClientSource).toContain('function resolveDesktopClientIpcStatusValues');
+    expect(sessionClientSource).not.toContain('export function resolveDesktopClientIpcStatusValues');
     expect(voiceClientSource).toContain('ON_CHANNELS.WAKEWORD_TOGGLE');
     expect(providerFiles).toContain('app/providers/AppConfigProvider.jsx');
   });

@@ -23,14 +23,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-import {
-  DesktopClientSessionRuntimeClient,
-  normalizeDesktopClientSessionSnapshot,
-  normalizeDesktopTransportConnectionStatus,
-  resolveDesktopClientIpcStatusValues,
-  resolveDesktopClientSessionUserId,
-  resolveObservedDesktopTransportConnection,
-} from '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient';
+import * as DesktopClientSessionRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient';
+import { DesktopClientSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient';
 
 describe('DesktopClientSessionRuntimeClient', () => {
   beforeEach(() => {
@@ -38,27 +32,16 @@ describe('DesktopClientSessionRuntimeClient', () => {
     statusListener = null;
   });
 
-  test('normalizes client session snapshots while preserving endpoint metadata', () => {
-    expect(normalizeDesktopClientSessionSnapshot({
-      userId: ' user-1 ',
-      isConnected: true,
-      runtimeHttpUrl: 'http://127.0.0.1:8765',
-    })).toEqual({
-      userId: 'user-1',
-      isConnected: true,
-      runtimeHttpUrl: 'http://127.0.0.1:8765',
-    });
-
-    expect(normalizeDesktopClientSessionSnapshot({
-      userId: '   ',
-      isConnected: 'yes',
-    })).toEqual({
-      userId: null,
-    });
+  test('keeps raw ipc status helper functions private to the runtime client', () => {
+    expect(DesktopClientSessionRuntimeModule).not.toHaveProperty('normalizeDesktopClientSessionSnapshot');
+    expect(DesktopClientSessionRuntimeModule).not.toHaveProperty('resolveDesktopClientSessionUserId');
+    expect(DesktopClientSessionRuntimeModule).not.toHaveProperty('normalizeDesktopTransportConnectionStatus');
+    expect(DesktopClientSessionRuntimeModule).not.toHaveProperty('resolveObservedDesktopTransportConnection');
+    expect(DesktopClientSessionRuntimeModule).not.toHaveProperty('resolveDesktopClientIpcStatusValues');
   });
 
   test('loadMainSessionSnapshot returns normalized snapshots', async () => {
-    mockInvoke.mockResolvedValue({
+    mockInvoke.mockResolvedValueOnce({
       userId: ' dashboard-user ',
       isConnected: false,
     });
@@ -67,50 +50,37 @@ describe('DesktopClientSessionRuntimeClient', () => {
       userId: 'dashboard-user',
       isConnected: false,
     });
+
+    mockInvoke.mockResolvedValueOnce({
+      userId: '   ',
+      isConnected: 'yes',
+    });
+
+    await expect(DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()).resolves.toEqual({
+      userId: null,
+    });
     expect(mockInvoke).toHaveBeenCalledWith('get-client-user-id');
   });
 
   test('resolves and loads main session user ids directly', async () => {
-    expect(resolveDesktopClientSessionUserId({ userId: ' dashboard-user ' })).toBe('dashboard-user');
-    expect(resolveDesktopClientSessionUserId({ userId: '   ' })).toBeNull();
-
-    mockInvoke.mockResolvedValue({
+    mockInvoke.mockResolvedValueOnce({
       userId: ' dashboard-user ',
       isConnected: false,
     });
 
     await expect(DesktopClientSessionRuntimeClient.loadMainSessionUserId()).resolves.toBe('dashboard-user');
+
+    mockInvoke.mockResolvedValueOnce({
+      userId: '   ',
+      isConnected: false,
+    });
+
+    await expect(DesktopClientSessionRuntimeClient.loadMainSessionUserId()).resolves.toBeNull();
     expect(mockInvoke).toHaveBeenCalledWith('get-client-user-id');
   });
 
-  test('normalizes transport connection status for chat loop consumers', () => {
-    expect(normalizeDesktopTransportConnectionStatus({ isConnected: true })).toEqual({
-      isConnected: true,
-      hasConnectionState: true,
-    });
-    expect(normalizeDesktopTransportConnectionStatus({ isConnected: false })).toEqual({
-      isConnected: false,
-      hasConnectionState: true,
-    });
-    expect(normalizeDesktopTransportConnectionStatus({ isConnected: 'yes' })).toEqual({
-      isConnected: false,
-      hasConnectionState: false,
-    });
-    expect(normalizeDesktopTransportConnectionStatus(null)).toEqual({
-      isConnected: false,
-      hasConnectionState: false,
-    });
-  });
-
-  test('resolves observed transport connections for chat loop consumers', () => {
-    expect(resolveObservedDesktopTransportConnection({ isConnected: true })).toBe(true);
-    expect(resolveObservedDesktopTransportConnection({ isConnected: false })).toBe(false);
-    expect(resolveObservedDesktopTransportConnection({ isConnected: 'yes' })).toBeNull();
-    expect(resolveObservedDesktopTransportConnection(null)).toBeNull();
-  });
-
   test('resolves ipc status values for app config consumers', () => {
-    expect(resolveDesktopClientIpcStatusValues({
+    expect(DesktopClientSessionRuntimeClient.resolveIpcStatusValues({
       userId: ' ipc-user ',
       isConnected: true,
       runtimeHttpUrl: 'http://127.0.0.1:8765',
@@ -136,7 +106,7 @@ describe('DesktopClientSessionRuntimeClient', () => {
       },
     });
 
-    expect(resolveDesktopClientIpcStatusValues({
+    expect(DesktopClientSessionRuntimeClient.resolveIpcStatusValues({
       userId: ' ipc-user ',
       isConnected: 'yes',
       globalAgentStopShortcutStatus: 'unavailable',

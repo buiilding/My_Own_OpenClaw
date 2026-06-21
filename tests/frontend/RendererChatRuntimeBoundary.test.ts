@@ -1742,8 +1742,10 @@ describe('renderer chat runtime boundary', () => {
     expect(loopRuntimeSource).not.toContain('features/chat');
     expect(clientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
     expect(clientSource).toContain('ON_CHANNELS.IPC_STATUS');
-    expect(clientSource).toContain('normalizeDesktopTransportConnectionStatus');
-    expect(clientSource).toContain('resolveObservedDesktopTransportConnection');
+    expect(clientSource).toContain('function normalizeDesktopTransportConnectionStatus');
+    expect(clientSource).not.toContain('export function normalizeDesktopTransportConnectionStatus');
+    expect(clientSource).toContain('function resolveObservedDesktopTransportConnection');
+    expect(clientSource).not.toContain('export function resolveObservedDesktopTransportConnection');
   });
 
   test('dashboard shell routes main-window target and user snapshot IPC through app runtime clients', async () => {
@@ -1773,8 +1775,10 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardShellSource).not.toContain('payload.userId.trim');
     expect(dashboardShellSource).toContain('DesktopClientSessionRuntimeClient.loadMainSessionUserId');
     expect(dashboardShellSource).toContain('DesktopWindowRuntimeClient.onMainWindowOpenTarget');
-    expect(sessionClientSource).toContain('normalizeDesktopClientSessionSnapshot');
-    expect(sessionClientSource).toContain('resolveDesktopClientSessionUserId');
+    expect(sessionClientSource).toContain('function normalizeDesktopClientSessionSnapshot');
+    expect(sessionClientSource).not.toContain('export function normalizeDesktopClientSessionSnapshot');
+    expect(sessionClientSource).toContain('function resolveDesktopClientSessionUserId');
+    expect(sessionClientSource).not.toContain('export function resolveDesktopClientSessionUserId');
     expect(sessionClientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
     expect(windowClientSource).toContain('resolveMainWindowOpenTarget');
     expect(windowClientSource).toContain('ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET');

@@ -48,7 +48,7 @@ function normalizeOptionalString(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-export function normalizeDesktopClientSessionSnapshot(payload: unknown): DesktopClientSessionSnapshot {
+function normalizeDesktopClientSessionSnapshot(payload: unknown): DesktopClientSessionSnapshot {
   const source = recordOrEmpty(payload);
   const snapshot: DesktopClientSessionSnapshot = {
     ...source,
@@ -62,11 +62,11 @@ export function normalizeDesktopClientSessionSnapshot(payload: unknown): Desktop
   return snapshot;
 }
 
-export function resolveDesktopClientSessionUserId(payload: unknown): string | null {
+function resolveDesktopClientSessionUserId(payload: unknown): string | null {
   return normalizeDesktopClientSessionSnapshot(payload).userId;
 }
 
-export function normalizeDesktopTransportConnectionStatus(
+function normalizeDesktopTransportConnectionStatus(
   payload: unknown,
 ): DesktopTransportConnectionStatus {
   const source = recordOrEmpty(payload);
@@ -76,7 +76,7 @@ export function normalizeDesktopTransportConnectionStatus(
   };
 }
 
-export function resolveObservedDesktopTransportConnection(
+function resolveObservedDesktopTransportConnection(
   payload: unknown,
 ): boolean | null {
   const status = normalizeDesktopTransportConnectionStatus(payload);
@@ -86,7 +86,7 @@ export function resolveObservedDesktopTransportConnection(
   return status.isConnected;
 }
 
-export function resolveDesktopClientIpcStatusValues(payload: unknown): DesktopClientIpcStatusValues {
+function resolveDesktopClientIpcStatusValues(payload: unknown): DesktopClientIpcStatusValues {
   const snapshot = normalizeDesktopClientSessionSnapshot(payload);
   const source = recordOrEmpty(payload);
   const shortcutStatus = source.globalAgentStopShortcutStatus;

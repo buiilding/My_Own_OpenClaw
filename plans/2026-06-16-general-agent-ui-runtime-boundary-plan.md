@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Client Session Parser Privacy
+
+- Finding: `DesktopClientSessionRuntimeClient` already owned raw
+  `get-client-user-id` and `ipc-status` snapshot normalization, but still
+  exported helper functions for session snapshots, user ids, transport
+  connection status, observed connection values, and app-config status values
+  so tests could call the helpers directly.
+- Change: made those helpers private to the client session runtime client and
+  updated focused tests to exercise the same behavior through public
+  snapshot/value/transport load and subscription facades. Extended chat and
+  settings boundary guards against re-exporting those raw helpers.
+- Validation: focused client-session runtime, renderer chat boundary, and
+  renderer settings boundary tests, exact raw-helper export scan, docs list, and
+  diff hygiene.
+- Compatibility/security: no migration required. `get-client-user-id` and
+  `ipc-status` channel names, payload normalization rules, transcript user
+  binding, global stop shortcut status projection, connection-state observation,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Agent Capability Parser Privacy
 
 - Finding: `DesktopExtensionRuntimeClient` already owned

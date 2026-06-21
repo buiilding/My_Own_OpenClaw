@@ -93,6 +93,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep agent-capability event normalization and update
   resolution private to the extension runtime client and test through
   capability subscription facades. No migration required.
+- frontend/renderer: keep client-session and IPC transport status normalization
+  helpers private to the client session runtime client and test through
+  snapshot/value/transport facades. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.
