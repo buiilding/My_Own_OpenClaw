@@ -13,7 +13,7 @@ import {
   resolveLiveTurnPresentationInput,
 } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime';
 import {
-  buildThreadPresentationMessages,
+  DesktopThreadPresentationRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime';
 import {
   buildCurrentTurnMessagesFromPresentation,
@@ -21,6 +21,8 @@ import {
 import {
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
+
+const { buildThreadPresentationMessages } = DesktopThreadPresentationRuntime;
 
 const mockSend = jest.fn();
 let resolveWorkspaceSelection = null;

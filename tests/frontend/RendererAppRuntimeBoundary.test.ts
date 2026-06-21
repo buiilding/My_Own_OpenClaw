@@ -468,6 +468,9 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopPresentationSourceChannels');
+    expect(threadPresentationSource).toContain('DesktopThreadPresentationRuntime');
+    expect(threadPresentationSource).not.toContain('export function hasCurrentTurnLiveProgressMessages');
+    expect(threadPresentationSource).not.toContain('export function buildThreadPresentationMessages');
     expect(threadPresentationSource).not.toContain('import { isSdkCurrentTurnSourceChannel }');
     expect(threadPresentationSource).not.toContain('features/chat');
     expect(threadPresentationSource).not.toContain('features/minimalChatPill');
@@ -521,6 +524,7 @@ describe('renderer app runtime boundary', () => {
     expect(chatSurfaceControllerSource).toContain('DesktopCurrentTurnPresentationRuntime');
     expect(chatSurfaceControllerSource).toContain('resolveSdkCurrentTurnPresentationState');
     expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');
+    expect(chatInterfaceSource).toContain('DesktopThreadPresentationRuntime');
     expect(chatInterfaceSource).not.toContain('VISIBLE_ASSISTANT_REPLY_TYPE_SET');
     expect(chatInterfaceSource).not.toContain('allowedTypes:');
     expect(chatSurfaceControllerSource).not.toContain('allowedTypes');

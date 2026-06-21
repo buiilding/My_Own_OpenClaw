@@ -33,8 +33,7 @@ import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartupRuntimeClient';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
-  buildThreadPresentationMessages,
-  hasCurrentTurnLiveProgressMessages,
+  DesktopThreadPresentationRuntime,
 } from '../../../app/runtime/desktopThreadPresentationRuntime';
 import { DesktopThreadFindRuntime } from '../../../app/runtime/desktopThreadFindRuntime';
 import '../../../styles/ChatInterface.css';
@@ -50,6 +49,10 @@ const {
   resolveSelectedReasoningMode,
   resolveSelectedModelOption,
 } = DesktopChatModelOptionsRuntime;
+const {
+  buildThreadPresentationMessages,
+  hasCurrentTurnLiveProgressMessages,
+} = DesktopThreadPresentationRuntime;
 const { buildThreadFindState } = DesktopThreadFindRuntime;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {

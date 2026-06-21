@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Thread Presentation Facade
+
+- Finding: `desktopThreadPresentationRuntime.js` already owned durable-thread
+  plus SDK live current-turn row composition, presentation-entry precedence,
+  legacy projection fallback, visible live-message filtering, insertion order,
+  and live progress detection, but still exported those rules as standalone
+  helpers consumed by `ChatInterface` and focused tests.
+- Change: made the thread presentation helpers private to the runtime module,
+  exposed them through `DesktopThreadPresentationRuntime`, and routed chat row
+  composition plus focused message-presentation tests through that facade.
+- Validation: focused message presentation pipeline, pending-turn live-surface
+  integration, renderer app boundary, exact standalone thread-presentation
+  helper export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Durable message order, SDK
+  current-turn presentation precedence, legacy projection fallback, stale/live
+  filtering, progress detection, UI state, IPC, storage, credentials, provider
+  policy, hosted backend URLs, and local execution trust boundaries are
+  unchanged.
+
 ### 2026-06-21 Renderer Conversation Replay Facade
 
 - Finding: `desktopConversationReplayRuntime.js` already owned edit/resend and

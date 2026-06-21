@@ -445,7 +445,11 @@ Primary modules:
 ### Chat Runtime
 
 - `features/chat/stores/chatStore.ts`: canonical chat state + stream tracking.
-- `renderer/app/runtime/desktopThreadPresentationRuntime.js`: pure presentation pipeline that derives visible dashboard and overlay message rows from durable transcript state plus SDK current-turn presentation entries or legacy projection rows, including hidden-tool explanation rows and collapsed action summaries.
+- `renderer/app/runtime/desktopThreadPresentationRuntime.js`: pure
+  `DesktopThreadPresentationRuntime` presentation facade that derives visible
+  dashboard and overlay message rows from durable transcript state plus SDK
+  current-turn presentation entries or legacy projection rows, including
+  hidden-tool explanation rows and collapsed action summaries.
 - `features/chat/hooks/useChatStream.ts`:
   - SDK-normalized conversation-event routing for transcript/session side effects, metadata, terminal materialization, and token-count handling.
   - Dashboard/response-overlay live assistant and tool rows come from SDK `windie:current-turn` projection state instead of backend-wire stream interpretation.

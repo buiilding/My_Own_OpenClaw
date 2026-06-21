@@ -34,7 +34,7 @@ function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-export function hasCurrentTurnLiveProgressMessages(messages) {
+function hasCurrentTurnLiveProgressMessages(messages) {
   if (!Array.isArray(messages) || messages.length === 0) {
     return false;
   }
@@ -234,7 +234,7 @@ function resolveLiveMessageInsertIndex(messages, liveMessages) {
   return lastUserIndex >= 0 ? lastUserIndex + 1 : messages.length;
 }
 
-export function buildThreadPresentationMessages(
+function buildThreadPresentationMessages(
   messages,
   {
     currentTurnMessages = [],
@@ -264,3 +264,8 @@ export function buildThreadPresentationMessages(
     ...baseMessages.slice(insertIndex),
   ];
 }
+
+export const DesktopThreadPresentationRuntime = Object.freeze({
+  buildThreadPresentationMessages,
+  hasCurrentTurnLiveProgressMessages,
+});

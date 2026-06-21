@@ -3,9 +3,13 @@
  */
 
 import {
+  DesktopThreadPresentationRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime';
+
+const {
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,
-} from '../../frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime';
+} = DesktopThreadPresentationRuntime;
 
 describe('desktopThreadPresentationRuntime', () => {
   test('buildThreadPresentationMessages keeps SDK row order even when tool logs are hidden', () => {
