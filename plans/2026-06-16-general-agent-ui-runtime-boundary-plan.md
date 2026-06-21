@@ -22959,3 +22959,21 @@ Each completed slice should report:
   plugin manifest loading, memory stores, backend conversation history,
   local-runtime argument enforcement, IPC, storage, provider policy,
   permissions, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer browser session control presentation runtime
+
+- Finding: `ChatBrowserSessionControl` already consumed the app-runtime browser
+  session hook, but it still derived connected/disconnected labels, disabled
+  state, tab fallback labels, and carousel target selection directly from the
+  raw browser session snapshot.
+- Change: moved browser session control presentation and carousel target
+  resolution into `desktopBrowserSessionRuntimeClient`, leaving the chat
+  feature component responsible for rendering, picker open/close state, and
+  user event wiring.
+- Validation: focused browser session runtime client, chat browser session UI,
+  and renderer chat boundary tests, targeted renderer ESLint, exact source
+  scans, docs listing, and diff checks.
+- Compatibility: no migration required. Browser session IPC payloads, store
+  snapshot fields, local-runtime readiness, browser action dispatch, renderer
+  skin copy, storage, provider policy, backend behavior, and trust boundaries
+  are unchanged.

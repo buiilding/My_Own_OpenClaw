@@ -2203,7 +2203,18 @@ describe('renderer chat runtime boundary', () => {
     expect(controlSource).not.toContain('infrastructure/hooks/useBrowserSessionControl');
     expect(controlSource).not.toContain('browserSessionStore');
     expect(controlSource).toContain('useDesktopBrowserSessionControl');
+    expect(controlSource).toContain('presentation.');
+    expect(controlSource).toContain('switchBrowserTabByStep');
+    expect(controlSource).not.toContain('tabs.findIndex');
+    expect(controlSource).not.toContain('tabs.length');
+    expect(controlSource).not.toContain('currentTargetId');
+    expect(controlSource).not.toContain('currentTabLabel');
     expect(browserClientSource).toContain('browserSessionStore');
+    expect(browserClientSource).toContain('DesktopBrowserSessionRuntimeClient');
+    expect(browserClientSource).toContain('resolveBrowserSessionControlPresentation');
+    expect(browserClientSource).toContain('resolveBrowserSessionCarouselTargetId');
+    expect(browserClientSource).not.toContain('export function resolveBrowserSessionControlPresentation');
+    expect(browserClientSource).not.toContain('export function resolveBrowserSessionCarouselTargetId');
     const browserSessionStoreSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/runtime/browserSessionStore.js'),
       'utf8',

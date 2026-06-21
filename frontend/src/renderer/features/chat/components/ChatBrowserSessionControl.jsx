@@ -3,27 +3,24 @@
  */
 
 import { Link2 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { useDesktopBrowserSessionControl } from '../../../app/runtime/desktopBrowserSessionRuntimeClient';
 
 function ChatBrowserSessionControl() {
   const rootRef = useRef(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const copy = desktopRuntimeSkin.chat.browserSession;
   const {
-    localRuntimeReady,
     connected,
-    currentTargetId,
-    currentTabLabel,
-    currentTabTitle,
-    currentTabUrl,
-    tabs,
-    busyAction,
-    error,
     connectBrowser,
     disconnectBrowser,
-    switchBrowserTab,
-  } = useDesktopBrowserSessionControl({ interactivePolling: pickerOpen });
+    presentation,
+    switchBrowserTabByStep,
+  } = useDesktopBrowserSessionControl({
+    copy,
+    interactivePolling: pickerOpen,
+  });
 
   useEffect(() => {
     if (connected) {
@@ -58,56 +55,31 @@ function ChatBrowserSessionControl() {
     };
   }, [pickerOpen]);
 
-  const currentTabIndex = useMemo(() => (
-    tabs.findIndex((tab) => tab.targetId === currentTargetId)
-  ), [currentTargetId, tabs]);
-
   const openPicker = useCallback(() => {
-    if (!localRuntimeReady || !connected || busyAction) {
+    if (!presentation.canOpenPicker) {
       return;
     }
     setPickerOpen((current) => !current);
-  }, [busyAction, connected, localRuntimeReady]);
+  }, [presentation.canOpenPicker]);
 
   const handleConnectBrowser = useCallback(() => {
-    if (busyAction || !localRuntimeReady) {
+    if (presentation.controlsDisabled) {
       return;
     }
     void connectBrowser();
-  }, [busyAction, connectBrowser, localRuntimeReady]);
+  }, [connectBrowser, presentation.controlsDisabled]);
 
   const handleDisconnectBrowser = useCallback(() => {
-    if (busyAction || !localRuntimeReady) {
+    if (presentation.controlsDisabled) {
       return;
     }
     void disconnectBrowser();
     setPickerOpen(false);
-  }, [busyAction, disconnectBrowser, localRuntimeReady]);
+  }, [disconnectBrowser, presentation.controlsDisabled]);
 
   const handleCarouselMove = useCallback((step) => {
-    if (tabs.length <= 1) {
-      return;
-    }
-
-    const safeCurrentIndex = currentTabIndex >= 0 ? currentTabIndex : 0;
-    const nextIndex = (safeCurrentIndex + step + tabs.length) % tabs.length;
-    const nextTab = tabs[nextIndex];
-    void switchBrowserTab(nextTab?.targetId);
-  }, [currentTabIndex, switchBrowserTab, tabs]);
-
-  const buttonTitle = connected
-    ? (currentTabTitle || currentTabUrl || currentTabLabel)
-    : (error || desktopRuntimeSkin.chat.browserSession.connectTitle);
-  const controlsDisabled = Boolean(busyAction) || !localRuntimeReady;
-  const copy = desktopRuntimeSkin.chat.browserSession;
-  const tabLabel = currentTabLabel || copy.tabFallbackLabel;
-  const tabControlLabel = `${copy.connectedLabelPrefix} ${tabLabel}`;
-  const disconnectedButtonLabel = !localRuntimeReady && error
-    ? copy.unavailableLabel
-    : copy.connectLabel;
-  const disconnectedButtonText = localRuntimeReady
-    ? (busyAction === 'connect' ? copy.connectingLabel : copy.connectLabel)
-    : (error ? copy.unavailableLabel : copy.startingRuntimeLabel);
+    void switchBrowserTabByStep(step);
+  }, [switchBrowserTabByStep]);
 
   return (
     <div className="chat-browser-session-control" ref={rootRef}>
@@ -116,14 +88,14 @@ function ChatBrowserSessionControl() {
           <button
             type="button"
             className={`chat-browser-chip chat-browser-button${pickerOpen ? ' is-open' : ''}`}
-            title={buttonTitle}
-            aria-label={tabControlLabel}
+            title={presentation.buttonTitle}
+            aria-label={presentation.tabControlLabel}
             aria-expanded={pickerOpen}
             onClick={openPicker}
-            disabled={controlsDisabled}
+            disabled={presentation.controlsDisabled}
           >
             <span className="chat-browser-button-text">
-              {tabControlLabel}
+              {presentation.tabControlLabel}
             </span>
           </button>
           {pickerOpen ? (
@@ -138,16 +110,16 @@ function ChatBrowserSessionControl() {
                   className="chat-browser-carousel-arrow"
                   aria-label={copy.previousTabLabel}
                   onClick={() => handleCarouselMove(-1)}
-                  disabled={controlsDisabled || tabs.length <= 1}
+                  disabled={presentation.controlsDisabled || !presentation.hasMultipleTabs}
                 >
                   {'<'}
                 </button>
                 <div className="chat-browser-carousel-viewport">
                   <div
                     className="chat-browser-carousel-slide"
-                    title={buttonTitle}
+                    title={presentation.buttonTitle}
                   >
-                    {tabLabel}
+                    {presentation.tabLabel}
                   </div>
                 </div>
                 <button
@@ -155,7 +127,7 @@ function ChatBrowserSessionControl() {
                   className="chat-browser-carousel-arrow"
                   aria-label={copy.nextTabLabel}
                   onClick={() => handleCarouselMove(1)}
-                  disabled={controlsDisabled || tabs.length <= 1}
+                  disabled={presentation.controlsDisabled || !presentation.hasMultipleTabs}
                 >
                   {'>'}
                 </button>
@@ -165,7 +137,7 @@ function ChatBrowserSessionControl() {
                 className="chat-browser-disconnect-button"
                 aria-label={copy.disconnectLabel}
                 onClick={handleDisconnectBrowser}
-                disabled={controlsDisabled}
+                disabled={presentation.controlsDisabled}
               >
                 <span>{copy.disconnectLabel}</span>
                 <Link2 size={16} aria-hidden="true" />
@@ -177,13 +149,13 @@ function ChatBrowserSessionControl() {
         <button
           type="button"
           className="chat-browser-chip chat-browser-button is-disconnected"
-          aria-label={disconnectedButtonLabel}
-          title={buttonTitle}
+          aria-label={presentation.disconnectedButtonLabel}
+          title={presentation.buttonTitle}
           onClick={handleConnectBrowser}
-          disabled={controlsDisabled}
+          disabled={presentation.controlsDisabled}
         >
           <span className="chat-browser-button-text">
-            {disconnectedButtonText}
+            {presentation.disconnectedButtonText}
           </span>
         </button>
       )}

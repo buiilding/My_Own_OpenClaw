@@ -92,6 +92,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route global stop shortcut status equality through the
   shortcut runtime client instead of comparing raw status objects in
   `AppConfigProvider`. No migration required.
+- frontend/renderer: route browser session control labels, disabled state, and
+  carousel tab target selection through the browser session runtime client
+  instead of deriving them in the chat feature component. No migration
+  required.
 - docs/memory and docs/concepts: describe `session_id` as hosted backend
   runtime identity instead of generic backend runtime/session wording. No
   migration required.
