@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Agent SDK Reference Host Wording
+
+- Finding: the agent architecture SDK ownership rules still described the
+  Electron reference host with product-owned UI wording, even though the
+  reusable SDK host rule should apply to desktop UI, custom GUI, TUI, CLI,
+  plugin, and hosted-client experiences.
+- Change: reworded the rule around desktop UI on top of the SDK and added a
+  stale-phrase guard for the retired product-owned SDK host label.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, SDK APIs, IPC channels,
+  SDK projections, local-runtime contracts, storage, credentials, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Desktop Dashboard Surface Wording
 
 - Finding: dashboard and desktop surfaces docs still described generic renderer

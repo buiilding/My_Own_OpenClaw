@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: route the Agent SDK reference host rule through desktop UI wording
+  instead of product-owned UI wording. No migration required.
 - docs: route desktop dashboard and surface hub wording through generic desktop
   workspace/surface labels instead of product-owned renderer surface labels. No
   migration required.

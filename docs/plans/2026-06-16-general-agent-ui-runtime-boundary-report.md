@@ -11,10 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `d80edcaf8` (`docs(platform): align desktop overlay policy labels`)
-- Latest completed slice: dashboard and desktop surfaces docs now use generic
-  desktop workspace/surface wording instead of product-owned renderer surface
-  labels.
+- Latest inspected plan checkpoint: `b626c0847` (`docs(renderer): route dashboard surface labels`)
+- Latest completed slice: agent architecture SDK ownership rules now describe
+  the Electron reference host as a desktop UI on top of the SDK instead of a
+  product-owned UI special case.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -130,6 +130,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   surfaces/policy instead of product-owned overlay labels.
   Dashboard and desktop surfaces docs now use generic desktop
   workspace/surface wording instead of product-owned renderer surface labels.
+  Agent architecture SDK ownership rules now describe the Electron reference
+  host as a desktop UI on top of the SDK instead of a product-owned UI special
+  case.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
@@ -8121,6 +8124,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   components, IPC channels, SDK projections, config storage, credentials,
   hosted backend URLs, and provider policy are unchanged; no migration is
   required.
+- Agent architecture SDK ownership rules now describe the Electron reference
+  host as a desktop UI on top of the SDK instead of a product-owned UI special
+  case. Runtime code, SDK APIs, IPC channels, SDK projections, local-runtime
+  contracts, storage, credentials, hosted backend URLs, and provider policy are
+  unchanged; no migration is required.
 - Logging docs now use a neutral frontend log override path example while
   preserving the `WINDIE_FRONTEND_LOG_FILE` WindieOS override key. Launcher log
   override behavior, default `.windie/logs` source-run paths, provider policy,

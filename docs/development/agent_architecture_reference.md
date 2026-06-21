@@ -228,7 +228,7 @@ SDK ownership rules:
 - Put reusable chat/session/tool/result/projection behavior in the SDK when it
   should work for Electron, CLI, custom UI, plugins, or tests.
 - Treat the Electron UI as the reference SDK host: it should demonstrate how to
-  build a WindieOS UI on top of the SDK, not as a privileged separate agent
+  build a desktop UI on top of the SDK, not as a privileged separate agent
   runtime. The same SDK primitives must be usable for custom GUI, TUI, CLI,
   plugin, and hosted-client experiences; interaction style is a client choice.
 - Keep Electron-specific window, IPC, screenshot, permissions, and app lifecycle

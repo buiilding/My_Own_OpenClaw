@@ -3168,6 +3168,7 @@ describe('modular sdk refactor completion boundary', () => {
         `Workflow for changing ${retiredProductName('OS')} chat attachments`,
         `Workflow for changing ${retiredProductName('OS')} overlay phase`,
         `Workflow for changing ${retiredProductName('OS')} websocket event contracts`,
+        `build a ${retiredProductName('OS')} UI on top of the SDK`,
         `Workflow for adding or changing ${retiredProductName('OS')} logs`,
         `Workflow for changing ${retiredProductName('OS')} error and failure surfaces`,
         `how ${retiredProductName('OS')} fails`,
