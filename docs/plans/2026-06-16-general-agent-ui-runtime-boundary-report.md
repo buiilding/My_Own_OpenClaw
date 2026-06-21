@@ -11,10 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `b5ee48bbf` (`docs(sdk): route reference host wording`)
-- Latest completed slice: minimal chat pill tool-surface lease docs now
-  describe Linux screenshot capture as hiding visible desktop surfaces instead
-  of product-owned visible surfaces.
+- Latest inspected plan checkpoint: `bb9425662` (`docs(renderer): align chat pill screenshot lease label`)
+- Latest completed slice: tool hub, catalog, troubleshooting, development,
+  MCP, extension, and policy docs now describe generic tool contracts through
+  model-visible, local-runtime, backend-owned, and native tool labels instead
+  of product-owned generic tool labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -116,7 +117,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime implementation-root wording for generic local responsibilities.
   Renderer dashboard, settings, model-selection, chat-attachment, and overlay
   first-read workflows now use desktop renderer and desktop overlay wording for
-  generic UI responsibilities. Websocket event, observability, error/failure,
+  generic UI responsibilities. Shared tool docs now route model-visible
+  schemas, local-runtime execution, backend-owned remote tools, MCP result
+  envelopes, extension built-ins, and tool policy through runtime-owned labels
+  while keeping WindieOS identity in product skin/config and hosted backend
+  policy. Websocket event, observability, error/failure,
   tool schema, tool lifecycle, and local tool channel first-read docs now use
   shared backend/SDK/runtime contract wording for generic pipelines.
   Screenshot/overlay policy, platform routing, validation, computer tool, docs

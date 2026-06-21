@@ -147,12 +147,12 @@ That exposes `local_memory__search`.
 11. When the backend emits an MCP tool call, the SDK routes it to the local
     runtime like any other local tool.
 12. The local runtime sends MCP `tools/call`.
-13. The MCP result is wrapped into WindieOS tool result data.
+13. The MCP result is wrapped into native tool result data.
 
 ## MCP Tool Result Contract
 
-WindieOS must preserve raw MCP tool results for every MCP-backed tool, current
-and future. The adapter may wrap the MCP result in the native WindieOS
+MCP adapters must preserve raw MCP tool results for every MCP-backed tool,
+current and future. The adapter may wrap the MCP result in the native
 `tool-result` envelope, but it must not summarize, flatten, or discard MCP
 `content`, `structuredContent`, or other returned fields.
 
@@ -165,8 +165,8 @@ pollute model/display text. The raw MCP object must also remain available as
 
 When debugging an MCP-backed tool result, inspect both fields. `data.output`
 proves what the model-facing history saw, while `data.mcp_result` proves what
-the MCP server actually returned before WindieOS added native display fields or
-elided image bytes from model text.
+the MCP server actually returned before the adapter added native display fields
+or elided image bytes from model text.
 
 Image content is additive: when an MCP result includes an image item, promote
 that image into WindieOS native image fields such as `data.screenshot` and

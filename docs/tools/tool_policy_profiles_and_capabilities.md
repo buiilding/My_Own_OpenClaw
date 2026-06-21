@@ -1,5 +1,5 @@
 ---
-summary: "WindieOS tool policy guide covering interaction allowlists, agent tool profiles, disabled tools/capabilities, coordinate methods, web-search exposure, browser capability policy, and validation."
+summary: "Tool policy guide covering interaction allowlists, agent tool profiles, disabled tools/capabilities, coordinate methods, web-search exposure, browser capability policy, and validation."
 read_when:
   - When a tool is unexpectedly hidden from the model or visible when it should be disabled.
   - When changing agent tool profiles, coordinate method gates, browser automation policy, or web-search capability routing.

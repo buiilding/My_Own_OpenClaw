@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route shared tool hub, catalog, troubleshooting, development,
+  MCP, extension, and policy wording through model-visible/local-runtime/native
+  tool labels instead of product-owned generic tool labels. No migration
+  required.
 - docs: route the chat pill screenshot lease wording through visible desktop
   surfaces instead of product-owned visible surface labels. No migration
   required.

@@ -1,5 +1,5 @@
 ---
-summary: "Tool troubleshooting guide for routing WindieOS tool visibility, schema, dispatch, local execution, result, artifact, and replay failures to the right owner."
+summary: "Tool troubleshooting guide for routing model-visible tool visibility, schema, dispatch, local execution, result, artifact, and replay failures to the right owner."
 read_when:
   - When a model-visible tool is missing, malformed, not executing, returning the wrong result, or breaking replay.
   - When deciding which backend, renderer, Electron main, or local-runtime implementation tests should cover a tool regression.
@@ -47,7 +47,7 @@ Questions to answer:
 
 1. Is the schema canonical function-tool shape?
 2. Did provider projection adapt it for a specific model provider?
-3. Did the parser normalize the provider-native call into the direct WindieOS tool name?
+3. Did the parser normalize the provider-native call into the direct tool name?
 4. Is validation failing before or after coordinate preparation?
 5. Is the model trying to use stale wrapper-style tool payloads?
 

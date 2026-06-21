@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-WindieOS tool calling is split across backend policy, the Agent SDK/local
+Model-facing tool calling is split across backend policy, the Agent SDK/local
 runtime contract, and the desktop local-runtime executor:
 
 - Agent SDK plus the desktop local-runtime host own model-facing schemas for
@@ -22,8 +22,8 @@ This guide documents the current tool API and registration flow.
 
 For third-party or developer-owned local tools, start with
 [Extension Convention](extensions.md#local-runtime-plugin-tool-registration).
-Only use the backend SDK path below for backend-owned remote tools or built-in
-WindieOS tools.
+Only use the backend SDK path below for backend-owned remote tools or
+first-party built-in local tools.
 
 ## Runtime Ownership
 

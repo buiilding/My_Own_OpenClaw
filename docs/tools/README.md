@@ -1,5 +1,5 @@
 ---
-summary: "Tools hub for WindieOS model-facing tools, local-runtime executable tools, browser automation, filesystem/shell actions, and tool-result contracts."
+summary: "Tools hub for model-facing tools, local-runtime executable tools, browser automation, filesystem/shell actions, and tool-result contracts."
 read_when:
   - When adding, removing, or changing tools.
   - When debugging tool-call payloads, local execution, or tool-result handling.
@@ -8,9 +8,10 @@ title: "Tools Hub"
 
 # Tools Hub
 
-WindieOS tools are split between desktop client/local-runtime manifest schemas,
-local-runtime executable implementations backed by local-runtime Python,
-backend-owned remote tools and policy/projection, and SDK/main-process dispatch.
+Model-facing tools are split between desktop client/local-runtime manifest
+schemas, local-runtime executable implementations backed by local-runtime
+Python, backend-owned remote tools and policy/projection, and SDK/main-process
+dispatch.
 
 ## Tool Families
 

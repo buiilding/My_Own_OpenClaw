@@ -1,5 +1,5 @@
 ---
-summary: "Model-visible WindieOS tool catalog matrix with backend owners, local-runtime executors, use cases, policy gates, and validation routes."
+summary: "Model-visible tool catalog matrix with backend owners, local-runtime executors, use cases, policy gates, and validation routes."
 read_when:
   - When adding, removing, renaming, or debugging a model-visible tool.
   - When deciding whether a tool belongs in backend schema, SDK/main dispatch, local execution, UI projection, or provider-native capability routing.
@@ -8,7 +8,7 @@ title: "Tool Catalog Matrix"
 
 # Tool Catalog Matrix
 
-WindieOS tools are registered in two places by design:
+Model-visible and executable tools are registered in three places by design:
 
 - Desktop client/local-runtime manifest: source of truth for desktop client/local-runtime
   model-facing schemas and executable local actions.

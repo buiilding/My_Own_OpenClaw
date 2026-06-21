@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Shared Tool Contract Product-Label Wording
+
+- Finding: tool hub, catalog, troubleshooting, development, MCP, extension, and
+  policy docs still described generic tool contracts as WindieOS tool surfaces,
+  even though the reusable boundary is model-visible schemas, local-runtime
+  execution, backend-owned remote tools, SDK/main dispatch, and native
+  tool-result envelopes.
+- Change: reworded those docs around model-visible, executable
+  local-runtime, backend-owned, first-party built-in, and native tool labels,
+  and split stale product-owned tool phrases in the modular boundary guard.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, tool schemas, local
+  execution, MCP result preservation, SDK projections, IPC channels, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Chat Pill Screenshot Lease Surface Wording
 
 - Finding: the minimal chat pill tool-surface lease docs still described Linux
