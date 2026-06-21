@@ -11,10 +11,7 @@ import {
   Cpu,
   Cable,
 } from 'lucide-react';
-import {
-  getDashboardPanelNavItems,
-  getDashboardPrimaryNavItems,
-} from '../../../../app/runtime/desktopDashboardNavigationRuntime';
+import { DesktopDashboardNavigationRuntime } from '../../../../app/runtime/desktopDashboardNavigationRuntime';
 
 const DASHBOARD_NAV_ICONS = Object.freeze({
   penSquare: PenSquare,
@@ -24,6 +21,11 @@ const DASHBOARD_NAV_ICONS = Object.freeze({
   cpu: Cpu,
   cable: Cable,
 });
+
+const {
+  getDashboardPanelNavItems,
+  getDashboardPrimaryNavItems,
+} = DesktopDashboardNavigationRuntime;
 
 function SidebarItem({
   label,

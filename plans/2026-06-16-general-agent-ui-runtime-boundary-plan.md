@@ -24321,3 +24321,19 @@ Each completed slice should report:
   snippets, pinned workspace ordering, renderer markup, storage, local-runtime
   execution, provider policy, backend behavior, and trust boundaries are
   unchanged.
+
+### 2026-06-21 renderer dashboard navigation facade helper privacy
+
+- Finding: dashboard sidebar navigation descriptors lived in the renderer app
+  runtime, but sidebar navigation and focused tests still imported the
+  descriptor helpers through a named export set.
+- Change: exposed navigation behavior through
+  `DesktopDashboardNavigationRuntime` and kept primary/panel item descriptors,
+  collapsed filtering, ordered item ids, and fallback label resolution behind
+  the runtime facade.
+- Validation: focused dashboard navigation runtime, dashboard sidebar, renderer
+  app-runtime boundary tests, targeted renderer ESLint, exact source/doc scans,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Dashboard nav descriptors, collapsed
+  filtering, renderer markup, storage, local-runtime execution, provider
+  policy, backend behavior, and trust boundaries are unchanged.

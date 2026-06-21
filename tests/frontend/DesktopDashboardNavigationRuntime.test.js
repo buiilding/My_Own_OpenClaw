@@ -2,12 +2,14 @@
  * Covers renderer dashboard navigation runtime behavior.
  */
 
-import {
+import { DesktopDashboardNavigationRuntime } from '../../frontend/src/renderer/app/runtime/desktopDashboardNavigationRuntime.js';
+
+const {
   getDashboardNavigationItemIds,
   getDashboardPanelNavItems,
   getDashboardPrimaryNavItems,
   resolveDashboardNavigationLabel,
-} from '../../frontend/src/renderer/app/runtime/desktopDashboardNavigationRuntime.js';
+} = DesktopDashboardNavigationRuntime;
 
 describe('desktopDashboardNavigationRuntime', () => {
   test('exposes ordered primary navigation descriptors and collapsed filtering', () => {

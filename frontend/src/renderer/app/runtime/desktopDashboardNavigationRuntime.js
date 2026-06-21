@@ -48,9 +48,9 @@ function resolveDashboardNavigationLabel(itemId, fallback = 'Dashboard') {
   ].find((item) => item.id === itemId)?.label || fallback;
 }
 
-export {
+export const DesktopDashboardNavigationRuntime = Object.freeze({
   getDashboardNavigationItemIds,
   getDashboardPanelNavItems,
   getDashboardPrimaryNavItems,
   resolveDashboardNavigationLabel,
-};
+});

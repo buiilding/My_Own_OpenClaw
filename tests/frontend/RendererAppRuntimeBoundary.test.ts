@@ -930,8 +930,11 @@ describe('renderer app runtime boundary', () => {
     expect(navigationRuntimeSource).toContain('getDashboardPanelNavItems');
     expect(navigationRuntimeSource).toContain('resolveDashboardNavigationLabel');
     expect(navigationRuntimeSource).toContain('hiddenWhenCollapsed');
+    expect(navigationRuntimeSource).toContain('export const DesktopDashboardNavigationRuntime = Object.freeze');
+    expect(navigationRuntimeSource).not.toContain('export {');
     expect(navigationRuntimeSource).not.toContain('features/dashboard');
     expect(sidebarNavigationSource).toContain('desktopDashboardNavigationRuntime');
+    expect(sidebarNavigationSource).toContain('DesktopDashboardNavigationRuntime');
     expect(sidebarNavigationSource).toContain('getDashboardPrimaryNavItems');
     expect(sidebarNavigationSource).toContain('getDashboardPanelNavItems');
     expect(sidebarNavigationSource).not.toContain('PRIMARY_NAV_ITEMS');

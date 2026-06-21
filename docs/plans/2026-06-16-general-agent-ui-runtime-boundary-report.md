@@ -200,8 +200,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `resolveSettingsTabLabel()` instead of a section-local tab registry while
   keeping tab-content routing local to `SettingsSection`.
   Dashboard sidebar navigation now consumes
-  `desktopDashboardNavigationRuntime.getDashboardPrimaryNavItems()` and
-  `getDashboardPanelNavItems()` instead of component-local nav registries
+  `DesktopDashboardNavigationRuntime.getDashboardPrimaryNavItems()` and
+  `DesktopDashboardNavigationRuntime.getDashboardPanelNavItems()` instead of component-local nav registries
   while keeping icon mapping, callbacks, and active-state rendering local to
   `DashboardSidebarNavigation`.
   Current renderer conversation session info now consumes
@@ -9290,3 +9290,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   private. Dashboard grouping output, search snippets, renderer markup, storage,
   local-runtime execution, provider policy, backend behavior, and trust
   boundaries are unchanged; no migration is required.
+- Renderer dashboard sidebar navigation now routes through
+  `DesktopDashboardNavigationRuntime` instead of a named helper export set.
+  Sidebar navigation and focused runtime tests consume the facade object while
+  the runtime keeps primary/panel descriptors, collapsed filtering, ordered item
+  ids, and fallback label resolution private. Dashboard nav output, renderer
+  markup, storage, local-runtime execution, provider policy, backend behavior,
+  and trust boundaries are unchanged; no migration is required.

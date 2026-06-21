@@ -53,7 +53,7 @@ Collapsed sidebar keeps:
 
 Module split ownership:
 
-- `desktopDashboardNavigationRuntime` owns static nav item descriptors and
+- `DesktopDashboardNavigationRuntime` owns static nav item descriptors and
   collapsed filtering logic.
 - `DashboardSidebarNavigation` owns icon component mapping, shell callbacks,
   and active-state rendering.
@@ -228,7 +228,7 @@ Recent-chat title visibility sync details:
 1. Changing group key names without updating both shell grouping logic and modal/sidebar render loops.
 2. Breaking `row.conversation || row` fallback can fail opening search results built from normalized result rows.
 3. Removing document listeners in shared outside-dismiss hook without cleanup causes leaked handlers and stale close behavior for both profile and conversation menus.
-4. Changing collapsed nav filtering in `desktopDashboardNavigationRuntime.js` without keeping collapsed header new-chat action can create duplicate/missing new-chat controls.
+4. Changing collapsed nav filtering in `DesktopDashboardNavigationRuntime` without keeping collapsed header new-chat action can create duplicate/missing new-chat controls.
 5. Changing panel nav ids (`memory/usage/models/mcps`) without matching shell predicates can break active-state highlighting.
 
 ## Related Pages
