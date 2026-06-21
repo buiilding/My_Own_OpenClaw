@@ -7825,3 +7825,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `screenshot_path` values are still stripped without read/upload/delete,
   provider policy, permissions, storage, and backend behavior are unchanged; no
   migration is required.
+- Mock-memory seed tests now use neutral `legacy-*` user-id values for
+  WindieOS env-alias compatibility coverage instead of Windie-flavored
+  arbitrary users. Generic `AGENT_*` env aliases still take precedence,
+  `WINDIE_*` aliases remain supported, mock seed storage/cleanup behavior,
+  provider policy, permissions, and backend behavior are unchanged; no migration
+  is required.

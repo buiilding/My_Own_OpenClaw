@@ -19061,3 +19061,17 @@ Each completed slice should report:
   local-runtime dispatch, non-screenshot `screenshot_path` values are still
   stripped without read/upload/delete, provider policy, permissions, storage,
   and backend behavior are unchanged.
+
+### 2026-06-21 Mock-memory seed user fixture neutrality
+
+- Finding: mock-memory seed env-alias tests still used Windie-flavored arbitrary
+  user IDs as sample values while verifying compatibility with the legacy
+  `WINDIE_*` env aliases.
+- Change: switched those compatibility sample values to neutral `legacy-*` user
+  IDs and added a modular boundary guard for the seed test.
+- Validation: focused mock-memory seed and modular boundary tests; exact
+  retired mock user fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Generic `AGENT_*` env aliases still
+  take precedence, `WINDIE_*` aliases remain supported, mock seed
+  storage/cleanup behavior, provider policy, permissions, and backend behavior
+  are unchanged.

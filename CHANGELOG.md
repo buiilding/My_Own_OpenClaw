@@ -50,6 +50,10 @@ All notable changes to WindieOS will be documented in this file.
   path handling instead of Windie-flavored arbitrary MCP path/query data. No
   migration required.
 
+- tests/sidecar: use neutral legacy user-id values in mock-memory seed env
+  alias coverage instead of Windie-flavored arbitrary user IDs. No migration
+  required.
+
 - tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
   in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
   directory. No migration required.

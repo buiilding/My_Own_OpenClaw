@@ -635,6 +635,17 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('ENV_WINDIE_BROWSER_USE_SESSION, "legacy-agent-session"');
   });
 
+  test('mock memory seed tests keep legacy user fixtures product-neutral', async () => {
+    const source = await read('tests/sidecar/test_dev_seed_mock_memory.py');
+    const retiredMockUser = `"${['windie', 'mock'].join('-')}"`;
+    const retiredUser = `"${['windie', 'user'].join('-')}"`;
+
+    expect(source).not.toContain(retiredMockUser);
+    expect(source).not.toContain(retiredUser);
+    expect(source).toContain('"legacy-mock"');
+    expect(source).toContain('"legacy-user"');
+  });
+
   test('Python SDK package boundary tests keep endpoint fixtures product-neutral', async () => {
     const source = await read('tests/sidecar/test_windie_package_boundary.py');
 
