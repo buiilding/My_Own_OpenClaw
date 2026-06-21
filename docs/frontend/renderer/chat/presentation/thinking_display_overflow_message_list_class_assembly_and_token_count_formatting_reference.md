@@ -77,10 +77,11 @@ Assistant message thinking presentation:
 ## Message Content Render-Kind Contract
 
 `MessageContent` consumes
-`frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js` to resolve a
-single render kind before selecting React-only content components. The runtime
-keeps the raw render-kind table private and exposes semantic predicates for
-React routing.
+`DesktopMessageContentRuntime` from
+`frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js` to resolve
+a single render kind before selecting React-only content components. The
+runtime keeps the raw render-kind table private and exposes semantic predicates
+for React routing through the facade.
 
 The runtime owns row classification for:
 
@@ -95,13 +96,14 @@ The runtime owns row classification for:
 This keeps raw SDK/display-row message-type branching out of the React
 component while preserving the existing content components and markup. It also
 keeps raw render-kind constants out of the component; callers should use
-`isErrorMessageContentPresentation(...)`,
-`isToolOutputMessageContentPresentation(...)`,
-`isToolCallMessageContentPresentation(...)`,
-`isToolExplanationMessageContentPresentation(...)`,
-`isToolActionsSummaryMessageContentPresentation(...)`,
-`isUserScreenshotMessageContentPresentation(...)`, and
-`isAssistantResponseMessageContentPresentation(...)` instead.
+`DesktopMessageContentRuntime.isErrorMessageContentPresentation(...)`,
+`DesktopMessageContentRuntime.isToolOutputMessageContentPresentation(...)`,
+`DesktopMessageContentRuntime.isToolCallMessageContentPresentation(...)`,
+`DesktopMessageContentRuntime.isToolExplanationMessageContentPresentation(...)`,
+`DesktopMessageContentRuntime.isToolActionsSummaryMessageContentPresentation(...)`,
+`DesktopMessageContentRuntime.isUserScreenshotMessageContentPresentation(...)`,
+and `DesktopMessageContentRuntime.isAssistantResponseMessageContentPresentation(...)`
+instead.
 
 ## Message CSS Class Assembly Contract
 

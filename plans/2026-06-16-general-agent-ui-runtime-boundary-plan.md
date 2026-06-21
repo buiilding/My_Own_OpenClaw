@@ -23024,3 +23024,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Message row class strings, screenshot
   detection, renderer markup, storage, IPC, local-runtime execution, provider
   policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer message content facade helper privacy
+
+- Finding: message content render-kind classification lived in the renderer
+  app runtime, but `MessageContent` still imported the classifier and semantic
+  predicates as standalone exports.
+- Change: exposed content classification and render-kind predicates through
+  `DesktopMessageContentRuntime` and kept the underlying helper functions
+  private to `desktopMessageContentRuntime`.
+- Validation: focused message content runtime and renderer chat boundary tests,
+  targeted renderer ESLint, exact source/doc scans, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Message content render kinds,
+  screenshot routing, assistant visible-text detection, renderer markup,
+  storage, IPC, local-runtime execution, provider policy, backend behavior, and
+  trust boundaries are unchanged.

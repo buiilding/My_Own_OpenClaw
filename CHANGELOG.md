@@ -105,6 +105,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep message row class-name assembly behind the message
   class runtime facade instead of a standalone helper export. No migration
   required.
+- frontend/renderer: keep message content render-kind classification and
+  predicates behind the message content runtime facade instead of standalone
+  helper exports. No migration required.
 - docs/memory and docs/concepts: describe `session_id` as hosted backend
   runtime identity instead of generic backend runtime/session wording. No
   migration required.

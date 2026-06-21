@@ -4,14 +4,7 @@
 
 import PropTypes from 'prop-types';
 import {
-  isAssistantResponseMessageContentPresentation,
-  isErrorMessageContentPresentation,
-  isToolActionsSummaryMessageContentPresentation,
-  isToolCallMessageContentPresentation,
-  isToolExplanationMessageContentPresentation,
-  isToolOutputMessageContentPresentation,
-  isUserScreenshotMessageContentPresentation,
-  resolveMessageContentPresentation,
+  DesktopMessageContentRuntime,
 } from '../../../app/runtime/desktopMessageContentRuntime';
 import AssistantThinkingSection from './message/content/AssistantThinkingSection';
 import ErrorMessage from './message/content/ErrorMessage';
@@ -28,9 +21,9 @@ export default function MessageContent({
   findMatchIndexes = [],
   activeFindMatchIndex = null,
 }) {
-  const contentPresentation = resolveMessageContentPresentation(message);
+  const contentPresentation = DesktopMessageContentRuntime.resolveMessageContentPresentation(message);
 
-  if (isErrorMessageContentPresentation(contentPresentation)) {
+  if (DesktopMessageContentRuntime.isErrorMessageContentPresentation(contentPresentation)) {
     return (
       <ErrorMessage
         message={message}
@@ -41,7 +34,7 @@ export default function MessageContent({
     );
   }
 
-  if (isToolOutputMessageContentPresentation(contentPresentation)) {
+  if (DesktopMessageContentRuntime.isToolOutputMessageContentPresentation(contentPresentation)) {
     return (
       <ToolOutputMessage
         message={message}
@@ -52,7 +45,7 @@ export default function MessageContent({
     );
   }
 
-  if (isToolCallMessageContentPresentation(contentPresentation)) {
+  if (DesktopMessageContentRuntime.isToolCallMessageContentPresentation(contentPresentation)) {
     return (
       <ToolCallMessage
         message={message}
@@ -63,7 +56,7 @@ export default function MessageContent({
     );
   }
 
-  if (isToolExplanationMessageContentPresentation(contentPresentation)) {
+  if (DesktopMessageContentRuntime.isToolExplanationMessageContentPresentation(contentPresentation)) {
     return (
       <ToolExplanationMessage
         message={message}
@@ -74,11 +67,11 @@ export default function MessageContent({
     );
   }
 
-  if (isToolActionsSummaryMessageContentPresentation(contentPresentation)) {
+  if (DesktopMessageContentRuntime.isToolActionsSummaryMessageContentPresentation(contentPresentation)) {
     return <ToolActionsSummaryMessage message={message} />;
   }
 
-  if (isUserScreenshotMessageContentPresentation(contentPresentation)) {
+  if (DesktopMessageContentRuntime.isUserScreenshotMessageContentPresentation(contentPresentation)) {
     return (
       <UserMessage
         message={message}
@@ -89,7 +82,7 @@ export default function MessageContent({
     );
   }
 
-  if (isAssistantResponseMessageContentPresentation(contentPresentation)) {
+  if (DesktopMessageContentRuntime.isAssistantResponseMessageContentPresentation(contentPresentation)) {
     return (
       <div className="assistant-message-content">
         <AssistantThinkingSection

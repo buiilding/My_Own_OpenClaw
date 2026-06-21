@@ -3,18 +3,22 @@
  */
 
 import {
-  isAssistantResponseMessageContentPresentation,
-  isErrorMessageContentPresentation,
-  isMarkdownMessageContentPresentation,
-  isToolActionsSummaryMessageContentPresentation,
-  isToolCallMessageContentPresentation,
-  isToolExplanationMessageContentPresentation,
-  isToolOutputMessageContentPresentation,
-  isUserScreenshotMessageContentPresentation,
-  resolveMessageContentPresentation,
+  DesktopMessageContentRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopMessageContentRuntime';
 
 describe('desktopMessageContentRuntime', () => {
+  const {
+    isAssistantResponseMessageContentPresentation,
+    isErrorMessageContentPresentation,
+    isMarkdownMessageContentPresentation,
+    isToolActionsSummaryMessageContentPresentation,
+    isToolCallMessageContentPresentation,
+    isToolExplanationMessageContentPresentation,
+    isToolOutputMessageContentPresentation,
+    isUserScreenshotMessageContentPresentation,
+    resolveMessageContentPresentation,
+  } = DesktopMessageContentRuntime;
+
   test('classifies special message rows by canonical render kind', () => {
     expect(resolveMessageContentPresentation({ type: 'error' }).renderKind)
       .toBe('error');

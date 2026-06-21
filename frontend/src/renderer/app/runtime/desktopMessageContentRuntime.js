@@ -26,7 +26,7 @@ function isAssistantLlmTextMessage(message) {
   );
 }
 
-export function resolveMessageContentPresentation(message) {
+function resolveMessageContentPresentation(message) {
   if (message?.type === 'error') {
     return { renderKind: MESSAGE_CONTENT_RENDER_KIND.ERROR };
   }
@@ -65,34 +65,46 @@ function hasRenderKind(contentPresentation, renderKind) {
   return contentPresentation?.renderKind === renderKind;
 }
 
-export function isErrorMessageContentPresentation(contentPresentation) {
+function isErrorMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.ERROR);
 }
 
-export function isToolOutputMessageContentPresentation(contentPresentation) {
+function isToolOutputMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_OUTPUT);
 }
 
-export function isToolCallMessageContentPresentation(contentPresentation) {
+function isToolCallMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_CALL);
 }
 
-export function isToolExplanationMessageContentPresentation(contentPresentation) {
+function isToolExplanationMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_EXPLANATION);
 }
 
-export function isToolActionsSummaryMessageContentPresentation(contentPresentation) {
+function isToolActionsSummaryMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_ACTIONS_SUMMARY);
 }
 
-export function isUserScreenshotMessageContentPresentation(contentPresentation) {
+function isUserScreenshotMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.USER_WITH_SCREENSHOT);
 }
 
-export function isAssistantResponseMessageContentPresentation(contentPresentation) {
+function isAssistantResponseMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.ASSISTANT_RESPONSE);
 }
 
-export function isMarkdownMessageContentPresentation(contentPresentation) {
+function isMarkdownMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.MARKDOWN);
 }
+
+export const DesktopMessageContentRuntime = Object.freeze({
+  isAssistantResponseMessageContentPresentation,
+  isErrorMessageContentPresentation,
+  isMarkdownMessageContentPresentation,
+  isToolActionsSummaryMessageContentPresentation,
+  isToolCallMessageContentPresentation,
+  isToolExplanationMessageContentPresentation,
+  isToolOutputMessageContentPresentation,
+  isUserScreenshotMessageContentPresentation,
+  resolveMessageContentPresentation,
+});

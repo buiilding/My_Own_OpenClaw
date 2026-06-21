@@ -1026,6 +1026,7 @@ describe('renderer chat runtime boundary', () => {
     expect(messageItemSource).toContain('DesktopMessageClassRuntime.buildMessageClassName');
     expect(messageItemSource).not.toContain('utils/message/messageListClasses');
     expect(messageContentSource).toContain('desktopMessageContentRuntime');
+    expect(messageContentSource).toContain('DesktopMessageContentRuntime.resolveMessageContentPresentation');
     expect(messageContentSource).not.toContain('MESSAGE_CONTENT_RENDER_KIND');
     expect(messageContentSource).not.toContain("message.type === 'error'");
     expect(messageContentSource).not.toContain("message.type === 'tool-output'");
@@ -1040,7 +1041,12 @@ describe('renderer chat runtime boundary', () => {
     expect(classRuntimeSource).not.toContain('export function buildMessageClassName');
     expect(classRuntimeSource).not.toContain('features/chat');
     expect(contentRuntimeSource).toContain('desktopMessageScreenshotRuntime');
+    expect(contentRuntimeSource).toContain('DesktopMessageContentRuntime');
     expect(contentRuntimeSource).toContain('isErrorMessageContentPresentation');
+    expect(contentRuntimeSource).not.toContain('export function resolveMessageContentPresentation');
+    expect(contentRuntimeSource).not.toContain('export function isErrorMessageContentPresentation');
+    expect(contentRuntimeSource).not.toContain('export function isToolOutputMessageContentPresentation');
+    expect(contentRuntimeSource).not.toContain('export function isAssistantResponseMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export const MESSAGE_CONTENT_RENDER_KIND');
     expect(contentRuntimeSource).not.toContain('features/chat');
     expect(screenshotRuntimeSource).not.toContain('features/chat');
