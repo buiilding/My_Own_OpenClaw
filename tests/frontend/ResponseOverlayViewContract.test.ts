@@ -2,9 +2,13 @@
  * Covers response overlay view contract. behavior in the frontend test suite.
  */
 
-import { resolveResponseOverlayViewContract } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime';
+import { DesktopResponseOverlayViewRuntime } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime';
 
 describe('desktopResponseOverlayViewRuntime', () => {
+  const {
+    resolveResponseOverlayViewContract,
+  } = DesktopResponseOverlayViewRuntime;
+
   test('shows response when entries exist and are not dismissed', () => {
     expect(resolveResponseOverlayViewContract({
       currentTurnPresentationState: {

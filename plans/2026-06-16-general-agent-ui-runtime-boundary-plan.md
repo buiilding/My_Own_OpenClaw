@@ -23262,3 +23262,20 @@ Each completed slice should report:
   policies, explicit return-to-chatbox overrides, screenshot-driven auto
   behavior, renderer markup, IPC payloads, storage, local-runtime execution,
   provider policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer response overlay view facade helper privacy
+
+- Finding: response-overlay visibility and layout-intent resolution lived in
+  the renderer app runtime, but chat-pill session code and focused tests still
+  imported the view-contract resolver as a standalone export.
+- Change: exposed response-overlay view behavior through
+  `DesktopResponseOverlayViewRuntime` and kept
+  `resolveResponseOverlayViewContract` private to
+  `desktopResponseOverlayViewRuntime`.
+- Validation: focused response-overlay view contract, chat-pill session,
+  overlay view-model, renderer app-runtime boundary tests, targeted renderer
+  ESLint, exact source/doc scans, docs listing, and diff checks.
+- Compatibility: no migration required. Response visibility, awaiting typing
+  fallback, stale visible-response suppression, overlay layout mode selection,
+  renderer markup, IPC payloads, storage, local-runtime execution, provider
+  policy, backend behavior, and trust boundaries are unchanged.

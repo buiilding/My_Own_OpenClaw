@@ -21,7 +21,7 @@ type ResponseOverlayEntryLike = {
   id?: string | null;
 };
 
-export function resolveResponseOverlayViewContract({
+function resolveResponseOverlayViewContract({
   currentTurnPresentationState,
   responseOverlayEntries,
   dismissedResponseId = null,
@@ -63,3 +63,7 @@ export function resolveResponseOverlayViewContract({
     ),
   };
 }
+
+export const DesktopResponseOverlayViewRuntime = Object.freeze({
+  resolveResponseOverlayViewContract,
+});

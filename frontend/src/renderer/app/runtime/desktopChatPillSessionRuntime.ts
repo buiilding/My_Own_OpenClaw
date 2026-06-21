@@ -7,11 +7,14 @@ import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
 } from './desktopMessageSendUiRuntime';
-import { resolveResponseOverlayViewContract } from './desktopResponseOverlayViewRuntime';
+import { DesktopResponseOverlayViewRuntime } from './desktopResponseOverlayViewRuntime';
 
 const {
   resolveMessageSendUiBehavior,
 } = DesktopMessageSendUiRuntime;
+const {
+  resolveResponseOverlayViewContract,
+} = DesktopResponseOverlayViewRuntime;
 
 type TurnRefMessage = {
   turnRef?: string | null;

@@ -116,7 +116,8 @@ Contract ownership:
   events after the SDK current-turn projection. They must not suppress, replace,
   or duplicate live assistant/tool row construction, and may only commit the
   projected turn into message history on terminal events.
-- `resolveResponseOverlayViewContract(...)` is the canonical pure helper for:
+- `DesktopResponseOverlayViewRuntime.resolveResponseOverlayViewContract(...)`
+  is the canonical pure helper for:
   - latest visible response entry id
   - `showResponse`
   - `showAwaitingReply`

@@ -48,6 +48,10 @@ Renderer contract adapter:
 - `isAwaitingFirstChunkResponseOverlayPhase(...)` and
   `isStreamingResponseOverlayPhase(...)` keep current-turn surface code on
   behavior-level checks through the facade rather than standalone exports.
+- `DesktopResponseOverlayViewRuntime.resolveResponseOverlayViewContract(...)`
+  owns response-overlay visibility and layout intent resolution while keeping
+  the raw view-contract resolver private behind the renderer app-runtime
+  facade.
 
 Main-process parity:
 

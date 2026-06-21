@@ -583,6 +583,7 @@ describe('renderer app runtime boundary', () => {
     expect(chatLoopUiStateSource).toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(overlayLifecycleHookSource).toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).toContain('DesktopOverlayTurnLifecycleRuntime');
+    expect(responseViewRuntimeSource).toContain('DesktopResponseOverlayViewRuntime');
     expect(currentTurnPresentationSource).toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(overlayViewModelSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('overlayTurnLifecycleContract');
@@ -612,7 +613,8 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(responseViewRuntimeSource).toContain('resolveResponseOverlayViewContract');
+    expect(responseViewRuntimeSource).toContain('export const DesktopResponseOverlayViewRuntime = Object.freeze');
+    expect(responseViewRuntimeSource).not.toContain('export function resolveResponseOverlayViewContract');
     expect(responseViewRuntimeSource).toContain('desktopResponseOverlayLayoutRuntime');
     expect(responseViewRuntimeSource).toContain(
       'DesktopResponseOverlayLayoutRuntime.isVisibleResponseOverlayLayoutMode',
