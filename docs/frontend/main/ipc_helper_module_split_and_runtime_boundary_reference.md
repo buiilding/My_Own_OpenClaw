@@ -340,6 +340,9 @@ menu handlers:
 - exposes `createImageInteractionHandlersRuntime(...)` so `ipc.cjs` composes
   Electron primitives, clipboard/context-menu handler factories, backend URL,
   and endpoint-candidate callbacks once
+- keeps aggregate image interaction registration private behind the runtime
+  facade while the clipboard and context-menu handler modules own their focused
+  IPC registrations
 - builds the trusted backend artifact-origin callback from the active backend
   HTTP URL plus endpoint candidates
 - registers `copy-image-to-clipboard` and `show-image-context-menu` with the

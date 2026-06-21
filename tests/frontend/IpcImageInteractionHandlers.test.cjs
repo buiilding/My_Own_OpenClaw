@@ -5,7 +5,6 @@ const path = require('path');
 const {
   buildTrustedImageOrigins,
   createImageInteractionHandlersRuntime,
-  registerImageInteractionHandlers,
 } = require('../../frontend/src/main/ipc/ipc_image_interaction_handlers.cjs');
 
 describe('ipc image interaction handlers', () => {
@@ -34,8 +33,7 @@ describe('ipc image interaction handlers', () => {
     const clipboard = {};
     const nativeImage = {};
 
-    registerImageInteractionHandlers({
-      ipcMain,
+    const runtime = createImageInteractionHandlersRuntime({
       Menu,
       BrowserWindow,
       clipboard,
@@ -47,6 +45,8 @@ describe('ipc image interaction handlers', () => {
         { httpUrl: 'https://candidate.backend.example.com' },
       ],
     });
+
+    runtime.register({ ipcMain });
 
     expect(registerClipboardImageHandler).toHaveBeenCalledWith({
       ipcMain,
@@ -136,5 +136,7 @@ describe('ipc image interaction handlers', () => {
     expect(mainSource).not.toContain('getTrustedImageOrigins: () => [');
     expect(helperSource).toContain('function createImageInteractionHandlersRuntime');
     expect(helperSource).toContain('return registerImageInteractionHandlers({');
+    const helperModule = require('../../frontend/src/main/ipc/ipc_image_interaction_handlers.cjs');
+    expect(helperModule.registerImageInteractionHandlers).toBeUndefined();
   });
 });

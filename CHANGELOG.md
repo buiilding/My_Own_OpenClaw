@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level image interaction IPC registration helper
+  private to `ipc_image_interaction_handlers.cjs` and exercise shared
+  clipboard/context-menu registration through
+  `createImageInteractionHandlersRuntime(...)`, preserving shared trusted
+  image-origin policy composition. No migration required.
 - frontend/main: keep the lower-level extension/MCP IPC registration helper
   private to `ipc_extension_mcp_handlers.cjs` and exercise extension/MCP
   channel behavior through `createExtensionMcpHandlersRuntime(...)`,

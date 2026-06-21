@@ -356,6 +356,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('registerImageInteractionHandlers({');
     expect(imageInteractionHandlersSource).toContain('function createImageInteractionHandlersRuntime');
     expect(imageInteractionHandlersSource).toContain('return registerImageInteractionHandlers({');
+    expect(imageInteractionHandlersSource).not.toContain('  registerImageInteractionHandlers,');
     expect(source).toContain('createClientSessionHandlersRuntime({');
     expect(source).not.toContain('clientSessionHandlersRuntime.register({ ipcMain })');
     expect(initializationRuntimeSource).toContain('clientSessionHandlersRuntime.register({ ipcMain })');

@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Image Interaction Registration Privacy
+
+- Finding: `ipc_image_interaction_handlers.cjs` already exposed
+  `createImageInteractionHandlersRuntime(...)` as the Electron main composition
+  facade, but aggregate image interaction tests still reached into the
+  lower-level registration helper.
+- Change: kept `registerImageInteractionHandlers(...)` private to the aggregate
+  image interaction helper module and moved shared clipboard/context-menu
+  registration coverage through the runtime facade.
+- Validation: focused image interaction handler and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export-line scans, and diff
+  checks before commit.
+- Compatibility/security: no IPC payload, artifact URL, credential,
+  permission, image trust-origin, or trust-boundary migration required; focused
+  clipboard and context-menu handler modules continue to own their IPC handlers.
+
 ### 2026-06-21 Main Extension MCP Handler Registration Privacy
 
 - Finding: `ipc_extension_mcp_handlers.cjs` already exposed
