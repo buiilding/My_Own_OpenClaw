@@ -226,7 +226,7 @@ Acceptance criteria:
 
 2. Extract sidecar-dependent memory UI.
 - Current dashboard memory sections call sidecar IPC methods.
-- Replace with backend APIs for mobile and eventually desktop-hosted mode consistency.
+- Replace with backend APIs for mobile and eventually Electron-hosted mode consistency.
 
 3. Replace global `window.ipc` assumptions.
 - All renderer hooks/services should depend on runtime interfaces, not preload globals.

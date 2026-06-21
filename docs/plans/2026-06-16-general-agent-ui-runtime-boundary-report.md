@@ -8458,3 +8458,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   session config storage, prompt rendering, websocket payloads, install
   registration, IPC channels, permissions, storage, provider policy, and
   backend behavior are unchanged; no migration is required.
+- SDK agent-definition docs, mobile planning notes, and backend prompt
+  constructor docs now use host-runtime, Electron-hosted mode, and hosted
+  Electron runtime labels instead of the remaining desktop-host and hosted
+  desktop runtime wording. The modular boundary guard blocks the retired
+  phrases. Agent-definition defaults, prompt payloads, SDK builder behavior,
+  Electron handoff, hosted API behavior, permissions, storage, provider policy,
+  and backend behavior are unchanged; no migration is required.

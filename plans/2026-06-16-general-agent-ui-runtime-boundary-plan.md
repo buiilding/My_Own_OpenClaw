@@ -20485,3 +20485,19 @@ Each completed slice should report:
   rendering, install registration, websocket payloads, renderer adapter
   exports, IPC channels, permissions, storage, provider policy, and backend
   behavior are unchanged.
+
+### 2026-06-21 host-runtime and hosted Electron wording
+
+- Finding: SDK agent-definition docs, mobile planning notes, and backend prompt
+  constructor docs still used desktop-host, desktop-hosted, and hosted desktop
+  runtime labels for host-skin/default-agent and agent-definition prompt
+  context even though the current split is host-runtime skin/config, Electron
+  hosted clients, and backend prompt construction.
+- Change: reworded those active labels to host-runtime assumptions,
+  Electron-hosted mode, and hosted Electron runtimes. Extended modular boundary
+  coverage for the retired desktop-host and hosted-desktop phrases.
+- Validation: focused modular boundary test, exact retired-label scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Agent-definition defaults, prompt
+  payloads, SDK builder behavior, Electron handoff, hosted API behavior,
+  permissions, storage, provider policy, and backend behavior are unchanged.

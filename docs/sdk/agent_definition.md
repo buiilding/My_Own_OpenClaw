@@ -24,7 +24,7 @@ the snake_case `agents_md` spelling is only the generated backend wire field
 inside the final `agent_definition` object.
 When callers omit a display name, `buildAgentDefinition(...)` uses the generic
 `Agent` default so SDK-authored agent definitions do not embed WindieOS product
-copy or desktop-host assumptions outside host skin/config boundaries.
+copy or host-runtime assumptions outside host skin/config boundaries.
 The Python SDK mirrors that boundary with generic generated identities:
 `python-agent-*` ids, `Python Agent` display names, and `conv-python-agent`
 conversation defaults when callers omit those values.

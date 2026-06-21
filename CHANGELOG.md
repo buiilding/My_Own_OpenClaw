@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sdk: replace remaining desktop-host and hosted-desktop runtime wording
+  with host-runtime and hosted Electron labels. No migration required.
 - docs/backend: describe session OS/capability overrides and install-client
   setup through client-supplied and Electron client labels instead of older
   desktop-client wording. No migration required.
