@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/logs: make the `logs sidecar` compatibility alias initialize/read back
+  as the canonical local-runtime log while preserving the alias command,
+  `WINDIE_SIDECAR_LOG_FILE`, and sidecar log file path compatibility. No
+  migration required.
 - main/tests: route active main host-skin local-runtime adapter test labels
   away from sidecar-adapter wording while preserving real sidecar compatibility
   folder, log, and daemon entrypoint assertions. No migration required.

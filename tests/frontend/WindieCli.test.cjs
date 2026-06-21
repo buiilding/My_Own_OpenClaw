@@ -385,7 +385,7 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('[WindieOS] renderer verbose log file initialized.');
   });
 
-  test('prints current sidecar logs without following', () => {
+  test('prints current local-runtime logs through the sidecar alias without following', () => {
     const testLogFile = path.join(repoRoot, '.windie', 'logs', `windie-sidecar-cli-test-${process.pid}.log`);
     fs.rmSync(testLogFile, { force: true });
 
@@ -395,7 +395,7 @@ describe('windie CLI', () => {
     );
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain('[WindieOS] sidecar log');
+    expect(result.stdout).toContain('[WindieOS] local-runtime log');
   });
 
   test('prints current local runtime logs without following', () => {

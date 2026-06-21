@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 CLI Local-Runtime Log Alias Display Boundary
+
+- Finding: `<windie> logs sidecar` intentionally remained a compatibility
+  alias for the local-runtime daemon log, but the CLI initialized/read back the
+  alias using the stale sidecar owner label.
+- Change: kept the alias command, `WINDIE_SIDECAR_LOG_FILE`, and
+  `.windie/logs/sidecar.log` path compatibility while canonicalizing the
+  CLI display banner to local-runtime wording.
+- Validation: focused Windie CLI Jest coverage for the alias log path,
+  exact stale sidecar-log banner scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Log file resolution, legacy
+  env override behavior, local-runtime process logging, IPC, credentials,
+  permissions, and tool execution are unchanged.
+
 ### 2026-06-21 Conversation Replay Local-Runtime SQLite Label Boundary
 
 - Finding: `ConversationReplayDatabaseIntegration.test.tsx` still named the

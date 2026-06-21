@@ -507,7 +507,12 @@ function normalizeTailLines(value, fallback = '200') {
 
 function ensureWindieLayerLogFile(target, logFile, { verbose = false } = {}) {
   const normalizedTarget = normalizeWindieLogTarget(target);
-  const displayTarget = normalizedTarget === 'renderer' && verbose ? 'renderer verbose' : normalizedTarget;
+  let displayTarget = normalizedTarget;
+  if (normalizedTarget === 'renderer' && verbose) {
+    displayTarget = 'renderer verbose';
+  } else if (normalizedTarget === 'sidecar') {
+    displayTarget = 'local-runtime';
+  }
   const windieCommand = process.platform === 'win32' ? 'bin\\windie.cmd' : 'bin/windie.sh';
   if (!logFile) {
     const envKey = normalizedTarget === 'renderer' && verbose

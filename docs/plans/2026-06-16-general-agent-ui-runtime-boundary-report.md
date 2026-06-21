@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: conversation replay database coverage now names the
-  local-runtime SQLite cutoff rewrite path instead of sidecar SQLite wording
-  while preserving replay preparation failure behavior.
+- Latest completed slice: the `<windie> logs sidecar` compatibility alias now
+  initializes and reads back as the canonical local-runtime log while
+  preserving the alias command, legacy env override, and WindieOS sidecar log
+  file compatibility.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -35,6 +36,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
   prefix, bundled runtime copy, env keys, runs header, wakeword model, and
   browser warmup copy remain host-skin owned.
+  CLI `logs sidecar` remains a compatibility alias for the same WindieOS
+  local-runtime daemon log file, but its initialized/readback banner now uses
+  the canonical local-runtime owner label.
   Diagnostics sanitizer guards use retired local-runtime readiness-field
   wording while preserving `sidecarReady` drift rejection.
   Generic runtime-mode and VM worker runtime tests use sample env maps and runs
