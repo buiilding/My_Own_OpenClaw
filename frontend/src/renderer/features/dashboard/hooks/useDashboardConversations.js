@@ -9,7 +9,7 @@ import { DesktopLocalRuntimeStatusRuntimeClient } from '../../../app/runtime/des
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
-import { applyRendererConversationSelection } from '../../../app/runtime/desktopConversationSessionRuntime';
+import { DesktopConversationSessionRuntime } from '../../../app/runtime/desktopConversationSessionRuntime';
 import { DesktopActiveChatSessionRuntime } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import {
   buildConversationGroups,
@@ -44,6 +44,9 @@ const {
 const {
   buildChatMessagesFromSdkDisplayRows,
 } = DesktopConversationDisplayProjection;
+const {
+  applyRendererConversationSelection,
+} = DesktopConversationSessionRuntime;
 
 function useDashboardConversations({
   resolvedUserId,

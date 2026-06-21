@@ -24248,3 +24248,23 @@ Each completed slice should report:
   resume projection, renderer markup, IPC payloads, storage, local-runtime
   execution, provider policy, backend behavior, and trust boundaries are
   unchanged.
+
+### 2026-06-21 renderer conversation session facade helper privacy
+
+- Finding: renderer conversation identity rules lived in the app runtime, but
+  chat, dashboard, active-session reset, new-chat, send preparation, session
+  bootstrap, session-info projection, and focused tests still imported the
+  helpers as standalone exports.
+- Change: exposed conversation identity behavior through
+  `DesktopConversationSessionRuntime` and kept conversation-ref generation,
+  transcript/chat projection, main-session snapshot hydration, transcript-user
+  binding, and send-time conversation resolution behind the runtime facade.
+- Validation: focused conversation-session, session-runtime client, chat
+  session bootstrap, replay, dashboard conversation, renderer app-runtime
+  boundary, and renderer chat-runtime boundary tests, targeted renderer ESLint,
+  exact source/doc scans, docs listing, and diff checks.
+- Compatibility: no migration required. Conversation-ref format, transcript
+  session updates, chat active-conversation projection, dashboard conversation
+  open/delete behavior, send-time conversation resolution, replay behavior,
+  renderer markup, IPC payloads, storage, local-runtime execution, provider
+  policy, backend behavior, and trust boundaries are unchanged.

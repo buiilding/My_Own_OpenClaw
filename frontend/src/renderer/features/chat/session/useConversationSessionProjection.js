@@ -4,7 +4,11 @@
 
 import { useEffect } from 'react';
 import { useChatStore } from '../stores/chatStore';
-import { applyChatConversationProjection } from '../../../app/runtime/desktopConversationSessionRuntime';
+import { DesktopConversationSessionRuntime } from '../../../app/runtime/desktopConversationSessionRuntime';
+
+const {
+  applyChatConversationProjection,
+} = DesktopConversationSessionRuntime;
 
 export function useConversationSessionProjection(transcriptSessionInfo) {
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);

@@ -13,9 +13,7 @@ import { DesktopWindowRuntimeClient } from './desktopWindowRuntimeClient';
 import type { AgentModelSelection, TurnInputResource } from './desktopConversationRuntimeContracts';
 import type { ChatSendSurface } from './desktopMessageSendUiRuntime';
 import {
-  createConversationRef,
-  ensureConversationRefForSend,
-  resolveRendererConversationSessionSnapshot,
+  DesktopConversationSessionRuntime,
 } from './desktopConversationSessionRuntime';
 import {
   DesktopChatSendPayloadRuntime,
@@ -33,6 +31,11 @@ const {
 const {
   hasUserMessages,
 } = DesktopChatSendStateRuntime;
+const {
+  createConversationRef,
+  ensureConversationRefForSend,
+  resolveRendererConversationSessionSnapshot,
+} = DesktopConversationSessionRuntime;
 
 type AppConfigLike = Record<string, unknown> | null | undefined;
 

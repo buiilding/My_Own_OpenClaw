@@ -19,7 +19,7 @@ const EMPTY_MAIN_SESSION_SNAPSHOT: MainSessionSnapshot = Object.freeze({
   userId: null,
 });
 
-export function createConversationRef(): string {
+function createConversationRef(): string {
   return `conv_${crypto.randomUUID()}`;
 }
 
@@ -161,7 +161,7 @@ function applyMainSessionSnapshot(
   return snapshot;
 }
 
-export function applyRendererConversationSelection({
+function applyRendererConversationSelection({
   conversationRef,
   userId,
   updateTranscriptSession,
@@ -171,7 +171,7 @@ export function applyRendererConversationSelection({
   setChatConversationRef?.(conversationRef);
 }
 
-export function resolveRendererConversationSessionSnapshot({
+function resolveRendererConversationSessionSnapshot({
   transcriptConversationRef,
   storeConversationRef,
   userId,
@@ -185,7 +185,7 @@ export function resolveRendererConversationSessionSnapshot({
   };
 }
 
-export function resolveCurrentRendererConversationSessionInfo({
+function resolveCurrentRendererConversationSessionInfo({
   transcriptSessionInfo,
   activeConversationRef,
 }: CurrentRendererConversationSessionInfoOptions): MainSessionSnapshot {
@@ -202,7 +202,7 @@ export function resolveCurrentRendererConversationSessionInfo({
   return nextSnapshot;
 }
 
-export function initializeLocalConversationSession({
+function initializeLocalConversationSession({
   createConversationRef,
   selectConversationRef,
   onConversationCreated,
@@ -213,7 +213,7 @@ export function initializeLocalConversationSession({
   return conversationRef;
 }
 
-export function applyChatConversationProjection({
+function applyChatConversationProjection({
   nextConversationRef,
   activeConversationRef,
   setChatConversationRef,
@@ -231,7 +231,7 @@ export function applyChatConversationProjection({
   return normalizedNextConversationRef;
 }
 
-export function applyEventChatConversationProjection({
+function applyEventChatConversationProjection({
   eventType,
   explicitConversationRef,
   resolvedConversationRef,
@@ -261,7 +261,7 @@ export function applyEventChatConversationProjection({
   return normalizedResolvedConversationRef;
 }
 
-export function applyTranscriptSessionUserBinding({
+function applyTranscriptSessionUserBinding({
   userId,
   updateTranscriptSession,
 }: TranscriptSessionUserBindingOptions): boolean {
@@ -274,7 +274,7 @@ export function applyTranscriptSessionUserBinding({
   return true;
 }
 
-export async function hydrateConversationSessionFromMainSnapshot({
+async function hydrateConversationSessionFromMainSnapshot({
   loadMainSessionSnapshot,
   onError,
   ...callbacks
@@ -292,7 +292,7 @@ export async function hydrateConversationSessionFromMainSnapshot({
   }
 }
 
-export async function ensureConversationRefForSend({
+async function ensureConversationRefForSend({
   transcriptConversationRef,
   storeConversationRef,
   setTranscriptConversationRef,
@@ -325,3 +325,16 @@ export async function ensureConversationRefForSend({
     },
   });
 }
+
+export const DesktopConversationSessionRuntime = Object.freeze({
+  applyChatConversationProjection,
+  applyEventChatConversationProjection,
+  applyRendererConversationSelection,
+  applyTranscriptSessionUserBinding,
+  createConversationRef,
+  ensureConversationRefForSend,
+  hydrateConversationSessionFromMainSnapshot,
+  initializeLocalConversationSession,
+  resolveCurrentRendererConversationSessionInfo,
+  resolveRendererConversationSessionSnapshot,
+});

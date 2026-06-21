@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose conversation-ref creation, transcript/chat
+  projection, main-session hydration, and send-time conversation resolution
+  through `DesktopConversationSessionRuntime` instead of standalone helper
+  exports, keeping renderer conversation identity rules behind the app-runtime
+  facade. No migration required.
 - frontend/renderer: expose SDK display-row projection and renderer annotation
   merge rules through `DesktopConversationDisplayProjection` instead of
   standalone helper exports, keeping chat and dashboard display projection

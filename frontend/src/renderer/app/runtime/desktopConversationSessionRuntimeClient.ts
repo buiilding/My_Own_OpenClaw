@@ -3,8 +3,7 @@
  */
 
 import {
-  applyEventChatConversationProjection,
-  applyTranscriptSessionUserBinding,
+  DesktopConversationSessionRuntime,
 } from './desktopConversationSessionRuntime';
 
 type TranscriptSessionUpdater = (
@@ -24,6 +23,11 @@ type EventChatConversationProjectionOptions = {
   activeConversationRef: unknown;
   setChatConversationRef: (conversationRef: string) => void;
 };
+
+const {
+  applyEventChatConversationProjection,
+  applyTranscriptSessionUserBinding,
+} = DesktopConversationSessionRuntime;
 
 export const DesktopConversationSessionRuntimeClient = {
   bindTranscriptUser({

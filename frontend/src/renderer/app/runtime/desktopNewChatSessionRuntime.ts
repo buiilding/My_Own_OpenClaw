@@ -5,9 +5,7 @@
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
 import {
-  applyRendererConversationSelection,
-  createConversationRef,
-  initializeLocalConversationSession,
+  DesktopConversationSessionRuntime,
 } from './desktopConversationSessionRuntime';
 import { DesktopActiveChatSessionRuntime } from './desktopActiveChatSessionRuntime';
 import type { TokenCounts } from './desktopChatMessageTypes';
@@ -15,6 +13,11 @@ import type { TokenCounts } from './desktopChatMessageTypes';
 const {
   resetActiveChatSession,
 } = DesktopActiveChatSessionRuntime;
+const {
+  applyRendererConversationSelection,
+  createConversationRef,
+  initializeLocalConversationSession,
+} = DesktopConversationSessionRuntime;
 
 type NewChatSessionOptions = {
   clearMessages: (conversationRef?: string | null) => void;

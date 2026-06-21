@@ -7,8 +7,12 @@ import { DesktopClientSessionRuntimeClient } from '../../../app/runtime/desktopC
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { useChatStore } from '../stores/chatStore';
 import {
-  hydrateConversationSessionFromMainSnapshot,
+  DesktopConversationSessionRuntime,
 } from '../../../app/runtime/desktopConversationSessionRuntime';
+
+const {
+  hydrateConversationSessionFromMainSnapshot,
+} = DesktopConversationSessionRuntime;
 
 export function useChatSessionBootstrap() {
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);

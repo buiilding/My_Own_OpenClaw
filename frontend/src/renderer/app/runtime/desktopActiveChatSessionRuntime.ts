@@ -3,8 +3,12 @@
  */
 
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import { applyRendererConversationSelection } from './desktopConversationSessionRuntime';
+import { DesktopConversationSessionRuntime } from './desktopConversationSessionRuntime';
 import type { TokenCounts } from './desktopChatMessageTypes';
+
+const {
+  applyRendererConversationSelection,
+} = DesktopConversationSessionRuntime;
 
 type ResetActiveChatSessionOptions = {
   conversationRef?: string | null;

@@ -2049,7 +2049,11 @@ describe('renderer chat runtime boundary', () => {
     expect(newChatSessionSource).not.toContain('features/chat');
     expect(sendPreparationSource).toContain('desktopConversationSessionRuntime');
     expect(sendPreparationSource).not.toContain('utils/session/conversationRef');
+    expect(conversationSessionRuntimeSource).toContain('export const DesktopConversationSessionRuntime = Object.freeze');
     expect(conversationSessionRuntimeSource).toContain('createConversationRef');
+    expect(conversationSessionRuntimeSource).not.toContain('export function createConversationRef');
+    expect(conversationSessionRuntimeSource).not.toContain('export function ensureConversationRefForSend');
+    expect(conversationSessionRuntimeSource).not.toContain('export function applyRendererConversationSelection');
     expect(conversationSessionRuntimeSource).not.toContain('features/chat');
     expect(dashboardHookSource).toContain('DesktopWorkspaceRuntimeClient.resolveConversationWorkspaceBinding');
     expect(dashboardShellSource).toContain('DesktopWorkspaceRuntimeClient.clearAllConversationWorkspaceBindings');
@@ -2578,6 +2582,7 @@ describe('renderer chat runtime boundary', () => {
     expect(newChatSessionSource).not.toContain('export const startNewChatSession');
     expect(newChatSessionSource).not.toContain('features/chat');
     expect(activeSessionRuntimeSource).toContain('DesktopActiveChatSessionRuntime');
+    expect(activeSessionRuntimeSource).toContain('DesktopConversationSessionRuntime');
     expect(activeSessionRuntimeSource).toContain('resetActiveChatSession');
     expect(activeSessionRuntimeSource).not.toContain('export const resetActiveChatSession');
     expect(activeSessionRuntimeSource).toContain('applyRendererConversationSelection');

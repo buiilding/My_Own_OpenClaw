@@ -14,10 +14,7 @@ import { DesktopConversationContinuityService } from '../../../app/runtime/deskt
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import {
-  applyRendererConversationSelection,
-  createConversationRef,
-  initializeLocalConversationSession,
-  resolveRendererConversationSessionSnapshot,
+  DesktopConversationSessionRuntime,
 } from '../../../app/runtime/desktopConversationSessionRuntime';
 import {
   DesktopConversationReplayRuntime,
@@ -35,6 +32,12 @@ const {
 const {
   dispatchPreparedDesktopChatTurn,
 } = DesktopChatSendPreparationRuntime;
+const {
+  applyRendererConversationSelection,
+  createConversationRef,
+  initializeLocalConversationSession,
+  resolveRendererConversationSessionSnapshot,
+} = DesktopConversationSessionRuntime;
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   let conversationRef = resolveRendererConversationSessionSnapshot({

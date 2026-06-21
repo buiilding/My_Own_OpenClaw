@@ -3,17 +3,21 @@
  */
 
 import {
+  DesktopConversationSessionRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopConversationSessionRuntime';
+
+const {
   applyChatConversationProjection,
   applyEventChatConversationProjection,
   applyTranscriptSessionUserBinding,
-  createConversationRef,
   applyRendererConversationSelection,
+  createConversationRef,
   ensureConversationRefForSend,
   hydrateConversationSessionFromMainSnapshot,
   initializeLocalConversationSession,
   resolveCurrentRendererConversationSessionInfo,
   resolveRendererConversationSessionSnapshot,
-} from '../../frontend/src/renderer/app/runtime/desktopConversationSessionRuntime';
+} = DesktopConversationSessionRuntime;
 
 describe('conversationSessionRuntime', () => {
   test('createConversationRef generates the renderer local conversation prefix', () => {

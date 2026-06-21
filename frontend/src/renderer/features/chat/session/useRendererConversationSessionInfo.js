@@ -5,18 +5,27 @@
 import { useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useDesktopTranscriptSessionInfo } from '../../../app/runtime/desktopTranscriptSessionInfoRuntimeClient';
-import { resolveCurrentRendererConversationSessionInfo } from '../../../app/runtime/desktopConversationSessionRuntime';
+import { DesktopConversationSessionRuntime } from '../../../app/runtime/desktopConversationSessionRuntime';
+
+const {
+  resolveCurrentRendererConversationSessionInfo,
+} = DesktopConversationSessionRuntime;
 
 export function useRendererConversationSessionInfo() {
   const transcriptSessionInfo = useDesktopTranscriptSessionInfo();
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
+  const transcriptConversationRef = transcriptSessionInfo?.conversationRef;
+  const transcriptUserId = transcriptSessionInfo?.userId;
 
   return useMemo(() => resolveCurrentRendererConversationSessionInfo({
-    transcriptSessionInfo,
+    transcriptSessionInfo: {
+      conversationRef: transcriptConversationRef,
+      userId: transcriptUserId,
+    },
     activeConversationRef,
   }), [
     activeConversationRef,
-    transcriptSessionInfo?.conversationRef,
-    transcriptSessionInfo?.userId,
+    transcriptConversationRef,
+    transcriptUserId,
   ]);
 }

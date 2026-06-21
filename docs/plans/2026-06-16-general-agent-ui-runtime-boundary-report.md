@@ -9255,3 +9255,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   rules private. Display rows, chat message shape, dashboard loading, IPC,
   storage, local-runtime execution, provider policy, backend behavior, and
   trust boundaries are unchanged; no migration is required.
+- Renderer conversation identity rules now route through
+  `DesktopConversationSessionRuntime` instead of standalone helper exports.
+  Active-session reset, new-chat creation, chat send preparation, replay,
+  dashboard conversation selection, session bootstrap, transcript/user binding,
+  and current session-info projection consume the facade object while the
+  runtime keeps conversation-ref creation, transcript/chat projection, main
+  snapshot hydration, and send-time conversation resolution private. Conversation
+  refs, transcript session state, chat workspace selection, dashboard open
+  behavior, IPC payloads, storage, local-runtime execution, provider policy,
+  backend behavior, and trust boundaries are unchanged; no migration is
+  required.

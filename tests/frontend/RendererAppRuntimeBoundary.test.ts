@@ -1101,6 +1101,7 @@ describe('renderer app runtime boundary', () => {
     expect(providerSource).not.toContain('applyTranscriptSessionUserBinding');
     expect(transcriptClientSource).toContain('DesktopConversationSessionRuntimeClient.bindTranscriptUser');
     expect(transcriptClientSource).not.toContain('features/chat/session/conversationSessionRuntime');
+    expect(sessionClientSource).toContain('DesktopConversationSessionRuntime');
     expect(sessionClientSource).toContain('applyTranscriptSessionUserBinding');
     expect(sessionClientSource).toContain('./desktopConversationSessionRuntime');
     expect(sessionClientSource).not.toContain('features/chat/session/conversationSessionRuntime');
@@ -1148,9 +1149,13 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
+    expect(sessionRuntimeSource).toContain('export const DesktopConversationSessionRuntime = Object.freeze');
     expect(sessionRuntimeSource).toContain('resolveCurrentRendererConversationSessionInfo');
     expect(sessionRuntimeSource).toContain('EMPTY_MAIN_SESSION_SNAPSHOT');
+    expect(sessionRuntimeSource).not.toContain('export function resolveCurrentRendererConversationSessionInfo');
+    expect(sessionRuntimeSource).not.toContain('export function resolveRendererConversationSessionSnapshot');
     expect(sessionRuntimeSource).not.toContain('features/chat');
+    expect(sessionInfoHookSource).toContain('DesktopConversationSessionRuntime');
     expect(sessionInfoHookSource).toContain('resolveCurrentRendererConversationSessionInfo');
     expect(sessionInfoHookSource).not.toContain('EMPTY_RENDERER_SESSION_INFO');
     expect(sessionInfoHookSource).not.toContain('resolveRendererConversationSessionSnapshot');
@@ -1169,6 +1174,7 @@ describe('renderer app runtime boundary', () => {
 
     expect(ingressSource).toContain('DesktopConversationSessionRuntimeClient.applyEventChatConversationProjection');
     expect(ingressSource).not.toContain('features/chat/session/conversationSessionRuntime');
+    expect(sessionClientSource).toContain('DesktopConversationSessionRuntime');
     expect(sessionClientSource).toContain('applyEventChatConversationProjection');
     expect(sessionClientSource).not.toContain('features/chat/session/conversationSessionRuntime');
   });
@@ -1191,6 +1197,7 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
+    expect(resetRuntimeSource).toContain('DesktopConversationSessionRuntime');
     expect(resetRuntimeSource).toContain('applyRendererConversationSelection');
     expect(resetRuntimeSource).toContain('DesktopTranscriptSessionRuntimeClient');
     expect(resetRuntimeSource).toContain('DesktopActiveChatSessionRuntime');
