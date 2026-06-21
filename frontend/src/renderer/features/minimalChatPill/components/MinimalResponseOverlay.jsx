@@ -33,7 +33,6 @@ function MinimalResponseOverlay() {
     currentTurnProjection,
     pendingTurn,
   } = useChatStore(useShallow(selectLiveTurnSurfaceState));
-  const isSending = useChatStore((state) => state.isSending);
   const shellRef = useRef(null);
   const responseboxHitTestActiveRef = useRef(null);
   const lastLoggedSurfaceStateRef = useRef('');
@@ -197,13 +196,11 @@ function MinimalResponseOverlay() {
         responseEntryCount: responseOverlayEntries.length,
         activeResponseTextLength,
         thinkingText,
-        isSending,
         messageCount: messages.length,
       });
     }
     logRendererResponseSurfaceSnapshotTrace({
       phase: currentTurnProjection?.phase || 'idle',
-      isSending,
       messageCount: messages.length,
       activeResponseTextLength,
       responseType: latestSourceTaggedResponseEntry?.type || null,
@@ -224,7 +221,6 @@ function MinimalResponseOverlay() {
     currentTurnId,
     currentTurnProjection?.phase,
     isVisible,
-    isSending,
     latestResponseOverlayEntryId,
     latestSourceTaggedResponseEntry?.text,
     latestSourceTaggedResponseEntry?.type,

@@ -64,8 +64,8 @@ compaction behind its loop lock.
 - derives loop lock via
   `useChatSurfaceController({ currentTurnProjection, pendingTurn, messages })`
 - `currentTurnProjection` and `pendingTurn` are the visible turn sources;
-  raw `isSending` remains store/trace compatibility state and does not enter
-  the surface controller boundary
+  raw `isSending` remains store-local cleanup state and does not enter the
+  surface controller or surface trace boundary
 - loop lock disables:
   - dashboard-open button
   - screenshot capture button

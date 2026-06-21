@@ -54,8 +54,8 @@ surface preflight suppression. Both use the same visible lifecycle authority so
 SDK idle, wrong-turn terminal, stale, and visible-empty projections do not
 replace `local_pending`.
 Local send preflight requires a valid renderer `pendingTurn`; bare
-`isSending=true` is store/diagnostic compatibility state and does not create
-visible typing or busy lifecycle by itself.
+`isSending=true` is store-local cleanup state and does not create visible
+typing, busy lifecycle, or surface diagnostics by itself.
 
 ## Overlay Turn Lifecycle Contract
 
@@ -199,8 +199,9 @@ metadata, but phase, busy, awaiting, and response flags now come from
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`. The
 live-surface adapter exposes `isBusy` rather than a legacy `isSending` alias.
 `selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`; minimal
-surfaces that include the legacy send latch in trace payloads read it
-separately as diagnostic store compatibility state, not as lifecycle input.
+surfaces also keep raw `isSending` out of surface trace payloads so diagnostics
+follow visible lifecycle fields such as busy, Stop availability, awaiting, and
+response visibility.
 The decision to keep renderer-local pending typing through idle, hidden, stale,
 terminal, or visible SDK projections lives with the visible lifecycle owner and
 requires an accepted renderer `pendingTurn`.

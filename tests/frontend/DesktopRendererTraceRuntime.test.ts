@@ -84,7 +84,6 @@ describe('desktopRendererTraceRuntime', () => {
     configureRendererTraceWorkspaceSnapshotResolver((conversationRef) => ({
       activeConversationRef: conversationRef,
       workspaceMessageCount: 2,
-      isSending: true,
       thinkingStatus: 'Thinking...',
       phase: 'streaming',
       activeTurnRef: 'turn-1',
@@ -592,7 +591,6 @@ describe('desktopRendererTraceRuntime', () => {
     expect(buildRendererResponseSurfaceSnapshotTracePayload({
       source: ' custom-snapshot ',
       phase: ' streaming ',
-      isSending: true,
       messageCount: '3',
       activeResponseTextLength: '12',
       responseType: ' llm-text ',
@@ -604,7 +602,6 @@ describe('desktopRendererTraceRuntime', () => {
     })).toEqual({
       source: 'custom-snapshot',
       overlayPhase: 'streaming',
-      isSending: true,
       messageCount: 3,
       activeResponseTextLength: 12,
       activeResponseType: 'llm-text',

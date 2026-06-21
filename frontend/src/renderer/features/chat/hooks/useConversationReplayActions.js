@@ -73,7 +73,6 @@ async function executeReplayAction({
   setMessages,
   setThinkingStatus,
   setThinkingSourceEventType,
-  setIsSending,
   errorPrefix,
   deferredQueryModelSelection,
   action,
@@ -151,7 +150,6 @@ async function executeReplayAction({
       conversationRef,
       turnRef: replayTurnRef,
     });
-    setIsSending(false, conversationRef);
     if (typeof addMessage === 'function') {
       const replayStep = error?.__desktopRuntimeReplayStep === 'send' ? 'send' : 'prepare';
       addMessage({
@@ -175,7 +173,6 @@ export function useConversationReplayActions({
   setMessages,
   setThinkingStatus,
   setThinkingSourceEventType,
-  setIsSending,
 }) {
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const addMessage = useChatStore((state) => state.addMessage);
@@ -220,7 +217,6 @@ export function useConversationReplayActions({
       setMessages,
       setThinkingStatus,
       setThinkingSourceEventType,
-      setIsSending,
       errorPrefix: 'Failed to edit user message',
       deferredQueryModelSelection,
       action: 'edit_resend',
@@ -233,7 +229,6 @@ export function useConversationReplayActions({
     addMessage,
     deferredQueryModelSelection,
     messages,
-    setIsSending,
     setMessages,
     setThinkingSourceEventType,
     setThinkingStatus,
@@ -265,7 +260,6 @@ export function useConversationReplayActions({
       setMessages,
       setThinkingStatus,
       setThinkingSourceEventType,
-      setIsSending,
       errorPrefix: 'Failed to retry assistant message',
       deferredQueryModelSelection,
       action: 'retry',
@@ -278,7 +272,6 @@ export function useConversationReplayActions({
     addMessage,
     deferredQueryModelSelection,
     messages,
-    setIsSending,
     setMessages,
     setThinkingSourceEventType,
     setThinkingStatus,

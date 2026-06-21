@@ -222,7 +222,7 @@ Fatal failure:
 - required readable-file resource failure
 - required clipboard-image upload failure
 - `DesktopLiveTurnRuntimeClient.sendQuery` throw
-- sender sets `isSending=false`
+- sender clears the matching renderer `pendingTurn`
 - appends assistant error message (`Failed to send message. Please try again.`)
 - error rethrown
 

@@ -824,6 +824,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const nextWorkspace: ChatWorkspaceState = {
         ...currentWorkspace,
         messages: [],
+        isSending: false,
         thinkingSourceEventType: null,
         compactionDebugInfo: null,
         streamTracking: createInitialStreamTracking(),

@@ -44,6 +44,13 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
+jest.mock('../../frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient', () => ({
+  DesktopPendingTurnRuntimeClient: {
+    setPending: jest.fn(),
+    clear: jest.fn(),
+  },
+}));
+
 jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: jest.fn(() => ({
     config: {
@@ -398,7 +405,6 @@ function renderReplayHook(messages: Array<Record<string, unknown>>) {
     setMessages: useChatStore.getState().setMessages,
     setThinkingStatus: useChatStore.getState().setThinkingStatus,
     setThinkingSourceEventType: useChatStore.getState().setThinkingSourceEventType,
-    setIsSending: useChatStore.getState().setIsSending,
   }));
 }
 

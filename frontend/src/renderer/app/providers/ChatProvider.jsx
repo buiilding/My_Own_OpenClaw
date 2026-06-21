@@ -23,7 +23,6 @@ function resolveChatTraceWorkspaceSnapshot(conversationRef) {
   return {
     activeConversationRef: store.activeConversationRef,
     workspaceMessageCount: workspace.messages.length,
-    isSending: workspace.isSending,
     thinkingStatus: workspace.thinkingStatus,
     phase: workspace.streamTracking.phase,
     activeTurnRef: workspace.streamTracking.activeTurnRef,

@@ -14,7 +14,6 @@ type ResetActiveChatSessionOptions = {
   conversationRef?: string | null;
   userId?: string | null;
   clearMessages: (conversationRef?: string | null) => void;
-  setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
   setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
   setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
   setChatActiveConversationRef?: (conversationRef: string | null) => void;
@@ -24,7 +23,6 @@ const resetActiveChatSession = ({
   conversationRef = null,
   userId,
   clearMessages,
-  setIsSending,
   setThinkingStatus,
   setTokenCounts,
   setChatActiveConversationRef,
@@ -38,7 +36,6 @@ const resetActiveChatSession = ({
     setChatConversationRef: setChatActiveConversationRef,
   });
   clearMessages(targetConversationRef);
-  setIsSending(false, targetConversationRef);
   setThinkingStatus(null, targetConversationRef);
   setTokenCounts(null, targetConversationRef);
 };

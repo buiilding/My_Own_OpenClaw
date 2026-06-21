@@ -182,6 +182,7 @@ describe('chatStore', () => {
   });
 
   test('clearMessages resets to an empty message list', () => {
+    useChatStore.getState().setIsSending(true);
     useChatStore.getState().addMessage({
       id: 'user-1',
       text: 'hello',
@@ -189,8 +190,9 @@ describe('chatStore', () => {
     });
 
     useChatStore.getState().clearMessages();
-    const firstReset = useChatStore.getState().messages;
-    expect(firstReset).toHaveLength(0);
+    const firstReset = useChatStore.getState();
+    expect(firstReset.messages).toHaveLength(0);
+    expect(firstReset.isSending).toBe(false);
 
     useChatStore.getState().clearMessages();
     const secondReset = useChatStore.getState().messages;

@@ -342,7 +342,6 @@ export function useDashboardConversations({
           conversationRef,
           userId: resolvedUserId,
           clearMessages: clearChatMessages,
-          setIsSending: setChatIsSending,
           setThinkingStatus: setChatThinkingStatus,
           setTokenCounts: setChatTokenCounts,
           setChatActiveConversationRef,
@@ -356,7 +355,6 @@ export function useDashboardConversations({
     resolvedUserId,
     sessionConversationRef,
     setChatActiveConversationRef,
-    setChatIsSending,
     setChatThinkingStatus,
     setChatTokenCounts,
   ]);

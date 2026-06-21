@@ -37,14 +37,12 @@ describe('startNewChatSession', () => {
 
   test('creates a fresh local conversation ref and stores workspace binding', () => {
     const clearMessages = jest.fn();
-    const setIsSending = jest.fn();
     const setThinkingStatus = jest.fn();
     const setTokenCounts = jest.fn();
     const setChatActiveConversationRef = jest.fn();
 
     const conversationRef = startNewChatSession({
       clearMessages,
-      setIsSending,
       setThinkingStatus,
       setTokenCounts,
       setChatActiveConversationRef,
@@ -69,7 +67,6 @@ describe('startNewChatSession', () => {
     const clearMessages = jest.fn(() => {
       callOrder.push('clear-active-workspace');
     });
-    const setIsSending = jest.fn();
     const setThinkingStatus = jest.fn();
     const setTokenCounts = jest.fn();
     const setChatActiveConversationRef = jest.fn((conversationRef) => {
@@ -78,7 +75,6 @@ describe('startNewChatSession', () => {
 
     startNewChatSession({
       clearMessages,
-      setIsSending,
       setThinkingStatus,
       setTokenCounts,
       setChatActiveConversationRef,

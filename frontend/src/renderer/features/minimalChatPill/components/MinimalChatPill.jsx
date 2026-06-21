@@ -46,7 +46,6 @@ const {
 function MinimalChatPill() {
   const closeBumpHeight = DesktopChatboxLayoutRuntime.getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
-  const isSending = useChatStore((state) => state.isSending);
   const currentTurnProjection = useChatStore((state) => (
     state.latestCurrentTurnProjection || state.currentTurnProjection
   ));
@@ -241,7 +240,6 @@ function MinimalChatPill() {
 
   useEffect(() => {
     const nextPillStateSignature = JSON.stringify({
-      isSending,
       loopInteractionLocked,
       liveTurnPhase,
       liveTurnSource,
@@ -258,7 +256,6 @@ function MinimalChatPill() {
       currentTurnPhase: currentTurnProjection?.phase || null,
       liveTurnPhase,
       liveTurnSource,
-      isSending,
       busy: loopInteractionLocked,
       stopAvailable: loopInteractionLocked,
       messageCount: messages.length,
@@ -266,7 +263,6 @@ function MinimalChatPill() {
   }, [
     currentTurnProjection?.phase,
     currentTurnProjection?.turnRef,
-    isSending,
     liveTurnPhase,
     liveTurnSource,
     loopInteractionLocked,

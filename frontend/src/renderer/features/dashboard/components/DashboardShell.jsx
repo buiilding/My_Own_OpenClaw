@@ -206,7 +206,6 @@ function DashboardShell({
       conversationRef: sessionInfo.conversationRef || null,
       userId: resolvedUserId,
       clearMessages: clearChatMessages,
-      setIsSending: setChatIsSending,
       setThinkingStatus: setChatThinkingStatus,
       setTokenCounts: setChatTokenCounts,
       setChatActiveConversationRef,
@@ -219,7 +218,6 @@ function DashboardShell({
     resolvedUserId,
     sessionInfo.conversationRef,
     setChatActiveConversationRef,
-    setChatIsSending,
     setChatThinkingStatus,
     setChatTokenCounts,
   ]);

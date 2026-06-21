@@ -144,10 +144,10 @@ Renderer invariants:
   metadata until main strips or echoes them.
 - `workspace_path` is frontend metadata forwarded to backend query payloads only
   when it is non-empty.
-- Send failure must clear `isSending` and append a local error row. Replay
-  failures from edit/resend and try-again must follow the same visible-error
-  contract after restoring the previous transcript, so failed replay dispatches
-  do not look like inert edit buttons.
+- Send failure must clear the matching renderer `pendingTurn` and append a
+  local error row. Replay failures from edit/resend and try-again must follow
+  the same visible-error contract after restoring the previous transcript, so
+  failed replay dispatches do not look like inert edit buttons.
 
 ### 3. Inspect the Electron main relay path
 

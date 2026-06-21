@@ -21,7 +21,6 @@ const {
 
 type NewChatSessionOptions = {
   clearMessages: (conversationRef?: string | null) => void;
-  setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
   setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
   setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
   setChatActiveConversationRef: (conversationRef: string | null) => void;
@@ -33,7 +32,6 @@ type NewChatSessionOptions = {
 
 const startNewChatSession = ({
   clearMessages,
-  setIsSending,
   setThinkingStatus,
   setTokenCounts,
   setChatActiveConversationRef,
@@ -41,7 +39,6 @@ const startNewChatSession = ({
 }: NewChatSessionOptions): string => {
   resetActiveChatSession({
     clearMessages,
-    setIsSending,
     setThinkingStatus,
     setTokenCounts,
   });

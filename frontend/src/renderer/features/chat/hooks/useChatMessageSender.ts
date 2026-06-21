@@ -41,7 +41,7 @@ export function useChatMessageSender(
   stopPlayback?: () => void,
   options: ChatMessageSenderOptions = {},
 ) {
-  const { addMessage, setIsSending } = useChatCommonActions();
+  const { addMessage } = useChatCommonActions();
   const clearPendingTurn = useChatStore((state) => state.clearPendingTurn);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
@@ -96,14 +96,12 @@ export function useChatMessageSender(
         conversationRef: preparedTurn.conversationRef,
         turnRef: preparedTurn.turnRef,
       });
-      setIsSending(false, preparedTurn.conversationRef);
       appendSendFailureMessage(preparedTurn.conversationRef);
       throw error;
     }
   }, [
     appendSendFailureMessage,
     clearPendingTurn,
-    setIsSending,
     stopPlayback,
     senderSurface,
     sendLifecycle,

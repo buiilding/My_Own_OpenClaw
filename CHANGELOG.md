@@ -39,6 +39,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: stop live-surface diagnostics from writing
+  `[LiveSurfaceTrace]` rows into the renderer DevTools console while preserving
+  the structured trace IPC forwarding path. No migration required.
+- frontend/renderer: remove remaining raw `isSending` compatibility plumbing
+  from minimal surface traces, replay failure cleanup, send failure cleanup,
+  and new-chat/session reset callers. `clearPendingTurn` and `clearMessages`
+  now own raw send cleanup for those paths. No migration required.
 - sdk/renderer: preserve explicit screenshot metadata aliases through local
   runtime display-row loading so chat-pill camera query rows render as
   dashboard screenshots after `user_message_metadata` replay. No migration

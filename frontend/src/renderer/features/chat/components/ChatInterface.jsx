@@ -80,7 +80,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const setMessages = useChatStore((state) => state.setMessages);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const updateMessage = useChatStore((state) => state.updateMessage);
-  const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
@@ -100,7 +99,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const startWorkspaceBoundNewChat = useCallback((workspace) => {
     return startNewChatSession({
       clearMessages,
-      setIsSending,
       setThinkingStatus,
       setTokenCounts,
       setChatActiveConversationRef,
@@ -109,7 +107,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   }, [
     clearMessages,
     setChatActiveConversationRef,
-    setIsSending,
     setThinkingStatus,
     setTokenCounts,
   ]);
@@ -470,7 +467,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     setMessages,
     setThinkingStatus,
     setThinkingSourceEventType,
-    setIsSending,
   });
 
   useChatInterfaceNewChatEvent(handleNewChat);

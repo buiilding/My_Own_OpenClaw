@@ -230,12 +230,12 @@ snapshot enrichment, response-surface stream-trace envelope logging,
 chat-pill state trace field shaping, response-overlay state/render trace field
 shaping, and response-overlay size trace field shaping. Minimal chat-pill state effects pass value-level `conversationRef`,
 `turnRef`, `currentTurnPhase`, `liveTurnPhase`, `liveTurnSource`,
-`isSending`, `busy`, `stopAvailable`, and `messageCount` inputs; the trace
+`busy`, `stopAvailable`, and `messageCount` inputs; the trace
 runtime maps those values to diagnostic `conversation_ref`, `turn_id`,
-`current_turn_phase`, `live_turn_phase`, `live_turn_source`, `is_sending`,
-`busy`, `stop_available`, and `message_count` fields. Minimal response-overlay
+`current_turn_phase`, `live_turn_phase`, `live_turn_source`, `busy`,
+`stop_available`, and `message_count` fields. Minimal response-overlay
 state/render effects pass value-level phase, response, visibility, layout,
-entry-count, text-length, send, and message-count inputs; the trace runtime
+entry-count, text-length, and message-count inputs; the trace runtime
 maps those values to the existing response-surface diagnostic fields. Response
 overlay hooks pass value-level `layoutMode`, `showResponse`, `thinkingText`,
 `compactHover`, `turnRef`, and `staleGuardRef` inputs; the trace runtime maps

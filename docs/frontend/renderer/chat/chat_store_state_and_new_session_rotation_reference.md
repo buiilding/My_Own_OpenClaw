@@ -82,7 +82,8 @@ Message attachment fields used by current send/runtime paths include:
   matching pending turn, patches stream tracking to terminal `complete`, and
   terminalizes the matching SDK current-turn projection while preserving any
   already visible assistant content
-- `clearMessages` clears messages and resets `streamTracking` to initial idle shape
+- `clearMessages` clears messages, clears raw send cleanup state, and resets
+  `streamTracking` to initial idle shape
 - `setActiveConversationRef` switches the projected top-level state to that workspace snapshot
 - `registerTurnConversationRef` / `resolveConversationRefForTurn` maintain turn->conversation routing for events that omit `conversation_ref`
 
@@ -186,7 +187,8 @@ Chat store reset and transcript-session ref updates are separate concerns; new-c
 - append/update behavior
 - missing-id update no-op
 - same-reference no-op behavior for `setMessages` and scalar setters
-- `clearMessages` leaves empty messages and reset state
+- `clearMessages` leaves empty messages, cleared send cleanup state, and reset
+  stream state
 - stream tracking updater semantics
 - pending-turn acceptance/clearing and stopped-turn terminalization semantics
 

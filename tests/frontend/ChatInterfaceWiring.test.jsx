@@ -1637,7 +1637,6 @@ describe('ChatInterface wiring', () => {
     });
 
     expect(mockClearMessages).toHaveBeenCalledTimes(1);
-    expect(mockSetIsSending.mock.calls).toContainEqual([false, null]);
     expect(mockSetThinkingStatus.mock.calls).toContainEqual([null, null]);
     expect(mockSetTokenCounts.mock.calls).toContainEqual([null, null]);
     expect(mockUpdateTranscriptSession.mock.calls.some(([conversationRef]) => (
