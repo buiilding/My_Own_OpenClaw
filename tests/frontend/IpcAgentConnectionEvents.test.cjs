@@ -5,9 +5,8 @@ const path = require('path');
 
 const {
   createAgentConnectionEventsRuntime,
-  resolveBackendFallbackIndex,
-  resolveHandshakeUserId,
 } = require('../../frontend/src/main/ipc/ipc_agent_connection_events.cjs');
+const connectionEventsModule = require('../../frontend/src/main/ipc/ipc_agent_connection_events.cjs');
 
 function createConnectionDeps(overrides = {}) {
   return {
@@ -38,14 +37,9 @@ describe('ipc_agent_connection_events', () => {
     return runtime.handleBackendFallback(endpointPayload);
   }
 
-  test('resolves handshake user id only from backend handshake payloads', () => {
-    expect(resolveHandshakeUserId({
-      handshake: { user_id: 'server-user' },
-    })).toBe('server-user');
-    expect(resolveHandshakeUserId({
-      handshake: { userId: 'camel-user' },
-    })).toBeNull();
-    expect(resolveHandshakeUserId({})).toBeNull();
+  test('keeps handshake and fallback resolution helpers private to the runtime owner', () => {
+    expect(connectionEventsModule.resolveHandshakeUserId).toBeUndefined();
+    expect(connectionEventsModule.resolveBackendFallbackIndex).toBeUndefined();
   });
 
   test('handles backend open events by updating session state and broadcasting status', () => {
@@ -68,6 +62,20 @@ describe('ipc_agent_connection_events', () => {
     expect(deps.logMainRuntime).toHaveBeenCalledWith('[Main][Backend] connected user=server-user');
     expect(deps.log).toHaveBeenCalledWith('Successfully connected to agent backend through Agent SDK runtime.');
     expect(deps.log).toHaveBeenCalledWith('Handshake sent with authenticated user_id: server-user');
+    expect(deps.broadcastConnectionStatus).toHaveBeenCalledWith(true);
+  });
+
+  test('ignores camelCase handshake user aliases on backend open events', () => {
+    const deps = createConnectionDeps();
+
+    handleConnectionEvent({
+      type: 'open',
+      handshake: { userId: 'camel-user' },
+    }, deps);
+
+    expect(deps.setCurrentServerUserId).not.toHaveBeenCalled();
+    expect(deps.logMainRuntime).toHaveBeenCalledWith('[Main][Backend] connected user=current-user');
+    expect(deps.log).toHaveBeenCalledWith('Handshake sent with authenticated user_id: current-user');
     expect(deps.broadcastConnectionStatus).toHaveBeenCalledWith(true);
   });
 
@@ -112,23 +120,6 @@ describe('ipc_agent_connection_events', () => {
     expect(deps.log).toHaveBeenCalledWith('Error parsing message from agent backend: bad json');
   });
 
-  test('resolves fallback endpoint indices from websocket and HTTP endpoint aliases', () => {
-    const candidates = [
-      { wsUrl: 'wss://primary.test/ws', httpUrl: 'https://primary.test' },
-      { wsUrl: 'wss://fallback.test/ws', httpUrl: 'https://fallback.test' },
-    ];
-
-    expect(resolveBackendFallbackIndex({
-      wsUrl: 'wss://fallback.test/ws',
-    }, candidates)).toBe(1);
-    expect(resolveBackendFallbackIndex({
-      httpBaseUrl: 'https://fallback.test',
-    }, candidates)).toBe(1);
-    expect(resolveBackendFallbackIndex({
-      backendUrl: 'https://missing.test',
-    }, candidates)).toBe(-1);
-  });
-
   test('handles backend fallback by activating matched endpoint or advancing candidates', () => {
     const deps = {
       getEndpointCandidates: jest.fn(() => [
@@ -156,6 +147,29 @@ describe('ipc_agent_connection_events', () => {
     }, deps);
     expect(deps.setActiveBackendEndpoint).not.toHaveBeenCalled();
     expect(deps.advanceToNextBackendEndpoint).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([
+    ['wsUrl', 'wss://fallback.test/ws'],
+    ['httpBaseUrl', 'https://fallback.test'],
+    ['backendUrl', 'https://fallback.test'],
+  ])('handles backend fallback endpoint alias %s through the runtime', (key, value) => {
+    const deps = {
+      getEndpointCandidates: jest.fn(() => [
+        { wsUrl: 'wss://primary.test/ws', httpUrl: 'https://primary.test' },
+        { wsUrl: 'wss://fallback.test/ws', httpUrl: 'https://fallback.test' },
+      ]),
+      setActiveBackendEndpoint: jest.fn(),
+      advanceToNextBackendEndpoint: jest.fn(),
+      getCurrentEndpoint: jest.fn(() => ({ wsUrl: 'wss://fallback.test/ws' })),
+      logMainRuntime: jest.fn(),
+      log: jest.fn(),
+    };
+
+    handleBackendFallbackEvent({ [key]: value }, deps);
+
+    expect(deps.setActiveBackendEndpoint).toHaveBeenCalledWith(1);
+    expect(deps.advanceToNextBackendEndpoint).not.toHaveBeenCalled();
   });
 
   test('runtime reuses injected dependencies for connection and fallback events', () => {

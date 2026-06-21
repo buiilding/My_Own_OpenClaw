@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep connection-event handshake user and backend fallback
+  endpoint resolvers private to `ipc_agent_connection_events.cjs` and cover
+  snake_case handshake identity plus websocket/HTTP fallback aliases through
+  `createAgentConnectionEventsRuntime(...)`. No migration required.
 - frontend/main: keep backend-close interrupted-query classification private to
   `ipc_agent_backend_close_runtime.cjs` and cover interruptible, idle, and
   no-active-query close behavior through `createAgentBackendCloseRuntime(...)`.

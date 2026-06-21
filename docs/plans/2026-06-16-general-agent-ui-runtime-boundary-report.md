@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main backend-close cleanup keeps
-  interrupted-query close classification private to
-  `ipc_agent_backend_close_runtime.cjs`, with interruptible, idle, and
-  no-active-query close behavior covered through
-  `createAgentBackendCloseRuntime(...)`.
+- Latest completed slice: Electron main connection-event adaptation keeps
+  handshake user-id extraction and backend fallback endpoint alias matching
+  private to `ipc_agent_connection_events.cjs`, with snake_case handshake
+  identity, camelCase alias rejection, and websocket/HTTP fallback aliases
+  covered through `createAgentConnectionEventsRuntime(...)`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

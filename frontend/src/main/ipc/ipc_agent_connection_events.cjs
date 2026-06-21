@@ -121,6 +121,4 @@ function createAgentConnectionEventsRuntime(deps = {}) {
 
 module.exports = {
   createAgentConnectionEventsRuntime,
-  resolveBackendFallbackIndex,
-  resolveHandshakeUserId,
 };

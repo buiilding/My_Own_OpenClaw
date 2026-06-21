@@ -874,6 +874,9 @@ Owns Electron-main Agent SDK backend connection event adaptation:
   diagnostics and human-readable logs
 - selects backend fallback endpoint candidates from SDK-provided websocket or
   HTTP endpoint payloads before `ipc.cjs` applies active endpoint state
+- keeps handshake user-id extraction and fallback endpoint alias matching
+  private to the connection-event runtime owner while tests exercise those
+  paths through the composed facade
 - keeps the lower-level connection-event and fallback handlers private to the
   runtime helper
 - delegates close cleanup to `ipc_agent_backend_close_runtime.cjs`

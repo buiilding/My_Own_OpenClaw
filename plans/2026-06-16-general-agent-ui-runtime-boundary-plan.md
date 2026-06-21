@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Connection Event Resolver Privacy
+
+- Finding: `ipc_agent_connection_events.cjs` already kept the lower-level
+  connection and backend-fallback handlers private, but handshake user-id
+  extraction and fallback endpoint alias matching still leaked as public
+  helper exports.
+- Change: kept those resolvers private to the connection-event runtime owner
+  and moved snake_case handshake identity, camelCase alias rejection, and
+  websocket/HTTP fallback alias coverage through
+  `createAgentConnectionEventsRuntime(...)`.
+- Validation: focused connection-event and main SDK boundary tests, targeted
+  main IPC lint, docs listing, stale export scans, and diff checks before
+  commit.
+- Compatibility/security: no handshake payload, endpoint fallback, connection
+  status, credential, permission, or trust-boundary migration required.
+
 ### 2026-06-21 Main Backend Close Classifier Privacy
 
 - Finding: `ipc_agent_backend_close_runtime.cjs` already kept the lower-level
