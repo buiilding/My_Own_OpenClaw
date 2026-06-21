@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral injected browser warmup copy in local-runtime bridge
+  RPC coverage instead of WindieOS host-skin copy. No migration required.
 - tests/main: use neutral injected runtime-path and wakeword bridge host config
   fixtures instead of importing WindieOS host-skin values. No migration
   required.

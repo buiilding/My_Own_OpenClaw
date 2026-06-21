@@ -761,6 +761,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('sample_wakeword');
   });
 
+  test('local runtime bridge RPC tests keep injected browser warmup copy product-neutral', async () => {
+    const source = await read('tests/frontend/LocalRuntimeBridge.rpc.test.cjs');
+
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain('Open the WindieOS browser');
+    expect(source).toContain('SAMPLE_BROWSER_WARMUP_EXPLANATION');
+    expect(source).toContain('Open the sample browser for onboarding and profile setup.');
+  });
+
   test('browser use engine tests keep legacy session fixtures product-neutral', async () => {
     const source = await read('tests/sidecar/tools/test_browser_use_engine.py');
     const retiredHome = `"${['windie', 'home'].join('-')}"`;

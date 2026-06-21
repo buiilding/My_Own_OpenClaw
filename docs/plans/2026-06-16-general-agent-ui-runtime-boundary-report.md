@@ -12,9 +12,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `d0e85049e` (`test(sidecar): neutralize remote client endpoint fixtures`)
-- Latest completed slice: generic runtime-path and wakeword bridge tests now
-  use neutral injected host config fixtures instead of importing WindieOS
-  host-skin values.
+- Latest completed slice: local-runtime bridge RPC tests now use neutral
+  injected browser warmup copy instead of WindieOS host-skin copy.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -36,7 +35,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   prefix, bundled runtime copy, and browser warmup copy remain host-skin owned.
   Generic runtime-path and wakeword bridge tests use sample host config and
   neutral packaged resource roots while real WindieOS env/model/path values
-  remain host-skin owned.
+  remain host-skin owned. Local-runtime bridge RPC tests use neutral injected
+  browser warmup copy while real WindieOS local-runtime copy remains host-skin
+  owned.
   Renderer voice docs name the desktop voice/audio runtime contract and
   backend-owned transcription gateway boundary instead of embedding concrete STT
   provider policy. Renderer config reference docs now keep current OpenAI/GPT default
@@ -7928,3 +7929,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   resolution, configured host env forwarding, wakeword subprocess launch
   behavior, host-skin configuration, permissions, storage, provider policy, and
   backend behavior are unchanged; no migration is required.
+- Local-runtime bridge RPC tests now use neutral injected browser warmup copy
+  instead of WindieOS host-skin copy. Real WindieOS local-runtime copy wiring
+  remains covered by the host-skin boundary tests. Browser warmup RPC payload
+  shaping, SDK local-runtime routing, host-skin copy wiring, permissions,
+  storage, provider policy, and backend behavior are unchanged; no migration is
+  required.

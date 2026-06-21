@@ -19299,3 +19299,18 @@ Each completed slice should report:
   resolution, configured host env forwarding, wakeword subprocess launch
   behavior, host-skin configuration, permissions, storage, provider policy, and
   backend behavior are unchanged.
+
+### 2026-06-21 Local runtime bridge browser warmup copy fixture neutrality
+
+- Finding: local-runtime bridge RPC coverage imported the WindieOS host skin
+  only to reuse the browser warmup explanation as an injected helper-copy
+  fixture.
+- Change: replaced that product copy import with a neutral sample browser
+  warmup sentence and added modular boundary coverage while keeping real
+  WindieOS local-runtime copy wiring in `MainHostSkinBoundary`.
+- Validation: focused local-runtime bridge RPC, host-skin boundary, and modular
+  boundary tests; exact retired browser warmup fixture scan, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Browser warmup RPC payload shaping,
+  SDK local-runtime routing, host-skin copy wiring, permissions, storage,
+  provider policy, and backend behavior are unchanged.

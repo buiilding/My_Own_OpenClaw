@@ -14,11 +14,9 @@ const {
   resolveNextSdkRuntimeRequest,
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/localRuntimeBridgeHarness.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 const TEST_BACKEND_HTTP_URL = 'https://backend.example.com';
+const SAMPLE_BROWSER_WARMUP_EXPLANATION = 'Open the sample browser for onboarding and profile setup.';
 
 function createOwnedScreenshotTempPath(
   label,
@@ -160,7 +158,7 @@ describe('local_runtime_bridge RPC handlers', () => {
   test('browser warmup sends a valid connect payload with explanation', async () => {
     const { bridge, stdoutHandler } = initBridge({
       localRuntimeBridgeCopy: {
-        browserWarmupExplanation: mainHostSkin.localRuntime.browserWarmupExplanation,
+        browserWarmupExplanation: SAMPLE_BROWSER_WARMUP_EXPLANATION,
       },
     });
     markReady();
@@ -171,7 +169,7 @@ describe('local_runtime_bridge RPC handlers', () => {
       tool_name: 'browser',
       args: {
         action: 'connect',
-        explanation: 'Open the WindieOS browser for onboarding and profile setup.',
+        explanation: SAMPLE_BROWSER_WARMUP_EXPLANATION,
       },
     });
 
