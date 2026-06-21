@@ -491,7 +491,7 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('keeps awaiting indicator during tool-output and clears on terminal overlay phase', async () => {
+  test('does not show awaiting indicator for phase-only tool-output projection', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
@@ -499,11 +499,6 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
     emitOverlayPhase('tool-output');
 
-    await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
-    });
-
-    emitOverlayPhase('complete');
     await waitFor(() => {
       expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
@@ -814,15 +809,23 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
-  test('clears awaiting indicator on idle and only re-shows it for a live phase', async () => {
+  test('clears awaiting indicator on idle and only re-shows it for renderer pending', async () => {
     setChatState([]);
     render(<ChatBoxResponse />);
 
-    emitOverlayPhase('tool-output');
+    act(() => {
+      useChatStore.getState().acceptPendingTurn(pendingTurn());
+    });
     await waitFor(() => {
       expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
     });
 
+    act(() => {
+      useChatStore.getState().clearPendingTurn({
+        conversationRef: 'conv-test',
+        turnRef: 'turn-pending',
+      });
+    });
     emitOverlayPhase('idle');
     await waitFor(() => {
       expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
@@ -830,7 +833,7 @@ describe('ChatBoxResponse state behavior', () => {
 
     emitOverlayPhase('streaming');
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
   });
 

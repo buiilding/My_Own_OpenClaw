@@ -212,6 +212,14 @@ awaiting-dot visibility, and chatbox awaiting state. The older
 `useCurrentTurnPresentationState(...)` result remains an adapter for legacy
 presentation fields while visible lifecycle owns the typing decision.
 
+`useResponseOverlayViewModel(...)` also resolves the same visible lifecycle and
+applies `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+before deriving response-overlay view intent. The response overlay therefore
+shows awaiting only for renderer local pending or SDK awaiting lifecycle, and
+shows response only for visible SDK entries. Phase-only `streaming`,
+`tool_call`, or `tool_output` projections with no visible text, tool event,
+progress, error, or pending turn do not independently show typing.
+
 ## Surface Consumers
 
 `ChatInterface.jsx`:
@@ -229,8 +237,8 @@ presentation fields while visible lifecycle owns the typing decision.
 
 `ChatBoxResponse.jsx`:
 
-- consumes the chatbox state adapted by `useChatSurfaceController(...)` from
-  visible lifecycle plus current-turn presentation entries
+- consumes `useResponseOverlayViewModel(...)`, which adapts visible lifecycle
+  plus current-turn presentation entries
 - uses the derived chatbox surface state:
   - `compact`
   - `awaiting-reply`
@@ -244,6 +252,8 @@ presentation fields while visible lifecycle owns the typing decision.
   projections
 - same-turn SDK awaiting, visible progress/text, and terminal projections
   replace local pending
+- shared presentation adapters map renderer visible lifecycle into legacy busy,
+  awaiting-dot, chatbox, and response overlay presentation fields
 - the handoff predicate stays behind the visible lifecycle runtime facade
 
 `tests/frontend/ChatSurfaceController.test.jsx` validates:

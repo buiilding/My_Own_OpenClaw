@@ -31,6 +31,7 @@ selection matrix.
 | --- | --- |
 | Sending from the pill immediately latches pending/Stop state. | `PendingTurnLiveSurfaceIntegration.test.js`, `ChatPillSessionFlow.test.ts` |
 | Renderer-local pending typing does not flash because of SDK idle, visible-empty, or wrong-turn projections before authoritative same-turn handoff. | `DesktopVisibleTurnLifecycleRuntime.test.js`, `PendingTurnLiveSurfaceIntegration.test.js` |
+| Response overlay consumes renderer visible lifecycle instead of phase-only typing state. | `ChatBoxResponse.state.test.jsx`, `DesktopVisibleTurnLifecycleRuntime.test.js` |
 | Chat-pill query screenshot metadata survives dashboard display load. | `AgentConversationStoreApi.test.ts`, `AgentSdkConversationRuntime.test.ts`, `SdkDisplayChatMessageProjection.test.ts` |
 | Typing/awaiting state does not flash because of transient idle events. | `AgentSdkConversationRuntime.test.ts`, `ConversationRuntimeProjectionStream.test.ts`, `ResponseOverlayPhaseHandler.test.cjs` |
 | Dashboard and pill render the same active turn projection. | `DesktopLiveTurnRuntimeClient.test.ts`, `IpcLiveTurnState.test.cjs`, `IpcConversationEventProjection.test.cjs` |

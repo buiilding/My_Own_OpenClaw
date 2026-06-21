@@ -45,7 +45,7 @@ function renderController({
       phase: 'streaming',
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
-      assistantText: '',
+      assistantText: 'streaming response',
       reasoningText: null,
       toolEvents: [],
       lastError: null,

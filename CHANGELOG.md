@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route response overlay view-model awaiting and response
+  state through the renderer-owned visible turn lifecycle, so phase-only
+  visible-empty projections no longer show typing and pending sends continue to
+  own local awaiting until SDK handoff. No migration required.
 - frontend/renderer: route `useChatSurfaceController` busy, stop, awaiting
   dot, and chatbox awaiting state through `DesktopVisibleTurnLifecycleRuntime`
   while keeping the older current-turn presentation hook as an adapter. No

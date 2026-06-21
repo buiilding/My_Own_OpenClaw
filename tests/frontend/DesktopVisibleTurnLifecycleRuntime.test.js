@@ -7,8 +7,11 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime';
 
 const {
+  applyVisibleTurnLifecycleToPresentationState,
+  hasAuthoritativeSdkProjection,
   hasAuthoritativeSameTurnSdkReplacement,
   resolveVisibleTurnLifecycle,
+  resolveVisibleTurnLifecycleForPresentation,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 function pendingTurn(overrides = {}) {
@@ -55,6 +58,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     const visibleLifecycleModule = require('../../frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime');
 
     expect(visibleLifecycleModule.DesktopVisibleTurnLifecycleRuntime).toBe(DesktopVisibleTurnLifecycleRuntime);
+    expect(visibleLifecycleModule.hasAuthoritativeSdkProjection).toBeUndefined();
     expect(visibleLifecycleModule.hasAuthoritativeSameTurnSdkReplacement).toBeUndefined();
     expect(visibleLifecycleModule.resolveVisibleTurnLifecycle).toBeUndefined();
   });
@@ -98,6 +102,27 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       status: 'local_pending',
       showTyping: true,
     });
+
+    expect(hasAuthoritativeSameTurnSdkReplacement(pending, projection({
+      phase: 'streaming',
+    }))).toBe(false);
+    expect(hasAuthoritativeSdkProjection(projection({
+      phase: 'streaming',
+    }))).toBe(false);
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      currentTurnProjection: projection({ phase: 'streaming' }),
+      messages,
+    })).toMatchObject({
+      status: 'local_pending',
+      showTyping: true,
+    });
+
+    expect(hasAuthoritativeSdkProjection(projection({
+      phase: 'streaming',
+      assistantText: 'visible response',
+    }))).toBe(true);
 
     expect(hasAuthoritativeSameTurnSdkReplacement(pending, projection({
       turnRef: 'turn-previous',
@@ -227,6 +252,92 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       terminalReason: 'complete',
       isBusy: false,
       showTyping: false,
+    });
+  });
+
+  test('adapts visible lifecycle into legacy presentation fields for surface consumers', () => {
+    const visibleLifecycle = resolveVisibleTurnLifecycleForPresentation({
+      visibleTurnLifecycle: {
+        status: 'idle',
+        source: 'sdk',
+        conversationRef: 'conv-1',
+        turnRef: null,
+        awaitingAnchor: null,
+        entries: [],
+        terminalReason: null,
+        isBusy: false,
+        showTyping: false,
+      },
+      liveTurnPresentationInput: {
+        useLocalSendLatch: true,
+        conversationRef: 'conv-1',
+        turnRef: 'turn-local',
+      },
+      messages: [{
+        id: 'user-local',
+        sender: 'user',
+        text: 'local send',
+      }],
+    });
+
+    expect(visibleLifecycle).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      turnRef: 'turn-local',
+      awaitingAnchor: {
+        kind: 'user-message',
+        rowId: 'user-local',
+      },
+      isBusy: true,
+      showTyping: true,
+    });
+
+    expect(applyVisibleTurnLifecycleToPresentationState({
+      loopUiState: 'idle',
+      isAwaitingReply: false,
+      showAssistantAwaitingDot: false,
+      awaitingDotTargetMessageId: null,
+      chatboxSurfaceState: 'compact',
+      showChatboxAwaitingReply: false,
+      showChatboxResponse: true,
+      overlayIntent: {
+        mode: 'awaiting',
+      },
+    }, visibleLifecycle)).toMatchObject({
+      visibleTurnLifecycle: visibleLifecycle,
+      isBusy: true,
+      loopUiState: 'awaiting-reply',
+      isAwaitingReply: true,
+      showAssistantAwaitingDot: true,
+      awaitingDotTargetMessageId: 'user-local',
+      chatboxSurfaceState: 'awaiting-reply',
+      showChatboxAwaitingReply: true,
+      showChatboxResponse: false,
+      overlayIntent: {
+        mode: 'awaiting',
+      },
+    });
+
+    expect(applyVisibleTurnLifecycleToPresentationState({
+      isBusy: true,
+      isAwaitingReply: true,
+      showAssistantAwaitingDot: true,
+      awaitingDotTargetMessageId: 'user-local',
+      showChatboxAwaitingReply: true,
+      showChatboxResponse: true,
+    }, {
+      ...visibleLifecycle,
+      status: 'active',
+      source: 'sdk',
+      isBusy: true,
+      showTyping: false,
+    })).toMatchObject({
+      isBusy: true,
+      isAwaitingReply: false,
+      showAssistantAwaitingDot: false,
+      awaitingDotTargetMessageId: null,
+      showChatboxAwaitingReply: false,
+      showChatboxResponse: true,
     });
   });
 });

@@ -21,6 +21,7 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
@@ -63,10 +64,15 @@ Current-turn entry construction:
 
 Selection logic:
 
-1. `useCurrentTurnPresentationState(...)` resolves loop state and latest visible assistant reply for compact/awaiting behavior.
-2. `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
-3. `showResponse` is true when current-turn entry list is non-empty and not dismissed, including tool/progress entries.
-4. during `preflight` / `awaiting` lifecycle only, a still-mounted prior visible response with the same entry id is treated as stale so the typing indicator can appear immediately for the new turn before the response window's local message store catches up.
+1. `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns
+   awaiting/active/terminal lifecycle for the overlay.
+2. `useCurrentTurnPresentationState(...)` and SDK presentation snapshots remain
+   adapters for legacy presentation fields and visible entry details.
+3. `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
+4. `showResponse` is true when current-turn entry list is non-empty and not dismissed, including tool/progress entries.
+5. during `local_pending` / `awaiting` lifecycle only, a still-mounted prior visible response with the same entry id is treated as stale so the typing indicator can appear immediately for the new turn before the response window's local message store catches up.
+6. phase-only SDK projections with no visible text, entries, tool/search
+   progress, error, or renderer pending turn are not typing authority.
 
 Closeability:
 
@@ -135,13 +141,16 @@ Contract ownership:
 - `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
 - `DesktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
   owns SDK presentation-state reduction for overlay intent, lifecycle,
-  awaiting anchors, and visible response entries.
+  awaiting anchors, and visible response entries; its output is adapted by
+  `DesktopVisibleTurnLifecycleRuntime` before the overlay decides typing or
+  response visibility.
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   owns the dismissal target projection from SDK overlay intent, current-turn
   refs, latest response entry id, and stale guard ref.
 - `useResponseOverlayViewModel(...)` owns the renderer-side composition boundary:
-  response-entry derivation, rendered markdown payloads, closeability, and
-  stale-response suppression during preflight/awaiting.
+  visible lifecycle adaptation, response-entry derivation, rendered markdown
+  payloads, closeability, and stale-response suppression during
+  local-pending/awaiting.
 - `useResponseOverlayWindowSync(...)` owns response-window sizing policy and
   visibility re-report behavior, delegating responsebox size payload assembly,
   IPC, and visibility payload normalization/boolean subscription projection to

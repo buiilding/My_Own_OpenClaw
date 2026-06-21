@@ -3,7 +3,7 @@
  */
 
 const TERMINAL_PHASES = new Set(['complete', 'error']);
-const ACTIVE_PHASES = new Set(['streaming', 'tool_call', 'tool_output']);
+const ACTIVE_PROGRESS_PHASES = new Set(['tool_call', 'tool_output']);
 const AWAITING_PHASES = new Set(['awaiting']);
 const BUSY_PHASES = new Set(['awaiting', 'streaming', 'tool_call', 'tool_output']);
 
@@ -89,7 +89,7 @@ function isAuthoritativeSdkProjection(currentTurnProjection) {
   if (AWAITING_PHASES.has(phase)) {
     return true;
   }
-  if (ACTIVE_PHASES.has(phase) || TERMINAL_PHASES.has(phase)) {
+  if (ACTIVE_PROGRESS_PHASES.has(phase) || TERMINAL_PHASES.has(phase)) {
     return true;
   }
   if (hasVisibleTextOrError(currentTurnProjection)) {
@@ -143,6 +143,22 @@ function findAwaitingAnchor(messages, pendingTurn, currentTurnProjection) {
   return null;
 }
 
+function findLatestUserMessageAnchor(messages) {
+  if (!Array.isArray(messages)) {
+    return null;
+  }
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message?.sender === 'user' && normalizeString(message.id)) {
+      return {
+        kind: 'user-message',
+        rowId: message.id.trim(),
+      };
+    }
+  }
+  return null;
+}
+
 function resolveTerminalReason(currentTurnProjection) {
   const phase = normalizeProjectionPhase(currentTurnProjection);
   if (phase === 'error' || normalizeString(currentTurnProjection?.lastError)) {
@@ -163,7 +179,7 @@ function resolveSdkLifecycleStatus(currentTurnProjection) {
     return 'terminal';
   }
   if (
-    ACTIVE_PHASES.has(phase)
+    ACTIVE_PROGRESS_PHASES.has(phase)
     || hasVisibleTextOrError(currentTurnProjection)
     || hasToolProgress(currentTurnProjection)
     || hasVisiblePresentationContent(currentTurnProjection.presentation)
@@ -242,7 +258,75 @@ function resolveVisibleTurnLifecycle({
   };
 }
 
+function resolveVisibleTurnLifecycleForPresentation({
+  visibleTurnLifecycle,
+  liveTurnPresentationInput = null,
+  messages = [],
+} = {}) {
+  if (
+    liveTurnPresentationInput?.useLocalSendLatch === true
+    && visibleTurnLifecycle?.status !== 'local_pending'
+  ) {
+    // Compatibility until every send path creates pendingTurn before toggling isSending.
+    return {
+      ...visibleTurnLifecycle,
+      status: 'local_pending',
+      source: 'local',
+      conversationRef: liveTurnPresentationInput.conversationRef || visibleTurnLifecycle?.conversationRef || null,
+      turnRef: liveTurnPresentationInput.turnRef || visibleTurnLifecycle?.turnRef || null,
+      awaitingAnchor: findLatestUserMessageAnchor(messages),
+      entries: [],
+      terminalReason: null,
+      isBusy: true,
+      showTyping: true,
+    };
+  }
+  return visibleTurnLifecycle;
+}
+
+function applyVisibleTurnLifecycleToPresentationState(presentationState, visibleTurnLifecycle) {
+  const nextState = {
+    ...presentationState,
+    visibleTurnLifecycle,
+    isBusy: visibleTurnLifecycle?.isBusy === true,
+  };
+  if (
+    visibleTurnLifecycle?.status === 'local_pending'
+    || visibleTurnLifecycle?.status === 'awaiting'
+  ) {
+    return {
+      ...nextState,
+      loopUiState: 'awaiting-reply',
+      isAwaitingReply: true,
+      showAssistantAwaitingDot: true,
+      awaitingDotTargetMessageId: visibleTurnLifecycle.awaitingAnchor?.rowId || null,
+      chatboxSurfaceState: 'awaiting-reply',
+      showChatboxAwaitingReply: true,
+      showChatboxResponse: false,
+    };
+  }
+  if (visibleTurnLifecycle?.status === 'active') {
+    return {
+      ...nextState,
+      isAwaitingReply: false,
+      showAssistantAwaitingDot: false,
+      awaitingDotTargetMessageId: null,
+      showChatboxAwaitingReply: false,
+    };
+  }
+  return {
+    ...nextState,
+    isAwaitingReply: false,
+    showAssistantAwaitingDot: false,
+    awaitingDotTargetMessageId: null,
+    showChatboxAwaitingReply: false,
+  };
+}
+
 export const DesktopVisibleTurnLifecycleRuntime = Object.freeze({
+  applyVisibleTurnLifecycleToPresentationState,
+  hasAuthoritativeSdkProjection: isAuthoritativeSdkProjection,
   hasAuthoritativeSameTurnSdkReplacement,
+  resolveVisibleTurnLifecycleForPresentation,
   resolveVisibleTurnLifecycle,
 });

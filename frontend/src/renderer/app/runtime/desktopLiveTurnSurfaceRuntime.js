@@ -18,6 +18,7 @@ const {
   isStreamingResponseOverlayPhase,
 } = DesktopResponseOverlayPhaseRuntime;
 const {
+  hasAuthoritativeSdkProjection,
   hasAuthoritativeSameTurnSdkReplacement,
 } = DesktopVisibleTurnLifecycleRuntime;
 
@@ -158,6 +159,9 @@ function shouldUseSendPreflight({
   }
   if (isPendingTurn(pendingTurn)) {
     return !hasAuthoritativeSameTurnSdkReplacement(pendingTurn, currentTurnProjection);
+  }
+  if (isSending === true && !hasAuthoritativeSdkProjection(currentTurnProjection)) {
+    return true;
   }
   if (
     useSdkLiveTurnPresentation

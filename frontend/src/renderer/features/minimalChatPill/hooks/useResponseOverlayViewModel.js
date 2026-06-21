@@ -18,6 +18,7 @@ import {
 } from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
 import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
+import { DesktopVisibleTurnLifecycleRuntime } from '../../../app/runtime/desktopVisibleTurnLifecycleRuntime';
 
 const {
   buildRendererOverlayIntentTraceEvent,
@@ -46,6 +47,11 @@ const {
 const {
   resolveChatPillViewIntent,
 } = DesktopChatPillSessionRuntime;
+const {
+  applyVisibleTurnLifecycleToPresentationState,
+  resolveVisibleTurnLifecycle,
+  resolveVisibleTurnLifecycleForPresentation,
+} = DesktopVisibleTurnLifecycleRuntime;
 
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
   return buildCurrentTurnMessagesFromProjection(currentTurnProjection)
@@ -78,6 +84,16 @@ export function useResponseOverlayViewModel({
   const useLocalSendLatch = liveTurnPresentationInput.useLocalSendLatch;
   const currentTurnPhase = liveTurnPresentationInput.phase;
   const currentTurnIsSending = liveTurnPresentationInput.isSending;
+  const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
+    pendingTurn,
+    currentTurnProjection,
+    messages,
+  });
+  const overlayVisibleTurnLifecycle = resolveVisibleTurnLifecycleForPresentation({
+    visibleTurnLifecycle,
+    liveTurnPresentationInput,
+    messages,
+  });
 
   const responseOverlayEntries = useMemo(
     () => {
@@ -134,27 +150,33 @@ export function useResponseOverlayViewModel({
 
   const resolvedCurrentTurnPresentationState = useMemo(
     () => {
+      let presentationState;
       if (useSdkLiveTurnPresentation && !useLocalSendLatch) {
-        return resolveSdkCurrentTurnPresentationState({
+        presentationState = resolveSdkCurrentTurnPresentationState({
           currentTurnProjection,
           responseOverlayEntries,
           dismissedResponseId,
           includeOverlayIntent: true,
         });
-      }
-      if (useLocalSendLatch) {
-        return {
+      } else if (useLocalSendLatch) {
+        presentationState = {
           ...currentTurnPresentationState,
           overlayIntent: liveTurnPresentationInput.overlayIntent,
         };
+      } else {
+        presentationState = currentTurnPresentationState;
       }
-      return currentTurnPresentationState;
+      return applyVisibleTurnLifecycleToPresentationState(
+        presentationState,
+        overlayVisibleTurnLifecycle,
+      );
     },
     [
       currentTurnPresentationState,
       currentTurnProjection,
       dismissedResponseId,
       liveTurnPresentationInput.overlayIntent,
+      overlayVisibleTurnLifecycle,
       responseOverlayEntries,
       useLocalSendLatch,
       useSdkLiveTurnPresentation,

@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Response Overlay Visible Lifecycle Routing
+
+- Finding: `useResponseOverlayViewModel` still reduced live-turn input,
+  SDK presentation, and response-overlay phase into awaiting/response state
+  independently from the renderer visible lifecycle owner.
+- Change: moved the lifecycle-to-presentation adapter into
+  `DesktopVisibleTurnLifecycleRuntime`, reused it from both chat surface and
+  response overlay hooks, and routed overlay awaiting/response state through
+  the same visible lifecycle projection.
+- Validation target: `ChatBoxResponse.state.test.jsx` now protects pending
+  sends through hidden/visible-empty SDK projections and asserts phase-only
+  `streaming`/`tool-output` projections do not show typing without renderer
+  pending or visible SDK content; the test is registered in
+  `<windie> test core-loop`.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, permission, credential, local execution, or storage migration
+  required; the slice removes response-overlay phase-only typing authority.
+
 ### 2026-06-21 Chat Surface Controller Visible Lifecycle Routing
 
 - Finding: after the visible lifecycle runtime landed, `useChatSurfaceController`

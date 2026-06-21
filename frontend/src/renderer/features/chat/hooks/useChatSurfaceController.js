@@ -16,7 +16,9 @@ const {
   resolveSdkCurrentTurnPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
 const {
+  applyVisibleTurnLifecycleToPresentationState,
   resolveVisibleTurnLifecycle,
+  resolveVisibleTurnLifecycleForPresentation,
 } = DesktopVisibleTurnLifecycleRuntime;
 const {
   resolveLiveTurnPresentationInput,
@@ -33,83 +35,6 @@ function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
     [key]: nextValue,
   });
   return true;
-}
-
-function findLatestUserMessageAnchor(messages) {
-  if (!Array.isArray(messages)) {
-    return null;
-  }
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (message?.sender === 'user' && typeof message.id === 'string' && message.id.trim()) {
-      return {
-        kind: 'user-message',
-        rowId: message.id.trim(),
-      };
-    }
-  }
-  return null;
-}
-
-function resolveControllerVisibleTurnLifecycle(visibleTurnLifecycle, liveTurnPresentationInput, messages) {
-  if (
-    liveTurnPresentationInput.useLocalSendLatch === true
-    && visibleTurnLifecycle.status !== 'local_pending'
-  ) {
-    // Compatibility until every send path creates pendingTurn before toggling isSending.
-    return {
-      ...visibleTurnLifecycle,
-      status: 'local_pending',
-      source: 'local',
-      conversationRef: liveTurnPresentationInput.conversationRef || visibleTurnLifecycle.conversationRef,
-      turnRef: liveTurnPresentationInput.turnRef || visibleTurnLifecycle.turnRef,
-      awaitingAnchor: findLatestUserMessageAnchor(messages),
-      entries: [],
-      terminalReason: null,
-      isBusy: true,
-      showTyping: true,
-    };
-  }
-  return visibleTurnLifecycle;
-}
-
-function applyVisibleLifecycleToPresentationState(presentationState, visibleTurnLifecycle) {
-  const nextState = {
-    ...presentationState,
-    visibleTurnLifecycle,
-    isBusy: visibleTurnLifecycle.isBusy === true,
-  };
-  if (
-    visibleTurnLifecycle.status === 'local_pending'
-    || visibleTurnLifecycle.status === 'awaiting'
-  ) {
-    return {
-      ...nextState,
-      loopUiState: 'awaiting-reply',
-      isAwaitingReply: true,
-      showAssistantAwaitingDot: true,
-      awaitingDotTargetMessageId: visibleTurnLifecycle.awaitingAnchor?.rowId || null,
-      chatboxSurfaceState: 'awaiting-reply',
-      showChatboxAwaitingReply: true,
-      showChatboxResponse: false,
-    };
-  }
-  if (visibleTurnLifecycle.status === 'active') {
-    return {
-      ...nextState,
-      isAwaitingReply: false,
-      showAssistantAwaitingDot: false,
-      awaitingDotTargetMessageId: null,
-      showChatboxAwaitingReply: false,
-    };
-  }
-  return {
-    ...nextState,
-    isAwaitingReply: false,
-    showAssistantAwaitingDot: false,
-    awaitingDotTargetMessageId: null,
-    showChatboxAwaitingReply: false,
-  };
 }
 
 export function useChatSurfaceController({
@@ -136,11 +61,11 @@ export function useChatSurfaceController({
     isSending,
     messages,
   });
-  const controllerVisibleTurnLifecycle = resolveControllerVisibleTurnLifecycle(
+  const controllerVisibleTurnLifecycle = resolveVisibleTurnLifecycleForPresentation({
     visibleTurnLifecycle,
     liveTurnPresentationInput,
     messages,
-  );
+  });
   const currentTurnPresentationState = useCurrentTurnPresentationState({
     phase: liveTurnPresentationInput.phase,
     isSending: liveTurnPresentationInput.isSending,
@@ -155,7 +80,7 @@ export function useChatSurfaceController({
       fallbackState: currentTurnPresentationState,
     })
     : currentTurnPresentationState;
-  const visibleLifecyclePresentationState = applyVisibleLifecycleToPresentationState(
+  const visibleLifecyclePresentationState = applyVisibleTurnLifecycleToPresentationState(
     resolvedCurrentTurnPresentationState,
     controllerVisibleTurnLifecycle,
   );

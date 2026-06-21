@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Response Overlay Visible Lifecycle Routing
+
+- Finding: `useResponseOverlayViewModel(...)` still reduced live-turn input,
+  SDK presentation, and response-overlay phase into awaiting/response state
+  independently from the renderer visible lifecycle owner.
+- Change: moved the lifecycle-to-presentation adapter into
+  `DesktopVisibleTurnLifecycleRuntime`, reused it from chat surface and
+  response overlay hooks, and routed overlay awaiting/response state through
+  the same visible lifecycle projection.
+- Validation: focused response overlay and visible lifecycle tests plus
+  core-loop regression pack before commit.
+- Compatibility/security: no SDK event payload, IPC payload, transcript
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Renderer Chat Surface Visible Lifecycle Routing
 
 - Finding: `useChatSurfaceController(...)` still treated the current-turn
