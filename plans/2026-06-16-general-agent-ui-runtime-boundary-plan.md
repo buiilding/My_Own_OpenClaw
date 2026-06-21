@@ -22084,3 +22084,19 @@ Each completed slice should report:
   permission manifest payloads, browser capability verification, workspace cwd
   selection, shell execution, IPC channels, storage, provider policy, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer state workflow local-runtime/main bridge label
+
+- Finding: the renderer state change workflow still routed malformed
+  local-runtime result fixes to the "sidecar/main bridge" label, even though
+  the active boundary plan names that ownership as the local-runtime/main
+  bridge.
+- Change: reworded that remediation path to local-runtime/main bridge and added
+  renderer app-runtime boundary coverage so the stale sidecar/main bridge label
+  does not return to the workflow.
+- Validation: focused renderer app-runtime boundary test, exact stale phrase
+  scan for the touched renderer workflow, docs listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  renderer state ownership, local-runtime bridge behavior, IPC channels, tool
+  execution, storage, provider policy, backend behavior, and trust boundaries
+  are unchanged.

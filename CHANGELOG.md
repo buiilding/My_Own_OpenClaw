@@ -53,6 +53,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/main: describe browser permission checks and workspace cwd behavior
   through local-runtime capability/shell wording instead of backend or sidecar
   ownership labels. No migration required.
+- docs/renderer: route malformed local-runtime result remediation through the
+  local-runtime/main bridge label in the renderer state workflow instead of the
+  sidecar/main bridge label. No migration required.
 - docs/renderer: describe wakeword and dedicated-browser labels as
   renderer-skin-provided in active settings/voice references instead of
   hardcoding the WindieOS skin phrase. No migration required.

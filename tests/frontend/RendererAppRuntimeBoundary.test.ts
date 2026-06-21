@@ -631,7 +631,9 @@ describe('renderer app runtime boundary', () => {
     expect(source).toContain('Do not delete a helper merely because it forwards');
     expect(source.match(/`desktopWorkspaceRuntimeClient\.ts` owns/g) || []).toHaveLength(1);
     expect(rendererStateWorkflowSource).toContain('dispatch through desktop app-runtime facades and SDK-shaped command clients');
+    expect(rendererStateWorkflowSource).toContain('fix the local-runtime/main bridge');
     expect(rendererStateWorkflowSource).not.toContain('dispatch to existing IPC/backend clients');
+    expect(rendererStateWorkflowSource).not.toContain('fix the sidecar/main bridge');
     expect(clientSessionRuntimeSource).toContain('Coordinates renderer client-session and transport snapshot commands.');
     expect(clientSessionRuntimeSource).not.toContain('Coordinates desktop client session');
     await expect(fs.stat(
