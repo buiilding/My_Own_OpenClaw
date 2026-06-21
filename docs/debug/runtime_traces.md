@@ -132,7 +132,7 @@ Current durable traced paths:
 - `overlay.phase`: SDK current-turn projection records phase transitions with
   source event type, before/after phase, active-turn match booleans, and turn
   presence without assistant or user message text.
-- `browser.runtime`: SDK tool execution records sidecar browser action spans
+- `browser.runtime`: SDK tool execution records local-runtime browser action spans
   with action name, mode, scope, connection state, tab count, and success
   booleans without URLs, page titles, page text, or browser output.
 - `tool.schema.policy`: backend prompt projection and SDK schema helpers

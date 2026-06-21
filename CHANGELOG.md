@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: relabel active browser, wakeword, trace, and failure-routing
+  guidance through local-runtime browser/local-runtime Python wording instead
+  of sidecar owner labels. No migration required.
 - local-runtime/python: write MCP diagnostic events with a
   `local_runtime` runtime label instead of `sidecar`, with focused sidecar
   coverage for execution and registration rows. No schema migration required;

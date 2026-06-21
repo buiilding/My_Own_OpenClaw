@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for sidecar browser grouped-schema validation behavior under the shared strict browser contract module."
+summary: "Deep reference for local-runtime browser grouped-schema validation behavior under the shared strict browser contract module."
 read_when:
-  - When adding/removing browser actions or changing sidecar browser validation rules.
+  - When adding/removing browser actions or changing local-runtime browser validation rules.
   - When debugging schema parse errors before adapter/runtime execution.
 title: "Grouped Schema and Action Validation Boundary Reference"
 ---
@@ -17,7 +17,7 @@ title: "Grouped Schema and Action Validation Boundary Reference"
 ## Schema Model Topology
 
 `frontend/src/main/python/windie_shared/browser_contract.py` exposes the browser
-contract consumed directly by the sidecar and backend remote browser tool:
+contract consumed directly by the local-runtime browser adapter and backend remote browser tool:
 
 - `BrowserControlArgs` discriminated grouped union
 - `BROWSER_ACTION_CONTRACTS` action catalog used for model-facing schema projection

@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for sidecar-native deterministic extraction for Browser Use `extract` and `read_long_content`: markdown pipeline, focused excerpt behavior, pagination metadata, and error/debug boundaries."
+summary: "Deep reference for local-runtime deterministic extraction for Browser Use `extract` and `read_long_content`: markdown pipeline, focused excerpt behavior, pagination metadata, and error/debug boundaries."
 read_when:
   - When changing deterministic extraction behavior in `browser_use_engine.py`.
   - When debugging `extract`/`read_long_content` failures or content-window issues.
@@ -15,10 +15,10 @@ title: "Browser Runtime Deterministic Extraction Contract Reference"
 
 ## Runtime Role
 
-Deterministic extraction keeps sidecar browser actions lightweight and removes sidecar LLM inference from extraction actions.
+Deterministic extraction keeps local-runtime browser actions lightweight and removes local-runtime LLM inference from extraction actions.
 
 - `extract` and `read_long_content` execute in `BrowserUseEngineRuntime`
-- sidecar reads page HTML through Browser Use CLI and uses WindieOS markdown/focused-excerpt helpers
+- the local-runtime browser adapter reads page HTML through Browser Use CLI and uses WindieOS markdown/focused-excerpt helpers
 - runtime returns stable payload/metadata fields for backend and client consumers
 
 ## Deterministic Execution Flow
@@ -30,7 +30,7 @@ For both extraction actions:
 3. produce focused excerpt from markdown text
 4. return action payload with deterministic metadata
 
-No extraction model/provider lookup occurs in sidecar.
+No extraction model/provider lookup occurs in local-runtime Python.
 
 ## `extract` Action Contract
 

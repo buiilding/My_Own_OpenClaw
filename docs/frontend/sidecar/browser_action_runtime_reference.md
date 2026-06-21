@@ -85,7 +85,7 @@ Browser Use CLI-backed actions:
 - `BROWSER_USE_ENGINE_TIMEOUT`: Browser Use command timeout
 - `BROWSER_USE_ENGINE_ERROR`: Browser Use command/runtime failure, including
   successful CLI envelopes whose `data` field is not a JSON object
-- `BROWSER_RUNTIME_ERROR`: unexpected sidecar browser runtime failure
+- `BROWSER_RUNTIME_ERROR`: unexpected local-runtime browser runtime failure
 
 ## Related Pages
 

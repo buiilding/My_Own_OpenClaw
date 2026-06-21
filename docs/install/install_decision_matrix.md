@@ -30,7 +30,7 @@ Choose the install path from the runtime you need to validate. Source-mode check
 | frontend dependencies and package scripts | frontend Node runtime | `frontend/package.json`, `frontend/vite.config.*`, `frontend/electron-builder.bundled-python.yml` |
 | bundled Python runtime dependencies | bundled Python builder | `scripts/build-sidecar-runtime`, `frontend/src/main/python/requirements.runtime.txt` |
 | local-runtime launch path | Electron main | `frontend/src/main/app/runtime_paths.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs` |
-| wakeword launch path | Electron main plus sidecar Python | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/python/wakeword_service.py` |
+| wakeword launch path | Electron main plus local-runtime Python | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/python/wakeword_service.py` |
 | endpoint selection | Electron main | `frontend/src/main/app/backend_endpoints.cjs` |
 | packaged app state reset | reinstall helpers | `<windie> reinstall mac`, `<windie> reinstall win`, `<windie> reinstall linux` |
 | release signing/notarization | CI release workflow | `.github/workflows/desktop-release.yml` |

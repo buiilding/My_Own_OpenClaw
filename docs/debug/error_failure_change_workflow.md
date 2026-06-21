@@ -28,13 +28,13 @@ Core rule: preserve the failure boundary. Backend errors should stay sanitized b
 | SDK/main tool-dispatch failure and display projection | SDK tool coordinator plus renderer projection | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts` | SDK tool/runtime tests, `ChatStreamToolHandlers.test.ts` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Renderer component crash boundary | Renderer components | `frontend/src/renderer/components/ErrorBoundary.jsx`, `frontend/src/renderer/styles/ErrorBoundary.css` | focused renderer component tests if behavior changes | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Provider/inference error mapping | Backend provider/inference layer | `backend/src/llm/providers/error_mapping.py`, `backend/src/core/inference/errors.py`, provider modules | provider/inference backend tests | [Provider Change Workflow](../providers/provider_change_workflow.md) |
-| Secret-safe logging of errors | Producing runtime | backend logging, Electron logs, renderer logs, sidecar logs | focused tests or fixture scans | [Observability Change Workflow](observability_change_workflow.md) |
+| Secret-safe logging of errors | Producing runtime | backend logging, Electron logs, renderer logs, local-runtime logs | focused tests or fixture scans | [Observability Change Workflow](observability_change_workflow.md) |
 
 ## Failure Boundary Rules
 
 - Backend should not expose stack traces or provider secrets over websocket/HTTP responses.
 - Route validation errors should be actionable; unexpected internal errors should be sanitized.
-- Electron bridge failures should preserve enough context for renderer recovery without pretending the backend or sidecar is healthy.
+- Electron bridge failures should preserve enough context for renderer recovery without pretending the backend or local runtime is healthy.
 - Local-runtime tools should return `ToolResult(success=False, error=..., data={...})`, not arbitrary exception objects or mapping-shaped compatibility payloads.
 - Renderer error UI should render canonical failure payloads and avoid swallowing producer evidence needed for debugging.
 - Retry behavior must have a clear owner and termination condition.

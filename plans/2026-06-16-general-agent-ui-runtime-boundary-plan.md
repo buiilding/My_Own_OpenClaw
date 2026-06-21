@@ -21792,3 +21792,20 @@ Each completed slice should report:
   their historical runtime value; newly written MCP diagnostic rows use
   `local_runtime`. IPC, storage schema, MCP payload shape, provider policy,
   permissions, and backend behavior are unchanged.
+
+### 2026-06-21 browser and failure-routing local-runtime docs labels
+
+- Finding: active runtime trace, browser validation/extraction, browser error,
+  install decision, and error-failure workflow docs still used sidecar browser,
+  sidecar process, or sidecar log labels for behavior owned by the local
+  runtime/local-runtime Python boundary.
+- Change: relabeled those active guidance lines to local-runtime browser,
+  local-runtime Python, and local-runtime log wording while preserving concrete
+  repository paths such as `frontend/src/main/sidecar/...`, `tests/sidecar`,
+  and the historical sidecar daemon doc path/title.
+- Validation: focused active-doc stale-label scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Documentation labels changed only;
+  browser validation/extraction behavior, wakeword launch behavior, trace
+  payloads, logging destinations, IPC, storage, provider policy, permissions,
+  and backend behavior are unchanged.

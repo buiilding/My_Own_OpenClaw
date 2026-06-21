@@ -9178,3 +9178,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   tests assert the persisted runtime label. Existing diagnostic rows retain
   their historical value; no schema migration is required. MCP payloads, IPC,
   provider policy, permissions, and backend behavior are unchanged.
+- Active runtime trace, browser validation/extraction, browser error,
+  install-decision, and error-failure workflow docs now use local-runtime
+  browser/local-runtime Python/log wording instead of sidecar owner labels.
+  Concrete repository paths and historical daemon doc identifiers remain
+  unchanged. Browser behavior, wakeword launch behavior, trace payloads, logging
+  destinations, IPC, storage, provider policy, permissions, and backend behavior
+  are unchanged; no migration is required.
