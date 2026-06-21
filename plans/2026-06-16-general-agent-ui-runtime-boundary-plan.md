@@ -21715,3 +21715,21 @@ Each completed slice should report:
   backend route contracts, packaged endpoint/auth/default flow, packaging
   behavior, IPC/env boundaries, storage, provider policy, permissions, and
   backend behavior are unchanged.
+
+### 2026-06-21 diagnostics local-runtime error marker
+
+- Finding: the generic Electron main diagnostics store classified messages
+  containing "local runtime" as `local_runtime_unavailable`, but missed the
+  hyphenated "local-runtime" spelling used by current diagnostics and docs
+  unless a product skin supplied an additional marker.
+- Change: added `local-runtime` to the generic diagnostics default marker list
+  and covered the classifier marker contract with the existing focused frontend
+  source guard.
+- Validation: focused diagnostics source guard and main host-skin boundary
+  frontend tests, exact source scan for diagnostics sidecar leakage, docs
+  listing, and diff checks. The full `AppDiagnosticsStore` persistence suite
+  was not runnable locally because the `sqlite3` CLI is missing from `PATH`.
+- Compatibility: no migration required. Existing diagnostic rows are unchanged;
+  new hyphenated local-runtime failures now receive the generic local-runtime
+  error code. IPC, storage schema, provider policy, permissions, backend
+  behavior, and product skin config remain unchanged.

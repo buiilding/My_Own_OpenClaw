@@ -285,6 +285,8 @@ describe('app diagnostics store', () => {
     );
 
     expect(storeSource).toContain("return 'local_runtime_unavailable';");
+    expect(storeSource).toContain("'local runtime'");
+    expect(storeSource).toContain("'local-runtime'");
     expect(storeSource).not.toContain("return 'sidecar_unavailable';");
     expect(storeSource).not.toContain('sidecar');
   });

@@ -44,6 +44,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/workflows: relabel backend-service and release-packaging import
   boundaries through client/local-runtime Python wording instead of sidecar
   owner wording. No migration required.
+- frontend/main: classify hyphenated `local-runtime` diagnostic failures with
+  the generic `local_runtime_unavailable` code even without WindieOS skin legacy
+  markers. No migration required.
 - docs/development: route setup, testing, validation, triage, contributing,
   and local-runtime workflow guidance through local-runtime Python wording while
   preserving concrete `tests/sidecar` paths. No migration required.

@@ -9143,3 +9143,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Backend route contracts, packaged endpoint/auth/default flow, packaging
   behavior, IPC/env boundaries, storage, provider policy, permissions, and
   backend behavior are unchanged; no migration is required.
+- Electron main diagnostics now classify both `local runtime` and
+  `local-runtime` failure messages as `local_runtime_unavailable` through the
+  generic diagnostics store default marker list. This keeps local-runtime error
+  classification independent of WindieOS legacy skin markers. Existing
+  diagnostic rows, IPC, storage schema, provider policy, permissions, backend
+  behavior, and product skin config are unchanged; no migration is required.
+  Validation used the focused diagnostics source guard and main host-skin
+  boundary test; the full diagnostics persistence suite still requires a local
+  `sqlite3` CLI.

@@ -27,7 +27,10 @@ const DEFAULT_DATA_PATH_ENV = Object.freeze({
   diagnosticsDb: 'AGENT_APP_DIAGNOSTICS_DB',
   userDataDir: 'AGENT_USER_DATA_DIR',
 });
-const DEFAULT_LOCAL_RUNTIME_ERROR_MARKERS = Object.freeze(['local runtime']);
+const DEFAULT_LOCAL_RUNTIME_ERROR_MARKERS = Object.freeze([
+  'local runtime',
+  'local-runtime',
+]);
 let configuredDataPaths = resolveDiagnosticsDataPathConfig();
 let configuredLocalRuntimeErrorMarkers = DEFAULT_LOCAL_RUNTIME_ERROR_MARKERS;
 
