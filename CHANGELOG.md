@@ -45,6 +45,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/transcript: label `sessionId` producer and owner entries as hosted
   backend websocket/session runtime ownership instead of generic backend
   runtime shorthand. No migration required.
+- renderer/app-runtime: report SDK command invoke fallback failures through
+  renderer app-runtime wording instead of the retired desktop-runtime label. No
+  migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

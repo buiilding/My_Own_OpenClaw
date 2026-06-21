@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer App-Runtime Failure Label Boundary
+
+- Finding: `DesktopLiveTurnRuntimeClient` still used a "desktop runtime"
+  fallback error when an SDK command invoke returned `{ ok: false }` without a
+  specific error, even though renderer feature code now routes through the
+  renderer app-runtime facade.
+- Change: changed the fallback message to renderer app-runtime wording and
+  updated focused live-turn runtime client coverage.
+- Validation: focused DesktopLiveTurnRuntimeClient Jest coverage, exact stale
+  fallback scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. SDK command names, IPC
+  payloads, transcript/session state, local-runtime execution, storage,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Hosted-Backend Session Identifier Map Boundary
 
 - Finding: the session/transcript identifier map still described `sessionId`

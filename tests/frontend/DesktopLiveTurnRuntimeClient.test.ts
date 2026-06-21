@@ -91,7 +91,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     await expect(DesktopLiveTurnRuntimeClient.sendQuery({
       text: 'hello',
       conversationRef: 'conv-send',
-    })).rejects.toThrow('Failed to send command to the desktop runtime');
+    })).rejects.toThrow('Failed to send command to the renderer app runtime');
   });
 
   test('stop routes through SDK-shaped command invoke with the active turn ref', async () => {

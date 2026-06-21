@@ -11,7 +11,7 @@ import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessio
 import { getMemoryRetrievalInjectionEnabled } from './desktopMemoryRetrievalPreferenceRuntime';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 
-const SEND_COMMAND_FAILURE_FALLBACK = 'Failed to send command to the desktop runtime';
+const SEND_COMMAND_FAILURE_FALLBACK = 'Failed to send command to the renderer app runtime';
 
 type CaptureMeta = {
   source_w?: number;
