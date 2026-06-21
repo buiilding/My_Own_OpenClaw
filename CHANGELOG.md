@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral explicit endpoint override fixtures in IPC lifecycle
+  coverage instead of Windie-shaped sample hosts. No migration required.
+
 - tests/main: use neutral backend endpoint fixtures in local-runtime launch
   option and RPC bridge coverage instead of WindieOS hosted URL samples. No
   migration required.

@@ -627,6 +627,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(combined).toContain('https://backend.example.com');
   });
 
+  test('main IPC lifecycle explicit endpoint override fixtures stay product-neutral', async () => {
+    const source = await read('tests/frontend/IpcMainBridge.lifecycle.test.cjs');
+    const retiredOverrideHost = ['windie', 'example', 'com'].join('.');
+
+    expect(source).not.toContain(retiredOverrideHost);
+    expect(source).toContain('backend.example.com');
+    expect(source).toContain('hosted.backend.example');
+  });
+
   test('endpoint runtime tests keep arbitrary test hosts product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/IpcArtifactHandlers.test.cjs'),

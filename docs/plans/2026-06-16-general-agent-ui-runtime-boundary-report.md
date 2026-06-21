@@ -7750,3 +7750,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   compatibility, artifact upload URL construction, screenshot temp-path
   ownership, SDK local-runtime routing, permissions, storage, provider policy,
   and hosted backend behavior are unchanged; no migration is required.
+- Main IPC lifecycle tests now use neutral explicit endpoint override hosts
+  (`backend.example.com` and `hosted.backend.example`) instead of Windie-shaped
+  `windie.example.com` fixtures. Real WindieOS hosted defaults remain covered in
+  the customer-mode and packaged-default assertions. WebSocket URL derivation,
+  origin normalization, renderer endpoint snapshots, VM worker backend state,
+  hosted default env-key behavior, permissions, storage, provider policy, and
+  local-runtime behavior are unchanged; no migration is required.

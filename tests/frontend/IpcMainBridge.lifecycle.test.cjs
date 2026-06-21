@@ -725,14 +725,14 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   });
 
   test('derives websocket URL from BACKEND_HTTP_URL when explicit ws url is absent', async () => {
-    process.env.BACKEND_HTTP_URL = 'https://windie.example.com/';
+    process.env.BACKEND_HTTP_URL = 'https://backend.example.com/';
 
     const bridge = initIpc();
     const { ws } = await beginBackendConnection(bridge);
-    expect(ws.url).toBe('wss://windie.example.com/ws');
-    expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://windie.example.com' }));
+    expect(ws.url).toBe('wss://backend.example.com/ws');
+    expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://backend.example.com' }));
 
-    await expectClientEndpoints(bridge.handlers, 'wss://windie.example.com/ws', 'https://windie.example.com');
+    await expectClientEndpoints(bridge.handlers, 'wss://backend.example.com/ws', 'https://backend.example.com');
   });
 
   test('uses hosted backend defaults first when app is packaged', async () => {
@@ -757,16 +757,16 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   });
 
   test('uses canonical hosted default backend env override when app is packaged', async () => {
-    process.env.WINDIE_DEFAULT_BACKEND_HTTP_URL = 'https://hosted.windie.example/v1/';
+    process.env.WINDIE_DEFAULT_BACKEND_HTTP_URL = 'https://hosted.backend.example/v1/';
     const bridge = initIpc({ isPackaged: true });
     const { ws } = await beginBackendConnection(bridge);
-    expect(ws.url).toBe('wss://hosted.windie.example/ws');
-    expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://hosted.windie.example/v1' }));
+    expect(ws.url).toBe('wss://hosted.backend.example/ws');
+    expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://hosted.backend.example/v1' }));
 
     await expectClientEndpoints(
       bridge.handlers,
-      'wss://hosted.windie.example/ws',
-      'https://hosted.windie.example/v1',
+      'wss://hosted.backend.example/ws',
+      'https://hosted.backend.example/v1',
     );
   });
 

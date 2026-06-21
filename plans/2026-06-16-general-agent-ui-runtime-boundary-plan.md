@@ -18893,3 +18893,18 @@ Each completed slice should report:
   temp-path ownership, SDK local-runtime routing, hosted backend defaults in
   product-owned config/docs, provider policy, permissions, and storage are
   unchanged.
+
+### 2026-06-20 Main IPC lifecycle endpoint override fixture neutrality
+
+- Finding: IPC lifecycle tests correctly covered WindieOS hosted defaults, but
+  the explicit `BACKEND_HTTP_URL` and packaged hosted-default env override cases
+  still used Windie-shaped `.example` hosts as arbitrary endpoint data.
+- Change: switched those explicit override fixtures to neutral
+  `backend.example.com` / `hosted.backend.example` values and added modular
+  boundary coverage that blocks the retired Windie-shaped override host.
+- Validation: focused IPC lifecycle and modular boundary tests; exact retired
+  override-host scan, docs listing, and diff checks.
+- Compatibility: no migration required. Real WindieOS hosted default assertions,
+  websocket URL derivation, origin normalization, renderer endpoint snapshots,
+  VM worker backend state, hosted default env-key behavior, provider policy,
+  permissions, storage, and local-runtime behavior are unchanged.
