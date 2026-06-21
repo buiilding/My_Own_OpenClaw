@@ -39,6 +39,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- cli/history: make `<windie> conversation ...` inspect the local-runtime
+  `desktop-runtime/history/history.db` root by default instead of the
+  host-skinned diagnostics root, while preserving explicit user-data directory
+  overrides. No migration required.
 - frontend/renderer: stop live-surface diagnostics from writing
   `[LiveSurfaceTrace]` rows into the renderer DevTools console while preserving
   the structured trace IPC forwarding path. No migration required.

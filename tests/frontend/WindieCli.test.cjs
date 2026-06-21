@@ -583,6 +583,64 @@ describe('windie CLI', () => {
     expect(parsed.messages.map((message) => message.role)).toEqual(['user', 'assistant']);
   });
 
+  test('conversation messages defaults to local-runtime desktop-runtime history root', () => {
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-cli-runtime-history-'));
+    const historyDir = path.join(homeDir, 'Library', 'Application Support', 'desktop-runtime', 'history');
+    const dbPath = path.join(historyDir, 'history.db');
+    fs.mkdirSync(historyDir, { recursive: true });
+    const sql = `
+      CREATE TABLE conversation_events (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        conversation_id TEXT,
+        event_type TEXT NOT NULL,
+        role TEXT,
+        content TEXT,
+        timestamp TEXT NOT NULL,
+        message_index INTEGER NOT NULL,
+        revision_id TEXT,
+        turn_ref TEXT,
+        metadata TEXT,
+        attachments TEXT,
+        event_payload TEXT NOT NULL
+      );
+      CREATE VIEW conversation_display_messages AS
+      SELECT id AS event_id,
+             user_id,
+             conversation_id,
+             message_index,
+             timestamp,
+             turn_ref,
+             revision_id,
+             role AS display_role,
+             role AS source_role,
+             event_type,
+             content,
+             metadata,
+             attachments
+      FROM conversation_events
+      WHERE event_type IN ('user_message', 'assistant_message', 'turn_error')
+        AND content IS NOT NULL
+        AND content != '';
+      INSERT INTO conversation_events
+      (id, user_id, conversation_id, event_type, role, content, timestamp, message_index, revision_id, turn_ref, metadata, attachments, event_payload)
+      VALUES
+      ('evt-runtime-user', 'user-1', 'conv-runtime', 'user_message', 'user', 'hello', '2026-06-11T12:00:00+00:00', 1, 'rev-1', 'turn-1', '{}', '[]', '{}');
+    `;
+    createSqliteDatabase(dbPath, sql);
+
+    const result = runCli(['conversation', 'messages', 'conv-runtime', '--json'], {
+      HOME: homeDir,
+      AGENT_USER_DATA_DIR: '',
+      WINDIE_USER_DATA_DIR: '',
+    });
+
+    expect(result.status).toBe(0);
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed.database).toBe(dbPath);
+    expect(parsed.messages.map((message) => message.eventId)).toEqual(['evt-runtime-user']);
+  });
+
   test('exports display conversation messages from older history schemas without the view', () => {
     const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-cli-history-legacy-'));
     const historyDir = path.join(homeDir, 'Library', 'Application Support', 'windieos', 'history');

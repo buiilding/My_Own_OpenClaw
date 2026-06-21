@@ -15,7 +15,6 @@ const { capture, runConcurrent, runForeground, runSync } = require('./run.cjs');
 const { mainHostSkin } = require('../../frontend/src/main/app/main_host_skin.cjs');
 const {
   APP_DIAGNOSTICS_PATH,
-  appUserDataRoot,
   configureAppDiagnosticsStore,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
@@ -216,8 +215,30 @@ function nodeScriptArgs(relativePath, args = []) {
   return [script(relativePath), ...args];
 }
 
+function envString(env, key) {
+  return typeof env[key] === 'string' && env[key].trim() ? env[key].trim() : '';
+}
+
+function localRuntimeUserDataRoot(env = process.env, platformName = process.platform) {
+  const override = envString(env, 'AGENT_USER_DATA_DIR') || envString(env, 'WINDIE_USER_DATA_DIR');
+  if (override) {
+    return override;
+  }
+  if (platformName === 'win32') {
+    const appData = envString(env, 'APPDATA');
+    if (!appData) {
+      throw new Error('APPDATA environment variable is not set on Windows');
+    }
+    return path.join(appData, 'desktop-runtime');
+  }
+  if (platformName === 'darwin') {
+    return path.join(os.homedir(), 'Library', 'Application Support', 'desktop-runtime');
+  }
+  return path.join(os.homedir(), '.config', 'desktop-runtime');
+}
+
 function historyDatabasePath() {
-  return path.join(appUserDataRoot(), 'history', 'history.db');
+  return path.join(localRuntimeUserDataRoot(), 'history', 'history.db');
 }
 
 function historyTableNames() {

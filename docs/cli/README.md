@@ -29,7 +29,7 @@ surface. The command tables below use `<windie>` for the active platform shim.
 | `<windie> trace <conversation-ref> <turn-ref>` | Inspect durable hidden conversation trace events for a turn. |
 | `<windie> capability trace <conversation-ref>` | Inspect capability-level conversation trace summaries. |
 | `<windie> conversation list` | List stored conversations. |
-| `<windie> conversation messages <conversation-ref>` | Print stored visible conversation messages. |
+| `<windie> conversation messages <conversation-ref>` | Print stored visible conversation messages from the local-runtime `desktop-runtime/history/history.db` root unless `AGENT_USER_DATA_DIR` or `WINDIE_USER_DATA_DIR` overrides it. |
 | `<windie> conversation events <conversation-ref>` | Inspect persisted conversation events, optionally by turn/type. |
 | `<windie> conversation traces <conversation-ref>` | Inspect persisted trace events for a conversation. |
 | `<windie> start backend` | Start the backend dev server. |

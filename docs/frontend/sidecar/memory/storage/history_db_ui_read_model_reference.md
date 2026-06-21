@@ -10,10 +10,13 @@ title: "History DB UI Read Model Reference"
 
 # History DB UI Read Model Reference
 
-`history/history.db` is the canonical local store for visible conversation
-history. It is separate from episodic and semantic memory databases: chat replay
-rows are not memories, and memory retrieval rows are not the source of truth for
-the sidebar or opened chat transcript.
+`history/history.db` under the local-runtime user-data root is the canonical
+local store for visible conversation history. By default that root is
+`desktop-runtime`, for example
+`~/Library/Application Support/desktop-runtime/history/history.db` on macOS. It
+is separate from episodic and semantic memory databases: chat replay rows are
+not memories, and memory retrieval rows are not the source of truth for the
+sidebar or opened chat transcript.
 
 ## Read Model
 
@@ -59,6 +62,11 @@ inspection and prototyping contract for tools such as:
 ```bash
 <windie> conversation messages <conversation-ref> --json
 ```
+
+The CLI conversation commands resolve the same local-runtime history root as the
+sidecar. `AGENT_USER_DATA_DIR` and then `WINDIE_USER_DATA_DIR` override the root
+when set; otherwise the default is the generic `desktop-runtime` user-data
+directory, not the host-skinned diagnostics directory.
 
 If a UI prototype reads SQLite directly, it should read
 `conversation_display_messages`, not raw `conversation_events`. Raw events remain
