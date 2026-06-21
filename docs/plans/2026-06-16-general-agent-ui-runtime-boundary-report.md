@@ -13,9 +13,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
 - Latest completed slice: Agent SDK local-runtime fixture names now use
-  local-runtime daemon, error, and conversation labels, with package-boundary
-  coverage preventing active SDK runtime tests from reintroducing stale
-  sidecar fixture wording.
+  local-runtime daemon, tool-execution failure, error, and conversation labels,
+  with package-boundary coverage preventing active SDK client and
+  conversation-runtime tests from reintroducing stale sidecar fixture wording.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -55,9 +55,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic settings section tests use sample settings skin and browser
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
-  Agent SDK local-runtime provider tests use neutral `AGENT_TEST_*` launch env,
-  launch-context, daemon, error, and conversation fixtures while real Windie
-  compatibility env aliases remain explicitly covered by
+  Agent SDK local-runtime provider and tool-coordinator tests use neutral
+  `AGENT_TEST_*` launch env, launch-context, daemon, tool-execution failure,
+  error, and conversation fixtures while real Windie compatibility env aliases
+  remain explicitly covered by
   `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
   Generic local-runtime bridge screenshot tests preserve retired namespace
   rejection coverage while avoiding direct legacy WindieOS screenshot temp
@@ -628,6 +629,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Agent SDK Tool-Coordinator Failure Fixture Boundary
+
+- Finding: `AgentSdkConversationRuntime.test.ts` still used `sidecar failed`
+  as the active `ToolExecutionCoordinator` local-runtime execution failure even
+  though the reusable SDK boundary is local-runtime execution and the concrete
+  Python sidecar is only the desktop implementation detail.
+- Change: renamed that failure fixture to `local runtime failed` and widened
+  the SDK package-boundary guard so active SDK client and conversation-runtime
+  local-runtime tests reject stale sidecar fixture labels together.
+- Validation: focused Agent SDK conversation-runtime/package-boundary Jest
+  coverage and exact stale failure-fixture scan over the active SDK tests.
+- Compatibility/security: no migration required. Runtime code, SDK exports,
+  tool execution ordering, backend tool-result payloads, IPC, storage,
+  credentials, and trust boundaries are unchanged.
 
 ### 2026-06-21 Agent SDK Local-Runtime Fixture Boundary
 

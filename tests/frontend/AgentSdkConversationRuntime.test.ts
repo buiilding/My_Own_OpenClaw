@@ -3228,7 +3228,7 @@ describe('Agent SDK conversation runtime core', () => {
       localRuntime: {
         executeTool: jest.fn(async () => {
           failedOrder.push('execute');
-          throw new Error('sidecar failed');
+          throw new Error('local runtime failed');
         }),
       },
       sendToolResult: jest.fn(async () => undefined),

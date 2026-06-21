@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Agent SDK Tool-Coordinator Failure Fixture Boundary
+
+- Finding: `AgentSdkConversationRuntime.test.ts` still used `sidecar failed`
+  as the active `ToolExecutionCoordinator` local-runtime execution failure even
+  though the reusable SDK boundary is local-runtime execution and the concrete
+  Python sidecar is only the desktop implementation detail.
+- Change: renamed that failure fixture to `local runtime failed` and widened
+  the SDK package-boundary guard so active SDK client and conversation-runtime
+  local-runtime tests reject stale sidecar fixture labels together.
+- Validation: focused Agent SDK conversation-runtime/package-boundary Jest
+  coverage and exact stale failure-fixture scan over the active SDK tests.
+- Compatibility/security: no migration required. Runtime code, SDK exports,
+  tool execution ordering, backend tool-result payloads, IPC, storage,
+  credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Agent SDK Local-Runtime Fixture Boundary
 
 - Finding: reusable Agent SDK runtime tests still used active fixture names such

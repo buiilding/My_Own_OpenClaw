@@ -370,17 +370,27 @@ describe('@windie/sdk package boundary', () => {
       path.resolve(__dirname, '../../tests/frontend/AgentSdkClient.test.ts'),
       'utf8',
     );
+    const sdkConversationRuntimeTestSource = fs.readFileSync(
+      path.resolve(__dirname, '../../tests/frontend/AgentSdkConversationRuntime.test.ts'),
+      'utf8',
+    );
+    const activeSdkLocalRuntimeTestSource = [
+      sdkClientTestSource,
+      sdkConversationRuntimeTestSource,
+    ].join('\n');
 
-    expect(sdkClientTestSource).not.toContain("const daemonScript = path.join(tempDir, 'sidecar_daemon.py')");
-    expect(sdkClientTestSource).not.toContain("message: 'sidecar failed'");
-    expect(sdkClientTestSource).not.toContain("conversation_id: 'conv-sidecar'");
-    expect(sdkClientTestSource).not.toContain("title: 'Sidecar'");
-    expect(sdkClientTestSource).not.toContain("pythonArgs: [launcherScript, 'sidecar', 'python']");
-    expect(sdkClientTestSource).toContain("const daemonScript = path.join(tempDir, 'local_runtime_daemon.py')");
-    expect(sdkClientTestSource).toContain("message: 'local runtime failed'");
-    expect(sdkClientTestSource).toContain("conversation_id: 'conv-local-runtime'");
-    expect(sdkClientTestSource).toContain("title: 'Local runtime'");
-    expect(sdkClientTestSource).toContain("pythonArgs: [launcherScript, 'local-runtime', 'python']");
+    expect(activeSdkLocalRuntimeTestSource).not.toContain("const daemonScript = path.join(tempDir, 'sidecar_daemon.py')");
+    expect(activeSdkLocalRuntimeTestSource).not.toContain("message: 'sidecar failed'");
+    expect(activeSdkLocalRuntimeTestSource).not.toContain("new Error('sidecar failed')");
+    expect(activeSdkLocalRuntimeTestSource).not.toContain("conversation_id: 'conv-sidecar'");
+    expect(activeSdkLocalRuntimeTestSource).not.toContain("title: 'Sidecar'");
+    expect(activeSdkLocalRuntimeTestSource).not.toContain("pythonArgs: [launcherScript, 'sidecar', 'python']");
+    expect(activeSdkLocalRuntimeTestSource).toContain("const daemonScript = path.join(tempDir, 'local_runtime_daemon.py')");
+    expect(activeSdkLocalRuntimeTestSource).toContain("message: 'local runtime failed'");
+    expect(activeSdkLocalRuntimeTestSource).toContain("new Error('local runtime failed')");
+    expect(activeSdkLocalRuntimeTestSource).toContain("conversation_id: 'conv-local-runtime'");
+    expect(activeSdkLocalRuntimeTestSource).toContain("title: 'Local runtime'");
+    expect(activeSdkLocalRuntimeTestSource).toContain("pythonArgs: [launcherScript, 'local-runtime', 'python']");
   });
 
   test('exports canonical tool correlation alias resolution', () => {
