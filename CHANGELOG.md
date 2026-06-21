@@ -84,14 +84,18 @@ All notable changes to WindieOS will be documented in this file.
   `ipc_main_process_trace_runtime.cjs` and exercise string/duration/data
   sanitization through `createMainProcessTraceRuntime(...)`. No migration
   required.
+- frontend/main: keep workspace-path payload/config resolution private to
+  `ipc_workspace_path_runtime.cjs` while preserving command payload precedence,
+  cached config fallback, trimming, blank rejection, and non-string rejection
+  through `createWorkspacePathRuntime(...)`. No migration required.
 - frontend/main: keep runtime conversation-ref string normalization private to
   `ipc_runtime_conversation_ref.cjs` while preserving the public resolver and
   runtime facade for nested transport/direct/fallback coverage. No migration
   required.
 - frontend/main: keep workspace-path string normalization private to
-  `ipc_workspace_path_runtime.cjs` while preserving the public workspace-path
-  resolver and runtime facade for payload/config fallback coverage. No
-  migration required.
+  `ipc_workspace_path_runtime.cjs` while preserving payload/config fallback
+  coverage through the runtime facade; a later follow-up kept the
+  workspace-path resolver private behind the same facade. No migration required.
 - frontend/main: keep conversation status error-payload interpretation private
   to `ipc_conversation_status_runtime.cjs` while preserving the public
   terminal-status projection for completed, stopped, and error turns. No

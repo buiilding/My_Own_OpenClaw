@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main renderer-window runtime keeps registry
-  construction private to `ipc_renderer_windows.cjs`, while window tracking,
-  broadcast sender exclusion, reset/size access, overlay sync, current-turn
-  sync, pending-turn sync, and buffered replay remain covered through the
-  public renderer-window runtime facade.
+- Latest completed slice: Electron main workspace-path runtime keeps
+  payload/config resolution private to `ipc_workspace_path_runtime.cjs`, while
+  command payload precedence, cached config fallback, trimming, blank rejection,
+  non-string rejection, and latest-config lookup remain covered through the
+  public workspace-path runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1214,6 +1214,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer status objects, workspace paths, IPC channels, credentials,
   permissions, trust boundaries, and storage are unchanged.
 
+### 2026-06-21 Main Workspace Path Resolver Privacy
+
+- Finding: `ipc_workspace_path_runtime.cjs` already exposed the composed
+  workspace-path runtime facade, but `resolveWorkspacePathForAgentPayload(...)`
+  still leaked the lower-level payload/config resolver as a public helper
+  export after the string normalizer was made private.
+- Change: removed the resolver from the public module surface while preserving
+  runtime coverage for command payload `workspace_path` / `workspacePath`
+  precedence, cached desktop UI config fallback, trimming, blank-value
+  rejection, non-string rejection, and latest-config lookup.
+- Validation: focused workspace-path runtime and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. SDK runtime command payloads,
+  workspace fallback behavior, IPC channels, credentials, permissions, trust
+  boundaries, and storage are unchanged.
+
 ### 2026-06-21 Main Workspace Path Normalizer Privacy
 
 - Finding: `ipc_workspace_path_runtime.cjs` already exposed the composed
@@ -1222,7 +1238,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: removed the string normalizer from the public module surface while
   preserving resolver coverage for command payload `workspace_path` /
   `workspacePath`, cached desktop UI config fallback, trimming, blank values,
-  and non-string rejection.
+  and non-string rejection; a later follow-up kept the resolver private behind
+  the same runtime facade.
 - Validation: focused workspace-path runtime and main SDK boundary tests,
   targeted main IPC lint, docs listing, stale export scans, and diff checks.
 - Compatibility: no migration required. SDK runtime command payloads,

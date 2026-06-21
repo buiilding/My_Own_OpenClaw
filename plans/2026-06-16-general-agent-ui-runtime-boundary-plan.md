@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Workspace Path Resolver Privacy
+
+- Finding: `ipc_workspace_path_runtime.cjs` already exposed
+  `createWorkspacePathRuntime(...)` as the Electron main workspace-path facade,
+  but `resolveWorkspacePathForAgentPayload(...)` still leaked as a public
+  helper export after the lower-level string normalizer was made private.
+- Change: kept workspace-path payload/config resolution private to the runtime
+  owner while preserving command payload snake/camel alias precedence, cached
+  desktop config fallback, trimming, blank-value rejection, non-string
+  rejection, and latest-config lookup coverage through
+  `createWorkspacePathRuntime(...)`.
+- Validation: focused workspace-path runtime and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no SDK runtime command payload, workspace fallback,
+  IPC channel, credential, permission, storage, or trust-boundary migration
+  required; workspace-path behavior is unchanged.
+
 ### 2026-06-21 Main Renderer Window Registry Privacy
 
 - Finding: `ipc_renderer_windows.cjs` already exposed
@@ -166,7 +184,8 @@ Date: 2026-06-16
 - Change: kept `normalizeOptionalString(...)` private to the workspace-path
   runtime owner while preserving resolver/runtime coverage for command payload
   snake/camel aliases, cached config fallback, trimming, blank values, and
-  non-string rejection.
+  non-string rejection; a later follow-up kept the workspace-path resolver
+  private behind the same runtime facade.
 - Validation: focused workspace-path runtime and main SDK boundary tests,
   targeted main IPC lint, docs listing, stale export scans, and diff checks
   before commit.

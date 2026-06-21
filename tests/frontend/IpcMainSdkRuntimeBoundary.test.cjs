@@ -342,6 +342,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(workspacePathRuntimeSource).toContain('payload?.workspace_path');
     expect(workspacePathRuntimeSource).toContain('payload?.workspacePath');
     expect(workspacePathRuntimeSource).not.toContain('  normalizeOptionalString,');
+    expect(workspacePathRuntimeSource).not.toContain('  resolveWorkspacePathForAgentPayload,');
     expect(source).toContain('createAgentDefinitionContextRuntime({');
     expect(source).toContain('agentDefinitionContextRuntime.attach(payload)');
     expect(agentDefinitionContextSource).toContain('function createAgentDefinitionContextRuntime');

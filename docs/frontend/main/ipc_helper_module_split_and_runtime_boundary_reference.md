@@ -143,11 +143,12 @@ Owns Agent SDK runtime workspace-path fallback resolution:
 
 - exposes `createWorkspacePathRuntime(...)` so `ipc.cjs` composes the cached
   desktop UI config reader once
-- `resolveWorkspacePathForAgentPayload` prefers command payload
+- keeps workspace-path resolution private behind the runtime facade; resolution
+  prefers command payload
   `workspace_path` / `workspacePath`, then cached desktop UI config
   `workspace_path` / `workspacePath`.
-- keeps trim/null normalization private behind the workspace-path resolver
-  instead of exposing a lower-level string helper.
+- keeps trim/null normalization private behind the workspace-path runtime
+  instead of exposing lower-level string or resolver helpers.
 
 ### `ipc_automated_query_dispatcher.cjs`
 

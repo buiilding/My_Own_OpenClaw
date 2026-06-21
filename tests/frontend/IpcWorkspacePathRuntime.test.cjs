@@ -3,50 +3,56 @@
 const workspacePathRuntimeModule = require('../../frontend/src/main/ipc/ipc_workspace_path_runtime.cjs');
 const {
   createWorkspacePathRuntime,
-  resolveWorkspacePathForAgentPayload,
 } = workspacePathRuntimeModule;
+
+function createResolver(desktopUiConfig = {}) {
+  return createWorkspacePathRuntime({
+    getLatestDesktopUiConfig: () => desktopUiConfig,
+  });
+}
 
 describe('ipc_workspace_path_runtime', () => {
   test('normalizes optional workspace strings through the resolver', () => {
-    expect(resolveWorkspacePathForAgentPayload({
+    expect(createResolver().resolve({
       workspace_path: ' C:/repo ',
-    }, {})).toBe('C:/repo');
+    })).toBe('C:/repo');
 
-    expect(resolveWorkspacePathForAgentPayload({
+    expect(createResolver().resolve({
       workspace_path: '   ',
       workspacePath: 42,
-    }, {})).toBeNull();
+    })).toBeNull();
 
     expect(workspacePathRuntimeModule.normalizeOptionalString).toBeUndefined();
+    expect(workspacePathRuntimeModule.resolveWorkspacePathForAgentPayload).toBeUndefined();
   });
 
   test('prefers command payload workspace path over desktop config fallback', () => {
-    expect(resolveWorkspacePathForAgentPayload({
-      workspace_path: ' C:/payload-snake ',
-      workspacePath: 'C:/payload-camel',
-    }, {
+    expect(createResolver({
       workspace_path: 'C:/config-snake',
       workspacePath: 'C:/config-camel',
+    }).resolve({
+      workspace_path: ' C:/payload-snake ',
+      workspacePath: 'C:/payload-camel',
     })).toBe('C:/payload-snake');
 
-    expect(resolveWorkspacePathForAgentPayload({
-      workspacePath: ' C:/payload-camel ',
-    }, {
+    expect(createResolver({
       workspace_path: 'C:/config-snake',
+    }).resolve({
+      workspacePath: ' C:/payload-camel ',
     })).toBe('C:/payload-camel');
   });
 
   test('falls back to cached desktop config workspace path', () => {
-    expect(resolveWorkspacePathForAgentPayload({}, {
+    expect(createResolver({
       workspace_path: ' C:/config-snake ',
       workspacePath: 'C:/config-camel',
-    })).toBe('C:/config-snake');
+    }).resolve({})).toBe('C:/config-snake');
 
-    expect(resolveWorkspacePathForAgentPayload({}, {
+    expect(createResolver({
       workspacePath: ' C:/config-camel ',
-    })).toBe('C:/config-camel');
+    }).resolve({})).toBe('C:/config-camel');
 
-    expect(resolveWorkspacePathForAgentPayload({}, {})).toBeNull();
+    expect(createResolver({}).resolve({})).toBeNull();
   });
 
   test('runtime resolves against the latest injected desktop config', () => {
