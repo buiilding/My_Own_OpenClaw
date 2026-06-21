@@ -378,16 +378,23 @@ describe('@windie/sdk package boundary', () => {
       sdkClientTestSource,
       sdkConversationRuntimeTestSource,
     ].join('\n');
+    const retiredUnavailableError = 'sidecar ' + 'unavailable';
 
     expect(activeSdkLocalRuntimeTestSource).not.toContain("const daemonScript = path.join(tempDir, 'sidecar_daemon.py')");
     expect(activeSdkLocalRuntimeTestSource).not.toContain("message: 'sidecar failed'");
     expect(activeSdkLocalRuntimeTestSource).not.toContain("new Error('sidecar failed')");
+    expect(activeSdkLocalRuntimeTestSource).not.toContain(`new Error('${retiredUnavailableError}')`);
+    expect(activeSdkLocalRuntimeTestSource).not.toContain(`output: '${retiredUnavailableError}'`);
+    expect(activeSdkLocalRuntimeTestSource).not.toContain(`error: '${retiredUnavailableError}'`);
     expect(activeSdkLocalRuntimeTestSource).not.toContain("conversation_id: 'conv-sidecar'");
     expect(activeSdkLocalRuntimeTestSource).not.toContain("title: 'Sidecar'");
     expect(activeSdkLocalRuntimeTestSource).not.toContain("pythonArgs: [launcherScript, 'sidecar', 'python']");
     expect(activeSdkLocalRuntimeTestSource).toContain("const daemonScript = path.join(tempDir, 'local_runtime_daemon.py')");
     expect(activeSdkLocalRuntimeTestSource).toContain("message: 'local runtime failed'");
     expect(activeSdkLocalRuntimeTestSource).toContain("new Error('local runtime failed')");
+    expect(activeSdkLocalRuntimeTestSource).toContain("new Error('local runtime unavailable')");
+    expect(activeSdkLocalRuntimeTestSource).toContain("output: 'local runtime unavailable'");
+    expect(activeSdkLocalRuntimeTestSource).toContain("error: 'local runtime unavailable'");
     expect(activeSdkLocalRuntimeTestSource).toContain("conversation_id: 'conv-local-runtime'");
     expect(activeSdkLocalRuntimeTestSource).toContain("title: 'Local runtime'");
     expect(activeSdkLocalRuntimeTestSource).toContain("pythonArgs: [launcherScript, 'local-runtime', 'python']");

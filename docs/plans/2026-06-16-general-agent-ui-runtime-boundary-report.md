@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: the local-runtime Python bootstrap path tests now use
-  local-runtime bootstrap labels instead of sidecar-suite or local-backend
-  smoke-test wording, with focused guard coverage preventing those exact active
-  test labels from returning.
+- Latest completed slice: the Agent SDK conversation-runtime local execution
+  unavailable fixture now uses local-runtime wording instead of sidecar wording,
+  with package-boundary coverage preventing the unavailable error/output labels
+  from returning.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -60,8 +60,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   preserving real `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar`
   implementation paths. Agent SDK local-runtime provider and tool-coordinator
   tests use neutral `AGENT_TEST_*` launch env, launch-context, daemon,
-  tool-execution failure, error, and conversation fixtures while real Windie
-  compatibility env aliases remain explicitly covered by
+  tool-execution failure/unavailable, error, and conversation fixtures while
+  real Windie compatibility env aliases remain explicitly covered by
   `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
   Generic local-runtime bridge screenshot tests preserve retired namespace
   rejection coverage while avoiding direct legacy WindieOS screenshot temp
@@ -632,6 +632,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Agent SDK Local-Runtime Unavailable Fixture Boundary
+
+- Finding: `AgentSdkConversationRuntime.test.ts` still used
+  `sidecar unavailable` as the active `ToolExecutionCoordinator` local-runtime
+  execution exception, backend result output, and stored tool-output error even
+  though the reusable SDK boundary is local-runtime execution.
+- Change: renamed that active fixture to `local runtime unavailable` and
+  broadened the SDK package-boundary guard so conversation-runtime tests reject
+  the exact stale unavailable error/output labels.
+- Validation: focused Agent SDK conversation-runtime/package-boundary Jest
+  coverage and exact stale unavailable-fixture scan over the active SDK tests.
+- Compatibility/security: no migration required. Runtime code, SDK exports,
+  tool execution ordering, backend tool-result payload shape, IPC, storage,
+  credentials, and trust boundaries are unchanged.
 
 ### 2026-06-21 Local-Runtime Python Bootstrap Label Boundary
 

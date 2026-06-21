@@ -3035,7 +3035,7 @@ describe('Agent SDK conversation runtime core', () => {
       store,
       localRuntime: {
         executeTool: jest.fn(async () => {
-          throw new Error('sidecar unavailable');
+          throw new Error('local runtime unavailable');
         }),
       },
       sendToolResult,
@@ -3053,7 +3053,7 @@ describe('Agent SDK conversation runtime core', () => {
       request_id: 'req-read',
       success: false,
       data: {
-        output: 'sidecar unavailable',
+        output: 'local runtime unavailable',
       },
     }));
     expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
@@ -3065,7 +3065,7 @@ describe('Agent SDK conversation runtime core', () => {
           toolCallId: null,
           correlationId: null,
           success: false,
-          error: 'sidecar unavailable',
+          error: 'local runtime unavailable',
         }),
       }),
     ]);

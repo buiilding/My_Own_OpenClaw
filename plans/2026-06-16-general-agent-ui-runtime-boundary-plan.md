@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Agent SDK Local-Runtime Unavailable Fixture Boundary
+
+- Finding: `AgentSdkConversationRuntime.test.ts` still used
+  `sidecar unavailable` as the active `ToolExecutionCoordinator` local-runtime
+  execution exception, backend result output, and stored tool-output error even
+  though the reusable SDK boundary is local-runtime execution.
+- Change: renamed that active fixture to `local runtime unavailable` and
+  broadened the SDK package-boundary guard so conversation-runtime tests reject
+  the exact stale unavailable error/output labels.
+- Validation: focused Agent SDK conversation-runtime/package-boundary Jest
+  coverage and exact stale unavailable-fixture scan over the active SDK tests.
+- Compatibility/security: no migration required. Runtime code, SDK exports,
+  tool execution ordering, backend tool-result payload shape, IPC, storage,
+  credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Local-Runtime Python Bootstrap Label Boundary
 
 - Finding: `test_bootstrap_paths.py` still described bootstrap path coverage as

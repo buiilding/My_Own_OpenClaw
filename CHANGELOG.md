@@ -44,6 +44,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/tests: route the Agent SDK tool-coordinator local execution failure
   fixture through local-runtime wording and broaden package-boundary coverage
   across SDK client and conversation-runtime tests. No migration required.
+- sdk/tests: rename the Agent SDK local-runtime unavailable tool-execution
+  fixture away from sidecar wording and broaden package-boundary coverage for
+  the unavailable error/output path. No migration required.
 - sidecar/tests: rename active local-runtime Python test labels away from
   local-backend and sidecar-tool owner wording while preserving concrete
   implementation file paths. No migration required.
