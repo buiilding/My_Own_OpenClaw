@@ -25,7 +25,7 @@ Core rule: install auth identifies a desktop install to the hosted backend, runs
 | Local-runtime remote-client auth headers | local-runtime Python remote client base | `frontend/src/main/python/windie/_auth.py`, `frontend/src/main/python/windie/_remote_api_client_base.py`, `frontend/src/main/python/core/remote_*_client.py` | local-runtime Python remote client tests | [Local-Runtime Python Implementation Change Workflow](../frontend/sidecar/local_runtime_python_change_workflow.md) |
 | Runs API key | Runs route dependency and VM worker runtime | `backend/src/api/routes/runs/support.py`, `backend/src/api/routes/runs/router.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | `tests/backend/test_run_control_routes.py`, `tests/backend/test_run_control_route_helpers.py`, `tests/frontend/VmWorkerRuntime.test.cjs` | [Runs API Runbook](../automation/runs_api_runbook.md) |
 | Provider env keys | Backend config and provider constructors | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py`, `backend/src/llm/providers/**` | `tests/backend/test_config_models.py`, `tests/backend/test_config_loader.py`, provider tests | [Provider Credentials](../providers/credentials.md) |
-| Renderer-managed provider key overrides | Renderer settings and backend client-settings patch guard | `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`, `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `backend/src/core/validation/**`, `backend/src/core/config/models.py` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/AppConfigPersistence.test.js`, `tests/backend/test_validation_utils.py`, `tests/backend/test_api_handlers.py` | [Provider Change Workflow](../providers/provider_change_workflow.md) |
+| Renderer-managed provider key overrides | Renderer settings, app-runtime provider credential facade, and backend client-settings patch guard | `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`, `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `backend/src/core/validation/**`, `backend/src/core/config/models.py` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/AppConfigPersistence.test.js`, `tests/backend/test_validation_utils.py`, `tests/backend/test_api_handlers.py` | [Provider Change Workflow](../providers/provider_change_workflow.md) |
 | Secret logging, redaction, and fixtures | Producing runtime and test fixture owner | logging call sites in backend, Electron, renderer, sidecar, and tests | focused tests for the changed boundary plus fixture scans | [Observability Change Workflow](../debug/observability_change_workflow.md) |
 
 ## Credential Classes
@@ -256,7 +256,7 @@ Read:
 Edit:
 
 - `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx` for visible controls.
-- `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js` for provider entries/default normalization.
+- `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js` for skin-configured provider entries/default normalization and renderer persistence shaping.
 - `frontend/src/renderer/app/providers/appConfigPersistence.js` and config storage/filter helpers for local persistence.
 - backend config and validation code only for explicit client settings patch fields.
 

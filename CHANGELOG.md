@@ -62,6 +62,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/security and docs/operations: list credential-header and configuration
   workflow owners through local-runtime implementation wording instead of
   sidecar owner buckets. No migration required.
+- docs/security: route renderer provider credential normalization through the
+  provider credential runtime instead of the removed dashboard helper. No
+  migration required.
 - docs/memory and docs/concepts: describe `session_id` as hosted backend
   runtime identity instead of generic backend runtime/session wording. No
   migration required.

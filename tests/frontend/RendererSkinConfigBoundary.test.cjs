@@ -24,6 +24,10 @@ const rendererConfigReferencePath = path.resolve(
   __dirname,
   '../../docs/frontend/renderer/settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md',
 );
+const credentialWorkflowPath = path.resolve(
+  __dirname,
+  '../../docs/security/credential_token_change_workflow.md',
+);
 const rendererStateWorkflowPath = path.resolve(
   __dirname,
   '../../docs/frontend/renderer/renderer_state_change_workflow.md',
@@ -296,6 +300,7 @@ describe('renderer skin/config boundary', () => {
     const providerPropTypesSource = fs.readFileSync(providerApiKeysPropTypesPath, 'utf8');
     const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
     const providerCredentialRuntimeSource = fs.readFileSync(providerCredentialRuntimePath, 'utf8');
+    const credentialWorkflowSource = fs.readFileSync(credentialWorkflowPath, 'utf8');
 
     expect(configFacadeSource).toContain("from './providerCredentialSettings'");
     expect(providerSkinSource).toContain('DEFAULT_PROVIDER_API_KEYS');
@@ -317,6 +322,9 @@ describe('renderer skin/config boundary', () => {
     expect(providerCredentialRuntimeSource).not.toContain('export { PROVIDER_API_KEY_SPECS }');
     expect(configStorageSource).not.toContain('openai: { enabled: false');
     expect(providerCredentialRuntimeSource).not.toContain('OpenAI API Key');
+    expect(credentialWorkflowSource).toContain('ApiKeysSection.jsx');
+    expect(credentialWorkflowSource).toContain('desktopProviderCredentialRuntime.js');
+    expect(credentialWorkflowSource).not.toContain('providerApiKeys.js');
     expect(fs.existsSync(path.join(dashboardSectionsRoot, 'providerApiKeys.js'))).toBe(false);
   });
 

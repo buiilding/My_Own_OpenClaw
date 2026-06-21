@@ -1579,6 +1579,24 @@ Each completed slice should report:
   catalog behavior are unchanged; renderer persistence continues to scrub raw
   provider API-key secrets.
 
+### 2026-06-21 Provider Credential Security Docs Boundary
+
+- Finding: the credential-token workflow still routed renderer provider API-key
+  entries and default normalization through the removed dashboard
+  `providerApiKeys.js` helper, even though `desktopProviderCredentialRuntime.js`
+  now owns the renderer app-runtime provider credential facade.
+- Change: updated the security workflow to route visible controls through
+  `ApiKeysSection.jsx` and provider entry/default normalization plus renderer
+  persistence shaping through `desktopProviderCredentialRuntime.js`; extended
+  renderer skin/config boundary coverage so the workflow cannot drift back to
+  the removed helper.
+- Validation: focused renderer skin/config boundary coverage, docs listing,
+  exact stale helper docs scan, runtime-owner doc scan, and diff checks.
+- Compatibility: no migration required. Provider credential config shape,
+  provider IDs, redaction behavior, renderer persistence, backend settings
+  patch guard, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Dashboard Model Card Presentation Runtime Boundary
 
 - Finding: `ModelsSection` already used `desktopModelSelectionRuntime` for
