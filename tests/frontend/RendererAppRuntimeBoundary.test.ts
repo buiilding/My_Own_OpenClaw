@@ -140,6 +140,21 @@ describe('renderer app runtime boundary', () => {
     expect(source).not.toContain(`active desktop-${'agent'} skin`);
   });
 
+  test('renderer feature skin copy reads active skin through renderer skin facade', async () => {
+    const skinConsumerFiles = [
+      'features/onboarding/components/DesktopOnboardingSlideshow.jsx',
+      'features/dashboard/components/sections/MemorySection.jsx',
+    ];
+
+    for (const relativePath of skinConsumerFiles) {
+      const source = await fs.readFile(path.join(rendererRoot, relativePath), 'utf8');
+      expect(source).toContain('DesktopRuntimeSkin');
+      expect(source).toContain('DesktopRuntimeSkin.desktopRuntimeSkin');
+      expect(source).not.toContain('import { desktopRuntimeSkin');
+      expect(source).not.toContain('= desktopRuntimeSkin.');
+    }
+  });
+
   test('frontend architecture docs route session rules through app runtime', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'),

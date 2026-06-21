@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route onboarding slideshow and dashboard memory panel
+  skin-copy reads through `DesktopRuntimeSkin` instead of direct
+  `desktopRuntimeSkin` imports, finishing feature-level reads from the renderer
+  skin facade. No migration required.
 - frontend/renderer: route dashboard settings skin-copy reads through
   `DesktopRuntimeSkin` instead of direct `desktopRuntimeSkin` imports, keeping
   settings copy on the renderer skin facade. No migration required.

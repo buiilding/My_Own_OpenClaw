@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: dashboard settings skin-copy reads now route through
-  `DesktopRuntimeSkin` instead of direct `desktopRuntimeSkin` imports, keeping
-  settings copy on the renderer skin facade.
+- Latest completed slice: onboarding slideshow and dashboard memory panel
+  skin-copy reads now route through `DesktopRuntimeSkin` instead of direct
+  `desktopRuntimeSkin` imports, finishing feature-level copy reads from the
+  renderer skin facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

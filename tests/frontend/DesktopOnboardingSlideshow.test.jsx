@@ -91,8 +91,8 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   }),
 }));
 
-jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
-  desktopRuntimeSkin: {
+jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => {
+  const desktopRuntimeSkin = {
     onboarding: {
       dialogLabel: 'Sample Desktop onboarding',
       missingPermissionsMessage: 'Sample Desktop could not find any onboarding permissions for this platform.',
@@ -100,8 +100,14 @@ jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
       missingRequiredPermissionsMessage: 'Some permissions are still missing. You can continue now and grant them later in Settings.',
       startLabel: 'Start Sample Desktop',
     },
-  },
-}));
+  };
+  return {
+    desktopRuntimeSkin,
+    DesktopRuntimeSkin: {
+      desktopRuntimeSkin,
+    },
+  };
+});
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {

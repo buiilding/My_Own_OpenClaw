@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Remaining Skin Facade Consumption
+
+- Finding: after the chat and settings skin slices, the onboarding slideshow
+  and dashboard memory panel still imported the raw `desktopRuntimeSkin` symbol
+  directly for onboarding and memory-panel copy.
+- Change: routed those remaining feature-level skin reads through
+  `DesktopRuntimeSkin.desktopRuntimeSkin`, updated the onboarding test mock to
+  expose the facade shape, and added renderer app boundary coverage so
+  onboarding and memory panel copy consumers stay on the skin facade.
+- Validation: focused onboarding slideshow, memory section, renderer app,
+  renderer settings, and renderer chat boundary tests plus targeted renderer
+  source lint, docs listing, stale raw feature skin import scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. Active WindieOS onboarding and
+  memory panel copy, permission onboarding behavior, memory list/delete/toggle
+  behavior, IPC, credentials, hosted backend policy, and local-runtime
+  execution are unchanged.
+
 ### 2026-06-21 Renderer Settings Skin Facade Consumption
 
 - Finding: dashboard settings tab code still imported the raw

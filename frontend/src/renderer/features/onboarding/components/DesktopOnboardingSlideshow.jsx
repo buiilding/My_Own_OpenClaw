@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { DesktopShortcutRuntimeClient } from '../../../app/runtime/desktopShortcutRuntimeClient';
-import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
+import { DesktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import MainWindowControls from '../../../components/MainWindowControls';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
@@ -14,7 +14,7 @@ import { DesktopOnboardingSlideRuntime } from '../../../app/runtime/desktopOnboa
 import PermissionOnboardingSlide from './PermissionOnboardingSlide';
 import StopShortcutOnboardingSlide from './StopShortcutOnboardingSlide';
 
-const onboardingSkin = desktopRuntimeSkin.onboarding;
+const onboardingSkin = DesktopRuntimeSkin.desktopRuntimeSkin.onboarding;
 const {
   buildOnboardingSlideState,
 } = DesktopOnboardingSlideRuntime;

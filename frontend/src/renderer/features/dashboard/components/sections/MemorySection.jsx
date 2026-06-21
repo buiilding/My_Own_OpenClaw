@@ -13,14 +13,14 @@ import {
   X,
 } from 'lucide-react';
 import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemoryRuntimeClient';
-import { desktopRuntimeSkin } from '../../../../app/skin/desktopRuntimeSkin';
+import { DesktopRuntimeSkin } from '../../../../app/skin/desktopRuntimeSkin';
 import { DesktopMemoryRetrievalPreferenceRuntime } from '../../../../app/runtime/desktopMemoryRetrievalPreferenceRuntime';
 import {
   DesktopMemoryPresentationRuntime,
 } from '../../../../app/runtime/desktopMemoryPresentationRuntime';
 import MemoryItem from './MemoryItem';
 
-const memoryPanelSkin = desktopRuntimeSkin.memoryPanel;
+const memoryPanelSkin = DesktopRuntimeSkin.desktopRuntimeSkin.memoryPanel;
 const {
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,
