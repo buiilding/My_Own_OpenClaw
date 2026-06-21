@@ -160,7 +160,7 @@ main process, React renderer, and the local-runtime Python implementation.
 - [Stream Event State Machine](runtime/stream_event_state_machine.md)
 - [Overlay Phase and Surface Change Workflow](runtime/overlay_phase_and_surface_change_workflow.md)
 - [Workspace Context Change Workflow](runtime/workspace_context_change_workflow.md)
-- [Frontend Runtime Surface: Main, Renderer, Sidecar, and VM Worker](runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
+- [Frontend Runtime Surface: Main, Renderer, Local Runtime, and VM Worker](runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
 - [Config Sync and Settings Lifecycle Reference](runtime/config_sync_and_settings_lifecycle_reference.md)
 - [Audio Chunk Playback and Stop Semantics Reference](runtime/audio_chunk_playback_and_stop_semantics_reference.md)
 

@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route frontend runtime-surface labels and the Electron main
+  lifecycle owner row through local-runtime wording instead of sidecar
+  lifecycle shorthand. No migration required.
 - renderer/chat: make the chat model-options runtime own
   `getAvailableModelPool` as a facade function instead of exporting a direct
   alias to the lower model-selection helper. No migration required.

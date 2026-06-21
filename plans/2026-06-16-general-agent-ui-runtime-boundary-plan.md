@@ -21966,3 +21966,20 @@ Each completed slice should report:
   provider/model/reasoning option projection, renderer payloads, storage, IPC
   channels, provider policy, permissions, backend behavior, and trust
   boundaries are unchanged.
+
+### 2026-06-21 frontend runtime surface local-runtime labels
+
+- Finding: active architecture/frontend docs still displayed the frontend
+  runtime surface as "Main, Renderer, Sidecar, and VM Worker" and the runtime
+  boundary matrix still listed Electron main as owning "sidecar lifecycle" even
+  though the same docs now route implementation behavior through the
+  local-runtime boundary.
+- Change: updated the active link labels and Electron main owner row to
+  local-runtime wording while preserving the existing document filename and
+  concrete implementation paths.
+- Validation: focused stale-label scan for runtime-surface/link labels, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Documentation labels changed only;
+  file paths, docs navigation targets, local-runtime launch behavior, IPC,
+  storage, provider policy, permissions, backend behavior, and trust boundaries
+  are unchanged.

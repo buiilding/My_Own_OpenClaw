@@ -59,4 +59,4 @@ title: "Frontend Main Docs Hub"
 - Main-process changes need proof at the IPC, SDK runtime, or native
   BrowserWindow boundary that owns the behavior.
 - Avoid treating renderer logs as sufficient evidence for main-owned window,
-  permission, sidecar lifecycle, or IPC routing behavior.
+  permission, local-runtime lifecycle, or IPC routing behavior.
