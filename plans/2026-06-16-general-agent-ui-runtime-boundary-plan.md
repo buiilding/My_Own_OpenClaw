@@ -20702,3 +20702,20 @@ Each completed slice should report:
   still allows `llm-text` and `error`, awaiting-dot behavior, response-pane
   selection, chatbox surface state, transcript rows, IPC channels, storage,
   provider policy, permissions, and backend behavior are unchanged.
+
+### 2026-06-21 renderer overlay lifecycle helper privacy
+
+- Finding: `desktopOverlayTurnLifecycleRuntime.js` owned the JSON-backed
+  overlay turn lifecycle contract, but still exported the raw
+  `OVERLAY_TURN_LIFECYCLE` table to chat-loop, current-turn, response-overlay,
+  and minimal-pill callers.
+- Change: made the raw lifecycle table private to the app-runtime lifecycle
+  adapter, exposed semantic lifecycle value helpers and predicates, and updated
+  production callers plus focused tests to use the helper surface.
+- Validation: focused overlay lifecycle, chat-loop, current-turn, message-list,
+  and renderer boundary tests, docs listing, exact raw-export/import scan, and
+  diff checks.
+- Compatibility: no migration required. Lifecycle string values, SDK-derived
+  lifecycle mapping, chat-loop state, awaiting-dot behavior, stale response
+  suppression, IPC channels, storage, provider policy, permissions, and backend
+  behavior are unchanged.

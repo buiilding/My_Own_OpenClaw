@@ -3,8 +3,10 @@
  */
 
 import {
-  OVERLAY_TURN_LIFECYCLE,
+  isOverlayTurnLifecycleActive,
   isOverlayTurnLifecycleAwaiting,
+  isOverlayTurnLifecycleIdle,
+  isOverlayTurnLifecycleTerminal,
 } from './desktopOverlayTurnLifecycleRuntime';
 import { isOverlayAwaitingReplyPhase } from './desktopStreamPhaseRuntime';
 
@@ -139,7 +141,7 @@ export function resolveChatLoopUiState({
   phase,
   hasVisibleReply = false,
 }) {
-  if (lifecycle === OVERLAY_TURN_LIFECYCLE.IDLE || lifecycle === OVERLAY_TURN_LIFECYCLE.TERMINAL) {
+  if (isOverlayTurnLifecycleIdle(lifecycle) || isOverlayTurnLifecycleTerminal(lifecycle)) {
     return CHAT_LOOP_UI_STATE.IDLE;
   }
 
@@ -147,7 +149,7 @@ export function resolveChatLoopUiState({
     return CHAT_LOOP_UI_STATE.AWAITING_REPLY;
   }
 
-  if (lifecycle === OVERLAY_TURN_LIFECYCLE.ACTIVE) {
+  if (isOverlayTurnLifecycleActive(lifecycle)) {
     if (isOverlayAwaitingReplyPhase(phase)) {
       return CHAT_LOOP_UI_STATE.AWAITING_REPLY;
     }

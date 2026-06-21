@@ -9,7 +9,12 @@ import {
   buildResponseOverlayDismissalKey,
   useChatStore,
 } from '../../chat/stores/chatStore';
-import { OVERLAY_TURN_LIFECYCLE } from '../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
+import {
+  getActiveOverlayTurnLifecycle,
+  getAwaitingOverlayTurnLifecycle,
+  getIdleOverlayTurnLifecycle,
+  getTerminalOverlayTurnLifecycle,
+} from '../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
 import {
   resolveLiveTurnPresentationInput,
   resolveSdkOverlayIntent,
@@ -33,18 +38,18 @@ function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
 
 function resolveSdkOverlayLifecycle(presentation, overlayIntent) {
   if (!presentation) {
-    return OVERLAY_TURN_LIFECYCLE.IDLE;
+    return getIdleOverlayTurnLifecycle();
   }
   if (overlayIntent?.mode === 'awaiting') {
-    return OVERLAY_TURN_LIFECYCLE.AWAITING;
+    return getAwaitingOverlayTurnLifecycle();
   }
   if (overlayIntent?.mode === 'response' && presentation.isBusy) {
-    return OVERLAY_TURN_LIFECYCLE.ACTIVE;
+    return getActiveOverlayTurnLifecycle();
   }
   if (presentation.isTerminal) {
-    return OVERLAY_TURN_LIFECYCLE.TERMINAL;
+    return getTerminalOverlayTurnLifecycle();
   }
-  return OVERLAY_TURN_LIFECYCLE.IDLE;
+  return getIdleOverlayTurnLifecycle();
 }
 
 function buildSdkCurrentTurnPresentationState({

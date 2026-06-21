@@ -9,13 +9,12 @@ import {
   shouldRenderUserActions,
 } from '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime';
 import { resolveCurrentTurnPresentationState } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
-import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 describe('desktopMessageListRuntime', () => {
   test('awaiting-dot target picks latest user row only while awaiting reply', () => {
     const awaitingState = resolveCurrentTurnPresentationState({
       phase: 'idle',
-      lifecycle: OVERLAY_TURN_LIFECYCLE.PREFLIGHT,
+      lifecycle: 'preflight',
       messages: [
         { id: 'assistant-1', sender: 'assistant' },
         { id: 'user-1', sender: 'user' },
@@ -27,7 +26,7 @@ describe('desktopMessageListRuntime', () => {
 
     const notAwaitingState = resolveCurrentTurnPresentationState({
       phase: 'complete',
-      lifecycle: OVERLAY_TURN_LIFECYCLE.TERMINAL,
+      lifecycle: 'terminal',
       messages: [{ id: 'user-1', sender: 'user' }],
     });
     expect(notAwaitingState.awaitingDotTargetMessageId).toBeNull();
@@ -36,7 +35,7 @@ describe('desktopMessageListRuntime', () => {
   test('awaiting-dot target clears when current turn assistant thinking is visible', () => {
     const awaitingState = resolveCurrentTurnPresentationState({
       phase: 'awaiting-first-chunk',
-      lifecycle: OVERLAY_TURN_LIFECYCLE.AWAITING,
+      lifecycle: 'awaiting',
       messages: [
         { id: 'user-1', sender: 'user', text: 'think through this', type: 'user' },
         {

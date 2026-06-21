@@ -12,7 +12,7 @@ function normalizeStateList(states) {
 
 const lifecycleStates = normalizeStateList(overlayTurnLifecycleContract?.states);
 
-export const OVERLAY_TURN_LIFECYCLE = Object.freeze({
+const OVERLAY_TURN_LIFECYCLE = Object.freeze({
   IDLE: lifecycleStates[0] || 'idle',
   PREFLIGHT: lifecycleStates[1] || 'preflight',
   AWAITING: lifecycleStates[2] || 'awaiting',
@@ -66,6 +66,38 @@ export function resolveOverlayTurnLifecycle({
   }
 
   return OVERLAY_TURN_LIFECYCLE.IDLE;
+}
+
+export function getIdleOverlayTurnLifecycle() {
+  return OVERLAY_TURN_LIFECYCLE.IDLE;
+}
+
+export function getPreflightOverlayTurnLifecycle() {
+  return OVERLAY_TURN_LIFECYCLE.PREFLIGHT;
+}
+
+export function getAwaitingOverlayTurnLifecycle() {
+  return OVERLAY_TURN_LIFECYCLE.AWAITING;
+}
+
+export function getActiveOverlayTurnLifecycle() {
+  return OVERLAY_TURN_LIFECYCLE.ACTIVE;
+}
+
+export function getTerminalOverlayTurnLifecycle() {
+  return OVERLAY_TURN_LIFECYCLE.TERMINAL;
+}
+
+export function isOverlayTurnLifecycleIdle(lifecycle) {
+  return lifecycle === OVERLAY_TURN_LIFECYCLE.IDLE;
+}
+
+export function isOverlayTurnLifecycleActive(lifecycle) {
+  return lifecycle === OVERLAY_TURN_LIFECYCLE.ACTIVE;
+}
+
+export function isOverlayTurnLifecycleTerminal(lifecycle) {
+  return lifecycle === OVERLAY_TURN_LIFECYCLE.TERMINAL;
 }
 
 export function isOverlayTurnLifecycleBusy(lifecycle) {

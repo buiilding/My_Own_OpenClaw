@@ -3,9 +3,16 @@
  */
 
 import {
-  OVERLAY_TURN_LIFECYCLE,
+  getActiveOverlayTurnLifecycle,
+  getAwaitingOverlayTurnLifecycle,
+  getIdleOverlayTurnLifecycle,
+  getPreflightOverlayTurnLifecycle,
+  getTerminalOverlayTurnLifecycle,
   isOverlayTurnLifecycleAwaiting,
+  isOverlayTurnLifecycleActive,
   isOverlayTurnLifecycleBusy,
+  isOverlayTurnLifecycleIdle,
+  isOverlayTurnLifecycleTerminal,
   resolveOverlayTurnLifecycle,
 } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 import * as OverlayTurnLifecycleRuntime from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
@@ -16,7 +23,7 @@ describe('desktopOverlayTurnLifecycleRuntime', () => {
       phase: 'idle',
       isSending: true,
       hasVisibleReply: false,
-    })).toBe(OVERLAY_TURN_LIFECYCLE.PREFLIGHT);
+    })).toBe('preflight');
   });
 
   test('maps awaiting-first-chunk phase to awaiting lifecycle', () => {
@@ -24,7 +31,7 @@ describe('desktopOverlayTurnLifecycleRuntime', () => {
       phase: 'awaiting-first-chunk',
       isSending: false,
       hasVisibleReply: false,
-    })).toBe(OVERLAY_TURN_LIFECYCLE.AWAITING);
+    })).toBe('awaiting');
   });
 
   test('maps streaming and tool phases to active lifecycle', () => {
@@ -32,12 +39,12 @@ describe('desktopOverlayTurnLifecycleRuntime', () => {
       phase: 'streaming',
       isSending: false,
       hasVisibleReply: false,
-    })).toBe(OVERLAY_TURN_LIFECYCLE.ACTIVE);
+    })).toBe('active');
     expect(resolveOverlayTurnLifecycle({
       phase: 'tool-output',
       isSending: false,
       hasVisibleReply: false,
-    })).toBe(OVERLAY_TURN_LIFECYCLE.ACTIVE);
+    })).toBe('active');
   });
 
   test('keeps terminal phase in preflight when a new send is already staged', () => {
@@ -45,7 +52,7 @@ describe('desktopOverlayTurnLifecycleRuntime', () => {
       phase: 'complete',
       isSending: true,
       hasVisibleReply: false,
-    })).toBe(OVERLAY_TURN_LIFECYCLE.PREFLIGHT);
+    })).toBe('preflight');
   });
 
   test('forces idle lifecycle when transport is disconnected', () => {
@@ -54,19 +61,23 @@ describe('desktopOverlayTurnLifecycleRuntime', () => {
       isSending: true,
       hasVisibleReply: false,
       transportConnected: false,
-    })).toBe(OVERLAY_TURN_LIFECYCLE.IDLE);
+    })).toBe('idle');
   });
 
   test('busy and awaiting helpers track only active lifecycle states', () => {
+    expect(OverlayTurnLifecycleRuntime).not.toHaveProperty('OVERLAY_TURN_LIFECYCLE');
     expect(OverlayTurnLifecycleRuntime).not.toHaveProperty('OVERLAY_TURN_PHASE_GROUPS');
-    expect(isOverlayTurnLifecycleBusy(OVERLAY_TURN_LIFECYCLE.IDLE)).toBe(false);
-    expect(isOverlayTurnLifecycleBusy(OVERLAY_TURN_LIFECYCLE.TERMINAL)).toBe(false);
-    expect(isOverlayTurnLifecycleBusy(OVERLAY_TURN_LIFECYCLE.PREFLIGHT)).toBe(true);
-    expect(isOverlayTurnLifecycleBusy(OVERLAY_TURN_LIFECYCLE.AWAITING)).toBe(true);
-    expect(isOverlayTurnLifecycleBusy(OVERLAY_TURN_LIFECYCLE.ACTIVE)).toBe(true);
+    expect(isOverlayTurnLifecycleBusy(getIdleOverlayTurnLifecycle())).toBe(false);
+    expect(isOverlayTurnLifecycleBusy(getTerminalOverlayTurnLifecycle())).toBe(false);
+    expect(isOverlayTurnLifecycleBusy(getPreflightOverlayTurnLifecycle())).toBe(true);
+    expect(isOverlayTurnLifecycleBusy(getAwaitingOverlayTurnLifecycle())).toBe(true);
+    expect(isOverlayTurnLifecycleBusy(getActiveOverlayTurnLifecycle())).toBe(true);
 
-    expect(isOverlayTurnLifecycleAwaiting(OVERLAY_TURN_LIFECYCLE.PREFLIGHT)).toBe(true);
-    expect(isOverlayTurnLifecycleAwaiting(OVERLAY_TURN_LIFECYCLE.AWAITING)).toBe(true);
-    expect(isOverlayTurnLifecycleAwaiting(OVERLAY_TURN_LIFECYCLE.ACTIVE)).toBe(false);
+    expect(isOverlayTurnLifecycleAwaiting(getPreflightOverlayTurnLifecycle())).toBe(true);
+    expect(isOverlayTurnLifecycleAwaiting(getAwaitingOverlayTurnLifecycle())).toBe(true);
+    expect(isOverlayTurnLifecycleAwaiting(getActiveOverlayTurnLifecycle())).toBe(false);
+    expect(isOverlayTurnLifecycleIdle(getIdleOverlayTurnLifecycle())).toBe(true);
+    expect(isOverlayTurnLifecycleActive(getActiveOverlayTurnLifecycle())).toBe(true);
+    expect(isOverlayTurnLifecycleTerminal(getTerminalOverlayTurnLifecycle())).toBe(true);
   });
 });

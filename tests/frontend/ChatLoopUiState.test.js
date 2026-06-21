@@ -12,12 +12,11 @@ import {
   reduceChatLoopTransportMachineState,
   resolveChatLoopUiState,
 } from '../../frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime';
-import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 describe('desktopChatLoopUiRuntime', () => {
   test('treats preflight lifecycle as awaiting reply', () => {
     const loopUiState = resolveChatLoopUiState({
-      lifecycle: OVERLAY_TURN_LIFECYCLE.PREFLIGHT,
+      lifecycle: 'preflight',
       hasVisibleReply: false,
     });
 
@@ -28,7 +27,7 @@ describe('desktopChatLoopUiRuntime', () => {
 
   test('keeps streaming without a visible assistant reply in awaiting state', () => {
     const loopUiState = resolveChatLoopUiState({
-      lifecycle: OVERLAY_TURN_LIFECYCLE.ACTIVE,
+      lifecycle: 'active',
       hasVisibleReply: false,
     });
 
@@ -37,7 +36,7 @@ describe('desktopChatLoopUiRuntime', () => {
 
   test('switches streaming with a visible assistant reply into active response state', () => {
     const loopUiState = resolveChatLoopUiState({
-      lifecycle: OVERLAY_TURN_LIFECYCLE.ACTIVE,
+      lifecycle: 'active',
       hasVisibleReply: true,
     });
 
@@ -48,7 +47,7 @@ describe('desktopChatLoopUiRuntime', () => {
 
   test('returns to idle on terminal phases', () => {
     const loopUiState = resolveChatLoopUiState({
-      lifecycle: OVERLAY_TURN_LIFECYCLE.TERMINAL,
+      lifecycle: 'terminal',
       hasVisibleReply: true,
     });
 
@@ -58,7 +57,7 @@ describe('desktopChatLoopUiRuntime', () => {
 
   test('treats awaiting lifecycle as awaiting reply', () => {
     const loopUiState = resolveChatLoopUiState({
-      lifecycle: OVERLAY_TURN_LIFECYCLE.AWAITING,
+      lifecycle: 'awaiting',
       hasVisibleReply: false,
     });
 
@@ -68,7 +67,7 @@ describe('desktopChatLoopUiRuntime', () => {
 
   test('keeps idle lifecycle idle even when a stale visible reply exists', () => {
     const loopUiState = resolveChatLoopUiState({
-      lifecycle: OVERLAY_TURN_LIFECYCLE.IDLE,
+      lifecycle: 'idle',
       hasVisibleReply: true,
     });
 

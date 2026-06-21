@@ -8569,3 +8569,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   response-pane selection, chatbox surface state, transcript rows, IPC
   channels, storage, provider policy, permissions, and backend behavior are
   unchanged; no migration is required.
+- The renderer overlay turn lifecycle runtime now keeps the raw
+  `OVERLAY_TURN_LIFECYCLE` table private to
+  `desktopOverlayTurnLifecycleRuntime.js`; chat-loop state, current-turn
+  presentation, response-overlay stale-response suppression, SDK-derived
+  minimal-pill lifecycle mapping, and focused fixtures use semantic lifecycle
+  value helpers or predicates instead. Boundary coverage prevents the raw table
+  from returning as a public app-runtime export or production dependency.
+  Lifecycle string values, chat-loop state, awaiting-dot behavior,
+  stale-response suppression, IPC channels, storage, provider policy,
+  permissions, and backend behavior are unchanged; no migration is required.

@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlay: keep overlay turn lifecycle constants private to the
+  app-runtime lifecycle adapter, exposing semantic lifecycle helpers and
+  predicates for chat-loop and overlay view callers. No migration required.
 - renderer/chat: keep the default visible-assistant reply type set private to
   the current-turn presentation runtime and let dashboard chat use that runtime
   default instead of importing the raw set. No migration required.

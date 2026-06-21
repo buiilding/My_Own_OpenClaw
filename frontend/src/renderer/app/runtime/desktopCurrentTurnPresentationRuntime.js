@@ -7,7 +7,7 @@ import {
   isChatLoopBusy,
   resolveChatLoopUiState,
 } from './desktopChatLoopUiRuntime';
-import { OVERLAY_TURN_LIFECYCLE } from './desktopOverlayTurnLifecycleRuntime';
+import { getIdleOverlayTurnLifecycle } from './desktopOverlayTurnLifecycleRuntime';
 
 const CHATBOX_SURFACE_STATE = Object.freeze({
   COMPACT: 'compact',
@@ -110,7 +110,7 @@ function shouldShowChatboxResponse(surfaceState) {
 
 export function resolveCurrentTurnPresentationState({
   phase = null,
-  lifecycle = OVERLAY_TURN_LIFECYCLE.IDLE,
+  lifecycle = getIdleOverlayTurnLifecycle(),
   messages,
   dismissedResponseId = null,
   allowedTypes = DEFAULT_VISIBLE_ASSISTANT_REPLY_TYPES,

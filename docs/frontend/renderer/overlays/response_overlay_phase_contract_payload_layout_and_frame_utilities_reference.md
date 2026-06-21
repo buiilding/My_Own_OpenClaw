@@ -72,16 +72,20 @@ Shared lifecycle source of truth:
 
 - `frontend/src/shared/overlay_turn_lifecycle_contract.json`
 
-Renderer adapters:
+Renderer adapter:
 
-- `desktopOverlayTurnLifecycleRuntime.js` exposes lifecycle constants and
-  resolver helpers while keeping JSON phase-group tables private:
-  - `IDLE`
-  - `PREFLIGHT`
-  - `AWAITING`
-  - `ACTIVE`
-  - `TERMINAL`
-- `resolveOverlayTurnLifecycle(...)` resolves renderer-local send state plus main-process overlay phase into one canonical lifecycle.
+- `desktopOverlayTurnLifecycleRuntime.js` keeps the raw lifecycle table and JSON
+  phase-group tables private.
+- `resolveOverlayTurnLifecycle(...)` resolves renderer-local send state plus
+  main-process overlay phase into one canonical lifecycle string.
+- `getIdleOverlayTurnLifecycle()`, `getPreflightOverlayTurnLifecycle()`,
+  `getAwaitingOverlayTurnLifecycle()`, `getActiveOverlayTurnLifecycle()`, and
+  `getTerminalOverlayTurnLifecycle()` expose semantic lifecycle values for
+  callers that need to create fixture or SDK-derived lifecycle values.
+- `isOverlayTurnLifecycleIdle(...)`, `isOverlayTurnLifecycleAwaiting(...)`,
+  `isOverlayTurnLifecycleActive(...)`, `isOverlayTurnLifecycleTerminal(...)`,
+  and `isOverlayTurnLifecycleBusy(...)` keep app and feature code on
+  behavior-level checks instead of importing raw lifecycle tables.
 
 Important behavior:
 

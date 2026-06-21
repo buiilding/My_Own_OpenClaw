@@ -455,8 +455,12 @@ describe('renderer app runtime boundary', () => {
 
     expect(lifecycleRuntimeSource).toContain('overlay_turn_lifecycle_contract.json');
     expect(lifecycleRuntimeSource).not.toContain('features/chat');
+    expect(lifecycleRuntimeSource).not.toContain('export const OVERLAY_TURN_LIFECYCLE');
     expect(lifecycleRuntimeSource).toContain('resolveOverlayTurnLifecycle');
+    expect(lifecycleRuntimeSource).toContain('getIdleOverlayTurnLifecycle');
+    expect(lifecycleRuntimeSource).toContain('isOverlayTurnLifecycleActive');
     expect(lifecycleRuntimeSource).toContain('isOverlayTurnLifecycleBusy');
+    expect(chatLoopUiStateSource).not.toContain('OVERLAY_TURN_LIFECYCLE');
     expect(chatLoopUiStateSource).not.toContain('features/chat');
     expect(chatLoopUiStateSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(chatLoopUiStateSource).toContain('desktopStreamPhaseRuntime');

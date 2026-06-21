@@ -6,7 +6,7 @@ import {
   isVisibleResponseOverlayLayoutMode,
   resolveResponseOverlayLayoutMode,
 } from './desktopResponseOverlayLayoutRuntime';
-import { OVERLAY_TURN_LIFECYCLE } from './desktopOverlayTurnLifecycleRuntime';
+import { isOverlayTurnLifecycleAwaiting } from './desktopOverlayTurnLifecycleRuntime';
 
 type CurrentTurnPresentationStateLike = {
   showChatboxAwaitingReply?: boolean;
@@ -37,10 +37,7 @@ export function resolveResponseOverlayViewContract({
   const visibleResponseId = currentTurnPresentationState.visibleResponse?.id || null;
   const isStaleVisibleResponseDuringAwaiting = (
     awaitingReply
-    && (
-      overlayTurnLifecycle === OVERLAY_TURN_LIFECYCLE.PREFLIGHT
-      || overlayTurnLifecycle === OVERLAY_TURN_LIFECYCLE.AWAITING
-    )
+    && isOverlayTurnLifecycleAwaiting(overlayTurnLifecycle)
     && visibleResponseId !== null
     && latestResponseOverlayEntryId === visibleResponseId
   );
