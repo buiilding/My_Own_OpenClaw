@@ -664,7 +664,12 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSideEffectsSource).toContain('streaming-response');
     expect(projectionSideEffectsSource).toContain('desktopChatStreamThinkingRuntime');
     expect(projectionSideEffectsSource).not.toContain('features/chat');
-    expect(thinkingRuntimeSource).toContain('GENERIC_THINKING_STATUS');
+    expect(thinkingRuntimeSource).toContain('getGenericThinkingStatus');
+    expect(thinkingRuntimeSource).toContain('isGenericThinkingStatus');
+    expect(thinkingRuntimeSource).not.toContain('export const GENERIC_THINKING_STATUS');
+    expect(thinkingRuntimeSource).not.toContain('export const COMPACTION_THINKING_STATUS');
+    expect(thinkingRuntimeSource).not.toContain('export const COMPACTION_COMPLETED_THINKING_STATUS');
+    expect(thinkingRuntimeSource).not.toContain('export const COMPACTION_FAILED_THINKING_STATUS');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/state/currentTurnProjectionSideEffects.ts'),
     )).rejects.toThrow();

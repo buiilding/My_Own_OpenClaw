@@ -5,7 +5,7 @@
 import type { CurrentTurnToolEvent } from './desktopConversationRuntimeContracts';
 import {
   buildThinkingStatus,
-  GENERIC_THINKING_STATUS,
+  isGenericThinkingStatus,
 } from './desktopChatStreamThinkingRuntime';
 import type { recordTrackingEvent as recordTrackingEventRuntime } from './desktopChatStreamEventRuntime';
 
@@ -153,7 +153,7 @@ export function applyCurrentTurnProjectionSideEffects({
 
   if (reasoningDelta) {
     const workspace = deps.getWorkspaceState(conversationRef);
-    const nextBaseStatus = workspace.thinkingStatus === GENERIC_THINKING_STATUS
+    const nextBaseStatus = isGenericThinkingStatus(workspace.thinkingStatus)
       ? null
       : workspace.thinkingStatus;
     deps.setThinkingStatus(buildThinkingStatus(nextBaseStatus, reasoningDelta), conversationRef);

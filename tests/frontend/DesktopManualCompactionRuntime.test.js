@@ -6,8 +6,8 @@ import { buildDeferredQueryModelSelection } from '../../frontend/src/renderer/ap
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import {
-  COMPACTION_FAILED_THINKING_STATUS,
-  COMPACTION_THINKING_STATUS,
+  getCompactionFailedThinkingStatus,
+  getCompactionStartedThinkingStatus,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
 import { runManualCompaction } from '../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntime';
 
@@ -57,8 +57,8 @@ describe('runManualCompaction', () => {
     });
 
     expect(DesktopConversationContinuityService.compactHistory).not.toHaveBeenCalled();
-    expect(setThinkingStatus).toHaveBeenNthCalledWith(1, COMPACTION_THINKING_STATUS);
-    expect(setThinkingStatus).toHaveBeenLastCalledWith(COMPACTION_FAILED_THINKING_STATUS);
+    expect(setThinkingStatus).toHaveBeenNthCalledWith(1, getCompactionStartedThinkingStatus());
+    expect(setThinkingStatus).toHaveBeenLastCalledWith(getCompactionFailedThinkingStatus());
     expect(setThinkingSourceEventType).toHaveBeenLastCalledWith('context-compaction-failed');
   });
 
@@ -82,8 +82,8 @@ describe('runManualCompaction', () => {
       true,
       'conversation-1',
     );
-    expect(setThinkingStatus).toHaveBeenNthCalledWith(1, COMPACTION_THINKING_STATUS);
-    expect(setThinkingStatus).toHaveBeenLastCalledWith(COMPACTION_FAILED_THINKING_STATUS);
+    expect(setThinkingStatus).toHaveBeenNthCalledWith(1, getCompactionStartedThinkingStatus());
+    expect(setThinkingStatus).toHaveBeenLastCalledWith(getCompactionFailedThinkingStatus());
     expect(setThinkingSourceEventType).toHaveBeenLastCalledWith('context-compaction-failed');
   });
 });

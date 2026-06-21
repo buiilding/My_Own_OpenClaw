@@ -20651,3 +20651,21 @@ Each completed slice should report:
   response/awaiting heights, compact-hover behavior, responsebox sizing IPC,
   overlay visibility, storage, provider policy, permissions, and backend
   behavior are unchanged.
+
+### 2026-06-21 renderer chat-stream thinking label helper privacy
+
+- Finding: `desktopChatStreamThinkingRuntime.ts` owned generic thinking and
+  compaction lifecycle labels, but exported raw status constants directly to
+  chat stream hooks, manual compaction orchestration, projection side effects,
+  and focused tests.
+- Change: made the raw status labels private, exposed semantic generic,
+  compaction-started/completed/failed, failed-fallback, and generic-status
+  predicate helpers, and updated stream/manual compaction callers to use the
+  helper surface.
+- Validation: focused chat-stream thinking, compaction handler, manual
+  compaction, and renderer chat-runtime boundary tests, exact raw-export/import
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Thinking placeholder text, compaction
+  lifecycle labels, failed-error fallback behavior, stream projection side
+  effects, transcript rows, IPC channels, storage, provider policy,
+  permissions, and backend behavior are unchanged.

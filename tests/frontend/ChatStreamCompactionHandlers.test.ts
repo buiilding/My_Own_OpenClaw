@@ -18,9 +18,9 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
 import { useChatStreamCompactionHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompactionHandlers';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import {
-  COMPACTION_COMPLETED_THINKING_STATUS,
-  COMPACTION_FAILED_THINKING_STATUS,
-  COMPACTION_THINKING_STATUS,
+  getCompactionCompletedThinkingStatus,
+  getCompactionFailedThinkingStatus,
+  getCompactionStartedThinkingStatus,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
 
 function sdkEvent(type: string, overrides: Record<string, unknown> = {}) {
@@ -101,10 +101,10 @@ describe('useChatStreamCompactionHandlers', () => {
       }) as any);
     });
 
-    expect(setThinkingStatus).toHaveBeenNthCalledWith(1, COMPACTION_THINKING_STATUS, 'conversation-1');
-    expect(setThinkingStatus).toHaveBeenNthCalledWith(2, COMPACTION_COMPLETED_THINKING_STATUS, 'conversation-1');
+    expect(setThinkingStatus).toHaveBeenNthCalledWith(1, getCompactionStartedThinkingStatus(), 'conversation-1');
+    expect(setThinkingStatus).toHaveBeenNthCalledWith(2, getCompactionCompletedThinkingStatus(), 'conversation-1');
     expect(setThinkingStatus).toHaveBeenNthCalledWith(3, null, 'conversation-1');
-    expect(setThinkingStatus).toHaveBeenNthCalledWith(4, COMPACTION_FAILED_THINKING_STATUS, 'conversation-1');
+    expect(setThinkingStatus).toHaveBeenNthCalledWith(4, getCompactionFailedThinkingStatus(), 'conversation-1');
     expect(setThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started', 'conversation-1');
     expect(setThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-completed', 'conversation-1');
     expect(setThinkingSourceEventType).toHaveBeenCalledWith(null, 'conversation-1');
@@ -233,7 +233,7 @@ describe('useChatStreamCompactionHandlers', () => {
       result.current.handleContextCompactionFailed(sdkEvent('compaction_failed') as any);
     });
 
-    expect(setThinkingStatus).toHaveBeenCalledWith(COMPACTION_THINKING_STATUS, 'conversation-1');
+    expect(setThinkingStatus).toHaveBeenCalledWith(getCompactionStartedThinkingStatus(), 'conversation-1');
     expect(setThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started', 'conversation-1');
     expect(setCompactionDebugInfo).toHaveBeenCalledWith(null, 'conversation-1');
     expect(recordTrackingEvent).toHaveBeenCalledWith(

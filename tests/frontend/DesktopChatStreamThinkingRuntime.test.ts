@@ -4,6 +4,12 @@
 
 import {
   buildThinkingStatus,
+  getCompactionCompletedThinkingStatus,
+  getCompactionFailedThinkingStatus,
+  getCompactionStartedThinkingStatus,
+  getGenericThinkingStatus,
+  isGenericThinkingStatus,
+  resolveCompactionFailedThinkingStatus,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
 
 describe('desktopChatStreamThinkingRuntime', () => {
@@ -18,5 +24,16 @@ describe('desktopChatStreamThinkingRuntime', () => {
   test('buildThinkingStatus handles null inputs safely', () => {
     expect(buildThinkingStatus(null, undefined)).toBe('');
     expect(buildThinkingStatus('base', undefined)).toBe('base');
+  });
+
+  test('exposes thinking labels through semantic helpers', () => {
+    expect(getGenericThinkingStatus()).toBe('Thinking...');
+    expect(isGenericThinkingStatus('Thinking...')).toBe(true);
+    expect(isGenericThinkingStatus('Other')).toBe(false);
+    expect(getCompactionStartedThinkingStatus()).toBe('Compacting conversation history...');
+    expect(getCompactionCompletedThinkingStatus()).toBe('Conversation history compacted.');
+    expect(getCompactionFailedThinkingStatus()).toBe('Conversation compaction failed.');
+    expect(resolveCompactionFailedThinkingStatus('backend failed')).toBe('backend failed');
+    expect(resolveCompactionFailedThinkingStatus('')).toBe('Conversation compaction failed.');
   });
 });

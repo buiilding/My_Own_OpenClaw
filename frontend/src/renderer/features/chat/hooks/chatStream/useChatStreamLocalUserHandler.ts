@@ -8,7 +8,7 @@ import {
   isLocalUserMessageConversationStreamEvent,
   resolveConversationStreamEventTurnRef,
 } from '../../../../app/runtime/desktopChatStreamEventRuntime';
-import { GENERIC_THINKING_STATUS } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
+import { getGenericThinkingStatus } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
 import {
   resolveConversationStreamEventPayload,
   resolveLocalUserMessageText,
@@ -42,7 +42,7 @@ export function useChatStreamLocalUserHandler({
     setIsSending(true, conversationRef);
     const modelContext = modelContextRef.current;
     if (modelContext.supportsThinking && !modelContext.supportsThinkingTextStream) {
-      setThinkingStatus(GENERIC_THINKING_STATUS, conversationRef);
+      setThinkingStatus(getGenericThinkingStatus(), conversationRef);
       setThinkingSourceEventType('local-user-message', conversationRef);
     } else {
       setThinkingStatus(null, conversationRef);

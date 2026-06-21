@@ -8540,3 +8540,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   strings, fixed response/awaiting heights, compact-hover behavior,
   responsebox sizing IPC, overlay visibility, storage, provider policy,
   permissions, and backend behavior are unchanged; no migration is required.
+- The renderer chat-stream thinking runtime now keeps generic thinking and
+  compaction lifecycle labels private to
+  `desktopChatStreamThinkingRuntime.ts`; stream hooks, manual compaction, and
+  current-turn projection side effects use semantic label helpers, failed-status
+  fallback resolution, and the generic-status predicate. Boundary coverage
+  prevents the raw thinking/compaction status constants from becoming public
+  exports again. Thinking placeholder text, compaction lifecycle labels,
+  failed-error fallback behavior, stream projection side effects, transcript
+  rows, IPC channels, storage, provider policy, permissions, and backend
+  behavior are unchanged; no migration is required.

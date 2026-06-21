@@ -25,9 +25,9 @@ import {
   resolveCompactionUserId,
 } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import {
-  COMPACTION_THINKING_STATUS,
-  COMPACTION_COMPLETED_THINKING_STATUS,
-  COMPACTION_FAILED_THINKING_STATUS,
+  getCompactionCompletedThinkingStatus,
+  getCompactionStartedThinkingStatus,
+  resolveCompactionFailedThinkingStatus,
 } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
 import type {
   StreamTrackingEventType,
@@ -102,7 +102,7 @@ export function useChatStreamCompactionHandlers({
     }
     const conversationRef = resolveConversationStreamEventConversationRef(event);
     const turnRef = resolveConversationStreamEventTurnRef(event);
-    setThinkingStatusRef.current(COMPACTION_THINKING_STATUS, conversationRef);
+    setThinkingStatusRef.current(getCompactionStartedThinkingStatus(), conversationRef);
     setThinkingSourceEventTypeRef.current('context-compaction-started', conversationRef);
     setCompactionDebugInfoRef.current(null, conversationRef);
     recordTrackingEventRef.current('context-compaction-started', turnRef, {}, conversationRef);
@@ -136,7 +136,7 @@ export function useChatStreamCompactionHandlers({
       return;
     }
     setThinkingStatusRef.current(
-      COMPACTION_COMPLETED_THINKING_STATUS,
+      getCompactionCompletedThinkingStatus(),
       conversationRef,
     );
     setThinkingSourceEventTypeRef.current('context-compaction-completed', conversationRef);
@@ -172,7 +172,7 @@ export function useChatStreamCompactionHandlers({
     const conversationRef = resolveConversationStreamEventConversationRef(event);
     const turnRef = resolveConversationStreamEventTurnRef(event);
     const errorText = resolveCompactionErrorText(resolveConversationStreamEventPayload(event));
-    setThinkingStatusRef.current(errorText || COMPACTION_FAILED_THINKING_STATUS, conversationRef);
+    setThinkingStatusRef.current(resolveCompactionFailedThinkingStatus(errorText), conversationRef);
     setThinkingSourceEventTypeRef.current('context-compaction-failed', conversationRef);
     setCompactionDebugInfoRef.current(null, conversationRef);
     recordTrackingEventRef.current('context-compaction-failed', turnRef, {}, conversationRef);

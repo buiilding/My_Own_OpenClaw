@@ -6,8 +6,8 @@ import { buildDeferredQueryModelSelection } from './desktopRendererConfigRuntime
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
 import {
-  COMPACTION_FAILED_THINKING_STATUS,
-  COMPACTION_THINKING_STATUS,
+  getCompactionFailedThinkingStatus,
+  getCompactionStartedThinkingStatus,
 } from './desktopChatStreamThinkingRuntime';
 
 function waitForNextPaint() {
@@ -27,7 +27,7 @@ export async function runManualCompaction({
   setThinkingSourceEventType,
   warningContext = 'manual compaction',
 }) {
-  setThinkingStatus(COMPACTION_THINKING_STATUS);
+  setThinkingStatus(getCompactionStartedThinkingStatus());
   setThinkingSourceEventType('context-compaction-started');
   await waitForNextPaint();
 
@@ -41,7 +41,7 @@ export async function runManualCompaction({
     await DesktopConversationContinuityService.compactHistory(true, normalizedConversationRef);
   } catch (error) {
     console.warn(`[${warningContext}] Failed to start manual compaction:`, error);
-    setThinkingStatus(COMPACTION_FAILED_THINKING_STATUS);
+    setThinkingStatus(getCompactionFailedThinkingStatus());
     setThinkingSourceEventType('context-compaction-failed');
   }
 }

@@ -45,6 +45,9 @@ Core behavior:
 ## Thinking Formatting (`desktopChatStreamThinkingRuntime.ts`)
 
 - `buildThinkingStatus` appends chunks and caps final string length at 5000 chars (tail-preserving truncation).
+- Generic thinking placeholders and compaction lifecycle labels are exposed
+  through semantic helpers/predicates so chat hooks do not import raw status
+  constants from the app-runtime adapter.
 - Tool-call, bundle-call, and tool-output display text is projected through the
   tool message-state builders used by chat-stream handlers and SDK display-row
   projection, not through separate chat-stream formatting exports.

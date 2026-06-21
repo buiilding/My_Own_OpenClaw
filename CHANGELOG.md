@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: keep chat-stream generic thinking and compaction status labels
+  private to the app-runtime thinking helper, exposing semantic label helpers
+  and predicates for stream hooks. No migration required.
 - renderer/overlay: keep response-overlay layout constants and mode tables
   private to the app-runtime layout adapter, exposing semantic height and mode
   helpers for minimal-pill callers. No migration required.
