@@ -3,11 +3,15 @@
  */
 
 import {
+  DesktopComposerAttachmentRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime';
+
+const {
   parseBase64ImageDataUrl,
   parseClipboardImageItems,
   parseSelectedComposerFiles,
   readFileAsDataUrl,
-} from '../../frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime';
+} = DesktopComposerAttachmentRuntime;
 
 describe('desktopComposerAttachmentRuntime', () => {
   const originalFileReader = global.FileReader;

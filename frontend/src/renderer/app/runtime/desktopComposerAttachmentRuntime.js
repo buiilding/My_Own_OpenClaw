@@ -47,7 +47,7 @@ function isImageFile(file) {
   return IMAGE_FILE_EXTENSIONS.has(extension);
 }
 
-export function readFileAsDataUrl(
+function readFileAsDataUrl(
   file,
   {
     loadErrorMessage = 'Failed to load image data.',
@@ -70,7 +70,7 @@ export function readFileAsDataUrl(
   });
 }
 
-export function parseBase64ImageDataUrl(dataUrl, fallbackContentType = null) {
+function parseBase64ImageDataUrl(dataUrl, fallbackContentType = null) {
   const match = /^data:([^;]+);base64,(.+)$/i.exec(dataUrl);
   if (!match) {
     return null;
@@ -141,7 +141,7 @@ function resolveFilePath(file) {
   return null;
 }
 
-export async function parseClipboardImageItems(clipboardItems = []) {
+async function parseClipboardImageItems(clipboardItems = []) {
   const imageItems = Array.from(clipboardItems).filter((item) => item?.type?.startsWith('image/'));
   if (imageItems.length === 0) {
     return [];
@@ -162,7 +162,7 @@ export async function parseClipboardImageItems(clipboardItems = []) {
   return parsedImages;
 }
 
-export async function parseSelectedComposerFiles(fileList = []) {
+async function parseSelectedComposerFiles(fileList = []) {
   const files = Array.from(fileList || []);
   if (files.length === 0) {
     return {
@@ -205,3 +205,10 @@ export async function parseSelectedComposerFiles(fileList = []) {
     readableFiles,
   };
 }
+
+export const DesktopComposerAttachmentRuntime = Object.freeze({
+  parseBase64ImageDataUrl,
+  parseClipboardImageItems,
+  parseSelectedComposerFiles,
+  readFileAsDataUrl,
+});

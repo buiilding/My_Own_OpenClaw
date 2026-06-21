@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Composer Attachment Facade
+
+- Finding: `desktopComposerAttachmentRuntime.js` already owned composer
+  FileReader data-URL loading, base64 image parsing, clipboard image payload
+  shaping, selected image attachment parsing, and readable-file bucketing, but
+  still exported those rules as standalone helpers consumed by
+  `useChatComposerDraft` and focused tests.
+- Change: made the composer attachment helpers private to the runtime module,
+  exposed them through `DesktopComposerAttachmentRuntime`, and routed composer
+  draft parsing plus focused attachment tests through that facade.
+- Validation: focused composer attachment runtime, message input/composer
+  wiring, renderer chat boundary, exact standalone composer attachment helper
+  export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Clipboard image previews,
+  selected image attachments, readable-file path bucketing, content-type and
+  extension normalization, attachment-only send behavior, UI state, IPC,
+  storage, credentials, provider policy, hosted backend URLs, and local
+  execution trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Thread Presentation Facade
 
 - Finding: `desktopThreadPresentationRuntime.js` already owned durable-thread

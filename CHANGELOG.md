@@ -78,6 +78,10 @@ All notable changes to WindieOS will be documented in this file.
   presentation through `DesktopThreadPresentationRuntime` instead of standalone
   helper exports, keeping chat row composition behind the renderer app-runtime
   facade. No migration required.
+- frontend/renderer: expose composer data-URL, clipboard-image, and file-picker
+  attachment parsing through `DesktopComposerAttachmentRuntime` instead of
+  standalone helper exports, keeping chat composer attachment shaping behind
+  the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

@@ -93,14 +93,19 @@ Parsed payload shape:
 
 The helper path uses shared data-URL parse/normalization primitives:
 
-- `readFileAsDataUrl(...)`
-- `parseBase64ImageDataUrl(...)`
+- `DesktopComposerAttachmentRuntime.readFileAsDataUrl(...)`
+- `DesktopComposerAttachmentRuntime.parseBase64ImageDataUrl(...)`
 
 ## File Attachment Picker Flow
 
-The hidden file input calls `parseSelectedComposerFiles(...)` through the shared composer draft hook. `MessageInput` catches rejected parsing promises and logs a scoped warning so picker failures do not escape as unhandled promise rejections.
+The hidden file input calls
+`DesktopComposerAttachmentRuntime.parseSelectedComposerFiles(...)` through the
+shared composer draft hook. `MessageInput` catches rejected parsing promises and
+logs a scoped warning so picker failures do not escape as unhandled promise
+rejections.
 
-File-picker handler (`Add photos & files`) delegates to `parseSelectedComposerFiles(...)`.
+File-picker handler (`Add photos & files`) delegates to
+`DesktopComposerAttachmentRuntime.parseSelectedComposerFiles(...)`.
 
 Result buckets:
 

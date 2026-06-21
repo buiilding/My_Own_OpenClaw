@@ -19,9 +19,12 @@ title: "Data-URL Image Parsing and Attachment Payload Contract Reference"
 
 ## Shared Data-URL Primitive Contract
 
-`desktopComposerAttachmentRuntime.js` provides shared parsing primitives used by clipboard and file-attachment flows.
+`DesktopComposerAttachmentRuntime` in `desktopComposerAttachmentRuntime.js`
+provides shared parsing primitives used by clipboard and file-attachment
+flows. Consumers should import the runtime facade rather than standalone helper
+exports.
 
-### `readFileAsDataUrl(file, options)`
+### `DesktopComposerAttachmentRuntime.readFileAsDataUrl(file, options)`
 
 Behavior:
 
@@ -31,7 +34,7 @@ Behavior:
   - `loadErrorMessage`
   - `readErrorMessage`
 
-### `parseBase64ImageDataUrl(dataUrl, fallbackContentType)`
+### `DesktopComposerAttachmentRuntime.parseBase64ImageDataUrl(dataUrl, fallbackContentType)`
 
 Behavior:
 
@@ -49,7 +52,7 @@ Returned shape:
 
 ## Clipboard Image Flow Contract
 
-`parseClipboardImageItems(clipboardItems)`:
+`DesktopComposerAttachmentRuntime.parseClipboardImageItems(clipboardItems)`:
 
 1. filters clipboard items to `image/*` MIME types
 2. reads each image with `readFileAsDataUrl(...)`
@@ -65,7 +68,8 @@ Non-image clipboard items are ignored.
 
 ## File Picker Attachment Flow Contract
 
-`parseSelectedComposerFiles(fileList)` splits selected files into two buckets:
+`DesktopComposerAttachmentRuntime.parseSelectedComposerFiles(fileList)` splits
+selected files into two buckets:
 
 - `imageAttachments[]`
 - `readableFiles[]`
