@@ -195,6 +195,7 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     setResponseOverlayVisibilityState = () => {},
     showResponseWindowInactive = () => {},
     canShowFloatingResponseOverlay = () => true,
+    isResponseOverlayGuardDismissed = () => false,
     surfaceState = null,
   } = deps;
 
@@ -216,6 +217,30 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       responseWindow: summarizeWindow(responseWindow, 'response overlay'),
     });
     return { success: true, applied: false, reason: 'missing-sdk-overlay-intent' };
+  }
+
+  if (
+    intent.visible === true
+    && intent.mode === 'response'
+    && isResponseOverlayGuardDismissed(intent.staleGuardRef)
+  ) {
+    appendSurfaceVisibilityDiagnostic({
+      action: 'skip-dismissed-sdk-overlay-intent',
+      mode: intent.mode,
+      turnRef: intent.turnRef,
+      staleGuardRef: intent.staleGuardRef,
+      conversationRef: intent.conversationRef,
+    });
+    return {
+      success: true,
+      applied: false,
+      ignored: true,
+      reason: 'dismissed-response-overlay',
+      visible: false,
+      mode: intent.mode,
+      turnRef: intent.turnRef,
+      staleGuardRef: intent.staleGuardRef,
+    };
   }
 
   logSdkTypingTransition(currentTurn, intent, sdkSurfaceState);
@@ -537,5 +562,4 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
 module.exports = {
   createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
-  resolveOverlayIntent,
 };

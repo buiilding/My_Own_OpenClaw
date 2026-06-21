@@ -92,11 +92,7 @@ const { createSurfaceRuntime } = require('./surfaces/surface_runtime.cjs');
 const {
   createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
-  resolveOverlayIntent,
 } = require('./surfaces/live_turn_surface_controller.cjs');
-const {
-  appendSurfaceVisibilityDiagnostic,
-} = require('./diagnostics/app_diagnostics_runtime.cjs');
 const {
   configureAppDiagnosticsStore,
 } = require('./diagnostics/app_diagnostics_store.cjs');
@@ -243,30 +239,6 @@ const sdkLiveTurnSurfaceState = createSdkLiveTurnSurfaceState();
 
 function syncSdkLiveTurnSurfaceIntent(currentTurn) {
   latestSdkCurrentTurnForSurface = currentTurn || null;
-  const overlayIntent = resolveOverlayIntent(currentTurn);
-  if (
-    overlayIntent?.visible === true
-    && overlayIntent.mode === 'response'
-    && surfaceRuntime.isResponseOverlayGuardDismissed(overlayIntent.staleGuardRef)
-  ) {
-    appendSurfaceVisibilityDiagnostic({
-      action: 'skip-dismissed-sdk-overlay-intent',
-      mode: overlayIntent.mode,
-      turnRef: overlayIntent.turnRef,
-      staleGuardRef: overlayIntent.staleGuardRef,
-      conversationRef: overlayIntent.conversationRef,
-    });
-    return {
-      success: true,
-      applied: false,
-      ignored: true,
-      reason: 'dismissed-response-overlay',
-      visible: false,
-      mode: overlayIntent.mode,
-      turnRef: overlayIntent.turnRef,
-      staleGuardRef: overlayIntent.staleGuardRef,
-    };
-  }
   return handleSdkLiveTurnSurfaceIntent(currentTurn, {
     responseWindow: surfaceRuntime.getResponseWindow(),
     getResponseWindowBounds,
@@ -277,6 +249,7 @@ function syncSdkLiveTurnSurfaceIntent(currentTurn) {
     setResponseOverlayVisibilityState: surfaceRuntime.setResponseOverlayVisibilityState,
     showResponseWindowInactive: surfaceRuntime.overlayHelpers.showResponseWindowInactive,
     canShowFloatingResponseOverlay: surfaceRuntime.canShowFloatingResponseOverlay,
+    isResponseOverlayGuardDismissed: surfaceRuntime.isResponseOverlayGuardDismissed,
     surfaceState: sdkLiveTurnSurfaceState,
     log: (...args) => console.log(...args),
     warn: (...args) => console.warn(...args),

@@ -7,8 +7,8 @@ const {
 const {
   createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
-  resolveOverlayIntent,
 } = require('../../frontend/src/main/surfaces/live_turn_surface_controller.cjs');
+const liveTurnSurfaceControllerModule = require('../../frontend/src/main/surfaces/live_turn_surface_controller.cjs');
 const {
   configureDebugEnvRuntime,
 } = require('../../frontend/src/main/app/debug_env.cjs');
@@ -89,13 +89,16 @@ function createDeps(overrides = {}) {
 
 describe('sdk_live_turn_surface_controller', () => {
   test('normalizes SDK overlay intent from current turn presentation', () => {
-    expect(resolveOverlayIntent(createCurrentTurn())).toEqual({
-      visible: true,
+    const deps = createDeps();
+
+    expect(handleSdkLiveTurnSurfaceIntent(createCurrentTurn(), deps)).toMatchObject({
+      success: true,
+      applied: true,
       mode: 'response',
       turnRef: 'turn-1',
       staleGuardRef: 'turn-1',
-      conversationRef: 'conv-1',
     });
+    expect(liveTurnSurfaceControllerModule.resolveOverlayIntent).toBeUndefined();
   });
 
   test('shows awaiting overlay directly from SDK current-turn intent', () => {
@@ -257,6 +260,30 @@ describe('sdk_live_turn_surface_controller', () => {
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.setActiveResponseOverlayGuardRef).toHaveBeenCalledWith(null);
     expect(responseWindow.hide).toHaveBeenCalledTimes(1);
+  });
+
+  test('skips dismissed response overlay intent inside the surface controller', () => {
+    const deps = createDeps({
+      isResponseOverlayGuardDismissed: jest.fn(() => true),
+    });
+
+    const result = handleSdkLiveTurnSurfaceIntent(
+      createCurrentTurn({ mode: 'response' }),
+      deps,
+    );
+
+    expect(result).toMatchObject({
+      success: true,
+      applied: false,
+      ignored: true,
+      reason: 'dismissed-response-overlay',
+      visible: false,
+      mode: 'response',
+      staleGuardRef: 'turn-1',
+    });
+    expect(deps.isResponseOverlayGuardDismissed).toHaveBeenCalledWith('turn-1');
+    expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
   });
 
   test('skips repeated identical awaiting intent after the native window is already visible', () => {

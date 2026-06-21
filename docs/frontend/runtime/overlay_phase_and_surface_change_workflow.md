@@ -154,6 +154,9 @@ Main-process rules:
   native show for typing must still come from the renderer's measured
   `set-responsebox-size` report emitted immediately after the typing layout
   commits.
+- Dismissed SDK response-overlay intents are filtered inside Electron main's
+  live-turn surface controller. The main process composition root injects the
+  dismissed-guard lookup and must not parse SDK overlay intent fields directly.
 - Terminal/idle phases with a mismatched active response `correlation_id` must
   be ignored so late events from a previous response cannot mutate current
   overlay visibility.

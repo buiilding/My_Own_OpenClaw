@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: the TypeScript SDK stream-event runtime keeps
-  stream projection and tool-output dedupe helpers private to
-  `runtime/AgentStreamEvents`, while `Agent.stream(...)`,
-  `AgentChatSession.stream(...)`, and public stream event types remain covered
-  through the public SDK stream-event runtime facade.
+- Latest completed slice: Electron main SDK live-turn surface handling keeps
+  overlay-intent parsing and dismissed-response filtering private to
+  `live_turn_surface_controller.cjs`, while the main composition root injects
+  only native surface/window dependencies and the dismissed-guard lookup.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1067,6 +1066,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
   contracts, IPC channels, storage, provider policy, and hosted backend
   behavior are unchanged.
+
+### 2026-06-21 Main SDK Live-Turn Surface Intent Privacy
+
+- Finding: `live_turn_surface_controller.cjs` already owned SDK current-turn
+  overlay intent parsing, but exported `resolveOverlayIntent(...)` into
+  `frontend/src/main/index.cjs` so the Electron main composition root could
+  skip dismissed response-overlay intents.
+- Change: moved dismissed-response filtering into
+  `handleSdkLiveTurnSurfaceIntent(...)` behind an injected
+  `isResponseOverlayGuardDismissed(...)` dependency. The composition root now
+  calls the live-turn surface facade only, while lower-level overlay-intent
+  parsing remains private to the surface controller.
+- Validation: focused live-turn surface controller tests, targeted Electron
+  main/surface lint, docs listing, stale export/import scans, and diff checks.
+- Compatibility: no migration required. SDK current-turn payloads,
+  response-overlay dismissal behavior, diagnostic payloads, native window
+  mutation, IPC channels, credentials, permissions, trust boundaries, and
+  storage are unchanged.
 
 ### 2026-06-21 SDK Agent Stream Event Runtime Facade
 

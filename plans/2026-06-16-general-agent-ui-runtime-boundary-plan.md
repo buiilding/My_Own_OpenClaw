@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main SDK Live-Turn Surface Intent Privacy
+
+- Finding: `live_turn_surface_controller.cjs` owned SDK current-turn overlay
+  intent parsing, but still exported `resolveOverlayIntent(...)` directly into
+  `frontend/src/main/index.cjs` so the Electron main composition root could
+  perform dismissed-response overlay filtering.
+- Change: moved dismissed-response overlay filtering into
+  `handleSdkLiveTurnSurfaceIntent(...)` behind an injected
+  `isResponseOverlayGuardDismissed(...)` dependency, keeping SDK overlay intent
+  parsing private to the live-turn surface owner while preserving the same
+  ignored-result shape and diagnostic event.
+- Validation: focused live-turn surface controller tests, targeted Electron
+  main/surface lint, docs listing, stale export/import scans, and diff checks
+  before commit.
+- Compatibility/security: no SDK current-turn payload, response-overlay
+  dismissal behavior, diagnostic payload, native window mutation, IPC channel,
+  credential, permission, storage, or trust-boundary migration required;
+  live-turn surface behavior is unchanged.
+
 ### 2026-06-21 SDK Agent Stream Event Runtime Facade
 
 - Finding: `runtime/AgentStreamEvents.ts` owned `agent.stream(...)` stream-event

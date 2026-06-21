@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep SDK live-turn overlay intent parsing and dismissed-response
+  filtering private to `live_turn_surface_controller.cjs` while Electron main
+  injects only the dismissed-guard lookup. No migration required.
 - sdk/js: keep stream-event projection and tool-output dedupe helpers private
   to `runtime/AgentStreamEvents` while `Agent` and `AgentChatSession` consume
   `createAgentStreamEventRuntime(...)`. No migration required.
