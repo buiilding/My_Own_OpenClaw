@@ -6,7 +6,6 @@ import { act, renderHook } from '@testing-library/react';
 
 import {
   DesktopSettingsEventRuntimeClient,
-  useDesktopSettingsEventHandlers,
 } from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
 
 describe('desktopSettingsEventRuntimeClient', () => {
@@ -38,7 +37,9 @@ describe('desktopSettingsEventRuntimeClient', () => {
   test('handleModelsListed forwards payload to setAvailableModels', () => {
     const setAvailableModels = jest.fn();
 
-    const { result } = renderHook(() => useDesktopSettingsEventHandlers(setAvailableModels));
+    const { result } = renderHook(() => (
+      DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers(setAvailableModels)
+    ));
 
     act(() => {
       result.current.handleModelsListed({
@@ -57,7 +58,9 @@ describe('desktopSettingsEventRuntimeClient', () => {
 
   test('handleModelsListed ignores missing or invalid model payloads', () => {
     const setAvailableModels = jest.fn();
-    const { result } = renderHook(() => useDesktopSettingsEventHandlers(setAvailableModels));
+    const { result } = renderHook(() => (
+      DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers(setAvailableModels)
+    ));
 
     act(() => {
       result.current.handleModelsListed({});
@@ -72,7 +75,9 @@ describe('desktopSettingsEventRuntimeClient', () => {
 
   test('returns memoized handlers when dependencies stay the same', () => {
     const setAvailableModels = jest.fn();
-    const { result, rerender } = renderHook(() => useDesktopSettingsEventHandlers(setAvailableModels));
+    const { result, rerender } = renderHook(() => (
+      DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers(setAvailableModels)
+    ));
 
     const firstHandlers = result.current;
     rerender();
@@ -85,7 +90,7 @@ describe('desktopSettingsEventRuntimeClient', () => {
     const firstSetter = jest.fn();
     const secondSetter = jest.fn();
     const { result, rerender } = renderHook(
-      ({ setter }) => useDesktopSettingsEventHandlers(setter),
+      ({ setter }) => DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers(setter),
       { initialProps: { setter: firstSetter } },
     );
 

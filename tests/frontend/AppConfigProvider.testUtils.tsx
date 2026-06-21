@@ -17,7 +17,6 @@ import { AppConfigProvider } from '../../frontend/src/renderer/app/providers/App
 import { useAppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
 import {
   DesktopSettingsEventRuntimeClient,
-  useDesktopSettingsEventHandlers,
 } from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
 import {
   DesktopRendererConfigStorageRuntime,
@@ -69,7 +68,9 @@ let removeIpcListener: jest.Mock;
 let loadDesktopUiConfigResponse: any = null;
 let clientUserIdResponse: any = null;
 
-export const mockUseDesktopSettingsEventHandlers = useDesktopSettingsEventHandlers as jest.Mock;
+export const mockUseDesktopSettingsEventHandlers = (
+  DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers as jest.Mock
+);
 export const mockRouteDesktopSettingsEvent = (
   DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent as jest.Mock
 );

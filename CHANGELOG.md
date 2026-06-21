@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose settings-event model-list handlers through
+  `DesktopSettingsEventRuntimeClient` instead of a standalone hook export,
+  keeping AppConfigProvider on the app-runtime settings-event facade. No
+  migration required.
 - frontend/renderer: expose transcript session info subscription through
   `DesktopTranscriptSessionInfoRuntimeClient` instead of a standalone hook
   export, keeping chat provider, chat session, and memory settings consumers

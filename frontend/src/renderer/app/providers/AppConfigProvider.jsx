@@ -20,7 +20,6 @@ import { DesktopClientSessionRuntimeClient } from '../runtime/desktopClientSessi
 import { DesktopRuntimeEndpointClient } from '../runtime/desktopRuntimeEndpointClient';
 import {
   DesktopSettingsEventRuntimeClient,
-  useDesktopSettingsEventHandlers,
 } from '../runtime/desktopSettingsEventRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
 import { DesktopShortcutRuntimeClient } from '../runtime/desktopShortcutRuntimeClient';
@@ -79,7 +78,7 @@ export function AppConfigProvider({ children }) {
   const [wakewordSuppressed, setWakewordSuppressed] = useState(resolveInitialWakewordSuppressed);
   const [globalAgentStopShortcutStatus, setGlobalAgentStopShortcutStatus] = useState(null);
 
-  const settingsHandlers = useDesktopSettingsEventHandlers(setAvailableModels);
+  const settingsHandlers = DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers(setAvailableModels);
 
   const handlersRef = useLatestRef(settingsHandlers);
   const configRef = useLatestRef(config);

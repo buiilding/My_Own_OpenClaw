@@ -43,7 +43,7 @@ function routeDesktopSettingsEvent(
   }
 }
 
-export function useDesktopSettingsEventHandlers(
+function useDesktopSettingsEventHandlers(
   setAvailableModels: (models: unknown) => void,
 ) {
   const handleModelsListed = useCallback((data: { payload?: unknown }) => {
@@ -60,6 +60,7 @@ export function useDesktopSettingsEventHandlers(
   ]);
 }
 
-export const DesktopSettingsEventRuntimeClient = {
+export const DesktopSettingsEventRuntimeClient = Object.freeze({
   routeDesktopSettingsEvent,
-};
+  useDesktopSettingsEventHandlers,
+});

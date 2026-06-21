@@ -49,8 +49,8 @@ Flow:
    `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)`
 7. `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)`
    dispatches `models-listed` to `handleModelsListed(...)`
-8. `useDesktopSettingsEventHandlers` updates `availableModels` via payload
-   passthrough
+8. `DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers(...)`
+   updates `availableModels` via payload passthrough
 
 Important:
 

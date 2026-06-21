@@ -483,7 +483,9 @@ describe('renderer settings runtime boundary', () => {
       'utf8',
     );
 
-    expect(providerSource).toContain('useDesktopSettingsEventHandlers');
+    expect(providerSource).toContain(
+      'DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers',
+    );
     expect(providerSource).toContain('DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent');
     expect(providerSource).toContain('DesktopClientSessionRuntimeClient.onIpcStatusValues');
     expect(providerSource).toContain('DesktopClientSessionRuntimeClient.resolveIpcStatusValues');
@@ -510,6 +512,7 @@ describe('renderer settings runtime boundary', () => {
     expect(settingsEventClientSource).toContain('routeDesktopSettingsEvent');
     expect(settingsEventClientSource).toContain('function routeDesktopSettingsEvent');
     expect(settingsEventClientSource).not.toContain('export function routeDesktopSettingsEvent');
+    expect(settingsEventClientSource).not.toContain('export function useDesktopSettingsEventHandlers');
     expect(settingsEventClientSource).toContain('DesktopSettingsEventRuntimeClient');
   });
 

@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Settings Event Handler Runtime Facade
+
+- Finding: `desktopSettingsEventRuntimeClient.ts` already owned model-list
+  settings-event routing, but still exported
+  `useDesktopSettingsEventHandlers(...)` as a standalone hook consumed by
+  `AppConfigProvider` and provider test utilities.
+- Change: moved the settings-event handler hook onto
+  `DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers(...)`,
+  routed provider consumers and focused tests through that facade object, and
+  updated renderer settings boundary coverage so standalone hook exports stay
+  removed.
+- Validation: focused settings-event, AppConfigProvider, renderer settings
+  boundary tests plus targeted renderer source lint, docs listing, stale
+  standalone hook scans, and diff checks before commit.
+- Compatibility/security: no migration required. Settings-event channel names,
+  model-list payload validation, available-model updates, settings save-status
+  routing, IPC, credentials, hosted backend policy, and local-runtime execution
+  are unchanged.
+
 ### 2026-06-21 Renderer Transcript Session Info Runtime Facade
 
 - Finding: `desktopTranscriptSessionInfoRuntimeClient.js` owned the

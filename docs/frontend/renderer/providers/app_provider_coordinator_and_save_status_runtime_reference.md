@@ -148,6 +148,8 @@ Electron host transport is routed through app runtime clients:
 - `DesktopSettingsEventRuntimeClient` owns model-list settings-event payload handling for providers.
 - `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)` owns raw
   `models-listed` settings-event type dispatch for app config providers.
+- `DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers(...)`
+  owns provider-facing model-list handler callbacks for app config providers.
 - `DesktopTranscriptSessionRuntimeClient` owns transcript-session binding updates derived from connection snapshots.
 - `DesktopVoiceRuntimeClient` owns value-level wakeword-toggle state fan-out.
 - `DesktopRendererConfigRuntimeClient` owns feature-facing config context access
