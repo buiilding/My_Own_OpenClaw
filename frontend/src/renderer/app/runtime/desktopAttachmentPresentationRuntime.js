@@ -2,7 +2,7 @@
  * Coordinates renderer attachment preview presentation helpers.
  */
 
-export function resolveReadableFileTypeLabel(filename) {
+function resolveReadableFileTypeLabel(filename) {
   if (typeof filename !== 'string') {
     return 'FILE';
   }
@@ -18,3 +18,7 @@ export function resolveReadableFileTypeLabel(filename) {
   const upper = extension.toUpperCase();
   return upper.length <= 8 ? upper : upper.slice(0, 8);
 }
+
+export const DesktopAttachmentPresentationRuntime = Object.freeze({
+  resolveReadableFileTypeLabel,
+});

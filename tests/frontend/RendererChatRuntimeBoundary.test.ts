@@ -2027,7 +2027,11 @@ describe('renderer chat runtime boundary', () => {
 
     expect(messageInputSource).toContain('desktopAttachmentPresentationRuntime');
     expect(previewRowSource).toContain('desktopAttachmentPresentationRuntime');
+    expect(messageInputSource).toContain('DesktopAttachmentPresentationRuntime.resolveReadableFileTypeLabel');
+    expect(previewRowSource).toContain('DesktopAttachmentPresentationRuntime.resolveReadableFileTypeLabel');
     expect(attachmentRuntimeSource).toContain('resolveReadableFileTypeLabel');
+    expect(attachmentRuntimeSource).toContain('DesktopAttachmentPresentationRuntime');
+    expect(attachmentRuntimeSource).not.toContain('export function resolveReadableFileTypeLabel');
     expect(attachmentRuntimeSource).not.toContain('features/chat');
     expect(messageInputSource).not.toContain('composerAttachmentPresentation');
     expect(previewRowSource).not.toContain('composerAttachmentPresentation');

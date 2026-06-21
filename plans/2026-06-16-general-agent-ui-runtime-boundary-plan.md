@@ -22977,3 +22977,19 @@ Each completed slice should report:
   snapshot fields, local-runtime readiness, browser action dispatch, renderer
   skin copy, storage, provider policy, backend behavior, and trust boundaries
   are unchanged.
+
+### 2026-06-21 renderer attachment presentation facade helper privacy
+
+- Finding: attachment preview file-type labeling had moved into the renderer
+  app runtime, but chat and minimal-pill components still imported the
+  low-level label helper as a standalone export.
+- Change: exposed attachment preview labeling through
+  `DesktopAttachmentPresentationRuntime` and kept the underlying
+  `resolveReadableFileTypeLabel` helper private to the attachment presentation
+  runtime.
+- Validation: focused attachment presentation, renderer chat boundary, and
+  renderer app-runtime boundary tests, targeted renderer ESLint, exact source
+  scans, docs listing, and diff checks.
+- Compatibility: no migration required. Attachment preview labels, selected
+  file parsing, renderer UI markup, storage, IPC, local-runtime execution,
+  provider policy, backend behavior, and trust boundaries are unchanged.

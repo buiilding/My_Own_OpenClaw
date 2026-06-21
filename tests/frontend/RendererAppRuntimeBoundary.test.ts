@@ -219,9 +219,13 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(attachmentRuntimeSource).toContain('resolveReadableFileTypeLabel');
+    expect(attachmentRuntimeSource).toContain('DesktopAttachmentPresentationRuntime');
+    expect(attachmentRuntimeSource).not.toContain('export function resolveReadableFileTypeLabel');
     expect(attachmentRuntimeSource).not.toContain('features/chat');
     expect(messageInputSource).toContain('desktopAttachmentPresentationRuntime');
     expect(previewRowSource).toContain('desktopAttachmentPresentationRuntime');
+    expect(messageInputSource).toContain('DesktopAttachmentPresentationRuntime.resolveReadableFileTypeLabel');
+    expect(previewRowSource).toContain('DesktopAttachmentPresentationRuntime.resolveReadableFileTypeLabel');
     expect(messageInputSource).not.toContain('utils/composerAttachmentPresentation');
     expect(previewRowSource).not.toContain('chat/utils/composerAttachmentPresentation');
     await expect(fs.stat(

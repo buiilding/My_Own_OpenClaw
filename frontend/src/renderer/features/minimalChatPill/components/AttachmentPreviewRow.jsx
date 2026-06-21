@@ -4,7 +4,7 @@
 
 import PropTypes from 'prop-types';
 import { FileText, X } from 'lucide-react';
-import { resolveReadableFileTypeLabel } from '../../../app/runtime/desktopAttachmentPresentationRuntime';
+import { DesktopAttachmentPresentationRuntime } from '../../../app/runtime/desktopAttachmentPresentationRuntime';
 
 function AttachmentPreviewRow({
   clipboardImages = [],
@@ -45,7 +45,7 @@ function AttachmentPreviewRow({
               {file.filename}
             </span>
             <span className="chatbox-file-preview-type">
-              {resolveReadableFileTypeLabel(file.filename)}
+              {DesktopAttachmentPresentationRuntime.resolveReadableFileTypeLabel(file.filename)}
             </span>
           </div>
           <button

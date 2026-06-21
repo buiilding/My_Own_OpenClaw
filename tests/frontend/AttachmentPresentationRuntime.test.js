@@ -2,10 +2,12 @@
  * Covers attachment presentation runtime behavior in the frontend test suite.
  */
 
-import { resolveReadableFileTypeLabel } from '../../frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime';
+import { DesktopAttachmentPresentationRuntime } from '../../frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime';
 
 describe('desktopAttachmentPresentationRuntime', () => {
   test('resolveReadableFileTypeLabel normalizes readable file extensions', () => {
+    const { resolveReadableFileTypeLabel } = DesktopAttachmentPresentationRuntime;
+
     expect(resolveReadableFileTypeLabel('notes.txt')).toBe('TXT');
     expect(resolveReadableFileTypeLabel(' archive.tar.gz ')).toBe('GZ');
     expect(resolveReadableFileTypeLabel('README')).toBe('FILE');

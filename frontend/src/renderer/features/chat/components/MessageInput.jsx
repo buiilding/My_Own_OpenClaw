@@ -16,7 +16,7 @@ import {
 import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
-import { resolveReadableFileTypeLabel } from '../../../app/runtime/desktopAttachmentPresentationRuntime';
+import { DesktopAttachmentPresentationRuntime } from '../../../app/runtime/desktopAttachmentPresentationRuntime';
 import {
   useClosePlusMenuOnSending,
   useComposerFocusRequest,
@@ -174,7 +174,9 @@ function MessageInput({
                   </div>
                   <div className="message-file-preview-meta">
                     <span className="message-file-preview-name" title={file.filename}>{file.filename}</span>
-                    <span className="message-file-preview-type">{resolveReadableFileTypeLabel(file.filename)}</span>
+                    <span className="message-file-preview-type">
+                      {DesktopAttachmentPresentationRuntime.resolveReadableFileTypeLabel(file.filename)}
+                    </span>
                   </div>
                   <button
                     type="button"
