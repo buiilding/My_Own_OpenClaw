@@ -3,13 +3,17 @@
  */
 
 import {
+  DesktopCurrentTurnMessageRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
+
+const {
   buildCurrentTurnMessagesFromProjection,
   isResponseCloseable,
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
   normalizeThinkingText,
-} from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
+} = DesktopCurrentTurnMessageRuntime;
 
 describe('desktopCurrentTurnMessageRuntime', () => {
   test('isResponseCloseable allows complete and error responses', () => {

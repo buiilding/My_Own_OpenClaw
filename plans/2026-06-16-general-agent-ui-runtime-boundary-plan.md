@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Current Turn Message Facade
+
+- Finding: `desktopCurrentTurnMessageRuntime.js` already owned SDK
+  current-turn projection rows, SDK live presentation-entry conversion,
+  response-overlay visible/progress/source-tag classification, closeability, and
+  thinking-text normalization, but still exported those rules as standalone
+  helpers consumed by response-overlay, thread presentation, and focused tests.
+- Change: made the current-turn message helpers private to the runtime module,
+  exposed them through `DesktopCurrentTurnMessageRuntime`, and routed
+  response-overlay view-model, thread presentation, and focused projection tests
+  through that facade.
+- Validation: focused current-turn message projection, response-overlay state,
+  pending-turn live-surface integration, renderer app/chat boundaries, exact
+  standalone current-turn message helper export/import scan, docs list, and
+  diff hygiene.
+- Compatibility/security: no migration required. SDK current-turn projection,
+  live presentation-entry precedence, tool-call/tool-output row shaping,
+  response-overlay entry visibility/progress/source-tag classification,
+  closeability, UI state, IPC, storage, credentials, provider policy, hosted
+  backend URLs, and local execution trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Live Turn Surface Facade
 
 - Finding: `desktopLiveTurnSurfaceRuntime.js` already owned pending-turn

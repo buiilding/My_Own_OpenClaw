@@ -86,6 +86,10 @@ All notable changes to WindieOS will be documented in this file.
   intent resolution through `DesktopLiveTurnSurfaceRuntime` instead of
   standalone helper exports, keeping response-overlay preflight and live-turn
   surface state behind the renderer app-runtime facade. No migration required.
+- frontend/renderer: expose SDK current-turn row projection and response-overlay
+  row classification through `DesktopCurrentTurnMessageRuntime` instead of
+  standalone helper exports, keeping overlay message presentation behind the
+  renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

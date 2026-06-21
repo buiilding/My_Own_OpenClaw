@@ -45,10 +45,12 @@ Current-turn entry construction:
 
 - when SDK `currentTurn` is present, `MinimalResponseOverlay` converts that projection
   into overlay-ready current-turn messages and entries
-- SDK live-turn presentation rows are converted with `buildCurrentTurnMessagesFromPresentation(...)`;
-  older projection snapshots are converted with `buildCurrentTurnMessagesFromProjection(...)`.
+- SDK live-turn presentation rows are converted with
+  `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`;
+  older projection snapshots are converted with
+  `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromProjection(...)`.
 - the response overlay filters those current-turn messages through
-  `desktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
+  `DesktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
   instead of carrying an inline assistant-message scanner after the latest user
   boundary.
 - entry types currently included:
@@ -72,7 +74,7 @@ Closeability:
 - `llm-text` rows are closeable only when `isComplete === true`.
 - tool/progress rows (`tool-call`, `tool-output`, `search-source`, and
   `tool-explanation`) are classified by
-  `desktopCurrentTurnMessageRuntime.isResponseOverlayProgressMessage(...)` so
+  `DesktopCurrentTurnMessageRuntime.isResponseOverlayProgressMessage(...)` so
   the overlay view model does not own raw row-type groups.
 
 ## SDK-Driven View Modes
@@ -126,8 +128,10 @@ Contract ownership:
   - `showResponse`
   - `showAwaitingReply`
   - overlay layout mode (`hidden` / `awaiting-typing` / `response`)
-- `desktopCurrentTurnMessageRuntime` owns response-overlay row classification:
-  visible entries, progress entries, source-tagged entries, and closeability.
+- `DesktopCurrentTurnMessageRuntime` owns response-overlay row classification:
+  visible entries, progress entries, source-tagged entries, closeability, and
+  SDK current-turn projection-to-message conversion behind one renderer
+  app-runtime facade.
 - `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
 - `DesktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
   owns SDK presentation-state reduction for overlay intent, lifecycle,

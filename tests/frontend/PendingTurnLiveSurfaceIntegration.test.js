@@ -16,13 +16,16 @@ import {
   DesktopThreadPresentationRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime';
 import {
-  buildCurrentTurnMessagesFromPresentation,
+  DesktopCurrentTurnMessageRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 import {
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
 
 const { buildThreadPresentationMessages } = DesktopThreadPresentationRuntime;
+const {
+  buildCurrentTurnMessagesFromPresentation,
+} = DesktopCurrentTurnMessageRuntime;
 const { resolveLiveTurnPresentationInput } = DesktopLiveTurnSurfaceRuntime;
 
 const mockSend = jest.fn();

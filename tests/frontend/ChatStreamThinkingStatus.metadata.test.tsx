@@ -5,7 +5,11 @@
 import { act } from '@testing-library/react';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { registerBackendListener, resetChatStreamTestState } from './ChatStreamThinkingStatus.testUtils';
-import { buildCurrentTurnMessagesFromProjection } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
+import { DesktopCurrentTurnMessageRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
+
+const {
+  buildCurrentTurnMessagesFromProjection,
+} = DesktopCurrentTurnMessageRuntime;
 
 describe('useChatStream message metadata handling', () => {
   beforeEach(() => {

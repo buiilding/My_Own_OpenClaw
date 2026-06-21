@@ -3,11 +3,14 @@
  */
 
 import {
-  buildCurrentTurnMessagesFromPresentation,
-  buildCurrentTurnMessagesFromProjection,
+  DesktopCurrentTurnMessageRuntime,
 } from './desktopCurrentTurnMessageRuntime';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 
+const {
+  buildCurrentTurnMessagesFromPresentation,
+  buildCurrentTurnMessagesFromProjection,
+} = DesktopCurrentTurnMessageRuntime;
 const { isSdkCurrentTurnSourceChannel } = DesktopPresentationSourceChannels;
 
 function findLastUserIndex(messages) {

@@ -207,7 +207,7 @@ function buildProjectedToolMessage({ baseId, turnRef, toolEvent }) {
   return buildProjectedToolCallMessage({ baseId, turnRef, toolEvent });
 }
 
-export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
+function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
   if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
     return [];
   }
@@ -462,7 +462,7 @@ function buildChatMessageFromLiveTurnEntry(entry, currentTurnProjection = null) 
   return buildAssistantTextMessage(entry, currentTurnProjection);
 }
 
-export function buildCurrentTurnMessagesFromPresentation(currentTurnProjection = null) {
+function buildCurrentTurnMessagesFromPresentation(currentTurnProjection = null) {
   const entries = Array.isArray(currentTurnProjection?.presentation?.entries)
     ? currentTurnProjection.presentation.entries
     : [];
@@ -474,7 +474,7 @@ export function buildCurrentTurnMessagesFromPresentation(currentTurnProjection =
     .filter(Boolean);
 }
 
-export function isResponseCloseable(response) {
+function isResponseCloseable(response) {
   if (!response) {
     return false;
   }
@@ -499,7 +499,7 @@ const RESPONSE_OVERLAY_PROGRESS_MESSAGE_TYPES = new Set([
   'tool-explanation',
 ]);
 
-export function isVisibleResponseOverlayMessage(message) {
+function isVisibleResponseOverlayMessage(message) {
   return Boolean(
     message
     && message.sender === 'assistant'
@@ -511,14 +511,14 @@ export function isVisibleResponseOverlayMessage(message) {
   );
 }
 
-export function isResponseOverlayProgressMessage(message) {
+function isResponseOverlayProgressMessage(message) {
   return Boolean(
     message
     && RESPONSE_OVERLAY_PROGRESS_MESSAGE_TYPES.has(message.type),
   );
 }
 
-export function isResponseOverlaySourceTaggedMessage(message) {
+function isResponseOverlaySourceTaggedMessage(message) {
   return Boolean(
     message
     && (
@@ -529,6 +529,16 @@ export function isResponseOverlaySourceTaggedMessage(message) {
   );
 }
 
-export function normalizeThinkingText(thinkingStatus) {
+function normalizeThinkingText(thinkingStatus) {
   return typeof thinkingStatus === 'string' ? thinkingStatus.trim() : '';
 }
+
+export const DesktopCurrentTurnMessageRuntime = Object.freeze({
+  buildCurrentTurnMessagesFromPresentation,
+  buildCurrentTurnMessagesFromProjection,
+  isResponseCloseable,
+  isResponseOverlayProgressMessage,
+  isResponseOverlaySourceTaggedMessage,
+  isVisibleResponseOverlayMessage,
+  normalizeThinkingText,
+});

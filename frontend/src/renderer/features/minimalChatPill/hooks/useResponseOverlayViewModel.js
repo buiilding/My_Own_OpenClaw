@@ -14,13 +14,7 @@ import {
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
 import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
-  buildCurrentTurnMessagesFromProjection,
-  buildCurrentTurnMessagesFromPresentation,
-  isResponseCloseable,
-  isResponseOverlayProgressMessage,
-  isResponseOverlaySourceTaggedMessage,
-  isVisibleResponseOverlayMessage,
-  normalizeThinkingText,
+  DesktopCurrentTurnMessageRuntime,
 } from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
 import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import {
@@ -35,6 +29,15 @@ const {
   resolveResponseOverlayDismissalTarget,
   resolveSdkCurrentTurnPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
+const {
+  buildCurrentTurnMessagesFromProjection,
+  buildCurrentTurnMessagesFromPresentation,
+  isResponseCloseable,
+  isResponseOverlayProgressMessage,
+  isResponseOverlaySourceTaggedMessage,
+  isVisibleResponseOverlayMessage,
+  normalizeThinkingText,
+} = DesktopCurrentTurnMessageRuntime;
 const {
   resolveLiveTurnPresentationInput,
 } = DesktopLiveTurnSurfaceRuntime;

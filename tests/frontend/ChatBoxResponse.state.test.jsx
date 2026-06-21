@@ -21,7 +21,11 @@ import {
   setChatState,
   useChatStore,
 } from './ChatBoxResponse.testUtils';
-import { buildCurrentTurnMessagesFromProjection } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
+import { DesktopCurrentTurnMessageRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
+
+const {
+  buildCurrentTurnMessagesFromProjection,
+} = DesktopCurrentTurnMessageRuntime;
 
 describe('ChatBoxResponse state behavior', () => {
   beforeEach(() => {
