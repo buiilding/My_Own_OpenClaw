@@ -94,7 +94,4 @@ function createMainProcessTraceRuntime({
 
 module.exports = {
   createMainProcessTraceRuntime,
-  isPlainObject,
-  normalizeOptionalString,
-  normalizePositiveInteger,
 };

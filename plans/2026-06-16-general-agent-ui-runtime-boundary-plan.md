@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Process Trace Normalizer Privacy
+
+- Finding: `ipc_main_process_trace_runtime.cjs` already exposed
+  `createMainProcessTraceRuntime(...)` as the Electron main trace facade, but
+  string, duration, and object normalization helpers still leaked as public
+  test-only exports.
+- Change: kept the trace input normalizers private to the main-process trace
+  owner and moved trim, positive-duration, and diagnostic data coverage through
+  `createMainProcessTraceRuntime(...).appendMainProcessTraceEvent(...)`.
+- Validation: focused main-process trace tests, targeted main IPC lint, docs
+  listing, stale export scans, and diff checks before commit.
+- Compatibility/security: no trace event payload, app diagnostic shape, SDK
+  conversation trace row, credential, permission, or trust-boundary migration
+  required; trace input sanitization behavior is unchanged.
+
 ### 2026-06-21 Main Install Auth Identity Normalization Privacy
 
 - Finding: `ipc_install_auth_identity_runtime.cjs` already exposed

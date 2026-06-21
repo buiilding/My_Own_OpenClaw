@@ -3,11 +3,10 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const mainProcessTraceModule = require('../../frontend/src/main/ipc/ipc_main_process_trace_runtime.cjs');
 const {
   createMainProcessTraceRuntime,
-  normalizeOptionalString,
-  normalizePositiveInteger,
-} = require('../../frontend/src/main/ipc/ipc_main_process_trace_runtime.cjs');
+} = mainProcessTraceModule;
 
 class FakeTraceRecorder {
   constructor(options) {
@@ -50,15 +49,6 @@ function createRuntime(overrides = {}) {
 }
 
 describe('ipc_main_process_trace_runtime', () => {
-  test('normalizes optional strings and positive integer durations', () => {
-    expect(normalizeOptionalString('  value  ')).toBe('value');
-    expect(normalizeOptionalString('   ')).toBeNull();
-    expect(normalizeOptionalString(42)).toBeNull();
-    expect(normalizePositiveInteger(4.9)).toBe(4);
-    expect(normalizePositiveInteger(0)).toBeUndefined();
-    expect(normalizePositiveInteger(Number.POSITIVE_INFINITY)).toBeUndefined();
-  });
-
   test('records idle permission probes as app diagnostics without requiring an agent', async () => {
     const { deps, runtime } = createRuntime();
 
@@ -170,5 +160,8 @@ describe('ipc_main_process_trace_runtime', () => {
     expect(helperSource).toContain("path === permissionProbeDiagnosticsPath");
     expect(helperSource).toContain("reason: 'main-process-trace'");
     expect(helperSource).toContain("type: 'trace_event'");
+    expect(mainProcessTraceModule.isPlainObject).toBeUndefined();
+    expect(mainProcessTraceModule.normalizeOptionalString).toBeUndefined();
+    expect(mainProcessTraceModule.normalizePositiveInteger).toBeUndefined();
   });
 });

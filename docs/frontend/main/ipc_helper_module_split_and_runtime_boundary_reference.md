@@ -852,6 +852,7 @@ Owns Electron-main trace event routing:
 - writes conversation-scoped trace events through the SDK `TraceRecorder` and
   hidden `trace_event` conversation events
 - keeps trace input string/duration sanitization out of the IPC relay root
+- keeps trace input normalization helpers private behind the trace runtime
 
 ### `ipc_mcp_refresh_runtime.cjs`
 
