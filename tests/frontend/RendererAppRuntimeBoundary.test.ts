@@ -644,9 +644,9 @@ describe('renderer app runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).toContain('DesktopResponseOverlayViewRuntime');
     expect(currentTurnPresentationSource).toContain('DesktopOverlayTurnLifecycleRuntime');
-    expect(currentTurnPresentationHookSource).toContain('desktopVisibleTurnLifecycleRuntime');
-    expect(currentTurnPresentationHookSource).toContain('DesktopVisibleTurnLifecycleRuntime');
-    expect(currentTurnPresentationHookSource).toContain('useChatLoopTransportState');
+    expect(currentTurnPresentationHookSource).not.toContain('desktopVisibleTurnLifecycleRuntime');
+    expect(currentTurnPresentationHookSource).not.toContain('DesktopVisibleTurnLifecycleRuntime');
+    expect(currentTurnPresentationHookSource).not.toContain('useChatLoopTransportState');
     expect(currentTurnPresentationHookSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(currentTurnPresentationHookSource).not.toContain('resolveOverlayTurnLifecycle');
     expect(overlayViewModelSource).not.toContain('desktopOverlayTurnLifecycleRuntime');

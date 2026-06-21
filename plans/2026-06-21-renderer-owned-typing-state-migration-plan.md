@@ -9,6 +9,27 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Current-Turn Projection Send-Latch Boundary
+
+- Finding: the current-turn side-effect reducer still read SDK
+  `presentation.typingVisible` and `presentation.overlayVisible` as lifecycle
+  signals for `isSending`, even though ADR 006 marks those presentation fields
+  as non-authorities.
+- Change: `DesktopCurrentTurnProjectionEffectsRuntime` now accepts SDK
+  awaiting from `currentTurn.phase`, ignores SDK `typingVisible` when deciding
+  whether to keep typing latched, and treats overlay visibility as rendering
+  data unless actual entries, explicit visible content, assistant text, tool
+  rows, or terminal state are present. The temporary chat-surface presentation
+  lifecycle bridge is removed so `useCurrentTurnPresentationState(...)` is only
+  a message presentation adapter.
+- Validation target: `DesktopCurrentTurnProjectionEffectsRuntime.test.ts`
+  protects false SDK typing presentation during awaiting, overlay-visible empty
+  presentations, and visible-entry clearing; it is part of `<windie> test
+  core-loop`.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Response Overlay SDK Lifecycle Reducer Removal
 
 - Finding: `useResponseOverlayViewModel(...)` still used

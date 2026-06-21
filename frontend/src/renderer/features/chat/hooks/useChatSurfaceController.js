@@ -63,8 +63,6 @@ export function useChatSurfaceController({
     messages,
   });
   const currentTurnPresentationState = useCurrentTurnPresentationState({
-    phase: liveTurnPresentationInput.phase,
-    isSending: liveTurnPresentationInput.isSending,
     messages,
   });
   const visibleLifecyclePresentationState = applyVisibleTurnLifecycleToPresentationState(

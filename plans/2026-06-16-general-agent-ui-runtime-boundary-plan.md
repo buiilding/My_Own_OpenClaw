@@ -9,6 +9,26 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Current-Turn Projection Send-Latch Boundary
+
+- Finding: `DesktopCurrentTurnProjectionEffectsRuntime` still allowed SDK
+  `presentation.typingVisible` to suppress SDK awaiting acceptance and treated
+  `presentation.overlayVisible` as visible content, leaving derived SDK
+  presentation fields able to shape renderer send-latch lifecycle.
+- Change: current-turn projection effects now use SDK `phase='awaiting'` as
+  the acceptance signal, clear sending only for actual presentation entries,
+  explicit visible-content flags, assistant text, executable tool rows, or
+  terminal states, and keep overlay visibility as rendering data. The
+  temporary chat-surface presentation lifecycle bridge is also removed from the
+  controller path.
+- Validation: `DesktopCurrentTurnProjectionEffectsRuntime.test.ts` covers
+  awaiting with `typingVisible=false`, overlay-visible empty presentations, and
+  visible-entry clearing, and the test is registered in `<windie> test
+  core-loop`.
+- Compatibility/security: no SDK event payload, IPC payload, transcript
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Response Overlay SDK Lifecycle Reducer Removal
 
 - Finding: response overlay still consumed

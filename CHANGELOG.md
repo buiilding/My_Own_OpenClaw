@@ -68,6 +68,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: stop SDK current-turn `presentation.typingVisible` and
+  `presentation.overlayVisible` from driving the send latch; awaiting phase
+  now accepts the SDK turn, while actual presentation entries, explicit visible
+  content, text, tool rows, or terminal state clear sending. The projection
+  effects test now runs in the core-loop pack. No migration required.
 - frontend/renderer: remove response overlay production use of
   `resolveSdkCurrentTurnPresentationState(...)`; SDK presentation entries and
   overlay intent remain rendering data while busy/typing fields are stamped

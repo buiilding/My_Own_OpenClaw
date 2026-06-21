@@ -4,22 +4,13 @@
 
 import { useMemo } from 'react';
 import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
-import { DesktopVisibleTurnLifecycleRuntime } from '../../../app/runtime/desktopVisibleTurnLifecycleRuntime';
-import { useChatLoopTransportState } from './useChatLoopUiState';
 
 const {
   findLatestVisibleAssistantReply,
   resolveCurrentTurnPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
-const {
-  buildCurrentTurnPresentationSnapshotSignature,
-  isCurrentTurnPresentationOverlayLifecycleBusy,
-  resolveCurrentTurnPresentationOverlayLifecycle,
-} = DesktopVisibleTurnLifecycleRuntime;
 
 export function useCurrentTurnPresentationState({
-  phase,
-  isSending,
   messages,
   dismissedResponseId = null,
   allowedTypes,
@@ -31,39 +22,8 @@ export function useCurrentTurnPresentationState({
     allowedTypes,
     messages,
   ]);
-  const hasVisibleReply = Boolean(activeResponse);
 
-  const optimisticLifecycle = useMemo(() => resolveCurrentTurnPresentationOverlayLifecycle({
-    phase,
-    isSending,
-    hasVisibleReply,
-    transportConnected: true,
-  }), [hasVisibleReply, isSending, phase]);
-
-  const transportState = useChatLoopTransportState({
-    snapshotSignature: buildCurrentTurnPresentationSnapshotSignature({
-      phase,
-      isSending,
-      hasVisibleReply,
-    }),
-    isBusy: isCurrentTurnPresentationOverlayLifecycleBusy(optimisticLifecycle),
-  });
-
-  const overlayTurnLifecycle = useMemo(() => resolveCurrentTurnPresentationOverlayLifecycle({
-    phase,
-    isSending,
-    hasVisibleReply,
-    transportConnected: transportState.isPresentationTransportConnected,
-  }), [
-    hasVisibleReply,
-    isSending,
-    phase,
-    transportState.isPresentationTransportConnected,
-  ]);
-
-  const presentationState = useMemo(() => resolveCurrentTurnPresentationState({
-    phase,
-    lifecycle: overlayTurnLifecycle,
+  return useMemo(() => resolveCurrentTurnPresentationState({
     messages,
     dismissedResponseId,
     allowedTypes,
@@ -73,13 +33,5 @@ export function useCurrentTurnPresentationState({
     activeResponse,
     dismissedResponseId,
     messages,
-    phase,
-    overlayTurnLifecycle,
   ]);
-
-  return {
-    ...presentationState,
-    isTransportConnected: transportState.isTransportConnected,
-    overlayTurnLifecycle,
-  };
 }

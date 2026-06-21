@@ -198,11 +198,11 @@ renderer app-runtime facade.
 
 It does not mutate stream tracking or backend query state; it is UI projection only.
 
-`useCurrentTurnPresentationState(...)` composes transport projection from
-`useChatLoopTransportState(...)` with current-turn overlay lifecycle helpers
-from `DesktopVisibleTurnLifecycleRuntime`, so legacy current-turn presentation
-fields do not carry their own `phase + isSending` lifecycle reducer and do not
-import the overlay lifecycle runtime directly.
+`useCurrentTurnPresentationState(...)` now only adapts visible assistant
+message rows into the legacy current-turn presentation shape. It does not
+compose transport recovery or `phase + isSending` lifecycle mapping; those
+decisions belong to `useChatSurfaceController(...)` and
+`DesktopVisibleTurnLifecycleRuntime`.
 `useResponseOverlayViewModel(...)` reads SDK presentation entries through
 `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`
 and uses `DesktopCurrentTurnPresentationRuntime` only for response-overlay

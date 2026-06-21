@@ -132,6 +132,7 @@ Developer helpers:
 
 const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'DesktopVisibleTurnLifecycleRuntime.test.js',
+  'DesktopCurrentTurnProjectionEffectsRuntime.test.ts',
   'ChatSurfaceController.test.jsx',
   'ChatInterfaceWiring.test.jsx',
   'AgentConversationStoreApi.test.ts',

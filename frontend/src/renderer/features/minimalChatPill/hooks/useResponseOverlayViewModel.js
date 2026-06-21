@@ -83,7 +83,6 @@ export function useResponseOverlayViewModel({
   const useSdkLiveTurnPresentation = liveTurnPresentationInput.useSdkLiveTurnPresentation;
   const useLocalSendLatch = liveTurnPresentationInput.useLocalSendLatch;
   const currentTurnPhase = liveTurnPresentationInput.phase;
-  const currentTurnIsSending = liveTurnPresentationInput.isSending;
   const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
     pendingTurn,
     currentTurnProjection,
@@ -142,8 +141,6 @@ export function useResponseOverlayViewModel({
   ]);
 
   const currentTurnPresentationState = useCurrentTurnPresentationState({
-    phase: currentTurnPhase,
-    isSending: currentTurnIsSending,
     messages: currentTurnMessages,
     dismissedResponseId,
   });

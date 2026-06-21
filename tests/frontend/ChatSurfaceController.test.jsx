@@ -94,8 +94,7 @@ describe('useChatSurfaceController', () => {
     expect(result.current.visibleTurnLifecycle.status).toBe('active');
     expect(result.current.currentTurnPresentationState.awaitingDotTargetMessageId).toBeNull();
     expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
-      phase: 'streaming',
-      isSending: true,
+      messages: expect.any(Array),
     }));
   });
 
@@ -117,8 +116,7 @@ describe('useChatSurfaceController', () => {
     });
 
     expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
-      phase: 'complete',
-      isSending: false,
+      messages: expect.any(Array),
     }));
   });
 
@@ -255,8 +253,7 @@ describe('useChatSurfaceController', () => {
     });
 
     expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
-      phase: 'awaiting-first-chunk',
-      isSending: true,
+      messages: expect.any(Array),
     }));
     expect(result.current).toMatchObject({
       isBusy: true,
@@ -378,8 +375,7 @@ describe('useChatSurfaceController', () => {
     });
 
     expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
-      phase: 'awaiting-first-chunk',
-      isSending: true,
+      messages: expect.any(Array),
     }));
     expect(result.current).toMatchObject({
       isBusy: true,

@@ -152,14 +152,21 @@ tracking for `assistantText`, `reasoningText`, `phase`, `lastError`, and seen
 tool-event ids. It is the renderer-side owner for:
 
 - accepting an SDK `awaiting` turn before the local send latch has fully reset
-- clearing `isSending` when SDK presentation reports visible content,
-  assistant text, terminal state, or executable tool rows
+- clearing `isSending` when SDK presentation contains actual entries or an
+  explicit visible-content flag, assistant text, terminal state, or executable
+  tool rows
 - appending reasoning deltas into transient thinking text
 - recording `query-accepted`, `llm-thought`, `streaming-response`,
   `tool-call`, `tool-output`, `web-search-progress`, `streaming-complete`, and
   `error` tracking events
 - preserving typing/thinking state for SDK tool events projected with
   `executionSkipped === true`
+
+The reducer does not treat SDK `presentation.typingVisible` or
+`presentation.overlayVisible` as send-latch authorities. `phase='awaiting'`
+accepts the SDK turn, while empty overlay-visible presentation remains
+rendering data until real entries, content, tool rows, text, or terminal state
+arrive.
 
 `DesktopRendererTraceRuntime` owns the SDK current-turn applied live-surface
 trace projection. `useConversationRuntimeProjectionStream` reports the

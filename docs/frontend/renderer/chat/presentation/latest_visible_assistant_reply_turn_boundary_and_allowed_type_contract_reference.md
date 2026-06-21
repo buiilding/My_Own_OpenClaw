@@ -70,15 +70,13 @@ the facade methods when they need an explicit override.
 `useCurrentTurnPresentationState(...)` composes:
 
 1. `DesktopCurrentTurnPresentationRuntime.findLatestVisibleAssistantReply(...)`
-2. `useChatLoopUiState(...)`
-3. `resolveChatTurnPresentationState(...)`
+2. `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
 
-It returns one shared snapshot for dashboard and overlay consumers:
+It returns the legacy presentation snapshot before visible lifecycle stamping:
 
 - `loopUiState`
 - `isBusy`
 - `isAwaitingReply`
-- `isTransportConnected`
 - `activeResponse`
 - `hasVisibleReply`
 - `showAssistantAwaitingDot`
@@ -86,6 +84,12 @@ It returns one shared snapshot for dashboard and overlay consumers:
 - `chatboxSurfaceState`
 - `showChatboxAwaitingReply`
 - `showChatboxResponse`
+
+`useChatSurfaceController(...)` owns transport/lifecycle composition by applying
+`DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+to that snapshot. `useCurrentTurnPresentationState(...)` does not read
+`isSending`, SDK presentation visibility flags, or transport recovery state as
+typing authorities.
 
 Awaiting-dot visibility is stricter than response-pane visibility:
 

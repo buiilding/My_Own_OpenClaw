@@ -88,19 +88,16 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function resolveSdkPresentationTypingVisible(currentTurn: CurrentTurnProjectionEffectsInput): boolean | null {
-  const presentation = asRecord((currentTurn as { presentation?: unknown }).presentation);
-  return typeof presentation?.typingVisible === 'boolean'
-    ? presentation.typingVisible
-    : null;
-}
-
 function resolveSdkPresentationHasVisibleContent(currentTurn: CurrentTurnProjectionEffectsInput): boolean {
   const presentation = asRecord((currentTurn as { presentation?: unknown }).presentation);
+  if (Array.isArray(presentation?.entries) && presentation.entries.length > 0) {
+    return true;
+  }
   if (typeof presentation?.hasVisibleContent === 'boolean') {
     return presentation.hasVisibleContent;
   }
-  return presentation?.overlayVisible === true;
+  return typeof presentation?.lastError === 'string'
+    && presentation.lastError.trim().length > 0;
 }
 
 function isExecutionSkippedToolEvent(toolEvent: CurrentTurnToolEvent): boolean {
@@ -131,8 +128,7 @@ function applyCurrentTurnProjectionSideEffects({
     reasoningText,
     cursor.reasoningLength,
   );
-  const sdkTypingVisible = resolveSdkPresentationTypingVisible(currentTurn);
-  const shouldShowTyping = sdkTypingVisible ?? (currentTurn.phase === 'awaiting');
+  const shouldShowTyping = currentTurn.phase === 'awaiting';
   const hasSdkVisibleContent = resolveSdkPresentationHasVisibleContent(currentTurn);
 
   if (currentTurn.phase === 'awaiting' && cursor.phase !== 'awaiting') {
@@ -149,10 +145,6 @@ function applyCurrentTurnProjectionSideEffects({
       },
       conversationRef,
     );
-  }
-
-  if (!shouldShowTyping && cursor.typingVisible === true) {
-    deps.setIsSending(false, conversationRef);
   }
 
   if (reasoningDelta) {
