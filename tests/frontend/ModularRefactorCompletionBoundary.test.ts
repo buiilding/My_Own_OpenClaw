@@ -399,6 +399,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkTestText).toContain('agent-file-store-');
   });
 
+  test('Agent SDK local-runtime launch tests keep disposable env fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/AgentSdkClient.test.ts');
+
+    expect(source).not.toContain('WINDIE_TEST');
+    expect(source).toContain('AGENT_TEST_MODE');
+    expect(source).toContain('AGENT_TEST_TOKEN');
+    expect(source).toContain('AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS');
+  });
+
   test('renderer workspace runtime tests keep workspace fixtures product-neutral', async () => {
     const workspaceTestText = await Promise.all([
       read('tests/frontend/DesktopWorkspaceRuntimeClient.test.ts'),

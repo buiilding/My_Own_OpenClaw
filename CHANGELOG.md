@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sdk: use neutral `AGENT_TEST_*` launch env fixtures in Agent SDK
+  local-runtime provider coverage instead of arbitrary `WINDIE_TEST_*` names.
+  No migration required.
 - tests/renderer: use neutral injected settings skin and permission copy in
   settings section coverage instead of WindieOS product strings. No migration
   required.

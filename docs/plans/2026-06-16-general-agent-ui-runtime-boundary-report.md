@@ -11,10 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `863b87aad` (`test(renderer): neutralize onboarding skin fixtures`)
-- Latest completed slice: generic settings section tests now use neutral
-  injected settings skin and permission copy instead of WindieOS product
-  strings.
+- Latest inspected plan checkpoint: `89179b67f` (`test(renderer): neutralize settings skin fixtures`)
+- Latest completed slice: Agent SDK local-runtime provider tests now use
+  neutral `AGENT_TEST_*` launch env fixtures instead of arbitrary
+  `WINDIE_TEST_*` names while preserving explicit compatibility-map coverage.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -54,6 +54,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic settings section tests use sample settings skin and browser
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
+  Agent SDK local-runtime provider tests use neutral `AGENT_TEST_*` launch env
+  and launch-context fixtures while real Windie compatibility env aliases
+  remain explicitly covered by `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real

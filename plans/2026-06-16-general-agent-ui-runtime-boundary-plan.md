@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Agent SDK Local-Runtime Launch Env Fixture Neutralization
+
+- Finding: `AgentSdkClient` local-runtime provider coverage used
+  `WINDIE_TEST_*` as arbitrary daemon launch env and launch-context fixtures,
+  even though the SDK-owned compatibility env aliases are already covered
+  through `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
+- Change: renamed the disposable launch fixtures to `AGENT_TEST_*` and added a
+  modular completion guard that rejects `WINDIE_TEST` in `AgentSdkClient` while
+  preserving the explicit Windie compatibility map assertions.
+- Validation: focused Agent SDK client and modular boundary tests plus exact
+  retired-env scan.
+- Compatibility: no migration required. SDK runtime env compatibility aliases,
+  local-runtime daemon launch behavior, discovery matching, IPC channels,
+  storage, credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Settings Skin Fixture Neutralization
 
 - Finding: `SettingsSection` coverage still asserted WindieOS settings,
