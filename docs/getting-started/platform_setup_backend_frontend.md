@@ -206,8 +206,8 @@ $env:BACKEND_WS_URL = "ws://127.0.0.1:8765/ws"
 
 Notes:
 
-- Dev fallback (no overrides): `http://127.0.0.1:8765` + `ws://127.0.0.1:8765/ws`.
-- Packaged fallback default points to `https://api.windieos.com` + `wss://api.windieos.com/ws`.
+- Dev/source and packaged defaults (no overrides): `https://api.windieos.com` + `wss://api.windieos.com/ws`.
+- Local backend origins such as `http://127.0.0.1:8765` + `ws://127.0.0.1:8765/ws` require explicit `BACKEND_*` or `BACKEND_HOST`/`BACKEND_PORT` overrides.
 
 For headless Linux containers/CI without a display server:
 

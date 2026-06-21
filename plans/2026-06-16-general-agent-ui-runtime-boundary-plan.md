@@ -18922,3 +18922,17 @@ Each completed slice should report:
 - Compatibility: no migration required. SDK explicit endpoint configuration,
   hosted route behavior, artifacts, OCR/vision routes, install auth, provider
   policy, permissions, storage, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Endpoint fallback docs contract alignment
+
+- Finding: the install and endpoint setup docs already described local backend
+  origins as explicit overrides, but troubleshooting, platform setup, and
+  communication-flow docs still claimed source/packaged runs silently fell back
+  from hosted endpoints to local loopback candidates.
+- Change: aligned those docs with the current hosted-default/no-local-auto-
+  fallback contract and added modular boundary coverage across the endpoint docs.
+- Validation: focused modular boundary test; exact stale fallback wording scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Endpoint resolution, hosted defaults,
+  explicit local/self-host overrides, SDK websocket routing, provider policy,
+  permissions, storage, and local-runtime behavior are unchanged.

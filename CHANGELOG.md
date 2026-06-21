@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/endpoints: align getting-started and architecture endpoint fallback
+  wording with the current hosted-default/no-local-auto-fallback contract. No
+  migration required.
+
 - docs/reference: use neutral backend endpoint samples in SDK client examples
   while preserving WindieOS hosted-default topology prose. No migration
   required.

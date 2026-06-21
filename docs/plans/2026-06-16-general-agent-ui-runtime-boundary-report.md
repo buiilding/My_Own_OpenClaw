@@ -7763,3 +7763,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   topology. SDK explicit endpoint configuration, hosted route behavior,
   artifacts, OCR/vision routes, install auth, provider policy, permissions,
   storage, and local-runtime behavior are unchanged; no migration is required.
+- Getting-started troubleshooting, platform setup, and communication-flow docs
+  now describe local backend origins as explicit endpoint overrides rather than
+  automatic hosted-to-local fallbacks. Existing install and endpoint setup docs
+  already carried the current contract, and modular boundary coverage now keeps
+  those docs aligned. Endpoint resolution, hosted defaults, explicit local and
+  self-host overrides, SDK websocket routing, provider policy, permissions,
+  storage, and local-runtime behavior are unchanged; no migration is required.

@@ -139,7 +139,7 @@ Electron Main / Agent SDK Host
 
 ### Connection Lifecycle
 
-1. **Connection**: The SDK runtime opens the backend WebSocket on demand instead of at renderer startup. Customer-mode source and packaged runs try `wss://api.windieos.com/ws` first and fall back to `ws://127.0.0.1:8765/ws` if the hosted backend is unreachable before the socket opens.
+1. **Connection**: The SDK runtime opens the backend WebSocket on demand instead of at renderer startup. Customer-mode source and packaged runs use the hosted default `wss://api.windieos.com/ws` unless an explicit endpoint override pins another backend.
 2. **Auth + Handshake**: Hosted clients first authenticate with a server-issued install token, then send the handshake message
    - the backend resolves the real `user_id` from the install token and ignores mismatched client-claimed `user_id` values
    - Electron main also sends the desktop host operating-system label so backend session prompt rendering can follow the client OS instead of the Python host OS
@@ -169,10 +169,9 @@ This control plane is separate from the `/ws` streaming channel and exists to co
 
 1. `BACKEND_WS_URL` and/or `BACKEND_HTTP_URL`
 2. `BACKEND_HOST` + `BACKEND_PORT`
-3. Default customer-mode source-run candidate order:
-   - hosted: `wss://api.windieos.com/ws` and `https://api.windieos.com`
-   - fallback local: `ws://127.0.0.1:8765/ws` and `http://127.0.0.1:8765`
-4. Packaged fallback: same hosted-first, local-second candidate order as source runs unless explicit `BACKEND_*` or host/port overrides collapse the list
+3. Hosted default candidate:
+   - `wss://api.windieos.com/ws` and `https://api.windieos.com`
+4. Source and packaged runs do not silently switch to a local backend when the hosted default is unreachable; local/self-hosted backends require explicit `BACKEND_*` or host/port overrides.
 
 The resolved HTTP URL is also passed to the local-runtime Python process as
 `WINDIE_BACKEND_HTTP_URL`. The local-runtime Python implementation consumes

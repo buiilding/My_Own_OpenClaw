@@ -641,6 +641,30 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('hosted.backend.example');
   });
 
+  test('endpoint docs describe local backend origins as explicit overrides', async () => {
+    const docs = await Promise.all([
+      read('docs/architecture/communication_flow.md'),
+      read('docs/getting-started/installation.md'),
+      read('docs/getting-started/platform_setup_backend_frontend.md'),
+      read('docs/getting-started/troubleshooting.md'),
+      read('docs/install/local_backend_and_endpoint_setup.md'),
+    ]);
+    const docText = docs.join('\n');
+    const staleLoopbackFallback = ['fall back to `ws://127.0.0.1:8765/ws`'].join('');
+    const staleFallbackLocal = ['fallback local:', ' `ws://127.0.0.1:8765/ws`'].join('');
+    const staleLocalSecond = ['local-second', ' candidate order'].join('');
+    const staleDevFallback = ['Dev fallback', ' (no overrides)'].join('');
+    const stalePackagedFallback = ['Packaged fallback', ' default'].join('');
+
+    expect(docText).toContain('Local backend origins are explicit');
+    expect(docText).toContain('do not silently switch to a local backend');
+    expect(docText).not.toContain(staleLoopbackFallback);
+    expect(docText).not.toContain(staleFallbackLocal);
+    expect(docText).not.toContain(staleLocalSecond);
+    expect(docText).not.toContain(staleDevFallback);
+    expect(docText).not.toContain(stalePackagedFallback);
+  });
+
   test('endpoint runtime tests keep arbitrary test hosts product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/IpcArtifactHandlers.test.cjs'),
