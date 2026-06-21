@@ -169,6 +169,8 @@ Owns IPC startup state hydration:
 - exposes `createIpcStartupStateRuntime(...)` so `ipc.cjs` composes install
   auth, cached config, shortcut fallback, MCP startup refresh, overlay phase,
   and initialize-time shortcut setter dependencies once
+- keeps the lower-level startup-state initializer private behind the runtime
+  facade
 - loads cached install auth and applies it to main-process install/user state
 - loads cached desktop UI config and applies shortcut fallback defaults
 - updates the global agent stop shortcut accelerator from cached config

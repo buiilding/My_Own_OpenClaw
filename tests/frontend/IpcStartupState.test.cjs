@@ -4,7 +4,6 @@
 
 const {
   createIpcStartupStateRuntime,
-  initializeIpcStartupState,
 } = require('../../frontend/src/main/ipc/ipc_startup_state.cjs');
 
 const fs = require('fs/promises');
@@ -41,11 +40,17 @@ function createDeps(overrides = {}) {
   };
 }
 
+function initializeWithRuntime(deps) {
+  const runtime = createIpcStartupStateRuntime(deps);
+  runtime.initialize();
+  return runtime;
+}
+
 describe('ipc_startup_state', () => {
   test('hydrates install auth and cached desktop UI config', async () => {
     const deps = createDeps();
 
-    initializeIpcStartupState(deps);
+    initializeWithRuntime(deps);
     await flushPromises();
 
     expect(deps.applyInstallAuthState).toHaveBeenCalledWith({
@@ -77,7 +82,7 @@ describe('ipc_startup_state', () => {
       })),
     });
 
-    initializeIpcStartupState(deps);
+    initializeWithRuntime(deps);
     await flushPromises();
 
     expect(deps.onDesktopUiConfigLoaded).toHaveBeenCalledWith({
@@ -89,7 +94,7 @@ describe('ipc_startup_state', () => {
   test('initializes stop shortcut state from the current response-overlay phase', () => {
     const deps = createDeps();
 
-    initializeIpcStartupState(deps);
+    initializeWithRuntime(deps);
 
     expect(deps.setAgentLoopStopShortcutEnabled).toHaveBeenCalledWith(true);
   });
@@ -99,7 +104,7 @@ describe('ipc_startup_state', () => {
       isValidConfigPayload: jest.fn(() => false),
     });
 
-    initializeIpcStartupState(deps);
+    initializeWithRuntime(deps);
     await flushPromises();
 
     expect(deps.setLatestDesktopUiConfig).not.toHaveBeenCalled();
@@ -117,7 +122,7 @@ describe('ipc_startup_state', () => {
       }),
     });
 
-    initializeIpcStartupState(deps);
+    initializeWithRuntime(deps);
     await expect(flushPromises()).resolves.toBeUndefined();
 
     expect(deps.applyInstallAuthState).not.toHaveBeenCalled();
@@ -172,5 +177,7 @@ describe('ipc_startup_state', () => {
     expect(mainSource).not.toContain('initializeIpcStartupState({');
     expect(helperSource).toContain('function createIpcStartupStateRuntime');
     expect(helperSource).toContain('return initializeIpcStartupState({');
+    const helperModule = require('../../frontend/src/main/ipc/ipc_startup_state.cjs');
+    expect(helperModule.initializeIpcStartupState).toBeUndefined();
   });
 });

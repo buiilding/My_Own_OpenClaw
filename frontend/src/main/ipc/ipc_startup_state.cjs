@@ -97,5 +97,4 @@ function createIpcStartupStateRuntime({
 
 module.exports = {
   createIpcStartupStateRuntime,
-  initializeIpcStartupState,
 };

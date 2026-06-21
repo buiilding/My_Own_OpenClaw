@@ -384,6 +384,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('initializeIpcStartupState({');
     expect(startupStateSource).toContain('function createIpcStartupStateRuntime');
     expect(startupStateSource).toContain('return initializeIpcStartupState({');
+    expect(startupStateSource).not.toContain('  initializeIpcStartupState,');
     expect(source).not.toContain('resolveWorkspaceRepoInstructionPromptLayers(workspacePath)');
     expect(source).not.toContain('loadExtensionSkillPromptLayers()');
     expect(agentDefinitionContextSource).toContain('isDefaultAgentDefinition(generatedAgentDefinition)');

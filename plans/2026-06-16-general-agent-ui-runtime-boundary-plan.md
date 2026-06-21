@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Startup State Initializer Privacy
+
+- Finding: `ipc_startup_state.cjs` already exposed
+  `createIpcStartupStateRuntime(...)` as the Electron main composition facade,
+  but focused tests still reached into the lower-level startup initializer.
+- Change: kept `initializeIpcStartupState(...)` private to the startup-state
+  helper module and moved install-auth, cached config, shortcut fallback,
+  fail-open hydration, and initialize-time callback coverage through the runtime
+  facade.
+- Validation: focused startup-state and main SDK boundary tests, targeted main
+  IPC lint, docs listing, stale export-line scans, and diff checks before
+  commit.
+- Compatibility/security: no IPC payload, persisted config, install-auth,
+  shortcut, permission, credential, or trust-boundary migration required; the
+  public runtime facade remains available.
+
 ### 2026-06-21 Main Image Interaction Registration Privacy
 
 - Finding: `ipc_image_interaction_handlers.cjs` already exposed
