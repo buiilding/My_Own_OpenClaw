@@ -35,6 +35,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
   prefix, bundled runtime copy, env keys, runs header, wakeword model, and
   browser warmup copy remain host-skin owned.
+  Generic runtime-mode and VM worker runtime tests use sample env maps and runs
+  headers while real WindieOS VM env and runs auth names remain host-skin owned.
   Generic runtime-path and wakeword bridge tests use sample host config and
   neutral packaged resource roots while real WindieOS env/model/path values
   remain host-skin owned. Local-runtime bridge RPC tests use neutral injected
@@ -7933,6 +7935,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer log-prefix propagation, host-skin configuration, permissions,
   storage, provider policy, and backend behavior are unchanged; no migration is
   required.
+- Generic runtime-mode and VM worker runtime tests now use neutral sample env
+  maps and runs-header fixtures instead of importing WindieOS host-skin VM
+  config. Real WindieOS VM env and hosted runs auth names remain covered by the
+  host-skin boundary tests. Runtime-mode flag parsing, worker-mode fallback
+  behavior, VM worker heartbeat/claim/event/stop routing, hosted runs auth
+  injection, host-skin configuration, permissions, storage, provider policy,
+  and backend behavior are unchanged; no migration is required.
 - Generic runtime-path and wakeword bridge tests now use neutral injected host
   config fixtures instead of importing WindieOS host-skin values. Real WindieOS
   env, wakeword model, packaged-entrypoint, and runtime-path ownership remains

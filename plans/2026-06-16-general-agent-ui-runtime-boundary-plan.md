@@ -19303,6 +19303,23 @@ Each completed slice should report:
   behavior, renderer log-prefix propagation, host-skin configuration,
   permissions, storage, provider policy, and backend behavior are unchanged.
 
+### 2026-06-21 VM runtime env fixture neutrality
+
+- Finding: generic runtime-mode and VM worker runtime tests still imported the
+  WindieOS host skin and reused WindieOS VM env keys and runs auth header values
+  as arbitrary fixtures, even though production ownership already lives in the
+  main host skin.
+- Change: replaced those imports with test-local sample runtime-mode and VM
+  worker env maps, switched the injected runs auth header to a neutral sample
+  value, removed unused worker-mode env noise from VM worker runtime tests, and
+  added a modular boundary guard for these fixtures.
+- Validation: focused runtime-mode, VM worker, host-skin boundary, and modular
+  boundary tests; exact retired VM fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime-mode flag parsing, worker-mode
+  fallback behavior, VM worker heartbeat/claim/event/stop routing, hosted runs
+  auth injection, host-skin configuration, permissions, storage, provider
+  policy, and backend behavior are unchanged.
+
 ### 2026-06-21 Runtime path and wakeword host config fixture neutrality
 
 - Finding: generic runtime-path and wakeword bridge tests imported the

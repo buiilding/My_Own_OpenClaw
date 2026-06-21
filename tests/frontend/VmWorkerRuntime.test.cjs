@@ -3,11 +3,18 @@
 const {
   createVmWorkerRuntime,
 } = require('../../frontend/src/main/app/vm_worker_runtime.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
-const windieVmWorkerEnv = mainHostSkin.vmWorker.env;
+const sampleVmWorkerEnv = Object.freeze({
+  workspaceId: 'SAMPLE_VM_WORKSPACE_ID',
+  workerId: 'SAMPLE_VM_WORKER_ID',
+  vmId: 'SAMPLE_VM_ID',
+  agentId: 'SAMPLE_VM_AGENT_ID',
+  heartbeatMs: 'SAMPLE_VM_WORKER_HEARTBEAT_MS',
+  runsApiKeys: Object.freeze([
+    'SAMPLE_VM_RUNS_API_KEY',
+    'SAMPLE_RUNS_API_KEY',
+  ]),
+});
 
 function flushPromises() {
   return new Promise((resolve) => setImmediate(resolve));
@@ -26,9 +33,9 @@ describe('vm_worker_runtime', () => {
     const intervals = [];
     const createRuntime = (heartbeatValue) => createVmWorkerRuntime({
       env: {
-        WINDIE_VM_WORKER_HEARTBEAT_MS: heartbeatValue,
+        SAMPLE_VM_WORKER_HEARTBEAT_MS: heartbeatValue,
       },
-      vmWorkerEnv: windieVmWorkerEnv,
+      vmWorkerEnv: sampleVmWorkerEnv,
       fetchFn: jest.fn(),
       getBackendConnectionState: () => ({ isConnected: false }),
       sendAutomatedQuery: jest.fn(),
@@ -59,9 +66,9 @@ describe('vm_worker_runtime', () => {
   test('buildAttachmentContextFromFiles renders artifact list', () => {
     const runtime = createVmWorkerRuntime({
       env: {
-        WINDIE_VM_WORKSPACE_ID: 'workspace-demo',
+        SAMPLE_VM_WORKSPACE_ID: 'workspace-demo',
       },
-      vmWorkerEnv: windieVmWorkerEnv,
+      vmWorkerEnv: sampleVmWorkerEnv,
       fetchFn: jest.fn(),
       getBackendConnectionState: () => ({ isConnected: false }),
       sendAutomatedQuery: jest.fn(),
@@ -124,12 +131,11 @@ describe('vm_worker_runtime', () => {
     let observer = null;
     const runtime = createVmWorkerRuntime({
       env: {
-        WINDIE_VM_WORKSPACE_ID: 'workspace-demo',
-        WINDIE_VM_WORKER_MODE: '1',
-        WINDIE_VM_WORKER_HEARTBEAT_MS: '9999',
-        WINDIE_VM_RUNS_API_KEY: 'worker-runs-key',
+        SAMPLE_VM_WORKSPACE_ID: 'workspace-demo',
+        SAMPLE_VM_WORKER_HEARTBEAT_MS: '9999',
+        SAMPLE_VM_RUNS_API_KEY: 'worker-runs-key',
       },
-      vmWorkerEnv: windieVmWorkerEnv,
+      vmWorkerEnv: sampleVmWorkerEnv,
       fetchFn,
       getBackendConnectionState: () => ({
         isConnected: true,
@@ -145,7 +151,7 @@ describe('vm_worker_runtime', () => {
           observer = null;
         };
       },
-      runsApiKeyHeader: 'x-windie-runs-key',
+      runsApiKeyHeader: 'x-sample-runs-key',
       setIntervalFn: () => 1,
       clearIntervalFn: jest.fn(),
       log: jest.fn(),
@@ -160,7 +166,7 @@ describe('vm_worker_runtime', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
-          'x-windie-runs-key': 'worker-runs-key',
+          'x-sample-runs-key': 'worker-runs-key',
         }),
       }),
     );
@@ -189,10 +195,10 @@ describe('vm_worker_runtime', () => {
     }));
     const runtime = createVmWorkerRuntime({
       env: {
-        WINDIE_VM_RUNS_API_KEY: 'worker-runs-key',
-        WINDIE_VM_WORKER_HEARTBEAT_MS: '9999',
+        SAMPLE_VM_RUNS_API_KEY: 'worker-runs-key',
+        SAMPLE_VM_WORKER_HEARTBEAT_MS: '9999',
       },
-      vmWorkerEnv: windieVmWorkerEnv,
+      vmWorkerEnv: sampleVmWorkerEnv,
       fetchFn,
       getBackendConnectionState: () => ({
         isConnected: true,
@@ -215,7 +221,7 @@ describe('vm_worker_runtime', () => {
       'http://localhost:8000/api/runs/workers/heartbeat',
       expect.objectContaining({
         headers: expect.not.objectContaining({
-          'x-windie-runs-key': 'worker-runs-key',
+          'x-sample-runs-key': 'worker-runs-key',
         }),
       }),
     );
@@ -259,10 +265,9 @@ describe('vm_worker_runtime', () => {
     let observer = null;
     const runtime = createVmWorkerRuntime({
       env: {
-        WINDIE_VM_WORKSPACE_ID: 'workspace-demo',
-        WINDIE_VM_WORKER_MODE: '1',
+        SAMPLE_VM_WORKSPACE_ID: 'workspace-demo',
       },
-      vmWorkerEnv: windieVmWorkerEnv,
+      vmWorkerEnv: sampleVmWorkerEnv,
       fetchFn,
       getBackendConnectionState: () => ({
         isConnected: true,
@@ -361,10 +366,9 @@ describe('vm_worker_runtime', () => {
 
     const runtime = createVmWorkerRuntime({
       env: {
-        WINDIE_VM_WORKSPACE_ID: 'workspace-demo',
-        WINDIE_VM_WORKER_MODE: '1',
+        SAMPLE_VM_WORKSPACE_ID: 'workspace-demo',
       },
-      vmWorkerEnv: windieVmWorkerEnv,
+      vmWorkerEnv: sampleVmWorkerEnv,
       fetchFn,
       getBackendConnectionState: () => ({
         isConnected: true,
@@ -407,8 +411,8 @@ describe('vm_worker_runtime', () => {
       json: async () => ({ ok: true }),
     }));
     const runtime = createVmWorkerRuntime({
-      env: { WINDIE_VM_WORKSPACE_ID: 'workspace-demo' },
-      vmWorkerEnv: windieVmWorkerEnv,
+      env: { SAMPLE_VM_WORKSPACE_ID: 'workspace-demo' },
+      vmWorkerEnv: sampleVmWorkerEnv,
       fetchFn,
       getBackendConnectionState: () => ({
         isConnected: true,

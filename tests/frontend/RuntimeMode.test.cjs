@@ -4,41 +4,41 @@ const {
   isVmModeEnabled,
   isVmWorkerModeEnabled,
 } = require('../../frontend/src/main/app/runtime_mode.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
-const windieVmWorkerEnv = mainHostSkin.vmWorker.env;
+const sampleRuntimeModeEnv = Object.freeze({
+  vmMode: 'SAMPLE_VM_MODE',
+  vmWorkerMode: 'SAMPLE_VM_WORKER_MODE',
+});
 
 describe('runtime_mode', () => {
-  test('detects VM mode only when WINDIE_VM_MODE is set to 1', () => {
-    expect(isVmModeEnabled({ WINDIE_VM_MODE: '1' }, windieVmWorkerEnv)).toBe(
+  test('detects VM mode only when configured host env key is set to 1', () => {
+    expect(isVmModeEnabled({ SAMPLE_VM_MODE: '1' }, sampleRuntimeModeEnv)).toBe(
       true,
     );
-    expect(isVmModeEnabled({ WINDIE_VM_MODE: '0' }, windieVmWorkerEnv)).toBe(
+    expect(isVmModeEnabled({ SAMPLE_VM_MODE: '0' }, sampleRuntimeModeEnv)).toBe(
       false,
     );
-    expect(isVmModeEnabled({}, windieVmWorkerEnv)).toBe(false);
-    expect(isVmModeEnabled({ WINDIE_VM_MODE: ' 1 ' }, windieVmWorkerEnv)).toBe(
+    expect(isVmModeEnabled({}, sampleRuntimeModeEnv)).toBe(false);
+    expect(isVmModeEnabled({ SAMPLE_VM_MODE: ' 1 ' }, sampleRuntimeModeEnv)).toBe(
       true,
     );
   });
 
-  test('defaults worker mode to VM mode unless WINDIE_VM_WORKER_MODE overrides it', () => {
-    expect(isVmWorkerModeEnabled({ WINDIE_VM_MODE: '1' }, windieVmWorkerEnv)).toBe(
+  test('defaults worker mode to VM mode unless configured host worker key overrides it', () => {
+    expect(isVmWorkerModeEnabled({ SAMPLE_VM_MODE: '1' }, sampleRuntimeModeEnv)).toBe(
       true,
     );
-    expect(isVmWorkerModeEnabled({ WINDIE_VM_MODE: '0' }, windieVmWorkerEnv)).toBe(
+    expect(isVmWorkerModeEnabled({ SAMPLE_VM_MODE: '0' }, sampleRuntimeModeEnv)).toBe(
       false,
     );
     expect(isVmWorkerModeEnabled({
-      WINDIE_VM_MODE: '1',
-      WINDIE_VM_WORKER_MODE: '0',
-    }, windieVmWorkerEnv)).toBe(false);
+      SAMPLE_VM_MODE: '1',
+      SAMPLE_VM_WORKER_MODE: '0',
+    }, sampleRuntimeModeEnv)).toBe(false);
     expect(isVmWorkerModeEnabled({
-      WINDIE_VM_MODE: '0',
-      WINDIE_VM_WORKER_MODE: '1',
-    }, windieVmWorkerEnv)).toBe(true);
-    expect(isVmWorkerModeEnabled({}, windieVmWorkerEnv)).toBe(false);
+      SAMPLE_VM_MODE: '0',
+      SAMPLE_VM_WORKER_MODE: '1',
+    }, sampleRuntimeModeEnv)).toBe(true);
+    expect(isVmWorkerModeEnabled({}, sampleRuntimeModeEnv)).toBe(false);
   });
 });

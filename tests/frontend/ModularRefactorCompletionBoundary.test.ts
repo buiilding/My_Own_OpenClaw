@@ -733,6 +733,22 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('sample_wakeword');
   });
 
+  test('VM runtime tests keep injected env fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/RuntimeMode.test.cjs'),
+      read('tests/frontend/VmWorkerRuntime.test.cjs'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain('WINDIE_VM_');
+    expect(source).not.toContain('WINDIE_RUNS_API_KEY');
+    expect(source).not.toContain('x-windie-runs-key');
+    expect(source).toContain('sampleRuntimeModeEnv');
+    expect(source).toContain('sampleVmWorkerEnv');
+    expect(source).toContain('SAMPLE_VM_WORKSPACE_ID');
+    expect(source).toContain('x-sample-runs-key');
+  });
+
   test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/voice/WakewordDetectionHook.test.ts'),
