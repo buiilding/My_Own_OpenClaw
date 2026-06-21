@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use a neutral wakeword model fixture in app diagnostics store
+  coverage instead of a WindieOS wakeword model name. No migration required.
 - tests/main: use neutral injected debug and wakeword runtime host config
   fixtures instead of WindieOS host-skin values. No migration required.
 - tests/main: use neutral injected browser warmup copy in local-runtime bridge
@@ -45,8 +47,9 @@ All notable changes to WindieOS will be documented in this file.
 - tests/main: use neutral injected runtime-path and wakeword bridge host config
   fixtures instead of importing WindieOS host-skin values. No migration
   required.
-- tests/main: use neutral injected main-window/bootstrap skin fixtures instead
-  of WindieOS product skin values. No migration required.
+- tests/main: use neutral injected main-window/bootstrap skin, env, and
+  wakeword fixtures instead of WindieOS product skin values. No migration
+  required.
 - tests/main: use neutral injected agent identity fixtures in IPC wake-up and
   host-copy runtime coverage instead of WindieOS product names. No migration
   required.

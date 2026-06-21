@@ -475,10 +475,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain(retiredDiagnosticsTempRoot);
     expect(source).not.toContain(retiredCuaMcpTempRoot);
     expect(source).not.toContain(retiredMcpDiagnosticsTempRoot);
+    expect(source).not.toContain('hey_jarvis');
     expect(source).toContain('project-alpha-query-agents');
     expect(source).toContain('project-alpha-ipc-persist');
     expect(source).toContain('/tmp/project-alpha-workspace');
     expect(source).toContain('/tmp/project-alpha-retry-workspace');
+    expect(source).toContain('SAMPLE_WAKEWORD_MODEL');
     expect(source).toContain('agent-diagnostics-');
     expect(source).toContain('agent-cua-mcp-');
     expect(source).toContain('agent-mcp-diagnostics-');
@@ -720,10 +722,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain("rendererLogPrefix: '[WindieOS]'");
     expect(source).not.toContain('Please reinstall WindieOS');
     expect(source).not.toContain('Open the WindieOS browser');
+    expect(source).not.toContain('WINDIE_');
+    expect(source).not.toContain('hey_jarvis');
+    expect(source).not.toContain('x-windie-runs-key');
     expect(source).toContain('/tmp/agent-icon.png');
     expect(source).toContain('sample.app.png');
     expect(source).toContain("trayTooltip: 'Sample Desktop'");
     expect(source).toContain("rendererLogPrefix: '[SampleApp]'");
+    expect(source).toContain('SAMPLE_VM_WORKSPACE_ID');
+    expect(source).toContain('sample_wakeword');
   });
 
   test('wakeword hook tests keep audio worklet URL fixtures product-neutral', async () => {

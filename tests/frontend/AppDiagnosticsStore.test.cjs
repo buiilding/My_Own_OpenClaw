@@ -27,6 +27,7 @@ const {
 
 const MCP_EXECUTION_DIAGNOSTICS_PATH = 'mcp.execution';
 const MCP_REGISTRATION_DIAGNOSTICS_PATH = 'mcp.registration';
+const SAMPLE_WAKEWORD_MODEL = 'sample_wakeword';
 
 function sqlString(value) {
   return `'${String(value).replace(/'/g, "''")}'`;
@@ -514,7 +515,7 @@ describe('app diagnostics store', () => {
         processPid: 1234,
         ready: true,
         enabled: true,
-        modelId: 'hey_jarvis',
+        modelId: SAMPLE_WAKEWORD_MODEL,
         confidence: 0.9,
         score: 0.8,
         transcript: 'do not store',
@@ -535,7 +536,7 @@ describe('app diagnostics store', () => {
       processPid: 1234,
       ready: true,
       enabled: true,
-      modelId: 'hey_jarvis',
+      modelId: SAMPLE_WAKEWORD_MODEL,
       confidence: 0.9,
       score: 0.8,
     }));

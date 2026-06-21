@@ -19017,6 +19017,24 @@ Each completed slice should report:
   provider policy, permissions, storage contracts, and backend behavior are
   unchanged.
 
+### 2026-06-21 App diagnostics wakeword fixture neutrality
+
+- Finding: app diagnostics store tests still used the WindieOS wakeword model
+  name as an arbitrary persisted payload while model ownership already lives in
+  host skin and wakeword runtime configuration.
+- Change: switched the diagnostics payload fixture to a neutral sample wakeword
+  model and extended the main IPC diagnostics fixture guard so generic
+  diagnostics persistence coverage cannot regain the product model marker.
+- Validation: focused main-window/bootstrap, host-skin boundary, and modular
+  boundary tests; exact retired diagnostics wakeword/bootstrap fixture marker
+  scan, docs listing, and diff checks. The focused app diagnostics store suite
+  was attempted but remains blocked on this machine because the `sqlite3` CLI
+  is not installed (`spawnSync sqlite3 ENOENT`).
+- Compatibility: no migration required. Diagnostic path definitions,
+  sanitization, SQLite persistence, host-skin diagnostics configuration,
+  wakeword model injection, provider policy, permissions, storage contracts,
+  and backend behavior are unchanged.
+
 ### 2026-06-21 Screenshot path fixture neutrality
 
 - Finding: local-runtime screenshot-related tests still used Windie-flavored
@@ -19273,7 +19291,8 @@ Each completed slice should report:
 
 - Finding: generic main-window and main-process bootstrap tests still used
   WindieOS host-skin values as arbitrary injected app icon, tray tooltip, log
-  prefix, runtime reinstall copy, and browser warmup copy fixtures.
+  prefix, runtime reinstall copy, env key, runs header, wakeword model, and
+  browser warmup copy fixtures.
 - Change: switched those test-only injected values to neutral sample app
   fixtures and extended the modular boundary guard while preserving real
   WindieOS host-skin coverage in `MainHostSkinBoundary`.

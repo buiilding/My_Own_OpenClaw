@@ -33,7 +33,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   fixtures while product-hosted defaults stay covered in host-skin and endpoint
   resolver tests. Generic main-window and main-process bootstrap tests use
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
-  prefix, bundled runtime copy, and browser warmup copy remain host-skin owned.
+  prefix, bundled runtime copy, env keys, runs header, wakeword model, and
+  browser warmup copy remain host-skin owned.
   Generic runtime-path and wakeword bridge tests use sample host config and
   neutral packaged resource roots while real WindieOS env/model/path values
   remain host-skin owned. Local-runtime bridge RPC tests use neutral injected
@@ -7814,6 +7815,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Diagnostic path definitions, sanitization, SQLite persistence, host-skin
   diagnostics DB configuration, provider policy, permissions, storage contracts,
   and backend behavior are unchanged; no migration is required.
+- App diagnostics store tests now use a neutral sample wakeword model payload
+  instead of the WindieOS wakeword model marker for generic diagnostics
+  sanitizer persistence coverage. The real host-skin wakeword model and stderr
+  marker remain covered at the host boundary. Diagnostic path definitions,
+  sanitization, SQLite persistence, host-skin diagnostics configuration,
+  wakeword model injection, provider policy, permissions, storage contracts,
+  and backend behavior are unchanged; no migration is required.
 - Local-runtime screenshot-related tests now use neutral screenshot path
   fixtures for unowned screenshot temp directories and `open_app` screenshot
   verification payloads instead of Windie-flavored arbitrary paths. Intentional
@@ -7918,12 +7926,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer verbose logging, host-skin log configuration, permissions, storage,
   provider policy, and backend behavior are unchanged; no migration is required.
 - Generic main-window and main-process bootstrap tests now use neutral injected
-  skin fixtures instead of WindieOS product skin values. Real WindieOS app icon,
-  tray tooltip, log prefix, bundled runtime copy, and browser warmup copy remain
-  covered by the host-skin boundary tests. Window bootstrap delegation, tray
-  icon behavior, renderer log-prefix propagation, host-skin configuration,
-  permissions, storage, provider policy, and backend behavior are unchanged; no
-  migration is required.
+  skin, env, and wakeword fixtures instead of WindieOS product skin values. Real
+  WindieOS app icon, tray tooltip, log prefix, bundled runtime copy, env keys,
+  runs header, wakeword model, and browser warmup copy remain covered by the
+  host-skin boundary tests. Window bootstrap delegation, tray icon behavior,
+  renderer log-prefix propagation, host-skin configuration, permissions,
+  storage, provider policy, and backend behavior are unchanged; no migration is
+  required.
 - Generic runtime-path and wakeword bridge tests now use neutral injected host
   config fixtures instead of importing WindieOS host-skin values. Real WindieOS
   env, wakeword model, packaged-entrypoint, and runtime-path ownership remains

@@ -33,9 +33,9 @@ describe('main_process_bootstrap_runtime', () => {
         vmMode: false,
         vmWorkerMode: false,
         ipcMain: { on: jest.fn(), handle: jest.fn() },
-        runsApiKeyHeader: 'x-windie-runs-key',
+        runsApiKeyHeader: 'x-sample-runs-key',
         vmWorkerEnv: {
-          workspaceId: 'WINDIE_VM_WORKSPACE_ID',
+          workspaceId: 'SAMPLE_VM_WORKSPACE_ID',
         },
         appIconFileName: 'sample.app.png',
         rendererLogPrefix: '[SampleApp]',
@@ -44,17 +44,17 @@ describe('main_process_bootstrap_runtime', () => {
           missingRuntimeMessage: 'Please reinstall this sample app',
         },
         runtimePaths: {
-          pythonPath: 'WINDIE_PYTHON_PATH',
+          pythonPath: 'SAMPLE_PYTHON_PATH',
         },
         localRuntimeDaemonEntrypoint: 'sidecar_daemon.py',
         localRuntimeEnv: {
-          backendHttpUrl: 'WINDIE_BACKEND_HTTP_URL',
+          backendHttpUrl: 'SAMPLE_BACKEND_HTTP_URL',
         },
         wakewordEnv: {
-          packagedApp: 'WINDIE_PACKAGED_APP',
+          packagedApp: 'SAMPLE_PACKAGED_APP',
         },
-        wakewordModelName: 'hey_jarvis',
-        wakewordStderrLogMarkers: ['hey_jarvis'],
+        wakewordModelName: 'sample_wakeword',
+        wakewordStderrLogMarkers: ['sample_wakeword'],
         localRuntimeBridgeCopy: {
           browserWarmupExplanation: 'Open the sample browser',
         },
@@ -159,9 +159,9 @@ describe('main_process_bootstrap_runtime', () => {
     expect(deps.createVmWorkerRuntime).toHaveBeenCalledWith(expect.objectContaining({
       sendAutomatedQuery: deps.sendAutomatedQuery,
       stopQueryThroughAgentSdkRuntime: deps.stopQueryThroughAgentSdkRuntime,
-      runsApiKeyHeader: 'x-windie-runs-key',
+      runsApiKeyHeader: 'x-sample-runs-key',
       vmWorkerEnv: expect.objectContaining({
-        workspaceId: 'WINDIE_VM_WORKSPACE_ID',
+        workspaceId: 'SAMPLE_VM_WORKSPACE_ID',
       }),
     }));
     expect(vmWorkerRuntime.start).toHaveBeenCalledTimes(1);
