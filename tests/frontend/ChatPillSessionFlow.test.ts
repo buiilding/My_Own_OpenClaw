@@ -235,7 +235,9 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
-        overlayTurnLifecycle: 'awaiting',
+        visibleTurnLifecycle: {
+          status: 'local_pending',
+        },
         showChatboxAwaitingReply: true,
       },
       responseOverlayEntries: [{ id: 'assistant-1' }],

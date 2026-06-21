@@ -46,7 +46,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(resolveResponseOverlayViewContract({
       currentTurnPresentationState: {
         showChatboxAwaitingReply: true,
-        overlayTurnLifecycle: 'awaiting',
+        visibleTurnLifecycle: {
+          status: 'local_pending',
+        },
         visibleResponse: {
           id: 'assistant-1',
         },
@@ -66,7 +68,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
     expect(resolveResponseOverlayViewContract({
       currentTurnPresentationState: {
         showChatboxAwaitingReply: true,
-        overlayTurnLifecycle: 'active',
+        visibleTurnLifecycle: {
+          status: 'active',
+        },
         visibleResponse: {
           id: 'assistant-1',
         },

@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Response Overlay View Legacy Lifecycle Import Removal
+
+- Finding: `DesktopResponseOverlayViewRuntime` still imported
+  `DesktopOverlayTurnLifecycleRuntime` and inspected the legacy
+  `overlayTurnLifecycle` field to decide whether an old visible response should
+  be suppressed during a new awaiting turn.
+- Change: response overlay view intent now checks
+  `currentTurnPresentationState.visibleTurnLifecycle.status` directly, so the
+  stale-response guard reads the renderer-owned lifecycle rather than the
+  overlay lifecycle adapter field.
+- Validation target: `ResponseOverlayViewContract.test.ts` protects awaiting
+  suppression through `local_pending` and active response visibility through
+  `active`; `RendererAppRuntimeBoundary.test.ts` rejects the old runtime import.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Live Surface SDK Presentation Visibility Flag Deletion
 
 - Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`

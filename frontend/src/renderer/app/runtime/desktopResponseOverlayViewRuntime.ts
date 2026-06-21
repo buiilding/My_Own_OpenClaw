@@ -3,15 +3,14 @@
  */
 
 import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
-import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
 
-const {
-  isOverlayTurnLifecycleAwaiting,
-} = DesktopOverlayTurnLifecycleRuntime;
+const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
 
 type CurrentTurnPresentationStateLike = {
   showChatboxAwaitingReply?: boolean;
-  overlayTurnLifecycle?: string;
+  visibleTurnLifecycle?: {
+    status?: string | null;
+  } | null;
   visibleResponse?: {
     id?: string | null;
   } | null;
@@ -34,11 +33,11 @@ function resolveResponseOverlayViewContract({
     ? responseOverlayEntries[responseOverlayEntries.length - 1].id || null
     : null;
   const awaitingReply = currentTurnPresentationState.showChatboxAwaitingReply === true;
-  const overlayTurnLifecycle = currentTurnPresentationState.overlayTurnLifecycle;
+  const visibleTurnLifecycleStatus = currentTurnPresentationState.visibleTurnLifecycle?.status;
   const visibleResponseId = currentTurnPresentationState.visibleResponse?.id || null;
   const isStaleVisibleResponseDuringAwaiting = (
     awaitingReply
-    && isOverlayTurnLifecycleAwaiting(overlayTurnLifecycle)
+    && AWAITING_VISIBLE_LIFECYCLE_STATUSES.has(visibleTurnLifecycleStatus || '')
     && visibleResponseId !== null
     && latestResponseOverlayEntryId === visibleResponseId
   );

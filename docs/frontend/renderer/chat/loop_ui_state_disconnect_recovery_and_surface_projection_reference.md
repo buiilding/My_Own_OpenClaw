@@ -224,9 +224,9 @@ shows awaiting only for renderer local pending or SDK awaiting lifecycle, and
 shows response only for visible SDK entries. Phase-only `streaming`,
 `tool_call`, or `tool_output` projections with no visible text, tool event,
 progress, error, or pending turn do not independently show typing. The
-visible-lifecycle adapter also stamps the legacy `overlayTurnLifecycle` field
-for response-overlay view code, so stale phase-derived lifecycle values do not
-survive adaptation.
+response-overlay view contract reads `visibleTurnLifecycle.status` directly
+when suppressing stale previous responses during a new awaiting turn, so it no
+longer imports the overlay lifecycle adapter.
 
 ## Surface Consumers
 

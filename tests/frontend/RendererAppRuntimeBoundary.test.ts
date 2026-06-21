@@ -642,9 +642,9 @@ describe('renderer app runtime boundary', () => {
     expect(chatLoopUiStateSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(chatLoopUiStateSource).not.toContain('desktopStreamPhaseRuntime');
     expect(chatLoopUiStateSource).not.toContain('DesktopStreamPhaseRuntime');
-    expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(responseViewRuntimeSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(chatLoopUiStateSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
-    expect(responseViewRuntimeSource).toContain('DesktopOverlayTurnLifecycleRuntime');
+    expect(responseViewRuntimeSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).toContain('DesktopResponseOverlayViewRuntime');
     expect(currentTurnPresentationSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(currentTurnPresentationSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
@@ -691,7 +691,7 @@ describe('renderer app runtime boundary', () => {
       'DesktopResponseOverlayLayoutRuntime.isVisibleResponseOverlayLayoutMode',
     );
     expect(responseViewRuntimeSource).not.toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
-    expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(responseViewRuntimeSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('features/chat');
     expect(chatPillFlowSource).toContain('desktopResponseOverlayViewRuntime');
     expect(chatPillFlowSource).toContain('desktopMessageSendUiRuntime');
