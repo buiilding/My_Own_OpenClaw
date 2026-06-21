@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: add `desktopProviderCredentialRuntime.js` to the renderer
+  runtime inventory and dashboard feature map so provider credential
+  normalization routes to the app-runtime owner. No migration required.
 - renderer/config: centralize provider API-key normalization and renderer
   persistence scrubbing in `desktopProviderCredentialRuntime.js`, replacing the
   dashboard-local helper and sharing the same fixed provider-key projection

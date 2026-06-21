@@ -142,6 +142,8 @@ Typical keys:
 - voice/speech mode flags
 - query screenshot inclusion
 - provider API keys
+- provider API-key entries are normalized and scrubbed for renderer persistence
+  through `desktopProviderCredentialRuntime.js`
 - provider OAuth credentials can still be persisted/synced, but no OAuth controls are exposed in the renderer settings UI
 - browser automation feature toggle (`browser_automation_enabled`)
 

@@ -64,8 +64,9 @@ Shell:
 
 Sections:
 
-- `MemorySection` (+ `MemoryItem` + section data helpers)
-- `ModelsSection` (+ provider/model/api-key helper components)
+- `MemorySection` (+ `MemoryItem` + `desktopMemoryPresentationRuntime`)
+- `ModelsSection` (+ provider/model/API-key components and
+  `desktopModelCardPresentationRuntime` / `desktopProviderCredentialRuntime`)
 - `SettingsSection`
 - `UsageSection`
 
