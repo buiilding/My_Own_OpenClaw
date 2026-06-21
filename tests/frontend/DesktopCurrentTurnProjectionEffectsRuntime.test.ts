@@ -3,10 +3,12 @@
  */
 
 import type { CurrentTurnProjectionEffectsInput } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
-import {
+import { DesktopCurrentTurnProjectionEffectsRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
+
+const {
   applyCurrentTurnProjectionSideEffects,
   createProjectionCursor,
-} from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
+} = DesktopCurrentTurnProjectionEffectsRuntime;
 
 function projection(
   overrides: Partial<CurrentTurnProjectionEffectsInput> = {},

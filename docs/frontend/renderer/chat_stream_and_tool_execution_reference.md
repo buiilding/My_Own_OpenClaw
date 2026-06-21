@@ -147,7 +147,7 @@ in `desktopConversationDisplayProjection.ts` and tests should exercise the
 app-runtime facade or the public hook listener.
 
 The hook delegates current-turn UI side effects to
-`desktopCurrentTurnProjectionEffectsRuntime.ts`. That runtime reducer owns cursor-based delta
+`DesktopCurrentTurnProjectionEffectsRuntime`. That runtime reducer owns cursor-based delta
 tracking for `assistantText`, `reasoningText`, `phase`, `lastError`, and seen
 tool-event ids. It is the renderer-side owner for:
 
@@ -372,11 +372,11 @@ Handler composition boundary:
   instead of reading `event.payload` directly.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
   `useChatStreamLocalUserHandler`
-- SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `desktopCurrentTurnProjectionEffectsRuntime.ts`
+- SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `DesktopCurrentTurnProjectionEffectsRuntime`
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - SDK `turn_error` transcript/error materialization plus SDK `usage_updated` terminal behavior is delegated to `useChatStreamTerminalHandlers`
-- SDK current-turn `toolEvents` active-turn display and phase tracking is delegated through `useConversationRuntimeProjectionStream` to `desktopCurrentTurnProjectionEffectsRuntime.ts`.
+- SDK current-turn `toolEvents` active-turn display and phase tracking is delegated through `useConversationRuntimeProjectionStream` to `DesktopCurrentTurnProjectionEffectsRuntime`.
 - SDK `tool_call`/`tool_output`/`tool_bundle_call` transcript persistence is delegated to `useChatStreamToolHandlers`; local tool execution remains owned by SDK/main local-runtime execution and the local-runtime Python implementation.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.

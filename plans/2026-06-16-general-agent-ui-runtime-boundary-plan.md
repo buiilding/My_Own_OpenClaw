@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Current-Turn Projection Effects Facade
+
+- Finding: `desktopCurrentTurnProjectionEffectsRuntime.ts` already owned SDK
+  current-turn cursor keys, acceptance before local-send bookkeeping, and
+  renderer send/thinking/stream-tracking side effects, but still exported its
+  helpers as standalone functions. The projection hook and focused tests could
+  depend on those loose exports instead of the renderer app-runtime facade.
+- Change: exposed cursor creation, cursor-key projection, pre-local-send
+  acceptance, and current-turn side-effect application through
+  `DesktopCurrentTurnProjectionEffectsRuntime`, while leaving cursor/input
+  shapes as type-only contracts for hook state and tests.
+- Validation: focused current-turn projection effects, conversation runtime
+  projection stream, and renderer chat-runtime boundary tests plus lint, stale
+  standalone export/import scans, docs listing, and diff checks.
+- Compatibility/security: no migration required. SDK current-turn projection
+  payloads, stream tracking semantics, send/thinking side effects, IPC,
+  storage, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-21 Renderer Stream Event Runtime Facade
 
 - Finding: `desktopChatStreamEventRuntime.ts` already owned SDK conversation

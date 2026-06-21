@@ -109,12 +109,12 @@ Reason: `user_message` establishes turn/workspace state and seeds optimistic UI 
   - SDK `usage_updated`: workspace token counter update
   - SDK `turn_error`: materialized assistant error row + transcript error row unless suppressed
 - `useConversationRuntimeProjectionStream`:
-  - listens to SDK current-turn projections and passes accepted projections to `desktopCurrentTurnProjectionEffectsRuntime.ts`
+  - listens to SDK current-turn projections and passes accepted projections to `DesktopCurrentTurnProjectionEffectsRuntime`
   - keeps per-conversation/turn cursors so repeated projections do not duplicate text-delta or tool-event side effects
 - `desktopConversationDisplayProjection.ts`:
   - projects SDK display rows into chat messages for transcript display
   - merges renderer-only annotations and pending optimistic user rows into SDK display messages without duplicating SDK-projected user turns
-- `desktopCurrentTurnProjectionEffectsRuntime.ts`:
+- `DesktopCurrentTurnProjectionEffectsRuntime`:
   - SDK `currentTurn.reasoningText`: live thinking text and `llm-thought` stream tracking
   - SDK `currentTurn.assistantText`: clear the send latch and record `streaming-response` chunk tracking without creating raw assistant rows
   - SDK `currentTurn.toolEvents`: clear send/thinking state for active executable tool rows and record `tool-call`, `tool-output`, and `web-search-progress` phase tracking

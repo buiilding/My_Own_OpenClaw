@@ -713,6 +713,7 @@ describe('renderer chat runtime boundary', () => {
     expect(streamSource).not.toContain('reasoning_delta');
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onCurrentTurnProjection');
     expect(projectionSource).toContain('desktopCurrentTurnProjectionEffectsRuntime');
+    expect(projectionSource).toContain('DesktopCurrentTurnProjectionEffectsRuntime');
     expect(projectionSource).toContain('applyCurrentTurnProjectionSideEffects');
     expect(projectionSource).toContain('logRendererCurrentTurnAppliedTrace');
     expect(projectionSource).not.toContain('logRendererLiveSurfaceTrace');
@@ -731,11 +732,16 @@ describe('renderer chat runtime boundary', () => {
     expect(traceRuntimeSource).toContain('logRendererCurrentTurnAppliedTrace');
     expect(traceRuntimeSource).toContain("'renderer.current_turn.applied'");
     expect(traceRuntimeSource).toContain('staleSideEffectsSkipped');
+    expect(projectionSideEffectsSource).toContain('export const DesktopCurrentTurnProjectionEffectsRuntime = Object.freeze');
     expect(projectionSideEffectsSource).toContain('setThinkingStatus');
     expect(projectionSideEffectsSource).toContain('streaming-response');
     expect(projectionSideEffectsSource).toContain('desktopChatStreamThinkingRuntime');
     expect(projectionSideEffectsSource).toContain('DesktopChatStreamThinkingRuntime');
     expect(projectionSideEffectsSource).not.toContain('import {\n  buildThinkingStatus');
+    expect(projectionSideEffectsSource).not.toContain('export function createProjectionCursor');
+    expect(projectionSideEffectsSource).not.toContain('export function buildProjectionCursorKey');
+    expect(projectionSideEffectsSource).not.toContain('export function shouldAcceptCurrentTurnBeforeLocalSend');
+    expect(projectionSideEffectsSource).not.toContain('export function applyCurrentTurnProjectionSideEffects');
     expect(projectionSideEffectsSource).not.toContain('features/chat');
     expect(thinkingRuntimeSource).toContain('export const DesktopChatStreamThinkingRuntime = Object.freeze');
     expect(thinkingRuntimeSource).toContain('getGenericThinkingStatus');
@@ -1390,7 +1396,9 @@ describe('renderer chat runtime boundary', () => {
 
     expect(streamSource).not.toContain("event.type !== 'tool_progress'");
     expect(streamSource).not.toContain("event.type === 'tool_progress'");
+    expect(projectionSource).toContain('DesktopCurrentTurnProjectionEffectsRuntime');
     expect(projectionSource).toContain('applyCurrentTurnProjectionSideEffects');
+    expect(projectionSideEffectsSource).toContain('export const DesktopCurrentTurnProjectionEffectsRuntime = Object.freeze');
     expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_progress'");
     expect(projectionSideEffectsSource).toContain('web-search-progress');
   });

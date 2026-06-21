@@ -54,7 +54,7 @@ type ApplyCurrentTurnProjectionSideEffectsInput = {
   deps: CurrentTurnProjectionSideEffectDeps;
 };
 
-export function createProjectionCursor(): ProjectionCursor {
+function createProjectionCursor(): ProjectionCursor {
   return {
     assistantLength: 0,
     reasoningLength: 0,
@@ -65,7 +65,7 @@ export function createProjectionCursor(): ProjectionCursor {
   };
 }
 
-export function buildProjectionCursorKey(
+function buildProjectionCursorKey(
   conversationRef: string,
   turnRef: string | null,
 ): string {
@@ -107,11 +107,11 @@ function isExecutionSkippedToolEvent(toolEvent: CurrentTurnToolEvent): boolean {
   return toolEvent.executionSkipped === true;
 }
 
-export function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: CurrentTurnProjectionEffectsInput): boolean {
+function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: CurrentTurnProjectionEffectsInput): boolean {
   return currentTurn.phase === 'awaiting';
 }
 
-export function applyCurrentTurnProjectionSideEffects({
+function applyCurrentTurnProjectionSideEffects({
   conversationRef,
   currentTurn,
   cursor,
@@ -270,3 +270,10 @@ export function applyCurrentTurnProjectionSideEffects({
     toolEventIds: nextToolEventIds,
   };
 }
+
+export const DesktopCurrentTurnProjectionEffectsRuntime = Object.freeze({
+  createProjectionCursor,
+  buildProjectionCursorKey,
+  shouldAcceptCurrentTurnBeforeLocalSend,
+  applyCurrentTurnProjectionSideEffects,
+});

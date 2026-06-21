@@ -172,7 +172,7 @@ They should not revive the retired direct runtime IPC channel family.
    the SDK `currentTurn` projection and its `presentation` contract. Renderer
    `useConversationRuntimeProjectionStream` subscribes to that projection and
    delegates renderer send-latch, thinking, stream-tracking, tool phase, and
-   terminal side effects to `desktopCurrentTurnProjectionEffectsRuntime.ts`. Renderer
+   terminal side effects to `DesktopCurrentTurnProjectionEffectsRuntime`. Renderer
    `useChatStream` consumes SDK-normalized `windie:conversation-event` payloads
    for scoped transcript/session side effects and metadata; production live row
    shaping and active assistant/reasoning/tool/terminal phase state do not fall

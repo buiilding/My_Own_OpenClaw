@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose SDK current-turn projection cursors, acceptance,
+  and side-effect application through `DesktopCurrentTurnProjectionEffectsRuntime`
+  instead of standalone helper exports, keeping live-turn UI side effects
+  behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose stream event identity, classification, stale-turn
   guards, and tracking helpers through `DesktopChatStreamEventRuntime` instead
   of standalone helper exports, keeping SDK conversation-event routing behind

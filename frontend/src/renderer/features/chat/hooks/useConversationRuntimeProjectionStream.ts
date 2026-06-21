@@ -15,10 +15,7 @@ import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desk
 import { logRendererCurrentTurnAppliedTrace } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { DesktopPresentationSourceChannels } from '../../../app/runtime/desktopPresentationSourceChannels';
 import {
-  applyCurrentTurnProjectionSideEffects,
-  buildProjectionCursorKey,
-  createProjectionCursor,
-  shouldAcceptCurrentTurnBeforeLocalSend,
+  DesktopCurrentTurnProjectionEffectsRuntime,
   type ProjectionCursor,
 } from '../../../app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
 
@@ -27,6 +24,12 @@ const {
   recordTrackingEvent: recordTrackingEventRuntime,
   shouldIgnoreConversationEventForStaleTurn,
 } = DesktopChatStreamEventRuntime;
+const {
+  applyCurrentTurnProjectionSideEffects,
+  buildProjectionCursorKey,
+  createProjectionCursor,
+  shouldAcceptCurrentTurnBeforeLocalSend,
+} = DesktopCurrentTurnProjectionEffectsRuntime;
 
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());

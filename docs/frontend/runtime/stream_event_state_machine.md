@@ -164,7 +164,7 @@ Extra error gate:
 Transition reducer is centralized in
 `DesktopChatStreamTrackingRuntime.applyTrackingEvent(...)`. SDK
 current-turn projection deltas are converted into those tracking events by
-`desktopCurrentTurnProjectionEffectsRuntime.ts`; `useConversationRuntimeProjectionStream`
+`DesktopCurrentTurnProjectionEffectsRuntime`; `useConversationRuntimeProjectionStream`
 owns subscription, cursor storage, and stale projection acceptance, while
 `desktopConversationDisplayProjection.ts` owns display-row merging.
 
