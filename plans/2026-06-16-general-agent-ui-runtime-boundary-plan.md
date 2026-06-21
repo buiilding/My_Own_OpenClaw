@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Platform Test Label Boundary
+
+- Finding: active local-runtime Python platform, system-state, and wakeword
+  tests still introduced window-manager adapters, macOS automation permission,
+  platform module selection, system-state collection, and wakeword service
+  coverage as sidecar test-suite behavior, even though docs route these
+  surfaces through the local-runtime system-state/platform and wakeword
+  boundaries.
+- Change: renamed those active test module docstrings to local-runtime
+  platform/system-state/wakeword wording and added a focused system-state guard
+  for the exact active platform test headers.
+- Validation: focused local-runtime platform/system-state/wakeword pytest
+  coverage, exact stale platform test-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Runtime code, OS automation
+  permission probes, window-manager adapters, system-state payloads, wakeword
+  framing/model selection, IPC, storage, credentials, and trust boundaries are
+  unchanged.
+
 ### 2026-06-21 Local-Runtime Core Protocol Test Label Boundary
 
 - Finding: active local-runtime Python core/protocol tests still introduced

@@ -62,6 +62,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/tests: route local-runtime core/protocol support test docstrings away
   from sidecar-suite wording and guard the JSON-RPC/stdout/daemon helper test
   headers against the retired labels. No migration required.
+- sidecar/tests: route local-runtime platform, system-state, and wakeword test
+  docstrings away from sidecar-suite wording and guard the active platform test
+  headers. No migration required.
 - renderer/chat: move chat send lifecycle chat-pill trace payload shaping into
   `desktopRendererTraceRuntime` so `desktopChatSendPreparationRuntime` reports
   send-start, screenshot-decision, and query-dispatched values without owning

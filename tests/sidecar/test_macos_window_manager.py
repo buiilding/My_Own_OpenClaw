@@ -1,4 +1,4 @@
-"""Covers macos window manager behavior in the sidecar test suite."""
+"""Covers local-runtime macOS window manager behavior."""
 
 import builtins
 import logging

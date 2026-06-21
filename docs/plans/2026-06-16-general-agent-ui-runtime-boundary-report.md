@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: local-runtime core/protocol Python tests now use
-  local-runtime JSON-RPC/stdout/daemon/helper docstrings instead of
-  sidecar-suite wording, with focused guard coverage preventing those active
-  support-test headers from returning.
+- Latest completed slice: local-runtime platform/system-state/wakeword Python
+  tests now use local-runtime platform, system-state, and wakeword docstrings
+  instead of sidecar-suite wording, with focused guard coverage preventing
+  those active platform headers from returning.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -56,14 +56,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
   Local-runtime Python service/browser registry/bootstrap,
-  memory/conversation, executable tool, and core/protocol tests use
-  owner-correct local-runtime service, tool-helper, bootstrap, memory,
-  conversation, tool, JSON-RPC, stdout, daemon, and helper labels while
-  preserving real `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar`
-  implementation paths. Agent SDK local-runtime provider and tool-coordinator
-  tests use neutral `AGENT_TEST_*` launch env, launch-context, daemon,
-  tool-execution failure/unavailable, error, and conversation fixtures while
-  real Windie compatibility env aliases remain explicitly covered by
+  memory/conversation, executable tool, core/protocol, and
+  platform/system-state/wakeword tests use owner-correct local-runtime service,
+  tool-helper, bootstrap, memory, conversation, tool, JSON-RPC, stdout, daemon,
+  helper, platform, system-state, and wakeword labels while preserving real
+  `local_backend.py`, `sidecar_daemon.py`, and `tests/sidecar` implementation
+  paths. Agent SDK local-runtime provider and tool-coordinator tests use
+  neutral `AGENT_TEST_*` launch env, launch-context, daemon, tool-execution
+  failure/unavailable, error, and conversation fixtures while real Windie
+  compatibility env aliases remain explicitly covered by
   `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`.
   Generic local-runtime bridge screenshot tests preserve retired namespace
   rejection coverage while avoiding direct legacy WindieOS screenshot temp
@@ -634,6 +635,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Local-Runtime Platform Test Label Boundary
+
+- Finding: active local-runtime Python platform, system-state, and wakeword
+  tests still introduced window-manager adapters, macOS automation permission,
+  platform module selection, system-state collection, and wakeword service
+  coverage as sidecar test-suite behavior, even though docs route these
+  surfaces through the local-runtime system-state/platform and wakeword
+  boundaries.
+- Change: renamed those active test module docstrings to local-runtime
+  platform/system-state/wakeword wording and added a focused system-state guard
+  for the exact active platform test headers.
+- Validation: focused local-runtime platform/system-state/wakeword pytest
+  coverage, exact stale platform test-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Runtime code, OS automation
+  permission probes, window-manager adapters, system-state payloads, wakeword
+  framing/model selection, IPC, storage, credentials, and trust boundaries are
+  unchanged.
 
 ### 2026-06-21 Local-Runtime Core Protocol Test Label Boundary
 

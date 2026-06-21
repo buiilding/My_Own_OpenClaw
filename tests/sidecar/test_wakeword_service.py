@@ -1,4 +1,4 @@
-"""Covers wakeword service behavior in the sidecar test suite."""
+"""Covers local-runtime wakeword service behavior."""
 
 from pathlib import Path
 from types import SimpleNamespace

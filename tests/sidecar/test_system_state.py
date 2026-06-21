@@ -1,5 +1,6 @@
-"""Covers system state behavior in the sidecar test suite."""
+"""Covers local-runtime system-state collection behavior."""
 
+from pathlib import Path
 import sys
 
 import pytest
@@ -9,6 +10,36 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from core import system_state as system_state_module  # noqa: E402
+
+
+LOCAL_RUNTIME_PLATFORM_TEST_LABEL_PATHS = [
+    "test_linux_window_manager.py",
+    "test_macos_window_manager.py",
+    "test_windows_window_manager.py",
+    "test_macos_automation_permission.py",
+    "test_platform_module_selection.py",
+    "test_system_state.py",
+    "test_wakeword_service.py",
+]
+
+
+def test_local_runtime_platform_tests_use_boundary_docstrings():
+    test_dir = Path(__file__).parent
+    retired_suite_label = "behavior in the " + "sidecar test suite"
+    expected_headers = {
+        "test_linux_window_manager.py": '"""Covers local-runtime Linux window manager behavior."""',
+        "test_macos_window_manager.py": '"""Covers local-runtime macOS window manager behavior."""',
+        "test_windows_window_manager.py": '"""Covers local-runtime Windows window manager behavior."""',
+        "test_macos_automation_permission.py": '"""Covers local-runtime macOS automation permission behavior."""',
+        "test_platform_module_selection.py": '"""Covers local-runtime platform module selection behavior."""',
+        "test_system_state.py": '"""Covers local-runtime system-state collection behavior."""',
+        "test_wakeword_service.py": '"""Covers local-runtime wakeword service behavior."""',
+    }
+
+    for name in LOCAL_RUNTIME_PLATFORM_TEST_LABEL_PATHS:
+        source = (test_dir / name).read_text(encoding="utf-8")
+        assert source.splitlines()[0] == expected_headers[name]
+        assert retired_suite_label not in source
 
 
 class _FixedNow:

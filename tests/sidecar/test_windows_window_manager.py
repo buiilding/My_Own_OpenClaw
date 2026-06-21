@@ -1,4 +1,4 @@
-"""Covers windows window manager behavior in the sidecar test suite."""
+"""Covers local-runtime Windows window manager behavior."""
 
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 

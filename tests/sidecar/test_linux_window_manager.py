@@ -1,4 +1,4 @@
-"""Covers linux window manager behavior in the sidecar test suite."""
+"""Covers local-runtime Linux window manager behavior."""
 
 from types import SimpleNamespace
 

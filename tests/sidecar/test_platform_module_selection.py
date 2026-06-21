@@ -1,4 +1,4 @@
-"""Covers platform module selection behavior in the sidecar test suite."""
+"""Covers local-runtime platform module selection behavior."""
 
 import importlib
 import platform
