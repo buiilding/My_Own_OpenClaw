@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli: keep `sidecar` command aliases executable for compatibility while
+  removing them from primary `<windie> --help` output and CLI command tables so
+  new workflows use the canonical `local-runtime` commands. No migration
+  required.
 - renderer/runtime: keep live-turn command failure fallback copy inside the
   generic app-runtime client and remove the unused WindieOS skin runtime-copy
   field, with boundary coverage preventing app-runtime modules from importing

@@ -21652,3 +21652,19 @@ Each completed slice should report:
 - Compatibility: no migration required. SDK command names, send/stop payloads,
   IPC channels, transcript state, storage, provider policy, permissions, and
   backend behavior are unchanged.
+
+### 2026-06-21 cli local-runtime primary help surface
+
+- Finding: `<windie> test local-runtime`, `<windie> logs local-runtime`, and
+  `<windie> build local-runtime` existed, but primary help and command tables
+  still advertised the `sidecar`/`sidecar-runtime` aliases alongside the
+  canonical local-runtime commands.
+- Change: removed compatibility alias rows from `<windie> --help`, CLI usage
+  errors, and primary CLI command tables while keeping the alias routing and
+  focused alias behavior tests intact. CLI docs now mention the aliases only
+  in compatibility notes.
+- Validation: focused Windie CLI tests, direct `<windie> --help` inspection,
+  exact primary-alias scans, docs listing, and diff checks.
+- Compatibility: no migration required. Existing `logs sidecar`,
+  `test sidecar`, and `build sidecar-runtime` invocations still route to the
+  same local-runtime log/test/build behavior.

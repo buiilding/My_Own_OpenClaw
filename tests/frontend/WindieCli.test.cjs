@@ -117,15 +117,15 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('<windie> start customer');
     expect(result.stdout).toContain('<windie> start all');
     expect(result.stdout).toContain('<windie> test local-runtime');
-    expect(result.stdout).toContain('<windie> test sidecar');
+    expect(result.stdout).not.toContain('<windie> test sidecar');
     expect(result.stdout).toContain('<windie> logs frontend');
     expect(result.stdout).toContain('<windie> logs vite');
     expect(result.stdout).toContain('<windie> logs main');
     expect(result.stdout).toContain('<windie> logs renderer [--verbose]');
     expect(result.stdout).toContain('<windie> logs local-runtime');
-    expect(result.stdout).toContain('<windie> logs sidecar');
+    expect(result.stdout).not.toContain('<windie> logs sidecar');
     expect(result.stdout).toContain('<windie> build local-runtime');
-    expect(result.stdout).toContain('<windie> build sidecar-runtime');
+    expect(result.stdout).not.toContain('<windie> build sidecar-runtime');
     expect(result.stdout).not.toContain('<windie> logs desktop');
     expect(result.stdout).toContain('<windie> commits search <query> [--limit <n>] [--json]');
   });
@@ -407,9 +407,9 @@ describe('windie CLI', () => {
       tailArgs: ['-n', '20', path.join(logsDir, 'renderer.verbose.log')],
     });
     expect(() => normalizeWindieLogTarget('desktop'))
-      .toThrow('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime|sidecar');
+      .toThrow('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime');
     expect(() => resolveWindieLogFile('desktop', {}))
-      .toThrow('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime|sidecar');
+      .toThrow('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime');
   });
 
   test('prints current frontend logs without following', () => {

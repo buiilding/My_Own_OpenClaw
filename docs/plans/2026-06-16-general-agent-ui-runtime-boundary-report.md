@@ -9117,3 +9117,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer skin copy. SDK command names, send/stop payloads, IPC channels,
   transcript state, storage, provider policy, permissions, and backend behavior
   are unchanged; no migration is required.
+- The Windie CLI primary help and command docs now list only canonical
+  `local-runtime` log/test/build commands while retaining the existing
+  `sidecar`/`sidecar-runtime` aliases as compatibility routes. CLI usage errors
+  now point new callers at the canonical commands, and docs mention the aliases
+  only in compatibility notes. Existing alias invocations keep routing to the
+  same local-runtime log, test, and build behavior; no migration is required.

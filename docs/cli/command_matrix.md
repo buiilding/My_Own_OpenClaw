@@ -58,7 +58,6 @@ tables below use `<windie>` for the active platform shim.
 | `<windie> logs main` | Tail Electron main-process logs. |
 | `<windie> logs renderer --verbose` | Tail renderer logs and include verbose renderer entries. |
 | `<windie> logs local-runtime` | Tail local-runtime daemon logs. |
-| `<windie> logs sidecar` | Compatibility alias for local-runtime daemon logs. |
 
 ## Tests and Docs
 
@@ -66,7 +65,6 @@ tables below use `<windie>` for the active platform shim.
 | --- | --- |
 | `<windie> test backend [pytest args...]` | Run backend pytest. |
 | `<windie> test local-runtime [pytest args...]` | Run local-runtime Python pytest. |
-| `<windie> test sidecar [pytest args...]` | Compatibility alias for local-runtime Python pytest. |
 | `<windie> test frontend [jest args...]` | Run frontend Jest CI tests. |
 | `<windie> test all` | Run backend, local-runtime Python, and frontend tests. |
 | `<windie> test pick <area>` | Print or run test-selection presets. |
@@ -83,7 +81,6 @@ tables below use `<windie>` for the active platform shim.
 | --- | --- |
 | `<windie> build frontend` | Build the frontend bundle. |
 | `<windie> build local-runtime` | Build the bundled Python local-runtime payload. |
-| `<windie> build sidecar-runtime` | Compatibility alias for the bundled Python local-runtime build. |
 | `<windie> package mac` | Package macOS DMG/ZIP. |
 | `<windie> package win` | Package Windows NSIS installer. |
 | `<windie> package linux` | Package Linux AppImage/DEB/RPM. |
@@ -120,6 +117,11 @@ tables below use `<windie>` for the active platform shim.
 | `<windie> tools manifest generate` | Generate the executable tool manifest. |
 | `<windie> mock backend` | Start the local SDK mock backend. |
 | `./scripts/committer.sh "<subject>" --body "<body>" -- <paths...>` | Stage listed files and create a scoped commit. |
+
+Compatibility aliases still accepted by the CLI for older scripts: `<windie>
+logs sidecar`, `<windie> test sidecar`, and `<windie> build
+sidecar-runtime`. Prefer the primary `local-runtime` commands in new docs and
+automation.
 
 Read [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md) before running or changing these scripts.
 

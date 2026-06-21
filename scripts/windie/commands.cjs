@@ -84,12 +84,10 @@ Lifecycle and logs:
   <windie> logs main [--tail <lines>] [--follow] [--no-follow]
   <windie> logs renderer [--verbose] [--tail <lines>] [--follow] [--no-follow]
   <windie> logs local-runtime [--tail <lines>] [--follow] [--no-follow]
-  <windie> logs sidecar [--tail <lines>] [--follow] [--no-follow]  # alias
 
 Tests and docs:
   <windie> test backend [args...]
   <windie> test local-runtime [args...]
-  <windie> test sidecar [args...]  # alias
   <windie> test frontend [args...]
   <windie> test all
   <windie> test pick <area>
@@ -102,7 +100,6 @@ Tests and docs:
 Build and package:
   <windie> build frontend
   <windie> build local-runtime
-  <windie> build sidecar-runtime  # alias
   <windie> package mac
   <windie> package win
   <windie> package linux
@@ -489,7 +486,7 @@ function normalizeWindieLogTarget(target) {
   if (['frontend', 'vite', 'main', 'renderer', 'local-runtime', 'sidecar'].includes(normalized)) {
     return normalized;
   }
-  throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime|sidecar');
+  throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime');
 }
 
 function resolveWindieLogFile(target, env = process.env, { verbose = false } = {}) {
@@ -1238,7 +1235,7 @@ function runLogs(args) {
     ensureWindieLayerLogFile(target, logFile, { verbose });
     return runForeground('tail', tailArgs, { cwd: REPO_ROOT });
   }
-  throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime|sidecar');
+  throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime');
 }
 
 function runTest(args) {
@@ -1278,7 +1275,7 @@ function runTest(args) {
     }
     return;
   }
-  throw new Error('Usage: <windie> test backend|local-runtime|sidecar|frontend|all|pick <area>');
+  throw new Error('Usage: <windie> test backend|local-runtime|frontend|all|pick <area>');
 }
 
 function printDocsSearch(topic, usage) {
@@ -1386,7 +1383,7 @@ function runBuild(args) {
       cwd: REPO_ROOT,
     });
   }
-  throw new Error('Usage: <windie> build frontend|local-runtime|sidecar-runtime');
+  throw new Error('Usage: <windie> build frontend|local-runtime');
 }
 
 function runPackage(args) {
