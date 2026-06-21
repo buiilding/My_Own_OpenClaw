@@ -2,7 +2,7 @@
  * Provides renderer-only desktop chat event helpers.
  */
 
-export const DESKTOP_RUNTIME_NEW_CHAT_EVENT = 'desktop-runtime:new-chat';
+const DESKTOP_RUNTIME_NEW_CHAT_EVENT = 'desktop-runtime:new-chat';
 
 function getDefaultEventTarget() {
   return typeof window !== 'undefined' ? window : null;

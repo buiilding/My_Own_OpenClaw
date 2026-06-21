@@ -8472,3 +8472,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   imports, IPC channels, SDK command names, renderer projections, permissions,
   storage, provider policy, and backend behavior are unchanged; no migration is
   required.
+- The renderer-only new-chat DOM event name is now private to
+  `desktopChatEvents.js`; dashboard and chat feature callers continue to use
+  the app-runtime dispatch/subscribe helpers. Boundary coverage prevents the
+  raw event-name constant from becoming a public app-runtime export again. The
+  DOM event name, dashboard dispatch, chat subscription behavior, IPC channels,
+  SDK command names, storage, provider policy, permissions, and backend
+  behavior are unchanged; no migration is required.

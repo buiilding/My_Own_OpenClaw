@@ -525,6 +525,7 @@ describe('renderer app runtime boundary', () => {
     expect(chatEventsSource).toContain('dispatchDesktopRuntimeNewChatEvent');
     expect(chatEventsSource).toContain('subscribeDesktopRuntimeNewChatEvent');
     expect(chatEventsSource).toContain('DESKTOP_RUNTIME_NEW_CHAT_EVENT');
+    expect(chatEventsSource).not.toContain('export const DESKTOP_RUNTIME_NEW_CHAT_EVENT');
     expect(dashboardShellSource).toContain('dispatchDesktopRuntimeNewChatEvent');
     expect(dashboardShellSource).not.toContain('new Event(DESKTOP_RUNTIME_NEW_CHAT_EVENT)');
     expect(chatBindingsSource).toContain('subscribeDesktopRuntimeNewChatEvent');

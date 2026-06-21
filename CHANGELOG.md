@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: keep the raw new-chat DOM event name private to the
+  app-runtime helper while preserving dispatch/subscribe behavior. No migration
+  required.
 - renderer/runtime: describe app-runtime helper headers with renderer
   app-runtime labels instead of generic renderer runtime clients/consumers. No
   migration required.

@@ -3,7 +3,6 @@
  */
 
 import {
-  DESKTOP_RUNTIME_NEW_CHAT_EVENT,
   dispatchDesktopRuntimeNewChatEvent,
   subscribeDesktopRuntimeNewChatEvent,
 } from '../../frontend/src/renderer/app/runtime/desktopChatEvents';
@@ -11,13 +10,13 @@ import {
 describe('desktopChatEvents', () => {
   test('dispatchDesktopRuntimeNewChatEvent emits the renderer new-chat event', () => {
     const listener = jest.fn();
-    window.addEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT, listener);
+    const unsubscribe = subscribeDesktopRuntimeNewChatEvent(listener);
 
     try {
       expect(dispatchDesktopRuntimeNewChatEvent()).toBe(true);
       expect(listener).toHaveBeenCalledTimes(1);
     } finally {
-      window.removeEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT, listener);
+      unsubscribe();
     }
   });
 

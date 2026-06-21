@@ -20516,3 +20516,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime modules, exports, imports, IPC
   channels, SDK command names, renderer projections, permissions, storage,
   provider policy, and backend behavior are unchanged.
+
+### 2026-06-21 renderer new-chat event helper surface
+
+- Finding: `desktopChatEvents.js` already owned the renderer-only new-chat DOM
+  event dispatch/subscribe behavior, but still exported the raw
+  `DESKTOP_RUNTIME_NEW_CHAT_EVENT` constant even though production callers only
+  used the helper functions.
+- Change: made the event-name constant private to the app-runtime helper,
+  updated focused tests to observe behavior through `subscribe...` and
+  `dispatch...`, and added a renderer boundary guard against re-exporting the
+  raw event name.
+- Validation: focused new-chat event and renderer boundary tests, exact
+  exported-constant scan, docs listing, and diff checks.
+- Compatibility: no migration required. DOM event name, dashboard dispatch,
+  chat subscription behavior, IPC channels, SDK command names, storage,
+  provider policy, permissions, and backend behavior are unchanged.
