@@ -19,6 +19,7 @@ import {
   DesktopMcpRuntimeClient,
   getDesktopMcpRegistryErrorPresentation,
   getDesktopMcpServerPresentation,
+  getEmptyDesktopMcpRegistry,
   normalizeDesktopMcpEnablementResult,
   normalizeDesktopMcpRegistry,
   resolveDesktopMcpEnablementRegistry,
@@ -30,6 +31,18 @@ describe('DesktopMcpRuntimeClient', () => {
   });
 
   test('normalizes MCP registry payloads at the runtime boundary', () => {
+    expect(getEmptyDesktopMcpRegistry()).toEqual({
+      mcps: [],
+      errors: [],
+      mcp_errors: [],
+      enabled_mcp_servers: [],
+    });
+    expect(DesktopMcpRuntimeClient.getEmptyMcpRegistry()).toEqual({
+      mcps: [],
+      errors: [],
+      mcp_errors: [],
+      enabled_mcp_servers: [],
+    });
     expect(normalizeDesktopMcpRegistry({
       mcps: [{ id: 'memory' }],
       errors: [{ id: 'broken' }],

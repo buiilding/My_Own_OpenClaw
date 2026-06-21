@@ -542,7 +542,9 @@ describe('renderer chat runtime boundary', () => {
     expect(sectionSource).toContain('DesktopMcpRuntimeClient.refreshMcpServers');
     expect(sectionSource).toContain('DesktopMcpRuntimeClient.setMcpServerEnabled');
     expect(sectionSource).toContain('DesktopMcpRuntimeClient.getMcpRegistryErrorPresentation');
-    expect(sectionSource).toContain('EMPTY_DESKTOP_MCP_REGISTRY');
+    expect(sectionSource).toContain('DesktopMcpRuntimeClient.getEmptyMcpRegistry');
+    expect(sectionSource).not.toContain('EMPTY_DESKTOP_MCP_REGISTRY');
+    expect(clientSource).not.toContain('export const EMPTY_DESKTOP_MCP_REGISTRY');
     expect(clientSource).toContain('normalizeDesktopMcpRegistry');
     expect(clientSource).toContain('normalizeDesktopMcpEnablementResult');
     expect(clientSource).toContain('resolveDesktopMcpEnablementRegistry');

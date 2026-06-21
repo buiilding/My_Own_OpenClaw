@@ -38,7 +38,7 @@ export type DesktopMcpRegistryErrorPresentation = {
   text: string;
 };
 
-export const EMPTY_DESKTOP_MCP_REGISTRY: DesktopMcpRegistry = {
+const EMPTY_DESKTOP_MCP_REGISTRY: DesktopMcpRegistry = {
   mcps: [],
   errors: [],
   mcp_errors: [],
@@ -78,6 +78,10 @@ export function normalizeDesktopMcpRegistry(payload: unknown): DesktopMcpRegistr
       ? source.enabled_mcp_servers.filter((serverId): serverId is string => typeof serverId === 'string')
       : EMPTY_DESKTOP_MCP_REGISTRY.enabled_mcp_servers,
   };
+}
+
+export function getEmptyDesktopMcpRegistry(): DesktopMcpRegistry {
+  return EMPTY_DESKTOP_MCP_REGISTRY;
 }
 
 export function normalizeDesktopMcpEnablementResult(payload: unknown): DesktopMcpEnablementResult {
@@ -146,6 +150,10 @@ export function getDesktopMcpRegistryErrorPresentation(
 }
 
 export const DesktopMcpRuntimeClient = {
+  getEmptyMcpRegistry(): DesktopMcpRegistry {
+    return getEmptyDesktopMcpRegistry();
+  },
+
   async listMcpServers(): Promise<DesktopMcpRegistry> {
     return normalizeDesktopMcpRegistry(await IpcBridge.invoke(INVOKE_CHANNELS.LIST_MCP_SERVERS));
   },

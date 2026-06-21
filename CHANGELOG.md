@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/settings: keep extension, tool-manifest, remote-tool, and MCP empty
+  snapshots private to their app-runtime clients, exposing semantic empty-state
+  helpers for dashboard settings surfaces. No migration required.
 - renderer/overlay: keep response-overlay phase constants and preflight guard
   private to the app-runtime phase adapter, exposing semantic phase helpers,
   predicates, and parity snapshots. No migration required.

@@ -78,19 +78,19 @@ export type AgentCapabilityUpdateListener = (
   remoteToolCatalog: AgentRemoteToolCatalog | null,
 ) => void;
 
-export const EMPTY_AGENT_EXTENSION_RUNTIME: AgentExtensionRuntimeSnapshot = {
+const EMPTY_AGENT_EXTENSION_RUNTIME: AgentExtensionRuntimeSnapshot = {
   plugins: [],
   skills: [],
   mcps: [],
   errors: [],
 };
 
-export const EMPTY_AGENT_TOOL_MANIFEST_STATUS: AgentToolManifestStatus = {
+const EMPTY_AGENT_TOOL_MANIFEST_STATUS: AgentToolManifestStatus = {
   accepted: [],
   rejected: [],
 };
 
-export const EMPTY_AGENT_REMOTE_TOOL_CATALOG: AgentRemoteToolCatalog = {
+const EMPTY_AGENT_REMOTE_TOOL_CATALOG: AgentRemoteToolCatalog = {
   remote_tools: [],
 };
 
@@ -136,6 +136,18 @@ export function normalizeAgentExtensionRuntime(payload: unknown): AgentExtension
     mcps: Array.isArray(source.mcps) ? source.mcps : EMPTY_AGENT_EXTENSION_RUNTIME.mcps,
     errors: Array.isArray(source.errors) ? source.errors : EMPTY_AGENT_EXTENSION_RUNTIME.errors,
   };
+}
+
+export function getEmptyAgentExtensionRuntime(): AgentExtensionRuntimeSnapshot {
+  return EMPTY_AGENT_EXTENSION_RUNTIME;
+}
+
+export function getEmptyAgentToolManifestStatus(): AgentToolManifestStatus {
+  return EMPTY_AGENT_TOOL_MANIFEST_STATUS;
+}
+
+export function getEmptyAgentRemoteToolCatalog(): AgentRemoteToolCatalog {
+  return EMPTY_AGENT_REMOTE_TOOL_CATALOG;
 }
 
 export function normalizeAgentToolManifestStatus(payload: unknown): AgentToolManifestStatus {
@@ -361,6 +373,18 @@ export function getAgentRemoteToolToggleConfigPatch(
 }
 
 export const DesktopExtensionRuntimeClient = {
+  getEmptyExtensionRuntime(): AgentExtensionRuntimeSnapshot {
+    return getEmptyAgentExtensionRuntime();
+  },
+
+  getEmptyToolManifestStatus(): AgentToolManifestStatus {
+    return getEmptyAgentToolManifestStatus();
+  },
+
+  getEmptyRemoteToolCatalog(): AgentRemoteToolCatalog {
+    return getEmptyAgentRemoteToolCatalog();
+  },
+
   async listAgentExtensions(): Promise<AgentExtensionRuntimeSnapshot> {
     return normalizeAgentExtensionRuntime(
       await IpcBridge.invoke(INVOKE_CHANNELS.LIST_AGENT_EXTENSIONS),

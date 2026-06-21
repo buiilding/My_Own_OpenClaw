@@ -25,6 +25,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopExtensionRuntimeClient,
+  getEmptyAgentExtensionRuntime,
+  getEmptyAgentRemoteToolCatalog,
+  getEmptyAgentToolManifestStatus,
   getAgentExtensionRuntimeErrorPresentation,
   getAgentLocalToolManifestPresentation,
   getAgentMcpRuntimeMetadataPresentation,
@@ -49,6 +52,18 @@ describe('DesktopExtensionRuntimeClient', () => {
   });
 
   test('normalizes extension runtime metadata at the runtime boundary', () => {
+    expect(getEmptyAgentExtensionRuntime()).toEqual({
+      plugins: [],
+      skills: [],
+      mcps: [],
+      errors: [],
+    });
+    expect(DesktopExtensionRuntimeClient.getEmptyExtensionRuntime()).toEqual({
+      plugins: [],
+      skills: [],
+      mcps: [],
+      errors: [],
+    });
     expect(normalizeAgentExtensionRuntime({
       plugins: [{ id: 'notes' }],
       skills: [{ id: 'review' }],
@@ -70,6 +85,20 @@ describe('DesktopExtensionRuntimeClient', () => {
   });
 
   test('normalizes capability event payloads into typed runtime fields', () => {
+    expect(getEmptyAgentToolManifestStatus()).toEqual({
+      accepted: [],
+      rejected: [],
+    });
+    expect(getEmptyAgentRemoteToolCatalog()).toEqual({
+      remote_tools: [],
+    });
+    expect(DesktopExtensionRuntimeClient.getEmptyToolManifestStatus()).toEqual({
+      accepted: [],
+      rejected: [],
+    });
+    expect(DesktopExtensionRuntimeClient.getEmptyRemoteToolCatalog()).toEqual({
+      remote_tools: [],
+    });
     expect(normalizeAgentToolManifestStatus({
       accepted: [{ name: 'read_file' }],
       rejected: 'bad',

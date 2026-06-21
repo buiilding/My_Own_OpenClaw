@@ -10,12 +10,11 @@ import {
 } from 'lucide-react';
 import {
   DesktopMcpRuntimeClient,
-  EMPTY_DESKTOP_MCP_REGISTRY,
 } from '../../../../app/runtime/desktopMcpRuntimeClient';
 import { SettingsToggle } from './settings/settingsControls';
 
 function McpsSection({ onClose = () => {} }) {
-  const [registry, setRegistry] = useState(EMPTY_DESKTOP_MCP_REGISTRY);
+  const [registry, setRegistry] = useState(DesktopMcpRuntimeClient.getEmptyMcpRegistry);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -26,7 +25,7 @@ function McpsSection({ onClose = () => {} }) {
     try {
       setRegistry(await DesktopMcpRuntimeClient.listMcpServers());
     } catch (loadError) {
-      setRegistry(EMPTY_DESKTOP_MCP_REGISTRY);
+      setRegistry(DesktopMcpRuntimeClient.getEmptyMcpRegistry());
       setError(loadError?.message || 'Unable to load MCP servers.');
     } finally {
       setIsLoading(false);

@@ -8590,3 +8590,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   awaiting/streaming display booleans, IPC channel names, storage, provider
   policy, permissions, and backend behavior are unchanged; no migration is
   required.
+- The renderer extension and MCP runtime clients now keep empty extension
+  runtime, local-tool manifest, remote-tool catalog, and MCP registry snapshots
+  private to `desktopExtensionRuntimeClient.ts` and
+  `desktopMcpRuntimeClient.ts`; dashboard settings and MCP sections initialize
+  and reset state through semantic empty-state client helpers instead of raw
+  exported constants. Boundary coverage prevents the raw empty snapshots from
+  returning as public app-runtime exports or feature imports. Empty snapshot
+  shapes, extension/MCP list normalization, settings fallback behavior, IPC
+  channels, persisted config, provider policy, permissions, and backend
+  behavior are unchanged; no migration is required.

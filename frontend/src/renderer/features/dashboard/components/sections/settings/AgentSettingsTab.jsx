@@ -10,18 +10,21 @@ import {
 } from '../../../../../app/skin/desktopRuntimeSkin';
 import {
   DesktopExtensionRuntimeClient,
-  EMPTY_AGENT_EXTENSION_RUNTIME,
-  EMPTY_AGENT_REMOTE_TOOL_CATALOG,
-  EMPTY_AGENT_TOOL_MANIFEST_STATUS,
 } from '../../../../../app/runtime/desktopExtensionRuntimeClient';
 import { SettingsToggle } from './settingsControls';
 
 const agentSettingsSkin = desktopRuntimeSkin.settings.agent;
 
 function AgentSettingsTab({ config, onConfigChange }) {
-  const [manifestStatus, setManifestStatus] = useState(EMPTY_AGENT_TOOL_MANIFEST_STATUS);
-  const [remoteToolCatalog, setRemoteToolCatalog] = useState(EMPTY_AGENT_REMOTE_TOOL_CATALOG);
-  const [extensionRuntime, setExtensionRuntime] = useState(EMPTY_AGENT_EXTENSION_RUNTIME);
+  const [manifestStatus, setManifestStatus] = useState(
+    DesktopExtensionRuntimeClient.getEmptyToolManifestStatus,
+  );
+  const [remoteToolCatalog, setRemoteToolCatalog] = useState(
+    DesktopExtensionRuntimeClient.getEmptyRemoteToolCatalog,
+  );
+  const [extensionRuntime, setExtensionRuntime] = useState(
+    DesktopExtensionRuntimeClient.getEmptyExtensionRuntime,
+  );
   const skillsPresentation = DesktopExtensionRuntimeClient.getSkillRuntimePresentation(
     extensionRuntime.skills,
   );
@@ -32,7 +35,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
     DesktopExtensionRuntimeClient.listAgentExtensions()
       .then(setExtensionRuntime)
       .catch(() => {
-        setExtensionRuntime(EMPTY_AGENT_EXTENSION_RUNTIME);
+        setExtensionRuntime(DesktopExtensionRuntimeClient.getEmptyExtensionRuntime());
       });
 
     const removeListener = DesktopExtensionRuntimeClient.onAgentCapabilityUpdate((

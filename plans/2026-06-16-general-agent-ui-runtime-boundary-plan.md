@@ -20736,3 +20736,20 @@ Each completed slice should report:
   identity, SDK current-turn surface projection, awaiting/streaming display
   booleans, IPC channel names, storage, provider policy, permissions, and
   backend behavior are unchanged.
+
+### 2026-06-21 renderer settings empty snapshot helper privacy
+
+- Finding: `desktopExtensionRuntimeClient.ts` and
+  `desktopMcpRuntimeClient.ts` owned extension/tool/MCP runtime normalization,
+  but exported raw empty snapshot constants directly to dashboard settings
+  feature components for state initialization and fallback resets.
+- Change: made the empty extension runtime, local-tool manifest,
+  remote-tool catalog, and MCP registry snapshots private to their app-runtime
+  clients, exposed semantic empty-state helpers on the client/helper surface,
+  and updated settings/MCP sections plus focused boundary tests to use those
+  helpers.
+- Validation: focused extension runtime, MCP runtime, settings boundary, chat
+  boundary, docs listing, exact raw-export/import scan, and diff checks.
+- Compatibility: no migration required. Empty snapshot shapes, extension/MCP
+  list normalization, settings fallback behavior, IPC channels, persisted
+  config, provider policy, permissions, and backend behavior are unchanged.
