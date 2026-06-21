@@ -71,6 +71,10 @@ readiness/status broadcasts.
    `WINDIE_PERMISSION_STATE_PATH`, `WINDIE_PACKAGED_APP`,
    `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`), and packaged Python
    isolation variables when applicable.
+   Daemon env-key normalization is private to
+   `createDesktopLocalRuntimeLaunchPlan(...)`; validate env behavior through
+   the returned launch plan instead of importing helper functions from
+   `local_runtime_launch_options.cjs`.
 5. The `get-local-runtime-status` bootstrap read is a readiness probe: when a valid SDK local runtime provider exists and no runtime client has been resolved yet, it wakes the SDK local runtime and then returns the current status payload.
 6. A resolved SDK local runtime provider emits `local-runtime-status` with `ready:true` and the full normalized status payload.
 7. SDK provider failures keep `ready:false`, publish `status:"error"` with a short sanitized error, and helper calls fail closed.

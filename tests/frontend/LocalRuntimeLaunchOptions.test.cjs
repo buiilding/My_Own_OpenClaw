@@ -6,7 +6,6 @@ const path = require('path');
 
 const {
   createDesktopLocalRuntimeLaunchPlan,
-  resolveLocalRuntimeDaemonEnvConfig,
 } = require('../../frontend/src/main/sidecar/local_runtime_launch_options.cjs');
 const launchOptionsModule = require('../../frontend/src/main/sidecar/local_runtime_launch_options.cjs');
 const localRuntimeUtilsModule = require('../../frontend/src/main/sidecar/local_runtime_utils.cjs');
@@ -243,15 +242,7 @@ describe('desktop local runtime launch options', () => {
   });
 
   test('uses generic local-runtime daemon env defaults in launch context', () => {
-    expect(resolveLocalRuntimeDaemonEnvConfig()).toMatchObject({
-      backendHttpUrl: 'AGENT_BACKEND_HTTP_URL',
-      backendAuthStatePath: 'AGENT_BACKEND_AUTH_STATE_PATH',
-      packagedApp: 'AGENT_PACKAGED_APP',
-      sourcePath: 'AGENT_LOCAL_RUNTIME_SOURCE_PATH',
-      sourceStamp: 'AGENT_LOCAL_RUNTIME_SOURCE_STAMP',
-      logLevel: 'AGENT_LOCAL_RUNTIME_LOG_LEVEL',
-      userDataDir: 'AGENT_USER_DATA_DIR',
-    });
+    expect(launchOptionsModule.resolveLocalRuntimeDaemonEnvConfig).toBeUndefined();
     const plan = createHostSkinLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: TEST_BACKEND_HTTP_URL },
       userDataRoot: '/tmp/agent-data',

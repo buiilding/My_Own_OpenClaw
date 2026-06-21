@@ -338,5 +338,4 @@ function createDesktopLocalRuntimeLaunchPlan({
 
 module.exports = {
   createDesktopLocalRuntimeLaunchPlan,
-  resolveLocalRuntimeDaemonEnvConfig,
 };

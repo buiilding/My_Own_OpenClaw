@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep local-runtime daemon env-key normalization private to
+  `local_runtime_launch_options.cjs` while callers validate behavior through
+  `createDesktopLocalRuntimeLaunchPlan(...)`. No migration required.
 - frontend/main: keep permission state-path resolution private to
   `permission_state_store.cjs` while index/bootstrap consume
   `createPermissionStateStore(...).resolveStatePath()`. No migration required.

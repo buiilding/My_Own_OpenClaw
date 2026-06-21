@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Local-Runtime Launch Env Resolver Privacy
+
+- Finding: `local_runtime_launch_options.cjs` owned desktop local-runtime
+  daemon command/env/launch-context assembly, but still exported
+  `resolveLocalRuntimeDaemonEnvConfig(...)` for tests even though production
+  callers use `createDesktopLocalRuntimeLaunchPlan(...)`.
+- Change: kept daemon env-key normalization private to the launch-options owner
+  and updated focused coverage to validate default and host-skinned env
+  behavior through the returned launch plan instead of a standalone helper
+  export.
+- Validation: focused local-runtime launch-options and main host-skin tests,
+  targeted main launch-options lint, docs listing, stale export/import scans,
+  and diff checks before commit.
+- Compatibility/security: no daemon env variable name, host-skin alias
+  behavior, launch context field, packaged Python isolation variable, SDK local
+  runtime launch option, credential, permission, storage, or trust-boundary
+  migration required; launch-plan output is unchanged.
+
 ### 2026-06-21 Main Permission State Store Path Facade
 
 - Finding: `permission_state_store.cjs` owned permission-state path selection
