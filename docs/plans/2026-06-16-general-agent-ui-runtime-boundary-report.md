@@ -9203,3 +9203,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   unchanged, so package paths, public exports, local-runtime behavior, IPC,
   storage, provider policy, permissions, and backend behavior are unchanged; no
   migration is required.
+- Local backend JSON-RPC change workflow guidance now names renderer-visible
+  and main-only helper behavior as local-runtime JSON-RPC, local-runtime Python
+  module, and local-runtime capability behavior instead of sidecar
+  JSON-RPC/module/capability/params shortcuts. Concrete
+  `frontend/src/main/sidecar` and `sidecar_daemon.py` path references remain as
+  implementation identifiers. JSON-RPC method names, params, handlers,
+  SDK/main command contracts, IPC, storage, provider policy, permissions,
+  backend behavior, and trust boundaries are unchanged; no migration is
+  required.

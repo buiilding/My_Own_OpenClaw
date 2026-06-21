@@ -21851,3 +21851,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Tests changed only; package marker
   files, import paths, public exports, local-runtime behavior, IPC, storage,
   provider policy, permissions, and backend behavior are unchanged.
+
+### 2026-06-21 local backend JSON-RPC workflow owner labels
+
+- Finding: the local backend JSON-RPC change workflow still used sidecar
+  JSON-RPC/module/capability/params shortcut labels in renderer-visible and
+  main-only helper guidance even though the owning boundary is local-runtime
+  JSON-RPC backed by local-runtime Python.
+- Change: routed the active workflow language through local-runtime JSON-RPC,
+  local-runtime Python module, and local-runtime capability wording while
+  preserving concrete `frontend/src/main/sidecar` and `sidecar_daemon.py` path
+  references.
+- Validation: exact active-doc retired-label scan for the workflow, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Documentation changed only; JSON-RPC
+  method names, params, local-runtime Python handlers, SDK/main command
+  contracts, IPC, storage, provider policy, permissions, backend behavior, and
+  trust boundaries are unchanged.

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/local-runtime: route the local backend JSON-RPC change workflow away
+  from sidecar JSON-RPC/module/capability shortcut labels and through
+  local-runtime JSON-RPC plus local-runtime Python wording. No migration
+  required.
 - tests/local-runtime: rename namespace-package marker test labels from
   sidecar package wording to local-runtime Python package wording while keeping
   the same marker and wildcard-export guards. No migration required.

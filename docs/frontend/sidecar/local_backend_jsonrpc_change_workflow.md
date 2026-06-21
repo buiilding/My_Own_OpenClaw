@@ -81,13 +81,14 @@ channel.
 
 1. Add or extend a typed SDK runtime command/facade for the renderer-visible
    action.
-2. Keep renderer payloads in the SDK command contract; do not expose sidecar
-   JSON-RPC method names as renderer invoke channels.
+2. Keep renderer payloads in the SDK command contract; do not expose
+   local-runtime JSON-RPC method names as renderer invoke channels.
 3. Add or update the SDK local-runtime store/client call that builds the
    local-runtime JSON-RPC method and params.
 4. Register the Python method in `LocalRuntimeService._initialize_methods`.
 5. Implement the handler in `local_backend.py`,
-   `local_backend_memory_handlers.py`, or a focused sidecar module.
+   `local_backend_memory_handlers.py`, or a focused local-runtime Python
+   module.
 6. Keep the handler signature explicit so `JSONRPCProtocol` can reject missing
    or unexpected params before execution.
 7. Return a stable result envelope and avoid leaking tracebacks or local paths
@@ -98,7 +99,9 @@ channel.
 
 ## Add a Main-Only JSON-RPC Helper
 
-Use this path when renderer does not need a general IPC channel, but Electron main needs a sidecar capability during startup, packaging, browser setup, permission checks, or diagnostics.
+Use this path when renderer does not need a general IPC channel, but Electron
+main needs a local-runtime capability during startup, packaging, browser setup,
+permission checks, or diagnostics.
 
 1. Add a helper function in `frontend/src/main/sidecar/local_runtime_bridge.cjs` or a focused main-process module.
 2. Call `sendRequestOrError(method, params, options)` unless callers should handle thrown errors.
@@ -115,7 +118,8 @@ Preserve these payload guarantees:
 - renderer-facing SDK command fields usually stay camelCase.
 - Python JSON-RPC method params stay snake_case.
 - non-object or malformed renderer payloads should fail at the SDK command
-  boundary rather than being silently coerced into sidecar params.
+  boundary rather than being silently coerced into local-runtime JSON-RPC
+  params.
 - string payload values that cross into Python should be sanitized at the
   owning SDK/store boundary when that method accepts user-authored text.
 - use fallback aliases only when both names are intentionally public and
