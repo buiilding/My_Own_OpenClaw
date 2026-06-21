@@ -9232,3 +9232,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   query-send failure event projection, IPC channels, renderer payloads, storage,
   provider policy, permissions, backend behavior, and trust boundaries are
   unchanged; no migration is required.
+- Central Electron main IPC composition now imports `AgentClient`,
+  agent-definition helpers, `TraceRecorder`, and `createConversationEvent` from
+  their SDK owner modules instead of the SDK package root. Focused main SDK
+  boundary coverage prevents the root import from returning in `ipc.cjs`.
+  Agent client creation, agent-definition building/default checks, trace
+  recording, conversation-event projection, IPC wiring, renderer payloads,
+  storage, provider policy, permissions, backend behavior, and trust boundaries
+  are unchanged; no migration is required.

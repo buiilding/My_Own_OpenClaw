@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/sdk: split the central Electron main IPC import of SDK runtime exports
+  across SDK owner modules instead of the SDK package root. No migration
+  required.
 - main/sdk: route SDK command-handler and query-broadcast helper imports to
   SDK owner modules instead of the SDK package root, with focused main-boundary
   coverage. No migration required.

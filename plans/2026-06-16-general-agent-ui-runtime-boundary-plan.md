@@ -21917,3 +21917,20 @@ Each completed slice should report:
   conversation-event projection, IPC channels, renderer payloads, storage,
   provider policy, permissions, backend behavior, and trust boundaries are
   unchanged.
+
+### 2026-06-21 central main IPC SDK owner imports
+
+- Finding: the central Electron main IPC composition file imported
+  `AgentClient`, agent-definition helpers, `TraceRecorder`, and
+  `createConversationEvent` through the SDK package root even though each export
+  has a concrete SDK owner module.
+- Change: split the `ipc.cjs` SDK imports across `runtime/AgentClient`,
+  `runtime/AgentDefinition`, `runtime/TraceRecorder`, and
+  `conversation/events`, and extended main SDK boundary coverage so the package
+  root import does not return in `ipc.cjs`.
+- Validation: focused main SDK runtime boundary Jest test, exact production
+  main/renderer SDK root-import scan, docs listing, and diff checks.
+- Compatibility: no migration required. Agent client creation, agent-definition
+  building/default checks, trace recording, conversation-event projection, IPC
+  wiring, renderer payloads, storage, provider policy, permissions, backend
+  behavior, and trust boundaries are unchanged.

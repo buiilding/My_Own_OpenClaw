@@ -11,6 +11,10 @@ function retiredProductName(suffix) {
 
 describe('main ipc sdk runtime boundary', () => {
   test('main helper modules import SDK contracts from owner modules', async () => {
+    const ipcSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
     const commandHandlersSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs'),
       'utf8',
@@ -20,6 +24,11 @@ describe('main ipc sdk runtime boundary', () => {
       'utf8',
     );
 
+    expect(ipcSource).toContain('packages/windie-sdk-js/cjs/runtime/AgentClient.js');
+    expect(ipcSource).toContain('packages/windie-sdk-js/cjs/runtime/AgentDefinition.js');
+    expect(ipcSource).toContain('packages/windie-sdk-js/cjs/runtime/TraceRecorder.js');
+    expect(ipcSource).toContain('packages/windie-sdk-js/cjs/conversation/events.js');
+    expect(ipcSource).not.toContain('packages/windie-sdk-js/cjs/index.js');
     expect(commandHandlersSource).toContain(
       'packages/windie-sdk-js/cjs/runtime/SdkRuntimeCommands.js',
     );
@@ -336,7 +345,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('buildDesktopAutoSidecarOptionsForAgent');
     expect(source).not.toContain('desktopAutoSidecarLaunchConfig');
     expect(source).not.toContain('createDesktopAutoSidecarLaunchPlan');
-    expect(source).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
+    expect(source).toContain("require('../../../packages/windie-sdk-js/cjs/runtime/AgentClient.js')");
+    expect(source).toContain("require('../../../packages/windie-sdk-js/cjs/runtime/AgentDefinition.js')");
+    expect(source).toContain("require('../../../packages/windie-sdk-js/cjs/runtime/TraceRecorder.js')");
+    expect(source).toContain("require('../../../packages/windie-sdk-js/cjs/conversation/events.js')");
+    expect(source).not.toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
     expect(source).not.toContain(`${retiredProductName('Agent')}.startDesktop`);
     expect(source).not.toContain('ensureDaemonBackedLocalRuntime');
     expect(source).not.toContain('ensureLocalRuntime: ensureDaemonBackedLocalRuntime');
