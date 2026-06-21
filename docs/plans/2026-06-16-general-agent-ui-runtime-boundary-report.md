@@ -11,12 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `8be3bc897` (`docs(browser): route runbook connect ownership`)
-- Latest completed slice: the frontend module file index now splits browser
-  ownership across hosted backend policy/schema exposure, SDK/main
-  local-runtime dispatch, local-runtime Python browser adapter mechanics, and
-  Browser Use session behavior instead of a broad product-owned browser runtime
-  sentence.
+- Latest inspected plan checkpoint: `7cad7daa4` (`docs(frontend): split browser inventory ownership`)
+- Latest completed slice: the frontend architecture overview and frontend docs
+  hub now frame Electron main, React renderer, preload, and local-runtime
+  implementation surfaces as the WindieOS desktop app implementation rather
+  than one monolithic WindieOS frontend owner.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -102,6 +101,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   backend policy/schema exposure, SDK/main local-runtime dispatch,
   local-runtime Python browser adapter mechanics, and Browser Use session
   behavior instead of broad product-owned browser runtime wording.
+  The frontend architecture overview and frontend docs hub now frame Electron
+  main, React renderer, preload, and local-runtime implementation surfaces as
+  the WindieOS desktop app implementation rather than one monolithic WindieOS
+  frontend owner.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
@@ -484,6 +487,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Desktop App Frontend Framing Wording
+
+- Finding: `docs/architecture/frontend_architecture.md` and
+  `docs/frontend/README.md` still opened with monolithic "WindieOS frontend"
+  wording for Electron main, renderer, preload, and local-runtime
+  implementation surfaces.
+- Change: reworded the first-read summaries and opening copy to describe the
+  WindieOS desktop app implementation across Electron main, React renderer,
+  preload IPC, and local-runtime implementation boundaries.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Migration/security: no migration required. Runtime code, IPC channels, SDK
+  command routing, renderer projections, local-runtime behavior, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged.
 
 ### 2026-06-21 Frontend Browser Inventory Ownership Wording
 

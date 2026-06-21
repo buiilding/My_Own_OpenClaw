@@ -3130,6 +3130,9 @@ describe('modular sdk refactor completion boundary', () => {
         'compatibility path',
         'Main process backend bridge',
         'revived generic backend bridge',
+        `${retiredProductName('OS')} frontend is a multi-runtime desktop stack`,
+        `Current ${retiredProductName('OS')} frontend architecture across Electron main`,
+        `${retiredProductName('OS')} frontend implementation details across Electron main process`,
         `${retiredProductName('OS')} owns schema validation, local transport, Chrome/CDP launch policy, browser-local files, and result normalization`,
         'SDK local runtime + sidecar callback wiring',
         'Frontend Tool Execution Service',
@@ -3930,6 +3933,14 @@ describe('modular sdk refactor completion boundary', () => {
     }
 
     expect(offenders).toEqual({});
+
+    const frontendArchitectureText = await read('docs/architecture/frontend_architecture.md');
+    expect(frontendArchitectureText).toContain('Current WindieOS desktop app architecture');
+    expect(frontendArchitectureText).toContain('desktop app implementation is a multi-runtime stack');
+
+    const frontendReadmeText = await read('docs/frontend/README.md');
+    expect(frontendReadmeText).toContain('Desktop app implementation hub');
+    expect(frontendReadmeText).toContain('WindieOS desktop app implementation details');
 
     const moduleFileIndexText = await read('docs/frontend/inventory/frontend_module_file_index_reference.md');
     expect(moduleFileIndexText).toContain('Hosted backend owns model-facing browser policy and schema exposure.');

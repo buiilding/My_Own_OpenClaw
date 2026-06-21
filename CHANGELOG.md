@@ -57,6 +57,10 @@ All notable changes to WindieOS will be documented in this file.
   across hosted backend policy, SDK/main local-runtime dispatch, the
   local-runtime Python browser adapter, and Browser Use mechanics instead of a
   broad product-owned browser runtime sentence. No migration required.
+- docs/frontend: frame the frontend architecture and docs hub as WindieOS
+  desktop app implementation docs across Electron main, renderer, preload, and
+  local-runtime boundaries instead of a monolithic WindieOS frontend. No
+  migration required.
 - frontend/main: regenerate the built-in local-runtime tool manifest from the
   sidecar source so the Electron artifact matches the current browser
   `output_schema` executable contract. No migration required.

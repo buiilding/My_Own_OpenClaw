@@ -1,5 +1,5 @@
 ---
-summary: "Current WindieOS frontend architecture across Electron main, React renderer, preload IPC boundary, and local-runtime implementation."
+summary: "Current WindieOS desktop app architecture across Electron main, React renderer, preload IPC boundary, and local-runtime implementation."
 read_when:
   - When changing renderer, main, local-runtime, or local-runtime Python implementation ownership boundaries.
   - When changing query, stream, tool, wakeword, or transcript flow across frontend processes.
@@ -12,7 +12,7 @@ See also: [Frontend Functionality Map](../frontend/README.md) and [Frontend Full
 
 ## Runtime Topology
 
-WindieOS frontend is a multi-runtime desktop stack:
+The WindieOS desktop app implementation is a multi-runtime stack:
 
 1. Renderer (React): UX state, chat/dashboard surfaces, tool-stream rendering.
 2. Main process (Electron/Node): window lifecycle, thin Agent SDK host wiring, SDK local-runtime bridge, wakeword subprocess bridge.

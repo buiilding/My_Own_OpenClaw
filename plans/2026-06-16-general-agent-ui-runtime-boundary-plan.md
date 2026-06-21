@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Desktop App Frontend Framing Wording
+
+- Finding: the frontend architecture overview and frontend docs hub still
+  opened with monolithic "WindieOS frontend" wording for Electron main,
+  renderer, preload, and local-runtime implementation surfaces, even though the
+  boundary goal is a generic desktop app/UI plus host adapters and
+  local-runtime contracts.
+- Change: reworded the first-read summaries and opening copy to describe the
+  WindieOS desktop app implementation across Electron main, React renderer,
+  preload IPC, and local-runtime implementation boundaries, and extended
+  modular docs coverage for the retired monolithic frontend phrases.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, IPC channels, SDK
+  command routing, renderer projections, local-runtime behavior, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Frontend Browser Inventory Ownership Wording
 
 - Finding: the frontend module file index still said WindieOS owned browser

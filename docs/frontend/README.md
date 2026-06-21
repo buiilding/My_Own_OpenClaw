@@ -1,5 +1,5 @@
 ---
-summary: "Frontend documentation hub covering Electron main process, renderer runtime, tool execution services, and local-runtime implementation behavior."
+summary: "Desktop app implementation hub covering Electron main process, renderer runtime, tool execution services, and local-runtime implementation behavior."
 read_when:
   - When changing frontend architecture across main, renderer, or local-runtime implementation boundaries.
   - When tracing query/tool message flow from UI to backend and back.
@@ -8,7 +8,8 @@ title: "Frontend Functionality Map"
 
 # Frontend Functionality Map
 
-This hub documents WindieOS frontend implementation details across Electron main process, React renderer, and the local-runtime Python implementation.
+This hub documents WindieOS desktop app implementation details across Electron
+main process, React renderer, and the local-runtime Python implementation.
 
 ## Full Inventory
 
