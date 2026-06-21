@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main runtime conversation-ref resolution
-  keeps string normalization private to `ipc_runtime_conversation_ref.cjs`,
-  while nested transport, direct alias, fallback, trim, blank, and non-string
-  behavior remain covered through the public resolver/runtime facade.
+- Latest completed slice: Electron main workspace-path resolution keeps string
+  normalization private to `ipc_workspace_path_runtime.cjs`, while command
+  payload snake/camel aliases, cached config fallback, trim, blank, and
+  non-string behavior remain covered through the public resolver/runtime
+  facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1081,6 +1082,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Compatibility: no migration required. SDK runtime command payloads,
   conversation-ref fallback behavior, replay/edit/retry paths, credentials,
   permissions, trust boundaries, and storage are unchanged.
+
+### 2026-06-21 Main Workspace Path Normalizer Privacy
+
+- Finding: `ipc_workspace_path_runtime.cjs` already exposed the composed
+  runtime facade and public workspace-path resolver, but
+  `normalizeOptionalString(...)` still leaked as a lower-level helper export.
+- Change: removed the string normalizer from the public module surface while
+  preserving resolver coverage for command payload `workspace_path` /
+  `workspacePath`, cached desktop UI config fallback, trimming, blank values,
+  and non-string rejection.
+- Validation: focused workspace-path runtime and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. SDK runtime command payloads,
+  workspace fallback behavior, credentials, permissions, trust boundaries, IPC
+  channels, and storage are unchanged.
 
 ### 2026-06-21 Main Process Trace Normalizer Privacy
 

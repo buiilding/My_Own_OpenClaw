@@ -76,6 +76,10 @@ All notable changes to WindieOS will be documented in this file.
   `ipc_runtime_conversation_ref.cjs` while preserving the public resolver and
   runtime facade for nested transport/direct/fallback coverage. No migration
   required.
+- frontend/main: keep workspace-path string normalization private to
+  `ipc_workspace_path_runtime.cjs` while preserving the public workspace-path
+  resolver and runtime facade for payload/config fallback coverage. No
+  migration required.
 - frontend/main: keep lower-level clipboard image and image context-menu IPC
   registration private to `ipc_image_interaction_handlers.cjs`, so
   `ipc.cjs` composes one aggregate image-interaction runtime while focused

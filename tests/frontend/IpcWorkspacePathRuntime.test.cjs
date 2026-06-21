@@ -1,16 +1,23 @@
 /** @jest-environment node */
 
+const workspacePathRuntimeModule = require('../../frontend/src/main/ipc/ipc_workspace_path_runtime.cjs');
 const {
   createWorkspacePathRuntime,
-  normalizeOptionalString,
   resolveWorkspacePathForAgentPayload,
-} = require('../../frontend/src/main/ipc/ipc_workspace_path_runtime.cjs');
+} = workspacePathRuntimeModule;
 
 describe('ipc_workspace_path_runtime', () => {
-  test('normalizes optional strings', () => {
-    expect(normalizeOptionalString(' C:/repo ')).toBe('C:/repo');
-    expect(normalizeOptionalString('   ')).toBeNull();
-    expect(normalizeOptionalString(42)).toBeNull();
+  test('normalizes optional workspace strings through the resolver', () => {
+    expect(resolveWorkspacePathForAgentPayload({
+      workspace_path: ' C:/repo ',
+    }, {})).toBe('C:/repo');
+
+    expect(resolveWorkspacePathForAgentPayload({
+      workspace_path: '   ',
+      workspacePath: 42,
+    }, {})).toBeNull();
+
+    expect(workspacePathRuntimeModule.normalizeOptionalString).toBeUndefined();
   });
 
   test('prefers command payload workspace path over desktop config fallback', () => {

@@ -146,8 +146,8 @@ Owns Agent SDK runtime workspace-path fallback resolution:
 - `resolveWorkspacePathForAgentPayload` prefers command payload
   `workspace_path` / `workspacePath`, then cached desktop UI config
   `workspace_path` / `workspacePath`.
-- `normalizeOptionalString` keeps the resolver's trim/null semantics testable
-  outside the `ipc.cjs` relay root.
+- keeps trim/null normalization private behind the workspace-path resolver
+  instead of exposing a lower-level string helper.
 
 ### `ipc_automated_query_dispatcher.cjs`
 

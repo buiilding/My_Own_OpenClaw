@@ -32,6 +32,5 @@ function createWorkspacePathRuntime({
 
 module.exports = {
   createWorkspacePathRuntime,
-  normalizeOptionalString,
   resolveWorkspacePathForAgentPayload,
 };
