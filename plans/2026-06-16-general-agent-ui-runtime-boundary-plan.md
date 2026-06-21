@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Desktop Host OS Runtime Boundary
+
+- Finding: `ipc_desktop_host_os_runtime.cjs` already owned generic desktop host
+  OS display-name normalization for install registration and SDK
+  agent-definition runtime metadata, but `ipc_install_auth_runtime.cjs`
+  re-exported the same helper as a second access path.
+- Change: removed the install-auth re-export alias, routed focused tests to the
+  shared owner module, and documented the desktop host OS runtime in the IPC
+  helper boundary map.
+- Validation: focused install-auth runtime coverage, docs listing, stale
+  resolver export scan, and diff checks.
+- Compatibility: no migration required. Install registration metadata,
+  `agent_definition.runtime.operating_system`, IPC channels, SDK payloads,
+  credentials, hosted backend URLs, and platform mapping behavior are
+  unchanged.
+
 ### 2026-06-21 Dashboard Provider Credential Runtime Boundary
 
 - Finding: dashboard `providerApiKeys.js` and

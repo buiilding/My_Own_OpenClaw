@@ -11,12 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `5a4c0bb7f` (`refactor(renderer): move dashboard model card projection`)
-- Latest completed slice: dashboard provider API-key normalization and
-  renderer persistence scrubbing now live in
-  `desktopProviderCredentialRuntime.js`; `ModelsSection`, `ApiKeysSection`,
-  and config storage consume the app-runtime facade, and the old
-  section-local `providerApiKeys.js` helper is retired.
+- Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
+- Latest completed slice: desktop host OS display-name normalization now has a
+  single Electron-main owner in `ipc_desktop_host_os_runtime.cjs`;
+  install-auth tests import that owner directly and the install-auth runtime no
+  longer re-exports the helper alias.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

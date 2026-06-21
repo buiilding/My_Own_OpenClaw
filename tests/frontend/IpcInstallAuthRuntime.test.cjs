@@ -2,8 +2,12 @@
 
 const {
   createInstallAuthRuntime,
-  resolveDesktopHostOperatingSystem,
 } = require('../../frontend/src/main/ipc/ipc_install_auth_runtime.cjs');
+const {
+  resolveDesktopHostOperatingSystem,
+} = require('../../frontend/src/main/ipc/ipc_desktop_host_os_runtime.cjs');
+const fs = require('fs');
+const path = require('path');
 
 function deferred() {
   let resolve;
@@ -65,6 +69,21 @@ describe('ipc_install_auth_runtime', () => {
     expect(resolveDesktopHostOperatingSystem('linux')).toBe('Linux');
     expect(resolveDesktopHostOperatingSystem('freebsd')).toBe('freebsd');
     expect(resolveDesktopHostOperatingSystem('')).toBeNull();
+  });
+
+  test('imports the desktop host OS resolver from its owner module', () => {
+    const installAuthSource = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_install_auth_runtime.cjs'),
+      'utf8',
+    );
+    const hostOsSource = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_host_os_runtime.cjs'),
+      'utf8',
+    );
+
+    expect(hostOsSource).toContain('resolveDesktopHostOperatingSystem');
+    expect(installAuthSource).toContain("require('./ipc_desktop_host_os_runtime.cjs')");
+    expect(installAuthSource).not.toContain('module.exports = {\n  createInstallAuthRuntime,\n  resolveDesktopHostOperatingSystem');
   });
 
   test('builds bearer headers from the current install token without requiring identity fields', () => {

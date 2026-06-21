@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: route desktop host OS name normalization directly through
+  `ipc_desktop_host_os_runtime.cjs` and remove the install-auth runtime
+  re-export alias. No migration required.
 - docs/renderer: add `desktopProviderCredentialRuntime.js` to the renderer
   runtime inventory and dashboard feature map so provider credential
   normalization routes to the app-runtime owner. No migration required.
