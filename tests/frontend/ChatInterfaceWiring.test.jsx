@@ -134,7 +134,6 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
   ),
   selectChatInterfaceState: (state) => ({
     messages: state.messages,
-    isSending: state.isSending,
     thinkingStatus: state.thinkingStatus,
     thinkingSourceEventType: state.thinkingSourceEventType,
     compactionDebugInfo: state.compactionDebugInfo,

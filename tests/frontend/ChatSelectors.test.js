@@ -30,7 +30,6 @@ describe('chatSelectors', () => {
 
     expect(projectDesktopChatInterfaceState(activeWorkspace)).toEqual({
       messages: activeWorkspace.messages,
-      isSending: true,
       thinkingStatus: 'thinking',
       thinkingSourceEventType: 'reasoning_delta',
       compactionDebugInfo: activeWorkspace.compactionDebugInfo,
@@ -42,7 +41,10 @@ describe('chatSelectors', () => {
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
       latestCurrentTurnProjection: liveProjection,
-    }).currentTurnProjection).toBe(liveProjection);
+    })).toEqual(expect.objectContaining({
+      currentTurnProjection: liveProjection,
+      isSending: true,
+    }));
   });
 
   test('selects only chat interface state fields', () => {
@@ -58,7 +60,6 @@ describe('chatSelectors', () => {
 
     expect(selectChatInterfaceState(state)).toEqual({
       messages: state.messages,
-      isSending: true,
       thinkingStatus: 'thinking',
       thinkingSourceEventType: null,
       compactionDebugInfo: null,
@@ -214,7 +215,6 @@ describe('chatSelectors', () => {
 
     expect(selected).toEqual(expect.objectContaining({
       messages: [],
-      isSending: false,
       thinkingStatus: null,
       thinkingSourceEventType: null,
       compactionDebugInfo: null,

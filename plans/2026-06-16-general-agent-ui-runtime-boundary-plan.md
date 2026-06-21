@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Surface Hook Raw Send Prop Cleanup
+
+- Finding: after renderer pending-turn state became the local lifecycle
+  authority, `ChatInterface`, `MinimalChatPill`, and
+  `MinimalResponseOverlay` still passed raw `isSending` into surface
+  hooks/view models that no longer consumed it. The full chat-interface
+  selector also exposed `isSending`, preserving a stale surface contract.
+- Change: chat-interface selector output now omits `isSending`, and dashboard,
+  pill, and response-overlay surface calls pass only messages, pending-turn
+  state, SDK current-turn projection, and related presentation inputs. Minimal
+  surfaces may still read `isSending` for trace payloads as diagnostic store
+  compatibility state.
+- Validation target: `ChatSelectors.test.js`, `ChatSurfaceController.test.jsx`,
+  `ChatInterfaceWiring.test.jsx`, and `RendererAppRuntimeBoundary.test.ts`
+  protect the trimmed selector/hook boundary and retained trace-only reads.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Dashboard Conversation Dialog Boundary
 
 - Finding: `useDashboardConversations(...)` still called `window.prompt` and

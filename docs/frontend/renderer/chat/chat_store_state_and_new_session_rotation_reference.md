@@ -97,12 +97,14 @@ import chat feature store internals.
 
 `selectChatInterfaceState` exposes active-workspace projection:
 
-- `messages`, `isSending`, `thinkingStatus`, `tokenCounts`
-- derived `streamPhase` from `streamTracking.phase`
+- `messages`, `thinkingStatus`, `tokenCounts`
+- `streamTracking` for diagnostics and focused runtime tests
 
 Minimal chat pill and response overlay state now route through the live-turn
 presentation/view-model helpers instead of a separate chat-box selector. The
-dashboard selector remains scoped to fields rendered by the full interface.
+dashboard selector remains scoped to fields rendered by the full interface, so
+raw `isSending` stays store/diagnostic state rather than dashboard surface
+authority.
 
 ## New Chat Session Lifecycle
 

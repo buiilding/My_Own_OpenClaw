@@ -1504,6 +1504,21 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/minimalChatPill/components/MinimalResponseOverlay.jsx'),
       'utf8',
     );
+    const minimalPillSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/components/MinimalChatPill.jsx'),
+      'utf8',
+    );
+    const chatSurfaceControllerSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
+      'utf8',
+    );
+    const responseOverlayViewModelSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
+      'utf8',
+    );
+    const normalizedChatInterfaceSource = chatInterfaceSource.replace(/\r\n/g, '\n');
+    const normalizedMinimalPillSource = minimalPillSource.replace(/\r\n/g, '\n');
+    const normalizedResponseOverlaySource = responseOverlaySource.replace(/\r\n/g, '\n');
 
     expect(selectorRuntimeSource).toContain('projectDesktopChatInterfaceState');
     expect(selectorRuntimeSource).toContain('projectDesktopLiveTurnSurfaceState');
@@ -1516,6 +1531,18 @@ describe('renderer app runtime boundary', () => {
     expect(chatStoreSource).toContain('selectActiveWorkspaceState');
     expect(chatInterfaceSource).toContain('selectChatInterfaceState');
     expect(responseOverlaySource).toContain('selectLiveTurnSurfaceState');
+    expect(normalizedChatInterfaceSource).toContain('useChatSurfaceController({\n    messages,');
+    expect(normalizedMinimalPillSource).toContain('useChatSurfaceController({\n    messages,');
+    expect(normalizedResponseOverlaySource).toContain(
+      'useResponseOverlayViewModel({\n    messages,\n    thinkingStatus,',
+    );
+    expect(normalizedChatInterfaceSource).not.toContain('useChatSurfaceController({\n    isSending,');
+    expect(normalizedMinimalPillSource).not.toContain('useChatSurfaceController({\n    isSending,');
+    expect(normalizedResponseOverlaySource).not.toContain(
+      'useResponseOverlayViewModel({\n    messages,\n    isSending,',
+    );
+    expect(chatSurfaceControllerSource).not.toContain('isSending');
+    expect(responseOverlayViewModelSource).not.toContain('isSending');
     expect(chatInterfaceSource).not.toContain('utils/chatSelectors');
     expect(responseOverlaySource).not.toContain('chat/utils/chatSelectors');
     await expect(fs.stat(

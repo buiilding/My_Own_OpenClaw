@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove stale raw `isSending` prop plumbing from the
+  dashboard, minimal pill, and response-overlay surface hook boundaries; the
+  full chat selector no longer exposes `isSending`, while live overlay traces
+  may still read it as diagnostic store state. No migration required.
 - frontend/renderer: route dashboard conversation rename/delete browser dialogs
   through `DesktopDashboardConversationDialogRuntime`, keeping `window.prompt`
   and `window.confirm` adapter details out of dashboard feature hooks. No

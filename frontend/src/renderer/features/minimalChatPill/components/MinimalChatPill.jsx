@@ -78,7 +78,6 @@ function MinimalChatPill() {
   const chatboxHitTestActiveRef = useRef(null);
   const textEntryActiveRef = useRef(false);
   const chatSurface = useChatSurfaceController({
-    isSending,
     messages,
     currentTurnProjection,
     pendingTurn,

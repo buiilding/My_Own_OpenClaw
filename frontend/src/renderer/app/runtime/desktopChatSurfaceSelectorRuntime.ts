@@ -19,7 +19,6 @@ function projectDesktopChatInterfaceState(
 ) {
   return {
     messages: activeWorkspace.messages,
-    isSending: activeWorkspace.isSending,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
     compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,

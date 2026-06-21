@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: dashboard conversation rename/delete browser dialogs
-  now route through `DesktopDashboardConversationDialogRuntime`, keeping
-  `window.prompt` and `window.confirm` adapter details out of
-  `useDashboardConversations(...)`.
+- Latest completed slice: raw `isSending` prop plumbing is removed from the
+  chat dashboard, minimal pill, and response-overlay surface hook boundaries.
+  `selectChatInterfaceState(...)` no longer exposes `isSending`, while minimal
+  surfaces may still read it as trace-only diagnostic store state.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

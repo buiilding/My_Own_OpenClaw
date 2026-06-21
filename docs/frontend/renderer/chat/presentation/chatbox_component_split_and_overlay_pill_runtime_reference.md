@@ -62,9 +62,10 @@ compaction behind its loop lock.
 
 - uses `useChatMessageSender(undefined, { senderSurface: "overlay-chatbox" })`
 - derives loop lock via
-  `useChatSurfaceController({ currentTurnProjection, isSending, messages })`
-- `currentTurnProjection` is the only active agent-turn source; `isSending` is
-  only the local submit latch before the SDK turn opens
+  `useChatSurfaceController({ currentTurnProjection, pendingTurn, messages })`
+- `currentTurnProjection` and `pendingTurn` are the visible turn sources;
+  raw `isSending` remains store/trace compatibility state and does not enter
+  the surface controller boundary
 - loop lock disables:
   - dashboard-open button
   - screenshot capture button

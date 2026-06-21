@@ -68,7 +68,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
 
   const {
     messages,
-    isSending,
     thinkingStatus,
     thinkingSourceEventType,
     compactionDebugInfo,
@@ -201,7 +200,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
 
   const showToolLogs = config?.show_tool_logs === true;
   const chatSurface = useChatSurfaceController({
-    isSending,
     messages,
     currentTurnProjection,
     pendingTurn,

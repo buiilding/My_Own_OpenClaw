@@ -55,7 +55,6 @@ function MinimalResponseOverlay() {
     turnId: currentTurnId,
   } = useResponseOverlayViewModel({
     messages,
-    isSending,
     thinkingStatus,
     currentTurnProjection,
     pendingTurn,

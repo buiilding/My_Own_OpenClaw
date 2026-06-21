@@ -38,8 +38,7 @@ function renderController({
     </AppConfigContext.Provider>
   );
 
-    const hook = renderHook(() => useChatSurfaceController({
-    isSending: false,
+  const hook = renderHook(() => useChatSurfaceController({
     messages: [{ id: 'user-1', type: 'user', sender: 'user', text: 'hello' }],
     currentTurnProjection: {
       phase: 'streaming',
@@ -216,7 +215,6 @@ describe('useChatSurfaceController', () => {
         awaitingDotTargetMessageId: null,
       },
       props: {
-        isSending: true,
         pendingTurn: {
           conversationRef: 'conv-1',
           turnRef: 'turn-2',
@@ -283,7 +281,6 @@ describe('useChatSurfaceController', () => {
         awaitingDotTargetMessageId: null,
       },
       props: {
-        isSending: true,
         pendingTurn: {
           conversationRef: 'conv-1',
           turnRef: 'turn-local',
@@ -359,7 +356,6 @@ describe('useChatSurfaceController', () => {
         awaitingDotTargetMessageId: null,
       },
       props: {
-        isSending: true,
         messages: [
           { id: 'user-1', type: 'user', sender: 'user', text: 'first', turnRef: 'turn-1' },
           {
@@ -438,7 +434,6 @@ describe('useChatSurfaceController', () => {
     const { result } = renderController({
       props: {
         currentTurnProjection: null,
-        isSending: false,
         sessionInfo: {
           conversationRef: 'conv-active',
           userId: 'user-active',
