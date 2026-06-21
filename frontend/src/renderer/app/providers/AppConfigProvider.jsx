@@ -12,9 +12,8 @@ import { AppConfigContext } from './AppConfigContext';
 import { useLatestRef } from '../runtime/desktopRendererHooksRuntimeClient';
 import {
   applyConfigIfChanged,
+  buildMergedRendererConfig,
   buildRendererConfigPersistencePayload,
-  mergeRendererProviderConfig,
-  sanitizeRendererProviderConfig,
 } from './appConfigPersistence';
 import {
   buildImmediateRuntimeConfig,
@@ -93,10 +92,8 @@ export function AppConfigProvider({ children }) {
     }
   }, [configRef]);
 
-  const buildMergedRendererConfig = useCallback((incomingConfig) => {
-    return sanitizeRendererProviderConfig(
-      mergeRendererProviderConfig(configRef.current, incomingConfig),
-    );
+  const resolveMergedRendererConfig = useCallback((incomingConfig) => {
+    return buildMergedRendererConfig(configRef.current, incomingConfig);
   }, [configRef]);
 
   const commitRendererConfig = useCallback((nextConfig, previousConfig, options = {}) => {
@@ -144,8 +141,8 @@ export function AppConfigProvider({ children }) {
   }, [commitRendererConfig, configRef]);
 
   const applyRendererConfigPatch = useCallback((incomingConfig, options = {}) => {
-    return applyResolvedConfig(buildMergedRendererConfig(incomingConfig), options);
-  }, [applyResolvedConfig, buildMergedRendererConfig]);
+    return applyResolvedConfig(resolveMergedRendererConfig(incomingConfig), options);
+  }, [applyResolvedConfig, resolveMergedRendererConfig]);
 
   const registerSaveStatusCallback = useCallback((callback) => {
     saveStatusCallbackRef.current = typeof callback === 'function' ? callback : null;
@@ -237,7 +234,7 @@ export function AppConfigProvider({ children }) {
       if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
         return;
       }
-      const filteredConfig = buildMergedRendererConfig(diskConfig);
+      const filteredConfig = resolveMergedRendererConfig(diskConfig);
       applyResolvedConfig(filteredConfig, {
         persistToDisk: false,
         syncRuntime: runtimeConnectedRef.current,
@@ -249,7 +246,7 @@ export function AppConfigProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [applyResolvedConfig, buildMergedRendererConfig]);
+  }, [applyResolvedConfig, resolveMergedRendererConfig]);
 
   useEffect(() => {
     const handleStorage = (event) => {
@@ -262,7 +259,7 @@ export function AppConfigProvider({ children }) {
         return;
       }
 
-      const filteredConfig = buildMergedRendererConfig(syncedConfig);
+      const filteredConfig = resolveMergedRendererConfig(syncedConfig);
       applyResolvedConfig(filteredConfig, {
         persistToStorage: false,
         persistToDisk: false,
@@ -274,7 +271,7 @@ export function AppConfigProvider({ children }) {
     return () => {
       window.removeEventListener('storage', handleStorage);
     };
-  }, [applyResolvedConfig, buildMergedRendererConfig]);
+  }, [applyResolvedConfig, resolveMergedRendererConfig]);
 
   const updateConfig = useCallback((newConfig) => {
     const didApplyConfig = applyRendererConfigPatch(newConfig, {

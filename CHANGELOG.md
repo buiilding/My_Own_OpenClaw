@@ -86,6 +86,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep app-config update filtering inside the config
   persistence merge helper instead of filtering again in `AppConfigProvider`.
   No migration required.
+- frontend/renderer: route AppConfigProvider config patch merging through a
+  single app-config persistence helper instead of composing low-level
+  sanitize/merge helpers in the provider. No migration required.
 - docs/memory and docs/concepts: describe `session_id` as hosted backend
   runtime identity instead of generic backend runtime/session wording. No
   migration required.

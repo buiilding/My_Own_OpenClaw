@@ -169,6 +169,12 @@ Electron desktop UI config persistence are scrubbed.
 
 - shallow merges sanitized base + patch
 
+`buildMergedRendererConfig(base, patch)`:
+
+- owns the provider-facing update merge by composing allowlist filtering,
+  provider-key deep merge, and final sanitization before `AppConfigProvider`
+  applies or persists the next config
+
 `applyConfigIfChanged(next, configRef, setConfig)`:
 
 - no-op for empty payload
@@ -188,8 +194,8 @@ This is the central dedupe guard preventing redundant writes and settings runtim
 
 ### Update path (`updateConfig`)
 
-1. `buildMergedRendererConfig(newConfig)` delegates filtering and merge rules to
-   `mergeRendererProviderConfig(...)`
+1. `buildMergedRendererConfig(currentConfig, newConfig)` applies filtering,
+   provider-key merge, and final sanitization through app-config persistence
 2. `applyConfigIfChanged` gate
 3. optional save-status callback fire
 4. persist localStorage (`saveConfigToStorage`)

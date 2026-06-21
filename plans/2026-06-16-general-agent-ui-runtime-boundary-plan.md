@@ -1620,6 +1620,24 @@ Each completed slice should report:
   persistence, settings sync, credentials, hosted backend URLs, and provider
   policy are unchanged.
 
+### 2026-06-21 Renderer App Config Provider Merge Facade
+
+- Finding: after removing direct filter calls, `AppConfigProvider` still
+  composed low-level `sanitizeRendererProviderConfig(...)` and
+  `mergeRendererProviderConfig(...)` helpers to build config updates instead of
+  consuming one app-config persistence operation.
+- Change: added `buildMergedRendererConfig(base, patch)` in
+  `appConfigPersistence.js` to own allowlist filtering, provider-key deep
+  merging, and final sanitization, then routed `AppConfigProvider` through that
+  single helper while keeping low-level persistence helpers covered directly.
+- Validation: focused AppConfigProvider, app-config persistence, config filter,
+  and renderer settings boundary tests, provider low-level helper import scan,
+  docs list, and diff hygiene.
+- Compatibility/security: no migration required. Renderer config allowlist
+  behavior, provider credential merge/redaction, localStorage and disk
+  persistence, settings sync, credentials, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Renderer Appearance Theme Runtime Boundary
 
 - Finding: renderer config storage, theme application, and the dashboard

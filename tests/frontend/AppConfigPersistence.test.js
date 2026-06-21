@@ -4,6 +4,7 @@
 
 import {
   applyConfigIfChanged,
+  buildMergedRendererConfig,
   buildRendererConfigPersistencePayload,
   mergeRendererProviderConfig,
   sanitizeRendererProviderConfig,
@@ -153,6 +154,32 @@ describe('appConfigPersistence', () => {
         },
       ),
     ).toEqual({});
+  });
+
+  test('buildMergedRendererConfig owns final sanitize and merge behavior', () => {
+    expect(
+      buildMergedRendererConfig(
+        {
+          provider_api_keys: {
+            openai: { enabled: true, api_key: 'sk-base' },
+            anthropic: { enabled: true, api_key: 'anth-base' },
+          },
+          backend_only_state: 'drop-me',
+        },
+        {
+          provider_api_keys: {
+            openai: { api_key: 'sk-updated', extra: undefined },
+          },
+          speech_mode_enabled: true,
+        },
+      ),
+    ).toEqual({
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-updated' },
+        anthropic: { enabled: true, api_key: 'anth-base' },
+      },
+      speech_mode_enabled: true,
+    });
   });
 
   test('buildRendererConfigPersistencePayload redacts provider secrets and drops unknown fields', () => {

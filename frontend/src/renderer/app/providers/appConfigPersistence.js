@@ -95,6 +95,12 @@ export function mergeRendererProviderConfig(baseConfig, patchConfig) {
   return mergedConfig;
 }
 
+export function buildMergedRendererConfig(baseConfig, patchConfig) {
+  return sanitizeRendererProviderConfig(
+    mergeRendererProviderConfig(baseConfig, patchConfig),
+  );
+}
+
 export function applyConfigIfChanged(nextConfig, configRef, setConfig) {
   if (!nextConfig || Object.keys(nextConfig).length === 0) {
     return false;

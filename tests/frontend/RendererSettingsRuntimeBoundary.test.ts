@@ -483,6 +483,9 @@ describe('renderer settings runtime boundary', () => {
     expect(providerSource).not.toContain('extractTranscriptUserId');
     expect(providerSource).not.toContain('desktopRendererConfigFilterRuntime');
     expect(providerSource).not.toContain('filterRendererConfig');
+    expect(providerSource).not.toContain('mergeRendererProviderConfig');
+    expect(providerSource).not.toContain('sanitizeRendererProviderConfig');
+    expect(providerSource).toContain('buildMergedRendererConfig');
     expect(providerSource).not.toContain('features/settings/hooks/useSettingsManagement');
     expect(providerSource).not.toContain('useSettingsManagement');
     expect(settingsEventClientSource).toContain('handleModelsListed');
