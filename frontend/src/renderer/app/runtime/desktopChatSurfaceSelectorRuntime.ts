@@ -14,7 +14,7 @@ type DesktopChatWorkspaceProjection = {
   pendingTurn?: unknown | null;
 };
 
-export function projectDesktopChatInterfaceState(
+function projectDesktopChatInterfaceState(
   activeWorkspace: DesktopChatWorkspaceProjection,
 ) {
   return {
@@ -30,7 +30,7 @@ export function projectDesktopChatInterfaceState(
   };
 }
 
-export function projectDesktopLiveTurnSurfaceState({
+function projectDesktopLiveTurnSurfaceState({
   activeWorkspace,
   latestCurrentTurnProjection,
 }: {
@@ -46,3 +46,8 @@ export function projectDesktopLiveTurnSurfaceState({
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };
 }
+
+export const DesktopChatSurfaceSelectorRuntime = Object.freeze({
+  projectDesktopChatInterfaceState,
+  projectDesktopLiveTurnSurfaceState,
+});

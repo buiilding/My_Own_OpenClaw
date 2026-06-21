@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Surface Selector Facade
+
+- Finding: `desktopChatSurfaceSelectorRuntime.ts` already owned reusable
+  full-chat and live minimal-surface projection rules consumed by `chatStore`,
+  but still exported each projection as a standalone helper.
+- Change: made the projection helpers private to the runtime module, exposed
+  them through `DesktopChatSurfaceSelectorRuntime`, and routed the chat store
+  selectors plus focused selector tests through that facade.
+- Validation: focused chat selector, chat store, live-turn surface, renderer app
+  boundary, exact standalone projection export/import scan, docs list, and diff
+  hygiene.
+- Compatibility/security: no migration required. Active-workspace field
+  projection, latest current-turn precedence for minimal surfaces, reference
+  stability, IPC, storage, permissions, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Renderer Chat Stream Ingress Facade
 
 - Finding: `desktopChatStreamIngressRuntime.ts` already owned SDK

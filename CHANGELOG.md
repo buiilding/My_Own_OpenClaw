@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose shared chat interface and live-turn surface
+  projection helpers through `DesktopChatSurfaceSelectorRuntime` instead of
+  standalone helper exports, keeping reusable chat surface selector rules behind
+  the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose SDK conversation-event ingress orchestration through
   `DesktopChatStreamIngressRuntime` instead of a standalone function export,
   keeping projection sync, turn-map registration, transcript binding, and

@@ -6,10 +6,12 @@ import {
   selectChatInterfaceState,
   selectLiveTurnSurfaceState,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import {
+import { DesktopChatSurfaceSelectorRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime';
+
+const {
   projectDesktopChatInterfaceState,
   projectDesktopLiveTurnSurfaceState,
-} from '../../frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime';
+} = DesktopChatSurfaceSelectorRuntime;
 
 describe('chatSelectors', () => {
   test('projects shared chat surface fields through app runtime helpers', () => {

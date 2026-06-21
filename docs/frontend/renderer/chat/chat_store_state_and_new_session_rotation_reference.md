@@ -90,10 +90,10 @@ No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 
 ## Selector Boundary
 
-`desktopChatSurfaceSelectorRuntime.ts` owns the pure projection rules for the
-full chat interface and live minimal surfaces. `chatStore.ts` binds those
-projection rules to `selectActiveWorkspaceState(...)` so the app-runtime helper
-does not import chat feature store internals.
+`DesktopChatSurfaceSelectorRuntime` owns the pure projection rules for the full
+chat interface and live minimal surfaces. `chatStore.ts` binds those projection
+methods to `selectActiveWorkspaceState(...)` so the app-runtime helper does not
+import chat feature store internals.
 
 `selectChatInterfaceState` exposes active-workspace projection:
 

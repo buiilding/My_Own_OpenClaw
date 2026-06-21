@@ -146,9 +146,9 @@ pending-turn acceptance, SDK turn resource assembly, workspace binding, and
 live-turn dispatch. Chat feature hooks inject the chat-store state callbacks it
 needs instead of letting the app-runtime module import feature store internals.
 
-`desktopChatSurfaceSelectorRuntime.ts` owns shared chat surface projection
-rules consumed by the chat interface and minimal response overlay. The chat
-store exposes feature-facing selectors while delegating reusable projection
+`DesktopChatSurfaceSelectorRuntime` owns shared chat surface projection rules
+consumed by the chat interface and minimal response overlay. The chat store
+exposes feature-facing selectors while delegating reusable projection
 shape to the app-runtime facade.
 
 `desktopMemoryRetrievalPreferenceRuntime.js` owns the renderer persisted toggle

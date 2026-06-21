@@ -13,7 +13,6 @@ import type {
 import {
   createInitialStreamTracking,
   createInitialWorkspaceRecord,
-  createInitialWorkspaceState,
   normalizeConversationRef,
   readWorkspaceState,
   resolveChatWorkspaceRef,
@@ -27,10 +26,14 @@ import {
   buildStoppedCurrentTurnProjection,
 } from '../../../app/runtime/desktopStopTurnRuntime';
 import {
-  projectDesktopChatInterfaceState,
-  projectDesktopLiveTurnSurfaceState,
+  DesktopChatSurfaceSelectorRuntime,
 } from '../../../app/runtime/desktopChatSurfaceSelectorRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
+
+const {
+  projectDesktopChatInterfaceState,
+  projectDesktopLiveTurnSurfaceState,
+} = DesktopChatSurfaceSelectorRuntime;
 
 export type { ChatMessage, TokenCounts };
 
