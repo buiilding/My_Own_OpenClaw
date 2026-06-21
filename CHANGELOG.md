@@ -87,6 +87,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep transcript-session sync payload parsing private to the
   transcript session runtime and test inbound packets through the runtime
   subscription. No migration required.
+- frontend/renderer: keep settings-event normalization and save-status action
+  resolution private to the app config runtime client and test through
+  subscription facades. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

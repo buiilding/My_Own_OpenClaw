@@ -21,7 +21,7 @@ function recordOrEmpty(value: unknown): Record<string, unknown> {
     : {};
 }
 
-export function normalizeDesktopSettingsEvent(payload: unknown): DesktopSettingsEventPayload {
+function normalizeDesktopSettingsEvent(payload: unknown): DesktopSettingsEventPayload {
   const source = recordOrEmpty(payload);
   const eventPayload = recordOrEmpty(source.payload);
   const message = typeof eventPayload.message === 'string' ? eventPayload.message : '';
@@ -33,7 +33,7 @@ export function normalizeDesktopSettingsEvent(payload: unknown): DesktopSettings
   };
 }
 
-export function resolveDesktopSettingsSaveStatusAction(
+function resolveDesktopSettingsSaveStatusAction(
   payload: unknown,
 ): DesktopSettingsSaveStatusAction | null {
   const event = normalizeDesktopSettingsEvent(payload);

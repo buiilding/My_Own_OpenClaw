@@ -87,8 +87,10 @@ describe('renderer settings runtime boundary', () => {
     expect(appConfigClientSource).toContain('INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG');
     expect(appConfigClientSource).toContain('INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG');
     expect(appConfigClientSource).toContain('ON_CHANNELS.BACKEND_SETTINGS_EVENT');
-    expect(appConfigClientSource).toContain('normalizeDesktopSettingsEvent');
-    expect(appConfigClientSource).toContain('resolveDesktopSettingsSaveStatusAction');
+    expect(appConfigClientSource).toContain('function normalizeDesktopSettingsEvent');
+    expect(appConfigClientSource).not.toContain('export function normalizeDesktopSettingsEvent');
+    expect(appConfigClientSource).toContain('function resolveDesktopSettingsSaveStatusAction');
+    expect(appConfigClientSource).not.toContain('export function resolveDesktopSettingsSaveStatusAction');
     expect(appConfigClientSource).toContain('onSettingsSaveStatusAction');
     expect(appConfigClientSource).toContain('isSettingsUpdateError');
     expect(sessionClientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');

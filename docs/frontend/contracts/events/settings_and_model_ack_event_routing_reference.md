@@ -60,9 +60,10 @@ Important:
 ## Settings Save Status Flow (`settings-updated` and error)
 
 `AppStatusProvider` listens through
-`DesktopAppConfigRuntimeClient.onSettingsEvent(...)`, which normalizes the
-host event and classifies settings-update failures before provider code sees
-them. The provider updates `saveStatus` from the normalized event:
+`DesktopAppConfigRuntimeClient.onSettingsSaveStatusAction(...)`, which keeps raw
+settings event normalization and settings-update failure classification private
+to the runtime client. The provider updates `saveStatus` from value-level
+actions:
 
 - `settings-updated` -> `success` -> auto-reset to `idle` after 3s
 - `error` with `isSettingsUpdateError=true` -> `error` -> auto-reset to `idle` after 3s

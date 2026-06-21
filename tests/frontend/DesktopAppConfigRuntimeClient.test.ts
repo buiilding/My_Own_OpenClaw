@@ -3,15 +3,15 @@
  */
 
 const mockInvoke = jest.fn();
-let settingsListener: ((payload?: unknown) => void) | null = null;
+let mockSettingsListeners: Array<(payload?: unknown) => void> = [];
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args: unknown[]) => mockInvoke(...args),
     on: (_channel: string, listener: (payload?: unknown) => void) => {
-      settingsListener = listener;
+      mockSettingsListeners.push(listener);
       return () => {
-        settingsListener = null;
+        mockSettingsListeners = mockSettingsListeners.filter(candidate => candidate !== listener);
       };
     },
   },
@@ -24,58 +24,82 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-import {
-  DesktopAppConfigRuntimeClient,
-  normalizeDesktopSettingsEvent,
-  resolveDesktopSettingsSaveStatusAction,
-} from '../../frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient';
+import * as DesktopAppConfigRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient';
+import { DesktopAppConfigRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient';
+
+function emitSettingsEvent(payload: unknown) {
+  for (const listener of mockSettingsListeners) {
+    listener(payload);
+  }
+}
 
 describe('DesktopAppConfigRuntimeClient', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
-    settingsListener = null;
+    mockSettingsListeners = [];
   });
 
-  test('normalizes settings update error events at the runtime boundary', () => {
-    expect(normalizeDesktopSettingsEvent({
+  test('keeps raw settings event helpers private to the runtime client', () => {
+    expect(DesktopAppConfigRuntimeModule).not.toHaveProperty('normalizeDesktopSettingsEvent');
+    expect(DesktopAppConfigRuntimeModule).not.toHaveProperty('resolveDesktopSettingsSaveStatusAction');
+  });
+
+  test('settings event subscriptions emit normalized settings update error events', () => {
+    const events: unknown[] = [];
+    const unsubscribe = DesktopAppConfigRuntimeClient.onSettingsEvent(event => {
+      events.push(event);
+    });
+
+    emitSettingsEvent({
       type: 'error',
       payload: { message: 'Failed to update settings: write failed' },
-    })).toEqual({
+    });
+    emitSettingsEvent({
+      type: 'error',
+      payload: { message: 'Database timeout' },
+    });
+
+    expect(events).toEqual([{
       type: 'error',
       payload: { message: 'Failed to update settings: write failed' },
       isSettingsUpdateError: true,
-    });
-
-    expect(normalizeDesktopSettingsEvent({
-      type: 'error',
-      payload: { message: 'Database timeout' },
-    })).toEqual({
+    }, {
       type: 'error',
       payload: { message: 'Database timeout' },
       isSettingsUpdateError: false,
-    });
+    }]);
+
+    unsubscribe?.();
+    expect(mockSettingsListeners).toHaveLength(0);
   });
 
-  test('resolves settings save status actions at the runtime boundary', () => {
-    expect(resolveDesktopSettingsSaveStatusAction({
+  test('settings save status subscriptions emit value-level actions only', () => {
+    const events: unknown[] = [];
+    const unsubscribe = DesktopAppConfigRuntimeClient.onSettingsSaveStatusAction(status => {
+      events.push(status);
+    });
+
+    emitSettingsEvent({
       type: 'settings-updated',
       payload: {},
-    })).toBe('success');
-
-    expect(resolveDesktopSettingsSaveStatusAction({
-      type: 'error',
-      payload: { message: 'Failed to update settings: write failed' },
-    })).toBe('error');
-
-    expect(resolveDesktopSettingsSaveStatusAction({
-      type: 'error',
-      payload: { message: 'Database timeout' },
-    })).toBeNull();
-
-    expect(resolveDesktopSettingsSaveStatusAction({
+    });
+    emitSettingsEvent({
       type: 'models-listed',
       payload: {},
-    })).toBeNull();
+    });
+    emitSettingsEvent({
+      type: 'error',
+      payload: { message: 'Database timeout' },
+    });
+    emitSettingsEvent({
+      type: 'error',
+      payload: { message: 'Failed to update settings: write failed' },
+    });
+
+    expect(events).toEqual(['success', 'error']);
+
+    unsubscribe?.();
+    expect(mockSettingsListeners).toHaveLength(0);
   });
 
   test('settings event subscriptions emit normalized settings events', () => {
@@ -84,7 +108,7 @@ describe('DesktopAppConfigRuntimeClient', () => {
       events.push(event);
     });
 
-    settingsListener?.({
+    emitSettingsEvent({
       type: 'settings-updated',
       payload: {},
     });
@@ -96,31 +120,6 @@ describe('DesktopAppConfigRuntimeClient', () => {
     }]);
 
     unsubscribe?.();
-    expect(settingsListener).toBeNull();
-  });
-
-  test('settings save status subscriptions emit value-level actions only', () => {
-    const events: unknown[] = [];
-    const unsubscribe = DesktopAppConfigRuntimeClient.onSettingsSaveStatusAction(status => {
-      events.push(status);
-    });
-
-    settingsListener?.({
-      type: 'settings-updated',
-      payload: {},
-    });
-    settingsListener?.({
-      type: 'models-listed',
-      payload: {},
-    });
-    settingsListener?.({
-      type: 'error',
-      payload: { message: 'Failed to update settings: write failed' },
-    });
-
-    expect(events).toEqual(['success', 'error']);
-
-    unsubscribe?.();
-    expect(settingsListener).toBeNull();
+    expect(mockSettingsListeners).toHaveLength(0);
   });
 });
