@@ -131,6 +131,8 @@ Developer helpers:
 `;
 
 const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
+  'DesktopVisibleTurnLifecycleRuntime.test.js',
+  'AgentConversationStoreApi.test.ts',
   'AgentSdkConversationRuntime.test.ts',
   'ConversationRuntimeProjectionStream.test.ts',
   'PendingTurnLiveSurfaceIntegration.test.js',

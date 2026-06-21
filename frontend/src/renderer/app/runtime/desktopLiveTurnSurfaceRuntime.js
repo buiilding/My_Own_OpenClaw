@@ -3,6 +3,7 @@
  */
 
 import { DesktopResponseOverlayPhaseRuntime } from './desktopResponseOverlayPhaseRuntime';
+import { DesktopVisibleTurnLifecycleRuntime } from './desktopVisibleTurnLifecycleRuntime';
 
 const {
   getAwaitingFirstChunkResponseOverlayPhase,
@@ -16,6 +17,9 @@ const {
   isAwaitingFirstChunkResponseOverlayPhase,
   isStreamingResponseOverlayPhase,
 } = DesktopResponseOverlayPhaseRuntime;
+const {
+  hasAuthoritativeSameTurnSdkReplacement,
+} = DesktopVisibleTurnLifecycleRuntime;
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
   awaiting: getAwaitingFirstChunkResponseOverlayPhase(),
@@ -151,6 +155,9 @@ function shouldUseSendPreflight({
   }
   if (!currentTurnProjection) {
     return true;
+  }
+  if (isPendingTurn(pendingTurn)) {
+    return !hasAuthoritativeSameTurnSdkReplacement(pendingTurn, currentTurnProjection);
   }
   if (
     useSdkLiveTurnPresentation

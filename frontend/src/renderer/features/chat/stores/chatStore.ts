@@ -27,6 +27,9 @@ import {
 import {
   DesktopChatSurfaceSelectorRuntime,
 } from '../../../app/runtime/desktopChatSurfaceSelectorRuntime';
+import {
+  DesktopVisibleTurnLifecycleRuntime,
+} from '../../../app/runtime/desktopVisibleTurnLifecycleRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
@@ -37,6 +40,9 @@ const {
   projectDesktopChatInterfaceState,
   projectDesktopLiveTurnSurfaceState,
 } = DesktopChatSurfaceSelectorRuntime;
+const {
+  hasAuthoritativeSameTurnSdkReplacement,
+} = DesktopVisibleTurnLifecycleRuntime;
 
 export type { ChatMessage, TokenCounts };
 
@@ -312,33 +318,6 @@ function normalizePendingTurn(value: unknown): PendingTurn | null {
       ? attachmentFilenames
       : null,
   };
-}
-
-function shouldCurrentTurnClearPendingTurn(
-  pendingTurn: PendingTurn | null,
-  currentTurnProjection: CurrentTurnProjection | null,
-): boolean {
-  if (!pendingTurn || !currentTurnProjection) {
-    return false;
-  }
-  if (
-    normalizeConversationRef(currentTurnProjection.conversationRef) !== pendingTurn.conversationRef
-    || normalizeTurnRef(currentTurnProjection.turnRef) !== pendingTurn.turnRef
-  ) {
-    return false;
-  }
-  const presentation = currentTurnProjection.presentation;
-  const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
-  return (
-    currentTurnProjection.phase === 'streaming'
-    || currentTurnProjection.phase === 'tool_call'
-    || currentTurnProjection.phase === 'tool_output'
-    || currentTurnProjection.phase === 'complete'
-    || currentTurnProjection.phase === 'error'
-    || presentation?.typingVisible === true
-    || presentation?.hasVisibleContent === true
-    || entries.length > 0
-  );
 }
 
 function doesCurrentTurnProjectionMatch(
@@ -632,7 +611,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => {
       const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
       const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
-      const nextPendingTurn = shouldCurrentTurnClearPendingTurn(
+      const nextPendingTurn = hasAuthoritativeSameTurnSdkReplacement(
         currentWorkspace.pendingTurn,
         currentTurnProjection,
       )

@@ -7,6 +7,26 @@ title: "Renderer-Owned Typing State Migration Plan"
 
 Date: 2026-06-21
 
+## Progress Notes
+
+### 2026-06-21 Visible Turn Lifecycle Runtime And Handoff Predicate
+
+- Finding: renderer pending-turn clearing and live-surface preflight handoff
+  still used separate predicates, so SDK idle, wrong-turn, or visible-empty
+  projections could drift from the visible lifecycle rules in ADR 006.
+- Change: added `desktopVisibleTurnLifecycleRuntime` as the renderer app-runtime
+  owner for visible lifecycle projection and the
+  `hasAuthoritativeSameTurnSdkReplacement(...)` predicate, then routed
+  `chatStore.ts` pending clearing and `desktopLiveTurnSurfaceRuntime.js`
+  pending-turn handoff through that predicate.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js` protects the
+  replay from `local_pending` through SDK idle, visible-empty, awaiting, active,
+  terminal, and wrong-turn terminal states, and is registered in
+  `<windie> test core-loop`.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, permission, credential, local execution, or storage migration
+  required; this slice changes only renderer projection ownership.
+
 ## Goal
 
 Implement [ADR 006](../docs/adr/006-renderer-owned-typing-state.md): make one

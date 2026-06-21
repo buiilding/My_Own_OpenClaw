@@ -36,6 +36,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- sdk/renderer: preserve explicit screenshot metadata aliases through local
+  runtime display-row loading so chat-pill camera query rows render as
+  dashboard screenshots after `user_message_metadata` replay. No migration
+  required.
 - backend/provider: stop the dev-only scripted model from replaying the same
   scripted tool command after matching tool outputs are already present in
   rebuilt model history, so `@script tool` and `@script batch` finish the turn
@@ -64,6 +68,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: add the renderer-owned visible turn lifecycle runtime and
+  route pending-turn handoff through its same-turn SDK authority predicate, so
+  SDK idle, visible-empty, or wrong-turn projections cannot clear
+  renderer-local pending typing before an authoritative handoff. No migration
+  required.
 - frontend/main: keep main-window overlay loader, BrowserWindow factory,
   console logging, and lazy-loader helpers private to
   `main_window_overlay_runtime.cjs` while window bootstrap consumes
