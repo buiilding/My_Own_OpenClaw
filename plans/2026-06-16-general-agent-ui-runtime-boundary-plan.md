@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Response Overlay Surface Snapshot Trace Boundary
+
+- Finding: `MinimalResponseOverlay.jsx` consumed app-runtime helpers for
+  overlay state/render/live traces, but still called the raw
+  `logRendererResponseSurfaceTrace(...)` response-surface stream logger with
+  snapshot field names such as `overlayPhase` and `activeResponseType`.
+- Change: added response-surface snapshot payload/logging helpers to
+  `desktopRendererTraceRuntime.ts` and routed `MinimalResponseOverlay` through
+  them so the component reports phase, message-count, response-entry,
+  visible-response, and text-length values instead of owning response-surface
+  snapshot trace fields locally.
+- Validation: focused renderer trace runtime, response overlay state, renderer
+  app-runtime boundary coverage, docs listing, stale component-local
+  response-surface snapshot scan, and diff checks.
+- Compatibility: no migration required. Response-surface stream trace event
+  shape, overlay state/render traces, response rendering, IPC, storage,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-21 Renderer Response Overlay Rendered Live Trace Boundary
 
 - Finding: `MinimalResponseOverlay.jsx` consumed app-runtime trace helpers for

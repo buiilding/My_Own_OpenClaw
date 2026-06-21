@@ -15,7 +15,7 @@ import {
   logRendererResponseOverlayStateTrace,
   logRendererResponseOverlayTypingRenderedTrace,
   logRendererResponseSurfaceRenderTrace,
-  logRendererResponseSurfaceTrace,
+  logRendererResponseSurfaceSnapshotTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
 import {
   getResponseOverlayAwaitingFrameHeight,
@@ -200,12 +200,12 @@ function MinimalResponseOverlay() {
         messageCount: messages.length,
       });
     }
-    logRendererResponseSurfaceTrace({
-      overlayPhase: currentTurnProjection?.phase || 'idle',
+    logRendererResponseSurfaceSnapshotTrace({
+      phase: currentTurnProjection?.phase || 'idle',
       isSending,
       messageCount: messages.length,
       activeResponseTextLength,
-      activeResponseType: latestSourceTaggedResponseEntry?.type || null,
+      responseType: latestSourceTaggedResponseEntry?.type || null,
       visibleResponseId: latestResponseOverlayEntryId,
       responseOverlayEntryCount: responseOverlayEntries.length,
       showAwaitingReply,

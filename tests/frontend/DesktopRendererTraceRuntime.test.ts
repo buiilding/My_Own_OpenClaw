@@ -16,6 +16,7 @@ import {
   buildRendererOverlayViewModelTracePayload,
   buildRendererResponseOverlayHitTestTracePayload,
   buildRendererResponseOverlayTypingRenderedTracePayload,
+  buildRendererResponseSurfaceSnapshotTracePayload,
   buildRendererResponseSurfaceSizeLiveTracePayload,
   buildRendererResponseSurfaceSizeTracePayload,
   configureRendererTraceWorkspaceSnapshotResolver,
@@ -27,6 +28,7 @@ import {
   logRendererResponseOverlayLifecycleTrace,
   logRendererResponseOverlayTypingRenderedTrace,
   logRendererResponseSurfaceTrace,
+  logRendererResponseSurfaceSnapshotTrace,
   logRendererResponseSurfaceSizeTrace,
 } from '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime';
 
@@ -286,6 +288,59 @@ describe('desktopRendererTraceRuntime', () => {
       entryCount: 2,
       hasVisibleContent: true,
     });
+  });
+
+  test('builds response surface snapshot trace payloads', () => {
+    expect(buildRendererResponseSurfaceSnapshotTracePayload({
+      source: ' custom-snapshot ',
+      phase: ' streaming ',
+      isSending: true,
+      messageCount: '3',
+      activeResponseTextLength: '12',
+      responseType: ' llm-text ',
+      visibleResponseId: ' visible-1 ',
+      responseOverlayEntryCount: '2',
+      showAwaitingReply: false,
+      showResponse: true,
+      thinkingText: 'abcd',
+    })).toEqual({
+      source: 'custom-snapshot',
+      overlayPhase: 'streaming',
+      isSending: true,
+      messageCount: 3,
+      activeResponseTextLength: 12,
+      activeResponseType: 'llm-text',
+      visibleResponseId: 'visible-1',
+      responseOverlayEntryCount: 2,
+      showAwaitingReply: false,
+      showResponse: true,
+      thinkingTextLength: 4,
+    });
+  });
+
+  test('logs response surface snapshot traces through the response-surface stream', () => {
+    setSearch('?debug_stream=1&view=minimal-response-overlay');
+
+    logRendererResponseSurfaceSnapshotTrace({
+      phase: 'awaiting',
+      messageCount: 1,
+      activeResponseTextLength: 0,
+      responseOverlayEntryCount: 0,
+      thinkingTextLength: 0,
+    });
+
+    expect(consoleLog).toHaveBeenCalledWith(
+      '[StreamTrace][renderer][response-surface]',
+      expect.objectContaining({
+        view: 'minimal-response-overlay',
+        source: 'minimal-response-overlay',
+        overlayPhase: 'awaiting',
+        messageCount: 1,
+        activeResponseTextLength: 0,
+        responseOverlayEntryCount: 0,
+        thinkingTextLength: 0,
+      }),
+    );
   });
 
   test('logs response overlay hit-test and rendered-typing traces through live surface channel', () => {

@@ -296,6 +296,8 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).toContain('logRendererResponseOverlayHitTestTrace');
     expect(traceRuntimeSource).toContain('buildRendererResponseOverlayTypingRenderedTracePayload');
     expect(traceRuntimeSource).toContain('logRendererResponseOverlayTypingRenderedTrace');
+    expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceSnapshotTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererResponseSurfaceSnapshotTrace');
     expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceRenderTracePayload');
     expect(traceRuntimeSource).toContain('logRendererResponseSurfaceRenderTrace');
     expect(traceRuntimeSource).toContain('buildRendererOverlayViewModelTracePayload');
@@ -306,8 +308,10 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlaySource).toContain('logRendererResponseOverlayStateTrace');
     expect(responseOverlaySource).toContain('logRendererResponseOverlayHitTestTrace');
     expect(responseOverlaySource).toContain('logRendererResponseOverlayTypingRenderedTrace');
+    expect(responseOverlaySource).toContain('logRendererResponseSurfaceSnapshotTrace');
     expect(responseOverlaySource).toContain('logRendererResponseSurfaceRenderTrace');
     expect(responseOverlaySource).not.toContain("logRendererLiveSurfaceTrace");
+    expect(responseOverlaySource).not.toContain("logRendererResponseSurfaceTrace");
     expect(responseOverlaySource).not.toContain("'response_overlay.hit_test.set'");
     expect(responseOverlaySource).not.toContain("'typing.rendered.show'");
     expect(responseOverlaySource).not.toContain("'typing.rendered.hide'");
@@ -327,6 +331,8 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlaySource).not.toContain('thinking_text_length');
     expect(responseOverlaySource).not.toContain('is_sending');
     expect(responseOverlaySource).not.toContain('message_count');
+    expect(responseOverlaySource).not.toContain('overlayPhase');
+    expect(responseOverlaySource).not.toContain('activeResponseType');
     expect(responseOverlayViewModelSource).not.toContain("logRendererLiveSurfaceTrace");
     expect(responseOverlayViewModelSource).not.toContain("'renderer.overlay_view_model.resolved'");
     expect(responseOverlayViewModelSource).not.toContain("'typing.show'");

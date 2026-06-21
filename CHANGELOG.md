@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlay: move response overlay response-surface snapshot stream
+  trace payload shaping into `desktopRendererTraceRuntime` so
+  `MinimalResponseOverlay` reports phase/message/content values without
+  calling the raw response-surface trace logger or carrying snapshot field
+  names locally. No migration required.
 - renderer/overlay: move response overlay hit-test and rendered-typing
   live-surface trace payloads into `desktopRendererTraceRuntime` so
   `MinimalResponseOverlay` reports interaction/render values without owning

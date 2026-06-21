@@ -152,6 +152,11 @@ Contract ownership:
   shaping through `logRendererResponseOverlayHitTestTrace(...)` and
   `logRendererResponseOverlayTypingRenderedTrace(...)`; `MinimalResponseOverlay`
   reports only interaction and rendered-state values.
+- `desktopRendererTraceRuntime.ts` owns response overlay response-surface
+  snapshot stream-trace field shaping through
+  `logRendererResponseSurfaceSnapshotTrace(...)`; `MinimalResponseOverlay`
+  reports only phase, message-count, response-entry, visible-response, and
+  text-length values.
 - `desktopRendererTraceRuntime.ts` also owns response overlay view-model
   live-surface trace payload, resolved-event, typing-event, intent-event, and
   reason mapping. `useResponseOverlayViewModel(...)` reports value-level SDK,
@@ -249,6 +254,11 @@ Under `WINDIE_DEBUG_STREAM_EVENTS=1` (main injects `?debug_stream=1`) or explici
   `MinimalResponseOverlay` does not assemble `response_overlay.hit_test.set`,
   `typing.rendered.show`, `typing.rendered.hide`, rendered-typing reason
   strings, or `ignoreMouseEvents` fields locally
+- response-surface snapshot stream traces go through
+  `logRendererResponseSurfaceSnapshotTrace(...)`, so
+  `MinimalResponseOverlay` does not call `logRendererResponseSurfaceTrace(...)`
+  or assemble snapshot fields such as `overlayPhase` and `activeResponseType`
+  locally
 - response overlay view-model traces go through
   `buildRendererOverlayViewModelTracePayload(...)`,
   `logRendererOverlayViewModelResolvedTrace(...)`,

@@ -118,6 +118,21 @@ export type RendererResponseSurfaceRenderTraceValues = {
   showAwaitingReply?: boolean;
 };
 
+export type RendererResponseSurfaceSnapshotTraceValues = {
+  source?: string;
+  phase?: unknown;
+  isSending?: boolean;
+  messageCount?: unknown;
+  activeResponseTextLength?: unknown;
+  responseType?: unknown;
+  visibleResponseId?: unknown;
+  responseOverlayEntryCount?: unknown;
+  showAwaitingReply?: boolean;
+  showResponse?: boolean;
+  thinkingText?: unknown;
+  thinkingTextLength?: unknown;
+};
+
 export type RendererOverlayViewModelTraceValues = {
   currentTurnProjection?: {
     turnRef?: unknown;
@@ -409,6 +424,30 @@ export function logRendererResponseOverlayStateTrace(
   values: RendererResponseOverlayStateTraceValues,
 ): void {
   logRendererResponseSurfaceTrace(buildRendererResponseOverlayStateTracePayload(values));
+}
+
+export function buildRendererResponseSurfaceSnapshotTracePayload(
+  values: RendererResponseSurfaceSnapshotTraceValues,
+): Record<string, unknown> {
+  return {
+    source: traceString(values.source) || 'minimal-response-overlay',
+    overlayPhase: traceString(values.phase) || 'idle',
+    isSending: values.isSending === true,
+    messageCount: traceNumberOrZero(values.messageCount),
+    activeResponseTextLength: traceNumberOrZero(values.activeResponseTextLength),
+    activeResponseType: traceString(values.responseType) || null,
+    visibleResponseId: traceString(values.visibleResponseId) || null,
+    responseOverlayEntryCount: traceNumberOrZero(values.responseOverlayEntryCount),
+    showAwaitingReply: values.showAwaitingReply === true,
+    showResponse: values.showResponse === true,
+    thinkingTextLength: traceTextLength(values) ?? 0,
+  };
+}
+
+export function logRendererResponseSurfaceSnapshotTrace(
+  values: RendererResponseSurfaceSnapshotTraceValues,
+): void {
+  logRendererResponseSurfaceTrace(buildRendererResponseSurfaceSnapshotTracePayload(values));
 }
 
 function getRendererPlatform(): string | null {

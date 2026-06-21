@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: response overlay hit-test and rendered-typing
-  live-surface trace payload assembly now stays behind
-  `desktopRendererTraceRuntime`, with `MinimalResponseOverlay` reporting
-  interaction/render values instead of carrying trace event labels, reason
-  strings, or payload field names locally.
+- Latest completed slice: response overlay response-surface snapshot stream
+  trace payload shaping now stays behind `desktopRendererTraceRuntime`, with
+  `MinimalResponseOverlay` reporting phase/message/content values instead of
+  calling the raw response-surface trace logger or carrying snapshot field
+  names locally.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -168,6 +168,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   consume `desktopRendererTraceRuntime` helpers instead of carrying
   hit-test/typing-rendered event labels, reason strings, or payload field
   mapping inside `MinimalResponseOverlay`.
+  Response overlay response-surface snapshot traces now consume
+  `desktopRendererTraceRuntime` helpers instead of calling the raw
+  response-surface trace logger or carrying snapshot field mapping inside
+  `MinimalResponseOverlay`.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
@@ -611,6 +615,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Renderer Response Overlay Surface Snapshot Trace Boundary
+
+- Finding: `MinimalResponseOverlay.jsx` consumed app-runtime helpers for
+  overlay state/render/live traces, but still called the raw
+  `logRendererResponseSurfaceTrace(...)` response-surface stream logger with
+  snapshot field names such as `overlayPhase` and `activeResponseType`.
+- Change: added response-surface snapshot payload/logging helpers to
+  `desktopRendererTraceRuntime.ts` and routed `MinimalResponseOverlay` through
+  them so the component reports phase, message-count, response-entry,
+  visible-response, and text-length values instead of owning response-surface
+  snapshot trace fields locally.
+- Validation: focused renderer trace runtime, response overlay state, renderer
+  app-runtime boundary coverage, docs listing, stale component-local
+  response-surface snapshot scan, and diff checks.
+- Compatibility: no migration required. Response-surface stream trace event
+  shape, overlay state/render traces, response rendering, IPC, storage,
+  permissions, credentials, hosted backend URLs, and provider policy are
+  unchanged.
 
 ### 2026-06-21 Renderer Response Overlay Rendered Live Trace Boundary
 
