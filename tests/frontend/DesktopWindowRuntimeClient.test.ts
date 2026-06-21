@@ -38,16 +38,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-import {
-  DesktopWindowRuntimeClient,
-  buildChatboxHitTestPayload,
-  buildChatboxTextEntryActivationPayload,
-  buildChatboxVisualAnchorHeightPayload,
-  buildHideChatboxOptions,
-  buildShowChatboxOptions,
-  buildShowMainWindowOptions,
-  resolveMainWindowOpenTarget,
-} from '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient';
+import * as DesktopWindowRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient';
+import { DesktopWindowRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient';
 
 describe('DesktopWindowRuntimeClient', () => {
   beforeEach(() => {
@@ -56,67 +48,79 @@ describe('DesktopWindowRuntimeClient', () => {
     windowListener = null;
   });
 
-  test('resolves main-window open target payloads at the runtime boundary', () => {
-    expect(resolveMainWindowOpenTarget({ target: ' settings ' })).toBe('settings');
-    expect(resolveMainWindowOpenTarget({ target: 12 })).toBe('');
-    expect(resolveMainWindowOpenTarget(null)).toBe('');
+  test('keeps raw window command helpers private to the runtime client', () => {
+    expect(DesktopWindowRuntimeModule).not.toHaveProperty('resolveMainWindowOpenTarget');
+    expect(DesktopWindowRuntimeModule).not.toHaveProperty('buildShowChatboxOptions');
+    expect(DesktopWindowRuntimeModule).not.toHaveProperty('buildHideChatboxOptions');
+    expect(DesktopWindowRuntimeModule).not.toHaveProperty('buildShowMainWindowOptions');
+    expect(DesktopWindowRuntimeModule).not.toHaveProperty('buildChatboxVisualAnchorHeightPayload');
+    expect(DesktopWindowRuntimeModule).not.toHaveProperty('buildChatboxHitTestPayload');
+    expect(DesktopWindowRuntimeModule).not.toHaveProperty('buildChatboxTextEntryActivationPayload');
   });
 
   test('builds chatbox visual anchor payloads at the runtime boundary', async () => {
-    expect(buildChatboxVisualAnchorHeightPayload(92, 160)).toEqual({
+    await DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(92, 160);
+    await DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue('64.4', 0);
+    await DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(72, 144);
+
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'set-chatbox-visual-anchor-height', {
       height: 92,
       frameHeight: 160,
     });
-    expect(buildChatboxVisualAnchorHeightPayload('64.4', 0)).toEqual({
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'set-chatbox-visual-anchor-height', {
       height: 64,
     });
-
-    await DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(72, 144);
-
-    expect(mockInvoke).toHaveBeenCalledWith('set-chatbox-visual-anchor-height', {
+    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'set-chatbox-visual-anchor-height', {
       height: 72,
       frameHeight: 144,
     });
   });
 
   test('builds chatbox hit-test payloads at the runtime boundary', async () => {
-    expect(buildChatboxHitTestPayload(true)).toEqual({ active: true });
-    expect(buildChatboxHitTestPayload('true')).toEqual({ active: false });
-
     await DesktopWindowRuntimeClient.setChatboxHitTestActiveValue(true);
+    await DesktopWindowRuntimeClient.setChatboxHitTestActiveValue('true');
 
-    expect(mockInvoke).toHaveBeenCalledWith('set-chatbox-hit-test-active', {
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'set-chatbox-hit-test-active', {
       active: true,
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'set-chatbox-hit-test-active', {
+      active: false,
     });
   });
 
   test('builds window visibility command options at the runtime boundary', async () => {
-    expect(buildShowChatboxOptions(false, ' startup ')).toEqual({
-      focus: false,
-      reason: 'startup',
-    });
-    expect(buildShowChatboxOptions('yes', '')).toEqual({});
-    expect(buildHideChatboxOptions(' user ')).toEqual({ reason: 'user' });
-    expect(buildHideChatboxOptions(12)).toEqual({});
-    expect(buildShowMainWindowOptions(true, false, ' chat ', ' settings ')).toEqual({
-      focus: true,
-      maximize: false,
-      open: 'chat',
-      reason: 'settings',
-    });
-
+    await DesktopWindowRuntimeClient.showChatboxWithValues(false, ' startup ');
+    await DesktopWindowRuntimeClient.showChatboxWithValues('yes', '');
+    await DesktopWindowRuntimeClient.hideChatboxForReason(' user ');
+    await DesktopWindowRuntimeClient.hideChatboxForReason(12);
+    await DesktopWindowRuntimeClient.showMainWindowWithValues(true, false, ' chat ', ' settings ');
     await DesktopWindowRuntimeClient.showChatboxWithValues(false, 'restore');
     await DesktopWindowRuntimeClient.hideChatboxForReason('user');
     await DesktopWindowRuntimeClient.showMainWindowWithValues(null, true, 'chat', 'settings');
 
     expect(mockInvoke).toHaveBeenNthCalledWith(1, 'show-chatbox', {
       focus: false,
-      reason: 'restore',
+      reason: 'startup',
     });
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'hide-chatbox', {
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'show-chatbox', {});
+    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'hide-chatbox', {
       reason: 'user',
     });
-    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'show-main-window', {
+    expect(mockInvoke).toHaveBeenNthCalledWith(4, 'hide-chatbox', {});
+    expect(mockInvoke).toHaveBeenNthCalledWith(5, 'show-main-window', {
+      focus: true,
+      maximize: false,
+      open: 'chat',
+      reason: 'settings',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(6, 'show-chatbox', {
+      focus: false,
+      reason: 'restore',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(7, 'hide-chatbox', {
+      reason: 'user',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(8, 'show-main-window', {
       maximize: true,
       open: 'chat',
       reason: 'settings',
@@ -124,14 +128,15 @@ describe('DesktopWindowRuntimeClient', () => {
   });
 
   test('builds chatbox text-entry activation payloads at the runtime boundary', async () => {
-    expect(buildChatboxTextEntryActivationPayload(' text-entry ')).toEqual({
-      reason: 'text-entry',
-    });
-    expect(buildChatboxTextEntryActivationPayload(12)).toEqual({});
-
+    await DesktopWindowRuntimeClient.activateChatboxTextEntryForReason(' text-entry ');
+    await DesktopWindowRuntimeClient.activateChatboxTextEntryForReason(12);
     await DesktopWindowRuntimeClient.activateChatboxTextEntryForReason('text-entry');
 
-    expect(mockInvoke).toHaveBeenCalledWith('activate-chatbox-text-entry', {
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'activate-chatbox-text-entry', {
+      reason: 'text-entry',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'activate-chatbox-text-entry', {});
+    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'activate-chatbox-text-entry', {
       reason: 'text-entry',
     });
   });
@@ -143,8 +148,10 @@ describe('DesktopWindowRuntimeClient', () => {
     });
 
     windowListener?.({ target: ' chat ' });
+    windowListener?.({ target: 12 });
+    windowListener?.(null);
 
-    expect(events).toEqual(['chat']);
+    expect(events).toEqual(['chat', '', '']);
 
     unsubscribe?.();
     expect(windowListener).toBeNull();

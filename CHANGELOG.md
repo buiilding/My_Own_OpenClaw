@@ -108,6 +108,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep workspace access update event parsing private to the
   workspace runtime client while preserving public workspace selection and
   presentation helpers. No migration required.
+- frontend/renderer: keep chatbox/main-window option and payload builders
+  private to the window runtime client while preserving public value-level
+  window command helpers. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

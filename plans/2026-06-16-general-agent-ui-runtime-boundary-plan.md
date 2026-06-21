@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Window Command Helper Privacy
+
+- Finding: `DesktopWindowRuntimeClient` already owned chatbox and main-window
+  option/payload construction through value-level command methods and the
+  main-window open-target subscription, but still exported raw builders and the
+  open-target parser for focused tests.
+- Change: made chatbox/main-window option builders, chatbox anchor/hit-test/text
+  entry payload builders, and the main-window open-target parser private to the
+  window runtime client while preserving raw command methods and public
+  value-level facades.
+- Validation: focused window runtime client and renderer chat boundary tests,
+  exact raw-helper export scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Window IPC channel names,
+  chatbox/main-window option payload shapes, chatbox anchor/hit-test/text-entry
+  behavior, wakeword STT trigger wiring, OS window integration, permissions,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Workspace Update Parser Privacy
 
 - Finding: `DesktopWorkspaceRuntimeClient` already owned

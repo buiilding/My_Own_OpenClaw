@@ -1780,7 +1780,8 @@ describe('renderer chat runtime boundary', () => {
     expect(sessionClientSource).toContain('function resolveDesktopClientSessionUserId');
     expect(sessionClientSource).not.toContain('export function resolveDesktopClientSessionUserId');
     expect(sessionClientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
-    expect(windowClientSource).toContain('resolveMainWindowOpenTarget');
+    expect(windowClientSource).toContain('function resolveMainWindowOpenTarget');
+    expect(windowClientSource).not.toContain('export function resolveMainWindowOpenTarget');
     expect(windowClientSource).toContain('ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET');
   });
 
@@ -1922,9 +1923,12 @@ describe('renderer chat runtime boundary', () => {
     expect(controlsSource).not.toContain('DesktopWindowRuntimeClient.showMainWindow(options)');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_MAIN_WINDOW');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_CHATBOX');
-    expect(clientSource).toContain('buildShowMainWindowOptions');
-    expect(clientSource).toContain('buildShowChatboxOptions');
-    expect(clientSource).toContain('buildHideChatboxOptions');
+    expect(clientSource).toContain('function buildShowMainWindowOptions');
+    expect(clientSource).not.toContain('export function buildShowMainWindowOptions');
+    expect(clientSource).toContain('function buildShowChatboxOptions');
+    expect(clientSource).not.toContain('export function buildShowChatboxOptions');
+    expect(clientSource).toContain('function buildHideChatboxOptions');
+    expect(clientSource).not.toContain('export function buildHideChatboxOptions');
     expect(clientSource).toContain('INVOKE_CHANNELS.WINDOW_MINIMIZE');
     expect(clientSource).toContain('INVOKE_CHANNELS.WINDOW_TOGGLE_MAXIMIZE');
     expect(clientSource).toContain('INVOKE_CHANNELS.WINDOW_CLOSE');
@@ -1979,10 +1983,14 @@ describe('renderer chat runtime boundary', () => {
     expect(bindingsSource).toContain('DesktopWindowRuntimeClient.onChatboxFocus');
     expect(bindingsSource).toContain('DesktopWindowRuntimeClient.onWakewordSttTrigger');
     expect(clientSource).toContain('INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT');
+    expect(clientSource).toContain('function buildChatboxVisualAnchorHeightPayload');
+    expect(clientSource).not.toContain('export function buildChatboxVisualAnchorHeightPayload');
     expect(clientSource).toContain('INVOKE_CHANNELS.ACTIVATE_CHATBOX_TEXT_ENTRY');
-    expect(clientSource).toContain('buildChatboxTextEntryActivationPayload');
+    expect(clientSource).toContain('function buildChatboxTextEntryActivationPayload');
+    expect(clientSource).not.toContain('export function buildChatboxTextEntryActivationPayload');
     expect(clientSource).toContain('INVOKE_CHANNELS.SET_CHATBOX_HIT_TEST_ACTIVE');
-    expect(clientSource).toContain('buildChatboxHitTestPayload');
+    expect(clientSource).toContain('function buildChatboxHitTestPayload');
+    expect(clientSource).not.toContain('export function buildChatboxHitTestPayload');
     expect(clientSource).toContain('INVOKE_CHANNELS.HIDE_CHATBOX');
     expect(clientSource).toContain('SEND_CHANNELS.MOVE_CHATBOX_TO');
     expect(clientSource).toContain('ON_CHANNELS.CHATBOX_FOCUS');

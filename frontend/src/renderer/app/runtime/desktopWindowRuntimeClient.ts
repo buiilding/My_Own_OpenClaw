@@ -50,7 +50,7 @@ function recordOrEmpty(value: unknown): Record<string, unknown> {
     : {};
 }
 
-export function resolveMainWindowOpenTarget(payload: unknown): string {
+function resolveMainWindowOpenTarget(payload: unknown): string {
   const source = recordOrEmpty(payload);
   return typeof source.target === 'string' ? source.target.trim() : '';
 }
@@ -69,7 +69,7 @@ function optionalNonEmptyString(value: unknown): string | null {
   return normalized || null;
 }
 
-export function buildShowChatboxOptions(
+function buildShowChatboxOptions(
   focus: unknown = null,
   reason: unknown = null,
 ): ShowChatboxOptions {
@@ -85,7 +85,7 @@ export function buildShowChatboxOptions(
   return options;
 }
 
-export function buildHideChatboxOptions(reason: unknown = null): HideChatboxOptions {
+function buildHideChatboxOptions(reason: unknown = null): HideChatboxOptions {
   const options: HideChatboxOptions = {};
   const normalizedReason = optionalNonEmptyString(reason);
   if (normalizedReason) {
@@ -94,7 +94,7 @@ export function buildHideChatboxOptions(reason: unknown = null): HideChatboxOpti
   return options;
 }
 
-export function buildShowMainWindowOptions(
+function buildShowMainWindowOptions(
   focus: unknown = null,
   maximize: unknown = null,
   open: unknown = null,
@@ -120,7 +120,7 @@ export function buildShowMainWindowOptions(
   return options;
 }
 
-export function buildChatboxVisualAnchorHeightPayload(
+function buildChatboxVisualAnchorHeightPayload(
   height: unknown,
   frameHeight: unknown = null,
 ): ChatboxVisualAnchorHeightPayload {
@@ -135,13 +135,13 @@ export function buildChatboxVisualAnchorHeightPayload(
   return payload;
 }
 
-export function buildChatboxHitTestPayload(active: unknown): ChatboxHitTestPayload {
+function buildChatboxHitTestPayload(active: unknown): ChatboxHitTestPayload {
   return {
     active: active === true,
   };
 }
 
-export function buildChatboxTextEntryActivationPayload(
+function buildChatboxTextEntryActivationPayload(
   reason: unknown,
 ): ActivateChatboxTextEntryPayload {
   const normalizedReason = typeof reason === 'string' ? reason.trim() : '';
