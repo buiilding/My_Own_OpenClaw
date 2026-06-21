@@ -16,7 +16,7 @@ title: "Wakeword Capture Guard Runtime Reference"
 
 ## Runtime Ownership Boundary
 
-`desktopWakewordCaptureGuardRuntime.ts` is the single renderer runtime owner for wakeword missing-device lockout persistence.
+`DesktopWakewordCaptureGuardRuntime` is the single renderer runtime owner for wakeword missing-device lockout persistence.
 
 It owns:
 
@@ -31,14 +31,14 @@ It owns:
 
 ## Guard Lifecycle Contract
 
-`getWakewordCaptureGuard()`:
+`DesktopWakewordCaptureGuardRuntime.getWakewordCaptureGuard()`:
 
 - returns existing global guard when present
 - creates default guard if missing:
   - `missingDeviceLocked=false`
   - `nextRetryAt=0`
 
-`clearWakewordCaptureGuard(guard)`:
+`DesktopWakewordCaptureGuardRuntime.clearWakewordCaptureGuard(guard)`:
 
 - mutates passed guard object in place to default unlocked values
 
@@ -46,7 +46,7 @@ This mutation-based contract preserves shared-reference behavior across hook rem
 
 ## Missing-Device Error Heuristic Contract
 
-`isMissingAudioDeviceError(error)` returns true when either:
+`DesktopWakewordCaptureGuardRuntime.isMissingAudioDeviceError(error)` returns true when either:
 
 - `error.name === "NotFoundError"`
 - lowercase error message contains `"requested device not found"`
@@ -55,7 +55,7 @@ All other errors are treated as generic capture failures.
 
 ## Audio-Input Availability Probe Contract
 
-`hasAvailableAudioInputDevice()`:
+`DesktopWakewordCaptureGuardRuntime.hasAvailableAudioInputDevice()`:
 
 - returns `false` when `navigator.mediaDevices` or `enumerateDevices` is unavailable
 - attempts `enumerateDevices()`

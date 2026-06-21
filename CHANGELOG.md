@@ -106,6 +106,10 @@ All notable changes to WindieOS will be documented in this file.
   AudioContext teardown through `DesktopVoiceAudioCaptureCleanupRuntime`
   instead of standalone helper exports, keeping voice and wakeword teardown
   rules behind the renderer app-runtime facade. No migration required.
+- frontend/renderer: expose wakeword missing-device lockout and audio-input
+  probing through `DesktopWakewordCaptureGuardRuntime` instead of standalone
+  helper exports, keeping wakeword retry guard policy behind the renderer
+  app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

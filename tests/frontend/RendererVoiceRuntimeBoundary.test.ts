@@ -178,17 +178,28 @@ describe('renderer voice runtime boundary', () => {
       __dirname,
       '../../frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts',
     );
+    const captureGuardRuntimePath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts',
+    );
     const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
     const detectionSource = await fs.readFile(detectionHookPath, 'utf8');
     const bridgeSource = await fs.readFile(bridgeHookPath, 'utf8');
+    const captureGuardRuntimeSource = await fs.readFile(captureGuardRuntimePath, 'utf8');
 
     expect(detectionSource).toContain('desktopWakewordCaptureGuardRuntime');
+    expect(detectionSource).toContain('DesktopWakewordCaptureGuardRuntime');
     expect(detectionSource).toContain('desktopWakewordEventRuntime');
     expect(bridgeSource).toContain('desktopWakewordEventRuntime');
     for (const source of [detectionSource, bridgeSource]) {
       expect(source).not.toContain('../utils/wakewordCaptureGuard');
       expect(source).not.toContain('../utils/wakewordEventUtils');
     }
+    expect(captureGuardRuntimeSource).toContain('export const DesktopWakewordCaptureGuardRuntime = Object.freeze');
+    expect(captureGuardRuntimeSource).not.toContain('export function getWakewordCaptureGuard');
+    expect(captureGuardRuntimeSource).not.toContain('export function clearWakewordCaptureGuard');
+    expect(captureGuardRuntimeSource).not.toContain('export function isMissingAudioDeviceError');
+    expect(captureGuardRuntimeSource).not.toContain('export async function hasAvailableAudioInputDevice');
 
     await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/wakewordCaptureGuard.ts'))).rejects.toThrow();
     await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/wakewordEventUtils.ts'))).rejects.toThrow();

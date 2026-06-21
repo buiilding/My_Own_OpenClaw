@@ -16,19 +16,19 @@ const defaultGuard: WakewordCaptureGuard = {
   nextRetryAt: 0,
 };
 
-export function getWakewordCaptureGuard(): WakewordCaptureGuard {
+function getWakewordCaptureGuard(): WakewordCaptureGuard {
   if (!globalWithWakewordGuard.__desktopRuntimeWakewordCaptureGuard) {
     globalWithWakewordGuard.__desktopRuntimeWakewordCaptureGuard = { ...defaultGuard };
   }
   return globalWithWakewordGuard.__desktopRuntimeWakewordCaptureGuard;
 }
 
-export function clearWakewordCaptureGuard(guard: WakewordCaptureGuard): void {
+function clearWakewordCaptureGuard(guard: WakewordCaptureGuard): void {
   guard.missingDeviceLocked = false;
   guard.nextRetryAt = 0;
 }
 
-export function isMissingAudioDeviceError(error: unknown): boolean {
+function isMissingAudioDeviceError(error: unknown): boolean {
   const name = typeof (error as { name?: unknown })?.name === 'string'
     ? (error as { name: string }).name
     : '';
@@ -38,7 +38,7 @@ export function isMissingAudioDeviceError(error: unknown): boolean {
   return name === 'NotFoundError' || message.includes('requested device not found');
 }
 
-export async function hasAvailableAudioInputDevice(): Promise<boolean> {
+async function hasAvailableAudioInputDevice(): Promise<boolean> {
   const mediaDevices = navigator.mediaDevices;
   if (!mediaDevices || typeof mediaDevices.enumerateDevices !== 'function') {
     return false;
@@ -51,3 +51,10 @@ export async function hasAvailableAudioInputDevice(): Promise<boolean> {
     return false;
   }
 }
+
+export const DesktopWakewordCaptureGuardRuntime = Object.freeze({
+  clearWakewordCaptureGuard,
+  getWakewordCaptureGuard,
+  hasAvailableAudioInputDevice,
+  isMissingAudioDeviceError,
+});

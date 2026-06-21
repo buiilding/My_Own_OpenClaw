@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Wakeword Capture Guard Facade
+
+- Finding: `desktopWakewordCaptureGuardRuntime.ts` already owned wakeword
+  missing-device global lockout state, in-place guard clearing, missing-device
+  error classification, and audio-input availability probing, but still
+  exported each guard helper directly.
+- Change: made the guard helpers private to the runtime module, exposed them
+  through `DesktopWakewordCaptureGuardRuntime`, and routed wakeword detection,
+  docs, and renderer voice boundary guards through that facade.
+- Validation: focused wakeword detection, renderer voice boundary, renderer
+  skin/config boundary, exact standalone wakeword-guard helper export/import
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. The
+  `__desktopRuntimeWakewordCaptureGuard` key, shared guard object semantics,
+  missing-device lockout, retry timing, audio-input probing, microphone/session
+  behavior, IPC, storage, credentials, provider policy, hosted backend URLs,
+  and local execution trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Voice Audio Cleanup Facade
 
 - Finding: `desktopVoiceAudioCaptureCleanupRuntime.ts` already owned shared

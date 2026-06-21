@@ -9,12 +9,7 @@ import { DesktopVoiceAudioCaptureCleanupRuntime } from '../../../app/runtime/des
 import { createAudioCaptureProcessorNode } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import { DesktopWakewordEventRuntime } from '../../../app/runtime/desktopWakewordEventRuntime';
 import { logVoiceDebugTrace } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
-import {
-  clearWakewordCaptureGuard,
-  getWakewordCaptureGuard,
-  hasAvailableAudioInputDevice,
-  isMissingAudioDeviceError,
-} from '../../../app/runtime/desktopWakewordCaptureGuardRuntime';
+import { DesktopWakewordCaptureGuardRuntime } from '../../../app/runtime/desktopWakewordCaptureGuardRuntime';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { useWakewordBridgeEvents } from './useWakewordBridgeEvents';
@@ -24,6 +19,12 @@ const {
   closeAudioContextSafely,
   takeAudioContext,
 } = DesktopVoiceAudioCaptureCleanupRuntime;
+const {
+  clearWakewordCaptureGuard,
+  getWakewordCaptureGuard,
+  hasAvailableAudioInputDevice,
+  isMissingAudioDeviceError,
+} = DesktopWakewordCaptureGuardRuntime;
 
 const WAKEWORD_COOLDOWN_MS = 2000;
 const CAPTURE_RETRY_DELAY_MS = 3000;
