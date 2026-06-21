@@ -90,6 +90,7 @@ Tests and docs:
   <windie> test local-runtime [args...]
   <windie> test frontend [args...]
   <windie> test core-loop [jest args...]
+  <windie> test user-facing
   <windie> test all
   <windie> test pick <area>
   <windie> docs list
@@ -146,6 +147,39 @@ const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'LocalRuntimeExecuteToolRuntime.test.cjs',
   'SurfaceRuntime.test.cjs',
 ]);
+
+const SCRIPTED_PROVIDER_USER_FACING_REGRESSION_TESTS = Object.freeze([
+  'tests/backend/test_scripted_provider.py',
+  '-q',
+]);
+
+function coreLoopRegressionPackCommand(extraArgs = []) {
+  return {
+    command: 'npm',
+    args: [
+      '--prefix',
+      FRONTEND_DIR,
+      'run',
+      'test:ci',
+      '--',
+      ...CORE_LOOP_REGRESSION_PACK_TESTS,
+      ...extraArgs,
+    ],
+    cwd: REPO_ROOT,
+  };
+}
+
+function userFacingRegressionPackProcesses() {
+  return [
+    { label: 'core-loop', ...coreLoopRegressionPackCommand() },
+    {
+      label: 'scripted-provider',
+      command: script('scripts/test-backend.sh'),
+      args: [...SCRIPTED_PROVIDER_USER_FACING_REGRESSION_TESTS],
+      cwd: REPO_ROOT,
+    },
+  ];
+}
 
 function hasFlag(args, flag) {
   return args.includes(flag);
@@ -1272,17 +1306,14 @@ function runTest(args) {
     });
   }
   if (target === 'core-loop') {
-    return runForeground('npm', [
-      '--prefix',
-      FRONTEND_DIR,
-      'run',
-      'test:ci',
-      '--',
-      ...CORE_LOOP_REGRESSION_PACK_TESTS,
-      ...rest,
-    ], {
-      cwd: REPO_ROOT,
-    });
+    const plan = coreLoopRegressionPackCommand(rest);
+    return runForeground(plan.command, plan.args, { cwd: plan.cwd });
+  }
+  if (target === 'user-facing') {
+    if (rest.length) {
+      throw new Error('Usage: <windie> test user-facing');
+    }
+    return runConcurrent(userFacingRegressionPackProcesses()).then((code) => process.exit(code));
   }
   if (target === 'all') {
     return runForeground(script('scripts/test.sh'), rest, { cwd: REPO_ROOT });
@@ -1307,7 +1338,7 @@ function runTest(args) {
     }
     return;
   }
-  throw new Error('Usage: <windie> test backend|local-runtime|frontend|core-loop|all|pick <area>');
+  throw new Error('Usage: <windie> test backend|local-runtime|frontend|core-loop|user-facing|all|pick <area>');
 }
 
 function printDocsSearch(topic, usage) {
@@ -1757,18 +1788,11 @@ function getSpawnPlan(argv) {
     };
   }
   if (command === 'test' && args[0] === 'core-loop') {
+    return coreLoopRegressionPackCommand(stripSeparator(args.slice(1)));
+  }
+  if (command === 'test' && args[0] === 'user-facing') {
     return {
-      command: 'npm',
-      args: [
-        '--prefix',
-        FRONTEND_DIR,
-        'run',
-        'test:ci',
-        '--',
-        ...CORE_LOOP_REGRESSION_PACK_TESTS,
-        ...stripSeparator(args.slice(1)),
-      ],
-      cwd: REPO_ROOT,
+      concurrent: userFacingRegressionPackProcesses(),
     };
   }
   if (command === 'docs' && args[0] === 'list') {

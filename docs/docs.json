@@ -179,6 +179,7 @@
               "debug/README",
               "debug/process_health_checklist",
               "debug/symptom_playbooks",
+              "debug/user_facing_regression_pack",
               "debug/core_loop_regression_pack",
               "help/README",
               "help/triage_routes",

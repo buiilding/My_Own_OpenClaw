@@ -1,5 +1,5 @@
 ---
-summary: "Core Loop Regression Pack for chat pill, dashboard, overlay, SDK projection, conversation runtime, IPC, replay, stop, tool-row, and surface-lease invariants."
+summary: "Core Loop Regression Pack subset for chat pill, dashboard, overlay, SDK projection, conversation runtime, IPC, replay, stop, tool-row, and surface-lease invariants."
 read_when:
   - When fixing a user-visible chat pill, dashboard, response overlay, active-turn, stop, tool-row, replay, SDK projection, conversation runtime, or IPC bug.
   - When changing core-loop UI state, pending-turn handling, live current-turn projection, dashboard handoff, response overlay visibility, stop behavior, tool-row pairing, screenshot capture, or tool-surface leases.
@@ -9,11 +9,11 @@ title: "Core Loop Regression Pack"
 
 # Core Loop Regression Pack
 
-The Core Loop Regression Pack is the named focused validation route for
-human-discovered bugs in the active chat loop. It protects the path where a user
-sends from the pill or dashboard, WindieOS projects the active turn, tools run,
-the response streams, and surfaces hand off between the pill, response overlay,
-and dashboard.
+The Core Loop Regression Pack is the focused core-loop subset of the broader
+[User-Facing Regression Pack](user_facing_regression_pack.md). It protects the
+path where a user sends from the pill or dashboard, WindieOS projects the active
+turn, tools run, the response streams, and surfaces hand off between the pill,
+response overlay, and dashboard.
 
 Run it with:
 
@@ -67,6 +67,8 @@ page's protected behavior table if the bug creates a new named invariant.
 
 ## Scope
 
-This pack is for the desktop core-loop UI and live-turn path. Backend provider,
-tool-history, or parser bugs should still become invariants, but their tests
-belong in the backend or local-runtime pack that owns the broken behavior.
+This subset is for the desktop core-loop UI and live-turn path. Backend
+provider, tool-history, or parser bugs should still become invariants, but
+their tests belong in the backend or local-runtime test that owns the broken
+behavior and, when product-visible, should be registered in the broader
+[User-Facing Regression Pack](user_facing_regression_pack.md).

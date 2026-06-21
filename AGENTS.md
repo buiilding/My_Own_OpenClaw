@@ -106,7 +106,9 @@ Architecture rules:
   fixing, name the symptom, invariant, owner runtime, smallest replay or
   reproduction timeline, regression proof, and owner-correct fix. Keep the proof
   proportional: a unit test, integration test, diagnostic assertion, screenshot
-  check, or focused command is enough when it protects the behavior.
+  check, or focused command is enough when it protects the behavior. Register
+  product-visible behavior in the User-Facing Regression Pack, while keeping the
+  actual test at the owner-correct layer.
 - Prefer the direct owner-correct path: fix root causes at the owning runtime,
   normalize inputs at boundaries, fail fast on invalid state, and split distinct
   states into named handlers instead of stacking nested fallbacks.
@@ -140,9 +142,10 @@ Core-loop UI bug rule:
   unless that component owns the broken state. Fix the owning producer or
   boundary contract first, then delete fallback state only after the invariant
   is protected.
-- Add protected core-loop behaviors to the Core Loop Regression Pack and run
-  that pack before future chat pill, dashboard, overlay, conversation runtime,
-  SDK projection, or IPC changes are considered complete.
+- Add protected core-loop behaviors to the Core Loop Regression Pack subset and
+  the broader User-Facing Regression Pack. Run the core-loop subset before
+  future chat pill, dashboard, overlay, conversation runtime, SDK projection, or
+  IPC changes are considered complete.
 
 For architectural or product-flow questions, explain conceptually first:
 describe how the runtime works, where a change fits, what boundaries change, and

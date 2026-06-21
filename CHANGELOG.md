@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- cli/tests: add `<windie> test user-facing` as the product-level regression
+  pack umbrella, keeping `core-loop` as one focused subset and registering the
+  scripted-provider tool-loop invariant alongside it. No migration required.
 - cli/tests: add `<windie> test core-loop` as the first concrete Core Loop
   Regression Pack route for chat pill, dashboard, overlay, SDK projection,
   conversation runtime, IPC, replay, stop, tool-row, and surface-lease
