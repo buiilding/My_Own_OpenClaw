@@ -554,10 +554,14 @@ describe('renderer app runtime boundary', () => {
     expect(lifecycleRuntimeSource).toContain('overlay_turn_lifecycle_contract.json');
     expect(lifecycleRuntimeSource).not.toContain('features/chat');
     expect(lifecycleRuntimeSource).not.toContain('export const OVERLAY_TURN_LIFECYCLE');
+    expect(lifecycleRuntimeSource).toContain('export const DesktopOverlayTurnLifecycleRuntime = Object.freeze');
     expect(lifecycleRuntimeSource).toContain('resolveOverlayTurnLifecycle');
     expect(lifecycleRuntimeSource).toContain('getIdleOverlayTurnLifecycle');
     expect(lifecycleRuntimeSource).toContain('isOverlayTurnLifecycleActive');
     expect(lifecycleRuntimeSource).toContain('isOverlayTurnLifecycleBusy');
+    expect(lifecycleRuntimeSource).not.toContain('export function resolveOverlayTurnLifecycle');
+    expect(lifecycleRuntimeSource).not.toContain('export function getIdleOverlayTurnLifecycle');
+    expect(lifecycleRuntimeSource).not.toContain('export function isOverlayTurnLifecycleBusy');
     expect(chatLoopUiStateSource).not.toContain('OVERLAY_TURN_LIFECYCLE');
     expect(chatLoopUiStateSource).not.toContain('features/chat');
     expect(chatLoopUiStateSource).toContain('desktopOverlayTurnLifecycleRuntime');
@@ -565,6 +569,10 @@ describe('renderer app runtime boundary', () => {
     expect(overlayLifecycleHookSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(currentTurnPresentationSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(chatLoopUiStateSource).toContain('DesktopOverlayTurnLifecycleRuntime');
+    expect(overlayLifecycleHookSource).toContain('DesktopOverlayTurnLifecycleRuntime');
+    expect(responseViewRuntimeSource).toContain('DesktopOverlayTurnLifecycleRuntime');
+    expect(currentTurnPresentationSource).toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(overlayViewModelSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('overlayTurnLifecycleContract');
     expect(overlayViewModelSource).not.toContain('overlayTurnLifecycleContract');

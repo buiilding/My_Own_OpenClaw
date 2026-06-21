@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose overlay turn lifecycle resolution and predicates
+  through `DesktopOverlayTurnLifecycleRuntime` instead of standalone helper
+  exports, keeping the JSON-backed lifecycle contract behind the renderer
+  app-runtime facade. No migration required.
 - frontend/renderer: expose response-overlay phase values and predicates
   through `DesktopResponseOverlayPhaseRuntime` instead of standalone helper
   exports, keeping the JSON-backed phase contract behind the renderer

@@ -7,13 +7,15 @@ import {
   isChatLoopBusy,
   resolveChatLoopUiState,
 } from './desktopChatLoopUiRuntime';
-import {
+import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
+import { resolveSdkOverlayIntent } from './desktopLiveTurnSurfaceRuntime';
+
+const {
   getActiveOverlayTurnLifecycle,
   getAwaitingOverlayTurnLifecycle,
   getIdleOverlayTurnLifecycle,
   getTerminalOverlayTurnLifecycle,
-} from './desktopOverlayTurnLifecycleRuntime';
-import { resolveSdkOverlayIntent } from './desktopLiveTurnSurfaceRuntime';
+} = DesktopOverlayTurnLifecycleRuntime;
 
 const CHATBOX_SURFACE_STATE = Object.freeze({
   COMPACT: 'compact',

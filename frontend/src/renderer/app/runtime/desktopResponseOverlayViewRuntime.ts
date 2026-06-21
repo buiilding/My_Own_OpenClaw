@@ -3,7 +3,11 @@
  */
 
 import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
-import { isOverlayTurnLifecycleAwaiting } from './desktopOverlayTurnLifecycleRuntime';
+import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
+
+const {
+  isOverlayTurnLifecycleAwaiting,
+} = DesktopOverlayTurnLifecycleRuntime;
 
 type CurrentTurnPresentationStateLike = {
   showChatboxAwaitingReply?: boolean;

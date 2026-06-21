@@ -4,10 +4,12 @@
 
 import { useMemo } from 'react';
 import { useChatLoopTransportState } from './useChatLoopUiState';
-import {
+import { DesktopOverlayTurnLifecycleRuntime } from '../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
+
+const {
   isOverlayTurnLifecycleBusy,
   resolveOverlayTurnLifecycle,
-} from '../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
+} = DesktopOverlayTurnLifecycleRuntime;
 
 export function useOverlayTurnLifecycle({
   phase,

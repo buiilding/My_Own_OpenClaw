@@ -2,13 +2,15 @@
  * Provides the chat loop ui state module for the renderer UI.
  */
 
-import {
+import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
+import { isOverlayAwaitingReplyPhase } from './desktopStreamPhaseRuntime';
+
+const {
   isOverlayTurnLifecycleActive,
   isOverlayTurnLifecycleAwaiting,
   isOverlayTurnLifecycleIdle,
   isOverlayTurnLifecycleTerminal,
-} from './desktopOverlayTurnLifecycleRuntime';
-import { isOverlayAwaitingReplyPhase } from './desktopStreamPhaseRuntime';
+} = DesktopOverlayTurnLifecycleRuntime;
 
 const CHAT_LOOP_UI_STATE = Object.freeze({
   IDLE: 'idle',

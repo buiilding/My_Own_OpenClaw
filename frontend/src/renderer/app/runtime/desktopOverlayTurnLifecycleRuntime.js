@@ -36,7 +36,7 @@ const AWAITING_PHASE_SET = new Set(OVERLAY_TURN_PHASE_GROUPS.awaiting);
 const ACTIVE_PHASE_SET = new Set(OVERLAY_TURN_PHASE_GROUPS.active);
 const TERMINAL_PHASE_SET = new Set(OVERLAY_TURN_PHASE_GROUPS.terminal);
 
-export function resolveOverlayTurnLifecycle({
+function resolveOverlayTurnLifecycle({
   phase,
   isSending,
   hasVisibleReply = false,
@@ -68,39 +68,39 @@ export function resolveOverlayTurnLifecycle({
   return OVERLAY_TURN_LIFECYCLE.IDLE;
 }
 
-export function getIdleOverlayTurnLifecycle() {
+function getIdleOverlayTurnLifecycle() {
   return OVERLAY_TURN_LIFECYCLE.IDLE;
 }
 
-export function getPreflightOverlayTurnLifecycle() {
+function getPreflightOverlayTurnLifecycle() {
   return OVERLAY_TURN_LIFECYCLE.PREFLIGHT;
 }
 
-export function getAwaitingOverlayTurnLifecycle() {
+function getAwaitingOverlayTurnLifecycle() {
   return OVERLAY_TURN_LIFECYCLE.AWAITING;
 }
 
-export function getActiveOverlayTurnLifecycle() {
+function getActiveOverlayTurnLifecycle() {
   return OVERLAY_TURN_LIFECYCLE.ACTIVE;
 }
 
-export function getTerminalOverlayTurnLifecycle() {
+function getTerminalOverlayTurnLifecycle() {
   return OVERLAY_TURN_LIFECYCLE.TERMINAL;
 }
 
-export function isOverlayTurnLifecycleIdle(lifecycle) {
+function isOverlayTurnLifecycleIdle(lifecycle) {
   return lifecycle === OVERLAY_TURN_LIFECYCLE.IDLE;
 }
 
-export function isOverlayTurnLifecycleActive(lifecycle) {
+function isOverlayTurnLifecycleActive(lifecycle) {
   return lifecycle === OVERLAY_TURN_LIFECYCLE.ACTIVE;
 }
 
-export function isOverlayTurnLifecycleTerminal(lifecycle) {
+function isOverlayTurnLifecycleTerminal(lifecycle) {
   return lifecycle === OVERLAY_TURN_LIFECYCLE.TERMINAL;
 }
 
-export function isOverlayTurnLifecycleBusy(lifecycle) {
+function isOverlayTurnLifecycleBusy(lifecycle) {
   return (
     lifecycle === OVERLAY_TURN_LIFECYCLE.PREFLIGHT
     || lifecycle === OVERLAY_TURN_LIFECYCLE.AWAITING
@@ -108,9 +108,23 @@ export function isOverlayTurnLifecycleBusy(lifecycle) {
   );
 }
 
-export function isOverlayTurnLifecycleAwaiting(lifecycle) {
+function isOverlayTurnLifecycleAwaiting(lifecycle) {
   return (
     lifecycle === OVERLAY_TURN_LIFECYCLE.PREFLIGHT
     || lifecycle === OVERLAY_TURN_LIFECYCLE.AWAITING
   );
 }
+
+export const DesktopOverlayTurnLifecycleRuntime = Object.freeze({
+  resolveOverlayTurnLifecycle,
+  getIdleOverlayTurnLifecycle,
+  getPreflightOverlayTurnLifecycle,
+  getAwaitingOverlayTurnLifecycle,
+  getActiveOverlayTurnLifecycle,
+  getTerminalOverlayTurnLifecycle,
+  isOverlayTurnLifecycleIdle,
+  isOverlayTurnLifecycleActive,
+  isOverlayTurnLifecycleTerminal,
+  isOverlayTurnLifecycleBusy,
+  isOverlayTurnLifecycleAwaiting,
+});

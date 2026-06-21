@@ -23140,3 +23140,21 @@ Each completed slice should report:
   preflight guard identity, current-turn surface projection, stream awaiting
   detection, renderer markup, IPC payloads, storage, local-runtime execution,
   provider policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer overlay lifecycle facade helper privacy
+
+- Finding: overlay turn lifecycle resolution, semantic lifecycle values, and
+  lifecycle predicates lived in the renderer app runtime, but chat loop,
+  current-turn presentation, response-overlay view, hook code, and focused
+  tests still imported those helpers as standalone exports.
+- Change: exposed overlay lifecycle behavior through
+  `DesktopOverlayTurnLifecycleRuntime` and kept the helper functions private to
+  `desktopOverlayTurnLifecycleRuntime`.
+- Validation: focused overlay lifecycle, chat-loop hook, current-turn
+  presentation, response-overlay view, and renderer app-runtime boundary tests,
+  targeted renderer ESLint, exact source/doc scans, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Lifecycle strings, disconnect recovery,
+  awaiting/active/terminal mapping, SDK presentation lifecycle projection,
+  renderer markup, IPC payloads, storage, local-runtime execution, provider
+  policy, backend behavior, and trust boundaries are unchanged.

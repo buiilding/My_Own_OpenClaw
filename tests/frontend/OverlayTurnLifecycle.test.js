@@ -2,22 +2,23 @@
  * Covers overlay turn lifecycle. behavior in the frontend test suite.
  */
 
-import {
-  getActiveOverlayTurnLifecycle,
-  getAwaitingOverlayTurnLifecycle,
-  getIdleOverlayTurnLifecycle,
-  getPreflightOverlayTurnLifecycle,
-  getTerminalOverlayTurnLifecycle,
-  isOverlayTurnLifecycleAwaiting,
-  isOverlayTurnLifecycleActive,
-  isOverlayTurnLifecycleBusy,
-  isOverlayTurnLifecycleIdle,
-  isOverlayTurnLifecycleTerminal,
-  resolveOverlayTurnLifecycle,
-} from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
-import * as OverlayTurnLifecycleRuntime from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
+import { DesktopOverlayTurnLifecycleRuntime } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 describe('desktopOverlayTurnLifecycleRuntime', () => {
+  const {
+    getActiveOverlayTurnLifecycle,
+    getAwaitingOverlayTurnLifecycle,
+    getIdleOverlayTurnLifecycle,
+    getPreflightOverlayTurnLifecycle,
+    getTerminalOverlayTurnLifecycle,
+    isOverlayTurnLifecycleAwaiting,
+    isOverlayTurnLifecycleActive,
+    isOverlayTurnLifecycleBusy,
+    isOverlayTurnLifecycleIdle,
+    isOverlayTurnLifecycleTerminal,
+    resolveOverlayTurnLifecycle,
+  } = DesktopOverlayTurnLifecycleRuntime;
+
   test('treats local send latch as preflight before main phase advances', () => {
     expect(resolveOverlayTurnLifecycle({
       phase: 'idle',
@@ -65,8 +66,8 @@ describe('desktopOverlayTurnLifecycleRuntime', () => {
   });
 
   test('busy and awaiting helpers track only active lifecycle states', () => {
-    expect(OverlayTurnLifecycleRuntime).not.toHaveProperty('OVERLAY_TURN_LIFECYCLE');
-    expect(OverlayTurnLifecycleRuntime).not.toHaveProperty('OVERLAY_TURN_PHASE_GROUPS');
+    expect(DesktopOverlayTurnLifecycleRuntime).not.toHaveProperty('OVERLAY_TURN_LIFECYCLE');
+    expect(DesktopOverlayTurnLifecycleRuntime).not.toHaveProperty('OVERLAY_TURN_PHASE_GROUPS');
     expect(isOverlayTurnLifecycleBusy(getIdleOverlayTurnLifecycle())).toBe(false);
     expect(isOverlayTurnLifecycleBusy(getTerminalOverlayTurnLifecycle())).toBe(false);
     expect(isOverlayTurnLifecycleBusy(getPreflightOverlayTurnLifecycle())).toBe(true);

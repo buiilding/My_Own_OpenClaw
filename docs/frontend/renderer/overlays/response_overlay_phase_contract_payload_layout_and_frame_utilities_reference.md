@@ -88,7 +88,7 @@ Shared lifecycle source of truth:
 Renderer adapter:
 
 - `desktopOverlayTurnLifecycleRuntime.js` keeps the raw lifecycle table and JSON
-  phase-group tables private.
+  phase-group tables private behind `DesktopOverlayTurnLifecycleRuntime`.
 - `resolveOverlayTurnLifecycle(...)` resolves renderer-local send state plus
   main-process overlay phase into one canonical lifecycle string.
 - `getIdleOverlayTurnLifecycle()`, `getPreflightOverlayTurnLifecycle()`,
@@ -98,7 +98,8 @@ Renderer adapter:
 - `isOverlayTurnLifecycleIdle(...)`, `isOverlayTurnLifecycleAwaiting(...)`,
   `isOverlayTurnLifecycleActive(...)`, `isOverlayTurnLifecycleTerminal(...)`,
   and `isOverlayTurnLifecycleBusy(...)` keep app and feature code on
-  behavior-level checks instead of importing raw lifecycle tables.
+  behavior-level checks through the facade instead of importing raw lifecycle
+  tables or standalone helper exports.
 
 Important behavior:
 
