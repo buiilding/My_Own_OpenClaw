@@ -81,6 +81,10 @@ SDK current-turn channel: `windie:current-turn`.
 
 Phase ownership boundary:
 
+- `DesktopLiveTurnSurfaceRuntime` owns live current-turn surface input and SDK
+  overlay-intent fallback projection for chat and response-overlay surfaces;
+  feature hooks consume that facade instead of importing standalone live-turn
+  helpers.
 - React chat surfaces do not subscribe to generic `response-overlay-phase`
   changes for runtime state. Renderer send preflight is represented as a
   pending user turn in chat state and over `windie:pending-turn`; this keeps the

@@ -4,10 +4,13 @@
 
 import { DesktopResponseOverlayPhaseRuntime } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
 import {
-  resolveLiveTurnPresentationInput,
+  DesktopLiveTurnSurfaceRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime';
 
 const preflightGuardRef = DesktopResponseOverlayPhaseRuntime.getResponseOverlayPreflightGuardRef();
+const {
+  resolveLiveTurnPresentationInput,
+} = DesktopLiveTurnSurfaceRuntime;
 
 describe('desktopLiveTurnSurfaceRuntime', () => {
   test('uses SDK current turn as live surface authority', () => {

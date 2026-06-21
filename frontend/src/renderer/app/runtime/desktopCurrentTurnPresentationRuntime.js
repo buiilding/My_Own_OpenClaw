@@ -4,7 +4,7 @@
 
 import { DesktopChatLoopUiRuntime } from './desktopChatLoopUiRuntime';
 import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
-import { resolveSdkOverlayIntent } from './desktopLiveTurnSurfaceRuntime';
+import { DesktopLiveTurnSurfaceRuntime } from './desktopLiveTurnSurfaceRuntime';
 
 const {
   isChatLoopAwaitingReply,
@@ -18,6 +18,9 @@ const {
   getIdleOverlayTurnLifecycle,
   getTerminalOverlayTurnLifecycle,
 } = DesktopOverlayTurnLifecycleRuntime;
+const {
+  resolveSdkOverlayIntent,
+} = DesktopLiveTurnSurfaceRuntime;
 
 const CHATBOX_SURFACE_STATE = Object.freeze({
   COMPACT: 'compact',

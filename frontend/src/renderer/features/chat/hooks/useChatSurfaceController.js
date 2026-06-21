@@ -7,13 +7,16 @@ import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRen
 import { runManualCompaction as runManualCompactionCommand } from '../../../app/runtime/desktopManualCompactionRuntime';
 import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
 import {
-  resolveLiveTurnPresentationInput,
+  DesktopLiveTurnSurfaceRuntime,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
 import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 
 const {
   resolveSdkCurrentTurnPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
+const {
+  resolveLiveTurnPresentationInput,
+} = DesktopLiveTurnSurfaceRuntime;
 
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {

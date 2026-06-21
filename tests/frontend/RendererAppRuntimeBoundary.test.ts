@@ -413,7 +413,11 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).toContain('desktopResponseOverlayPhaseRuntime');
     expect(streamPhaseSource).toContain('DesktopResponseOverlayPhaseRuntime');
     expect(liveSurfaceSource).toContain('DesktopResponseOverlayPhaseRuntime');
+    expect(liveSurfaceSource).toContain('DesktopLiveTurnSurfaceRuntime');
+    expect(liveSurfaceSource).not.toContain('export function resolveSdkOverlayIntent');
+    expect(liveSurfaceSource).not.toContain('export function resolveLiveTurnPresentationInput');
     expect(chatSurfaceControllerSource).toContain('desktopLiveTurnSurfaceRuntime');
+    expect(chatSurfaceControllerSource).toContain('DesktopLiveTurnSurfaceRuntime');
     expect(streamPhaseSource).not.toContain('responseOverlayPhaseContract');
     expect(liveSurfaceSource).not.toContain('responseOverlayPhaseContract');
     await expect(fs.stat(
@@ -489,10 +493,12 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).toContain('desktopChatLoopUiRuntime');
     expect(currentTurnPresentationSource).toContain('DesktopChatLoopUiRuntime');
     expect(currentTurnPresentationSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(currentTurnPresentationSource).toContain('DesktopLiveTurnSurfaceRuntime');
     expect(currentTurnPresentationSource).toContain('export const DesktopCurrentTurnPresentationRuntime = Object.freeze');
     expect(currentTurnPresentationSource).toContain('resolveSdkCurrentTurnPresentationState');
     expect(currentTurnPresentationSource).toContain('resolveResponseOverlayDismissalTarget');
     expect(currentTurnPresentationSource).toContain('resolveSdkOverlayIntent');
+    expect(currentTurnPresentationSource).not.toContain('import { resolveSdkOverlayIntent }');
     expect(currentTurnPresentationSource).not.toContain('export function findLatestVisibleAssistantReply');
     expect(currentTurnPresentationSource).not.toContain('export function resolveCurrentTurnPresentationState');
     expect(currentTurnPresentationSource).not.toContain('export function resolveSdkCurrentTurnPresentationState');

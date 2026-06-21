@@ -10,7 +10,7 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
-  resolveLiveTurnPresentationInput,
+  DesktopLiveTurnSurfaceRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime';
 import {
   DesktopThreadPresentationRuntime,
@@ -23,6 +23,7 @@ import {
 } from './chatStoreTestUtils';
 
 const { buildThreadPresentationMessages } = DesktopThreadPresentationRuntime;
+const { resolveLiveTurnPresentationInput } = DesktopLiveTurnSurfaceRuntime;
 
 const mockSend = jest.fn();
 let resolveWorkspaceSelection = null;

@@ -118,7 +118,7 @@ function isHiddenSdkLiveTurnPresentation(presentation) {
   );
 }
 
-export function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
+function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
   const intent = presentation?.overlayIntent;
   if (
     intent
@@ -186,7 +186,7 @@ function shouldUseSendPreflight({
   return !mapCurrentTurnProjectionPhase(projectionPhase);
 }
 
-export function resolveLiveTurnPresentationInput({
+function resolveLiveTurnPresentationInput({
   currentTurnProjection = null,
   pendingTurn = null,
   isSending = false,
@@ -288,3 +288,8 @@ export function resolveLiveTurnPresentationInput({
     guardRef: null,
   };
 }
+
+export const DesktopLiveTurnSurfaceRuntime = Object.freeze({
+  resolveLiveTurnPresentationInput,
+  resolveSdkOverlayIntent,
+});

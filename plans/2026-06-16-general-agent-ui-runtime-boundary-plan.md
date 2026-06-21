@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Live Turn Surface Facade
+
+- Finding: `desktopLiveTurnSurfaceRuntime.js` already owned pending-turn
+  preflight handoff, SDK live-turn presentation detection, overlay-intent
+  fallback projection, current-turn phase mapping, and live surface input
+  shaping, but still exported those rules as standalone helpers consumed by
+  chat surface, response overlay, current-turn presentation, and focused tests.
+- Change: made the live-turn surface helpers private to the runtime module,
+  exposed them through `DesktopLiveTurnSurfaceRuntime`, and routed chat surface,
+  response-overlay view model, current-turn presentation, and focused
+  live-surface tests through that facade.
+- Validation: focused live-turn surface, pending-turn live-surface integration,
+  response-overlay view-model/state, renderer app boundary, exact standalone
+  live-turn helper export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Pending-turn awaiting
+  preflight, SDK current-turn presentation precedence, overlay intent fallback,
+  response-overlay phase mapping, UI state, IPC, storage, credentials, provider
+  policy, hosted backend URLs, and local execution trust boundaries are
+  unchanged.
+
 ### 2026-06-21 Renderer Composer Attachment Facade
 
 - Finding: `desktopComposerAttachmentRuntime.js` already owned composer

@@ -10,7 +10,7 @@ import {
   useChatStore,
 } from '../../chat/stores/chatStore';
 import {
-  resolveLiveTurnPresentationInput,
+  DesktopLiveTurnSurfaceRuntime,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
 import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
@@ -35,6 +35,9 @@ const {
   resolveResponseOverlayDismissalTarget,
   resolveSdkCurrentTurnPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
+const {
+  resolveLiveTurnPresentationInput,
+} = DesktopLiveTurnSurfaceRuntime;
 const {
   resolveChatPillViewIntent,
 } = DesktopChatPillSessionRuntime;

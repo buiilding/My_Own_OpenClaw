@@ -82,6 +82,10 @@ All notable changes to WindieOS will be documented in this file.
   attachment parsing through `DesktopComposerAttachmentRuntime` instead of
   standalone helper exports, keeping chat composer attachment shaping behind
   the renderer app-runtime facade. No migration required.
+- frontend/renderer: expose live current-turn surface input and SDK overlay
+  intent resolution through `DesktopLiveTurnSurfaceRuntime` instead of
+  standalone helper exports, keeping response-overlay preflight and live-turn
+  surface state behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping
