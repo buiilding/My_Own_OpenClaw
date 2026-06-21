@@ -273,7 +273,7 @@ def test_resolve_model_path_from_directory_prefers_known_filename(tmp_path):
 
     resolved = wakeword_service.resolve_model_path_from_directory(
         "hey_jarvis",
-        "/opt/WindieOS/resources/openwakeword/resources/models/hey_jarvis_v0.1.tflite",
+        "/opt/agent-runtime/resources/openwakeword/resources/models/hey_jarvis_v0.1.tflite",
         model_dir,
     )
 

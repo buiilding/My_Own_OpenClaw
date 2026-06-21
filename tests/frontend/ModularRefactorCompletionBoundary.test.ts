@@ -720,7 +720,9 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(source).not.toContain('blob:windieos-audio-worklet');
     expect(source).not.toContain(retiredWakewordModelDir);
+    expect(source).not.toContain('/opt/WindieOS/resources/openwakeword');
     expect(source).toContain('blob:agent-audio-worklet');
+    expect(source).toContain('/opt/agent-runtime/resources/openwakeword');
     expect(source).toContain('legacy-models');
   });
 

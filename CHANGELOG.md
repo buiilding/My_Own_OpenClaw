@@ -44,6 +44,9 @@ All notable changes to WindieOS will be documented in this file.
 - tests/main: use a neutral injected user-data path fixture in Electron
   AgentClient factory coverage instead of a WindieOS app-data sample. No
   migration required.
+- tests/sidecar: use a neutral packaged wakeword resource path fixture in
+  wakeword model-directory coverage instead of a WindieOS install path sample.
+  No migration required.
 
 - tests/local-runtime: use neutral screenshot path fixtures for unowned
   screenshot temp dirs and `open_app` screenshot verification payloads instead

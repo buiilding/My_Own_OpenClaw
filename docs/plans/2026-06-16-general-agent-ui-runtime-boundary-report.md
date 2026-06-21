@@ -7897,3 +7897,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   managed backend endpoint assembly, AgentClient creation, permissions,
   provider policy, storage, and backend behavior are unchanged; no migration is
   required.
+- Wakeword model-directory tests now use a neutral packaged resource path
+  fixture instead of a WindieOS install path sample. Product packaged-resource
+  paths remain covered in main runtime-path tests. Wakeword model cache
+  precedence, known model filename resolution, status messaging, permissions,
+  provider policy, storage, and backend behavior are unchanged; no migration is
+  required.

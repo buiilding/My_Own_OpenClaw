@@ -19241,3 +19241,17 @@ Each completed slice should report:
 - Compatibility: no migration required. Local-runtime launch option
   construction, managed backend endpoint assembly, AgentClient creation,
   permissions, provider policy, storage, and backend behavior are unchanged.
+
+### 2026-06-21 Wakeword packaged resource path fixture neutrality
+
+- Finding: wakeword model-directory coverage still used a WindieOS install path
+  as the arbitrary packaged model path while testing that cached known
+  filenames take precedence.
+- Change: switched the packaged resource sample to
+  `/opt/agent-runtime/resources/openwakeword/...` and extended the modular
+  boundary guard over the wakeword sidecar fixture.
+- Validation: focused wakeword service and modular boundary tests; exact
+  retired packaged wakeword path fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Wakeword model cache precedence, known
+  model filename resolution, status messaging, permissions, provider policy,
+  storage, and backend behavior are unchanged.
