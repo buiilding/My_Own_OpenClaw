@@ -1,4 +1,4 @@
-"""Covers local store init behavior in the sidecar test suite."""
+"""Covers local-runtime memory store initialization behavior."""
 
 import types
 

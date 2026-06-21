@@ -1,4 +1,4 @@
-"""Covers system metrics and watermark state behavior in the sidecar test suite."""
+"""Covers local-runtime memory metrics and watermark state behavior."""
 
 import json
 import sys

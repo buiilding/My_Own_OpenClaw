@@ -1,4 +1,4 @@
-"""Covers chat event store behavior in the sidecar test suite."""
+"""Covers local-runtime conversation event store behavior."""
 
 import sqlite3
 from pathlib import Path

@@ -1,4 +1,4 @@
-"""Covers conversation window runtime behavior in the sidecar test suite."""
+"""Covers local-runtime conversation window behavior."""
 
 import json
 from pathlib import Path

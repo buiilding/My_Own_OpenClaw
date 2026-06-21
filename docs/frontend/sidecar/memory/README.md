@@ -1,7 +1,7 @@
 ---
 summary: "Local-runtime memory implementation docs sub-hub for transcript storage, SDK-provided embeddings, summarizer cadence, watermark progression, and unsemanticized conversation-window batching behavior."
 read_when:
-  - When changing sidecar transcript storage fields, semantic-candidate rules, or summarizer watermark progression logic.
+  - When changing local-runtime transcript storage fields, semantic-candidate rules, or summarizer watermark progression logic.
   - When debugging why episodic transcript entries are or are not promoted to semantic memory, or why transcript windows remain untitled/pending.
 title: "Local Runtime Memory Docs Hub"
 ---

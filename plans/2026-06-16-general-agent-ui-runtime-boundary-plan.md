@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Memory Test Label Boundary
+
+- Finding: active local-runtime Python memory and conversation tests still
+  introduced their coverage as behavior in the sidecar test suite, even though
+  docs and code now route conversation storage, memory operations, summarizer,
+  and watermark behavior through the local-runtime memory boundary.
+- Change: renamed those active test module docstrings to local-runtime
+  memory/conversation wording, updated the memory docs hub `read_when` label,
+  and added a focused guard in `test_memory_operations.py` for the exact
+  memory/conversation test headers.
+- Validation: focused local-runtime memory/conversation pytest coverage, exact
+  stale memory-test docstring scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Runtime code, SQLite/FAISS
+  storage, local-memory JSON-RPC methods, SDK store contracts, IPC, credentials,
+  and trust boundaries are unchanged.
+
 ### 2026-06-21 Agent SDK Local-Runtime Unavailable Fixture Boundary
 
 - Finding: `AgentSdkConversationRuntime.test.ts` still used

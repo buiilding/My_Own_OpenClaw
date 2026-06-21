@@ -1,4 +1,6 @@
-"""Covers memory operations behavior in the sidecar test suite."""
+"""Covers local-runtime memory operations behavior."""
+
+from pathlib import Path
 
 import pytest
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
@@ -22,6 +24,47 @@ from memory.operations import (  # noqa: E402
     normalize_store_memory_by_embedding_payload,
     store_memory_by_embedding,
 )
+
+MEMORY_TEST_LABEL_PATHS = [
+    "test_chat_event_store.py",
+    "test_conversation_search_helpers.py",
+    "test_conversation_semanticization_runtime.py",
+    "test_conversation_window_runtime.py",
+    "test_local_store_init.py",
+    "test_local_store_delete_cleanup.py",
+    "test_memory_summarizer.py",
+    "test_memory_operations.py",
+    "test_system_metrics_and_watermark_state.py",
+]
+
+
+def test_local_runtime_memory_tests_use_boundary_docstrings():
+    test_dir = Path(__file__).parent
+    source_texts = {
+        name: (test_dir / name).read_text(encoding="utf-8")
+        for name in MEMORY_TEST_LABEL_PATHS
+    }
+    module_headers = {
+        name: source.splitlines()[0]
+        for name, source in source_texts.items()
+    }
+    retired_suite_label = "behavior in the " + "sidecar test suite"
+
+    expected_headers = {
+        "test_chat_event_store.py": '"""Covers local-runtime conversation event store behavior."""',
+        "test_conversation_search_helpers.py": '"""Covers local-runtime conversation search helper behavior."""',
+        "test_conversation_semanticization_runtime.py": '"""Covers local-runtime conversation semanticization behavior."""',
+        "test_conversation_window_runtime.py": '"""Covers local-runtime conversation window behavior."""',
+        "test_local_store_init.py": '"""Covers local-runtime memory store initialization behavior."""',
+        "test_local_store_delete_cleanup.py": '"""Covers local-runtime memory store delete cleanup behavior."""',
+        "test_memory_summarizer.py": '"""Covers local-runtime memory summarizer behavior."""',
+        "test_memory_operations.py": '"""Covers local-runtime memory operations behavior."""',
+        "test_system_metrics_and_watermark_state.py": '"""Covers local-runtime memory metrics and watermark state behavior."""',
+    }
+
+    for name, expected_header in expected_headers.items():
+        assert module_headers[name] == expected_header
+        assert retired_suite_label not in source_texts[name]
 
 
 def test_memory_operations_module_doc_uses_local_runtime_wording():

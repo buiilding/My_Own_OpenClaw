@@ -1,4 +1,4 @@
-"""Covers local store delete cleanup behavior in the sidecar test suite."""
+"""Covers local-runtime memory store delete cleanup behavior."""
 
 import json
 import sqlite3

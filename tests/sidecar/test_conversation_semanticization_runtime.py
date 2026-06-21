@@ -1,4 +1,4 @@
-"""Covers conversation semanticization runtime behavior in the sidecar test suite."""
+"""Covers local-runtime conversation semanticization behavior."""
 
 import json
 from pathlib import Path
