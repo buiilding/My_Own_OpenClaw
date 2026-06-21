@@ -58,5 +58,4 @@ function createArtifactHandlersRuntime({
 
 module.exports = {
   createArtifactHandlersRuntime,
-  registerArtifactHandlers,
 };

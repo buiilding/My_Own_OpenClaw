@@ -338,6 +338,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('registerArtifactHandlers({');
     expect(artifactHandlersSource).toContain('function createArtifactHandlersRuntime');
     expect(artifactHandlersSource).toContain('return registerArtifactHandlers({');
+    expect(artifactHandlersSource).not.toContain('  registerArtifactHandlers,');
     expect(source).toContain('createRendererDiagnosticsHandlersRuntime({');
     expect(source).not.toContain('rendererDiagnosticsHandlersRuntime.register({ ipcMain })');
     expect(initializationRuntimeSource).toContain('rendererDiagnosticsHandlersRuntime.register({ ipcMain })');

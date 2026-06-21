@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level artifact IPC registration helper private
+  to `ipc_artifact_handlers.cjs` and exercise upload/fetch behavior through
+  `createArtifactHandlersRuntime(...)`, preserving the Electron main
+  initialization composition boundary. No migration required.
 - frontend/main: keep the lower-level client-session IPC registration helper
   private to `ipc_client_session_handlers.cjs` and exercise session snapshot
   and transcript sync behavior through `createClientSessionHandlersRuntime(...)`,

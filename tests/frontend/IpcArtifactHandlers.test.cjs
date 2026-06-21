@@ -7,7 +7,6 @@ const path = require('path');
 
 const {
   createArtifactHandlersRuntime,
-  registerArtifactHandlers,
 } = require('../../frontend/src/main/ipc/ipc_artifact_handlers.cjs');
 
 function createHarness(overrides = {}) {
@@ -26,10 +25,10 @@ function createHarness(overrides = {}) {
     }),
   };
 
-  registerArtifactHandlers({
-    ipcMain,
+  const runtime = createArtifactHandlersRuntime({
     ...deps,
   });
+  runtime.register({ ipcMain });
 
   return {
     deps,
@@ -142,5 +141,7 @@ describe('ipc_artifact_handlers', () => {
     expect(mainSource).not.toContain('registerArtifactHandlers({');
     expect(helperSource).toContain('function createArtifactHandlersRuntime');
     expect(helperSource).toContain('return registerArtifactHandlers({');
+    const artifactHandlersModule = require('../../frontend/src/main/ipc/ipc_artifact_handlers.cjs');
+    expect(artifactHandlersModule.registerArtifactHandlers).toBeUndefined();
   });
 });

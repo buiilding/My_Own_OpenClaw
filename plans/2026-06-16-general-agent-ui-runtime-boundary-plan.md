@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Artifact Runtime Registration Privacy
+
+- Finding: `ipc_artifact_handlers.cjs` exposed
+  `createArtifactHandlersRuntime(...)` for `ipc.cjs` and initialization
+  composition, but still publicly exported the lower-level
+  `registerArtifactHandlers(...)` helper even though production already routes
+  `upload-artifact` and `fetch-artifact-image` registration through the
+  runtime facade.
+- Change: kept the lower-level artifact registration helper private to
+  `ipc_artifact_handlers.cjs`, updated focused and broad boundary tests to
+  exercise upload/fetch behavior through `createArtifactHandlersRuntime(...)`,
+  and documented the runtime helper as the public composition boundary.
+- Validation: focused artifact handler and main SDK boundary tests plus
+  targeted main IPC lint, docs listing, stale export-line scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. Artifact upload payloads,
+  protected image fetch auth refresh, backend URL/header injection, structured
+  fetch errors, IPC channels, credentials, provider policy, permissions,
+  storage, backend behavior, and local-runtime execution are unchanged.
+
 ### 2026-06-21 Main Client Session Runtime Registration Privacy
 
 - Finding: `ipc_client_session_handlers.cjs` exposed
