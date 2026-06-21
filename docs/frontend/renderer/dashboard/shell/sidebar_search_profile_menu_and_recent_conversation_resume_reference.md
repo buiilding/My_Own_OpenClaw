@@ -152,7 +152,7 @@ Search fetch policy (owned by `useDashboardConversations`):
 ### Search groups and labels
 
 Search group order and labels are owned by
-`desktopDashboardConversationGroupRuntime.getDashboardConversationGroupDescriptors()`.
+`DesktopDashboardConversationGroupRuntime.getDashboardConversationGroupDescriptors()`.
 The current descriptor order is:
 
 1. `today`
@@ -178,7 +178,7 @@ Each row expects:
 
 Snippet prefix rule:
 
-- `desktopDashboardConversationGroupRuntime.getDashboardSearchSnippetDisplayText(...)`
+- `DesktopDashboardConversationGroupRuntime.getDashboardSearchSnippetDisplayText(...)`
   owns matched-role prefix display.
 - when `matchedRole` exists, prefix label is shown only if snippet does not
   already start with the same role text.

@@ -5,11 +5,13 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Circle, PenSquare, X } from 'lucide-react';
-import {
+import { DesktopDashboardConversationGroupRuntime } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
+import { conversationGroupsPropType } from './shared/conversationGroupPropTypes';
+
+const {
   getDashboardConversationGroupDescriptors,
   getDashboardSearchSnippetDisplayText,
-} from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
-import { conversationGroupsPropType } from './shared/conversationGroupPropTypes';
+} = DesktopDashboardConversationGroupRuntime;
 
 const CONVERSATION_GROUP_DESCRIPTORS = getDashboardConversationGroupDescriptors();
 

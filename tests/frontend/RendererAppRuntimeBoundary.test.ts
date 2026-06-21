@@ -896,10 +896,14 @@ describe('renderer app runtime boundary', () => {
     expect(runtimeSource).toContain('getDashboardConversationGroupDescriptors');
     expect(runtimeSource).toContain('getDashboardSearchSnippetDisplayText');
     expect(runtimeSource).toContain("key: 'previous7Days'");
+    expect(runtimeSource).toContain('export const DesktopDashboardConversationGroupRuntime = Object.freeze');
+    expect(runtimeSource).not.toContain('export {');
     expect(runtimeSource).not.toContain('features/dashboard');
     expect(dashboardHookSource).toContain('desktopDashboardConversationGroupRuntime');
+    expect(dashboardHookSource).toContain('DesktopDashboardConversationGroupRuntime');
     expect(dashboardHookSource).not.toContain('utils/conversationGroups');
     expect(searchModalSource).toContain('desktopDashboardConversationGroupRuntime');
+    expect(searchModalSource).toContain('DesktopDashboardConversationGroupRuntime');
     expect(searchModalSource).toContain('getDashboardConversationGroupDescriptors');
     expect(searchModalSource).toContain('getDashboardSearchSnippetDisplayText');
     expect(searchModalSource).not.toContain('GROUP_LABELS');

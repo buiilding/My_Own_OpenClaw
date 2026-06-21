@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose dashboard conversation grouping and search-snippet
+  projection through `DesktopDashboardConversationGroupRuntime` instead of a
+  named helper export set, keeping dashboard group buckets, workspace ordering,
+  and matched-role prefix rules behind the renderer app-runtime facade. No
+  migration required.
 - frontend/renderer: expose SDK desktop runtime transport construction through
   `DesktopRuntimeTransport` instead of a standalone factory export, keeping
   SDK command transport creation, payload normalization, and command return

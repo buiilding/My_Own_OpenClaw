@@ -209,11 +209,11 @@ function buildWorkspaceConversationGroups(conversations, options = {}) {
     });
 }
 
-export {
+export const DesktopDashboardConversationGroupRuntime = Object.freeze({
   buildConversationGroups,
   buildWorkspaceConversationGroups,
   getDashboardConversationGroupDescriptors,
   getDashboardConversationGroupKeys,
   getDashboardConversationGroupLabel,
   getDashboardSearchSnippetDisplayText,
-};
+});

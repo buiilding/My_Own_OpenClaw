@@ -2,14 +2,16 @@
  * Covers conversation groups. behavior in the frontend test suite.
  */
 
-import {
+import { DesktopDashboardConversationGroupRuntime } from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime';
+
+const {
   buildConversationGroups,
   buildWorkspaceConversationGroups,
   getDashboardConversationGroupDescriptors,
   getDashboardConversationGroupKeys,
   getDashboardConversationGroupLabel,
   getDashboardSearchSnippetDisplayText,
-} from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime';
+} = DesktopDashboardConversationGroupRuntime;
 
 function isoDaysAgo(days) {
   const date = new Date();

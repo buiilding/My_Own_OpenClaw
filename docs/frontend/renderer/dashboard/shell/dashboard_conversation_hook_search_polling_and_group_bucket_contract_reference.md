@@ -88,15 +88,15 @@ grouping facade with metadata enabled.
 
 ## Group Bucket Utility Contract
 
-`desktopDashboardConversationGroupRuntime.buildConversationGroups(conversations, options)` returns:
+`DesktopDashboardConversationGroupRuntime.buildConversationGroups(conversations, options)` returns:
 
 - `today`
 - `yesterday`
 - `previous7Days`
 - `older`
 
-The same runtime owns the ordered group descriptors consumed by search-modal
-rendering:
+The same `DesktopDashboardConversationGroupRuntime` facade owns the ordered
+group descriptors consumed by search-modal rendering:
 
 - `getDashboardConversationGroupDescriptors()`
 - `getDashboardConversationGroupKeys()`

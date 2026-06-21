@@ -171,7 +171,8 @@ Search behavior when modal is open:
 
 ## Grouping and Pin State
 
-Grouping uses `buildConversationGroups(...)` for both recent and search lists.
+Grouping uses `DesktopDashboardConversationGroupRuntime.buildConversationGroups(...)`
+for both recent and search lists.
 
 Pin behavior:
 

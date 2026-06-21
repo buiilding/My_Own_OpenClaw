@@ -187,7 +187,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `getPermissionOnboardingStorageKey()` from their app-runtime owners instead
   of importing renderer skin storage keys directly.
   Dashboard search modal group labels and order now come from
-  `desktopDashboardConversationGroupRuntime.getDashboardConversationGroupDescriptors()`
+  `DesktopDashboardConversationGroupRuntime.getDashboardConversationGroupDescriptors()`
   instead of component-local constants, while bucket ids and search metadata
   normalization remain unchanged.
   Appearance settings controls now consume
@@ -209,7 +209,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   for transcript/store fallback projection and stable empty session fallback
   instead of carrying that singleton in the chat feature hook.
   Dashboard search rows now consume
-  `desktopDashboardConversationGroupRuntime.getDashboardSearchSnippetDisplayText(...)`
+  `DesktopDashboardConversationGroupRuntime.getDashboardSearchSnippetDisplayText(...)`
   for matched-role snippet prefix display instead of recomputing the
   case-insensitive prefix check inside `SearchChatsModal`.
   Dashboard chat and response overlay hooks now consume
@@ -9282,3 +9282,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   command names, snake_case query payloads, removed camelCase alias rejection,
   IPC channel usage, storage, local-runtime execution, provider policy, backend
   behavior, and trust boundaries are unchanged; no migration is required.
+- Renderer dashboard conversation grouping now routes through
+  `DesktopDashboardConversationGroupRuntime` instead of a named helper export
+  set. Dashboard conversation hooks, the search modal, and focused grouping
+  tests consume the facade object while the runtime keeps time buckets,
+  workspace grouping, pinned ordering, and matched-role snippet prefix rules
+  private. Dashboard grouping output, search snippets, renderer markup, storage,
+  local-runtime execution, provider policy, backend behavior, and trust
+  boundaries are unchanged; no migration is required.

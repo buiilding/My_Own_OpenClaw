@@ -24304,3 +24304,20 @@ Each completed slice should report:
   channel usage, snake_case query payloads, removed camelCase alias rejection,
   renderer markup, IPC payloads, storage, local-runtime execution, provider
   policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer dashboard conversation grouping facade helper privacy
+
+- Finding: dashboard conversation grouping and search-snippet rules lived in
+  the renderer app runtime, but dashboard hooks, the search modal, and focused
+  tests still imported the helpers through a named export set.
+- Change: exposed grouping behavior through
+  `DesktopDashboardConversationGroupRuntime` and kept time buckets, workspace
+  grouping, pinned ordering, descriptor lookup, and matched-role snippet prefix
+  rules behind the runtime facade.
+- Validation: focused conversation grouping, dashboard sidebar/shell, renderer
+  app-runtime boundary tests, targeted renderer ESLint, exact source/doc scans,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Dashboard grouping output, search
+  snippets, pinned workspace ordering, renderer markup, storage, local-runtime
+  execution, provider policy, backend behavior, and trust boundaries are
+  unchanged.

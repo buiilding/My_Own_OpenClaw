@@ -11,10 +11,7 @@ import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorks
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import { DesktopConversationSessionRuntime } from '../../../app/runtime/desktopConversationSessionRuntime';
 import { DesktopActiveChatSessionRuntime } from '../../../app/runtime/desktopActiveChatSessionRuntime';
-import {
-  buildConversationGroups,
-  buildWorkspaceConversationGroups,
-} from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
+import { DesktopDashboardConversationGroupRuntime } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
 import {
   DesktopDashboardConversationLoadRuntime,
 } from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
@@ -47,6 +44,10 @@ const {
 const {
   applyRendererConversationSelection,
 } = DesktopConversationSessionRuntime;
+const {
+  buildConversationGroups,
+  buildWorkspaceConversationGroups,
+} = DesktopDashboardConversationGroupRuntime;
 
 function useDashboardConversations({
   resolvedUserId,
