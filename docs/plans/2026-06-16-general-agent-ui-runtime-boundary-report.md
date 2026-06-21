@@ -12,8 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `d0e85049e` (`test(sidecar): neutralize remote client endpoint fixtures`)
-- Latest completed slice: local-runtime bridge RPC tests now use neutral
-  injected browser warmup copy instead of WindieOS host-skin copy.
+- Latest completed slice: generic debug-env and wakeword-runtime helper tests
+  now use neutral injected host config fixtures instead of WindieOS host-skin
+  values.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -37,7 +38,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral packaged resource roots while real WindieOS env/model/path values
   remain host-skin owned. Local-runtime bridge RPC tests use neutral injected
   browser warmup copy while real WindieOS local-runtime copy remains host-skin
-  owned.
+  owned. Generic debug and wakeword runtime helper tests use sample host config
+  while real WindieOS debug/wakeword values remain host-skin owned.
   Renderer voice docs name the desktop voice/audio runtime contract and
   backend-owned transcription gateway boundary instead of embedding concrete STT
   provider policy. Renderer config reference docs now keep current OpenAI/GPT default
@@ -7933,5 +7935,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   instead of WindieOS host-skin copy. Real WindieOS local-runtime copy wiring
   remains covered by the host-skin boundary tests. Browser warmup RPC payload
   shaping, SDK local-runtime routing, host-skin copy wiring, permissions,
+  storage, provider policy, and backend behavior are unchanged; no migration is
+  required.
+- Generic debug-env and wakeword-runtime helper tests now use neutral injected
+  host config fixtures instead of WindieOS host-skin values. Real WindieOS
+  debug env, wakeword model marker, and bundled-runtime copy ownership remains
+  covered by host-skin boundary tests. Debug flag resolution, wakeword startup
+  error mapping, stderr marker handling, host-skin wiring, permissions,
   storage, provider policy, and backend behavior are unchanged; no migration is
   required.

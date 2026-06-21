@@ -19314,3 +19314,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Browser warmup RPC payload shaping,
   SDK local-runtime routing, host-skin copy wiring, permissions, storage,
   provider policy, and backend behavior are unchanged.
+
+### 2026-06-21 Debug and wakeword runtime host config fixture neutrality
+
+- Finding: generic debug-env and wakeword-runtime helper tests imported the
+  WindieOS host skin to exercise configurable env keys, packaged reinstall
+  copy, and wakeword stderr markers.
+- Change: replaced those product-owned injected values with test-local sample
+  host config and extended modular boundary coverage, while keeping real
+  WindieOS debug/wakeword ownership in `MainHostSkinBoundary`.
+- Validation: focused debug-env, wakeword-runtime, host-skin boundary, and
+  modular boundary tests; exact retired host-config fixture scans, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Debug flag resolution, wakeword startup
+  error mapping, stderr marker handling, host-skin wiring, permissions,
+  storage, provider policy, and backend behavior are unchanged.

@@ -9,9 +9,11 @@ const {
   resolveWakewordStartErrorMessage,
   shouldLogWakewordStderrLine,
 } = require('../../frontend/src/main/wakeword/wakeword_bridge_runtime.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const SAMPLE_BUNDLED_RUNTIME_COPY = Object.freeze({
+  missingPythonRuntime: 'Bundled Python runtime not found in app resources. Please reinstall SampleApp.',
+});
+const SAMPLE_WAKEWORD_MARKER = 'sample_wakeword';
 
 describe('wakeword_bridge_runtime', () => {
   test('maps missing launch command to packaged and dev-facing startup errors', () => {
@@ -23,7 +25,7 @@ describe('wakeword_bridge_runtime', () => {
     expect(resolveWakewordStartErrorMessage({
       launchTarget: { kind: 'python', command: null },
       packagedApp: true,
-      copy: mainHostSkin.bundledRuntime,
+      copy: SAMPLE_BUNDLED_RUNTIME_COPY,
     })).toContain('Bundled Python runtime not found');
   });
 
@@ -145,29 +147,29 @@ describe('wakeword_bridge_runtime', () => {
 
     expect(shouldLogWakewordStderrLine('[Python] loaded model', markers)).toBe(true);
     expect(shouldLogWakewordStderrLine('*** DETECTED *** generic-model', markers)).toBe(true);
-    expect(shouldLogWakewordStderrLine('score update for hey_jarvis', markers)).toBe(false);
+    expect(shouldLogWakewordStderrLine(`score update for ${SAMPLE_WAKEWORD_MARKER}`, markers)).toBe(false);
   });
 
   test('logs host-configured wakeword stderr markers', () => {
     const log = jest.fn();
 
     handleWakewordStderrLine({
-      line: 'score update for hey_jarvis',
+      line: `score update for ${SAMPLE_WAKEWORD_MARKER}`,
       mainWindow: null,
       getIsPythonReady: () => false,
       setIsPythonReady: jest.fn(),
-      logMarkers: mainHostSkin.wakeword.stderrLogMarkers,
+      logMarkers: [SAMPLE_WAKEWORD_MARKER],
       log,
     });
 
-    expect(log).toHaveBeenCalledWith('score update for hey_jarvis');
+    expect(log).toHaveBeenCalledWith(`score update for ${SAMPLE_WAKEWORD_MARKER}`);
   });
 
-  test('does not log WindieOS wakeword markers without host config', () => {
+  test('does not log host wakeword markers without host config', () => {
     const log = jest.fn();
 
     handleWakewordStderrLine({
-      line: 'score update for hey_jarvis',
+      line: `score update for ${SAMPLE_WAKEWORD_MARKER}`,
       mainWindow: null,
       getIsPythonReady: () => false,
       setIsPythonReady: jest.fn(),

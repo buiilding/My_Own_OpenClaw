@@ -6,9 +6,15 @@ const {
   isExactDebugFlagEnabled,
   resolveDebugEnvConfig,
 } = require('../../frontend/src/main/app/debug_env.cjs');
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const SAMPLE_DEBUG_ENV = Object.freeze({
+  env: Object.freeze({
+    streamEvents: 'SAMPLE_DEBUG_STREAM_EVENTS',
+    toolScreenshot: 'SAMPLE_DEBUG_TOOL_SCREENSHOT',
+    liveSurface: 'SAMPLE_DEBUG_LIVE_SURFACE',
+    scriptedProvider: 'SAMPLE_ENABLE_SCRIPTED_PROVIDER',
+  }),
+});
 
 describe('main debug env runtime', () => {
   afterEach(() => {
@@ -31,26 +37,26 @@ describe('main debug env runtime', () => {
     })).toBe(false);
   });
 
-  test('uses configured WindieOS debug env names from host skin', () => {
-    configureDebugEnvRuntime(mainHostSkin.debug);
+  test('uses configured host debug env names', () => {
+    configureDebugEnvRuntime(SAMPLE_DEBUG_ENV);
 
     expect(isDebugFlagEnabled('streamEvents', {
-      WINDIE_DEBUG_STREAM_EVENTS: '1',
+      SAMPLE_DEBUG_STREAM_EVENTS: '1',
     })).toBe(true);
     expect(isDebugFlagEnabled('toolScreenshot', {
-      WINDIE_DEBUG_TOOL_SCREENSHOT: 'true',
+      SAMPLE_DEBUG_TOOL_SCREENSHOT: 'true',
     })).toBe(true);
     expect(isDebugFlagEnabled('liveSurface', {
-      WINDIE_DEBUG_LIVE_SURFACE: '0',
+      SAMPLE_DEBUG_LIVE_SURFACE: '0',
     })).toBe(false);
     expect(isDebugFlagEnabled('scriptedProvider', {
-      WINDIE_ENABLE_SCRIPTED_PROVIDER: '1',
+      SAMPLE_ENABLE_SCRIPTED_PROVIDER: '1',
     })).toBe(true);
     expect(isExactDebugFlagEnabled('scriptedProvider', '1', {
-      WINDIE_ENABLE_SCRIPTED_PROVIDER: 'true',
+      SAMPLE_ENABLE_SCRIPTED_PROVIDER: 'true',
     })).toBe(false);
     expect(isExactDebugFlagEnabled('scriptedProvider', '1', {
-      WINDIE_ENABLE_SCRIPTED_PROVIDER: '1',
+      SAMPLE_ENABLE_SCRIPTED_PROVIDER: '1',
     })).toBe(true);
   });
 });
