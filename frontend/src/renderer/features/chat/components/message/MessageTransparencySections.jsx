@@ -4,7 +4,7 @@
 
 import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
-import { buildTransparencySectionConfigs } from '../../../../app/runtime/desktopMessageTransparencyRuntime';
+import { DesktopMessageTransparencyRuntime } from '../../../../app/runtime/desktopMessageTransparencyRuntime';
 import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
 import { toolSchemaListPropType } from './toolSchemaPropType';
 
@@ -13,9 +13,12 @@ export default function MessageTransparencySections({ message, conversationToolS
     return null;
   }
 
-  const sections = buildTransparencySectionConfigs(message, {
-    conversationToolSchemas,
-  });
+  const sections = DesktopMessageTransparencyRuntime.buildTransparencySectionConfigs(
+    message,
+    {
+      conversationToolSchemas,
+    },
+  );
 
   if (sections.length === 0) {
     return null;

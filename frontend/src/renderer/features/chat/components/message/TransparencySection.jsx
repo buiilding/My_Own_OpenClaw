@@ -4,22 +4,24 @@
 
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import {
-  resolveTransparencySectionContentPresentation,
-  serializeTransparencySectionContent,
-} from '../../../../app/runtime/desktopMessageTransparencyRuntime';
+import { DesktopMessageTransparencyRuntime } from '../../../../app/runtime/desktopMessageTransparencyRuntime';
 
 function TransparencySection({ title, content, metadata, type = 'text' }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleCopy = () => {
     if (content == null) return;
-    const textToCopy = serializeTransparencySectionContent(content);
+    const textToCopy = DesktopMessageTransparencyRuntime.serializeTransparencySectionContent(
+      content,
+    );
     navigator.clipboard.writeText(textToCopy);
   };
 
   const renderContent = () => {
-    const presentation = resolveTransparencySectionContentPresentation(content, type);
+    const presentation = DesktopMessageTransparencyRuntime.resolveTransparencySectionContentPresentation(
+      content,
+      type,
+    );
     return <pre className={presentation.className}>{presentation.text}</pre>;
   };
 

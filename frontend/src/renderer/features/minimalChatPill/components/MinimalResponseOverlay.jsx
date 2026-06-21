@@ -9,7 +9,7 @@ import { useResponseOverlayViewModel } from '../hooks/useResponseOverlayViewMode
 import { useResponseOverlayWindowSync } from '../hooks/useResponseOverlayWindowSync';
 import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScrollState';
 import MessageItem from '../../chat/components/message/MessageItem';
-import { resolveConversationToolSchemas } from '../../../app/runtime/desktopMessageTransparencyRuntime';
+import { DesktopMessageTransparencyRuntime } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import {
   logRendererResponseOverlayHitTestTrace,
   logRendererResponseOverlayStateTrace,
@@ -69,7 +69,7 @@ function MinimalResponseOverlay() {
     responseEntrySignature,
   });
   const conversationToolSchemas = useMemo(
-    () => resolveConversationToolSchemas(messages),
+    () => DesktopMessageTransparencyRuntime.resolveConversationToolSchemas(messages),
     [messages],
   );
 
@@ -156,10 +156,12 @@ function MinimalResponseOverlay() {
     });
   }, [
     currentTurnId,
+    currentTurnProjection,
     currentTurnProjection?.conversationRef,
     currentTurnProjection?.phase,
     currentTurnProjection?.turnRef,
     isVisible,
+    overlayIntent,
     overlayIntent?.mode,
     overlayIntent?.staleGuardRef,
     overlayIntent?.turnRef,

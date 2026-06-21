@@ -16,7 +16,7 @@ function resolveMessageToolSchemas(message) {
   return null;
 }
 
-export function resolveConversationToolSchemas(messages) {
+function resolveConversationToolSchemas(messages) {
   if (!Array.isArray(messages)) {
     return null;
   }
@@ -31,7 +31,7 @@ export function resolveConversationToolSchemas(messages) {
   return null;
 }
 
-export function buildTransparencySectionConfigs(message, options = {}) {
+function buildTransparencySectionConfigs(message, options = {}) {
   const sections = [];
   const conversationToolSchemas = normalizeToolSchemaList(options.conversationToolSchemas) || null;
 
@@ -79,14 +79,14 @@ export function buildTransparencySectionConfigs(message, options = {}) {
   return sections;
 }
 
-export function serializeTransparencySectionContent(content) {
+function serializeTransparencySectionContent(content) {
   if (content == null) {
     return '';
   }
   return typeof content === 'string' ? content : JSON.stringify(content, null, 2);
 }
 
-export function resolveTransparencySectionContentPresentation(content, type = 'text') {
+function resolveTransparencySectionContentPresentation(content, type = 'text') {
   if (content == null) {
     return {
       className: 'transparency-content-text',
@@ -114,3 +114,10 @@ export function resolveTransparencySectionContentPresentation(content, type = 't
     text: String(content),
   };
 }
+
+export const DesktopMessageTransparencyRuntime = Object.freeze({
+  resolveConversationToolSchemas,
+  buildTransparencySectionConfigs,
+  serializeTransparencySectionContent,
+  resolveTransparencySectionContentPresentation,
+});

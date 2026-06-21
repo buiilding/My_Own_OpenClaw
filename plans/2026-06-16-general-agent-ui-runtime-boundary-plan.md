@@ -23072,3 +23072,20 @@ Each completed slice should report:
   conversation-switch anchoring, assistant/user action gating, compaction status
   text, renderer markup, storage, IPC, local-runtime execution, provider
   policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer message transparency facade helper privacy
+
+- Finding: transparency section assembly, content presentation, clipboard
+  serialization, and conversation tool-schema lookup lived in the renderer app
+  runtime, but chat and overlay components still imported those helpers as
+  standalone exports.
+- Change: exposed transparency presentation rules through
+  `DesktopMessageTransparencyRuntime` and kept the helper functions private to
+  `desktopMessageTransparencyRuntime`.
+- Validation: focused message transparency runtime and renderer chat boundary
+  tests, targeted renderer ESLint, exact source/doc scans, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Transparency section order, tool-schema
+  inheritance, content pretty-printing, clipboard serialization, renderer
+  markup, storage, IPC, local-runtime execution, provider policy, backend
+  behavior, and trust boundaries are unchanged.

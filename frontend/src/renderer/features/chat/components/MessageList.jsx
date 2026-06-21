@@ -13,7 +13,7 @@ import PropTypes from 'prop-types';
 import messageShapePropType from './message/messageShapePropType';
 import MessageItem from './message/MessageItem';
 import { DesktopMessageListRuntime } from '../../../app/runtime/desktopMessageListRuntime';
-import { resolveConversationToolSchemas } from '../../../app/runtime/desktopMessageTransparencyRuntime';
+import { DesktopMessageTransparencyRuntime } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
 import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
 
@@ -128,7 +128,10 @@ function MessageList({
     return undefined;
   }, [activeFindMatchIndex, messageListRef, messages]);
 
-  const conversationToolSchemas = useMemo(() => resolveConversationToolSchemas(messages), [messages]);
+  const conversationToolSchemas = useMemo(
+    () => DesktopMessageTransparencyRuntime.resolveConversationToolSchemas(messages),
+    [messages],
+  );
 
   const renderedMessages = useMemo(
     () => messages.flatMap((msg) => {

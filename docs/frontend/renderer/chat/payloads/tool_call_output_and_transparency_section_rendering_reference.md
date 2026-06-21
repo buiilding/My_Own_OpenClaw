@@ -190,9 +190,9 @@ Backend contract:
 
 ## Transparency Section Assembly Contract
 
-`buildTransparencySectionConfigs(message, options?)` lives in
-`frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js` and
-appends sections in fixed order:
+`DesktopMessageTransparencyRuntime.buildTransparencySectionConfigs(message, options?)`
+lives in `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`
+and appends sections in fixed order:
 
 1. `system-prompt`
 2. `tool-schemas` (for canonical schema shape on the message itself, or from conversation-level tool-schema transparency when rendering later user rows)
@@ -210,6 +210,7 @@ Canonical tool-schema guard requires each entry:
 Conversation-level behavior:
 
 - `MessageList` derives the latest canonical tool-schema payload across the active conversation
+  through `DesktopMessageTransparencyRuntime.resolveConversationToolSchemas(...)`
 - later user rows can render that conversation-level tool-schema transparency even when the schema event was attached to an earlier turn
 - assistant rows do not inherit conversation-level tool-schema sections
 
@@ -241,7 +242,7 @@ stream metadata updates or transparency section rendering.
 - content copy button shown only when expanded
 - null/undefined content renders `"No content available"`
 - content render-mode and clipboard serialization are resolved by
-  `desktopMessageTransparencyRuntime`, so the component renders the runtime
+  `DesktopMessageTransparencyRuntime`, so the component renders the runtime
   presentation model without branching on raw transparency type strings.
 
 Render mode by `type`:

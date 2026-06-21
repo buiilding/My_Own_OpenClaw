@@ -1169,17 +1169,28 @@ describe('renderer chat runtime boundary', () => {
 
     for (const source of [messageListSource, transparencySectionsSource, overlaySource]) {
       expect(source).toContain('desktopMessageTransparencyRuntime');
+      expect(source).toContain('DesktopMessageTransparencyRuntime');
       expect(source).not.toContain('utils/message/messageTransparency');
     }
     expect(transparencySectionSource).toContain('desktopMessageTransparencyRuntime');
-    expect(transparencySectionSource).toContain('resolveTransparencySectionContentPresentation');
-    expect(transparencySectionSource).toContain('serializeTransparencySectionContent');
+    expect(transparencySectionSource).toContain('DesktopMessageTransparencyRuntime');
+    expect(transparencySectionSource).toContain(
+      'DesktopMessageTransparencyRuntime.resolveTransparencySectionContentPresentation',
+    );
+    expect(transparencySectionSource).toContain(
+      'DesktopMessageTransparencyRuntime.serializeTransparencySectionContent',
+    );
     expect(transparencySectionSource).not.toContain("type === 'json'");
     expect(transparencySectionSource).not.toContain("type === 'system-prompt'");
     expect(transparencySectionSource).not.toContain("type === 'xml'");
     expect(transparencyRuntimeSource).toContain('desktopChatMessageRuntimeClient');
     expect(transparencyRuntimeSource).toContain('normalizeToolSchemaList');
+    expect(transparencyRuntimeSource).toContain('DesktopMessageTransparencyRuntime');
     expect(transparencyRuntimeSource).toContain('resolveTransparencySectionContentPresentation');
+    expect(transparencyRuntimeSource).not.toContain('export function resolveConversationToolSchemas');
+    expect(transparencyRuntimeSource).not.toContain('export function buildTransparencySectionConfigs');
+    expect(transparencyRuntimeSource).not.toContain('export function serializeTransparencySectionContent');
+    expect(transparencyRuntimeSource).not.toContain('export function resolveTransparencySectionContentPresentation');
     expect(transparencyRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageTransparency.js'),

@@ -2,14 +2,16 @@
  * Covers desktop message transparency runtime behavior in the frontend test suite.
  */
 
-import {
-  buildTransparencySectionConfigs,
-  resolveConversationToolSchemas,
-  resolveTransparencySectionContentPresentation,
-  serializeTransparencySectionContent,
-} from '../../frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime';
+import { DesktopMessageTransparencyRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime';
 
 describe('desktopMessageTransparencyRuntime', () => {
+  const {
+    buildTransparencySectionConfigs,
+    resolveConversationToolSchemas,
+    resolveTransparencySectionContentPresentation,
+    serializeTransparencySectionContent,
+  } = DesktopMessageTransparencyRuntime;
+
   test('returns empty list when message has no transparency payloads', () => {
     expect(buildTransparencySectionConfigs({ text: 'hello' })).toEqual([]);
   });

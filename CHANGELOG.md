@@ -108,6 +108,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep message-list scroll, action, and compaction
   presentation helpers behind the message list runtime facade instead of
   standalone helper exports. No migration required.
+- frontend/renderer: keep message transparency section assembly, content
+  presentation, clipboard serialization, and conversation tool-schema lookup
+  behind the message transparency runtime facade instead of standalone helper
+  exports. No migration required.
 - frontend/renderer: keep message row class-name assembly behind the message
   class runtime facade instead of a standalone helper export. No migration
   required.
