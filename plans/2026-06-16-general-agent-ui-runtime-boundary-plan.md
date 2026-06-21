@@ -20601,3 +20601,21 @@ Each completed slice should report:
   derivation, setup/start-over messages, realtime text projection, trace event
   projection, wakeword IPC channels, SDK command names, storage, provider
   policy, permissions, and backend behavior are unchanged.
+
+### 2026-06-21 renderer chatbox layout constant privacy
+
+- Finding: `desktopChatboxLayoutRuntime.js` owned chatbox anchor/frame layout
+  rules, but exported the compact anchor height and host-window frame padding
+  constants directly to minimal-pill feature code. The feature then recomputed
+  native frame height by adding the raw padding to the resolved anchor height.
+- Change: made the raw compact-height and frame-padding constants private to
+  the chatbox layout runtime, added `resolveChatboxNativeFrameHeight(...)` as
+  the semantic public helper, and updated minimal-pill callers to request
+  anchor/frame dimensions through runtime helpers instead of importing layout
+  constants.
+- Validation: focused chatbox layout, renderer app-runtime boundary, and
+  renderer chat-runtime boundary tests, exact raw-constant export/use scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Chatbox anchor values, native frame
+  sizing, resize/collapse behavior, drag behavior, IPC payloads, storage,
+  provider policy, permissions, and backend behavior are unchanged.

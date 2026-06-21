@@ -4,7 +4,7 @@
 
 import { useEffect } from 'react';
 import { DesktopWindowRuntimeClient } from '../../../app/runtime/desktopWindowRuntimeClient';
-import { CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT, resolveChatboxVisualAnchorHeight } from '../../../app/runtime/desktopChatboxLayoutRuntime';
+import { resolveChatboxVisualAnchorHeight } from '../../../app/runtime/desktopChatboxLayoutRuntime';
 
 const CHATBOX_VISUAL_ANCHOR_RESIZE_SETTLE_MS = 120;
 
@@ -175,7 +175,7 @@ export function useChatboxVisualAnchorBindings({
   useEffect(() => {
     return () => {
       DesktopWindowRuntimeClient
-        .setChatboxVisualAnchorHeightValue(CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT)
+        .setChatboxVisualAnchorHeightValue(resolveChatboxVisualAnchorHeight())
         .catch(() => {});
     };
   }, []);

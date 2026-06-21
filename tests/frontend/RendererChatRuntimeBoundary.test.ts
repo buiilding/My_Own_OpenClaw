@@ -1905,7 +1905,12 @@ describe('renderer chat runtime boundary', () => {
       expect(source).not.toContain('chat/utils/state/chatBoxState');
     }
     expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
-    expect(layoutRuntimeSource).toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
+    expect(layoutRuntimeSource).toContain('resolveChatboxNativeFrameHeight');
+    expect(layoutRuntimeSource).not.toContain('export const CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
+    expect(layoutRuntimeSource).not.toContain('export const CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
+    expect(pillSource).toContain('resolveChatboxNativeFrameHeight');
+    expect(pillSource).not.toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
+    expect(bindingsSource).not.toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(pillSource).toContain('setChatboxVisualAnchorHeightValue');
     expect(bindingsSource).toContain('setChatboxVisualAnchorHeightValue');
     expect(pillSource).not.toContain('setChatboxVisualAnchorHeight({');

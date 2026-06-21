@@ -18,10 +18,10 @@ import { useTextareaAutoResize } from '../../chat/hooks/useMessageInputUiBinding
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
 import {
-  CHATBOX_WINDOW_FRAME_HEIGHT_PADDING,
   createChatboxDragState,
   getChatboxCloseBumpHeight,
   getChatboxDragTarget,
+  resolveChatboxNativeFrameHeight,
   resolveChatboxVisualAnchorHeight,
   startChatboxDrag,
   stopChatboxDrag,
@@ -153,11 +153,10 @@ function MinimalChatPill() {
   }, []);
 
   const resolveNativeFrameHeightForShellHeight = useCallback((shellHeight) => {
-    const anchorHeight = resolveChatboxVisualAnchorHeight({
+    return resolveChatboxNativeFrameHeight({
       hasImagePreview: hasAttachmentPreview,
       shellHeight,
     });
-    return anchorHeight + CHATBOX_WINDOW_FRAME_HEIGHT_PADDING;
   }, [hasAttachmentPreview]);
 
   const setReservedNativeFrameHeight = useCallback((nextFrameHeight) => {

@@ -178,13 +178,18 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
-    expect(layoutRuntimeSource).toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
+    expect(layoutRuntimeSource).toContain('resolveChatboxNativeFrameHeight');
+    expect(layoutRuntimeSource).not.toContain('export const CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
+    expect(layoutRuntimeSource).not.toContain('export const CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(layoutRuntimeSource).toContain('createChatboxDragState');
     expect(layoutRuntimeSource).toContain('getChatboxDragTarget');
     expect(layoutRuntimeSource).not.toContain('features/chat');
     expect(layoutRuntimeSource).not.toContain('features/minimalChatPill');
     expect(pillSource).toContain('desktopChatboxLayoutRuntime');
     expect(bindingsSource).toContain('desktopChatboxLayoutRuntime');
+    expect(pillSource).toContain('resolveChatboxNativeFrameHeight');
+    expect(pillSource).not.toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
+    expect(bindingsSource).not.toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(pillSource).not.toContain('minimalChatPillLayout');
     expect(pillSource).not.toContain('chat/utils/state/chatBoxState');
     expect(bindingsSource).not.toContain('chat/utils/state/chatBoxState');

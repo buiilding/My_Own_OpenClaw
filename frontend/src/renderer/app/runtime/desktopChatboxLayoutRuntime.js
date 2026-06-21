@@ -2,8 +2,8 @@
  * Coordinates renderer chatbox layout and movement rules shared by minimal pill surfaces.
  */
 
-export const CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT = 64;
-export const CHATBOX_WINDOW_FRAME_HEIGHT_PADDING = 6;
+const CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT = 64;
+const CHATBOX_WINDOW_FRAME_HEIGHT_PADDING = 6;
 const CHATBOX_VISUAL_ANCHOR_HEIGHT_WITH_PREVIEW = 116;
 const CHATBOX_DRAG_START_THRESHOLD = 5;
 const CHATBOX_CLOSE_BUMP_HEIGHT = 14;
@@ -33,6 +33,16 @@ export function resolveChatboxVisualAnchorHeight({
   return hasImagePreview
     ? CHATBOX_VISUAL_ANCHOR_HEIGHT_WITH_PREVIEW
     : CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT;
+}
+
+export function resolveChatboxNativeFrameHeight({
+  hasImagePreview = false,
+  shellHeight = null,
+} = {}) {
+  return resolveChatboxVisualAnchorHeight({
+    hasImagePreview,
+    shellHeight,
+  }) + CHATBOX_WINDOW_FRAME_HEIGHT_PADDING;
 }
 
 export function startChatboxDrag(dragState, event, windowScreenX, windowScreenY) {

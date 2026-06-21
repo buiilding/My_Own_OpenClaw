@@ -3,13 +3,13 @@
  */
 
 import {
-  CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT,
+  resolveChatboxNativeFrameHeight,
   resolveChatboxVisualAnchorHeight,
 } from '../../frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime';
 
 describe('desktopChatboxLayoutRuntime', () => {
   test('resolveChatboxVisualAnchorHeight switches by preview mode', () => {
-    expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: false })).toBe(CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT);
+    expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: false })).toBe(64);
     expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: true })).toBe(116);
   });
 
@@ -18,5 +18,13 @@ describe('desktopChatboxLayoutRuntime', () => {
       hasImagePreview: false,
       shellHeight: 94,
     })).toBe(88);
+  });
+
+  test('resolveChatboxNativeFrameHeight includes the host window frame padding', () => {
+    expect(resolveChatboxNativeFrameHeight({
+      hasImagePreview: false,
+      shellHeight: 94,
+    })).toBe(94);
+    expect(resolveChatboxNativeFrameHeight({ hasImagePreview: false })).toBe(70);
   });
 });

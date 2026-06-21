@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chatbox: keep compact anchor and frame-padding constants private to
+  the chatbox layout runtime and expose semantic anchor/frame helpers for
+  minimal-pill callers. No migration required.
 - renderer/voice: keep transcription gateway message normalization private to
   the voice app-runtime client while preserving public dispatch behavior. No
   migration required.

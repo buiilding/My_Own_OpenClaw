@@ -8513,3 +8513,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   projection, wakeword IPC channels, SDK command names, storage, provider
   policy, permissions, and backend behavior are unchanged; no migration is
   required.
+- The renderer chatbox layout runtime now keeps compact anchor height and host
+  window frame-padding constants private to
+  `desktopChatboxLayoutRuntime.js`; minimal-pill callers use
+  `resolveChatboxVisualAnchorHeight(...)` and
+  `resolveChatboxNativeFrameHeight(...)` instead of importing raw layout
+  constants or recomputing frame height. Boundary coverage prevents those raw
+  constants from becoming public exports again. Chatbox anchor values, native
+  frame sizing, resize/collapse behavior, drag behavior, IPC payloads, storage,
+  provider policy, permissions, and backend behavior are unchanged; no
+  migration is required.
