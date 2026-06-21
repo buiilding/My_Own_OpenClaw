@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 SDK Conversation Metadata Helper Package-Root Narrowing
+
+- Finding: the SDK package root still exported `conversation/metadata`
+  pagination and search helper functions even though SDK callers have public
+  agent and store list/search methods for conversation startup surfaces.
+- Change: removed the metadata helper wildcard export from the package root and
+  checked-in CJS entrypoint and added package-boundary coverage so those
+  helpers remain owner-module-only.
+- Validation: focused SDK package-boundary, conversation-runtime, AgentClient,
+  file/local/in-memory store, and continuity tests plus CJS root smoke checks,
+  docs listing, stale root-export scans, and diff checks.
+- Compatibility/security: no migration required for first-party callers.
+  Agent/store list and search behavior, metadata pagination, conversation
+  loading, local-runtime persistence, hosted backend payloads, IPC,
+  credentials, storage, and provider policy are unchanged.
+
 ### 2026-06-21 SDK Tool Correlation Root Export Narrowing
 
 - Finding: the SDK package root exported every helper from

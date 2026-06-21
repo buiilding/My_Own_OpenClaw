@@ -4,7 +4,6 @@
 
 export * from './conversation/types.js';
 export * from './conversation/events.js';
-export * from './conversation/metadata.js';
 export * from './stores/InMemoryConversationStore.js';
 export * from './stores/FileConversationStore.js';
 export * from './stores/LocalRuntimeConversationStore.js';

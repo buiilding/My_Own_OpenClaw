@@ -109,6 +109,8 @@ describe('@windie/sdk package boundary', () => {
     expect('resolveToolOutputCorrelationKeys' in AgentSdkPackage).toBe(false);
     expect('resolveToolOutputDedupeKey' in AgentSdkPackage).toBe(false);
     expect('resolveToolPairKeys' in AgentSdkPackage).toBe(false);
+    expect('applyConversationMetadataPagination' in AgentSdkPackage).toBe(false);
+    expect('searchConversationMetadata' in AgentSdkPackage).toBe(false);
     expect(moduleTool({
       name: 'save_note',
       module: 'example.tools:save_note',

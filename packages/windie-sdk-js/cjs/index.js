@@ -20,7 +20,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.agentBuiltins = exports.resolveToolWaitId = exports.resolveToolOutputCorrelationId = exports.resolveToolEventCorrelationId = exports.resolveToolCallCorrelationId = exports.resolveModelFacingToolCallId = exports.createAgentSession = exports.createAgentRuntimeTransport = exports.AgentSession = void 0;
 __exportStar(require("./conversation/types.js"), exports);
 __exportStar(require("./conversation/events.js"), exports);
-__exportStar(require("./conversation/metadata.js"), exports);
 __exportStar(require("./stores/InMemoryConversationStore.js"), exports);
 __exportStar(require("./stores/FileConversationStore.js"), exports);
 __exportStar(require("./stores/LocalRuntimeConversationStore.js"), exports);

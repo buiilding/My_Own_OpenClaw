@@ -316,6 +316,13 @@ The adapter methods are API conveniences; they must delegate to shared SDK
 projection builders or to a complete active compacted replay snapshot. This
 keeps desktop, CLI, web, and tests on one interpretation path.
 
+Metadata pagination and search helpers stay in the `conversation/metadata`
+owner module for SDK stores and runtime classes. Public package-root callers
+should use `agent.listConversations(...)`, `agent.searchConversations(...)`,
+or store methods such as `listMetadata(...)` and `searchMetadata(...)` instead
+of importing `applyConversationMetadataPagination(...)` or
+`searchConversationMetadata(...)` from the entrypoint.
+
 The SDK ships two reusable store adapters:
 
 - `InMemoryConversationStore` for tests, demos, and short-lived processes.
