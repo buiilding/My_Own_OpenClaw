@@ -91,12 +91,7 @@ function resolveBrowserSessionControlPresentation(snapshot, copy = {}) {
   });
 }
 
-export const DesktopBrowserSessionRuntimeClient = Object.freeze({
-  resolveBrowserSessionControlPresentation,
-  resolveBrowserSessionCarouselTargetId,
-});
-
-export function useDesktopBrowserSessionControl({
+function useDesktopBrowserSessionControl({
   interactivePolling = false,
   copy = DEFAULT_BROWSER_SESSION_COPY,
 } = {}) {
@@ -134,3 +129,9 @@ export function useDesktopBrowserSessionControl({
     switchBrowserTabByStep,
   };
 }
+
+export const DesktopBrowserSessionRuntimeClient = Object.freeze({
+  resolveBrowserSessionControlPresentation,
+  resolveBrowserSessionCarouselTargetId,
+  useDesktopBrowserSessionControl,
+});

@@ -2436,7 +2436,8 @@ describe('renderer chat runtime boundary', () => {
 
     expect(controlSource).not.toContain('infrastructure/hooks/useBrowserSessionControl');
     expect(controlSource).not.toContain('browserSessionStore');
-    expect(controlSource).toContain('useDesktopBrowserSessionControl');
+    expect(controlSource).toContain('DesktopBrowserSessionRuntimeClient.useDesktopBrowserSessionControl');
+    expect(controlSource).not.toContain('import { useDesktopBrowserSessionControl');
     expect(controlSource).toContain('presentation.');
     expect(controlSource).toContain('switchBrowserTabByStep');
     expect(controlSource).not.toContain('tabs.findIndex');
@@ -2445,6 +2446,7 @@ describe('renderer chat runtime boundary', () => {
     expect(controlSource).not.toContain('currentTabLabel');
     expect(browserClientSource).toContain('browserSessionStore');
     expect(browserClientSource).toContain('DesktopBrowserSessionRuntimeClient');
+    expect(browserClientSource).not.toContain('export function useDesktopBrowserSessionControl');
     expect(browserClientSource).toContain('resolveBrowserSessionControlPresentation');
     expect(browserClientSource).toContain('resolveBrowserSessionCarouselTargetId');
     expect(browserClientSource).not.toContain('export function resolveBrowserSessionControlPresentation');

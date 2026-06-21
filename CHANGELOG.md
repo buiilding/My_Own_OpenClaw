@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose browser session control through
+  `DesktopBrowserSessionRuntimeClient` instead of a standalone hook export,
+  keeping chat browser controls on the app-runtime browser-session facade. No
+  migration required.
 - frontend/renderer: expose settings-event model-list handlers through
   `DesktopSettingsEventRuntimeClient` instead of a standalone hook export,
   keeping AppConfigProvider on the app-runtime settings-event facade. No

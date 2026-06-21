@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Browser Session Control Runtime Facade
+
+- Finding: `desktopBrowserSessionRuntimeClient.js` owned browser-session
+  presentation, carousel target resolution, and store-backed connect/tab
+  controls, but still exported `useDesktopBrowserSessionControl(...)` as a
+  standalone hook consumed by the chat browser control component.
+- Change: moved browser session control access onto
+  `DesktopBrowserSessionRuntimeClient.useDesktopBrowserSessionControl(...)`,
+  routed the chat browser control through that facade object, and updated
+  renderer chat boundary coverage so standalone hook imports/exports stay
+  removed.
+- Validation: focused browser-session runtime, chat browser control, and
+  renderer chat boundary tests plus targeted renderer source lint, docs
+  listing, stale standalone hook scans, and diff checks before commit.
+- Compatibility/security: no migration required. Browser session store
+  snapshots, local-runtime readiness polling, connect/disconnect/switch
+  commands, tab presentation, IPC, credentials, hosted backend policy, and
+  local-runtime execution are unchanged.
+
 ### 2026-06-21 Renderer Settings Event Handler Runtime Facade
 
 - Finding: `desktopSettingsEventRuntimeClient.ts` already owned model-list
