@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 SDK Conversation Reducer Package-Root Narrowing
+
+- Finding: the SDK package root still exported the conversation reducer and
+  event-scope helper modules, even though normal host callers should use
+  `SdkConversationRuntime`, stores, and SDK projections rather than reduce
+  internal runtime state themselves.
+- Change: removed `conversationReducer` and `conversationEventScope` wildcard
+  exports from the package root and checked-in CJS root, routed reducer-focused
+  tests to the owner module, and added package-boundary coverage so the
+  reducer/scope helpers stay off the entrypoint.
+- Validation: focused SDK package-boundary, conversation-runtime, and
+  AgentClient tests plus CJS root smoke checks, docs listing, stale root-export
+  scans, and diff checks.
+- Compatibility/security: no migration required for first-party callers.
+  Conversation runtime behavior, display/current-turn/rehydrate projections,
+  event storage, local-runtime execution, hosted backend payloads, IPC,
+  credentials, storage, and provider policy are unchanged.
+
 ### 2026-06-21 SDK Stream Event Helper Package-Root Narrowing
 
 - Finding: the package root exported the entire `AgentStreamEvents` module,

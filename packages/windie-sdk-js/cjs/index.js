@@ -25,8 +25,6 @@ __exportStar(require("./stores/InMemoryConversationStore.js"), exports);
 __exportStar(require("./stores/FileConversationStore.js"), exports);
 __exportStar(require("./stores/LocalRuntimeConversationStore.js"), exports);
 __exportStar(require("./projections/conversationProjections.js"), exports);
-__exportStar(require("./runtime/conversationReducer.js"), exports);
-__exportStar(require("./runtime/conversationEventScope.js"), exports);
 __exportStar(require("./runtime/ConversationRuntime.js"), exports);
 __exportStar(require("./runtime/TraceRecorder.js"), exports);
 __exportStar(require("./runtime/TurnInputPipeline.js"), exports);

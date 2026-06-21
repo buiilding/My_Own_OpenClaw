@@ -40,6 +40,13 @@ SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`.
 | local tool execution | SDK local runtime | the local runtime runs local-runtime-backed tools; it does not own conversation replay semantics |
 | backend provider history | backend | provider-safe history remains backend-owned after result ingress |
 
+The package root exposes conversation runtime, store, event, and projection
+contracts for host UIs. The lower-level reducer and event-scope helpers
+(`createInitialConversationRuntimeState`, `reduceConversationRuntimeState`,
+`getConversationEventScope`, and related scope predicates) are implementation
+helpers owned by their `runtime/conversationReducer` and
+`runtime/conversationEventScope` modules rather than package-entrypoint API.
+
 ## Event Model
 
 The runtime records normalized events:

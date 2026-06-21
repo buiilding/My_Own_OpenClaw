@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: stop exporting conversation reducer and event-scope helper functions from
+  the package root while keeping conversation runtime/projection APIs public.
+  No migration required for first-party callers; reducer tests import the owner
+  module directly.
 - sdk: stop exporting `AgentStreamEvents` mapper and tool-output dedupe helper
   functions from the package root while keeping `AgentStreamEvent` and related
   public stream event types available. No migration required for first-party

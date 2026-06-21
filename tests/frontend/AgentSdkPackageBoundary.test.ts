@@ -114,6 +114,9 @@ describe('@windie/sdk package boundary', () => {
       argument_resolution: 'passthrough',
     });
     expect('shouldIncludeBuiltinTool' in AgentSdkPackage).toBe(false);
+    expect('createInitialConversationRuntimeState' in AgentSdkPackage).toBe(false);
+    expect('reduceConversationRuntimeState' in AgentSdkPackage).toBe(false);
+    expect('getConversationEventScope' in AgentSdkPackage).toBe(false);
   });
 
   test('exports generic agent session contracts', async () => {

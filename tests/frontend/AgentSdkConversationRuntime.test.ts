@@ -11,9 +11,7 @@ import {
   buildTraceTimeline,
   createDefaultTurnResourceResolvers,
   createConversationEvent,
-  createInitialConversationRuntimeState,
   InMemoryConversationStore,
-  reduceConversationRuntimeState,
   SdkConversationRuntime,
   ToolExecutionCoordinator,
   type AgentRuntimeTransport,
@@ -26,6 +24,10 @@ import {
   toolOutputStreamKey,
   toolOutputStreamKeys,
 } from '../../packages/windie-sdk-js/src/runtime/AgentStreamEvents';
+import {
+  createInitialConversationRuntimeState,
+  reduceConversationRuntimeState,
+} from '../../packages/windie-sdk-js/src/runtime/conversationReducer';
 import {
   normalizeBackendEventToConversationEvent as normalizeBackendEventToConversationEventRaw,
 } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';
