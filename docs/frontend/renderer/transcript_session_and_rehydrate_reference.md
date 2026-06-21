@@ -97,9 +97,9 @@ Transcript conversation pagination helper:
 
 ## SDK Store Boundary
 
-The desktop runtime uses `ConversationContinuityService` as the SDK-owned
+The renderer app runtime uses `ConversationContinuityService` as the SDK-owned
 continuity orchestrator and the SDK `LocalRuntimeConversationStore` as the
-local-runtime-backed conversation-store owner. The desktop conversation store
+local-runtime-backed conversation-store owner. The renderer conversation store
 factory is now only a renderer command bridge: it forwards canonical SDK events
 and load/list/rewrite commands to Electron main without reshaping event
 metadata or attachments.

@@ -8351,3 +8351,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   service behavior, hosted auth, local-runtime browser routing, provider
   policy, permissions, storage, and backend behavior are unchanged; no
   migration is required.
+- The SDK runtime command header plus renderer continuity/compaction and
+  architecture-flow docs now use UI/host-runtime, renderer app-runtime, and SDK
+  desktop transport adapter labels instead of desktop-runtime wording. SDK
+  command constants, conversation continuity, replay persistence, compaction
+  transport mapping, renderer projection, architecture routing, provider
+  policy, permissions, storage, and backend behavior are unchanged; no
+  migration is required.

@@ -54,6 +54,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/sdk: route conversation migration and hosted-client auth wording through
   host UI and Electron agent-host labels instead of desktop-runtime labels. No
   migration required.
+- sdk/renderer: route SDK command comments and renderer continuity/compaction/
+  architecture docs through host-runtime and renderer app-runtime labels instead of
+  desktop-runtime wording. No migration required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

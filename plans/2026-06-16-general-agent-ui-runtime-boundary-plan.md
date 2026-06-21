@@ -20248,3 +20248,20 @@ Each completed slice should report:
 - Compatibility: no migration required. SDK conversation projections,
   continuity service behavior, hosted auth, local-runtime browser routing,
   provider policy, permissions, storage, and backend behavior are unchanged.
+
+### 2026-06-21 SDK command and renderer app-runtime wording
+
+- Finding: the SDK runtime command header and renderer continuity/compaction/
+  architecture docs still used desktop-runtime labels for host command usage,
+  continuity orchestration, replay persistence, manual compaction transport
+  mapping, and renderer facade flow.
+- Change: reworded the SDK command comment to UI/host runtimes and routed the
+  renderer docs through renderer app-runtime facade/runtime and SDK desktop
+  transport adapter labels. Extended modular boundary coverage over the SDK
+  source comment and affected renderer/development docs.
+- Validation: focused modular boundary test, docs listing, exact retired
+  desktop-runtime phrase scan, and diff checks.
+- Compatibility: no migration required. SDK command constants, conversation
+  continuity, replay persistence, compaction transport mapping, renderer
+  projection, architecture routing, provider policy, permissions, storage, and
+  backend behavior are unchanged.

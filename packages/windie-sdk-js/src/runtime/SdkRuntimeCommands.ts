@@ -1,5 +1,5 @@
 /**
- * Defines SDK-shaped host command names used by UI and desktop runtimes.
+ * Defines SDK-shaped host command names used by UI and host runtimes.
  */
 
 export const SDK_RUNTIME_COMMANDS = {

@@ -45,6 +45,7 @@ describe('modular sdk refactor completion boundary', () => {
     const electronAgentClientFactorySource = await read('frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
     const agentWakeupRuntimeSource = await read('frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs');
     const hostOptionStateSource = await read('frontend/src/main/ipc/ipc_host_option_state.cjs');
+    const sdkRuntimeCommandsSource = await read('packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts');
     expect(ipcSource).toContain('createElectronAgentClientFactoryRuntime({');
     expect(ipcSource).toContain('electronAgentClientFactoryRuntime.createClient()');
     expect(ipcSource).not.toContain('new AgentClient({');
@@ -67,6 +68,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).not.toContain('let agentWebSocketImpl = null');
     expect(hostOptionStateSource).toContain('let localToolLifecycle = null;');
     expect(hostOptionStateSource).toContain('let agentWebSocketImpl = null;');
+    expect(sdkRuntimeCommandsSource).toContain('UI and host runtimes');
+    expect(sdkRuntimeCommandsSource).not.toContain('UI and desktop runtimes');
     expect(ipcSource).not.toContain('windieAgentWebSocketImpl');
     expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
     expect(ipcSource).not.toContain(`${retiredProductName('Agent')}.startDesktop`);
@@ -1437,6 +1440,7 @@ describe('modular sdk refactor completion boundary', () => {
       read(
         'docs/frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md',
       ),
+      read('docs/frontend/renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/renderer/settings/settings_surface_change_workflow.md'),
       read('docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
@@ -1470,6 +1474,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime `read_file` behavior');
     expect(docText).toContain('local-runtime/native result');
     expect(docText).toContain('Electron/local-runtime browser runtime');
+    expect(docText).toContain('renderer app-runtime facade');
+    expect(docText).toContain('renderer app runtime uses `ConversationContinuityService`');
+    expect(docText).toContain('SDK desktop transport adapter maps');
     expect(docText).not.toContain('SDK desktop runtime');
     expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('tool runner uses `turn_ref`');
@@ -1504,6 +1511,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar/native result');
     expect(docText).not.toContain('Electron/sidecar browser runtime');
     expect(docText).not.toContain('Confirm sidecar deletes only the intended local store records');
+    expect(docText).not.toContain('The desktop runtime uses `ConversationContinuityService`');
+    expect(docText).not.toContain('desktop runtime facade');
+    expect(docText).not.toContain('desktop runtime transport maps that SDK command');
   });
 
   test('runtime routing docs use Agent SDK boundary wording', async () => {

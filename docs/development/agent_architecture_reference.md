@@ -263,7 +263,7 @@ Frontend query flow:
 
 ```text
 MessageInput / chat hook
-  -> renderer desktop runtime facade
+  -> renderer app-runtime facade
   -> SDK ConversationRuntime command
   -> SDK-shaped windie:invoke command
   -> Electron main query payload builder
