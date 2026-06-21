@@ -11,9 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `f4c9b4964` (`test(frontend): neutralize runtime endpoint hosts`)
-- Latest completed slice: Python SDK client transport tests now use neutral
-  explicit backend endpoint fixtures instead of the WindieOS hosted URL.
+- Latest inspected plan checkpoint: `3249de83f` (`test(sidecar): neutralize python sdk endpoint fixtures`)
+- Latest completed slice: sidecar remote API and semantic client tests now use
+  neutral explicit backend endpoint fixtures while preserving generic and
+  legacy env alias behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -26,7 +27,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   arbitrary endpoint behavior while real WindieOS hosted defaults remain
   host-skin/config owned. Python SDK client transport tests use neutral explicit
   backend endpoint fixtures while preserving caller-supplied URL and websocket
-  derivation behavior.
+  derivation behavior. Sidecar remote API and semantic client tests use neutral
+  explicit backend endpoint fixtures while preserving generic and legacy env
+  alias behavior.
   Renderer voice docs name the desktop voice/audio runtime contract and
   backend-owned transcription gateway boundary instead of embedding concrete STT
   provider policy. Renderer config reference docs now keep current OpenAI/GPT default
@@ -136,6 +139,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Python SDK client transport tests now use neutral explicit backend endpoint
   fixtures while preserving HTTP route, artifact route, websocket URL
   derivation, local-runtime registration, and tool-result routing behavior.
+  Sidecar remote API and semantic client tests now use neutral explicit backend
+  endpoint fixtures while preserving generic and legacy env alias behavior.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7718,3 +7723,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   result routing, install auth behavior, hosted backend defaults in
   product-owned config/docs, provider policy, permissions, and storage are
   unchanged; no migration is required.
+- Sidecar remote API and semantic client tests now use neutral
+  `https://backend.example.com` endpoint fixtures instead of the WindieOS hosted
+  URL while preserving `AGENT_BACKEND_HTTP_URL` and legacy
+  `WINDIE_BACKEND_HTTP_URL` alias coverage. Remote HTTP route construction,
+  semantic summarize route construction, explicit endpoint requirement
+  behavior, no-local-fallback error behavior, hosted backend defaults in
+  product-owned config/docs, provider policy, permissions, storage, and
+  local-runtime behavior are unchanged; no migration is required.

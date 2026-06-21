@@ -83,7 +83,7 @@ async def test_post_success_json_uses_primary_backend():
 
 @pytest.mark.asyncio
 async def test_post_success_json_raises_after_hosted_network_error_without_local_fallback(monkeypatch):
-    monkeypatch.setenv("AGENT_BACKEND_HTTP_URL", "https://api.windieos.com")
+    monkeypatch.setenv("AGENT_BACKEND_HTTP_URL", "https://backend.example.com")
     monkeypatch.delenv("WINDIE_BACKEND_HTTP_URL", raising=False)
     monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
     client = DemoClient()
@@ -95,6 +95,6 @@ async def test_post_success_json_raises_after_hosted_network_error_without_local
         await client.send_demo({"ok": True})
 
     assert [call[0] for call in client._session.post_calls] == [
-        "https://api.windieos.com/api/demo",
+        "https://backend.example.com/api/demo",
     ]
-    assert client.backend_url == "https://api.windieos.com"
+    assert client.backend_url == "https://backend.example.com"

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sidecar: use neutral explicit backend endpoint fixtures in remote API
+  and semantic client coverage while preserving generic and legacy env alias
+  behavior. No migration required.
+
 - tests/sidecar: use neutral explicit backend endpoint fixtures in Python SDK
   client transport coverage instead of the WindieOS hosted URL. No migration
   required.

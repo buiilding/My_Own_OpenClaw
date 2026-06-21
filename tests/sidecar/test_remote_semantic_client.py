@@ -85,7 +85,7 @@ async def test_summarize_wraps_network_client_error():
 
 @pytest.mark.asyncio
 async def test_summarize_raises_after_retryable_http_status_without_local_fallback(monkeypatch):
-    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
+    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://backend.example.com")
     monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
     client = RemoteSemanticClient()
     client._session = SequentialSession(
@@ -96,9 +96,9 @@ async def test_summarize_raises_after_retryable_http_status_without_local_fallba
         await client.summarize(["chunk"], user_id="u-fallback")
 
     assert [call[0] for call in client._session.post_calls] == [
-        "https://api.windieos.com/api/semantic/summarize",
+        "https://backend.example.com/api/semantic/summarize",
     ]
-    assert client.backend_url == "https://api.windieos.com"
+    assert client.backend_url == "https://backend.example.com"
 
 
 @pytest.mark.asyncio

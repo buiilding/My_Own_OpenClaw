@@ -579,6 +579,17 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('wss://backend.example.com/ws');
   });
 
+  test('sidecar remote client tests keep endpoint fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/sidecar/test_remote_api_client_base.py'),
+      read('tests/sidecar/test_remote_semantic_client.py'),
+    ]);
+    const combined = source.join('\n');
+
+    expect(combined).not.toContain('https://api.windieos.com');
+    expect(combined).toContain('https://backend.example.com');
+  });
+
   test('image interaction handler tests keep candidate endpoint fixtures product-neutral', async () => {
     const source = await read('tests/frontend/IpcImageInteractionHandlers.test.cjs');
 

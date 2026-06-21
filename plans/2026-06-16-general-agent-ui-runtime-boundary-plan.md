@@ -18840,3 +18840,20 @@ Each completed slice should report:
   derivation, local-runtime registration, tool-call/tool-bundle result routing,
   install auth behavior, hosted backend defaults in product-owned config/docs,
   provider policy, permissions, and storage are unchanged.
+
+### 2026-06-20 Sidecar remote client endpoint fixture neutrality
+
+- Finding: sidecar remote API and semantic client tests used the WindieOS hosted
+  backend URL as env fixture data even though those tests cover explicit
+  endpoint selection and env alias behavior, not product-hosted defaults.
+- Change: switched those env fixtures to neutral `https://backend.example.com`
+  values and extended modular boundary coverage for the remote client tests.
+- Validation: focused remote API client, remote semantic client, and modular
+  boundary tests; exact retired hosted endpoint scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. `AGENT_BACKEND_HTTP_URL` and legacy
+  `WINDIE_BACKEND_HTTP_URL` alias coverage, remote HTTP route construction,
+  semantic summarize route construction, explicit endpoint requirement
+  behavior, no-local-fallback error behavior, hosted backend defaults in
+  product-owned config/docs, provider policy, permissions, storage, and
+  local-runtime behavior are unchanged.
