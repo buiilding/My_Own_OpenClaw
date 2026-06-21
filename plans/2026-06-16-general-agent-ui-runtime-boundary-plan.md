@@ -21762,3 +21762,17 @@ Each completed slice should report:
   daemon discovery shape, auth token behavior, feature flags, dynamic tool
   registration, IPC, storage, provider policy, permissions, and backend
   behavior are unchanged.
+
+### 2026-06-21 ownership decision-tree local-runtime label
+
+- Finding: the architecture change-ownership decision tree still routed local
+  machine authority through "sidecar/Electron main ownership" even though the
+  same branch points readers at the local-runtime Python implementation docs.
+- Change: relabeled that active routing branch to local-runtime
+  Python/Electron main ownership while preserving concrete implementation-doc
+  links and file/module identifiers.
+- Validation: focused active-doc stale-label scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Documentation labels changed only;
+  local authority behavior, IPC, storage, provider policy, permissions, and
+  backend behavior are unchanged.

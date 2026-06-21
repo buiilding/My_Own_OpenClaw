@@ -9166,3 +9166,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   shape, token behavior, feature flags, tool registration, IPC, storage,
   provider policy, permissions, and backend behavior are unchanged; no migration
   is required.
+- The architecture change-ownership decision tree now routes local machine
+  authority through local-runtime Python/Electron main ownership instead of
+  sidecar/Electron main wording. The linked local-runtime implementation docs
+  and concrete repository identifiers remain unchanged. Local authority
+  behavior, IPC, storage, provider policy, permissions, and backend behavior are
+  unchanged; no migration is required.

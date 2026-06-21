@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: relabel the change-ownership decision tree's local
+  machine authority branch through local-runtime Python/Electron main ownership
+  instead of sidecar-as-owner wording. No migration required.
 - docs/development: update architecture and MCP references to describe
   frontend/local-runtime Python import and driver-resolution boundaries without
   sidecar-as-owner wording. No migration required.
