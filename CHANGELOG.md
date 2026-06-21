@@ -42,6 +42,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: move tool and extension operating contracts from `AGENTS.md` into
+  the tool-contract docs, keeping agent instructions focused on workflow while
+  preserving schema, MCP result, computer-use screenshot, and extension routing
+  rules. No migration required.
 - docs/agents: make the bug-invariant discipline explicit so user-visible and
   runtime bugs are routed through owner, replay, regression-proof, and
   owner-correct fix steps, with core-loop UI bugs added to a named regression
