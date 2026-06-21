@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose chat-stream terminal-handoff turn-ref
+  normalization and stale-turn exception predicates through
+  `DesktopChatStreamTerminalHandoffRuntime` instead of standalone helper
+  exports, keeping re-anchor policy behind the renderer app-runtime facade. No
+  migration required.
 - frontend/renderer: expose chat-stream metadata update builders and
   message-target selectors through `DesktopChatStreamMessageUpdateRuntime`
   instead of standalone helper exports, keeping stream row update rules behind

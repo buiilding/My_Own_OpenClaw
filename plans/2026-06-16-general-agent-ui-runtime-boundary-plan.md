@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Stream Terminal Handoff Facade
+
+- Finding: `desktopChatStreamTerminalHandoffRuntime.ts` already owned
+  terminal-phase pending-turn re-anchor predicates and turn-ref normalization,
+  but still exported each predicate as a standalone helper consumed by stream
+  event stale-turn handling and tests.
+- Change: made the terminal-handoff predicates private to the runtime module,
+  exposed them through `DesktopChatStreamTerminalHandoffRuntime`, and routed
+  stream event stale-turn policy plus focused tests through that facade.
+- Validation: focused terminal-handoff runtime, stream event runtime, renderer
+  chat boundary, exact standalone predicate export/import scan, docs list, and
+  diff hygiene.
+- Compatibility/security: no migration required. Turn-ref trimming,
+  awaiting-first-chunk mismatch acceptance, terminal pending handoff behavior,
+  stale-turn rejection, IPC, storage, permissions, credentials, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Chat Stream Message Update Facade
 
 - Finding: `desktopChatStreamMessageUpdateRuntime.ts` already owned

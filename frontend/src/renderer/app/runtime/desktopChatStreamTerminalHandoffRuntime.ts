@@ -25,11 +25,11 @@ const TERMINAL_PENDING_HANDOFF_PHASES: ReadonlySet<StreamPhase> = new Set([
   'error',
 ]);
 
-export function normalizeTurnRef(turnRef: string | null | undefined): string {
+function normalizeTurnRef(turnRef: string | null | undefined): string {
   return typeof turnRef === 'string' ? turnRef.trim() : '';
 }
 
-export function isAwaitingFirstChunkMismatch(
+function isAwaitingFirstChunkMismatch(
   workspace: StreamGuardWorkspace,
   eventTurnRef: string,
   activeTurnRef: string,
@@ -42,7 +42,7 @@ export function isAwaitingFirstChunkMismatch(
   );
 }
 
-export function hasTerminalPendingHandoff(workspace: StreamGuardWorkspace): boolean {
+function hasTerminalPendingHandoff(workspace: StreamGuardWorkspace): boolean {
   return (
     workspace.isSending === true
     && TERMINAL_PENDING_HANDOFF_PHASES.has(workspace.streamTracking.phase)
@@ -66,7 +66,7 @@ function hasIncompleteCurrentTurnAssistantPlaceholder(
   );
 }
 
-export function shouldIgnoreForTerminalPendingHandoff(
+function shouldIgnoreForTerminalPendingHandoff(
   workspace: StreamGuardWorkspace,
   eventTurnRef: string,
   activeTurnRef: string,
@@ -82,3 +82,10 @@ export function shouldIgnoreForTerminalPendingHandoff(
   }
   return hasOptimisticPendingUserTurn(workspace) === false;
 }
+
+export const DesktopChatStreamTerminalHandoffRuntime = Object.freeze({
+  normalizeTurnRef,
+  isAwaitingFirstChunkMismatch,
+  hasTerminalPendingHandoff,
+  shouldIgnoreForTerminalPendingHandoff,
+});

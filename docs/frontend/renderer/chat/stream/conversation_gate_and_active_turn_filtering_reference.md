@@ -12,6 +12,7 @@ title: "Conversation Gate and Conversation Isolation Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTerminalHandoffRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
@@ -88,7 +89,7 @@ Because routing is per-workspace, background conversation events do not leak int
 `useChatStream` applies `shouldIgnoreConversationEventForStaleTurn(...)` before
 most handlers. The predicate delegates to `desktopChatStreamEventRuntime.ts`,
 `DesktopChatStreamTurnGuardRuntime.isStaleTurnForActiveStream(...)`, and
-terminal-handoff predicates:
+`DesktopChatStreamTerminalHandoffRuntime` predicates:
 
 - guard condition: event has `turnRef` and workspace has active turn and those values differ
 - guarded handlers: all streamed assistant/tool/system/transparency/token/memory/error handlers

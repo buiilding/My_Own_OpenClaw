@@ -2,12 +2,14 @@
  * Covers desktop chat stream terminal handoff runtime. behavior in the frontend test suite.
  */
 
-import {
+import { DesktopChatStreamTerminalHandoffRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamTerminalHandoffRuntime';
+
+const {
   hasTerminalPendingHandoff,
   isAwaitingFirstChunkMismatch,
   normalizeTurnRef,
   shouldIgnoreForTerminalPendingHandoff,
-} from '../../frontend/src/renderer/app/runtime/desktopChatStreamTerminalHandoffRuntime';
+} = DesktopChatStreamTerminalHandoffRuntime;
 
 function createWorkspace({
   phase = 'complete',

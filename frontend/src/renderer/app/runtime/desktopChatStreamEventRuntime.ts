@@ -9,10 +9,7 @@ import {
 } from './desktopChatStreamTrackingRuntime';
 import { DesktopChatStreamTurnGuardRuntime } from './desktopChatStreamTurnGuardRuntime';
 import {
-  hasTerminalPendingHandoff,
-  isAwaitingFirstChunkMismatch,
-  normalizeTurnRef,
-  shouldIgnoreForTerminalPendingHandoff,
+  DesktopChatStreamTerminalHandoffRuntime,
   type StreamGuardWorkspace,
 } from './desktopChatStreamTerminalHandoffRuntime';
 
@@ -22,6 +19,12 @@ const {
 const {
   applyTrackingEvent,
 } = DesktopChatStreamTrackingRuntime;
+const {
+  hasTerminalPendingHandoff,
+  isAwaitingFirstChunkMismatch,
+  normalizeTurnRef,
+  shouldIgnoreForTerminalPendingHandoff,
+} = DesktopChatStreamTerminalHandoffRuntime;
 
 type ShouldIgnoreForStaleTurnDeps = {
   getWorkspaceState: (conversationRef?: string | null) => StreamGuardWorkspace;

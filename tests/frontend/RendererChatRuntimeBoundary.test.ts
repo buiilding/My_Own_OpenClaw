@@ -580,6 +580,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts'),
       'utf8',
     );
+    const terminalHandoffRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamTerminalHandoffRuntime.ts'),
+      'utf8',
+    );
 
     expect(source).toContain('desktopChatStreamEventRuntime');
     expect(source).toContain('isAssistantMessageConversationStreamEvent');
@@ -620,6 +624,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('chatStreamTerminalHandoffGuard');
     expect(source).not.toContain('chatStreamTracking');
     expect(runtimeSource).toContain('DesktopChatStreamTrackingRuntime');
+    expect(runtimeSource).toContain('DesktopChatStreamTerminalHandoffRuntime');
     expect(runtimeSource).toContain('isAssistantMessageConversationStreamEvent');
     expect(runtimeSource).toContain('isCompactionCompletedConversationStreamEvent');
     expect(runtimeSource).toContain('isCompactionFailedConversationStreamEvent');
@@ -650,6 +655,11 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain("'tool_bundle_output'");
     expect(trackingRuntimeSource).toContain('export const DesktopChatStreamTrackingRuntime = Object.freeze');
     expect(trackingRuntimeSource).not.toContain('export function applyTrackingEvent');
+    expect(terminalHandoffRuntimeSource).toContain('export const DesktopChatStreamTerminalHandoffRuntime = Object.freeze');
+    expect(terminalHandoffRuntimeSource).not.toContain('export function normalizeTurnRef');
+    expect(terminalHandoffRuntimeSource).not.toContain('export function isAwaitingFirstChunkMismatch');
+    expect(terminalHandoffRuntimeSource).not.toContain('export function hasTerminalPendingHandoff');
+    expect(terminalHandoffRuntimeSource).not.toContain('export function shouldIgnoreForTerminalPendingHandoff');
   });
 
   test('chat stream text state is owned by the SDK current-turn projection listener', async () => {
