@@ -32,6 +32,14 @@ const rendererSettingsSectionReferencePath = path.resolve(
   __dirname,
   '../../docs/frontend/renderer/settings/sections/settings_section_tabs_and_wakeword_toggle_runtime_reference.md',
 );
+const rendererStartupWorkflowPath = path.resolve(
+  __dirname,
+  '../../docs/frontend/renderer/app_startup_onboarding_change_workflow.md',
+);
+const rendererPermissionOnboardingReferencePath = path.resolve(
+  __dirname,
+  '../../docs/frontend/renderer/permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md',
+);
 const rendererVoiceReferencePath = path.resolve(
   __dirname,
   '../../docs/frontend/renderer/voice_capture_and_wakeword_controller_reference.md',
@@ -150,6 +158,21 @@ describe('renderer skin/config boundary', () => {
     expect(docText).not.toContain('Windie browser permission/status controls');
     expect(docText).not.toContain('Speech-To-Text After "Hey Jarvis"');
     expect(docText).not.toContain('for "Hey Jarvis" activation');
+  });
+
+  test('renderer onboarding docs keep product-specific app claims out of generic workflow text', () => {
+    const startupWorkflowSource = fs.readFileSync(rendererStartupWorkflowPath, 'utf8');
+    const permissionOnboardingSource = fs.readFileSync(
+      rendererPermissionOnboardingReferencePath,
+      'utf8',
+    );
+
+    expect(startupWorkflowSource).toContain('why the desktop app opens onboarding');
+    expect(startupWorkflowSource).not.toContain('why WindieOS opens onboarding');
+    expect(permissionOnboardingSource).toContain(
+      'the current\ndesktop app does not expose a reliable standalone App Management',
+    );
+    expect(permissionOnboardingSource).not.toContain('WindieOS does not\nhave a reliable standalone App Management');
   });
 
   test('settings surface source uses generic renderer UI naming', () => {

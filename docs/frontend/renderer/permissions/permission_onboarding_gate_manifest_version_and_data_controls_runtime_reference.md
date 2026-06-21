@@ -116,8 +116,9 @@ settings surfaces such as Browser settings request or probe their own
 permission id.
 
 macOS browser onboarding opens directly on the `browser_automation` slide.
-There is no separate `app_management` onboarding step because WindieOS does not
-have a reliable standalone App Management registration/probe path to gate on.
+There is no separate `app_management` onboarding step because the current
+desktop app does not expose a reliable standalone App Management
+registration/probe path to gate on.
 
 Permission request handling is split deliberately:
 

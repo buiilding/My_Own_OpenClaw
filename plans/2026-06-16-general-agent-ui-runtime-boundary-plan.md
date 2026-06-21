@@ -22017,3 +22017,20 @@ Each completed slice should report:
   behavior, diagnostics payloads, SDK command names, IPC channels, storage,
   provider policy, permissions, backend behavior, and trust boundaries are
   unchanged.
+
+### 2026-06-21 renderer startup/onboarding product wording
+
+- Finding: active renderer startup and permission-onboarding docs still used
+  product-specific app claims in generic renderer workflow text, even though
+  product copy and concrete WindieOS labels should stay in the active renderer
+  skin/config docs.
+- Change: reworded the startup read hint and App Management permission note
+  through generic desktop-app/current-app wording, and extended renderer
+  skin/config boundary coverage so those product-specific phrases stay out of
+  the generic renderer docs.
+- Validation: focused renderer skin/config boundary test, exact stale wording
+  scans for the touched renderer docs, docs listing, and diff checks.
+- Compatibility: no migration required. Documentation and tests changed only;
+  renderer startup routing, permission manifests, onboarding behavior, storage,
+  IPC channels, provider policy, backend behavior, and trust boundaries are
+  unchanged.

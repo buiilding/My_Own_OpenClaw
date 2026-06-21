@@ -2,7 +2,7 @@
 summary: "Workflow for changing renderer startup routing, VM mode, permission onboarding, wakeword mount boundaries, main-window handoff, and root view selection."
 read_when:
   - When changing renderer startup routing, VM mode dashboard bypass, permission onboarding gates, onboarding completion persistence, wakeword startup placement, or root view selection.
-  - When debugging why WindieOS opens onboarding, dashboard, chat pill, or a renderer overlay window on startup.
+  - When debugging why the desktop app opens onboarding, dashboard, chat pill, or a renderer overlay window on startup.
   - When changing main-window open targets, onboarding restart actions, permission manifest gating, or startup visibility handoff between renderer and Electron main.
 title: "App Startup and Onboarding Change Workflow"
 ---
