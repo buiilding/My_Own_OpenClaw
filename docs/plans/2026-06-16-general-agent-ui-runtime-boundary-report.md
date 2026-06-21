@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: diagnostics sanitizer coverage now names retired
-  local-runtime readiness fields instead of sidecar readiness-field wording
-  while still rejecting the removed `sidecarReady` row field.
+- Latest completed slice: dashboard memory runtime-boundary coverage now names
+  direct local-runtime memory IPC channels instead of sidecar IPC-channel
+  wording while still rejecting direct memory command/channel usage from the
+  renderer feature layer.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -56,6 +57,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic settings section tests use sample settings skin and browser
   permission copy while real WindieOS settings product copy remains
   renderer-skin/permission-copy owned.
+  Dashboard memory runtime-boundary tests require feature code to use the memory
+  runtime facade instead of direct local-runtime memory IPC channels.
   Electron main host-skin boundary tests use main local-runtime adapter labels
   for bridge console logging, debug flag, and dependency guards while concrete
   WindieOS sidecar compatibility folders, log aliases, and daemon entrypoints

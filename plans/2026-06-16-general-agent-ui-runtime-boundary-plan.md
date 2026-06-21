@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Dashboard Memory Local-Runtime IPC Guard Label Boundary
+
+- Finding: `RendererDashboardRuntimeBoundary.test.ts` still named its dashboard
+  memory facade guard as avoiding sidecar IPC channels even though the renderer
+  boundary is a memory runtime facade over direct local-runtime memory IPC
+  commands.
+- Change: renamed the active guard label to direct local-runtime memory IPC
+  channel wording while preserving the exact forbidden memory command/channel
+  assertions.
+- Validation: focused renderer dashboard runtime boundary Jest coverage, exact
+  stale dashboard sidecar-IPC guard-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Dashboard memory presentation,
+  memory runtime facade calls, local-runtime memory IPC command names, storage,
+  credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Diagnostics Local-Runtime Readiness Guard Label Boundary
 
 - Finding: `AppDiagnosticsStore.test.cjs` still named its sanitizer guard as

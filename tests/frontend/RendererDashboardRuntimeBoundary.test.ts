@@ -133,7 +133,7 @@ describe('renderer dashboard runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('dashboard memory feature code uses the memory runtime facade instead of sidecar IPC channels', async () => {
+  test('dashboard memory feature code uses the memory runtime facade instead of direct local-runtime memory IPC channels', async () => {
     const files = await listSourceFiles(dashboardRoot);
     const offenders: string[] = [];
     const forbidden = [
