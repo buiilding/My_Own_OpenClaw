@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: build retired local-runtime screenshot temp namespace fixtures
+  from neutralized parts instead of carrying direct WindieOS legacy literals.
+  No migration required.
 - tests/sdk: use neutral `AGENT_TEST_*` launch env fixtures in Agent SDK
   local-runtime provider coverage instead of arbitrary `WINDIE_TEST_*` names.
   No migration required.

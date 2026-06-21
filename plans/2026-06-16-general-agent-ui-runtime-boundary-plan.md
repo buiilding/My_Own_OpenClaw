@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Local-Runtime Screenshot Legacy Fixture Literal Cleanup
+
+- Finding: `LocalRuntimeBridge.rpc` still carried direct legacy WindieOS
+  screenshot temp directory and filename-prefix literals while testing that the
+  current local-runtime screenshot attachment path rejects removed namespaces.
+- Change: kept the legacy rejection coverage but built the retired values from
+  parts, then extended the modular local-runtime helper guard to reject direct
+  legacy screenshot literals in generic bridge tests.
+- Validation: focused local-runtime bridge RPC and modular boundary tests plus
+  exact legacy screenshot literal scan.
+- Compatibility: no migration required. Screenshot attachment ownership checks,
+  artifact upload behavior, local-runtime IPC/RPC payloads, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Agent SDK Local-Runtime Launch Env Fixture Neutralization
 
 - Finding: `AgentSdkClient` local-runtime provider coverage used

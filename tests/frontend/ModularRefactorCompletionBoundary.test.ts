@@ -1032,10 +1032,14 @@ describe('modular sdk refactor completion boundary', () => {
     const retiredUserDataRoot = ['/tmp', 'windie-data'].join('/');
     const retiredLocalRuntimeLogRoot = ['windie', 'local-runtime-log-'].join('-');
     const retiredMainLogRoot = ['windie', 'main-log-'].join('-');
+    const retiredLegacyScreenshotPrefix = ['windie', 'shot-'].join('-');
+    const retiredLegacyScreenshotDir = ['windieos', 'screenshots'].join('-');
 
     expect(combined).not.toContain('https://api.windieos.com');
     expect(combined).not.toContain(retiredUnownedShotRoot);
     expect(combined).not.toContain(retiredOpenAppScreenshot);
+    expect(combined).not.toContain(retiredLegacyScreenshotPrefix);
+    expect(combined).not.toContain(retiredLegacyScreenshotDir);
     expect(combined).not.toContain(retiredMcpPathRoot);
     expect(combined).not.toContain(retiredUserDataRoot);
     expect(combined).not.toContain(retiredLocalRuntimeLogRoot);

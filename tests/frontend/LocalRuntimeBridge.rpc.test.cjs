@@ -17,6 +17,8 @@ const {
 
 const TEST_BACKEND_HTTP_URL = 'https://backend.example.com';
 const SAMPLE_BROWSER_WARMUP_EXPLANATION = 'Open the sample browser for onboarding and profile setup.';
+const retiredLegacyScreenshotDir = ['windieos', 'screenshots'].join('-');
+const retiredLegacyScreenshotPrefix = ['windie', 'shot-'].join('-');
 
 function createOwnedScreenshotTempPath(
   label,
@@ -269,7 +271,7 @@ describe('local_runtime_bridge RPC handlers', () => {
     const screenshotPath = createOwnedScreenshotTempPath(
       'legacy-prefix-capture',
       'desktop-runtime-screenshots',
-      'windie-shot-',
+      retiredLegacyScreenshotPrefix,
     );
     await fsPromises.mkdir(path.dirname(screenshotPath), { recursive: true, mode: 0o700 });
     await fsPromises.writeFile(screenshotPath, Buffer.from('legacy-prefix-fake-jpeg-bytes'));
@@ -362,8 +364,8 @@ describe('local_runtime_bridge RPC handlers', () => {
 
     const screenshotPath = createOwnedScreenshotTempPath(
       'legacy-capture',
-      'windieos-screenshots',
-      'windie-shot-',
+      retiredLegacyScreenshotDir,
+      retiredLegacyScreenshotPrefix,
     );
     await fsPromises.mkdir(path.dirname(screenshotPath), { recursive: true, mode: 0o700 });
     await fsPromises.writeFile(screenshotPath, Buffer.from('legacy-fake-jpeg-bytes'));
