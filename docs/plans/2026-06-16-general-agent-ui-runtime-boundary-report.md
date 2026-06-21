@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: SDK current-turn applied live-surface trace payload
-  shaping now stays behind `desktopRendererTraceRuntime`, with
-  `useConversationRuntimeProjectionStream` reporting the current-turn
-  projection and derived-side-effect skip state instead of carrying
-  live-surface event labels or projection field names locally.
+- Latest completed slice: chat send lifecycle chat-pill trace payload shaping
+  now stays behind `desktopRendererTraceRuntime`, with
+  `desktopChatSendPreparationRuntime` reporting send lifecycle values instead
+  of carrying trace field names such as `turn_id` and
+  `include_query_screenshot` locally.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -181,6 +181,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   overlay/guard projection, visible-content booleans, text lengths,
   tool-event counts, or stale-skip trace field names inside
   `useConversationRuntimeProjectionStream`.
+  Chat send lifecycle traces now consume `desktopRendererTraceRuntime` helpers
+  instead of carrying send-start, screenshot-decision, query-dispatched,
+  `turn_id`, or `include_query_screenshot` field mapping inside
+  `desktopChatSendPreparationRuntime`.
   Dashboard memory tabs now consume
   `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
@@ -624,6 +628,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Renderer Chat Send Lifecycle Trace Boundary
+
+- Finding: `desktopChatSendPreparationRuntime.ts` owned send lifecycle timing,
+  but still assembled chat-pill trace payload fields such as `turn_id` and
+  `include_query_screenshot` for send-start, screenshot-decision, and
+  query-dispatched diagnostics.
+- Change: added chat send lifecycle payload/logging helpers to
+  `desktopRendererTraceRuntime.ts` and routed send preparation through them so
+  send-prep reports lifecycle values while the trace runtime owns chat-pill
+  trace field naming.
+- Validation: focused renderer trace runtime, chat message sender/runtime
+  boundary coverage, docs listing, stale send-prep trace-field scan, and diff
+  checks.
+- Compatibility: no migration required. Chat send order, pending-turn
+  acceptance, screenshot resource policy, query dispatch payloads, chat-pill
+  trace event shape, IPC, storage, permissions, credentials, hosted backend
+  URLs, and provider policy are unchanged.
 
 ### 2026-06-21 Renderer Current-Turn Applied Trace Boundary
 

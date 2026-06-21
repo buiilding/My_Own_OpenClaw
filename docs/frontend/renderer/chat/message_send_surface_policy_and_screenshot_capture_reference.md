@@ -131,6 +131,12 @@ deferred model selection and sends the prepared SDK turn input through
 stored screenshot refs as legacy resolved payload because replay reuses durable
 transcript metadata rather than composer resources.
 
+Send lifecycle chat-pill traces go through `desktopRendererTraceRuntime.ts`.
+`desktopChatSendPreparationRuntime.ts` reports send-start,
+screenshot-decision, and query-dispatched values through
+`logRendererChatSendLifecycleTrace(...)`; the trace runtime owns
+`turn_id`, `include_query_screenshot`, and chat-pill trace payload field names.
+
 Readable file injection path:
 
 - for each `readableFiles[]` item, renderer submits a required `readable_file`

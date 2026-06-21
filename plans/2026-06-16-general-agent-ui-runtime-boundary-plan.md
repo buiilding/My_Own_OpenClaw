@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Send Lifecycle Trace Boundary
+
+- Finding: `desktopChatSendPreparationRuntime.ts` owned send lifecycle timing,
+  but still assembled chat-pill trace payload fields such as `turn_id` and
+  `include_query_screenshot` for send-start, screenshot-decision, and
+  query-dispatched diagnostics.
+- Change: added chat send lifecycle payload/logging helpers to
+  `desktopRendererTraceRuntime.ts` and routed send preparation through them so
+  send-prep reports lifecycle values while the trace runtime owns chat-pill
+  trace field naming.
+- Validation: focused renderer trace runtime, chat message sender/runtime
+  boundary coverage, docs listing, stale send-prep trace-field scan, and diff
+  checks.
+- Compatibility: no migration required. Chat send order, pending-turn
+  acceptance, screenshot resource policy, query dispatch payloads, chat-pill
+  trace event shape, IPC, storage, permissions, credentials, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Current-Turn Applied Trace Boundary
 
 - Finding: `useConversationRuntimeProjectionStream.ts` delegated current-turn

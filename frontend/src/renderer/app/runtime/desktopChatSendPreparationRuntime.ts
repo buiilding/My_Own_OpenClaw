@@ -27,7 +27,7 @@ import {
 import {
   hasUserMessages,
 } from './desktopChatSendStateRuntime';
-import { logRendererChatPillTrace } from './desktopRendererTraceRuntime';
+import { logRendererChatSendLifecycleTrace } from './desktopRendererTraceRuntime';
 
 type AppConfigLike = Record<string, unknown> | null | undefined;
 
@@ -258,13 +258,13 @@ export async function prepareDesktopChatSend({
   const workspaceBinding = await ensureConversationWorkspaceBinding(conversationRef);
   const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
 
-  logRendererChatPillTrace({
-    source: 'renderer-send',
+  logRendererChatSendLifecycleTrace({
     action: 'send-start',
-    turn_id: turnId,
-    include_query_screenshot: sendLifecycle.shouldCaptureQueryScreenshot,
+    conversationRef,
+    turnId,
+    includeQueryScreenshot: sendLifecycle.shouldCaptureQueryScreenshot,
     reason: sendLifecycle.surfaceReason,
-  }, conversationRef);
+  });
 
   DesktopInteractionRuntimeClient.logUserSentMessage({
     conversationRef,
@@ -280,13 +280,13 @@ export async function prepareDesktopChatSend({
     shouldReturnToChatboxOnSend: sendLifecycle.shouldReturnToChatboxOnSend,
   });
 
-  logRendererChatPillTrace({
-    source: 'renderer-send',
+  logRendererChatSendLifecycleTrace({
     action: 'screenshot-decision',
-    turn_id: turnId,
-    include_query_screenshot: sendLifecycle.shouldCaptureQueryScreenshot,
+    conversationRef,
+    turnId,
+    includeQueryScreenshot: sendLifecycle.shouldCaptureQueryScreenshot,
     reason: sendLifecycle.surfaceReason,
-  }, conversationRef);
+  });
 
   const resources = buildTurnInputResources({
     readableFiles,
@@ -340,11 +340,11 @@ export async function dispatchPreparedDesktopChatTurn(
     model: preparedTurn.model,
     turnRef: preparedTurn.turnRef,
   });
-  logRendererChatPillTrace({
-    source: 'renderer-send',
+  logRendererChatSendLifecycleTrace({
     action: 'query-dispatched',
-    turn_id: preparedTurn.turnId,
-    include_query_screenshot: preparedTurn.sendLifecycle.shouldCaptureQueryScreenshot,
+    conversationRef: preparedTurn.conversationRef,
+    turnId: preparedTurn.turnId,
+    includeQueryScreenshot: preparedTurn.sendLifecycle.shouldCaptureQueryScreenshot,
     reason: preparedTurn.sendLifecycle.surfaceReason,
-  }, preparedTurn.conversationRef);
+  });
 }

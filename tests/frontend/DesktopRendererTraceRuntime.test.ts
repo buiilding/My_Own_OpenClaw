@@ -11,6 +11,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntim
 }));
 
 import {
+  buildRendererChatSendLifecycleTracePayload,
   buildRendererChatPillHitTestTracePayload,
   buildRendererChatPillLifecycleTracePayload,
   buildRendererChatPillResetTracePayload,
@@ -24,6 +25,7 @@ import {
   buildRendererResponseSurfaceSizeLiveTracePayload,
   buildRendererResponseSurfaceSizeTracePayload,
   configureRendererTraceWorkspaceSnapshotResolver,
+  logRendererChatSendLifecycleTrace,
   logRendererChatPillHitTestTrace,
   logRendererChatPillLifecycleTrace,
   logRendererChatPillResetTrace,
@@ -104,6 +106,42 @@ describe('desktopRendererTraceRuntime', () => {
       event: 'typing.show',
       activeConversationRef: 'conv-1',
       workspaceMessageCount: 2,
+    }));
+  });
+
+  test('builds chat send lifecycle trace payloads', () => {
+    expect(buildRendererChatSendLifecycleTracePayload({
+      action: 'query-dispatched',
+      turnId: ' turn-send ',
+      includeQueryScreenshot: true,
+      reason: ' overlay-chatbox ',
+    })).toEqual({
+      source: 'renderer-send',
+      action: 'query-dispatched',
+      turn_id: 'turn-send',
+      include_query_screenshot: true,
+      reason: 'overlay-chatbox',
+    });
+  });
+
+  test('logs chat send lifecycle traces through chat-pill trace channel', () => {
+    setSearch('?debug_chat_pill=1&view=minimal-chat-pill');
+
+    logRendererChatSendLifecycleTrace({
+      action: 'send-start',
+      conversationRef: 'conv-send',
+      turnId: 'turn-send',
+      includeQueryScreenshot: false,
+      reason: 'overlay-chatbox',
+    });
+
+    expect(consoleLog).toHaveBeenCalledWith('[ChatPillTrace][renderer]', expect.objectContaining({
+      view: 'minimal-chat-pill',
+      source: 'renderer-send',
+      action: 'send-start',
+      turn_id: 'turn-send',
+      include_query_screenshot: false,
+      reason: 'overlay-chatbox',
     }));
   });
 

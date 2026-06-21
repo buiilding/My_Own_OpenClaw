@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: move chat send lifecycle chat-pill trace payload shaping into
+  `desktopRendererTraceRuntime` so `desktopChatSendPreparationRuntime` reports
+  send-start, screenshot-decision, and query-dispatched values without owning
+  `turn_id` or `include_query_screenshot` trace fields locally. No migration
+  required.
 - renderer/chat: move SDK current-turn applied live-surface trace payload
   shaping into `desktopRendererTraceRuntime` so
   `useConversationRuntimeProjectionStream` reports the current-turn projection

@@ -1628,13 +1628,25 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts'),
       'utf8',
     );
+    const traceRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts'),
+      'utf8',
+    );
 
     expect(senderHookSource).toContain('desktopChatSendPayloadRuntime');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
     expect(sendPreparationSource).toContain('desktopChatSendStateRuntime');
+    expect(sendPreparationSource).toContain('logRendererChatSendLifecycleTrace');
+    expect(sendPreparationSource).not.toContain('logRendererChatPillTrace');
+    expect(sendPreparationSource).not.toContain("source: 'renderer-send'");
+    expect(sendPreparationSource).not.toContain('turn_id');
+    expect(sendPreparationSource).not.toContain('include_query_screenshot');
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
     expect(sendPreparationSource).not.toContain('chatMessageSenderPayloads');
     expect(sendPreparationSource).not.toContain('chatMessageSenderUtils');
+    expect(traceRuntimeSource).toContain('buildRendererChatSendLifecycleTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererChatSendLifecycleTrace');
+    expect(traceRuntimeSource).toContain('include_query_screenshot');
     expect(payloadRuntimeSource).toContain('normalizeOutgoingPayload');
     expect(payloadRuntimeSource).toContain('normalizeAttachmentFilenames');
     expect(payloadRuntimeSource).not.toContain('features/chat');

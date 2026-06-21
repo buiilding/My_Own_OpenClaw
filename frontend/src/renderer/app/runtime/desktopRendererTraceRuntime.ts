@@ -90,6 +90,15 @@ export type RendererChatPillStateTraceValues = {
   messageCount?: unknown;
 };
 
+export type RendererChatSendLifecycleTraceValues = {
+  source?: string;
+  action: 'send-start' | 'screenshot-decision' | 'query-dispatched';
+  conversationRef?: unknown;
+  turnId?: unknown;
+  includeQueryScreenshot?: boolean;
+  reason?: unknown;
+};
+
 export type RendererChatPillResetTraceValues = {
   source?: string;
   conversationRef?: unknown;
@@ -550,6 +559,27 @@ export function logRendererChatPillStateTrace(
 ): void {
   logRendererChatPillTrace(
     buildRendererChatPillStateTracePayload(values),
+    traceString(values.conversationRef) || null,
+  );
+}
+
+export function buildRendererChatSendLifecycleTracePayload(
+  values: RendererChatSendLifecycleTraceValues,
+): Record<string, unknown> {
+  return {
+    source: traceString(values.source) || 'renderer-send',
+    action: values.action,
+    turn_id: traceString(values.turnId) || null,
+    include_query_screenshot: values.includeQueryScreenshot === true,
+    reason: traceString(values.reason) || null,
+  };
+}
+
+export function logRendererChatSendLifecycleTrace(
+  values: RendererChatSendLifecycleTraceValues,
+): void {
+  logRendererChatPillTrace(
+    buildRendererChatSendLifecycleTracePayload(values),
     traceString(values.conversationRef) || null,
   );
 }
