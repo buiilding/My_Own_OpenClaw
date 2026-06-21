@@ -16,13 +16,10 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
+import * as DesktopPermissionRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient';
 import {
   DesktopPermissionRuntimeClient,
   mapPermissionStatusesByPermissionId,
-  normalizePermissionStatusValue,
-  resolvePermissionManifestResult,
-  resolvePermissionStatusResult,
-  resolvePermissionStatusesResult,
 } from '../../frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient';
 
 describe('DesktopPermissionRuntimeClient', () => {
@@ -30,112 +27,44 @@ describe('DesktopPermissionRuntimeClient', () => {
     mockInvoke.mockReset();
   });
 
-  test('resolves permission command envelopes to value payloads', () => {
-    const status = {
-      permission_id: 'screen_capture',
-      status: 'granted',
-      granted: true,
-    };
-
-    expect(resolvePermissionManifestResult({
-      success: true,
-      data: {
-        manifest_version: 'manifest-v1',
-        permissions: [{ permission_id: 'screen_capture' }],
-        statuses: [status],
-      },
-    })).toEqual({
-      manifest_version: 'manifest-v1',
-      permissions: [{ permission_id: 'screen_capture' }],
-      statuses: [status],
-    });
-
-    expect(resolvePermissionStatusResult({
-      success: true,
-      data: { status },
-    })).toEqual({
-      permission_id: 'screen_capture',
-      status: 'granted',
-      granted: true,
-      reason: '',
-      checked_at: null,
-      details: {},
-    });
-
-    expect(resolvePermissionStatusesResult({
-      success: true,
-      data: { statuses: [status] },
-    })).toEqual([{
-      permission_id: 'screen_capture',
-      status: 'granted',
-      granted: true,
-      reason: '',
-      checked_at: null,
-      details: {},
-    }]);
+  test('keeps raw permission command envelope helpers private to the runtime client', () => {
+    expect(DesktopPermissionRuntimeModule).not.toHaveProperty('normalizePermissionStatusValue');
+    expect(DesktopPermissionRuntimeModule).not.toHaveProperty('resolvePermissionManifestResult');
+    expect(DesktopPermissionRuntimeModule).not.toHaveProperty('resolvePermissionStatusResult');
+    expect(DesktopPermissionRuntimeModule).not.toHaveProperty('resolvePermissionStatusesResult');
   });
 
   test('normalizes permission status values and indexes them by permission id', () => {
-    expect(normalizePermissionStatusValue({
-      permission_id: 'microphone',
-      status: 'needs-action',
-      granted: false,
-      reason: 'Microphone access is missing.',
-      checked_at: '2026-06-19T00:00:00.000Z',
-      details: { source: 'system' },
-    })).toEqual({
-      permission_id: 'microphone',
-      status: 'needs-action',
-      granted: false,
-      reason: 'Microphone access is missing.',
-      checked_at: '2026-06-19T00:00:00.000Z',
-      details: { source: 'system' },
-    });
-
-    expect(normalizePermissionStatusValue({
-      permission_id: 'browser_automation',
-      details: 'unavailable',
-    })).toEqual({
-      permission_id: 'browser_automation',
-      status: 'unknown',
-      granted: false,
-      reason: '',
-      checked_at: null,
-      details: {},
-    });
-
-    expect(normalizePermissionStatusValue({ permission_id: '' })).toBeNull();
     expect(mapPermissionStatusesByPermissionId([
-      { permission_id: 'microphone', granted: true },
+      {
+        permission_id: 'microphone',
+        status: 'needs-action',
+        granted: false,
+        reason: 'Microphone access is missing.',
+        checked_at: '2026-06-19T00:00:00.000Z',
+        details: { source: 'system' },
+      },
+      { permission_id: 'browser_automation', details: 'unavailable' },
       { permission_id: '', granted: true },
       null,
     ])).toEqual({
       microphone: {
         permission_id: 'microphone',
+        status: 'needs-action',
+        granted: false,
+        reason: 'Microphone access is missing.',
+        checked_at: '2026-06-19T00:00:00.000Z',
+        details: { source: 'system' },
+      },
+      browser_automation: {
+        permission_id: 'browser_automation',
         status: 'unknown',
-        granted: true,
+        granted: false,
         reason: '',
         checked_at: null,
         details: {},
       },
     });
-  });
-
-  test('throws normalized permission command errors', () => {
-    expect(() => resolvePermissionManifestResult({
-      success: false,
-      error: ' Permission service unavailable. ',
-    })).toThrow('Permission service unavailable.');
-
-    expect(() => resolvePermissionStatusResult({
-      success: true,
-      data: {},
-    }, 'Failed to run permission probe.')).toThrow('Failed to run permission probe.');
-
-    expect(() => resolvePermissionStatusesResult({
-      success: true,
-      data: { statuses: null },
-    })).toThrow('Failed to recheck permissions.');
   });
 
   test('value helpers call desktop permission channels and return values', async () => {
@@ -201,5 +130,28 @@ describe('DesktopPermissionRuntimeClient', () => {
     expect(mockInvoke).toHaveBeenNthCalledWith(4, 'check-permissions', {
       permissionIds: ['browser_automation'],
     });
+  });
+
+  test('value helpers throw normalized permission command errors', async () => {
+    mockInvoke
+      .mockResolvedValueOnce({
+        success: false,
+        error: ' Permission service unavailable. ',
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: {},
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: { statuses: null },
+      });
+
+    await expect(DesktopPermissionRuntimeClient.listPermissionManifest())
+      .rejects.toThrow('Permission service unavailable.');
+    await expect(DesktopPermissionRuntimeClient.runPermissionProbeStatus('browser_automation'))
+      .rejects.toThrow('Failed to run permission probe.');
+    await expect(DesktopPermissionRuntimeClient.checkPermissionStatuses(['browser_automation']))
+      .rejects.toThrow('Failed to recheck permissions.');
   });
 });

@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Permission Envelope Parser Privacy
+
+- Finding: `DesktopPermissionRuntimeClient` already owned permission command
+  result envelopes for manifest, probe, request, and recheck flows, but still
+  exported raw envelope resolvers and single-status normalization helpers for
+  tests. The permission store only needs the public status-map helper and
+  value-level runtime client methods.
+- Change: made the raw permission command envelope resolvers and single-status
+  normalizer private to the permission runtime client, kept
+  `mapPermissionStatusesByPermissionId(...)` public for permission-store status
+  maps, and updated focused permission tests to exercise command success/error
+  behavior through the public runtime client value methods.
+- Validation: focused permission runtime client, permission store, and renderer
+  app-runtime boundary tests, exact raw-helper export scan, docs list, and diff
+  hygiene.
+- Compatibility/security: no migration required. Permission IPC channel names,
+  manifest/status payload acceptance, permission store status maps, onboarding
+  and settings permission flows, OS permission requests, credentials, hosted
+  backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Client Session Parser Privacy
 
 - Finding: `DesktopClientSessionRuntimeClient` already owned raw

@@ -96,6 +96,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep client-session and IPC transport status normalization
   helpers private to the client session runtime client and test through
   snapshot/value/transport facades. No migration required.
+- frontend/renderer: keep permission command envelope parsing and single-status
+  normalization private to the permission runtime client while preserving the
+  public permission status map helper. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

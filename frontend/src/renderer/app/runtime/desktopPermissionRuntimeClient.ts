@@ -49,7 +49,7 @@ function getResultData(result: unknown, fallbackMessage: string): Record<string,
   throw new Error(getErrorMessage(result, fallbackMessage));
 }
 
-export function normalizePermissionStatusValue(status: unknown): PermissionStatusValue | null {
+function normalizePermissionStatusValue(status: unknown): PermissionStatusValue | null {
   const source = recordOrEmpty(status);
   const permissionId = typeof source.permission_id === 'string' ? source.permission_id : '';
   if (!permissionId) {
@@ -82,11 +82,11 @@ export function mapPermissionStatusesByPermissionId(
   }, {});
 }
 
-export function resolvePermissionManifestResult(result: unknown): unknown {
+function resolvePermissionManifestResult(result: unknown): unknown {
   return getResultData(result, 'Failed to load permission manifest.');
 }
 
-export function resolvePermissionStatusResult(
+function resolvePermissionStatusResult(
   result: unknown,
   fallbackMessage = 'Failed to update permission status.',
 ): unknown {
@@ -101,7 +101,7 @@ export function resolvePermissionStatusResult(
   throw new Error(getErrorMessage(result, fallbackMessage));
 }
 
-export function resolvePermissionStatusesResult(result: unknown): unknown[] {
+function resolvePermissionStatusesResult(result: unknown): unknown[] {
   const data = getResultData(result, 'Failed to recheck permissions.');
   if ('statuses' in data && Array.isArray(data.statuses)) {
     return Object.values(mapPermissionStatusesByPermissionId(data.statuses));

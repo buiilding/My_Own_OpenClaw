@@ -199,10 +199,14 @@ describe('permissionStore', () => {
     expect(clientSource).toContain('INVOKE_CHANNELS.RUN_PERMISSION_PROBE');
     expect(clientSource).toContain('INVOKE_CHANNELS.REQUEST_PERMISSION');
     expect(clientSource).toContain('INVOKE_CHANNELS.CHECK_PERMISSIONS');
-    expect(clientSource).toContain('resolvePermissionManifestResult');
-    expect(clientSource).toContain('resolvePermissionStatusResult');
-    expect(clientSource).toContain('resolvePermissionStatusesResult');
-    expect(clientSource).toContain('normalizePermissionStatusValue');
+    expect(clientSource).toContain('function resolvePermissionManifestResult');
+    expect(clientSource).not.toContain('export function resolvePermissionManifestResult');
+    expect(clientSource).toContain('function resolvePermissionStatusResult');
+    expect(clientSource).not.toContain('export function resolvePermissionStatusResult');
+    expect(clientSource).toContain('function resolvePermissionStatusesResult');
+    expect(clientSource).not.toContain('export function resolvePermissionStatusesResult');
+    expect(clientSource).toContain('function normalizePermissionStatusValue');
+    expect(clientSource).not.toContain('export function normalizePermissionStatusValue');
     expect(clientSource).toContain('mapPermissionStatusesByPermissionId');
   });
 });
