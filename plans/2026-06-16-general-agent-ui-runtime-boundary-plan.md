@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer New Chat Event Facade
+
+- Finding: `desktopChatEvents.js` already owned the renderer-only new-chat DOM
+  event name and dispatch/subscription behavior, but dashboard and chat
+  feature modules still imported the dispatch and subscribe helpers as
+  standalone exports.
+- Change: made the dispatch and subscribe helpers private to the event runtime
+  module, exposed them through `DesktopChatEventsRuntime`, and routed dashboard
+  new-chat requests, chat-interface subscriptions, and focused tests through
+  that facade.
+- Validation: focused desktop chat event, chat-interface wiring, renderer app
+  boundary, exact standalone new-chat helper export/import scan, docs list, and
+  diff hygiene.
+- Compatibility/security: no migration required. The
+  `desktop-runtime:new-chat` event string stays private and unchanged, dispatch
+  return values, unsubscribe no-op behavior, dashboard/chat wiring, IPC,
+  storage, permissions, credentials, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-21 Renderer Chat Surface Selector Facade
 
 - Finding: `desktopChatSurfaceSelectorRuntime.ts` already owned reusable

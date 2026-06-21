@@ -5,7 +5,11 @@
 import { useEffect } from 'react';
 import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
 import { DesktopShortcutRuntimeClient } from '../../../app/runtime/desktopShortcutRuntimeClient';
-import { subscribeDesktopRuntimeNewChatEvent } from '../../../app/runtime/desktopChatEvents';
+import { DesktopChatEventsRuntime } from '../../../app/runtime/desktopChatEvents';
+
+const {
+  subscribeDesktopRuntimeNewChatEvent,
+} = DesktopChatEventsRuntime;
 
 export function useChatInterfaceAudioChunkStream(audioPlayerRef) {
   useEffect(() => {

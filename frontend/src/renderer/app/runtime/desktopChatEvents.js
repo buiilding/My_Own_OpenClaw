@@ -8,7 +8,7 @@ function getDefaultEventTarget() {
   return typeof window !== 'undefined' ? window : null;
 }
 
-export function dispatchDesktopRuntimeNewChatEvent(eventTarget = getDefaultEventTarget()) {
+function dispatchDesktopRuntimeNewChatEvent(eventTarget = getDefaultEventTarget()) {
   if (!eventTarget?.dispatchEvent) {
     return false;
   }
@@ -16,7 +16,7 @@ export function dispatchDesktopRuntimeNewChatEvent(eventTarget = getDefaultEvent
   return true;
 }
 
-export function subscribeDesktopRuntimeNewChatEvent(
+function subscribeDesktopRuntimeNewChatEvent(
   listener,
   eventTarget = getDefaultEventTarget(),
 ) {
@@ -31,3 +31,8 @@ export function subscribeDesktopRuntimeNewChatEvent(
     eventTarget.removeEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT, handleNewChatEvent);
   };
 }
+
+export const DesktopChatEventsRuntime = Object.freeze({
+  dispatchDesktopRuntimeNewChatEvent,
+  subscribeDesktopRuntimeNewChatEvent,
+});

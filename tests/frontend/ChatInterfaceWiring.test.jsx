@@ -12,8 +12,12 @@ import {
 } from '@testing-library/react';
 
 import ChatInterface from '../../frontend/src/renderer/features/chat/components/ChatInterface';
-import { dispatchDesktopRuntimeNewChatEvent } from '../../frontend/src/renderer/app/runtime/desktopChatEvents';
+import { DesktopChatEventsRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatEvents';
 const { selectMockStoreState: mockSelectStoreState } = require('./storeSelectorTestUtils.cjs');
+
+const {
+  dispatchDesktopRuntimeNewChatEvent,
+} = DesktopChatEventsRuntime;
 
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: jest.fn(),

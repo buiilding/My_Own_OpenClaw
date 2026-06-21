@@ -19,8 +19,12 @@ import SearchChatsModal from './SearchChatsModal';
 import { resetActiveChatSession } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
-import { dispatchDesktopRuntimeNewChatEvent } from '../../../app/runtime/desktopChatEvents';
+import { DesktopChatEventsRuntime } from '../../../app/runtime/desktopChatEvents';
 import { requestDashboardLayoutPass } from '../../../app/runtime/desktopDashboardLayoutRuntime';
+
+const {
+  dispatchDesktopRuntimeNewChatEvent,
+} = DesktopChatEventsRuntime;
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {

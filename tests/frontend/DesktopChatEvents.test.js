@@ -3,9 +3,13 @@
  */
 
 import {
+  DesktopChatEventsRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatEvents';
+
+const {
   dispatchDesktopRuntimeNewChatEvent,
   subscribeDesktopRuntimeNewChatEvent,
-} from '../../frontend/src/renderer/app/runtime/desktopChatEvents';
+} = DesktopChatEventsRuntime;
 
 describe('desktopChatEvents', () => {
   test('dispatchDesktopRuntimeNewChatEvent emits the renderer new-chat event', () => {

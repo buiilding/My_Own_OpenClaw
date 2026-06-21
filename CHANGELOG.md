@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose renderer-only new-chat event dispatch and
+  subscription through `DesktopChatEventsRuntime` instead of standalone helper
+  exports, keeping the private browser event contract behind the renderer
+  app-runtime facade. No migration required.
 - frontend/renderer: expose shared chat interface and live-turn surface
   projection helpers through `DesktopChatSurfaceSelectorRuntime` instead of
   standalone helper exports, keeping reusable chat surface selector rules behind

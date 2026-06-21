@@ -713,10 +713,15 @@ describe('renderer app runtime boundary', () => {
 
     expect(chatEventsSource).toContain('dispatchDesktopRuntimeNewChatEvent');
     expect(chatEventsSource).toContain('subscribeDesktopRuntimeNewChatEvent');
+    expect(chatEventsSource).toContain('export const DesktopChatEventsRuntime = Object.freeze');
     expect(chatEventsSource).toContain('DESKTOP_RUNTIME_NEW_CHAT_EVENT');
     expect(chatEventsSource).not.toContain('export const DESKTOP_RUNTIME_NEW_CHAT_EVENT');
+    expect(chatEventsSource).not.toContain('export function dispatchDesktopRuntimeNewChatEvent');
+    expect(chatEventsSource).not.toContain('export function subscribeDesktopRuntimeNewChatEvent');
+    expect(dashboardShellSource).toContain('DesktopChatEventsRuntime');
     expect(dashboardShellSource).toContain('dispatchDesktopRuntimeNewChatEvent');
     expect(dashboardShellSource).not.toContain('new Event(DESKTOP_RUNTIME_NEW_CHAT_EVENT)');
+    expect(chatBindingsSource).toContain('DesktopChatEventsRuntime');
     expect(chatBindingsSource).toContain('subscribeDesktopRuntimeNewChatEvent');
     expect(chatBindingsSource).not.toContain('window.addEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT');
     expect(chatBindingsSource).not.toContain('window.removeEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT');

@@ -51,9 +51,9 @@ Global exclusivity guard:
 Sidebar navigation actions:
 
 - `New chat` calls
-  `desktopChatEvents.dispatchDesktopRuntimeNewChatEvent(...)`, which dispatches
-  the renderer-only `desktop-runtime:new-chat` browser event for the mounted
-  chat surface.
+  `DesktopChatEventsRuntime.dispatchDesktopRuntimeNewChatEvent(...)`, which
+  dispatches the renderer-only `desktop-runtime:new-chat` browser event for the
+  mounted chat surface.
 - `Search chats` opens modal and resets search runtime state.
 - `Memory` opens memory modal.
 - `Usage` opens usage modal.
