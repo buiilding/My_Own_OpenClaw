@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/renderer: describe onboarding permission focus refresh with generic
+  desktop app wording instead of WindieOS-specific focus copy. No migration
+  required.
 - tests/main: build retired local-runtime screenshot temp namespace fixtures
   from neutralized parts instead of carrying direct WindieOS legacy literals.
   No migration required.

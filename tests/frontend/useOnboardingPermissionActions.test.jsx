@@ -127,7 +127,7 @@ describe('useOnboardingPermissionActions', () => {
     expect(mockRunPermissionProbe).toHaveBeenCalledTimes(1);
   });
 
-  test('forces a permission recheck when WindieOS regains focus after opening macOS settings', async () => {
+  test('forces a permission recheck when the desktop app regains focus after opening macOS settings', async () => {
     mockRequestPermission.mockResolvedValue({
       permission_id: 'screen_capture',
       status: 'needs-action',

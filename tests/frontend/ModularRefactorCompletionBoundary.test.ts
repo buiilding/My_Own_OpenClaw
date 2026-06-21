@@ -462,6 +462,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('Start Sample Desktop');
   });
 
+  test('renderer onboarding permission action tests keep focus wording product-neutral', async () => {
+    const source = await read('tests/frontend/useOnboardingPermissionActions.test.jsx');
+
+    expect(source).not.toContain('WindieOS regains focus');
+    expect(source).toContain('desktop app regains focus');
+  });
+
   test('main permission workspace tests keep path fixtures product-neutral', async () => {
     const source = await Promise.all([
       read('tests/frontend/PermissionIpcRuntime.test.cjs'),

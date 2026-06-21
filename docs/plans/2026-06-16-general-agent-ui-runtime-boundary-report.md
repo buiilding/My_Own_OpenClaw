@@ -11,10 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `799a950d3` (`test(sdk): neutralize local runtime launch env fixtures`)
-- Latest completed slice: generic local-runtime bridge screenshot tests now
-  build retired legacy screenshot temp namespace values from parts instead of
-  carrying direct WindieOS legacy literals.
+- Latest inspected plan checkpoint: `f21a63c15` (`test(main): neutralize screenshot legacy literals`)
+- Latest completed slice: renderer onboarding permission action tests now use
+  generic desktop app focus wording instead of WindieOS-specific focus copy.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -60,6 +59,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Generic local-runtime bridge screenshot tests preserve retired namespace
   rejection coverage while avoiding direct legacy WindieOS screenshot temp
   literals.
+  Generic onboarding permission action tests describe focus-driven permission
+  refresh as desktop app focus behavior while real product identity remains
+  skin/config owned.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real

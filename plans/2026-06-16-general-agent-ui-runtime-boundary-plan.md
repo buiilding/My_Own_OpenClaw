@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Onboarding Focus Fixture Wording Cleanup
+
+- Finding: `useOnboardingPermissionActions` coverage described the generic
+  focus-driven permission recheck as WindieOS regaining focus, even though the
+  hook responds to the desktop app/window focus event.
+- Change: renamed the test to use desktop app focus wording and added a
+  modular completion guard for the retired phrase.
+- Validation: focused onboarding permission action and modular boundary tests
+  plus exact stale focus phrase scan.
+- Compatibility: no migration required. Permission probing behavior,
+  onboarding wait loops, IPC channels, storage, credentials, local authority,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Local-Runtime Screenshot Legacy Fixture Literal Cleanup
 
 - Finding: `LocalRuntimeBridge.rpc` still carried direct legacy WindieOS
