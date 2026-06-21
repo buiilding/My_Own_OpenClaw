@@ -18,7 +18,13 @@ export * from './runtime/DefaultTurnResourceResolvers.js';
 export * from './runtime/ConversationContinuityService.js';
 export * from './runtime/AgentDefinition.js';
 export * from './runtime/SdkRuntimeCommands.js';
-export * from './runtime/AgentStreamEvents.js';
+export type {
+  AgentStreamEvent,
+  AgentStreamState,
+  AgentToolAttachment,
+  AgentToolCall,
+  AgentToolOutput,
+} from './runtime/AgentStreamEvents.js';
 export * from './runtime/AgentChatSession.js';
 export * from './runtime/Agent.js';
 export * from './runtime/AgentClient.js';

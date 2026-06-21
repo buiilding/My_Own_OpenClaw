@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: stop exporting `AgentStreamEvents` mapper and tool-output dedupe helper
+  functions from the package root while keeping `AgentStreamEvent` and related
+  public stream event types available. No migration required for first-party
+  callers; SDK internals and focused tests import helpers from their owner
+  module.
 - sdk: stop exporting the internal `shouldIncludeBuiltinTool` matcher from the
   package root while keeping `agentBuiltins` and builtin selection types public.
   No migration required for first-party callers; SDK internals import the

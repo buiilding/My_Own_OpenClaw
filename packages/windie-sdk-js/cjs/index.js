@@ -34,7 +34,6 @@ __exportStar(require("./runtime/DefaultTurnResourceResolvers.js"), exports);
 __exportStar(require("./runtime/ConversationContinuityService.js"), exports);
 __exportStar(require("./runtime/AgentDefinition.js"), exports);
 __exportStar(require("./runtime/SdkRuntimeCommands.js"), exports);
-__exportStar(require("./runtime/AgentStreamEvents.js"), exports);
 __exportStar(require("./runtime/AgentChatSession.js"), exports);
 __exportStar(require("./runtime/Agent.js"), exports);
 __exportStar(require("./runtime/AgentClient.js"), exports);

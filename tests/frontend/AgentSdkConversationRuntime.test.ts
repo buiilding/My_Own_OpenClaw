@@ -15,15 +15,17 @@ import {
   InMemoryConversationStore,
   reduceConversationRuntimeState,
   SdkConversationRuntime,
-  toAgentStreamEvents,
   ToolExecutionCoordinator,
-  toolOutputStreamKey,
-  toolOutputStreamKeys,
   type AgentRuntimeTransport,
   type ConversationEvent,
   type AgentRuntimeEvent,
   type AgentStreamEvent,
 } from '../../packages/windie-sdk-js/src';
+import {
+  toAgentStreamEvents,
+  toolOutputStreamKey,
+  toolOutputStreamKeys,
+} from '../../packages/windie-sdk-js/src/runtime/AgentStreamEvents';
 import {
   normalizeBackendEventToConversationEvent as normalizeBackendEventToConversationEventRaw,
 } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';

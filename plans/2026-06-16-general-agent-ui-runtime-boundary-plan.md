@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 SDK Stream Event Helper Package-Root Narrowing
+
+- Finding: the package root exported the entire `AgentStreamEvents` module,
+  including mapper and tool-output dedupe helpers that are used by `Agent` and
+  `AgentChatSession` internals rather than normal SDK callers.
+- Change: kept public stream event types available from the package root,
+  removed the stream helper functions from root exports, routed focused
+  conversation-runtime tests to the owner module, and added package-boundary
+  coverage so those helpers stay owner-module-only.
+- Validation: focused SDK package-boundary, conversation-runtime, and
+  AgentClient tests plus CJS root smoke checks, docs listing, stale root-export
+  scans, and diff checks.
+- Compatibility/security: no migration required for first-party callers.
+  `agent.stream(...)` and `chat.stream(...)` output shapes, tool-output
+  attachment projection, dedupe behavior, local-runtime execution, hosted
+  backend payloads, IPC, storage, credentials, and provider policy are
+  unchanged.
+
 ### 2026-06-21 SDK Builtin Matcher Package-Root Narrowing
 
 - Finding: `shouldIncludeBuiltinTool(...)` is an `AgentClient`
