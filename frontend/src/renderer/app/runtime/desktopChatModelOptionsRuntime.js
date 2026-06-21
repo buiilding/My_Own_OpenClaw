@@ -2,8 +2,12 @@
  * Provides renderer chat model/provider option projection for presentation surfaces.
  */
 
-import { formatProviderDisplayLabel } from '../skin/desktopRuntimeConfig';
+import { DesktopRuntimeConfig } from '../skin/desktopRuntimeConfig';
 import { DesktopModelSelectionRuntime } from './desktopModelSelectionRuntime';
+
+const {
+  formatProviderDisplayLabel,
+} = DesktopRuntimeConfig;
 
 const REASONING_MODE_ORDER = ['none', 'low', 'medium', 'high', 'xhigh'];
 const REASONING_MODE_LABELS = Object.freeze({

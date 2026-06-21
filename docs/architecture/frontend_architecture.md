@@ -415,6 +415,9 @@ Primary modules:
     runtime labels for the active renderer skin.
 - `renderer/app/skin/desktopRuntimeSkin.js`:
   - Generic renderer-facing facade over the active chat desktop UI skin.
+  - Exposes `desktopRuntimeSkin` plus helper access through
+    `DesktopRuntimeSkin` rather than re-exporting product skin helpers
+    directly.
   - Settings, memory, onboarding, and chat feature components should read
     product copy, app-specific tool catalog choices, destructive-action labels,
     panel wording, empty-state text, and renderer-local runtime fallback
@@ -425,6 +428,8 @@ Primary modules:
   - Generic renderer-facing facade over active model selection, provider
     credential, provider display, storage-key, and appearance-theme defaults
     supplied by the WindieOS chat desktop UI skin/config files.
+  - Exposes those defaults and formatters through `DesktopRuntimeConfig` rather
+    than passive re-exports from product skin/config modules.
   - Config storage, dashboard settings helpers, model cards, and chat model
     labels should import this facade instead of individual product skin/config
     modules.

@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
-  formatToolAcceptanceRuntimeSummary,
+  DesktopRuntimeSkin,
   desktopRuntimeSkin,
 } from '../../../../../app/skin/desktopRuntimeSkin';
 import {
@@ -14,6 +14,9 @@ import {
 import { SettingsToggle } from './settingsControls';
 
 const agentSettingsSkin = desktopRuntimeSkin.settings.agent;
+const {
+  formatToolAcceptanceRuntimeSummary,
+} = DesktopRuntimeSkin;
 
 function AgentSettingsTab({ config, onConfigChange }) {
   const [manifestStatus, setManifestStatus] = useState(

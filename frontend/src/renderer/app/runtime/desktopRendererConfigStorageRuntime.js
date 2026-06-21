@@ -3,10 +3,7 @@
  */
 
 import { DesktopShortcutRuntimeClient } from './desktopShortcutRuntimeClient';
-import {
-  DEFAULT_MODEL_SELECTION,
-  RENDERER_STORAGE_KEYS,
-} from '../skin/desktopRuntimeConfig';
+import { DesktopRuntimeConfig } from '../skin/desktopRuntimeConfig';
 import {
   DesktopAppearanceThemeRuntime,
 } from './desktopAppearanceThemeRuntime';
@@ -14,6 +11,10 @@ import {
   DesktopProviderCredentialRuntime,
 } from './desktopProviderCredentialRuntime';
 
+const {
+  DEFAULT_MODEL_SELECTION,
+  RENDERER_STORAGE_KEYS,
+} = DesktopRuntimeConfig;
 const {
   normalizeAppearanceMode,
   normalizeAppearanceTheme,

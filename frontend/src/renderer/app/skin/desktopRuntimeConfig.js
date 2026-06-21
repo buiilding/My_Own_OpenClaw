@@ -2,14 +2,24 @@
  * Exposes active renderer skin config through the generic chat desktop UI facade.
  */
 
-export { DEFAULT_MODEL_SELECTION } from './modelSelectionDefaults';
-export {
+import { DEFAULT_MODEL_SELECTION } from './modelSelectionDefaults';
+import {
   DEFAULT_PROVIDER_API_KEYS,
   PROVIDER_API_KEY_SPECS,
 } from './providerCredentialSettings';
-export {
+import {
   formatProviderDisplayLabel,
   resolveProviderModelDisplay,
 } from './providerModelDisplaySettings';
-export { DEFAULT_APPEARANCE_THEME } from './appearanceSettings';
-export { RENDERER_STORAGE_KEYS } from './storageSettings';
+import { DEFAULT_APPEARANCE_THEME } from './appearanceSettings';
+import { RENDERER_STORAGE_KEYS } from './storageSettings';
+
+export const DesktopRuntimeConfig = Object.freeze({
+  DEFAULT_MODEL_SELECTION,
+  DEFAULT_PROVIDER_API_KEYS,
+  PROVIDER_API_KEY_SPECS,
+  formatProviderDisplayLabel,
+  resolveProviderModelDisplay,
+  DEFAULT_APPEARANCE_THEME,
+  RENDERER_STORAGE_KEYS,
+});

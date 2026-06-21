@@ -2,7 +2,11 @@
  * Provides dashboard model-card presentation projection for the renderer app-runtime.
  */
 
-import { resolveProviderModelDisplay } from '../skin/desktopRuntimeConfig';
+import { DesktopRuntimeConfig } from '../skin/desktopRuntimeConfig';
+
+const {
+  resolveProviderModelDisplay,
+} = DesktopRuntimeConfig;
 
 function buildModelDescription(model) {
   if (typeof model?.description === 'string' && model.description.trim()) {

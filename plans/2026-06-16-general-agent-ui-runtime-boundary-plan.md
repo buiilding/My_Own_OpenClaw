@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Skin Config Facade Objects
+
+- Finding: `desktopRuntimeConfig.js` and `desktopRuntimeSkin.js` already owned
+  the split between generic renderer UI callers and the active WindieOS skin,
+  but the facade modules still exposed active config and helper values through
+  passive re-export lists.
+- Change: exposed active model/provider/storage/appearance defaults through
+  `DesktopRuntimeConfig`, exposed skin helper access through
+  `DesktopRuntimeSkin`, and routed renderer config, model, provider,
+  permission, memory, and settings callers through those facade objects while
+  keeping `desktopRuntimeSkin` as the active skin copy object.
+- Validation: focused renderer skin/config, config storage, settings, provider
+  credential, model card/options, appearance, memory preference, and permission
+  onboarding tests plus targeted lint, stale re-export/import scans, docs
+  validation, and diff checks.
+- Compatibility/security: no migration required. This is renderer-internal
+  facade cleanup only; persisted storage keys, default values, provider secret
+  stripping, product copy, IPC, credentials, provider policy, hosted URLs, and
+  local execution behavior are unchanged.
+
 ### 2026-06-21 Renderer Conversation Contract Value Facade
 
 - Finding: `desktopConversationRuntimeContracts.ts` already narrowed renderer

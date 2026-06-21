@@ -105,8 +105,10 @@ describe('renderer skin/config boundary', () => {
     expect(skinSource).toContain('web_search');
     expect(skinSource).toContain('run_shell_command');
     expect(skinSource).toContain('requireUserMessage');
-    expect(skinFacadeSource).toContain('windieDesktopSkin as desktopRuntimeSkin');
+    expect(skinFacadeSource).toContain('export const desktopRuntimeSkin = windieDesktopSkin');
+    expect(skinFacadeSource).toContain('export const DesktopRuntimeSkin = Object.freeze');
     expect(skinFacadeSource).toContain("from './windieDesktopSkin'");
+    expect(skinFacadeSource).not.toContain('export {');
   });
 
   test('renderer brand icon asset lives in the renderer skin stylesheet', () => {
@@ -305,6 +307,8 @@ describe('renderer skin/config boundary', () => {
     const credentialWorkflowSource = fs.readFileSync(credentialWorkflowPath, 'utf8');
 
     expect(configFacadeSource).toContain("from './providerCredentialSettings'");
+    expect(configFacadeSource).toContain('export const DesktopRuntimeConfig = Object.freeze');
+    expect(configFacadeSource).not.toContain('export {');
     expect(providerSkinSource).toContain('DEFAULT_PROVIDER_API_KEYS');
     expect(providerSkinSource).toContain('PROVIDER_API_KEY_SPECS');
     expect(providerPropTypesSource).toContain('PropTypes.objectOf(providerApiKeyEntryPropType)');
@@ -343,6 +347,7 @@ describe('renderer skin/config boundary', () => {
     const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
 
     expect(configFacadeSource).toContain("from './modelSelectionDefaults'");
+    expect(configFacadeSource).toContain('DesktopRuntimeConfig');
     expect(modelDefaultsSource).toContain('DEFAULT_MODEL_SELECTION');
     expect(modelDefaultsSource).toContain("provider: 'openai'");
     expect(modelDefaultsSource).toContain("modelId: 'gpt-5.4@@gpt-5-4-none-thinking'");
@@ -385,6 +390,7 @@ describe('renderer skin/config boundary', () => {
     );
 
     expect(configFacadeSource).toContain("from './providerModelDisplaySettings'");
+    expect(configFacadeSource).toContain('DesktopRuntimeConfig');
     expect(providerDisplaySource).toContain('PROVIDER_MODEL_DISPLAY_FALLBACKS');
     expect(providerDisplaySource).toContain('PROVIDER_LABEL_OVERRIDES');
     expect(providerDisplaySource).toContain('OpenAI flagship model family');
@@ -420,6 +426,7 @@ describe('renderer skin/config boundary', () => {
     ].map((sourcePath) => fs.readFileSync(sourcePath, 'utf8'));
 
     expect(configFacadeSource).toContain("from './storageSettings'");
+    expect(configFacadeSource).toContain('DesktopRuntimeConfig');
     expect(storageSettingsSource).toContain('RENDERER_STORAGE_KEYS');
     expect(storageSettingsSource).toContain('windieos-config');
     expect(storageSettingsSource).toContain('windieos-memory-retrieval-injection-enabled');
@@ -459,6 +466,7 @@ describe('renderer skin/config boundary', () => {
     const appearanceTabSource = read('AppearanceSettingsTab.jsx');
 
     expect(configFacadeSource).toContain("from './appearanceSettings'");
+    expect(configFacadeSource).toContain('DesktopRuntimeConfig');
     expect(appearanceSettingsSource).toContain('DEFAULT_APPEARANCE_THEME');
     expect(appearanceSettingsSource).toContain("accent: '#339CFF'");
     expect(appearanceThemeRuntimeSource).toContain('desktopRuntimeConfig');

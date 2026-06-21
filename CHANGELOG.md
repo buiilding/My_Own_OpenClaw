@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose active skin config through `DesktopRuntimeConfig`
+  and skin helper access through `DesktopRuntimeSkin` instead of passive
+  `desktopRuntimeConfig`/`desktopRuntimeSkin` re-export barrels, keeping
+  WindieOS-specific defaults and copy behind explicit renderer skin facades. No
+  migration required.
 - frontend/renderer: expose concrete SDK conversation contract values through
   `DesktopConversationRuntimeContracts` instead of named value re-exports,
   preserving renderer type exports while keeping SDK commands, continuity,

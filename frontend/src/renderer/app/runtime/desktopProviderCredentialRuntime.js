@@ -2,10 +2,12 @@
  * Owns renderer provider credential projection and persistence normalization.
  */
 
-import {
+import { DesktopRuntimeConfig } from '../skin/desktopRuntimeConfig';
+
+const {
   DEFAULT_PROVIDER_API_KEYS,
   PROVIDER_API_KEY_SPECS,
-} from '../skin/desktopRuntimeConfig';
+} = DesktopRuntimeConfig;
 
 function isPlainRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);

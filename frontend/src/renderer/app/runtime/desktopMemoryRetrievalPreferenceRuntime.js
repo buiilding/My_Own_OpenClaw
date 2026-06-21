@@ -2,7 +2,11 @@
  * Owns renderer memory retrieval preference persistence.
  */
 
-import { RENDERER_STORAGE_KEYS } from '../skin/desktopRuntimeConfig';
+import { DesktopRuntimeConfig } from '../skin/desktopRuntimeConfig';
+
+const {
+  RENDERER_STORAGE_KEYS,
+} = DesktopRuntimeConfig;
 
 const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = RENDERER_STORAGE_KEYS.memoryRetrievalInjection;
 

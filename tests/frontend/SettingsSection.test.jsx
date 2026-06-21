@@ -172,9 +172,11 @@ jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({
       },
     },
   },
-  formatToolAcceptanceRuntimeSummary: (acceptedTool) => (
-    `${acceptedTool.name || 'tool'} uses ${acceptedTool.argument_resolution || 'passthrough'}`
-  ),
+  DesktopRuntimeSkin: {
+    formatToolAcceptanceRuntimeSummary: (acceptedTool) => (
+      `${acceptedTool.name || 'tool'} uses ${acceptedTool.argument_resolution || 'passthrough'}`
+    ),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient', () => ({

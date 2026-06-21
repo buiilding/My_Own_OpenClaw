@@ -2,7 +2,11 @@
  * Owns renderer appearance-theme projection and fallback normalization.
  */
 
-import { DEFAULT_APPEARANCE_THEME } from '../skin/desktopRuntimeConfig';
+import { DesktopRuntimeConfig } from '../skin/desktopRuntimeConfig';
+
+const {
+  DEFAULT_APPEARANCE_THEME,
+} = DesktopRuntimeConfig;
 
 const VALID_APPEARANCE_MODES = new Set(['light', 'dark', 'system']);
 const HEX_COLOR_PATTERN = /^#[0-9A-F]{6}$/i;

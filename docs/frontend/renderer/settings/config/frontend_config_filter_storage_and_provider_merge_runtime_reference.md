@@ -90,7 +90,8 @@ Storage compatibility note:
 Default config surface:
 
 The generic storage runtime assembles defaults through the
-`desktopRuntimeConfig` facade. Concrete provider/model defaults, provider key
+`desktopRuntimeConfig` facade and imports them from the
+`DesktopRuntimeConfig` object. Concrete provider/model defaults, provider key
 specs, and appearance palettes live in the active renderer skin so another
 desktop skin can replace them without changing
 `desktopRendererConfigStorageRuntime.js`.

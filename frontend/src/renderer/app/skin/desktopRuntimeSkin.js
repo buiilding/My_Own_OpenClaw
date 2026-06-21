@@ -2,7 +2,14 @@
  * Exposes the active renderer skin through the generic chat desktop UI facade.
  */
 
-export {
+import {
   formatToolAcceptanceRuntimeSummary,
-  windieDesktopSkin as desktopRuntimeSkin,
+  windieDesktopSkin,
 } from './windieDesktopSkin';
+
+export const desktopRuntimeSkin = windieDesktopSkin;
+
+export const DesktopRuntimeSkin = Object.freeze({
+  desktopRuntimeSkin,
+  formatToolAcceptanceRuntimeSummary,
+});
