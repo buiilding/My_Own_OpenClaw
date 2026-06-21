@@ -22,7 +22,7 @@ import {
   isVisibleResponseOverlayMessage,
   normalizeThinkingText,
 } from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
-import { resolveChatPillViewIntent } from '../../../app/runtime/desktopChatPillSessionRuntime';
+import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import {
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
@@ -35,6 +35,9 @@ const {
   resolveResponseOverlayDismissalTarget,
   resolveSdkCurrentTurnPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
+const {
+  resolveChatPillViewIntent,
+} = DesktopChatPillSessionRuntime;
 
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
   return buildCurrentTurnMessagesFromProjection(currentTurnProjection)

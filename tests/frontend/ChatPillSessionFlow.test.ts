@@ -2,12 +2,14 @@
  * Covers chat pill session flow. behavior in the frontend test suite.
  */
 
-import {
-  resolveChatPillSendLifecycle,
-  resolveChatPillViewIntent,
-} from '../../frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime';
+import { DesktopChatPillSessionRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime';
 
 describe('desktopChatPillSessionRuntime', () => {
+  const {
+    resolveChatPillSendLifecycle,
+    resolveChatPillViewIntent,
+  } = DesktopChatPillSessionRuntime;
+
   test('resolves overlay-chatbox send lifecycle with screenshot capture', () => {
     expect(resolveChatPillSendLifecycle({
       senderSurface: 'overlay-chatbox',

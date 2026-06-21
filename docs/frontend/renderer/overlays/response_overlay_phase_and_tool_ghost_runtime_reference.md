@@ -62,7 +62,7 @@ Current-turn entry construction:
 Selection logic:
 
 1. `useCurrentTurnPresentationState(...)` resolves loop state and latest visible assistant reply for compact/awaiting behavior.
-2. `resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
+2. `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
 3. `showResponse` is true when current-turn entry list is non-empty and not dismissed, including tool/progress entries.
 4. during `preflight` / `awaiting` lifecycle only, a still-mounted prior visible response with the same entry id is treated as stale so the typing indicator can appear immediately for the new turn before the response window's local message store catches up.
 
@@ -123,7 +123,7 @@ Contract ownership:
   - overlay layout mode (`hidden` / `awaiting-typing` / `response`)
 - `desktopCurrentTurnMessageRuntime` owns response-overlay row classification:
   visible entries, progress entries, source-tagged entries, and closeability.
-- `resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
+- `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
 - `DesktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
   owns SDK presentation-state reduction for overlay intent, lifecycle,
   awaiting anchors, and visible response entries.

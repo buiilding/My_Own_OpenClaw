@@ -50,6 +50,10 @@ Surface consequences:
 - overlay sender may call `show-chatbox { focus:false }` when policy resolves true.
 - overlay `ChatBox` exposes that gate as the camera toggle in the minimal pill; the button only flips `include_query_screenshot` and does not capture immediately.
 
+`DesktopChatPillSessionRuntime.resolveChatPillSendLifecycle(...)` owns the
+sender-surface lifecycle projection and keeps the raw chat-pill send/view
+helpers private behind the renderer app-runtime facade.
+
 ## Outgoing Payload Contract
 
 `sendMessage(payload)` accepts:

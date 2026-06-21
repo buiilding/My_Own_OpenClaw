@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose chat-pill send lifecycle and response-overlay view
+  intent through `DesktopChatPillSessionRuntime` instead of standalone helper
+  exports, keeping minimal-pill session rules behind the renderer app-runtime
+  facade. No migration required.
 - frontend/renderer: expose stream-phase awaiting-reply checks through
   `DesktopStreamPhaseRuntime` instead of a standalone helper export, keeping
   response-overlay phase predicates behind the renderer app-runtime facade. No

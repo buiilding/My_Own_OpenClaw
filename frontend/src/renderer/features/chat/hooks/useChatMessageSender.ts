@@ -15,7 +15,7 @@ import { useChatCommonActions } from './useChatCommonActions';
 import {
   type OutgoingUserMessagePayload,
 } from '../../../app/runtime/desktopChatSendPayloadRuntime';
-import { resolveChatPillSendLifecycle } from '../../../app/runtime/desktopChatPillSessionRuntime';
+import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import {
   dispatchPreparedDesktopChatTurn,
   prepareDesktopChatSend,
@@ -23,6 +23,9 @@ import {
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const chatSkin = desktopRuntimeSkin.chat;
+const {
+  resolveChatPillSendLifecycle,
+} = DesktopChatPillSessionRuntime;
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;

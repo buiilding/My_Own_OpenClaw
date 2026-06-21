@@ -38,7 +38,7 @@ function findLatestChatTurnId(messages: TurnRefMessage[]): string | null {
   return null;
 }
 
-export function resolveChatPillSendLifecycle({
+function resolveChatPillSendLifecycle({
   senderSurface = 'overlay-chatbox',
   returnToChatboxPolicy,
   includeQueryScreenshot,
@@ -68,7 +68,7 @@ export function resolveChatPillSendLifecycle({
   };
 }
 
-export function resolveChatPillViewIntent({
+function resolveChatPillViewIntent({
   messages,
   currentTurnPresentationState,
   responseOverlayEntries,
@@ -98,3 +98,8 @@ export function resolveChatPillViewIntent({
     ),
   };
 }
+
+export const DesktopChatPillSessionRuntime = Object.freeze({
+  resolveChatPillSendLifecycle,
+  resolveChatPillViewIntent,
+});

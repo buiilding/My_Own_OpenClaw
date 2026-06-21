@@ -23211,3 +23211,19 @@ Each completed slice should report:
   chat-loop awaiting/active-response selection, renderer markup, IPC payloads,
   storage, local-runtime execution, provider policy, backend behavior, and
   trust boundaries are unchanged.
+
+### 2026-06-21 renderer chat pill session facade helper privacy
+
+- Finding: chat-pill send lifecycle and response-overlay view intent rules
+  lived in the renderer app runtime, but chat send, overlay view-model, and
+  focused tests still imported those helpers as standalone exports.
+- Change: exposed chat-pill session behavior through
+  `DesktopChatPillSessionRuntime` and kept `resolveChatPillSendLifecycle` and
+  `resolveChatPillViewIntent` private to `desktopChatPillSessionRuntime`.
+- Validation: focused chat-pill session, chat sender, renderer app-runtime
+  boundary tests, targeted renderer ESLint, exact source/doc scans, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Sender-surface screenshot gating,
+  return-to-chatbox policy, response-overlay view intent, turn-id selection,
+  renderer markup, IPC payloads, storage, local-runtime execution, provider
+  policy, backend behavior, and trust boundaries are unchanged.
