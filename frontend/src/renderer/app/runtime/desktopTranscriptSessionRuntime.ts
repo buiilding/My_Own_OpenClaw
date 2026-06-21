@@ -4,4 +4,4 @@
 
 import { createTranscriptSessionRuntime } from '../../infrastructure/transcript/transcriptSessionRuntime';
 
-export const desktopTranscriptSessionRuntime = createTranscriptSessionRuntime();
+export const DesktopTranscriptSessionRuntime = createTranscriptSessionRuntime();

@@ -3,17 +3,17 @@
  */
 
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import { desktopTranscriptSessionRuntime } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime';
+import { DesktopTranscriptSessionRuntime } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime', () => ({
-  desktopTranscriptSessionRuntime: {
+  DesktopTranscriptSessionRuntime: {
     applyTranscriptSessionUpdate: jest.fn(),
     getActiveConversationRef: jest.fn(),
     getTranscriptSessionInfo: jest.fn(),
   },
 }));
 
-const mockApplyTranscriptSessionUpdate = desktopTranscriptSessionRuntime.applyTranscriptSessionUpdate as jest.Mock;
+const mockApplyTranscriptSessionUpdate = DesktopTranscriptSessionRuntime.applyTranscriptSessionUpdate as jest.Mock;
 
 describe('DesktopTranscriptSessionRuntimeClient', () => {
   beforeEach(() => {

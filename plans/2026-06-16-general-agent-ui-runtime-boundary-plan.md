@@ -24371,3 +24371,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Trace event names, trace payload
   fields, renderer markup, IPC forwarding, storage, local-runtime execution,
   provider policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer transcript session singleton facade naming
+
+- Finding: the transcript-session runtime singleton lived in the renderer app
+  runtime, but its export used the lowercase `desktopTranscriptSessionRuntime`
+  name while neighboring app-runtime owners use named facade exports.
+- Change: exposed the singleton as `DesktopTranscriptSessionRuntime` and kept
+  `DesktopTranscriptSessionRuntimeClient` as the feature-facing transcript
+  session facade.
+- Validation: focused transcript-session runtime client, renderer app-runtime
+  boundary tests, targeted renderer ESLint, exact source/doc scans, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Transcript session state, IPC sync,
+  storage, local-runtime execution, provider policy, backend behavior, and
+  trust boundaries are unchanged.

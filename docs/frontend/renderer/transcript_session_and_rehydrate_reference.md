@@ -77,7 +77,7 @@ Session info is persisted/emitted only when changed:
 
 Responsibility split:
 
-- `transcriptSessionRuntime.ts` owns session-state bootstrap, storage persistence, browser/main-process sync, and session resolution helpers.
+- `DesktopTranscriptSessionRuntime` owns session-state bootstrap, storage persistence, browser/main-process sync, and session resolution helpers.
 - `DesktopTranscriptSessionRuntimeClient` is the renderer facade for active conversation/user identity.
 - `DesktopConversationContinuityService` owns replay, rewrite, and rehydrate orchestration through SDK store commands.
 - `DesktopConversationReplayRuntime` owns replay row selection, replay context

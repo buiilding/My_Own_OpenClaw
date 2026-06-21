@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose the transcript session runtime singleton as
+  `DesktopTranscriptSessionRuntime` instead of a lowercase export, keeping the
+  renderer transcript-session owner aligned with app-runtime facade naming. No
+  migration required.
 - frontend/renderer: expose renderer trace payload builders and trace logging
   through `DesktopRendererTraceRuntime` instead of standalone helper exports,
   keeping debug gating, workspace enrichment, chat-pill traces, response-overlay

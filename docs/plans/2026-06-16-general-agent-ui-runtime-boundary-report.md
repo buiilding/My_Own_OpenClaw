@@ -9313,3 +9313,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   forwarding private. Trace event names, payload fields, renderer markup, IPC
   forwarding, storage, local-runtime execution, provider policy, backend
   behavior, and trust boundaries are unchanged; no migration is required.
+- The renderer transcript-session singleton is now exported as
+  `DesktopTranscriptSessionRuntime` instead of `desktopTranscriptSessionRuntime`.
+  `DesktopTranscriptSessionRuntimeClient` remains the feature-facing facade
+  while the singleton keeps session-state bootstrap, persistence, browser/main
+  sync, and session resolution behind an app-runtime owner name. Transcript
+  session state, IPC sync, storage, local-runtime execution, provider policy,
+  backend behavior, and trust boundaries are unchanged; no migration is
+  required.

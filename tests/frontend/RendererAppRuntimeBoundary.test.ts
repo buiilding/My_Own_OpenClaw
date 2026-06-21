@@ -1114,6 +1114,10 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopTranscriptSessionRuntimeClient.ts'),
       'utf8',
     );
+    const transcriptRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopTranscriptSessionRuntime.ts'),
+      'utf8',
+    );
     const sessionClientSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopConversationSessionRuntimeClient.ts'),
       'utf8',
@@ -1122,6 +1126,10 @@ describe('renderer app runtime boundary', () => {
     expect(providerSource).toContain('DesktopTranscriptSessionRuntimeClient.bindTranscriptUser');
     expect(providerSource).not.toContain('features/chat/session/conversationSessionRuntime');
     expect(providerSource).not.toContain('applyTranscriptSessionUserBinding');
+    expect(transcriptRuntimeSource).toContain('DesktopTranscriptSessionRuntime');
+    expect(transcriptRuntimeSource).not.toContain('export const desktopTranscriptSessionRuntime');
+    expect(transcriptClientSource).toContain('DesktopTranscriptSessionRuntime');
+    expect(transcriptClientSource).not.toContain('desktopTranscriptSessionRuntime.');
     expect(transcriptClientSource).toContain('DesktopConversationSessionRuntimeClient.bindTranscriptUser');
     expect(transcriptClientSource).not.toContain('features/chat/session/conversationSessionRuntime');
     expect(sessionClientSource).toContain('DesktopConversationSessionRuntime');
