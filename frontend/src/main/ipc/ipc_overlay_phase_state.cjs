@@ -3,48 +3,10 @@
  */
 
 const {
-  RESPONSE_OVERLAY_PHASES,
-  RESPONSE_OVERLAY_METADATA_KEYS,
-  normalizeOverlayNumber,
-  normalizeOverlayString,
+  createResponseOverlayPhaseContractRuntime,
 } = require('./ipc_overlay_phase_contract.cjs');
 
-function normalizeResponseOverlayMetadata(metadata) {
-  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
-    return null;
-  }
-  const normalized = {};
-  for (const key of RESPONSE_OVERLAY_METADATA_KEYS) {
-    const value = metadata[key];
-    if (key === 'attempt' || key === 'max_attempts') {
-      const normalizedNumber = normalizeOverlayNumber(value);
-      if (normalizedNumber !== null) {
-        normalized[key] = normalizedNumber;
-      }
-      continue;
-    }
-    const normalizedString = normalizeOverlayString(value);
-    if (normalizedString !== null) {
-      normalized[key] = normalizedString;
-    }
-  }
-  return Object.keys(normalized).length > 0 ? normalized : null;
-}
-
-function areResponseOverlayMetadataEqual(left, right) {
-  if (left === right) {
-    return true;
-  }
-  if (!left || !right) {
-    return false;
-  }
-  for (const key of RESPONSE_OVERLAY_METADATA_KEYS) {
-    if (left[key] !== right[key]) {
-      return false;
-    }
-  }
-  return true;
-}
+const overlayPhaseContractRuntime = createResponseOverlayPhaseContractRuntime();
 
 function createResponseOverlayPhaseState() {
   let phase = 'idle';
@@ -55,13 +17,13 @@ function createResponseOverlayPhaseState() {
   }
 
   function setPhase(nextPhase, source = 'ipc', nextMetadata = null, deps = {}) {
-    if (!RESPONSE_OVERLAY_PHASES.has(nextPhase)) {
+    if (!overlayPhaseContractRuntime.hasPhase(nextPhase)) {
       return;
     }
-    const normalizedMetadata = normalizeResponseOverlayMetadata(nextMetadata);
+    const normalizedMetadata = overlayPhaseContractRuntime.normalizeMetadata(nextMetadata);
     if (
       phase === nextPhase
-      && areResponseOverlayMetadataEqual(metadata, normalizedMetadata)
+      && overlayPhaseContractRuntime.areMetadataEqual(metadata, normalizedMetadata)
     ) {
       return;
     }

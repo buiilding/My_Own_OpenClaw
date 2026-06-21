@@ -3,9 +3,10 @@
  */
 
 const {
-  normalizeOverlayNumber,
-  normalizeOverlayString,
+  createResponseOverlayPhaseContractRuntime,
 } = require('./ipc_overlay_phase_contract.cjs');
+
+const overlayPhaseContractRuntime = createResponseOverlayPhaseContractRuntime();
 
 const BACKEND_OVERLAY_PHASE_TRANSITIONS = Object.freeze({
   'query-accepted': Object.freeze({
@@ -61,13 +62,13 @@ function resolveOverlayCorrelationId(data) {
 
   const candidateKeys = ['request_id', 'correlation_id', 'bundle_id'];
   for (const key of candidateKeys) {
-    const value = normalizeOverlayString(payload[key]);
+    const value = overlayPhaseContractRuntime.normalizeEventString(payload[key]);
     if (value) {
       return value;
     }
   }
 
-  return normalizeOverlayString(data.id);
+  return overlayPhaseContractRuntime.normalizeEventString(data.id);
 }
 
 function resolveOverlayPhaseMetadata(data, recoveryStage) {
@@ -88,19 +89,23 @@ function resolveOverlayPhaseMetadata(data, recoveryStage) {
     ? data.payload.metadata
     : null;
 
-  const attempt = normalizeOverlayNumber(payloadMetadata?.attempt);
+  const attempt = overlayPhaseContractRuntime.normalizeEventNumber(payloadMetadata?.attempt);
   if (attempt !== null) {
     metadata.attempt = attempt;
   }
-  const maxAttempts = normalizeOverlayNumber(payloadMetadata?.max_attempts);
+  const maxAttempts = overlayPhaseContractRuntime.normalizeEventNumber(
+    payloadMetadata?.max_attempts,
+  );
   if (maxAttempts !== null) {
     metadata.max_attempts = maxAttempts;
   }
-  const payloadFailureReason = normalizeOverlayString(payloadMetadata?.failure_reason);
+  const payloadFailureReason = overlayPhaseContractRuntime.normalizeEventString(
+    payloadMetadata?.failure_reason,
+  );
   if (payloadFailureReason) {
     metadata.failure_reason = payloadFailureReason;
   }
-  const payloadMessage = normalizeOverlayString(data?.payload?.message);
+  const payloadMessage = overlayPhaseContractRuntime.normalizeEventString(data?.payload?.message);
   if (payloadMessage) {
     metadata.failure_reason = payloadMessage;
   }

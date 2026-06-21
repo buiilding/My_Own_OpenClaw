@@ -9,6 +9,27 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Overlay Phase Contract Runtime Facade
+
+- Finding: `ipc_overlay_phase_contract.cjs` owned response-overlay scalar
+  normalization primitives, but exported `normalizeOverlayString(...)` and
+  `normalizeOverlayNumber(...)` directly into the overlay state and backend-event
+  transition helpers.
+- Change: added `createResponseOverlayPhaseContractRuntime(...)` as the public
+  Electron main overlay contract facade for supported-phase checks, event scalar
+  normalization, response-overlay metadata normalization, and metadata equality,
+  then routed `ipc_overlay_phase_state.cjs` and `ipc_overlay_phase_events.cjs`
+  through that facade while keeping scalar and metadata normalization private to
+  the contract owner.
+- Validation: focused overlay phase contract, state, events, response-overlay
+  runtime, handler, live-turn surface, parity, and main SDK boundary tests,
+  targeted main IPC/surface lint, docs listing, stale export scans, and diff
+  checks before commit.
+- Compatibility/security: no response-overlay phase value, metadata payload,
+  backend-event transition, renderer fan-out, IPC channel, credential,
+  permission, storage, or trust-boundary migration required; overlay phase
+  behavior is unchanged.
+
 ### 2026-06-21 Main Conversation Metadata Diagnostics Runtime Facade
 
 - Finding: `ipc_conversation_metadata_diagnostics_runtime.cjs` owned

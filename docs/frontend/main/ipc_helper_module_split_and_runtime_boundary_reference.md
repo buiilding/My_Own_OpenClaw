@@ -673,7 +673,10 @@ Owns shared overlay phase contract primitives used by both state and event mappe
 
 - canonical phase set (`RESPONSE_OVERLAY_PHASES`)
 - canonical metadata keys (`RESPONSE_OVERLAY_METADATA_KEYS`)
-- shared scalar normalizers (`normalizeOverlayString`, `normalizeOverlayNumber`)
+- `createResponseOverlayPhaseContractRuntime(...)` for supported-phase checks,
+  event scalar normalization, response-overlay metadata normalization, and
+  metadata equality; state and event helpers consume this facade instead of
+  importing lower-level scalar normalizers.
 
 ### `ipc_response_overlay_phase_runtime.cjs`
 

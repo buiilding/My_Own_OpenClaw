@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main conversation metadata diagnostics keep
-  context normalization and record assembly private to
-  `ipc_conversation_metadata_diagnostics_runtime.cjs`, while renderer
-  diagnostic append, conversation-list lifecycle diagnostics, and trace-id
-  propagation remain covered through the public diagnostics runtime facade.
+- Latest completed slice: Electron main response-overlay contract keeps scalar
+  and metadata normalization private to `ipc_overlay_phase_contract.cjs`, while
+  overlay state, backend-event transition mapping, phase parity, and renderer
+  fan-out remain covered through the public overlay contract runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1067,6 +1066,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
   contracts, IPC channels, storage, provider policy, and hosted backend
   behavior are unchanged.
+
+### 2026-06-21 Main Overlay Phase Contract Runtime Facade
+
+- Finding: `ipc_overlay_phase_contract.cjs` already owned the canonical
+  response-overlay phase set and metadata keys, but still exported lower-level
+  `normalizeOverlayString(...)` and `normalizeOverlayNumber(...)` scalar helpers
+  directly into overlay state and backend-event transition mapping.
+- Change: added `createResponseOverlayPhaseContractRuntime(...)` as the public
+  overlay contract facade for supported-phase checks, event scalar
+  normalization, response-overlay metadata normalization, and metadata equality.
+  `ipc_overlay_phase_state.cjs` and `ipc_overlay_phase_events.cjs` now consume
+  that facade while scalar and metadata normalization stay private to the
+  contract owner.
+- Validation: focused overlay phase contract, state, events, response-overlay
+  runtime, handler, live-turn surface, parity, and main SDK boundary tests,
+  targeted main IPC/surface lint, docs listing, stale export scans, and diff
+  checks.
+- Compatibility: no migration required. Response-overlay phase values,
+  metadata payloads, backend-event transitions, renderer fan-out, IPC channels,
+  credentials, permissions, trust boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Conversation Metadata Diagnostics Runtime Facade
 
