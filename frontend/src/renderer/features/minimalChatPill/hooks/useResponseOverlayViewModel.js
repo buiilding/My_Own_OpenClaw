@@ -50,7 +50,6 @@ const {
 const {
   applyVisibleTurnLifecycleToPresentationState,
   resolveVisibleTurnLifecycle,
-  resolveVisibleTurnLifecycleForPresentation,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
@@ -87,12 +86,6 @@ export function useResponseOverlayViewModel({
   const useSdkLiveTurnPresentation = liveTurnPresentationInput.useSdkLiveTurnPresentation;
   const useLocalSendLatch = liveTurnPresentationInput.useLocalSendLatch;
   const currentTurnPhase = liveTurnPresentationInput.phase;
-  const overlayVisibleTurnLifecycle = resolveVisibleTurnLifecycleForPresentation({
-    visibleTurnLifecycle,
-    liveTurnPresentationInput,
-    messages,
-  });
-
   const responseOverlayEntries = useMemo(
     () => {
       if (useLocalSendLatch) {
@@ -168,7 +161,7 @@ export function useResponseOverlayViewModel({
       }
       return applyVisibleTurnLifecycleToPresentationState(
         presentationState,
-        overlayVisibleTurnLifecycle,
+        visibleTurnLifecycle,
       );
     },
     [
@@ -176,7 +169,7 @@ export function useResponseOverlayViewModel({
       currentTurnProjection,
       dismissedResponseId,
       liveTurnPresentationInput.overlayIntent,
-      overlayVisibleTurnLifecycle,
+      visibleTurnLifecycle,
       responseOverlayEntries,
       useLocalSendLatch,
       useSdkLiveTurnPresentation,

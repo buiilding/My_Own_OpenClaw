@@ -279,12 +279,6 @@ function shouldUseLocalSendPreflight({
   return !hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, currentTurnProjection);
 }
 
-function resolveVisibleTurnLifecycleForPresentation({
-  visibleTurnLifecycle,
-} = {}) {
-  return visibleTurnLifecycle;
-}
-
 function resolveOverlayTurnLifecycleForVisibleLifecycle(visibleTurnLifecycle) {
   if (visibleTurnLifecycle?.status === 'local_pending') {
     return getPreflightOverlayTurnLifecycle();
@@ -344,7 +338,6 @@ function applyVisibleTurnLifecycleToPresentationState(presentationState, visible
 export const DesktopVisibleTurnLifecycleRuntime = Object.freeze({
   applyVisibleTurnLifecycleToPresentationState,
   resolvePendingTurnForCurrentProjection,
-  resolveVisibleTurnLifecycleForPresentation,
   resolveVisibleTurnLifecycle,
   shouldUseLocalSendPreflight,
 });

@@ -181,7 +181,8 @@ that projection for dashboard/pill busy state, stop affordance gating,
 awaiting-dot visibility, and chatbox awaiting state. The older
 `useCurrentTurnPresentationState(...)` result remains an adapter for legacy
 presentation fields while visible lifecycle owns the typing decision; the
-controller no longer calls an SDK presentation reducer, and the response
+controller passes the resolved lifecycle directly into presentation stamping,
+no longer calls an SDK presentation reducer, and the response
 overlay uses
 `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
 only for SDK response-entry data plus overlay-intent metadata. Actual response
@@ -219,7 +220,7 @@ does not rely on bare `isSending` as a visible lifecycle authority.
 
 `useResponseOverlayViewModel(...)` also resolves the same visible lifecycle and
 applies `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
-before deriving response-overlay view intent. The response overlay therefore
+directly before deriving response-overlay view intent. The response overlay therefore
 shows awaiting only for renderer local pending or SDK awaiting lifecycle, and
 shows response only for visible SDK entries. Phase-only `streaming`,
 `tool_call`, or `tool_output` projections with no visible text, tool event,

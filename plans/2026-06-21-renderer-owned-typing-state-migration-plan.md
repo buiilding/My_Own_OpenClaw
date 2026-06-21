@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Visible Lifecycle Presentation Facade Removal
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime` still exported
+  `resolveVisibleTurnLifecycleForPresentation(...)`, a passthrough facade that
+  returned the already-resolved visible lifecycle before chat surface and
+  response overlay code stamped presentation state.
+- Change: chat surface and response overlay now pass the renderer-owned
+  `visibleTurnLifecycle` directly into
+  `applyVisibleTurnLifecycleToPresentationState(...)`; the passthrough export
+  is deleted.
+- Validation target: `RendererAppRuntimeBoundary.test.ts` rejects the removed
+  facade in the runtime and callers while focused surface tests keep visible
+  lifecycle projection behavior covered.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Response Overlay View Legacy Lifecycle Import Removal
 
 - Finding: `DesktopResponseOverlayViewRuntime` still imported

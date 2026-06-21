@@ -621,6 +621,10 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/chat/hooks/useCurrentTurnPresentationState.js'),
       'utf8',
     );
+    const chatSurfaceControllerSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
+      'utf8',
+    );
     const overlayViewModelSource = await fs.readFile(
       path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
       'utf8',
@@ -653,6 +657,9 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationHookSource).not.toContain('useChatLoopTransportState');
     expect(currentTurnPresentationHookSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(currentTurnPresentationHookSource).not.toContain('resolveOverlayTurnLifecycle');
+    expect(lifecycleRuntimeSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
+    expect(chatSurfaceControllerSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
+    expect(overlayViewModelSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
     expect(overlayViewModelSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('overlayTurnLifecycleContract');
     expect(overlayViewModelSource).not.toContain('overlayTurnLifecycleContract');

@@ -121,6 +121,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: remove the response-overlay view runtime's dependency on
   the legacy overlay lifecycle adapter; stale previous responses are now
   suppressed from `visibleTurnLifecycle.status` directly. No migration required.
+- frontend/renderer: delete the passthrough
+  `resolveVisibleTurnLifecycleForPresentation(...)` facade; chat surface and
+  response overlay now stamp presentation state from the resolved visible
+  lifecycle directly. No migration required.
 - frontend/renderer: remove stale raw `isSending` prop plumbing from the
   dashboard, minimal pill, and response-overlay surface hook boundaries; the
   full chat selector no longer exposes `isSending`, while live overlay traces
