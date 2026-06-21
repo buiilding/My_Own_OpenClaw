@@ -86,7 +86,7 @@ describe('ipc.cjs replay command handling', () => {
       {
         userId: 'registered-user-1',
         conversationRef: 'conv-ipc-replay',
-        workspace_path: '/tmp/windie-workspace',
+        workspace_path: '/tmp/project-alpha-workspace',
         messageId: 'renderer-user-2',
         text: 'edited second question',
         turnRef: 'turn-edited',
@@ -104,7 +104,7 @@ describe('ipc.cjs replay command handling', () => {
       ok: true,
       data: expect.objectContaining({
         conversationRef: 'conv-ipc-replay',
-        workspacePath: '/tmp/windie-workspace',
+        workspacePath: '/tmp/project-alpha-workspace',
         text: 'edited second question',
         turnRef: 'turn-edited',
         payload: expect.objectContaining({
@@ -120,7 +120,7 @@ describe('ipc.cjs replay command handling', () => {
       builtins: [],
       memory: false,
       persistence: false,
-      workspacePath: '/tmp/windie-workspace',
+      workspacePath: '/tmp/project-alpha-workspace',
     }));
     expect(sdk.agent.conversation).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-agent-replay',
@@ -186,7 +186,7 @@ describe('ipc.cjs replay command handling', () => {
       {
         userId: 'registered-user-1',
         conversationRef: 'conv-ipc-retry',
-        workspacePath: '/tmp/windie-retry-workspace',
+        workspacePath: '/tmp/project-alpha-retry-workspace',
         messageId: 'assistant-retry',
         turnRef: 'turn-retry',
         payload: {
@@ -199,7 +199,7 @@ describe('ipc.cjs replay command handling', () => {
       ok: true,
       data: expect.objectContaining({
         conversationRef: 'conv-ipc-retry',
-        workspacePath: '/tmp/windie-retry-workspace',
+        workspacePath: '/tmp/project-alpha-retry-workspace',
         text: 'retry text',
         turnRef: 'turn-retry',
         payload: expect.objectContaining({

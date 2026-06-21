@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral Project Alpha workspace path fixtures in IPC replay
+  command coverage instead of Windie-flavored arbitrary workspace paths. No
+  migration required.
+
 - tests/extensions: use neutral `agent-*` temporary contribution-root fixtures
   in extension manifest tests instead of Windie-flavored arbitrary temp
   directories. No migration required.

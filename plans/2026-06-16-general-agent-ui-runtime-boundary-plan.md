@@ -18985,3 +18985,17 @@ Each completed slice should report:
   generic `AGENT_CONTRIBUTIONS_DIR`, host-skin override support, plugin/skill/MCP
   manifest loading, local-runtime tool registration, provider policy,
   permissions, storage, and backend behavior are unchanged.
+
+### 2026-06-21 IPC replay workspace fixture neutrality
+
+- Finding: IPC replay command tests still used Windie-flavored arbitrary
+  workspace paths while exercising edit/resend and retry preparation through the
+  Agent SDK conversation runtime adapter.
+- Change: switched those workspace path fixtures to the existing Project Alpha
+  convention and extended the main IPC fixture guard over replay commands.
+- Validation: focused IPC replay command and modular boundary tests; exact
+  retired replay workspace path scan, docs listing, and diff checks.
+- Compatibility: no migration required. Replay command routing through
+  `windie:invoke`, workspace path normalization, edit/resend preparation, retry
+  preparation, transcript session guards, provider policy, permissions, storage,
+  and backend behavior are unchanged.

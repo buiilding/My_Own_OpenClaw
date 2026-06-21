@@ -7793,3 +7793,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   host-skin override support, plugin/skill/MCP manifest loading, local-runtime
   tool registration, provider policy, permissions, storage, and backend
   behavior are unchanged; no migration is required.
+- IPC replay command tests now use neutral Project Alpha workspace path fixtures
+  instead of Windie-flavored arbitrary workspace paths. Replay command routing
+  still flows through the `windie:invoke` bridge into the Agent SDK conversation
+  runtime adapter, and workspace path normalization, edit/resend preparation,
+  retry preparation, transcript session guards, provider policy, permissions,
+  storage, and backend behavior are unchanged; no migration is required.
