@@ -46,6 +46,7 @@ describe('modular sdk refactor completion boundary', () => {
     const agentWakeupRuntimeSource = await read('frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs');
     const hostOptionStateSource = await read('frontend/src/main/ipc/ipc_host_option_state.cjs');
     const sdkRuntimeCommandsSource = await read('packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts');
+    const sdkRuntimeCommandsCjsSource = await read('packages/windie-sdk-js/cjs/runtime/SdkRuntimeCommands.js');
     expect(ipcSource).toContain('createElectronAgentClientFactoryRuntime({');
     expect(ipcSource).toContain('electronAgentClientFactoryRuntime.createClient()');
     expect(ipcSource).not.toContain('new AgentClient({');
@@ -70,6 +71,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(hostOptionStateSource).toContain('let agentWebSocketImpl = null;');
     expect(sdkRuntimeCommandsSource).toContain('UI and host runtimes');
     expect(sdkRuntimeCommandsSource).not.toContain('UI and desktop runtimes');
+    expect(sdkRuntimeCommandsCjsSource).toContain('UI and host runtimes');
+    expect(sdkRuntimeCommandsCjsSource).not.toContain('UI and desktop runtimes');
     expect(ipcSource).not.toContain('windieAgentWebSocketImpl');
     expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
     expect(ipcSource).not.toContain(`${retiredProductName('Agent')}.startDesktop`);

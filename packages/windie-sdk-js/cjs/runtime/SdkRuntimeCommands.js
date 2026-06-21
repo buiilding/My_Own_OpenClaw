@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Defines SDK-shaped host command names used by UI and desktop runtimes.
+ * Defines SDK-shaped host command names used by UI and host runtimes.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SDK_RUNTIME_COMMANDS = void 0;

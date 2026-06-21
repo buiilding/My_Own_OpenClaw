@@ -8365,3 +8365,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   pending-turn fan-out, stop-query mapping, provider wiring, storage,
   permissions, provider policy, and backend behavior are unchanged; no
   migration is required.
+- The checked-in SDK runtime command CJS artifact now matches the TS source by
+  describing SDK-shaped command names as shared by UI and host runtimes, and the
+  modular completion guard covers both outputs against the retired
+  UI-and-desktop-runtimes phrase. Command names, exports, runtime transport
+  behavior, Electron host wiring, renderer clients, backend policy, storage,
+  and permissions are unchanged; no migration is required.

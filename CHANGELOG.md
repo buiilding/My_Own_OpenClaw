@@ -60,6 +60,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/runtime: route SDK command transport docs through SDK desktop transport
   adapter wording instead of desktop-runtime transport ownership labels. No
   migration required.
+- sdk: sync the checked-in SDK runtime command CJS artifact with the source
+  host-runtime wording and guard both outputs against stale desktop-runtime
+  ownership copy. No migration required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

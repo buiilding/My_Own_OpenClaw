@@ -20282,3 +20282,17 @@ Each completed slice should report:
   runtime clients, `windie:invoke` IPC names, pending-turn fan-out, stop-query
   mapping, provider wiring, storage, permissions, provider policy, and backend
   behavior are unchanged.
+
+### 2026-06-21 SDK runtime command CJS artifact wording
+
+- Finding: `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts` already
+  described SDK-shaped command names as shared by UI and host runtimes, but the
+  checked-in CJS artifact still carried the old UI-and-desktop-runtimes header.
+- Change: synced the CJS artifact comment to the source wording and extended
+  the modular completion guard so both SDK runtime command outputs reject the
+  stale desktop-runtime ownership phrase.
+- Validation: focused modular boundary test, exact SDK command phrase scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Command names, exports, runtime
+  transport behavior, Electron host wiring, renderer clients, backend policy,
+  storage, and permissions are unchanged.
