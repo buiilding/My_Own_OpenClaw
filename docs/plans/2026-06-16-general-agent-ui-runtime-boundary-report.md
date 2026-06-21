@@ -12,13 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main renderer query-send preparation and
-  send-failure execution keep the lower-level helpers private to
-  `ipc_query_send_runtime.cjs`, so chat-query handling uses
-  `createRendererQuerySendRuntime(...)` inside
-  `createChatQueryHandlerRuntime(...)` while preserving overlay pre-capture,
-  active display affinity, event replay seeding, SDK payload building, and
-  synthetic send-failure behavior.
+- Latest completed slice: Electron main direct wake adapter keeps the
+  lower-level SDK conversation-ref command resolver private to
+  `ipc_direct_wake_up_agent_adapter.cjs`, so focused coverage exercises
+  trimming and removed `conversation_ref` alias rejection through adapter
+  methods while preserving conversation runtime handle selection, replay/edit
+  refresh, retry preparation, and delete/clear close behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

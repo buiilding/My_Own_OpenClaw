@@ -5,8 +5,8 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_desktop_runtime_channels.cjs');
 const {
   createDirectWakeUpAgentAdapter,
-  resolveSdkCommandConversationRef,
 } = require('../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs');
+const directWakeUpAgentAdapterModule = require('../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs');
 
 function createRuntime(overrides = {}) {
   const runtime = {
@@ -232,9 +232,10 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       deps: createDeps(),
     });
 
-    expect(resolveSdkCommandConversationRef(' conv-sdk ')).toBe('conv-sdk');
-    expect(() => resolveSdkCommandConversationRef({ conversation_ref: 'conv-legacy' }))
-      .toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await adapter.loadConversation(' conv-sdk ');
+
+    expect(agent.conversation).toHaveBeenCalledWith({ conversationRef: 'conv-sdk' });
+    expect(directWakeUpAgentAdapterModule.resolveSdkCommandConversationRef).toBeUndefined();
 
     await expect(adapter.deleteConversation({ conversation_ref: 'conv-legacy' }))
       .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');

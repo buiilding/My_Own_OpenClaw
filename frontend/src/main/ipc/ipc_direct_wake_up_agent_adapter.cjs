@@ -443,5 +443,4 @@ function createDirectWakeUpAgentAdapter({
 
 module.exports = {
   createDirectWakeUpAgentAdapter,
-  resolveSdkCommandConversationRef,
 };

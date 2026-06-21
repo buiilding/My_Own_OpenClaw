@@ -494,6 +494,8 @@ Owns the Electron-main adapter around a direct `AgentClient.wakeUp(...)` result:
 - rejects removed `conversation_ref` aliases for SDK library methods such as
   conversation load/delete/replay/edit/retry while leaving backend-transport
   send/stop/rehydrate/compact commands on canonical snake_case payload fields
+- keeps SDK library conversation-ref command resolution private inside the
+  adapter so callers exercise alias rejection through adapter methods
 - refreshes MCP servers through the SDK local runtime with injected host client
   identity
 

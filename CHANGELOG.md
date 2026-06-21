@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level SDK conversation-ref command resolver
+  private to `ipc_direct_wake_up_agent_adapter.cjs` and exercise trim plus
+  removed `conversation_ref` alias rejection through direct wake adapter
+  methods. No migration required.
 - frontend/main: keep lower-level renderer query-send prepare and failure
   helpers private to `ipc_query_send_runtime.cjs` and exercise query acceptance
   through `createRendererQuerySendRuntime(...)`, preserving chat-query handler

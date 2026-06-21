@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Direct Wake Conversation Resolver Privacy
+
+- Finding: `ipc_direct_wake_up_agent_adapter.cjs` owned SDK library
+  conversation command handling, but tests still imported the lower-level
+  `resolveSdkCommandConversationRef(...)` helper directly.
+- Change: kept `resolveSdkCommandConversationRef(...)` private to the direct
+  wake adapter and moved trim plus removed `conversation_ref` alias rejection
+  coverage through adapter methods such as `loadConversation(...)`,
+  `deleteConversation(...)`, replay, edit, and retry.
+- Validation: focused direct wake adapter tests, targeted main IPC lint, docs
+  listing, stale export-line scans, and diff checks before commit.
+- Compatibility/security: no SDK command payload, conversation runtime handle,
+  replay/edit/retry, credential, permission, or trust-boundary migration
+  required; alias rejection and conversation handle behavior are unchanged.
+
 ### 2026-06-21 Main Renderer Query Send Runtime Privacy
 
 - Finding: `ipc_chat_query_handlers.cjs` already exposed
