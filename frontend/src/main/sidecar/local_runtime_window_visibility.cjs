@@ -64,7 +64,30 @@ async function withHiddenWindowForScreenshot({
   return task();
 }
 
+function createLocalRuntimeWindowVisibilityRuntime(options = {}) {
+  const hasWindowSnapshot = (
+    options
+    && typeof options === 'object'
+    && (
+      'mainWindow' in options
+      || 'chatWindow' in options
+      || 'responseWindow' in options
+    )
+  );
+  const getWindows = (
+    options
+    && typeof options === 'object'
+    && 'getWindows' in options
+  )
+    ? options.getWindows
+    : (hasWindowSnapshot || typeof options === 'function' ? options : null);
+  const resolvers = createWindowResolvers(getWindows);
+  return Object.freeze({
+    ...resolvers,
+    withHiddenWindowForScreenshot,
+  });
+}
+
 module.exports = {
-  createWindowResolvers,
-  withHiddenWindowForScreenshot,
+  createLocalRuntimeWindowVisibilityRuntime,
 };

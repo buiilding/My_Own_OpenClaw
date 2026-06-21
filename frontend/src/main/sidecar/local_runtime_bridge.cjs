@@ -11,7 +11,7 @@ const {
   isDebugFlagEnabled,
 } = require('../app/debug_env.cjs');
 const {
-  createWindowResolvers,
+  createLocalRuntimeWindowVisibilityRuntime,
 } = require('./local_runtime_window_visibility.cjs');
 const {
   getErrorMessage,
@@ -401,7 +401,7 @@ function initializeLocalRuntimeBridge(getWindows, options = {}) {
     resolveMainWindow,
     resolveChatWindow,
     resolveResponseWindow,
-  } = createWindowResolvers(getWindows);
+  } = createLocalRuntimeWindowVisibilityRuntime({ getWindows });
   const getArtifactUploadHeaders = typeof options.getArtifactUploadHeaders === 'function'
     ? options.getArtifactUploadHeaders
     : loadArtifactUploadHeaders;

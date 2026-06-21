@@ -61,6 +61,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep local-runtime window resolver and screenshot wrapper
+  helpers private to `local_runtime_window_visibility.cjs` while bridge and
+  execute-tool code consume `createLocalRuntimeWindowVisibilityRuntime(...)`.
+  No migration required.
 - docs/tools: move tool and extension operating contracts from `AGENTS.md` into
   the tool-contract docs, keeping agent instructions focused on workflow while
   preserving schema, MCP result, computer-use screenshot, and extension routing

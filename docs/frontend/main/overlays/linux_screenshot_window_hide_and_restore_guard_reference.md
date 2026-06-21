@@ -19,7 +19,7 @@ title: "Linux Screenshot Window Visibility Reference"
 
 Guard helper:
 
-- `withHiddenWindowForScreenshot({ resolveWindows, resolveChatWindow, resolveResponseWindow, task })`
+- `createLocalRuntimeWindowVisibilityRuntime(...).withHiddenWindowForScreenshot({ resolveWindows, resolveChatWindow, resolveResponseWindow, task })`
 
 Used in local-runtime bridge:
 
@@ -27,7 +27,7 @@ Used in local-runtime bridge:
 
 ## Current Behavior (All Platforms)
 
-`withHiddenWindowForScreenshot(...)` currently calls `task()` directly.
+`visibilityRuntime.withHiddenWindowForScreenshot(...)` currently calls `task()` directly.
 
 Implication:
 
@@ -39,7 +39,7 @@ Implication:
 
 ## Resolver Argument Compatibility
 
-`withHiddenWindowForScreenshot(...)` still accepts resolver arguments:
+`visibilityRuntime.withHiddenWindowForScreenshot(...)` still accepts resolver arguments:
 
 - `resolveWindows`
 - `resolveChatWindow`
@@ -68,6 +68,6 @@ This means:
 
 If Linux screenshots contain overlay UI:
 
-1. verify screenshot execute-tool path still routes through `withHiddenWindowForScreenshot(...)`
+1. verify screenshot execute-tool path still routes through `visibilityRuntime.withHiddenWindowForScreenshot(...)`
 2. verify SDK/main computer-use surface prep ran before local execution
 3. verify no legacy renderer or seam-level hide/restore assumptions remain in debugging scripts

@@ -8,7 +8,7 @@ const { BrowserWindow, screen } = require('electron');
 
 const { resolveToolArgs } = require('./local_runtime_tool_args.cjs');
 const {
-  withHiddenWindowForScreenshot,
+  createLocalRuntimeWindowVisibilityRuntime,
 } = require('./local_runtime_window_visibility.cjs');
 const {
   resolveScreenshotToolDisplayBounds,
@@ -30,6 +30,7 @@ const {
 } = require('../surfaces/display_affinity_runtime.cjs');
 
 const LOCAL_RUNTIME_BRIDGE_LOG_PREFIX = '[Main][LocalRuntimeBridge]';
+const localRuntimeWindowVisibilityRuntime = createLocalRuntimeWindowVisibilityRuntime();
 
 function normalizeToolName(toolName) {
   return typeof toolName === 'string' ? toolName.trim().toLowerCase() : '';
@@ -178,7 +179,7 @@ function createLocalRuntimeExecuteToolRuntime({
               })
             : runTool()
         );
-        const result = await withHiddenWindowForScreenshot({
+        const result = await localRuntimeWindowVisibilityRuntime.withHiddenWindowForScreenshot({
           platform,
           task: runSdkScreenshotTool,
           resolveWindows,

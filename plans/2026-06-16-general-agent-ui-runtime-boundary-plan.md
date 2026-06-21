@@ -9,6 +9,26 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Local-Runtime Window Visibility Facade
+
+- Finding: `local_runtime_window_visibility.cjs` owned host-window resolver
+  normalization and screenshot task wrapping, but exported
+  `createWindowResolvers(...)` and `withHiddenWindowForScreenshot(...)`
+  directly to the local-runtime bridge, execute-tool runtime, and focused
+  tests.
+- Change: added `createLocalRuntimeWindowVisibilityRuntime(...)` as the public
+  Electron main facade for resolver methods plus screenshot task routing, then
+  routed the bridge and execute-tool runtime through it while keeping the raw
+  resolver builder and screenshot wrapper private.
+- Validation: focused local-runtime window visibility, execute-tool, bridge,
+  and main host-skin tests, targeted local-runtime main lint, docs listing,
+  stale export/import scans, and diff checks before commit.
+- Compatibility/security: no window resolver output, screenshot wrapper
+  pass-through behavior, screenshot materialization, screen-capture permission
+  verification, local-runtime tool payload, IPC channel, credential,
+  permission, storage, or trust-boundary migration required; screenshot
+  routing behavior is unchanged.
+
 ### 2026-06-21 Main Window Platform Activation Privacy
 
 - Finding: `window_platform_policy.cjs` already exposed

@@ -15,7 +15,9 @@ title: "Window Resolver Shapes and Screenshot Task Routing Reference"
 
 ## Resolver Input Normalization
 
-`createWindowResolvers(getWindows)` accepts multiple caller shapes:
+`createLocalRuntimeWindowVisibilityRuntime({ getWindows })` is the public
+facade for window resolver normalization and screenshot task routing. Its
+internal resolver builder accepts multiple caller shapes:
 
 1. function provider:
    - used directly (`getWindowState = getWindows`)
@@ -25,11 +27,12 @@ title: "Window Resolver Shapes and Screenshot Task Routing Reference"
 3. invalid/empty input:
    - falls back to empty object provider
 
-Returned resolvers:
+Returned runtime methods:
 
 - `resolveWindows()` -> `[mainWindow, chatWindow, responseWindow]` filtered truthy
 - `resolveChatWindow()` -> `chatWindow | null`
 - `resolveResponseWindow()` -> `responseWindow | null`
+- `withHiddenWindowForScreenshot(...)` -> runs the scoped screenshot task
 
 Design intent:
 
@@ -37,7 +40,7 @@ Design intent:
 
 ## Screenshot Task Boundary
 
-`withHiddenWindowForScreenshot(...)` runs only when:
+`visibilityRuntime.withHiddenWindowForScreenshot(...)` runs only when:
 
 - the local tool execution runtime targets the screenshot tool path
 
@@ -53,7 +56,7 @@ Current runtime implementation contract:
 
 ## Why Resolver Contracts Still Matter
 
-Resolver helpers remain part of the wrapper API:
+The resolver methods remain part of the wrapper facade:
 
 - keeps local-runtime screenshot call-sites stable across platform behavior changes
 
@@ -67,7 +70,7 @@ Resolver helpers remain part of the wrapper API:
 
 `local_runtime_execute_tool_runtime.cjs` screenshot path:
 
-- wraps only `toolName === 'screenshot'` with `withHiddenWindowForScreenshot(...)`
+- wraps only `toolName === 'screenshot'` with `visibilityRuntime.withHiddenWindowForScreenshot(...)`
 - all other tools bypass this screenshot seam
 
 Implication:

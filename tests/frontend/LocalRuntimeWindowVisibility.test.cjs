@@ -1,8 +1,7 @@
 /** @jest-environment node */
 
 const {
-  createWindowResolvers,
-  withHiddenWindowForScreenshot,
+  createLocalRuntimeWindowVisibilityRuntime,
 } = require('../../frontend/src/main/sidecar/local_runtime_window_visibility.cjs');
 const fs = require('fs');
 const path = require('path');
@@ -18,22 +17,26 @@ describe('local_runtime_window_visibility', () => {
     const chatWindow = { id: 'chat' };
     const responseWindow = { id: 'response' };
 
-    const resolvers = createWindowResolvers({
+    const visibilityRuntime = createLocalRuntimeWindowVisibilityRuntime({
       mainWindow,
       chatWindow,
       responseWindow,
     });
 
-    expect(resolvers.resolveWindows()).toEqual([mainWindow, chatWindow, responseWindow]);
-    expect(resolvers.resolveChatWindow()).toBe(chatWindow);
-    expect(resolvers.resolveResponseWindow()).toBe(responseWindow);
+    expect(visibilityRuntime.resolveWindows()).toEqual([mainWindow, chatWindow, responseWindow]);
+    expect(visibilityRuntime.resolveChatWindow()).toBe(chatWindow);
+    expect(visibilityRuntime.resolveResponseWindow()).toBe(responseWindow);
   });
 
   test('runs screenshot task without wrapper-level window visibility changes', async () => {
+    const visibilityModule = require('../../frontend/src/main/sidecar/local_runtime_window_visibility.cjs');
+    const visibilityRuntime = createLocalRuntimeWindowVisibilityRuntime();
     const task = jest.fn().mockResolvedValue({ success: true });
     const resolveWindows = jest.fn(() => []);
 
-    const result = await withHiddenWindowForScreenshot({
+    expect(visibilityModule.createWindowResolvers).toBeUndefined();
+    expect(visibilityModule.withHiddenWindowForScreenshot).toBeUndefined();
+    const result = await visibilityRuntime.withHiddenWindowForScreenshot({
       platform: 'win32',
       task,
       resolveWindows,
