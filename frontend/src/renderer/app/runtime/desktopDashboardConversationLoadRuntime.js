@@ -25,7 +25,7 @@ function normalizeOptionalString(value) {
     : '';
 }
 
-export function metadataToDashboardConversation(metadata) {
+function metadataToDashboardConversation(metadata) {
   return {
     conversation_id: metadata?.conversationRef,
     record_kind: 'chat_event',
@@ -40,7 +40,7 @@ export function metadataToDashboardConversation(metadata) {
   };
 }
 
-export function metadataListToDashboardConversations(metadataList) {
+function metadataListToDashboardConversations(metadataList) {
   return (Array.isArray(metadataList) ? metadataList : [])
     .map(metadataToDashboardConversation);
 }
@@ -59,7 +59,7 @@ function isGenericTransientRecentConversationsError(message) {
     || normalized.includes('econnrefused');
 }
 
-export function normalizeRecentConversations(conversations) {
+function normalizeRecentConversations(conversations) {
   return (Array.isArray(conversations) ? conversations : [])
     .filter((conversation) => Boolean(getDashboardConversationRef(conversation)))
     .sort((a, b) => {
@@ -69,7 +69,7 @@ export function normalizeRecentConversations(conversations) {
     });
 }
 
-export function getDashboardConversationRef(conversation) {
+function getDashboardConversationRef(conversation) {
   return normalizeOptionalString(conversation?.conversation_id);
 }
 
@@ -77,7 +77,7 @@ function getDashboardConversationTitle(conversation) {
   return normalizeOptionalString(conversation?.title);
 }
 
-export function getDashboardConversationRenamePromptValue(
+function getDashboardConversationRenamePromptValue(
   conversation,
   fallbackTitle = 'New chat',
 ) {
@@ -88,7 +88,7 @@ function isDashboardConversationRef(conversation, conversationRef) {
   return getDashboardConversationRef(conversation) === normalizeOptionalString(conversationRef);
 }
 
-export function renameDashboardConversationInList(
+function renameDashboardConversationInList(
   conversations,
   conversationRef,
   nextTitle,
@@ -105,7 +105,7 @@ export function renameDashboardConversationInList(
   ));
 }
 
-export function removeDashboardConversationFromList(conversations, conversationRef) {
+function removeDashboardConversationFromList(conversations, conversationRef) {
   const targetRef = normalizeOptionalString(conversationRef);
   if (!targetRef || !Array.isArray(conversations)) {
     return Array.isArray(conversations) ? conversations : [];
@@ -113,7 +113,7 @@ export function removeDashboardConversationFromList(conversations, conversationR
   return conversations.filter((conversation) => !isDashboardConversationRef(conversation, targetRef));
 }
 
-export function prunePinnedConversationRefs(pinnedConversationRefs, recentConversations) {
+function prunePinnedConversationRefs(pinnedConversationRefs, recentConversations) {
   const knownIds = new Set(
     recentConversations
       .map(getDashboardConversationRef)
@@ -122,7 +122,7 @@ export function prunePinnedConversationRefs(pinnedConversationRefs, recentConver
   return pinnedConversationRefs.filter((conversationRef) => knownIds.has(conversationRef));
 }
 
-export function togglePinnedConversationRef(pinnedConversationRefs, conversationRef) {
+function togglePinnedConversationRef(pinnedConversationRefs, conversationRef) {
   const targetRef = normalizeOptionalString(conversationRef);
   const source = Array.isArray(pinnedConversationRefs) ? pinnedConversationRefs : [];
   if (!targetRef) {
@@ -134,7 +134,7 @@ export function togglePinnedConversationRef(pinnedConversationRefs, conversation
   return [targetRef, ...source];
 }
 
-export function removePinnedConversationRef(pinnedConversationRefs, conversationRef) {
+function removePinnedConversationRef(pinnedConversationRefs, conversationRef) {
   const targetRef = normalizeOptionalString(conversationRef);
   const source = Array.isArray(pinnedConversationRefs) ? pinnedConversationRefs : [];
   if (!targetRef) {
@@ -143,7 +143,7 @@ export function removePinnedConversationRef(pinnedConversationRefs, conversation
   return source.filter((id) => id !== targetRef);
 }
 
-export function resolveRecentConversationEventAction(event) {
+function resolveRecentConversationEventAction(event) {
   const eventType = normalizeOptionalString(event?.type);
   const conversationRef = normalizeOptionalString(event?.conversationRef);
   if (eventType === 'user_message') {
@@ -174,30 +174,30 @@ export function resolveRecentConversationEventAction(event) {
   };
 }
 
-export function shouldReloadRecentConversationsForEventAction(action) {
+function shouldReloadRecentConversationsForEventAction(action) {
   return action?.action === RECENT_CONVERSATION_EVENT_ACTION.RELOAD;
 }
 
-export function getTitleVisibilityPollConversationRef(action) {
+function getTitleVisibilityPollConversationRef(action) {
   return action?.action === RECENT_CONVERSATION_EVENT_ACTION.POLL_TITLE_VISIBILITY
     ? action.conversationRef || null
     : null;
 }
 
-export function getRecentConversationsReloadReasonForEventAction(action) {
+function getRecentConversationsReloadReasonForEventAction(action) {
   return action?.action === RECENT_CONVERSATION_EVENT_ACTION.RELOAD
     ? action.reloadReason || ''
     : '';
 }
 
-export function getTitleVisibilityPollSchedule() {
+function getTitleVisibilityPollSchedule() {
   return {
     delayMs: TITLE_VISIBILITY_POLL_DELAY_MS,
     maxAttempts: TITLE_VISIBILITY_POLL_MAX_ATTEMPTS,
   };
 }
 
-export function isConversationVisibleInRecentConversations(
+function isConversationVisibleInRecentConversations(
   recentConversations,
   conversationRef,
 ) {
@@ -210,7 +210,7 @@ export function isConversationVisibleInRecentConversations(
   ));
 }
 
-export function shouldContinueTitleVisibilityPoll({
+function shouldContinueTitleVisibilityPoll({
   recentConversations,
   conversationRef,
   attempts,
@@ -222,7 +222,7 @@ export function shouldContinueTitleVisibilityPoll({
   return !isConversationVisibleInRecentConversations(recentConversations, conversationRef);
 }
 
-export function resolveRecentConversationsRetryDelayMs(
+function resolveRecentConversationsRetryDelayMs(
   retryAttempt,
   {
     baseDelayMs = RECENT_CHAT_RETRY_BASE_DELAY_MS,
@@ -232,7 +232,7 @@ export function resolveRecentConversationsRetryDelayMs(
   return Math.min(maxDelayMs, baseDelayMs * (2 ** retryAttempt));
 }
 
-export function shouldRetryRecentConversationsLoad({
+function shouldRetryRecentConversationsLoad({
   isLoadingRecentConversations,
   recentConversationsCount,
   recentConversationsError,
@@ -247,3 +247,25 @@ export function shouldRetryRecentConversationsLoad({
     && retryAttempt < maxRetryAttempts
   );
 }
+
+export const DesktopDashboardConversationLoadRuntime = Object.freeze({
+  getDashboardConversationRef,
+  getDashboardConversationRenamePromptValue,
+  getRecentConversationsReloadReasonForEventAction,
+  getTitleVisibilityPollConversationRef,
+  getTitleVisibilityPollSchedule,
+  isConversationVisibleInRecentConversations,
+  metadataListToDashboardConversations,
+  metadataToDashboardConversation,
+  normalizeRecentConversations,
+  prunePinnedConversationRefs,
+  removeDashboardConversationFromList,
+  removePinnedConversationRef,
+  renameDashboardConversationInList,
+  resolveRecentConversationEventAction,
+  resolveRecentConversationsRetryDelayMs,
+  shouldContinueTitleVisibilityPoll,
+  shouldReloadRecentConversationsForEventAction,
+  shouldRetryRecentConversationsLoad,
+  togglePinnedConversationRef,
+});

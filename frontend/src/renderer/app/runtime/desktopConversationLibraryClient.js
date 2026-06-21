@@ -7,7 +7,11 @@ import {
 } from './desktopConversationContinuityService';
 import { SDK_RUNTIME_COMMANDS } from './desktopConversationRuntimeContracts';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
-import { metadataListToDashboardConversations } from './desktopDashboardConversationLoadRuntime';
+import { DesktopDashboardConversationLoadRuntime } from './desktopDashboardConversationLoadRuntime';
+
+const {
+  metadataListToDashboardConversations,
+} = DesktopDashboardConversationLoadRuntime;
 
 const CONVERSATION_METADATA_LIST_DIAGNOSTIC_PATH = 'conversation.metadata.list';
 const LOCAL_RUNTIME_AVAILABILITY_ERROR_PATTERNS = Object.freeze([

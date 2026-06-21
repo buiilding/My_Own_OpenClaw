@@ -4347,7 +4347,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   dashboard recent loader and conversation library client moved to the shared
   load-runtime projection.
 - Change: routed continuity search results through
-  `desktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
+  `DesktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
   and deleted the local mapper from the continuity service.
 - Validation: focused desktop continuity service, dashboard conversation load,
   and renderer app-runtime boundary tests plus stale mapper scans, docs

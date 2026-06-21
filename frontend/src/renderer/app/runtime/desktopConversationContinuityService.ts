@@ -23,9 +23,13 @@ import {
 import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
-import { metadataListToDashboardConversations } from './desktopDashboardConversationLoadRuntime';
+import { DesktopDashboardConversationLoadRuntime } from './desktopDashboardConversationLoadRuntime';
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
+
+const {
+  metadataListToDashboardConversations,
+} = DesktopDashboardConversationLoadRuntime;
 
 type RewriteAndResendInput = {
   conversationRef: string;

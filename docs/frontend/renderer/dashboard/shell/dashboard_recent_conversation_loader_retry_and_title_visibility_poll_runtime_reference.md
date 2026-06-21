@@ -29,12 +29,12 @@ title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll R
 - conversation delete and active-session reset behavior
 - transcript-driven title visibility polling
 
-`desktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
+`DesktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
 owns SDK conversation metadata to dashboard row projection for both recent and
 search surfaces. The hook should not spell out `conversation_id`,
 `workspace_path`, or search-snippet field mapping itself.
 
-`desktopDashboardConversationLoadRuntime.getDashboardConversationRef(...)`,
+`DesktopDashboardConversationLoadRuntime.getDashboardConversationRef(...)`,
 `getDashboardConversationRenamePromptValue(...)`,
 `renameDashboardConversationInList(...)`,
 `removeDashboardConversationFromList(...)`, `togglePinnedConversationRef(...)`,
@@ -45,12 +45,12 @@ reset side effects, but it should not inspect raw row ids or map/filter row
 lists itself for rename, delete, or pin actions. Internal title extraction and
 row-id match helpers stay private behind those exported list-update helpers.
 
-`desktopDashboardConversationLoadRuntime.resolveRecentConversationEventAction(...)`
+`DesktopDashboardConversationLoadRuntime.resolveRecentConversationEventAction(...)`
 owns SDK conversation event type classification for recent-list refresh and
 title-visibility polling. The hook owns the resulting side effects: reload the
 recent list, schedule the per-conversation title poll, or ignore the event.
 
-`desktopDashboardConversationLoadRuntime.getTitleVisibilityPollSchedule(...)`
+`DesktopDashboardConversationLoadRuntime.getTitleVisibilityPollSchedule(...)`
 and `shouldContinueTitleVisibilityPoll(...)` own the poll interval, maximum
 attempt count, and dashboard-row visibility predicate. The hook owns timer
 creation/cleanup and list reload side effects, but it should not hard-code the

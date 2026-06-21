@@ -61,6 +61,11 @@ All notable changes to WindieOS will be documented in this file.
   filtering through `DesktopMemoryPresentationRuntime` instead of standalone
   helper exports, keeping memory presentation rules behind the app-runtime
   facade. No migration required.
+- frontend/renderer: expose dashboard recent-conversation metadata projection,
+  row identity/list updates, event refresh classification, title polling, and
+  retry policy through `DesktopDashboardConversationLoadRuntime` instead of
+  standalone helper exports, keeping dashboard conversation loading rules
+  behind the app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

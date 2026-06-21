@@ -2359,7 +2359,7 @@ For each completed slice, record:
 
 - 2026-06-19: completed a renderer continuity search metadata projection slice
   by routing `DesktopConversationContinuityService.searchConversations(...)`
-  through `desktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
+  through `DesktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
   and deleting its private SDK metadata to dashboard row mapper. The dashboard
   conversation load runtime now owns the row projection used by recent loading,
   the conversation library client, and the continuity-service search facade.

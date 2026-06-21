@@ -52,7 +52,7 @@ Hook-owned concerns:
   hidden limit so startup can see every local chat; explicit limits are applied
   only when a caller requests pagination
 - maps SDK `ConversationMetadata` rows into dashboard row fields through
-  `desktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
+  `DesktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
 - the continuity service uses the SDK `LocalRuntimeConversationStore` for list,
   search, delete, display, rehydrate, revision, and title metadata invalidation
   reads and writes; the desktop conversation store factory remains only as the

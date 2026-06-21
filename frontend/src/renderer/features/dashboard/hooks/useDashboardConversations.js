@@ -16,6 +16,10 @@ import {
   buildWorkspaceConversationGroups,
 } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
 import {
+  DesktopDashboardConversationLoadRuntime,
+} from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
+
+const {
   getDashboardConversationRef,
   getDashboardConversationRenamePromptValue,
   getRecentConversationsReloadReasonForEventAction,
@@ -33,7 +37,7 @@ import {
   shouldRetryRecentConversationsLoad,
   shouldReloadRecentConversationsForEventAction,
   togglePinnedConversationRef,
-} from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
+} = DesktopDashboardConversationLoadRuntime;
 
 function useDashboardConversations({
   resolvedUserId,

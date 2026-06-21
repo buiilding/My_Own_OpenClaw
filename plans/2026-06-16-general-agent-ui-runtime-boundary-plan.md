@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Dashboard Conversation Load Facade
+
+- Finding: `desktopDashboardConversationLoadRuntime.js` already owned recent
+  conversation metadata projection, normalization, dashboard row identity,
+  rename/delete/pin list updates, SDK conversation-event refresh
+  classification, title-visibility polling, and startup retry policy, but
+  exported each helper as a standalone function consumed by the dashboard hook
+  and app-runtime conversation clients.
+- Change: made the recent-conversation load helpers private to the runtime
+  module, exposed them through `DesktopDashboardConversationLoadRuntime`, and
+  routed `useDashboardConversations`, conversation continuity/library clients,
+  and focused tests through that facade.
+- Validation: focused dashboard conversation load, dashboard shell, renderer
+  app boundary, exact standalone dashboard conversation-load helper
+  export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. SDK conversation metadata,
+  display-row loading, metadata invalidation fan-out, title-poll timing,
+  retry/backoff semantics, row identity/list update behavior, IPC, storage,
+  credentials, provider policy, hosted backend URLs, and local execution trust
+  boundaries are unchanged.
+
 ### 2026-06-21 Renderer Memory Presentation Facade
 
 - Finding: `desktopMemoryPresentationRuntime.js` already owned dashboard memory
@@ -8089,7 +8110,7 @@ Each completed slice should report:
   dashboard recent loader and conversation library client moved to the shared
   load-runtime projection.
 - Change: routed continuity search results through
-  `desktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
+  `DesktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
   and deleted the local mapper from the continuity service.
 - Validation: focused desktop continuity service, dashboard conversation load,
   and renderer app-runtime boundary tests plus stale mapper scans, docs

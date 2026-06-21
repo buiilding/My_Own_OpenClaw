@@ -3,6 +3,11 @@
  */
 
 import {
+  DesktopDashboardConversationLoadRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
+import * as DashboardConversationLoadRuntime from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
+
+const {
   getDashboardConversationRef,
   getDashboardConversationRenamePromptValue,
   getTitleVisibilityPollSchedule,
@@ -21,8 +26,7 @@ import {
   shouldRetryRecentConversationsLoad,
   shouldReloadRecentConversationsForEventAction,
   togglePinnedConversationRef,
-} from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
-import * as DashboardConversationLoadRuntime from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
+} = DesktopDashboardConversationLoadRuntime;
 
 describe('desktopDashboardConversationLoadRuntime', () => {
   test('metadataToDashboardConversation normalizes SDK metadata for dashboard rows', () => {
