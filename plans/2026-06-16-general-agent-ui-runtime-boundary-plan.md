@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Backend Endpoint State Privacy
+
+- Finding: `ipc_backend_endpoint_state.cjs` already exposed
+  `createBackendEndpointRuntime(...)` as the Electron main endpoint facade, but
+  lower-level mutable endpoint state construction still leaked as a public
+  helper export.
+- Change: kept `createBackendEndpointState(...)` private to the endpoint owner
+  while preserving initialization, candidate refresh, fallback advancement,
+  empty-candidate fallback, hosted-backend configuration, and URL access
+  coverage through `createBackendEndpointRuntime(...)`.
+- Validation: focused backend endpoint state tests, targeted main IPC lint,
+  docs listing, stale export scans, and diff checks before commit.
+- Compatibility/security: no backend endpoint URL, hosted-backend config,
+  artifact URL, SDK runtime construction, IPC status, credential, permission,
+  storage, or trust-boundary migration required; endpoint behavior is
+  unchanged.
+
 ### 2026-06-21 Main Conversation Status Error Helper Privacy
 
 - Finding: `ipc_conversation_status_runtime.cjs` already owned terminal SDK

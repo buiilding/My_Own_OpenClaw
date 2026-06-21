@@ -84,6 +84,10 @@ All notable changes to WindieOS will be documented in this file.
   to `ipc_conversation_status_runtime.cjs` while preserving the public
   terminal-status projection for completed, stopped, and error turns. No
   migration required.
+- frontend/main: keep backend endpoint state construction private to
+  `ipc_backend_endpoint_state.cjs` while preserving the public runtime facade
+  for endpoint refresh, candidate advancement, and hosted-backend
+  configuration. No migration required.
 - frontend/main: keep lower-level clipboard image and image context-menu IPC
   registration private to `ipc_image_interaction_handlers.cjs`, so
   `ipc.cjs` composes one aggregate image-interaction runtime while focused

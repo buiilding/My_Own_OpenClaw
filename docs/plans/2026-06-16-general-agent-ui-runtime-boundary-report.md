@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main conversation-status projection keeps
-  error-payload interpretation private to
-  `ipc_conversation_status_runtime.cjs`, while completed, stopped, runtime
-  error, turn error, non-string error, workspace-path, and non-terminal
-  behavior remain covered through the public terminal-status projection.
+- Latest completed slice: Electron main backend endpoint state keeps mutable
+  endpoint construction private to `ipc_backend_endpoint_state.cjs`, while
+  initialization, candidate refresh, fallback advancement, empty-candidate
+  fallback, hosted-backend configuration, and URL access remain covered through
+  the public endpoint runtime facade.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1082,6 +1082,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Compatibility: no migration required. SDK runtime command payloads,
   conversation-ref fallback behavior, replay/edit/retry paths, credentials,
   permissions, trust boundaries, and storage are unchanged.
+
+### 2026-06-21 Main Backend Endpoint State Privacy
+
+- Finding: `ipc_backend_endpoint_state.cjs` already exposed the composed
+  endpoint runtime facade, but `createBackendEndpointState(...)` still leaked
+  lower-level mutable endpoint state construction as a public helper export.
+- Change: removed the endpoint state factory from the public module surface
+  while preserving runtime coverage for default initialization, candidate
+  refresh, fallback advancement, empty-candidate fallback, hosted-backend
+  configuration, and websocket/HTTP URL access.
+- Validation: focused backend endpoint state tests, targeted main IPC lint,
+  docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. Backend endpoint URLs,
+  hosted-backend config, artifact URLs, SDK runtime construction, IPC status,
+  credentials, permissions, trust boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Conversation Status Error Helper Privacy
 

@@ -86,5 +86,4 @@ function createBackendEndpointRuntime({
 
 module.exports = {
   createBackendEndpointRuntime,
-  createBackendEndpointState,
 };

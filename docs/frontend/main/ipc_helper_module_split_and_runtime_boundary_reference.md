@@ -547,6 +547,8 @@ Owns backend endpoint candidate state:
 - tracks the active endpoint index
 - advances to fallback candidates
 - exposes current websocket/http URLs for IPC status, artifact helpers, and SDK runtime construction
+- keeps lower-level endpoint state construction private behind the runtime
+  facade
 
 ### `ipc_transcript_session_sync.cjs`
 

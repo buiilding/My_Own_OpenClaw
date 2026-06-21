@@ -4,7 +4,6 @@
 
 const {
   createBackendEndpointRuntime,
-  createBackendEndpointState,
 } = require('../../frontend/src/main/ipc/ipc_backend_endpoint_state.cjs');
 const fs = require('fs/promises');
 const path = require('path');
@@ -17,7 +16,7 @@ function createHarness() {
     resolveBackendEndpoints: jest.fn(() => fallback),
     resolveBackendEndpointCandidates: jest.fn(() => [hosted, local]),
   };
-  const endpointState = createBackendEndpointState(deps);
+  const endpointState = createBackendEndpointRuntime(deps);
   return {
     deps,
     endpointState,
@@ -62,7 +61,7 @@ describe('ipc_backend_endpoint_state', () => {
 
   test('falls back to default resolver when candidate list is empty', () => {
     const fallback = { wsUrl: 'ws://fallback/ws', httpUrl: 'http://fallback' };
-    const endpointState = createBackendEndpointState({
+    const endpointState = createBackendEndpointRuntime({
       resolveBackendEndpoints: jest.fn(() => fallback),
       resolveBackendEndpointCandidates: jest.fn(() => []),
     });
@@ -115,6 +114,7 @@ describe('ipc_backend_endpoint_state', () => {
     expect(mainSource).not.toContain('configureBackendEndpointRuntime(config.hostedBackend)');
     expect(helperSource).toContain('function createBackendEndpointRuntime');
     expect(helperSource).toContain('configureBackendEndpointRuntime(hostedBackend)');
+    expect(helperSource).not.toContain('  createBackendEndpointState,');
     expect(hostConfigSource).toContain('backendEndpointState.configureHostedBackend(config.hostedBackend)');
   });
 });
