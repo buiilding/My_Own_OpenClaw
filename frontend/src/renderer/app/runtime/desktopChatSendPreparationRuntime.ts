@@ -2,7 +2,7 @@
  * Prepares renderer chat sends for SDK live-turn dispatch.
  */
 
-import { buildDeferredQueryModelSelection } from './desktopRendererConfigRuntimeClient';
+import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRuntimeClient';
 import { DesktopInteractionRuntimeClient } from './desktopInteractionRuntimeClient';
 import { DesktopLiveTurnRuntimeClient } from './desktopLiveTurnRuntimeClient';
 import { DesktopPendingTurnRuntimeClient } from './desktopPendingTurnRuntimeClient';
@@ -65,7 +65,9 @@ type PrepareDesktopChatSendDependencies = {
 type PreparedDesktopChatTurn = {
   attachmentFilenames: string[] | null;
   conversationRef: string;
-  deferredQueryModelSelection: ReturnType<typeof buildDeferredQueryModelSelection>;
+  deferredQueryModelSelection: ReturnType<
+    typeof DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection
+  >;
   metadata: Record<string, unknown> | null;
   model: AgentModelSelection | null;
   resources: TurnInputResource[];
@@ -304,7 +306,8 @@ export async function prepareDesktopChatSend({
   return {
     attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
     conversationRef,
-    deferredQueryModelSelection: buildDeferredQueryModelSelection(config),
+    deferredQueryModelSelection: DesktopRendererConfigRuntimeClient
+      .buildDeferredQueryModelSelection(config),
     metadata,
     model: null,
     resources,

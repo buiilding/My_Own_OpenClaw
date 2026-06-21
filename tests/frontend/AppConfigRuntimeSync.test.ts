@@ -6,13 +6,11 @@ import {
   buildImmediateRuntimeConfig,
   hasImmediateRuntimeConfigChanges,
 } from '../../frontend/src/renderer/app/providers/appConfigRuntimeSync';
-import {
-  buildDeferredQueryModelSelection,
-} from '../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient';
+import { DesktopRendererConfigRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient';
 
 describe('appConfigRuntimeSync', () => {
   test('builds deferred model selection for SDK setModel callers', () => {
-    expect(buildDeferredQueryModelSelection({
+    expect(DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection({
       selected_model_id: ' claude-sonnet-4-5 ',
       model_provider: ' anthropic ',
     })).toEqual({
@@ -22,10 +20,10 @@ describe('appConfigRuntimeSync', () => {
   });
 
   test('does not build partial model selections', () => {
-    expect(buildDeferredQueryModelSelection({
+    expect(DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection({
       selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
     })).toBeNull();
-    expect(buildDeferredQueryModelSelection({
+    expect(DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection({
       model_provider: 'openai',
     })).toBeNull();
   });

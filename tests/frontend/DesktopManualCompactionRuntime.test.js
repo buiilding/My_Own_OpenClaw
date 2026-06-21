@@ -2,7 +2,7 @@
  * Covers manual compaction runtime. behavior in the frontend test suite.
  */
 
-import { buildDeferredQueryModelSelection } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient';
+import { DesktopRendererConfigRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import {
@@ -12,7 +12,9 @@ import {
 import { runManualCompaction } from '../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntime';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient', () => ({
-  buildDeferredQueryModelSelection: jest.fn(),
+  DesktopRendererConfigRuntimeClient: {
+    buildDeferredQueryModelSelection: jest.fn(),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
@@ -31,7 +33,7 @@ describe('runManualCompaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, 'warn').mockImplementation(() => {});
-    buildDeferredQueryModelSelection.mockReturnValue(null);
+    DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection.mockReturnValue(null);
     DesktopConversationContinuityService.compactHistory.mockResolvedValue(undefined);
   });
 
@@ -42,7 +44,8 @@ describe('runManualCompaction', () => {
   test('sets failed thinking status when model sync setup throws', async () => {
     const setThinkingStatus = jest.fn();
     const setThinkingSourceEventType = jest.fn();
-    buildDeferredQueryModelSelection.mockReturnValue({ provider: 'openai', model: 'gpt-5.4' });
+    DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection
+      .mockReturnValue({ provider: 'openai', model: 'gpt-5.4' });
     DesktopSettingsRuntimeClient.setModel.mockImplementation(() => {
       throw new Error('model sync failed');
     });

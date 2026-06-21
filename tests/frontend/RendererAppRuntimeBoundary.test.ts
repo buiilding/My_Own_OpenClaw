@@ -1369,6 +1369,8 @@ describe('renderer app runtime boundary', () => {
       .resolves.toEqual([]);
     expect(runtimeClientSource).toContain('useDesktopRendererConfigContext');
     expect(runtimeClientSource).toContain('useAppConfigContext');
+    expect(runtimeClientSource).toContain('DesktopRendererConfigRuntimeClient');
+    expect(runtimeClientSource).not.toContain('export function buildDeferredQueryModelSelection');
   });
 
   test('renderer app and feature code does not call SDK-owned transport/internal IPC channels', async () => {

@@ -12,7 +12,7 @@ export function useDesktopRendererConfigContext() {
   return useAppConfigContext();
 }
 
-export function buildDeferredQueryModelSelection(config) {
+function buildDeferredQueryModelSelection(config) {
   if (!isPlainObject(config)) {
     return null;
   }
@@ -30,3 +30,9 @@ export function buildDeferredQueryModelSelection(config) {
     modelProvider,
   };
 }
+
+export const DesktopRendererConfigRuntimeClient = {
+  buildDeferredQueryModelSelection(config) {
+    return buildDeferredQueryModelSelection(config);
+  },
+};

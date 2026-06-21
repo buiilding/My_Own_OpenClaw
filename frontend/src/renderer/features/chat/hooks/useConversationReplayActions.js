@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { useChatStore } from '../stores/chatStore';
 import {
-  buildDeferredQueryModelSelection,
+  DesktopRendererConfigRuntimeClient,
   useDesktopRendererConfigContext,
 } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopArtifactRuntimeClient } from '../../../app/runtime/desktopArtifactRuntimeClient';
@@ -150,7 +150,8 @@ export function useConversationReplayActions({
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const addMessage = useChatStore((state) => state.addMessage);
   const { config } = useDesktopRendererConfigContext();
-  const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
+  const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
+    .buildDeferredQueryModelSelection(config);
 
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
     const normalizedEditedText = typeof editedText === 'string'

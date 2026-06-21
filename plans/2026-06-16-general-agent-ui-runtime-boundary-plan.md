@@ -343,6 +343,26 @@ Each completed slice should report:
   onboarding/settings permission flows, OS permission requests, credentials,
   hosted backend URLs, and provider policy are unchanged.
 
+### 2026-06-21 Renderer Deferred Model Selection Facade
+
+- Finding: `desktopRendererConfigRuntimeClient.js` owned deferred query
+  model-selection projection for chat send, replay, and manual compaction, but
+  still exported `buildDeferredQueryModelSelection(...)` as a standalone helper
+  and `appConfigRuntimeSync.js` re-exported it as a second access path.
+- Change: made the projection helper private to the renderer config runtime
+  client module, exposed it through
+  `DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection(...)`,
+  removed the unused app-config runtime-sync re-export, and routed production
+  callers plus focused tests through the runtime-client method.
+- Validation: focused app config runtime sync, manual compaction, renderer chat
+  boundary, and renderer app-runtime boundary coverage, exact standalone helper
+  export/import scan, docs listing, and diff checks.
+- Compatibility/security: no migration required. Renderer config shape,
+  selected-model/provider values, deferred `settings.update` behavior,
+  `DesktopSettingsRuntimeClient.setModel(...)` payloads, conversation send,
+  replay, manual compaction, storage, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Renderer Client Session Parser Privacy
 
 - Finding: `DesktopClientSessionRuntimeClient` already owned raw

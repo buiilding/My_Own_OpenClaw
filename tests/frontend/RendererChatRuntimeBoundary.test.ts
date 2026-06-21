@@ -100,6 +100,8 @@ describe('renderer chat runtime boundary', () => {
 
     expect(offenders).toEqual([]);
     expect(runtimeClientSource).toContain('buildDeferredQueryModelSelection');
+    expect(runtimeClientSource).toContain('DesktopRendererConfigRuntimeClient');
+    expect(runtimeClientSource).not.toContain('export function buildDeferredQueryModelSelection');
   });
 
   test('chat runtime hooks read app config through renderer config runtime facade', async () => {

@@ -2,10 +2,6 @@
  * Defines app config runtime sync helpers for the renderer UI.
  */
 
-import { buildDeferredQueryModelSelection } from '../runtime/desktopRendererConfigRuntimeClient';
-
-export { buildDeferredQueryModelSelection };
-
 const DEFERRED_QUERY_MODEL_CONFIG_KEYS = new Set([
   'model_provider',
   'selected_model_id',

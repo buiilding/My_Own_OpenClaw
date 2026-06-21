@@ -2,7 +2,7 @@
  * Coordinates the manual compaction runtime for the renderer UI.
  */
 
-import { buildDeferredQueryModelSelection } from './desktopRendererConfigRuntimeClient';
+import { DesktopRendererConfigRuntimeClient } from './desktopRendererConfigRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
 import {
@@ -32,7 +32,8 @@ export async function runManualCompaction({
   await waitForNextPaint();
 
   try {
-    const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
+    const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
+      .buildDeferredQueryModelSelection(config);
     if (deferredQueryModelSelection) {
       DesktopSettingsRuntimeClient.setModel(deferredQueryModelSelection);
     }

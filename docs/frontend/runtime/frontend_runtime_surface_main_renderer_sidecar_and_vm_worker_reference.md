@@ -123,7 +123,10 @@ Send pipeline ownership:
   them before send
 - SDK turn input pipeline resolves resources through host/local resolvers and
   emits user-message metadata before backend transport
-- deferred model selection (`buildDeferredQueryModelSelection`) sent through `DesktopSettingsRuntimeClient.setModel(...)` immediately before `sendQuery(...)` when needed
+- deferred model selection
+  (`DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection(...)`)
+  sent through `DesktopSettingsRuntimeClient.setModel(...)` immediately before
+  `sendQuery(...)` when needed
 - transcript display renders SDK rows/current-turn projection, not a renderer
   optimistic row
 

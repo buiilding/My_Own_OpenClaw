@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep permission status-map normalization behind the
   permission runtime client facade instead of a standalone helper export. No
   migration required.
+- frontend/renderer: keep deferred query model-selection projection behind the
+  renderer config runtime client facade instead of a standalone helper export.
+  No migration required.
 - docs/memory and docs/concepts: describe `session_id` as hosted backend
   runtime identity instead of generic backend runtime/session wording. No
   migration required.
