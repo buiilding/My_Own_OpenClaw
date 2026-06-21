@@ -1032,6 +1032,8 @@ describe('renderer chat runtime boundary', () => {
     expect(markdownMessageSource).not.toContain('import { buildMarkdownRenderModel }');
     expect(markdownClientSource).toContain('infrastructure/markdown');
     expect(markdownClientSource).toContain('infrastructure/llmOutputContract');
+    expect(markdownClientSource).toContain('export const DesktopMarkdownRuntimeClient = Object.freeze');
+    expect(markdownClientSource).not.toContain('export {');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/markdownMessageRendering.js'),
     )).rejects.toThrow();
@@ -1235,7 +1237,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolOutputChatMessageState');
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolSchemaShape');
     expect(chatMessageClientSource).toContain('infrastructure/text/incomingTextNormalization');
+    expect(chatMessageClientSource).toContain('export const DesktopChatMessageRuntimeClient = Object.freeze');
+    expect(chatMessageClientSource).not.toContain('export {');
     expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).toContain('DesktopChatMessageRuntimeClient');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/toolOutputMessages.ts'),
     )).rejects.toThrow();
@@ -1289,6 +1294,7 @@ describe('renderer chat runtime boundary', () => {
     expect(transparencySectionSource).not.toContain("type === 'system-prompt'");
     expect(transparencySectionSource).not.toContain("type === 'xml'");
     expect(transparencyRuntimeSource).toContain('desktopChatMessageRuntimeClient');
+    expect(transparencyRuntimeSource).toContain('DesktopChatMessageRuntimeClient');
     expect(transparencyRuntimeSource).toContain('normalizeToolSchemaList');
     expect(transparencyRuntimeSource).toContain('DesktopMessageTransparencyRuntime');
     expect(transparencyRuntimeSource).toContain('resolveTransparencySectionContentPresentation');
@@ -1321,6 +1327,8 @@ describe('renderer chat runtime boundary', () => {
 
     expect(offenders).toEqual([]);
     expect(hookClientSource).toContain('infrastructure/hooks/useLatestRef');
+    expect(hookClientSource).toContain('export const DesktopRendererHooksRuntimeClient = Object.freeze');
+    expect(hookClientSource).not.toContain('export {');
   });
 
   test('renderer subscriptions do not use backend-wire channel for owned app paths', async () => {

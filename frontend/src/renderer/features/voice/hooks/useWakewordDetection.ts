@@ -11,9 +11,12 @@ import { DesktopWakewordEventRuntime } from '../../../app/runtime/desktopWakewor
 import { DesktopVoiceDebugTraceRuntime } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
 import { DesktopWakewordCaptureGuardRuntime } from '../../../app/runtime/desktopWakewordCaptureGuardRuntime';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
-import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
+import { DesktopRendererHooksRuntimeClient } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { useWakewordBridgeEvents } from './useWakewordBridgeEvents';
 
+const {
+  useLatestRef,
+} = DesktopRendererHooksRuntimeClient;
 const {
   cleanupAudioCaptureNodes,
   closeAudioContextSafely,

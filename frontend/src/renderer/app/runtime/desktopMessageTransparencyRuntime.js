@@ -2,7 +2,11 @@
  * Provides renderer message transparency section descriptors for presentation surfaces.
  */
 
-import { normalizeToolSchemaList } from './desktopChatMessageRuntimeClient';
+import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
+
+const {
+  normalizeToolSchemaList,
+} = DesktopChatMessageRuntimeClient;
 
 function resolveMessageToolSchemas(message) {
   const toolSchemas = normalizeToolSchemaList(message?.toolSchemas);

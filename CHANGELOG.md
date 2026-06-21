@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose chat message, markdown, and shared hook helper
+  facades through `DesktopChatMessageRuntimeClient`,
+  `DesktopMarkdownRuntimeClient`, and `DesktopRendererHooksRuntimeClient`
+  objects instead of loose re-export barrels, keeping generic UI callers on
+  named app-runtime client surfaces. No migration required.
 - frontend/renderer: expose the transcript session runtime singleton as
   `DesktopTranscriptSessionRuntime` instead of a lowercase export, keeping the
   renderer transcript-session owner aligned with app-runtime facade naming. No

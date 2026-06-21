@@ -3,13 +3,15 @@
  */
 
 import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
-import {
+import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
+import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
+
+const {
   buildToolBundleMessageState,
   buildToolCallChatMessageState,
   buildToolCallMessageState,
   buildToolOutputChatMessageState,
-} from './desktopChatMessageRuntimeClient';
-import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
+} = DesktopChatMessageRuntimeClient;
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 

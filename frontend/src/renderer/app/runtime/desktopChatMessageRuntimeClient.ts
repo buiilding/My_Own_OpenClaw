@@ -2,19 +2,28 @@
  * Coordinates renderer chat message state builders and normalization helpers.
  */
 
-export {
+import {
   normalizeIncomingText,
 } from '../../infrastructure/text/incomingTextNormalization';
-export {
+import {
   buildToolBundleMessageState,
   buildToolCallMessageState,
 } from '../../infrastructure/transcript/toolCallMessageState';
-export {
+import {
   buildToolCallChatMessageState,
 } from '../../infrastructure/transcript/toolCallChatMessageState';
-export {
+import {
   buildToolOutputChatMessageState,
 } from '../../infrastructure/transcript/toolOutputChatMessageState';
-export {
+import {
   normalizeToolSchemaList,
 } from '../../infrastructure/transcript/toolSchemaShape';
+
+export const DesktopChatMessageRuntimeClient = Object.freeze({
+  normalizeIncomingText,
+  buildToolBundleMessageState,
+  buildToolCallMessageState,
+  buildToolCallChatMessageState,
+  buildToolOutputChatMessageState,
+  normalizeToolSchemaList,
+});

@@ -3,10 +3,12 @@
  */
 
 import type { ToolSchema } from '../../types/toolSchemas';
-import {
+import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
+
+const {
   normalizeIncomingText,
   normalizeToolSchemaList,
-} from './desktopChatMessageRuntimeClient';
+} = DesktopChatMessageRuntimeClient;
 
 type ChatStreamMessageTarget = {
   id: string;

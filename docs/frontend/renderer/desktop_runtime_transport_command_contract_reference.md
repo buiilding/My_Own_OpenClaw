@@ -352,8 +352,17 @@ catalog, manifest, plugin, skill, MCP, or error fields.
 `desktopRendererHooksRuntimeClient.ts` owns renderer app-runtime access to
 shared React hook helpers such as `useLatestRef`. App providers and feature
 hooks keep their component/effect policy while importing shared hook helpers
-through this runtime facade instead of reaching into renderer infrastructure
-directly.
+through the `DesktopRendererHooksRuntimeClient` object instead of reaching into
+renderer infrastructure directly or importing hook re-exports from a passive
+barrel.
+
+`desktopChatMessageRuntimeClient.ts` and `desktopMarkdownRuntimeClient.ts`
+expose renderer chat-message builders, text/schema normalization, markdown,
+find-highlight, and LLM output helpers through `DesktopChatMessageRuntimeClient`
+and `DesktopMarkdownRuntimeClient` objects. Chat presentation runtimes and
+message components depend on those named runtime clients rather than importing
+individual helper re-exports, keeping helper ownership visible while the generic
+chat UI package boundary is still being split from the WindieOS skin.
 
 `desktopLocalRuntimeStatusRuntimeClient.ts` owns renderer access to shared
 local-runtime status snapshots and value-level readiness subscriptions. Dashboard

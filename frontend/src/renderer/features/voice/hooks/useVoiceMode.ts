@@ -7,10 +7,13 @@ import { DesktopVoiceAudioEncodingRuntime } from '../../../app/runtime/desktopVo
 import { DesktopVoiceAudioCaptureCleanupRuntime } from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
 import { DesktopVoiceAudioProcessorNodeRuntime } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
-import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
+import { DesktopRendererHooksRuntimeClient } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
 import { DesktopVoiceDebugTraceRuntime } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
 
+const {
+  useLatestRef,
+} = DesktopRendererHooksRuntimeClient;
 const {
   cleanupAudioCaptureNodes,
   closeAudioContextSafely,

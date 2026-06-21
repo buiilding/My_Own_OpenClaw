@@ -227,9 +227,9 @@ Tool schema list normalization is centralized in
 `frontend/src/renderer/infrastructure/transcript/toolSchemaShape.ts` and is
 exposed to renderer presentation through
 `frontend/src/renderer/app/runtime/desktopChatMessageRuntimeClient.ts`.
-`normalizeToolSchemaList(value)` is the public runtime helper used by chat
-stream message updates and transparency rendering. It accepts only arrays where
-every entry is supported:
+`DesktopChatMessageRuntimeClient.normalizeToolSchemaList(value)` is the public
+runtime helper used by chat stream message updates and transparency rendering.
+It accepts only arrays where every entry is supported:
 
 - `type: "computer"` schemas pass through as renderer display schemas
 - canonical function schemas with `function.name` and `function.parameters`

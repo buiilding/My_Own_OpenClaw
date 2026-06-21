@@ -12,7 +12,7 @@ import { DesktopModelThinkingRuntime } from '../../../app/runtime/desktopModelTh
 import { type TranscriptModelContext } from '../../../app/runtime/desktopChatStreamModelContextRuntime';
 import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './chatStream/useStreamMessageUpdaters';
-import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
+import { DesktopRendererHooksRuntimeClient } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { useChatStreamTerminalHandlers } from './chatStream/useChatStreamTerminalHandlers';
 import { useChatStreamLocalUserHandler } from './chatStream/useChatStreamLocalUserHandler';
 import { useChatStreamCompactionHandlers } from './chatStream/useChatStreamCompactionHandlers';
@@ -33,6 +33,9 @@ import {
 const {
   handleConversationEventIngress,
 } = DesktopChatStreamIngressRuntime;
+const {
+  useLatestRef,
+} = DesktopRendererHooksRuntimeClient;
 const {
   isAssistantMessageConversationStreamEvent,
   isCompactionCompletedConversationStreamEvent,

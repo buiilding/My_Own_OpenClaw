@@ -2,9 +2,12 @@
  * Provides renderer thread-find state projection for presentation surfaces.
  */
 
-import { collectTextMatches } from './desktopMarkdownRuntimeClient';
+import { DesktopMarkdownRuntimeClient } from './desktopMarkdownRuntimeClient';
 import { DesktopMarkdownMessageRuntime } from './desktopMarkdownMessageRuntime';
 
+const {
+  collectTextMatches,
+} = DesktopMarkdownRuntimeClient;
 const { buildMarkdownRenderModel } = DesktopMarkdownMessageRuntime;
 
 function resolveToolCallSearchText(message) {

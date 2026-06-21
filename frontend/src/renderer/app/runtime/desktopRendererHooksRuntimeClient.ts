@@ -2,6 +2,10 @@
  * Re-exports shared renderer React hooks for feature clients.
  */
 
-export {
+import {
   useLatestRef,
 } from '../../infrastructure/hooks/useLatestRef';
+
+export const DesktopRendererHooksRuntimeClient = Object.freeze({
+  useLatestRef,
+});

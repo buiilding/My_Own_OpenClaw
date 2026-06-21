@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Helper Client Facade Objects
+
+- Finding: `desktopChatMessageRuntimeClient.ts`,
+  `desktopMarkdownRuntimeClient.ts`, and
+  `desktopRendererHooksRuntimeClient.ts` intentionally kept feature and
+  presentation code from importing renderer infrastructure directly, but still
+  exposed their helper sets as loose re-export barrels.
+- Change: exposed chat-message builders/schema normalization, markdown and LLM
+  output helpers, and the shared latest-ref hook through
+  `DesktopChatMessageRuntimeClient`, `DesktopMarkdownRuntimeClient`, and
+  `DesktopRendererHooksRuntimeClient` objects, then routed chat presentation,
+  app provider, chat stream, and voice hook callers through those runtime
+  clients.
+- Validation: focused renderer chat/app runtime boundary assertions, markdown,
+  message-content, compaction-handler, wakeword, and voice-mode tests, targeted
+  lint, docs index/list validation, stale helper import/export scans, and diff
+  checks.
+- Compatibility/security: no migration required. This is renderer-internal API
+  cleanup only; markdown sanitization, tool-schema normalization, React hook
+  behavior, IPC, storage, credentials, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-21 Renderer Manual Compaction Runtime Facade
 
 - Finding: `desktopManualCompactionRuntime.js` already owned manual compaction

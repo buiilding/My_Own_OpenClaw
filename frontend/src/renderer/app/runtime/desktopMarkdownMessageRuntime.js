@@ -2,11 +2,13 @@
  * Provides renderer markdown message render-model helpers for presentation surfaces.
  */
 
-import {
+import { DesktopMarkdownRuntimeClient } from './desktopMarkdownRuntimeClient';
+
+const {
   extractTextFromHtml,
   toSanitizedMarkdownHtml,
   resolveLlmOutputContract,
-} from './desktopMarkdownRuntimeClient';
+} = DesktopMarkdownRuntimeClient;
 
 function buildMarkdownRenderModel({
   text,

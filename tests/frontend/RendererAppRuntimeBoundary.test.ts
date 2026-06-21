@@ -1060,6 +1060,8 @@ describe('renderer app runtime boundary', () => {
       expect(source).not.toContain('infrastructure/hooks/useLatestRef');
     }
     expect(hookClientSource).toContain('infrastructure/hooks/useLatestRef');
+    expect(hookClientSource).toContain('export const DesktopRendererHooksRuntimeClient = Object.freeze');
+    expect(hookClientSource).not.toContain('export {');
   });
 
   test('app provider code routes desktop transport through runtime clients', async () => {

@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { DesktopRendererConfigStorageRuntime } from '../runtime/desktopRendererConfigStorageRuntime';
 import { AppConfigContext } from './AppConfigContext';
-import { useLatestRef } from '../runtime/desktopRendererHooksRuntimeClient';
+import { DesktopRendererHooksRuntimeClient } from '../runtime/desktopRendererHooksRuntimeClient';
 import {
   applyConfigIfChanged,
   buildMergedRendererConfig,
@@ -32,6 +32,9 @@ const {
   loadConfigFromStorage,
   saveConfigToStorage,
 } = DesktopRendererConfigStorageRuntime;
+const {
+  useLatestRef,
+} = DesktopRendererHooksRuntimeClient;
 
 function resolveInitialWakewordSuppressed() {
   if (typeof window === 'undefined') {

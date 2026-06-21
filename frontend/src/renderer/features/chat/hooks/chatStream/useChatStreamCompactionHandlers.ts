@@ -17,13 +17,16 @@ import type {
   StreamTrackingOptions,
 } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
-import { useLatestRef } from '../../../../app/runtime/desktopRendererHooksRuntimeClient';
+import { DesktopRendererHooksRuntimeClient } from '../../../../app/runtime/desktopRendererHooksRuntimeClient';
 
 const {
   getCompactionCompletedThinkingStatus,
   getCompactionStartedThinkingStatus,
   resolveCompactionFailedThinkingStatus,
 } = DesktopChatStreamThinkingRuntime;
+const {
+  useLatestRef,
+} = DesktopRendererHooksRuntimeClient;
 const {
   isCompactionCompletedConversationStreamEvent,
   isCompactionFailedConversationStreamEvent,
