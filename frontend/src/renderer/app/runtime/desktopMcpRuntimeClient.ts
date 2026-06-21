@@ -65,7 +65,7 @@ function firstText(...values: unknown[]): string {
   return '';
 }
 
-export function normalizeDesktopMcpRegistry(payload: unknown): DesktopMcpRegistry {
+function normalizeDesktopMcpRegistry(payload: unknown): DesktopMcpRegistry {
   const source = recordOrEmpty(payload);
   return {
     ...EMPTY_DESKTOP_MCP_REGISTRY,
@@ -80,11 +80,11 @@ export function normalizeDesktopMcpRegistry(payload: unknown): DesktopMcpRegistr
   };
 }
 
-export function getEmptyDesktopMcpRegistry(): DesktopMcpRegistry {
+function getEmptyDesktopMcpRegistry(): DesktopMcpRegistry {
   return EMPTY_DESKTOP_MCP_REGISTRY;
 }
 
-export function normalizeDesktopMcpEnablementResult(payload: unknown): DesktopMcpEnablementResult {
+function normalizeDesktopMcpEnablementResult(payload: unknown): DesktopMcpEnablementResult {
   const source = recordOrEmpty(payload);
   const errorMessage = typeof source.error === 'string' && source.error.trim()
     ? source.error.trim()
@@ -96,7 +96,7 @@ export function normalizeDesktopMcpEnablementResult(payload: unknown): DesktopMc
   };
 }
 
-export function resolveDesktopMcpEnablementRegistry(payload: unknown): DesktopMcpRegistry {
+function resolveDesktopMcpEnablementRegistry(payload: unknown): DesktopMcpRegistry {
   const result = normalizeDesktopMcpEnablementResult(payload);
   if (!result.ok) {
     throw new Error(result.errorMessage || 'Unable to update MCP server.');
@@ -104,7 +104,7 @@ export function resolveDesktopMcpEnablementRegistry(payload: unknown): DesktopMc
   return result.registry;
 }
 
-export function getDesktopMcpServerPresentation(server: unknown): DesktopMcpServerPresentation {
+function getDesktopMcpServerPresentation(server: unknown): DesktopMcpServerPresentation {
   const source = recordOrEmpty(server);
   const status = recordOrEmpty(source.status);
   const id = firstText(source.extension_id, source.mcp_id, source.id);
@@ -136,7 +136,7 @@ export function getDesktopMcpServerPresentation(server: unknown): DesktopMcpServ
   };
 }
 
-export function getDesktopMcpRegistryErrorPresentation(
+function getDesktopMcpRegistryErrorPresentation(
   registryError: unknown,
 ): DesktopMcpRegistryErrorPresentation {
   const source = recordOrEmpty(registryError);

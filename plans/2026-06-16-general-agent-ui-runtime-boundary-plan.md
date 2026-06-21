@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer MCP Runtime Helper Privacy
+
+- Finding: `DesktopMcpRuntimeClient` already exposed public methods for empty
+  registries, list/refresh, enablement, server presentation, and registry-error
+  presentation, but the raw normalizers and presentation builders were also
+  exported directly for tests.
+- Change: made MCP registry normalization, enablement resolution, empty-registry
+  creation, and presentation builders private to the MCP runtime client and
+  moved focused tests through the runtime-client methods used by dashboard MCP
+  settings surfaces.
+- Validation: focused MCP runtime client, renderer chat boundary, and renderer
+  settings boundary tests, exact raw-helper export scan, docs list, and diff
+  hygiene.
+- Compatibility/security: no migration required. MCP IPC channel names,
+  list/refresh/enablement command payloads, dashboard MCP presentation,
+  extension MCP registry state, permissions, credentials, hosted backend URLs,
+  and provider policy are unchanged.
+
 ### 2026-06-21 Renderer Conversation Event Normalizer Privacy
 
 - Finding: `DesktopConversationRuntimeEventClient` already exposed normalized

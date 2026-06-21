@@ -15,14 +15,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
+import * as DesktopMcpRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopMcpRuntimeClient';
 import {
   DesktopMcpRuntimeClient,
-  getDesktopMcpRegistryErrorPresentation,
-  getDesktopMcpServerPresentation,
-  getEmptyDesktopMcpRegistry,
-  normalizeDesktopMcpEnablementResult,
-  normalizeDesktopMcpRegistry,
-  resolveDesktopMcpEnablementRegistry,
 } from '../../frontend/src/renderer/app/runtime/desktopMcpRuntimeClient';
 
 describe('DesktopMcpRuntimeClient', () => {
@@ -30,32 +25,32 @@ describe('DesktopMcpRuntimeClient', () => {
     mockInvoke.mockReset();
   });
 
-  test('normalizes MCP registry payloads at the runtime boundary', () => {
-    expect(getEmptyDesktopMcpRegistry()).toEqual({
-      mcps: [],
-      errors: [],
-      mcp_errors: [],
-      enabled_mcp_servers: [],
-    });
+  test('normalizes MCP registry payloads through runtime client commands', async () => {
+    expect(DesktopMcpRuntimeModule).not.toHaveProperty('normalizeDesktopMcpRegistry');
+    expect(DesktopMcpRuntimeModule).not.toHaveProperty('getEmptyDesktopMcpRegistry');
     expect(DesktopMcpRuntimeClient.getEmptyMcpRegistry()).toEqual({
       mcps: [],
       errors: [],
       mcp_errors: [],
       enabled_mcp_servers: [],
     });
-    expect(normalizeDesktopMcpRegistry({
-      mcps: [{ id: 'memory' }],
-      errors: [{ id: 'broken' }],
-      mcp_errors: [{ id: 'daemon' }],
-      enabled_mcp_servers: ['memory', 7, null, 'cua-driver'],
-    })).toEqual({
+    mockInvoke
+      .mockResolvedValueOnce({
+        mcps: [{ id: 'memory' }],
+        errors: [{ id: 'broken' }],
+        mcp_errors: [{ id: 'daemon' }],
+        enabled_mcp_servers: ['memory', 7, null, 'cua-driver'],
+      })
+      .mockResolvedValueOnce(null);
+
+    await expect(DesktopMcpRuntimeClient.listMcpServers()).resolves.toEqual({
       mcps: [{ id: 'memory' }],
       errors: [{ id: 'broken' }],
       mcp_errors: [{ id: 'daemon' }],
       enabled_mcp_servers: ['memory', 'cua-driver'],
     });
 
-    expect(normalizeDesktopMcpRegistry(null)).toEqual({
+    await expect(DesktopMcpRuntimeClient.listMcpServers()).resolves.toEqual({
       mcps: [],
       errors: [],
       mcp_errors: [],
@@ -63,58 +58,43 @@ describe('DesktopMcpRuntimeClient', () => {
     });
   });
 
-  test('normalizes MCP enablement results with nested registries', () => {
-    expect(normalizeDesktopMcpEnablementResult({
+  test('normalizes MCP enablement results with nested registries', async () => {
+    expect(DesktopMcpRuntimeModule).not.toHaveProperty('normalizeDesktopMcpEnablementResult');
+    expect(DesktopMcpRuntimeModule).not.toHaveProperty('resolveDesktopMcpEnablementRegistry');
+    mockInvoke.mockResolvedValueOnce({
       success: true,
       registry: {
         mcps: [{ id: 'memory' }],
         enabled_mcp_servers: ['memory', false],
       },
-    })).toEqual({
-      ok: true,
-      errorMessage: null,
-      registry: {
-        mcps: [{ id: 'memory' }],
-        errors: [],
-        mcp_errors: [],
-        enabled_mcp_servers: ['memory'],
-      },
     });
 
-    expect(normalizeDesktopMcpEnablementResult({
-      success: false,
-      error: ' Missing MCP server id. ',
-    })).toEqual({
-      ok: false,
-      errorMessage: 'Missing MCP server id.',
-      registry: {
-        mcps: [],
-        errors: [],
-        mcp_errors: [],
-        enabled_mcp_servers: [],
-      },
-    });
-  });
-
-  test('resolves enablement results to registries or throws normalized errors', () => {
-    expect(resolveDesktopMcpEnablementRegistry({
-      success: true,
-      registry: { mcps: [{ id: 'memory' }], enabled_mcp_servers: ['memory', false] },
-    })).toEqual({
+    await expect(DesktopMcpRuntimeClient.setMcpServerEnabled({
+      id: 'memory',
+      enabled: true,
+    })).resolves.toEqual({
       mcps: [{ id: 'memory' }],
       errors: [],
       mcp_errors: [],
       enabled_mcp_servers: ['memory'],
     });
+  });
 
-    expect(() => resolveDesktopMcpEnablementRegistry({
+  test('throws normalized MCP enablement errors through runtime client commands', async () => {
+    mockInvoke.mockResolvedValueOnce({
       success: false,
       error: ' Missing MCP server id. ',
-    })).toThrow('Missing MCP server id.');
+    });
+
+    await expect(DesktopMcpRuntimeClient.setMcpServerEnabled({
+      id: '',
+      enabled: true,
+    })).rejects.toThrow('Missing MCP server id.');
   });
 
   test('builds MCP server presentation values at the runtime boundary', () => {
-    expect(getDesktopMcpServerPresentation({
+    expect(DesktopMcpRuntimeModule).not.toHaveProperty('getDesktopMcpServerPresentation');
+    expect(DesktopMcpRuntimeClient.getMcpServerPresentation({
       id: 'memory',
       extension_id: 'mcp:memory',
       name: ' Memory ',
@@ -158,7 +138,8 @@ describe('DesktopMcpRuntimeClient', () => {
   });
 
   test('builds MCP registry error presentation values at the runtime boundary', () => {
-    expect(getDesktopMcpRegistryErrorPresentation({
+    expect(DesktopMcpRuntimeModule).not.toHaveProperty('getDesktopMcpRegistryErrorPresentation');
+    expect(DesktopMcpRuntimeClient.getMcpRegistryErrorPresentation({
       kind: 'mcp',
       id: 'memory',
       reason: 'spawn failed',

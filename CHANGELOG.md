@@ -123,6 +123,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep conversation current-turn and display-row event
   normalizers private to the conversation runtime event client while preserving
   normalized subscription methods. No migration required.
+- frontend/renderer: keep MCP registry normalization and presentation builders
+  private to the MCP runtime client while preserving public MCP runtime client
+  methods for dashboard settings surfaces. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.
