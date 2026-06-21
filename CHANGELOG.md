@@ -61,6 +61,9 @@ All notable changes to WindieOS will be documented in this file.
   desktop app implementation docs across Electron main, renderer, preload, and
   local-runtime boundaries instead of a monolithic WindieOS frontend. No
   migration required.
+- docs/development: align the agent architecture source-map reference with
+  desktop app runtime-surface wording instead of monolithic WindieOS frontend
+  ownership and sidecar supervision labels. No migration required.
 - frontend/main: regenerate the built-in local-runtime tool manifest from the
   sidecar source so the Electron artifact matches the current browser
   `output_schema` executable contract. No migration required.

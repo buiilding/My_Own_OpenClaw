@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Agent Architecture Desktop App Source Map
+
+- Finding: the agent architecture source-map reference still described the
+  Electron/renderer/preload/local-runtime split as "WindieOS frontend" and
+  said Electron main owned sidecar supervision, keeping the old monolithic
+  frontend owner in a development first-read reference.
+- Change: renamed that section to desktop app architecture, described the four
+  runtime surfaces directly, and changed Electron main wording to desktop host
+  policy plus local-runtime supervision.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, IPC channels, SDK
+  command routing, renderer projections, local-runtime daemon behavior,
+  storage, credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Desktop App Frontend Framing Wording
 
 - Finding: the frontend architecture overview and frontend docs hub still

@@ -1,8 +1,8 @@
 ---
-summary: "Reference material extracted from AGENTS.md: project structure, dependency chains, backend agent runtime, SDK/frontend architecture, runtime flows, and source-map entry points."
+summary: "Reference material extracted from AGENTS.md: project structure, dependency chains, backend agent runtime, SDK/desktop app architecture, runtime flows, and source-map entry points."
 read_when:
   - When AGENTS.md tells you to inspect the detailed architecture/source-map reference.
-  - When you need the longer project structure, runtime flow, backend agent runtime, SDK architecture, frontend architecture, or key entry-point notes that used to live in AGENTS.md.
+  - When you need the longer project structure, runtime flow, backend agent runtime, SDK architecture, desktop app architecture, or key entry-point notes that used to live in AGENTS.md.
 title: "Agent Architecture Reference"
 ---
 
@@ -244,18 +244,18 @@ SDK ownership rules:
   it entirely; backend responsibility is validation, policy filtering, provider
   projection, backend-native tool exposure, and prompt compilation.
 
-## Frontend Architecture
+## Desktop App Architecture
 
-WindieOS frontend has four live runtimes:
+The WindieOS desktop app has four live runtime surfaces:
 
 - React renderer owns UX state and display: chat, dashboard, settings, voice,
   active transcript projection, and display-only tool rows.
 - Preload owns the narrow allowlisted IPC bridge exposed to the renderer.
-- Electron main owns desktop shell policy: windows, overlays, menus, lifecycle,
+- Electron main owns desktop host policy: windows, overlays, menus, lifecycle,
   IPC handlers, endpoint diagnostics, permission prompts, direct Agent SDK
-  startup, sidecar supervision, wakeword supervision, screenshots, and platform
-  policy.
-- Local runtime owns local authority through the current local-runtime Python
+  startup, local-runtime supervision, wakeword supervision, screenshots, and
+  platform policy.
+- Local runtime owns local authority, backed by the current local-runtime Python
   implementation: filesystem, shell/process, computer use, browser mechanics,
   local memory, system state, and wakeword subprocess code.
 

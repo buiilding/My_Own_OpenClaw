@@ -11,11 +11,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `7cad7daa4` (`docs(frontend): split browser inventory ownership`)
-- Latest completed slice: the frontend architecture overview and frontend docs
-  hub now frame Electron main, React renderer, preload, and local-runtime
-  implementation surfaces as the WindieOS desktop app implementation rather
-  than one monolithic WindieOS frontend owner.
+- Latest inspected plan checkpoint: `f93a82288` (`docs(frontend): frame desktop app architecture`)
+- Latest completed slice: the agent architecture source-map reference now
+  describes Electron main, React renderer, preload, and local-runtime behavior
+  as desktop app runtime surfaces instead of a monolithic WindieOS frontend, and
+  names Electron main as desktop host policy plus local-runtime supervision
+  rather than sidecar supervision.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -105,6 +106,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   main, React renderer, preload, and local-runtime implementation surfaces as
   the WindieOS desktop app implementation rather than one monolithic WindieOS
   frontend owner.
+  The agent architecture source-map reference now describes Electron main,
+  React renderer, preload, and local-runtime behavior as desktop app runtime
+  surfaces instead of a monolithic WindieOS frontend, and names Electron main
+  as desktop host policy plus local-runtime supervision rather than sidecar
+  supervision.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
@@ -487,6 +493,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-21 Agent Architecture Desktop App Source Map
+
+- Finding: `docs/development/agent_architecture_reference.md` still described
+  Electron main, renderer, preload, and local-runtime behavior as "WindieOS
+  frontend" and said Electron main owned sidecar supervision, keeping a
+  monolithic frontend owner label in a development source-map reference.
+- Change: renamed the section to desktop app architecture, described those
+  parts as live runtime surfaces, and changed Electron main wording to desktop
+  host policy plus local-runtime supervision.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Migration/security: no migration required. Runtime code, IPC channels, SDK
+  command routing, renderer projections, local-runtime daemon behavior,
+  storage, credentials, hosted backend URLs, and provider policy are unchanged.
 
 ### 2026-06-21 Desktop App Frontend Framing Wording
 

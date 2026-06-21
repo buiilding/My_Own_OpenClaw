@@ -3131,8 +3131,11 @@ describe('modular sdk refactor completion boundary', () => {
         'Main process backend bridge',
         'revived generic backend bridge',
         `${retiredProductName('OS')} frontend is a multi-runtime desktop stack`,
+        `${retiredProductName('OS')} frontend has four live runtimes`,
         `Current ${retiredProductName('OS')} frontend architecture across Electron main`,
         `${retiredProductName('OS')} frontend implementation details across Electron main process`,
+        ['Electron main owns desktop', 'shell policy'].join(' '),
+        ['sidecar supervision,', 'wakeword supervision'].join(' '),
         `${retiredProductName('OS')} owns schema validation, local transport, Chrome/CDP launch policy, browser-local files, and result normalization`,
         'SDK local runtime + sidecar callback wiring',
         'Frontend Tool Execution Service',
@@ -3941,6 +3944,11 @@ describe('modular sdk refactor completion boundary', () => {
     const frontendReadmeText = await read('docs/frontend/README.md');
     expect(frontendReadmeText).toContain('Desktop app implementation hub');
     expect(frontendReadmeText).toContain('WindieOS desktop app implementation details');
+
+    const agentArchitectureReferenceText = await read('docs/development/agent_architecture_reference.md');
+    expect(agentArchitectureReferenceText).toContain('## Desktop App Architecture');
+    expect(agentArchitectureReferenceText).toContain('desktop app has four live runtime surfaces');
+    expect(agentArchitectureReferenceText).toContain('Electron main owns desktop host policy');
 
     const moduleFileIndexText = await read('docs/frontend/inventory/frontend_module_file_index_reference.md');
     expect(moduleFileIndexText).toContain('Hosted backend owns model-facing browser policy and schema exposure.');
