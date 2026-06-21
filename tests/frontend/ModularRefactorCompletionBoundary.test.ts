@@ -1024,6 +1024,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('SAMPLE_VERBOSE_LOCAL_RUNTIME_STDERR');
   });
 
+  test('IPC host option state tests keep local-runtime env fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/IpcHostOptionState.test.cjs');
+
+    expect(source).not.toContain('WINDIE_TEST');
+    expect(source).toContain('SAMPLE_TEST');
+  });
+
   test('main IPC lifecycle explicit endpoint override fixtures stay product-neutral', async () => {
     const source = await read('tests/frontend/IpcMainBridge.lifecycle.test.cjs');
     const retiredOverrideHost = ['windie', 'example', 'com'].join('.');

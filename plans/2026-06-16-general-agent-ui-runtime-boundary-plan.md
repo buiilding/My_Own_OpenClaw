@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 IPC Host Option State Env Fixture Neutralization
+
+- Finding: IPC host option state coverage used `WINDIE_TEST` as an arbitrary
+  local-runtime env fixture even though the helper simply stores injected host
+  options and does not own WindieOS env names.
+- Change: replaced the fixture with `SAMPLE_TEST` and added a modular
+  completion guard so the host-option-state unit test stays product-neutral.
+- Validation: focused IPC host option state and modular boundary tests, exact
+  retired env fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. IPC initialization option storage,
+  local-runtime launch config propagation, WindieOS host-skin env mappings,
+  permissions, storage, credentials, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-20 Query Send-Failure Fixture Neutralization
 
 - Finding: renderer chat-sender and main IPC query bridge tests still asserted

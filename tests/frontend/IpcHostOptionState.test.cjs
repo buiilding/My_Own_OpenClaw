@@ -29,7 +29,7 @@ describe('ipc_host_option_state', () => {
       authStatePath: 'install-auth.json',
       bundledRuntimeCopy: { source: 'runtime-copy' },
       localRuntimeDaemonEntrypoint: 'daemon.py',
-      localRuntimeEnv: { WINDIE_TEST: '1' },
+      localRuntimeEnv: { SAMPLE_TEST: '1' },
       runtimePaths: { python: 'python.exe' },
     })).toEqual({
       isPackaged: true,
@@ -37,7 +37,7 @@ describe('ipc_host_option_state', () => {
       authStatePath: 'install-auth.json',
       copy: { source: 'runtime-copy' },
       daemonEntrypoint: 'daemon.py',
-      localRuntimeEnv: { WINDIE_TEST: '1' },
+      localRuntimeEnv: { SAMPLE_TEST: '1' },
       runtimePaths: { python: 'python.exe' },
     });
   });
@@ -103,9 +103,14 @@ describe('ipc_host_option_state', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_host_option_state.cjs'),
       'utf8',
     );
+    const initializationRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_initialization_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createIpcHostOptionState()');
-    expect(mainSource).toContain('hostOptionState.applyInitializeOptions(options)');
+    expect(mainSource).toContain('hostOptionState,');
+    expect(initializationRuntimeSource).toContain('hostOptionState.applyInitializeOptions(options)');
     expect(mainSource).toContain('hostOptionState.getLocalToolLifecycle()');
     expect(mainSource).toContain('hostOptionState.getAgentWebSocketImpl()');
     expect(mainSource).toContain('hostOptionState.getDesktopLocalRuntimeLaunchConfig()');

@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use a neutral local-runtime env key fixture in IPC host option
+  state coverage instead of a WindieOS-prefixed sample. No migration required.
 - tests/renderer, tests/main: use neutral injected query send-failure copy in
   chat sender and IPC query bridge coverage instead of WindieOS skin strings.
   No migration required.
