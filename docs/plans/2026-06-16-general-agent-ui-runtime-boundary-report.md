@@ -251,7 +251,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `turn_id`, or `include_query_screenshot` field mapping inside
   `desktopChatSendPreparationRuntime`.
   Dashboard memory tabs now consume
-  `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
+  `DesktopMemoryPresentationRuntime.getDashboardMemoryTypes()` for
   episodic/semantic/procedural labels and descriptions.
   The frontend module file index now splits browser ownership across hosted
   backend policy/schema exposure, SDK/main local-runtime dispatch,

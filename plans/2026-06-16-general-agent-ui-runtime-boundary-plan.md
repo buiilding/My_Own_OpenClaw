@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Memory Presentation Facade
+
+- Finding: `desktopMemoryPresentationRuntime.js` already owned dashboard memory
+  type descriptors, episodic/semantic row normalization, procedural placeholder
+  rows, active memory-type fallback, and per-tab search filtering, but exported
+  each projection helper as a standalone function consumed by `MemorySection`
+  and focused tests.
+- Change: made the memory presentation helpers private to the runtime module,
+  exposed them through `DesktopMemoryPresentationRuntime`, and routed dashboard
+  memory UI plus focused memory presentation tests through that facade.
+- Validation: focused memory presentation, memory section, renderer chat
+  boundary, exact standalone memory presentation helper export/import scan,
+  docs list, and diff hygiene.
+- Compatibility/security: no migration required. Local-runtime memory list and
+  delete commands, memory-store fan-out, runtime memory id/kind propagation,
+  retrieval preference storage, active user resolution, IPC, credentials,
+  provider policy, hosted backend URLs, and local execution trust boundaries are
+  unchanged.
+
 ### 2026-06-21 Renderer Chat Model Options Facade
 
 - Finding: `desktopChatModelOptionsRuntime.js` already owned chat provider

@@ -501,14 +501,21 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(memorySectionSource).toContain('desktopMemoryPresentationRuntime');
-    expect(memorySectionSource).toContain('getDashboardMemoryTypes');
+    expect(memorySectionSource).toContain('DesktopMemoryPresentationRuntime');
     expect(memorySectionSource).not.toContain('const MEMORY_TYPES = Object.freeze');
     expect(memorySectionSource).not.toContain('./memorySectionData');
     expect(memorySectionSource).not.toContain('./memorySectionState');
     expect(runtimeSource).toContain('DASHBOARD_MEMORY_TYPES');
+    expect(runtimeSource).toContain('DesktopMemoryPresentationRuntime');
     expect(runtimeSource).toContain('getDashboardMemoryTypes');
     expect(runtimeSource).toContain('normalizeEpisodicMemoriesForDashboard');
     expect(runtimeSource).toContain('normalizeSemanticMemoriesForDashboard');
+    expect(runtimeSource).not.toContain('export function normalizeEpisodicMemoriesForDashboard');
+    expect(runtimeSource).not.toContain('export function normalizeSemanticMemoriesForDashboard');
+    expect(runtimeSource).not.toContain('export function buildProceduralMemoriesForDashboard');
+    expect(runtimeSource).not.toContain('export function getDashboardMemoryTypes');
+    expect(runtimeSource).not.toContain('export function resolveDashboardMemoryTypeInfo');
+    expect(runtimeSource).not.toContain('export function filterDashboardMemoriesByQuery');
     await expect(fs.stat(
       path.join(dashboardRoot, 'components/sections/memorySectionData.js'),
     )).rejects.toThrow();

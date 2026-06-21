@@ -47,14 +47,14 @@ title: "Dashboard Memory Management and Resume Reference"
 
 - memory-type tabs: `episodic`, `semantic`, `procedural`
 - memory tab labels/descriptions are projected by
-  `desktopMemoryPresentationRuntime.getDashboardMemoryTypes()`
+  `DesktopMemoryPresentationRuntime.getDashboardMemoryTypes()`
 - retrieval injection toggle (`Inject memory into prompts`) persisted through
   `DesktopMemoryRetrievalPreferenceRuntime`; that runtime facade owns the
   active localStorage key (`windieos-memory-retrieval-injection-enabled`) and
   the removed `desktop-assistant-memory-retrieval-injection-enabled` key is
   ignored and not migrated
 - memory list fetch orchestration through the runtime client
-- memory row projection and search filtering through `desktopMemoryPresentationRuntime.js`
+- memory row projection and search filtering through `DesktopMemoryPresentationRuntime`
 - edit/delete interactions for rendered memory rows
 
 Runtime methods used by this surface:

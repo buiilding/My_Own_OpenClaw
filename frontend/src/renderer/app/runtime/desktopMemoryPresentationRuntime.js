@@ -109,7 +109,7 @@ function extractAssistantMemoryResponse(content) {
   return tail.slice(0, nextRoleMatch.index).trim();
 }
 
-export function normalizeEpisodicMemoriesForDashboard(memories = []) {
+function normalizeEpisodicMemoriesForDashboard(memories = []) {
   return memories.map((memory, index) => {
     const detail = (memory?.content || '').trim() || '(empty memory)';
     const assistantResponse = extractAssistantMemoryResponse(memory?.content);
@@ -130,7 +130,7 @@ export function normalizeEpisodicMemoriesForDashboard(memories = []) {
   });
 }
 
-export function normalizeSemanticMemoriesForDashboard(memories = []) {
+function normalizeSemanticMemoriesForDashboard(memories = []) {
   return memories.map((memory, index) => {
     const parsed = parseSemanticContent(memory?.content || '');
     const detail = parsed.facts.length > 0
@@ -150,19 +150,19 @@ export function normalizeSemanticMemoriesForDashboard(memories = []) {
   });
 }
 
-export function buildProceduralMemoriesForDashboard() {
+function buildProceduralMemoriesForDashboard() {
   return [];
 }
 
-export function getDashboardMemoryTypes() {
+function getDashboardMemoryTypes() {
   return DASHBOARD_MEMORY_TYPES;
 }
 
-export function resolveDashboardMemoryTypeInfo(activeType, memoryTypes = DASHBOARD_MEMORY_TYPES) {
+function resolveDashboardMemoryTypeInfo(activeType, memoryTypes = DASHBOARD_MEMORY_TYPES) {
   return memoryTypes.find((type) => type.id === activeType) || memoryTypes[0];
 }
 
-export function filterDashboardMemoriesByQuery(activeType, memoriesByType, searchQuery) {
+function filterDashboardMemoriesByQuery(activeType, memoriesByType, searchQuery) {
   const source = memoriesByType[activeType] || [];
   const normalizedQuery = searchQuery.trim().toLowerCase();
   if (!normalizedQuery) {
@@ -183,3 +183,12 @@ export function filterDashboardMemoriesByQuery(activeType, memoriesByType, searc
     );
   });
 }
+
+export const DesktopMemoryPresentationRuntime = Object.freeze({
+  buildProceduralMemoriesForDashboard,
+  filterDashboardMemoriesByQuery,
+  getDashboardMemoryTypes,
+  normalizeEpisodicMemoriesForDashboard,
+  normalizeSemanticMemoriesForDashboard,
+  resolveDashboardMemoryTypeInfo,
+});

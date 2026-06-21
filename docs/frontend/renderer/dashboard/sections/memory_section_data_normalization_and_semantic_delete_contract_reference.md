@@ -56,7 +56,7 @@ Store-change refresh:
 - the panel does not inspect user ids from the store-change payload; active user
   resolution remains with the memory runtime commands
 
-Presentation projection helpers:
+Presentation projection methods:
 
 - type tabs -> `getDashboardMemoryTypes()`
 - episodic -> `normalizeEpisodicMemoriesForDashboard(...)`
@@ -65,9 +65,9 @@ Presentation projection helpers:
 - active type fallback -> `resolveDashboardMemoryTypeInfo(...)`
 - search filtering -> `filterDashboardMemoriesByQuery(...)`
 
-These helpers live in `desktopMemoryPresentationRuntime.js` so dashboard UI
-code consumes a reusable memory presentation projection instead of owning
-local-runtime memory parsing rules or tab descriptor tables inside
+These methods live behind `DesktopMemoryPresentationRuntime` so dashboard UI
+code consumes a reusable memory presentation projection facade instead of
+owning local-runtime memory parsing rules or tab descriptor tables inside
 section-local files.
 
 ### Episodic normalization

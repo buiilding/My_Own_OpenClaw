@@ -3,10 +3,14 @@
  */
 
 import {
+  DesktopMemoryPresentationRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime';
+
+const {
   filterDashboardMemoriesByQuery,
   getDashboardMemoryTypes,
   resolveDashboardMemoryTypeInfo,
-} from '../../frontend/src/renderer/app/runtime/desktopMemoryPresentationRuntime';
+} = DesktopMemoryPresentationRuntime;
 
 describe('desktopMemoryPresentationRuntime', () => {
   test('provides dashboard memory type descriptors', () => {

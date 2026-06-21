@@ -16,12 +16,7 @@ import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemor
 import { desktopRuntimeSkin } from '../../../../app/skin/desktopRuntimeSkin';
 import { DesktopMemoryRetrievalPreferenceRuntime } from '../../../../app/runtime/desktopMemoryRetrievalPreferenceRuntime';
 import {
-  buildProceduralMemoriesForDashboard,
-  filterDashboardMemoriesByQuery,
-  getDashboardMemoryTypes,
-  normalizeEpisodicMemoriesForDashboard,
-  normalizeSemanticMemoriesForDashboard,
-  resolveDashboardMemoryTypeInfo,
+  DesktopMemoryPresentationRuntime,
 } from '../../../../app/runtime/desktopMemoryPresentationRuntime';
 import MemoryItem from './MemoryItem';
 
@@ -30,6 +25,14 @@ const {
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,
 } = DesktopMemoryRetrievalPreferenceRuntime;
+const {
+  buildProceduralMemoriesForDashboard,
+  filterDashboardMemoriesByQuery,
+  getDashboardMemoryTypes,
+  normalizeEpisodicMemoriesForDashboard,
+  normalizeSemanticMemoriesForDashboard,
+  resolveDashboardMemoryTypeInfo,
+} = DesktopMemoryPresentationRuntime;
 const MEMORY_TYPE_ICONS = Object.freeze({
   bookOpen: BookOpen,
   clock: Clock,
