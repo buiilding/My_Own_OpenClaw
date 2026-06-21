@@ -485,8 +485,9 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('main logging tests keep disposable temp fixtures product-neutral', async () => {
+    const layerLogSinkSource = await read('tests/frontend/LayerLogSink.test.cjs');
     const source = await Promise.all([
-      read('tests/frontend/LayerLogSink.test.cjs'),
+      Promise.resolve(layerLogSinkSource),
       read('tests/frontend/WindieRunLayerLog.test.cjs'),
     ]).then(sources => sources.join('\n'));
     const retiredPrefixes = [
@@ -504,6 +505,8 @@ describe('modular sdk refactor completion boundary', () => {
     for (const retiredPrefix of retiredPrefixes) {
       expect(source).not.toContain(retiredPrefix);
     }
+    expect(layerLogSinkSource).not.toContain('[WindieOS]');
+    expect(layerLogSinkSource).toContain('[SampleApp]');
     expect(source).toContain('agent-layer-log-');
     expect(source).toContain('agent-vite-run-log-');
   });

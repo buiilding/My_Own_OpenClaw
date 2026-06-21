@@ -47,6 +47,9 @@ All notable changes to WindieOS will be documented in this file.
 - tests/sidecar: use a neutral packaged wakeword resource path fixture in
   wakeword model-directory coverage instead of a WindieOS install path sample.
   No migration required.
+- tests/main: use a neutral injected log-prefix fixture in generic layer log
+  sink coverage instead of the WindieOS host-skin prefix. No migration
+  required.
 
 - tests/local-runtime: use neutral screenshot path fixtures for unowned
   screenshot temp dirs and `open_app` screenshot verification payloads instead

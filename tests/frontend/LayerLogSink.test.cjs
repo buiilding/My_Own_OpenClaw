@@ -144,11 +144,11 @@ describe('layer_log_sink', () => {
       env: { AGENT_VITE_LOG_FILE: logFile },
       now: () => new Date('2026-06-14T00:00:00.000Z'),
       sessionLabel: 'frontend child process log session',
-      logPrefix: '[WindieOS]',
+      logPrefix: '[SampleApp]',
     })).toBe(true);
 
     expect(fs.readFileSync(logFile, 'utf8')).toContain(
-      '[WindieOS] frontend child process log session 2026-06-14T00:00:00.000Z',
+      '[SampleApp] frontend child process log session 2026-06-14T00:00:00.000Z',
     );
   });
 
@@ -175,13 +175,13 @@ describe('layer_log_sink', () => {
       env,
       now: () => new Date('2026-06-14T00:00:00.000Z'),
       sessionLabel: 'main renderer verbose console log session',
-      logPrefix: '[WindieOS]',
+      logPrefix: '[SampleApp]',
     })).toBe(true);
     expect(appendRendererVerboseLogLine('[Renderer][main][console:0] [vite] connected.', { env }))
       .toBe(true);
 
     const log = fs.readFileSync(logFile, 'utf8');
-    expect(log).toContain('[WindieOS] main renderer verbose console log session 2026-06-14T00:00:00.000Z');
+    expect(log).toContain('[SampleApp] main renderer verbose console log session 2026-06-14T00:00:00.000Z');
     expect(log).toContain('[Renderer][main][console:0] [vite] connected.');
   });
 

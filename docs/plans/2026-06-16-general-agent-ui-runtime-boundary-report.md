@@ -7903,3 +7903,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   precedence, known model filename resolution, status messaging, permissions,
   provider policy, storage, and backend behavior are unchanged; no migration is
   required.
+- Generic layer log sink tests now use a neutral injected log-prefix fixture
+  instead of the WindieOS host-skin prefix. Product log-prefix wiring remains
+  host-skin/CLI owned. Layer log file resolution, session banner writing,
+  renderer verbose logging, host-skin log configuration, permissions, storage,
+  provider policy, and backend behavior are unchanged; no migration is required.

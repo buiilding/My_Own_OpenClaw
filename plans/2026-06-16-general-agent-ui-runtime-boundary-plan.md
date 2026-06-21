@@ -19255,3 +19255,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Wakeword model cache precedence, known
   model filename resolution, status messaging, permissions, provider policy,
   storage, and backend behavior are unchanged.
+
+### 2026-06-21 Layer log injected prefix fixture neutrality
+
+- Finding: generic layer log sink coverage still used the WindieOS host-skin
+  log prefix as an arbitrary injected prefix while testing session banner
+  writing.
+- Change: switched the test-only injected prefix to `[SampleApp]` and extended
+  the modular logging guard so generic log-sink tests keep product prefixes out.
+- Validation: focused layer log sink and modular boundary tests; exact retired
+  injected log-prefix fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Layer log file resolution, session
+  banner writing, renderer verbose logging, host-skin log configuration,
+  permissions, storage, provider policy, and backend behavior are unchanged.
