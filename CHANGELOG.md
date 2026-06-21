@@ -62,6 +62,9 @@ All notable changes to WindieOS will be documented in this file.
   `ipc_client_session_handlers.cjs` and exercise renderer-facing session
   payloads through the registered `get-client-user-id` handler. No migration
   required.
+- frontend/main: keep host option normalization and desktop local-runtime
+  launch-config construction private to `ipc_host_option_state.cjs` and
+  exercise them through `createIpcHostOptionState(...)`. No migration required.
 - frontend/main: keep lower-level clipboard image and image context-menu IPC
   registration private to `ipc_image_interaction_handlers.cjs`, so
   `ipc.cjs` composes one aggregate image-interaction runtime while focused

@@ -404,12 +404,15 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('let agentWebSocketImpl = null');
     expect(hostOptionStateSource).toContain('let localToolLifecycle = null;');
     expect(hostOptionStateSource).toContain('let agentWebSocketImpl = null;');
+    expect(hostOptionStateSource).not.toContain('  normalizeOptionalFunction,');
+    expect(hostOptionStateSource).not.toContain('  normalizeOptionalObject,');
     expect(source).not.toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
     expect(electronAgentClientFactorySource).toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent({');
     expect(electronAgentClientFactorySource).not.toContain('autoSidecar: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
     expect(source).toContain('hostOptionState.getDesktopLocalRuntimeLaunchConfig()');
     expect(source).not.toContain('let desktopLocalRuntimeLaunchConfig = null');
     expect(hostOptionStateSource).toContain('let desktopLocalRuntimeLaunchConfig = null;');
+    expect(hostOptionStateSource).not.toContain('  buildDesktopLocalRuntimeLaunchConfig,');
     expect(source).not.toContain('createDesktopLocalRuntimeLaunchPlan');
     expect(electronAgentClientFactorySource).toContain('createDesktopLocalRuntimeLaunchPlan');
     expect(source).not.toContain('buildDesktopAutoSidecarOptionsForAgent');

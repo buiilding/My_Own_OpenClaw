@@ -107,8 +107,5 @@ function createIpcHostOptionState() {
 }
 
 module.exports = {
-  buildDesktopLocalRuntimeLaunchConfig,
   createIpcHostOptionState,
-  normalizeOptionalFunction,
-  normalizeOptionalObject,
 };

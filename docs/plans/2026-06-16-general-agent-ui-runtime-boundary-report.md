@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main client-session handling keeps
-  renderer-facing snapshot construction private to
-  `ipc_client_session_handlers.cjs`, with payload shape covered through the
-  registered `get-client-user-id` handler.
+- Latest completed slice: Electron main host option state keeps optional-value
+  normalization and desktop local-runtime launch-config construction private
+  to `ipc_host_option_state.cjs`, with behavior covered through
+  `createIpcHostOptionState(...)`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1066,6 +1066,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   delete, pin, title-poll behavior, overlay lifecycle resolution, shared JSON
   contracts, IPC channels, storage, provider policy, and hosted backend
   behavior are unchanged.
+
+### 2026-06-21 Main Host Option State Helper Privacy
+
+- Finding: `ipc_host_option_state.cjs` already exposed the composed Electron
+  main host-option state facade, but `normalizeOptionalFunction(...)`,
+  `normalizeOptionalObject(...)`, and
+  `buildDesktopLocalRuntimeLaunchConfig(...)` still leaked as
+  focused-test-only helper exports.
+- Change: removed those helpers from the public module surface and moved
+  callback/object normalization plus desktop local-runtime launch-config
+  coverage through `createIpcHostOptionState(...)`.
+- Validation: focused host-option state and main SDK boundary tests, targeted
+  main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. Initialize options, callback handles,
+  desktop local-runtime launch config, credentials, permissions, trust
+  boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Client Session Snapshot Privacy
 

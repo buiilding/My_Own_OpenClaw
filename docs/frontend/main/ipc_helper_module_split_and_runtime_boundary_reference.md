@@ -710,6 +710,8 @@ Owns Electron-main IPC host initialization option state:
 - stores the optional local-tool lifecycle object supplied by the host
 - builds the desktop local-runtime launch config from `initializeIpc(...)`
   options for the Electron AgentClient factory
+- keeps normalization and launch-config construction private behind the
+  host-option state facade
 - exposes getters for startup hydration, config handlers, response-overlay
   phase side effects, query pre-capture, AgentClient construction, and SDK
   wake-up wiring

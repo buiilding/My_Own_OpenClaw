@@ -3,27 +3,40 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const hostOptionStateModule = require('../../frontend/src/main/ipc/ipc_host_option_state.cjs');
 const {
-  buildDesktopLocalRuntimeLaunchConfig,
   createIpcHostOptionState,
-  normalizeOptionalFunction,
-  normalizeOptionalObject,
-} = require('../../frontend/src/main/ipc/ipc_host_option_state.cjs');
+} = hostOptionStateModule;
 
 describe('ipc_host_option_state', () => {
-  test('normalizes optional function and object values', () => {
+  test('normalizes optional function and object values through host option state', () => {
+    const state = createIpcHostOptionState();
     const fn = () => undefined;
     const objectValue = { beforeExecute: fn };
 
-    expect(normalizeOptionalFunction(fn)).toBe(fn);
-    expect(normalizeOptionalFunction('not-a-function')).toBeNull();
-    expect(normalizeOptionalObject(objectValue)).toBe(objectValue);
-    expect(normalizeOptionalObject([])).toBeNull();
-    expect(normalizeOptionalObject(null)).toBeNull();
+    state.applyInitializeOptions({
+      applyResponseOverlayPhase: fn,
+      localToolLifecycle: objectValue,
+      WebSocketImpl: 'not-a-function',
+    });
+
+    expect(state.getApplyResponseOverlayPhase()).toBe(fn);
+    expect(state.getLocalToolLifecycle()).toBe(objectValue);
+    expect(state.getAgentWebSocketImpl()).toBeNull();
+
+    state.applyInitializeOptions({
+      applyResponseOverlayPhase: 'not-a-function',
+      localToolLifecycle: [],
+    });
+
+    expect(state.getApplyResponseOverlayPhase()).toBeNull();
+    expect(state.getLocalToolLifecycle()).toBeNull();
   });
 
-  test('builds desktop local-runtime launch config from initialize options', () => {
-    expect(buildDesktopLocalRuntimeLaunchConfig({
+  test('builds desktop local-runtime launch config through host option state', () => {
+    const state = createIpcHostOptionState();
+
+    state.applyInitializeOptions({
       isPackaged: true,
       permissionStatePath: 'permissions.json',
       authStatePath: 'install-auth.json',
@@ -31,7 +44,9 @@ describe('ipc_host_option_state', () => {
       localRuntimeDaemonEntrypoint: 'daemon.py',
       localRuntimeEnv: { SAMPLE_TEST: '1' },
       runtimePaths: { python: 'python.exe' },
-    })).toEqual({
+    });
+
+    expect(state.getDesktopLocalRuntimeLaunchConfig()).toEqual({
       isPackaged: true,
       permissionStatePath: 'permissions.json',
       authStatePath: 'install-auth.json',
@@ -122,5 +137,8 @@ describe('ipc_host_option_state', () => {
     expect(helperSource).toContain('let localToolLifecycle = null;');
     expect(helperSource).toContain('let agentWebSocketImpl = null;');
     expect(helperSource).toContain('let desktopLocalRuntimeLaunchConfig = null;');
+    expect(hostOptionStateModule.buildDesktopLocalRuntimeLaunchConfig).toBeUndefined();
+    expect(hostOptionStateModule.normalizeOptionalFunction).toBeUndefined();
+    expect(hostOptionStateModule.normalizeOptionalObject).toBeUndefined();
   });
 });

@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Host Option State Helper Privacy
+
+- Finding: `ipc_host_option_state.cjs` already exposed
+  `createIpcHostOptionState(...)` as the Electron main composition facade, but
+  optional-value normalization and desktop local-runtime launch-config
+  construction still leaked as public test-only helper exports.
+- Change: kept `normalizeOptionalFunction(...)`,
+  `normalizeOptionalObject(...)`, and
+  `buildDesktopLocalRuntimeLaunchConfig(...)` private to the host-option state
+  owner and moved callback/object
+  normalization plus launch-config coverage through
+  `createIpcHostOptionState(...)`.
+- Validation: focused host-option state and main SDK boundary tests, targeted
+  main IPC lint, docs listing, stale export scans, and diff checks before
+  commit.
+- Compatibility/security: no initialize option, desktop local-runtime launch
+  config, callback handle, credential, permission, or trust-boundary migration
+  required; host option state behavior is unchanged.
+
 ### 2026-06-21 Main Client Session Snapshot Privacy
 
 - Finding: `ipc_client_session_handlers.cjs` already exposed
