@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level clipboard image copy helper private to
+  `ipc_clipboard_image.cjs` and exercise data URL, trusted artifact fetch,
+  redirect, size, and context-menu copy behavior through
+  `createClipboardImageRuntime(...)`. No migration required.
 - frontend/main: keep the lower-level SDK conversation-ref command resolver
   private to `ipc_direct_wake_up_agent_adapter.cjs` and exercise trim plus
   removed `conversation_ref` alias rejection through direct wake adapter

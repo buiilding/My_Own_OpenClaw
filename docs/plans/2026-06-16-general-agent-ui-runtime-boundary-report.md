@@ -12,12 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main direct wake adapter keeps the
-  lower-level SDK conversation-ref command resolver private to
-  `ipc_direct_wake_up_agent_adapter.cjs`, so focused coverage exercises
-  trimming and removed `conversation_ref` alias rejection through adapter
-  methods while preserving conversation runtime handle selection, replay/edit
-  refresh, retry preparation, and delete/clear close behavior.
+- Latest completed slice: Electron main clipboard image copy keeps the
+  lower-level copy helper private to `ipc_clipboard_image.cjs`, so direct IPC
+  copy and native image context-menu copy use `createClipboardImageRuntime(...)`
+  while preserving data URL decoding, trusted artifact origin validation,
+  redirect rejection, remote/data size limits, and structured IPC failure
+  payload behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

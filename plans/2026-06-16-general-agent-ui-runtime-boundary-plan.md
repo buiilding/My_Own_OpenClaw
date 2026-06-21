@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Clipboard Image Copy Runtime Privacy
+
+- Finding: `ipc_clipboard_image.cjs` owned trusted image clipboard copy
+  validation, but focused tests and the image context-menu module still reached
+  into the lower-level `copyImageToClipboard(...)` helper directly.
+- Change: added `createClipboardImageRuntime(...)` so data URL copy, trusted
+  artifact fetch/decode, redirect rejection, size limits, IPC copy, and
+  context-menu copy exercise the same composed runtime facade while keeping
+  `copyImageToClipboard(...)` private.
+- Validation: focused clipboard image and image context-menu tests, targeted
+  main IPC lint, docs listing, stale export-line scans, and diff checks before
+  commit.
+- Compatibility/security: no IPC channel, clipboard write, native image decode,
+  trusted artifact origin, redirect, credential, permission, or trust-boundary
+  migration required; image copy policy and behavior are unchanged.
+
 ### 2026-06-21 Main Direct Wake Conversation Resolver Privacy
 
 - Finding: `ipc_direct_wake_up_agent_adapter.cjs` owned SDK library

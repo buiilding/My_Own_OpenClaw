@@ -210,6 +210,31 @@ async function copyImageToClipboard({
   return { success: true };
 }
 
+function createClipboardImageRuntime({
+  clipboard,
+  nativeImage,
+  fetchImpl = globalThis.fetch,
+  trustedImageOrigins = [],
+  getTrustedImageOrigins,
+  backendHttpUrl,
+} = {}) {
+  function copy(input = {}) {
+    return copyImageToClipboard({
+      clipboard,
+      nativeImage,
+      fetchImpl,
+      trustedImageOrigins,
+      getTrustedImageOrigins,
+      backendHttpUrl,
+      ...input,
+    });
+  }
+
+  return {
+    copy,
+  };
+}
+
 function registerClipboardImageHandler({
   ipcMain,
   clipboard,
@@ -219,16 +244,19 @@ function registerClipboardImageHandler({
   getTrustedImageOrigins,
   backendHttpUrl,
 }) {
+  const clipboardImageRuntime = createClipboardImageRuntime({
+    clipboard,
+    nativeImage,
+    fetchImpl,
+    trustedImageOrigins,
+    getTrustedImageOrigins,
+    backendHttpUrl,
+  });
+
   ipcMain.handle('copy-image-to-clipboard', async (_event, payload = {}) => {
     try {
-      return await copyImageToClipboard({
+      return await clipboardImageRuntime.copy({
         src: payload?.src,
-        clipboard,
-        nativeImage,
-        fetchImpl,
-        trustedImageOrigins,
-        getTrustedImageOrigins,
-        backendHttpUrl,
       });
     } catch (error) {
       return {
@@ -240,6 +268,6 @@ function registerClipboardImageHandler({
 }
 
 module.exports = {
-  copyImageToClipboard,
+  createClipboardImageRuntime,
   registerClipboardImageHandler,
 };

@@ -2,7 +2,7 @@
  * Provides the ipc image context menu module for the Electron main process.
  */
 
-const { copyImageToClipboard } = require('./ipc_clipboard_image.cjs');
+const { createClipboardImageRuntime } = require('./ipc_clipboard_image.cjs');
 
 function buildImageContextMenu({
   src,
@@ -39,17 +39,19 @@ async function showImageContextMenu({
   getTrustedImageOrigins,
   backendHttpUrl,
 }) {
+  const clipboardImageRuntime = createClipboardImageRuntime({
+    clipboard,
+    nativeImage,
+    fetchImpl,
+    trustedImageOrigins,
+    getTrustedImageOrigins,
+    backendHttpUrl,
+  });
   const menu = buildImageContextMenu({
     src,
     Menu,
-    onCopy: async (imageSrc) => copyImageToClipboard({
+    onCopy: async (imageSrc) => clipboardImageRuntime.copy({
       src: imageSrc,
-      clipboard,
-      nativeImage,
-      fetchImpl,
-      trustedImageOrigins,
-      getTrustedImageOrigins,
-      backendHttpUrl,
     }),
   });
 

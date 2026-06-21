@@ -352,6 +352,9 @@ menu handlers:
 - keeps aggregate image interaction registration private behind the runtime
   facade while the clipboard and context-menu handler modules own their focused
   IPC registrations
+- clipboard image copy execution stays behind `createClipboardImageRuntime(...)`
+  so direct IPC copy and context-menu copy share the same trusted artifact
+  policy boundary
 - builds the trusted backend artifact-origin callback from the active backend
   HTTP URL plus endpoint candidates
 - registers `copy-image-to-clipboard` and `show-image-context-menu` with the

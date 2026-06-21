@@ -1,9 +1,10 @@
 /** @jest-environment node */
 
 const {
-  copyImageToClipboard,
+  createClipboardImageRuntime,
   registerClipboardImageHandler,
 } = require('../../frontend/src/main/ipc/ipc_clipboard_image.cjs');
+const clipboardImageModule = require('../../frontend/src/main/ipc/ipc_clipboard_image.cjs');
 
 function imageResponse({
   status = 200,
@@ -48,11 +49,13 @@ describe('ipc clipboard image handler', () => {
     };
     const fetchImpl = jest.fn();
 
-    const result = await copyImageToClipboard({
-      src: 'data:image/png;base64,abc123',
+    const runtime = createClipboardImageRuntime({
       clipboard,
       nativeImage,
       fetchImpl,
+    });
+    const result = await runtime.copy({
+      src: 'data:image/png;base64,abc123',
     });
 
     expect(result).toEqual({ success: true });
@@ -75,12 +78,14 @@ describe('ipc clipboard image handler', () => {
     };
     const fetchImpl = jest.fn().mockResolvedValue(imageResponse());
 
-    const result = await copyImageToClipboard({
-      src: 'https://backend.example.com/api/artifacts/screenshot.png',
+    const runtime = createClipboardImageRuntime({
       clipboard,
       nativeImage,
       fetchImpl,
       trustedImageOrigins: ['https://backend.example.com'],
+    });
+    const result = await runtime.copy({
+      src: 'https://backend.example.com/api/artifacts/screenshot.png',
     });
 
     expect(result).toEqual({ success: true });
@@ -100,25 +105,22 @@ describe('ipc clipboard image handler', () => {
     };
     const fetchImpl = jest.fn();
 
-    await expect(copyImageToClipboard({
-      src: 'file:///Users/peter/private.png',
+    const runtime = createClipboardImageRuntime({
       clipboard,
       nativeImage,
       fetchImpl,
+    });
+
+    await expect(runtime.copy({
+      src: 'file:///Users/peter/private.png',
     })).rejects.toThrow('scheme is not allowed');
 
-    await expect(copyImageToClipboard({
+    await expect(runtime.copy({
       src: 'http://127.0.0.1:8765/api/artifacts/private.png',
-      clipboard,
-      nativeImage,
-      fetchImpl,
     })).rejects.toThrow('not a trusted artifact image');
 
-    await expect(copyImageToClipboard({
+    await expect(runtime.copy({
       src: 'https://cdn.example/screenshot.png',
-      clipboard,
-      nativeImage,
-      fetchImpl,
       trustedImageOrigins: ['https://backend.example.com'],
     })).rejects.toThrow('not a trusted artifact image');
 
@@ -132,10 +134,13 @@ describe('ipc clipboard image handler', () => {
       createFromBuffer: jest.fn(),
     };
 
-    await expect(copyImageToClipboard({
-      src: `data:image/png;base64,${'a'.repeat(16)}`,
+    const runtime = createClipboardImageRuntime({
       clipboard,
       nativeImage,
+    });
+
+    await expect(runtime.copy({
+      src: `data:image/png;base64,${'a'.repeat(16)}`,
       maxDataUrlBytes: 4,
     })).rejects.toThrow('data URL is too large');
 
@@ -149,20 +154,20 @@ describe('ipc clipboard image handler', () => {
       createFromBuffer: jest.fn(),
     };
 
-    await expect(copyImageToClipboard({
-      src: 'https://backend.example.com/api/artifacts/not-image',
+    const runtime = createClipboardImageRuntime({
       clipboard,
       nativeImage,
-      fetchImpl: jest.fn().mockResolvedValue(imageResponse({ contentType: 'text/html' })),
       trustedImageOrigins: ['https://backend.example.com'],
+    });
+
+    await expect(runtime.copy({
+      src: 'https://backend.example.com/api/artifacts/not-image',
+      fetchImpl: jest.fn().mockResolvedValue(imageResponse({ contentType: 'text/html' })),
     })).rejects.toThrow('image content type');
 
-    await expect(copyImageToClipboard({
+    await expect(runtime.copy({
       src: 'https://backend.example.com/api/artifacts/too-large',
-      clipboard,
-      nativeImage,
       fetchImpl: jest.fn().mockResolvedValue(imageResponse({ contentLength: '9' })),
-      trustedImageOrigins: ['https://backend.example.com'],
       maxRemoteImageBytes: 4,
     })).rejects.toThrow('too large');
 
@@ -180,16 +185,23 @@ describe('ipc clipboard image handler', () => {
       location: 'http://169.254.169.254/latest/meta-data',
     }));
 
-    await expect(copyImageToClipboard({
-      src: 'https://backend.example.com/api/artifacts/redirect',
+    const runtime = createClipboardImageRuntime({
       clipboard,
       nativeImage,
       fetchImpl,
       trustedImageOrigins: ['https://backend.example.com'],
+    });
+
+    await expect(runtime.copy({
+      src: 'https://backend.example.com/api/artifacts/redirect',
     })).rejects.toThrow('not a trusted artifact image');
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(nativeImage.createFromBuffer).not.toHaveBeenCalled();
+  });
+
+  test('keeps lower-level clipboard copy private behind the runtime facade', () => {
+    expect(clipboardImageModule.copyImageToClipboard).toBeUndefined();
   });
 
   test('registers a safe IPC handler that returns structured failure payloads', async () => {
