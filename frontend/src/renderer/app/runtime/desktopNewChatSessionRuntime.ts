@@ -28,7 +28,7 @@ type NewChatSessionOptions = {
   } | null;
 };
 
-export const startNewChatSession = ({
+const startNewChatSession = ({
   clearMessages,
   setIsSending,
   setThinkingStatus,
@@ -61,3 +61,7 @@ export const startNewChatSession = ({
     },
   });
 };
+
+export const DesktopNewChatSessionRuntime = Object.freeze({
+  startNewChatSession,
+});

@@ -1195,6 +1195,8 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardShellSource).toContain('desktopActiveChatSessionRuntime');
     expect(dashboardConversationSource).toContain('desktopActiveChatSessionRuntime');
     expect(newChatSessionSource).toContain('desktopActiveChatSessionRuntime');
+    expect(newChatSessionSource).toContain('DesktopNewChatSessionRuntime');
+    expect(newChatSessionSource).not.toContain('export const startNewChatSession');
     expect(newChatSessionSource).not.toContain('features/chat');
     expect(dashboardShellSource).not.toContain('chat/utils/session/resetActiveChatSession');
     expect(dashboardConversationSource).not.toContain('chat/utils/session/resetActiveChatSession');

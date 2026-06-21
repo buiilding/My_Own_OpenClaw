@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer New Chat Session Facade
+
+- Finding: `desktopNewChatSessionRuntime.ts` already owned active chat reset,
+  local conversation creation, transcript selection, and workspace binding for
+  new-chat flows, but still exported `startNewChatSession()` as a standalone
+  helper.
+- Change: made the helper private to the runtime module, exposed it through
+  `DesktopNewChatSessionRuntime`, and routed `ChatInterface`, focused
+  new-session tests, chat/app boundary coverage, and new-chat docs through that
+  facade.
+- Validation: focused new-chat session, chat interface wiring, renderer
+  app/chat boundary, exact standalone new-chat helper export/import scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. The conversation-ref format,
+  reset ordering, transcript-session update, workspace binding, pending-loop
+  stop behavior, storage, credentials, provider policy, hosted backend URLs,
+  and local execution trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Voice Audio Processor Facade
 
 - Finding: `desktopVoiceAudioProcessorNodeRuntime.ts` already owned the

@@ -2,9 +2,11 @@
  * Covers new chat session. behavior in the frontend test suite.
  */
 
-import { startNewChatSession } from '../../frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime';
+import { DesktopNewChatSessionRuntime } from '../../frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
+
+const { startNewChatSession } = DesktopNewChatSessionRuntime;
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {

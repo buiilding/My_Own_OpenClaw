@@ -112,7 +112,7 @@ Dashboard-to-chat new-chat requests use the renderer-only
 dashboard components and chat hooks do not construct or subscribe to the custom
 browser event directly.
 
-`startNewChatSession(...)` order:
+`DesktopNewChatSessionRuntime.startNewChatSession(...)` order:
 
 1. optional `stopActiveQuery()` callback
 2. reset the previous active chat through
@@ -175,7 +175,7 @@ The desktop transcript session runtime is the source for active transcript ident
   `desktopConversationSessionRuntime.resolveCurrentRendererConversationSessionInfo(...)`;
   feature hooks should not carry their own empty session snapshot constants
 
-Chat store reset and transcript-session ref updates are separate concerns; new-chat path updates both through `startNewChatSession` + the desktop transcript session runtime.
+Chat store reset and transcript-session ref updates are separate concerns; new-chat path updates both through `DesktopNewChatSessionRuntime.startNewChatSession(...)` + the desktop transcript session runtime.
 
 ## Test-Backed Invariants
 

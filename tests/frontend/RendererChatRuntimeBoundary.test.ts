@@ -1992,6 +1992,8 @@ describe('renderer chat runtime boundary', () => {
     expect(replayActionsSource).toContain('desktopConversationSessionRuntime');
     expect(replayActionsSource).not.toContain('utils/session/conversationRef');
     expect(newChatSessionSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
+    expect(newChatSessionSource).toContain('DesktopNewChatSessionRuntime');
+    expect(newChatSessionSource).not.toContain('export const startNewChatSession');
     expect(newChatSessionSource).toContain('desktopConversationSessionRuntime');
     expect(newChatSessionSource).not.toContain('utils/session/conversationRef');
     expect(newChatSessionSource).not.toContain('features/chat');
@@ -2004,6 +2006,8 @@ describe('renderer chat runtime boundary', () => {
     expect(bindingsSource).not.toContain('AUDIO_CHUNK');
     expect(bindingsSource).not.toContain('IpcBridge.on');
     expect(bindingsSource).not.toContain('infrastructure/shortcuts/agentStopShortcut');
+    expect(chatInterfaceSource).toContain('DesktopNewChatSessionRuntime');
+    expect(chatInterfaceSource).not.toContain('import { startNewChatSession');
     expect(bindingsSource).toContain('DesktopAudioRuntimeClient.onAudioChunk');
     expect(bindingsSource).toContain('DesktopShortcutRuntimeClient.isAgentStopShortcutEvent');
     expect(audioClientSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
@@ -2520,6 +2524,8 @@ describe('renderer chat runtime boundary', () => {
       expect(source).toContain('desktopActiveChatSessionRuntime');
       expect(source).not.toContain('features/chat/utils/session/resetActiveChatSession');
     }
+    expect(newChatSessionSource).toContain('DesktopNewChatSessionRuntime');
+    expect(newChatSessionSource).not.toContain('export const startNewChatSession');
     expect(newChatSessionSource).not.toContain('features/chat');
     expect(activeSessionRuntimeSource).toContain('DesktopActiveChatSessionRuntime');
     expect(activeSessionRuntimeSource).toContain('resetActiveChatSession');

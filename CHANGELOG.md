@@ -131,6 +131,10 @@ All notable changes to WindieOS will be documented in this file.
   `createAudioCaptureProcessorNode()` export, keeping voice/wakeword capture
   processor setup behind the renderer app-runtime facade. No migration
   required.
+- frontend/renderer: expose new-chat session reset and local conversation
+  creation through `DesktopNewChatSessionRuntime` instead of a standalone
+  `startNewChatSession()` export, keeping transcript selection and workspace
+  binding behind the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose selected-model pool resolution, config patch
   construction, reconciliation, and fallback selection through
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping

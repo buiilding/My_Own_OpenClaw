@@ -22,7 +22,7 @@ import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
-import { startNewChatSession } from '../../../app/runtime/desktopNewChatSessionRuntime';
+import { DesktopNewChatSessionRuntime } from '../../../app/runtime/desktopNewChatSessionRuntime';
 import {
   DesktopChatModelOptionsRuntime,
 } from '../../../app/runtime/desktopChatModelOptionsRuntime';
@@ -55,6 +55,7 @@ const {
 } = DesktopThreadPresentationRuntime;
 const { buildThreadFindState } = DesktopThreadFindRuntime;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
+const { startNewChatSession } = DesktopNewChatSessionRuntime;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (

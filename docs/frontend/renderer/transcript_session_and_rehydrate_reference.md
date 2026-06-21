@@ -167,7 +167,7 @@ desktop IPC channel constants directly.
 - ensures active conversation ref exists
 - sends the user turn through the live-turn app-runtime client and SDK command path
 
-`startNewChatSession(...)`:
+`DesktopNewChatSessionRuntime.startNewChatSession(...)`:
 
 - clears chat state
 - sets fresh active conversation ref
