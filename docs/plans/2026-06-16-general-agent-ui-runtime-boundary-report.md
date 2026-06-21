@@ -7850,3 +7850,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   entrypoint compatibility, generic launch context construction, log routing,
   provider policy, permissions, storage, and backend behavior are unchanged; no
   migration is required.
+- Main helper tests now use neutral user-data and temp-root fixtures in
+  chat-pill intent storage, permission IPC runtime setup, and Python env wrapper
+  coverage instead of Windie-flavored arbitrary paths. Chat-pill intent
+  persistence, permission handler registration, `WINDIE_PYTHON_PATH`
+  compatibility, provider policy, permissions, storage, and backend behavior
+  are unchanged; no migration is required.

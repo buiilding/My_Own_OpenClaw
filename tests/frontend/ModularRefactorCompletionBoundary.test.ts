@@ -431,15 +431,18 @@ describe('modular sdk refactor completion boundary', () => {
       read('tests/frontend/PermissionIpcRuntime.test.cjs'),
       read('tests/frontend/PermissionService.test.cjs'),
     ]).then(sources => sources.join('\n'));
+    const retiredPermissionTempRoot = ['windie', 'permission-runtime-'].join('-');
 
     expect(source).not.toContain('windieos-workspace');
     expect(source).not.toContain('windieos-conversation-workspace');
     expect(source).not.toContain('windieos-diagnostic-workspace');
     expect(source).not.toContain('windieos-untrusted-workspace');
+    expect(source).not.toContain(retiredPermissionTempRoot);
     expect(source).toContain('project-alpha-workspace');
     expect(source).toContain('project-alpha-conversation-workspace');
     expect(source).toContain('project-alpha-diagnostic-workspace');
     expect(source).toContain('project-alpha-untrusted-workspace');
+    expect(source).toContain('agent-permission-runtime-');
   });
 
   test('repo instruction runtime tests keep workspace fixtures product-neutral', async () => {
@@ -496,6 +499,20 @@ describe('modular sdk refactor completion boundary', () => {
     }
     expect(source).toContain('agent-layer-log-');
     expect(source).toContain('agent-vite-run-log-');
+  });
+
+  test('main helper tests keep runtime temp fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/ChatPillVisibilityIntentStore.test.cjs'),
+      read('tests/frontend/PythonInEnvScript.test.cjs'),
+    ]).then(sources => sources.join('\n'));
+    const retiredUserData = ['/tmp', 'windie-user-data'].join('/');
+    const retiredPythonEnvRoot = ['windie', 'python-in-env-'].join('-');
+
+    expect(source).not.toContain(retiredUserData);
+    expect(source).not.toContain(retiredPythonEnvRoot);
+    expect(source).toContain('/tmp/agent-user-data');
+    expect(source).toContain('agent-python-in-env-');
   });
 
   test('conversation replay database integration keeps temp fixtures product-neutral', async () => {

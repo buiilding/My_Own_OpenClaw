@@ -19120,3 +19120,17 @@ Each completed slice should report:
   local-runtime env-key mapping, sidecar daemon entrypoint compatibility,
   generic launch context construction, log routing, provider policy,
   permissions, storage, and backend behavior are unchanged.
+
+### 2026-06-21 Main helper temp fixture neutrality
+
+- Finding: main helper coverage still used Windie-flavored arbitrary temp paths
+  in chat-pill intent storage, permission IPC runtime setup, and Python env
+  wrapper tests.
+- Change: switched those sample user-data/temp roots to neutral `agent-*`
+  fixtures and extended modular boundary guards over the helper tests.
+- Validation: focused chat-pill intent store, permission IPC runtime, Python env
+  wrapper, and modular boundary tests; exact retired helper temp fixture scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Chat-pill intent persistence,
+  permission handler registration, `WINDIE_PYTHON_PATH` compatibility, provider
+  policy, permissions, storage, and backend behavior are unchanged.

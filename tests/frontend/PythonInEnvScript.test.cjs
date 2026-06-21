@@ -42,7 +42,7 @@ function makeFakeConda(tempDir) {
 
 describe('scripts/python-in-env.sh', () => {
   test('exports frontend env python as WINDIE_PYTHON_PATH over stale parent value', () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-python-in-env-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-python-in-env-'));
     const { fakePython } = makeFakeConda(tempDir);
 
     try {

@@ -66,6 +66,10 @@ All notable changes to WindieOS will be documented in this file.
   runtime launch option coverage instead of Windie-flavored arbitrary paths. No
   migration required.
 
+- tests/main: use neutral user-data and temp-root fixtures in chat-pill intent,
+  permission IPC, and Python env wrapper coverage instead of Windie-flavored
+  arbitrary paths. No migration required.
+
 - tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
   in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
   directory. No migration required.

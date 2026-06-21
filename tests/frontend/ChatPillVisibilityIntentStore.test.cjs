@@ -20,7 +20,7 @@ function createFsMock({ exists = false, contents = '' } = {}) {
 describe('chat_pill_visibility_intent_store', () => {
   test('writes the default state file under userData', () => {
     const fs = createFsMock();
-    const userDataPath = '/tmp/windie-user-data';
+    const userDataPath = '/tmp/agent-user-data';
     const statePath = path.join(userDataPath, 'chat-pill-visibility-intent.json');
 
     expect(writeChatPillVisibilityIntent({
@@ -30,9 +30,9 @@ describe('chat_pill_visibility_intent_store', () => {
       fs,
     })).toBe(true);
 
-    expect(fs.mkdirSync).toHaveBeenCalledWith(userDataPath, { recursive: true });
+    expect(fs.mkdirSync).toHaveBeenCalledWith(path.normalize(userDataPath), { recursive: true });
     const [tempPath] = fs.writeFileSync.mock.calls[0];
-    expect(tempPath).toMatch(/\/tmp\/windie-user-data\/chat-pill-visibility-intent\.json\.\d+\.\d+\.\d+\.tmp$/);
+    expect(tempPath).toMatch(/[\\/]tmp[\\/]agent-user-data[\\/]chat-pill-visibility-intent\.json\.\d+\.\d+\.\d+\.tmp$/);
     expect(fs.renameSync).toHaveBeenCalledWith(tempPath, statePath);
   });
 

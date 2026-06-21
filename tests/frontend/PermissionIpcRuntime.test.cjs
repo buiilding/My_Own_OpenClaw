@@ -24,7 +24,7 @@ describe('permission_ipc_runtime', () => {
         invokeHandlers[channel] = handler;
       }),
     };
-    const userDataPath = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-permission-runtime-'));
+    const userDataPath = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-permission-runtime-'));
     runtimeDirs.push(userDataPath);
 
     initializePermissionHandlersRuntime({
