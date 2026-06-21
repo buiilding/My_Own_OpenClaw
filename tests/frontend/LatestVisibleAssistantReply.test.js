@@ -2,11 +2,13 @@
  * Covers latest visible assistant reply. behavior in the frontend test suite.
  */
 
-import {
-  resolveCurrentTurnPresentationState,
-} from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
+import { DesktopCurrentTurnPresentationRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 
 describe('desktopCurrentTurnPresentationRuntime visible reply helpers', () => {
+  const {
+    resolveCurrentTurnPresentationState,
+  } = DesktopCurrentTurnPresentationRuntime;
+
   test('targets the latest user row for awaiting-dot rendering', () => {
     const state = resolveCurrentTurnPresentationState({
       phase: 'idle',

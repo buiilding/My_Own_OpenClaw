@@ -2,13 +2,15 @@
  * Covers chatbox surface state. behavior in the frontend test suite.
  */
 
-import {
-  resolveCurrentTurnPresentationState,
-  resolveResponseOverlayDismissalTarget,
-  resolveSdkCurrentTurnPresentationState,
-} from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
+import { DesktopCurrentTurnPresentationRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 
 describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
+  const {
+    resolveCurrentTurnPresentationState,
+    resolveResponseOverlayDismissalTarget,
+    resolveSdkCurrentTurnPresentationState,
+  } = DesktopCurrentTurnPresentationRuntime;
+
   test('shows awaiting state while user message is still sending', () => {
     const state = resolveCurrentTurnPresentationState({
       phase: 'idle',

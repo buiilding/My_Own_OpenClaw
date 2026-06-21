@@ -124,10 +124,10 @@ Contract ownership:
 - `desktopCurrentTurnMessageRuntime` owns response-overlay row classification:
   visible entries, progress entries, source-tagged entries, and closeability.
 - `resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
-- `desktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
+- `DesktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
   owns SDK presentation-state reduction for overlay intent, lifecycle,
   awaiting anchors, and visible response entries.
-- `desktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
+- `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   owns the dismissal target projection from SDK overlay intent, current-turn
   refs, latest response entry id, and stale guard ref.
 - `useResponseOverlayViewModel(...)` owns the renderer-side composition boundary:

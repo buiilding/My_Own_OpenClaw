@@ -167,7 +167,7 @@ renderer app-runtime facade.
 It does not mutate stream tracking or backend query state; it is UI projection only.
 
 `useOverlayTurnLifecycle(...)` composes that transport projection with the shared lifecycle resolver so current-turn presentation consumers no longer each reduce `phase + isSending` separately.
-`desktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
+`DesktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
 owns SDK presentation snapshots (`presentation.overlayIntent`, awaiting
 anchors, visible response entries, and lifecycle mapping) so chat and overlay
 feature hooks do not carry their own SDK current-turn reducers.

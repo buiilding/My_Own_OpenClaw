@@ -9,7 +9,11 @@ import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationSta
 import {
   resolveLiveTurnPresentationInput,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
-import { resolveSdkCurrentTurnPresentationState } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
+import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
+
+const {
+  resolveSdkCurrentTurnPresentationState,
+} = DesktopCurrentTurnPresentationRuntime;
 
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {

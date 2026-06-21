@@ -3,11 +3,13 @@
  */
 
 import { useMemo } from 'react';
-import {
+import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
+import { useOverlayTurnLifecycle } from './useOverlayTurnLifecycle';
+
+const {
   findLatestVisibleAssistantReply,
   resolveCurrentTurnPresentationState,
-} from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
-import { useOverlayTurnLifecycle } from './useOverlayTurnLifecycle';
+} = DesktopCurrentTurnPresentationRuntime;
 
 export function useCurrentTurnPresentationState({
   phase,

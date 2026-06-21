@@ -38,7 +38,7 @@ function findLastUserIndex(messages) {
   return -1;
 }
 
-export function findLatestVisibleAssistantReply(
+function findLatestVisibleAssistantReply(
   messages,
   allowedTypes = DEFAULT_VISIBLE_ASSISTANT_REPLY_TYPES,
 ) {
@@ -154,7 +154,7 @@ function shouldShowChatboxResponse(surfaceState) {
   return surfaceState === CHATBOX_SURFACE_STATE.RESPONSE;
 }
 
-export function resolveCurrentTurnPresentationState({
+function resolveCurrentTurnPresentationState({
   phase = null,
   lifecycle = getIdleOverlayTurnLifecycle(),
   messages,
@@ -199,7 +199,7 @@ export function resolveCurrentTurnPresentationState({
   };
 }
 
-export function resolveSdkCurrentTurnPresentationState({
+function resolveSdkCurrentTurnPresentationState({
   currentTurnProjection = null,
   fallbackState = null,
   responseOverlayEntries = [],
@@ -245,7 +245,7 @@ export function resolveSdkCurrentTurnPresentationState({
   return state;
 }
 
-export function resolveResponseOverlayDismissalTarget({
+function resolveResponseOverlayDismissalTarget({
   currentTurnProjection = null,
   responseOverlayEntries = [],
   useSdkLiveTurnPresentation = false,
@@ -284,3 +284,10 @@ export function resolveResponseOverlayDismissalTarget({
     responseEntryId: latestEntry.id,
   };
 }
+
+export const DesktopCurrentTurnPresentationRuntime = Object.freeze({
+  findLatestVisibleAssistantReply,
+  resolveCurrentTurnPresentationState,
+  resolveSdkCurrentTurnPresentationState,
+  resolveResponseOverlayDismissalTarget,
+});

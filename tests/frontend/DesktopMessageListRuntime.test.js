@@ -3,7 +3,7 @@
  */
 
 import { DesktopMessageListRuntime } from '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime';
-import { resolveCurrentTurnPresentationState } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
+import { DesktopCurrentTurnPresentationRuntime } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 
 describe('desktopMessageListRuntime', () => {
   const {
@@ -12,6 +12,9 @@ describe('desktopMessageListRuntime', () => {
     shouldRenderAssistantActions,
     shouldRenderUserActions,
   } = DesktopMessageListRuntime;
+  const {
+    resolveCurrentTurnPresentationState,
+  } = DesktopCurrentTurnPresentationRuntime;
 
   test('awaiting-dot target picks latest user row only while awaiting reply', () => {
     const awaitingState = resolveCurrentTurnPresentationState({

@@ -478,12 +478,18 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).toContain('desktopChatLoopUiRuntime');
     expect(currentTurnPresentationSource).toContain('DesktopChatLoopUiRuntime');
     expect(currentTurnPresentationSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(currentTurnPresentationSource).toContain('export const DesktopCurrentTurnPresentationRuntime = Object.freeze');
     expect(currentTurnPresentationSource).toContain('resolveSdkCurrentTurnPresentationState');
     expect(currentTurnPresentationSource).toContain('resolveResponseOverlayDismissalTarget');
     expect(currentTurnPresentationSource).toContain('resolveSdkOverlayIntent');
+    expect(currentTurnPresentationSource).not.toContain('export function findLatestVisibleAssistantReply');
+    expect(currentTurnPresentationSource).not.toContain('export function resolveCurrentTurnPresentationState');
+    expect(currentTurnPresentationSource).not.toContain('export function resolveSdkCurrentTurnPresentationState');
+    expect(currentTurnPresentationSource).not.toContain('export function resolveResponseOverlayDismissalTarget');
     expect(currentTurnPresentationSource).not.toContain('export const VISIBLE_ASSISTANT_REPLY_TYPE_SET');
     expect(currentTurnPresentationSource).not.toContain('features/chat');
     expect(currentTurnPresentationSource).not.toContain('features/minimalChatPill');
+    expect(overlayViewModelSource).toContain('DesktopCurrentTurnPresentationRuntime');
     expect(overlayViewModelSource).toContain('resolveSdkCurrentTurnPresentationState');
     expect(overlayViewModelSource).toContain('resolveResponseOverlayDismissalTarget');
     expect(overlayViewModelSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -504,6 +510,7 @@ describe('renderer app runtime boundary', () => {
     expect(overlayViewModelSource).not.toContain("entry.type === 'tool-explanation'");
     expect(chatInterfaceSource).toContain('useChatSurfaceController');
     expect(chatSurfaceControllerSource).toContain('useCurrentTurnPresentationState');
+    expect(chatSurfaceControllerSource).toContain('DesktopCurrentTurnPresentationRuntime');
     expect(chatSurfaceControllerSource).toContain('resolveSdkCurrentTurnPresentationState');
     expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');
     expect(chatInterfaceSource).not.toContain('VISIBLE_ASSISTANT_REPLY_TYPE_SET');

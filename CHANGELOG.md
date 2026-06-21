@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose current-turn presentation and response-overlay
+  dismissal projection through `DesktopCurrentTurnPresentationRuntime` instead
+  of standalone helper exports, keeping chat/overlay presentation rules behind
+  the renderer app-runtime facade. No migration required.
 - frontend/renderer: expose chat-loop UI state resolution and transport
   recovery reducer helpers through `DesktopChatLoopUiRuntime` instead of
   standalone helper exports, keeping chat-loop projection behind the renderer

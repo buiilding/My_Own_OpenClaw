@@ -23176,3 +23176,22 @@ Each completed slice should report:
   disconnect recovery, watchdog timing, current-turn presentation projection,
   renderer markup, IPC payloads, storage, local-runtime execution, provider
   policy, backend behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer current turn presentation facade helper privacy
+
+- Finding: current-turn visible assistant reply selection, chatbox surface
+  projection, SDK presentation projection, and response-overlay dismissal target
+  resolution lived in the renderer app runtime, but chat hooks, overlay view
+  model code, and focused tests still imported those helpers as standalone
+  exports.
+- Change: exposed current-turn presentation behavior through
+  `DesktopCurrentTurnPresentationRuntime` and kept the helper functions private
+  to `desktopCurrentTurnPresentationRuntime`.
+- Validation: focused chatbox surface, latest visible reply, current-turn
+  presentation hook, message-list, overlay view-model, chat-surface controller,
+  renderer app-runtime boundary, and docs checks.
+- Compatibility: no migration required. Current-turn presentation fields,
+  visible-response selection, awaiting-dot targeting, SDK overlay intent
+  projection, response-overlay dismissal target refs, renderer markup, IPC
+  payloads, storage, local-runtime execution, provider policy, backend behavior,
+  and trust boundaries are unchanged.

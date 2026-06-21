@@ -21,10 +21,12 @@ title: "Current-Turn Presentation and Visible Assistant Reply Contract Reference
 
 ## Helper API Surface
 
-Exported functions:
+`desktopCurrentTurnPresentationRuntime.js` keeps helper functions and default
+visible-assistant type sets private behind `DesktopCurrentTurnPresentationRuntime`.
+Facade methods:
 
-- `findLatestVisibleAssistantReply(messages, allowedTypes)`
-- `resolveCurrentTurnPresentationState({ phase, lifecycle, messages, dismissedResponseId, allowedTypes, activeResponse })`
+- `DesktopCurrentTurnPresentationRuntime.findLatestVisibleAssistantReply(messages, allowedTypes)`
+- `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState({ phase, lifecycle, messages, dismissedResponseId, allowedTypes, activeResponse })`
 
 ## Turn-Boundary Scan Contract
 
@@ -34,7 +36,7 @@ Exported functions:
 - returns the index of the latest row where `sender === "user"`
 - returns `-1` when no user row exists
 
-`findLatestVisibleAssistantReply(messages, allowedTypes)`:
+`DesktopCurrentTurnPresentationRuntime.findLatestVisibleAssistantReply(messages, allowedTypes)`:
 
 - computes lower scan bound:
   - if user row exists: `lastUserIndex + 1`
@@ -61,14 +63,13 @@ The runtime owns the default visible-assistant reply type set privately:
 `ChatInterface` and `useChatSurfaceController` use that default by omitting
 `allowedTypes`, so React feature code does not import raw type-set constants.
 Focused tests and future specialized callers may still pass `allowedTypes` to
-`findLatestVisibleAssistantReply(...)` or
-`resolveCurrentTurnPresentationState(...)` when they need an explicit override.
+the facade methods when they need an explicit override.
 
 ## Shared Presentation Contract
 
 `useCurrentTurnPresentationState(...)` composes:
 
-1. `findLatestVisibleAssistantReply(...)`
+1. `DesktopCurrentTurnPresentationRuntime.findLatestVisibleAssistantReply(...)`
 2. `useChatLoopUiState(...)`
 3. `resolveChatTurnPresentationState(...)`
 

@@ -12,10 +12,7 @@ import {
 import {
   resolveLiveTurnPresentationInput,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
-import {
-  resolveResponseOverlayDismissalTarget,
-  resolveSdkCurrentTurnPresentationState,
-} from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
+import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
   buildCurrentTurnMessagesFromProjection,
   buildCurrentTurnMessagesFromPresentation,
@@ -33,6 +30,11 @@ import {
   logRendererOverlayViewModelTrace,
   logRendererOverlayViewModelResolvedTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
+
+const {
+  resolveResponseOverlayDismissalTarget,
+  resolveSdkCurrentTurnPresentationState,
+} = DesktopCurrentTurnPresentationRuntime;
 
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
   return buildCurrentTurnMessagesFromProjection(currentTurnProjection)
@@ -235,10 +237,8 @@ export function useResponseOverlayViewModel({
     }
   }, [
     currentTurnPhase,
-    currentTurnProjection?.conversationRef,
-    currentTurnProjection?.phase,
-    currentTurnProjection?.turnRef,
-    responseOverlayEntries.length,
+    currentTurnProjection,
+    responseOverlayEntries,
     resolvedCurrentTurnPresentationState,
     useLocalSendLatch,
     useSdkLiveTurnPresentation,
