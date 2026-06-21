@@ -1218,17 +1218,24 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(presentationRuntimeSource).toContain('getPermissionPill');
-    expect(presentationRuntimeSource).toContain('isPermissionGrantedStatus');
-    expect(presentationRuntimeSource).toContain('getPermissionStatusDetailsPresentation');
-    expect(presentationRuntimeSource).toContain('getPermissionManifestEntry');
+    expect(presentationRuntimeSource).toContain('DesktopPermissionPresentationRuntime');
+    expect(presentationRuntimeSource).not.toContain('export function getPermissionKindLabel');
+    expect(presentationRuntimeSource).not.toContain('export function getPermissionGrantedLabel');
+    expect(presentationRuntimeSource).not.toContain('export function getPermissionActionLabel');
+    expect(presentationRuntimeSource).not.toContain('export function isPermissionGrantedStatus');
+    expect(presentationRuntimeSource).not.toContain('export function getPermissionManifestEntry');
+    expect(presentationRuntimeSource).not.toContain('export function getPermissionStatusForId');
+    expect(presentationRuntimeSource).not.toContain('export function getPermissionStatusDetailsPresentation');
+    expect(presentationRuntimeSource).not.toContain('export function getPermissionStatusValue');
+    expect(presentationRuntimeSource).not.toContain('export function getPermissionPill');
     expect(presentationRuntimeSource).not.toContain('features/permissions');
     expect(badgeSource).toContain('desktopPermissionPresentationRuntime');
+    expect(badgeSource).toContain('DesktopPermissionPresentationRuntime');
     expect(onboardingSlideSource).toContain('desktopPermissionPresentationRuntime');
+    expect(onboardingSlideSource).toContain('DesktopPermissionPresentationRuntime');
     expect(onboardingActionsSource).toContain('desktopPermissionPresentationRuntime');
-    expect(onboardingSlideSource).toContain('getPermissionStatusDetailsPresentation');
-    expect(browserSettingsSource).toContain('getPermissionStatusDetailsPresentation');
-    expect(browserSettingsSource).toContain('getPermissionManifestEntry');
+    expect(onboardingActionsSource).toContain('DesktopPermissionPresentationRuntime');
+    expect(browserSettingsSource).toContain('DesktopPermissionPresentationRuntime');
     expect(onboardingSlideSource).not.toContain('status?.reason');
     expect(onboardingSlideSource).not.toContain('status?.status');
     expect(browserSettingsSource).not.toContain('permissions.find');

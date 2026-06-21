@@ -176,9 +176,7 @@ describe('renderer settings runtime boundary', () => {
       'utf8',
     );
 
-    expect(source).toContain('getPermissionStatusDetailsPresentation');
-    expect(source).toContain('getPermissionManifestEntry');
-    expect(source).toContain('getPermissionStatusForId');
+    expect(source).toContain('DesktopPermissionPresentationRuntime');
     expect(source).toContain('status={effectiveStatus}');
     expect(source).not.toContain('permissions.find');
     expect(source).not.toContain('statusesByPermissionId[BROWSER_PERMISSION_ID]');
@@ -187,7 +185,8 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('effectiveStatus?.reason');
     expect(source).not.toContain('effectiveStatus?.details');
     expect(source).not.toContain('details?.remediation');
-    expect(permissionRuntimeSource).toContain('getPermissionStatusForId');
+    expect(permissionRuntimeSource).toContain('DesktopPermissionPresentationRuntime');
+    expect(permissionRuntimeSource).not.toContain('export function getPermissionStatusForId');
   });
 
   test('global stop shortcut settings and storage route through app runtime client', async () => {

@@ -196,7 +196,7 @@ on which active workspace changes matter.
 `BrowserSettingsTab` owns browser permission row layout and browser-settings
 config patches. Permission manifest lookup, permission status-map lookup,
 badge labels/classes, and status detail presentation come from
-`desktopPermissionPresentationRuntime`.
+`DesktopPermissionPresentationRuntime`.
 
 The tab should pass full effective permission status objects into
 `PermissionStatusBadge` and detail helpers. It should not scan raw

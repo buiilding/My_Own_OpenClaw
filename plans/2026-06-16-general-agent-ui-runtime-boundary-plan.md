@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Permission Presentation Facade
+
+- Finding: `desktopPermissionPresentationRuntime.js` already owned renderer
+  permission access-kind labels, grant action labels, granted-status
+  normalization, manifest/status lookup, status detail presentation, and badge
+  pill mapping shared by onboarding, browser settings, and permission badges,
+  but still exported each helper as a standalone function.
+- Change: made the permission presentation helpers private to the runtime
+  module, exposed them through `DesktopPermissionPresentationRuntime`, and
+  routed onboarding slides/actions, browser settings, permission badges, and
+  focused tests through that facade.
+- Validation: focused permission presentation, permission onboarding slide,
+  onboarding permission actions, browser settings, renderer app boundary,
+  settings runtime boundary, exact standalone permission-presentation helper
+  export/import scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Permission manifest/status
+  input shapes, granted/needs-action/unsupported label mapping, status reason
+  and remediation display, browser permission fallback row, onboarding grant
+  flow, IPC, storage, credentials, hosted backend URLs, provider policy, and
+  local permission enforcement are unchanged.
+
 ### 2026-06-21 Renderer Model Selection Facade
 
 - Finding: `desktopModelSelectionRuntime.js` already owned shared renderer

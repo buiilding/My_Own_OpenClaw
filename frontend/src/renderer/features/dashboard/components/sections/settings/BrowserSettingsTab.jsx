@@ -9,10 +9,14 @@ import { usePermissionStore } from '../../../../permissions/stores/permissionSto
 import { DesktopPermissionGrantEffectsRuntime } from '../../../../../app/runtime/desktopPermissionGrantEffectsRuntime';
 import { useDesktopRendererConfigContext } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
 import {
+  DesktopPermissionPresentationRuntime,
+} from '../../../../../app/runtime/desktopPermissionPresentationRuntime';
+
+const {
   getPermissionManifestEntry,
   getPermissionStatusDetailsPresentation,
   getPermissionStatusForId,
-} from '../../../../../app/runtime/desktopPermissionPresentationRuntime';
+} = DesktopPermissionPresentationRuntime;
 
 const BROWSER_PERMISSION_ID = 'browser_automation';
 const browserSettingsSkin = desktopRuntimeSkin.settings.browser;

@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopPermissionGrantEffectsRuntime } from '../../../app/runtime/desktopPermissionGrantEffectsRuntime';
-import { isPermissionGrantedStatus } from '../../../app/runtime/desktopPermissionPresentationRuntime';
+import { DesktopPermissionPresentationRuntime } from '../../../app/runtime/desktopPermissionPresentationRuntime';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
 
 const {
@@ -13,6 +13,9 @@ const {
   shouldPollPermissionGrantByInterval,
   shouldWatchExternalPermissionGrantCompletion,
 } = DesktopPermissionGrantEffectsRuntime;
+const {
+  isPermissionGrantedStatus,
+} = DesktopPermissionPresentationRuntime;
 
 const PERMISSION_RECHECK_INTERVAL_MS = 1000;
 const PERMISSION_RECHECK_TIMEOUT_MS = 2 * 60 * 1000;

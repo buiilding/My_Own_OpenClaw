@@ -57,6 +57,11 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopModelSelectionRuntime` instead of standalone helper exports, keeping
   dashboard/chat model selection rules behind the app-runtime facade. No
   migration required.
+- frontend/renderer: expose permission labels, status-value normalization,
+  status-detail presentation, manifest/status lookup, and badge pill mapping
+  through `DesktopPermissionPresentationRuntime` instead of standalone helper
+  exports, keeping renderer permission presentation rules behind the
+  app-runtime facade. No migration required.
 - frontend/renderer: expose permission post-grant config effects and
   external-grant follow-up probe policy through
   `DesktopPermissionGrantEffectsRuntime` instead of standalone helper exports,

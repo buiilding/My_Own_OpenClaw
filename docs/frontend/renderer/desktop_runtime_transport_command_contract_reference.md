@@ -373,7 +373,7 @@ Onboarding and settings UI pass permission status plus config updater callbacks
 into this runtime facade instead of keeping cross-surface config side effects or
 raw permission status-field checks under the permissions feature.
 
-`desktopPermissionPresentationRuntime.js` owns renderer permission status and
+`DesktopPermissionPresentationRuntime` owns renderer permission status and
 presentation mapping shared by onboarding and settings: access-kind labels,
 granted labels, action-label defaults, granted-status normalization, and badge
 pill label/class projection from either a status value or a full status object.

@@ -4,12 +4,16 @@
 
 import PropTypes from 'prop-types';
 import {
+  DesktopPermissionPresentationRuntime,
+} from '../../../app/runtime/desktopPermissionPresentationRuntime';
+
+const {
   getPermissionActionLabel,
   getPermissionGrantedLabel,
   getPermissionKindLabel,
   getPermissionStatusDetailsPresentation,
   isPermissionGrantedStatus,
-} from '../../../app/runtime/desktopPermissionPresentationRuntime';
+} = DesktopPermissionPresentationRuntime;
 
 function PermissionOnboardingSlide({
   activePermission = null,

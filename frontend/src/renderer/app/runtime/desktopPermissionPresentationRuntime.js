@@ -23,22 +23,22 @@ const ACCESS_KIND_ACTION_LABELS = Object.freeze({
   runtime_check: 'Verify',
 });
 
-export function getPermissionKindLabel(permission) {
+function getPermissionKindLabel(permission) {
   return ACCESS_KIND_LABELS[permission?.access_kind] || 'Access Item';
 }
 
-export function getPermissionGrantedLabel(permission) {
+function getPermissionGrantedLabel(permission) {
   return ACCESS_KIND_GRANTED_LABELS[permission?.access_kind] || 'Granted';
 }
 
-export function getPermissionActionLabel(permission) {
+function getPermissionActionLabel(permission) {
   if (typeof permission?.grant_action_label === 'string' && permission.grant_action_label.trim()) {
     return permission.grant_action_label.trim();
   }
   return ACCESS_KIND_ACTION_LABELS[permission?.access_kind] || 'Grant';
 }
 
-export function isPermissionGrantedStatus(status) {
+function isPermissionGrantedStatus(status) {
   return status?.granted === true || status?.status === 'granted';
 }
 
@@ -52,7 +52,7 @@ function recordsOrEmpty(value) {
     : [];
 }
 
-export function getPermissionManifestEntry(permissions, permissionId, fallback = {}) {
+function getPermissionManifestEntry(permissions, permissionId, fallback = {}) {
   const normalizedPermissionId = normalizeText(permissionId);
   return recordsOrEmpty(permissions).find(
     (permission) => normalizeText(permission.permission_id) === normalizedPermissionId,
@@ -62,7 +62,7 @@ export function getPermissionManifestEntry(permissions, permissionId, fallback =
   };
 }
 
-export function getPermissionStatusForId(statusesByPermissionId, permissionId) {
+function getPermissionStatusForId(statusesByPermissionId, permissionId) {
   const normalizedPermissionId = normalizeText(permissionId);
   if (
     !normalizedPermissionId
@@ -75,7 +75,7 @@ export function getPermissionStatusForId(statusesByPermissionId, permissionId) {
   return statusesByPermissionId[normalizedPermissionId] || null;
 }
 
-export function getPermissionStatusDetailsPresentation(status) {
+function getPermissionStatusDetailsPresentation(status) {
   const reason = normalizeText(status?.reason);
   const statusClassName = `status-${normalizeText(status?.status) || 'unknown'}`;
   const remediation = normalizeText(status?.details?.remediation);
@@ -86,14 +86,14 @@ export function getPermissionStatusDetailsPresentation(status) {
   };
 }
 
-export function getPermissionStatusValue(status) {
+function getPermissionStatusValue(status) {
   if (typeof status === 'string') {
     return normalizeText(status);
   }
   return normalizeText(status?.status);
 }
 
-export function getPermissionPill(status, permission) {
+function getPermissionPill(status, permission) {
   const statusValue = getPermissionStatusValue(status);
   if (statusValue === 'granted') {
     return { label: getPermissionGrantedLabel(permission), className: 'granted' };
@@ -106,3 +106,15 @@ export function getPermissionPill(status, permission) {
   }
   return { label: 'Not checked', className: '' };
 }
+
+export const DesktopPermissionPresentationRuntime = Object.freeze({
+  getPermissionActionLabel,
+  getPermissionGrantedLabel,
+  getPermissionKindLabel,
+  getPermissionManifestEntry,
+  getPermissionPill,
+  getPermissionStatusDetailsPresentation,
+  getPermissionStatusForId,
+  getPermissionStatusValue,
+  isPermissionGrantedStatus,
+});

@@ -25,9 +25,10 @@ permission control center.
 
 ## Status Pill Mapping Contract
 
-`PermissionStatusBadge` delegates to `getPermissionPill(status, permission)`.
+`PermissionStatusBadge` delegates to
+`DesktopPermissionPresentationRuntime.getPermissionPill(status, permission)`.
 The status input may be either the status string or the full permission status
-object; `desktopPermissionPresentationRuntime.js` owns extracting and trimming
+object; `DesktopPermissionPresentationRuntime` owns extracting and trimming
 the status value.
 
 - `granted` -> label depends on `permission.access_kind`:
@@ -55,7 +56,7 @@ recreating status keyword-to-label mappings.
 action buttons from `permission.grant_action_label` instead of hard-coding
 `Grant` vs `Enable`.
 
-`desktopPermissionPresentationRuntime.js` owns access-kind labels, granted
+`DesktopPermissionPresentationRuntime` owns access-kind labels, granted
 labels, action-label defaults, granted-status normalization, and status-pill
 mapping so onboarding and settings do not import utility paths from each
 other's feature folders.
@@ -68,14 +69,17 @@ It also owns permission status detail presentation:
   empty
 
 Onboarding slides and browser settings consume
-`getPermissionStatusDetailsPresentation(...)` and pass full status objects to
+`DesktopPermissionPresentationRuntime.getPermissionStatusDetailsPresentation(...)`
+and pass full status objects to
 badge/detail helpers instead of reading raw status detail or status-value
 fields directly.
 
 ## Drift Hotspots
 
-1. Changing status keywords from main/permission service/store without updating `getPermissionPill`.
-2. Adding new `access_kind` values without extending `desktopPermissionPresentationRuntime.js` mappings.
+1. Changing status keywords from main/permission service/store without updating
+   `DesktopPermissionPresentationRuntime.getPermissionPill`.
+2. Adding new `access_kind` values without extending
+   `DesktopPermissionPresentationRuntime` mappings.
 3. Recreating badge label/class mapping directly in a settings or onboarding component.
 4. Recreating reason/remediation trimming or status CSS class construction
    directly in a settings or onboarding component.

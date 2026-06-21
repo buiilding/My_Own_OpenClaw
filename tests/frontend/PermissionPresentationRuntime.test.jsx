@@ -6,6 +6,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 
 import {
+  DesktopPermissionPresentationRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime';
+
+const {
   getPermissionActionLabel,
   getPermissionGrantedLabel,
   getPermissionKindLabel,
@@ -15,7 +19,7 @@ import {
   getPermissionStatusDetailsPresentation,
   getPermissionStatusForId,
   isPermissionGrantedStatus,
-} from '../../frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime';
+} = DesktopPermissionPresentationRuntime;
 import PermissionStatusBadge from '../../frontend/src/renderer/features/permissions/components/PermissionStatusBadge';
 
 describe('desktopPermissionPresentationRuntime', () => {
