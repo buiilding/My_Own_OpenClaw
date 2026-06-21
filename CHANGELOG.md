@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- docs/adr: add ADR 006 for renderer-owned typing state, defining the target
+  architecture where one renderer app-runtime visible turn lifecycle projection
+  owns dashboard, pill, overlay, typing, and busy state while SDK projection
+  remains backend-event owned. No migration required.
 - frontend/renderer: add a sanitized `renderer.display_rows.projected`
   live-surface trace and regression coverage for replacing optimistic
   text-only user rows with SDK display rows carrying screenshot metadata. No
