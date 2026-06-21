@@ -205,22 +205,32 @@ owns SDK presentation snapshots (`presentation.overlayIntent`, awaiting
 anchors, visible response entries, and lifecycle mapping) so chat and overlay
 feature hooks do not carry their own SDK current-turn reducers.
 
+`useChatSurfaceController(...)` resolves
+`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` and uses
+that projection for dashboard/pill busy state, stop affordance gating,
+awaiting-dot visibility, and chatbox awaiting state. The older
+`useCurrentTurnPresentationState(...)` result remains an adapter for legacy
+presentation fields while visible lifecycle owns the typing decision.
+
 ## Surface Consumers
 
 `ChatInterface.jsx`:
 
-- consumes `useCurrentTurnPresentationState(...)`
-- uses `isBusy` as the stop-query affordance gate
-- uses `showAssistantAwaitingDot` from the shared current-turn projection instead of component-local reply scanning
+- consumes `useChatSurfaceController(...)`
+- uses visible lifecycle `isBusy` as the stop-query affordance gate
+- uses visible lifecycle awaiting anchor for `showAssistantAwaitingDot` instead
+  of component-local reply scanning
 
 `ChatBox.jsx`:
 
-- consumes `useCurrentTurnPresentationState(...)`
-- treats `isBusy` as loop-interaction lock for pill controls/input/drag/actions
+- consumes `useChatSurfaceController(...)`
+- treats visible lifecycle `isBusy` as loop-interaction lock for pill
+  controls/input/drag/actions
 
 `ChatBoxResponse.jsx`:
 
-- consumes `useCurrentTurnPresentationState(...)`, which layers current-turn assistant-reply detection on top of `useOverlayTurnLifecycle(...)` and `useChatLoopUiState(...)`
+- consumes the chatbox state adapted by `useChatSurfaceController(...)` from
+  visible lifecycle plus current-turn presentation entries
 - uses the derived chatbox surface state:
   - `compact`
   - `awaiting-reply`
@@ -235,6 +245,13 @@ feature hooks do not carry their own SDK current-turn reducers.
 - same-turn SDK awaiting, visible progress/text, and terminal projections
   replace local pending
 - the handoff predicate stays behind the visible lifecycle runtime facade
+
+`tests/frontend/ChatSurfaceController.test.jsx` validates:
+
+- controller busy/Stop state follows visible lifecycle instead of legacy
+  presentation hook busy state
+- local pending remains visible through SDK idle/visible-empty handoff
+- visible lifecycle awaiting anchors drive dashboard and chatbox awaiting state
 
 `tests/frontend/ChatLoopUiState.test.js` validates:
 

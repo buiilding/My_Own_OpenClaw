@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route `useChatSurfaceController` busy, stop, awaiting
+  dot, and chatbox awaiting state through `DesktopVisibleTurnLifecycleRuntime`
+  while keeping the older current-turn presentation hook as an adapter. No
+  migration required.
 - frontend/renderer: add the renderer-owned visible turn lifecycle runtime and
   route pending-turn handoff through its same-turn SDK authority predicate, so
   SDK idle, visible-empty, or wrong-turn projections cannot clear

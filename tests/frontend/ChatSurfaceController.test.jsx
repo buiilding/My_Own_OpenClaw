@@ -91,7 +91,8 @@ describe('useChatSurfaceController', () => {
     expect(result.current.includeQueryScreenshot).toBe(false);
     expect(result.current.isBusy).toBe(true);
     expect(result.current.canStop).toBe(true);
-    expect(result.current.currentTurnPresentationState.awaitingDotTargetMessageId).toBe('assistant-1');
+    expect(result.current.visibleTurnLifecycle.status).toBe('active');
+    expect(result.current.currentTurnPresentationState.awaitingDotTargetMessageId).toBeNull();
     expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
       phase: 'streaming',
       isSending: true,
@@ -172,6 +173,10 @@ describe('useChatSurfaceController', () => {
       awaitingDotTargetMessageId: 'user-row-1',
       showChatboxAwaitingReply: true,
       showChatboxResponse: false,
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'awaiting',
+        source: 'sdk',
+      }),
     });
   });
 
@@ -231,6 +236,83 @@ describe('useChatSurfaceController', () => {
     });
     expect(result.current.currentTurnPresentationState).toMatchObject({
       showChatboxAwaitingReply: true,
+      awaitingDotTargetMessageId: 'user-2',
+    });
+  });
+
+  test('keeps renderer-owned local pending visible through SDK idle and visible-empty handoff', () => {
+    const { result } = renderController({
+      presentationState: {
+        isBusy: false,
+        showChatboxAwaitingReply: false,
+        awaitingDotTargetMessageId: null,
+      },
+      props: {
+        isSending: true,
+        pendingTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-local',
+          userMessageId: 'user-local',
+          text: 'local send',
+          timestamp: '2026-06-21T00:00:00.000Z',
+          attachmentFilenames: null,
+        },
+        messages: [
+          {
+            id: 'user-local',
+            type: 'user',
+            sender: 'user',
+            text: 'local send',
+            turnRef: 'turn-local',
+          },
+        ],
+        currentTurnProjection: {
+          phase: 'idle',
+          conversationRef: 'conv-1',
+          turnRef: 'startup-hidden',
+          assistantText: '',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+          presentation: {
+            conversationRef: 'conv-1',
+            turnRef: 'startup-hidden',
+            phase: 'idle',
+            entries: [],
+            hasVisibleContent: false,
+            typingVisible: false,
+            overlayVisible: false,
+            isBusy: false,
+            isTerminal: false,
+            lastError: null,
+            overlayIntent: {
+              visible: false,
+              mode: 'hidden',
+              turnRef: 'startup-hidden',
+              conversationRef: 'conv-1',
+              staleGuardRef: 'startup-hidden',
+            },
+          },
+        },
+      },
+    });
+
+    expect(result.current).toMatchObject({
+      isBusy: true,
+      canStop: true,
+      liveTurnSource: 'pending-turn',
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'local_pending',
+        source: 'local',
+        turnRef: 'turn-local',
+      }),
+    });
+    expect(result.current.currentTurnPresentationState).toMatchObject({
+      loopUiState: 'awaiting-reply',
+      showAssistantAwaitingDot: true,
+      awaitingDotTargetMessageId: 'user-local',
+      showChatboxAwaitingReply: true,
+      showChatboxResponse: false,
     });
   });
 
@@ -277,7 +359,11 @@ describe('useChatSurfaceController', () => {
   });
 
   test('runs pill and dashboard config toggles through one busy gate', () => {
-    const { result, updateConfig, rerender } = renderController();
+    const { result, updateConfig } = renderController({
+      props: {
+        currentTurnProjection: null,
+      },
+    });
 
     act(() => {
       expect(result.current.toggleSpeechMode()).toBe(true);
@@ -287,12 +373,23 @@ describe('useChatSurfaceController', () => {
     expect(updateConfig).toHaveBeenCalledWith({ speech_mode_enabled: true });
     expect(updateConfig).toHaveBeenCalledWith({ include_query_screenshot: false });
 
-    mockCurrentTurnPresentationState.mockReturnValue({ isBusy: true });
-    rerender();
-
+    const busyController = renderController({
+      updateConfig,
+      props: {
+        currentTurnProjection: {
+          phase: 'streaming',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-busy',
+          assistantText: 'streaming',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      },
+    });
     act(() => {
-      expect(result.current.toggleSpeechMode()).toBe(false);
-      expect(result.current.toggleQueryScreenshot()).toBe(false);
+      expect(busyController.result.current.toggleSpeechMode()).toBe(false);
+      expect(busyController.result.current.toggleQueryScreenshot()).toBe(false);
     });
 
     expect(updateConfig).toHaveBeenCalledTimes(2);

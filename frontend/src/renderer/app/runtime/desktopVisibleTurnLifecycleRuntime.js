@@ -155,11 +155,19 @@ function resolveTerminalReason(currentTurnProjection) {
 }
 
 function resolveSdkLifecycleStatus(currentTurnProjection) {
+  if (!currentTurnProjection) {
+    return 'idle';
+  }
   const phase = normalizeProjectionPhase(currentTurnProjection);
   if (TERMINAL_PHASES.has(phase) || currentTurnProjection?.presentation?.isTerminal === true) {
     return 'terminal';
   }
-  if (ACTIVE_PHASES.has(phase) || hasVisibleTextOrError(currentTurnProjection) || hasToolProgress(currentTurnProjection) || hasVisiblePresentationContent(currentTurnProjection.presentation)) {
+  if (
+    ACTIVE_PHASES.has(phase)
+    || hasVisibleTextOrError(currentTurnProjection)
+    || hasToolProgress(currentTurnProjection)
+    || hasVisiblePresentationContent(currentTurnProjection.presentation)
+  ) {
     return 'active';
   }
   if (AWAITING_PHASES.has(phase)) {

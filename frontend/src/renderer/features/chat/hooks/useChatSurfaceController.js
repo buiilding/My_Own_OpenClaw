@@ -10,10 +10,14 @@ import {
   DesktopLiveTurnSurfaceRuntime,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
 import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
+import { DesktopVisibleTurnLifecycleRuntime } from '../../../app/runtime/desktopVisibleTurnLifecycleRuntime';
 
 const {
   resolveSdkCurrentTurnPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
+const {
+  resolveVisibleTurnLifecycle,
+} = DesktopVisibleTurnLifecycleRuntime;
 const {
   resolveLiveTurnPresentationInput,
 } = DesktopLiveTurnSurfaceRuntime;
@@ -31,6 +35,83 @@ function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   return true;
 }
 
+function findLatestUserMessageAnchor(messages) {
+  if (!Array.isArray(messages)) {
+    return null;
+  }
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message?.sender === 'user' && typeof message.id === 'string' && message.id.trim()) {
+      return {
+        kind: 'user-message',
+        rowId: message.id.trim(),
+      };
+    }
+  }
+  return null;
+}
+
+function resolveControllerVisibleTurnLifecycle(visibleTurnLifecycle, liveTurnPresentationInput, messages) {
+  if (
+    liveTurnPresentationInput.useLocalSendLatch === true
+    && visibleTurnLifecycle.status !== 'local_pending'
+  ) {
+    // Compatibility until every send path creates pendingTurn before toggling isSending.
+    return {
+      ...visibleTurnLifecycle,
+      status: 'local_pending',
+      source: 'local',
+      conversationRef: liveTurnPresentationInput.conversationRef || visibleTurnLifecycle.conversationRef,
+      turnRef: liveTurnPresentationInput.turnRef || visibleTurnLifecycle.turnRef,
+      awaitingAnchor: findLatestUserMessageAnchor(messages),
+      entries: [],
+      terminalReason: null,
+      isBusy: true,
+      showTyping: true,
+    };
+  }
+  return visibleTurnLifecycle;
+}
+
+function applyVisibleLifecycleToPresentationState(presentationState, visibleTurnLifecycle) {
+  const nextState = {
+    ...presentationState,
+    visibleTurnLifecycle,
+    isBusy: visibleTurnLifecycle.isBusy === true,
+  };
+  if (
+    visibleTurnLifecycle.status === 'local_pending'
+    || visibleTurnLifecycle.status === 'awaiting'
+  ) {
+    return {
+      ...nextState,
+      loopUiState: 'awaiting-reply',
+      isAwaitingReply: true,
+      showAssistantAwaitingDot: true,
+      awaitingDotTargetMessageId: visibleTurnLifecycle.awaitingAnchor?.rowId || null,
+      chatboxSurfaceState: 'awaiting-reply',
+      showChatboxAwaitingReply: true,
+      showChatboxResponse: false,
+    };
+  }
+  if (visibleTurnLifecycle.status === 'active') {
+    return {
+      ...nextState,
+      isAwaitingReply: false,
+      showAssistantAwaitingDot: false,
+      awaitingDotTargetMessageId: null,
+      showChatboxAwaitingReply: false,
+    };
+  }
+  return {
+    ...nextState,
+    isAwaitingReply: false,
+    showAssistantAwaitingDot: false,
+    awaitingDotTargetMessageId: null,
+    showChatboxAwaitingReply: false,
+  };
+}
+
 export function useChatSurfaceController({
   isSending,
   messages,
@@ -43,12 +124,23 @@ export function useChatSurfaceController({
   warningContext = 'ChatSurface',
 }) {
   const { config, updateConfig } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
+  const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
+    activeConversationRef: sessionInfo?.conversationRef || null,
+    pendingTurn,
+    currentTurnProjection,
+    messages,
+  });
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     currentTurnProjection,
     pendingTurn,
     isSending,
     messages,
   });
+  const controllerVisibleTurnLifecycle = resolveControllerVisibleTurnLifecycle(
+    visibleTurnLifecycle,
+    liveTurnPresentationInput,
+    messages,
+  );
   const currentTurnPresentationState = useCurrentTurnPresentationState({
     phase: liveTurnPresentationInput.phase,
     isSending: liveTurnPresentationInput.isSending,
@@ -63,7 +155,11 @@ export function useChatSurfaceController({
       fallbackState: currentTurnPresentationState,
     })
     : currentTurnPresentationState;
-  const isBusy = resolvedCurrentTurnPresentationState.isBusy === true;
+  const visibleLifecyclePresentationState = applyVisibleLifecycleToPresentationState(
+    resolvedCurrentTurnPresentationState,
+    controllerVisibleTurnLifecycle,
+  );
+  const isBusy = controllerVisibleTurnLifecycle.isBusy === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
@@ -109,12 +205,13 @@ export function useChatSurfaceController({
 
   return {
     config,
-    currentTurnPresentationState: resolvedCurrentTurnPresentationState,
+    currentTurnPresentationState: visibleLifecyclePresentationState,
     includeQueryScreenshot,
     isBusy,
     canStop: isBusy,
     liveTurnPhase: liveTurnPresentationInput.phase,
     liveTurnSource: liveTurnPresentationInput.source,
+    visibleTurnLifecycle: controllerVisibleTurnLifecycle,
     speechModeEnabled,
     toggleBooleanConfig,
     toggleQueryScreenshot,

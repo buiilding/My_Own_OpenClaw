@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Chat Surface Controller Visible Lifecycle Routing
+
+- Finding: after the visible lifecycle runtime landed, `useChatSurfaceController`
+  still let the legacy current-turn presentation hook decide busy, Stop,
+  awaiting-dot, and chatbox awaiting state for dashboard and pill consumers.
+- Change: routed controller state through
+  `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`,
+  exposed `visibleTurnLifecycle`, and adapted the legacy presentation result
+  from lifecycle status so local pending and SDK awaiting use one owner.
+- Validation target: `ChatSurfaceController.test.jsx` covers visible lifecycle
+  busy/Stop projection, awaiting anchors, and local pending through SDK idle or
+  visible-empty handoff; `<windie> test core-loop` covers the broader replay.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution, or
+  storage migration required; this slice routes dashboard/pill presentation
+  through the renderer lifecycle owner.
+
 ### 2026-06-21 Visible Turn Lifecycle Runtime And Handoff Predicate
 
 - Finding: renderer pending-turn clearing and live-surface preflight handoff

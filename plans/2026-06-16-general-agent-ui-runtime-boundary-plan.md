@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Surface Visible Lifecycle Routing
+
+- Finding: `useChatSurfaceController(...)` still treated the current-turn
+  presentation hook as the final authority for busy, stop, awaiting-dot, and
+  chatbox awaiting state after the renderer visible lifecycle runtime was
+  introduced.
+- Change: routed controller busy/Stop flags, awaiting-dot target, chatbox
+  awaiting flags, and exposed lifecycle state through
+  `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`, while
+  keeping the legacy current-turn presentation hook as a presentation adapter.
+- Validation: focused chat surface controller coverage plus core-loop
+  regression pack before commit.
+- Compatibility/security: no SDK event payload, IPC payload, transcript
+  storage, renderer config, permission, credential, local execution, or
+  trust-boundary migration required; dashboard and pill state now consume the
+  renderer lifecycle owner.
+
 ### 2026-06-21 Renderer Visible Turn Lifecycle Handoff
 
 - Finding: renderer pending-turn clearing and live-surface preflight handoff
