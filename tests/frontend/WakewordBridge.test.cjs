@@ -20,9 +20,17 @@ jest.mock('electron', () => ({
 }));
 
 const mockAppendWakewordLifecycleDiagnostic = jest.fn();
-const {
-  mainHostSkin,
-} = require('../../frontend/src/main/app/main_host_skin.cjs');
+const PACKAGED_RESOURCES_ROOT = '/opt/agent-runtime/resources';
+const PACKAGED_PYTHON_RUNTIME_ROOT = `${PACKAGED_RESOURCES_ROOT}/python-runtime`;
+const SAMPLE_WAKEWORD_MODEL = 'sample_wakeword';
+const HOST_RUNTIME_PATHS = Object.freeze({
+  packagedEntrypointDirName: 'sample-host',
+});
+const HOST_WAKEWORD_ENV = Object.freeze({
+  packagedApp: 'SAMPLE_PACKAGED_APP',
+  allowRuntimeDownload: 'SAMPLE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD',
+  modelName: 'SAMPLE_WAKEWORD_NAME',
+});
 
 jest.mock('../../frontend/src/main/diagnostics/app_diagnostics_runtime.cjs', () => ({
   appendWakewordLifecycleDiagnostic: (...args) => mockAppendWakewordLifecycleDiagnostic(...args),
@@ -162,7 +170,7 @@ describe('wakeword_bridge', () => {
 
     emitDetection({
       detected: true,
-      model: 'hey_jarvis',
+      model: SAMPLE_WAKEWORD_MODEL,
       confidence: 0.91,
       score: 0.91,
     });
@@ -171,7 +179,7 @@ describe('wakeword_bridge', () => {
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       'wakeword-detected',
       expect.objectContaining({
-        model: 'hey_jarvis',
+        model: SAMPLE_WAKEWORD_MODEL,
         confidence: 0.91,
         score: 0.91,
       }),
@@ -193,7 +201,7 @@ describe('wakeword_bridge', () => {
     expect(mockAppendWakewordLifecycleDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'detected',
       phase: 'stdout',
-      modelId: 'hey_jarvis',
+      modelId: SAMPLE_WAKEWORD_MODEL,
       confidence: 0.91,
       score: 0.91,
     }));
@@ -222,7 +230,7 @@ describe('wakeword_bridge', () => {
 
     const jsonBuffer = Buffer.from(JSON.stringify({
       detected: true,
-      model: 'hey_jarvis',
+      model: SAMPLE_WAKEWORD_MODEL,
       confidence: 0.92,
       score: 0.92,
     }));
@@ -234,7 +242,7 @@ describe('wakeword_bridge', () => {
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       'wakeword-detected',
       expect.objectContaining({
-        model: 'hey_jarvis',
+        model: SAMPLE_WAKEWORD_MODEL,
         confidence: 0.92,
       }),
     );
@@ -263,7 +271,7 @@ describe('wakeword_bridge', () => {
 
     emitDetection({
       detected: true,
-      model: 'hey_jarvis',
+      model: SAMPLE_WAKEWORD_MODEL,
       confidence: 0.91,
       score: 0.91,
     });
@@ -283,7 +291,7 @@ describe('wakeword_bridge', () => {
 
     emitDetection({
       detected: true,
-      model: 'hey_jarvis',
+      model: SAMPLE_WAKEWORD_MODEL,
       confidence: 0.99,
       score: 0.99,
     });
@@ -313,7 +321,7 @@ describe('wakeword_bridge', () => {
 
     emitDetection({
       detected: true,
-      model: 'hey_jarvis',
+      model: SAMPLE_WAKEWORD_MODEL,
       confidence: 0.93,
       score: 0.93,
     });
@@ -322,7 +330,7 @@ describe('wakeword_bridge', () => {
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       'wakeword-detected',
       expect.objectContaining({
-        model: 'hey_jarvis',
+        model: SAMPLE_WAKEWORD_MODEL,
         confidence: 0.93,
       }),
     );
@@ -343,7 +351,7 @@ describe('wakeword_bridge', () => {
 
     emitDetection({
       detected: true,
-      model: 'hey_jarvis',
+      model: SAMPLE_WAKEWORD_MODEL,
       confidence: 0.95,
       score: 0.95,
     });
@@ -352,7 +360,7 @@ describe('wakeword_bridge', () => {
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       'wakeword-detected',
       expect.objectContaining({
-        model: 'hey_jarvis',
+        model: SAMPLE_WAKEWORD_MODEL,
         confidence: 0.95,
       }),
     );
@@ -384,7 +392,7 @@ describe('wakeword_bridge', () => {
 
     emitDetection({
       detected: true,
-      model: 'hey_jarvis',
+      model: SAMPLE_WAKEWORD_MODEL,
       confidence: 0.96,
       score: 0.96,
     });
@@ -393,7 +401,7 @@ describe('wakeword_bridge', () => {
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       'wakeword-detected',
       expect.objectContaining({
-        model: 'hey_jarvis',
+        model: SAMPLE_WAKEWORD_MODEL,
         confidence: 0.96,
       }),
     );
@@ -506,10 +514,10 @@ describe('wakeword_bridge', () => {
 
   test('packaged mode disables wakeword runtime model downloads', () => {
     const originalResourcesPath = process.resourcesPath;
-    process.resourcesPath = '/opt/WindieOS/resources';
+    process.resourcesPath = PACKAGED_RESOURCES_ROOT;
     const runtimePython = process.platform === 'win32'
-      ? '/opt/WindieOS/resources/python-runtime/python.exe'
-      : '/opt/WindieOS/resources/python-runtime/bin/python3';
+      ? `${PACKAGED_PYTHON_RUNTIME_ROOT}/python.exe`
+      : `${PACKAGED_PYTHON_RUNTIME_ROOT}/bin/python3`;
 
     try {
       initBridge({
@@ -517,7 +525,7 @@ describe('wakeword_bridge', () => {
         mockExistsSync: (candidate) => {
           const normalizedCandidate = String(candidate || '').replace(/\\/g, '/');
           return (
-            normalizedCandidate === '/opt/WindieOS/resources/python-runtime/local-runtime/wakeword_service.pyc'
+            normalizedCandidate === `${PACKAGED_PYTHON_RUNTIME_ROOT}/local-runtime/wakeword_service.pyc`
             || normalizedCandidate === runtimePython
           );
         },
@@ -535,7 +543,7 @@ describe('wakeword_bridge', () => {
         expect(spawnOptions.env.PYTHONNOUSERSITE).toBeUndefined();
       } else {
         expect(String(spawnOptions.env.PYTHONHOME).replace(/\\/g, '/'))
-          .toMatch(/\/opt\/WindieOS\/resources\/python-runtime$/);
+          .toBe(PACKAGED_PYTHON_RUNTIME_ROOT);
         expect(spawnOptions.env.PYTHONNOUSERSITE).toBe('1');
       }
       expect(spawnOptions.env.PYTHONPATH).toBeUndefined();
@@ -546,21 +554,21 @@ describe('wakeword_bridge', () => {
 
   test('packaged mode uses configured host wakeword env names', () => {
     const originalResourcesPath = process.resourcesPath;
-    process.resourcesPath = '/opt/WindieOS/resources';
+    process.resourcesPath = PACKAGED_RESOURCES_ROOT;
     const runtimePython = process.platform === 'win32'
-      ? '/opt/WindieOS/resources/python-runtime/python.exe'
-      : '/opt/WindieOS/resources/python-runtime/bin/python3';
+      ? `${PACKAGED_PYTHON_RUNTIME_ROOT}/python.exe`
+      : `${PACKAGED_PYTHON_RUNTIME_ROOT}/bin/python3`;
 
     try {
       initBridge({
         isPackaged: true,
-        runtimePaths: mainHostSkin.runtimePaths,
-        wakewordEnv: mainHostSkin.wakeword.env,
-        wakewordModelName: mainHostSkin.wakeword.modelName,
+        runtimePaths: HOST_RUNTIME_PATHS,
+        wakewordEnv: HOST_WAKEWORD_ENV,
+        wakewordModelName: SAMPLE_WAKEWORD_MODEL,
         mockExistsSync: (candidate) => {
           const normalizedCandidate = String(candidate || '').replace(/\\/g, '/');
           return (
-            normalizedCandidate === '/opt/WindieOS/resources/python-runtime/sidecar/wakeword_service.pyc'
+            normalizedCandidate === `${PACKAGED_PYTHON_RUNTIME_ROOT}/sample-host/wakeword_service.pyc`
             || normalizedCandidate === runtimePython
           );
         },
@@ -571,10 +579,10 @@ describe('wakeword_bridge', () => {
       expect(spawnOptions.env).toEqual(expect.objectContaining({
         AGENT_PACKAGED_APP: '1',
         AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
-        AGENT_WAKEWORD_NAME: 'hey_jarvis',
-        WINDIE_PACKAGED_APP: '1',
-        WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
-        WINDIE_WAKEWORD_NAME: 'hey_jarvis',
+        AGENT_WAKEWORD_NAME: SAMPLE_WAKEWORD_MODEL,
+        SAMPLE_PACKAGED_APP: '1',
+        SAMPLE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
+        SAMPLE_WAKEWORD_NAME: SAMPLE_WAKEWORD_MODEL,
         PYTHONDONTWRITEBYTECODE: '1',
       }));
     } finally {

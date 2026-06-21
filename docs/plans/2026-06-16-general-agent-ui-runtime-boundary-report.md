@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `d0e85049e` (`test(sidecar): neutralize remote client endpoint fixtures`)
-- Latest completed slice: generic main-window and main-process bootstrap tests
-  now use neutral injected skin fixtures instead of WindieOS product skin
-  values.
+- Latest completed slice: generic runtime-path and wakeword bridge tests now
+  use neutral injected host config fixtures instead of importing WindieOS
+  host-skin values.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -34,6 +34,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   resolver tests. Generic main-window and main-process bootstrap tests use
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
   prefix, bundled runtime copy, and browser warmup copy remain host-skin owned.
+  Generic runtime-path and wakeword bridge tests use sample host config and
+  neutral packaged resource roots while real WindieOS env/model/path values
+  remain host-skin owned.
   Renderer voice docs name the desktop voice/audio runtime contract and
   backend-owned transcription gateway boundary instead of embedding concrete STT
   provider policy. Renderer config reference docs now keep current OpenAI/GPT default
@@ -7918,3 +7921,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   icon behavior, renderer log-prefix propagation, host-skin configuration,
   permissions, storage, provider policy, and backend behavior are unchanged; no
   migration is required.
+- Generic runtime-path and wakeword bridge tests now use neutral injected host
+  config fixtures instead of importing WindieOS host-skin values. Real WindieOS
+  env, wakeword model, packaged-entrypoint, and runtime-path ownership remains
+  covered by the host-skin boundary tests. Packaged local-runtime path
+  resolution, configured host env forwarding, wakeword subprocess launch
+  behavior, host-skin configuration, permissions, storage, provider policy, and
+  backend behavior are unchanged; no migration is required.

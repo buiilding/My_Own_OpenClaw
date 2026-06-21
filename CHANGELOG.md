@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral injected runtime-path and wakeword bridge host config
+  fixtures instead of importing WindieOS host-skin values. No migration
+  required.
 - tests/main: use neutral injected main-window/bootstrap skin fixtures instead
   of WindieOS product skin values. No migration required.
 - tests/main: use neutral injected agent identity fixtures in IPC wake-up and

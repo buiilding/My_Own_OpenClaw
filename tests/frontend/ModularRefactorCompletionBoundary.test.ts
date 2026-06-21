@@ -741,6 +741,26 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('legacy-models');
   });
 
+  test('main runtime path and wakeword bridge tests keep host config fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/RuntimePaths.test.cjs'),
+      read('tests/frontend/WakewordBridge.test.cjs'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('mainHostSkin');
+    expect(source).not.toContain('WindieOS');
+    expect(source).not.toContain('WINDIE_');
+    expect(source).not.toContain('hey_jarvis');
+    expect(source).not.toContain('/opt/windie');
+    expect(source).not.toContain('/opt/conda/envs/windie');
+    expect(source).not.toContain('/opt/WindieOS');
+    expect(source).toContain('/opt/agent-runtime/resources');
+    expect(source).toContain('sample-host');
+    expect(source).toContain('SAMPLE_PYTHON_PATH');
+    expect(source).toContain('SAMPLE_WAKEWORD_NAME');
+    expect(source).toContain('sample_wakeword');
+  });
+
   test('browser use engine tests keep legacy session fixtures product-neutral', async () => {
     const source = await read('tests/sidecar/tools/test_browser_use_engine.py');
     const retiredHome = `"${['windie', 'home'].join('-')}"`;

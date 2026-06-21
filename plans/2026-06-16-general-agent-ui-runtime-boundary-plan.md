@@ -19283,3 +19283,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Window bootstrap delegation, tray icon
   behavior, renderer log-prefix propagation, host-skin configuration,
   permissions, storage, provider policy, and backend behavior are unchanged.
+
+### 2026-06-21 Runtime path and wakeword host config fixture neutrality
+
+- Finding: generic runtime-path and wakeword bridge tests imported the
+  WindieOS host skin and reused WindieOS install roots, env keys, and wakeword
+  model values as arbitrary fixtures while testing host-configurable behavior.
+- Change: replaced those imports and literals with test-local sample host
+  runtime/wakeword config and neutral packaged resource roots, leaving real
+  WindieOS env/model/path ownership covered by `MainHostSkinBoundary`.
+- Validation: focused runtime-path, wakeword bridge, host-skin boundary, and
+  modular boundary tests; exact retired host-config fixture scans, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Packaged local-runtime path
+  resolution, configured host env forwarding, wakeword subprocess launch
+  behavior, host-skin configuration, permissions, storage, provider policy, and
+  backend behavior are unchanged.
