@@ -33,7 +33,7 @@ These fields belong to the websocket envelope, not command payloads:
 
 ## Payload Contract
 
-Backend Pydantic models in `incoming.py` own command payload keys. The JSON fixture in `incoming_message_contract.json` is a test-only export of those keys for desktop client contract tests; Electron main, renderer, and SDK runtime code must not import backend Python.
+Backend Pydantic models in `incoming.py` own command payload keys. The JSON fixture in `incoming_message_contract.json` is a test-only export of those keys for Electron client contract tests; Electron main, renderer, and SDK runtime code must not import backend Python.
 
 Electron main and SDK websocket sends must validate against that fixture for:
 

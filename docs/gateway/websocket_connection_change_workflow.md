@@ -38,7 +38,7 @@ This page does not cover the transcription websocket at `GET /ws/transcription`;
 | Receive timeout policy | Router receive loop and loop runtime | `backend/src/api/routes/websocket/router.py`, `backend/src/api/routes/websocket/loop_runtime.py` | websocket route/loop tests |
 | Disconnect cleanup or task leak | Connection cleanup, task manager, session manager | `backend/src/api/routes/websocket/connection.py`, `backend/src/api/routes/websocket/task_manager.py`, session manager | websocket connection/task-manager/session tests |
 | Closed-socket send or streaming write failure | Safe websocket transport | `backend/src/api/transport/websocket.py`, `backend/src/api/transport/sender.py` | `tests/backend/test_safe_websocket.py`, transport sender tests |
-| Electron handshake or reconnect drift | SDK backend session runtime | `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `frontend/src/main/ipc.cjs`, SDK/Electron endpoint/auth code | desktop client websocket/main IPC tests |
+| Electron handshake or reconnect drift | SDK backend session runtime | `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `frontend/src/main/ipc.cjs`, SDK/Electron endpoint/auth code | Electron client websocket/main IPC tests |
 
 ## Lifecycle With Edit Points
 
@@ -74,7 +74,7 @@ Implementation path:
 1. Update `HandshakeMessage` in `backend/src/api/schemas/common.py`.
 2. Keep `model_config = ConfigDict(extra="forbid")` unless the protocol intentionally accepts unknown fields.
 3. Update `perform_handshake(...)` when the new field affects authenticated identity, session config, capability overrides, or safe websocket attributes.
-4. Update Electron main handshake sender code if the desktop client must provide the field.
+4. Update Electron main handshake sender code if the Electron client must provide the field.
 5. Add tests for valid payload, invalid payload, auth-enabled behavior, and mismatch behavior when relevant.
 6. Update protocol/docs references and hosted client docs if non-Electron clients need the field.
 

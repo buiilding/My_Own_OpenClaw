@@ -281,7 +281,7 @@ state and raw `models-listed` type dispatch via `routeDesktopSettingsEvent(...)`
 so `AppConfigProvider` does not parse raw settings-event `type` values directly.
 
 `desktopClientSessionRuntimeClient.ts` owns renderer adapter calls for the
-desktop client/session snapshot and IPC transport status subscription, including
+Electron client/session snapshot and IPC transport status subscription, including
 user id normalization while preserving endpoint metadata. It exposes the full
 normalized snapshot for callers that need metadata, a direct session-user helper
 for dashboard fallback state, a transport-status view that normalizes raw

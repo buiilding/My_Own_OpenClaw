@@ -131,7 +131,7 @@ Primary files:
 Validation:
 
 - `tests/frontend/BackendEndpoints.test.cjs`
-- desktop client websocket/endpoint tests.
+- Electron client websocket/endpoint tests.
 - `tests/sidecar/test_backend_config.py`
 - manual source-mode check with explicit local endpoint env.
 - packaged-app check when packaged defaults changed.

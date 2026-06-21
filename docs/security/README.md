@@ -41,7 +41,7 @@ WindieOS security spans hosted backend identity, Electron renderer isolation, ba
 
 - Do not commit real credentials, tokens, user data, local private paths, or generated machine secrets.
 - Do not add broad preload channels to bypass renderer/main boundaries.
-- Do not let desktop client or local-runtime Python implementation code import
+- Do not let Electron client or local-runtime Python implementation code import
   backend schemas for parity; add contract tests instead.
 - Do not trust renderer-provided user identity when hosted install auth is enabled.
 - Do not expose unavailable tools or coordinate methods to the model.

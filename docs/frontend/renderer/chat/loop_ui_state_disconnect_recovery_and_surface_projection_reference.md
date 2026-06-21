@@ -155,7 +155,7 @@ Default watchdog timeout is `3500ms` and is configurable through `recoveryWatchd
 - `DesktopClientSessionRuntimeClient.loadObservedMainTransportConnection(...)`
   for best-effort initial status sync
 
-The desktop client-session runtime client normalizes raw `ipc-status` and
+The renderer client-session runtime client normalizes raw `ipc-status` and
 startup snapshot payloads into observed boolean connection updates for this hook.
 The client filters snapshots/events without a boolean connection field; the hook
 owns only subscriptions, snapshot event creation, and the recovery watchdog

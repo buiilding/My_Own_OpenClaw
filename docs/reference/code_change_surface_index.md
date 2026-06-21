@@ -11,7 +11,7 @@ title: "Code Change Surface Index"
 
 Use this page when the request is phrased as product behavior, a failure symptom, or a capability name and you need to identify the exact code area before editing. Start with the owning runtime, then read the linked domain docs, then inspect the code roots listed here.
 
-Hard rule: do not make desktop client or local-runtime Python implementation code import backend code to gain parity. If two runtimes need to agree, update the contract docs and tests that prove the producer and consumer still match.
+Hard rule: do not make Electron client or local-runtime Python implementation code import backend code to gain parity. If two runtimes need to agree, update the contract docs and tests that prove the producer and consumer still match.
 
 ## Fast Routing Table
 

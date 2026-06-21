@@ -20445,3 +20445,23 @@ Each completed slice should report:
   artifacts, backend manifest validation, provider projection, SDK/main
   dispatch, local-runtime execution, IPC channels, permissions, storage, and
   backend behavior are unchanged.
+
+### 2026-06-21 Electron client import-boundary wording
+
+- Finding: cross-cutting channel, architecture, security, review, reference,
+  operations, gateway, and renderer docs still described backend-import,
+  websocket, contract-fixture, and session-status guidance with old
+  desktop-client labels even though the active split is Electron client/main,
+  renderer app-runtime clients, SDK runtime transport, and local-runtime
+  Python implementation.
+- Change: reworded those active labels to Electron client, renderer
+  client-session, and local-runtime Python implementation wording while
+  preserving concrete module names such as `desktopClientSessionRuntimeClient`
+  and the backend fixture path. Extended modular boundary coverage for the
+  retired desktop-client import-boundary, websocket, contract-test, and
+  session-snapshot phrases.
+- Validation: focused boundary test, exact retired-label scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Runtime modules, imports, websocket
+  payloads, contract fixtures, IPC channels, session snapshots, permissions,
+  storage, provider policy, and backend behavior are unchanged.

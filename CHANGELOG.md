@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/boundary: route cross-cutting backend-import and websocket/session
+  contract wording through Electron client, renderer app-runtime, and
+  local-runtime owner labels instead of older desktop-client labels. No
+  migration required.
 - docs/tools: route tool-manifest ownership wording through the
   client/local-runtime schema boundary and Electron client manifest builder
   instead of older desktop client/local-runtime labels. No migration required.

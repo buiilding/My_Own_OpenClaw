@@ -8438,3 +8438,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `client_tool_manifest` payload names, manifest file paths, SDK/main dispatch,
   backend policy/projection ownership, and local-runtime Python implementation
   names are unchanged; no migration is required.
+- Cross-cutting channel, architecture, security, review, reference,
+  operations, gateway, websocket-contract, and renderer session docs now route
+  backend-import, websocket/endpoint, contract-fixture, handshake, and
+  session-status wording through Electron client, renderer client-session, and
+  local-runtime Python labels instead of older desktop-client owner labels. The
+  modular boundary guard now blocks the retired desktop-client import-boundary,
+  websocket, contract-test, and session-snapshot phrases. Concrete
+  `desktopClientSessionRuntimeClient` names, backend fixture paths, websocket
+  payloads, IPC channels, session snapshots, permissions, storage, provider
+  policy, and backend behavior are unchanged; no migration is required.
