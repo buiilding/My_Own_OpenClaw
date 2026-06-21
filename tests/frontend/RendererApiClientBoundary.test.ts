@@ -41,7 +41,7 @@ describe('renderer api client boundary', () => {
     await expect(fs.access(path.join(rendererRoot, 'infrastructure/api/agentSdkClient.ts'))).rejects.toThrow();
   });
 
-  test('renderer features use desktop runtime facades instead of direct ApiClient calls', async () => {
+  test('renderer features use app-runtime clients instead of direct ApiClient calls', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];
 
@@ -59,7 +59,7 @@ describe('renderer api client boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('renderer backend IPC sends stay inside desktop runtime adapters', async () => {
+  test('renderer backend IPC sends stay inside the SDK desktop transport adapter', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];
 

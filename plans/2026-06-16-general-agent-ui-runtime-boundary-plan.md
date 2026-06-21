@@ -20313,3 +20313,19 @@ Each completed slice should report:
   `desktopRuntimeConfig` facade filenames, imports, storage keys, persisted
   config, renderer runtime clients, IPC channels, permissions, and backend
   behavior are unchanged.
+
+### 2026-06-21 renderer boundary guard app-runtime wording
+
+- Finding: active renderer API/chat boundary test names and the renderer folder
+  structure still described the desired owner as desktop runtime
+  facades/clients/adapters even though the current split is renderer
+  app-runtime clients plus the SDK desktop transport adapter.
+- Change: reworded those active labels to app-runtime clients and SDK desktop
+  transport adapter wording, and extended modular completion coverage to keep
+  plural desktop-runtime facade/client/adapter owner labels out of the active
+  renderer docs/tests.
+- Validation: focused renderer API/chat and modular boundary tests, exact
+  active-label scan, docs listing, and diff checks.
+- Compatibility: no migration required. Test assertions, runtime modules,
+  imports, command names, IPC channels, storage, permissions, and backend
+  behavior are unchanged.

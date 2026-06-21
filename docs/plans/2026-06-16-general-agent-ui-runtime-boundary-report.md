@@ -8377,3 +8377,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   enforces the new label. Facade filenames, imports, storage keys, persisted
   config, renderer runtime clients, IPC channels, permissions, and backend
   behavior are unchanged; no migration is required.
+- Active renderer API/chat boundary test names and the renderer folder
+  structure now describe the path as app-runtime clients plus the SDK desktop
+  transport adapter instead of desktop runtime facades/clients/adapters, with
+  modular completion coverage preventing those plural owner labels in active
+  renderer docs/tests. Test assertions, runtime modules, imports, command names,
+  IPC channels, storage, permissions, and backend behavior are unchanged; no
+  migration is required.

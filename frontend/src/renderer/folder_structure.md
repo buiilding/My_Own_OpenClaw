@@ -218,7 +218,7 @@ frontend/src/renderer/
 │       ├── sdkDisplayChatMessageProjection.ts # sdkDisplayChatMessageProjection - SDK display rows to renderer chat messages
 │       ├── sessionInfoState.ts          # sessionInfoState - Lazy-loaded session resolver/update state machine
 │       ├── sessionInfoStorage.ts        # sessionInfoStorage - sessionStorage read/write + update event emitter
-│       ├── transcriptSessionRuntime.ts  # Session-aware transcript identity runtime used by desktop runtime clients
+│       ├── transcriptSessionRuntime.ts  # Session-aware transcript identity runtime used by renderer app-runtime clients
 │       └── types.ts                     # types - Shared transcript session/entry/pending message types
 │
 ├── styles/                                # CSS stylesheets

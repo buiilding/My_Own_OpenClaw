@@ -1516,6 +1516,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Confirm sidecar deletes only the intended local store records');
     expect(docText).not.toContain('The desktop runtime uses `ConversationContinuityService`');
     expect(docText).not.toContain('desktop runtime facade');
+    expect(docText).not.toContain('desktop runtime facades');
+    expect(docText).not.toContain('desktop runtime clients');
+    expect(docText).not.toContain('desktop runtime adapters');
     expect(docText).not.toContain('desktop runtime transport maps that SDK command');
   });
 

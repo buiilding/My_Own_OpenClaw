@@ -26,7 +26,7 @@ async function listSourceFiles(dir: string): Promise<string[]> {
 }
 
 describe('renderer chat runtime boundary', () => {
-  test('chat feature code uses desktop runtime facades for backend commands', async () => {
+  test('chat feature code uses app-runtime clients for backend commands', async () => {
     const files = await listSourceFiles(chatRoot);
     const offenders: string[] = [];
 
