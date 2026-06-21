@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: the modular completion boundary guard for hosted
-  endpoint fixtures now names local-runtime hosted-client coverage instead of
-  stale remote-client owner wording while preserving reads from the real
-  implementation test paths.
+- Latest completed slice: diagnostics sanitizer coverage now names retired
+  local-runtime readiness fields instead of sidecar readiness-field wording
+  while still rejecting the removed `sidecarReady` row field.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -36,6 +35,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
   prefix, bundled runtime copy, env keys, runs header, wakeword model, and
   browser warmup copy remain host-skin owned.
+  Diagnostics sanitizer guards use retired local-runtime readiness-field
+  wording while preserving `sidecarReady` drift rejection.
   Generic runtime-mode and VM worker runtime tests use sample env maps and runs
   headers while real WindieOS VM env and runs auth names remain host-skin owned.
   Generic GPU runtime tests use sample env maps while the real WindieOS

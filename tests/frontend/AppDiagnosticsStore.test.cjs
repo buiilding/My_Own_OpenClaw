@@ -264,7 +264,7 @@ describe('app diagnostics store', () => {
     expect(runtime.appendLocalBackendLifecycleDiagnostic).toBeUndefined();
   });
 
-  test('diagnostics sanitizers do not allow sidecar readiness fields for new rows', () => {
+  test('diagnostics sanitizers do not allow retired local-runtime readiness fields for new rows', () => {
     const runtimeSource = fs.readFileSync(
       path.resolve(__dirname, '../../frontend/src/main/diagnostics/app_diagnostics_runtime.cjs'),
       'utf8',

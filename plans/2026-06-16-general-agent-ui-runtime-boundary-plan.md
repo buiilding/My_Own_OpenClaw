@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Diagnostics Local-Runtime Readiness Guard Label Boundary
+
+- Finding: `AppDiagnosticsStore.test.cjs` still named its sanitizer guard as
+  sidecar readiness-field coverage even though diagnostics now expose
+  local-runtime lifecycle/readiness labels and only reject the retired
+  `sidecarReady` field as compatibility drift.
+- Change: renamed the active test label to retired local-runtime readiness field
+  wording while preserving the exact `sidecarReady` rejection assertions.
+- Validation: focused diagnostics store Jest coverage, exact stale diagnostics
+  sidecar-readiness guard-label scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Diagnostics row shape,
+  sanitizer allowlists, local-runtime lifecycle diagnostics, app-data paths,
+  IPC, storage, credentials, and trust boundaries are unchanged.
+
 ### 2026-06-21 Modular Local-Runtime Hosted-Client Guard Label Boundary
 
 - Finding: `ModularRefactorCompletionBoundary.test.ts` still named the active
