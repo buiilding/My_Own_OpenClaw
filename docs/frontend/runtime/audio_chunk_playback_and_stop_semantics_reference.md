@@ -29,9 +29,10 @@ Audio output from backend follows this route:
 2. Electron main `ipc.cjs` parses message and relays the typed `audio-chunk`
    renderer channel
 3. renderer chat runtime (`useChatInterfaceAudioChunkStream` used by
-   `ChatInterface`) listens through `DesktopAudioRuntimeClient`
-4. `DesktopAudioRuntimeClient` filters and validates audio payload shape with
-   `extractDesktopAudioChunkPayload(...)`
+    `ChatInterface`) listens through `DesktopAudioRuntimeClient`
+4. `DesktopAudioRuntimeClient.onAudioChunk(...)` filters and validates audio
+   payload shape with its private `extractDesktopAudioChunkPayload(...)`
+   parser
 5. valid chunk is emitted to chat bindings and enqueued in the audio player created by
    `DesktopAudioRuntimeClient.createAudioPlayer()`
 
@@ -58,7 +59,7 @@ Result:
 
 ## Renderer Audio Payload Gate
 
-`extractDesktopAudioChunkPayload(data)` accepts only:
+The private `extractDesktopAudioChunkPayload(data)` parser accepts only:
 
 - `data.type === "audio-chunk"`
 - `payload.audio` is string (base64 PCM16)

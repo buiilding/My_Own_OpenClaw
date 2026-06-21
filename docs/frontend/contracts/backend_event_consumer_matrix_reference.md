@@ -83,9 +83,10 @@ Core effects:
 
 ### Audio consumer (`ChatInterface`)
 
-Consumes untyped audio event shape on `audio-chunk`:
+Consumes normalized audio chunks from the app-runtime audio client:
 
-- `audio-chunk` (parsed by `extractDesktopAudioChunkPayload`)
+- `DesktopAudioRuntimeClient.onAudioChunk(...)` subscribes to `audio-chunk`
+  and keeps raw envelope parsing private
 
 Effects:
 
@@ -154,7 +155,7 @@ Potential contract drifts that cause silent drops:
 2. backend renames payload keys without updating event-specific handlers
 3. event intended for config/status/capability path but only wired in chat
    stream path (or vice versa)
-4. audio events changed without updating `extractDesktopAudioChunkPayload`
+4. audio events changed without updating `DesktopAudioRuntimeClient.onAudioChunk(...)`
 
 ## Debug Checklist
 

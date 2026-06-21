@@ -82,6 +82,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: label the direct wake-up adapter as adapting to Electron
   agent-host methods instead of Electron main runtime methods. No migration
   required.
+- frontend/renderer: keep the audio-chunk payload parser private to the audio
+  runtime client and test parsing through `onAudioChunk`. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

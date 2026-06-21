@@ -157,7 +157,8 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(audioRuntimeSource).toContain('extractDesktopAudioChunkPayload');
+    expect(audioRuntimeSource).toContain('function extractDesktopAudioChunkPayload');
+    expect(audioRuntimeSource).not.toContain('export function extractDesktopAudioChunkPayload');
     expect(audioRuntimeSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
     expect(chatBindingsSource).toContain('DesktopAudioRuntimeClient.onAudioChunk');
     expect(chatBindingsSource).not.toContain('audioChunkEvents');

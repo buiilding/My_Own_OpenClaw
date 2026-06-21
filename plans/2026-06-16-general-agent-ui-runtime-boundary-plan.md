@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Audio Parser Privacy
+
+- Finding: `desktopAudioRuntimeClient.ts` already owned raw `audio-chunk` IPC
+  envelope parsing, but still exported `extractDesktopAudioChunkPayload(...)`
+  for tests even though production callers consume normalized chunks through
+  `DesktopAudioRuntimeClient.onAudioChunk(...)`.
+- Change: made the parser private to the audio runtime client and updated the
+  focused audio tests to exercise parsing through the public subscription
+  facade. Extended the renderer app-runtime boundary guard against re-exporting
+  the raw parser.
+- Validation: focused audio runtime test, renderer app-runtime boundary test,
+  exact raw-parser export scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. `audio-chunk` IPC channel
+  names, payload acceptance rules, chat playback behavior, player service
+  queueing, permissions, credentials, storage, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Direct Wake-Up Adapter Agent-Host Label
 
 - Finding: `ipc_direct_wake_up_agent_adapter.cjs` still described its adapter

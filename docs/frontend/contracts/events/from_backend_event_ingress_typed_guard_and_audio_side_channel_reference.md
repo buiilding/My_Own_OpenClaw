@@ -112,7 +112,8 @@ Renderer event channels have separate listeners with different filters:
 - `audio-chunk` -> `ChatInterface` audio path:
   - does not use `isBackendEvent(...)`
   - subscribes through `DesktopAudioRuntimeClient`
-  - uses `extractDesktopAudioChunkPayload(...)` parser
+  - keeps `extractDesktopAudioChunkPayload(...)` private behind
+    `DesktopAudioRuntimeClient.onAudioChunk(...)`
 
 No single global consumer owns all backend event types.
 
@@ -170,7 +171,7 @@ Missing `conversation_ref` or `turn_ref` can degrade filtering precision.
 2. event is routed to `windie:conversation-event` but `BACKEND_EVENT_TYPES` is
    not updated
 3. payload keys changed but per-event handlers still read old keys
-4. `audio-chunk` shape changes without updating `extractDesktopAudioChunkPayload`
+4. `audio-chunk` shape changes without updating `DesktopAudioRuntimeClient.onAudioChunk(...)`
 5. overlay-phase mapping in `ipc.cjs` diverges from event semantics
 
 ## Debug Checklist

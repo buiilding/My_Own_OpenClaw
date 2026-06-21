@@ -2,29 +2,69 @@
  * Covers desktop audio runtime event parsing behavior in the frontend test suite.
  */
 
-import {
-  extractDesktopAudioChunkPayload,
-} from '../../frontend/src/renderer/app/runtime/desktopAudioRuntimeClient';
+jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
+  IpcBridge: {
+    on: jest.fn(),
+  },
+  ON_CHANNELS: {
+    AUDIO_CHUNK: 'audio-chunk',
+  },
+}));
+
+import * as DesktopAudioRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopAudioRuntimeClient';
+import { DesktopAudioRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopAudioRuntimeClient';
+import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+
+const unsubscribe = jest.fn();
+
+function subscribeToAudioChunks() {
+  const listener = jest.fn();
+  const cleanup = DesktopAudioRuntimeClient.onAudioChunk(listener);
+  const handler = IpcBridge.on.mock.calls[0]?.[1];
+  expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.AUDIO_CHUNK, expect.any(Function));
+  return { listener, handler, cleanup };
+}
 
 describe('desktopAudioRuntimeClient audio chunk parsing', () => {
-  test('returns normalized audio chunk payload for valid audio-chunk events', () => {
-    expect(
-      extractDesktopAudioChunkPayload({
-        type: 'audio-chunk',
-        payload: { audio: 'base64-data', sample_rate: 16000 },
-      }),
-    ).toEqual({ audio: 'base64-data', sample_rate: 16000 });
+  beforeEach(() => {
+    unsubscribe.mockClear();
+    IpcBridge.on.mockReset();
+    IpcBridge.on.mockReturnValue(unsubscribe);
   });
 
-  test('returns null for invalid event envelopes', () => {
-    expect(extractDesktopAudioChunkPayload(null)).toBeNull();
-    expect(extractDesktopAudioChunkPayload({})).toBeNull();
-    expect(extractDesktopAudioChunkPayload({ type: 'tool-call', payload: {} })).toBeNull();
+  test('keeps the raw audio chunk parser private to the runtime client', () => {
+    expect(DesktopAudioRuntimeModule).not.toHaveProperty('extractDesktopAudioChunkPayload');
   });
 
-  test('returns null for malformed audio chunk payloads', () => {
-    expect(extractDesktopAudioChunkPayload({ type: 'audio-chunk', payload: null })).toBeNull();
-    expect(extractDesktopAudioChunkPayload({ type: 'audio-chunk', payload: { sample_rate: 16000 } })).toBeNull();
-    expect(extractDesktopAudioChunkPayload({ type: 'audio-chunk', payload: { audio: 'abc', sample_rate: '16000' } })).toBeNull();
+  test('emits normalized audio chunk payloads for valid audio-chunk events', () => {
+    const { listener, handler, cleanup } = subscribeToAudioChunks();
+
+    handler({
+      type: 'audio-chunk',
+      payload: { audio: 'base64-data', sample_rate: 16000 },
+    });
+
+    expect(listener).toHaveBeenCalledWith({ audio: 'base64-data', sample_rate: 16000 });
+    expect(cleanup).toBe(unsubscribe);
+  });
+
+  test('ignores invalid event envelopes', () => {
+    const { listener, handler } = subscribeToAudioChunks();
+
+    handler(null);
+    handler({});
+    handler({ type: 'tool-call', payload: {} });
+
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  test('ignores malformed audio chunk payloads', () => {
+    const { listener, handler } = subscribeToAudioChunks();
+
+    handler({ type: 'audio-chunk', payload: null });
+    handler({ type: 'audio-chunk', payload: { sample_rate: 16000 } });
+    handler({ type: 'audio-chunk', payload: { audio: 'abc', sample_rate: '16000' } });
+
+    expect(listener).not.toHaveBeenCalled();
   });
 });

@@ -25,8 +25,8 @@ title: "Player Service Queue, Generation, and Error-Recovery Reference"
 
 Caller wiring:
 
-1. `ChatInterface` subscribes to `ON_CHANNELS.AUDIO_CHUNK`
-2. `extractDesktopAudioChunkPayload(...)` filters/normalizes `audio-chunk` events
+1. `ChatInterface` subscribes through `DesktopAudioRuntimeClient.onAudioChunk(...)`
+2. the audio runtime client privately filters/normalizes `audio-chunk` events
 3. `audioPlayerRef.current.enqueueAudio(chunk)` passes data to PlayerService
 
 ## Queue and Playback Contract

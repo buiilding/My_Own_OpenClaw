@@ -12,7 +12,7 @@ export type DesktopAudioChunk = {
 
 export type DesktopAudioChunkListener = (payload: DesktopAudioChunk) => void;
 
-export function extractDesktopAudioChunkPayload(data: unknown): DesktopAudioChunk | null {
+function extractDesktopAudioChunkPayload(data: unknown): DesktopAudioChunk | null {
   if (!data || typeof data !== 'object') {
     return null;
   }
