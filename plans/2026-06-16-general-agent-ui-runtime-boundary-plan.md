@@ -21949,3 +21949,20 @@ Each completed slice should report:
   AgentClient behavior, replay commands, conversation runtime registry behavior,
   IPC wiring, renderer payloads, storage, provider policy, permissions, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer chat model-pool facade ownership
+
+- Finding: `desktopChatModelOptionsRuntime.js` exposed `getAvailableModelPool`
+  as a direct export alias to `desktopModelSelectionRuntime` even though chat
+  consumers use it as the chat model-options facade for available model-pool
+  projection.
+- Change: replaced the direct alias with an owned facade function that delegates
+  to the model-selection runtime and added renderer boundary coverage so the
+  alias cannot return.
+- Validation: focused renderer chat model-options and renderer chat runtime
+  boundary tests, exact exported-alias scan for renderer app-runtime helpers,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Available-model selection behavior,
+  provider/model/reasoning option projection, renderer payloads, storage, IPC
+  channels, provider policy, permissions, backend behavior, and trust
+  boundaries are unchanged.

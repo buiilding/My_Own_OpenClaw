@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat: make the chat model-options runtime own
+  `getAvailableModelPool` as a facade function instead of exporting a direct
+  alias to the lower model-selection helper. No migration required.
 - tests/main: move IPC replay and conversation-runtime registry `AgentClient`
   mocks from the SDK package root to the SDK owner module after the main IPC
   import split. No migration required.

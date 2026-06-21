@@ -155,7 +155,9 @@ export function formatProviderLabel(providerValue) {
   return formatProviderDisplayLabel(providerValue);
 }
 
-export const getAvailableModelPool = getCurrentModels;
+export function getAvailableModelPool(availableModels, modelMode) {
+  return getCurrentModels(availableModels, modelMode);
+}
 
 export function buildChatModelOptions({
   availableModelPool,

@@ -2228,6 +2228,7 @@ describe('renderer chat runtime boundary', () => {
 
     expect(chatModelOptionsSource).toContain('desktopModelSelectionRuntime');
     expect(chatModelOptionsSource).toContain('desktopRuntimeConfig');
+    expect(chatModelOptionsSource).not.toContain('export const getAvailableModelPool = getCurrentModels');
     expect(chatModelOptionsSource).not.toContain('features/chat');
     expect(chatModelOptionsSource).not.toContain('dashboard/utils/modelSelectionUtils');
     expect(chatInterfaceSource).toContain('desktopChatModelOptionsRuntime');
