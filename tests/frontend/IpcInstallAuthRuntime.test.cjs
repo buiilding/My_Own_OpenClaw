@@ -63,7 +63,7 @@ function createDeps(overrides = {}) {
 }
 
 describe('ipc_install_auth_runtime', () => {
-  test('maps desktop host platform names for install registration metadata', () => {
+  test('maps host platform names for install registration metadata', () => {
     expect(resolveDesktopHostOperatingSystem('darwin')).toBe('macOS');
     expect(resolveDesktopHostOperatingSystem('win32')).toBe('Windows');
     expect(resolveDesktopHostOperatingSystem('linux')).toBe('Linux');
@@ -71,7 +71,7 @@ describe('ipc_install_auth_runtime', () => {
     expect(resolveDesktopHostOperatingSystem('')).toBeNull();
   });
 
-  test('imports the desktop host OS resolver from its owner module', () => {
+  test('imports the host OS resolver from its owner module', () => {
     const installAuthSource = fs.readFileSync(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_install_auth_runtime.cjs'),
       'utf8',

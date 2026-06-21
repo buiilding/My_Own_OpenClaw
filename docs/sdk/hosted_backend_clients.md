@@ -60,7 +60,7 @@ That app-builder contract is: send user intent, receive SDK display rows/current
 turns, and let the SDK own websocket normalization, reconnect/idle lifecycle,
 local tool execution, tool-result return, and projection state.
 
-Desktop hosts should use the same agent/conversation methods for the control
+Host UIs should use the same agent/conversation methods for the control
 commands that a first-party desktop app needs during normal operation:
 
 ```ts

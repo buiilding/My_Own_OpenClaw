@@ -20384,3 +20384,24 @@ Each completed slice should report:
   imports, command names, IPC channels, transcript projection, continuity
   rehydrate behavior, permissions, provider policy, storage, and backend
   behavior are unchanged.
+
+### 2026-06-21 main and SDK agent-host wording
+
+- Finding: active architecture, SDK startup, hosted-client, extension, tool
+  development, handshake, runtime-model, docs hub, VM run-control, renderer
+  transport inventory, evidence/security navigation, and install-auth tests
+  still used desktop-host or Agent SDK Host wording for reusable Electron main
+  or SDK host-owner concepts even though the current split is generic Electron
+  agent host plus OS/window/permission adapters and SDK host-UI contracts.
+- Change: reworded those active labels to Electron agent-host, host-UI,
+  Electron-host adapter, and host operating-system wording while preserving
+  concrete compatibility names such as `resolveDesktopHostOperatingSystem`,
+  `ipc_desktop_host_os_runtime.cjs`, `Desktop Agent`, and `desktop-runtime`
+  paths. Extended modular boundary coverage for the updated architecture
+  overview, communication-flow, and agent-host policy labels.
+- Validation: focused modular/main/renderer boundary tests, exact active-label
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. IPC channels, install registration
+  metadata, agent-definition metadata, OS label values, SDK startup behavior,
+  local-runtime launch, permissions, storage paths, provider policy, and backend
+  behavior are unchanged.

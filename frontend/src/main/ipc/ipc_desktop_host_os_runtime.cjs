@@ -1,5 +1,5 @@
 /**
- * Resolves generic desktop host operating-system names for main-process payloads.
+ * Resolves generic host operating-system names for main-process payloads.
  */
 
 function resolveDesktopHostOperatingSystem(platformName = process.platform) {

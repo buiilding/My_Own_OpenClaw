@@ -55,7 +55,7 @@ Current runtime note:
 
 - the live backend and local-runtime implementation registries expose direct
   tool names only
-- the SDK/Electron desktop host sends `agent_definition.tools.client_manifest`
+- the SDK/Electron agent host sends `agent_definition.tools.client_manifest`
   during websocket handshake so desktop client/local-runtime tool schemas can be extended
   without editing backend schema code.
 - local-runtime plugin tools put model-facing JSON Schema files under

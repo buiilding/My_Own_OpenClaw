@@ -82,7 +82,7 @@ handler once when composing the IPC runtime. On open:
 3. reset overlay phase to `idle`
 4. clear turn replay buffer
 5. generate valid client `user_id`
-6. send backend `handshake` message with the desktop host operating-system label (`macOS` / `Windows` / `Linux`)
+6. send backend `handshake` message with the host operating-system label (`macOS` / `Windows` / `Linux`)
 7. broadcast `ipc-status` to renderer windows
 
 Close cleanup lives in `ipc_agent_backend_close_runtime.cjs`. On close:

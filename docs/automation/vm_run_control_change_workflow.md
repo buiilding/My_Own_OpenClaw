@@ -21,7 +21,7 @@ Current VM run control is not a cron scheduler, webhook engine, durable job queu
 - The `/api/runs/*` route dependency owns lazy app-state service publication and must keep first-request initialization synchronized.
 - The runs API key uses `x-windie-runs-key` and is separate from install-token bearer auth.
 - Worker-dispatched runs must enter the same backend query path as desktop chat via Electron main. Do not create a parallel model/tool loop in `vm_worker_runtime.cjs`.
-- Desktop host, renderer, and local-runtime Python code must not import backend code for schema parity. Keep route payload parity in docs and tests.
+- Electron main, renderer, and local-runtime Python code must not import backend code for schema parity. Keep route payload parity in docs and tests.
 
 ## Fast Owner Map
 

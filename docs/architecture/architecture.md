@@ -10,7 +10,7 @@ For architecture navigation by ownership, state, and failure domain, start with 
 
 ## Overview
 
-WindieOS is built as a distributed system with clear separation between the renderer UI, Electron main desktop host, SDK local runtime backed by the local-runtime Python implementation, and backend control plane (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
+WindieOS is built as a distributed system with clear separation between the renderer UI, Electron main agent host, SDK local runtime backed by the local-runtime Python implementation, and backend control plane (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
 
 The intended product boundary is:
 
@@ -132,7 +132,7 @@ This is not the primary open-source SDK contract. The default client contract is
 
 #### Main Process (Node.js)
 - **IPC Bridge**: Secure communication between renderer and main
-- **Agent SDK Host**: Starts and adapts the SDK runtime that owns hosted
+- **Electron Agent Host**: Starts and adapts the SDK runtime that owns hosted
   backend websocket transport, conversation projection, and local-runtime
   coordination
 - **VM Worker Runtime**: Optional heartbeat/assignment relay loop for `/api/runs/*` when `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` are enabled

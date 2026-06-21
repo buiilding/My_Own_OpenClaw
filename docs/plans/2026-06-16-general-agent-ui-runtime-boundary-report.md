@@ -8408,3 +8408,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   imports, command names, IPC channels, transcript projection, continuity
   rehydrate behavior, permissions, provider policy, storage, and backend
   behavior are unchanged; no migration is required.
+- Active architecture, SDK startup, hosted-client, extension, tool-development,
+  handshake, runtime-model, docs hub, VM run-control, renderer transport
+  inventory, evidence/security navigation, and install-auth test wording now
+  routes reusable owner labels through Electron agent-host, host-UI,
+  Electron-host adapter, and host operating-system language instead of generic
+  desktop-host or Agent SDK Host ownership labels. Concrete
+  `resolveDesktopHostOperatingSystem`, `ipc_desktop_host_os_runtime.cjs`,
+  `Desktop Agent`, and `desktop-runtime` compatibility names, IPC channels,
+  install registration metadata, agent-definition metadata, OS label values,
+  SDK startup behavior, local-runtime launch, permissions, storage paths,
+  provider policy, and backend behavior are unchanged; no migration is required.

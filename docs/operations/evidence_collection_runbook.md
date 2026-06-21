@@ -2,7 +2,7 @@
 summary: "Operations evidence collection runbook for WindieOS hosted backend, Cloudflare Tunnel, Electron main, renderer, local runtime, packaged app, VM worker, provider, and permission failures."
 read_when:
   - When preparing an operations handoff, bug report, incident note, or debugging packet.
-  - When a failure is hosted-only, packaged-only, platform-specific, intermittent, or crosses backend, desktop host, renderer, local-runtime, or SDK boundaries.
+  - When a failure is hosted-only, packaged-only, platform-specific, intermittent, or crosses backend, Electron main, renderer, local-runtime, or SDK boundaries.
 title: "Evidence Collection Runbook"
 ---
 

@@ -82,6 +82,11 @@ All notable changes to WindieOS will be documented in this file.
   flow, inventory entries, renderer hub links, and the transport contract title
   through renderer app-runtime and SDK desktop transport wording instead of
   desktop-runtime owner labels. No migration required.
+- docs/main-sdk: route active architecture, SDK startup, tool-development,
+  handshake, VM/run-control, renderer transport inventory, and navigation docs
+  through Electron agent-host, Electron-host adapter, or host-UI wording instead
+  of generic desktop-host and Agent SDK Host owner labels. No migration
+  required.
 - renderer/runtime: keep dashboard row title/match helpers and overlay
   lifecycle phase groups private inside their app-runtime owner modules,
   leaving only the list-update and lifecycle resolver APIs public. No migration

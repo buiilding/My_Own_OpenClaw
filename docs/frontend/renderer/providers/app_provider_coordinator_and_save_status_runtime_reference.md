@@ -131,7 +131,7 @@ Shared commit path:
 ## Runtime Client Boundary
 
 `AppConfigProvider` and `AppStatusProvider` own renderer state machines only.
-Desktop host transport is routed through app runtime clients:
+Electron host transport is routed through app runtime clients:
 
 - `DesktopAppConfigRuntimeClient` owns renderer config disk persistence,
   normalized settings-event fan-out, settings-update failure classification,

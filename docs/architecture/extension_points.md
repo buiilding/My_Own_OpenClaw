@@ -33,7 +33,7 @@ currently backed by local-runtime Python modules:
   - `system/` (stats/window/wait)
 
 These are executed through SDK/main local-runtime dispatch; Electron main owns
-the desktop host bridge and local-runtime Python modules own the current
+the agent-host bridge and local-runtime Python modules own the current
 implementation behavior.
 
 ## 3) LLM Providers

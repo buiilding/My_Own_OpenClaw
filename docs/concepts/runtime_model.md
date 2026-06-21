@@ -1,7 +1,7 @@
 ---
 summary: "Conceptual runtime model for WindieOS across hosted backend, Electron main, renderer, preload, and local runtime."
 read_when:
-  - When explaining how WindieOS is split across backend, desktop host,
+  - When explaining how WindieOS is split across backend, Electron main,
     renderer, and local runtime.
   - When deciding which runtime owns a feature before touching code.
 title: "Runtime Model"
@@ -29,7 +29,7 @@ server-owned while machine control stays local to the user's computer.
 - Backend owns the model-facing contract.
 - Local runtime owns local execution.
 - Renderer owns UI state and display projections; Electron main hosts SDK runtime adapters and desktop process control.
-- Desktop host, renderer, and the local-runtime Python implementation must not import
+- Electron main, renderer, and the local-runtime Python implementation must not import
   backend code to keep schema parity. Use generated/shared contracts and tests
   instead.
 - Provider and capability health should narrow what the model sees before prompting, not after a failing tool call.

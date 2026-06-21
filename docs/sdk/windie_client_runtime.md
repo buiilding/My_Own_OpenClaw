@@ -166,9 +166,9 @@ are emitted only by SDK transport adapters.
 `ManagedAgentSession` reuses the same `AgentSession` stop-alias guard so
 managed and unmanaged hosted sessions do not keep separate compatibility checks.
 
-## Desktop Host Startup
+## Host UI Startup
 
-Normal desktop hosts start one SDK-owned runtime and render the SDK
+Normal host UIs start one SDK-owned runtime and render the SDK
 conversation projection:
 
 ```ts

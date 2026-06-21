@@ -470,7 +470,8 @@ describe('renderer app runtime boundary', () => {
 
     expect(source).toContain('## Renderer App-Runtime Client Inventory');
     expect(source).toContain('Real SDK-command boundary');
-    expect(source).toContain('Real desktop-host adapter boundary');
+    expect(source).toContain('Real Electron-host adapter boundary');
+    expect(source).not.toContain('Real desktop-host adapter boundary');
     expect(source).toContain('State/rule facade');
     expect(source).toContain('Presentation contract/helper facade');
     expect(source).toContain('Forwarding/helper facade with current boundary value');

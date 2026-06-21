@@ -251,10 +251,10 @@ The WindieOS desktop app has four live runtime surfaces:
 - React renderer owns UX state and display: chat, dashboard, settings, voice,
   active transcript projection, and display-only tool rows.
 - Preload owns the narrow allowlisted IPC bridge exposed to the renderer.
-- Electron main owns desktop host policy: windows, overlays, menus, lifecycle,
-  IPC handlers, endpoint diagnostics, permission prompts, direct Agent SDK
-  startup, local-runtime supervision, wakeword supervision, screenshots, and
-  platform policy.
+- Electron main owns agent host policy plus OS/window/permission adapters:
+  windows, overlays, menus, lifecycle, IPC handlers, endpoint diagnostics,
+  permission prompts, direct Agent SDK startup, local-runtime supervision,
+  wakeword supervision, screenshots, and platform policy.
 - Local runtime owns local authority, backed by the current local-runtime Python
   implementation: filesystem, shell/process, computer use, browser mechanics,
   local memory, system state, and wakeword subprocess code.

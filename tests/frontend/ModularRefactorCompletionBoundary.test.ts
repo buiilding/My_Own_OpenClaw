@@ -1720,7 +1720,9 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(docText).toContain('`windie:invoke`: Renderer -> Electron main SDK command bridge');
     expect(docText).toContain('`windie:conversation-event`: SDK-normalized conversation side-effect events');
-    expect(docText).toContain('Agent SDK Host');
+    expect(docText).toContain('Electron Main / Agent Host');
+    expect(docText).toContain('Electron Agent Host');
+    expect(docText).not.toContain('Agent SDK Host');
     expect(docText).toContain('Agent SDK runtime -> WebSocket -> Backend');
     expect(docText).toContain('Runtime Clients');
     expect(docText).toContain('SDK command facades');
@@ -1971,7 +1973,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureToolSystemText).toContain('desktop client manifest builder');
     expect(architectureToolSystemText).toContain('local-runtime exposed-tool parity');
     expect(architectureToolSystemText).toContain('desktop client/local-runtime and backend schema pairing');
-    expect(architectureOverviewText).toContain('renderer UI, Electron main desktop host, SDK local runtime');
+    expect(architectureOverviewText).toContain('renderer UI, Electron main agent host, SDK local runtime');
     expect(architectureOverviewText).toContain('SDK local runtime backed by the local-runtime Python implementation');
     expect(architectureOverviewText).toContain('Local-runtime Python implementation executes local tools');
     expect(architectureOverviewText).toContain('Desktop Client / SDK Host');
@@ -2861,6 +2863,7 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar wakeword service',
         'desktop client/Python sidecar code',
         'Desktop host, renderer, and Python sidecar code',
+        'Desktop host, renderer, and local-runtime Python code',
         'Python sidecar code owns concrete executable implementations',
         'backed by Python sidecar code',
         'Do not make the sidecar import backend schemas',
@@ -4098,7 +4101,7 @@ describe('modular sdk refactor completion boundary', () => {
     const agentArchitectureReferenceText = await read('docs/development/agent_architecture_reference.md');
     expect(agentArchitectureReferenceText).toContain('## Desktop App Architecture');
     expect(agentArchitectureReferenceText).toContain('desktop app has four live runtime surfaces');
-    expect(agentArchitectureReferenceText).toContain('Electron main owns desktop host policy');
+    expect(agentArchitectureReferenceText).toContain('Electron main owns agent host policy plus OS/window/permission adapters');
 
     const moduleFileIndexText = await read('docs/frontend/inventory/frontend_module_file_index_reference.md');
     expect(moduleFileIndexText).toContain('Hosted backend owns model-facing browser policy and schema exposure.');

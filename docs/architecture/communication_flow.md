@@ -25,7 +25,7 @@ Renderer Process (React)
   |
   | IPC through preload allowlist (`window.agentSdk`, `window.ipc`)
   v
-Electron Main / Agent SDK Host
+Electron Main / Agent Host
   - IPC routing, windows/overlays, endpoint policy, local host context
   |
   |-- SDK local-runtime RPC
@@ -142,7 +142,7 @@ Electron Main / Agent SDK Host
 1. **Connection**: The SDK runtime opens the backend WebSocket on demand instead of at renderer startup. Customer-mode source and packaged runs use the hosted default `wss://api.windieos.com/ws` unless an explicit endpoint override pins another backend.
 2. **Auth + Handshake**: Hosted clients first authenticate with a server-issued install token, then send the handshake message
    - the backend resolves the real `user_id` from the install token and ignores mismatched client-claimed `user_id` values
-   - Electron main also sends the desktop host operating-system label so backend session prompt rendering can follow the client OS instead of the Python host OS
+   - Electron main also sends the host operating-system label so backend session prompt rendering can follow the client OS instead of the Python host OS
    - Invalid handshake JSON/schema closes the socket with code `1008` (policy violation)
 3. **Session Creation**: Backend creates session
 4. **Message Loop**: Continuous message exchange
@@ -495,7 +495,7 @@ Backend API (FastAPI)
 3. SDK runtime receives the event through its backend transport
 4. SDK runtime normalizes the event and claims executable work
 5. SDK local runtime calls the local-runtime Python implementation
-6. Electron main supplies desktop host context for window/screenshot/artifact behavior
+6. Electron main supplies agent-host context for window/screenshot/artifact behavior
 7. Local-runtime Python tool code executes the action
 8. SDK ToolExecutionCoordinator builds the result envelope
 9. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend
