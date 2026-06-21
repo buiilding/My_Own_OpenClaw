@@ -24352,3 +24352,22 @@ Each completed slice should report:
 - Compatibility: no migration required. Settings tab descriptors, tab routing,
   renderer markup, storage, local-runtime execution, provider policy, backend
   behavior, and trust boundaries are unchanged.
+
+### 2026-06-21 renderer trace runtime facade helper privacy
+
+- Finding: renderer trace payload builders and logging helpers lived in the
+  renderer app runtime, but chat send preparation, ChatProvider, current-turn
+  projection, minimal chat pill, response overlay, response overlay view model,
+  response overlay window sync, and focused tests still imported the helpers as
+  standalone exports.
+- Change: exposed trace behavior through `DesktopRendererTraceRuntime` and kept
+  debug gating, workspace enrichment, chat-pill payload shaping,
+  response-overlay payload shaping, overlay view-model trace event mapping, and
+  live-surface forwarding behind the runtime facade.
+- Validation: focused renderer trace, chat/runtime boundary, app-runtime
+  boundary, chat send preparation, minimal chat pill, response overlay, and
+  response overlay view-model tests, targeted renderer ESLint, exact source/doc
+  scans, docs listing, and diff checks.
+- Compatibility: no migration required. Trace event names, trace payload
+  fields, renderer markup, IPC forwarding, storage, local-runtime execution,
+  provider policy, backend behavior, and trust boundaries are unchanged.

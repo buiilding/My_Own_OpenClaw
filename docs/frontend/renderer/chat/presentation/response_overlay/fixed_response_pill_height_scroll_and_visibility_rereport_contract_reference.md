@@ -61,7 +61,7 @@ The runtime client owns conversion from renderer value names to the
 visibility, measurement, dedupe, and re-report timing.
 
 Response-window size stream traces are shaped by
-`desktopRendererTraceRuntime.ts`. The window-sync hook passes camelCase
+`DesktopRendererTraceRuntime`. The window-sync hook passes camelCase
 value-level fields to `logRendererResponseSurfaceSizeTrace(...)`; it does not
 assemble diagnostic `layout_mode`, `show_response`, `thinking_text_length`,
 `compact_hover`, `turn_ref`, or `stale_guard_ref` fields directly.

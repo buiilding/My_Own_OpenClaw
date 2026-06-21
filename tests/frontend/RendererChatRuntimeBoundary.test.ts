@@ -1752,7 +1752,10 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('IpcBridge');
     expect(source).not.toContain('features/chat');
     expect(source).toContain('configureRendererTraceWorkspaceSnapshotResolver');
+    expect(source).toContain('export const DesktopRendererTraceRuntime = Object.freeze');
+    expect(source).not.toContain('export function configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('configureRendererTraceWorkspaceSnapshotResolver');
+    expect(chatProviderSource).toContain('DesktopRendererTraceRuntime');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/chatStream/chatStreamDebugTrace.ts'),

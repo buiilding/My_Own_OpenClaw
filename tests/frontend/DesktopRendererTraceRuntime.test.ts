@@ -10,7 +10,9 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntim
   },
 }));
 
-import {
+import { DesktopRendererTraceRuntime } from '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime';
+
+const {
   buildRendererChatSendLifecycleTracePayload,
   buildRendererChatPillHitTestTracePayload,
   buildRendererChatPillLifecycleTracePayload,
@@ -40,7 +42,7 @@ import {
   logRendererResponseSurfaceTrace,
   logRendererResponseSurfaceSnapshotTrace,
   logRendererResponseSurfaceSizeTrace,
-} from '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime';
+} = DesktopRendererTraceRuntime;
 
 function setSearch(search: string) {
   window.history.replaceState({}, '', `/${search}`);

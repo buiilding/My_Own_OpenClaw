@@ -10,13 +10,7 @@ import { useResponseOverlayWindowSync } from '../hooks/useResponseOverlayWindowS
 import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScrollState';
 import MessageItem from '../../chat/components/message/MessageItem';
 import { DesktopMessageTransparencyRuntime } from '../../../app/runtime/desktopMessageTransparencyRuntime';
-import {
-  logRendererResponseOverlayHitTestTrace,
-  logRendererResponseOverlayStateTrace,
-  logRendererResponseOverlayTypingRenderedTrace,
-  logRendererResponseSurfaceRenderTrace,
-  logRendererResponseSurfaceSnapshotTrace,
-} from '../../../app/runtime/desktopRendererTraceRuntime';
+import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { DesktopResponseOverlayLayoutRuntime } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 
@@ -24,6 +18,13 @@ const RESPONSE_FIXED_HEIGHT = DesktopResponseOverlayLayoutRuntime.getResponseOve
 const TYPING_FRAME_HEIGHT = (
   DesktopResponseOverlayLayoutRuntime.getResponseOverlayAwaitingFrameHeight()
 );
+const {
+  logRendererResponseOverlayHitTestTrace,
+  logRendererResponseOverlayStateTrace,
+  logRendererResponseOverlayTypingRenderedTrace,
+  logRendererResponseSurfaceRenderTrace,
+  logRendererResponseSurfaceSnapshotTrace,
+} = DesktopRendererTraceRuntime;
 
 function MinimalResponseOverlay() {
   const {

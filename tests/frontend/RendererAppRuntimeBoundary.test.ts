@@ -293,8 +293,12 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).toContain('logRendererChatPillLifecycleTrace');
     expect(traceRuntimeSource).toContain('buildRendererChatPillHitTestTracePayload');
     expect(traceRuntimeSource).toContain('logRendererChatPillHitTestTrace');
+    expect(traceRuntimeSource).toContain('export const DesktopRendererTraceRuntime = Object.freeze');
+    expect(traceRuntimeSource).not.toContain('export function logRendererChatPillStateTrace');
+    expect(traceRuntimeSource).not.toContain('export function buildRendererChatPillStateTracePayload');
     expect(traceRuntimeSource).toContain('conversation_ref');
     expect(traceRuntimeSource).toContain('current_turn_phase');
+    expect(minimalPillSource).toContain('DesktopRendererTraceRuntime');
     expect(minimalPillSource).toContain('logRendererChatPillResetTrace');
     expect(minimalPillSource).toContain('logRendererChatPillLifecycleTrace');
     expect(minimalPillSource).toContain('logRendererChatPillHitTestTrace');
@@ -341,6 +345,9 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).toContain('buildRendererOverlayIntentTraceEvent');
     expect(traceRuntimeSource).toContain('logRendererOverlayViewModelTrace');
     expect(traceRuntimeSource).toContain('logRendererOverlayViewModelResolvedTrace');
+    expect(traceRuntimeSource).not.toContain('export function logRendererResponseOverlayStateTrace');
+    expect(traceRuntimeSource).not.toContain('export function buildRendererOverlayViewModelTracePayload');
+    expect(responseOverlaySource).toContain('DesktopRendererTraceRuntime');
     expect(responseOverlaySource).toContain('logRendererResponseOverlayStateTrace');
     expect(responseOverlaySource).toContain('logRendererResponseOverlayHitTestTrace');
     expect(responseOverlaySource).toContain('logRendererResponseOverlayTypingRenderedTrace');
@@ -355,6 +362,7 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlaySource).not.toContain('awaiting-indicator-not-rendered');
     expect(responseOverlaySource).not.toContain('ignoreMouseEvents');
     expect(responseOverlayViewModelSource).toContain('buildRendererOverlayViewModelTracePayload');
+    expect(responseOverlayViewModelSource).toContain('DesktopRendererTraceRuntime');
     expect(responseOverlayViewModelSource).toContain('logRendererOverlayViewModelTrace');
     expect(responseOverlayViewModelSource).toContain('logRendererOverlayViewModelResolvedTrace');
     expect(responseOverlaySource).not.toContain('turn_id');

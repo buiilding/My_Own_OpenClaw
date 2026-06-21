@@ -11,7 +11,7 @@ import {
   DesktopChatStreamEventRuntime,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
-import { logRendererCurrentTurnAppliedTrace } from '../../../app/runtime/desktopRendererTraceRuntime';
+import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { DesktopPresentationSourceChannels } from '../../../app/runtime/desktopPresentationSourceChannels';
 import {
   DesktopCurrentTurnProjectionEffectsRuntime,
@@ -33,6 +33,9 @@ const {
   buildChatMessagesFromSdkDisplayRows,
   mergeRendererAnnotationsIntoSdkMessages,
 } = DesktopConversationDisplayProjection;
+const {
+  logRendererCurrentTurnAppliedTrace,
+} = DesktopRendererTraceRuntime;
 
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());

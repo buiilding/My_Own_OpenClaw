@@ -17,13 +17,15 @@ import {
   DesktopCurrentTurnMessageRuntime,
 } from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
 import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
-import {
+import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
+
+const {
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
   buildRendererOverlayViewModelTracePayload,
   logRendererOverlayViewModelTrace,
   logRendererOverlayViewModelResolvedTrace,
-} from '../../../app/runtime/desktopRendererTraceRuntime';
+} = DesktopRendererTraceRuntime;
 
 const {
   resolveResponseOverlayDismissalTarget,

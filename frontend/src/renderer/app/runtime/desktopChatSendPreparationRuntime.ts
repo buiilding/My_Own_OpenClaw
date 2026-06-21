@@ -22,7 +22,7 @@ import {
   type ReadableFilePayload,
 } from './desktopChatSendPayloadRuntime';
 import { DesktopChatSendStateRuntime } from './desktopChatSendStateRuntime';
-import { logRendererChatSendLifecycleTrace } from './desktopRendererTraceRuntime';
+import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 
 const {
   normalizeAttachmentFilenames,
@@ -36,6 +36,9 @@ const {
   ensureConversationRefForSend,
   resolveRendererConversationSessionSnapshot,
 } = DesktopConversationSessionRuntime;
+const {
+  logRendererChatSendLifecycleTrace,
+} = DesktopRendererTraceRuntime;
 
 type AppConfigLike = Record<string, unknown> | null | undefined;
 

@@ -146,27 +146,27 @@ Contract ownership:
   visibility re-report behavior, delegating responsebox size payload assembly,
   IPC, and visibility payload normalization/boolean subscription projection to
   `DesktopResponseOverlayRuntimeClient`.
-- `desktopRendererTraceRuntime.ts` owns response-surface stream-trace and
+- `DesktopRendererTraceRuntime` owns response-surface stream-trace and
   live-surface size-report payload field shaping.
   `useResponseOverlayWindowSync(...)` reports value-level sizing and turn
   inputs to `logRendererResponseSurfaceSizeTrace(...)`; the trace runtime maps
   those values to the existing stream diagnostic fields and live
   `response_overlay.renderer.size_report` event fields.
-- `desktopRendererTraceRuntime.ts` owns response overlay mount/unmount
+- `DesktopRendererTraceRuntime` owns response overlay mount/unmount
   live-surface event labels and payload shaping through
   `logRendererResponseOverlayLifecycleTrace(...)`; the window-sync hook reports
   only turn, guard, conversation, and lifecycle action values.
-- `desktopRendererTraceRuntime.ts` owns response overlay hit-test and
+- `DesktopRendererTraceRuntime` owns response overlay hit-test and
   rendered-typing live-surface event labels, reason strings, and payload field
   shaping through `logRendererResponseOverlayHitTestTrace(...)` and
   `logRendererResponseOverlayTypingRenderedTrace(...)`; `MinimalResponseOverlay`
   reports only interaction and rendered-state values.
-- `desktopRendererTraceRuntime.ts` owns response overlay response-surface
+- `DesktopRendererTraceRuntime` owns response overlay response-surface
   snapshot stream-trace field shaping through
   `logRendererResponseSurfaceSnapshotTrace(...)`; `MinimalResponseOverlay`
   reports only phase, message-count, response-entry, visible-response, and
   text-length values.
-- `desktopRendererTraceRuntime.ts` also owns response overlay view-model
+- `DesktopRendererTraceRuntime` also owns response overlay view-model
   live-surface trace payload, resolved-event, typing-event, intent-event, and
   reason mapping. `useResponseOverlayViewModel(...)` reports value-level SDK,
   presentation, and view-intent inputs, then logs the app-runtime-built trace

@@ -149,7 +149,7 @@ transcript metadata rather than composer resources.
 predicate used by send preparation. The raw predicate stays private behind the
 renderer app-runtime facade.
 
-Send lifecycle chat-pill traces go through `desktopRendererTraceRuntime.ts`.
+Send lifecycle chat-pill traces go through `DesktopRendererTraceRuntime`.
 `DesktopChatSendPreparationRuntime` reports send-start,
 screenshot-decision, and query-dispatched values through
 `logRendererChatSendLifecycleTrace(...)`; the trace runtime owns

@@ -225,7 +225,7 @@ live-surface trace IPC send channel. Chat stream debug utilities decide whether
 to emit diagnostics and build redacted payloads, then call this runtime client
 instead of importing desktop IPC channel constants directly.
 
-`desktopRendererTraceRuntime.ts` owns renderer debug-trace gating, workspace
+`DesktopRendererTraceRuntime` owns renderer debug-trace gating, workspace
 snapshot enrichment, response-surface stream-trace envelope logging,
 chat-pill state trace field shaping, response-overlay state/render trace field
 shaping, and response-overlay size trace field shaping. Minimal chat-pill state effects pass value-level `conversationRef`,

@@ -38,6 +38,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose renderer trace payload builders and trace logging
+  through `DesktopRendererTraceRuntime` instead of standalone helper exports,
+  keeping debug gating, workspace enrichment, chat-pill traces, response-overlay
+  traces, and live-surface forwarding behind the renderer app-runtime facade. No
+  migration required.
 - frontend/renderer: expose settings tab descriptors through
   `DesktopSettingsTabRuntime` instead of a named helper export set, keeping
   ordered tab ids and fallback label rules behind the renderer app-runtime

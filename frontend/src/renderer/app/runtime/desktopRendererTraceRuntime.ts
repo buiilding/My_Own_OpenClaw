@@ -229,7 +229,7 @@ type RendererOverlayViewModelTraceEvent = {
 
 let workspaceSnapshotResolver: RendererTraceWorkspaceSnapshotResolver | null = null;
 
-export function configureRendererTraceWorkspaceSnapshotResolver(
+function configureRendererTraceWorkspaceSnapshotResolver(
   resolver: RendererTraceWorkspaceSnapshotResolver | null,
 ): void {
   workspaceSnapshotResolver = typeof resolver === 'function' ? resolver : null;
@@ -269,7 +269,7 @@ function summarizeWorkspaceForTrace(conversationRef: string | null): RendererTra
   return workspaceSnapshotResolver?.(conversationRef) ?? {};
 }
 
-export function logRendererResponseSurfaceTrace(data: Record<string, unknown>): void {
+function logRendererResponseSurfaceTrace(data: Record<string, unknown>): void {
   if (!isRendererStreamTraceEnabled()) {
     return;
   }
@@ -298,7 +298,7 @@ function traceTextLength(values: {
   return typeof values.thinkingText === 'string' ? values.thinkingText.length : null;
 }
 
-export function buildRendererResponseSurfaceSizeTracePayload(
+function buildRendererResponseSurfaceSizeTracePayload(
   values: RendererResponseSurfaceSizeTraceValues,
 ): Record<string, unknown> {
   const payload: Record<string, unknown> = {
@@ -328,7 +328,7 @@ export function buildRendererResponseSurfaceSizeTracePayload(
   return payload;
 }
 
-export function buildRendererResponseSurfaceSizeLiveTracePayload(
+function buildRendererResponseSurfaceSizeLiveTracePayload(
   values: RendererResponseSurfaceSizeTraceValues,
 ): Record<string, unknown> {
   const layoutMode = traceString(values.layoutMode) || 'hidden';
@@ -360,7 +360,7 @@ export function buildRendererResponseSurfaceSizeLiveTracePayload(
   return payload;
 }
 
-export function logRendererResponseSurfaceSizeTrace(
+function logRendererResponseSurfaceSizeTrace(
   values: RendererResponseSurfaceSizeTraceValues,
 ): void {
   logRendererResponseSurfaceTrace(buildRendererResponseSurfaceSizeTracePayload(values));
@@ -371,7 +371,7 @@ export function logRendererResponseSurfaceSizeTrace(
   );
 }
 
-export function logRendererResponseOverlayLifecycleTrace(
+function logRendererResponseOverlayLifecycleTrace(
   values: RendererResponseOverlayLifecycleTraceValues,
 ): void {
   const action = values.action === 'unmount' ? 'unmount' : 'mount';
@@ -386,7 +386,7 @@ export function logRendererResponseOverlayLifecycleTrace(
   );
 }
 
-export function buildRendererResponseOverlayHitTestTracePayload(
+function buildRendererResponseOverlayHitTestTracePayload(
   values: RendererResponseOverlayHitTestTraceValues,
 ): Record<string, unknown> {
   const active = values.active === true;
@@ -398,7 +398,7 @@ export function buildRendererResponseOverlayHitTestTracePayload(
   };
 }
 
-export function logRendererResponseOverlayHitTestTrace(
+function logRendererResponseOverlayHitTestTrace(
   values: RendererResponseOverlayHitTestTraceValues,
 ): void {
   logRendererLiveSurfaceTrace(
@@ -408,7 +408,7 @@ export function logRendererResponseOverlayHitTestTrace(
   );
 }
 
-export function buildRendererResponseOverlayTypingRenderedTracePayload(
+function buildRendererResponseOverlayTypingRenderedTracePayload(
   values: RendererResponseOverlayTypingRenderedTraceValues,
 ): Record<string, unknown> {
   const typingRendered = values.typingRendered === true;
@@ -446,7 +446,7 @@ export function buildRendererResponseOverlayTypingRenderedTracePayload(
   };
 }
 
-export function logRendererResponseOverlayTypingRenderedTrace(
+function logRendererResponseOverlayTypingRenderedTrace(
   values: RendererResponseOverlayTypingRenderedTraceValues,
 ): void {
   const typingRendered = values.typingRendered === true;
@@ -457,7 +457,7 @@ export function logRendererResponseOverlayTypingRenderedTrace(
   );
 }
 
-export function buildRendererResponseOverlayStateTracePayload(
+function buildRendererResponseOverlayStateTracePayload(
   values: RendererResponseOverlayStateTraceValues,
 ): Record<string, unknown> {
   return {
@@ -478,13 +478,13 @@ export function buildRendererResponseOverlayStateTracePayload(
   };
 }
 
-export function logRendererResponseOverlayStateTrace(
+function logRendererResponseOverlayStateTrace(
   values: RendererResponseOverlayStateTraceValues,
 ): void {
   logRendererResponseSurfaceTrace(buildRendererResponseOverlayStateTracePayload(values));
 }
 
-export function buildRendererResponseSurfaceSnapshotTracePayload(
+function buildRendererResponseSurfaceSnapshotTracePayload(
   values: RendererResponseSurfaceSnapshotTraceValues,
 ): Record<string, unknown> {
   return {
@@ -502,7 +502,7 @@ export function buildRendererResponseSurfaceSnapshotTracePayload(
   };
 }
 
-export function logRendererResponseSurfaceSnapshotTrace(
+function logRendererResponseSurfaceSnapshotTrace(
   values: RendererResponseSurfaceSnapshotTraceValues,
 ): void {
   logRendererResponseSurfaceTrace(buildRendererResponseSurfaceSnapshotTracePayload(values));
@@ -523,7 +523,7 @@ function getRendererPlatform(): string | null {
   return platform.length > 0 ? platform : null;
 }
 
-export function logRendererChatPillTrace(
+function logRendererChatPillTrace(
   data: Record<string, unknown>,
   conversationRef: string | null = null,
 ): void {
@@ -538,7 +538,7 @@ export function logRendererChatPillTrace(
   });
 }
 
-export function buildRendererChatPillStateTracePayload(
+function buildRendererChatPillStateTracePayload(
   values: RendererChatPillStateTraceValues,
 ): Record<string, unknown> {
   return {
@@ -556,7 +556,7 @@ export function buildRendererChatPillStateTracePayload(
   };
 }
 
-export function logRendererChatPillStateTrace(
+function logRendererChatPillStateTrace(
   values: RendererChatPillStateTraceValues,
 ): void {
   logRendererChatPillTrace(
@@ -565,7 +565,7 @@ export function logRendererChatPillStateTrace(
   );
 }
 
-export function buildRendererChatSendLifecycleTracePayload(
+function buildRendererChatSendLifecycleTracePayload(
   values: RendererChatSendLifecycleTraceValues,
 ): Record<string, unknown> {
   return {
@@ -577,7 +577,7 @@ export function buildRendererChatSendLifecycleTracePayload(
   };
 }
 
-export function logRendererChatSendLifecycleTrace(
+function logRendererChatSendLifecycleTrace(
   values: RendererChatSendLifecycleTraceValues,
 ): void {
   logRendererChatPillTrace(
@@ -586,7 +586,7 @@ export function logRendererChatSendLifecycleTrace(
   );
 }
 
-export function buildRendererChatPillResetTracePayload(
+function buildRendererChatPillResetTracePayload(
   values: RendererChatPillResetTraceValues,
 ): Record<string, unknown> {
   return {
@@ -600,7 +600,7 @@ export function buildRendererChatPillResetTracePayload(
   };
 }
 
-export function logRendererChatPillResetTrace(
+function logRendererChatPillResetTrace(
   values: RendererChatPillResetTraceValues,
 ): void {
   logRendererLiveSurfaceTrace(
@@ -610,7 +610,7 @@ export function logRendererChatPillResetTrace(
   );
 }
 
-export function buildRendererChatPillLifecycleTracePayload(
+function buildRendererChatPillLifecycleTracePayload(
   values: RendererChatPillLifecycleTraceValues,
 ): Record<string, unknown> {
   return {
@@ -621,7 +621,7 @@ export function buildRendererChatPillLifecycleTracePayload(
   };
 }
 
-export function logRendererChatPillLifecycleTrace(
+function logRendererChatPillLifecycleTrace(
   values: RendererChatPillLifecycleTraceValues,
 ): void {
   const action = values.action === 'unmount' ? 'unmount' : 'mount';
@@ -632,7 +632,7 @@ export function logRendererChatPillLifecycleTrace(
   );
 }
 
-export function buildRendererChatPillHitTestTracePayload(
+function buildRendererChatPillHitTestTracePayload(
   values: RendererChatPillHitTestTraceValues,
 ): Record<string, unknown> {
   const active = values.active === true;
@@ -644,7 +644,7 @@ export function buildRendererChatPillHitTestTracePayload(
   };
 }
 
-export function logRendererChatPillHitTestTrace(
+function logRendererChatPillHitTestTrace(
   values: RendererChatPillHitTestTraceValues,
 ): void {
   logRendererLiveSurfaceTrace(
@@ -654,7 +654,7 @@ export function logRendererChatPillHitTestTrace(
   );
 }
 
-export function buildRendererCurrentTurnAppliedTracePayload(
+function buildRendererCurrentTurnAppliedTracePayload(
   values: RendererCurrentTurnAppliedTraceValues,
 ): Record<string, unknown> {
   const currentTurn = values.currentTurn;
@@ -687,7 +687,7 @@ export function buildRendererCurrentTurnAppliedTracePayload(
   };
 }
 
-export function logRendererCurrentTurnAppliedTrace(
+function logRendererCurrentTurnAppliedTrace(
   values: RendererCurrentTurnAppliedTraceValues,
 ): void {
   logRendererLiveSurfaceTrace(
@@ -697,7 +697,7 @@ export function logRendererCurrentTurnAppliedTrace(
   );
 }
 
-export function buildRendererResponseSurfaceRenderTracePayload(
+function buildRendererResponseSurfaceRenderTracePayload(
   values: RendererResponseSurfaceRenderTraceValues,
 ): Record<string, unknown> {
   return {
@@ -711,13 +711,13 @@ export function buildRendererResponseSurfaceRenderTracePayload(
   };
 }
 
-export function logRendererResponseSurfaceRenderTrace(
+function logRendererResponseSurfaceRenderTrace(
   values: RendererResponseSurfaceRenderTraceValues,
 ): void {
   logRendererChatPillTrace(buildRendererResponseSurfaceRenderTracePayload(values));
 }
 
-export function buildRendererOverlayViewModelTracePayload(
+function buildRendererOverlayViewModelTracePayload(
   values: RendererOverlayViewModelTraceValues,
 ): Record<string, unknown> {
   const currentTurnProjection = values.currentTurnProjection;
@@ -757,7 +757,7 @@ export function buildRendererOverlayViewModelTracePayload(
   };
 }
 
-export function buildRendererOverlayTypingTraceEvent(
+function buildRendererOverlayTypingTraceEvent(
   tracePayload: Record<string, unknown>,
 ): RendererOverlayViewModelTraceEvent {
   const awaitingVisible = tracePayload.awaitingVisible === true;
@@ -772,7 +772,7 @@ export function buildRendererOverlayTypingTraceEvent(
   };
 }
 
-export function buildRendererOverlayIntentTraceEvent(
+function buildRendererOverlayIntentTraceEvent(
   tracePayload: Record<string, unknown>,
 ): RendererOverlayViewModelTraceEvent {
   const awaitingVisible = tracePayload.awaitingVisible === true;
@@ -793,7 +793,7 @@ export function buildRendererOverlayIntentTraceEvent(
   };
 }
 
-export function logRendererOverlayViewModelTrace(
+function logRendererOverlayViewModelTrace(
   event: string,
   tracePayload: Record<string, unknown>,
   extra: Record<string, unknown> = {},
@@ -808,13 +808,13 @@ export function logRendererOverlayViewModelTrace(
   );
 }
 
-export function logRendererOverlayViewModelResolvedTrace(
+function logRendererOverlayViewModelResolvedTrace(
   tracePayload: Record<string, unknown>,
 ): void {
   logRendererOverlayViewModelTrace('renderer.overlay_view_model.resolved', tracePayload);
 }
 
-export function logRendererLiveSurfaceTrace(
+function logRendererLiveSurfaceTrace(
   event: string,
   data: Record<string, unknown> = {},
   conversationRef: string | null = null,
@@ -838,3 +838,41 @@ export function logRendererLiveSurfaceTrace(
     // Dev-only trace forwarding should never break renderer presentation.
   }
 }
+
+export const DesktopRendererTraceRuntime = Object.freeze({
+  buildRendererChatPillHitTestTracePayload,
+  buildRendererChatPillLifecycleTracePayload,
+  buildRendererChatPillResetTracePayload,
+  buildRendererChatPillStateTracePayload,
+  buildRendererChatSendLifecycleTracePayload,
+  buildRendererCurrentTurnAppliedTracePayload,
+  buildRendererOverlayIntentTraceEvent,
+  buildRendererOverlayTypingTraceEvent,
+  buildRendererOverlayViewModelTracePayload,
+  buildRendererResponseOverlayHitTestTracePayload,
+  buildRendererResponseOverlayStateTracePayload,
+  buildRendererResponseOverlayTypingRenderedTracePayload,
+  buildRendererResponseSurfaceRenderTracePayload,
+  buildRendererResponseSurfaceSizeLiveTracePayload,
+  buildRendererResponseSurfaceSizeTracePayload,
+  buildRendererResponseSurfaceSnapshotTracePayload,
+  configureRendererTraceWorkspaceSnapshotResolver,
+  logRendererChatPillHitTestTrace,
+  logRendererChatPillLifecycleTrace,
+  logRendererChatPillResetTrace,
+  logRendererChatPillStateTrace,
+  logRendererChatPillTrace,
+  logRendererChatSendLifecycleTrace,
+  logRendererCurrentTurnAppliedTrace,
+  logRendererLiveSurfaceTrace,
+  logRendererOverlayViewModelResolvedTrace,
+  logRendererOverlayViewModelTrace,
+  logRendererResponseOverlayHitTestTrace,
+  logRendererResponseOverlayLifecycleTrace,
+  logRendererResponseOverlayStateTrace,
+  logRendererResponseOverlayTypingRenderedTrace,
+  logRendererResponseSurfaceRenderTrace,
+  logRendererResponseSurfaceSizeTrace,
+  logRendererResponseSurfaceSnapshotTrace,
+  logRendererResponseSurfaceTrace,
+});

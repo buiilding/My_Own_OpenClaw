@@ -18,12 +18,7 @@ import { useTextareaAutoResize } from '../../chat/hooks/useMessageInputUiBinding
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 import { DesktopChatboxLayoutRuntime } from '../../../app/runtime/desktopChatboxLayoutRuntime';
-import {
-  logRendererChatPillHitTestTrace,
-  logRendererChatPillLifecycleTrace,
-  logRendererChatPillResetTrace,
-  logRendererChatPillStateTrace,
-} from '../../../app/runtime/desktopRendererTraceRuntime';
+import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { useChatSurfaceController } from '../../chat/hooks/useChatSurfaceController';
 import {
   AttachmentIcon,
@@ -41,6 +36,12 @@ import { useStopTurnHandler } from '../../chat/hooks/useStopTurnHandler';
 const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
+const {
+  logRendererChatPillHitTestTrace,
+  logRendererChatPillLifecycleTrace,
+  logRendererChatPillResetTrace,
+  logRendererChatPillStateTrace,
+} = DesktopRendererTraceRuntime;
 
 function MinimalChatPill() {
   const closeBumpHeight = DesktopChatboxLayoutRuntime.getChatboxCloseBumpHeight();

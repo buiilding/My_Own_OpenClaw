@@ -8,9 +8,13 @@ import { useConversationRuntimeProjectionStream } from '../../features/chat/hook
 import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
 import { useConversationSessionProjection } from '../../features/chat/session/useConversationSessionProjection';
 import { useChatStore } from '../../features/chat/stores/chatStore';
-import { configureRendererTraceWorkspaceSnapshotResolver } from '../runtime/desktopRendererTraceRuntime';
+import { DesktopRendererTraceRuntime } from '../runtime/desktopRendererTraceRuntime';
 import { useDesktopTranscriptSessionInfo } from '../runtime/desktopTranscriptSessionInfoRuntimeClient';
 import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
+
+const {
+  configureRendererTraceWorkspaceSnapshotResolver,
+} = DesktopRendererTraceRuntime;
 
 function resolveChatTraceWorkspaceSnapshot(conversationRef) {
   const store = useChatStore.getState();

@@ -161,7 +161,7 @@ tool-event ids. It is the renderer-side owner for:
 - preserving typing/thinking state for SDK tool events projected with
   `executionSkipped === true`
 
-`desktopRendererTraceRuntime.ts` owns the SDK current-turn applied live-surface
+`DesktopRendererTraceRuntime` owns the SDK current-turn applied live-surface
 trace projection. `useConversationRuntimeProjectionStream` reports the
 SDK current-turn object plus whether derived side effects were skipped; the
 runtime emits `renderer.current_turn.applied` with overlay mode, guard ref,

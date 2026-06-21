@@ -9304,3 +9304,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   private. Settings tab output, renderer markup, storage, local-runtime
   execution, provider policy, backend behavior, and trust boundaries are
   unchanged; no migration is required.
+- Renderer trace payload builders and trace logging now route through
+  `DesktopRendererTraceRuntime` instead of standalone helper exports. Chat
+  send preparation, ChatProvider, current-turn projection, minimal chat pill,
+  response overlay, response overlay view model, response overlay window sync,
+  and focused trace tests consume the facade object while the runtime keeps
+  debug gating, workspace enrichment, payload field shaping, and live-surface
+  forwarding private. Trace event names, payload fields, renderer markup, IPC
+  forwarding, storage, local-runtime execution, provider policy, backend
+  behavior, and trust boundaries are unchanged; no migration is required.

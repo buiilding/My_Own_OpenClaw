@@ -97,7 +97,7 @@ compaction behind its loop lock.
 
 ### Renderer Trace Ownership
 
-- `desktopRendererTraceRuntime.ts` owns minimal chat pill live-surface trace
+- `DesktopRendererTraceRuntime` owns minimal chat pill live-surface trace
   payload shaping for send reset, mount/unmount lifecycle, and normal hit-test
   intent. `MinimalChatPill.jsx` reports values through
   `logRendererChatPillResetTrace(...)`,

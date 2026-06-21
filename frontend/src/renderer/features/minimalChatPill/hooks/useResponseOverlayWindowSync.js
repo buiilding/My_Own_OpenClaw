@@ -5,10 +5,12 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 import { DesktopResponseOverlayLayoutRuntime } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
-import {
+import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
+
+const {
   logRendererResponseOverlayLifecycleTrace,
   logRendererResponseSurfaceSizeTrace,
-} from '../../../app/runtime/desktopRendererTraceRuntime';
+} = DesktopRendererTraceRuntime;
 
 const TYPING_FRAME_HEIGHT = (
   DesktopResponseOverlayLayoutRuntime.getResponseOverlayAwaitingFrameHeight()
