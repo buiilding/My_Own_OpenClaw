@@ -19174,3 +19174,17 @@ Each completed slice should report:
 - Compatibility: no migration required. MCP enablement, local-runtime
   registration, diagnostics payloads, provider policy, permissions, storage, and
   backend behavior are unchanged.
+
+### 2026-06-21 CLI conversation history fixture neutrality
+
+- Finding: CLI conversation history export coverage still used Windie-flavored
+  arbitrary temporary home roots even though the tests exercise generic history
+  export behavior.
+- Change: switched the test-only home roots to neutral `agent-*` fixtures and
+  added a modular boundary guard while preserving product CLI entrypoints,
+  `.windie/logs`, and WindieOS user-data path contracts.
+- Validation: focused Windie CLI and modular boundary tests; exact retired CLI
+  history temp fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Conversation export behavior, history
+  schema compatibility, provider policy, permissions, storage, and backend
+  behavior are unchanged.

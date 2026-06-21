@@ -7870,3 +7870,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime registration, diagnostics payloads, provider policy,
   permissions, storage, and backend behavior are unchanged; no migration is
   required.
+- CLI conversation history export coverage now uses neutral temporary home roots
+  while preserving product CLI entrypoints, `.windie/logs`, and WindieOS
+  user-data path contracts. Conversation export behavior, history schema
+  compatibility, provider policy, permissions, storage, and backend behavior are
+  unchanged; no migration is required.

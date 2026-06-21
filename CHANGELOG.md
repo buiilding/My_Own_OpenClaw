@@ -82,6 +82,10 @@ All notable changes to WindieOS will be documented in this file.
   control coverage instead of Windie-flavored arbitrary temp directories. No
   migration required.
 
+- tests/cli: use neutral temporary home roots in conversation history export
+  coverage while preserving the product CLI, `.windie/logs`, and user-data path
+  contracts. No migration required.
+
 - tests/main: use a neutral `agent-diagnostics-*` temporary diagnostics DB root
   in app diagnostics store coverage instead of a Windie-flavored arbitrary temp
   directory. No migration required.

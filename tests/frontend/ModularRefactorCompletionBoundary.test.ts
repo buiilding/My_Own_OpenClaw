@@ -533,6 +533,17 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('agent-python-in-env-');
   });
 
+  test('CLI conversation history tests keep temp home fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/WindieCli.test.cjs');
+    const retiredHistoryRoot = ['windie', 'cli-history-'].join('-');
+    const retiredLegacyHistoryRoot = ['windie', 'cli-history-legacy-'].join('-');
+
+    expect(source).not.toContain(retiredHistoryRoot);
+    expect(source).not.toContain(retiredLegacyHistoryRoot);
+    expect(source).toContain('agent-cli-history-');
+    expect(source).toContain('agent-cli-history-legacy-');
+  });
+
   test('conversation replay database integration keeps temp fixtures product-neutral', async () => {
     const source = await read('tests/frontend/ConversationReplayDatabaseIntegration.test.tsx');
     const retiredReplayDbRoot = ['windie', 'replay-db-'].join('-');
