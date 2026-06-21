@@ -576,6 +576,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts'),
       'utf8',
     );
+    const trackingRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts'),
+      'utf8',
+    );
 
     expect(source).toContain('desktopChatStreamEventRuntime');
     expect(source).toContain('isAssistantMessageConversationStreamEvent');
@@ -615,6 +619,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('chatStreamTurnGuard');
     expect(source).not.toContain('chatStreamTerminalHandoffGuard');
     expect(source).not.toContain('chatStreamTracking');
+    expect(runtimeSource).toContain('DesktopChatStreamTrackingRuntime');
     expect(runtimeSource).toContain('isAssistantMessageConversationStreamEvent');
     expect(runtimeSource).toContain('isCompactionCompletedConversationStreamEvent');
     expect(runtimeSource).toContain('isCompactionFailedConversationStreamEvent');
@@ -643,6 +648,8 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain("'turn_completed'");
     expect(runtimeSource).toContain("'usage_updated'");
     expect(runtimeSource).toContain("'tool_bundle_output'");
+    expect(trackingRuntimeSource).toContain('export const DesktopChatStreamTrackingRuntime = Object.freeze');
+    expect(trackingRuntimeSource).not.toContain('export function applyTrackingEvent');
   });
 
   test('chat stream text state is owned by the SDK current-turn projection listener', async () => {

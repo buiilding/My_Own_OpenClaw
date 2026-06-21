@@ -20,9 +20,9 @@ title: "Tracking, Formatting, and Message-Update Utility Reference"
 - `tests/frontend/DesktopChatStreamThinkingRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
 
-## Stream Tracking Reducer Contract (`desktopChatStreamTrackingRuntime.ts`)
+## Stream Tracking Reducer Contract (`DesktopChatStreamTrackingRuntime`)
 
-`applyTrackingEvent(current, eventType, turnRef, now, options)` is a pure reducer used by `useChatStream`.
+`DesktopChatStreamTrackingRuntime.applyTrackingEvent(current, eventType, turnRef, now, options)` is a pure reducer used by `useChatStream`.
 
 Core behavior:
 

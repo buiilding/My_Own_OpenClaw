@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Chat Stream Tracking Facade
+
+- Finding: `desktopChatStreamTrackingRuntime.ts` already owned stream telemetry
+  phase, timestamp, chunk, tool, and terminal-error transitions, but still
+  exported its reducer as a standalone function used by stream event recording
+  and tests.
+- Change: made `applyTrackingEvent(...)` private to the runtime module, exposed
+  it through `DesktopChatStreamTrackingRuntime`, and routed stream event
+  recording plus focused tracking tests through that facade while keeping the
+  public tracking option/type imports unchanged.
+- Validation: focused stream tracking, stream event runtime, chat thinking state,
+  renderer chat boundary, exact standalone reducer export/import scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. Stream phase calculation,
+  timestamp stamping, event counters, chunk/tool counters, terminal error
+  recording, IPC, storage, permissions, credentials, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-21 Renderer Chat Stream Thinking Facade
 
 - Finding: `desktopChatStreamThinkingRuntime.ts` already owned reasoning-text

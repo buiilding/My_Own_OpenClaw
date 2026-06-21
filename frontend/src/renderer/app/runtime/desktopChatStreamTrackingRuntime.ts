@@ -59,7 +59,7 @@ function createTrackingForNewTurn(
   };
 }
 
-export function applyTrackingEvent(
+function applyTrackingEvent(
   current: StreamTracking,
   eventType: StreamTrackingEventType,
   turnRef: string | null | undefined,
@@ -123,3 +123,7 @@ export function applyTrackingEvent(
 
   return next;
 }
+
+export const DesktopChatStreamTrackingRuntime = Object.freeze({
+  applyTrackingEvent,
+});

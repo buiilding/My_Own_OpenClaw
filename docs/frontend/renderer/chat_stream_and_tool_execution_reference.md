@@ -91,7 +91,7 @@ Workspace identity state:
 - timing markers: `startedAt`, `firstChunkAt`, `completedAt`, `lastEventAt`
 - counters: events/chunks/tool calls/tool outputs
 - last error text
-- transition math lives in `desktopChatStreamTrackingRuntime.applyTrackingEvent(...)`
+- transition math lives in `DesktopChatStreamTrackingRuntime.applyTrackingEvent(...)`
 
 ## Model Capability Resolution and Thinking Fallback Policy
 

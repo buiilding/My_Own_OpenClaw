@@ -116,7 +116,7 @@ This provides explicit observability around settings gate stalls without blockin
 - counts: `eventCount`, `chunkCount`, `toolCallCount`, `toolOutputCount`
 - diagnostics: `lastEventType`, `lastChunkSize`, `lastError`
 
-`applyTrackingEvent(...)` in `desktopChatStreamTrackingRuntime.ts` rules:
+`DesktopChatStreamTrackingRuntime.applyTrackingEvent(...)` rules:
 
 - `resetForTurn` seeds fresh state for local user send
 - streaming response increments chunk counters and first-chunk timestamp

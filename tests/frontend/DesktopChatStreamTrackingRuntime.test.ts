@@ -2,10 +2,10 @@
  * Covers desktop chat stream tracking runtime. behavior in the frontend test suite.
  */
 
-import {
-  applyTrackingEvent,
-} from '../../frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime';
+import { DesktopChatStreamTrackingRuntime } from '../../frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime';
 import type { StreamTracking } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+
+const { applyTrackingEvent } = DesktopChatStreamTrackingRuntime;
 
 function buildTracking(overrides: Partial<StreamTracking> = {}): StreamTracking {
   const seed: StreamTracking = {

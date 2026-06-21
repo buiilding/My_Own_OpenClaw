@@ -158,7 +158,8 @@ Extra error gate:
 - `eventCount`, `chunkCount`, `toolCallCount`, `toolOutputCount`
 - `lastEventType`, `lastChunkSize`, `lastError`
 
-Transition reducer is centralized in `applyTrackingEvent(...)`. SDK
+Transition reducer is centralized in
+`DesktopChatStreamTrackingRuntime.applyTrackingEvent(...)`. SDK
 current-turn projection deltas are converted into those tracking events by
 `desktopCurrentTurnProjectionEffectsRuntime.ts`; `useConversationRuntimeProjectionStream`
 owns subscription, cursor storage, and stale projection acceptance, while

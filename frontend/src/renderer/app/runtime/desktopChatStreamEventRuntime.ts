@@ -3,7 +3,7 @@
  */
 
 import {
-  applyTrackingEvent,
+  DesktopChatStreamTrackingRuntime,
   type StreamTrackingEventType,
   type StreamTrackingOptions,
 } from './desktopChatStreamTrackingRuntime';
@@ -19,6 +19,9 @@ import {
 const {
   isStaleTurnForActiveStream,
 } = DesktopChatStreamTurnGuardRuntime;
+const {
+  applyTrackingEvent,
+} = DesktopChatStreamTrackingRuntime;
 
 type ShouldIgnoreForStaleTurnDeps = {
   getWorkspaceState: (conversationRef?: string | null) => StreamGuardWorkspace;

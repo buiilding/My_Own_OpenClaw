@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: expose chat-stream telemetry phase, timestamp, and counter
+  transitions through `DesktopChatStreamTrackingRuntime` instead of a
+  standalone reducer export, keeping stream tracking rules behind the renderer
+  app-runtime facade. No migration required.
 - frontend/renderer: expose chat-stream thinking placeholders, compaction
   labels, and reasoning text accumulation through
   `DesktopChatStreamThinkingRuntime` instead of standalone helper exports,
