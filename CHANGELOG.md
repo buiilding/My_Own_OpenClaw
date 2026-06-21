@@ -126,6 +126,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: keep MCP registry normalization and presentation builders
   private to the MCP runtime client while preserving public MCP runtime client
   methods for dashboard settings surfaces. No migration required.
+- frontend/renderer: keep extension runtime normalization, presentation, and
+  tool-toggle helpers private to the extension runtime client while preserving
+  public dashboard settings client methods. No migration required.
 - docs/frontend: route active frontend architecture ownership labels through
   local-runtime Python and hosted-backend wording instead of sidecar/backend
   shorthand outside concrete repository paths. No migration required.

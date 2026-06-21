@@ -26,22 +26,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 import * as DesktopExtensionRuntimeModule from '../../frontend/src/renderer/app/runtime/desktopExtensionRuntimeClient';
 import {
   DesktopExtensionRuntimeClient,
-  getEmptyAgentExtensionRuntime,
-  getEmptyAgentRemoteToolCatalog,
-  getEmptyAgentToolManifestStatus,
-  getAgentExtensionRuntimeErrorPresentation,
-  getAgentLocalToolManifestPresentation,
-  getAgentMcpRuntimeMetadataPresentation,
-  getAgentPluginRuntimePresentation,
-  getAgentLocalToolToggleConfigPatch,
-  getAgentRemoteToolPresentation,
-  getAgentRemoteToolToggleConfigPatch,
-  getAgentSkillRuntimePresentation,
-  isAgentLocalToolEnabled,
-  isAgentRemoteToolEnabled,
-  normalizeAgentExtensionRuntime,
-  normalizeAgentRemoteToolCatalog,
-  normalizeAgentToolManifestStatus,
 } from '../../frontend/src/renderer/app/runtime/desktopExtensionRuntimeClient';
 
 describe('DesktopExtensionRuntimeClient', () => {
@@ -55,32 +39,32 @@ describe('DesktopExtensionRuntimeClient', () => {
     expect(DesktopExtensionRuntimeModule).not.toHaveProperty('resolveAgentCapabilityUpdate');
   });
 
-  test('normalizes extension runtime metadata at the runtime boundary', () => {
-    expect(getEmptyAgentExtensionRuntime()).toEqual({
-      plugins: [],
-      skills: [],
-      mcps: [],
-      errors: [],
-    });
+  test('normalizes extension runtime metadata at the runtime boundary', async () => {
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('normalizeAgentExtensionRuntime');
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getEmptyAgentExtensionRuntime');
     expect(DesktopExtensionRuntimeClient.getEmptyExtensionRuntime()).toEqual({
       plugins: [],
       skills: [],
       mcps: [],
       errors: [],
     });
-    expect(normalizeAgentExtensionRuntime({
-      plugins: [{ id: 'notes' }],
-      skills: [{ id: 'review' }],
-      mcps: [{ id: 'memory' }],
-      errors: [{ id: 'broken' }],
-    })).toEqual({
+    mockInvoke
+      .mockResolvedValueOnce({
+        plugins: [{ id: 'notes' }],
+        skills: [{ id: 'review' }],
+        mcps: [{ id: 'memory' }],
+        errors: [{ id: 'broken' }],
+      })
+      .mockResolvedValueOnce(null);
+
+    await expect(DesktopExtensionRuntimeClient.listAgentExtensions()).resolves.toEqual({
       plugins: [{ id: 'notes' }],
       skills: [{ id: 'review' }],
       mcps: [{ id: 'memory' }],
       errors: [{ id: 'broken' }],
     });
 
-    expect(normalizeAgentExtensionRuntime(null)).toEqual({
+    await expect(DesktopExtensionRuntimeClient.listAgentExtensions()).resolves.toEqual({
       plugins: [],
       skills: [],
       mcps: [],
@@ -89,13 +73,10 @@ describe('DesktopExtensionRuntimeClient', () => {
   });
 
   test('normalizes capability payload helpers at the runtime boundary', () => {
-    expect(getEmptyAgentToolManifestStatus()).toEqual({
-      accepted: [],
-      rejected: [],
-    });
-    expect(getEmptyAgentRemoteToolCatalog()).toEqual({
-      remote_tools: [],
-    });
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('normalizeAgentToolManifestStatus');
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('normalizeAgentRemoteToolCatalog');
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getEmptyAgentToolManifestStatus');
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getEmptyAgentRemoteToolCatalog');
     expect(DesktopExtensionRuntimeClient.getEmptyToolManifestStatus()).toEqual({
       accepted: [],
       rejected: [],
@@ -103,19 +84,6 @@ describe('DesktopExtensionRuntimeClient', () => {
     expect(DesktopExtensionRuntimeClient.getEmptyRemoteToolCatalog()).toEqual({
       remote_tools: [],
     });
-    expect(normalizeAgentToolManifestStatus({
-      accepted: [{ name: 'read_file' }],
-      rejected: 'bad',
-    })).toEqual({
-      accepted: [{ name: 'read_file' }],
-      rejected: [],
-    });
-    expect(normalizeAgentRemoteToolCatalog({
-      remote_tools: [{ name: 'web_search' }],
-    })).toEqual({
-      remote_tools: [{ name: 'web_search' }],
-    });
-
   });
 
   test('list and capability subscriptions return normalized payloads', async () => {
@@ -214,7 +182,8 @@ describe('DesktopExtensionRuntimeClient', () => {
   });
 
   test('builds remote tool availability presentation from the runtime catalog', () => {
-    const catalog = normalizeAgentRemoteToolCatalog({
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentRemoteToolPresentation');
+    const catalog = {
       remote_tools: [
         {
           name: 'web_search',
@@ -227,9 +196,9 @@ describe('DesktopExtensionRuntimeClient', () => {
           reason_unavailable: 'ignored',
         },
       ],
-    });
+    };
 
-    expect(getAgentRemoteToolPresentation(catalog, 'web_search')).toEqual({
+    expect(DesktopExtensionRuntimeClient.getRemoteToolPresentation(catalog, 'web_search')).toEqual({
       name: 'web_search',
       available: false,
       unavailableReason: 'Missing API key',
@@ -239,7 +208,7 @@ describe('DesktopExtensionRuntimeClient', () => {
       available: true,
       unavailableReason: '',
     });
-    expect(getAgentRemoteToolPresentation(catalog, 'unknown_tool')).toEqual({
+    expect(DesktopExtensionRuntimeClient.getRemoteToolPresentation(catalog, 'unknown_tool')).toEqual({
       name: 'unknown_tool',
       available: true,
       unavailableReason: '',
@@ -247,7 +216,8 @@ describe('DesktopExtensionRuntimeClient', () => {
   });
 
   test('builds extension runtime error presentation from raw error entries', () => {
-    expect(getAgentExtensionRuntimeErrorPresentation({
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentExtensionRuntimeErrorPresentation');
+    expect(DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation({
       kind: 'plugin',
       id: 'broken-plugin',
       reason: 'manifest failed',
@@ -262,7 +232,8 @@ describe('DesktopExtensionRuntimeClient', () => {
   });
 
   test('builds local tool manifest presentation from accepted and rejected entries', () => {
-    const manifestStatus = normalizeAgentToolManifestStatus({
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentLocalToolManifestPresentation');
+    const manifestStatus = {
       accepted: [{
         name: 'read_file',
         execution_target: 'local_runtime',
@@ -275,9 +246,9 @@ describe('DesktopExtensionRuntimeClient', () => {
       }, {
         name: 'missing_reason',
       }],
-    });
+    };
 
-    expect(getAgentLocalToolManifestPresentation(manifestStatus, 'read_file')).toEqual({
+    expect(DesktopExtensionRuntimeClient.getLocalToolManifestPresentation(manifestStatus, 'read_file')).toEqual({
       acceptedTool: {
         name: 'read_file',
         execution_target: 'local_runtime',
@@ -295,12 +266,12 @@ describe('DesktopExtensionRuntimeClient', () => {
       rejectedReason: 'bad schema',
       status: 'rejected',
     });
-    expect(getAgentLocalToolManifestPresentation(manifestStatus, 'missing_reason')).toEqual({
+    expect(DesktopExtensionRuntimeClient.getLocalToolManifestPresentation(manifestStatus, 'missing_reason')).toEqual({
       acceptedTool: null,
       rejectedReason: 'manifest validation failed',
       status: 'rejected',
     });
-    expect(getAgentLocalToolManifestPresentation(manifestStatus, 'unknown_tool')).toEqual({
+    expect(DesktopExtensionRuntimeClient.getLocalToolManifestPresentation(manifestStatus, 'unknown_tool')).toEqual({
       acceptedTool: null,
       rejectedReason: '',
       status: 'pending',
@@ -313,12 +284,16 @@ describe('DesktopExtensionRuntimeClient', () => {
       agent_disabled_remote_tools: ['web_search'],
     };
 
-    expect(isAgentLocalToolEnabled(config, 'browser')).toBe(false);
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('isAgentLocalToolEnabled');
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('isAgentRemoteToolEnabled');
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentLocalToolToggleConfigPatch');
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentRemoteToolToggleConfigPatch');
+    expect(DesktopExtensionRuntimeClient.isLocalToolEnabled(config, 'browser')).toBe(false);
     expect(DesktopExtensionRuntimeClient.isLocalToolEnabled(config, 'read_file')).toBe(true);
-    expect(isAgentRemoteToolEnabled(config, 'web_search')).toBe(false);
+    expect(DesktopExtensionRuntimeClient.isRemoteToolEnabled(config, 'web_search')).toBe(false);
     expect(DesktopExtensionRuntimeClient.isRemoteToolEnabled(config, 'query_plan')).toBe(true);
 
-    expect(getAgentLocalToolToggleConfigPatch(config, 'browser', true)).toEqual({
+    expect(DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch(config, 'browser', true)).toEqual({
       agent_disabled_local_tools: ['extra-local'],
     });
     expect(DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch(
@@ -328,7 +303,7 @@ describe('DesktopExtensionRuntimeClient', () => {
     )).toEqual({
       agent_disabled_local_tools: ['browser', 'extra-local', 'read_file'],
     });
-    expect(getAgentRemoteToolToggleConfigPatch(config, 'web_search', true)).toEqual({
+    expect(DesktopExtensionRuntimeClient.getRemoteToolToggleConfigPatch(config, 'web_search', true)).toEqual({
       agent_disabled_remote_tools: [],
     });
     expect(DesktopExtensionRuntimeClient.getRemoteToolToggleConfigPatch(
@@ -338,13 +313,14 @@ describe('DesktopExtensionRuntimeClient', () => {
     )).toEqual({
       agent_disabled_remote_tools: ['web_search', 'query_plan'],
     });
-    expect(getAgentLocalToolToggleConfigPatch(null, 'browser', false)).toEqual({
+    expect(DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch(null, 'browser', false)).toEqual({
       agent_disabled_local_tools: ['browser'],
     });
   });
 
   test('builds plugin runtime presentation from raw plugin metadata', () => {
-    expect(getAgentPluginRuntimePresentation({
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentPluginRuntimePresentation');
+    expect(DesktopExtensionRuntimeClient.getPluginRuntimePresentation({
       id: 'notes',
       name: 'Notes',
       description: 'Adds note workflows.',
@@ -397,7 +373,9 @@ describe('DesktopExtensionRuntimeClient', () => {
   });
 
   test('builds extension skill and MCP metadata debug presentations', () => {
-    expect(getAgentSkillRuntimePresentation([{
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentSkillRuntimePresentation');
+    expect(DesktopExtensionRuntimeModule).not.toHaveProperty('getAgentMcpRuntimeMetadataPresentation');
+    expect(DesktopExtensionRuntimeClient.getSkillRuntimePresentation([{
       id: 'extension:skill:review',
       type: 'extension_skill',
       priority: 75,
@@ -427,7 +405,7 @@ describe('DesktopExtensionRuntimeClient', () => {
       summary: '1 servers',
     });
 
-    expect(getAgentMcpRuntimeMetadataPresentation(null)).toEqual({
+    expect(DesktopExtensionRuntimeClient.getMcpRuntimeMetadataPresentation(null)).toEqual({
       count: 0,
       debugSpec: [],
       summary: '0 servers',

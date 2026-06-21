@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Extension Runtime Helper Privacy
+
+- Finding: `DesktopExtensionRuntimeClient` already exposed public methods for
+  extension metadata loading, capability subscriptions, tool availability,
+  presentation, and config patches, but the raw normalizers and presentation
+  helpers were also exported directly for tests.
+- Change: made extension runtime normalization, empty-state helpers, capability
+  payload normalization, presentation builders, tool enabled predicates, and
+  tool-toggle patch builders private to the extension runtime client and moved
+  focused tests through the client methods used by dashboard agent settings.
+- Validation: focused extension runtime client and renderer settings boundary
+  tests, exact raw-helper export scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. Agent extension IPC commands,
+  capability event payload handling, dashboard agent settings presentation,
+  tool enable/disable config patches, extension manifests, permissions,
+  credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Renderer MCP Runtime Helper Privacy
 
 - Finding: `DesktopMcpRuntimeClient` already exposed public methods for empty

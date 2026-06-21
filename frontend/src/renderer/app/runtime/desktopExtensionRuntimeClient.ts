@@ -128,7 +128,7 @@ function toggleDisabledToolValue(
   return source.filter((item) => item !== name);
 }
 
-export function normalizeAgentExtensionRuntime(payload: unknown): AgentExtensionRuntimeSnapshot {
+function normalizeAgentExtensionRuntime(payload: unknown): AgentExtensionRuntimeSnapshot {
   const source = recordOrEmpty(payload);
   return {
     plugins: Array.isArray(source.plugins) ? source.plugins : EMPTY_AGENT_EXTENSION_RUNTIME.plugins,
@@ -138,19 +138,19 @@ export function normalizeAgentExtensionRuntime(payload: unknown): AgentExtension
   };
 }
 
-export function getEmptyAgentExtensionRuntime(): AgentExtensionRuntimeSnapshot {
+function getEmptyAgentExtensionRuntime(): AgentExtensionRuntimeSnapshot {
   return EMPTY_AGENT_EXTENSION_RUNTIME;
 }
 
-export function getEmptyAgentToolManifestStatus(): AgentToolManifestStatus {
+function getEmptyAgentToolManifestStatus(): AgentToolManifestStatus {
   return EMPTY_AGENT_TOOL_MANIFEST_STATUS;
 }
 
-export function getEmptyAgentRemoteToolCatalog(): AgentRemoteToolCatalog {
+function getEmptyAgentRemoteToolCatalog(): AgentRemoteToolCatalog {
   return EMPTY_AGENT_REMOTE_TOOL_CATALOG;
 }
 
-export function normalizeAgentToolManifestStatus(payload: unknown): AgentToolManifestStatus {
+function normalizeAgentToolManifestStatus(payload: unknown): AgentToolManifestStatus {
   const source = recordOrEmpty(payload);
   return {
     accepted: Array.isArray(source.accepted) ? source.accepted : EMPTY_AGENT_TOOL_MANIFEST_STATUS.accepted,
@@ -158,7 +158,7 @@ export function normalizeAgentToolManifestStatus(payload: unknown): AgentToolMan
   };
 }
 
-export function normalizeAgentRemoteToolCatalog(payload: unknown): AgentRemoteToolCatalog {
+function normalizeAgentRemoteToolCatalog(payload: unknown): AgentRemoteToolCatalog {
   const source = recordOrEmpty(payload);
   return {
     remote_tools: Array.isArray(source.remote_tools)
@@ -201,7 +201,7 @@ function resolveAgentCapabilityUpdate(event: unknown): {
   };
 }
 
-export function getAgentRemoteToolPresentation(
+function getAgentRemoteToolPresentation(
   catalog: AgentRemoteToolCatalog,
   toolName: unknown,
 ): AgentRemoteToolPresentation {
@@ -219,7 +219,7 @@ export function getAgentRemoteToolPresentation(
   };
 }
 
-export function getAgentExtensionRuntimeErrorPresentation(
+function getAgentExtensionRuntimeErrorPresentation(
   error: unknown,
 ): AgentExtensionRuntimeErrorPresentation {
   const source = recordOrEmpty(error);
@@ -232,7 +232,7 @@ export function getAgentExtensionRuntimeErrorPresentation(
   };
 }
 
-export function getAgentLocalToolManifestPresentation(
+function getAgentLocalToolManifestPresentation(
   manifestStatus: unknown,
   toolName: unknown,
 ): AgentLocalToolManifestPresentation {
@@ -266,7 +266,7 @@ export function getAgentLocalToolManifestPresentation(
   };
 }
 
-export function getAgentPluginRuntimePresentation(
+function getAgentPluginRuntimePresentation(
   plugin: unknown,
 ): AgentPluginRuntimePresentation {
   const source = recordOrEmpty(plugin);
@@ -307,7 +307,7 @@ export function getAgentPluginRuntimePresentation(
   };
 }
 
-export function getAgentSkillRuntimePresentation(
+function getAgentSkillRuntimePresentation(
   skills: unknown,
 ): AgentExtensionDebugListPresentation {
   const skillRecords = recordsOrEmpty(skills);
@@ -318,7 +318,7 @@ export function getAgentSkillRuntimePresentation(
   };
 }
 
-export function getAgentMcpRuntimeMetadataPresentation(
+function getAgentMcpRuntimeMetadataPresentation(
   mcps: unknown,
 ): AgentExtensionDebugListPresentation {
   const mcpRecords = recordsOrEmpty(mcps);
@@ -334,17 +334,17 @@ export function getAgentMcpRuntimeMetadataPresentation(
   };
 }
 
-export function isAgentLocalToolEnabled(config: unknown, toolName: unknown): boolean {
+function isAgentLocalToolEnabled(config: unknown, toolName: unknown): boolean {
   return !arrayOrEmpty(recordOrEmpty(config).agent_disabled_local_tools)
     .includes(stringOrEmpty(toolName));
 }
 
-export function isAgentRemoteToolEnabled(config: unknown, toolName: unknown): boolean {
+function isAgentRemoteToolEnabled(config: unknown, toolName: unknown): boolean {
   return !arrayOrEmpty(recordOrEmpty(config).agent_disabled_remote_tools)
     .includes(stringOrEmpty(toolName));
 }
 
-export function getAgentLocalToolToggleConfigPatch(
+function getAgentLocalToolToggleConfigPatch(
   config: unknown,
   toolName: unknown,
   enabled: boolean,
@@ -358,7 +358,7 @@ export function getAgentLocalToolToggleConfigPatch(
   };
 }
 
-export function getAgentRemoteToolToggleConfigPatch(
+function getAgentRemoteToolToggleConfigPatch(
   config: unknown,
   toolName: unknown,
   enabled: boolean,
