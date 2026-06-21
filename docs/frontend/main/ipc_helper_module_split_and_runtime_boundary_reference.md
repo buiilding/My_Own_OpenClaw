@@ -853,6 +853,8 @@ Owns Electron-main Agent SDK backend close cleanup:
   interrupted SDK-shaped query event
 - builds the interrupted event through `ipc_query_events.cjs` and routes it back
   through the backend-event relay callback
+- keeps the lower-level backend-close cleanup handler private to the runtime
+  helper
 - resets backend session state, clears replay state, applies idle overlay
   fallback for non-interrupted closes, and broadcasts disconnected status
 

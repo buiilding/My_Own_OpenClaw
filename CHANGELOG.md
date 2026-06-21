@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep the lower-level Agent SDK backend-close cleanup handler
+  private to `ipc_agent_backend_close_runtime.cjs` and exercise close cleanup
+  behavior through `createAgentBackendCloseRuntime(...)`, preserving the
+  Electron main backend-close composition boundary. No migration required.
 - frontend/main: keep the lower-level Agent SDK backend-event relay handler
   private to `ipc_agent_backend_event_runtime.cjs` and exercise backend-event
   relay behavior through `createAgentBackendEventRuntime(...)`, preserving the

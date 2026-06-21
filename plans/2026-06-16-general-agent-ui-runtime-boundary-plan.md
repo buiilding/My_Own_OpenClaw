@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Main Agent Backend Close Runtime Handler Privacy
+
+- Finding: `ipc_agent_backend_close_runtime.cjs` exposed
+  `createAgentBackendCloseRuntime(...)` for `ipc.cjs` composition, but still
+  publicly exported the lower-level `handleAgentBackendCloseEvent(...)`
+  helper even though production already routes backend-close cleanup through
+  the runtime facade.
+- Change: kept the lower-level backend-close cleanup handler private to
+  `ipc_agent_backend_close_runtime.cjs`, updated focused and broad boundary
+  tests to exercise close behavior through `createAgentBackendCloseRuntime(...)`,
+  and documented the runtime helper as the public composition boundary.
+- Validation: focused backend-close runtime and main SDK boundary tests plus
+  targeted main IPC lint, docs listing, stale export-line scans, and diff
+  checks before commit.
+- Compatibility/security: no migration required. Backend disconnect handling,
+  interrupted-query synthesis, overlay idle fallback, backend session reset,
+  replay clearing, connection-status broadcast, IPC payloads, credentials,
+  provider policy, permissions, storage, backend behavior, and local-runtime
+  execution are unchanged.
+
 ### 2026-06-21 Main Agent Backend Event Runtime Handler Privacy
 
 - Finding: `ipc_agent_backend_event_runtime.cjs` exposed

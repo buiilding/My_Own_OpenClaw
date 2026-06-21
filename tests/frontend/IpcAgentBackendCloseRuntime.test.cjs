@@ -5,7 +5,6 @@ const path = require('path');
 
 const {
   createAgentBackendCloseRuntime,
-  handleAgentBackendCloseEvent,
   shouldInterruptActiveQueryOnClose,
 } = require('../../frontend/src/main/ipc/ipc_agent_backend_close_runtime.cjs');
 
@@ -33,6 +32,11 @@ function createCloseDeps(overrides = {}) {
 }
 
 describe('ipc_agent_backend_close_runtime', () => {
+  function handleBackendClose(event, deps) {
+    const runtime = createAgentBackendCloseRuntime(deps);
+    return runtime.handle(event);
+  }
+
   test('classifies only active query phases as interrupted backend closes', () => {
     expect(shouldInterruptActiveQueryOnClose({
       activeQueryContext: { queryMessageId: 'turn-1' },
@@ -70,7 +74,7 @@ describe('ipc_agent_backend_close_runtime', () => {
       })),
     });
 
-    const result = handleAgentBackendCloseEvent({ shouldReconnect: true }, deps);
+    const result = handleBackendClose({ shouldReconnect: true }, deps);
 
     expect(result).toEqual({ interrupted: true });
     expect(deps.setConnected).toHaveBeenCalledWith(false);
@@ -107,7 +111,7 @@ describe('ipc_agent_backend_close_runtime', () => {
       })),
     });
 
-    const result = handleAgentBackendCloseEvent({ closeReason: 'idle' }, deps);
+    const result = handleBackendClose({ closeReason: 'idle' }, deps);
 
     expect(result).toEqual({ interrupted: false });
     expect(deps.buildQueryInterrupted).not.toHaveBeenCalled();
@@ -154,6 +158,8 @@ describe('ipc_agent_backend_close_runtime', () => {
     expect(mainSource).not.toContain('Active query interrupted by backend disconnect');
     expect(mainSource).not.toContain("activePhase === 'streaming'");
     expect(helperSource).toContain('function createAgentBackendCloseRuntime');
+    const backendCloseRuntimeModule = require('../../frontend/src/main/ipc/ipc_agent_backend_close_runtime.cjs');
+    expect(backendCloseRuntimeModule.handleAgentBackendCloseEvent).toBeUndefined();
     expect(helperSource).toContain('Active query interrupted by backend disconnect');
     expect(helperSource).toContain("'streaming'");
   });
