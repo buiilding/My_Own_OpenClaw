@@ -12,11 +12,11 @@ describe('desktopDevUiRuntime', () => {
 
   test('returns false outside a browser window', async () => {
     delete global.window;
-    const { isDevUiEnabled } = await import(
+    const { DesktopDevUiRuntime } = await import(
       '../../frontend/src/renderer/app/runtime/desktopDevUiRuntime'
     );
 
-    expect(isDevUiEnabled()).toBe(false);
+    expect(DesktopDevUiRuntime.isDevUiEnabled()).toBe(false);
   });
 
   test('reads dev_ui query flag once per module instance', async () => {
@@ -25,12 +25,12 @@ describe('desktopDevUiRuntime', () => {
         search: '?dev_ui=1',
       },
     };
-    const { isDevUiEnabled } = await import(
+    const { DesktopDevUiRuntime } = await import(
       '../../frontend/src/renderer/app/runtime/desktopDevUiRuntime'
     );
 
-    expect(isDevUiEnabled()).toBe(true);
+    expect(DesktopDevUiRuntime.isDevUiEnabled()).toBe(true);
     global.window.location.search = '?dev_ui=0';
-    expect(isDevUiEnabled()).toBe(true);
+    expect(DesktopDevUiRuntime.isDevUiEnabled()).toBe(true);
   });
 });

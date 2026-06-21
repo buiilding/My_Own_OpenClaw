@@ -78,7 +78,7 @@ frontend/src/renderer/
 │   │   ├── desktopConversationReplayRuntime.js # Renderer replay context tool-message pairing facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
 │   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
-│   │   ├── desktopDevUiRuntime.js # Renderer dev-ui query flag helper shared by chat and minimal surfaces
+│   │   ├── desktopDevUiRuntime.js # Renderer dev-ui query flag facade shared by chat and minimal surfaces
 │   │   ├── desktopDashboardNavigationRuntime.js # Renderer dashboard sidebar navigation descriptor facade
 │   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
 │   │   ├── desktopMarkdownMessageRuntime.js # Renderer markdown message render-model facade

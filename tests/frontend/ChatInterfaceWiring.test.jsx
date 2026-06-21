@@ -142,7 +142,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/audio/PlayerService', () =
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopDevUiRuntime', () => ({
-  isDevUiEnabled: () => mockIsDevUiEnabled(),
+  DesktopDevUiRuntime: {
+    isDevUiEnabled: () => mockIsDevUiEnabled(),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => ({

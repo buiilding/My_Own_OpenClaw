@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Renderer Dev UI Runtime Facade
+
+- Finding: `desktopDevUiRuntime.js` already owned the renderer-only `dev_ui=1`
+  query flag cache for dev controls/source tags, but still exported
+  `isDevUiEnabled()` as a standalone helper.
+- Change: made the helper private to the runtime module, exposed it through
+  `DesktopDevUiRuntime`, and routed chat, minimal pill, message presentation
+  callers, mocks, focused tests, boundary coverage, and dev-UI docs through
+  that facade.
+- Validation: focused dev-UI runtime, message presentation, chat interface,
+  overlay, app-runtime boundary, exact standalone dev-UI helper export/import
+  scan, docs list, and diff hygiene.
+- Compatibility/security: no migration required. The `dev_ui=1` query flag,
+  module-local memoization, production default-off behavior, chat controls,
+  source/tag visibility, storage, credentials, provider policy, hosted backend
+  URLs, and local execution trust boundaries are unchanged.
+
 ### 2026-06-21 Renderer Permission Onboarding Storage Facade
 
 - Finding: `desktopPermissionOnboardingStorageRuntime.js` already owned the

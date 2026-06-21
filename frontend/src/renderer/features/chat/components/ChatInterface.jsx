@@ -27,7 +27,7 @@ import {
   DesktopChatModelOptionsRuntime,
 } from '../../../app/runtime/desktopChatModelOptionsRuntime';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
-import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
+import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 import { useChatSurfaceController } from '../hooks/useChatSurfaceController';
 import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartupRuntimeClient';
@@ -54,6 +54,7 @@ const {
   hasCurrentTurnLiveProgressMessages,
 } = DesktopThreadPresentationRuntime;
 const { buildThreadFindState } = DesktopThreadFindRuntime;
+const { isDevUiEnabled } = DesktopDevUiRuntime;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (

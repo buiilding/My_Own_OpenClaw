@@ -91,7 +91,8 @@ Runtime behavior:
 
 ## Source Badge and Dev-UI Gate
 
-`MessageSourceBadge` renders only when `isDevUiEnabled()` is true.
+`MessageSourceBadge` renders only when
+`DesktopDevUiRuntime.isDevUiEnabled()` is true.
 
 Source badge presentation is resolved by
 `DesktopMessageSourceTagRuntime.resolveMessageSourceBadgePresentation(message)`.
@@ -128,7 +129,7 @@ Per-message token telemetry tag:
     - image estimate: `85` tokens per screenshot attachment
   - tool rows (`tool-call`, `tool-output`): `tokens~ <n>` from model-facing payload text.
 
-`isDevUiEnabled()` contract:
+`DesktopDevUiRuntime.isDevUiEnabled()` contract:
 
 - enabled only when URL query contains `dev_ui=1`
 - result memoized in module-local cache for subsequent checks in same page lifecycle

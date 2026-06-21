@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
+import { DesktopDevUiRuntime } from '../../../../app/runtime/desktopDevUiRuntime';
 import { DesktopMessageSourceTagRuntime } from '../../../../app/runtime/desktopMessageSourceTagRuntime';
 import '../../../../styles/ThinkingDisplay.css';
 
@@ -60,7 +60,7 @@ function ThinkingDisplay({ status, sourceEventType = null }) {
     return null;
   }
 
-  const sourceBadgePresentation = isDevUiEnabled()
+  const sourceBadgePresentation = DesktopDevUiRuntime.isDevUiEnabled()
     ? DesktopMessageSourceTagRuntime.resolveThinkingSourceBadgePresentation(sourceEventType)
     : null;
 

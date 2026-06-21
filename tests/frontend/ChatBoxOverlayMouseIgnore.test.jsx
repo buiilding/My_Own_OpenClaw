@@ -192,7 +192,9 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopDevUiRuntime', () => ({
-  isDevUiEnabled: () => mockIsDevUiEnabled(),
+  DesktopDevUiRuntime: {
+    isDevUiEnabled: () => mockIsDevUiEnabled(),
+  },
 }));
 
 describe('ChatBox overlay mouse ignore', () => {

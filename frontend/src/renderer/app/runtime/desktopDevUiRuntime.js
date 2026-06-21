@@ -4,7 +4,7 @@
 
 let cachedDevUiEnabled = null;
 
-export function isDevUiEnabled() {
+function isDevUiEnabled() {
   if (typeof window === 'undefined') {
     return false;
   }
@@ -15,3 +15,7 @@ export function isDevUiEnabled() {
 
   return cachedDevUiEnabled;
 }
+
+export const DesktopDevUiRuntime = Object.freeze({
+  isDevUiEnabled,
+});

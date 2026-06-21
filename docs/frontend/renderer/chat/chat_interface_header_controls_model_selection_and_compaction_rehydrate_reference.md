@@ -116,7 +116,8 @@ Window controls:
 Utility controls:
 
 - speech toggle flips `speech_mode_enabled` in config
-- dev-only compaction button appears when `isDevUiEnabled()` is true
+- dev-only compaction button appears when
+  `DesktopDevUiRuntime.isDevUiEnabled()` is true
 
 ## Manual Compaction Pre-Rehydrate Flow
 

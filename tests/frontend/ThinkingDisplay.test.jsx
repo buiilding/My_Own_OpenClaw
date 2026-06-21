@@ -6,16 +6,18 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import ThinkingDisplay from '../../frontend/src/renderer/features/chat/components/message/ThinkingDisplay';
-import { isDevUiEnabled } from '../../frontend/src/renderer/app/runtime/desktopDevUiRuntime';
+import { DesktopDevUiRuntime } from '../../frontend/src/renderer/app/runtime/desktopDevUiRuntime';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopDevUiRuntime', () => ({
-  isDevUiEnabled: jest.fn(),
+  DesktopDevUiRuntime: {
+    isDevUiEnabled: jest.fn(),
+  },
 }));
 
 describe('ThinkingDisplay', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    isDevUiEnabled.mockReturnValue(false);
+    DesktopDevUiRuntime.isDevUiEnabled.mockReturnValue(false);
   });
 
   test('renders nothing for empty status', () => {
@@ -58,7 +60,7 @@ describe('ThinkingDisplay', () => {
   });
 
   test('renders runtime-provided thinking source badge when dev ui is enabled', async () => {
-    isDevUiEnabled.mockReturnValue(true);
+    DesktopDevUiRuntime.isDevUiEnabled.mockReturnValue(true);
 
     render(<ThinkingDisplay status="step 1" sourceEventType="assistant_delta" />);
 

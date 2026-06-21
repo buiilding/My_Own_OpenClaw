@@ -15,8 +15,9 @@ import MessageItem from './message/MessageItem';
 import { DesktopMessageListRuntime } from '../../../app/runtime/desktopMessageListRuntime';
 import { DesktopMessageTransparencyRuntime } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
-import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
+import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 
+const { isDevUiEnabled } = DesktopDevUiRuntime;
 
 function MessageList({
   messages,

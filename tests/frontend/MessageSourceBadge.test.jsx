@@ -5,10 +5,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import MessageSourceBadge from '../../frontend/src/renderer/features/chat/components/message/MessageSourceBadge';
-import { isDevUiEnabled } from '../../frontend/src/renderer/app/runtime/desktopDevUiRuntime';
+import { DesktopDevUiRuntime } from '../../frontend/src/renderer/app/runtime/desktopDevUiRuntime';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopDevUiRuntime', () => ({
-  isDevUiEnabled: jest.fn(),
+  DesktopDevUiRuntime: {
+    isDevUiEnabled: jest.fn(),
+  },
 }));
 
 describe('MessageSourceBadge', () => {
@@ -17,7 +19,7 @@ describe('MessageSourceBadge', () => {
   });
 
   test('renders source tag plus per-message user token estimate when dev ui is enabled', () => {
-    isDevUiEnabled.mockReturnValue(true);
+    DesktopDevUiRuntime.isDevUiEnabled.mockReturnValue(true);
     render(
       <MessageSourceBadge
         message={{
@@ -37,7 +39,7 @@ describe('MessageSourceBadge', () => {
   });
 
   test('renders source tag plus tool token estimate for tool output rows', () => {
-    isDevUiEnabled.mockReturnValue(true);
+    DesktopDevUiRuntime.isDevUiEnabled.mockReturnValue(true);
     render(
       <MessageSourceBadge
         message={{
@@ -54,7 +56,7 @@ describe('MessageSourceBadge', () => {
   });
 
   test('renders provider-reported token usage when attached to an assistant message', () => {
-    isDevUiEnabled.mockReturnValue(true);
+    DesktopDevUiRuntime.isDevUiEnabled.mockReturnValue(true);
     render(
       <MessageSourceBadge
         message={{
@@ -80,7 +82,7 @@ describe('MessageSourceBadge', () => {
   });
 
   test('does not render when dev ui is disabled', () => {
-    isDevUiEnabled.mockReturnValue(false);
+    DesktopDevUiRuntime.isDevUiEnabled.mockReturnValue(false);
     const { container } = render(
       <MessageSourceBadge
         message={{

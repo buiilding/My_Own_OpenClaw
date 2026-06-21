@@ -261,9 +261,13 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(devUiRuntimeSource).toContain('dev_ui');
+    expect(devUiRuntimeSource).toContain('DesktopDevUiRuntime');
+    expect(devUiRuntimeSource).not.toContain('export function isDevUiEnabled');
     expect(devUiRuntimeSource).not.toContain('features/chat');
     expect(chatInterfaceSource).toContain('desktopDevUiRuntime');
+    expect(chatInterfaceSource).toContain('DesktopDevUiRuntime');
     expect(minimalPillSource).toContain('desktopDevUiRuntime');
+    expect(minimalPillSource).toContain('DesktopDevUiRuntime');
     expect(chatInterfaceSource).not.toContain('utils/devUiFlag');
     expect(minimalPillSource).not.toContain('chat/utils/devUiFlag');
     await expect(fs.stat(

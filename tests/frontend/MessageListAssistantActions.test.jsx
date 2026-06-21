@@ -17,7 +17,9 @@ import MessageList from '../../frontend/src/renderer/features/chat/components/Me
 const mockIsDevUiEnabled = jest.fn(() => false);
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopDevUiRuntime', () => ({
-  isDevUiEnabled: () => mockIsDevUiEnabled(),
+  DesktopDevUiRuntime: {
+    isDevUiEnabled: () => mockIsDevUiEnabled(),
+  },
 }));
 
 describe('MessageList assistant actions', () => {

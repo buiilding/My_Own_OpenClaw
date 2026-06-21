@@ -10,7 +10,9 @@ import MessageTransparencySections from '../../frontend/src/renderer/features/ch
 const mockIsDevUiEnabled = jest.fn(() => false);
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopDevUiRuntime', () => ({
-  isDevUiEnabled: () => mockIsDevUiEnabled(),
+  DesktopDevUiRuntime: {
+    isDevUiEnabled: () => mockIsDevUiEnabled(),
+  },
 }));
 
 const messageWithTransparency = {

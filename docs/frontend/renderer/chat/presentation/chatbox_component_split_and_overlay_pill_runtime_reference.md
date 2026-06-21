@@ -128,7 +128,8 @@ Main-process chat window height now tracks the compact-vs-preview visual-anchor 
 
 ### Optional Dev Compaction Control
 
-- compaction button renders only when `isDevUiEnabled()` is true
+- compaction button renders only when
+  `DesktopDevUiRuntime.isDevUiEnabled()` is true
 - on click:
   - sets compaction thinking status markers in chat store
   - calls `DesktopConversationContinuityService.compactHistory(true)`

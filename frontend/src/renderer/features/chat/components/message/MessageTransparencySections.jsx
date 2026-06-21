@@ -5,11 +5,11 @@
 import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { DesktopMessageTransparencyRuntime } from '../../../../app/runtime/desktopMessageTransparencyRuntime';
-import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
+import { DesktopDevUiRuntime } from '../../../../app/runtime/desktopDevUiRuntime';
 import { toolSchemaListPropType } from './toolSchemaPropType';
 
 export default function MessageTransparencySections({ message, conversationToolSchemas = null }) {
-  if (!isDevUiEnabled()) {
+  if (!DesktopDevUiRuntime.isDevUiEnabled()) {
     return null;
   }
 
