@@ -3,10 +3,11 @@
 const fs = require('fs/promises');
 const path = require('path');
 
+const runtimeConversationRefModule = require('../../frontend/src/main/ipc/ipc_runtime_conversation_ref.cjs');
 const {
   createRuntimeConversationRefRuntime,
   resolveRuntimeConversationRef,
-} = require('../../frontend/src/main/ipc/ipc_runtime_conversation_ref.cjs');
+} = runtimeConversationRefModule;
 
 describe('ipc_runtime_conversation_ref', () => {
   test('prefers nested backend transport conversation_ref over direct aliases', () => {
@@ -77,5 +78,6 @@ describe('ipc_runtime_conversation_ref', () => {
     expect(helperSource).toContain('function resolveRuntimeConversationRef');
     expect(helperSource).toContain('payload.conversation_ref');
     expect(helperSource).toContain('input.conversation_ref || input.conversationRef');
+    expect(runtimeConversationRefModule.normalizeOptionalString).toBeUndefined();
   });
 });

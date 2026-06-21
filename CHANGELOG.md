@@ -72,6 +72,10 @@ All notable changes to WindieOS will be documented in this file.
   `ipc_main_process_trace_runtime.cjs` and exercise string/duration/data
   sanitization through `createMainProcessTraceRuntime(...)`. No migration
   required.
+- frontend/main: keep runtime conversation-ref string normalization private to
+  `ipc_runtime_conversation_ref.cjs` while preserving the public resolver and
+  runtime facade for nested transport/direct/fallback coverage. No migration
+  required.
 - frontend/main: keep lower-level clipboard image and image context-menu IPC
   registration private to `ipc_image_interaction_handlers.cjs`, so
   `ipc.cjs` composes one aggregate image-interaction runtime while focused

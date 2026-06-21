@@ -37,6 +37,5 @@ function createRuntimeConversationRefRuntime({
 
 module.exports = {
   createRuntimeConversationRefRuntime,
-  normalizeOptionalString,
   resolveRuntimeConversationRef,
 };

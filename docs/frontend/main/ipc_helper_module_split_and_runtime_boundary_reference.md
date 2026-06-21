@@ -428,7 +428,7 @@ boundary:
   SDK runtime command/replay paths
 - uses the cached current conversation ref only when the input has no explicit
   conversation identity
-- keeps trim/null semantics outside the `ipc.cjs` relay root
+- keeps trim/null normalization private behind the conversation-ref resolver
 
 ### `ipc_backend_message_observers.cjs`
 

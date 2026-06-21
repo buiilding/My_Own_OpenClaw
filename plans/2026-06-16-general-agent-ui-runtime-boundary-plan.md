@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Runtime Conversation Ref Normalizer Privacy
+
+- Finding: `ipc_runtime_conversation_ref.cjs` already exposed
+  `createRuntimeConversationRefRuntime(...)` and
+  `resolveRuntimeConversationRef(...)` as the Electron main conversation-ref
+  boundary, but the lower-level string normalizer still leaked as a public
+  helper export.
+- Change: kept `normalizeOptionalString(...)` private to the runtime
+  conversation-ref owner while preserving resolver coverage for nested
+  transport, direct alias, fallback, trim, blank, and non-string behavior.
+- Validation: focused runtime conversation-ref and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no SDK runtime command payload, conversation-ref
+  fallback, replay/edit/retry behavior, credential, permission, or
+  trust-boundary migration required; resolver behavior is unchanged.
+
 ### 2026-06-21 Main Process Trace Normalizer Privacy
 
 - Finding: `ipc_main_process_trace_runtime.cjs` already exposed
