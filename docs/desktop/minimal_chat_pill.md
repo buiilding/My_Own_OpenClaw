@@ -136,7 +136,7 @@ Electron main owns the BrowserWindow policy that hook applies:
   and focusability policy
   without stealing focus.
 - `screenshot`: apply screenshot protection before capture, run the local
-  runtime screenshot, then restore the prior policy. Linux hides visible WindieOS
+  runtime screenshot, then restore the prior policy. Linux hides visible desktop
   surfaces; macOS and Windows use content protection.
 
 The renderer does not apply native click-through timing or screenshot

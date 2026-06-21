@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Chat Pill Screenshot Lease Surface Wording
+
+- Finding: the minimal chat pill tool-surface lease docs still described Linux
+  screenshot capture as hiding product-owned visible surfaces, even though the
+  reusable policy is desktop surface capture behavior owned by Electron main.
+- Change: reworded the screenshot lease note around visible desktop surfaces
+  and added a guard for the retired split-line product-owned label.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, screenshot lease policy,
+  platform adapters, Electron content-protection behavior, IPC channels, SDK
+  projections, storage, credentials, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-21 Agent SDK Reference Host Wording
 
 - Finding: the agent architecture SDK ownership rules still described the

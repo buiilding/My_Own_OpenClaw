@@ -11,10 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `b626c0847` (`docs(renderer): route dashboard surface labels`)
-- Latest completed slice: agent architecture SDK ownership rules now describe
-  the Electron reference host as a desktop UI on top of the SDK instead of a
-  product-owned UI special case.
+- Latest inspected plan checkpoint: `b5ee48bbf` (`docs(sdk): route reference host wording`)
+- Latest completed slice: minimal chat pill tool-surface lease docs now
+  describe Linux screenshot capture as hiding visible desktop surfaces instead
+  of product-owned visible surfaces.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -133,6 +133,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Agent architecture SDK ownership rules now describe the Electron reference
   host as a desktop UI on top of the SDK instead of a product-owned UI special
   case.
+  Minimal chat pill tool-surface lease docs now describe Linux screenshot
+  capture as hiding visible desktop surfaces instead of product-owned visible
+  surfaces.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
@@ -8129,6 +8132,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   case. Runtime code, SDK APIs, IPC channels, SDK projections, local-runtime
   contracts, storage, credentials, hosted backend URLs, and provider policy are
   unchanged; no migration is required.
+- Minimal chat pill tool-surface lease docs now describe Linux screenshot
+  capture as hiding visible desktop surfaces instead of product-owned visible
+  surfaces. Runtime code, screenshot lease policy, platform adapters, Electron
+  content-protection behavior, IPC channels, SDK projections, storage,
+  credentials, hosted backend URLs, and provider policy are unchanged; no
+  migration is required.
 - Logging docs now use a neutral frontend log override path example while
   preserving the `WINDIE_FRONTEND_LOG_FILE` WindieOS override key. Launcher log
   override behavior, default `.windie/logs` source-run paths, provider policy,

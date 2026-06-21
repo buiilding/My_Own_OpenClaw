@@ -3190,6 +3190,7 @@ describe('modular sdk refactor completion boundary', () => {
         `${retiredProductName('OS')} appears in screenshots`,
         `screenshot excludes ${retiredProductName('OS')} UI`,
         `screenshot includes ${retiredProductName('OS')} UI`,
+        `Linux hides visible ${retiredProductName('OS')}`,
         'Sidecar roots',
         'sidecar platform tools',
         'Do not make sidecar depend on conda',

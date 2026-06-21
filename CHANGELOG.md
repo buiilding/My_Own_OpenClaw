@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: route the chat pill screenshot lease wording through visible desktop
+  surfaces instead of product-owned visible surface labels. No migration
+  required.
 - docs: route the Agent SDK reference host rule through desktop UI wording
   instead of product-owned UI wording. No migration required.
 - docs: route desktop dashboard and surface hub wording through generic desktop
