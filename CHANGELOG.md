@@ -80,6 +80,10 @@ All notable changes to WindieOS will be documented in this file.
   `ipc_workspace_path_runtime.cjs` while preserving the public workspace-path
   resolver and runtime facade for payload/config fallback coverage. No
   migration required.
+- frontend/main: keep conversation status error-payload interpretation private
+  to `ipc_conversation_status_runtime.cjs` while preserving the public
+  terminal-status projection for completed, stopped, and error turns. No
+  migration required.
 - frontend/main: keep lower-level clipboard image and image context-menu IPC
   registration private to `ipc_image_interaction_handlers.cjs`, so
   `ipc.cjs` composes one aggregate image-interaction runtime while focused

@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: Electron main workspace-path resolution keeps string
-  normalization private to `ipc_workspace_path_runtime.cjs`, while command
-  payload snake/camel aliases, cached config fallback, trim, blank, and
-  non-string behavior remain covered through the public resolver/runtime
-  facade.
+- Latest completed slice: Electron main conversation-status projection keeps
+  error-payload interpretation private to
+  `ipc_conversation_status_runtime.cjs`, while completed, stopped, runtime
+  error, turn error, non-string error, workspace-path, and non-terminal
+  behavior remain covered through the public terminal-status projection.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -1081,6 +1081,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   targeted main IPC lint, docs listing, stale export scans, and diff checks.
 - Compatibility: no migration required. SDK runtime command payloads,
   conversation-ref fallback behavior, replay/edit/retry paths, credentials,
+  permissions, trust boundaries, and storage are unchanged.
+
+### 2026-06-21 Main Conversation Status Error Helper Privacy
+
+- Finding: `ipc_conversation_status_runtime.cjs` already owned terminal SDK
+  conversation-event projection through `buildConversationTerminalStatus(...)`,
+  but `resolveConversationStatusError(...)` still leaked as a lower-level
+  helper export.
+- Change: removed the error-payload interpreter from the public module surface
+  while preserving projection coverage for completed, stopped, runtime-error,
+  turn-error, non-string error, workspace-path, and non-terminal events.
+- Validation: focused conversation-status runtime and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks.
+- Compatibility: no migration required. SDK conversation event payloads,
+  renderer status objects, workspace paths, IPC channels, credentials,
   permissions, trust boundaries, and storage are unchanged.
 
 ### 2026-06-21 Main Workspace Path Normalizer Privacy

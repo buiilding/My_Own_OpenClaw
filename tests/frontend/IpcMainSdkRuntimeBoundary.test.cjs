@@ -318,7 +318,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('event.payload?.error');
     expect(source).not.toContain('payload?.workspace_path');
     expect(source).not.toContain('payload?.workspacePath');
-    expect(conversationStatusRuntimeSource).toContain('resolveConversationStatusError');
+    expect(conversationStatusRuntimeSource).not.toContain('  resolveConversationStatusError,');
     expect(conversationStatusRuntimeSource).toContain('event.payload?.error');
     expect(workspacePathRuntimeSource).toContain('payload?.workspace_path');
     expect(workspacePathRuntimeSource).toContain('payload?.workspacePath');

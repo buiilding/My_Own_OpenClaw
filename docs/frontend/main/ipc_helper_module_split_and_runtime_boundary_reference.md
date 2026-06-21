@@ -134,8 +134,8 @@ Owns SDK conversation terminal-event to renderer status projection:
 
 - `buildConversationTerminalStatus` maps `turn_completed`, `turn_stopped`,
   `turn_error`, and `runtime_error` into renderer-facing phase/status objects.
-- `resolveConversationStatusError` keeps SDK error payload interpretation out
-  of the `ipc.cjs` relay root.
+- keeps SDK error payload interpretation private inside the terminal-status
+  projection instead of exposing a lower-level error helper.
 
 ### `ipc_workspace_path_runtime.cjs`
 

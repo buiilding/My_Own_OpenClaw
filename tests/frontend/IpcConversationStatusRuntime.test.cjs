@@ -1,9 +1,9 @@
 /** @jest-environment node */
 
+const conversationStatusRuntimeModule = require('../../frontend/src/main/ipc/ipc_conversation_status_runtime.cjs');
 const {
   buildConversationTerminalStatus,
-  resolveConversationStatusError,
-} = require('../../frontend/src/main/ipc/ipc_conversation_status_runtime.cjs');
+} = conversationStatusRuntimeModule;
 
 describe('ipc_conversation_status_runtime', () => {
   test('projects completed and stopped events into desktop statuses', () => {
@@ -31,13 +31,6 @@ describe('ipc_conversation_status_runtime', () => {
   });
 
   test('projects error event payloads without leaking invalid values', () => {
-    expect(resolveConversationStatusError({
-      payload: { error: 'runtime failed' },
-    })).toBe('runtime failed');
-    expect(resolveConversationStatusError({
-      payload: { error: 42 },
-    })).toBeNull();
-
     expect(buildConversationTerminalStatus({
       type: 'runtime_error',
       conversationRef: 'conv-error',
@@ -50,6 +43,21 @@ describe('ipc_conversation_status_runtime', () => {
       workspacePath: 'C:/work',
       error: 'runtime failed',
     });
+
+    expect(buildConversationTerminalStatus({
+      type: 'turn_error',
+      conversationRef: 'conv-error',
+      turnRef: 'turn-error',
+      payload: { error: 42 },
+    }, 'C:/work')).toEqual({
+      phase: 'error',
+      conversationRef: 'conv-error',
+      turnRef: 'turn-error',
+      workspacePath: 'C:/work',
+      error: null,
+    });
+
+    expect(conversationStatusRuntimeModule.resolveConversationStatusError).toBeUndefined();
   });
 
   test('ignores non-terminal events', () => {

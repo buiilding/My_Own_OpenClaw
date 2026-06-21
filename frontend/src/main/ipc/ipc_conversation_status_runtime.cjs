@@ -37,5 +37,4 @@ function buildConversationTerminalStatus(event = {}, workspacePath = null) {
 
 module.exports = {
   buildConversationTerminalStatus,
-  resolveConversationStatusError,
 };

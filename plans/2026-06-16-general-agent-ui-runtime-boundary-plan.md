@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Main Conversation Status Error Helper Privacy
+
+- Finding: `ipc_conversation_status_runtime.cjs` already owned terminal SDK
+  conversation-event projection through `buildConversationTerminalStatus(...)`,
+  but the lower-level error-payload interpreter still leaked as a public helper
+  export.
+- Change: kept `resolveConversationStatusError(...)` private to the
+  conversation-status projection owner while preserving completed, stopped,
+  runtime-error, turn-error, non-string error, workspace-path, and non-terminal
+  coverage through `buildConversationTerminalStatus(...)`.
+- Validation: focused conversation-status runtime and main SDK boundary tests,
+  targeted main IPC lint, docs listing, stale export scans, and diff checks
+  before commit.
+- Compatibility/security: no SDK conversation event payload, renderer status
+  object, workspace path, IPC channel, credential, permission, storage, or
+  trust-boundary migration required; projection behavior is unchanged.
+
 ### 2026-06-21 Main Workspace Path Normalizer Privacy
 
 - Finding: `ipc_workspace_path_runtime.cjs` already exposed
