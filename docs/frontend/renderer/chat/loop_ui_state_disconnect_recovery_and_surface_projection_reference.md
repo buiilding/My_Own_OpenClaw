@@ -203,10 +203,13 @@ It does not mutate stream tracking or backend query state; it is UI projection o
 from `DesktopVisibleTurnLifecycleRuntime`, so legacy current-turn presentation
 fields do not carry their own `phase + isSending` lifecycle reducer and do not
 import the overlay lifecycle runtime directly.
-`DesktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
-owns SDK presentation snapshots (`presentation.overlayIntent`, awaiting
-anchors, visible response entries, and lifecycle mapping) so chat and overlay
-feature hooks do not carry their own SDK current-turn reducers.
+`useResponseOverlayViewModel(...)` reads SDK presentation entries through
+`DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`
+and uses `DesktopCurrentTurnPresentationRuntime` only for response-overlay
+dismissal target projection. SDK overlay intent comes from the live-turn
+presentation input before the visible lifecycle adapter stamps busy and typing
+fields, so the response overlay no longer consumes the SDK presentation
+lifecycle reducer.
 
 `useChatSurfaceController(...)` resolves
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` and uses
@@ -214,8 +217,10 @@ that projection for dashboard/pill busy state, stop affordance gating,
 awaiting-dot visibility, and chatbox awaiting state. The older
 `useCurrentTurnPresentationState(...)` result remains an adapter for legacy
 presentation fields while visible lifecycle owns the typing decision; the
-controller no longer calls
-`DesktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`.
+controller no longer calls an SDK presentation reducer, and the response
+overlay uses
+`DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
+only for SDK response-entry and overlay-intent data.
 The controller resolves the active lifecycle against the SDK current-turn
 conversation ref when present, so a lagging session ref does not hide the
 visible same-turn projection.

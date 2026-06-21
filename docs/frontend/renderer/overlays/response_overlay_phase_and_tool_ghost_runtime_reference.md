@@ -66,8 +66,9 @@ Selection logic:
 
 1. `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns
    awaiting/active/terminal lifecycle for the overlay.
-2. `useCurrentTurnPresentationState(...)` and SDK presentation snapshots remain
-   adapters for legacy presentation fields and visible entry details.
+2. `useCurrentTurnPresentationState(...)` remains the adapter for legacy
+   presentation fields, while SDK presentation snapshots provide response-entry
+   and overlay-intent data only.
 3. `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
 4. `showResponse` is true when current-turn entry list is non-empty and not dismissed, including tool/progress entries.
 5. during `local_pending` / `awaiting` lifecycle only, a still-mounted prior visible response with the same entry id is treated as stale so the typing indicator can appear immediately for the new turn before the response window's local message store catches up.
@@ -139,11 +140,10 @@ Contract ownership:
   SDK current-turn projection-to-message conversion behind one renderer
   app-runtime facade.
 - `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
-- `DesktopCurrentTurnPresentationRuntime.resolveSdkCurrentTurnPresentationState(...)`
-  owns SDK presentation-state reduction for overlay intent, lifecycle,
-  awaiting anchors, and visible response entries; its output is adapted by
-  `DesktopVisibleTurnLifecycleRuntime` before the overlay decides typing or
-  response visibility.
+- `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
+  overlays SDK response-entry and overlay-intent data onto the legacy
+  presentation-field adapter; lifecycle, awaiting, busy, and typing fields are
+  stamped by `DesktopVisibleTurnLifecycleRuntime` after that data step.
 - `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)` owns
   hidden SDK startup and terminal handoff rules used by live-surface
   projection; `DesktopLiveTurnSurfaceRuntime` maps that decision into overlay

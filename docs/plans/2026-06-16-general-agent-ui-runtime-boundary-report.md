@@ -12,13 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: legacy current-turn overlay lifecycle mapping moved
-  behind `DesktopVisibleTurnLifecycleRuntime`, the old
-  `useOverlayTurnLifecycle` feature hook was deleted, and chat surface
-  controller no longer imports `DesktopCurrentTurnPresentationRuntime` or calls
-  `resolveSdkCurrentTurnPresentationState(...)`; dashboard and pill busy/Stop
-  and typing state are stamped from the renderer visible lifecycle after the
-  legacy field-shape adapter runs.
+- Latest completed slice: response overlay no longer consumes
+  `resolveSdkCurrentTurnPresentationState(...)` in production; SDK
+  presentation entries and overlay intent remain rendering data, while
+  dashboard, pill, and overlay busy/typing fields are stamped through
+  `DesktopVisibleTurnLifecycleRuntime`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

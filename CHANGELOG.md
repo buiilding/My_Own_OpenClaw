@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove response overlay production use of
+  `resolveSdkCurrentTurnPresentationState(...)`; SDK presentation entries and
+  overlay intent remain rendering data while busy/typing fields are stamped
+  through `DesktopVisibleTurnLifecycleRuntime`. No migration required.
 - frontend/renderer: move legacy current-turn overlay lifecycle mapping behind
   `DesktopVisibleTurnLifecycleRuntime`, delete the old `useOverlayTurnLifecycle`
   feature hook, and remove the chat surface controller's direct

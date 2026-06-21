@@ -9,6 +9,25 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Response Overlay SDK Lifecycle Reducer Removal
+
+- Finding: `useResponseOverlayViewModel(...)` still used
+  `resolveSdkCurrentTurnPresentationState(...)` for a full lifecycle-shaped
+  state even though visible lifecycle now owns response-overlay busy and typing
+  adaptation.
+- Change: response overlay now treats SDK presentation entries and overlay
+  intent as rendering data, then applies
+  `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+  to stamp lifecycle fields. `DesktopCurrentTurnPresentationRuntime` now keeps
+  a response-overlay data helper plus dismissal target projection, without the
+  old SDK lifecycle reducer.
+- Validation target: focused response-overlay state and renderer boundary tests
+  protect SDK presentation response rendering while rejecting production use of
+  the SDK lifecycle reducer.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Legacy Presentation Lifecycle Facade Cleanup
 
 - Finding: `useChatSurfaceController(...)` still called
@@ -331,7 +350,8 @@ lifecycle:
 - `useCurrentTurnPresentationState` as a lifecycle authority. It can become a
   thin renderer of the visible lifecycle or be removed if no longer needed.
 - `resolveSdkCurrentTurnPresentationState` as a competing lifecycle reducer.
-  SDK presentation fields should be normalized into the visible lifecycle once.
+  It has been deleted in favor of response-overlay data projection plus visible
+  lifecycle adaptation.
 - Direct surface use of `isSending` for Stop/busy where visible lifecycle can
   provide `isBusy`.
 

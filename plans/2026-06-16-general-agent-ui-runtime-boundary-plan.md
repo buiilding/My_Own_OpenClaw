@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Response Overlay SDK Lifecycle Reducer Removal
+
+- Finding: response overlay still consumed
+  `resolveSdkCurrentTurnPresentationState(...)`, even after visible lifecycle
+  owned overlay busy/typing adaptation, so SDK presentation could still provide
+  a full lifecycle-shaped state to a production surface.
+- Change: `useResponseOverlayViewModel(...)` now uses SDK presentation entries
+  as response rendering data and overlays SDK intent from live-turn
+  presentation input before
+  `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+  stamps busy and typing fields.
+- Validation: `RendererAppRuntimeBoundary.test.ts` rejects response-overlay
+  production use of the SDK presentation lifecycle reducer.
+- Compatibility/security: no SDK event payload, IPC payload, transcript
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Legacy Presentation Lifecycle Facade Cleanup
 
 - Finding: chat surface presentation had been stamped from the visible

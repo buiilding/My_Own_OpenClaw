@@ -8,7 +8,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
   const {
     resolveCurrentTurnPresentationState,
     resolveResponseOverlayDismissalTarget,
-    resolveSdkCurrentTurnPresentationState,
+    resolveSdkResponseOverlayPresentationState,
   } = DesktopCurrentTurnPresentationRuntime;
 
   test('shows awaiting state while user message is still sending', () => {
@@ -96,47 +96,8 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     expect(state.showChatboxResponse).toBe(false);
   });
 
-  test('projects SDK awaiting presentation with the SDK anchor row', () => {
-    const state = resolveSdkCurrentTurnPresentationState({
-      currentTurnProjection: {
-        conversationRef: 'conv-1',
-        turnRef: 'turn-1',
-        presentation: {
-          hasVisibleContent: false,
-          typingVisible: true,
-          overlayVisible: true,
-          isBusy: true,
-          isTerminal: false,
-          awaitingAnchor: {
-            kind: 'user-message',
-            rowId: 'user-row-1',
-          },
-          overlayIntent: {
-            visible: true,
-            mode: 'awaiting',
-            turnRef: 'turn-1',
-            conversationRef: 'conv-1',
-            staleGuardRef: 'turn-1',
-          },
-        },
-      },
-      fallbackState: {
-        awaitingDotTargetMessageId: 'fallback-row',
-      },
-    });
-
-    expect(state).toMatchObject({
-      loopUiState: 'awaiting-reply',
-      isBusy: true,
-      isAwaitingReply: true,
-      awaitingDotTargetMessageId: 'user-row-1',
-      chatboxSurfaceState: 'awaiting-reply',
-      overlayTurnLifecycle: 'awaiting',
-    });
-  });
-
-  test('projects SDK overlay response entries and dismissal state', () => {
-    const state = resolveSdkCurrentTurnPresentationState({
+  test('projects SDK overlay response data onto fallback lifecycle state', () => {
+    const state = resolveSdkResponseOverlayPresentationState({
       currentTurnProjection: {
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
@@ -159,6 +120,12 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
         { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
       ],
       dismissedResponseId: 'assistant-1',
+      fallbackState: {
+        isBusy: false,
+        isAwaitingReply: false,
+        overlayTurnLifecycle: 'terminal',
+        showChatboxAwaitingReply: false,
+      },
       includeOverlayIntent: true,
     });
 
@@ -169,6 +136,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       showChatboxResponse: true,
       chatboxSurfaceState: 'response',
       overlayTurnLifecycle: 'terminal',
+      showChatboxAwaitingReply: false,
       overlayIntent: expect.objectContaining({
         mode: 'response',
         turnRef: 'turn-1',

@@ -30,7 +30,7 @@ const {
 
 const {
   resolveResponseOverlayDismissalTarget,
-  resolveSdkCurrentTurnPresentationState,
+  resolveSdkResponseOverlayPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
 const {
   buildCurrentTurnMessagesFromProjection,
@@ -152,8 +152,9 @@ export function useResponseOverlayViewModel({
     () => {
       let presentationState;
       if (useSdkLiveTurnPresentation && !useLocalSendLatch) {
-        presentationState = resolveSdkCurrentTurnPresentationState({
+        presentationState = resolveSdkResponseOverlayPresentationState({
           currentTurnProjection,
+          fallbackState: currentTurnPresentationState,
           responseOverlayEntries,
           dismissedResponseId,
           includeOverlayIntent: true,
