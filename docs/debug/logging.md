@@ -69,7 +69,7 @@ Useful commands:
 WINDIE_DEBUG_STREAM_EVENTS=1 <windie> start desktop
 WINDIE_DEBUG_CHAT_PILL=1 <windie> start desktop
 WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
-WINDIE_FRONTEND_LOG_FILE=/tmp/windie-frontend.log <windie> start desktop
+WINDIE_FRONTEND_LOG_FILE=/tmp/agent-frontend.log <windie> start desktop
 npm --prefix frontend run test:ghost-cursor
 ```
 

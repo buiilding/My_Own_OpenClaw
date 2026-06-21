@@ -7880,3 +7880,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   directory precedence, generic `AGENT_*` env preference, WindieOS alias
   compatibility, provider policy, permissions, storage, and backend behavior are
   unchanged; no migration is required.
+- Logging docs now use a neutral frontend log override path example while
+  preserving the `WINDIE_FRONTEND_LOG_FILE` WindieOS override key. Launcher log
+  override behavior, default `.windie/logs` source-run paths, provider policy,
+  permissions, storage, and backend behavior are unchanged; no migration is
+  required.

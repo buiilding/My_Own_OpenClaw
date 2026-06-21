@@ -19201,3 +19201,15 @@ Each completed slice should report:
 - Compatibility: no migration required. Wakeword model directory precedence,
   generic `AGENT_*` env preference, WindieOS alias compatibility, provider
   policy, permissions, storage, and backend behavior are unchanged.
+
+### 2026-06-21 Logging docs override path neutrality
+
+- Finding: logging docs still showed a Windie-flavored arbitrary frontend log
+  override path even though the override example is only a disposable path.
+- Change: switched the example to `/tmp/agent-frontend.log` while preserving
+  the `WINDIE_FRONTEND_LOG_FILE` WindieOS override key.
+- Validation: docs listing, exact retired frontend log example scan, and diff
+  checks.
+- Compatibility: no migration required. Launcher log override behavior, default
+  `.windie/logs` source-run paths, provider policy, permissions, storage, and
+  backend behavior are unchanged.
