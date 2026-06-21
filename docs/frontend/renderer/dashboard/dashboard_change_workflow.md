@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS dashboard behavior across shell panel routing, sidebar conversations, search, memory, models, settings, usage, chat resume, transcript state, and main-window open targets."
+summary: "Workflow for changing desktop dashboard behavior across shell panel routing, sidebar conversations, search, memory, models, settings, usage, chat resume, transcript state, and main-window open targets."
 read_when:
   - When changing dashboard shell navigation, sidebar conversations, search, memory, models, settings, usage, or dashboard-to-chat resume behavior.
   - When debugging dashboard state that differs from the chat pill, missing recent chats, broken search, wrong active conversation, stale model settings, or memory panel failures.

@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: route dashboard, settings, model selection, chat attachment,
+  and overlay workflow summaries through desktop renderer wording instead of
+  product-owned surface labels. No migration required.
 - docs/frontend: route browser and local-runtime workflow first-read copy
   through desktop/local-runtime implementation wording instead of
   product-owned or sidecar-root labels. No migration required.

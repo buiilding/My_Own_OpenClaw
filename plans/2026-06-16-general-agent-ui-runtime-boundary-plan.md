@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Desktop Renderer Workflow Summary Wording
+
+- Finding: dashboard, settings, model-selection, chat-attachment, and overlay
+  first-read workflows still described generic renderer surfaces as WindieOS
+  dashboard/chat/overlay behavior, including screenshot symptom labels that
+  named WindieOS UI instead of desktop overlay UI.
+- Change: reworded those summaries and overlay symptom labels around desktop
+  renderer surfaces, and extended the modular boundary guard for the retired
+  product-owned renderer workflow phrases.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, renderer components,
+  IPC channels, config fields, SDK projections, screenshot capture policy,
+  storage, credentials, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Browser and Local Runtime Workflow Owner Wording
 
 - Finding: the browser workflow, browser tool docs, local-runtime tool

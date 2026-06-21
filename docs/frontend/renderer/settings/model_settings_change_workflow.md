@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS settings model selection and provider settings across dashboard model cards, chat header selectors, renderer config persistence, list-models events, provider credentials, and backend catalog routing."
+summary: "Workflow for changing desktop settings model selection and provider settings across dashboard model cards, chat header selectors, renderer config persistence, list-models events, provider credentials, and backend catalog routing."
 read_when:
   - When changing settings model selection, the dashboard Models section, chat header model/provider selectors, model defaults, provider API-key controls, or selected_model_id/model_provider persistence.
   - When debugging a model that appears in one UI but not another, a selected model that resets, stale list-models data, provider API keys that do not route, or reasoning controls that do not match catalog metadata.

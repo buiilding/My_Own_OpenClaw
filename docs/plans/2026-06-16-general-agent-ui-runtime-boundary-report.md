@@ -11,11 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `df85f1010` (`docs(frontend): route electron workflow summaries`)
-- Latest completed slice: browser and local-runtime first-read workflows now
-  use desktop/local-runtime implementation wording instead of assigning generic
-  browser automation, local-runtime tools, JSON-RPC methods, or implementation
-  roots to WindieOS product or sidecar-root labels.
+- Latest inspected plan checkpoint: `30ead97ef` (`docs(frontend): route local runtime workflow owners`)
+- Latest completed slice: renderer dashboard, settings, model-selection,
+  chat-attachment, and overlay first-read workflows now use desktop renderer
+  wording instead of assigning generic UI workflow ownership to WindieOS product
+  labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -115,6 +115,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Browser and local-runtime first-read workflows now use desktop browser,
   local-runtime tool execution, local-runtime Python implementation, and
   local-runtime implementation-root wording for generic local responsibilities.
+  Renderer dashboard, settings, model-selection, chat-attachment, and overlay
+  first-read workflows now use desktop renderer and desktop overlay wording for
+  generic UI responsibilities.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real
@@ -8070,6 +8073,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime routing, local-runtime daemon behavior, storage, credentials,
   hosted backend URLs, and provider policy are unchanged; no migration is
   required.
+- Renderer dashboard, settings, model-selection, chat-attachment, and overlay
+  first-read workflows now describe generic desktop renderer surfaces and
+  desktop overlay UI symptoms instead of product-owned UI workflow labels.
+  Runtime code, renderer components, IPC channels, config fields, SDK
+  projections, screenshot capture policy, storage, credentials, hosted backend
+  URLs, and provider policy are unchanged; no migration is required.
 - Logging docs now use a neutral frontend log override path example while
   preserving the `WINDIE_FRONTEND_LOG_FILE` WindieOS override key. Launcher log
   override behavior, default `.windie/logs` source-run paths, provider policy,

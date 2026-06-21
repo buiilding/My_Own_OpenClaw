@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS chat attachments across MessageInput paste/file picker behavior, typed SDK turn resources, host resource resolution, query payload assembly, backend query resolution, and replay."
+summary: "Workflow for changing desktop chat attachments across MessageInput paste/file picker behavior, typed SDK turn resources, host resource resolution, query payload assembly, backend query resolution, and replay."
 read_when:
   - When changing pasted-image, file-picker, readable-file, screenshot attachment, artifact upload, or attachment filename behavior in chat.
   - When a user image/file appears in the composer but is missing from the SDK row metadata, backend query, transcript replay, or model context.
