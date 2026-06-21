@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Workspace Context Local-Runtime Prompt Boundary
+
+- Finding: the workspace-context workflow still said sidecar local tools may
+  use workspace config but sidecar must not construct backend prompt context,
+  even though the intended owner split is local-runtime Python execution
+  defaults versus hosted-backend prompt construction.
+- Change: reworded the rule to local-runtime Python tools/implementation and
+  added the retired sidecar prompt-context phrase to the docs boundary guard.
+- Validation: focused modular runtime docs guard, exact stale-label scan, docs
+  list, and diff hygiene.
+- Compatibility/security: no migration required. Workspace payload fields,
+  AGENTS.md prompt-layer format, backend prompt construction, local-runtime
+  execution defaults, IPC payloads, storage, credentials, permissions, hosted
+  backend URLs, and provider policy are unchanged.
+
 ### 2026-06-21 Local-Runtime Transcript Row Label Boundary
 
 - Finding: the session/transcript reference still named durable transcript

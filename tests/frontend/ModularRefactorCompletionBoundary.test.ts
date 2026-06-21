@@ -2727,6 +2727,7 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar chat-event RPC channels',
         'Sidecar chat-event RPC names',
         'Sidecar rewrites persist',
+        'sidecar must not construct backend prompt context',
         'sidecar conversation revision metadata',
         'only sidecar daemon lifecycle and RPC transport path',
         'sidecar screenshot capture',
