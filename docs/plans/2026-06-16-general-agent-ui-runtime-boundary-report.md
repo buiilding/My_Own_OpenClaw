@@ -11,11 +11,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `bb9425662` (`docs(renderer): align chat pill screenshot lease label`)
-- Latest completed slice: tool hub, catalog, troubleshooting, development,
-  MCP, extension, and policy docs now describe generic tool contracts through
-  model-visible, local-runtime, backend-owned, and native tool labels instead
-  of product-owned generic tool labels.
+- Latest inspected plan checkpoint: `3af9d9911` (`docs(tools): route shared tool contract labels`)
+- Latest completed slice: onboarding permission, plugin, and streaming/event
+  concept docs now describe generic boundaries through desktop onboarding,
+  built-in local-runtime tool, backend streaming event, and backend websocket
+  event labels instead of product-owned generic runtime labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -141,6 +141,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Minimal chat pill tool-surface lease docs now describe Linux screenshot
   capture as hiding visible desktop surfaces instead of product-owned visible
   surfaces.
+  Onboarding permission, plugin, and streaming/event concept docs now route
+  first-run capability gates, built-in local tool routing, provider event
+  normalization, and agent-loop streaming steps through desktop onboarding,
+  built-in local-runtime tool, backend streaming event, and backend websocket
+  event wording instead of product-owned generic runtime labels.
   Generic diagnostics store tests use sample data-path env config while real
   WindieOS diagnostics data paths remain host-skin owned.
   Generic permission service tests use sample permission copy while real

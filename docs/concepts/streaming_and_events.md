@@ -1,5 +1,5 @@
 ---
-summary: "Conceptual guide to WindieOS websocket streaming events, SDK tool coordination, renderer consumers, audio side-channel, and stale-turn filtering."
+summary: "Conceptual guide to backend websocket streaming events, SDK tool coordination, renderer consumers, audio side-channel, and stale-turn filtering."
 read_when:
   - When changing websocket event names, payloads, formatter behavior, SDK tool coordination, renderer stream handling, or audio chunks.
   - When debugging an event that appears on the wire but is ignored, duplicated, stale, or rendered in the wrong conversation.
@@ -8,7 +8,12 @@ title: "Streaming and Events"
 
 # Streaming and Events
 
-WindieOS streaming is the live contract between the hosted backend, SDK runtime, and renderer surfaces. Backend events are normalized by the SDK runtime; Electron main is a thin Agent SDK host that forwards SDK rows, status, normalized conversation events, and current-turn projections on `windie:*` channels. Renderer listeners render those SDK outputs instead of interpreting backend-wire websocket packets.
+Backend streaming events are the live contract between the hosted backend, SDK
+runtime, and renderer surfaces. Backend events are normalized by the SDK
+runtime; Electron main is a thin Agent SDK host that forwards SDK rows, status,
+normalized conversation events, and current-turn projections on `windie:*`
+channels. Renderer listeners render those SDK outputs instead of interpreting
+backend-wire websocket packets.
 
 ## Main Event Families
 
@@ -67,7 +72,8 @@ The renderer renders display-only tool state and transcript projections. Do not 
 - Keep `audio-chunk` on its dedicated parser path unless the renderer typed event union is intentionally expanded.
 - Preserve `turn_ref` and `conversation_ref` on events that affect active chat state.
 - Do not change event names just in frontend or backend. The transport vocabulary is a shared contract.
-- When a provider emits native events, normalize them into WindieOS event names before renderer consumption.
+- When a provider emits native events, normalize them into backend websocket
+  event names before SDK projection and renderer consumption.
 
 ## Debug Routing
 

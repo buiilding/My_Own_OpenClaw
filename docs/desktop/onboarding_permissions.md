@@ -8,7 +8,9 @@ title: "Onboarding and Permissions"
 
 # Onboarding and Permissions
 
-WindieOS onboarding is a first-run gate for required local capabilities. It is renderer-owned for presentation and Electron-main-owned for platform probes and grant actions.
+Desktop onboarding is a first-run gate for required local capabilities. It is
+renderer-owned for presentation and Electron-main-owned for platform probes and
+grant actions; WindieOS product copy comes from the renderer skin/config.
 
 ## Main Files
 

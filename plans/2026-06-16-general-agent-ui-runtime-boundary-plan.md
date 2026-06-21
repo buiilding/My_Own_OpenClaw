@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Runtime Concept Product-Label Wording
+
+- Finding: onboarding permission, plugin, streaming/event concept, and
+  agent-loop docs still described generic routing boundaries with
+  product-owned onboarding, built-in tool, streaming, and event-name labels
+  even though those docs are describing desktop onboarding, built-in
+  local-runtime tools, backend streaming events, and backend websocket event
+  normalization.
+- Change: reworded those docs around desktop onboarding, built-in
+  local-runtime tool, backend streaming event, and backend websocket event
+  labels, and extended modular boundary guards for the retired product-owned
+  generic runtime phrases.
+- Validation: focused modular docs boundary coverage, docs listing, exact
+  retired phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, websocket event names,
+  SDK projections, IPC channels, onboarding storage, permission probes, tool
+  schemas, local execution, credentials, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-21 Shared Tool Contract Product-Label Wording
 
 - Finding: tool hub, catalog, troubleshooting, development, MCP, extension, and

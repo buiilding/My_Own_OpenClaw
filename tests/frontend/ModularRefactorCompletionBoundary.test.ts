@@ -1537,6 +1537,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Electron rebroadcast, and renderer guards');
     expect(docText).not.toContain('transport rebroadcast');
     expect(docText).not.toContain('Electron main rebroadcast');
+    expect(docText).not.toContain('Windie' + 'OS streaming');
+    expect(docText).not.toContain('Windie' + 'OS websocket streaming events');
+    expect(docText).not.toContain('Windie' + 'OS event names');
     expect(docText).not.toContain('Main process receives WebSocket event');
     expect(docText).not.toContain('Which renderer modules consume each `from-backend` event type');
     expect(docText).not.toContain('Sub-hub for `from-backend` event ingress typing boundaries');
@@ -1933,6 +1936,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('routes local calls to the sidecar');
     expect(docText).not.toContain('Plugin tools execute in the Python sidecar');
     expect(docText).not.toContain('| Sidecar built-in tools |');
+    expect(docText).not.toContain('| A built-in ' + 'Windie' + 'OS tool |');
     expect(docText).not.toContain('sidecar registry dispatch');
     expect(docText).not.toContain('SDK main-runtime migration');
     expect(docText).not.toContain('Tool result reaches frontend but model does not continue');
@@ -3322,6 +3326,8 @@ describe('modular sdk refactor completion boundary', () => {
         'features/dashboard/utils/*',
         'frontend/src/renderer/features/dashboard/utils/*',
         'dashboard utility ownership',
+        'Windie' + 'OS onboarding is a first-run gate',
+        'Windie' + 'OS streaming events',
         'renderer owns turn-level UI/send/stream behavior',
         'useChatStream.ts` remains the canonical stream-event state machine',
         'frontend/src/renderer/features/permissions/utils/*',

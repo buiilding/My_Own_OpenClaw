@@ -16,7 +16,7 @@ The WindieOS agent loop is backend-owned, but it depends on SDK/main local execu
 2. **Main-process relay**: Electron main validates websocket readiness, applies settings sync gates, forwards local repo instructions, and sends the backend query.
 3. **Backend session routing**: the backend resolves the user/session/conversation, applies runtime config, and starts a query task.
 4. **Prompt construction**: backend prompt code builds system instructions, history, tool schemas, capability metadata, model settings, and optional artifact/screenshot context.
-5. **LLM streaming**: provider code normalizes chunks, thinking text, tool calls, token usage, and native provider events into WindieOS streaming events.
+5. **LLM streaming**: provider code normalizes chunks, thinking text, tool calls, token usage, and native provider events into backend streaming events.
 6. **Tool turn**: backend prepares tool arguments, sends `tool-call` or `tool-bundle` events, waits for SDK-submitted local-runtime results, transforms results for history, and resumes the model.
 7. **Completion**: backend emits terminal completion/error/cancel events and commits transcript/history state.
 

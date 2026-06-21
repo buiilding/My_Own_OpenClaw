@@ -15,7 +15,7 @@ WindieOS has three first-class repo-level contribution roots:
 | A local Python tool exposed to the model | `plugins/<id>/plugin.json`, `schemas/`, `python/` | [Extension Convention](../development/extensions.md#local-runtime-plugin-tool-registration) |
 | Instructions only | `skills/<id>/SKILL.md` | [Skills](../development/extensions.md#skills) |
 | An MCP server | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
-| A built-in WindieOS tool | Core backend, desktop local-runtime, and local-runtime Python implementation files | [Tool Development](../development/tool_development.md) |
+| A built-in local-runtime tool | Core backend, desktop local-runtime, and local-runtime Python implementation files | [Tool Development](../development/tool_development.md) |
 | A provider | `backend/src/llm/providers`, model catalog/config | [Providers Hub](../providers/README.md) |
 
 Plugin tools execute through the local-runtime Python implementation. Electron
