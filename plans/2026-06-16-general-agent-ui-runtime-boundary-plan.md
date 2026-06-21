@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-21 Backend Package Entrypoint Boundary Guard
+
+- Finding: backend source-map docs already require concrete owner-module
+  imports and document `backend/src/api/routes/__init__.py` as the lone route
+  registration exception, but tests only checked removed marker paths and
+  `__all__` lists rather than the live `backend/src/**/__init__.py` surface as
+  a whole.
+- Change: added a backend namespace-package guard that asserts the route
+  registration package is the only live backend source entrypoint, and clarified
+  the backend source-map doc so the app assembly exception is explicit rather
+  than reading like a generic export aggregator.
+- Validation: focused backend namespace-package guardrail tests, backend docs
+  listing, stale package-entrypoint scans, and diff checks.
+- Compatibility/security: no migration required. FastAPI route registration,
+  hosted backend routes, auth headers, provider policy, prompt/runtime
+  behavior, storage, credentials, IPC, and local-runtime execution are
+  unchanged; the new test only prevents accidental package-level compatibility
+  facades from returning.
+
 ### 2026-06-21 SDK Conversation Metadata Helper Package-Root Narrowing
 
 - Finding: the SDK package root still exported `conversation/metadata`

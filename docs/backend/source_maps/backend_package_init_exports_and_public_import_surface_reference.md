@@ -21,7 +21,10 @@ implementation boundaries remain visible.
 
 ## High-Value Export Aggregators
 
-There are currently no backend package `__init__.py` export aggregators.
+There are no backend package `__init__.py` compatibility export aggregators.
+The only live package entrypoint is
+`backend/src/api/routes/__init__.py`, where `API_ROUTERS` is the
+FastAPI app assembly contract for route registration.
 
 ## Minimal/Marker Entrypoints
 
@@ -205,7 +208,9 @@ docstring or compatibility path.
   `backend.src.sdk.context`.
 
 Remaining `__init__.py` files matter only when they publish a live import
-contract or route-registration surface.
+contract or route-registration surface. Focused backend tests assert that the
+route-registration package is the only live backend source entrypoint, so new
+package markers or facades must be added deliberately with matching docs.
 
 ## `__all__` Governance
 

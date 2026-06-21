@@ -1,10 +1,11 @@
 """Covers backend namespace packages that intentionally have no marker file."""
 
-from pathlib import Path
 import importlib
+from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+BACKEND_SRC_ROOT = ROOT / "backend/src"
 
 REMOVED_MARKERS = [
     "backend/__init__.py",
@@ -166,10 +167,23 @@ REMOVED_MODULE_FACADES = [
     "backend/src/tools/remote.py",
 ]
 
+LIVE_PACKAGE_ENTRYPOINTS = {
+    "backend/src/api/routes/__init__.py",
+}
+
 
 def test_marker_only_backend_package_files_are_removed():
     for marker in REMOVED_MARKERS:
         assert not (ROOT / marker).exists()
+
+
+def test_route_registration_is_the_only_backend_package_entrypoint():
+    package_entrypoints = {
+        path.relative_to(ROOT).as_posix()
+        for path in BACKEND_SRC_ROOT.rglob("__init__.py")
+    }
+
+    assert package_entrypoints == LIVE_PACKAGE_ENTRYPOINTS
 
 
 def test_namespace_packages_still_import_concrete_modules():

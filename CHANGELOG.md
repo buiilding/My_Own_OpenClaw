@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend: lock backend package entrypoints to the documented route
+  registration surface so package-level compatibility facades cannot reappear
+  unnoticed. No migration required.
 - sdk: stop exporting conversation metadata pagination/search helper functions
   from the package root while preserving public agent and store list/search
   methods. No migration required for first-party callers.
