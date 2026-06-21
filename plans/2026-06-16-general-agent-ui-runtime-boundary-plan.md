@@ -18824,3 +18824,19 @@ Each completed slice should report:
   artifact URL construction, transcription websocket URL derivation,
   permissions, storage, provider policy, and local-runtime behavior are
   unchanged.
+
+### 2026-06-20 Python SDK client endpoint fixture neutrality
+
+- Finding: Python SDK client transport tests used the WindieOS hosted backend
+  URL as explicit `backend_url` fixture data even though the SDK boundary
+  requires caller-supplied endpoints.
+- Change: switched the Python SDK client test fixtures to neutral
+  `https://backend.example.com` / `wss://backend.example.com/ws` values and
+  extended modular boundary coverage for the retired hosted URL in that file.
+- Validation: focused Python SDK client and modular boundary tests; exact
+  retired hosted endpoint scan, docs listing, and diff checks.
+- Compatibility: no migration required. Caller-supplied backend URL semantics,
+  HTTP route construction, artifact upload route construction, websocket URL
+  derivation, local-runtime registration, tool-call/tool-bundle result routing,
+  install auth behavior, hosted backend defaults in product-owned config/docs,
+  provider policy, permissions, and storage are unchanged.

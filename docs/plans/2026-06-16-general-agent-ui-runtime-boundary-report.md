@@ -11,10 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `ffdf2c238` (`test(main): neutralize image endpoint fixtures`)
-- Latest completed slice: artifact, install-auth, and renderer runtime endpoint
-  tests now use neutral `.example.test` endpoint hosts instead of
-  WindieOS-shaped arbitrary test hosts.
+- Latest inspected plan checkpoint: `f4c9b4964` (`test(frontend): neutralize runtime endpoint hosts`)
+- Latest completed slice: Python SDK client transport tests now use neutral
+  explicit backend endpoint fixtures instead of the WindieOS hosted URL.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -25,7 +24,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   assertions in host-owned endpoint coverage. Artifact, install-auth, and
   renderer runtime endpoint tests use neutral `.example.test` hosts for
   arbitrary endpoint behavior while real WindieOS hosted defaults remain
-  host-skin/config owned.
+  host-skin/config owned. Python SDK client transport tests use neutral explicit
+  backend endpoint fixtures while preserving caller-supplied URL and websocket
+  derivation behavior.
   Renderer voice docs name the desktop voice/audio runtime contract and
   backend-owned transcription gateway boundary instead of embedding concrete STT
   provider policy. Renderer config reference docs now keep current OpenAI/GPT default
@@ -132,6 +133,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Artifact, install-auth, and renderer runtime endpoint tests now use neutral
   `.example.test` hosts for arbitrary endpoint behavior while preserving hosted
   default coverage elsewhere.
+  Python SDK client transport tests now use neutral explicit backend endpoint
+  fixtures while preserving HTTP route, artifact route, websocket URL
+  derivation, local-runtime registration, and tool-result routing behavior.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7705,4 +7709,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   artifact upload/fetch URL construction, install-auth identity validation,
   runtime artifact URL construction, transcription websocket URL derivation,
   permissions, storage, provider policy, and local-runtime behavior are
+  unchanged; no migration is required.
+- Python SDK client transport tests now use neutral
+  `https://backend.example.com` and `wss://backend.example.com/ws` endpoint
+  fixtures instead of the WindieOS hosted URL. Caller-supplied backend URL
+  semantics, HTTP route construction, artifact upload route construction,
+  websocket URL derivation, local-runtime registration, tool-call/tool-bundle
+  result routing, install auth behavior, hosted backend defaults in
+  product-owned config/docs, provider policy, permissions, and storage are
   unchanged; no migration is required.

@@ -253,7 +253,7 @@ async def test_get_system_prompt_builds_query_string():
         json_data={"config": {"model_provider": "openai"}, "system_prompt": "prompt"},
     )
     session = DummySession(response=response)
-    client = AgentSdkClient(backend_url="https://api.windieos.com")
+    client = AgentSdkClient(backend_url="https://backend.example.com")
     client._session = session
 
     result = await client.get_system_prompt(
@@ -264,7 +264,7 @@ async def test_get_system_prompt_builds_query_string():
     url, timeout, headers = session.last_get
     assert (
         url
-        == "https://api.windieos.com/api/sdk/system-prompt?user_id=dev-user&interaction_mode=agent"
+        == "https://backend.example.com/api/sdk/system-prompt?user_id=dev-user&interaction_mode=agent"
     )
     assert timeout.total == 60
     assert headers == {}
@@ -304,7 +304,7 @@ async def test_sdk_http_requests_do_not_retry_alternate_backend_urls():
     session = SequentialSession(
         post_results=[DummyResponse(503, text_data="unavailable")],
     )
-    client = AgentSdkClient(backend_url="https://api.windieos.com")
+    client = AgentSdkClient(backend_url="https://backend.example.com")
     client._session = session
 
     with pytest.raises(Exception, match="SDK API returned 503: unavailable"):
@@ -317,9 +317,9 @@ async def test_sdk_http_requests_do_not_retry_alternate_backend_urls():
         )
 
     assert [call[0] for call in session.post_calls] == [
-        "https://api.windieos.com/api/sdk/query-plan",
+        "https://backend.example.com/api/sdk/query-plan",
     ]
-    assert client.backend_url == "https://api.windieos.com"
+    assert client.backend_url == "https://backend.example.com"
 
 
 @pytest.mark.asyncio
@@ -443,11 +443,11 @@ async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
                 "content_type": "image/png",
                 "size_bytes": 3,
                 "sha256": "abc",
-                "url": "https://api.windieos.com/api/artifacts/shot.png",
+                "url": "https://backend.example.com/api/artifacts/shot.png",
             },
         )
     )
-    client = AgentSdkClient(backend_url="https://api.windieos.com")
+    client = AgentSdkClient(backend_url="https://backend.example.com")
     client._session = session
 
     result = await client.upload_artifact(
@@ -458,7 +458,7 @@ async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
 
     assert result["artifact_id"] == "shot.png"
     url, data, timeout, posted_json, headers = session.last_post
-    assert url == "https://api.windieos.com/api/artifacts/"
+    assert url == "https://backend.example.com/api/artifacts/"
     assert posted_json is None
     assert timeout.total == 60
     assert headers == {}
@@ -478,7 +478,7 @@ async def test_upload_artifact_does_not_retry_alternate_backend_urls(monkeypatch
     session = SequentialSession(
         post_results=[DummyResponse(502, text_data="bad gateway")],
     )
-    client = AgentSdkClient(backend_url="https://api.windieos.com")
+    client = AgentSdkClient(backend_url="https://backend.example.com")
     client._session = session
 
     with pytest.raises(Exception, match="Artifacts API returned 502: bad gateway"):
@@ -489,9 +489,9 @@ async def test_upload_artifact_does_not_retry_alternate_backend_urls(monkeypatch
         )
 
     assert [call[0] for call in session.post_calls] == [
-        "https://api.windieos.com/api/artifacts/",
+        "https://backend.example.com/api/artifacts/",
     ]
-    assert client.backend_url == "https://api.windieos.com"
+    assert client.backend_url == "https://backend.example.com"
 
 
 @pytest.mark.asyncio
@@ -500,7 +500,7 @@ async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
     websocket = FakeWebSocket()
     session = DummyWsSession(websocket)
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
     )
     client._session = session
@@ -524,7 +524,7 @@ async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
         screenshot_ref="artifact-123.png",
     )
 
-    assert session.ws_connect_calls == [("wss://api.windieos.com/ws", 60, {})]
+    assert session.ws_connect_calls == [("wss://backend.example.com/ws", 60, {})]
     assert websocket.sent[0] == {
         "type": "handshake",
         "user_id": "dev-user",
@@ -563,7 +563,7 @@ async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
 async def test_wake_up_does_not_retry_alternate_backend_urls():
     session = FailingWsSession(aiohttp.ClientError("remote down"))
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
     )
     client._session = session
@@ -571,15 +571,15 @@ async def test_wake_up_does_not_retry_alternate_backend_urls():
     with pytest.raises(Exception, match="Failed to connect to agent websocket"):
         await client.wake_up(agent_id="python-agent")
 
-    assert session.ws_connect_calls == [("wss://api.windieos.com/ws", 60, {})]
-    assert client.backend_url == "https://api.windieos.com"
+    assert session.ws_connect_calls == [("wss://backend.example.com/ws", 60, {})]
+    assert client.backend_url == "https://backend.example.com"
 
 
 @pytest.mark.asyncio
 async def test_python_agent_query_renders_attachment_content_without_query_context():
     websocket = FakeWebSocket()
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
     )
     client._session = DummyWsSession(websocket)
@@ -609,7 +609,7 @@ async def test_python_agent_query_renders_attachment_content_without_query_conte
 async def test_python_agent_update_settings_filters_backend_payload():
     websocket = FakeWebSocket()
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
     )
     client._session = DummyWsSession(websocket)
@@ -661,7 +661,7 @@ async def test_python_agent_update_settings_filters_backend_payload():
 
 @pytest.mark.asyncio
 async def test_wake_up_requires_user_id_when_no_default_is_configured():
-    client = AgentSdkClient(backend_url="https://api.windieos.com")
+    client = AgentSdkClient(backend_url="https://backend.example.com")
     client._session = DummyWsSession(FakeWebSocket())
 
     with pytest.raises(
@@ -673,7 +673,7 @@ async def test_wake_up_requires_user_id_when_no_default_is_configured():
 @pytest.mark.asyncio
 async def test_wake_up_reports_generic_local_runtime_auto_start_failure(tmp_path):
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
         auto_start_local_runtime=False,
         local_runtime_discovery_file=str(tmp_path / "missing-sidecar.json"),
@@ -744,7 +744,7 @@ def test_python_sdk_local_runtime_env_aliases_prefer_generic(monkeypatch, tmp_pa
     monkeypatch.setenv("AGENT_LOCAL_RUNTIME_PYTHON", "agent-python")
     monkeypatch.setenv("WINDIE_PYTHON", "legacy-python")
 
-    client = AgentSdkClient(backend_url="https://api.windieos.com")
+    client = AgentSdkClient(backend_url="https://backend.example.com")
 
     assert client.local_runtime_discovery_file == discovery_file
     assert client.python_command == "agent-python"
@@ -754,7 +754,7 @@ def test_python_sdk_local_runtime_env_aliases_prefer_generic(monkeypatch, tmp_pa
 async def test_wake_up_registers_local_tools_plugins_and_mcps():
     local_runtime = FakeLocalRuntime()
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
         local_runtime=local_runtime,
     )
@@ -822,7 +822,7 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
         ]
     )
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
         local_runtime=local_runtime,
     )
@@ -877,7 +877,7 @@ async def test_python_agent_session_ignores_camel_case_tool_call_payload():
         ]
     )
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
         local_runtime=local_runtime,
     )
@@ -926,7 +926,7 @@ async def test_python_agent_tool_result_strips_invalid_capture_meta():
     )
     local_runtime = PartialCaptureLocalRuntime()
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
         local_runtime=local_runtime,
     )
@@ -984,7 +984,7 @@ async def test_python_agent_stream_and_run_match_high_level_sdk_shape():
     )
     local_runtime = FakeLocalRuntime()
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
         local_runtime=local_runtime,
     )
@@ -1049,7 +1049,7 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
         ]
     )
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
         local_runtime=local_runtime,
     )
@@ -1107,7 +1107,7 @@ async def test_python_agent_session_ignores_camel_case_tool_bundle_payload():
         ]
     )
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
         local_runtime=local_runtime,
     )
@@ -1157,7 +1157,7 @@ async def test_python_agent_session_uses_sdk_bundle_step_status_contract():
         ]
     )
     client = AgentSdkClient(
-        backend_url="https://api.windieos.com",
+        backend_url="https://backend.example.com",
         default_user_id="dev-user",
         local_runtime=local_runtime,
     )

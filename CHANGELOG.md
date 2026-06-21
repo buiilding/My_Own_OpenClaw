@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sidecar: use neutral explicit backend endpoint fixtures in Python SDK
+  client transport coverage instead of the WindieOS hosted URL. No migration
+  required.
+
 - tests/frontend: use neutral `.example.test` endpoint hosts in artifact,
   install-auth, and renderer runtime endpoint coverage instead of
   WindieOS-shaped arbitrary test hosts. No migration required.
