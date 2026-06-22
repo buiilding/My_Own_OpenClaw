@@ -1,5 +1,5 @@
 ---
-summary: "Frontend renderer voice docs sub-hub for gateway transcription lifecycle, wakeword IPC audio capture, cooldown/threshold gating, and shared audio resource cleanup semantics."
+summary: "Frontend renderer voice docs sub-hub for gateway transcription lifecycle, wakeword IPC audio capture, cooldown/threshold gating, browser audio-input adapters, and shared audio resource cleanup semantics."
 read_when:
   - When changing `frontend/src/renderer/features/voice/*` hooks or utility modules.
   - When debugging microphone capture leaks, wakeword retriggers, or transcription reconnect behavior.
@@ -37,6 +37,7 @@ title: "Frontend Renderer Voice Docs Hub"
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioInputDeviceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopWakewordEventRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts`

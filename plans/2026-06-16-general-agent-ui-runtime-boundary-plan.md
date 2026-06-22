@@ -9,6 +9,28 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Voice Audio Input Device Runtime
+
+- Finding: `useVoiceMode` and `useWakewordDetection` already delegated audio
+  encoding, cleanup, processor setup, bridge IPC, and reconnect timers to
+  renderer app-runtime facades, but both hooks still owned raw browser
+  microphone capture and AudioContext construction. Wakeword detection also
+  owned the raw `devicechange` subscription used for missing-device recovery.
+- Change: added `DesktopVoiceAudioInputDeviceRuntime` for browser
+  `getUserMedia`, AudioContext/webkitAudioContext creation, audio-input
+  availability probing, and device-change subscription cleanup. Voice and
+  wakeword hooks now keep lifecycle/error policy while consuming that facade;
+  the wakeword missing-device guard delegates audio-input probing through the
+  same app-runtime owner.
+- Validation target: `VoiceAudioInputDeviceRuntime.test.ts`,
+  `VoiceModeHook.test.ts`, `WakewordDetectionHook.test.ts`, and
+  `RendererVoiceRuntimeBoundary.test.ts` protect browser adapter behavior and
+  reject direct media-device/AudioContext access in voice hooks.
+- Compatibility/security: no IPC channel, SDK event payload, backend
+  transcription frame shape, wakeword audio chunk shape, renderer config,
+  persisted storage, permission prompt contract, credential, local execution,
+  trust-boundary, or migration change required.
+
 ### 2026-06-22 Dashboard Thread Tool-Log Input Deletion
 
 - Finding: `ChatInterface` still forwarded `showToolLogs` and lifecycle busy

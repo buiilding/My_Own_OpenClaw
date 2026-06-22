@@ -5,6 +5,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DesktopVoiceAudioEncodingRuntime } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
 import { DesktopVoiceAudioCaptureCleanupRuntime } from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
+import { DesktopVoiceAudioInputDeviceRuntime } from '../../../app/runtime/desktopVoiceAudioInputDeviceRuntime';
 import { DesktopVoiceAudioProcessorNodeRuntime } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { DesktopRendererHooksRuntimeClient } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
@@ -19,6 +20,10 @@ const {
   closeAudioContextSafely,
   takeAudioContext,
 } = DesktopVoiceAudioCaptureCleanupRuntime;
+const {
+  createAudioInputContext,
+  requestAudioInputStream,
+} = DesktopVoiceAudioInputDeviceRuntime;
 const { createAudioCaptureProcessorNode } = DesktopVoiceAudioProcessorNodeRuntime;
 const { logVoiceDebugTrace } = DesktopVoiceDebugTraceRuntime;
 
@@ -208,14 +213,11 @@ export function useVoiceMode(
     const generation = ++captureGenerationRef.current;
 
     try {
-      // Request microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          sampleRate: 16000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-        }
+      const stream = await requestAudioInputStream({
+        sampleRate: 16000,
+        channelCount: 1,
+        echoCancellation: true,
+        noiseSuppression: true,
       });
 
       if (generation !== captureGenerationRef.current || !enabledRef.current) {
@@ -225,10 +227,7 @@ export function useVoiceMode(
 
       setMediaStreamRef(stream);
 
-      // Create audio context
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
-        sampleRate: 16000
-      });
+      const audioContext = createAudioInputContext({ sampleRate: 16000 });
 
       if (generation !== captureGenerationRef.current || !enabledRef.current) {
         stream.getTracks().forEach((track) => track.stop());

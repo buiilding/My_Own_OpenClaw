@@ -11,6 +11,7 @@ title: "Wakeword Capture Guard Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioInputDeviceRuntime.ts`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
 - `tests/frontend/voice/WakewordDetectionHook.test.ts`
 
@@ -57,8 +58,9 @@ All other errors are treated as generic capture failures.
 
 `DesktopWakewordCaptureGuardRuntime.hasAvailableAudioInputDevice()`:
 
-- returns `false` when `navigator.mediaDevices` or `enumerateDevices` is unavailable
-- attempts `enumerateDevices()`
+- delegates the browser `enumerateDevices()` adapter to
+  `DesktopVoiceAudioInputDeviceRuntime.hasAvailableAudioInputDevice()`
+- returns `false` when the browser media-device adapter is unavailable
 - returns `true` only when at least one device has `kind === "audioinput"`
 - returns `false` on enumeration errors
 
@@ -70,7 +72,9 @@ This keeps reconnect retry logic fail-closed under platform/API failures.
 
 - bootstrap persisted guard state on hook module load
 - clear lockout when user preference disables wakeword
-- re-check lockout on `devicechange` and restart capture when audio input appears
+- re-check lockout through
+  `DesktopVoiceAudioInputDeviceRuntime.onAudioInputDeviceChange(...)` and
+  restart capture when audio input appears
 - classify capture failures into missing-device vs generic paths
 
 ## Test-Locked Invariants

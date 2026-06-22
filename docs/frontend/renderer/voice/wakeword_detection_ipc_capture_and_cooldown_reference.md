@@ -16,6 +16,7 @@ title: "Wakeword Detection IPC Capture and Cooldown Reference"
 - `frontend/src/renderer/app/runtime/desktopWakewordEventRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioInputDeviceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceDebugTraceRuntime.ts`
@@ -121,6 +122,11 @@ This prevents stale async setup from reviving capture after a stop request.
 
 ## Audio Capture and Transport
 
+Capture setup flows through
+`DesktopVoiceAudioInputDeviceRuntime.requestAudioInputStream(...)` and
+`DesktopVoiceAudioInputDeviceRuntime.createAudioInputContext(...)`, so browser
+media-device and AudioContext adapter mechanics stay out of the wakeword hook.
+
 Capture defaults:
 
 - sample rate `16000`
@@ -172,7 +178,9 @@ Missing microphone behavior (`NotFoundError` / "requested device not found"):
 - suppression-only disable (`wakewordActive=false` while `wakewordPreferenceEnabled=true`) does not clear lockout
 - lockout clears when:
   - user preference is explicitly disabled (`wakewordPreferenceEnabled=false`)
-  - `mediaDevices.devicechange` indicates an `audioinput` device is available again
+  - `DesktopVoiceAudioInputDeviceRuntime.onAudioInputDeviceChange(...)`
+    receives a browser device-change event and the app-runtime audio-device
+    probe reports an available `audioinput`
 
 Audio context close errors are suppressed when message indicates already-closed context; unexpected close errors are warning-logged.
 

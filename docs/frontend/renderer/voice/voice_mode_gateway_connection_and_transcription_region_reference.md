@@ -14,6 +14,7 @@ title: "Voice Mode Gateway Connection and Transcription Region Reference"
 - `frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioInputDeviceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
@@ -87,7 +88,10 @@ Reconnect policy:
 
 Capture configuration:
 
-- `getUserMedia` mono audio
+- `DesktopVoiceAudioInputDeviceRuntime.requestAudioInputStream(...)` owns the
+  browser `getUserMedia` call for mono audio
+- `DesktopVoiceAudioInputDeviceRuntime.createAudioInputContext(...)` owns
+  browser `AudioContext` construction
 - requested sample rate `16000`
 - echo cancellation + noise suppression enabled
 - capture startup uses a generation guard; disabling voice mode or unmounting

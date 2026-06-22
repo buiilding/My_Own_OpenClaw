@@ -101,6 +101,7 @@ frontend/src/renderer/
 |   |   |-- desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
 |   |   |-- desktopVoiceAudioEncodingRuntime.ts # Renderer voice PCM conversion, chunk normalization, and gateway frame facade
 |   |   |-- desktopVoiceAudioCaptureCleanupRuntime.ts # Renderer voice audio-node and media-stream cleanup facade
+|   |   |-- desktopVoiceAudioInputDeviceRuntime.ts # Renderer voice browser audio-input device adapter facade
 |   |   |-- desktopVoiceAudioProcessorNodeRuntime.ts # Renderer voice AudioWorklet capture processor facade
 |   |   |-- desktopWakewordEventRuntime.ts # Renderer wakeword event confidence/cooldown/chunk warning facade
 |   |   |-- desktopWakewordCaptureGuardRuntime.ts # Renderer wakeword missing-device lockout and audio-input probe facade

@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for renderer voice utility primitives: Float32->PCM16 conversion, gateway binary framing cache, chunk-size normalization, AudioWorklet-only capture processing, removed ScriptProcessor fallback behavior, processorNodeRef cleanup, and safe audio-node/context teardown behavior."
+summary: "Deep reference for renderer voice utility primitives: Float32->PCM16 conversion, gateway binary framing cache, chunk-size normalization, browser audio-input adapters, AudioWorklet-only capture processing, removed ScriptProcessor fallback behavior, processorNodeRef cleanup, and safe audio-node/context teardown behavior."
 read_when:
   - When changing voice/wakeword audio chunk conversion or gateway framing payload shape.
-  - When debugging mic-resource leaks, repeated AudioContext-close warnings, AudioWorklet capture processor unavailable errors, removed ScriptProcessor fallback behavior, processorNodeRef cleanup, or wakeword chunk-size warnings/normalization behavior.
+  - When debugging mic-resource leaks, microphone device-change recovery, repeated AudioContext-close warnings, AudioWorklet capture processor unavailable errors, removed ScriptProcessor fallback behavior, processorNodeRef cleanup, or wakeword chunk-size warnings/normalization behavior.
   - When resolving removed ScriptProcessor fallback voice capture behavior.
 title: "Audio Encoding, Chunk Normalization, and Capture Cleanup Reference"
 ---
@@ -13,6 +13,7 @@ title: "Audio Encoding, Chunk Normalization, and Capture Cleanup Reference"
 
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioInputDeviceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopWakewordEventRuntime.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
@@ -60,6 +61,25 @@ Wakeword hook behavior:
 The normalized chunk size is passed to the AudioWorklet capture processor so
 wakeword framing stays on a supported/stable set while preserving closest user
 intent.
+
+## Audio Input Device Adapter Contract
+
+`DesktopVoiceAudioInputDeviceRuntime` owns browser audio-input adapters used by
+voice and wakeword hooks:
+
+- `requestAudioInputStream(...)`: wraps `navigator.mediaDevices.getUserMedia`
+  and assembles mono sample-rate, echo/noise, and optional auto-gain constraints
+- `createAudioInputContext(...)`: wraps `AudioContext` / `webkitAudioContext`
+  construction with a configured sample rate
+- `hasAvailableAudioInputDevice()`: probes `enumerateDevices()` for an
+  `audioinput` device while swallowing browser probe errors
+- `onAudioInputDeviceChange(...)`: registers and cleans up browser
+  `devicechange` listeners
+
+Design goal:
+
+- keep feature hooks focused on voice/wakeword lifecycle state while the
+  renderer app-runtime owns browser audio-device mechanics
 
 ## Capture Processor Selection
 
