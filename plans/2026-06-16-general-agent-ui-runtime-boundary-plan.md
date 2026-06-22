@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Model Reset Warning Timer Runtime
+
+- Finding: `ModelsSection` already delegated model reconciliation to
+  `DesktopModelSelectionRuntime`, but still owned raw browser timeout
+  scheduling/cleanup for clearing the missing-model reset warning.
+- Change: extended `DesktopModelSelectionRuntime` with warning timer
+  schedule/clear helpers and routed `ModelsSection` through them. The section
+  keeps warning state and selection side effects while the app-runtime facade
+  owns browser timeout adapters.
+- Validation target: focused model-selection runtime, models section, and
+  renderer chat-boundary tests protect default delay, timer replacement,
+  cleanup, missing-adapter fallback, and rejection of raw timeout calls in the
+  section.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-22 Tool Ghost Debug Timer Runtime
 
 - Finding: `ToolGhostDebugApp` already read click-sync timing from

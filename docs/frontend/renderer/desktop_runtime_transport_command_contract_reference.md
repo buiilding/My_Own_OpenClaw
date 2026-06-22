@@ -167,8 +167,11 @@ from the app-runtime facade instead of section-local data helpers.
 provider display fallback consumption through the renderer skin config, context
 hint formatting, thinking/recommended badges, provider label normalization, and
 provider-card grouping. `ModelsSection` keeps provider drilldown, hover state,
-selection side effects, catalog refresh, and API-key rendering while consuming
-projected card rows from the app-runtime facade.
+selection side effects, catalog refresh, model-reset warning state, and API-key
+rendering while consuming projected card rows from the app-runtime facade.
+`DesktopModelSelectionRuntime` owns selected-model reconciliation and the
+browser timer adapter used to clear missing-model reset warnings instead of
+leaving timeout calls in the section.
 
 `desktopProviderCredentialRuntime.js` owns renderer provider API-key entry
 normalization, skin-configured API-key specs, and renderer-persistence secret

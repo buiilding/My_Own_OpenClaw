@@ -8,9 +8,11 @@ import {
 
 const {
   buildModelConfigUpdate,
+  clearModelResetWarningTimer,
   evaluateModelSelection,
   getCurrentModels,
   getFallbackModelSelection,
+  scheduleModelResetWarningClear,
 } = DesktopModelSelectionRuntime;
 
 describe('desktopModelSelectionRuntime', () => {
@@ -18,6 +20,22 @@ describe('desktopModelSelectionRuntime', () => {
     { id: 'gpt-5', provider: 'openai' },
     { id: 'claude-sonnet', provider: 'anthropic' },
   ];
+
+  function createTimerApi() {
+    let nextId = 0;
+    const timers = new Map();
+    return {
+      timers,
+      setTimeout(callback, delayMs) {
+        const id = ++nextId;
+        timers.set(id, { callback, delayMs });
+        return id;
+      },
+      clearTimeout(id) {
+        timers.delete(id);
+      },
+    };
+  }
 
   test('getCurrentModels returns local models for local mode', () => {
     expect(getCurrentModels({ local: sampleModels, online: [] }, 'local')).toEqual(sampleModels);
@@ -189,5 +207,59 @@ describe('desktopModelSelectionRuntime', () => {
   test('getFallbackModelSelection returns first model or empty selection', () => {
     expect(getFallbackModelSelection(sampleModels)).toEqual({ id: 'gpt-5', provider: 'openai' });
     expect(getFallbackModelSelection([])).toEqual({ id: '', provider: '' });
+  });
+
+  test('model reset warning timer schedules, replaces, runs, and clears through adapter', () => {
+    const timerApi = createTimerApi();
+    const timerRef = { current: null };
+    const firstClear = jest.fn();
+    const secondClear = jest.fn();
+
+    scheduleModelResetWarningClear({
+      timerRef,
+      onClear: firstClear,
+      timerApi,
+    });
+    expect(timerRef.current).toBe(1);
+    expect(timerApi.timers.get(1)?.delayMs).toBe(5000);
+
+    scheduleModelResetWarningClear({
+      timerRef,
+      onClear: secondClear,
+      delayMs: 1200,
+      timerApi,
+    });
+    expect(timerApi.timers.has(1)).toBe(false);
+    expect(timerRef.current).toBe(2);
+    expect(timerApi.timers.get(2)?.delayMs).toBe(1200);
+
+    timerApi.timers.get(2)?.callback();
+    expect(timerRef.current).toBeNull();
+    expect(firstClear).not.toHaveBeenCalled();
+    expect(secondClear).toHaveBeenCalledTimes(1);
+
+    scheduleModelResetWarningClear({
+      timerRef,
+      onClear: firstClear,
+      timerApi,
+    });
+    clearModelResetWarningTimer({ timerRef, timerApi });
+    expect(timerRef.current).toBeNull();
+    expect(timerApi.timers.has(3)).toBe(false);
+  });
+
+  test('model reset warning timer clears immediately when timer adapter is unavailable', () => {
+    const timerRef = { current: null };
+    const onClear = jest.fn();
+
+    const timerId = scheduleModelResetWarningClear({
+      timerRef,
+      onClear,
+      timerApi: {},
+    });
+
+    expect(timerId).toBeNull();
+    expect(timerRef.current).toBeNull();
+    expect(onClear).toHaveBeenCalledTimes(1);
   });
 });

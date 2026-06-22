@@ -126,6 +126,9 @@ Dashboard rules:
   model cards.
 - `DesktopModelSelectionRuntime.evaluateModelSelection(...)` resets missing selected ids and fixes provider
   mismatch when a model id is shared by multiple providers.
+- `DesktopModelSelectionRuntime.scheduleModelResetWarningClear(...)` and
+  `clearModelResetWarningTimer(...)` own missing-model warning timeout
+  scheduling and cleanup for `ModelsSection`.
 - `DesktopModelSelectionRuntime.buildModelConfigUpdate(...)` must preserve `model_mode`,
   `speech_mode_enabled`, and `interaction_mode` while changing the selected
   model/provider.
