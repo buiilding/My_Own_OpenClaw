@@ -10,9 +10,11 @@ title: "ADR 006: Renderer-Owned Typing State"
 
 ## Status
 
-Accepted target architecture. Current implementation still has multiple
-typing/busy lifecycle sources and should converge on this decision through
-owner-correct regression tests and incremental cleanup.
+Accepted and implemented for renderer-owned desktop lifecycle projection as of
+2026-06-22. Raw store fields such as `isSending`, `streamTracking`, and
+`thinkingStatus` remain only as transport, diagnostic, or rendering/detail data;
+dashboard, chat pill, response overlay, Stop/busy, and typing surfaces route
+through the renderer visible turn lifecycle owner.
 
 ## Context
 

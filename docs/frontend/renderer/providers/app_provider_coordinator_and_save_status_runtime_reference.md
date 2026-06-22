@@ -13,11 +13,13 @@ title: "App Provider Coordinator and Save-Status Runtime Reference"
 - `frontend/src/renderer/app/providers/AppProvider.jsx`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopAppProviderRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient.js`
@@ -27,6 +29,7 @@ title: "App Provider Coordinator and Save-Status Runtime Reference"
 - `tests/frontend/AppConfigProvider.models.test.tsx`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 - `tests/frontend/AppStatusProvider.test.tsx`
+- `tests/frontend/DesktopAppProviderRuntime.test.js`
 
 ## Provider Split and Coordination
 
@@ -41,6 +44,8 @@ Coordinator responsibilities:
 - register `statusContext.setSaving` callback into config provider
 - maintain ref snapshots of `config` and `updateConfig`
 - own global `Shift+Tab` interaction-mode toggle shortcut
+- route global keydown listener setup/cleanup and editable-target checks
+  through `DesktopAppProviderRuntime`
 
 This keeps config data and transient save-status state decoupled while still connected for settings save UX.
 
@@ -89,7 +94,9 @@ Callback API:
 Initialization/sync inputs:
 
 1. localStorage (`loadConfigFromStorage`) as initial state seed
-2. renderer view (`window.location.search`) for initial wakeword suppression seed
+2. renderer view via
+   `DesktopStartupRuntimeClient.shouldSuppressWakewordOnStartup()` for initial
+   wakeword suppression seed
 3. settings-event listener through `DesktopAppConfigRuntimeClient.onSettingsEvent(...)` for `models-listed`
 4. `DesktopClientSessionRuntimeClient.onIpcStatusValues(...)` for normalized connection, session/user, shortcut-status, and runtime HTTP URL snapshot values
 5. `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()` for startup snapshot
@@ -157,8 +164,14 @@ Electron host transport is routed through app runtime clients:
   settings feature code consume app-runtime facade methods instead of provider
   hook exports.
 - `DesktopSettingsRuntimeClient` owns SDK settings/model commands.
+- `DesktopAppProviderRuntime` owns browser listener adapters for provider
+  keydown/storage events, app localStorage access for storage-event filtering,
+  editable-target detection, and save-status timeout scheduling/cleanup.
 
 Provider code should not import `IpcBridge`, channel constants, or SDK desktop transport channel names directly.
+Provider code should also avoid raw browser listener/timer calls; route those
+through `DesktopAppProviderRuntime` while keeping state transition policy in
+the provider.
 
 ## AppStatusProvider Save-State Machine
 
@@ -178,6 +191,7 @@ Transitions:
 Cleanup:
 
 - clears settings-event listener and both timers on unmount
+- timer scheduling and cleanup are delegated to `DesktopAppProviderRuntime`
 
 ## Wakeword Suppression Wiring
 
@@ -205,7 +219,7 @@ Net effect:
 
 - [Renderer Provider Contexts Docs Hub](contexts/README.md)
 - [App Config and Status Context Hook Guard and Re-Export Boundary Reference](contexts/app_config_and_status_context_hook_guard_and_reexport_boundary_reference.md)
-- [Chat Provider Bootstrap Flag and Empty-Context Contract Reference](contexts/chat_provider_bootstrap_flag_and_empty_context_contract_reference.md)
+- [Chat Provider Bootstrap Flag Contract Reference](contexts/chat_provider_bootstrap_flag_contract_reference.md)
 - [Renderer Provider Shortcut Docs Hub](shortcuts/README.md)
 - [Shift+Tab Mode Toggle and Editable Target Guard Reference](shortcuts/shift_tab_mode_toggle_and_editable_target_guard_reference.md)
 

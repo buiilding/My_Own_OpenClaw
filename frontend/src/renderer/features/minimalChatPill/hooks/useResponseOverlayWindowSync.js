@@ -6,6 +6,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 import { DesktopResponseOverlayLayoutRuntime } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
+import { DesktopResponseOverlayInteractionRuntime } from '../../../app/runtime/desktopResponseOverlayInteractionRuntime';
 
 const {
   logRendererResponseOverlayLifecycleTrace,
@@ -33,7 +34,7 @@ export function useResponseOverlayWindowSync({
   overlayLayoutMode,
   overlayIntent = null,
   responseEntrySignature,
-  showResponse,
+  responseVisible,
   thinkingText,
 }) {
   const lastFrameRef = useRef(createHiddenFrameState());
@@ -43,6 +44,7 @@ export function useResponseOverlayWindowSync({
   });
   const overlayConversationRefRef = useRef(null);
   const reportOverlaySizeRef = useRef(null);
+  const visibilityRereportCancelRef = useRef(null);
 
   useEffect(() => {
     const turnRef = overlayIntent?.turnRef ?? null;
@@ -104,7 +106,7 @@ export function useResponseOverlayWindowSync({
 
     const compactHover = DesktopResponseOverlayLayoutRuntime.isCompactHoverLayoutMode(layoutMode);
     let { width, height } = nextFrame;
-    if (DesktopResponseOverlayLayoutRuntime.isAwaitingResponseOverlayLayoutMode(layoutMode)) {
+    if (compactHover) {
       height = TYPING_FRAME_HEIGHT;
     }
 
@@ -135,7 +137,7 @@ export function useResponseOverlayWindowSync({
         conversationRef: overlayIntent?.conversationRef || null,
         visible: true,
         layoutMode,
-        showResponse,
+        responseVisible,
         thinkingText,
         compactHover: Boolean(compactHover),
         turnRef,
@@ -159,7 +161,7 @@ export function useResponseOverlayWindowSync({
     overlayIntent?.staleGuardRef,
     overlayIntent?.turnRef,
     shellRef,
-    showResponse,
+    responseVisible,
     thinkingText,
   ]);
 
@@ -176,14 +178,21 @@ export function useResponseOverlayWindowSync({
       if (!isVisible) {
         return;
       }
-      window.requestAnimationFrame(() => {
-        void reportOverlaySize({
-          visible: true,
-          layoutMode: overlayLayoutMode,
-        });
-      });
+      visibilityRereportCancelRef.current?.();
+      visibilityRereportCancelRef.current = (
+        DesktopResponseOverlayInteractionRuntime.scheduleResponseOverlayFrame({
+          callback: () => {
+            void reportOverlaySize({
+              visible: true,
+              layoutMode: overlayLayoutMode,
+            });
+          },
+        })
+      );
     });
     return () => {
+      visibilityRereportCancelRef.current?.();
+      visibilityRereportCancelRef.current = null;
       removeListener?.();
     };
   }, [
@@ -193,11 +202,6 @@ export function useResponseOverlayWindowSync({
   ]);
 
   useLayoutEffect(() => {
-    let cancelled = false;
-    let rafId = null;
-    let retryTimerId = null;
-    let resizeObserver = null;
-
     if (!isVisible) {
       void reportOverlaySize({
         visible: false,
@@ -206,53 +210,26 @@ export function useResponseOverlayWindowSync({
       return undefined;
     }
 
-    void reportOverlaySize({
-      visible: true,
-      layoutMode: overlayLayoutMode,
-    });
-
-    const scheduleSizeUpdate = () => {
-      if (cancelled) {
-        return;
-      }
-      if (rafId !== null) {
-        window.cancelAnimationFrame(rafId);
-      }
-      rafId = window.requestAnimationFrame(() => {
-        if (cancelled) {
-          return;
-        }
-        void reportOverlaySize({
-          visible: true,
-          layoutMode: overlayLayoutMode,
-        });
+    const reportVisibleSize = () => {
+      void reportOverlaySize({
+        visible: true,
+        layoutMode: overlayLayoutMode,
       });
     };
 
-    scheduleSizeUpdate();
-    retryTimerId = window.setTimeout(scheduleSizeUpdate, 40);
-    if (typeof ResizeObserver === 'function' && shellRef.current) {
-      resizeObserver = new ResizeObserver(scheduleSizeUpdate);
-      resizeObserver.observe(shellRef.current);
-    }
+    reportVisibleSize();
 
-    return () => {
-      cancelled = true;
-      if (rafId !== null) {
-        window.cancelAnimationFrame(rafId);
-      }
-      if (retryTimerId !== null) {
-        window.clearTimeout(retryTimerId);
-      }
-      resizeObserver?.disconnect();
-    };
+    return DesktopResponseOverlayInteractionRuntime.startResponseOverlaySizeUpdateSync({
+      shellRef,
+      onSizeUpdate: reportVisibleSize,
+    });
   }, [
     isVisible,
     overlayLayoutMode,
     reportOverlaySize,
     responseEntrySignature,
     shellRef,
-    showResponse,
+    responseVisible,
     thinkingText,
   ]);
 

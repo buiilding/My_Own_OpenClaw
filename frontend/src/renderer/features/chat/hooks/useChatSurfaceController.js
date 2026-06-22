@@ -2,10 +2,10 @@
  * Provides the use chat surface controller module for the renderer UI.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopManualCompactionRuntime } from '../../../app/runtime/desktopManualCompactionRuntime';
-import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
+import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
   DesktopLiveTurnSurfaceRuntime,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
@@ -14,11 +14,13 @@ import { DesktopVisibleTurnLifecycleRuntime } from '../../../app/runtime/desktop
 const {
   applyVisibleTurnLifecycleToPresentationState,
   resolveVisibleTurnLifecycle,
-  resolveVisibleTurnLifecycleForPresentation,
 } = DesktopVisibleTurnLifecycleRuntime;
 const {
   resolveLiveTurnPresentationInput,
 } = DesktopLiveTurnSurfaceRuntime;
+const {
+  resolveCurrentTurnPresentationState,
+} = DesktopCurrentTurnPresentationRuntime;
 const {
   runManualCompaction: runManualCompactionCommand,
 } = DesktopManualCompactionRuntime;
@@ -56,19 +58,15 @@ export function useChatSurfaceController({
     messages,
     visibleTurnLifecycle,
   });
-  const controllerVisibleTurnLifecycle = resolveVisibleTurnLifecycleForPresentation({
-    visibleTurnLifecycle,
-    liveTurnPresentationInput,
-    messages,
-  });
-  const currentTurnPresentationState = useCurrentTurnPresentationState({
-    messages,
-  });
+  const currentTurnPresentationState = useMemo(
+    () => resolveCurrentTurnPresentationState({ messages }),
+    [messages],
+  );
   const visibleLifecyclePresentationState = applyVisibleTurnLifecycleToPresentationState(
     currentTurnPresentationState,
-    controllerVisibleTurnLifecycle,
+    visibleTurnLifecycle,
   );
-  const isBusy = controllerVisibleTurnLifecycle.isBusy === true;
+  const isBusy = visibleTurnLifecycle.isBusy === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
@@ -120,7 +118,7 @@ export function useChatSurfaceController({
     canStop: isBusy,
     liveTurnPhase: liveTurnPresentationInput.phase,
     liveTurnSource: liveTurnPresentationInput.source,
-    visibleTurnLifecycle: controllerVisibleTurnLifecycle,
+    visibleTurnLifecycle,
     speechModeEnabled,
     toggleBooleanConfig,
     toggleQueryScreenshot,

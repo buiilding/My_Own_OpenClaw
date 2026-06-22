@@ -17,7 +17,6 @@ const {
 } = DesktopResponseOverlayPhaseRuntime;
 const {
   resolveVisibleTurnLifecycle,
-  shouldUseLocalSendPreflight,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
@@ -50,15 +49,8 @@ function normalizeConversationRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function isPendingTurn(value) {
-  return Boolean(
-    value
-      && typeof value === 'object'
-      && normalizeConversationRef(value.conversationRef)
-      && normalizeTurnRef(value.turnRef)
-      && typeof value.userMessageId === 'string'
-      && typeof value.text === 'string',
-  );
+function normalizeString(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
 function mapCurrentTurnProjectionPhase(phase) {
@@ -86,40 +78,60 @@ function hasSdkLiveTurnPresentation(currentTurnProjection) {
   return Boolean(
     presentation
       && typeof presentation === 'object'
-      && typeof presentation.typingVisible === 'boolean'
-      && typeof presentation.overlayVisible === 'boolean',
+      && Array.isArray(presentation.entries)
+      && presentation.entries.length > 0,
   );
+}
+
+function hasProjectionVisibleOverlayContent(currentTurnProjection) {
+  const presentation = currentTurnProjection?.presentation;
+  const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
+  const toolEvents = Array.isArray(currentTurnProjection?.toolEvents)
+    ? currentTurnProjection.toolEvents
+    : [];
+  return Boolean(
+    normalizePhase(currentTurnProjection?.phase) === 'error'
+      || normalizeString(currentTurnProjection?.assistantText)
+      || normalizeString(currentTurnProjection?.reasoningText)
+      || normalizeString(currentTurnProjection?.lastError)
+      || entries.length > 0
+      || toolEvents.some((event) => (
+        event?.kind === 'tool_call'
+        || event?.kind === 'tool_output'
+        || event?.kind === 'tool_progress'
+      )),
+  );
+}
+
+function resolveSdkOverlayIntentMode(currentTurnProjection) {
+  if (normalizePhase(currentTurnProjection?.phase) === 'awaiting') {
+    return 'awaiting';
+  }
+  return hasProjectionVisibleOverlayContent(currentTurnProjection) ? 'response' : 'hidden';
 }
 
 function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
   const intent = presentation?.overlayIntent;
-  if (
-    intent
-    && typeof intent === 'object'
-    && (intent.mode === 'hidden' || intent.mode === 'awaiting' || intent.mode === 'response')
-  ) {
-    return intent;
-  }
-  const mode = presentation?.overlayVisible
-    ? 'response'
-    : (presentation?.typingVisible ? 'awaiting' : 'hidden');
+  const mode = resolveSdkOverlayIntentMode(currentTurnProjection);
+  const turnRef = (
+    normalizeTurnRef(intent?.turnRef)
+    || normalizeTurnRef(currentTurnProjection?.turnRef)
+  );
+  const conversationRef = (
+    normalizeConversationRef(intent?.conversationRef)
+    || normalizeConversationRef(currentTurnProjection?.conversationRef)
+  );
+  const staleGuardRef = (
+    normalizeTurnRef(intent?.staleGuardRef)
+    || turnRef
+  );
   return {
     visible: mode !== 'hidden',
     mode,
-    turnRef: currentTurnProjection?.turnRef ?? null,
-    conversationRef: currentTurnProjection?.conversationRef ?? '',
-    staleGuardRef: currentTurnProjection?.turnRef ?? null,
+    turnRef,
+    conversationRef,
+    staleGuardRef,
   };
-}
-
-function shouldUseSendPreflight({
-  currentTurnProjection,
-  pendingTurn,
-}) {
-  return shouldUseLocalSendPreflight({
-    currentTurnProjection,
-    pendingTurn,
-  });
 }
 
 function resolveLiveTurnPresentationInput({
@@ -134,11 +146,8 @@ function resolveLiveTurnPresentationInput({
     currentTurnProjection,
     messages,
   });
-  const useLocalSendLatch = shouldUseSendPreflight({
-    currentTurnProjection,
-    pendingTurn,
-  });
-  if (useLocalSendLatch) {
+  const useLocalPendingTurn = resolvedVisibleTurnLifecycle?.status === 'local_pending';
+  if (useLocalPendingTurn) {
     const turnRef = normalizeTurnRef(pendingTurn?.turnRef);
     const preflightGuardRef = getResponseOverlayPreflightGuardRef();
     const conversationRef = (
@@ -149,10 +158,8 @@ function resolveLiveTurnPresentationInput({
     return {
       phase: getAwaitingFirstChunkResponseOverlayPhase(),
       isBusy: true,
-      showAwaiting: true,
-      showResponse: false,
-      source: isPendingTurn(pendingTurn) ? 'pending-turn' : 'send-preflight',
-      useLocalSendLatch: true,
+      source: 'pending-turn',
+      useLocalPendingTurn: true,
       useSdkLiveTurnPresentation,
       overlayIntent: {
         visible: true,
@@ -173,8 +180,6 @@ function resolveLiveTurnPresentationInput({
     currentTurnProjection,
   );
   const lifecycleIsBusy = resolvedVisibleTurnLifecycle?.isBusy === true;
-  const lifecycleShowsTyping = resolvedVisibleTurnLifecycle?.showTyping === true;
-  const lifecycleShowsResponse = resolvedVisibleTurnLifecycle?.status === 'active';
 
   if (useSdkLiveTurnPresentation) {
     const presentation = currentTurnProjection.presentation;
@@ -182,10 +187,8 @@ function resolveLiveTurnPresentationInput({
     return {
       phase: visibleLifecyclePhase,
       isBusy: lifecycleIsBusy,
-      showAwaiting: lifecycleShowsTyping,
-      showResponse: lifecycleShowsResponse,
       source: 'sdk-current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: true,
       overlayIntent,
       entries: Array.isArray(presentation.entries) ? presentation.entries : [],
@@ -197,29 +200,29 @@ function resolveLiveTurnPresentationInput({
 
   const currentTurnPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase);
   if (currentTurnPhase) {
+    const overlayIntent = resolveSdkOverlayIntent(
+      currentTurnProjection?.presentation,
+      currentTurnProjection,
+    );
     return {
       phase: visibleLifecyclePhase,
       isBusy: lifecycleIsBusy,
-      showAwaiting: lifecycleShowsTyping,
-      showResponse: lifecycleShowsResponse,
       source: 'current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
-      overlayIntent: null,
+      overlayIntent,
       entries: [],
-      turnRef: currentTurnProjection?.turnRef ?? null,
-      conversationRef: currentTurnProjection?.conversationRef ?? null,
-      guardRef: currentTurnProjection?.turnRef ?? null,
+      turnRef: overlayIntent.turnRef || currentTurnProjection?.turnRef || null,
+      conversationRef: overlayIntent.conversationRef || currentTurnProjection?.conversationRef || null,
+      guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || currentTurnProjection?.turnRef || null,
     };
   }
 
   return {
     phase: getIdleResponseOverlayPhase(),
     isBusy: false,
-    showAwaiting: false,
-    showResponse: false,
     source: 'idle',
-    useLocalSendLatch: false,
+    useLocalPendingTurn: false,
     useSdkLiveTurnPresentation: false,
     overlayIntent: null,
     entries: [],

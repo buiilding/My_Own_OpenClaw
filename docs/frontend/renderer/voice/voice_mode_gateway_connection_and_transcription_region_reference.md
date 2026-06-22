@@ -11,8 +11,10 @@ title: "Voice Mode Gateway Connection and Transcription Region Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioInputDeviceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
@@ -76,12 +78,20 @@ Reconnect policy:
 - max 5 attempts
 - exponential delay (`1s, 2s, 4s, 8s, 16s`)
 - reconnect only while hook remains enabled
+- reconnect timer scheduling, replacement, missing-adapter fallback, and cleanup
+  route through
+  `DesktopVoiceRuntimeClient.scheduleTranscriptionReconnectTimer(...)` and
+  `clearTranscriptionReconnectTimer(...)`; the hook owns enabled state,
+  attempt count, and reconnect callbacks
 
 ## Audio Capture Pipeline
 
 Capture configuration:
 
-- `getUserMedia` mono audio
+- `DesktopVoiceAudioInputDeviceRuntime.requestAudioInputStream(...)` owns the
+  browser `getUserMedia` call for mono audio
+- `DesktopVoiceAudioInputDeviceRuntime.createAudioInputContext(...)` owns
+  browser `AudioContext` construction
 - requested sample rate `16000`
 - echo cancellation + noise suppression enabled
 - capture startup uses a generation guard; disabling voice mode or unmounting
@@ -119,7 +129,7 @@ Optimization:
 Shutdown path (`stopAudioCapture` + `disconnectWebSocket`):
 
 - invalidate any pending capture start before it can mark recording active
-- clear reconnect timer
+- clear reconnect timer through `DesktopVoiceRuntimeClient`
 - disconnect processor/source nodes
 - null `AudioWorkletNode.port.onmessage`
 - stop media tracks
@@ -140,6 +150,8 @@ happens on a detached reference to prevent duplicate-close races.
 - first transcript chunk appends text and opens region
 - subsequent chunks replace only that region
 - manual typing/paste adjusts region offsets via helper utilities
+- pasted-text extraction from `ClipboardEvent.clipboardData` routes through
+  `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)`
 - reset clears region after message send
 
 Effect:

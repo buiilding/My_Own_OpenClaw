@@ -1496,7 +1496,7 @@ describe('modular sdk refactor completion boundary', () => {
         'docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md',
       ),
       read(
-        'docs/frontend/renderer/providers/contexts/chat_provider_bootstrap_flag_and_empty_context_contract_reference.md',
+        'docs/frontend/renderer/providers/contexts/chat_provider_bootstrap_flag_contract_reference.md',
       ),
     ]);
     const docText = docs.join('\n');

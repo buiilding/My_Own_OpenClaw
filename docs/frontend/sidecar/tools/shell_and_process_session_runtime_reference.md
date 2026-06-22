@@ -50,7 +50,7 @@ Validation and defaults:
 - `directory` may be omitted, absolute, or relative; omitted and relative values resolve from the selected workspace folder from `filesystem_workspace_access` when available, then `Path.home()`
 - `terminate_after_seconds` defaults to `120.0`
 - optional `pty=true` is best-effort (disabled on Windows or missing `pty` module)
-- repository/log search guidance remains model-facing rather than executor-enforced: prefer `rg` and exclude generated directories such as `node_modules`, `frontend/release`, `frontend/python-runtime`, and `.git` unless the user explicitly needs them
+- repository/log search guidance remains model-facing rather than executor-enforced: prefer `rg` and exclude generated dependency, build-artifact, packaged-runtime, and VCS directories unless the user explicitly needs them
 
 Execution transport:
 

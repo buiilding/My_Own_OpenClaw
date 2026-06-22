@@ -34,21 +34,28 @@ describe('chatSelectors', () => {
       thinkingSourceEventType: 'reasoning_delta',
       compactionDebugInfo: activeWorkspace.compactionDebugInfo,
       tokenCounts: activeWorkspace.tokenCounts,
-      streamTracking: activeWorkspace.streamTracking,
       currentTurnProjection: activeWorkspace.currentTurnProjection,
       pendingTurn: activeWorkspace.pendingTurn,
     });
+    expect(projectDesktopChatInterfaceState(activeWorkspace)).not.toHaveProperty('streamTracking');
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
       latestCurrentTurnProjection: liveProjection,
     })).toEqual(expect.objectContaining({
       currentTurnProjection: liveProjection,
-      thinkingStatus: 'thinking',
     }));
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
       latestCurrentTurnProjection: liveProjection,
     })).not.toHaveProperty('isSending');
+    expect(projectDesktopLiveTurnSurfaceState({
+      activeWorkspace,
+      latestCurrentTurnProjection: liveProjection,
+    })).not.toHaveProperty('thinkingStatus');
+    expect(projectDesktopLiveTurnSurfaceState({
+      activeWorkspace,
+      latestCurrentTurnProjection: liveProjection,
+    })).not.toHaveProperty('thinkingSourceEventType');
   });
 
   test('selects only chat interface state fields', () => {
@@ -68,10 +75,10 @@ describe('chatSelectors', () => {
       thinkingSourceEventType: null,
       compactionDebugInfo: null,
       tokenCounts: { total_tokens: 42 },
-      streamTracking: state.streamTracking,
       currentTurnProjection: null,
       pendingTurn: null,
     });
+    expect(selectChatInterfaceState(state)).not.toHaveProperty('streamTracking');
   });
 
   test('keeps selected object references (no cloning)', () => {
@@ -209,6 +216,8 @@ describe('chatSelectors', () => {
 
     expect(selected.currentTurnProjection).toBe(liveProjection);
     expect(selected).not.toHaveProperty('isSending');
+    expect(selected).not.toHaveProperty('thinkingStatus');
+    expect(selected).not.toHaveProperty('thinkingSourceEventType');
   });
 
   test('defaults optional active-workspace fields when not present', () => {
@@ -227,9 +236,7 @@ describe('chatSelectors', () => {
       currentTurnProjection: null,
       pendingTurn: null,
     }));
-    expect(selected.streamTracking).toEqual(expect.objectContaining({
-      phase: 'idle',
-    }));
+    expect(selected).not.toHaveProperty('streamTracking');
   });
 
 });

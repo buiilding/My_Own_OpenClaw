@@ -26,7 +26,9 @@ const {
   dispatchDesktopRuntimeNewChatEvent,
 } = DesktopChatEventsRuntime;
 const {
+  applyDashboardScrollLock,
   requestDashboardLayoutPass,
+  scheduleDashboardOpeningClear,
 } = DesktopDashboardLayoutRuntime;
 const {
   resetActiveChatSession,
@@ -226,12 +228,10 @@ function DashboardShell({
     if (!dashboardOpening) {
       return undefined;
     }
-    const timer = window.setTimeout(() => {
-      setDashboardOpening(false);
-    }, DASHBOARD_OPEN_ANIMATION_MS);
-    return () => {
-      window.clearTimeout(timer);
-    };
+    return scheduleDashboardOpeningClear({
+      delayMs: DASHBOARD_OPEN_ANIMATION_MS,
+      onClear: () => setDashboardOpening(false),
+    });
   }, [dashboardOpening]);
 
   const wakeDashboardShell = useCallback(() => {
@@ -240,12 +240,9 @@ function DashboardShell({
   }, []);
 
   useEffect(() => {
-    const rootElement = document.getElementById('root');
-    const scrollLockTargets = [document.documentElement, document.body, rootElement].filter(Boolean);
-    scrollLockTargets.forEach((target) => target.classList.add(DASHBOARD_SCROLL_LOCK_CLASS));
-    return () => {
-      scrollLockTargets.forEach((target) => target.classList.remove(DASHBOARD_SCROLL_LOCK_CLASS));
-    };
+    return applyDashboardScrollLock({
+      className: DASHBOARD_SCROLL_LOCK_CLASS,
+    });
   }, []);
 
 

@@ -12,13 +12,14 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterfaceHeaderControls.jsx`
+- `frontend/src/renderer/app/runtime/desktopChatInterfaceBindingsRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatInterfaceBindings.js`
 - `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
@@ -29,15 +30,17 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 `ChatInterface` derives loop state via:
 
 - `useChatSurfaceController({ messages, currentTurnProjection, pendingTurn, ... })`
-- `useCurrentTurnPresentationState(...)` inside that controller uses the
-  app-runtime default visible-assistant reply types, keeping the raw type set
-  private to `desktopCurrentTurnPresentationRuntime.js`.
+- `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+  inside that controller uses the app-runtime default visible-assistant reply
+  types, keeping the raw type set private to
+  `desktopCurrentTurnPresentationRuntime.js`.
 
 Derived flags:
 
 - `composerBusy` drives send/stop lock behavior
 - `canStop = composerBusy`
-- `showAssistantAwaitingDot` comes from the shared current-turn presentation contract
+- `awaitingDotTargetMessageId` comes from the shared current-turn presentation
+  contract and is the concrete dashboard awaiting-dot render target
 
 ## Stop Query Contract
 
@@ -52,9 +55,17 @@ Dashboard stop behavior is owned by `useStopTurnHandler(...)`:
 6. call `DesktopLiveTurnRuntimeClient.stop(...)` with the resolved
    conversation ref and turn ref
 
+`DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)` terminalizes
+the stopped SDK projection without restamping SDK `typingVisible` or
+`overlayVisible`; renderer visible lifecycle owns post-stop typing and response
+visibility from terminal phase and visible entries.
+
 Keyboard binding:
 
 - `useChatInterfaceStopShortcut(canStop, handleStopTurn)`
+- Raw `keydown` subscription and Stop shortcut predicate handling live in
+  `DesktopChatInterfaceBindingsRuntime`; the hook supplies lifecycle state and
+  the resolved stop callback.
 
 ## Sender Surface Contract (Dashboard/Main Window)
 
@@ -83,6 +94,12 @@ Chat interface event subscriptions are routed through app runtime clients:
   `onWorkspaceSelectionUpdated(...)`) and owns active-workspace refresh,
   conversation binding comparison, and whether a workspace-picker update should
   start a new chat.
+- `DesktopChatInterfaceBindingsRuntime` owns the browser `mousedown` and
+  `keydown` listener adapters used by provider/model/reasoning menu dismissal,
+  local Stop shortcut handling, and thread-find open/close shortcuts. It also
+  owns window-focus subscriptions for active-workspace refresh and
+  animation-frame scheduling plus input focus/select mechanics for thread-find
+  input focus.
 
 Provider dropdown:
 

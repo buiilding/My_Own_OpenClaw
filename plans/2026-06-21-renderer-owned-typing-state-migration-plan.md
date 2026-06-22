@@ -9,6 +9,621 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Completion Audit
+
+- Evidence: `DesktopVisibleTurnLifecycleRuntime` owns visible lifecycle and
+  pending-turn handoff; chat surface, response overlay, live surface, Stop, and
+  chat-store pending clearing route through that owner.
+- Evidence: production scans show remaining raw `isSending`, `streamTracking`,
+  and `thinkingStatus` reads are store state, transport guards, trace identity,
+  or dashboard compaction/reasoning rendering data rather than surface
+  lifecycle authorities.
+- Evidence: Core Loop Regression Pack and `scripts/windie/commands.cjs`
+  include the visible lifecycle, projection effects, live surface, dashboard,
+  response overlay, pending-turn, pending-stop, and stop-runtime suites.
+- Completion: ADR 006 renderer-owned typing state migration is implemented for
+  the renderer desktop lifecycle boundary. No persisted transcript, SDK event
+  payload, IPC payload, renderer config storage, permission, credential, local
+  execution, trust-boundary, or storage migration required.
+
+### 2026-06-22 SDK Visible Content Flag Authority Deletion
+
+- Finding: visible lifecycle, live-surface overlay metadata, stopped-turn
+  projection, and current-turn projection side effects still treated SDK
+  `presentation.hasVisibleContent` as visible response evidence even when no
+  SDK presentation entries, text, errors, or tool events were present.
+- Change: removed `hasVisibleContent` from lifecycle, stopped-turn overlay, and
+  send-latch authority. Renderer surfaces now require concrete entries,
+  assistant/reasoning/error text, terminal phase, or tool progress/call/output
+  evidence; response-overlay presentation state marks visible replies from
+  actual entries only and stopped projections strip the legacy SDK flag.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `DesktopCurrentTurnProjectionEffectsRuntime.test.ts`,
+  `LiveTurnSurfaceState.test.js`, `ChatboxSurfaceState.test.js`, and
+  `DesktopStopTurnRuntime.test.js`, plus app/chat runtime boundary tests,
+  protect flag-only projections as non-authoritative.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Local Pending Surface Predicate Deletion
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime` still exported
+  `shouldUseLocalPendingTurn(...)` only for live-surface callers, preserving a
+  second public handoff facade after `resolveVisibleTurnLifecycle(...)` already
+  returned the authoritative `local_pending` status.
+- Change: removed the extra predicate export and made
+  `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)` derive
+  pending-turn overlay state directly from the resolved visible lifecycle
+  status.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `LiveTurnSurfaceState.test.js`, and `RendererAppRuntimeBoundary.test.ts`
+  protect the single lifecycle-status handoff path and reject the retired
+  predicate in both visible lifecycle and live-surface runtimes.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Overlay Intent Mode Authority Deletion
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.hasSdkLiveTurnPresentation(...)`
+  still accepted an SDK `presentation.overlayIntent.mode` object as proof that
+  SDK live presentation existed, and copied SDK overlay-intent mode through to
+  overlay metadata even though ADR 006 treats overlay intent mode as a
+  non-authority for typing and response lifecycle.
+- Change: narrowed SDK live presentation detection to non-empty
+  `presentation.entries`, derived overlay-intent metadata mode from SDK phase
+  plus visible content/progress evidence, and kept SDK overlay intent only as a
+  source of turn/conversation/stale-guard refs for window sync.
+- Validation target: `LiveTurnSurfaceState.test.js`,
+  `ChatBoxResponse.state.test.jsx`, and `RendererAppRuntimeBoundary.test.ts`
+  protect overlay intent as metadata instead of a lifecycle authority.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Retired Overlay Lifecycle Scrubber Deletion
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+  still cloned presentation state through a compatibility scrubber whose only
+  purpose was deleting a retired `overlayTurnLifecycle` field, even though no
+  production renderer owner produces that field anymore.
+- Change: removed the scrubber and its legacy-field unit fixture, and tightened
+  renderer boundary coverage so the visible lifecycle runtime cannot reintroduce
+  the retired overlay lifecycle name.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js` and
+  `RendererAppRuntimeBoundary.test.ts` protect the presentation stamping
+  contract without preserving a legacy payload adapter.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Dashboard Thread Tool-Log Input Deletion
+
+- Finding: `ChatInterface` still read `config.show_tool_logs` and passed
+  `showToolLogs` plus `isBusy` into
+  `DesktopThreadPresentationRuntime.buildThreadPresentationMessages(...)`,
+  even though the thread presenter no longer consumed either value and visible
+  lifecycle already owns busy/typing state.
+- Change: removed the unused dashboard thread projection inputs, kept durable
+  and SDK current-turn rows as rendering data, and updated tests/docs to state
+  that tool-log toggles do not drive thread row projection or typing lifecycle.
+- Validation target: `ChatInterfaceWiring.test.jsx`,
+  `MessagePresentationPipeline.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed thread presentation
+  boundary.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Live Surface Send-Preflight Predicate Deletion
+
+- Finding: the visible lifecycle owner still exported the local pending-turn
+  handoff predicate as `shouldUseLocalSendPreflight(...)`, and the live-surface
+  adapter kept a `shouldUseSendPreflight(...)` wrapper plus a `send-preflight`
+  source fallback even though renderer `pendingTurn` is now the required
+  evidence for local typing.
+- Change: renamed the owner predicate to `shouldUseLocalPendingTurn(...)`,
+  deleted the live-surface wrapper and source fallback, and kept live-surface
+  local awaiting output on the explicit `pending-turn` source.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `LiveTurnSurfaceState.test.js`, and `RendererAppRuntimeBoundary.test.ts`
+  protect the pending-turn handoff contract and reject the retired preflight
+  source path.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Live Surface Local Pending Alias Deletion
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
+  still exposed the renderer-local pending path as `useLocalSendLatch`, and
+  response-overlay traces forwarded that legacy send-latch name even though the
+  value is now derived from accepted renderer `pendingTurn` plus visible
+  lifecycle handoff rules.
+- Change: renamed the live-surface and overlay trace boundary to
+  `useLocalPendingTurn`, changed local awaiting trace reasons to
+  `local-pending-awaiting`, and added renderer boundary coverage rejecting the
+  old `useLocalSendLatch` field.
+- Validation target: `LiveTurnSurfaceState.test.js`,
+  `DesktopRendererTraceRuntime.test.ts`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the pending-turn projection and
+  trace contract without preserving the send-latch alias.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Minimal Pill Stop Test Send Latch Deletion
+
+- Finding: `ChatBoxOverlayMouseIgnore.test.jsx` still described the
+  pre-first-stream Stop affordance as `isSending=true`, preserving a test-only
+  raw send-latch authority after `MinimalChatPill` production code had moved
+  Stop rendering to `pendingTurn` plus renderer-owned visible lifecycle.
+- Change: removed the raw `isSending` fixture and renamed the replay around
+  pending-turn Stop before the first stream event. Renderer boundary coverage
+  now rejects reintroducing `mockChatState.isSending` in that minimal-pill
+  integration test.
+- Validation target: `ChatBoxOverlayMouseIgnore.test.jsx` and
+  `RendererAppRuntimeBoundary.test.ts` protect the pending-turn Stop path
+  without preserving raw send-latch test authority.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Response Overlay View Intent Alias Deletion
+
+- Finding: `DesktopResponseOverlayViewRuntime.resolveResponseOverlayViewContract(...)`,
+  `DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayLayoutMode(...)`,
+  and minimal response-overlay consumers still exposed `showResponse` and
+  `showAwaitingReply` as view-intent booleans after response visibility and
+  awaiting visibility were owned by explicit response entries plus
+  `visibleTurnLifecycle.status`.
+- Change: renamed the view and layout contract to `responseVisible` and
+  `awaitingVisible`. Minimal response-overlay hooks, component rendering, and
+  renderer trace builders now consume the explicit visibility fields instead of
+  the legacy `show*` aliases.
+- Validation target: `ResponseOverlayViewContract.test.ts`,
+  `ChatPillSessionFlow.test.ts`, `ResponseOverlayLayoutMode.test.js`,
+  `DesktopRendererTraceRuntime.test.ts`, and renderer boundary tests protect
+  the trimmed response-overlay view contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 SDK Response Overlay Fallback State Deletion
+
+- Finding: `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
+  still accepted `fallbackState` and merged it into SDK response-overlay
+  projection, preserving a legacy adapter path after message-only presentation
+  and visible lifecycle stamping had become separate owner steps.
+- Change: removed the fallback parameter. SDK response-overlay projection now
+  returns explicit SDK response-entry data and overlay-intent metadata only;
+  `useResponseOverlayViewModel(...)` composes that data before visible lifecycle
+  stamping instead of asking the helper to merge a fallback presentation
+  snapshot.
+- Validation target: `ChatboxSurfaceState.test.js` and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed response overlay
+  presentation contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Live Surface Response Alias Deletion
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
+  still returned `showResponse`, a duplicate response-visibility boolean after
+  response-overlay visibility moved to the view intent that combines visible
+  entries and dismissal state.
+- Change: removed `showResponse` from live-turn surface output. Focused tests
+  now assert phase, busy state, source handoff, and SDK presentation data while
+  a boundary test rejects reintroducing the alias in the live-surface runtime.
+- Validation target: `LiveTurnSurfaceState.test.js`,
+  `PendingTurnLiveSurfaceIntegration.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed live-surface
+  contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Live Surface Awaiting Alias Deletion
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
+  still returned `showAwaiting`, a duplicate typing boolean after the visible
+  lifecycle owner already exposed `showTyping` and production overlay/chat
+  surfaces no longer consumed the live-surface alias.
+- Change: removed `showAwaiting` from live-turn surface output. Focused tests
+  now assert phase, busy state, source handoff, and response visibility while a
+  boundary test rejects reintroducing the alias in the live-surface runtime.
+- Validation target: `LiveTurnSurfaceState.test.js`,
+  `PendingTurnLiveSurfaceIntegration.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed live-surface
+  contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Response Overlay Awaiting Layout Helper Deletion
+
+- Finding: `DesktopResponseOverlayLayoutRuntime` still exported
+  `isAwaitingResponseOverlayLayoutMode(...)`, a public awaiting-mode predicate
+  after compact-hover layout mode and native mode resolution already encoded the
+  only remaining response-overlay sizing/native behavior.
+- Change: removed the awaiting-layout helper export. Window sync now sizes the
+  typing frame from `isCompactHoverLayoutMode(...)`, and native mode resolution
+  stays inside the layout runtime.
+- Validation target: `ResponseOverlayLayoutMode.test.js` and
+  `RendererChatRuntimeBoundary.test.ts` protect the trimmed layout facade.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Chatbox Response Boolean Deletion
+
+- Finding: current-turn presentation still returned `showChatboxResponse`, a
+  duplicate boolean after response-overlay view intent moved to overlay entries
+  and chatbox presentation already carried the `chatboxSurfaceState` enum.
+- Change: removed `showChatboxResponse` from message-only presentation, SDK
+  response-overlay projection, and visible-lifecycle stamping. Tests now assert
+  `chatboxSurfaceState` and visible response data directly.
+- Validation target: `ChatboxSurfaceState.test.js`,
+  `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatSurfaceController.test.jsx`, and `RendererAppRuntimeBoundary.test.ts`
+  protect the trimmed presentation contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Chatbox Awaiting Boolean Deletion
+
+- Finding: current-turn presentation still stamped
+  `showChatboxAwaitingReply`, a duplicate awaiting boolean after response
+  overlay view intent could read `visibleTurnLifecycle.status` directly.
+- Change: removed `showChatboxAwaitingReply` from message-only presentation,
+  visible-lifecycle stamping, chat-pill session typing, and response-overlay
+  view contract inputs. Awaiting overlay visibility now derives from
+  `local_pending` or `awaiting` lifecycle status.
+- Validation target: `ChatboxSurfaceState.test.js`,
+  `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatSurfaceController.test.jsx`, `ChatPillSessionFlow.test.ts`,
+  `ResponseOverlayViewContract.test.ts`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Presentation Loop UI State Alias Deletion
+
+- Finding: current-turn presentation still stamped `loopUiState`, a stale
+  chatbox-era alias after transport recovery moved to `useChatLoopUiState(...)`
+  and desktop typing/awaiting state moved to `visibleTurnLifecycle.status`,
+  and `chatboxSurfaceState`.
+- Change: removed the presentation-level `loopUiState` field from
+  message-only current-turn presentation and visible lifecycle stamping while
+  leaving the real chat-loop transport hook untouched.
+- Validation target: `ChatboxSurfaceState.test.js`,
+  `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatSurfaceController.test.jsx`, and `LatestVisibleAssistantReply.test.js`
+  protect the trimmed presentation contract and the remaining visible
+  lifecycle fields.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Awaiting Reply Alias Deletion
+
+- Finding: message-only current-turn presentation and visible-lifecycle
+  stamping still carried `isAwaitingReply`, a duplicate boolean after
+  production consumers had moved to `visibleTurnLifecycle.status`,
+  `chatboxSurfaceState`, and the concrete `awaitingDotTargetMessageId` anchor.
+- Change: removed `isAwaitingReply` from the presentation snapshot and visible
+  lifecycle adapter, and added boundary coverage so the legacy alias is not
+  reintroduced in the current-turn or visible-lifecycle runtimes.
+- Validation target: `ChatboxSurfaceState.test.js`,
+  `DesktopVisibleTurnLifecycleRuntime.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed presentation
+  contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Assistant Awaiting Dot Boolean Deletion
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+  still stamped `showAssistantAwaitingDot`, a duplicate dashboard boolean after
+  production rendering had moved to the concrete
+  `awaitingDotTargetMessageId` anchor from the visible lifecycle.
+- Change: removed `showAssistantAwaitingDot` from message-only presentation,
+  visible-lifecycle stamping, and response-overlay trace inputs. Traces now
+  derive `showAwaitingDot` from the presence of an awaiting target id.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatSurfaceController.test.jsx`, `DesktopRendererTraceRuntime.test.ts`,
+  `ChatboxSurfaceState.test.js`, `LatestVisibleAssistantReply.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed presentation
+  contract while keeping dashboard awaiting placement on
+  `awaitingDotTargetMessageId`.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Chat Interface Stream Tracking Selector Deletion
+
+- Finding: `DesktopChatSurfaceSelectorRuntime.projectDesktopChatInterfaceState(...)`
+  still forwarded raw `streamTracking` into the dashboard selector result even
+  though `ChatInterface` no longer reads stream phase for typing, busy, Stop, or
+  row projection.
+- Change: removed `streamTracking` from the chat-interface selector projection
+  while keeping it in the store for transport diagnostics and focused stream
+  runtime tests.
+- Validation target: `ChatSelectors.test.js` and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed selector contract and
+  keep raw stream phase out of the app-runtime surface projection.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Response Overlay Reasoning Text Helper Deletion
+
+- Finding: `DesktopCurrentTurnMessageRuntime` still exported
+  `normalizeThinkingText(...)`, a legacy-named helper with a `thinkingStatus`
+  parameter even though response overlay reasoning copy now comes from SDK
+  `currentTurn.reasoningText` and store `thinkingStatus` is dashboard-only
+  compaction/manual status text.
+- Change: deleted the message-runtime helper export and moved the trivial
+  reasoning-text normalization into `useResponseOverlayViewModel(...)` beside
+  the SDK reasoning input it normalizes.
+- Validation target: `ChatBoxResponseState.test.js` and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed message-runtime
+  surface while response-overlay tests continue to cover SDK reasoning text
+  rendering.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Pending Stop Visible Lifecycle Regression
+
+- Finding: `PendingStopLiveSurfaceIntegration.test.jsx` still wired the shared
+  stop hook with raw store `isSending`, preserving a test-only stop affordance
+  authority after production Stop routing had moved to visible lifecycle busy
+  state.
+- Change: the pending-stop replay now derives stop enablement through
+  `useChatSurfaceController(...)` and explicitly forces raw `isSending=false`
+  after accepting a pending turn, proving renderer `pendingTurn` plus visible
+  lifecycle still stops and clears the correct turn.
+- Validation target: `PendingStopLiveSurfaceIntegration.test.jsx` remains in
+  `<windie> test core-loop` and protects pending Stop from regressing to a raw
+  send-latch gate.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Current-Turn Presentation Hook Deletion
+
+- Finding: `useCurrentTurnPresentationState(...)` had become a feature-level
+  compatibility shim that only memoized calls into
+  `DesktopCurrentTurnPresentationRuntime`, while lifecycle stamping already
+  belonged to `DesktopVisibleTurnLifecycleRuntime`.
+- Change: deleted the hook and its dedicated hook test. `useChatSurfaceController`
+  and `useResponseOverlayViewModel` now call
+  `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+  directly for message/response data before applying renderer-owned visible
+  lifecycle state.
+- Validation target: `ChatSurfaceController.test.jsx`,
+  `ChatBoxResponse.state.test.jsx`, and `RendererAppRuntimeBoundary.test.ts`
+  protect direct app-runtime presentation projection and keep the removed hook
+  from returning.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Current-Turn Projection Cursor Visibility Field Deletion
+
+- Finding: `DesktopCurrentTurnProjectionEffectsRuntime` still stored a
+  `typingVisible` field in its projection cursor even though the value was
+  only a restatement of `phase === 'awaiting'` and no consumer read it.
+- Change: the projection side-effect cursor now tracks only text lengths,
+  phase, terminal error text, and seen tool-event ids. Test fixtures preserve
+  SDK `presentation.typingVisible` only in the explicit negative case proving
+  that SDK visibility flags do not drive the send latch.
+- Validation target: `DesktopCurrentTurnProjectionEffectsRuntime.test.ts` and
+  `RendererChatRuntimeBoundary.test.ts` protect the trimmed cursor and reject
+  SDK presentation visibility fields in the side-effect runtime.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-22 Chat Provider Context And Trace Latch Deletion
+
+- Finding: `ChatProvider` still wrapped children in an empty `ChatContext`
+  compatibility provider with no consumers, and provider-injected live-surface
+  trace snapshots still exposed raw `isSending`, `thinkingStatus`, and
+  `streamTracking.phase` fields after visible lifecycle had become the desktop
+  surface authority.
+- Change: deleted `ChatContext.jsx`, made `ChatProvider` return children
+  directly after mounting setup hooks, and restricted trace workspace snapshots
+  to conversation/message identity evidence.
+- Validation target: `ChatProvider.test.jsx`, `DesktopRendererTraceRuntime.test.ts`,
+  `RendererAppRuntimeBoundary.test.ts`, and `RendererChatRuntimeBoundary.test.ts`
+  protect provider setup behavior, deleted context compatibility, and trimmed
+  trace lifecycle payloads.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Minimal Surface Trace Send Latch Deletion
+
+- Finding: after lifecycle consumers stopped reading raw `isSending`, both
+  `MinimalChatPill` and `MinimalResponseOverlay` still subscribed to the store
+  send latch only to include it in diagnostic trace payloads, preserving a
+  trace-only compatibility exception at the live surface boundary.
+- Change: minimal surface state and response snapshot traces no longer accept
+  or emit raw send-latch fields, and the components no longer subscribe to
+  `state.isSending` outside the renderer-owned visible lifecycle.
+- Validation target: `DesktopRendererTraceRuntime.test.ts` and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed payloads and surface
+  source boundaries.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Stop Projection SDK Visibility Flag Deletion
+
+- Finding: `DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)`
+  still copied or restamped SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` when terminalizing a stopped current turn,
+  preserving legacy visibility fields after the renderer visible lifecycle had
+  already become the post-stop typing/visibility authority.
+- Change: stopped current-turn projections now strip those SDK visibility
+  compatibility fields while preserving visible entries and overlay-intent
+  metadata for response rendering and dismissal.
+- Validation target: `DesktopStopTurnRuntime.test.js`, `ChatStore.test.ts`,
+  and `RendererChatRuntimeBoundary.test.ts` protect stopped projection
+  terminalization without SDK visibility flags.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Response Overlay Thinking Status Fallback Deletion
+
+- Finding: `selectLiveTurnSurfaceState(...)`, `MinimalResponseOverlay`, and
+  `useResponseOverlayViewModel(...)` still threaded store `thinkingStatus` into
+  response overlay window sync as a fallback when SDK `currentTurn.reasoningText`
+  was absent, preserving a stale live-turn text compatibility path outside the
+  renderer-owned lifecycle projection.
+- Change: live-turn surface selection no longer exposes `thinkingStatus` or
+  `thinkingSourceEventType`; response overlay reasoning text is derived only
+  from SDK `currentTurn.reasoningText`. Dashboard compaction/manual status
+  display remains on the chat-interface `MessageList` path.
+- Validation target: `ChatSelectors.test.js`, `ChatBoxResponse.state.test.jsx`,
+  and `RendererAppRuntimeBoundary.test.ts` protect the trimmed selector and
+  response-overlay hook boundary.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Current-Turn Trace SDK Visibility Flag Removal
+
+- Finding: `DesktopRendererTraceRuntime.buildRendererCurrentTurnAppliedTracePayload(...)`
+  still copied SDK `presentation.typingVisible` and `presentation.overlayVisible`
+  into current-turn live-surface traces after renderer lifecycle consumers had
+  stopped using those fields as authority.
+- Change: current-turn applied trace payloads now report phase, overlay intent
+  metadata, visible-content evidence, entry counts, text lengths, tool event
+  count, and stale-side-effect suppression without preserving SDK presentation
+  visibility booleans.
+- Validation target: `DesktopRendererTraceRuntime.test.ts` protects the trimmed
+  payload shape while lifecycle tests continue to cover visible-lifecycle
+  authority.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Overlay Lifecycle Runtime Deletion
+
+- Finding: after visible lifecycle stopped stamping `overlayTurnLifecycle`, the
+  JSON-backed `DesktopOverlayTurnLifecycleRuntime` had no production consumers;
+  only its dedicated test and documentation still kept the legacy
+  preflight/awaiting/active/terminal overlay lifecycle contract alive.
+- Change: deleted `desktopOverlayTurnLifecycleRuntime.js`,
+  `overlay_turn_lifecycle_contract.json`, and `OverlayTurnLifecycle.test.js`.
+  Boundary tests now assert those files stay removed, and renderer docs route
+  stale overlay lifecycle searches to `DesktopVisibleTurnLifecycleRuntime`.
+- Validation target: `RendererAppRuntimeBoundary.test.ts`,
+  `DesktopVisibleTurnLifecycleRuntime.test.js`, `ChatLoopUiState.test.js`,
+  and response-overlay focused tests protect visible lifecycle and transport
+  recovery without the old overlay lifecycle facade.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Visible Lifecycle Overlay Field Deletion
+
+- Finding: after response overlay view logic moved to
+  `visibleTurnLifecycle.status`, `applyVisibleTurnLifecycleToPresentationState(...)`
+  still imported the overlay lifecycle runtime to stamp a legacy
+  `overlayTurnLifecycle` field, and response overlay traces/tests continued to
+  preserve that compatibility field.
+- Change: the visible lifecycle presentation adapter now strips incoming
+  `overlayTurnLifecycle` data and does not restamp it; response overlay traces
+  no longer emit the legacy field, and tests assert visible lifecycle status
+  plus busy/awaiting fields instead.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatboxSurfaceState.test.js`, and `DesktopRendererTraceRuntime.test.ts`
+  protect the deleted field while preserving response-entry rendering and
+  trace payload behavior.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Visible Lifecycle Presentation Facade Removal
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime` still exported
+  `resolveVisibleTurnLifecycleForPresentation(...)`, a passthrough facade that
+  returned the already-resolved visible lifecycle before chat surface and
+  response overlay code stamped presentation state.
+- Change: chat surface and response overlay now pass the renderer-owned
+  `visibleTurnLifecycle` directly into
+  `applyVisibleTurnLifecycleToPresentationState(...)`; the passthrough export
+  is deleted.
+- Validation target: `RendererAppRuntimeBoundary.test.ts` rejects the removed
+  facade in the runtime and callers while focused surface tests keep visible
+  lifecycle projection behavior covered.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Response Overlay View Legacy Lifecycle Import Removal
+
+- Finding: `DesktopResponseOverlayViewRuntime` still imported
+  `DesktopOverlayTurnLifecycleRuntime` and inspected the legacy
+  `overlayTurnLifecycle` field to decide whether an old visible response should
+  be suppressed during a new awaiting turn.
+- Change: response overlay view intent now checks
+  `currentTurnPresentationState.visibleTurnLifecycle.status` directly, so the
+  stale-response guard reads the renderer-owned lifecycle rather than the
+  overlay lifecycle adapter field.
+- Validation target: `ResponseOverlayViewContract.test.ts` protects awaiting
+  suppression through `local_pending` and active response visibility through
+  `active`; `RendererAppRuntimeBoundary.test.ts` rejects the old runtime import.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Live Surface SDK Presentation Visibility Flag Deletion
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
+  still treated SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` as the proof that SDK presentation data existed,
+  then rebuilt fallback overlay intent mode from those legacy booleans when
+  `presentation.overlayIntent` was absent.
+- Change: live-surface presentation recognition now keys off presentation
+  entries or an explicit overlay intent object, and fallback overlay intent is
+  derived from SDK phase plus visible content/progress evidence. SDK visibility
+  booleans are no longer read by the live-surface runtime.
+- Validation target: `LiveTurnSurfaceState.test.js` protects presentation
+  entries without legacy visibility flags, and
+  `RendererAppRuntimeBoundary.test.ts` rejects those fields in the live-surface
+  runtime.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Stop Target SDK Busy Fallback Removal
+
+- Finding: `DesktopStopTurnRuntime.resolveStopTurnTarget(...)` still accepted
+  SDK `currentTurnProjection.presentation.isBusy=true` as enough to target a
+  current turn for Stop, even though Stop button availability is already gated
+  by the renderer visible lifecycle and ADR 006 lists SDK presentation busy as
+  a non-authority.
+- Change: Stop target resolution now chooses SDK current-turn targets only for
+  active/stoppable SDK phases, or renderer `pendingTurn` targets for local
+  pending sends. Busy-only SDK presentation no longer creates a stoppable turn
+  target.
+- Validation target: `DesktopStopTurnRuntime.test.js` protects the busy-only
+  rejection alongside active SDK phase and pending-turn Stop targeting.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Live Surface Selector Send Alias Removal
 
 - Finding: `selectLiveTurnSurfaceState(...)` still exposed raw `isSending`
@@ -605,8 +1220,9 @@ lifecycle:
   `desktopLiveTurnSurfaceRuntime.js`.
 - Dashboard-specific `hasLiveProgressMessages ? null : awaitingDotTargetMessageId`
   lifecycle suppression once visible lifecycle carries `active`.
-- `useCurrentTurnPresentationState` as a lifecycle authority. It can become a
-  thin renderer of the visible lifecycle or be removed if no longer needed.
+- `useCurrentTurnPresentationState` as a lifecycle authority or presentation
+  shim. It has been deleted; surface hooks call app-runtime presentation
+  projection directly and visible lifecycle remains the lifecycle authority.
 - `resolveSdkCurrentTurnPresentationState` as a competing lifecycle reducer.
   It has been deleted in favor of response-overlay data projection plus visible
   lifecycle adaptation.

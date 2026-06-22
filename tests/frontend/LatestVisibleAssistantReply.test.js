@@ -18,8 +18,6 @@ describe('desktopCurrentTurnPresentationRuntime visible reply helpers', () => {
       ],
     });
 
-    expect(state.loopUiState).toBe('idle');
-    expect(state.showAssistantAwaitingDot).toBe(false);
     expect(state.awaitingDotTargetMessageId).toBeNull();
   });
 

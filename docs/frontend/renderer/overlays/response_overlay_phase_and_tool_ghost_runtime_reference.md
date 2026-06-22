@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for response overlay renderer behavior: SDK current-turn presentation, pending-turn preflight handoff, hidden SDK startup projection handoff, closeability rules, and deterministic fixed-frame sizing IPC updates."
+summary: "Deep reference for response overlay renderer behavior: SDK current-turn presentation, local pending-turn handoff, hidden SDK startup projection handoff, closeability rules, and deterministic fixed-frame sizing IPC updates."
 read_when:
   - When changing `MinimalResponseOverlay.jsx` rendering logic, overlay utility contracts, or response overlay UX states.
-  - When debugging missing response panes, stale awaiting indicators, hidden SDK presentation handoff, local pending-turn preflight flicker, removed `prime-response-overlay-awaiting`, or incorrect response overlay resize behavior.
+  - When debugging missing response panes, stale awaiting indicators, hidden SDK presentation handoff, local pending-turn flicker, removed `prime-response-overlay-awaiting`, or incorrect response overlay resize behavior.
 title: "Response Overlay Phase Runtime Reference"
 ---
 
@@ -17,8 +17,8 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayScrollState.js`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayInteractionRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js`
@@ -40,7 +40,7 @@ Primary inputs:
 
 - SDK `currentTurn` projection from `conversation-runtime-updated`
 - `messages`
-- `thinkingStatus`
+- renderer `pendingTurn`
 
 Current-turn entry construction:
 
@@ -64,15 +64,20 @@ Current-turn entry construction:
   - `search-source`
   - `tool-explanation`
 
+Reasoning copy for overlay window sync comes from SDK
+`currentTurn.reasoningText` only. Store `thinkingStatus` remains dashboard
+compaction/manual status text and is not a response-overlay live-turn input.
+
 Selection logic:
 
 1. `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns
    awaiting/active/terminal lifecycle for the overlay.
-2. `useCurrentTurnPresentationState(...)` remains the adapter for legacy
-   presentation fields, while SDK presentation snapshots provide response-entry
-   and overlay-intent data only.
+2. `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+   provides message/response fields directly to the overlay view model, while
+   SDK presentation snapshots provide response-entry and overlay-intent data
+   only.
 3. `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
-4. `showResponse` is true when current-turn entry list is non-empty and not dismissed, including tool/progress entries.
+4. `responseVisible` is true when current-turn entry list is non-empty and not dismissed, including tool/progress entries.
 5. during `local_pending` / `awaiting` lifecycle only, a still-mounted prior visible response with the same entry id is treated as stale so the typing indicator can appear immediately for the new turn before the response window's local message store catches up.
 6. phase-only SDK projections with no visible text, entries, tool/search
    progress, error, or renderer pending turn are not typing authority.
@@ -110,10 +115,10 @@ Phase ownership boundary:
 
 Modes:
 
-- `showResponse`:
+- `responseVisible`:
   - response-overlay entry list for current turn is non-empty (`llm-text`, `error`, and/or `tool-explanation`)
   - entry id is not manually dismissed
-- `showAwaitingReply`:
+- `awaitingVisible`:
   - no visible response-entry list
   - and current-turn presentation state reports awaiting-reply mode
   - or the only visible response entry is the stale prior-turn response during `preflight` / `awaiting`
@@ -125,7 +130,7 @@ Contract ownership:
 - renderer owns only presentation mapping from `currentTurn` into compact overlay
   rows; it must not execute tools, write transcripts, or reinterpret backend
   stream semantics for the overlay.
-- pending-turn preflight is presentation-only. It may keep the optimistic user
+- local pending-turn handoff is presentation-only. It may keep the optimistic user
   row and sending state visible through early SDK startup projections, but it
   must not create transcript rows, execute tools, or become a second completion
   path.
@@ -136,8 +141,8 @@ Contract ownership:
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayViewContract(...)`
   is the canonical pure helper for:
   - latest visible response entry id
-  - `showResponse`
-  - `showAwaitingReply`
+  - `responseVisible`
+  - `awaitingVisible`
   - overlay layout mode (`hidden` / `awaiting-typing` / `response`)
 - `DesktopCurrentTurnMessageRuntime` owns response-overlay row classification:
   visible entries, progress entries, source-tagged entries, closeability, and
@@ -145,14 +150,14 @@ Contract ownership:
   app-runtime facade.
 - `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
 - `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
-  overlays SDK response-entry data and overlay-intent metadata onto the legacy
-  presentation-field adapter; response visibility requires an actual response
-  entry, and lifecycle, awaiting, busy, and typing fields are stamped by
-  `DesktopVisibleTurnLifecycleRuntime` after that data step.
-- `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)` owns
+  returns explicit SDK response-entry data and overlay-intent metadata without
+  merging a caller-supplied presentation fallback; response visibility requires
+  an actual response entry, and lifecycle, awaiting, busy, and typing fields
+  are stamped by `DesktopVisibleTurnLifecycleRuntime` after that data step.
+- `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalPendingTurn(...)` owns
   hidden SDK startup and terminal handoff rules used by live-surface
   projection. `DesktopLiveTurnSurfaceRuntime` maps the resolved visible
-  lifecycle into legacy overlay phase, busy, awaiting, and response fields;
+  lifecycle into overlay-compatible phase, busy, awaiting, and response fields;
   SDK overlay intent remains metadata for turn refs, stale guards, dismissal,
   and trace context rather than lifecycle authority.
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
@@ -166,6 +171,11 @@ Contract ownership:
   visibility re-report behavior, delegating responsebox size payload assembly,
   IPC, and visibility payload normalization/boolean subscription projection to
   `DesktopResponseOverlayRuntimeClient`.
+- `DesktopResponseOverlayInteractionRuntime` owns the browser scheduling behind
+  response-window visibility re-reporting and visible size updates:
+  animation-frame scheduling, retry timer scheduling, `ResizeObserver`, and
+  cleanup. `useResponseOverlayWindowSync(...)` supplies value-level callbacks
+  and refs.
 - `DesktopRendererTraceRuntime` owns response-surface stream-trace and
   live-surface size-report payload field shaping.
   `useResponseOverlayWindowSync(...)` reports value-level sizing and turn
@@ -239,10 +249,17 @@ Manual response dismissal uses
 model passes only turn/guard refs while the runtime client owns the hidden
 `dismissed` size payload shape.
 
-Response overlay hit-test commands use
-`DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(...)`.
-`MinimalResponseOverlay` reports boolean active state only; the runtime client
+Response overlay hit-test browser subscriptions and pointer bounds checks use
+`DesktopResponseOverlayInteractionRuntime.subscribeToResponseboxHitTestEvents(...)`.
+`MinimalResponseOverlay` reports boolean active state only, and
+`DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(...)`
 assembles the host-shaped `{ active }` IPC payload.
+
+Response overlay size re-report and resize scheduling use
+`DesktopResponseOverlayInteractionRuntime.scheduleResponseOverlayFrame(...)`
+and `DesktopResponseOverlayInteractionRuntime.startResponseOverlaySizeUpdateSync(...)`.
+`useResponseOverlayWindowSync(...)` remains the owner for hidden/shown sizing
+policy, turn guard metadata, and responsebox size IPC values.
 
 Layout-specific sizing:
 
@@ -267,14 +284,14 @@ Under `WINDIE_DEBUG_STREAM_EVENTS=1` (main injects `?debug_stream=1`) or explici
   - `turn_id`
   - phase
   - layout mode
-  - `show_response`
-  - `show_awaiting_reply`
+  - `response_visible`
+  - `awaiting_visible`
 - `useChatMessageSender` logs send start and backend dispatch intent
 - `desktopChatSendPreparation` logs SDK screenshot-resource decision
 - `ChatBoxResponse` logs the resolved overlay view contract each render pass that matters
 - response-window size traces go through
   `logRendererResponseSurfaceSizeTrace(...)`, so the window-sync hook does not
-  assemble trace fields such as `layout_mode`, `show_response`,
+  assemble trace fields such as `layout_mode`, `response_visible`,
   `thinking_text_length`, `compact_hover`, `turn_ref`, `stale_guard_ref`,
   `thinkingTextLength`, `overlayMode`, `guardRef`, or the
   `response_overlay.renderer.size_report` event name directly

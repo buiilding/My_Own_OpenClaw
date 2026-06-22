@@ -14,10 +14,11 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
 - `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopChatboxInteractionRuntime.js`
 - `frontend/src/renderer/features/minimalChatPill/components/PillIcons.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
 - `frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
@@ -53,10 +54,21 @@ This keeps overlay window lightweight:
 `useMinimalChatPillBindings` encapsulates chat pill runtime effect bindings:
 
 - explicit focus lifecycle through `DesktopWindowRuntimeClient` + mount focus
+- text-input DOM focus and caret placement through
+  `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)`; the pill
+  keeps only its text-entry active state
 - wakeword STT trigger handling through `DesktopWindowRuntimeClient`
-- global drag window listeners (`mousemove`/`mouseup`/`blur`)
-- visual-anchor sync through `DesktopWindowRuntimeClient` from measured shell
+- global drag window listeners through `DesktopChatboxInteractionRuntime`
+- pointer hit-test listeners and pill-bounds checks through
+  `DesktopChatboxInteractionRuntime`
+- close-button anchor measurement, resize listener wiring, `ResizeObserver`,
+  and animation-frame scheduling through `DesktopChatboxInteractionRuntime`
+- visual-anchor sync through `DesktopChatboxInteractionRuntime`, which owns
+  `ResizeObserver`, debounce timer, animation-frame scheduling, and
+  `DesktopWindowRuntimeClient` anchor-height reporting from measured shell
   height plus compact-height cleanup on unmount
+- native-frame collapse timeout scheduling and post-presize composer height
+  animation-frame commits through `DesktopChatboxInteractionRuntime`
 - text-entry activation reason reporting through `DesktopWindowRuntimeClient`;
   the runtime client assembles the host-shaped `{ reason }` IPC payload
 
@@ -140,7 +152,9 @@ Listener:
 
 - channel: `chatbox-focus`
 - action:
-  - focus input element when loop lock is not active
+  - mark text entry active and focus the input at the current text end through
+    `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)` when
+    loop lock is not active
 
 Non-listeners:
 
@@ -162,6 +176,9 @@ This is required after main-process `showChatWindow({ focus: true })`.
   - preview-expanded pill: `with-preview` on shell/pill while image attachments exist (`116px` anchor fallback)
   - multiline composer growth can exceed those fallback heights because the measured shell height becomes the live visual anchor
 - multiline resize reporting is batched to one animation-frame commit so the main process sees the settled shell height instead of intermediate `ResizeObserver` steps, and main uses that anchor only for overlay re-positioning while the native chat frame stays fixed.
+- the delayed native-frame collapse after empty composer shrinkage is scheduled
+  through `DesktopChatboxInteractionRuntime`; `MinimalChatPill` owns only the
+  empty-input/attachment guard and the anchor height values it reports.
 - manual drag persistence now stores the dragged bottom edge rather than the raw overlay top-left `y`, so vertical dragging still works while multiline/preview growth continues to move upward from the same visual baseline.
 - response/typing overlays in main process use the reported chat visual anchor height so their vertical position follows the visible pill baseline instead of the full transparent chat window height.
 - response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in the current non-dashboard Electron main overlay runtime) to keep the response pill visually near the chat pill.
@@ -185,13 +202,33 @@ Interaction contract:
 
 Movement path:
 
-1. cache pointer offset from current window origin
-2. on mousemove, ignore small movement (`<5px` Manhattan distance) through
+1. begin drag through `DesktopChatboxLayoutRuntime.startChatboxDragFromWindow(...)`
+   so current `window.screenX/screenY` reads stay inside the layout runtime
+2. cache pointer offset from current window origin
+3. on mousemove, ignore small movement (`<5px` Manhattan distance) through
    `DesktopChatboxLayoutRuntime.getChatboxDragTarget(...)`
-3. once the threshold is crossed, mark the gesture as a real drag
-4. compute absolute target window coordinates
-5. call `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
-6. stop on mouseup/window blur
+4. once the threshold is crossed, mark the gesture as a real drag
+5. compute absolute target window coordinates
+6. call `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
+7. stop on mouseup/window blur through `DesktopChatboxInteractionRuntime`
+
+Hit-test path:
+
+1. `DesktopChatboxInteractionRuntime` subscribes to pointer leave, blur, and
+   mousemove browser events for the pill window.
+2. the runtime compares pointer coordinates with the current pill bounds.
+3. `MinimalChatPill` receives a boolean active state, dedupes it, and reports
+   it through `DesktopWindowRuntimeClient.setChatboxHitTestActiveValue(...)`
+   plus renderer trace value logging.
+
+Close-anchor path:
+
+1. `DesktopChatboxInteractionRuntime` schedules close-anchor measurement on the
+   next animation frame.
+2. the runtime listens for window resize and pill `ResizeObserver` callbacks,
+   then remeasures the send button center relative to the pill bounds.
+3. `MinimalChatPill` supplies refs and an anchor snapshot while the runtime
+   writes `--chatbox-close-center-x` only when the resolved center changes.
 
 ## Visual Loop Activity Signal
 
@@ -201,7 +238,9 @@ Movement path:
 - `awaiting-reply`: chat pill + typing indicator
 - `response`: chat pill + response overlay
 
-`ChatBox` derives pill lock/loop state from `useCurrentTurnPresentationState(...)`, which composes the shared loop-state reducer (`useChatLoopUiState`) with one current-turn assistant-reply/surface projection helper.
+`ChatBox` derives pill lock/loop state from `useChatSurfaceController(...)`,
+which applies `DesktopVisibleTurnLifecycleRuntime` to the message-only
+presentation snapshot from `DesktopCurrentTurnPresentationRuntime`.
 
 `ChatBoxResponse` keeps one additional renderer-local transcript projection for the current turn:
 

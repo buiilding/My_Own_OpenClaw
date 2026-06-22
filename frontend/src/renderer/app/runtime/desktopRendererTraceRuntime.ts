@@ -3,14 +3,11 @@
  */
 
 import { DesktopLiveSurfaceTraceRuntimeClient } from './desktopLiveSurfaceTraceRuntimeClient';
-import { DesktopRendererDisplayProjectionDiagnosticsClient } from './desktopRendererDisplayProjectionDiagnosticsClient';
 import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
 
 export type RendererTraceWorkspaceSnapshot = {
   activeConversationRef?: string | null;
   workspaceMessageCount?: number;
-  thinkingStatus?: string | null;
-  phase?: string | null;
   activeTurnRef?: string | null;
   lastMessage?: {
     sender?: string | null;
@@ -31,7 +28,7 @@ export type RendererResponseSurfaceSizeTraceValues = {
   conversationRef?: unknown;
   visible: boolean;
   layoutMode?: string | null;
-  showResponse?: boolean;
+  responseVisible?: boolean;
   thinkingText?: unknown;
   thinkingTextLength?: unknown;
   compactHover?: boolean;
@@ -71,8 +68,8 @@ export type RendererResponseOverlayTypingRenderedTraceValues = {
   } | null;
   overlayLayoutMode?: unknown;
   isVisible?: boolean;
-  showAwaitingReply?: boolean;
-  showResponse?: boolean;
+  awaitingVisible?: boolean;
+  responseVisible?: boolean;
   responseOverlayEntryCount?: unknown;
 };
 
@@ -136,8 +133,6 @@ export type RendererCurrentTurnAppliedTraceValues = {
         staleGuardRef?: unknown;
         turnRef?: unknown;
       } | null;
-      typingVisible?: boolean;
-      overlayVisible?: boolean;
       hasVisibleContent?: boolean;
       entries?: readonly unknown[];
     } | null;
@@ -170,8 +165,8 @@ export type RendererResponseOverlayStateTraceValues = {
   turnRef?: unknown;
   phase?: unknown;
   isVisible?: boolean;
-  showAwaitingReply?: boolean;
-  showResponse?: boolean;
+  awaitingVisible?: boolean;
+  responseVisible?: boolean;
   responseLayoutMode?: unknown;
   visibleResponseId?: unknown;
   responseEntryCount?: unknown;
@@ -187,8 +182,8 @@ export type RendererResponseSurfaceRenderTraceValues = {
   turnRef?: unknown;
   phase?: unknown;
   responseLayoutMode?: unknown;
-  showResponse?: boolean;
-  showAwaitingReply?: boolean;
+  responseVisible?: boolean;
+  awaitingVisible?: boolean;
 };
 
 export type RendererResponseSurfaceSnapshotTraceValues = {
@@ -199,8 +194,8 @@ export type RendererResponseSurfaceSnapshotTraceValues = {
   responseType?: unknown;
   visibleResponseId?: unknown;
   responseOverlayEntryCount?: unknown;
-  showAwaitingReply?: boolean;
-  showResponse?: boolean;
+  awaitingVisible?: boolean;
+  responseVisible?: boolean;
   thinkingText?: unknown;
   thinkingTextLength?: unknown;
 };
@@ -219,22 +214,21 @@ export type RendererOverlayViewModelTraceValues = {
     staleGuardRef?: unknown;
   } | null;
   currentTurnPresentationState?: {
-    showAssistantAwaitingDot?: boolean;
+    awaitingDotTargetMessageId?: unknown;
     hasVisibleReply?: boolean;
     isBusy?: boolean;
-    overlayTurnLifecycle?: unknown;
   } | null;
   responseOverlayEntries?: unknown[];
   viewIntent?: {
-    showAwaitingReply?: boolean;
-    showResponse?: boolean;
+    awaitingVisible?: boolean;
+    responseVisible?: boolean;
     visibleResponse?: {
       id?: unknown;
     } | null;
     latestResponseOverlayEntryId?: unknown;
   } | null;
   useSdkLiveTurnPresentation?: boolean;
-  useLocalSendLatch?: boolean;
+  useLocalPendingTurn?: boolean;
 };
 
 type RendererOverlayViewModelTraceEvent = {
@@ -282,7 +276,21 @@ function getRendererTraceView(): string {
 }
 
 function summarizeWorkspaceForTrace(conversationRef: string | null): RendererTraceWorkspaceSnapshot {
-  return workspaceSnapshotResolver?.(conversationRef) ?? {};
+  const snapshot = workspaceSnapshotResolver?.(conversationRef) ?? {};
+  const summary: RendererTraceWorkspaceSnapshot = {};
+  if (snapshot.activeConversationRef !== undefined) {
+    summary.activeConversationRef = snapshot.activeConversationRef;
+  }
+  if (snapshot.workspaceMessageCount !== undefined) {
+    summary.workspaceMessageCount = snapshot.workspaceMessageCount;
+  }
+  if (snapshot.activeTurnRef !== undefined) {
+    summary.activeTurnRef = snapshot.activeTurnRef;
+  }
+  if (snapshot.lastMessage !== undefined) {
+    summary.lastMessage = snapshot.lastMessage;
+  }
+  return summary;
 }
 
 function logRendererResponseSurfaceTrace(data: Record<string, unknown>): void {
@@ -325,8 +333,8 @@ function buildRendererResponseSurfaceSizeTracePayload(
     width: traceNumberOrZero(values.width),
     height: traceNumberOrZero(values.height),
   };
-  if (typeof values.showResponse === 'boolean') {
-    payload.show_response = values.showResponse;
+  if (typeof values.responseVisible === 'boolean') {
+    payload.response_visible = values.responseVisible;
   }
   const thinkingTextLength = traceTextLength(values);
   if (thinkingTextLength !== null) {
@@ -362,8 +370,8 @@ function buildRendererResponseSurfaceSizeLiveTracePayload(
     payload.overlayMode = DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayNativeMode(
       layoutMode,
     );
-    if (typeof values.showResponse === 'boolean') {
-      payload.showResponse = values.showResponse;
+    if (typeof values.responseVisible === 'boolean') {
+      payload.responseVisible = values.responseVisible;
     }
     const thinkingTextLength = traceTextLength(values);
     if (thinkingTextLength !== null) {
@@ -454,8 +462,8 @@ function buildRendererResponseOverlayTypingRenderedTracePayload(
       || null
     ),
     isVisible: values.isVisible === true,
-    showAwaitingReply: values.showAwaitingReply === true,
-    showResponse: values.showResponse === true,
+    awaitingVisible: values.awaitingVisible === true,
+    responseVisible: values.responseVisible === true,
     layoutMode: traceString(values.overlayLayoutMode) || null,
     entryCount: traceNumberOrZero(values.responseOverlayEntryCount),
     hasVisibleContent: traceNumberOrZero(values.responseOverlayEntryCount) > 0,
@@ -482,8 +490,8 @@ function buildRendererResponseOverlayStateTracePayload(
     turn_id: traceString(values.turnRef) || null,
     phase: traceString(values.phase) || 'idle',
     is_visible: values.isVisible === true,
-    show_awaiting_reply: values.showAwaitingReply === true,
-    show_response: values.showResponse === true,
+    awaiting_visible: values.awaitingVisible === true,
+    response_visible: values.responseVisible === true,
     response_layout_mode: traceString(values.responseLayoutMode) || 'hidden',
     visible_response_id: traceString(values.visibleResponseId) || null,
     response_entry_count: traceNumberOrZero(values.responseEntryCount),
@@ -510,8 +518,8 @@ function buildRendererResponseSurfaceSnapshotTracePayload(
     activeResponseType: traceString(values.responseType) || null,
     visibleResponseId: traceString(values.visibleResponseId) || null,
     responseOverlayEntryCount: traceNumberOrZero(values.responseOverlayEntryCount),
-    showAwaitingReply: values.showAwaitingReply === true,
-    showResponse: values.showResponse === true,
+    awaitingVisible: values.awaitingVisible === true,
+    responseVisible: values.responseVisible === true,
     thinkingTextLength: traceTextLength(values) ?? 0,
   };
 }
@@ -685,8 +693,6 @@ function buildRendererCurrentTurnAppliedTracePayload(
       || traceString(currentTurn?.turnRef)
       || null
     ),
-    typingVisible: presentation?.typingVisible === true,
-    overlayVisible: presentation?.overlayVisible === true,
     hasVisibleContent: presentation?.hasVisibleContent === true,
     entryCount: Array.isArray(presentation?.entries) ? presentation.entries.length : 0,
     assistantLength: typeof currentTurn?.assistantText === 'string'
@@ -736,11 +742,9 @@ function buildRendererDisplayRowsProjectionTracePayload(
 function logRendererDisplayRowsProjectionTrace(
   values: RendererDisplayRowsProjectionTraceValues,
 ): void {
-  const payload = buildRendererDisplayRowsProjectionTracePayload(values);
-  DesktopRendererDisplayProjectionDiagnosticsClient.appendDisplayRowsProjectionDiagnostic(payload);
   logRendererLiveSurfaceTrace(
     'renderer.display_rows.projected',
-    payload,
+    buildRendererDisplayRowsProjectionTracePayload(values),
     traceString(values.conversationRef) || null,
   );
 }
@@ -754,8 +758,8 @@ function buildRendererResponseSurfaceRenderTracePayload(
     turn_id: traceString(values.turnRef) || null,
     phase: traceString(values.phase) || 'idle',
     response_layout_mode: traceString(values.responseLayoutMode) || 'hidden',
-    show_response: values.showResponse === true,
-    show_awaiting_reply: values.showAwaitingReply === true,
+    response_visible: values.responseVisible === true,
+    awaiting_visible: values.awaitingVisible === true,
   };
 }
 
@@ -791,17 +795,19 @@ function buildRendererOverlayViewModelTracePayload(
       || traceString(currentTurnProjection?.turnRef)
       || null
     ),
-    awaitingVisible: viewIntent?.showAwaitingReply === true,
-    responseVisible: viewIntent?.showResponse === true,
-    showAwaitingDot: currentTurnPresentationState?.showAssistantAwaitingDot === true,
+    awaitingVisible: viewIntent?.awaitingVisible === true,
+    responseVisible: viewIntent?.responseVisible === true,
+    showAwaitingDot: (
+      viewIntent?.awaitingVisible === true
+      && traceString(currentTurnPresentationState?.awaitingDotTargetMessageId) !== null
+    ),
     hasVisibleReply: currentTurnPresentationState?.hasVisibleReply === true,
     isBusy: currentTurnPresentationState?.isBusy === true,
-    overlayTurnLifecycle: traceString(currentTurnPresentationState?.overlayTurnLifecycle) || null,
     entryCount: responseOverlayEntries.length,
     visibleResponseId: traceString(viewIntent?.visibleResponse?.id) || null,
     latestEntryId: traceString(viewIntent?.latestResponseOverlayEntryId) || null,
     useSdkLiveTurnPresentation: values.useSdkLiveTurnPresentation === true,
-    useLocalSendLatch: values.useLocalSendLatch === true,
+    useLocalPendingTurn: values.useLocalPendingTurn === true,
   };
 }
 
@@ -810,12 +816,12 @@ function buildRendererOverlayTypingTraceEvent(
 ): RendererOverlayViewModelTraceEvent {
   const awaitingVisible = tracePayload.awaitingVisible === true;
   const responseVisible = tracePayload.responseVisible === true;
-  const useSdkLiveTurnPresentation = tracePayload.useSdkLiveTurnPresentation === true;
+  const useLocalPendingTurn = tracePayload.useLocalPendingTurn === true;
   return {
     event: awaitingVisible ? 'typing.show' : 'typing.hide',
     mode: awaitingVisible ? 'awaiting' : (responseVisible ? 'response' : 'hidden'),
     reason: awaitingVisible
-      ? (useSdkLiveTurnPresentation ? 'sdk-awaiting' : 'preflight-awaiting')
+      ? (useLocalPendingTurn ? 'local-pending-awaiting' : 'sdk-awaiting')
       : (responseVisible ? 'response-visible' : 'not-awaiting'),
   };
 }
@@ -879,6 +885,7 @@ function logRendererLiveSurfaceTrace(
     ...summarizeWorkspaceForTrace(conversationRef),
     ...data,
   };
+  console.log('[LiveSurfaceTrace]', payload);
   try {
     DesktopLiveSurfaceTraceRuntimeClient.send(payload);
   } catch (_error) {

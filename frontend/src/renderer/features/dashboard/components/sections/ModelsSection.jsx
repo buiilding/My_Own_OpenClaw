@@ -30,9 +30,11 @@ const {
 } = DesktopModelCardPresentationRuntime;
 const {
   buildModelConfigUpdate,
+  clearModelResetWarningTimer,
   evaluateModelSelection,
   getCurrentModels,
   getFallbackModelSelection,
+  scheduleModelResetWarningClear,
 } = DesktopModelSelectionRuntime;
 
 function ModelsSection({ config, availableModels, onConfigChange, onClose = () => {} }) {
@@ -130,10 +132,10 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
     if (selectionState.status === 'missing') {
       setModelResetWarning(selectionState.warning);
       applyModelSelection(getFallbackModelSelection(currentModels));
-      if (warningTimeoutRef.current) {
-        clearTimeout(warningTimeoutRef.current);
-      }
-      warningTimeoutRef.current = setTimeout(() => setModelResetWarning(''), 5000);
+      scheduleModelResetWarningClear({
+        timerRef: warningTimeoutRef,
+        onClear: () => setModelResetWarning(''),
+      });
       return;
     }
 
@@ -164,9 +166,7 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
 
   useEffect(() => {
     return () => {
-      if (warningTimeoutRef.current) {
-        clearTimeout(warningTimeoutRef.current);
-      }
+      clearModelResetWarningTimer({ timerRef: warningTimeoutRef });
     };
   }, []);
 

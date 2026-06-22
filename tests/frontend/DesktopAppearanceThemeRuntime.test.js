@@ -7,6 +7,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js';
 
 const {
+  applyAppearanceTheme,
   getAppearanceModeDescriptors,
   getAppearanceThemeFieldDescriptors,
   getAppearanceThemeSectionDescriptors,
@@ -102,5 +103,38 @@ describe('desktopAppearanceThemeRuntime', () => {
       translucent_sidebar: true,
       contrast: 0,
     });
+  });
+
+  test('owns document theme application adapter behind the runtime facade', () => {
+    const target = document.createElement('html');
+    const matchMedia = jest.fn();
+
+    const cleanup = applyAppearanceTheme({
+      appearance_mode: 'dark',
+      appearance_theme: {
+        dark: {
+          accent: '#F97316',
+          background: '#111827',
+          foreground: '#F9FAFB',
+          ui_font: 'Inter, sans-serif',
+          code_font: 'JetBrains Mono, monospace',
+          translucent_sidebar: false,
+          contrast: 88,
+        },
+      },
+    }, target, matchMedia);
+
+    expect(target.dataset.agentThemePreference).toBe('dark');
+    expect(target.dataset.agentTheme).toBe('dark');
+    expect(target.dataset.agentTranslucentSidebar).toBe('false');
+    expect(target.style.colorScheme).toBe('dark');
+    expect(target.style.getPropertyValue('--agent-accent')).toBe('#F97316');
+    expect(target.style.getPropertyValue('--appearance-background')).toBe('#111827');
+    expect(target.style.getPropertyValue('--appearance-foreground')).toBe('#F9FAFB');
+    expect(target.style.getPropertyValue('--appearance-contrast')).toBe('88');
+    expect(target.style.getPropertyValue('--font-ui')).toBe('Inter, sans-serif');
+    expect(target.style.getPropertyValue('--font-mono')).toBe('JetBrains Mono, monospace');
+    expect(matchMedia).not.toHaveBeenCalled();
+    expect(cleanup()).toBeUndefined();
   });
 });

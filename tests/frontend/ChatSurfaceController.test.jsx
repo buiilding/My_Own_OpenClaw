@@ -7,12 +7,7 @@ import { act, renderHook } from '@testing-library/react';
 import { AppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
 import { useChatSurfaceController } from '../../frontend/src/renderer/features/chat/hooks/useChatSurfaceController';
 
-const mockCurrentTurnPresentationState = jest.fn();
 const mockRunManualCompaction = jest.fn();
-
-jest.mock('../../frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState', () => ({
-  useCurrentTurnPresentationState: (...args) => mockCurrentTurnPresentationState(...args),
-}));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntime', () => ({
   DesktopManualCompactionRuntime: {
@@ -27,11 +22,8 @@ function renderController({
     include_query_screenshot: true,
   },
   updateConfig = jest.fn(),
-  presentationState = { isBusy: false, awaitingDotTargetMessageId: null },
   props = {},
 } = {}) {
-  mockCurrentTurnPresentationState.mockReturnValue(presentationState);
-
   const wrapper = ({ children }) => (
     <AppConfigContext.Provider value={{ config, updateConfig }}>
       {children}
@@ -67,7 +59,6 @@ function renderController({
 
 describe('useChatSurfaceController', () => {
   beforeEach(() => {
-    mockCurrentTurnPresentationState.mockReset();
     mockRunManualCompaction.mockReset();
     mockRunManualCompaction.mockResolvedValue(undefined);
   });
@@ -79,10 +70,6 @@ describe('useChatSurfaceController', () => {
         wakeword_stt_enabled: true,
         include_query_screenshot: false,
       },
-      presentationState: {
-        isBusy: true,
-        awaitingDotTargetMessageId: 'assistant-1',
-      },
     });
 
     expect(result.current.speechModeEnabled).toBe(true);
@@ -92,13 +79,10 @@ describe('useChatSurfaceController', () => {
     expect(result.current.canStop).toBe(true);
     expect(result.current.visibleTurnLifecycle.status).toBe('active');
     expect(result.current.currentTurnPresentationState.awaitingDotTargetMessageId).toBeNull();
-    expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
-      messages: expect.any(Array),
-    }));
   });
 
   test('prefers SDK current-turn completion over stale stream phases', () => {
-    renderController({
+    const { result } = renderController({
       props: {
         phase: 'tool-output',
         streamTracking: { phase: 'tool-output' },
@@ -114,9 +98,13 @@ describe('useChatSurfaceController', () => {
       },
     });
 
-    expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
-      messages: expect.any(Array),
-    }));
+    expect(result.current).toMatchObject({
+      isBusy: false,
+      canStop: false,
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'terminal',
+      }),
+    });
   });
 
   test('keeps current-turn lifecycle active when session conversation ref lags', () => {
@@ -151,10 +139,6 @@ describe('useChatSurfaceController', () => {
 
   test('uses SDK awaiting anchor as dashboard typing dot target', () => {
     const { result } = renderController({
-      presentationState: {
-        isBusy: true,
-        awaitingDotTargetMessageId: 'legacy-user-row',
-      },
       props: {
         currentTurnProjection: {
           phase: 'awaiting',
@@ -195,11 +179,8 @@ describe('useChatSurfaceController', () => {
     });
 
     expect(result.current.currentTurnPresentationState).toMatchObject({
-      loopUiState: 'awaiting-reply',
-      showAssistantAwaitingDot: true,
       awaitingDotTargetMessageId: 'user-row-1',
-      showChatboxAwaitingReply: true,
-      showChatboxResponse: false,
+      chatboxSurfaceState: 'awaiting-reply',
       visibleTurnLifecycle: expect.objectContaining({
         status: 'awaiting',
         source: 'sdk',
@@ -209,11 +190,6 @@ describe('useChatSurfaceController', () => {
 
   test('uses SDK awaiting lifecycle when SDK presentation is hidden', () => {
     const { result } = renderController({
-      presentationState: {
-        isBusy: true,
-        showChatboxAwaitingReply: true,
-        awaitingDotTargetMessageId: null,
-      },
       props: {
         pendingTurn: {
           conversationRef: 'conv-1',
@@ -258,28 +234,20 @@ describe('useChatSurfaceController', () => {
       },
     });
 
-    expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
-      messages: expect.any(Array),
-    }));
     expect(result.current).toMatchObject({
       isBusy: true,
       canStop: true,
       liveTurnPhase: 'awaiting-first-chunk',
-      liveTurnSource: 'sdk-current-turn',
+      liveTurnSource: 'current-turn',
     });
     expect(result.current.currentTurnPresentationState).toMatchObject({
-      showChatboxAwaitingReply: true,
       awaitingDotTargetMessageId: 'user-2',
+      chatboxSurfaceState: 'awaiting-reply',
     });
   });
 
   test('keeps renderer-owned local pending visible through SDK idle and visible-empty handoff', () => {
     const { result } = renderController({
-      presentationState: {
-        isBusy: false,
-        showChatboxAwaitingReply: false,
-        awaitingDotTargetMessageId: null,
-      },
       props: {
         pendingTurn: {
           conversationRef: 'conv-1',
@@ -340,21 +308,13 @@ describe('useChatSurfaceController', () => {
       }),
     });
     expect(result.current.currentTurnPresentationState).toMatchObject({
-      loopUiState: 'awaiting-reply',
-      showAssistantAwaitingDot: true,
       awaitingDotTargetMessageId: 'user-local',
-      showChatboxAwaitingReply: true,
-      showChatboxResponse: false,
+      chatboxSurfaceState: 'awaiting-reply',
     });
   });
 
   test('does not let stale raw isSending create local preflight without pending turn', () => {
     const { result } = renderController({
-      presentationState: {
-        isBusy: true,
-        showChatboxAwaitingReply: true,
-        awaitingDotTargetMessageId: null,
-      },
       props: {
         messages: [
           { id: 'user-1', type: 'user', sender: 'user', text: 'first', turnRef: 'turn-1' },
@@ -378,9 +338,6 @@ describe('useChatSurfaceController', () => {
       },
     });
 
-    expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
-      messages: expect.any(Array),
-    }));
     expect(result.current).toMatchObject({
       isBusy: false,
       canStop: false,
@@ -458,9 +415,6 @@ describe('useChatSurfaceController', () => {
 
   test('blocks manual compaction while the shared surface is busy', async () => {
     const { result } = renderController({
-      presentationState: {
-        isBusy: true,
-      },
     });
 
     await act(async () => {
@@ -472,9 +426,6 @@ describe('useChatSurfaceController', () => {
 
   test('allows dashboard-style manual compaction during active turns when requested', async () => {
     const { result } = renderController({
-      presentationState: {
-        isBusy: true,
-      },
       props: {
         allowManualCompactionWhileBusy: true,
       },

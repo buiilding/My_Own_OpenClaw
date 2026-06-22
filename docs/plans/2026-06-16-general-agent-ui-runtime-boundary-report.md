@@ -12,11 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: the live-surface selector no longer exposes the raw
-  `isSending` send-latch alias; dashboard/pill/overlay lifecycle inputs remain
-  on messages, pending turn, and SDK current-turn projection, while
-  `MinimalResponseOverlay` reads `isSending` separately only for diagnostic
-  trace payloads.
+- Latest completed slice: Electron main renderer-query backend payload assembly
+  now routes SDK turn resource/metadata preservation through the query runtime
+  facade, keeping the raw preservation helper private.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -37,6 +35,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
   prefix, bundled runtime copy, env keys, runs header, wakeword model, and
   browser warmup copy remain host-skin owned.
+  Renderer composer paste-event clipboard item inspection and image parsing now
+  route through `DesktopComposerAttachmentRuntime`; composer hooks keep draft
+  state, text-paste fallback, and preview append behavior.
+  Renderer transcription paste text extraction now routes through
+  `DesktopTranscriptionRegionRuntime`; `useTranscription` keeps React state,
+  selection range, region refs, and prevent-default behavior.
+  Renderer dashboard composer focus requests now route textarea focus/caret
+  placement through `DesktopMessageInputRuntime`; `MessageInput` keeps
+  request-token and loop-lock gating.
+  Renderer minimal chatbox explicit text-entry focus now routes input
+  focus/caret placement through `DesktopChatboxInteractionRuntime`;
+  `MinimalChatPill` keeps text-entry active state and loop-lock gating.
+  Renderer dashboard thread-find deferred focus now routes input focus/select
+  mechanics through `DesktopChatInterfaceBindingsRuntime`; `ChatInterface`
+  keeps find-bar state and focus token timing.
+  Electron main renderer-query agent-definition payload assembly now routes
+  through `buildRendererBackendQueryPayloadWithAgentDefinition(...)`;
+  `ipc_query_runtime.cjs` keeps SDK turn resource/metadata preservation private.
   Active local-runtime validation docs use the canonical `local-runtime`
   wrapper, test, and build commands; historical plan/report records and
   CLI-specific compatibility alias rows still mention the old names where the
@@ -87,6 +103,46 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   WindieOS query event copy remains host-skin owned.
   Renderer app-runtime boundary tests keep app/features on SDK/runtime facades
   rather than direct SDK-owned transport and conversation/history IPC channels.
+  Minimal chat pill native-frame collapse timers and sequence-guarded
+  composer-height animation-frame commits now route through
+  `DesktopChatboxInteractionRuntime` instead of raw browser scheduling in the
+  component.
+  Message-list active find-match scrolling, bottom-scroll RAF coalescing,
+  cleanup, and resize observation now route through
+  `DesktopMessageListRuntime` instead of raw browser scheduling in
+  `MessageList` or `useMessageListAutoScroll`.
+  Current-turn presentation state no longer passes through the deleted
+  `useCurrentTurnPresentationState` hook shim; chat surface and response
+  overlay hooks now call the renderer app-runtime facade directly.
+  Message action copy-reset and assistant-action reveal timers now route
+  through `DesktopMessageActionRuntime` instead of raw browser timeout calls in
+  `useCopyMessageAction` or `AssistantMessageActions`.
+  App-provider keydown/storage subscriptions, editable-target checks,
+  localStorage access, and save-status timers now route through
+  `DesktopAppProviderRuntime` instead of raw browser adapters in provider
+  components.
+  Chat-loop disconnect recovery watchdog scheduling now routes through
+  `DesktopChatLoopUiRuntime` instead of raw browser timeout calls in
+  `useChatLoopUiState`.
+  Debug tool-ghost hide/restart timer scheduling now routes through
+  `DesktopToolGhostRuntime` instead of raw browser timeout calls in
+  `ToolGhostDebugApp`.
+  Dashboard model-reset warning timer scheduling now routes through
+  `DesktopModelSelectionRuntime` instead of raw browser timeout calls in
+  `ModelsSection`.
+  Dashboard shell opening timer and document scroll-lock mechanics now route
+  through `DesktopDashboardLayoutRuntime` instead of raw browser timer/document
+  calls in `DashboardShell`.
+  Dashboard conversation startup retry, generated-title visibility polling, and
+  search debounce timers now route through
+  `DesktopDashboardConversationLoadRuntime` instead of raw browser timeout calls
+  in `useDashboardConversations`.
+  Voice-mode reconnect backoff timer scheduling and cleanup now route through
+  `DesktopVoiceRuntimeClient` instead of raw browser timeout calls in
+  `useVoiceMode`.
+  Transcription paste caret restoration now routes through
+  `DesktopTranscriptionRegionRuntime` instead of raw browser timeout calls in
+  `useTranscription`.
   Conversation replay database tests describe edit/resend cutoff rewrites as
   local-runtime SQLite behavior while the renderer owns preparation error
   projection.
@@ -9690,3 +9746,29 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   session state, IPC sync, storage, local-runtime execution, provider policy,
   backend behavior, and trust boundaries are unchanged; no migration is
   required.
+- Main query event construction now routes through `createQueryEventsRuntime`
+  instead of standalone helper exports. `ipc.cjs`, query-send failure handling,
+  Agent SDK command conversation-ref resolution, and backend-close interruption
+  synthesis consume the facade object while the module keeps conversation-ref
+  extraction, send-failure event construction, interruption event construction,
+  and dynamic host-copy fallback private. Query payloads, SDK conversation-event
+  envelopes, IPC channels, renderer projection, storage, local-runtime
+  execution, provider policy, permissions, backend behavior, and trust
+  boundaries are unchanged; no migration is required.
+- Main replay conversation-event projection now routes through
+  `createConversationEventProjectionRuntime` instead of a standalone backend
+  event builder export. Renderer-window replay consumes the facade object while
+  the module keeps backend-event envelope validation, SDK backend normalizer
+  delegation, and dynamic fallback conversation/revision/turn refs private.
+  Replay event shapes, SDK conversation-event envelopes, IPC channels, renderer
+  projection, storage, local-runtime execution, provider policy, permissions,
+  backend behavior, and trust boundaries are unchanged; no migration is
+  required.
+- Main overlay phase backend-event mapping now routes through
+  `createOverlayPhaseEventRuntime` instead of a standalone transition resolver
+  export. `ipc_runtime_helpers.cjs` consumes the facade object while the module
+  keeps transition mapping, correlation-id precedence, terminal fallback
+  handling, and recovery metadata extraction private. Backend event shapes,
+  overlay phase payloads, renderer fan-out, IPC channels, storage,
+  local-runtime execution, provider policy, permissions, backend behavior, and
+  trust boundaries are unchanged; no migration is required.

@@ -43,6 +43,28 @@ function createChatLoopRecoveryTimeoutEvent() {
   };
 }
 
+function scheduleChatLoopRecoveryWatchdog({
+  onTimeout,
+  delayMs = 0,
+  timerApi = globalThis,
+} = {}) {
+  if (typeof onTimeout !== 'function') {
+    return () => {};
+  }
+  if (
+    typeof timerApi?.setTimeout !== 'function'
+    || typeof timerApi?.clearTimeout !== 'function'
+  ) {
+    onTimeout();
+    return () => {};
+  }
+
+  const timerId = timerApi.setTimeout(onTimeout, delayMs);
+  return () => {
+    timerApi.clearTimeout(timerId);
+  };
+}
+
 function reduceChatLoopTransportMachineState(state, event) {
   if (!event || typeof event !== 'object') {
     return state;
@@ -127,5 +149,6 @@ export const DesktopChatLoopUiRuntime = Object.freeze({
   createChatLoopSnapshotEvent,
   createChatLoopTransportStatusEvent,
   createChatLoopRecoveryTimeoutEvent,
+  scheduleChatLoopRecoveryWatchdog,
   reduceChatLoopTransportMachineState,
 });

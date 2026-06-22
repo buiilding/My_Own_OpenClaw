@@ -12,6 +12,7 @@ import MessageItem from '../../chat/components/message/MessageItem';
 import { DesktopMessageTransparencyRuntime } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { DesktopResponseOverlayLayoutRuntime } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
+import { DesktopResponseOverlayInteractionRuntime } from '../../../app/runtime/desktopResponseOverlayInteractionRuntime';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 
 const RESPONSE_FIXED_HEIGHT = DesktopResponseOverlayLayoutRuntime.getResponseOverlayFixedHeight();
@@ -29,7 +30,6 @@ const {
 function MinimalResponseOverlay() {
   const {
     messages,
-    thinkingStatus,
     currentTurnProjection,
     pendingTurn,
   } = useChatStore(useShallow(selectLiveTurnSurfaceState));
@@ -47,14 +47,13 @@ function MinimalResponseOverlay() {
     thinkingText,
     handleCloseResponse,
     latestResponseOverlayEntryId,
-    showResponse,
-    showAwaitingReply,
+    responseVisible,
+    awaitingVisible,
     overlayLayoutMode,
     isVisible,
     turnId: currentTurnId,
   } = useResponseOverlayViewModel({
     messages,
-    thinkingStatus,
     currentTurnProjection,
     pendingTurn,
   });
@@ -63,7 +62,7 @@ function MinimalResponseOverlay() {
     responsePillRef,
     handleResponseScroll,
   } = useResponseOverlayScrollState({
-    showResponse,
+    responseVisible,
     responseEntrySignature,
   });
   const conversationToolSchemas = useMemo(
@@ -77,7 +76,7 @@ function MinimalResponseOverlay() {
     overlayLayoutMode,
     overlayIntent,
     responseEntrySignature,
-    showResponse,
+    responseVisible,
     thinkingText,
   });
 
@@ -101,42 +100,15 @@ function MinimalResponseOverlay() {
     };
   }, [setResponseboxHitTestActive]);
 
-  const syncResponseboxHitTestForPointer = useCallback((event) => {
-    const shellBounds = shellRef.current?.getBoundingClientRect?.();
-    if (!shellBounds) {
-      setResponseboxHitTestActive(false);
-      return;
-    }
-    const pointerX = Number(event.clientX);
-    const pointerY = Number(event.clientY);
-    const isInsideResponse = (
-      Number.isFinite(pointerX)
-      && Number.isFinite(pointerY)
-      && pointerX >= shellBounds.left
-      && pointerX <= shellBounds.right
-      && pointerY >= shellBounds.top
-      && pointerY <= shellBounds.bottom
-    );
-    setResponseboxHitTestActive(isInsideResponse);
-  }, [setResponseboxHitTestActive]);
-
-  const disableResponseboxHitTest = useCallback(() => {
-    setResponseboxHitTestActive(false);
+  useEffect(() => {
+    return DesktopResponseOverlayInteractionRuntime.subscribeToResponseboxHitTestEvents({
+      shellRef,
+      onHitTestActiveChange: setResponseboxHitTestActive,
+    });
   }, [setResponseboxHitTestActive]);
 
   useEffect(() => {
-    window.addEventListener('mousemove', syncResponseboxHitTestForPointer);
-    window.addEventListener('mouseleave', disableResponseboxHitTest);
-    window.addEventListener('blur', disableResponseboxHitTest);
-    return () => {
-      window.removeEventListener('mousemove', syncResponseboxHitTestForPointer);
-      window.removeEventListener('mouseleave', disableResponseboxHitTest);
-      window.removeEventListener('blur', disableResponseboxHitTest);
-    };
-  }, [disableResponseboxHitTest, syncResponseboxHitTestForPointer]);
-
-  useEffect(() => {
-    const typingRendered = isVisible && showAwaitingReply;
+    const typingRendered = isVisible && awaitingVisible;
     if (lastRenderedTypingVisibleRef.current === typingRendered) {
       return;
     }
@@ -148,8 +120,8 @@ function MinimalResponseOverlay() {
       overlayIntent,
       overlayLayoutMode,
       isVisible,
-      showAwaitingReply,
-      showResponse,
+      awaitingVisible,
+      responseVisible,
       responseOverlayEntryCount: responseOverlayEntries.length,
     });
   }, [
@@ -165,8 +137,8 @@ function MinimalResponseOverlay() {
     overlayIntent?.turnRef,
     overlayLayoutMode,
     responseOverlayEntries.length,
-    showAwaitingReply,
-    showResponse,
+    awaitingVisible,
+    responseVisible,
   ]);
 
   useEffect(() => {
@@ -175,8 +147,8 @@ function MinimalResponseOverlay() {
       : 0;
     const nextSurfaceStateSignature = JSON.stringify({
       isVisible,
-      showAwaitingReply,
-      showResponse,
+      awaitingVisible,
+      responseVisible,
       overlayLayoutMode,
       phase: currentTurnProjection?.phase || 'idle',
       turnId: currentTurnId || null,
@@ -189,8 +161,8 @@ function MinimalResponseOverlay() {
         turnRef: currentTurnId || null,
         phase: currentTurnProjection?.phase || 'idle',
         isVisible,
-        showAwaitingReply,
-        showResponse,
+        awaitingVisible,
+        responseVisible,
         responseLayoutMode: overlayLayoutMode,
         visibleResponseId: latestResponseOverlayEntryId || null,
         responseEntryCount: responseOverlayEntries.length,
@@ -206,16 +178,16 @@ function MinimalResponseOverlay() {
       responseType: latestSourceTaggedResponseEntry?.type || null,
       visibleResponseId: latestResponseOverlayEntryId,
       responseOverlayEntryCount: responseOverlayEntries.length,
-      showAwaitingReply,
-      showResponse,
+      awaitingVisible,
+      responseVisible,
       thinkingTextLength: typeof thinkingText === 'string' ? thinkingText.length : 0,
     });
     logRendererResponseSurfaceRenderTrace({
       turnRef: currentTurnId,
       phase: currentTurnProjection?.phase || 'idle',
       responseLayoutMode: overlayLayoutMode,
-      showResponse,
-      showAwaitingReply,
+      responseVisible,
+      awaitingVisible,
     });
   }, [
     currentTurnId,
@@ -226,8 +198,8 @@ function MinimalResponseOverlay() {
     latestSourceTaggedResponseEntry?.type,
     messages.length,
     responseOverlayEntries.length,
-    showAwaitingReply,
-    showResponse,
+    awaitingVisible,
+    responseVisible,
     thinkingText,
     overlayLayoutMode,
   ]);
@@ -238,13 +210,13 @@ function MinimalResponseOverlay() {
 
   return (
     <div
-      className={`chatbox-shell-wrap chatbox-response-shell-wrap${showResponse ? ' has-response-pill' : ''}${showAwaitingReply && !showResponse ? ' awaiting-only' : ''}`}
+      className={`chatbox-shell-wrap chatbox-response-shell-wrap${responseVisible ? ' has-response-pill' : ''}${awaitingVisible && !responseVisible ? ' awaiting-only' : ''}`}
       style={{
         '--chatbox-awaiting-frame-height': `${TYPING_FRAME_HEIGHT}px`,
       }}
     >
       <div className="chatbox-shell" ref={shellRef}>
-        {showResponse ? (
+        {responseVisible ? (
           <div
             className={`chatbox-response-pill${hasOverflowAbove ? ' has-overflow-above' : ''}`}
             ref={responsePillRef}
@@ -277,7 +249,7 @@ function MinimalResponseOverlay() {
           </div>
         ) : null}
 
-        {showAwaitingReply ? (
+        {awaitingVisible ? (
           <div className="chatbox-awaiting-shell" data-thinking={thinkingText ? '1' : '0'}>
             <div className="chatbox-typing-indicator" aria-label="Assistant is awaiting reply">
               <span />

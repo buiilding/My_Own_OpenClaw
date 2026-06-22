@@ -22,6 +22,7 @@ title: "Voice Capture and Wakeword Controller Reference"
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioInputDeviceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopWakewordEventRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts`
@@ -127,8 +128,11 @@ Reconnect policy:
 
 `useVoiceMode.startAudioCapture()` setup:
 
-- `getUserMedia` with mono/16kHz + echo/noise controls
-- `AudioContext` at 16kHz
+- browser microphone capture through
+  `DesktopVoiceAudioInputDeviceRuntime.requestAudioInputStream(...)` with
+  mono/16kHz + echo/noise controls
+- browser `AudioContext` creation through
+  `DesktopVoiceAudioInputDeviceRuntime.createAudioInputContext(...)` at 16kHz
 - required `AudioWorkletNode` capture processor (`desktop-runtime-capture-processor`) with chunk size 4096
 - construction routed through
   `DesktopVoiceAudioProcessorNodeRuntime.createAudioCaptureProcessorNode(...)`
@@ -163,6 +167,8 @@ Cleanup path uses shared helpers:
 - first transcription chunk appends and marks region
 - subsequent chunks replace same region (avoids repeated duplication)
 - manual typing/paste updates region offsets
+- pasted-text extraction from the browser clipboard event is owned by
+  `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)`
 - send/reset clears region so next utterance starts fresh
 
 This is why partial real-time updates can overwrite earlier draft text but preserve user edits outside region boundaries.
@@ -187,6 +193,8 @@ Hook startup:
 
 Wakeword capture path:
 
+- request microphone stream and AudioContext through
+  `DesktopVoiceAudioInputDeviceRuntime`
 - convert mic frames Float32 -> PCM16
 - send ArrayBuffer via `DesktopVoiceRuntimeClient.sendWakewordAudioChunk(...)`
 - main process handles the local-runtime wakeword helper transport details
@@ -211,7 +219,10 @@ Missing-device guardrails:
 - missing-mic failures lock capture via `globalThis.__desktopRuntimeWakewordCaptureGuard`
 - lock persists across hook remounts
 - temporary suppression (`wakewordActive=false` while `wakewordEnabled=true`) keeps lockout active
-- lockout clears when wakeword preference is explicitly disabled or when `devicechange` detects an available `audioinput`
+- lockout clears when wakeword preference is explicitly disabled or when
+  `DesktopVoiceAudioInputDeviceRuntime.onAudioInputDeviceChange(...)` observes
+  a browser device-change event and the app-runtime audio-device probe detects
+  an available `audioinput`
 - local capture errors remain sticky across healthy status packets (`localCaptureErrorRef` gate)
 
 ## Failure and Drift Hotspots

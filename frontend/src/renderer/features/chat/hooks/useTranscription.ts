@@ -9,7 +9,9 @@ const {
   appendTranscriptionText,
   buildValueAfterPaste,
   createEmptyTranscriptionRegion,
+  readTextFromPasteEvent,
   replaceTranscriptionText,
+  scheduleCursorRestoreAfterPaste,
   updateRegionAfterInputChange,
   updateRegionAfterPaste,
 } = DesktopTranscriptionRegionRuntime;
@@ -76,7 +78,7 @@ export function useTranscription(initialValue: string = '') {
   }, [setInputValue]);
 
   const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const pastedText = e.clipboardData.getData('text');
+    const pastedText = readTextFromPasteEvent(e);
     if (!pastedText) return;
 
     const input = e.target as HTMLInputElement | HTMLTextAreaElement;
@@ -96,11 +98,11 @@ export function useTranscription(initialValue: string = '') {
         pastedText.length,
       );
       
-      // Set cursor position after pasted text
-      setTimeout(() => {
-        const newCursorPosition = pasted.start + pastedText.length;
-        input.setSelectionRange(newCursorPosition, newCursorPosition);
-      }, 0);
+      scheduleCursorRestoreAfterPaste({
+        input,
+        pastedTextLength: pastedText.length,
+        start: pasted.start,
+      });
       
       return pasted.value;
     });

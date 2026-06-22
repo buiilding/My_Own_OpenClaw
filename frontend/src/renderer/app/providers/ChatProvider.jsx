@@ -10,7 +10,6 @@ import { useConversationSessionProjection } from '../../features/chat/session/us
 import { useChatStore } from '../../features/chat/stores/chatStore';
 import { DesktopRendererTraceRuntime } from '../runtime/desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionInfoRuntimeClient } from '../runtime/desktopTranscriptSessionInfoRuntimeClient';
-import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
 
 const {
   configureRendererTraceWorkspaceSnapshotResolver,
@@ -23,8 +22,6 @@ function resolveChatTraceWorkspaceSnapshot(conversationRef) {
   return {
     activeConversationRef: store.activeConversationRef,
     workspaceMessageCount: workspace.messages.length,
-    thinkingStatus: workspace.thinkingStatus,
-    phase: workspace.streamTracking.phase,
     activeTurnRef: workspace.streamTracking.activeTurnRef,
     lastMessage: lastMessage ? {
       sender: lastMessage.sender,
@@ -55,9 +52,5 @@ export function ChatProvider({ children, enableTranscript = true }) {
   useConversationRuntimeProjectionStream();
   useChatStream(enableTranscript);
 
-  return (
-    <ChatContext.Provider value={EMPTY_CHAT_CONTEXT}>
-      {children}
-    </ChatContext.Provider>
-  );
+  return children;
 }

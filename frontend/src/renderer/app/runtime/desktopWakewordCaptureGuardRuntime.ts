@@ -2,6 +2,8 @@
  * Provides wakeword capture guard helpers for the renderer app-runtime.
  */
 
+import { DesktopVoiceAudioInputDeviceRuntime } from './desktopVoiceAudioInputDeviceRuntime';
+
 type WakewordCaptureGuard = {
   missingDeviceLocked: boolean;
   nextRetryAt: number;
@@ -39,17 +41,7 @@ function isMissingAudioDeviceError(error: unknown): boolean {
 }
 
 async function hasAvailableAudioInputDevice(): Promise<boolean> {
-  const mediaDevices = navigator.mediaDevices;
-  if (!mediaDevices || typeof mediaDevices.enumerateDevices !== 'function') {
-    return false;
-  }
-
-  try {
-    const devices = await mediaDevices.enumerateDevices();
-    return devices.some((device) => device.kind === 'audioinput');
-  } catch {
-    return false;
-  }
+  return DesktopVoiceAudioInputDeviceRuntime.hasAvailableAudioInputDevice();
 }
 
 export const DesktopWakewordCaptureGuardRuntime = Object.freeze({

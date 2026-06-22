@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for shared chat loop UI state resolution: overlay-turn lifecycle projection, transport-disconnect recovery watchdog behavior, and dashboard/minimal-pill surface consumers."
 read_when:
-  - When changing `useChatLoopUiState`, `desktopOverlayTurnLifecycleRuntime`, `desktopChatLoopUiRuntime`, or stream-phase-to-UI mapping behavior.
+  - When changing `useChatLoopUiState`, `desktopVisibleTurnLifecycleRuntime`, `desktopChatLoopUiRuntime`, or stream-phase-to-UI mapping behavior.
   - When debugging stuck stop buttons, minimal-pill loop locks, or reconnect races after missing terminal events.
 title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 ---
@@ -10,12 +10,10 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 
 ## Canonical Modules
 
-- `frontend/src/shared/overlay_turn_lifecycle_contract.json`
 - `frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js`
-- `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
 - `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
@@ -24,7 +22,6 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 - `tests/frontend/DesktopVisibleTurnLifecycleRuntime.test.js`
 - `tests/frontend/ChatLoopUiState.test.js`
 - `tests/frontend/ChatLoopUiStateHook.test.jsx`
-- `tests/frontend/OverlayTurnLifecycle.test.js`
 
 ## Visible Turn Lifecycle Contract (`desktopVisibleTurnLifecycleRuntime.js`)
 
@@ -49,42 +46,28 @@ Output statuses:
 
 `DesktopVisibleTurnLifecycleRuntime.resolvePendingTurnForCurrentProjection(...)`
 owns pending-turn handoff for store updates, while
-`DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)` owns
-surface preflight suppression. Both use the same visible lifecycle authority so
-SDK idle, wrong-turn terminal, stale, and visible-empty projections do not
-replace `local_pending`.
-Local send preflight requires a valid renderer `pendingTurn`; bare
-`isSending=true` is store-local cleanup state and does not create visible
-typing, busy lifecycle, or surface diagnostics by itself.
+`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns the
+surface local-pending status consumed by dashboard, pill, and overlay surfaces.
+Both use the same visible lifecycle authority so SDK idle, wrong-turn terminal,
+stale, and visible-empty projections do not replace `local_pending`.
+Local pending rendering requires a valid renderer `pendingTurn`; bare
+`isSending=true` is store/diagnostic compatibility state and does not create
+visible typing or busy lifecycle by itself.
+`DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+stamps only renderer-owned visible lifecycle, busy, awaiting, and chatbox
+surface fields. It no longer preserves a compatibility scrubber for retired
+overlay lifecycle payloads; the renderer contract is that those fields are not
+produced.
 
-## Overlay Turn Lifecycle Contract
+## Deleted Overlay Turn Lifecycle Contract
 
-Shared lifecycle source of truth:
-
-- `frontend/src/shared/overlay_turn_lifecycle_contract.json`
-
-Public lifecycle states:
-
-- `idle`
-- `preflight`
-- `awaiting`
-- `active`
-- `terminal`
-
-`DesktopOverlayTurnLifecycleRuntime` exposes only semantic lifecycle value
-getters and predicates. It no longer reduces `phase + isSending` into lifecycle
-state; `DesktopVisibleTurnLifecycleRuntime` owns that visible-state decision.
-
-Busy lifecycle states:
-
-- `preflight`
-- `awaiting`
-- `active`
-
-Awaiting lifecycle states:
-
-- `preflight`
-- `awaiting`
+The older `overlay_turn_lifecycle_contract.json`,
+`desktopOverlayTurnLifecycleRuntime.js`, and `OverlayTurnLifecycle.test.js`
+surfaces were deleted after all production consumers moved to
+`visibleTurnLifecycle.status`. Do not reintroduce overlay lifecycle names such
+as `preflight` as desktop typing or busy state. Use
+`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` for
+local-pending, awaiting, active, terminal, and idle projection.
 
 ## Transport Recovery Runtime (`desktopChatLoopUiRuntime.js`)
 
@@ -155,18 +138,22 @@ The renderer client-session runtime client normalizes raw `ipc-status` and
 startup snapshot payloads into observed boolean connection updates for this hook.
 The client filters snapshots/events without a boolean connection field; the hook
 owns only subscriptions, `DesktopChatLoopUiRuntime` snapshot event creation,
-and the recovery watchdog timer. Disconnect/reconnect state transitions live in
-`DesktopChatLoopUiRuntime.reduceChatLoopTransportMachineState(...)`; the raw
-state constants, reducer events, and helper functions stay private behind that
-renderer app-runtime facade.
+and watchdog callback dispatch. Disconnect/reconnect state transitions live in
+`DesktopChatLoopUiRuntime.reduceChatLoopTransportMachineState(...)`, while
+recovery watchdog timeout scheduling/cleanup lives in
+`DesktopChatLoopUiRuntime.scheduleChatLoopRecoveryWatchdog(...)`. The raw state
+constants, reducer events, browser timer adapter, and helper functions stay
+private behind that renderer app-runtime facade.
 
 It does not mutate stream tracking or backend query state; it is UI projection only.
 
-`useCurrentTurnPresentationState(...)` now only adapts visible assistant
-message rows into the legacy current-turn presentation shape. It does not
-compose transport recovery or `phase + isSending` lifecycle mapping; those
-decisions belong to `useChatSurfaceController(...)` and
-`DesktopVisibleTurnLifecycleRuntime`.
+The deleted `useCurrentTurnPresentationState(...)` shim no longer sits between
+surface hooks and app runtime projection. `useChatSurfaceController(...)` and
+`useResponseOverlayViewModel(...)` call
+`DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+directly for message/response data, then apply
+`DesktopVisibleTurnLifecycleRuntime` for busy, awaiting, Stop, and typing
+state.
 `useResponseOverlayViewModel(...)` reads SDK presentation entries through
 `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`
 and uses `DesktopCurrentTurnPresentationRuntime` only for response-overlay
@@ -178,30 +165,42 @@ lifecycle reducer.
 `useChatSurfaceController(...)` resolves
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` and uses
 that projection for dashboard/pill busy state, stop affordance gating,
-awaiting-dot visibility, and chatbox awaiting state. The older
-`useCurrentTurnPresentationState(...)` result remains an adapter for legacy
-presentation fields while visible lifecycle owns the typing decision; the
-controller no longer calls an SDK presentation reducer, and the response
-overlay uses
+awaiting-dot visibility, and chatbox awaiting state. The controller builds the
+message-only presentation snapshot from `DesktopCurrentTurnPresentationRuntime`
+and passes the resolved lifecycle directly into presentation stamping; it no
+longer calls an SDK presentation reducer, and the response overlay uses
 `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
-only for SDK response-entry data plus overlay-intent metadata. Actual response
-visibility requires a visible response entry; overlay intent alone is not a
-response lifecycle authority.
+only for explicit SDK response-entry data plus overlay-intent metadata instead
+of merging a fallback presentation snapshot. Actual response visibility
+requires a visible response entry; overlay intent alone is not a response
+lifecycle authority.
 The controller resolves the active lifecycle against the SDK current-turn
 conversation ref when present, so a lagging session ref does not hide the
 visible same-turn projection.
 
 `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)` delegates
-local send-preflight handoff to
-`DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)`. The live
-surface still prepares overlay presentation input and SDK overlay intent
-metadata, but phase, busy, awaiting, and response flags now come from
-`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`. The
-live-surface adapter exposes `isBusy` rather than a legacy `isSending` alias.
-`selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`; minimal
-surfaces also keep raw `isSending` out of surface trace payloads so diagnostics
-follow visible lifecycle fields such as busy, Stop availability, awaiting, and
-response visibility.
+local pending-turn handoff to the already-resolved
+`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` status.
+The live surface still prepares overlay presentation input and SDK overlay
+intent metadata, but phase, busy, awaiting, and response flags now come from
+that visible lifecycle projection. The
+live-surface adapter exposes `isBusy` rather than a legacy `isSending` alias,
+and no longer returns a separate `showAwaiting` typing alias; typing state
+stays on `visibleTurnLifecycle.showTyping`. It also omits the duplicate
+`showResponse` alias; response overlay visibility is resolved by the
+response-overlay view intent after entries and dismissal state are applied.
+It recognizes SDK presentation rows from non-empty `presentation.entries`
+rather than legacy SDK visibility booleans or overlay intent mode. Overlay
+intent remains guard/window metadata; its mode is derived from SDK phase and
+actual entries, text, error, or tool-progress evidence instead of copied as
+lifecycle authority. SDK `presentation.hasVisibleContent` is also not lifecycle
+evidence by itself.
+`selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`, and minimal
+surface trace payloads name the renderer-local path `useLocalPendingTurn`
+instead of a send-latch alias.
+It also omits store `thinkingStatus`; response overlay reasoning text follows
+SDK `currentTurn.reasoningText`, while dashboard message-list compaction/manual
+status text remains on the chat-interface selector path.
 The decision to keep renderer-local pending typing through idle, hidden, stale,
 terminal, or visible SDK projections lives with the visible lifecycle owner and
 requires an accepted renderer `pendingTurn`.
@@ -216,14 +215,14 @@ does not rely on bare `isSending` as a visible lifecycle authority.
 
 `useResponseOverlayViewModel(...)` also resolves the same visible lifecycle and
 applies `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
-before deriving response-overlay view intent. The response overlay therefore
+directly before deriving response-overlay view intent. The response overlay therefore
 shows awaiting only for renderer local pending or SDK awaiting lifecycle, and
 shows response only for visible SDK entries. Phase-only `streaming`,
 `tool_call`, or `tool_output` projections with no visible text, tool event,
 progress, error, or pending turn do not independently show typing. The
-visible-lifecycle adapter also stamps the legacy `overlayTurnLifecycle` field
-for response-overlay view code, so stale phase-derived lifecycle values do not
-survive adaptation.
+response-overlay view contract reads `visibleTurnLifecycle.status` directly
+when suppressing stale previous responses during a new awaiting turn, so it no
+longer imports the overlay lifecycle adapter.
 
 ## Surface Consumers
 
@@ -231,10 +230,15 @@ survive adaptation.
 
 - consumes `useChatSurfaceController(...)`
 - uses visible lifecycle `isBusy` as the stop-query affordance gate
+- resolves Stop targets from active SDK phases or renderer `pendingTurn`; SDK
+  `presentation.isBusy` is rendering data and does not create a Stop target
+- accepts stopped SDK projections without preserving SDK `typingVisible`,
+  `overlayVisible`, or `hasVisibleContent`; visible lifecycle derives terminal
+  busy/typing state from phase and visible entries
 - disables assistant feedback/retry actions from visible lifecycle busy/Stop
   state instead of raw `isSending`
-- uses visible lifecycle awaiting anchor for `showAssistantAwaitingDot` instead
-  of component-local reply scanning
+- uses visible lifecycle awaiting anchor for `awaitingDotTargetMessageId`
+  instead of component-local reply scanning
 - passes the visible lifecycle awaiting anchor directly to `MessageList`; live
   progress row shape remains rendering data and does not suppress lifecycle
   typing state
@@ -262,10 +266,13 @@ survive adaptation.
   projections
 - same-turn SDK awaiting, visible progress/text, and terminal projections
   replace local pending
-- shared presentation adapters map renderer visible lifecycle into legacy busy,
+- SDK presentation visibility flags do not replace local pending unless actual
+  entries, text, error, or tool-progress evidence is present
+- shared presentation adapters map renderer visible lifecycle into busy,
   awaiting-dot, chatbox, and response overlay presentation fields
-- bare `isSending=true` does not create local preflight without `pendingTurn`
-- the handoff predicate stays behind the visible lifecycle runtime facade
+- bare `isSending=true` does not create local pending without `pendingTurn`
+- live surfaces read local pending from visible lifecycle status instead of a
+  second handoff predicate
 
 `tests/frontend/ChatSurfaceController.test.jsx` validates:
 
@@ -280,13 +287,8 @@ survive adaptation.
 - disconnect/reconnect arms the recovery watchdog
 - changed snapshot signatures disarm recovery after reconnect progress
 - stale snapshots keep the recovery watchdog armed until timeout
-
-`tests/frontend/OverlayTurnLifecycle.test.js` validates:
-
-- overlay lifecycle runtime exposes only semantic lifecycle value getters and
-  predicates
-- raw lifecycle constants, phase groups, and `phase + isSending` reducers stay
-  private/removed
+- recovery watchdog scheduling uses the app-runtime browser timer adapter and
+  cleans up through the returned cleanup callback
 
 `tests/frontend/ChatLoopUiStateHook.test.jsx` validates:
 
@@ -297,7 +299,7 @@ survive adaptation.
 
 ## Drift Hotspots
 
-1. Changing phase groups in `overlay_turn_lifecycle_contract.json` without updating the renderer lifecycle resolver can desync preflight/awaiting/active transitions.
+1. Reintroducing overlay lifecycle names or `phase + isSending` reducers can split desktop typing state away from `DesktopVisibleTurnLifecycleRuntime`.
 2. Removing snapshot-signature progress detection can cause false watchdog idle resets during valid reconnect recovery.
 3. Treating transport disconnection as non-terminal in lifecycle projection can leave dashboard/chatbox permanently loop-locked after backend outages.
 

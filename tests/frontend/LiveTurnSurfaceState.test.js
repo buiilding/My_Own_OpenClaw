@@ -38,7 +38,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'complete',
       isBusy: false,
       source: 'current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
     });
   });
@@ -65,9 +65,8 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       isBusy: true,
-      showAwaiting: true,
       source: 'pending-turn',
-      useLocalSendLatch: true,
+      useLocalPendingTurn: true,
       useSdkLiveTurnPresentation: false,
       turnRef: 'turn-2',
       guardRef: preflightGuardRef,
@@ -91,7 +90,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'awaiting-first-chunk',
       isBusy: true,
       source: 'pending-turn',
-      useLocalSendLatch: true,
+      useLocalPendingTurn: true,
       useSdkLiveTurnPresentation: false,
       guardRef: preflightGuardRef,
       overlayIntent: expect.objectContaining({
@@ -115,7 +114,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'awaiting-first-chunk',
       isBusy: true,
       source: 'pending-turn',
-      useLocalSendLatch: true,
+      useLocalPendingTurn: true,
       turnRef: 'turn-pending',
       conversationRef: 'conv-1',
       overlayIntent: {
@@ -162,11 +161,66 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       isBusy: true,
-      source: 'sdk-current-turn',
-      useLocalSendLatch: false,
-      useSdkLiveTurnPresentation: true,
+      source: 'current-turn',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
       turnRef: 'turn-pending',
       conversationRef: 'conv-1',
+      overlayIntent: expect.objectContaining({
+        mode: 'awaiting',
+        staleGuardRef: 'turn-pending',
+      }),
+    });
+  });
+
+  test('uses SDK presentation entries without legacy presentation visibility flags', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'streaming',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        assistantText: 'Visible response',
+        presentation: {
+          hasVisibleContent: true,
+          entries: [
+            {
+              id: 'assistant-entry',
+              sender: 'assistant',
+              text: 'Visible response',
+              type: 'llm-text',
+            },
+          ],
+        },
+      },
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'streaming',
+      isBusy: true,
+      source: 'sdk-current-turn',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: true,
+      entries: [
+        expect.objectContaining({
+          id: 'assistant-entry',
+          sender: 'assistant',
+          text: 'Visible response',
+          type: 'llm-text',
+        }),
+      ],
+      overlayIntent: {
+        visible: true,
+        mode: 'response',
+        turnRef: 'turn-2',
+        conversationRef: 'conv-1',
+        staleGuardRef: 'turn-2',
+      },
+      turnRef: 'turn-2',
+      conversationRef: 'conv-1',
+      guardRef: 'turn-2',
     });
   });
 
@@ -204,10 +258,13 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       isBusy: true,
-      source: 'sdk-current-turn',
-      useLocalSendLatch: false,
-      useSdkLiveTurnPresentation: true,
-      showAwaiting: true,
+      source: 'current-turn',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: expect.objectContaining({
+        mode: 'awaiting',
+        staleGuardRef: 'turn-2',
+      }),
     });
   });
 
@@ -239,8 +296,8 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       source: 'pending-turn',
-      useLocalSendLatch: true,
-      useSdkLiveTurnPresentation: true,
+      useLocalPendingTurn: true,
+      useSdkLiveTurnPresentation: false,
     });
   });
 
@@ -274,9 +331,13 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'complete',
       isBusy: false,
-      source: 'sdk-current-turn',
-      useLocalSendLatch: false,
-      useSdkLiveTurnPresentation: true,
+      source: 'current-turn',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: expect.objectContaining({
+        mode: 'hidden',
+        staleGuardRef: 'turn-2',
+      }),
     });
   });
 
@@ -302,12 +363,12 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       source: 'pending-turn',
-      useLocalSendLatch: true,
+      useLocalPendingTurn: true,
       useSdkLiveTurnPresentation: false,
     });
   });
 
-  test('lets SDK awaiting presentation supersede send preflight', () => {
+  test('lets SDK awaiting presentation supersede local pending turn', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {
         phase: 'awaiting',
@@ -340,11 +401,13 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
 
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
-      source: 'sdk-current-turn',
-      useLocalSendLatch: false,
-      useSdkLiveTurnPresentation: true,
-      showAwaiting: true,
+      source: 'current-turn',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
       guardRef: 'turn-2',
+      overlayIntent: expect.objectContaining({
+        mode: 'awaiting',
+      }),
     });
   });
 
@@ -377,13 +440,11 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       isBusy: true,
-      showAwaiting: true,
-      showResponse: false,
-      source: 'sdk-current-turn',
-      useLocalSendLatch: false,
-      useSdkLiveTurnPresentation: true,
+      source: 'current-turn',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
       overlayIntent: expect.objectContaining({
-        mode: 'hidden',
+        mode: 'awaiting',
       }),
     });
   });
@@ -418,11 +479,48 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'streaming',
       isBusy: true,
-      showAwaiting: false,
-      showResponse: true,
-      source: 'sdk-current-turn',
-      useLocalSendLatch: false,
-      useSdkLiveTurnPresentation: true,
+      source: 'current-turn',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: expect.objectContaining({
+        mode: 'response',
+      }),
+    });
+  });
+
+  test('does not use SDK hasVisibleContent flag as response lifecycle evidence', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'streaming',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        assistantText: '',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+        presentation: {
+          hasVisibleContent: true,
+          entries: [],
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            turnRef: 'turn-2',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-2',
+          },
+        },
+      },
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'idle',
+      isBusy: false,
+      source: 'current-turn',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
       overlayIntent: expect.objectContaining({
         mode: 'hidden',
       }),

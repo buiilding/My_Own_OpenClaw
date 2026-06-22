@@ -467,7 +467,7 @@ Primary modules:
 - `renderer/app/runtime/desktopMessageSendUiRuntime.ts`:
   - Pure renderer send-surface policy for main-window vs overlay-chatbox return behavior.
 - `renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`:
-  - Small renderer contract for `showResponse` vs `showAwaitingReply` vs hidden layout state.
+  - Small renderer contract for `responseVisible` vs `awaitingVisible` vs hidden layout state.
   - Keeps awaiting typing and response overlay mode selection out of `ChatBoxResponse.jsx`.
 - Electron main keeps one SDK conversation runtime per active conversation;
   renderer resume/open flows send intent and display rows rather than

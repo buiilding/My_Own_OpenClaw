@@ -4,7 +4,7 @@
 
 import { useEffect } from 'react';
 import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
-import { DesktopShortcutRuntimeClient } from '../../../app/runtime/desktopShortcutRuntimeClient';
+import { DesktopChatInterfaceBindingsRuntime } from '../../../app/runtime/desktopChatInterfaceBindingsRuntime';
 import { DesktopChatEventsRuntime } from '../../../app/runtime/desktopChatEvents';
 
 const {
@@ -31,25 +31,13 @@ export function useChatInterfaceMenuDismiss({
   setReasoningModeMenuOpen = () => {},
 }) {
   useEffect(() => {
-    const handlePointerDown = (event) => {
-      if (providerMenuRef.current && !providerMenuRef.current.contains(event.target)) {
-        setProviderMenuOpen(false);
-      }
-      if (modelMenuRef.current && !modelMenuRef.current.contains(event.target)) {
-        setModelMenuOpen(false);
-      }
-      if (
-        reasoningModeMenuRef
-        && reasoningModeMenuRef.current
-        && !reasoningModeMenuRef.current.contains(event.target)
-      ) {
-        setReasoningModeMenuOpen(false);
-      }
-    };
-    window.addEventListener('mousedown', handlePointerDown);
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-    };
+    return DesktopChatInterfaceBindingsRuntime.subscribeToMenuDismiss({
+      menus: [
+        { ref: providerMenuRef, dismiss: () => setProviderMenuOpen(false) },
+        { ref: modelMenuRef, dismiss: () => setModelMenuOpen(false) },
+        { ref: reasoningModeMenuRef, dismiss: () => setReasoningModeMenuOpen(false) },
+      ],
+    });
   }, [
     modelMenuRef,
     providerMenuRef,
@@ -62,22 +50,10 @@ export function useChatInterfaceMenuDismiss({
 
 export function useChatInterfaceStopShortcut(canStop, handleStopTurn) {
   useEffect(() => {
-    const handleStopShortcut = (event) => {
-      if (!canStop || !DesktopShortcutRuntimeClient.isAgentStopShortcutEvent(event)) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      if (typeof event.stopImmediatePropagation === 'function') {
-        event.stopImmediatePropagation();
-      }
-      handleStopTurn();
-    };
-
-    window.addEventListener('keydown', handleStopShortcut);
-    return () => {
-      window.removeEventListener('keydown', handleStopShortcut);
-    };
+    return DesktopChatInterfaceBindingsRuntime.subscribeToStopShortcut({
+      canStop,
+      onStop: handleStopTurn,
+    });
   }, [canStop, handleStopTurn]);
 }
 
@@ -87,32 +63,11 @@ export function useChatInterfaceFindShortcut({
   handleCloseFind,
 }) {
   useEffect(() => {
-    const handleFindShortcut = (event) => {
-      if (event.defaultPrevented) {
-        return;
-      }
-
-      const lowerKey = typeof event.key === 'string' ? event.key.toLowerCase() : '';
-      if ((event.metaKey || event.ctrlKey) && lowerKey === 'f' && !event.altKey) {
-        event.preventDefault();
-        event.stopPropagation();
-        if (typeof event.stopImmediatePropagation === 'function') {
-          event.stopImmediatePropagation();
-        }
-        handleOpenFind();
-        return;
-      }
-
-      if (event.key === 'Escape' && isFindOpen) {
-        event.preventDefault();
-        handleCloseFind();
-      }
-    };
-
-    window.addEventListener('keydown', handleFindShortcut);
-    return () => {
-      window.removeEventListener('keydown', handleFindShortcut);
-    };
+    return DesktopChatInterfaceBindingsRuntime.subscribeToFindShortcut({
+      isFindOpen,
+      onOpenFind: handleOpenFind,
+      onCloseFind: handleCloseFind,
+    });
   }, [handleCloseFind, handleOpenFind, isFindOpen]);
 }
 

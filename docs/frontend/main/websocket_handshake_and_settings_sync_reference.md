@@ -135,7 +135,8 @@ phase sync.
 
 Overlay transition contract:
 
-- backend event -> overlay phase mapping and recovery metadata extraction live in `ipc_overlay_phase_events.cjs`
+- backend event -> overlay phase mapping and recovery metadata extraction live
+  behind `createOverlayPhaseEventRuntime(...)`
 - shared phase/metadata normalization primitives live in `ipc_overlay_phase_contract.cjs`
 - `ipc_runtime_helpers.processBackendMessageData(...)` applies that transition via `setResponseOverlayPhase(...)`
 
@@ -219,7 +220,7 @@ If backend send fails for query path:
 
 - overlay phase reset to `idle`
 - replay state cleared for that turn
-- synthetic error event built by `buildQuerySendFailure(...)`
+- synthetic error event built by the query-events runtime
 - event includes query context ids + user-facing failure message
 - broadcast to renderer through the SDK conversation-event channel
 

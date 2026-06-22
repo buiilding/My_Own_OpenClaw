@@ -4,6 +4,82 @@
 
 import { isVmModeEnabled } from '../../infrastructure/runtime/vmMode';
 
+export type RendererEntrypointView =
+  | 'main'
+  | 'minimal-chat-pill'
+  | 'minimal-response-overlay'
+  | 'tool-ghost-debug';
+
+export type RendererStartupSurface =
+  | 'dashboard'
+  | 'dashboard-vm'
+  | 'onboarding';
+
+const RENDERER_ENTRYPOINT_VIEWS = new Set<RendererEntrypointView>([
+  'minimal-chat-pill',
+  'minimal-response-overlay',
+  'tool-ghost-debug',
+]);
+
+function resolveRendererSearch(windowApi: Pick<Window, 'location'> | null | undefined = globalThis.window): string {
+  return typeof windowApi?.location?.search === 'string' ? windowApi.location.search : '';
+}
+
+function getRendererEntrypointView(
+  windowApi?: Pick<Window, 'location'> | null,
+): RendererEntrypointView {
+  try {
+    const view = new URLSearchParams(resolveRendererSearch(windowApi)).get('view');
+    return RENDERER_ENTRYPOINT_VIEWS.has(view as RendererEntrypointView)
+      ? view as RendererEntrypointView
+      : 'main';
+  } catch (_error) {
+    return 'main';
+  }
+}
+
+function shouldSuppressWakewordOnStartup(
+  windowApi?: Pick<Window, 'location'> | null,
+): boolean {
+  return getRendererEntrypointView(windowApi) !== 'main';
+}
+
+function getRendererRootElement(
+  documentApi: Pick<Document, 'getElementById'> | null | undefined = globalThis.document,
+): HTMLElement | null {
+  return documentApi?.getElementById('root') ?? null;
+}
+
+function selectStartupSurface({
+  vmModeEnabled,
+  bootstrapped,
+  needsOnboarding,
+  onboardingCompleted,
+}: {
+  vmModeEnabled: boolean;
+  bootstrapped: boolean;
+  needsOnboarding: boolean;
+  onboardingCompleted: boolean;
+}): RendererStartupSurface {
+  if (vmModeEnabled) {
+    return 'dashboard-vm';
+  }
+
+  const shouldShowOnboarding = bootstrapped
+    ? needsOnboarding
+    : !onboardingCompleted;
+
+  if (shouldShowOnboarding) {
+    return 'onboarding';
+  }
+
+  return 'dashboard';
+}
+
 export const DesktopStartupRuntimeClient = {
+  getRendererEntrypointView,
+  getRendererRootElement,
   isVmModeEnabled,
+  selectStartupSurface,
+  shouldSuppressWakewordOnStartup,
 };

@@ -161,9 +161,9 @@ function resolveCurrentTurnMessages({
   if (presentationMessages.length > 0) {
     return presentationMessages;
   }
-  const projectedMessages = buildCurrentTurnMessagesFromProjection(currentTurnProjection);
-  if (projectedMessages.length > 0) {
-    return projectedMessages;
+  const projectionFallbackMessages = buildCurrentTurnMessagesFromProjection(currentTurnProjection);
+  if (projectionFallbackMessages.length > 0) {
+    return projectionFallbackMessages;
   }
   return Array.isArray(currentTurnMessages) ? currentTurnMessages : [];
 }

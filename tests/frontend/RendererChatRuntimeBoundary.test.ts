@@ -774,6 +774,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSideEffectsSource).toContain('streaming-response');
     expect(projectionSideEffectsSource).toContain('desktopChatStreamThinkingRuntime');
     expect(projectionSideEffectsSource).toContain('DesktopChatStreamThinkingRuntime');
+    expect(projectionSideEffectsSource).not.toContain('typingVisible');
+    expect(projectionSideEffectsSource).not.toContain('overlayVisible');
     expect(projectionSideEffectsSource).not.toContain('import {\n  buildThinkingStatus');
     expect(projectionSideEffectsSource).not.toContain('export function createProjectionCursor');
     expect(projectionSideEffectsSource).not.toContain('export function buildProjectionCursorKey');
@@ -917,6 +919,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).toContain('DesktopStartupRuntimeClient.isVmModeEnabled');
     expect(chatInterfaceSource).not.toContain('infrastructure/runtime/vmMode');
     expect(startupClientSource).toContain('isVmModeEnabled');
+    expect(startupClientSource).toContain('getRendererEntrypointView');
+    expect(startupClientSource).toContain('shouldSuppressWakewordOnStartup');
   });
 
   test('dashboard conversation hook subscribes through app runtime conversation event client', async () => {
@@ -1211,6 +1215,10 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(messageListRuntimeSource).toContain('DesktopMessageListRuntime');
     expect(messageListRuntimeSource).toContain('resolveCompactionStatusText');
+    expect(messageListRuntimeSource).toContain('scheduleActiveFindMatchScroll');
+    expect(messageListRuntimeSource).toContain('scheduleMessageListScrollToBottom');
+    expect(messageListRuntimeSource).toContain('clearScheduledMessageListScroll');
+    expect(messageListRuntimeSource).toContain('observeMessageListResize');
     expect(messageListRuntimeSource).toContain('shouldAutoScrollForAgentLoopMessageUpdate');
     expect(messageListRuntimeSource).toContain('shouldAutoScrollForThinkingTextUpdate');
     expect(messageListRuntimeSource).not.toContain('export function isNearBottom');
@@ -1222,6 +1230,16 @@ describe('renderer chat runtime boundary', () => {
     expect(messageListRuntimeSource).not.toContain('export function shouldRenderUserActions');
     expect(messageListRuntimeSource).not.toContain('export function resolveCompactionStatusText');
     expect(autoScrollSource).not.toContain("nextLastMessage.type === 'llm-text'");
+    expect(messageListSource).toContain('DesktopMessageListRuntime.scheduleActiveFindMatchScroll');
+    expect(messageListSource).not.toContain('window.requestAnimationFrame');
+    expect(messageListSource).not.toContain('window.cancelAnimationFrame');
+    expect(autoScrollSource).toContain('DesktopMessageListRuntime.scheduleMessageListScrollToBottom');
+    expect(autoScrollSource).toContain('DesktopMessageListRuntime.clearScheduledMessageListScroll');
+    expect(autoScrollSource).toContain('DesktopMessageListRuntime.observeMessageListResize');
+    expect(autoScrollSource).not.toContain('window.requestAnimationFrame');
+    expect(autoScrollSource).not.toContain('window.cancelAnimationFrame');
+    expect(autoScrollSource).not.toContain('new ResizeObserver');
+    expect(autoScrollSource).not.toContain('typeof ResizeObserver');
     expect(messageListRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageListState.js'),
@@ -1341,12 +1359,20 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useCopyMessageAction.js'),
       'utf8',
     );
+    const assistantActionsSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/AssistantMessageActions.jsx'),
+      'utf8',
+    );
     const transparencySectionSource = await fs.readFile(
       path.join(chatRoot, 'components/message/TransparencySection.jsx'),
       'utf8',
     );
     const clipboardRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopClipboardRuntime.js'),
+      'utf8',
+    );
+    const messageActionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageActionRuntime.js'),
       'utf8',
     );
 
@@ -1360,9 +1386,20 @@ describe('renderer chat runtime boundary', () => {
 
     expect(offenders).toEqual([]);
     expect(copyHookSource).toContain('DesktopClipboardRuntime.writeText');
+    expect(copyHookSource).toContain('DesktopMessageActionRuntime.scheduleMessageActionTimer');
+    expect(copyHookSource).toContain('DesktopMessageActionRuntime.clearMessageActionTimer');
+    expect(copyHookSource).not.toContain('window.setTimeout');
+    expect(copyHookSource).not.toContain('window.clearTimeout');
+    expect(assistantActionsSource).toContain('DesktopMessageActionRuntime.scheduleMessageActionTimer');
+    expect(assistantActionsSource).toContain('DesktopMessageActionRuntime.clearMessageActionTimer');
+    expect(assistantActionsSource).not.toContain('window.setTimeout');
+    expect(assistantActionsSource).not.toContain('window.clearTimeout');
     expect(transparencySectionSource).toContain('DesktopClipboardRuntime.writeText');
     expect(clipboardRuntimeSource).toContain('navigator?.clipboard');
     expect(clipboardRuntimeSource).not.toContain('features/chat');
+    expect(messageActionRuntimeSource).toContain('setTimeout');
+    expect(messageActionRuntimeSource).toContain('clearTimeout');
+    expect(messageActionRuntimeSource).not.toContain('features/chat');
   });
 
   test('renderer feature hooks read latest-ref helper through app runtime facade', async () => {
@@ -1807,6 +1844,12 @@ describe('renderer chat runtime boundary', () => {
     expect(stopHandlerSource).not.toContain("stopTarget.source === 'pending-turn'");
     expect(chatStoreSource).not.toContain('utils/state/stopQueryState');
     expect(stopRuntimeSource).toContain('DesktopStopTurnRuntime');
+    expect(stopRuntimeSource).toContain('delete nextPresentation.typingVisible');
+    expect(stopRuntimeSource).toContain('delete nextPresentation.overlayVisible');
+    expect(stopRuntimeSource).toContain('delete nextPresentation.hasVisibleContent');
+    expect(stopRuntimeSource).not.toContain('typingVisible: false');
+    expect(stopRuntimeSource).not.toContain('overlayVisible: hasVisibleContent');
+    expect(stopRuntimeSource).not.toContain('presentation?.hasVisibleContent');
     expect(stopRuntimeSource).not.toContain('export function buildStopQueryTrackingPatch');
     expect(stopRuntimeSource).not.toContain('export function buildStoppedCurrentTurnProjection');
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromCurrentTurn');
@@ -1841,6 +1884,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('export function configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('DesktopRendererTraceRuntime');
+    expect(chatProviderSource).not.toContain('isSending: workspace.isSending');
+    expect(chatProviderSource).not.toContain('thinkingStatus: workspace.thinkingStatus');
+    expect(chatProviderSource).not.toContain('phase: workspace.streamTracking.phase');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/chatStream/chatStreamDebugTrace.ts'),
@@ -2002,15 +2048,22 @@ describe('renderer chat runtime boundary', () => {
     expect(loopStateSource).not.toContain('hasConnectionState');
     expect(loopStateSource).not.toContain('CHAT_LOOP_MACHINE_EVENT');
     expect(loopStateSource).not.toContain('function reduceChatLoopMachineState');
+    expect(loopStateSource).not.toContain('window.setTimeout');
+    expect(loopStateSource).not.toContain('window.clearTimeout');
     expect(loopStateSource).toContain('reduceChatLoopTransportMachineState');
     expect(loopStateSource).toContain('createChatLoopTransportStatusEvent');
+    expect(loopStateSource).toContain('scheduleChatLoopRecoveryWatchdog');
     expect(loopStateSource).toContain('DesktopChatLoopUiRuntime');
     expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.onObservedIpcTransportConnection');
     expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.loadObservedMainTransportConnection');
     expect(loopRuntimeSource).toContain('CHAT_LOOP_TRANSPORT_MACHINE_EVENT');
     expect(loopRuntimeSource).toContain('export const DesktopChatLoopUiRuntime = Object.freeze');
     expect(loopRuntimeSource).toContain('reduceChatLoopTransportMachineState');
+    expect(loopRuntimeSource).toContain('scheduleChatLoopRecoveryWatchdog');
+    expect(loopRuntimeSource).toContain('setTimeout');
+    expect(loopRuntimeSource).toContain('clearTimeout');
     expect(loopRuntimeSource).not.toContain('export function reduceChatLoopTransportMachineState');
+    expect(loopRuntimeSource).not.toContain('export function scheduleChatLoopRecoveryWatchdog');
     expect(loopRuntimeSource).not.toContain('export function resolveChatLoopUiState');
     expect(loopRuntimeSource).not.toContain('features/chat');
     expect(clientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
@@ -2099,6 +2152,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopShortcutRuntimeClient.ts'),
       'utf8',
     );
+    const chatInterfaceBindingsRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatInterfaceBindingsRuntime.js'),
+      'utf8',
+    );
     const workspaceClientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts'),
       'utf8',
@@ -2155,10 +2212,30 @@ describe('renderer chat runtime boundary', () => {
     expect(bindingsSource).not.toContain('AUDIO_CHUNK');
     expect(bindingsSource).not.toContain('IpcBridge.on');
     expect(bindingsSource).not.toContain('infrastructure/shortcuts/agentStopShortcut');
+    expect(bindingsSource).not.toContain('window.addEventListener');
+    expect(bindingsSource).not.toContain('window.removeEventListener');
+    expect(chatInterfaceSource).not.toContain('window.addEventListener');
+    expect(chatInterfaceSource).not.toContain('window.removeEventListener');
+    expect(chatInterfaceSource).not.toContain('window.requestAnimationFrame');
+    expect(chatInterfaceSource).not.toContain('window.cancelAnimationFrame');
+    expect(bindingsSource).not.toContain('isAgentStopShortcutEvent');
     expect(chatInterfaceSource).toContain('DesktopNewChatSessionRuntime');
     expect(chatInterfaceSource).not.toContain('import { startNewChatSession');
     expect(bindingsSource).toContain('DesktopAudioRuntimeClient.onAudioChunk');
-    expect(bindingsSource).toContain('DesktopShortcutRuntimeClient.isAgentStopShortcutEvent');
+    expect(bindingsSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToMenuDismiss');
+    expect(bindingsSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToStopShortcut');
+    expect(bindingsSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToFindShortcut');
+    expect(chatInterfaceSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToWindowFocus');
+    expect(chatInterfaceSource).toContain('DesktopChatInterfaceBindingsRuntime.scheduleDeferredFocus');
+    expect(chatInterfaceSource).toContain('DesktopChatInterfaceBindingsRuntime.focusAndSelectInput');
+    expect(chatInterfaceSource).not.toContain('.focus()');
+    expect(chatInterfaceSource).not.toContain('.select()');
+    expect(chatInterfaceBindingsRuntimeSource).toContain('DesktopShortcutRuntimeClient.isAgentStopShortcutEvent');
+    expect(chatInterfaceBindingsRuntimeSource).toContain('addEventListener');
+    expect(chatInterfaceBindingsRuntimeSource).toContain('removeEventListener');
+    expect(chatInterfaceBindingsRuntimeSource).toContain('requestAnimationFrame');
+    expect(chatInterfaceBindingsRuntimeSource).toContain('focusAndSelectInput');
+    expect(chatInterfaceBindingsRuntimeSource).not.toContain('features/chat');
     expect(audioClientSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
     expect(audioClientSource).toContain('PlayerService');
     expect(audioClientSource).toContain('createAudioPlayer');
@@ -2232,33 +2309,76 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js'),
       'utf8',
     );
+    const interactionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatboxInteractionRuntime.js'),
+      'utf8',
+    );
 
     for (const source of [pillSource, bindingsSource]) {
       expect(source).not.toContain('IpcBridge');
       expect(source).not.toContain('INVOKE_CHANNELS');
       expect(source).not.toContain('SEND_CHANNELS');
       expect(source).not.toContain('ON_CHANNELS');
-      expect(source).toContain('desktopChatboxLayoutRuntime');
       expect(source).not.toContain('chat/utils/state/chatBoxState');
     }
+    expect(pillSource).toContain('desktopChatboxLayoutRuntime');
+    expect(bindingsSource).toContain('desktopChatboxInteractionRuntime');
     expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
     expect(layoutRuntimeSource).toContain('resolveChatboxNativeFrameHeight');
+    expect(layoutRuntimeSource).toContain('startChatboxDragFromWindow');
     expect(layoutRuntimeSource).toContain('DesktopChatboxLayoutRuntime');
     expect(layoutRuntimeSource).not.toContain('export function createChatboxDragState');
     expect(layoutRuntimeSource).not.toContain('export function resolveChatboxVisualAnchorHeight');
     expect(layoutRuntimeSource).not.toContain('export function resolveChatboxNativeFrameHeight');
     expect(layoutRuntimeSource).not.toContain('export function startChatboxDrag');
+    expect(layoutRuntimeSource).not.toContain('export function startChatboxDragFromWindow');
     expect(layoutRuntimeSource).not.toContain('export function stopChatboxDrag');
     expect(layoutRuntimeSource).not.toContain('export function getChatboxDragTarget');
     expect(layoutRuntimeSource).not.toContain('export function getChatboxCloseBumpHeight');
     expect(layoutRuntimeSource).not.toContain('export const CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(layoutRuntimeSource).not.toContain('export const CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
+    expect(interactionRuntimeSource).toContain('DesktopChatboxLayoutRuntime');
+    expect(interactionRuntimeSource).toContain('DesktopWindowRuntimeClient');
+    expect(interactionRuntimeSource).toContain('isPointerInsideChatbox');
+    expect(interactionRuntimeSource).toContain('subscribeToChatboxHitTestEvents');
+    expect(interactionRuntimeSource).toContain('startChatboxCloseButtonAnchorSync');
+    expect(interactionRuntimeSource).toContain('resolveChatboxCloseButtonAnchorCenterX');
+    expect(interactionRuntimeSource).toContain('scheduleChatboxNativeFrameCollapse');
+    expect(interactionRuntimeSource).toContain('clearChatboxNativeFrameCollapse');
+    expect(interactionRuntimeSource).toContain('scheduleChatboxComposerHeightCommit');
+    expect(interactionRuntimeSource).toContain('focusChatboxTextInputAtEnd');
+    expect(interactionRuntimeSource).toContain('getBoundingClientRect');
+    expect(interactionRuntimeSource).not.toContain('features/chat');
+    expect(interactionRuntimeSource).not.toContain('features/minimalChatPill');
     expect(pillSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxNativeFrameHeight');
-    expect(bindingsSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight');
+    expect(pillSource).toContain('DesktopChatboxLayoutRuntime.startChatboxDragFromWindow');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.startChatboxCloseButtonAnchorSync');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.clearChatboxNativeFrameCollapse');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd');
+    expect(pillSource).not.toContain("window.addEventListener('mousemove'");
+    expect(pillSource).not.toContain("window.addEventListener('mouseleave'");
+    expect(pillSource).not.toContain("window.addEventListener('resize'");
+    expect(pillSource).not.toContain("window.removeEventListener('mousemove'");
+    expect(pillSource).not.toContain("window.removeEventListener('mouseleave'");
+    expect(pillSource).not.toContain("window.removeEventListener('resize'");
+    expect(pillSource).not.toContain('new ResizeObserver');
+    expect(pillSource).not.toContain('window.setTimeout');
+    expect(pillSource).not.toContain('window.clearTimeout');
+    expect(pillSource).not.toContain('window.requestAnimationFrame');
+    expect(pillSource).not.toContain('window.screenX');
+    expect(pillSource).not.toContain('window.screenY');
+    expect(pillSource).not.toContain('setSelectionRange');
+    expect(pillSource).not.toContain('.focus()');
+    expect(pillSource).not.toContain('closeButtonAnchorFrameRef');
+    expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync');
+    expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.resetChatboxVisualAnchorHeight');
     expect(pillSource).not.toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
     expect(bindingsSource).not.toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(pillSource).toContain('setChatboxVisualAnchorHeightValue');
-    expect(bindingsSource).toContain('setChatboxVisualAnchorHeightValue');
+    expect(bindingsSource).not.toContain('setChatboxVisualAnchorHeightValue');
     expect(pillSource).not.toContain('setChatboxVisualAnchorHeight({');
     expect(bindingsSource).not.toContain('payload.frameHeight');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.activateChatboxTextEntryForReason');
@@ -2324,6 +2444,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useChatComposerDraft.js'),
       'utf8',
     );
+    const messageInputSource = await fs.readFile(
+      path.join(chatRoot, 'components/MessageInput.jsx'),
+      'utf8',
+    );
     const messageInputRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js'),
       'utf8',
@@ -2332,7 +2456,12 @@ describe('renderer chat runtime boundary', () => {
     expect(composerDraftSource).toContain('desktopMessageInputRuntime');
     expect(composerDraftSource).toContain('DesktopMessageInputRuntime');
     expect(composerDraftSource).not.toContain('utils/message/messageInput');
+    expect(messageInputSource).toContain('desktopMessageInputRuntime');
+    expect(messageInputSource).toContain('DesktopMessageInputRuntime.focusTextInputAtEnd');
+    expect(messageInputSource).not.toContain('setSelectionRange');
+    expect(messageInputSource).not.toContain('.focus()');
     expect(messageInputRuntimeSource).toContain('export const DesktopMessageInputRuntime = Object.freeze');
+    expect(messageInputRuntimeSource).toContain('focusTextInputAtEnd');
     expect(messageInputRuntimeSource).not.toContain('export function buildOutgoingMessage');
     expect(messageInputRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
@@ -2352,14 +2481,18 @@ describe('renderer chat runtime boundary', () => {
 
     expect(composerDraftSource).toContain('desktopComposerAttachmentRuntime');
     expect(composerDraftSource).toContain('DesktopComposerAttachmentRuntime');
+    expect(composerDraftSource).toContain('parseClipboardImagePasteEvent');
     expect(composerDraftSource).not.toContain('clipboardImageUtils');
     expect(composerDraftSource).not.toContain('fileAttachmentUtils');
+    expect(composerDraftSource).not.toContain('clipboardData');
     expect(composerAttachmentSource).toContain('DesktopComposerAttachmentRuntime');
+    expect(composerAttachmentSource).toContain('parseClipboardImagePasteEvent');
     expect(composerAttachmentSource).toContain('parseClipboardImageItems');
     expect(composerAttachmentSource).toContain('parseSelectedComposerFiles');
     expect(composerAttachmentSource).toContain('parseBase64ImageDataUrl');
     expect(composerAttachmentSource).not.toContain('export function readFileAsDataUrl');
     expect(composerAttachmentSource).not.toContain('export function parseBase64ImageDataUrl');
+    expect(composerAttachmentSource).not.toContain('export async function parseClipboardImagePasteEvent');
     expect(composerAttachmentSource).not.toContain('export async function parseClipboardImageItems');
     expect(composerAttachmentSource).not.toContain('export async function parseSelectedComposerFiles');
     expect(composerAttachmentSource).not.toContain('features/chat');
@@ -2388,8 +2521,15 @@ describe('renderer chat runtime boundary', () => {
     expect(transcriptionHookSource).not.toContain('utils/transcriptionRegions');
     expect(transcriptionRuntimeSource).toContain('DesktopTranscriptionRegionRuntime');
     expect(transcriptionRuntimeSource).toContain('updateRegionAfterInputChange');
+    expect(transcriptionRuntimeSource).toContain('readTextFromPasteEvent');
     expect(transcriptionRuntimeSource).toContain('updateRegionAfterPaste');
+    expect(transcriptionRuntimeSource).toContain('scheduleCursorRestoreAfterPaste');
+    expect(transcriptionRuntimeSource).toContain('setTimeout');
     expect(transcriptionRuntimeSource).not.toContain('export function updateRegionAfterInputChange');
+    expect(transcriptionHookSource).toContain('scheduleCursorRestoreAfterPaste');
+    expect(transcriptionHookSource).toContain('readTextFromPasteEvent');
+    expect(transcriptionHookSource).not.toContain('clipboardData');
+    expect(transcriptionHookSource).not.toContain('setTimeout(');
     expect(transcriptionRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/transcriptionRegions.ts'),
@@ -2419,6 +2559,10 @@ describe('renderer chat runtime boundary', () => {
     );
     const layoutRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js'),
+      'utf8',
+    );
+    const interactionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayInteractionRuntime.js'),
       'utf8',
     );
 
@@ -2471,6 +2615,7 @@ describe('renderer chat runtime boundary', () => {
     expect(layoutRuntimeSource).toContain('getResponseOverlayFixedHeight');
     expect(layoutRuntimeSource).toContain('getHiddenResponseOverlayLayoutMode');
     expect(layoutRuntimeSource).toContain('isVisibleResponseOverlayLayoutMode');
+    expect(layoutRuntimeSource).not.toContain('isAwaitingResponseOverlayLayoutMode');
     expect(layoutRuntimeSource).toContain('DesktopResponseOverlayLayoutRuntime');
     expect(layoutRuntimeSource).not.toContain('export function resolveResponseOverlayLayoutMode');
     expect(layoutRuntimeSource).not.toContain('export function isCompactHoverLayoutMode');
@@ -2483,9 +2628,22 @@ describe('renderer chat runtime boundary', () => {
     expect(layoutRuntimeSource).not.toContain('export function getRoundedFrameSize');
     expect(layoutRuntimeSource).not.toContain('export const RESPONSE_OVERLAY_LAYOUT_MODE');
     expect(layoutRuntimeSource).not.toContain('export const RESPONSE_OVERLAY_LAYOUT');
+    expect(interactionRuntimeSource).toContain('DesktopResponseOverlayInteractionRuntime');
+    expect(interactionRuntimeSource).toContain('addEventListener');
+    expect(interactionRuntimeSource).toContain('removeEventListener');
+    expect(interactionRuntimeSource).toContain('getBoundingClientRect');
+    expect(interactionRuntimeSource).not.toContain('features/chat');
+    expect(interactionRuntimeSource).not.toContain('features/minimalChatPill');
     expect(overlaySource).not.toContain('RESPONSE_OVERLAY_LAYOUT');
     expect(syncSource).not.toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
     expect(syncSource).not.toContain('RESPONSE_OVERLAY_LAYOUT');
+    expect(overlaySource).toContain('desktopResponseOverlayInteractionRuntime');
+    expect(overlaySource).toContain(
+      'DesktopResponseOverlayInteractionRuntime.subscribeToResponseboxHitTestEvents',
+    );
+    expect(overlaySource).not.toContain('window.addEventListener');
+    expect(overlaySource).not.toContain('window.removeEventListener');
+    expect(overlaySource).not.toContain('getBoundingClientRect');
     expect(overlaySource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue');
     expect(overlaySource).not.toContain('setResponseboxHitTestActive({');
     expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxSize');
@@ -2533,6 +2691,30 @@ describe('renderer chat runtime boundary', () => {
     await expect(fs.stat(
       path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/hooks/useBrowserSessionControl.js'),
     )).rejects.toThrow();
+  });
+
+  test('chat feature outside-dismiss UI bindings use app runtime browser adapter', async () => {
+    const browserControlSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatBrowserSessionControl.jsx'),
+      'utf8',
+    );
+    const messageInputBindingsSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useMessageInputUiBindings.js'),
+      'utf8',
+    );
+    const dismissRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopDismissOnOutsideRuntime.js'),
+      'utf8',
+    );
+
+    for (const source of [browserControlSource, messageInputBindingsSource]) {
+      expect(source).toContain('DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside');
+      expect(source).not.toContain('window.addEventListener');
+      expect(source).not.toContain('window.removeEventListener');
+    }
+    expect(dismissRuntimeSource).toContain('addEventListener');
+    expect(dismissRuntimeSource).toContain('removeEventListener');
+    expect(dismissRuntimeSource).not.toContain('features/chat');
   });
 
   test('chat and dashboard model selection share app runtime reconciliation', async () => {
@@ -2594,15 +2776,25 @@ describe('renderer chat runtime boundary', () => {
     expect(headerControlsSource).toContain('DesktopChatModelOptionsRuntime');
     expect(modelsSectionSource).toContain('desktopModelSelectionRuntime');
     expect(modelsSectionSource).toContain('DesktopModelSelectionRuntime');
+    expect(modelsSectionSource).toContain('scheduleModelResetWarningClear');
+    expect(modelsSectionSource).toContain('clearModelResetWarningTimer');
+    expect(modelsSectionSource).not.toContain('setTimeout(');
+    expect(modelsSectionSource).not.toContain('clearTimeout(');
     expect(modelsSectionSource).toContain('desktopModelCardPresentationRuntime');
     expect(modelsSectionSource).toContain('DesktopModelCardPresentationRuntime');
     expect(modelsSectionSource).toContain('desktopProviderCredentialRuntime');
     expect(apiKeysSectionSource).toContain('desktopProviderCredentialRuntime');
     expect(modelRuntimeSource).toContain('DesktopModelSelectionRuntime');
+    expect(modelRuntimeSource).toContain('scheduleModelResetWarningClear');
+    expect(modelRuntimeSource).toContain('clearModelResetWarningTimer');
+    expect(modelRuntimeSource).toContain('setTimeout');
+    expect(modelRuntimeSource).toContain('clearTimeout');
     expect(modelRuntimeSource).not.toContain('export function getCurrentModels');
     expect(modelRuntimeSource).not.toContain('export function buildModelConfigUpdate');
     expect(modelRuntimeSource).not.toContain('export function evaluateModelSelection');
     expect(modelRuntimeSource).not.toContain('export function getFallbackModelSelection');
+    expect(modelRuntimeSource).not.toContain('export function scheduleModelResetWarningClear');
+    expect(modelRuntimeSource).not.toContain('export function clearModelResetWarningTimer');
     expect(modelCardPresentationRuntimeSource).toContain('desktopRuntimeConfig');
     expect(modelCardPresentationRuntimeSource).toContain('DesktopModelCardPresentationRuntime');
     expect(modelCardPresentationRuntimeSource).not.toContain('export function toModelCard');

@@ -1,8 +1,8 @@
 ---
-summary: "Frontend renderer voice runtime-helper docs sub-hub for app-runtime PCM/framing helpers, wakeword guard/event helpers, capture cleanup primitives, and transcription-region edit reconciliation contracts."
+summary: "Frontend renderer voice runtime-helper docs sub-hub for app-runtime PCM/framing helpers, audio-input browser adapters, wakeword guard/event helpers, capture cleanup primitives, and transcription-region edit reconciliation contracts."
 read_when:
   - When changing voice audio, wakeword guard/event, or transcription-region runtime helpers used by voice-mode and wakeword hooks.
-  - When debugging chunk-size normalization drift, audio resource cleanup leaks, or transcription region offset regressions after user edits.
+  - When debugging chunk-size normalization drift, microphone device-change recovery, audio resource cleanup leaks, or transcription region offset regressions after user edits.
 title: "Frontend Renderer Voice Utils Docs Hub"
 ---
 
@@ -25,6 +25,7 @@ title: "Frontend Renderer Voice Utils Docs Hub"
 
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioInputDeviceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopWakewordEventRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts`

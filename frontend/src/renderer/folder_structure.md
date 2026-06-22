@@ -10,235 +10,234 @@ The renderer process is the React-based UI layer of the Electron desktop applica
 
 ```
 frontend/src/renderer/
-├── app/                                  # Application root and context providers
-│   ├── App.jsx                          # Root component - sets up providers and layout
-│   ├── MinimalChatPillApp.jsx           # Minimal chat pill overlay root component
-│   ├── MinimalResponseOverlayApp.jsx    # Minimal response overlay root component
-│   ├── ToolGhostDebugApp.jsx            # Debug-only tool ghost overlay root component
-│   ├── WakewordController.jsx           # WakewordController - Always-on wakeword detection + chatbox trigger
-│   ├── main.jsx                         # React entry point - routes App/minimal overlays by ?view=
-│   │
-│   ├── runtime/                         # App-level SDK/runtime command facades
-│   │   ├── desktopArtifactRuntimeClient.ts # Renderer artifact URL, image fetch, screenshot attachment, and content-type facade
-│   │   ├── desktopActiveChatSessionRuntime.ts # Renderer active chat session reset facade shared by chat and dashboard
-│   │   ├── desktopAudioRuntimeClient.ts # Renderer audio chunk subscription and playback-service creation facade
-│   │   ├── desktopAttachmentPresentationRuntime.js # Renderer shared attachment preview label helper
-│   │   ├── desktopComposerAttachmentRuntime.js # Renderer composer data URL, clipboard image, and file attachment parsing facade
-│   │   ├── desktopBrowserSessionRuntimeClient.js # Renderer browser session subscription and control hook facade
-│   │   ├── desktopChatStreamEventRuntime.ts # Renderer stream event routing, projection, stale-turn guard, and tracking facade
-│   │   ├── desktopChatStreamEventPayloadRuntime.ts # Renderer stream error and screenshot attachment payload normalization facade
-│   │   ├── desktopChatStreamModelContextRuntime.ts # Renderer stream model/provider and thinking capability context type facade
-│   │   ├── desktopChatStreamMessageUpdateRuntime.ts # Renderer stream message targeting and metadata payload update facade
-│   │   ├── desktopChatStreamIngressRuntime.ts # Renderer normalized SDK conversation-event ingress and transcript sync
-│   │   ├── desktopChatStreamTerminalHandoffRuntime.ts # Renderer terminal-handoff stale-turn policy helpers
-│   │   ├── desktopChatStreamThinkingRuntime.ts # Renderer stream thinking/compaction status label and accumulation facade
-│   │   ├── desktopChatStreamTrackingRuntime.ts # Renderer stream phase/counter transition helpers
-│   │   ├── desktopChatStreamTurnGuardRuntime.ts # Renderer active-turn stale event predicate
-│   │   ├── desktopChatMessageRuntimeClient.ts # Renderer chat message builders, schema, and text-normalization facade
-│   │   ├── desktopChatMessageTypes.ts # Renderer chat message and token-count contract types
-│   │   ├── desktopChatLoopUiRuntime.js # Renderer chat loop UI-state reducer shared by dashboard/minimal surfaces
-│   │   ├── desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor, drag-state, and movement helpers
-│   │   ├── desktopChatPillSessionRuntime.ts # Renderer chat-pill send lifecycle and response-overlay view intent facade
-│   │   ├── desktopChatSendPreparationRuntime.ts # Renderer chat send preflight, pending-turn, SDK resource, and dispatch facade
-│   │   ├── desktopChatSendPayloadRuntime.ts # Renderer chat send payload and attachment filename normalization facade
-│   │   ├── desktopChatSendStateRuntime.ts # Renderer chat send state predicates facade
-│   │   ├── desktopChatSurfaceSelectorRuntime.ts # Renderer chat interface and minimal live-surface selector projection facade
-│   │   ├── desktopCurrentTurnPresentationRuntime.js # Renderer current-turn reply, SDK presentation, response dismissal target, and chatbox surface projection facade
-│   │   ├── desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
-│   │   ├── desktopCurrentTurnProjectionEffectsRuntime.ts # Renderer SDK current-turn projection side-effect facade
-│   │   ├── desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
-│   │   ├── desktopRendererTraceRuntime.ts # Renderer stream/chat-pill/overlay live-surface diagnostic trace facade
-│   │   ├── desktopManualCompactionRuntime.js # Renderer manual compaction command orchestration facade
-│   │   ├── desktopMessageClassRuntime.js # Renderer message row class-name assembly facade
-│   │   ├── desktopMessageInputRuntime.js # Renderer outgoing message payload normalization facade
-│   │   ├── desktopMessageListRuntime.js # Renderer message-list scroll/action/compaction presentation state facade
-│   │   ├── desktopMessageSendUiRuntime.ts # Renderer main-window vs overlay-chatbox send-surface UI policy facade
-│   │   ├── desktopMessageScreenshotRuntime.js # Renderer message screenshot attachment descriptor facade
-│   │   ├── desktopResolvedMessageScreenshotsRuntime.js # Renderer async message screenshot artifact source resolver hook facade
-│   │   ├── desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
-│   │   ├── desktopMessageTransparencyRuntime.js # Renderer message transparency section descriptor facade
-│   │   ├── desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges
-│   │   ├── desktopMemoryRetrievalPreferenceRuntime.js # Renderer memory retrieval preference persistence facade
-│   │   ├── desktopNewChatSessionRuntime.ts # Renderer new-chat reset, conversation creation, and workspace binding facade
-│   │   ├── desktopThreadFindRuntime.js # Renderer thread-find match projection facade
-│   │   ├── desktopThreadPresentationRuntime.js # Renderer durable thread plus SDK live current-turn message presentation facade
-│   │   ├── desktopTranscriptionRegionRuntime.ts # Renderer transcription-region edit reconciliation facade
-│   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle resolver/predicate facade
-│   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
-│   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase helper and parity snapshot facade
-│   │   ├── desktopResponseOverlayViewRuntime.ts # Renderer response overlay visibility and layout intent facade
-│   │   ├── desktopToolGhostRuntime.ts # Renderer debug tool-ghost timing facade
-│   │   ├── desktopStreamPhaseRuntime.js # Renderer response-overlay awaiting-reply phase predicate facade
-│   │   ├── desktopStopTurnRuntime.js # Renderer stop-turn target and terminal current-turn projection facade
-│   │   ├── desktopDashboardConversationLoadRuntime.js # Renderer dashboard recent-conversation normalization and retry facade
-│   │   ├── desktopDashboardConversationGroupRuntime.js # Renderer dashboard time/workspace conversation grouping facade
-│   │   ├── desktopPermissionPresentationRuntime.js # Renderer permission status and presentation mapping facade
-│   │   ├── desktopOnboardingSlideRuntime.js # Renderer onboarding slide-state rules facade
-│   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
-│   │   ├── desktopConversationReplayRuntime.js # Renderer replay context tool-message pairing facade
-│   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
-│   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
-│   │   ├── desktopDevUiRuntime.js # Renderer dev-ui query flag facade shared by chat and minimal surfaces
-│   │   ├── desktopDashboardNavigationRuntime.js # Renderer dashboard sidebar navigation descriptor facade
-│   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
-│   │   ├── desktopMarkdownMessageRuntime.js # Renderer markdown message render-model facade
-│   │   ├── desktopMarkdownRuntimeClient.ts # Renderer markdown, find highlighting, and LLM output normalization facade
-│   │   ├── desktopChatModelOptionsRuntime.js # Renderer chat provider/model/reasoning option projection facade
-│   │   ├── desktopModelThinkingRuntime.ts # Renderer model-catalog thinking capability facade for stream presentation
-│   │   ├── desktopModelSelectionRuntime.js # Renderer shared model-selection reconciliation and config patch helpers
-│   │   ├── desktopPermissionGrantEffectsRuntime.js # Renderer permission post-grant config effects shared by onboarding and settings
-│   │   ├── desktopPermissionOnboardingStorageRuntime.js # Renderer permission onboarding localStorage persistence facade
-│   │   ├── desktopRendererHooksRuntimeClient.ts # Renderer shared React hook facade for feature clients
-│   │   ├── desktopRendererConfigFilterRuntime.js # Renderer app-config allowlist facade
-│   │   ├── desktopAppearanceThemeRuntime.js # Renderer appearance theme normalization and fallback facade
-│   │   ├── desktopRendererConfigStorageRuntime.js # Renderer app-config local persistence facade
-│   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
-│   │   ├── desktopPresentationSourceChannels.js # Renderer presentation source-channel labels
-│   │   ├── desktopShortcutRuntimeClient.ts # Renderer shortcut label, predicate, option, and config-normalization facade
-│   │   ├── desktopSettingsEventRuntimeClient.ts # Renderer settings-event handler facade for providers
-│   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
-│   │   ├── desktopSettingsTabRuntime.js # Renderer settings tab descriptor facade
-│   │   ├── desktopTranscriptSessionInfoRuntimeClient.js # Renderer transcript session info subscription facade
-│   │   ├── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
-│   │   ├── desktopVoiceAudioEncodingRuntime.ts # Renderer voice PCM conversion, chunk normalization, and gateway frame facade
-│   │   ├── desktopVoiceAudioCaptureCleanupRuntime.ts # Renderer voice audio-node and media-stream cleanup facade
-│   │   ├── desktopVoiceAudioProcessorNodeRuntime.ts # Renderer voice AudioWorklet capture processor facade
-│   │   ├── desktopWakewordEventRuntime.ts # Renderer wakeword event confidence/cooldown/chunk warning facade
-│   │   ├── desktopWakewordCaptureGuardRuntime.ts # Renderer wakeword missing-device lockout and audio-input probe facade
-│   │   └── desktopVoiceDebugTraceRuntime.ts # Renderer gated voice debug trace facade
-│   │
-│   └── providers/                       # Context providers for global state
-│       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
-│       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config/models/wakeword and syncs renderer config through the settings app-runtime client on connect/startup
-│       ├── AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider
-│       ├── AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
-│       ├── AppStatusProvider.jsx        # AppStatusProvider - Manages saveStatus (transient, frequent changes)
-│       ├── appConfigPersistence.js      # appConfigPersistence - Config sanitization + changed-config apply helpers
-│       ├── ChatContext.jsx              # ChatContext constants for ChatProvider wiring
-│       ├── ChatProvider.jsx             # ChatProvider - Sets up chat stream hooks and transcript session sync
-│       └── configComparison.ts          # configComparison - Shallow config change detection helpers
-│
-├── components/                           # Shared UI components
-│   └── ErrorBoundary.jsx                # ErrorBoundary - Catches React errors and displays fallback UI
-│
-├── features/                             # Feature modules (organized by domain)
-│   │
-│   ├── minimalChatPill/                 # Minimal pill and response overlay feature module
-│   │   ├── components/
-│   │   │   ├── MinimalChatPill.jsx      # Always-on-top minimal chat pill overlay UI
-│   │   │   ├── MinimalResponseOverlay.jsx # Response overlay for current SDK turn projection
-│   │   │   ├── AttachmentPreviewRow.jsx # Minimal pill attachment preview lane
-│   │   │   └── PillIcons.jsx            # Minimal pill icon render helpers
-│   │   ├── hooks/
-│   │   │   ├── useMinimalChatPillBindings.js # Minimal pill drag/input/window bindings
-│   │   │   ├── useResponseOverlayScrollState.js # Response overlay scroll stickiness
-│   │   │   ├── useResponseOverlayViewModel.js # SDK current-turn response view model
-│   │   │   └── useResponseOverlayWindowSync.js # Response overlay size/visibility IPC sync
-│   │
-│   ├── chat/                            # Chat/dashboard transcript feature module
-│   │   ├── components/                  # Chat UI components
-│   │   │   ├── ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList + MessageInput; includes new-chat + stop controls)
-│   │   │   ├── MessageContent.jsx       # MessageContent - Renders message body by type
-│   │   │   ├── MessageInput.jsx         # MessageInput - Input field with voice transcription support
-│   │   │   ├── MessageList.jsx          # MessageList - Renders messages with transparency sections
-│   │   │   ├── message/                 # Message-specific subcomponents
-│   │   │   │   ├── MessageTransparencySections.jsx # MessageTransparencySections - Renders transparency panels
-│   │   │   │   ├── ThinkingDisplay.jsx  # ThinkingDisplay - Displays LLM thinking/reasoning tokens (collapsible)
-│   │   │   │   ├── TransparencySection.jsx # TransparencySection - Collapsible sections for system prompts/tool schemas/full messages
-│   │   │   │   ├── AssistantMessageActions.jsx # Assistant action controls (copy/feedback/retry)
-│   │   │   │   ├── UserMessageActions.jsx # User action controls (copy/edit-and-resend)
-│   │   │   │   ├── MessageSourceBadge.jsx # Dev source + token badge renderer
-│   │   │   │   ├── MessageItem.jsx      # Message row shell + action/transparency composition
-│   │   │   │   └── content/             # MessageContent sub-renderers by payload type
-│   │   │   │       ├── MarkdownMessage.jsx # Provider-aware markdown rendering
-│   │   │   │       ├── ToolCallMessage.jsx # Tool call payload card + details toggle
-│   │   │   │       ├── ToolOutputMessage.jsx # Tool output payload card + details toggle
-│   │   │   │       ├── UserMessage.jsx   # User message attachments + screenshot gallery
-│   │   │   │       ├── ErrorMessage.jsx  # Error message card renderer
-│   │   │   │       └── AssistantThinkingSection.jsx # Collapsible assistant thinking panel
-│   │   │
-│   │   ├── hooks/                       # Chat business logic hooks
-│   │   │   ├── useChatMessageSender.ts  # useChatMessageSender - Handles message sending (dashboard sends skip screenshot capture/window handoff)
-│   │   │   ├── useCurrentTurnPresentationState.js # useCurrentTurnPresentationState - Shared dashboard/minimal-pill current-turn reply + awaiting/response projection hook
-│   │   │   ├── useChatStream.ts         # useChatStream - Handles streaming events (llm-thought, streaming-response, tool-call, etc.)
-│   │   │   ├── useCopyMessageAction.js  # useCopyMessageAction - Shared clipboard copy-success state/timer logic for user/assistant message action rows
-│   │   │   ├── useStreamMessageUpdaters.ts # useStreamMessageUpdaters - Shared message update callbacks extracted from useChatStream
-│   │   │   └── useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
-│   │   │
-│   │   ├── session/                     # Conversation session helpers
-│   │   │
-│   │   ├── stores/                      # State management
-│   │   │   └── chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
-│   │   │
-│   ├── dashboard/                        # Dashboard feature module
-│   │   ├── hooks/                       # Dashboard business logic hooks
-│   │   │   └── useDashboardConversations.js # useDashboardConversations - Recent/search conversation load/search/open/rename/pin/delete runtime
-│   │   │
-│   │   └── components/                  # Dashboard UI components
-│   │       ├── DashboardShell.jsx       # DashboardShell - Conversation-first shell + memory/models/settings modals
-│   │       └── sections/                # Dashboard section components
-│   │           ├── MemorySection.jsx    # MemorySection - Unified episodic/semantic/procedural memory manager
-│   │           ├── MemoryItem.jsx       # MemoryItem - Expand/edit/delete UI row for individual memory entries
-│   │           ├── ModelsSection.jsx    # ModelsSection - Model list + API key input
-│   │           ├── modelCards.jsx       # modelCards - Provider/model card presentational components
-│   │           └── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
-│   │
-│   ├── permissions/                      # Permission settings control center
-│   │   ├── components/                  # Permission UI
-│   │   └── stores/                      # Permission state management
-│   │       └── permissionStore.js       # permissionStore (Zustand) - Manifest/statuses, probes, onboarding gate
-│   │
-│   └── voice/                            # Voice feature module
-│       ├── components/                  # Voice UI components
-│       │   └── VoiceStatus.jsx          # VoiceStatus - Displays voice mode status (recording, error, connected)
-│       │
-│       ├── hooks/                       # Voice business logic hooks
-│       │   ├── useVoiceMode.ts          # useVoiceMode - Uses the voice app-runtime client gateway connection and audio capture
-│       │   └── useWakewordDetection.ts  # useWakewordDetection - Manages wakeword capture through the local-runtime helper bridge
-│       │
-│
-│
-├── infrastructure/                        # Core infrastructure services
-│   │
-│   ├── audio/                            # Audio services
-│   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (typed audio-chunk runtime events)
-│   │
-│   ├── interaction/                      # Renderer interaction diagnostics
-│   │   └── rendererInteractionLogger.js # rendererInteractionLogger - capture-phase click/control-change logging and send-message traces
-│   │
-│   ├── ipc/                              # IPC communication layer
-│   │   ├── bridge.ts                   # IpcBridge - Type-safe IPC wrapper with channel validation (send, invoke, on, once)
-│   │   └── channels.ts                 # Channel constants - SEND_CHANNELS, INVOKE_CHANNELS, ON_CHANNELS (centralized channel names)
-│   │
-│   ├── markdown.ts                       # markdown - Markdown sanitization/rendering helpers
-│   │
-│   ├── services/                         # Business logic services
-│   │   ├── ArtifactImageUtils.ts        # ArtifactImageUtils - Artifact image type/extension normalization
-│   │   ├── RuntimeEndpointStore.ts      # RuntimeEndpointStore - Renderer runtime URL state and artifact/transcription URL builders
-│   │
-│   └── transcript/                       # SDK-backed transcript projection helpers
-│       ├── desktopConversationStore.ts  # desktopConversationStore - Direct SDK conversation command bridge
-│       ├── sdkDisplayChatMessageProjection.ts # sdkDisplayChatMessageProjection - SDK display rows to renderer chat messages
-│       ├── sessionInfoState.ts          # sessionInfoState - Lazy-loaded session resolver/update state machine
-│       ├── sessionInfoStorage.ts        # sessionInfoStorage - sessionStorage read/write + update event emitter
-│       ├── transcriptSessionRuntime.ts  # Session-aware transcript identity runtime used by renderer app-runtime clients
-│       └── types.ts                     # types - Shared transcript session/entry/pending message types
-│
-├── styles/                                # CSS stylesheets
-│   ├── accessibility.css                # Accessibility utilities (visually-hidden class)
-│   ├── ChatBox.css                      # Chat box overlay styles
-│   ├── ChatInterface.css               # Chat interface styles (messages, tool outputs, transparency sections)
-│   ├── DashboardShell.css               # Dashboard shell + modal panel styles
-│   ├── ErrorBoundary.css                # ErrorBoundary fallback UI styling
-│   ├── ThinkingDisplay.css              # Thinking display styles (collapsible reasoning tokens)
-│   ├── VoiceStatus.css                  # Voice status badge and state styles
-│   └── theme.css                        # Shared CSS variables/theme tokens
-│
-├── types/                                 # Local renderer types
-│   └── toolSchemas.ts                    # Renderer display tool-schema type helpers
-│
-└── utils/                                 # Utility functions
-    └── normalizeNonEmptyString.ts        # Shared non-empty string normalization helper
+|-- app/                                  # Application root and context providers
+|   |-- App.jsx                          # Root component - sets up providers and layout
+|   |-- MinimalChatPillApp.jsx           # Minimal chat pill overlay root component
+|   |-- MinimalResponseOverlayApp.jsx    # Minimal response overlay root component
+|   |-- ToolGhostDebugApp.jsx            # Debug-only tool ghost overlay root component
+|   |-- WakewordController.jsx           # WakewordController - Always-on wakeword detection + chatbox trigger
+|   |-- main.jsx                         # React entry point - creates root from desktopStartupRuntimeClient and routes App/minimal overlays by resolved view
+|   |
+|   |-- runtime/                         # App-level SDK/runtime command facades
+|   |   |-- desktopArtifactRuntimeClient.ts # Renderer artifact URL, image fetch, screenshot attachment, and content-type facade
+|   |   |-- desktopActiveChatSessionRuntime.ts # Renderer active chat session reset facade shared by chat and dashboard
+|   |   |-- desktopAudioRuntimeClient.ts # Renderer audio chunk subscription and playback-service creation facade
+|   |   |-- desktopAttachmentPresentationRuntime.js # Renderer shared attachment preview label helper
+|   |   |-- desktopComposerAttachmentRuntime.js # Renderer composer data URL, clipboard image, and file attachment parsing facade
+|   |   |-- desktopBrowserSessionRuntimeClient.js # Renderer browser session subscription and control hook facade
+|   |   |-- desktopChatStreamEventRuntime.ts # Renderer stream event routing, projection, stale-turn guard, and tracking facade
+|   |   |-- desktopChatStreamEventPayloadRuntime.ts # Renderer stream error and screenshot attachment payload normalization facade
+|   |   |-- desktopChatStreamModelContextRuntime.ts # Renderer stream model/provider and thinking capability context type facade
+|   |   |-- desktopChatStreamMessageUpdateRuntime.ts # Renderer stream message targeting and metadata payload update facade
+|   |   |-- desktopChatStreamIngressRuntime.ts # Renderer normalized SDK conversation-event ingress and transcript sync
+|   |   |-- desktopChatStreamTerminalHandoffRuntime.ts # Renderer terminal-handoff stale-turn policy helpers
+|   |   |-- desktopChatStreamThinkingRuntime.ts # Renderer stream thinking/compaction status label and accumulation facade
+|   |   |-- desktopChatStreamTrackingRuntime.ts # Renderer stream phase/counter transition helpers
+|   |   |-- desktopChatStreamTurnGuardRuntime.ts # Renderer active-turn stale event predicate
+|   |   |-- desktopChatMessageRuntimeClient.ts # Renderer chat message builders, schema, and text-normalization facade
+|   |   |-- desktopChatMessageTypes.ts # Renderer chat message and token-count contract types
+|   |   |-- desktopChatLoopUiRuntime.js # Renderer chat loop UI-state reducer shared by dashboard/minimal surfaces
+|   |   |-- desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor, drag-state, and movement helpers
+|   |   |-- desktopChatPillSessionRuntime.ts # Renderer chat-pill send lifecycle and response-overlay view intent facade
+|   |   |-- desktopChatSendPreparationRuntime.ts # Renderer chat send preflight, pending-turn, SDK resource, and dispatch facade
+|   |   |-- desktopChatSendPayloadRuntime.ts # Renderer chat send payload and attachment filename normalization facade
+|   |   |-- desktopChatSendStateRuntime.ts # Renderer chat send state predicates facade
+|   |   |-- desktopChatSurfaceSelectorRuntime.ts # Renderer chat interface and minimal live-surface selector projection facade
+|   |   |-- desktopCurrentTurnPresentationRuntime.js # Renderer current-turn reply, SDK presentation, response dismissal target, and chatbox surface projection facade
+|   |   |-- desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
+|   |   |-- desktopCurrentTurnProjectionEffectsRuntime.ts # Renderer SDK current-turn projection side-effect facade
+|   |   |-- desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
+|   |   |-- desktopRendererTraceRuntime.ts # Renderer stream/chat-pill/overlay live-surface diagnostic trace facade
+|   |   |-- desktopManualCompactionRuntime.js # Renderer manual compaction command orchestration facade
+|   |   |-- desktopMessageClassRuntime.js # Renderer message row class-name assembly facade
+|   |   |-- desktopMessageInputRuntime.js # Renderer outgoing message payload normalization facade
+|   |   |-- desktopMessageListRuntime.js # Renderer message-list scroll/action/compaction presentation state facade
+|   |   |-- desktopMessageSendUiRuntime.ts # Renderer main-window vs overlay-chatbox send-surface UI policy facade
+|   |   |-- desktopMessageScreenshotRuntime.js # Renderer message screenshot attachment descriptor facade
+|   |   |-- desktopResolvedMessageScreenshotsRuntime.js # Renderer async message screenshot artifact source resolver hook facade
+|   |   |-- desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
+|   |   |-- desktopMessageTransparencyRuntime.js # Renderer message transparency section descriptor facade
+|   |   |-- desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges
+|   |   |-- desktopMemoryRetrievalPreferenceRuntime.js # Renderer memory retrieval preference persistence facade
+|   |   |-- desktopNewChatSessionRuntime.ts # Renderer new-chat reset, conversation creation, and workspace binding facade
+|   |   |-- desktopThreadFindRuntime.js # Renderer thread-find match projection facade
+|   |   |-- desktopThreadPresentationRuntime.js # Renderer durable thread plus SDK live current-turn message presentation facade
+|   |   |-- desktopTranscriptionRegionRuntime.ts # Renderer transcription-region edit reconciliation facade
+|   |   |-- desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
+|   |   |-- desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase helper and parity snapshot facade
+|   |   |-- desktopResponseOverlayViewRuntime.ts # Renderer response overlay visibility and layout intent facade
+|   |   |-- desktopToolGhostRuntime.ts # Renderer debug tool-ghost timing facade
+|   |   |-- desktopStreamPhaseRuntime.js # Renderer response-overlay awaiting-reply phase predicate facade
+|   |   |-- desktopStopTurnRuntime.js # Renderer stop-turn target and terminal current-turn projection facade
+|   |   |-- desktopDashboardConversationLoadRuntime.js # Renderer dashboard recent-conversation normalization and retry facade
+|   |   |-- desktopDashboardConversationGroupRuntime.js # Renderer dashboard time/workspace conversation grouping facade
+|   |   |-- desktopPermissionPresentationRuntime.js # Renderer permission status and presentation mapping facade
+|   |   |-- desktopOnboardingSlideRuntime.js # Renderer onboarding slide-state rules facade
+|   |   |-- desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
+|   |   |-- desktopConversationReplayRuntime.js # Renderer replay context tool-message pairing facade
+|   |   |-- desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
+|   |   |-- desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
+|   |   |-- desktopDevUiRuntime.js # Renderer dev-ui query flag facade shared by chat and minimal surfaces
+|   |   |-- desktopDashboardNavigationRuntime.js # Renderer dashboard sidebar navigation descriptor facade
+|   |   |-- desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
+|   |   |-- desktopMarkdownMessageRuntime.js # Renderer markdown message render-model facade
+|   |   |-- desktopMarkdownRuntimeClient.ts # Renderer markdown, find highlighting, and LLM output normalization facade
+|   |   |-- desktopChatModelOptionsRuntime.js # Renderer chat provider/model/reasoning option projection facade
+|   |   |-- desktopModelThinkingRuntime.ts # Renderer model-catalog thinking capability facade for stream presentation
+|   |   |-- desktopModelSelectionRuntime.js # Renderer shared model-selection reconciliation and config patch helpers
+|   |   |-- desktopPermissionGrantEffectsRuntime.js # Renderer permission post-grant config effects shared by onboarding and settings
+|   |   |-- desktopPermissionOnboardingStorageRuntime.js # Renderer permission onboarding localStorage persistence facade
+|   |   |-- desktopRendererHooksRuntimeClient.ts # Renderer shared React hook facade for feature clients
+|   |   |-- desktopRendererConfigFilterRuntime.js # Renderer app-config allowlist facade
+|   |   |-- desktopAppearanceThemeRuntime.js # Renderer appearance theme normalization, system matching, and document token application facade
+|   |   |-- desktopRendererConfigStorageRuntime.js # Renderer app-config local persistence facade
+|   |   |-- desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
+|   |   |-- desktopPresentationSourceChannels.js # Renderer presentation source-channel labels
+|   |   |-- desktopShortcutRuntimeClient.ts # Renderer shortcut label, predicate, option, and config-normalization facade
+|   |   |-- desktopStartupRuntimeClient.ts # Renderer startup root-element, surface selection, query/view, wakeword suppression, and VM-mode facade
+|   |   |-- desktopSettingsEventRuntimeClient.ts # Renderer settings-event handler facade for providers
+|   |   |-- desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
+|   |   |-- desktopSettingsTabRuntime.js # Renderer settings tab descriptor facade
+|   |   |-- desktopTranscriptSessionInfoRuntimeClient.js # Renderer transcript session info subscription facade
+|   |   |-- desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
+|   |   |-- desktopVoiceAudioEncodingRuntime.ts # Renderer voice PCM conversion, chunk normalization, and gateway frame facade
+|   |   |-- desktopVoiceAudioCaptureCleanupRuntime.ts # Renderer voice audio-node and media-stream cleanup facade
+|   |   |-- desktopVoiceAudioInputDeviceRuntime.ts # Renderer voice browser audio-input device adapter facade
+|   |   |-- desktopVoiceAudioProcessorNodeRuntime.ts # Renderer voice AudioWorklet capture processor facade
+|   |   |-- desktopWakewordEventRuntime.ts # Renderer wakeword event confidence/cooldown/chunk warning facade
+|   |   |-- desktopWakewordCaptureGuardRuntime.ts # Renderer wakeword missing-device lockout and audio-input probe facade
+|   |   `-- desktopVoiceDebugTraceRuntime.ts # Renderer gated voice debug trace facade
+|   |
+|   `-- providers/                       # Context providers for global state
+|       |-- AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
+|       |-- AppConfigProvider.jsx        # AppConfigProvider - Manages config/models/wakeword and syncs renderer config through startup/settings app-runtime clients on connect/startup
+|       |-- AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider and routes appearance theme application through app-runtime facade
+|       |-- AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
+|       |-- AppStatusProvider.jsx        # AppStatusProvider - Manages saveStatus (transient, frequent changes)
+|       |-- appConfigPersistence.js      # appConfigPersistence - Config sanitization + changed-config apply helpers
+|       |-- ChatProvider.jsx             # ChatProvider - Sets up chat stream hooks and transcript session sync
+|       `-- configComparison.ts          # configComparison - Shallow config change detection helpers
+|
+|-- components/                           # Shared UI components
+|   `-- ErrorBoundary.jsx                # ErrorBoundary - Catches React errors and displays fallback UI
+|
+|-- features/                             # Feature modules (organized by domain)
+|   |
+|   |-- minimalChatPill/                 # Minimal pill and response overlay feature module
+|   |   |-- components/
+|   |   |   |-- MinimalChatPill.jsx      # Always-on-top minimal chat pill overlay UI
+|   |   |   |-- MinimalResponseOverlay.jsx # Response overlay for current SDK turn projection
+|   |   |   |-- AttachmentPreviewRow.jsx # Minimal pill attachment preview lane
+|   |   |   `-- PillIcons.jsx            # Minimal pill icon render helpers
+|   |   |-- hooks/
+|   |   |   |-- useMinimalChatPillBindings.js # Minimal pill drag/input/window bindings
+|   |   |   |-- useResponseOverlayScrollState.js # Response overlay scroll stickiness
+|   |   |   |-- useResponseOverlayViewModel.js # SDK current-turn response view model
+|   |   |   `-- useResponseOverlayWindowSync.js # Response overlay size/visibility IPC sync
+|   |
+|   |-- chat/                            # Chat/dashboard transcript feature module
+|   |   |-- components/                  # Chat UI components
+|   |   |   |-- ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList + MessageInput; includes new-chat + stop controls)
+|   |   |   |-- MessageContent.jsx       # MessageContent - Renders message body by type
+|   |   |   |-- MessageInput.jsx         # MessageInput - Input field with voice transcription support
+|   |   |   |-- MessageList.jsx          # MessageList - Renders messages with transparency sections
+|   |   |   |-- message/                 # Message-specific subcomponents
+|   |   |   |   |-- MessageTransparencySections.jsx # MessageTransparencySections - Renders transparency panels
+|   |   |   |   |-- ThinkingDisplay.jsx  # ThinkingDisplay - Displays LLM thinking/reasoning tokens (collapsible)
+|   |   |   |   |-- TransparencySection.jsx # TransparencySection - Collapsible sections for system prompts/tool schemas/full messages
+|   |   |   |   |-- AssistantMessageActions.jsx # Assistant action controls (copy/feedback/retry)
+|   |   |   |   |-- UserMessageActions.jsx # User action controls (copy/edit-and-resend)
+|   |   |   |   |-- MessageSourceBadge.jsx # Dev source + token badge renderer
+|   |   |   |   |-- MessageItem.jsx      # Message row shell + action/transparency composition
+|   |   |   |   `-- content/             # MessageContent sub-renderers by payload type
+|   |   |   |       |-- MarkdownMessage.jsx # Provider-aware markdown rendering
+|   |   |   |       |-- ToolCallMessage.jsx # Tool call payload card + details toggle
+|   |   |   |       |-- ToolOutputMessage.jsx # Tool output payload card + details toggle
+|   |   |   |       |-- UserMessage.jsx   # User message attachments + screenshot gallery
+|   |   |   |       |-- ErrorMessage.jsx  # Error message card renderer
+|   |   |   |       `-- AssistantThinkingSection.jsx # Collapsible assistant thinking panel
+|   |   |
+|   |   |-- hooks/                       # Chat business logic hooks
+|   |   |   |-- useChatMessageSender.ts  # useChatMessageSender - Handles message sending (dashboard sends skip screenshot capture/window handoff)
+|   |   |   |-- useChatStream.ts         # useChatStream - Handles streaming events (llm-thought, streaming-response, tool-call, etc.)
+|   |   |   |-- useCopyMessageAction.js  # useCopyMessageAction - Shared clipboard copy-success state/timer logic for user/assistant message action rows
+|   |   |   |-- useStreamMessageUpdaters.ts # useStreamMessageUpdaters - Shared message update callbacks extracted from useChatStream
+|   |   |   `-- useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
+|   |   |
+|   |   |-- session/                     # Conversation session helpers
+|   |   |
+|   |   |-- stores/                      # State management
+|   |   |   `-- chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
+|   |   |
+|   |-- dashboard/                        # Dashboard feature module
+|   |   |-- hooks/                       # Dashboard business logic hooks
+|   |   |   `-- useDashboardConversations.js # useDashboardConversations - Recent/search conversation load/search/open/rename/pin/delete runtime
+|   |   |
+|   |   `-- components/                  # Dashboard UI components
+|   |       |-- DashboardShell.jsx       # DashboardShell - Conversation-first shell + memory/models/settings modals
+|   |       `-- sections/                # Dashboard section components
+|   |           |-- MemorySection.jsx    # MemorySection - Unified episodic/semantic/procedural memory manager
+|   |           |-- MemoryItem.jsx       # MemoryItem - Expand/edit/delete UI row for individual memory entries
+|   |           |-- ModelsSection.jsx    # ModelsSection - Model list + API key input
+|   |           |-- modelCards.jsx       # modelCards - Provider/model card presentational components
+|   |           `-- SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
+|   |
+|   |-- permissions/                      # Permission settings control center
+|   |   |-- components/                  # Permission UI
+|   |   `-- stores/                      # Permission state management
+|   |       `-- permissionStore.js       # permissionStore (Zustand) - Manifest/statuses, probes, onboarding gate
+|   |
+|   `-- voice/                            # Voice feature module
+|       |-- components/                  # Voice UI components
+|       |   `-- VoiceStatus.jsx          # VoiceStatus - Displays voice mode status (recording, error, connected)
+|       |
+|       |-- hooks/                       # Voice business logic hooks
+|       |   |-- useVoiceMode.ts          # useVoiceMode - Uses the voice app-runtime client gateway connection and audio capture
+|       |   `-- useWakewordDetection.ts  # useWakewordDetection - Manages wakeword capture through the local-runtime helper bridge
+|       |
+|
+|
+|-- infrastructure/                        # Core infrastructure services
+|   |
+|   |-- audio/                            # Audio services
+|   |   `-- PlayerService.ts            # PlayerService - Audio playback queue management (typed audio-chunk runtime events)
+|   |
+|   |-- interaction/                      # Renderer interaction diagnostics
+|   |   `-- rendererInteractionLogger.js # rendererInteractionLogger - capture-phase click/control-change logging and send-message traces
+|   |
+|   |-- ipc/                              # IPC communication layer
+|   |   |-- bridge.ts                   # IpcBridge - Type-safe IPC wrapper with channel validation (send, invoke, on, once)
+|   |   `-- channels.ts                 # Channel constants - SEND_CHANNELS, INVOKE_CHANNELS, ON_CHANNELS (centralized channel names)
+|   |
+|   |-- markdown.ts                       # markdown - Markdown sanitization/rendering helpers
+|   |
+|   |-- services/                         # Business logic services
+|   |   |-- ArtifactImageUtils.ts        # ArtifactImageUtils - Artifact image type/extension normalization
+|   |   |-- RuntimeEndpointStore.ts      # RuntimeEndpointStore - Renderer runtime URL state and artifact/transcription URL builders
+|   |
+|   `-- transcript/                       # SDK-backed transcript projection helpers
+|       |-- desktopConversationStore.ts  # desktopConversationStore - Direct SDK conversation command bridge
+|       |-- sdkDisplayChatMessageProjection.ts # sdkDisplayChatMessageProjection - SDK display rows to renderer chat messages
+|       |-- sessionInfoState.ts          # sessionInfoState - Lazy-loaded session resolver/update state machine
+|       |-- sessionInfoStorage.ts        # sessionInfoStorage - sessionStorage read/write + update event emitter
+|       |-- transcriptSessionRuntime.ts  # Session-aware transcript identity runtime used by renderer app-runtime clients
+|       `-- types.ts                     # types - Shared transcript session/entry/pending message types
+|
+|-- styles/                                # CSS stylesheets
+|   |-- accessibility.css                # Accessibility utilities (visually-hidden class)
+|   |-- ChatBox.css                      # Chat box overlay styles
+|   |-- ChatInterface.css               # Chat interface styles (messages, tool outputs, transparency sections)
+|   |-- DashboardShell.css               # Dashboard shell + modal panel styles
+|   |-- ErrorBoundary.css                # ErrorBoundary fallback UI styling
+|   |-- ThinkingDisplay.css              # Thinking display styles (collapsible reasoning tokens)
+|   |-- VoiceStatus.css                  # Voice status badge and state styles
+|   `-- theme.css                        # Shared CSS variables/theme tokens
+|
+|-- types/                                 # Local renderer types
+|   `-- toolSchemas.ts                    # Renderer display tool-schema type helpers
+|
+`-- utils/                                 # Utility functions
+    `-- normalizeNonEmptyString.ts        # Shared non-empty string normalization helper
 ```
 
 ---
@@ -249,212 +248,212 @@ frontend/src/renderer/
 
 ```
 1. ENTRY POINT
-   └─> app/main.jsx
-       └─> ReactDOM.createRoot() → renders App
-           ↓
+   `-> app/main.jsx
+       `-> ReactDOM.createRoot() -> renders App
+           v
 2. ROOT COMPONENT
-   └─> app/App.jsx
-       ├─> ErrorBoundary (error handling)
-       ├─> AppProvider (config and status contexts)
-       ├─> ChatProvider (chat hooks setup)
-       └─> AppContent (permission bootstrap gate -> onboarding wizard or DashboardShell)
-           ↓
+   `-> app/App.jsx
+       |-> ErrorBoundary (error handling)
+       |-> AppProvider (config and status contexts)
+       |-> ChatProvider (chat hooks setup)
+       `-> AppContent (permission bootstrap gate -> onboarding wizard or DashboardShell)
+           v
 3. PERMISSION BOOTSTRAP
-   └─> features/permissions/stores/permissionStore.js
-       ├─> invoke LIST_PERMISSIONS (main permission service snapshot + probes)
-       ├─> evaluate required-now gate against persisted onboarding completion
-       └─> route to onboarding wizard if gate not satisfied
-           ↓
+   `-> features/permissions/stores/permissionStore.js
+       |-> invoke LIST_PERMISSIONS (main permission service snapshot + probes)
+       |-> evaluate required-now gate against persisted onboarding completion
+       `-> route to onboarding wizard if gate not satisfied
+           v
 4. CONTEXT INITIALIZATION
-   ├─> app/providers/AppConfigContext.jsx
-   │   ├─> Load config from localStorage (optimistic state)
-   │   ├─> Request models list through the settings app-runtime client
-   │   └─> Set up IPC listeners
-   │
-   └─> app/providers/AppStatusContext.jsx
-       └─> Set up save status tracking
-           ↓
+   |-> app/providers/AppConfigContext.jsx
+   |   |-> Load config through desktopRendererConfigStorageRuntime (optimistic state)
+   |   |-> Request models list through the settings app-runtime client
+   |   `-> Set up IPC listeners
+   |
+   `-> app/providers/AppStatusContext.jsx
+       `-> Set up save status tracking
+           v
 5. CHAT INITIALIZATION
-   └─> app/providers/ChatProvider.jsx
-       └─> useChatStream() - Set up streaming event listeners and display projections
+   `-> app/providers/ChatProvider.jsx
+       `-> useChatStream() - Set up streaming event listeners and display projections
 ```
 
 ### Message Sending Flow
 
 ```
 1. USER INPUT
-   └─> features/chat/components/MessageInput.jsx
-       ├─> Text input or voice transcription
-       └─> onSubmit → onSendMessage()
-           ↓
+   `-> features/chat/components/MessageInput.jsx
+       |-> Text input or voice transcription
+       `-> onSubmit -> onSendMessage()
+           v
 2. MESSAGE SENDER HOOK
-   └─> features/chat/hooks/useChatMessageSender.ts
-       ├─> Create user message (immediate UI display)
-       ├─> Add to chatStore
-       ├─> Main-window sender path: send query directly (no screenshot capture, no window handoff)
-       ├─> Overlay sender path: optional query_screenshot_request SDK resource
-       └─> DesktopLiveTurnRuntimeClient.sendQuery() - Send through the renderer app-runtime client
-           ↓
+   `-> features/chat/hooks/useChatMessageSender.ts
+       |-> Create user message (immediate UI display)
+       |-> Add to chatStore
+       |-> Main-window sender path: send query directly (no screenshot capture, no window handoff)
+       |-> Overlay sender path: optional query_screenshot_request SDK resource
+       `-> DesktopLiveTurnRuntimeClient.sendQuery() - Send through the renderer app-runtime client
+           v
 3. SDK RUNTIME TRANSPORT
-   └─> app/runtime/desktopRuntimeTransport.ts
-       └─> invokeAgentSdkCommand('conversation.send', payload)
-           └─> Main process (`src/main/ipc.cjs`) allowlists the SDK-shaped command and hands query context to the SDK runtime, which owns the hosted backend WebSocket
+   `-> app/runtime/desktopRuntimeTransport.ts
+       `-> invokeAgentSdkCommand('conversation.send', payload)
+           `-> Main process (`src/main/ipc.cjs`) allowlists the SDK-shaped command and hands query context to the SDK runtime, which owns the hosted backend WebSocket
 ```
 
 ### Streaming Response Flow
 
 ```
 1. BACKEND EVENT
-   └─> Agent SDK runtime receives the hosted backend WebSocket event
-       ├─> SDK runtime reduces event into currentTurn projection
-       ├─> IPC to renderer: DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN
-       └─> IPC to renderer: DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT
-           ↓
+   `-> Agent SDK runtime receives the hosted backend WebSocket event
+       |-> SDK runtime reduces event into currentTurn projection
+       |-> IPC to renderer: DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN
+       `-> IPC to renderer: DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT
+           v
 2. CURRENT-TURN PROJECTION HOOK
-   └─> features/chat/hooks/useConversationRuntimeProjectionStream.ts
-       ├─> Stores SDK currentTurn projection
-       ├─> Tracks first assistant/reasoning deltas for UI state
-       ├─> Tracks tool-call/tool-output phases
-       └─> Tracks complete/error phases
-           ↓
+   `-> features/chat/hooks/useConversationRuntimeProjectionStream.ts
+       |-> Stores SDK currentTurn projection
+       |-> Tracks first assistant/reasoning deltas for UI state
+       |-> Tracks tool-call/tool-output phases
+       `-> Tracks complete/error phases
+           v
 3. CHAT STORE
-   └─> features/chat/stores/chatStore.ts
-       ├─> setCurrentTurnProjection() - Store SDK live turn state
-       ├─> setThinkingStatus() - Update thinking display from projection
-       └─> setTokenCounts() - Update token statistics from conversation events
-           ↓
+   `-> features/chat/stores/chatStore.ts
+       |-> setCurrentTurnProjection() - Store SDK live turn state
+       |-> setThinkingStatus() - Update thinking display from projection
+       `-> setTokenCounts() - Update token statistics from conversation events
+           v
 4. UI UPDATE
-   └─> features/chat/components/MessageList.jsx
-       ├─> Renders transcript messages from chatStore
-       ├─> Renders active assistant/tool rows from SDK currentTurn projection
-       ├─> Displays transparency sections from conversation-event metadata
-       └─> Auto-scrolls to bottom
+   `-> features/chat/components/MessageList.jsx
+       |-> Renders transcript messages from chatStore
+       |-> Renders active assistant/tool rows from SDK currentTurn projection
+       |-> Displays transparency sections from conversation-event metadata
+       `-> Auto-scrolls to bottom
 ```
 
 ### Tool Display and SDK Execution Flow
 
 ```
 1. TOOL CALL EVENT
-   └─> Backend sends tool-call or tool-bundle event
-       └─> Agent SDK runtime receives event
-           ↓
+   `-> Backend sends tool-call or tool-bundle event
+       `-> Agent SDK runtime receives event
+           v
 2. SDK LOCAL EXECUTION
-   └─> packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts
-       ├─> Route single tool or bundle to local runtime adapter
-       ├─> Preserve request_id / bundle_id / tool_call_id
-       └─> Return exactly one tool-result or tool-bundle-result to backend
-           ↓
+   `-> packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts
+       |-> Route single tool or bundle to local runtime adapter
+       |-> Preserve request_id / bundle_id / tool_call_id
+       `-> Return exactly one tool-result or tool-bundle-result to backend
+           v
 3. LOCAL-RUNTIME EXECUTION
-   └─> SDK local runtime invokes the local-runtime Python daemon
-       ├─> Execute filesystem/shell/browser/computer-use/MCP/plugin tools
-       └─> Return normalized local result to SDK runtime
-           ↓
+   `-> SDK local runtime invokes the local-runtime Python daemon
+       |-> Execute filesystem/shell/browser/computer-use/MCP/plugin tools
+       `-> Return normalized local result to SDK runtime
+           v
 4. RENDERER DISPLAY
-   └─> features/chat/hooks/useChatStream.ts
-       ├─> Render display-only tool-call/tool-bundle events
-       ├─> Render backend tool-output events
-       └─> Persist visible transcript projection
+   `-> features/chat/hooks/useChatStream.ts
+       |-> Render display-only tool-call/tool-bundle events
+       |-> Render backend tool-output events
+       `-> Persist visible transcript projection
 ```
 
 ### Voice Mode Flow
 
 ```
 1. MICROPHONE SESSION ACTIVE
-   └─> features/chat/components/ChatInterface.jsx
-       └─> features/chat/components/MessageInput.jsx toggles local dictation state
-           ↓
+   `-> features/chat/components/ChatInterface.jsx
+       `-> features/chat/components/MessageInput.jsx toggles local dictation state
+           v
 2. VOICE MODE HOOK
-   └─> features/voice/hooks/useVoiceMode.ts
-       ├─> Connect through DesktopVoiceRuntimeClient to transcription gateway (/ws/transcription)
-       ├─> Request microphone access (getUserMedia)
-       ├─> Create AudioContext and required AudioWorklet capture processor
-       ├─> Capture audio chunks (Float32Array → Int16Array)
-       ├─> Format and send to Gateway (binary protocol)
-       └─> Receive transcription results (realtime events)
-           ↓
+   `-> features/voice/hooks/useVoiceMode.ts
+       |-> Connect through DesktopVoiceRuntimeClient to transcription gateway (/ws/transcription)
+       |-> Request microphone access (getUserMedia)
+       |-> Create AudioContext and required AudioWorklet capture processor
+       |-> Capture audio chunks (Float32Array -> Int16Array)
+       |-> Format and send to Gateway (binary protocol)
+       `-> Receive transcription results (realtime events)
+           v
 3. TRANSCRIPTION UPDATE
-   └─> features/chat/hooks/useTranscription.ts
-       ├─> updateTranscription() - Insert transcription text into input
-       └─> Handle cursor position and text replacement
-           ↓
+   `-> features/chat/hooks/useTranscription.ts
+       |-> updateTranscription() - Insert transcription text into input
+       `-> Handle cursor position and text replacement
+           v
 4. UTTERANCE END
-   └─> Gateway sends utterance_end event
-       └─> onUtteranceEnd callback
-           └─> Stop temporary dictation; keep text in composer for manual send/edit
+   `-> Gateway sends utterance_end event
+       `-> onUtteranceEnd callback
+           `-> Stop temporary dictation; keep text in composer for manual send/edit
 ```
 
 ### Wakeword Detection Flow
 
 ```
 1. WAKEWORD ENABLED
-   └─> app/WakewordController.jsx
-       └─> wakewordActive (wakewordEnabled && !wakewordSuppressed)
-           ↓
+   `-> app/WakewordController.jsx
+       `-> wakewordActive (wakewordEnabled && !wakewordSuppressed)
+           v
 2. WAKEWORD DETECTION HOOK
-   └─> features/voice/hooks/useWakewordDetection.ts
-       ├─> Request microphone access (getUserMedia)
-       ├─> Create AudioContext and required AudioWorklet capture processor
-       ├─> Capture audio chunks (Float32Array → Int16Array)
-       ├─> Send to main process via IPC (SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK)
-       └─> Main process forwards framed audio to the local-runtime wakeword helper backed by the Python wakeword service
-           ↓
+   `-> features/voice/hooks/useWakewordDetection.ts
+       |-> Request microphone access (getUserMedia)
+       |-> Create AudioContext and required AudioWorklet capture processor
+       |-> Capture audio chunks (Float32Array -> Int16Array)
+       |-> Send to main process via IPC (SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK)
+       `-> Main process forwards framed audio to the local-runtime wakeword helper backed by the Python wakeword service
+           v
 3. DETECTION EVENT
-   └─> Local-runtime wakeword helper emits detection from the Python wakeword service
-       └─> Main process → IPC: ON_CHANNELS.WAKEWORD_DETECTED
-           └─> useWakewordDetection hook receives event
-               └─> onWakewordDetected callback
-                   ├─> DesktopVoiceRuntimeClient.wakewordDetected()
-                   └─> SHOW_CHATBOX (IPC)
+   `-> Local-runtime wakeword helper emits detection from the Python wakeword service
+       `-> Main process -> IPC: ON_CHANNELS.WAKEWORD_DETECTED
+           `-> useWakewordDetection hook receives event
+               `-> onWakewordDetected callback
+                   |-> DesktopVoiceRuntimeClient.wakewordDetected()
+                   `-> SHOW_CHATBOX (IPC)
 ```
 
 ### Settings Management Flow
 
 ```
 1. SETTINGS CHANGE
-   └─> features/dashboard/components/DashboardShell.jsx
-       └─> User changes model/speech settings
-           └─> onConfigChange(newConfig)
-               ↓
+   `-> features/dashboard/components/DashboardShell.jsx
+       `-> User changes model/speech settings
+           `-> onConfigChange(newConfig)
+               v
 2. CONFIG UPDATE
-   └─> app/providers/AppConfigContext.jsx
-       ├─> filterRendererConfig() - Filter to renderer-managed fields
-       ├─> Update state immediately
-       └─> saveConfigToStorage() - Persist to localStorage
-           ↓
+   `-> app/providers/AppConfigContext.jsx
+       |-> filterRendererConfig() - Filter to renderer-managed fields
+       |-> Update state immediately
+       `-> saveConfigToStorage() - Persist through desktopRendererConfigStorageRuntime
+           v
 3. CONFIG PERSISTENCE
-   └─> app/runtime/desktopRendererConfigStorageRuntime.js
-       └─> localStorage.setItem() - Save config to the renderer config key
+   `-> app/runtime/desktopRendererConfigStorageRuntime.js
+       `-> Save config to the renderer skin storage key through the storage facade
 ```
 
 ### Audio Playback Flow (TTS)
 
 ```
 1. AUDIO CHUNK EVENT
-   └─> Runtime forwards audio-chunk event
-       └─> IPC: ON_CHANNELS.AUDIO_CHUNK
-           ↓
+   `-> Runtime forwards audio-chunk event
+       `-> IPC: ON_CHANNELS.AUDIO_CHUNK
+           v
 2. AUDIO PLAYER SERVICE
-   └─> infrastructure/audio/PlayerService.ts
-       ├─> enqueueAudio() - Add chunk to queue
-       ├─> playNext() - Play chunks sequentially
-       ├─> base64ToArrayBuffer() - Decode base64 PCM data
-       ├─> createAudioBuffer() - Convert Int16Array to Float32Array
-       └─> AudioContext.createBufferSource() - Play audio
+   `-> infrastructure/audio/PlayerService.ts
+       |-> enqueueAudio() - Add chunk to queue
+       |-> playNext() - Play chunks sequentially
+       |-> base64ToArrayBuffer() - Decode base64 PCM data
+       |-> createAudioBuffer() - Convert Int16Array to Float32Array
+       `-> AudioContext.createBufferSource() - Play audio
 ```
 
 ### Bundle Display Flow
 
 ```
 1. BUNDLE EVENT
-   └─> Backend sends tool-bundle event through SDK runtime
-           ↓
+   `-> Backend sends tool-bundle event through SDK runtime
+           v
 2. SDK MAIN RUNTIME
-   └─> Executes bundle deterministically through the SDK local runtime and sends one tool-bundle-result
-           ↓
+   `-> Executes bundle deterministically through the SDK local runtime and sends one tool-bundle-result
+           v
 3. UI UPDATE
-   └─> features/chat/hooks/useConversationRuntimeProjectionStream.ts
-       └─> chatStore.setCurrentTurnProjection()
-           └─> app/runtime/desktopCurrentTurnMessageRuntime.js renders projected bundle/tool output
+   `-> features/chat/hooks/useConversationRuntimeProjectionStream.ts
+       `-> chatStore.setCurrentTurnProjection()
+           `-> app/runtime/desktopCurrentTurnMessageRuntime.js renders projected bundle/tool output
 ```
 
 ---
@@ -465,7 +464,7 @@ frontend/src/renderer/
 
 2. **Split Contexts**: AppConfigContext (infrequent changes) and AppStatusContext (frequent changes) separated to minimize re-renders
 
-3. **Optimistic State**: Config loaded from localStorage immediately (zero latency) before runtime settings sync
+3. **Optimistic State**: Renderer config loads immediately through the config storage facade before runtime settings sync
 
 4. **Hook-Based Logic**: Business logic extracted into custom hooks (useChatStream, useVoiceMode, etc.)
 
@@ -505,43 +504,43 @@ frontend/src/renderer/
 
 ```
 App
-├── ErrorBoundary
-│   └── AppProvider
-│       ├── AppConfigProvider
-│       │   └── AppStatusProvider
-│       │       └── ChatProvider
-│       │           ├── WakewordController
-│       │           └── AppContent
-│       │               └── DashboardShell
-│       │                   ├── Sidebar
-│       │                   ├── ChatInterface
-│       │                   │   ├── MessageList
-│       │                   │   │   ├── Message (user/assistant)
-│       │                   │   │   ├── TransparencySection (system prompt, tool schemas, full messages)
-│       │                   │   │   └── ThinkingDisplay
-│       │                   │   ├── MessageInput
-│       │                   │   │   └── VoiceStatus
-│       │                   ├── MemoryModal
-│       │                   ├── ModelsModal
-│       │                   └── SettingsModal
+|-- ErrorBoundary
+|   `-- AppProvider
+|       |-- AppConfigProvider
+|       |   `-- AppStatusProvider
+|       |       `-- ChatProvider
+|       |           |-- WakewordController
+|       |           `-- AppContent
+|       |               `-- DashboardShell
+|       |                   |-- Sidebar
+|       |                   |-- ChatInterface
+|       |                   |   |-- MessageList
+|       |                   |   |   |-- Message (user/assistant)
+|       |                   |   |   |-- TransparencySection (system prompt, tool schemas, full messages)
+|       |                   |   |   `-- ThinkingDisplay
+|       |                   |   |-- MessageInput
+|       |                   |   |   `-- VoiceStatus
+|       |                   |-- MemoryModal
+|       |                   |-- ModelsModal
+|       |                   `-- SettingsModal
 ```
 
 ---
 
 ## IPC Channel Usage
 
-### Send Channels (Renderer → Main)
+### Send Channels (Renderer -> Main)
 - `WAKEWORD_DETECTED` - Notify Electron main of wakeword activation through the SDK-shaped runtime command path
 - `WAKEWORD_AUDIO_CHUNK` - Send audio chunks for wakeword detection
 - `WAKEWORD_ENABLE` - Enable wakeword detection
 - `WAKEWORD_DISABLE` - Disable wakeword detection
 
-### Invoke Channels (Renderer → Main, async)
+### Invoke Channels (Renderer -> Main, async)
 - SDK runtime commands - conversation send/stop/retry/edit/resend/projection
   loading plus memory list/delete/clear through SDK-shaped app runtime clients
 - `GET_SYSTEM_STATE` - Get system state (active window, mouse, clipboard, etc.)
 
-### On Channels (Main → Renderer, events)
+### On Channels (Main -> Renderer, events)
 - `DESKTOP_RUNTIME_CURRENT_TURN` - SDK current-turn projection updates for live dashboard/overlay rendering
 - `DESKTOP_RUNTIME_CONVERSATION_EVENT` - SDK-normalized chat side-effect events for transcript/session/metadata handlers
 - `BACKEND_SETTINGS_EVENT` - Typed settings/model ACK and error control events
@@ -566,8 +565,8 @@ App
 
 ### Chat Store (Zustand)
 - `messages: ChatMessage[]` - Conversation messages
-- `isSending: boolean` - Whether a message is being sent
-- `thinkingStatus: string | null` - Accumulated thinking tokens
+- `isSending: boolean` - Compatibility send flag; visible lifecycle comes from pending turns plus SDK current-turn projection
+- `thinkingStatus: string | null` - Dashboard/manual status compatibility text; response overlay reasoning follows SDK `currentTurn.reasoningText`
 - `tokenCounts: TokenCounts | null` - Token usage statistics
 
 ### App Config Context

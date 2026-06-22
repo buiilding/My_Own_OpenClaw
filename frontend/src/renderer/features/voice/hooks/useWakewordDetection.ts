@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
 import { DesktopVoiceAudioEncodingRuntime } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
 import { DesktopVoiceAudioCaptureCleanupRuntime } from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
+import { DesktopVoiceAudioInputDeviceRuntime } from '../../../app/runtime/desktopVoiceAudioInputDeviceRuntime';
 import { DesktopVoiceAudioProcessorNodeRuntime } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import { DesktopWakewordEventRuntime } from '../../../app/runtime/desktopWakewordEventRuntime';
 import { DesktopVoiceDebugTraceRuntime } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
@@ -22,6 +23,11 @@ const {
   closeAudioContextSafely,
   takeAudioContext,
 } = DesktopVoiceAudioCaptureCleanupRuntime;
+const {
+  createAudioInputContext,
+  onAudioInputDeviceChange,
+  requestAudioInputStream,
+} = DesktopVoiceAudioInputDeviceRuntime;
 const { createAudioCaptureProcessorNode } = DesktopVoiceAudioProcessorNodeRuntime;
 const {
   clearWakewordCaptureGuard,
@@ -156,15 +162,12 @@ export function useWakewordDetection(
     logVoiceDebugTrace('wakeword-capture-starting', { generation });
 
     try {
-      // Request microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          sampleRate: sampleRate,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        }
+      const stream = await requestAudioInputStream({
+        sampleRate,
+        channelCount: 1,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
       });
 
       if (generation !== captureGenerationRef.current) {
@@ -174,10 +177,7 @@ export function useWakewordDetection(
 
       setMediaStreamRef(stream);
 
-      // Create audio context
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
-        sampleRate: sampleRate
-      });
+      const audioContext = createAudioInputContext({ sampleRate });
 
       if (generation !== captureGenerationRef.current) {
         stream.getTracks().forEach(track => track.stop());
@@ -353,11 +353,6 @@ export function useWakewordDetection(
   }, [clearMissingDeviceLock, wakewordPreferenceEnabled]);
 
   useEffect(() => {
-    const mediaDevices = navigator.mediaDevices;
-    if (!mediaDevices || typeof mediaDevices.addEventListener !== 'function') {
-      return undefined;
-    }
-
     const handleDeviceChange = () => {
       if (!missingDeviceLockRef.current) {
         return;
@@ -369,10 +364,7 @@ export function useWakewordDetection(
       });
     };
 
-    mediaDevices.addEventListener('devicechange', handleDeviceChange);
-    return () => {
-      mediaDevices.removeEventListener('devicechange', handleDeviceChange);
-    };
+    return onAudioInputDeviceChange(handleDeviceChange);
   }, [enabled, isReady, refreshMissingDeviceLock, startAudioCapture]);
 
   return {

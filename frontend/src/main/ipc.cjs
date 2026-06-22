@@ -67,7 +67,7 @@ const {
   createBackendConnectionGateState,
 } = require('./ipc/ipc_backend_connection_gate_state.cjs');
 const {
-  buildConversationEventFromBackendEvent,
+  createConversationEventProjectionRuntime,
 } = require('./ipc/ipc_conversation_event_projection.cjs');
 const {
   createElectronAgentClientFactoryRuntime,
@@ -175,9 +175,7 @@ const {
   createArtifactHandlersRuntime,
 } = require('./ipc/ipc_artifact_handlers.cjs');
 const {
-  resolveConversationRef: resolveConversationRefFromPayload,
-  buildQueryInterrupted,
-  buildQuerySendFailure,
+  createQueryEventsRuntime,
 } = require('./ipc/ipc_query_events.cjs');
 const {
   buildConversationTerminalStatus,
@@ -197,9 +195,9 @@ const {
 const {
   buildBackendQueryPayload,
   buildQueryPayload,
+  buildRendererBackendQueryPayloadWithAgentDefinition,
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
-  preserveSdkTurnInputFields,
 } = require('./ipc/ipc_query_runtime.cjs');
 const {
   createAutomatedQueryRuntime,
@@ -287,10 +285,21 @@ const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 const BACKEND_CONNECT_TIMEOUT_MS = 10000;
 const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
 const ipcHostCopyRuntime = createIpcHostCopyRuntime();
+const queryEventsRuntime = createQueryEventsRuntime({
+  getCopy: () => ipcHostCopyRuntime.getQueryEvents(),
+});
+const {
+  resolveConversationRefFromPayload,
+  buildQueryInterrupted,
+  buildQuerySendFailure,
+} = queryEventsRuntime;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const activeQueryContextState = createActiveQueryContextState();
 const backendSessionState = createBackendSessionState();
+const conversationEventProjectionRuntime = createConversationEventProjectionRuntime({
+  getFallbackConversationRef: () => backendSessionState.getConversationRef(),
+});
 const runtimeConversationRefRuntime = createRuntimeConversationRefRuntime({
   getFallbackConversationRef: () => backendSessionState.getConversationRef(),
 });
@@ -331,9 +340,7 @@ const rendererWindowRuntime = createRendererWindowRuntime({
   getLatestCurrentTurn: () => liveTurnState.getLatestCurrentTurn(),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
   getReplayEvents: () => ipcEventReplayState.snapshot(),
-  buildConversationEvent: (event) => buildConversationEventFromBackendEvent(event, {
-    fallbackConversationRef: backendSessionState.getConversationRef(),
-  }),
+  buildConversationEvent: (event) => conversationEventProjectionRuntime.build(event),
 });
 const backendMessageObserverRegistry = createBackendMessageObserverRegistry({
   log,
@@ -614,9 +621,11 @@ const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
   setFirstQuery: (nextValue) => {
     backendConnectionGateState.setFirstQuery(nextValue);
   },
-  attachAgentDefinitionContextToPayload: (payload) => preserveSdkTurnInputFields(
-    buildBackendQueryPayload(attachAgentDefinitionContext(payload)),
-    payload,
+  attachAgentDefinitionContextToPayload: (payload) => (
+    buildRendererBackendQueryPayloadWithAgentDefinition({
+      payload,
+      attachAgentDefinitionContext,
+    })
   ),
   ensureInstallAuthState: () => installAuthContextRuntime.ensureInstallAuthState(),
   isBackendRuntimeConnected,
@@ -646,10 +655,7 @@ const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
     ipcEventReplayState,
     buildQueryPayload,
     broadcastQuerySendFailureRuntime,
-    buildQuerySendFailure: (input) => buildQuerySendFailure({
-      ...input,
-      copy: ipcHostCopyRuntime.getQueryEvents(),
-    }),
+    buildQuerySendFailure,
     traceRendererQuery: (input) => electronMainTraceLogger.traceRendererQuery(input),
   },
 });

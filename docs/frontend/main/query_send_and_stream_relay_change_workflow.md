@@ -182,7 +182,8 @@ Main relay invariants:
 - SDK `ContextEnrichmentPipeline.ts` may call local-runtime memory helpers and
   renders escaped model-facing memory/attachment/query content.
 - On websocket send failure, main clears replay state and emits an SDK
-  `turn_error` conversation event from `buildQuerySendFailure(...)` context.
+  `turn_error` conversation event from query-events runtime
+  `buildQuerySendFailure(...)` context.
 - Renderer SDK transports that call `conversation.send` through `windie:invoke`
   must inspect the
   invoke result and reject on `{ ok: false }`. Normal send and replay/edit

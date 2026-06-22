@@ -7,6 +7,7 @@ const RECENT_CHAT_RETRY_BASE_DELAY_MS = 250;
 const RECENT_CHAT_RETRY_MAX_DELAY_MS = 2000;
 const TITLE_VISIBILITY_POLL_MAX_ATTEMPTS = 240;
 const TITLE_VISIBILITY_POLL_DELAY_MS = 1250;
+const CONVERSATION_SEARCH_DEBOUNCE_DELAY_MS = 180;
 
 const RECENT_CONVERSATION_EVENT_ACTION = Object.freeze({
   NONE: 'none',
@@ -233,7 +234,132 @@ function shouldRetryRecentConversationsLoad({
   );
 }
 
+function resolveTimerApi(timerApi) {
+  if (timerApi) {
+    return timerApi;
+  }
+  return globalThis.window || globalThis;
+}
+
+function scheduleTimer({
+  timerApi,
+  callback,
+  delayMs,
+}) {
+  const api = resolveTimerApi(timerApi);
+  if (typeof callback !== 'function') {
+    return null;
+  }
+  if (!api || typeof api.setTimeout !== 'function') {
+    callback();
+    return null;
+  }
+  return api.setTimeout(callback, delayMs);
+}
+
+function clearTimer(timerId, timerApi) {
+  const api = resolveTimerApi(timerApi);
+  if (timerId == null || !api || typeof api.clearTimeout !== 'function') {
+    return;
+  }
+  api.clearTimeout(timerId);
+}
+
+function scheduleRecentConversationsRetryTimer({
+  callback,
+  delayMs,
+  timerApi,
+} = {}) {
+  return scheduleTimer({
+    timerApi,
+    callback,
+    delayMs,
+  });
+}
+
+function clearRecentConversationsRetryTimer(timerId, { timerApi } = {}) {
+  clearTimer(timerId, timerApi);
+}
+
+function clearTitleVisibilityPollTimer({
+  pendingTimers,
+  conversationRef,
+  timerApi,
+} = {}) {
+  const targetRef = normalizeOptionalString(conversationRef);
+  if (!pendingTimers || typeof pendingTimers.get !== 'function' || !targetRef) {
+    return;
+  }
+  const timerId = pendingTimers.get(targetRef);
+  clearTimer(timerId, timerApi);
+  if (typeof pendingTimers.delete === 'function') {
+    pendingTimers.delete(targetRef);
+  }
+}
+
+function scheduleTitleVisibilityPollTimer({
+  pendingTimers,
+  conversationRef,
+  callback,
+  delayMs = TITLE_VISIBILITY_POLL_DELAY_MS,
+  timerApi,
+} = {}) {
+  const targetRef = normalizeOptionalString(conversationRef);
+  if (!pendingTimers || typeof pendingTimers.set !== 'function' || !targetRef) {
+    return null;
+  }
+  clearTitleVisibilityPollTimer({
+    pendingTimers,
+    conversationRef: targetRef,
+    timerApi,
+  });
+  const timerId = scheduleTimer({
+    timerApi,
+    callback,
+    delayMs,
+  });
+  if (timerId != null) {
+    pendingTimers.set(targetRef, timerId);
+  }
+  return timerId;
+}
+
+function clearAllTitleVisibilityPollTimers({
+  pendingTimers,
+  timerApi,
+} = {}) {
+  if (!pendingTimers || typeof pendingTimers.values !== 'function') {
+    return;
+  }
+  for (const timerId of pendingTimers.values()) {
+    clearTimer(timerId, timerApi);
+  }
+  if (typeof pendingTimers.clear === 'function') {
+    pendingTimers.clear();
+  }
+}
+
+function scheduleConversationSearchDebounce({
+  callback,
+  delayMs = CONVERSATION_SEARCH_DEBOUNCE_DELAY_MS,
+  timerApi,
+} = {}) {
+  return scheduleTimer({
+    timerApi,
+    callback,
+    delayMs,
+  });
+}
+
+function clearConversationSearchDebounce(timerId, { timerApi } = {}) {
+  clearTimer(timerId, timerApi);
+}
+
 export const DesktopDashboardConversationLoadRuntime = Object.freeze({
+  clearAllTitleVisibilityPollTimers,
+  clearConversationSearchDebounce,
+  clearRecentConversationsRetryTimer,
+  clearTitleVisibilityPollTimer,
   getDashboardConversationRef,
   getDashboardConversationRenamePromptValue,
   getTitleVisibilityPollConversationRef,
@@ -248,6 +374,9 @@ export const DesktopDashboardConversationLoadRuntime = Object.freeze({
   renameDashboardConversationInList,
   resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
+  scheduleConversationSearchDebounce,
+  scheduleRecentConversationsRetryTimer,
+  scheduleTitleVisibilityPollTimer,
   shouldContinueTitleVisibilityPoll,
   shouldReloadRecentConversationsForEventAction,
   shouldRetryRecentConversationsLoad,

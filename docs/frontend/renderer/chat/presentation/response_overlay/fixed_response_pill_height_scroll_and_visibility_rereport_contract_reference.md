@@ -12,7 +12,7 @@ title: "Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Rep
 
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient.ts`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
@@ -38,9 +38,10 @@ Contract:
 
 Selection pipeline:
 
-1. `useCurrentTurnPresentationState(...)` picks the turn-bounded candidate reply.
-2. `hasVisibleChatboxResponse(...)` applies dismissal state (`closedResponseId`).
-3. The same shared current-turn presentation state decides:
+1. `useResponseOverlayViewModel(...)` builds the current-turn entry list.
+2. `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+   picks the turn-bounded candidate reply and applies dismissal state.
+3. The visible-lifecycle-stamped presentation state decides:
   - awaiting indicator visibility
   - response-pill visibility
 
@@ -63,7 +64,7 @@ visibility, measurement, dedupe, and re-report timing.
 Response-window size stream traces are shaped by
 `DesktopRendererTraceRuntime`. The window-sync hook passes camelCase
 value-level fields to `logRendererResponseSurfaceSizeTrace(...)`; it does not
-assemble diagnostic `layout_mode`, `show_response`, `thinking_text_length`,
+assemble diagnostic `layout_mode`, `response_visible`, `thinking_text_length`,
 `compact_hover`, `turn_ref`, or `stale_guard_ref` fields directly.
 
 Behavior:
@@ -78,9 +79,14 @@ Visibility re-report rule:
 
 - on `DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility(...)` show
   event, the runtime client has already normalized the host payload and emits a
-  boolean visibility value; renderer schedules re-report on next animation
-  frame when overlay should be visible
+  boolean visibility value; renderer schedules re-report through
+  `DesktopResponseOverlayInteractionRuntime.scheduleResponseOverlayFrame(...)`
+  when overlay should be visible
 - on hide event, cached frame state resets so next show forces fresh size report
+- visible resize retry, animation-frame coalescing, `ResizeObserver`, and
+  cleanup are installed through
+  `DesktopResponseOverlayInteractionRuntime.startResponseOverlaySizeUpdateSync(...)`
+  while `useResponseOverlayWindowSync(...)` keeps the sizing policy.
 
 ## Scroll-Anchor Policy
 

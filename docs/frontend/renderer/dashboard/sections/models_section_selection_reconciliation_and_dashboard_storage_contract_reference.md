@@ -92,6 +92,15 @@ Fallback selection:
 
 - `getFallbackModelSelection(currentModels)` returns first model or empty selection
 
+Warning timer behavior:
+
+- `DesktopModelSelectionRuntime.scheduleModelResetWarningClear(...)` owns the
+  browser timer used to clear missing-model reset warnings after `5000ms`
+- `DesktopModelSelectionRuntime.clearModelResetWarningTimer(...)` owns cleanup
+  for replacement and unmount
+- `ModelsSection` owns warning state and selection side effects, but does not
+  call browser timeout APIs directly
+
 Outbound config update on model select
 (`DesktopModelSelectionRuntime.buildModelConfigUpdate`):
 
@@ -131,6 +140,8 @@ Persistence/sync remains owned by AppConfig provider pipeline.
 - update payload normalization
 - status matrix (`empty|missing|provider-mismatch|valid`)
 - deterministic provider canonicalization and fallback behavior
+- model-reset warning timer scheduling, replacement, cleanup, and
+  missing-adapter fallback behavior
 
 `tests/frontend/ModelsSection.test.jsx` verifies:
 
@@ -145,7 +156,9 @@ Persistence/sync remains owned by AppConfig provider pipeline.
 1. Changing provider normalization rules in one helper only can split provider grouping vs selection matching.
 2. Removing provider from selection checks (`id`-only) can select wrong provider variant for duplicate ids.
 3. Extending provider API key schema without updating `desktopProviderCredentialRuntime` drops new provider keys from persisted payloads.
-4. Breaking warning timeout cleanup can leak timers on panel unmount.
+4. Moving warning timeout cleanup out of `DesktopModelSelectionRuntime` can
+   leak timers on panel unmount or reintroduce raw browser timer calls in the
+   section.
 
 ## Related Pages
 

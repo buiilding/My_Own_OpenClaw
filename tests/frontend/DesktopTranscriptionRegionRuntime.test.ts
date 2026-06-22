@@ -10,7 +10,9 @@ const {
   appendTranscriptionText,
   buildValueAfterPaste,
   createEmptyTranscriptionRegion,
+  readTextFromPasteEvent,
   replaceTranscriptionText,
+  scheduleCursorRestoreAfterPaste,
   updateRegionAfterInputChange,
   updateRegionAfterPaste,
 } = DesktopTranscriptionRegionRuntime;
@@ -57,6 +59,19 @@ describe('desktopTranscriptionRegionRuntime', () => {
     expect(pasted).toEqual({ value: 'abc123def', start: 3 });
   });
 
+  test('reads text from paste events through the runtime adapter', () => {
+    expect(readTextFromPasteEvent({
+      clipboardData: {
+        getData: (format) => (format === 'text' ? 'pasted text' : ''),
+      },
+    })).toBe('pasted text');
+  });
+
+  test('returns empty text when paste event clipboard data is unavailable', () => {
+    expect(readTextFromPasteEvent({})).toBe('');
+    expect(readTextFromPasteEvent(null)).toBe('');
+  });
+
   test('updates region after paste based on cursor position', () => {
     expect(updateRegionAfterPaste({ start: 5, end: 8, active: true }, 2, 2, 3)).toEqual({
       start: 8,
@@ -80,5 +95,39 @@ describe('desktopTranscriptionRegionRuntime', () => {
     expect(updateRegionAfterPaste({ start: 10, end: 14, active: true }, 8, 12, 2)).toEqual(
       createEmptyTranscriptionRegion(),
     );
+  });
+
+  test('schedules cursor restoration after paste through the runtime adapter', () => {
+    const input = { setSelectionRange: jest.fn() };
+    const timerApi = {
+      setTimeout: jest.fn(() => 'timer-1' as unknown as ReturnType<typeof setTimeout>),
+    };
+
+    const timerId = scheduleCursorRestoreAfterPaste({
+      input,
+      pastedTextLength: 4,
+      start: 3,
+      timerApi,
+    });
+
+    expect(timerId).toBe('timer-1');
+    expect(timerApi.setTimeout).toHaveBeenCalledWith(expect.any(Function), 0);
+    expect(input.setSelectionRange).not.toHaveBeenCalled();
+
+    timerApi.setTimeout.mock.calls[0][0]();
+    expect(input.setSelectionRange).toHaveBeenCalledWith(7, 7);
+  });
+
+  test('restores paste cursor immediately when no timer adapter is available', () => {
+    const input = { setSelectionRange: jest.fn() };
+
+    expect(scheduleCursorRestoreAfterPaste({
+      input,
+      pastedTextLength: 2,
+      start: 1,
+      timerApi: {},
+    })).toBeNull();
+
+    expect(input.setSelectionRange).toHaveBeenCalledWith(3, 3);
   });
 });

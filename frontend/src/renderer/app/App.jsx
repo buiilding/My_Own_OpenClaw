@@ -7,7 +7,6 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import DashboardShell from '../features/dashboard/components/DashboardShell';
 import DesktopOnboardingSlideshow from '../features/onboarding/components/DesktopOnboardingSlideshow';
 import { usePermissionStore } from '../features/permissions/stores/permissionStore';
-import { selectStartupSurface } from './startupSurface';
 import { DesktopShortcutRuntimeClient } from './runtime/desktopShortcutRuntimeClient';
 import { DesktopStartupRuntimeClient } from './runtime/desktopStartupRuntimeClient';
 import { DesktopWindowRuntimeClient } from './runtime/desktopWindowRuntimeClient';
@@ -55,7 +54,7 @@ function AppContent() {
   const needsOnboarding = usePermissionStore((state) => state.needsOnboarding);
   const onboardingCompleted = usePermissionStore((state) => state.onboardingState?.completed === true);
   const lastAppliedStartupSurfaceRef = useRef(null);
-  const startupSurface = selectStartupSurface({
+  const startupSurface = DesktopStartupRuntimeClient.selectStartupSurface({
     vmModeEnabled,
     bootstrapped,
     needsOnboarding,

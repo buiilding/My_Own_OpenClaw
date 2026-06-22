@@ -85,7 +85,9 @@ function resolveChatPillViewIntent({
   currentTurnPresentationState: {
     activeResponse?: TurnRefMessage | null;
     visibleResponse?: TurnRefMessage | null;
-    showChatboxAwaitingReply?: boolean;
+    visibleTurnLifecycle?: {
+      status?: string | null;
+    } | null;
   };
   responseOverlayEntries: Array<{ id?: string | null }>;
   dismissedResponseId?: string | null;

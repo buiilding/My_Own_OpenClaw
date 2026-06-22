@@ -130,12 +130,13 @@ The SDK `ContextEnrichmentPipeline.ts` then renders model-facing `content` with 
 
 - sends the backend websocket message through the Agent SDK runtime with stable message id
 - on send failure, builds and emits an SDK `turn_error` conversation event
-  from `buildQuerySendFailure(...)` context without backend-wire normalization
+  through `createQueryEventsRuntime(...).buildQuerySendFailure(...)` context
+  without backend-wire normalization
 - on send failure, clears replay buffer so stale optimistic events are not replayed after reconnect
 - on backend close during active response phases,
   `ipc_agent_backend_close_runtime.cjs` builds an interrupted SDK-shaped query
-  event from `buildQueryInterrupted(...)`, routes it through the backend-event
-  relay, and clears replay/session state
+  event through `createQueryEventsRuntime(...).buildQueryInterrupted(...)`,
+  routes it through the backend-event relay, and clears replay/session state
 
 ## SDK Context Enrichment Internals
 
@@ -247,7 +248,7 @@ If renderer shows user message but backend never streams:
 2. inspect Electron main logs for `Failed to connect Agent SDK runtime for query`
    or `Failed to connect Agent SDK runtime for update-settings`
 3. verify SDK runtime send returned message id
-4. inspect the `buildQuerySendFailure` context and SDK `turn_error`
+4. inspect the query-events runtime send-failure context and SDK `turn_error`
    broadcast path for failed send
 
 For module ownership details of query send-failure broadcasters and

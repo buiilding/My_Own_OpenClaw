@@ -85,9 +85,53 @@ function getFallbackModelSelection(currentModels) {
   return currentModels[0] || EMPTY_MODEL_SELECTION;
 }
 
+function clearModelResetWarningTimer({
+  timerRef,
+  timerApi = globalThis,
+} = {}) {
+  if (!timerRef || timerRef.current == null) {
+    return;
+  }
+  if (typeof timerApi?.clearTimeout === 'function') {
+    timerApi.clearTimeout(timerRef.current);
+  }
+  timerRef.current = null;
+}
+
+function scheduleModelResetWarningClear({
+  timerRef,
+  onClear,
+  delayMs = 5000,
+  timerApi = globalThis,
+} = {}) {
+  if (!timerRef || typeof onClear !== 'function') {
+    return null;
+  }
+
+  clearModelResetWarningTimer({ timerRef, timerApi });
+
+  if (
+    typeof timerApi?.setTimeout !== 'function'
+    || typeof timerApi?.clearTimeout !== 'function'
+  ) {
+    timerRef.current = null;
+    onClear();
+    return null;
+  }
+
+  timerRef.current = timerApi.setTimeout(() => {
+    timerRef.current = null;
+    onClear();
+  }, delayMs);
+
+  return timerRef.current;
+}
+
 export const DesktopModelSelectionRuntime = Object.freeze({
   buildModelConfigUpdate,
+  clearModelResetWarningTimer,
   evaluateModelSelection,
   getCurrentModels,
   getFallbackModelSelection,
+  scheduleModelResetWarningClear,
 });

@@ -19,6 +19,10 @@ import {
 } from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
 
 const {
+  clearAllTitleVisibilityPollTimers,
+  clearConversationSearchDebounce,
+  clearRecentConversationsRetryTimer,
+  clearTitleVisibilityPollTimer,
   getDashboardConversationRef,
   getTitleVisibilityPollSchedule,
   getTitleVisibilityPollConversationRef,
@@ -30,6 +34,9 @@ const {
   renameDashboardConversationInList,
   resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
+  scheduleConversationSearchDebounce,
+  scheduleRecentConversationsRetryTimer,
+  scheduleTitleVisibilityPollTimer,
   shouldContinueTitleVisibilityPoll,
   shouldRetryRecentConversationsLoad,
   shouldReloadRecentConversationsForEventAction,
@@ -166,11 +173,10 @@ export function useDashboardConversations({
   }, [resolvedUserId]);
 
   const clearPendingTitlePoll = useCallback((conversationRef) => {
-    const timerId = pendingTitlePollTimersRef.current.get(conversationRef);
-    if (timerId) {
-      window.clearTimeout(timerId);
-      pendingTitlePollTimersRef.current.delete(conversationRef);
-    }
+    clearTitleVisibilityPollTimer({
+      pendingTimers: pendingTitlePollTimersRef.current,
+      conversationRef,
+    });
   }, []);
 
   const scheduleTitleVisibilityPoll = useCallback((conversationRef) => {
@@ -193,10 +199,14 @@ export function useDashboardConversations({
         clearPendingTitlePoll(conversationRef);
         return;
       }
-      const nextTimer = window.setTimeout(() => {
-        void poll();
-      }, delayMs);
-      pendingTitlePollTimersRef.current.set(conversationRef, nextTimer);
+      scheduleTitleVisibilityPollTimer({
+        pendingTimers: pendingTitlePollTimersRef.current,
+        conversationRef,
+        callback: () => {
+          void poll();
+        },
+        delayMs,
+      });
     };
 
     void poll();
@@ -418,11 +428,14 @@ export function useDashboardConversations({
     const retryDelayMs = resolveRecentConversationsRetryDelayMs(retryAttempt);
     recentConversationsRetryAttemptRef.current += 1;
 
-    const timerId = window.setTimeout(() => {
-      void loadRecentConversations();
-    }, retryDelayMs);
+    const timerId = scheduleRecentConversationsRetryTimer({
+      callback: () => {
+        void loadRecentConversations();
+      },
+      delayMs: retryDelayMs,
+    });
     return () => {
-      window.clearTimeout(timerId);
+      clearRecentConversationsRetryTimer(timerId);
     };
   }, [
     isLoadingRecentConversations,
@@ -462,10 +475,7 @@ export function useDashboardConversations({
   useEffect(() => {
     const pendingTimers = pendingTitlePollTimersRef.current;
     return () => {
-      for (const timerId of pendingTimers.values()) {
-        window.clearTimeout(timerId);
-      }
-      pendingTimers.clear();
+      clearAllTitleVisibilityPollTimers({ pendingTimers });
     };
   }, []);
 
@@ -490,35 +500,37 @@ export function useDashboardConversations({
     }
 
     let isCancelled = false;
-    const timer = window.setTimeout(async () => {
-      setIsSearchingConversations(true);
-      setSearchConversationsError('');
-      try {
-        const list = await DesktopConversationLibraryClient.searchConversations({
-          userId: resolvedUserId,
-          query: normalizedQuery,
-          limit: 60,
-        });
-        if (isCancelled) {
-          return;
+    const timer = scheduleConversationSearchDebounce({
+      callback: async () => {
+        setIsSearchingConversations(true);
+        setSearchConversationsError('');
+        try {
+          const list = await DesktopConversationLibraryClient.searchConversations({
+            userId: resolvedUserId,
+            query: normalizedQuery,
+            limit: 60,
+          });
+          if (isCancelled) {
+            return;
+          }
+          setSearchedConversations(list);
+        } catch (error) {
+          if (isCancelled) {
+            return;
+          }
+          setSearchedConversations([]);
+          setSearchConversationsError(error?.message || 'Failed to search chats');
+        } finally {
+          if (!isCancelled) {
+            setIsSearchingConversations(false);
+          }
         }
-        setSearchedConversations(list);
-      } catch (error) {
-        if (isCancelled) {
-          return;
-        }
-        setSearchedConversations([]);
-        setSearchConversationsError(error?.message || 'Failed to search chats');
-      } finally {
-        if (!isCancelled) {
-          setIsSearchingConversations(false);
-        }
-      }
-    }, 180);
+      },
+    });
 
     return () => {
       isCancelled = true;
-      window.clearTimeout(timer);
+      clearConversationSearchDebounce(timer);
     };
   }, [searchOpen, searchQuery, resolvedUserId]);
 

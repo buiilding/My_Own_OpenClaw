@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
 
 export function useResponseOverlayScrollState({
-  showResponse,
+  responseVisible,
   responseEntrySignature,
 }) {
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
@@ -36,14 +36,14 @@ export function useResponseOverlayScrollState({
   }, [syncScrollState]);
 
   useEffect(() => {
-    if (!showResponse) {
+    if (!responseVisible) {
       setHasOverflowAbove(false);
       shouldStickToBottomRef.current = true;
     }
-  }, [showResponse]);
+  }, [responseVisible]);
 
   useEffect(() => {
-    if (!showResponse) {
+    if (!responseVisible) {
       return;
     }
     const responseElement = responsePillRef.current;
@@ -55,7 +55,7 @@ export function useResponseOverlayScrollState({
       responseElement.scrollTop = responseElement.scrollHeight;
     }
     syncScrollState();
-  }, [responseEntrySignature, showResponse, syncScrollState]);
+  }, [responseEntrySignature, responseVisible, syncScrollState]);
 
   return {
     hasOverflowAbove,

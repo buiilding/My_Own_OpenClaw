@@ -7,6 +7,8 @@ import path from 'node:path';
 
 const appRoot = path.resolve(__dirname, '../../frontend/src/renderer/app');
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
+const sharedRoot = path.resolve(__dirname, '../../frontend/src/shared');
+const testRoot = path.resolve(__dirname);
 const allowedRelativePaths = new Set<string>();
 const allowedSdkOwnedInternalChannelPaths = new Set([
   'infrastructure/ipc/channels.ts',
@@ -68,6 +70,21 @@ describe('renderer app runtime boundary', () => {
     expect(skinSource).not.toContain('generic desktop agent UI');
     expect(contractsSource).toContain('renderer feature clients');
     expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
+  });
+
+  test('renderer source map keeps app-runtime ownership current', async () => {
+    const sourceMap = await fs.readFile(
+      path.join(rendererRoot, 'folder_structure.md'),
+      'utf8',
+    );
+
+    expect(sourceMap).toContain('desktopRendererConfigStorageRuntime');
+    expect(sourceMap).toContain('visible lifecycle comes from pending turns plus SDK current-turn projection');
+    expect(sourceMap).toContain('response overlay reasoning follows SDK `currentTurn.reasoningText`');
+    expect(sourceMap).not.toContain('Load config from localStorage');
+    expect(sourceMap).not.toContain('localStorage.setItem()');
+    expect(sourceMap).not.toContain('Whether a message is being sent');
+    expect(sourceMap).not.toContain('Accumulated thinking tokens');
   });
 
   test('app runtime helper comments use renderer app-runtime labels', async () => {
@@ -189,6 +206,10 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopChatboxLayoutRuntime.js'),
       'utf8',
     );
+    const interactionRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatboxInteractionRuntime.js'),
+      'utf8',
+    );
     const pillSource = await fs.readFile(
       path.join(rendererRoot, 'features/minimalChatPill/components/MinimalChatPill.jsx'),
       'utf8',
@@ -200,11 +221,13 @@ describe('renderer app runtime boundary', () => {
 
     expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
     expect(layoutRuntimeSource).toContain('resolveChatboxNativeFrameHeight');
+    expect(layoutRuntimeSource).toContain('startChatboxDragFromWindow');
     expect(layoutRuntimeSource).toContain('DesktopChatboxLayoutRuntime');
     expect(layoutRuntimeSource).not.toContain('export function createChatboxDragState');
     expect(layoutRuntimeSource).not.toContain('export function resolveChatboxVisualAnchorHeight');
     expect(layoutRuntimeSource).not.toContain('export function resolveChatboxNativeFrameHeight');
     expect(layoutRuntimeSource).not.toContain('export function startChatboxDrag');
+    expect(layoutRuntimeSource).not.toContain('export function startChatboxDragFromWindow');
     expect(layoutRuntimeSource).not.toContain('export function stopChatboxDrag');
     expect(layoutRuntimeSource).not.toContain('export function getChatboxDragTarget');
     expect(layoutRuntimeSource).not.toContain('export function getChatboxCloseBumpHeight');
@@ -214,12 +237,60 @@ describe('renderer app runtime boundary', () => {
     expect(layoutRuntimeSource).toContain('getChatboxDragTarget');
     expect(layoutRuntimeSource).not.toContain('features/chat');
     expect(layoutRuntimeSource).not.toContain('features/minimalChatPill');
+    expect(interactionRuntimeSource).toContain('DesktopChatboxLayoutRuntime');
+    expect(interactionRuntimeSource).toContain('DesktopWindowRuntimeClient');
+    expect(interactionRuntimeSource).toContain('addEventListener');
+    expect(interactionRuntimeSource).toContain('removeEventListener');
+    expect(interactionRuntimeSource).toContain('isPointerInsideChatbox');
+    expect(interactionRuntimeSource).toContain('subscribeToChatboxHitTestEvents');
+    expect(interactionRuntimeSource).toContain('startChatboxCloseButtonAnchorSync');
+    expect(interactionRuntimeSource).toContain('resolveChatboxCloseButtonAnchorCenterX');
+    expect(interactionRuntimeSource).toContain('scheduleChatboxNativeFrameCollapse');
+    expect(interactionRuntimeSource).toContain('clearChatboxNativeFrameCollapse');
+    expect(interactionRuntimeSource).toContain('scheduleChatboxComposerHeightCommit');
+    expect(interactionRuntimeSource).toContain('focusChatboxTextInputAtEnd');
+    expect(interactionRuntimeSource).toContain('getBoundingClientRect');
+    expect(interactionRuntimeSource).toContain('setTimeout');
+    expect(interactionRuntimeSource).toContain('requestAnimationFrame');
+    expect(interactionRuntimeSource).toContain('ResizeObserver');
+    expect(interactionRuntimeSource).not.toContain('features/chat');
+    expect(interactionRuntimeSource).not.toContain('features/minimalChatPill');
     expect(pillSource).toContain('desktopChatboxLayoutRuntime');
-    expect(bindingsSource).toContain('desktopChatboxLayoutRuntime');
+    expect(pillSource).toContain('desktopChatboxInteractionRuntime');
+    expect(bindingsSource).toContain('desktopChatboxInteractionRuntime');
     expect(pillSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxNativeFrameHeight');
-    expect(bindingsSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight');
+    expect(pillSource).toContain('DesktopChatboxLayoutRuntime.startChatboxDragFromWindow');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.startChatboxCloseButtonAnchorSync');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.clearChatboxNativeFrameCollapse');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd');
+    expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync');
+    expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.subscribeToChatboxDragWindowEvents');
     expect(pillSource).not.toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
+    expect(pillSource).not.toContain("window.addEventListener('mousemove'");
+    expect(pillSource).not.toContain("window.addEventListener('mouseleave'");
+    expect(pillSource).not.toContain("window.addEventListener('resize'");
+    expect(pillSource).not.toContain("window.removeEventListener('mousemove'");
+    expect(pillSource).not.toContain("window.removeEventListener('mouseleave'");
+    expect(pillSource).not.toContain("window.removeEventListener('resize'");
+    expect(pillSource).not.toContain('new ResizeObserver');
+    expect(pillSource).not.toContain('window.setTimeout');
+    expect(pillSource).not.toContain('window.clearTimeout');
+    expect(pillSource).not.toContain('window.requestAnimationFrame');
+    expect(pillSource).not.toContain('window.screenX');
+    expect(pillSource).not.toContain('window.screenY');
+    expect(pillSource).not.toContain('setSelectionRange');
+    expect(pillSource).not.toContain('.focus()');
+    expect(pillSource).not.toContain('closeButtonAnchorFrameRef');
     expect(bindingsSource).not.toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
+    expect(bindingsSource).not.toContain('window.addEventListener');
+    expect(bindingsSource).not.toContain('window.removeEventListener');
+    expect(bindingsSource).not.toContain('window.setTimeout');
+    expect(bindingsSource).not.toContain('window.clearTimeout');
+    expect(bindingsSource).not.toContain('requestAnimationFrame');
+    expect(bindingsSource).not.toContain('ResizeObserver');
     expect(pillSource).not.toContain('minimalChatPillLayout');
     expect(pillSource).not.toContain('chat/utils/state/chatBoxState');
     expect(bindingsSource).not.toContain('chat/utils/state/chatBoxState');
@@ -316,6 +387,7 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).not.toContain('export function buildRendererChatPillStateTracePayload');
     expect(traceRuntimeSource).toContain('conversation_ref');
     expect(traceRuntimeSource).toContain('current_turn_phase');
+    expect(traceRuntimeSource).not.toContain('is_sending');
     expect(minimalPillSource).toContain('DesktopRendererTraceRuntime');
     expect(minimalPillSource).toContain('logRendererChatPillResetTrace');
     expect(minimalPillSource).toContain('logRendererChatPillLifecycleTrace');
@@ -332,6 +404,7 @@ describe('renderer app runtime boundary', () => {
     expect(minimalPillSource).not.toContain('current_turn_phase');
     expect(minimalPillSource).not.toContain('live_turn_phase');
     expect(minimalPillSource).not.toContain('message_count');
+    expect(minimalPillSource).not.toContain('state.isSending');
   });
 
   test('response overlay trace payload shaping stays behind the app runtime facade', async () => {
@@ -393,6 +466,7 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlaySource).not.toContain('thinking_text_length');
     expect(responseOverlaySource).not.toContain('is_sending');
     expect(responseOverlaySource).not.toContain('message_count');
+    expect(responseOverlaySource).not.toContain('state.isSending');
     expect(responseOverlaySource).not.toContain('overlayPhase');
     expect(responseOverlaySource).not.toContain('activeResponseType');
     expect(responseOverlayViewModelSource).not.toContain("logRendererLiveSurfaceTrace");
@@ -415,8 +489,19 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopLiveTurnSurfaceRuntime.js'),
       'utf8',
     );
+    const visibleLifecycleSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopVisibleTurnLifecycleRuntime.js'),
+      'utf8',
+    );
     const chatSurfaceControllerSource = await fs.readFile(
       path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
+      'utf8',
+    );
+    const overlayRuntimeDoc = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../docs/frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md',
+      ),
       'utf8',
     );
 
@@ -445,6 +530,22 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).toContain('DesktopResponseOverlayPhaseRuntime');
     expect(liveSurfaceSource).toContain('DesktopLiveTurnSurfaceRuntime');
     expect(liveSurfaceSource).not.toContain('isSending:');
+    expect(liveSurfaceSource).not.toContain('showAwaiting');
+    expect(liveSurfaceSource).not.toContain('showResponse');
+    expect(liveSurfaceSource).not.toContain('typingVisible');
+    expect(liveSurfaceSource).not.toContain('overlayVisible');
+    expect(liveSurfaceSource).not.toContain('hasVisibleContent');
+    expect(liveSurfaceSource).not.toContain('overlayIntent.mode ===');
+    expect(liveSurfaceSource).not.toContain('useLocalSendLatch');
+    expect(liveSurfaceSource).not.toContain('shouldUseSendPreflight');
+    expect(liveSurfaceSource).not.toContain('shouldUseLocalPendingTurn');
+    expect(liveSurfaceSource).not.toContain("'send-preflight'");
+    expect(visibleLifecycleSource).not.toContain('shouldUseLocalPendingTurn');
+    expect(visibleLifecycleSource).not.toContain('shouldUseLocalSendPreflight');
+    expect(visibleLifecycleSource).not.toContain('overlayTurnLifecycle');
+    expect(visibleLifecycleSource).not.toContain('presentationStateWithoutLegacyLifecycle');
+    expect(overlayRuntimeDoc).toContain('overlay-compatible phase, busy, awaiting, and response fields');
+    expect(overlayRuntimeDoc).not.toContain('legacy overlay phase');
     expect(liveSurfaceSource).not.toContain('export function resolveSdkOverlayIntent');
     expect(liveSurfaceSource).not.toContain('export function resolveLiveTurnPresentationInput');
     expect(chatSurfaceControllerSource).toContain('desktopLiveTurnSurfaceRuntime');
@@ -505,7 +606,15 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).not.toContain('export function isVisibleResponseOverlayMessage');
     expect(currentTurnMessageSource).not.toContain('export function isResponseOverlayProgressMessage');
     expect(currentTurnMessageSource).not.toContain('export function isResponseOverlaySourceTaggedMessage');
-    expect(currentTurnMessageSource).not.toContain('export function normalizeThinkingText');
+    expect(currentTurnMessageSource).not.toContain('normalizeThinkingText');
+    expect(currentTurnPresentationSource).not.toContain('showAssistantAwaitingDot');
+    expect(currentTurnPresentationSource).not.toContain('isAwaitingReply');
+    expect(currentTurnPresentationSource).not.toContain('loopUiState');
+    expect(currentTurnPresentationSource).not.toContain('showChatboxAwaitingReply');
+    expect(currentTurnPresentationSource).not.toContain('showChatboxResponse');
+    expect(currentTurnPresentationSource).not.toContain('hasVisibleContent');
+    expect(currentTurnPresentationSource).not.toContain('fallbackState');
+    expect(overlayViewModelSource).not.toContain('fallbackState');
     expect(currentTurnMessageSource).not.toContain('features/chat');
     expect(currentTurnMessageSource).not.toContain('features/minimalChatPill');
     expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -513,6 +622,10 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopThreadPresentationRuntime');
+    expect(threadPresentationSource).toContain('projectionFallbackMessages');
+    expect(threadPresentationSource).not.toContain('legacyProjectionMessages');
+    expect(threadPresentationSource).not.toContain('showToolLogs');
+    expect(threadPresentationSource).not.toContain('isBusy');
     expect(threadPresentationSource).not.toContain('hasCurrentTurnLiveProgressMessages');
     expect(threadPresentationSource).not.toContain('export function hasCurrentTurnLiveProgressMessages');
     expect(threadPresentationSource).not.toContain('export function buildThreadPresentationMessages');
@@ -552,6 +665,7 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).not.toContain('features/chat');
     expect(currentTurnPresentationSource).not.toContain('features/minimalChatPill');
     expect(overlayViewModelSource).toContain('DesktopCurrentTurnPresentationRuntime');
+    expect(overlayViewModelSource).toContain('resolveCurrentTurnPresentationState');
     expect(overlayViewModelSource).toContain('resolveSdkResponseOverlayPresentationState');
     expect(overlayViewModelSource).toContain('resolveResponseOverlayDismissalTarget');
     expect(overlayViewModelSource).not.toContain('resolveSdkCurrentTurnPresentationState');
@@ -573,11 +687,14 @@ describe('renderer app runtime boundary', () => {
     expect(overlayViewModelSource).not.toContain("entry.type === 'search-source'");
     expect(overlayViewModelSource).not.toContain("entry.type === 'tool-explanation'");
     expect(chatInterfaceSource).toContain('useChatSurfaceController');
-    expect(chatSurfaceControllerSource).toContain('useCurrentTurnPresentationState');
-    expect(chatSurfaceControllerSource).not.toContain('DesktopCurrentTurnPresentationRuntime');
+    expect(chatSurfaceControllerSource).toContain('DesktopCurrentTurnPresentationRuntime');
+    expect(chatSurfaceControllerSource).toContain('resolveCurrentTurnPresentationState');
+    expect(chatSurfaceControllerSource).not.toContain('useCurrentTurnPresentationState');
     expect(chatSurfaceControllerSource).not.toContain('resolveSdkCurrentTurnPresentationState');
     expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');
     expect(chatInterfaceSource).toContain('DesktopThreadPresentationRuntime');
+    expect(chatInterfaceSource).not.toContain('showToolLogs');
+    expect(chatInterfaceSource).not.toContain('show_tool_logs === true');
     expect(chatInterfaceSource).not.toContain('VISIBLE_ASSISTANT_REPLY_TYPE_SET');
     expect(chatInterfaceSource).not.toContain('allowedTypes:');
     expect(chatSurfaceControllerSource).not.toContain('allowedTypes');
@@ -598,13 +715,13 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
-  test('overlay turn lifecycle contract stays behind the app runtime facade', async () => {
-    const lifecycleRuntimeSource = await fs.readFile(
-      path.join(appRoot, 'runtime/desktopOverlayTurnLifecycleRuntime.js'),
-      'utf8',
-    );
+  test('legacy overlay turn lifecycle contract stays deleted', async () => {
     const chatLoopUiStateSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopChatLoopUiRuntime.js'),
+      'utf8',
+    );
+    const visibleLifecycleRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopVisibleTurnLifecycleRuntime.js'),
       'utf8',
     );
     const responseViewRuntimeSource = await fs.readFile(
@@ -615,8 +732,8 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopCurrentTurnPresentationRuntime.js'),
       'utf8',
     );
-    const currentTurnPresentationHookSource = await fs.readFile(
-      path.join(rendererRoot, 'features/chat/hooks/useCurrentTurnPresentationState.js'),
+    const chatSurfaceControllerSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
       'utf8',
     );
     const overlayViewModelSource = await fs.readFile(
@@ -624,35 +741,40 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(lifecycleRuntimeSource).toContain('overlay_turn_lifecycle_contract.json');
-    expect(lifecycleRuntimeSource).not.toContain('features/chat');
-    expect(lifecycleRuntimeSource).not.toContain('export const OVERLAY_TURN_LIFECYCLE');
-    expect(lifecycleRuntimeSource).toContain('export const DesktopOverlayTurnLifecycleRuntime = Object.freeze');
-    expect(lifecycleRuntimeSource).toContain('getIdleOverlayTurnLifecycle');
-    expect(lifecycleRuntimeSource).toContain('isOverlayTurnLifecycleActive');
-    expect(lifecycleRuntimeSource).toContain('isOverlayTurnLifecycleBusy');
-    expect(lifecycleRuntimeSource).not.toContain('resolveOverlayTurnLifecycle');
-    expect(lifecycleRuntimeSource).not.toContain('export function resolveOverlayTurnLifecycle');
-    expect(lifecycleRuntimeSource).not.toContain('export function getIdleOverlayTurnLifecycle');
-    expect(lifecycleRuntimeSource).not.toContain('export function isOverlayTurnLifecycleBusy');
+    await expect(fs.stat(
+      path.join(appRoot, 'runtime/desktopOverlayTurnLifecycleRuntime.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(sharedRoot, 'overlay_turn_lifecycle_contract.json'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(testRoot, 'OverlayTurnLifecycle.test.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/hooks/useCurrentTurnPresentationState.js'),
+    )).rejects.toThrow();
     expect(chatLoopUiStateSource).not.toContain('OVERLAY_TURN_LIFECYCLE');
     expect(chatLoopUiStateSource).not.toContain('features/chat');
     expect(chatLoopUiStateSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(chatLoopUiStateSource).not.toContain('desktopStreamPhaseRuntime');
     expect(chatLoopUiStateSource).not.toContain('DesktopStreamPhaseRuntime');
-    expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(responseViewRuntimeSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(chatLoopUiStateSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
-    expect(responseViewRuntimeSource).toContain('DesktopOverlayTurnLifecycleRuntime');
+    expect(responseViewRuntimeSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).toContain('DesktopResponseOverlayViewRuntime');
     expect(currentTurnPresentationSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(currentTurnPresentationSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
-    expect(currentTurnPresentationHookSource).not.toContain('desktopVisibleTurnLifecycleRuntime');
-    expect(currentTurnPresentationHookSource).not.toContain('DesktopVisibleTurnLifecycleRuntime');
-    expect(currentTurnPresentationHookSource).not.toContain('useChatLoopTransportState');
-    expect(currentTurnPresentationHookSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
-    expect(currentTurnPresentationHookSource).not.toContain('resolveOverlayTurnLifecycle');
+    expect(visibleLifecycleRuntimeSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
+    expect(visibleLifecycleRuntimeSource).not.toContain('isAwaitingReply');
+    expect(visibleLifecycleRuntimeSource).not.toContain('loopUiState');
+    expect(visibleLifecycleRuntimeSource).not.toContain('showChatboxAwaitingReply');
+    expect(visibleLifecycleRuntimeSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(visibleLifecycleRuntimeSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
+    expect(chatSurfaceControllerSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
+    expect(overlayViewModelSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
     expect(overlayViewModelSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('overlayTurnLifecycleContract');
+    expect(responseViewRuntimeSource).not.toContain('showChatboxAwaitingReply');
     expect(overlayViewModelSource).not.toContain('overlayTurnLifecycleContract');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/overlay/overlayTurnLifecycleContract.js'),
@@ -681,6 +803,18 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopMessageSendUiRuntime.ts'),
       'utf8',
     );
+    const responseLayoutRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopResponseOverlayLayoutRuntime.js'),
+      'utf8',
+    );
+    const responseOverlayComponentSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/components/MinimalResponseOverlay.jsx'),
+      'utf8',
+    );
+    const responseOverlayViewModelSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
+      'utf8',
+    );
 
     expect(responseViewRuntimeSource).toContain('export const DesktopResponseOverlayViewRuntime = Object.freeze');
     expect(responseViewRuntimeSource).not.toContain('export function resolveResponseOverlayViewContract');
@@ -689,8 +823,18 @@ describe('renderer app runtime boundary', () => {
       'DesktopResponseOverlayLayoutRuntime.isVisibleResponseOverlayLayoutMode',
     );
     expect(responseViewRuntimeSource).not.toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
-    expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(responseViewRuntimeSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('features/chat');
+    expect(responseViewRuntimeSource).toContain('responseVisible');
+    expect(responseViewRuntimeSource).toContain('awaitingVisible');
+    expect(responseViewRuntimeSource).not.toContain('showResponse');
+    expect(responseViewRuntimeSource).not.toContain('showAwaitingReply');
+    expect(responseLayoutRuntimeSource).not.toContain('showResponse');
+    expect(responseLayoutRuntimeSource).not.toContain('showAwaitingReply');
+    expect(responseOverlayComponentSource).not.toContain('showResponse');
+    expect(responseOverlayComponentSource).not.toContain('showAwaitingReply');
+    expect(responseOverlayViewModelSource).not.toContain('showResponse');
+    expect(responseOverlayViewModelSource).not.toContain('showAwaitingReply');
     expect(chatPillFlowSource).toContain('desktopResponseOverlayViewRuntime');
     expect(chatPillFlowSource).toContain('desktopMessageSendUiRuntime');
     expect(chatPillFlowSource).toContain('export const DesktopChatPillSessionRuntime = Object.freeze');
@@ -801,14 +945,30 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(dashboardLayoutSource).toContain('requestDashboardLayoutPass');
+    expect(dashboardLayoutSource).toContain('scheduleDashboardOpeningClear');
+    expect(dashboardLayoutSource).toContain('applyDashboardScrollLock');
+    expect(dashboardLayoutSource).toContain('getDashboardScrollLockTargets');
     expect(dashboardLayoutSource).toContain('export const DesktopDashboardLayoutRuntime = Object.freeze');
     expect(dashboardLayoutSource).not.toContain('export function requestDashboardLayoutPass');
+    expect(dashboardLayoutSource).not.toContain('export function scheduleDashboardOpeningClear');
+    expect(dashboardLayoutSource).not.toContain('export function applyDashboardScrollLock');
     expect(dashboardLayoutSource).toContain("new Event('resize')");
     expect(dashboardLayoutSource).toContain('requestAnimationFrame');
+    expect(dashboardLayoutSource).toContain('setTimeout');
+    expect(dashboardLayoutSource).toContain('clearTimeout');
+    expect(dashboardLayoutSource).toContain('documentElement');
+    expect(dashboardLayoutSource).toContain('getElementById');
     expect(dashboardShellSource).toContain('desktopDashboardLayoutRuntime');
     expect(dashboardShellSource).toContain('DesktopDashboardLayoutRuntime');
+    expect(dashboardShellSource).toContain('scheduleDashboardOpeningClear');
+    expect(dashboardShellSource).toContain('applyDashboardScrollLock');
     expect(dashboardShellSource).not.toContain("window.dispatchEvent(new Event('resize'))");
     expect(dashboardShellSource).not.toContain('window.requestAnimationFrame');
+    expect(dashboardShellSource).not.toContain('window.setTimeout');
+    expect(dashboardShellSource).not.toContain('window.clearTimeout');
+    expect(dashboardShellSource).not.toContain('document.getElementById');
+    expect(dashboardShellSource).not.toContain('document.documentElement');
+    expect(dashboardShellSource).not.toContain('document.body');
   });
 
   test('conversation library facade uses SDK-shaped commands for user-facing conversation actions', async () => {
@@ -858,11 +1018,18 @@ describe('renderer app runtime boundary', () => {
     expect(runtimeSource).toContain('shouldRetryRecentConversationsLoad');
     expect(runtimeSource).toContain('resolveRecentConversationEventAction');
     expect(runtimeSource).toContain('shouldContinueTitleVisibilityPoll');
+    expect(runtimeSource).toContain('scheduleRecentConversationsRetryTimer');
+    expect(runtimeSource).toContain('scheduleTitleVisibilityPollTimer');
+    expect(runtimeSource).toContain('scheduleConversationSearchDebounce');
+    expect(runtimeSource).toContain('clearAllTitleVisibilityPollTimers');
     expect(runtimeSource).toContain('getDashboardConversationRef');
     expect(runtimeSource).toContain('renameDashboardConversationInList');
     expect(runtimeSource).toContain('removeDashboardConversationFromList');
     expect(runtimeSource).toContain('togglePinnedConversationRef');
     expect(runtimeSource).toContain('TITLE_VISIBILITY_POLL_DELAY_MS');
+    expect(runtimeSource).toContain('CONVERSATION_SEARCH_DEBOUNCE_DELAY_MS');
+    expect(runtimeSource).toContain('setTimeout');
+    expect(runtimeSource).toContain('clearTimeout');
     expect(runtimeSource).toContain("'user_message'");
     expect(runtimeSource).toContain("'assistant_message'");
     expect(runtimeSource).not.toContain('export function metadataToDashboardConversation');
@@ -895,6 +1062,10 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardHookSource).toContain('metadataListToDashboardConversations');
     expect(dashboardHookSource).toContain('resolveRecentConversationEventAction');
     expect(dashboardHookSource).toContain('shouldContinueTitleVisibilityPoll');
+    expect(dashboardHookSource).toContain('scheduleRecentConversationsRetryTimer');
+    expect(dashboardHookSource).toContain('scheduleTitleVisibilityPollTimer');
+    expect(dashboardHookSource).toContain('scheduleConversationSearchDebounce');
+    expect(dashboardHookSource).toContain('clearAllTitleVisibilityPollTimers');
     expect(dashboardHookSource).toContain('getDashboardConversationRef');
     expect(dashboardHookSource).toContain('renameDashboardConversationInList');
     expect(dashboardHookSource).toContain('removeDashboardConversationFromList');
@@ -909,6 +1080,11 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('conversation?.conversation_id === conversationRef');
     expect(dashboardHookSource).not.toContain('const maxAttempts = 240');
     expect(dashboardHookSource).not.toContain('const delayMs = 1250');
+    expect(dashboardHookSource).not.toContain('window.setTimeout');
+    expect(dashboardHookSource).not.toContain('window.clearTimeout');
+    expect(dashboardHookSource).not.toContain('setTimeout(');
+    expect(dashboardHookSource).not.toContain('clearTimeout(');
+    expect(dashboardHookSource).not.toContain('}, 180)');
     expect(dashboardHookSource).not.toContain("eventType === 'user_message'");
     expect(dashboardHookSource).not.toContain("eventType !== 'assistant_message'");
     expect(dashboardHookSource).not.toContain("'assistant_message'");
@@ -929,6 +1105,10 @@ describe('renderer app runtime boundary', () => {
   test('dashboard conversation grouping rules stay behind app runtime facade', async () => {
     const runtimeSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopDashboardConversationGroupRuntime.js'),
+      'utf8',
+    );
+    const searchModalRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopDashboardSearchModalRuntime.js'),
       'utf8',
     );
     const dashboardHookSource = await fs.readFile(
@@ -953,8 +1133,19 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('utils/conversationGroups');
     expect(searchModalSource).toContain('desktopDashboardConversationGroupRuntime');
     expect(searchModalSource).toContain('DesktopDashboardConversationGroupRuntime');
+    expect(searchModalSource).toContain('desktopDashboardSearchModalRuntime');
+    expect(searchModalSource).toContain('DesktopDashboardSearchModalRuntime.startSearchModalLifecycle');
     expect(searchModalSource).toContain('getDashboardConversationGroupDescriptors');
     expect(searchModalSource).toContain('getDashboardSearchSnippetDisplayText');
+    expect(searchModalRuntimeSource).toContain('addEventListener');
+    expect(searchModalRuntimeSource).toContain('removeEventListener');
+    expect(searchModalRuntimeSource).toContain('setTimeout');
+    expect(searchModalRuntimeSource).toContain('clearTimeout');
+    expect(searchModalRuntimeSource).not.toContain('features/dashboard');
+    expect(searchModalSource).not.toContain('window.setTimeout');
+    expect(searchModalSource).not.toContain('window.clearTimeout');
+    expect(searchModalSource).not.toContain('window.addEventListener');
+    expect(searchModalSource).not.toContain('window.removeEventListener');
     expect(searchModalSource).not.toContain('GROUP_LABELS');
     expect(searchModalSource).not.toContain('GROUP_ORDER');
     expect(searchModalSource).not.toContain("previous7Days: 'Previous 7 days'");
@@ -1077,12 +1268,44 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopInteractionRuntimeClient.ts'),
       'utf8',
     );
+    const startupClientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopStartupRuntimeClient.ts'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('DesktopInteractionRuntimeClient.installInteractionLogger');
+    expect(mainSource).toContain('DesktopStartupRuntimeClient.getRendererEntrypointView');
+    expect(mainSource).toContain('DesktopStartupRuntimeClient.getRendererRootElement');
     expect(mainSource).not.toContain('infrastructure/interaction/rendererInteractionLogger');
     expect(mainSource).not.toContain('installRendererInteractionLogger');
+    expect(mainSource).not.toContain('window.location.search');
+    expect(mainSource).not.toContain('new URLSearchParams');
+    expect(mainSource).not.toContain('document.getElementById');
     expect(clientSource).toContain('installRendererInteractionLogger()');
     expect(clientSource).toContain('logUserSentMessage(details)');
+    expect(startupClientSource).toContain('getRendererEntrypointView');
+    expect(startupClientSource).toContain('getRendererRootElement');
+    expect(startupClientSource).toContain('shouldSuppressWakewordOnStartup');
+    expect(startupClientSource).toContain('getElementById');
+    expect(startupClientSource).toContain('new URLSearchParams');
+  });
+
+  test('renderer app startup surface selection is owned by startup runtime client', async () => {
+    const appSource = await fs.readFile(
+      path.join(appRoot, 'App.jsx'),
+      'utf8',
+    );
+    const startupClientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopStartupRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(appSource).toContain('DesktopStartupRuntimeClient.selectStartupSurface');
+    expect(appSource).not.toContain('import { selectStartupSurface');
+    expect(appSource).not.toContain('./startupSurface');
+    expect(startupClientSource).toContain('selectStartupSurface');
+    expect(startupClientSource).toContain('dashboard-vm');
+    expect(startupClientSource).toContain('onboarding');
   });
 
   test('app providers read latest-ref helper through renderer hooks runtime client', async () => {
@@ -1103,6 +1326,51 @@ describe('renderer app runtime boundary', () => {
     expect(hookClientSource).toContain('infrastructure/hooks/useLatestRef');
     expect(hookClientSource).toContain('export const DesktopRendererHooksRuntimeClient = Object.freeze');
     expect(hookClientSource).not.toContain('export {');
+  });
+
+  test('app providers route browser listeners and timers through provider runtime facade', async () => {
+    const appProviderSource = await fs.readFile(
+      path.join(appRoot, 'providers/AppProvider.jsx'),
+      'utf8',
+    );
+    const appConfigProviderSource = await fs.readFile(
+      path.join(appRoot, 'providers/AppConfigProvider.jsx'),
+      'utf8',
+    );
+    const appStatusProviderSource = await fs.readFile(
+      path.join(appRoot, 'providers/AppStatusProvider.jsx'),
+      'utf8',
+    );
+    const providerRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopAppProviderRuntime.js'),
+      'utf8',
+    );
+
+    expect(providerRuntimeSource).toContain('subscribeToAppProviderKeyDown');
+    expect(providerRuntimeSource).toContain('subscribeToAppConfigStorageEvents');
+    expect(providerRuntimeSource).toContain('scheduleProviderTimer');
+    expect(providerRuntimeSource).toContain('clearProviderTimer');
+    expect(providerRuntimeSource).toContain('addEventListener');
+    expect(providerRuntimeSource).toContain('removeEventListener');
+    expect(providerRuntimeSource).toContain('setTimeout');
+    expect(providerRuntimeSource).toContain('clearTimeout');
+    expect(providerRuntimeSource).not.toContain('providers/');
+    expect(appProviderSource).toContain('DesktopAppProviderRuntime.subscribeToAppProviderKeyDown');
+    expect(appProviderSource).toContain('DesktopAppProviderRuntime.isEditableShortcutTarget');
+    expect(appProviderSource).toContain('DesktopAppearanceThemeRuntime.applyAppearanceTheme');
+    expect(appProviderSource).not.toContain('../applyAppearanceTheme');
+    expect(appProviderSource).not.toContain('window.addEventListener');
+    expect(appProviderSource).not.toContain('window.removeEventListener');
+    expect(appConfigProviderSource).toContain('DesktopAppProviderRuntime.subscribeToAppConfigStorageEvents');
+    expect(appConfigProviderSource).toContain('DesktopStartupRuntimeClient.shouldSuppressWakewordOnStartup');
+    expect(appConfigProviderSource).not.toContain('window.addEventListener');
+    expect(appConfigProviderSource).not.toContain('window.removeEventListener');
+    expect(appConfigProviderSource).not.toContain('window.location.search');
+    expect(appConfigProviderSource).not.toContain('new URLSearchParams');
+    expect(appStatusProviderSource).toContain('DesktopAppProviderRuntime.scheduleProviderTimer');
+    expect(appStatusProviderSource).toContain('DesktopAppProviderRuntime.clearProviderTimer');
+    expect(appStatusProviderSource).not.toContain('setTimeout(');
+    expect(appStatusProviderSource).not.toContain('clearTimeout(');
   });
 
   test('app provider code routes desktop transport through runtime clients', async () => {
@@ -1440,11 +1708,22 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(runtimeSource).toContain('export const DesktopToolGhostRuntime = Object.freeze');
+    expect(runtimeSource).toContain('scheduleToolGhostTimer');
+    expect(runtimeSource).toContain('clearToolGhostTimer');
+    expect(runtimeSource).toContain('setTimeout');
+    expect(runtimeSource).toContain('clearTimeout');
     expect(runtimeSource).not.toContain('export function getToolGhostClickSyncDelayMs');
+    expect(runtimeSource).not.toContain('export function scheduleToolGhostTimer');
+    expect(runtimeSource).not.toContain('export function clearToolGhostTimer');
     expect(runtimeSource).not.toContain('export const TOOL_GHOST_CLICK_SYNC_DELAY_MS');
     expect(runtimeSource).not.toContain('features/chat');
     expect(debugAppSource).toContain('desktopToolGhostRuntime');
     expect(debugAppSource).toContain('DesktopToolGhostRuntime');
+    expect(debugAppSource).toContain('DesktopToolGhostRuntime');
+    expect(debugAppSource).toContain('scheduleToolGhostTimer');
+    expect(debugAppSource).toContain('clearToolGhostTimer');
+    expect(debugAppSource).not.toContain('window.setTimeout');
+    expect(debugAppSource).not.toContain('window.clearTimeout');
     expect(debugAppSource).not.toContain('import { TOOL_GHOST_CLICK_SYNC_DELAY_MS }');
     expect(debugAppSource).not.toContain('features/chat/constants/toolGhostRuntime');
     await expect(fs.stat(
@@ -1525,6 +1804,10 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
       'utf8',
     );
+    const chatboxOverlayMouseIgnoreTestSource = await fs.readFile(
+      path.join(testRoot, 'ChatBoxOverlayMouseIgnore.test.jsx'),
+      'utf8',
+    );
     const normalizedChatInterfaceSource = chatInterfaceSource.replace(/\r\n/g, '\n');
     const normalizedMinimalPillSource = minimalPillSource.replace(/\r\n/g, '\n');
     const normalizedResponseOverlaySource = responseOverlaySource.replace(/\r\n/g, '\n');
@@ -1535,6 +1818,7 @@ describe('renderer app runtime boundary', () => {
     expect(selectorRuntimeSource).not.toContain('export function projectDesktopChatInterfaceState');
     expect(selectorRuntimeSource).not.toContain('export function projectDesktopLiveTurnSurfaceState');
     expect(selectorRuntimeSource).not.toContain('isSending');
+    expect(selectorRuntimeSource).not.toContain('streamTracking');
     expect(selectorRuntimeSource).not.toContain('features/chat');
     expect(chatStoreSource).toContain('desktopChatSurfaceSelectorRuntime');
     expect(chatStoreSource).toContain('DesktopChatSurfaceSelectorRuntime');
@@ -1544,15 +1828,21 @@ describe('renderer app runtime boundary', () => {
     expect(normalizedChatInterfaceSource).toContain('useChatSurfaceController({\n    messages,');
     expect(normalizedMinimalPillSource).toContain('useChatSurfaceController({\n    messages,');
     expect(normalizedResponseOverlaySource).toContain(
-      'useResponseOverlayViewModel({\n    messages,\n    thinkingStatus,',
+      'useResponseOverlayViewModel({\n    messages,\n    currentTurnProjection,',
     );
+    expect(normalizedResponseOverlaySource).not.toContain('thinkingStatus');
+    expect(responseOverlayViewModelSource).not.toContain('thinkingStatus');
     expect(normalizedChatInterfaceSource).not.toContain('useChatSurfaceController({\n    isSending,');
     expect(normalizedMinimalPillSource).not.toContain('useChatSurfaceController({\n    isSending,');
+    expect(normalizedMinimalPillSource).not.toContain('state.isSending');
+    expect(normalizedResponseOverlaySource).not.toContain('state.isSending');
     expect(normalizedResponseOverlaySource).not.toContain(
       'useResponseOverlayViewModel({\n    messages,\n    isSending,',
     );
     expect(chatSurfaceControllerSource).not.toContain('isSending');
     expect(responseOverlayViewModelSource).not.toContain('isSending');
+    expect(chatboxOverlayMouseIgnoreTestSource).not.toContain('mockChatState.isSending');
+    expect(chatboxOverlayMouseIgnoreTestSource).not.toContain('isSending is true');
     expect(chatInterfaceSource).not.toContain('utils/chatSelectors');
     expect(responseOverlaySource).not.toContain('chat/utils/chatSelectors');
     await expect(fs.stat(
@@ -1653,10 +1943,6 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'providers/AppStatusContext.jsx'),
       'utf8',
     );
-    const chatContextSource = await fs.readFile(
-      path.join(appRoot, 'providers/ChatContext.jsx'),
-      'utf8',
-    );
 
     expect(configContextSource).toContain('export const AppConfigContext');
     expect(configContextSource).toContain('export function useAppConfigContext');
@@ -1664,9 +1950,21 @@ describe('renderer app runtime boundary', () => {
     expect(statusContextSource).toContain('export const AppStatusContext');
     expect(statusContextSource).toContain('export function useAppStatusContext');
     expect(statusContextSource).not.toContain('export {');
-    expect(chatContextSource).toContain('export const EMPTY_CHAT_CONTEXT');
-    expect(chatContextSource).toContain('export const ChatContext');
-    expect(chatContextSource).not.toContain('export {');
+    await expect(fs.stat(
+      path.join(appRoot, 'providers/ChatContext.jsx'),
+    )).rejects.toThrow();
+  });
+
+  test('chat provider does not keep an empty context compatibility wrapper', async () => {
+    const providerSource = await fs.readFile(
+      path.join(appRoot, 'providers/ChatProvider.jsx'),
+      'utf8',
+    );
+
+    expect(providerSource).not.toContain('ChatContext');
+    expect(providerSource).not.toContain('EMPTY_CHAT_CONTEXT');
+    expect(providerSource).not.toContain('.Provider');
+    expect(providerSource).toContain('return children');
   });
 
   test('renderer app and feature code does not call SDK-owned transport/internal IPC channels', async () => {

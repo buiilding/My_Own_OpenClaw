@@ -23,10 +23,7 @@ function buildStopQueryTrackingPatch(stoppedAt) {
 }
 
 function hasVisibleCurrentTurnContent(presentation) {
-  return (
-    presentation?.hasVisibleContent === true
-    || (Array.isArray(presentation?.entries) && presentation.entries.length > 0)
-  );
+  return Array.isArray(presentation?.entries) && presentation.entries.length > 0;
 }
 
 function buildStoppedCurrentTurnProjection(currentTurnProjection) {
@@ -44,16 +41,18 @@ function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   const overlayIntent = presentation.overlayIntent && typeof presentation.overlayIntent === 'object'
     ? presentation.overlayIntent
     : {};
+  const nextPresentation = { ...presentation };
+  delete nextPresentation.typingVisible;
+  delete nextPresentation.overlayVisible;
+  delete nextPresentation.hasVisibleContent;
   return {
     ...currentTurnProjection,
     phase: 'complete',
     presentation: {
-      ...presentation,
+      ...nextPresentation,
       phase: 'complete',
       isBusy: false,
       isTerminal: true,
-      typingVisible: false,
-      overlayVisible: hasVisibleContent,
       overlayIntent: {
         ...overlayIntent,
         visible: hasVisibleContent,
@@ -76,10 +75,7 @@ function isStoppableCurrentTurnProjection(currentTurnProjection) {
     return false;
   }
   const phase = normalizeRef(currentTurnProjection.phase);
-  return (
-    STOPPABLE_CURRENT_TURN_PHASES.has(phase)
-    || currentTurnProjection.presentation?.isBusy === true
-  );
+  return STOPPABLE_CURRENT_TURN_PHASES.has(phase);
 }
 
 function isPendingTurn(value) {

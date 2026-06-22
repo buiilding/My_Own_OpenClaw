@@ -149,6 +149,16 @@ function resolveBackendOverlayPhaseTransition(data, currentPhase) {
   return null;
 }
 
+function createOverlayPhaseEventRuntime() {
+  function resolveBackendTransition(data, currentPhase) {
+    return resolveBackendOverlayPhaseTransition(data, currentPhase);
+  }
+
+  return {
+    resolveBackendOverlayPhaseTransition: resolveBackendTransition,
+  };
+}
+
 module.exports = {
-  resolveBackendOverlayPhaseTransition,
+  createOverlayPhaseEventRuntime,
 };

@@ -18,6 +18,7 @@ title: "Dashboard Shell Modal Routing Contract Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/app/runtime/desktopChatEvents.js`
+- `frontend/src/renderer/app/runtime/desktopDashboardSearchModalRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDashboardLayoutRuntime.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
@@ -113,8 +114,9 @@ Result payload expectations:
 
 Search modal behavior:
 
-- focuses input after open (`setTimeout` focus handoff).
-- `Escape` closes modal.
+- focuses input after open through
+  `DesktopDashboardSearchModalRuntime.startSearchModalLifecycle(...)`.
+- `Escape` closes modal through the same lifecycle runtime.
 - overlay click-outside closes modal.
 - `New chat` button closes modal then dispatches new-chat action.
 
@@ -147,6 +149,15 @@ renderer-only resize pulse used by layout observers. `DashboardShell` owns the
 animation and routing state, while the app-runtime facade owns the browser
 resize event dispatch timing.
 
+Dashboard shell browser adapters:
+
+- `DesktopDashboardLayoutRuntime.scheduleDashboardOpeningClear(...)` owns the
+  opening-animation timeout scheduling/cleanup
+- `DesktopDashboardLayoutRuntime.applyDashboardScrollLock(...)` owns document,
+  body, and root scroll-lock class add/remove mechanics
+- `DashboardShell` keeps shell state, class intent, and panel routing, but does
+  not call raw browser timer or document APIs for those effects
+
 Accepted targets:
 
 - `chat` -> close panels only.
@@ -175,6 +186,8 @@ loading until transcript session state supplies a current user.
 2. Changing hook search debounce/query-length threshold without tests can regress network chatter and stale list behavior.
 3. Changing conversation grouping logic in one path (recent/search) but not the other causes UI ordering drift.
 4. Skipping `updateTranscriptSession` after rehydrate causes transcript write routing to stale conversation ids.
+5. Moving opening timers or scroll-lock DOM access back into `DashboardShell`
+   can split browser adapter cleanup from the dashboard layout runtime.
 
 ## Related Pages
 

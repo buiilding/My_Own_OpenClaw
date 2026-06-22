@@ -374,7 +374,7 @@ describe('ChatInterface wiring', () => {
     expect(mockSetChatActiveConversationRef).not.toHaveBeenCalledWith(null);
   });
 
-  test('keeps tool call and output rows when tool logs are hidden', () => {
+  test('keeps tool call and output rows in dashboard thread presentation', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
       {
@@ -540,7 +540,7 @@ describe('ChatInterface wiring', () => {
     expect(renderedMessages[1].text).toBe('raw tool call');
   });
 
-  test('passes raw tool rows through when tool logs are enabled', () => {
+  test('passes raw tool rows through without reading the tool-log toggle', () => {
     mockConfig = {
       ...mockConfig,
       show_tool_logs: true,
@@ -561,7 +561,7 @@ describe('ChatInterface wiring', () => {
     ]);
   });
 
-  test('keeps existing transcript row order when the tool-log toggle flips', () => {
+  test('keeps existing transcript row order when the unused tool-log toggle flips', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
       {

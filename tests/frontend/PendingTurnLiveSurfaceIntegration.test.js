@@ -193,8 +193,8 @@ describe('pending-turn live surface integration', () => {
       currentTurnProjection: state.currentTurnProjection,
     })).toMatchObject({
       source: 'pending-turn',
-      showAwaiting: true,
-      showResponse: false,
+      phase: 'awaiting-first-chunk',
+      isBusy: true,
     });
     expect(mockSend).toHaveBeenCalledWith('windie:pending-turn', {
       type: 'pending',
@@ -214,7 +214,8 @@ describe('pending-turn live surface integration', () => {
       currentTurnProjection: state.currentTurnProjection,
     })).toMatchObject({
       source: 'pending-turn',
-      showAwaiting: true,
+      phase: 'awaiting-first-chunk',
+      isBusy: true,
     });
 
     const currentTurnProjection = currentTurnWithPresentation();
@@ -230,8 +231,7 @@ describe('pending-turn live surface integration', () => {
       currentTurnProjection: state.currentTurnProjection,
     })).toMatchObject({
       source: 'sdk-current-turn',
-      showAwaiting: false,
-      showResponse: true,
+      phase: 'streaming',
     });
 
     const dashboardMessages = buildThreadPresentationMessages(state.messages, {

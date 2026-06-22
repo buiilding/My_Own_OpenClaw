@@ -18,10 +18,13 @@ gate state, and main-process surface visibility.
 
 - Electron main owns window creation, renderer URL query parameters, primary
   surface mode, and show/hide behavior for main window, chat pill, and overlays.
-- Renderer `main.jsx` owns root component selection from the `view` query
-  parameter.
-- Renderer `App.jsx` owns the default main-app startup decision between VM
-  dashboard, onboarding slideshow, and normal dashboard/chat-pill handoff.
+- Renderer `main.jsx` owns React root/render selection while
+  `DesktopStartupRuntimeClient` owns the root DOM lookup and `view` query
+  adapter used for component selection.
+- Renderer `App.jsx` owns React rendering and startup side effects while
+  `DesktopStartupRuntimeClient.selectStartupSurface(...)` owns the default
+  main-app startup decision between VM dashboard, onboarding slideshow, and
+  normal dashboard/chat-pill handoff.
 - Permission onboarding completion is renderer-local persisted state keyed by
   the permission manifest version.
 - Permission manifest/status probing is Electron-main IPC behavior; renderer
@@ -35,7 +38,7 @@ gate state, and main-process surface visibility.
 
 | Change or symptom | Primary owner files | Tests to inspect or add |
 | --- | --- | --- |
-| App opens onboarding vs dashboard vs chat pill incorrectly | `frontend/src/renderer/app/App.jsx`, `frontend/src/renderer/app/startupSurface.js`, `frontend/src/renderer/features/permissions/stores/permissionStore.js` | `tests/frontend/startupSurface.test.js`, `tests/frontend/AppPermissionGate.test.jsx`, `tests/frontend/AppVmMode.test.jsx` |
+| App opens onboarding vs dashboard vs chat pill incorrectly | `frontend/src/renderer/app/App.jsx`, `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts`, `frontend/src/renderer/features/permissions/stores/permissionStore.js` | `tests/frontend/startupSurface.test.js`, `tests/frontend/AppPermissionGate.test.jsx`, `tests/frontend/AppVmMode.test.jsx` |
 | `view=` route loads wrong renderer app | `frontend/src/renderer/app/main.jsx`, Electron window loader/runtime files | `tests/frontend/MainWindowOverlayRuntime.test.cjs`, renderer provider/view routing tests |
 | VM mode shows onboarding or overlays | `frontend/src/main/app/runtime_mode.cjs`, `frontend/src/main/app/main_process_lifecycle_runtime.cjs`, `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts`, `frontend/src/renderer/infrastructure/runtime/vmMode.js`, `App.jsx` | `tests/frontend/MainProcessLifecycleRuntime.test.cjs`, `tests/frontend/AppVmMode.test.jsx`, `tests/frontend/startupSurface.test.js` |
 | Onboarding completion does not persist or resets unexpectedly | `frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime.js`, `permissionStore.js` | `tests/frontend/PermissionStorage.test.js`, `tests/frontend/permissionStore.test.js` |
@@ -54,10 +57,11 @@ sequenceDiagram
     participant Surface as surface runtime
 
     Main->>Entry: load renderer URL with optional view/vm_mode
-    Entry->>Entry: choose root app from view query
+    Entry->>StartupRuntime: resolve root element and view query
+    Entry->>Entry: choose root app from resolved view
     Entry->>App: default app when no overlay view
     App->>Perm: read bootstrapped, needsOnboarding, completed
-    App->>App: selectStartupSurface(...)
+    App->>StartupRuntime: selectStartupSurface(...)
     App->>Surface: show-main-window(open=onboarding) or show-chatbox
     Surface->>Main: update primary surface and window mode
 ```
@@ -103,14 +107,14 @@ Root rules:
 Read:
 
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/app/startupSurface.js`
 - `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/runtime/vmMode.js`
 - `frontend/src/renderer/app/WakewordController.jsx`
 
 Startup rules:
 
-- `selectStartupSurface(...)` returns `dashboard-vm` when VM mode is enabled.
+- `DesktopStartupRuntimeClient.selectStartupSurface(...)` returns
+  `dashboard-vm` when VM mode is enabled.
 - Before permission bootstrap finishes, persisted onboarding completion prevents
   a first-frame onboarding flash.
 - After bootstrap finishes, `needsOnboarding` is authoritative so manifest
@@ -194,12 +198,12 @@ Surface rules:
 
 | Symptom | First checks | Likely owner |
 | --- | --- | --- |
-| Onboarding flashes for completed users | `selectStartupSurface`, `bootstrapped`, persisted onboarding completion. | Renderer startup selector |
+| Onboarding flashes for completed users | `DesktopStartupRuntimeClient.selectStartupSurface(...)`, `bootstrapped`, persisted onboarding completion. | Renderer startup selector |
 | Onboarding never reappears after manifest change | permission manifest version, `completedForManifest`, `needsOnboarding`. | Permission store |
 | VM worker opens chat pill or tray | main process VM mode branch and renderer `vm_mode=1` query. | Electron main VM worker runtime |
 | Wakeword prompts before onboarding completion | `WakewordController` placement in `App.jsx`. | Renderer app startup |
 | Settings "Open onboarding" does not route | main-window open-target emission and `OnboardingSettingsTab`. | Settings plus surface runtime |
-| Overlay window renders full dashboard | renderer URL `view` query and `main.jsx` root selection. | Window loader/root routing |
+| Overlay window renders full dashboard | renderer URL `view` query, `DesktopStartupRuntimeClient`, and `main.jsx` root selection. | Window loader/root routing |
 
 ## Validation Matrix
 

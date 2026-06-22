@@ -111,8 +111,34 @@ function buildQueryInterrupted({
   };
 }
 
+function createQueryEventsRuntime({
+  getCopy = () => ({}),
+} = {}) {
+  function resolveConversationRefFromPayload(payload) {
+    return resolveConversationRef(payload);
+  }
+
+  function buildSendFailure(input = {}) {
+    return buildQuerySendFailure({
+      ...input,
+      copy: input.copy || getCopy(),
+    });
+  }
+
+  function buildInterrupted(input = {}) {
+    return buildQueryInterrupted({
+      ...input,
+      copy: input.copy || getCopy(),
+    });
+  }
+
+  return {
+    resolveConversationRefFromPayload,
+    buildQuerySendFailure: buildSendFailure,
+    buildQueryInterrupted: buildInterrupted,
+  };
+}
+
 module.exports = {
-  resolveConversationRef,
-  buildQuerySendFailure,
-  buildQueryInterrupted,
+  createQueryEventsRuntime,
 };

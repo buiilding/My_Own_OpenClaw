@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Circle, PenSquare, X } from 'lucide-react';
 import { DesktopDashboardConversationGroupRuntime } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
+import { DesktopDashboardSearchModalRuntime } from '../../../app/runtime/desktopDashboardSearchModalRuntime';
 import { conversationGroupsPropType } from './shared/conversationGroupPropTypes';
 
 const {
@@ -35,21 +36,10 @@ function SearchChatsModal({
       return undefined;
     }
 
-    const timer = window.setTimeout(() => {
-      inputRef.current?.focus();
-    }, 20);
-
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleEscape);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener('keydown', handleEscape);
-    };
+    return DesktopDashboardSearchModalRuntime.startSearchModalLifecycle({
+      inputRef,
+      onClose,
+    });
   }, [isOpen, onClose]);
 
   const normalizedQuery = query.trim();

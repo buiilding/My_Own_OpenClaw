@@ -10,6 +10,7 @@ describe('chatbox pill layout utils', () => {
     getChatboxDragTarget,
     getChatboxCloseBumpHeight,
     startChatboxDrag,
+    startChatboxDragFromWindow,
     stopChatboxDrag,
   } = DesktopChatboxLayoutRuntime;
 
@@ -84,6 +85,28 @@ describe('chatbox pill layout utils', () => {
     expect(dragState.isDragging).toBe(false);
     expect(dragState.lastTargetX).toBeNull();
     expect(dragState.lastTargetY).toBeNull();
+  });
+
+  test('starts drag tracking from current window coordinates', () => {
+    const dragState = createChatboxDragState();
+
+    startChatboxDragFromWindow(dragState, {
+      clientX: 10,
+      clientY: 10,
+      screenX: 100,
+      screenY: 100,
+    }, {
+      screenX: 90,
+      screenY: 88,
+    });
+
+    expect(dragState).toMatchObject({
+      isDragging: true,
+      pointerOffsetX: 10,
+      pointerOffsetY: 12,
+      lastTargetX: 90,
+      lastTargetY: 88,
+    });
   });
 
   test('exposes the close badge bump height', () => {

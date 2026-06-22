@@ -8,6 +8,10 @@ import {
 import * as DashboardConversationLoadRuntime from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
 
 const {
+  clearAllTitleVisibilityPollTimers,
+  clearConversationSearchDebounce,
+  clearRecentConversationsRetryTimer,
+  clearTitleVisibilityPollTimer,
   getDashboardConversationRef,
   getDashboardConversationRenamePromptValue,
   getTitleVisibilityPollSchedule,
@@ -22,6 +26,9 @@ const {
   renameDashboardConversationInList,
   resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
+  scheduleConversationSearchDebounce,
+  scheduleRecentConversationsRetryTimer,
+  scheduleTitleVisibilityPollTimer,
   shouldContinueTitleVisibilityPoll,
   shouldRetryRecentConversationsLoad,
   shouldReloadRecentConversationsForEventAction,
@@ -183,6 +190,98 @@ describe('desktopDashboardConversationLoadRuntime', () => {
       conversationRef: 'conv-target',
       attempts: 240,
     })).toBe(false);
+  });
+
+  test('title visibility poll timers stay behind the runtime adapter', () => {
+    let nextTimerId = 0;
+    const timerApi = {
+      setTimeout: jest.fn(() => {
+        nextTimerId += 1;
+        return `timer-${nextTimerId}`;
+      }),
+      clearTimeout: jest.fn(),
+    };
+    const pendingTimers = new Map([
+      ['conv-title', 'old-title-timer'],
+    ]);
+    const callback = jest.fn();
+
+    const timerId = scheduleTitleVisibilityPollTimer({
+      pendingTimers,
+      conversationRef: ' conv-title ',
+      callback,
+      delayMs: 75,
+      timerApi,
+    });
+
+    expect(timerId).toBe('timer-1');
+    expect(timerApi.clearTimeout).toHaveBeenCalledWith('old-title-timer');
+    expect(timerApi.setTimeout).toHaveBeenCalledWith(callback, 75);
+    expect(pendingTimers.get('conv-title')).toBe('timer-1');
+
+    clearTitleVisibilityPollTimer({
+      pendingTimers,
+      conversationRef: 'conv-title',
+      timerApi,
+    });
+
+    expect(timerApi.clearTimeout).toHaveBeenCalledWith('timer-1');
+    expect(pendingTimers.has('conv-title')).toBe(false);
+
+    scheduleTitleVisibilityPollTimer({
+      pendingTimers,
+      conversationRef: 'conv-a',
+      callback,
+      timerApi,
+    });
+    scheduleTitleVisibilityPollTimer({
+      pendingTimers,
+      conversationRef: 'conv-b',
+      callback,
+      timerApi,
+    });
+    clearAllTitleVisibilityPollTimers({ pendingTimers, timerApi });
+
+    expect(timerApi.clearTimeout).toHaveBeenCalledWith('timer-2');
+    expect(timerApi.clearTimeout).toHaveBeenCalledWith('timer-3');
+    expect(pendingTimers.size).toBe(0);
+  });
+
+  test('recent retry and search debounce timers stay behind runtime adapters', () => {
+    const timerApi = {
+      setTimeout: jest.fn((callback) => `timer-${timerApi.setTimeout.mock.calls.length}-${typeof callback}`),
+      clearTimeout: jest.fn(),
+    };
+    const retryCallback = jest.fn();
+    const searchCallback = jest.fn();
+
+    const retryTimer = scheduleRecentConversationsRetryTimer({
+      callback: retryCallback,
+      delayMs: 250,
+      timerApi,
+    });
+    const searchTimer = scheduleConversationSearchDebounce({
+      callback: searchCallback,
+      timerApi,
+    });
+
+    expect(retryTimer).toBe('timer-1-function');
+    expect(searchTimer).toBe('timer-2-function');
+    expect(timerApi.setTimeout).toHaveBeenNthCalledWith(1, retryCallback, 250);
+    expect(timerApi.setTimeout).toHaveBeenNthCalledWith(2, searchCallback, 180);
+
+    clearRecentConversationsRetryTimer(retryTimer, { timerApi });
+    clearConversationSearchDebounce(searchTimer, { timerApi });
+
+    expect(timerApi.clearTimeout).toHaveBeenCalledWith('timer-1-function');
+    expect(timerApi.clearTimeout).toHaveBeenCalledWith('timer-2-function');
+
+    const fallbackCallback = jest.fn();
+    expect(scheduleConversationSearchDebounce({
+      callback: fallbackCallback,
+      timerApi: {},
+    })).toBeNull();
+    expect(fallbackCallback).toHaveBeenCalledTimes(1);
   });
 
   test('shouldRetryRecentConversationsLoad gates retries by loading/state/error/attempt', () => {

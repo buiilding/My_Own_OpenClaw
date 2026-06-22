@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { DesktopClipboardRuntime } from '../../../app/runtime/desktopClipboardRuntime';
+import { DesktopMessageActionRuntime } from '../../../app/runtime/desktopMessageActionRuntime';
 
 export function useCopyMessageAction({
   messageText = '',
@@ -14,20 +15,19 @@ export function useCopyMessageAction({
   const copyResetTimerRef = useRef(null);
 
   const scheduleCopyReset = () => {
-    if (copyResetTimerRef.current) {
-      window.clearTimeout(copyResetTimerRef.current);
-    }
-    copyResetTimerRef.current = window.setTimeout(() => {
-      setCopySuccess(false);
-      copyResetTimerRef.current = null;
-    }, resetDelayMs);
+    DesktopMessageActionRuntime.scheduleMessageActionTimer({
+      timerRef: copyResetTimerRef,
+      delayMs: resetDelayMs,
+      callback: () => {
+        setCopySuccess(false);
+      },
+    });
   };
 
   useEffect(() => () => {
-    if (copyResetTimerRef.current) {
-      window.clearTimeout(copyResetTimerRef.current);
-      copyResetTimerRef.current = null;
-    }
+    DesktopMessageActionRuntime.clearMessageActionTimer({
+      timerRef: copyResetTimerRef,
+    });
   }, []);
 
   const handleCopy = async () => {

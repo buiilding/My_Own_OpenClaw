@@ -12,6 +12,7 @@ title: "MessageInput Clipboard Image and Voice Submit Reference"
 
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/hooks/useMessageInputUiBindings.js`
+- `frontend/src/renderer/app/runtime/desktopDismissOnOutsideRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
@@ -32,9 +33,12 @@ Component-owned state:
 UI-effect bindings (`useMessageInputUiBindings`) own:
 
 - textarea auto-resize on input changes via `useLayoutEffect`, so multiline `Shift+Enter` growth updates the composer height before paint instead of showing a one-frame row hop
-- plus-menu outside-click dismissal
+- plus-menu outside-click dismissal through
+  `DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside(...)`
 - automatic plus-menu close when the visible lifecycle loop lock begins (`isLoopActive=true`)
-- focus-request token handling for composer autofocus
+- focus-request token handling for composer autofocus; the actual textarea
+  focus and caret placement route through
+  `DesktopMessageInputRuntime.focusTextInputAtEnd(...)`
 
 Hook-owned text/transcription state (`useTranscription`):
 
@@ -75,11 +79,12 @@ Outgoing payload variants:
 
 Paste handler logic:
 
-1. inspect `clipboardData.items`.
-2. if no `image/*` item -> delegate to `handlePaste`.
+1. delegate paste-event clipboard item inspection to
+   `DesktopComposerAttachmentRuntime.parseClipboardImagePasteEvent(...)`.
+2. if the runtime reports no `image/*` item -> delegate to `handlePaste`.
 3. if one or more image items exist:
  - prevent default paste behavior
- - parse images via shared `parseClipboardImageItems(...)` helper
+ - append images parsed by the shared runtime facade
  - append new preview payload(s) into `clipboardImages[]` (do not replace previous pasted images)
   - catch parse failures at the composer boundary and log a scoped warning instead of leaving an unhandled promise rejection
 
@@ -93,6 +98,7 @@ Parsed payload shape:
 
 The helper path uses shared data-URL parse/normalization primitives:
 
+- `DesktopComposerAttachmentRuntime.parseClipboardImagePasteEvent(...)`
 - `DesktopComposerAttachmentRuntime.readFileAsDataUrl(...)`
 - `DesktopComposerAttachmentRuntime.parseBase64ImageDataUrl(...)`
 
@@ -179,13 +185,16 @@ Hard send guard:
 Plus menu:
 
 - toggles add-on action list for `Add photos & files`
-- click outside closes menu
+- click outside closes menu; the browser listener subscription lives in
+  `DesktopDismissOnOutsideRuntime`, while `MessageInput` keeps menu state local
 
 The menu does not alter outbound query payload; it only opens the native file-picker path.
 
 ## Test-Backed Invariants
 
 - trimmed send text and whitespace block behavior.
+- focus requests move the composer caret to the end through
+  `DesktopMessageInputRuntime.focusTextInputAtEnd(...)`.
 - `isLoopActive` submit block + stop-button rendering.
 - voice button starts and stops a temporary dictation session.
 - utterance-end keeps the latest transcription in the composer without auto-send.
@@ -200,7 +209,12 @@ The menu does not alter outbound query payload; it only opens the native file-pi
 1. Changing data-URL parse helpers without updating clipboard/file attachment utilities can break preview/base64 payload shaping.
 2. Re-introducing config-driven microphone enablement can make the button look live while doing nothing.
 3. Removing preview reset after submit can leak stale image/file payloads across messages.
-4. Replacing `DesktopMessageInputRuntime.buildOutgoingMessage(...)` with ad-hoc payload construction can desync sender hook payload union.
+4. Reading `event.clipboardData.items` directly in composer hooks can split
+   paste-event browser mechanics away from `DesktopComposerAttachmentRuntime`.
+5. Calling textarea focus or `setSelectionRange(...)` directly from
+   `MessageInput` can split composer focus mechanics away from
+   `DesktopMessageInputRuntime`.
+6. Replacing `DesktopMessageInputRuntime.buildOutgoingMessage(...)` with ad-hoc payload construction can desync sender hook payload union.
 
 ## Related Pages
 

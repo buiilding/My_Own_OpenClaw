@@ -100,15 +100,14 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
-        showChatboxAwaitingReply: false,
       },
       responseOverlayEntries: [{ id: 'assistant-1' }],
     });
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-assistant',
-      showResponse: true,
-      showAwaitingReply: false,
+      responseVisible: true,
+      awaitingVisible: false,
       overlayLayoutMode: 'response',
       isVisible: true,
     });
@@ -124,14 +123,13 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-visible', sender: 'assistant', text: 'visible reply', turnRef: 'turn-visible' },
         activeResponse: { id: 'assistant-active', sender: 'assistant', text: 'old reply', turnRef: 'turn-active' },
-        showChatboxAwaitingReply: false,
       },
       responseOverlayEntries: [{ id: 'assistant-visible' }],
     });
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-visible',
-      showResponse: true,
+      responseVisible: true,
       latestResponseOverlayEntryId: 'assistant-visible',
     });
   });
@@ -145,14 +143,13 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         visibleResponse: null,
         activeResponse: { id: 'assistant-active', sender: 'assistant', text: 'reply', turnRef: 'turn-active' },
-        showChatboxAwaitingReply: false,
       },
       responseOverlayEntries: [{ id: 'assistant-active' }],
     });
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-active',
-      showResponse: true,
+      responseVisible: true,
     });
   });
 
@@ -164,15 +161,17 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         activeResponse: null,
         visibleResponse: null,
-        showChatboxAwaitingReply: true,
+        visibleTurnLifecycle: {
+          status: 'awaiting',
+        },
       },
       responseOverlayEntries: [],
     });
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-user',
-      showResponse: false,
-      showAwaitingReply: true,
+      responseVisible: false,
+      awaitingVisible: true,
       overlayLayoutMode: 'awaiting-typing',
       isVisible: true,
     });
@@ -188,14 +187,16 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         activeResponse: null,
         visibleResponse: null,
-        showChatboxAwaitingReply: false,
+        visibleTurnLifecycle: {
+          status: 'idle',
+        },
       },
       responseOverlayEntries: [],
     });
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-user',
-      showResponse: false,
+      responseVisible: false,
       overlayLayoutMode: 'hidden',
       isVisible: false,
     });
@@ -210,7 +211,6 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
-        showChatboxAwaitingReply: false,
       },
       responseOverlayEntries: [{ id: 'assistant-1' }],
       dismissedResponseId: 'assistant-1',
@@ -219,8 +219,8 @@ describe('desktopChatPillSessionRuntime', () => {
     expect(viewIntent).toMatchObject({
       latestResponseOverlayEntryId: 'assistant-1',
       turnId: 'turn-assistant',
-      showResponse: false,
-      showAwaitingReply: false,
+      responseVisible: false,
+      awaitingVisible: false,
       overlayLayoutMode: 'hidden',
       isVisible: false,
     });
@@ -235,16 +235,17 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
-        overlayTurnLifecycle: 'awaiting',
-        showChatboxAwaitingReply: true,
+        visibleTurnLifecycle: {
+          status: 'local_pending',
+        },
       },
       responseOverlayEntries: [{ id: 'assistant-1' }],
     });
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-assistant',
-      showResponse: false,
-      showAwaitingReply: true,
+      responseVisible: false,
+      awaitingVisible: true,
       overlayLayoutMode: 'awaiting-typing',
       isVisible: true,
     });

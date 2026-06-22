@@ -38,57 +38,24 @@ export function useMessageListAutoScroll({
   }, []);
 
   const scrollToBottom = useCallback((behavior = 'smooth') => {
-    const element = messageListRef.current;
-    if (!element) {
-      return;
-    }
-    const targetTop = Number(element.scrollHeight) || 0;
-    if (typeof element.scrollTo === 'function') {
-      element.scrollTo({ top: targetTop, behavior });
-      return;
-    }
-    element.scrollTop = targetTop;
+    DesktopMessageListRuntime.scrollToBottom(messageListRef.current, behavior);
   }, []);
 
   const scheduleScrollToBottom = useCallback((behavior = 'smooth') => {
-    scheduledScrollBehaviorRef.current = (
-      scheduledScrollBehaviorRef.current === 'auto' || behavior === 'auto'
-    )
-      ? 'auto'
-      : 'smooth';
-
-    if (scheduledScrollFrameRef.current !== null) {
-      return;
-    }
-
-    const runScheduledScroll = () => {
-      scheduledScrollFrameRef.current = null;
-      const scheduledBehavior = scheduledScrollBehaviorRef.current || 'smooth';
-      scheduledScrollBehaviorRef.current = null;
-      scrollToBottom(scheduledBehavior);
-    };
-
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      scheduledScrollFrameRef.current = window.requestAnimationFrame(runScheduledScroll);
-      return;
-    }
-
-    scheduledScrollFrameRef.current = -1;
-    runScheduledScroll();
-  }, [scrollToBottom]);
+    DesktopMessageListRuntime.scheduleMessageListScrollToBottom({
+      elementRef: messageListRef,
+      frameRef: scheduledScrollFrameRef,
+      behaviorRef: scheduledScrollBehaviorRef,
+      behavior,
+    });
+  }, []);
 
   useEffect(() => {
     return () => {
-      if (
-        scheduledScrollFrameRef.current !== null
-        && scheduledScrollFrameRef.current !== -1
-        && typeof window !== 'undefined'
-        && typeof window.cancelAnimationFrame === 'function'
-      ) {
-        window.cancelAnimationFrame(scheduledScrollFrameRef.current);
-      }
-      scheduledScrollFrameRef.current = null;
-      scheduledScrollBehaviorRef.current = null;
+      DesktopMessageListRuntime.clearScheduledMessageListScroll({
+        frameRef: scheduledScrollFrameRef,
+        behaviorRef: scheduledScrollBehaviorRef,
+      });
     };
   }, []);
 
@@ -139,32 +106,25 @@ export function useMessageListAutoScroll({
   }, [messages, awaitingDotTargetMessageId, syncScrollMetrics]);
 
   useEffect(() => {
-    const element = messageListRef.current;
-    if (!element || typeof ResizeObserver !== 'function') {
-      return undefined;
-    }
+    return DesktopMessageListRuntime.observeMessageListResize({
+      elementRef: messageListRef,
+      onResize: () => {
+        const currentElement = messageListRef.current;
+        if (!currentElement) {
+          return;
+        }
 
-    const resizeObserver = new ResizeObserver(() => {
-      const currentElement = messageListRef.current;
-      if (!currentElement) {
-        return;
-      }
+        const nextScrollHeight = Number(currentElement.scrollHeight) || 0;
+        const scrollHeightChanged = nextScrollHeight !== lastScrollHeightRef.current;
+        if (scrollHeightChanged && enableAgentLoopAutoScroll && shouldAutoScrollRef.current) {
+          scheduleScrollToBottom(forceInstantAutoScrollRef.current ? 'auto' : 'smooth');
+          forceInstantAutoScrollRef.current = false;
+        }
 
-      const nextScrollHeight = Number(currentElement.scrollHeight) || 0;
-      const scrollHeightChanged = nextScrollHeight !== lastScrollHeightRef.current;
-      if (scrollHeightChanged && enableAgentLoopAutoScroll && shouldAutoScrollRef.current) {
-        scheduleScrollToBottom(forceInstantAutoScrollRef.current ? 'auto' : 'smooth');
-        forceInstantAutoScrollRef.current = false;
-      }
-
-      lastScrollTopRef.current = Number(currentElement.scrollTop) || 0;
-      lastScrollHeightRef.current = nextScrollHeight;
+        lastScrollTopRef.current = Number(currentElement.scrollTop) || 0;
+        lastScrollHeightRef.current = nextScrollHeight;
+      },
     });
-
-    resizeObserver.observe(element);
-    return () => {
-      resizeObserver.disconnect();
-    };
   }, [enableAgentLoopAutoScroll, scheduleScrollToBottom]);
 
   useEffect(() => {

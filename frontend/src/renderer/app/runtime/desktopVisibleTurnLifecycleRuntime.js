@@ -2,16 +2,6 @@
  * Owns renderer-visible turn lifecycle projection for desktop surfaces.
  */
 
-import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
-
-const {
-  getActiveOverlayTurnLifecycle,
-  getAwaitingOverlayTurnLifecycle,
-  getIdleOverlayTurnLifecycle,
-  getPreflightOverlayTurnLifecycle,
-  getTerminalOverlayTurnLifecycle,
-} = DesktopOverlayTurnLifecycleRuntime;
-
 const TERMINAL_PHASES = new Set(['complete', 'error']);
 const ACTIVE_PROGRESS_PHASES = new Set(['tool_call', 'tool_output']);
 const AWAITING_PHASES = new Set(['awaiting']);
@@ -66,8 +56,7 @@ function hasVisiblePresentationContent(presentation) {
   }
   const entries = Array.isArray(presentation.entries) ? presentation.entries : [];
   return (
-    presentation.hasVisibleContent === true
-    || entries.length > 0
+    entries.length > 0
     || Boolean(normalizeString(presentation.lastError))
   );
 }
@@ -265,47 +254,10 @@ function resolveVisibleTurnLifecycle({
   };
 }
 
-function shouldUseLocalSendPreflight({
-  currentTurnProjection = null,
-  pendingTurn = null,
-} = {}) {
-  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
-  if (!normalizedPendingTurn) {
-    return false;
-  }
-  if (!currentTurnProjection) {
-    return true;
-  }
-  return !hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, currentTurnProjection);
-}
-
-function resolveVisibleTurnLifecycleForPresentation({
-  visibleTurnLifecycle,
-} = {}) {
-  return visibleTurnLifecycle;
-}
-
-function resolveOverlayTurnLifecycleForVisibleLifecycle(visibleTurnLifecycle) {
-  if (visibleTurnLifecycle?.status === 'local_pending') {
-    return getPreflightOverlayTurnLifecycle();
-  }
-  if (visibleTurnLifecycle?.status === 'awaiting') {
-    return getAwaitingOverlayTurnLifecycle();
-  }
-  if (visibleTurnLifecycle?.status === 'active') {
-    return getActiveOverlayTurnLifecycle();
-  }
-  if (visibleTurnLifecycle?.status === 'terminal') {
-    return getTerminalOverlayTurnLifecycle();
-  }
-  return getIdleOverlayTurnLifecycle();
-}
-
 function applyVisibleTurnLifecycleToPresentationState(presentationState, visibleTurnLifecycle) {
   const nextState = {
-    ...presentationState,
+    ...(presentationState || {}),
     visibleTurnLifecycle,
-    overlayTurnLifecycle: resolveOverlayTurnLifecycleForVisibleLifecycle(visibleTurnLifecycle),
     isBusy: visibleTurnLifecycle?.isBusy === true,
   };
   if (
@@ -314,37 +266,24 @@ function applyVisibleTurnLifecycleToPresentationState(presentationState, visible
   ) {
     return {
       ...nextState,
-      loopUiState: 'awaiting-reply',
-      isAwaitingReply: true,
-      showAssistantAwaitingDot: true,
       awaitingDotTargetMessageId: visibleTurnLifecycle.awaitingAnchor?.rowId || null,
       chatboxSurfaceState: 'awaiting-reply',
-      showChatboxAwaitingReply: true,
-      showChatboxResponse: false,
     };
   }
   if (visibleTurnLifecycle?.status === 'active') {
     return {
       ...nextState,
-      isAwaitingReply: false,
-      showAssistantAwaitingDot: false,
       awaitingDotTargetMessageId: null,
-      showChatboxAwaitingReply: false,
     };
   }
   return {
     ...nextState,
-    isAwaitingReply: false,
-    showAssistantAwaitingDot: false,
     awaitingDotTargetMessageId: null,
-    showChatboxAwaitingReply: false,
   };
 }
 
 export const DesktopVisibleTurnLifecycleRuntime = Object.freeze({
   applyVisibleTurnLifecycleToPresentationState,
   resolvePendingTurnForCurrentProjection,
-  resolveVisibleTurnLifecycleForPresentation,
   resolveVisibleTurnLifecycle,
-  shouldUseLocalSendPreflight,
 });

@@ -31,6 +31,7 @@ import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 import { useChatSurfaceController } from '../hooks/useChatSurfaceController';
 import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartupRuntimeClient';
+import { DesktopChatInterfaceBindingsRuntime } from '../../../app/runtime/desktopChatInterfaceBindingsRuntime';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
   DesktopThreadPresentationRuntime,
@@ -183,19 +184,19 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
       },
     );
 
-    const handleWindowFocus = () => {
-      void refreshActiveWorkspace();
-    };
-    window.addEventListener('focus', handleWindowFocus);
+    const removeWindowFocus = DesktopChatInterfaceBindingsRuntime.subscribeToWindowFocus({
+      onFocus: () => {
+        void refreshActiveWorkspace();
+      },
+    });
 
     return () => {
       cancelled = true;
       removeWorkspaceAccessUpdated?.();
-      window.removeEventListener('focus', handleWindowFocus);
+      removeWindowFocus?.();
     };
   }, [sessionInfo.conversationRef, startWorkspaceBoundNewChat]);
 
-  const showToolLogs = config?.show_tool_logs === true;
   const chatSurface = useChatSurfaceController({
     messages,
     currentTurnProjection,
@@ -215,11 +216,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     speechModeEnabled,
   } = chatSurface;
   const renderedMessages = useMemo(() => buildThreadPresentationMessages(messages, {
-    showToolLogs,
-    isBusy: composerBusy,
     currentTurnProjection,
     activeConversationRef: sessionInfo.conversationRef || null,
-  }), [composerBusy, currentTurnProjection, messages, sessionInfo.conversationRef, showToolLogs]);
+  }), [currentTurnProjection, messages, sessionInfo.conversationRef]);
   const activeConversationRef = sessionInfo.conversationRef || null;
   const isLoadingSelectedConversation = (
     typeof loadingConversationRef === 'string'
@@ -325,20 +324,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
       return undefined;
     }
 
-    const focusInput = () => {
-      findInputRef.current?.focus();
-      findInputRef.current?.select();
-    };
-
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      const frameId = window.requestAnimationFrame(focusInput);
-      return () => {
-        window.cancelAnimationFrame(frameId);
-      };
-    }
-
-    focusInput();
-    return undefined;
+    return DesktopChatInterfaceBindingsRuntime.scheduleDeferredFocus({
+      focus: () => DesktopChatInterfaceBindingsRuntime.focusAndSelectInput(findInputRef),
+    });
   }, [findBarOpen, findFocusToken]);
 
   useEffect(() => {

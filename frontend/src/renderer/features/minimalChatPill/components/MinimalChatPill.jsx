@@ -18,6 +18,7 @@ import { useTextareaAutoResize } from '../../chat/hooks/useMessageInputUiBinding
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 import { DesktopChatboxLayoutRuntime } from '../../../app/runtime/desktopChatboxLayoutRuntime';
+import { DesktopChatboxInteractionRuntime } from '../../../app/runtime/desktopChatboxInteractionRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { useChatSurfaceController } from '../../chat/hooks/useChatSurfaceController';
 import {
@@ -62,7 +63,6 @@ function MinimalChatPill() {
   const pillRef = useRef(null);
   const shellRef = useRef(null);
   const sendButtonRef = useRef(null);
-  const closeButtonAnchorFrameRef = useRef(null);
   const closeButtonAnchorSnapshotRef = useRef({ centerX: null });
   const composerResizeSequenceRef = useRef(0);
   const reservedChatboxFrameHeightRef = useRef(null);
@@ -136,11 +136,9 @@ function MinimalChatPill() {
   }, [reservedChatboxFrameHeight]);
 
   const clearNativeFrameCollapse = useCallback(() => {
-    if (nativeFrameCollapseTimeoutRef.current === null) {
-      return;
-    }
-    window.clearTimeout?.(nativeFrameCollapseTimeoutRef.current);
-    nativeFrameCollapseTimeoutRef.current = null;
+    DesktopChatboxInteractionRuntime.clearChatboxNativeFrameCollapse({
+      timeoutRef: nativeFrameCollapseTimeoutRef,
+    });
   }, []);
 
   const resolveNativeFrameHeightForShellHeight = useCallback((shellHeight) => {
@@ -160,24 +158,26 @@ function MinimalChatPill() {
   }, []);
 
   const scheduleNativeFrameCollapse = useCallback(() => {
-    clearNativeFrameCollapse();
-    nativeFrameCollapseTimeoutRef.current = window.setTimeout(() => {
-      nativeFrameCollapseTimeoutRef.current = null;
-      if ((inputRef.current?.value || '').trim() || hasAttachmentPreview) {
-        return;
-      }
-      const shellHeight = shellRef.current?.offsetHeight ?? null;
-      const nextAnchorHeight = DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight({
-        hasImagePreview: hasAttachmentPreview,
-        shellHeight,
-      });
-      reservedChatboxFrameHeightRef.current = null;
-      setReservedChatboxFrameHeight(null);
-      DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(nextAnchorHeight).catch((error) => {
-        console.warn('[MinimalChatPill] Failed to collapse chat window frame:', error);
-      });
-    }, CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS);
-  }, [clearNativeFrameCollapse, hasAttachmentPreview]);
+    DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse({
+      timeoutRef: nativeFrameCollapseTimeoutRef,
+      delayMs: CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS,
+      callback: () => {
+        if ((inputRef.current?.value || '').trim() || hasAttachmentPreview) {
+          return;
+        }
+        const shellHeight = shellRef.current?.offsetHeight ?? null;
+        const nextAnchorHeight = DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight({
+          hasImagePreview: hasAttachmentPreview,
+          shellHeight,
+        });
+        reservedChatboxFrameHeightRef.current = null;
+        setReservedChatboxFrameHeight(null);
+        DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(nextAnchorHeight).catch((error) => {
+          console.warn('[MinimalChatPill] Failed to collapse chat window frame:', error);
+        });
+      },
+    });
+  }, [hasAttachmentPreview]);
 
   useEffect(() => {
     return () => {
@@ -187,9 +187,7 @@ function MinimalChatPill() {
 
   const focusInput = useCallback(() => {
     textEntryActiveRef.current = true;
-    inputRef.current?.focus();
-    const textLength = inputRef.current?.value?.length || 0;
-    inputRef.current?.setSelectionRange?.(textLength, textLength);
+    DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(inputRef);
   }, []);
 
   const activateTextEntry = useCallback(() => {
@@ -338,17 +336,11 @@ function MinimalChatPill() {
     ).catch((error) => {
       console.warn('[MinimalChatPill] Failed to presize chat window:', error);
     }).finally(() => {
-      if (composerResizeSequenceRef.current !== sequence) {
-        return;
-      }
-      if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-        applyComposerHeight(nextHeight);
-        return;
-      }
-      window.requestAnimationFrame(() => {
-        if (composerResizeSequenceRef.current === sequence) {
-          applyComposerHeight(nextHeight);
-        }
+      DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit({
+        sequenceRef: composerResizeSequenceRef,
+        sequence,
+        height: nextHeight,
+        applyComposerHeight,
       });
     });
   }, [
@@ -363,72 +355,13 @@ function MinimalChatPill() {
 
   useTextareaAutoResize(inputValue, resizeComposer);
 
-  const syncCloseButtonAnchor = useCallback(() => {
-    const pillElement = pillRef.current;
-    const sendButtonElement = sendButtonRef.current;
-    if (!pillElement || !sendButtonElement) {
-      return;
-    }
-
-    const pillRect = pillElement.getBoundingClientRect();
-    const sendRect = sendButtonElement.getBoundingClientRect();
-    if (pillRect.width <= 0 || sendRect.width <= 0) {
-      return;
-    }
-
-    const pillWidth = Math.max(
-      Math.round(Number(pillElement.offsetWidth) || 0),
-      Math.round(Number(pillRect.width) || 0),
-    );
-    if (pillWidth <= 0) {
-      return;
-    }
-
-    const centerX = Math.round((sendRect.left - pillRect.left) + (sendRect.width / 2));
-    if (closeButtonAnchorSnapshotRef.current.centerX !== centerX) {
-      pillElement.style.setProperty('--chatbox-close-center-x', `${centerX}px`);
-      closeButtonAnchorSnapshotRef.current.centerX = centerX;
-    }
-  }, []);
-
-  const scheduleCloseButtonAnchorSync = useCallback(() => {
-    if (closeButtonAnchorFrameRef.current !== null) {
-      window.cancelAnimationFrame(closeButtonAnchorFrameRef.current);
-    }
-    closeButtonAnchorFrameRef.current = window.requestAnimationFrame(() => {
-      closeButtonAnchorFrameRef.current = null;
-      syncCloseButtonAnchor();
-    });
-  }, [syncCloseButtonAnchor]);
-
   useLayoutEffect(() => {
-    scheduleCloseButtonAnchorSync();
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', scheduleCloseButtonAnchorSync);
-    }
-
-    let resizeObserver = null;
-    if (typeof ResizeObserver === 'function') {
-      resizeObserver = new ResizeObserver(() => {
-        scheduleCloseButtonAnchorSync();
-      });
-      if (pillRef.current) {
-        resizeObserver.observe(pillRef.current);
-      }
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('resize', scheduleCloseButtonAnchorSync);
-      }
-      if (closeButtonAnchorFrameRef.current !== null) {
-        window.cancelAnimationFrame(closeButtonAnchorFrameRef.current);
-        closeButtonAnchorFrameRef.current = null;
-      }
-      resizeObserver?.disconnect();
-    };
-  }, [scheduleCloseButtonAnchorSync, devUiEnabled]);
+    return DesktopChatboxInteractionRuntime.startChatboxCloseButtonAnchorSync({
+      pillRef,
+      sendButtonRef,
+      snapshotRef: closeButtonAnchorSnapshotRef,
+    });
+  }, [devUiEnabled]);
 
   const setChatboxHitTestActive = useCallback((active) => {
     const nextActive = active === true;
@@ -450,45 +383,17 @@ function MinimalChatPill() {
     };
   }, [setChatboxHitTestActive]);
 
-  const syncChatboxHitTestForPointer = useCallback((event) => {
-    const pillBounds = pillRef.current?.getBoundingClientRect?.();
-    if (!pillBounds) {
-      setChatboxHitTestActive(false);
-      return;
-    }
-    const pointerX = Number(event.clientX);
-    const pointerY = Number(event.clientY);
-    const isInsidePill = (
-      Number.isFinite(pointerX)
-      && Number.isFinite(pointerY)
-      && pointerX >= pillBounds.left
-      && pointerX <= pillBounds.right
-      && pointerY >= pillBounds.top
-      && pointerY <= pillBounds.bottom
-    );
-    setChatboxHitTestActive(isInsidePill);
-  }, [setChatboxHitTestActive]);
-
-  const disableChatboxHitTest = useCallback(() => {
-    setChatboxHitTestActive(false);
-  }, [setChatboxHitTestActive]);
-
   const clearTextEntryActive = useCallback(() => {
     textEntryActiveRef.current = false;
   }, []);
 
   useEffect(() => {
-    window.addEventListener('mousemove', syncChatboxHitTestForPointer);
-    window.addEventListener('mouseleave', disableChatboxHitTest);
-    window.addEventListener('blur', disableChatboxHitTest);
-    window.addEventListener('blur', clearTextEntryActive);
-    return () => {
-      window.removeEventListener('mousemove', syncChatboxHitTestForPointer);
-      window.removeEventListener('mouseleave', disableChatboxHitTest);
-      window.removeEventListener('blur', disableChatboxHitTest);
-      window.removeEventListener('blur', clearTextEntryActive);
-    };
-  }, [clearTextEntryActive, disableChatboxHitTest, syncChatboxHitTestForPointer]);
+    return DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents({
+      pillRef,
+      onHitTestActiveChange: setChatboxHitTestActive,
+      onTextEntryBlur: clearTextEntryActive,
+    });
+  }, [clearTextEntryActive, setChatboxHitTestActive]);
 
   useVoiceMode(
     wakewordSttEnabled && wakewordSttSessionActive,
@@ -577,11 +482,9 @@ function MinimalChatPill() {
     if (event.button !== 0) {
       return;
     }
-    DesktopChatboxLayoutRuntime.startChatboxDrag(
+    DesktopChatboxLayoutRuntime.startChatboxDragFromWindow(
       dragStateRef.current,
       event,
-      window.screenX,
-      window.screenY,
     );
   }, []);
 

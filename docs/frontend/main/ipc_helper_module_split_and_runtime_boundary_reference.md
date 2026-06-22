@@ -110,6 +110,9 @@ Owns query payload shaping helpers used by renderer query sends and automated VM
 
 - `prepareRendererQueryPayload` (attachment/memory toggle/conversation-ref normalization)
 - `buildQueryPayload` (backend query field filtering + authenticated user/conversation identity)
+- `buildRendererBackendQueryPayloadWithAgentDefinition` (agent-definition
+  context attachment plus SDK turn resource/metadata preservation for renderer
+  query sends)
 - `prepareAutomatedQueryPayload` (automated query option normalization + validation)
 
 ### `ipc_chat_query_handlers.cjs`
@@ -653,19 +656,27 @@ Owns turn-scoped replay buffer primitives used for late renderer mount recovery:
 
 Owns backend-event to SDK conversation-event projection for replay fan-out:
 
+- `createConversationEventProjectionRuntime`: composes replay fallback
+  conversation/revision/turn refs once for `ipc.cjs`
 - rejects invalid backend event envelopes before invoking the SDK normalizer
 - delegates canonical event conversion to the SDK backend event normalizer
 - passes replay fallback conversation, revision, and turn refs for scoped
   backend errors
-- keeps SDK backend normalizer imports out of the `ipc.cjs` composition root
+- keeps backend-event builder details and SDK backend normalizer imports out of
+  the `ipc.cjs` composition root
 
 ### `ipc_overlay_phase_events.cjs`
 
 Owns backend-event to response-overlay transition contract:
 
-- `resolveOverlayCorrelationId`: deterministic id precedence (`request_id` -> `correlation_id` -> `bundle_id` -> event `id`)
-- `resolveOverlayPhaseMetadata`: normalized recovery metadata extraction (`attempt`, `max_attempts`, `failure_reason`, `recovery_stage`)
-- `resolveBackendOverlayPhaseTransition`: canonical transition mapping for `streaming-response`, `tool-call`, `tool-bundle`, `tool-output`, `streaming-complete`, and phase-guarded `error`
+- `createOverlayPhaseEventRuntime`: exposes backend-event to overlay transition
+  resolution for `ipc_runtime_helpers.cjs`
+- keeps correlation-id precedence (`request_id` -> `correlation_id` ->
+  `bundle_id` -> event `id`) private behind the runtime facade
+- keeps recovery metadata extraction (`attempt`, `max_attempts`,
+  `failure_reason`, `recovery_stage`) private behind the runtime facade
+- maps `streaming-response`, `tool-call`, `tool-bundle`, `tool-output`,
+  `streaming-complete`, terminal fallback events, and phase-guarded `error`
 
 ### `ipc_overlay_phase_contract.cjs`
 
@@ -763,13 +774,17 @@ Owns query-scope send-failure event fan-out:
   from query failure context when SDK/backend send fails, fans it out to
   renderer windows, and resets phase to idle
 
-### `ipc_query_events.cjs` (shape builder dependency)
+### `ipc_query_events.cjs`
 
-Owns query-context and send-failure context constructors consumed by
-`ipc_query_broadcast.cjs`:
+Owns query-context, send-failure, interruption, and conversation-ref extraction
+behind a runtime facade consumed by `ipc.cjs`, `ipc_query_send_runtime.cjs`,
+`ipc_query_broadcast.cjs`, and backend-close cleanup:
 
-- `resolveConversationRef`
-- `buildQuerySendFailure`
+- `createQueryEventsRuntime`
+
+The lower-level conversation-ref resolver and event builders stay private inside
+the runtime facade. The facade applies dynamic host-skinned query-event copy
+while preserving the SDK-shaped error/interruption event envelope.
 
 SDK `ConversationRuntime.send(...)` owns `turn_started` and `user_message`
 projection. Electron main must not synthesize a duplicate local user message.

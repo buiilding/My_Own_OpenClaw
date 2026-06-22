@@ -3,17 +3,10 @@
  */
 
 const mockSendLiveSurfaceTrace = jest.fn();
-const mockInvokeAgentSdkCommand = jest.fn();
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntimeClient', () => ({
   DesktopLiveSurfaceTraceRuntimeClient: {
     send: (...args: unknown[]) => mockSendLiveSurfaceTrace(...args),
-  },
-}));
-
-jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
-  AgentSdkCommandInvokeClient: {
-    invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeAgentSdkCommand(...args),
   },
 }));
 
@@ -84,8 +77,6 @@ describe('desktopRendererTraceRuntime', () => {
     configureRendererTraceWorkspaceSnapshotResolver((conversationRef) => ({
       activeConversationRef: conversationRef,
       workspaceMessageCount: 2,
-      thinkingStatus: 'Thinking...',
-      phase: 'streaming',
       activeTurnRef: 'turn-1',
       lastMessage: {
         sender: 'assistant',
@@ -105,19 +96,37 @@ describe('desktopRendererTraceRuntime', () => {
       workspaceMessageCount: 2,
       event: 'pill',
     }));
-    expect(consoleLog).not.toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.anything());
-    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+    const chatPillTrace = consoleLog.mock.calls.find(
+      ([channel]) => channel === '[ChatPillTrace][renderer]',
+    )?.[1];
+    expect(chatPillTrace).not.toHaveProperty('isSending');
+    expect(chatPillTrace).not.toHaveProperty('thinkingStatus');
+    expect(chatPillTrace).not.toHaveProperty('phase');
+    expect(consoleLog).toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.objectContaining({
       event: 'typing.show',
       view: 'minimal-chat-pill',
       activeConversationRef: 'conv-1',
       workspaceMessageCount: 2,
       extra: true,
     }));
+    const liveSurfaceTrace = consoleLog.mock.calls.find(
+      ([channel]) => channel === '[LiveSurfaceTrace]',
+    )?.[1];
+    expect(liveSurfaceTrace).not.toHaveProperty('isSending');
+    expect(liveSurfaceTrace).not.toHaveProperty('thinkingStatus');
+    expect(liveSurfaceTrace).not.toHaveProperty('phase');
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'typing.show',
+      activeConversationRef: 'conv-1',
+      workspaceMessageCount: 2,
+    }));
+    expect(mockSendLiveSurfaceTrace.mock.calls[0]?.[0]).not.toHaveProperty('isSending');
+    expect(mockSendLiveSurfaceTrace.mock.calls[0]?.[0]).not.toHaveProperty('thinkingStatus');
+    expect(mockSendLiveSurfaceTrace.mock.calls[0]?.[0]).not.toHaveProperty('phase');
   });
 
   test('builds and emits display-row projection image-count traces', () => {
     setSearch('?debug_live_surface=1&view=main');
-    mockInvokeAgentSdkCommand.mockResolvedValue({ stored: true });
 
     expect(buildRendererDisplayRowsProjectionTracePayload({
       source: 'sdk-display-rows-stream',
@@ -155,57 +164,6 @@ describe('desktopRendererTraceRuntime', () => {
       conversationRef: 'conv-1',
       sdkUserImageCount: 1,
       mergedUserImageCount: 1,
-    }));
-    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
-      _diagnostics: expect.objectContaining({
-        path: 'renderer.display_projection',
-        traceId: expect.stringMatching(/^diag_/),
-        requestId: expect.stringMatching(/^req_/),
-        conversationRef: 'conv-1',
-      }),
-      stage: 'projected',
-      status: 'succeeded',
-      runtime: 'renderer',
-      data: expect.objectContaining({
-        action: 'display_rows_projected',
-        event: 'renderer.display_rows.projected',
-        source: 'sdk-display-rows-stream',
-        sdkUserImageCount: 1,
-        mergedUserImageCount: 1,
-      }),
-    }));
-  });
-
-  test('persists display-row projection diagnostics when live tracing is disabled', () => {
-    mockInvokeAgentSdkCommand.mockResolvedValue({ stored: true });
-
-    logRendererDisplayRowsProjectionTrace({
-      source: 'dashboard-open-conversation',
-      conversationRef: 'conv-2',
-      rowCount: 1,
-      sdkUserRowCount: 1,
-      sdkUserRowsWithImages: 1,
-      sdkUserImageCount: 1,
-      sdkProjectedUserImageCount: 1,
-      currentOptimisticUserCount: 1,
-      mergedUserImageCount: 1,
-    });
-
-    expect(mockSendLiveSurfaceTrace).not.toHaveBeenCalled();
-    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
-      _diagnostics: expect.objectContaining({
-        path: 'renderer.display_projection',
-        conversationRef: 'conv-2',
-      }),
-      data: expect.objectContaining({
-        source: 'dashboard-open-conversation',
-        rowCount: 1,
-        sdkUserRowsWithImages: 1,
-        sdkUserImageCount: 1,
-        sdkProjectedUserImageCount: 1,
-        currentOptimisticUserCount: 1,
-        mergedUserImageCount: 1,
-      }),
     }));
   });
 
@@ -342,8 +300,6 @@ describe('desktopRendererTraceRuntime', () => {
             staleGuardRef: ' guard-1 ',
             turnRef: ' turn-intent ',
           },
-          typingVisible: false,
-          overlayVisible: true,
           hasVisibleContent: true,
           entries: [{ id: 'entry-1' }],
         },
@@ -356,8 +312,6 @@ describe('desktopRendererTraceRuntime', () => {
       phase: 'streaming',
       overlayMode: 'response',
       guardRef: 'guard-1',
-      typingVisible: false,
-      overlayVisible: true,
       hasVisibleContent: true,
       entryCount: 1,
       assistantLength: 6,
@@ -408,7 +362,7 @@ describe('desktopRendererTraceRuntime', () => {
       action: 'show-or-resize-requested',
       visible: true,
       layoutMode: 'response',
-      showResponse: true,
+      responseVisible: true,
       thinkingText: 'thinking',
       compactHover: false,
       turnRef: ' turn-1 ',
@@ -420,7 +374,7 @@ describe('desktopRendererTraceRuntime', () => {
       action: 'show-or-resize-requested',
       visible: true,
       layout_mode: 'response',
-      show_response: true,
+      response_visible: true,
       thinking_text_length: 8,
       compact_hover: false,
       turn_ref: 'turn-1',
@@ -494,7 +448,7 @@ describe('desktopRendererTraceRuntime', () => {
       action: ' show-or-resize-requested ',
       visible: true,
       layoutMode: ' awaiting-typing ',
-      showResponse: false,
+      responseVisible: false,
       thinkingText: 'abc',
       compactHover: true,
       turnRef: ' turn-1 ',
@@ -507,7 +461,7 @@ describe('desktopRendererTraceRuntime', () => {
       visible: true,
       layoutMode: 'awaiting-typing',
       overlayMode: 'awaiting',
-      showResponse: false,
+      responseVisible: false,
       thinkingTextLength: 3,
       compactHover: true,
       turnRef: 'turn-1',
@@ -563,8 +517,8 @@ describe('desktopRendererTraceRuntime', () => {
       },
       overlayLayoutMode: ' response ',
       isVisible: true,
-      showAwaitingReply: false,
-      showResponse: true,
+      awaitingVisible: false,
+      responseVisible: true,
       responseOverlayEntryCount: 2,
     })).toEqual({
       source: 'minimal-response-overlay',
@@ -575,8 +529,8 @@ describe('desktopRendererTraceRuntime', () => {
       overlayMode: 'response',
       guardRef: 'guard-intent',
       isVisible: true,
-      showAwaitingReply: false,
-      showResponse: true,
+      awaitingVisible: false,
+      responseVisible: true,
       layoutMode: 'response',
       entryCount: 2,
       hasVisibleContent: true,
@@ -592,8 +546,8 @@ describe('desktopRendererTraceRuntime', () => {
       responseType: ' llm-text ',
       visibleResponseId: ' visible-1 ',
       responseOverlayEntryCount: '2',
-      showAwaitingReply: false,
-      showResponse: true,
+      awaitingVisible: false,
+      responseVisible: true,
       thinkingText: 'abcd',
     })).toEqual({
       source: 'custom-snapshot',
@@ -603,8 +557,8 @@ describe('desktopRendererTraceRuntime', () => {
       activeResponseType: 'llm-text',
       visibleResponseId: 'visible-1',
       responseOverlayEntryCount: 2,
-      showAwaitingReply: false,
-      showResponse: true,
+      awaitingVisible: false,
+      responseVisible: true,
       thinkingTextLength: 4,
     });
   });
@@ -650,8 +604,8 @@ describe('desktopRendererTraceRuntime', () => {
       },
       overlayLayoutMode: 'awaiting-typing',
       isVisible: true,
-      showAwaitingReply: true,
-      showResponse: false,
+      awaitingVisible: true,
+      responseVisible: false,
       responseOverlayEntryCount: 0,
     });
 
@@ -685,20 +639,19 @@ describe('desktopRendererTraceRuntime', () => {
         mode: ' response ',
       },
       currentTurnPresentationState: {
-        showAssistantAwaitingDot: true,
+        awaitingDotTargetMessageId: ' user-row-1 ',
         hasVisibleReply: true,
         isBusy: true,
-        overlayTurnLifecycle: ' active ',
       },
       responseOverlayEntries: [{ id: 'entry-1' }, { id: 'entry-2' }],
       viewIntent: {
-        showAwaitingReply: false,
-        showResponse: true,
+        awaitingVisible: false,
+        responseVisible: true,
         visibleResponse: { id: ' visible-entry ' },
         latestResponseOverlayEntryId: ' latest-entry ',
       },
       useSdkLiveTurnPresentation: true,
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
     })).toEqual({
       source: 'renderer-overlay-view-model',
       turnRef: 'turn-projection',
@@ -708,15 +661,14 @@ describe('desktopRendererTraceRuntime', () => {
       guardRef: 'guard-intent',
       awaitingVisible: false,
       responseVisible: true,
-      showAwaitingDot: true,
+      showAwaitingDot: false,
       hasVisibleReply: true,
       isBusy: true,
-      overlayTurnLifecycle: 'active',
       entryCount: 2,
       visibleResponseId: 'visible-entry',
       latestEntryId: 'latest-entry',
       useSdkLiveTurnPresentation: true,
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
     });
   });
 
@@ -724,11 +676,22 @@ describe('desktopRendererTraceRuntime', () => {
     expect(buildRendererOverlayTypingTraceEvent({
       awaitingVisible: true,
       responseVisible: false,
-      useSdkLiveTurnPresentation: true,
+      useLocalPendingTurn: false,
     })).toEqual({
       event: 'typing.show',
       mode: 'awaiting',
       reason: 'sdk-awaiting',
+    });
+
+    expect(buildRendererOverlayTypingTraceEvent({
+      awaitingVisible: true,
+      responseVisible: false,
+      useSdkLiveTurnPresentation: false,
+      useLocalPendingTurn: true,
+    })).toEqual({
+      event: 'typing.show',
+      mode: 'awaiting',
+      reason: 'local-pending-awaiting',
     });
 
     expect(buildRendererOverlayTypingTraceEvent({
@@ -758,12 +721,14 @@ describe('desktopRendererTraceRuntime', () => {
       awaitingVisible: true,
     });
 
-    expect(consoleLog).not.toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.anything());
-    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+    expect(consoleLog).toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.objectContaining({
       event: 'renderer.overlay_view_model.resolved',
       view: 'minimal-response-overlay',
       conversationRef: ' conv-1 ',
       awaitingVisible: true,
+    }));
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'renderer.overlay_view_model.resolved',
     }));
 
     logRendererOverlayViewModelTrace('typing.show', {

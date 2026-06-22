@@ -71,6 +71,18 @@ function buildOutgoingMessage(
   };
 }
 
+function focusTextInputAtEnd(input) {
+  if (!input || typeof input.focus !== 'function') {
+    return false;
+  }
+
+  input.focus();
+  const textLength = typeof input.value === 'string' ? input.value.length : 0;
+  input.setSelectionRange?.(textLength, textLength);
+  return true;
+}
+
 export const DesktopMessageInputRuntime = Object.freeze({
   buildOutgoingMessage,
+  focusTextInputAtEnd,
 });

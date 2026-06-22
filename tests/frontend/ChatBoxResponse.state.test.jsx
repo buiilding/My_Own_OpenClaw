@@ -779,7 +779,7 @@ describe('ChatBoxResponse state behavior', () => {
     expect(container.querySelector('.chatbox-response-markdown')).toBeNull();
   });
 
-  test('keeps awaiting indicator stable while thinking text exists', async () => {
+  test('keeps awaiting indicator stable while store thinking text exists', async () => {
     setChatState([
       { id: 'user-1', text: 'think', sender: 'user' },
     ]);
@@ -792,12 +792,16 @@ describe('ChatBoxResponse state behavior', () => {
       thinkingStatus: 'step 1\nstep 2',
     });
 
-    render(<ChatBoxResponse />);
+    const { container } = render(<ChatBoxResponse />);
 
     await waitFor(() => {
       expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
     });
     expect(screen.queryByLabelText('Assistant reasoning stream')).not.toBeInTheDocument();
+    expect(container.querySelector('.chatbox-awaiting-shell')).toHaveAttribute(
+      'data-thinking',
+      '0',
+    );
   });
 
   test('does not show reasoning stream when compaction status arrives without awaiting phase', async () => {
@@ -1338,8 +1342,8 @@ describe('ChatBoxResponse state behavior', () => {
           visible: false,
           width: 0,
           height: 0,
-          turn_ref: null,
-          stale_guard_ref: null,
+          turn_ref: 'turn-test',
+          stale_guard_ref: 'turn-test',
         }),
       );
     });

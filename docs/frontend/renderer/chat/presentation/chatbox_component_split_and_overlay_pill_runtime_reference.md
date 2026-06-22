@@ -12,11 +12,13 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/minimalChatPill/components/PillIcons.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
 - `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopChatboxInteractionRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
@@ -40,8 +42,8 @@ components; presentational helpers are kept inside the minimal pill feature.
 
 Current-turn presentation ownership moved to shared chat hooks/state:
 
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 
 `useChatSurfaceController(...)` is the shared pill/dashboard control contract
@@ -76,6 +78,8 @@ compaction behind its loop lock.
 
 - input focus on mount through `useChatboxFocusBindings`
 - explicit refocus only on the chatbox-focus event via `DesktopWindowRuntimeClient`
+- text input DOM focus and caret placement through
+  `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)`
 - wakeword STT trigger via `DesktopWindowRuntimeClient` starts STT session only when `wakeword_stt_enabled === true`
 - loop lock blocks refocus and blurs input while active
 - unfocused textarea pointer-down reports a text-entry activation reason through
@@ -113,11 +117,30 @@ compaction behind its loop lock.
 - preview lane state (`with-preview`) is driven only by image count
 - visual-anchor layout is resolved through
   `DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight(...)`
+- visual-anchor browser scheduling is owned by
+  `DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync(...)`
 - visual-anchor IPC payload assembly is owned by
   `DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(...)`; the pill
   reports measured height values and optional native-frame height values.
-- drag-state and absolute move targets are resolved through
-  `DesktopChatboxLayoutRuntime` before dispatching native movement IPC
+- drag-state, current window-position reads, and absolute move targets are
+  resolved through `DesktopChatboxLayoutRuntime` before dispatching native
+  movement IPC
+- drag window listeners are installed through
+  `DesktopChatboxInteractionRuntime.subscribeToChatboxDragWindowEvents(...)`
+- pointer hit-test listeners and pill-bounds checks are installed through
+  `DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents(...)`
+- close-button anchor measurement, resize listener wiring, observer callbacks,
+  and animation-frame scheduling are installed through
+  `DesktopChatboxInteractionRuntime.startChatboxCloseButtonAnchorSync(...)`
+- native-frame collapse timeout scheduling is installed through
+  `DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse(...)`
+  and cleaned up through
+  `DesktopChatboxInteractionRuntime.clearChatboxNativeFrameCollapse(...)`
+- post-presize composer height commits are scheduled through
+  `DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit(...)`
+  so sequence-guarded animation-frame behavior stays outside the component
+- explicit chatbox text-entry focus/caret mechanics are owned by
+  `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)`
 - visual-anchor IPC sync:
   - preview off -> `height: 64`
   - preview on -> `height: 116`
@@ -142,7 +165,7 @@ Main-process chat window height now tracks the compact-vs-preview visual-anchor 
 - response overlay entries are built from SDK `currentTurnProjection`
 - candidate response types are restricted to `llm-text` and `error`
 - latest assistant response is selected from the projected current-turn messages
-  through `useCurrentTurnPresentationState(...)`
+  through `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
 - dismissed response ids are tracked in `closedResponseId`
 
 Closeability:
@@ -153,7 +176,7 @@ Closeability:
 ### Awaiting vs Response Surface
 
 - phase input comes from SDK `currentTurnProjection.phase`
-- surface state is derived through `useCurrentTurnPresentationState(...)`
+- surface state is derived through `useResponseOverlayViewModel(...)`
 - `ChatBoxResponse.jsx` now delegates current-turn/view-intent composition to `useResponseOverlayViewModel(...)`, response-window sizing IPC to `useResponseOverlayWindowSync(...)`, and fixed-height transcript scroll behavior to `useResponseOverlayScrollState(...)`
 - awaiting indicator and response pill are mutually controlled by that state projection
 - `response-overlay-phase` is not a runtime truth source for typing, response
@@ -199,7 +222,7 @@ Closeability:
 ## Drift Hotspots
 
 1. Reintroducing imports from removed legacy helper paths outside `components/chatbox/*`.
-2. Mixing `isSending` and overlay-phase locking policies outside `useCurrentTurnPresentationState(...)`.
+2. Mixing `isSending` and overlay-phase locking policies outside `DesktopVisibleTurnLifecycleRuntime`.
 3. Re-adding renderer-driven `set-chatbox-size` logic in `ChatBox` can reintroduce startup flicker.
 4. Changing response selection bounds (latest-after-user scan) can leak stale assistant rows into
    overlay response state.

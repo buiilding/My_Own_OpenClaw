@@ -9,6 +9,855 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Main Overlay Phase Event Runtime Privacy
+
+- Finding: `ipc_overlay_phase_events.cjs` owned backend-event to response-overlay
+  phase transition mapping, but exported the transition resolver directly into
+  `ipc_runtime_helpers.cjs` even though correlation id precedence and recovery
+  metadata extraction were lower-level implementation details.
+- Change: added `createOverlayPhaseEventRuntime(...)` as the public overlay
+  event facade, routed `ipc_runtime_helpers.cjs` through it, and kept transition
+  resolution, correlation-id extraction, and recovery metadata shaping private
+  inside the module.
+- Validation target: `IpcOverlayPhaseEvents.test.cjs` protects backend event
+  mapping, metadata normalization, private helper export shape, and the runtime
+  helper facade import.
+- Compatibility/security: no backend event shape, overlay phase payload,
+  renderer fan-out, IPC channel, provider policy, credential, permission, local
+  execution, trust-boundary, or migration change required.
+
+### 2026-06-22 Main Conversation Event Projection Runtime Privacy
+
+- Finding: `ipc_conversation_event_projection.cjs` owned backend-event to SDK
+  conversation-event projection for late-window replay, but exported the raw
+  backend-event builder while `ipc.cjs` supplied active conversation fallback
+  state at the callsite.
+- Change: added `createConversationEventProjectionRuntime(...)` as the public
+  projection facade, routed renderer-window replay through the facade, and kept
+  backend-event validation plus SDK normalizer delegation private inside the
+  module.
+- Validation target: `IpcConversationEventProjection.test.cjs` and
+  `IpcMainSdkRuntimeBoundary.test.cjs` protect replay projection, scoped error
+  fallback identity, dynamic fallback composition, SDK normalizer isolation,
+  and rejection of the raw helper export.
+- Compatibility/security: no replay event shape, SDK conversation-event
+  envelope, IPC channel, renderer projection, provider policy, credential,
+  permission, local execution, trust-boundary, or migration change required.
+
+### 2026-06-22 Main Query Events Runtime Privacy
+
+- Finding: `ipc_query_events.cjs` owned query conversation-ref extraction and
+  SDK-shaped send-failure/interruption event construction, but exported the
+  lower-level resolver and builders directly while `ipc.cjs` composed the
+  dynamic host-copy wiring around them.
+- Change: added `createQueryEventsRuntime(...)` as the public query-events
+  facade, routed `ipc.cjs` through it, and kept the conversation-ref resolver,
+  send-failure builder, and interruption builder private inside the module.
+- Validation target: `IpcQueryRuntime.test.cjs` protects direct/wrapped
+  conversation-ref extraction, dynamic host-copy send-failure wording,
+  interrupted event shape, and rejection of the raw helper exports.
+- Compatibility/security: no query payload shape, SDK conversation-event
+  envelope, IPC channel, renderer projection, provider policy, credential,
+  permission, local execution, trust-boundary, or migration change required.
+
+### 2026-06-22 Main Query Runtime SDK Turn Field Privacy
+
+- Finding: `ipc_query_runtime.cjs` owned backend query payload filtering and
+  SDK turn resource/metadata preservation, but still exported
+  `preserveSdkTurnInputFields(...)` as a lower-level helper used only by
+  `ipc.cjs` while composing renderer query payloads with agent-definition
+  context.
+- Change: added
+  `buildRendererBackendQueryPayloadWithAgentDefinition(...)` as the public
+  query-runtime facade for agent-definition context attachment plus SDK turn
+  resource/metadata preservation, routed `ipc.cjs` through it, and kept
+  `preserveSdkTurnInputFields(...)` private.
+- Validation target: `IpcQueryRuntime.test.cjs` protects backend query payload
+  filtering, SDK turn resource/metadata preservation, and rejection of the raw
+  helper as a public export.
+- Compatibility/security: no renderer query payload shape, backend query
+  payload key allowlist, SDK turn resource/metadata payload shape, IPC channel,
+  provider policy, credential, permission, local execution, trust-boundary, or
+  migration change required.
+
+### 2026-06-22 Renderer ChatInterface Find Focus Runtime
+
+- Finding: `ChatInterface` already delegated menu dismissal, stop shortcuts,
+  thread-find shortcuts, window-focus subscriptions, and deferred focus
+  animation-frame scheduling to `DesktopChatInterfaceBindingsRuntime`, but the
+  deferred callback still called the find input `.focus()` and `.select()`
+  directly.
+- Change: added `DesktopChatInterfaceBindingsRuntime.focusAndSelectInput(...)`
+  and routed the thread-find deferred focus callback through it. `ChatInterface`
+  keeps find-bar state and focus token timing while the bindings runtime owns
+  input DOM focus/select mechanics.
+- Validation target: `DesktopChatInterfaceBindingsRuntime.test.js` and
+  `RendererChatRuntimeBoundary.test.ts` protect the focus/select adapter and
+  reject direct `.focus()`/`.select()` calls in `ChatInterface`.
+- Compatibility/security: no thread-find query state shape, keyboard shortcut
+  behavior, IPC channel, SDK event payload, renderer config, persisted storage,
+  permission, credential, local execution, trust-boundary, or migration change
+  required.
+
+### 2026-06-22 Renderer Chatbox Text-Entry Focus Runtime
+
+- Finding: `MinimalChatPill` already delegated chatbox drag, hit-test,
+  close-anchor measurement, visual-anchor sync, native-frame collapse, and
+  composer-height animation-frame commits to app-runtime facades, but still
+  called the chatbox textarea `.focus()` and `setSelectionRange(...)` directly
+  when explicit text-entry focus arrived.
+- Change: added
+  `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)` and
+  routed the pill focus handler through it. The pill keeps text-entry active
+  state and loop-lock gating while the chatbox interaction runtime owns input
+  DOM focus and caret placement mechanics.
+- Validation target: `DesktopChatboxInteractionRuntime.test.js`,
+  `ChatBoxOverlayMouseIgnore.test.jsx`, `RendererAppRuntimeBoundary.test.ts`,
+  and `RendererChatRuntimeBoundary.test.ts` protect the focus adapter,
+  explicit chatbox-focus behavior, and rejection of direct
+  `setSelectionRange`/`.focus()` calls in `MinimalChatPill`.
+- Compatibility/security: no chatbox-focus IPC channel, text-entry activation
+  payload, outgoing message payload shape, SDK event payload, renderer config,
+  persisted storage, permission, credential, local execution, trust-boundary,
+  or migration change required.
+
+### 2026-06-22 Renderer MessageInput Focus Runtime
+
+- Finding: `MessageInput` already delegated composer payload normalization,
+  attachment parsing, dismiss-on-outside behavior, and focus-request
+  subscription mechanics to runtime facades, but still called textarea
+  `.focus()` and `setSelectionRange(...)` directly when a focus request token
+  arrived.
+- Change: added `DesktopMessageInputRuntime.focusTextInputAtEnd(...)` and
+  routed focus requests through it. `MessageInput` keeps request-token and
+  loop-lock gating while the message input runtime owns textarea DOM focus and
+  caret placement mechanics.
+- Validation target: `DesktopMessageInputRuntime.test.js` and
+  `RendererChatRuntimeBoundary.test.ts` protect the focus/caret adapter and
+  reject direct `setSelectionRange`/`.focus()` calls in `MessageInput`.
+- Compatibility/security: no outgoing message payload shape, focus-request
+  token shape, IPC channel, SDK event payload, renderer config, persisted
+  storage, permission, credential, local execution, trust-boundary, or
+  migration change required.
+
+### 2026-06-22 Renderer Transcription Paste Text Runtime
+
+- Finding: `useTranscription` already delegated transcription-region paste
+  value building, region offset reconciliation, and cursor restoration timing
+  to `DesktopTranscriptionRegionRuntime`, but still read
+  `event.clipboardData.getData('text')` directly in the hook.
+- Change: added
+  `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)` as the
+  paste-event text adapter and routed `useTranscription` through it. The hook
+  keeps React state, selection range, region refs, and prevent-default behavior
+  while the transcription runtime owns browser clipboard text extraction.
+- Validation target: `DesktopTranscriptionRegionRuntime.test.ts`,
+  `TranscriptionHook.test.ts`, and `RendererChatRuntimeBoundary.test.ts`
+  protect text extraction, paste behavior, and rejection of direct
+  `clipboardData` reads in the transcription hook.
+- Compatibility/security: no composer text value shape, paste behavior,
+  cursor-restoration behavior, IPC channel, SDK event payload, renderer config,
+  persisted storage, permission, credential, local execution, trust-boundary,
+  or migration change required.
+
+### 2026-06-22 Renderer Composer Clipboard Paste Runtime
+
+- Finding: `useChatComposerDraft` already delegated clipboard/file attachment
+  parsing to `DesktopComposerAttachmentRuntime`, but still inspected
+  `event.clipboardData.items` directly to decide whether a paste event carried
+  images.
+- Change: added
+  `DesktopComposerAttachmentRuntime.parseClipboardImagePasteEvent(...)` as the
+  paste-event adapter and routed the composer draft hook through it. The hook
+  keeps React draft state, text-paste fallback, and preview append behavior
+  while the app runtime owns browser clipboard-event item inspection and image
+  parsing.
+- Validation target: `DesktopComposerAttachmentRuntime.test.js`,
+  `ChatComposerDraft.test.jsx`, and `RendererChatRuntimeBoundary.test.ts`
+  protect text-only paste delegation, image paste parsing, and rejection of
+  direct `clipboardData` reads in the composer hook.
+- Compatibility/security: no outgoing message payload shape, attachment
+  preview shape, IPC channel, SDK event payload, renderer config, persisted
+  storage, permission, credential, local execution, trust-boundary, or
+  migration change required.
+
+### 2026-06-22 Renderer Startup Surface Selection Runtime
+
+- Finding: default renderer startup surface selection for VM dashboard,
+  onboarding, and normal dashboard/chat-pill handoff still lived in the
+  standalone `startupSurface.js` helper after `DesktopStartupRuntimeClient`
+  had become the owner for startup query and root-element adapters.
+- Change: moved the selector into
+  `DesktopStartupRuntimeClient.selectStartupSurface(...)`, routed `App.jsx`
+  through it, and deleted `startupSurface.js`. `App.jsx` keeps React rendering
+  and window visibility side effects while the startup runtime owns the
+  reusable startup surface decision.
+- Validation target: `startupSurface.test.js`, `AppPermissionGate.test.jsx`,
+  `AppVmMode.test.jsx`, and `RendererAppRuntimeBoundary.test.ts` protect VM,
+  pre-bootstrap onboarding completion, manifest-aware onboarding routing, and
+  rejection of the deleted helper import path.
+- Compatibility/security: no renderer route, DOM root id, permission-store
+  state shape, onboarding storage payload, IPC channel, SDK event payload,
+  config shape, persisted storage, permission, credential, local execution,
+  trust-boundary, or migration change required.
+
+### 2026-06-22 Renderer Startup Root Element Runtime
+
+- Finding: `main.jsx` already delegated renderer `view` query parsing to
+  `DesktopStartupRuntimeClient`, but still read the React mount target through
+  `document.getElementById('root')` directly at startup.
+- Change: added `DesktopStartupRuntimeClient.getRendererRootElement(...)` as
+  the startup document adapter and routed `main.jsx` through it. The entrypoint
+  keeps React root creation and component selection while the startup runtime
+  owns the browser document lookup.
+- Validation target: `DesktopStartupRuntimeClient.test.ts` and
+  `RendererAppRuntimeBoundary.test.ts` protect root lookup behavior and reject
+  direct `document.getElementById(...)` calls in `main.jsx`.
+- Compatibility/security: no DOM root id, renderer URL query contract, IPC
+  channel, SDK event payload, config shape, persisted storage, permission,
+  credential, local execution, trust-boundary, or migration change required.
+
+### 2026-06-22 Renderer Appearance Theme Application Runtime
+
+- Finding: `DesktopAppearanceThemeRuntime` already owned appearance-mode
+  fallback, theme section normalization, system theme resolution, and editor
+  descriptors, but the app root still routed document CSS-variable application
+  through a standalone `applyAppearanceTheme.js` helper that owned raw
+  `document.documentElement` and `window.matchMedia` adapters.
+- Change: moved document-level theme attributes, CSS-variable writes, and
+  system `matchMedia` subscription cleanup into
+  `DesktopAppearanceThemeRuntime.applyAppearanceTheme(...)`; routed
+  `AppProvider` through the app-runtime facade and deleted the standalone
+  helper module. The provider keeps React effect timing while the runtime owns
+  browser document/media-query mechanics.
+- Validation target: `DesktopAppearanceThemeRuntime.test.js`,
+  `applyAppearanceTheme.test.js`, `AppProvider.test.tsx`,
+  `RendererAppRuntimeBoundary.test.ts`, and
+  `RendererSkinConfigBoundary.test.cjs` protect theme projection,
+  document-application behavior, provider routing, and deletion of the
+  standalone helper path.
+- Compatibility/security: no renderer config key, persisted storage payload,
+  CSS variable name, IPC channel, SDK event payload, permission, credential,
+  local execution, trust-boundary, or migration change required.
+
+### 2026-06-22 Renderer Startup View Runtime
+
+- Finding: `main.jsx` and `AppConfigProvider` still parsed
+  `window.location.search` directly for the renderer `view` query even though
+  `DesktopStartupRuntimeClient` already owned VM-mode startup routing.
+- Change: widened `DesktopStartupRuntimeClient` to resolve the renderer
+  entrypoint view and initial wakeword suppression state, then routed the
+  root entrypoint and app config provider through it. The entrypoint keeps
+  component selection and the provider keeps wakeword state, while the runtime
+  owns browser startup query parsing.
+- Validation target: `DesktopStartupRuntimeClient.test.ts`,
+  `AppConfigProvider.models.test.tsx`,
+  `AppConfigProvider.storageAndIpc.test.tsx`,
+  `RendererAppRuntimeBoundary.test.ts`, and
+  `RendererChatRuntimeBoundary.test.ts` protect view parsing, wakeword
+  suppression seeding, and rejection of direct URL query parsing in the app
+  entrypoint/provider.
+- Compatibility/security: no IPC channel, SDK event payload, renderer URL
+  query contract, config shape, persisted storage, permission, credential,
+  local execution, trust-boundary, or migration change required.
+
+### 2026-06-22 Chatbox Drag Window Position Runtime
+
+- Finding: `MinimalChatPill` already delegated drag-state math and native
+  movement target projection to `DesktopChatboxLayoutRuntime`, but it still
+  read `window.screenX` / `window.screenY` directly when beginning drag
+  tracking.
+- Change: added `DesktopChatboxLayoutRuntime.startChatboxDragFromWindow(...)`
+  as the renderer app-runtime owner for current window-position adapter reads
+  and routed the pill through it. The pill keeps gesture gating and native move
+  dispatch while the layout runtime owns window-position and drag math.
+- Validation target: `ChatBoxPillLayout.test.js`,
+  `RendererAppRuntimeBoundary.test.ts`, and
+  `RendererChatRuntimeBoundary.test.ts` protect the wrapper behavior and reject
+  direct window-position reads in the pill component.
+- Compatibility/security: no IPC channel, SDK event payload, native window
+  move payload shape, renderer config, persisted storage, permission,
+  credential, local execution, trust-boundary, or migration change required.
+
+### 2026-06-22 Voice Audio Input Device Runtime
+
+- Finding: `useVoiceMode` and `useWakewordDetection` already delegated audio
+  encoding, cleanup, processor setup, bridge IPC, and reconnect timers to
+  renderer app-runtime facades, but both hooks still owned raw browser
+  microphone capture and AudioContext construction. Wakeword detection also
+  owned the raw `devicechange` subscription used for missing-device recovery.
+- Change: added `DesktopVoiceAudioInputDeviceRuntime` for browser
+  `getUserMedia`, AudioContext/webkitAudioContext creation, audio-input
+  availability probing, and device-change subscription cleanup. Voice and
+  wakeword hooks now keep lifecycle/error policy while consuming that facade;
+  the wakeword missing-device guard delegates audio-input probing through the
+  same app-runtime owner.
+- Validation target: `VoiceAudioInputDeviceRuntime.test.ts`,
+  `VoiceModeHook.test.ts`, `WakewordDetectionHook.test.ts`, and
+  `RendererVoiceRuntimeBoundary.test.ts` protect browser adapter behavior and
+  reject direct media-device/AudioContext access in voice hooks.
+- Compatibility/security: no IPC channel, SDK event payload, backend
+  transcription frame shape, wakeword audio chunk shape, renderer config,
+  persisted storage, permission prompt contract, credential, local execution,
+  trust-boundary, or migration change required.
+
+### 2026-06-22 Dashboard Thread Tool-Log Input Deletion
+
+- Finding: `ChatInterface` still forwarded `showToolLogs` and lifecycle busy
+  state into `DesktopThreadPresentationRuntime.buildThreadPresentationMessages(...)`
+  after thread projection had moved to durable rows plus SDK current-turn
+  rendering data and stopped filtering rows through tool-log settings.
+- Change: removed the unused inputs from the dashboard caller, kept thread
+  projection independent from busy lifecycle state, and updated boundary
+  coverage to reject reintroducing those knobs in the thread presenter.
+- Validation target: `ChatInterfaceWiring.test.jsx`,
+  `MessagePresentationPipeline.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed boundary.
+- Compatibility/security: no IPC channel, SDK event payload, transcript row
+  shape, renderer config shape, persisted storage, permission, credential,
+  local execution, trust-boundary, storage, or migration change required.
+
+### 2026-06-22 Renderer Thread Projection Fallback Naming
+
+- Finding: `DesktopThreadPresentationRuntime` correctly preferred SDK
+  presentation entries before falling back to projection-derived current-turn
+  rows, but the runtime local, focused tests, and active renderer transport
+  docs still described the supported fallback as legacy projection rows.
+- Change: renamed the runtime local to `projectionFallbackMessages`, updated
+  focused presentation tests to call the path projection fallback rows, and
+  refreshed active renderer transport docs to keep SDK presentation-entry
+  precedence explicit without legacy wording.
+- Validation target: `RendererAppRuntimeBoundary.test.ts` now guards the
+  thread presenter against reintroducing a legacy-named projection fallback
+  local.
+- Compatibility/security: no IPC channel, SDK event payload, transcript row
+  shape, renderer config shape, persisted storage, permission, credential,
+  local execution, trust-boundary, storage, or migration change required.
+
+### 2026-06-22 Renderer Visible Lifecycle Local Pending Facade
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime` already deleted the retired
+  `overlayTurnLifecycle` presentation field and exposed `visibleTurnLifecycle`
+  as the renderer app-runtime owner, but its local adapter variable and active
+  overlay docs still described the output as legacy presentation/overlay
+  fields. The same facade still exported the local pending handoff as
+  `shouldUseLocalSendPreflight`, and `DesktopLiveTurnSurfaceRuntime` carried a
+  wrapper/source branch for the older send-preflight terminology after the
+  visible lifecycle became pending-turn owned.
+- Change: renamed the handoff facade to `shouldUseLocalPendingTurn`, routed the
+  live surface directly through it, removed the send-preflight wrapper/source
+  branch, renamed the adapter local to
+  `presentationStateWithoutRetiredOverlayLifecycle`, updated focused lifecycle
+  coverage to call the output overlay-compatible presentation fields, and
+  refreshed overlay runtime docs to avoid treating current phase/busy/awaiting
+  fields as legacy ownership.
+- Validation target: `RendererAppRuntimeBoundary.test.ts` now guards the
+  visible-lifecycle runtime, live-surface runtime, and overlay docs against the
+  stale send-preflight facade/wrapper/source and legacy wording.
+- Compatibility/security: no IPC channel, SDK event payload, response-overlay
+  phase value, renderer config shape, persisted transcript, permission,
+  credential, local execution, trust-boundary, storage, or migration change
+  required.
+
+### 2026-06-22 Renderer Source Map Lifecycle Wording
+
+- Finding: `frontend/src/renderer/folder_structure.md` still described
+  renderer config persistence as direct localStorage work and chat-store
+  `isSending` / `thinkingStatus` as primary message-send/thinking state, even
+  though visible lifecycle and response-overlay reasoning now flow through
+  app-runtime facades and SDK current-turn projection.
+- Change: routed config persistence wording through
+  `desktopRendererConfigStorageRuntime` and described `isSending` /
+  `thinkingStatus` as compatibility/diagnostic state.
+- Validation target: `RendererAppRuntimeBoundary.test.ts` now guards the
+  renderer source map against stale localStorage and raw lifecycle wording.
+- Compatibility/security: no runtime code, IPC channel, SDK event payload,
+  renderer config shape, persisted transcript, permission, credential, local
+  execution, trust-boundary, storage, or migration change required.
+
+### 2026-06-22 Main Chat Pill Trace Visibility Fields
+
+- Finding: the main-process chat-pill debug trace normalizer still emitted
+  `show_response` and `show_awaiting_reply` payload fields after the renderer
+  response-overlay contract moved to explicit visibility names.
+- Change: renamed the main trace payload fields to `response_visible` and
+  `awaiting_visible`, added focused trace-runtime coverage rejecting the legacy
+  fields, and updated debug trace docs.
+- Validation target: `ChatPillMainTraceRuntime.test.cjs` protects the
+  main-process trace payload contract.
+- Compatibility/security: no IPC channel, SDK event payload, renderer config,
+  persisted transcript, permission, credential, local execution,
+  trust-boundary, storage, or migration change required.
+
+### 2026-06-22 Backend Shell Schema Boundary Wording
+
+- Finding: the backend model-visible `run_shell_command` schema still named
+  WindieOS repository build-output paths while giving general repository/log
+  search guidance. That leaked host repo layout into hosted orchestration
+  prompt contracts.
+- Change: replaced the repo-specific generated-directory examples with generic
+  dependency/build-artifact/packaged-runtime/VCS guidance, mirrored the wording
+  in shell/tool docs, and added backend schema-contract assertions rejecting
+  the retired path examples.
+- Validation target: `test_system_tool_schema_contract.py` protects the
+  model-visible shell command description.
+- Compatibility/security: no tool name, argument shape, provider projection,
+  SDK event payload, IPC channel, local execution behavior, permission,
+  credential, storage, trust-boundary, or migration change required.
+
+### 2026-06-22 Backend Transcription Gateway Boundary Wording
+
+- Finding: backend transcription provider protocol docstrings still described
+  control/audio frames as renderer-owned even though the backend owns the
+  `/ws/transcription` provider session and gateway frame parser/builder.
+- Change: renamed the active backend wording to client/local transcription
+  gateway protocol in service docstrings and endpoint docs, and added a backend
+  architecture guardrail test rejecting the retired renderer-specific wording.
+- Validation target: `test_runtime_architecture_guardrails.py` protects the
+  backend transcription service and endpoint reference wording.
+- Compatibility/security: no websocket payload shape, SDK event payload, IPC
+  channel, renderer config, permission, credential, local execution, storage,
+  trust-boundary, or migration change required.
+
+### 2026-06-22 Transcription Paste Cursor Timer Runtime
+
+- Finding: `useTranscription` already delegated transcription-region append,
+  replace, input-change, and paste reconciliation to
+  `DesktopTranscriptionRegionRuntime`, but still owned raw browser timeout
+  scheduling for restoring the caret after paste.
+- Change: extended `DesktopTranscriptionRegionRuntime` with a paste cursor
+  restoration scheduler and routed the hook through it. The hook keeps React
+  input state and region refs while the app-runtime facade owns the browser
+  timer and `setSelectionRange` timing detail.
+- Validation target: focused transcription region runtime, transcription hook,
+  and renderer chat-boundary tests protect scheduled cursor restoration,
+  missing-adapter fallback, paste behavior, and rejection of raw timeout calls
+  in the hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-22 Voice Reconnect Timer Runtime
+
+- Finding: `useVoiceMode` already delegated transcription gateway protocol,
+  socket creation/close, message dispatch, and audio sends to
+  `DesktopVoiceRuntimeClient`, but still owned raw browser timeout
+  scheduling/cleanup for reconnect backoff.
+- Change: extended `DesktopVoiceRuntimeClient` with reconnect timer
+  schedule/clear helpers and routed the hook through them. The hook keeps
+  enabled state, attempt counts, and reconnect callbacks while the app-runtime
+  client owns browser timer adapters.
+- Validation target: focused voice runtime client, voice-mode hook, and renderer
+  voice-boundary tests protect timer replacement, cleanup, missing-adapter
+  fallback, reconnect behavior, and rejection of raw timeout calls in the hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-22 Dashboard Conversation Timer Runtime
+
+- Finding: `useDashboardConversations` already delegated recent-list
+  projection, retry policy, event classification, and grouping to renderer
+  app-runtime facades, but still owned raw browser timeout scheduling for
+  startup retries, generated-title visibility polling, and search debounce.
+- Change: extended `DesktopDashboardConversationLoadRuntime` with semantic
+  retry, title-poll, and search-debounce timer helpers. The hook keeps
+  conversation/search state and reload side effects while the app-runtime facade
+  owns browser timer scheduling and cleanup.
+- Validation target: focused dashboard conversation load, hook, and renderer
+  app-boundary tests protect timer replacement, cleanup, missing-adapter
+  fallback, search debounce delay, and rejection of raw timeout calls in the
+  hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-22 Dashboard Shell Browser Adapter Runtime
+
+- Finding: `DashboardShell` already delegated resize pulses to
+  `DesktopDashboardLayoutRuntime`, but still owned raw browser timeout
+  scheduling for the opening animation flag and direct document/root DOM
+  access for scroll-lock class application.
+- Change: extended `DesktopDashboardLayoutRuntime` with opening timer and
+  scroll-lock helpers, then routed `DashboardShell` through them. The shell
+  keeps animation state and class intent while the app-runtime facade owns
+  browser timer and DOM target mechanics.
+- Validation target: focused dashboard layout runtime, dashboard shell, and
+  renderer app-boundary tests protect timer cleanup, missing-adapter fallback,
+  scroll-lock add/remove behavior, and rejection of raw browser timer/document
+  calls in the shell.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-22 Model Reset Warning Timer Runtime
+
+- Finding: `ModelsSection` already delegated model reconciliation to
+  `DesktopModelSelectionRuntime`, but still owned raw browser timeout
+  scheduling/cleanup for clearing the missing-model reset warning.
+- Change: extended `DesktopModelSelectionRuntime` with warning timer
+  schedule/clear helpers and routed `ModelsSection` through them. The section
+  keeps warning state and selection side effects while the app-runtime facade
+  owns browser timeout adapters.
+- Validation target: focused model-selection runtime, models section, and
+  renderer chat-boundary tests protect default delay, timer replacement,
+  cleanup, missing-adapter fallback, and rejection of raw timeout calls in the
+  section.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-22 Tool Ghost Debug Timer Runtime
+
+- Finding: `ToolGhostDebugApp` already read click-sync timing from
+  `DesktopToolGhostRuntime`, but still owned raw browser timeout
+  scheduling/cleanup for the hide and restart loop timers.
+- Change: extended `DesktopToolGhostRuntime` with timer schedule/clear helpers
+  and routed the debug app through them. The app keeps visibility/run-token
+  state while the renderer app-runtime facade owns browser timer adapters.
+- Validation target: focused tool-ghost runtime and renderer app-boundary tests
+  protect click-sync delay, timer replacement, cleanup, missing-adapter
+  fallback, and rejection of raw timeout calls in the debug app.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-22 Chat Loop Recovery Watchdog Runtime
+
+- Finding: `useChatLoopUiState` already delegated disconnect/reconnect state to
+  `DesktopChatLoopUiRuntime`, but still owned raw browser timeout
+  scheduling/cleanup for the reconnect recovery watchdog.
+- Change: added a watchdog timer adapter to `DesktopChatLoopUiRuntime` and
+  routed the hook through it. The hook now supplies the timeout callback and
+  delay while the app-runtime facade owns browser timer scheduling and cleanup.
+- Validation target: focused chat-loop runtime, chat-loop hook, and renderer
+  chat-boundary tests protect timeout dispatch, cleanup, missing-adapter
+  fallback, and rejection of raw timeout calls in the hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-22 App Provider Browser Adapter Runtime
+
+- Finding: `AppProvider`, `AppConfigProvider`, and `AppStatusProvider` still
+  owned raw browser `keydown`/`storage` listener wiring, editable-target DOM
+  checks, localStorage access for storage-event filtering, and save-status
+  timeout scheduling/cleanup.
+- Change: added `DesktopAppProviderRuntime` for provider browser adapters. App
+  providers now keep config/status state policy while delegating listener
+  setup/cleanup, editable-target checks, localStorage access, and timers to the
+  app-runtime facade.
+- Validation target: focused app-provider runtime, app provider, app config
+  storage/IPC, app status, and renderer app-boundary tests protect listener
+  cleanup, storage-event filtering parity, timer replacement/fallback, and
+  rejection of raw listener/timer calls in providers.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config data shape, permission, credential, local execution,
+  storage, or trust-boundary migration required.
+
+### 2026-06-22 Message Action Timer Runtime
+
+- Finding: `useCopyMessageAction` and `AssistantMessageActions` still owned raw
+  `window.setTimeout` and `window.clearTimeout` calls for copy-success reset and
+  delayed assistant action reveal, even after clipboard writes moved behind the
+  renderer app-runtime facade.
+- Change: added `DesktopMessageActionRuntime` for message action timer
+  scheduling/cleanup. Message action feature code now supplies timer refs,
+  callbacks, and delay values while the runtime owns browser timeout adapters.
+- Validation target: focused message action runtime, assistant action, message
+  list assistant-action, and renderer chat-boundary tests protect timer
+  replacement, cleanup, missing-adapter fallback, and rejection of raw timeout
+  calls in action feature code.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-22 Current-Turn Presentation Hook Shim Deletion
+
+- Finding: `useCurrentTurnPresentationState(...)` had become a thin React hook
+  shim over `DesktopCurrentTurnPresentationRuntime` while the surface
+  controller and response overlay view model already owned the React lifecycle
+  around current-turn presentation values.
+- Change: deleted the hook and its hook-only test. `useChatSurfaceController`
+  and `useResponseOverlayViewModel` now call
+  `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+  directly with `useMemo(...)`, keeping current-turn presentation projection
+  in the renderer app-runtime facade.
+- Validation target: focused chat surface controller, chatbox surface state,
+  latest visible assistant reply, and renderer app-boundary tests protect the
+  direct runtime call path and deleted hook file.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-22 Message List Browser Scheduling Runtime
+
+- Finding: `MessageList` and `useMessageListAutoScroll` still owned raw
+  `window.requestAnimationFrame`, `window.cancelAnimationFrame`, and
+  `ResizeObserver` mechanics for active find-match scrolling, bottom-scroll
+  coalescing, cleanup, and late content-growth observation even after message
+  list scroll predicates moved behind `DesktopMessageListRuntime`.
+- Change: extended `DesktopMessageListRuntime` with active find-match scroll
+  scheduling, coalesced bottom-scroll RAF scheduling/cleanup, bottom-scroll DOM
+  execution, and resize observation helpers. The component/hook now supply refs
+  and policy callbacks while the runtime owns browser adapter mechanics.
+- Validation target: focused message-list runtime, scroll behavior, and
+  renderer chat-boundary tests protect coalescing, cleanup, missing-RAF
+  fallback, find-match scrolling, observer setup/cleanup, and rejection of raw
+  browser scheduling in the feature code.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-22 Chat Pill Native Frame Scheduling Runtime
+
+- Finding: `MinimalChatPill` still owned raw `window.setTimeout`,
+  `window.clearTimeout`, and `window.requestAnimationFrame` calls for delayed
+  native-frame collapse after empty composer shrinkage and post-presize
+  composer height commits.
+- Change: extended `DesktopChatboxInteractionRuntime` with native-frame
+  collapse timer scheduling/cleanup and sequence-guarded composer height commit
+  helpers. The pill now supplies only refs, callbacks, anchor values, and the
+  empty-input/attachment guard while the runtime owns browser timer and
+  animation-frame adapters.
+- Validation target: focused chatbox interaction runtime and renderer
+  app/chat-boundary tests protect timer rescheduling, missing-adapter fallback,
+  stale sequence suppression, and rejection of raw timer/RAF calls in
+  `MinimalChatPill`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Response Overlay Window Scheduling Runtime
+
+- Finding: `useResponseOverlayWindowSync(...)` still owned raw
+  `requestAnimationFrame`, retry `setTimeout`, `ResizeObserver`, and cleanup
+  mechanics for response-overlay visibility re-reporting and visible size
+  updates, even though responsebox hit testing had already moved into
+  `DesktopResponseOverlayInteractionRuntime`.
+- Change: extended `DesktopResponseOverlayInteractionRuntime` with visibility
+  re-report frame scheduling and visible size-update browser adapters. The hook
+  now supplies value-level callbacks and refs while keeping hidden/shown sizing
+  policy, turn guard metadata, traces, and responsebox IPC values.
+- Validation target: focused response overlay interaction runtime and renderer
+  chat boundary tests protect frame scheduling, retry/observer cleanup, and
+  rejection of raw response-window scheduling in `useResponseOverlayWindowSync`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Chat Pill Close-Anchor Interaction Runtime
+
+- Finding: `MinimalChatPill` still owned close-button anchor DOM measurement,
+  `window.resize` subscription wiring, `ResizeObserver`, animation-frame
+  scheduling, and cleanup while chatbox drag, visual-anchor, and hit-test
+  browser adapters had already moved behind `DesktopChatboxInteractionRuntime`.
+- Change: extended `DesktopChatboxInteractionRuntime` with close-anchor center
+  resolution plus a start/cleanup helper for resize, observer, and RAF
+  scheduling. The component now supplies pill/send-button refs and an anchor
+  snapshot while the runtime owns browser adapter mechanics and CSS variable
+  updates.
+- Validation target: focused chatbox interaction runtime and renderer
+  app/chat-boundary tests protect close-anchor measurement, snapshot dedupe,
+  observer/resize cleanup, and rejection of raw close-anchor browser wiring in
+  `MinimalChatPill`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Stop-Turn SDK Visibility Field Cleanup
+
+- Finding: `DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)`
+  still stamped stopped SDK projections with legacy `typingVisible` and
+  `overlayVisible` presentation fields, even after renderer visible lifecycle
+  became the owner for post-stop typing and response visibility.
+- Change: stopped current-turn projection building now copies the SDK
+  presentation, deletes those legacy visibility fields, and only updates
+  terminal phase, busy state, and overlay intent from visible-content evidence.
+- Validation target: focused stop-turn runtime and chat-store tests protect the
+  stopped projection shape, while the renderer chat boundary test keeps
+  stop-turn state owned by `DesktopStopTurnRuntime`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Chat Pill Hit-Test Interaction Runtime
+
+- Finding: `MinimalChatPill` still owned raw browser
+  `mousemove`/`mouseleave`/`blur` subscriptions and pill-bounds checks for
+  chatbox hit-test activation while the app-runtime client only owned IPC
+  payload construction.
+- Change: extended `DesktopChatboxInteractionRuntime` with pointer hit-test
+  subscription and bounds-check helpers. The component now supplies the pill ref
+  plus deduped boolean/text-entry callbacks while the runtime facade owns raw
+  browser listener mechanics and pointer coordinate checks.
+- Validation target: focused chatbox interaction runtime, chatbox overlay
+  behavior, renderer app-runtime boundary, and renderer chat boundary tests
+  protect pointer activation, cleanup, text-entry blur reset, and rejection of
+  mouse hit-test listener wiring in `MinimalChatPill`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Chat Interface Focus Browser Adapter Runtime
+
+- Finding: `ChatInterface` still owned raw `window.addEventListener('focus',
+  ...)` / `removeEventListener(...)` active-workspace refresh wiring and
+  `window.requestAnimationFrame(...)` / `cancelAnimationFrame(...)` scheduling
+  for thread-find input focus.
+- Change: extended `DesktopChatInterfaceBindingsRuntime` with window-focus
+  subscription and deferred-focus scheduling helpers. `ChatInterface` now
+  supplies value-level callbacks and refs while the app-runtime facade owns the
+  browser listener and RAF adapters.
+- Validation target: focused chat-interface binding runtime and renderer chat
+  boundary tests protect focus event cleanup, deferred focus cleanup/fallback,
+  and rejection of raw focus/RAF browser wiring in `ChatInterface`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Current-Turn Trace SDK Visibility Flag Removal
+
+- Finding: `DesktopRendererTraceRuntime.buildRendererCurrentTurnAppliedTracePayload(...)`
+  still copied SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` into current-turn live-surface traces after
+  renderer lifecycle consumers had stopped treating those SDK presentation
+  booleans as authority.
+- Change: current-turn applied trace payloads now report phase, overlay intent
+  metadata, visible-content evidence, entry counts, text lengths, tool event
+  count, and stale-side-effect suppression without preserving legacy SDK
+  presentation visibility flags.
+- Validation target: focused renderer trace runtime tests protect the trimmed
+  payload shape while visible lifecycle tests continue to cover typing and
+  overlay lifecycle authority.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Response Overlay Hit-Test Interaction Runtime
+
+- Finding: `MinimalResponseOverlay` still owned raw browser
+  `mousemove`/`mouseleave`/`blur` subscriptions and shell-bounds checks for
+  responsebox hit-test activation, even though IPC payload construction already
+  lived behind the response overlay runtime client.
+- Change: added `DesktopResponseOverlayInteractionRuntime` as the renderer
+  app-runtime browser adapter for response overlay hit-test subscriptions and
+  pointer bounds checks. The component now keeps only the deduped boolean
+  report, IPC call, and trace value handoff.
+- Validation target: focused response overlay interaction runtime, response
+  overlay state behavior, and renderer chat/runtime boundary tests protect
+  pointer activation, cleanup, and rejection of raw listener/bounds wiring in
+  the feature component.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Visible Lifecycle Overlay Field Deletion
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime` still imported the overlay
+  lifecycle runtime to restamp a legacy `overlayTurnLifecycle` compatibility
+  field onto renderer-visible presentation state after consumers moved to
+  `visibleTurnLifecycle.status`.
+- Change: visible lifecycle presentation stamping now strips any incoming
+  `overlayTurnLifecycle` data and does not recreate it. Response overlay traces
+  and surface projection tests assert renderer-owned visible lifecycle, busy,
+  awaiting, and chatbox fields directly.
+- Validation target: focused visible lifecycle, chatbox surface state, and
+  renderer trace runtime tests protect the deleted compatibility field while
+  preserving response-entry rendering and trace payload behavior.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
+### 2026-06-21 Chatbox Interaction Browser Adapter Runtime
+
+- Finding: `useMinimalChatPillBindings(...)` still owned raw browser drag
+  window subscriptions plus `ResizeObserver`, debounce timer, and
+  animation-frame scheduling for visual-anchor height reporting.
+- Change: added `DesktopChatboxInteractionRuntime` as the renderer app-runtime
+  interaction adapter for chatbox drag window events and visual-anchor browser
+  scheduling. The feature hook keeps React lifecycle and surface inputs while
+  delegating raw browser adapter mechanics to the runtime facade.
+- Validation target: focused chatbox interaction runtime, chatbox overlay
+  behavior, and renderer app-runtime boundary tests protect drag listener
+  cleanup, settled anchor reporting, compact-anchor reset, and rejection of raw
+  window listener/timer/RAF/ResizeObserver wiring in the feature hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Response Overlay View Legacy Lifecycle Import Removal
+
+- Finding: `DesktopResponseOverlayViewRuntime` still imported
+  `DesktopOverlayTurnLifecycleRuntime` and consumed the legacy
+  `overlayTurnLifecycle` field for stale visible-response suppression even
+  though `visibleTurnLifecycle.status` is now the renderer-owned lifecycle
+  authority.
+- Change: response-overlay view intent now checks
+  `currentTurnPresentationState.visibleTurnLifecycle.status` directly. The
+  runtime no longer depends on the overlay lifecycle adapter for awaiting-state
+  detection.
+- Validation target: focused response-overlay view contract, chat pill session
+  flow, and renderer app-runtime boundary tests protect local-pending
+  suppression, active response visibility, and rejection of the old runtime
+  import.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Dashboard Search Modal Lifecycle Runtime
+
+- Finding: `SearchChatsModal` still owned raw `window.setTimeout(...)` /
+  `clearTimeout(...)` focus scheduling and `window.addEventListener(...)` /
+  `removeEventListener(...)` Escape-key close wiring.
+- Change: added `DesktopDashboardSearchModalRuntime` as the renderer
+  app-runtime browser lifecycle adapter for dashboard search modal focus and
+  Escape close behavior. The component keeps rendering, query input, backdrop
+  click, and callback routing local while delegating timer/listener plumbing to
+  the runtime facade.
+- Validation target: focused dashboard search modal runtime, dashboard shell,
+  and renderer app-runtime boundary tests protect deferred focus,
+  Escape-to-close cleanup, modal search/open behavior, and rejection of raw
+  window timer/listener wiring in `SearchChatsModal`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Chat Interface Binding Subscription Runtime
+
+- Finding: `useChatInterfaceBindings(...)` still owned raw
+  `window.addEventListener(...)` / `removeEventListener(...)` wiring for
+  provider/model/reasoning menu dismissal, the local Stop shortcut, and
+  thread-find open/close shortcuts.
+- Change: added `DesktopChatInterfaceBindingsRuntime` as the renderer
+  app-runtime browser subscription owner for chat interface bindings. The
+  feature hook now delegates menu dismiss, Stop shortcut, and find shortcut
+  subscriptions while keeping React lifecycle and local callbacks in the hook.
+- Validation target: focused chat-interface binding runtime, chat interface
+  wiring, and renderer chat boundary tests protect menu dismissal, Stop
+  shortcut prevention/dispatch, thread-find shortcuts, and rejection of raw
+  window listener wiring in the feature hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
+### 2026-06-21 Outside Dismiss Browser Adapter Runtime
+
+- Finding: chat browser tab picker, message-input plus menu, and dashboard
+  sidebar menus each owned raw `window.addEventListener(...)` /
+  `removeEventListener(...)` wiring for outside-click and Escape dismissal.
+- Change: added `DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside(...)`
+  as the renderer app-runtime browser subscription adapter. Feature modules now
+  keep only local open/close state and pass their container refs plus dismissal
+  callbacks into the runtime facade.
+- Validation target: focused outside-dismiss runtime, chat browser control,
+  message input, dashboard sidebar, and renderer boundary tests protect
+  pointer/Escape dismissal, cleanup, pointer-only plus-menu behavior, and
+  rejection of raw window listener wiring in those feature modules.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Live Surface Selector Send Alias Removal
 
 - Finding: after surface hooks stopped consuming raw `isSending`,

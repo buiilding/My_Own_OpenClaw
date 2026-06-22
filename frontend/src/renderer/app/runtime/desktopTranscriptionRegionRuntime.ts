@@ -8,6 +8,16 @@ type TranscriptionRegion = {
   active: boolean;
 };
 
+type TranscriptionTimerApi = {
+  setTimeout?: (callback: () => void, delayMs: number) => ReturnType<typeof setTimeout>;
+};
+
+type TranscriptionPasteEvent = {
+  clipboardData?: {
+    getData?: (format: string) => string;
+  } | null;
+};
+
 function createEmptyTranscriptionRegion(): TranscriptionRegion {
   return {
     start: 0,
@@ -91,6 +101,11 @@ function buildValueAfterPaste(
   };
 }
 
+function readTextFromPasteEvent(event: TranscriptionPasteEvent | null | undefined): string {
+  const pastedText = event?.clipboardData?.getData?.('text');
+  return typeof pastedText === 'string' ? pastedText : '';
+}
+
 function updateRegionAfterPaste(
   region: TranscriptionRegion,
   selectionStart: number | null,
@@ -125,11 +140,37 @@ function updateRegionAfterPaste(
   return createEmptyTranscriptionRegion();
 }
 
+function scheduleCursorRestoreAfterPaste({
+  input,
+  pastedTextLength,
+  start,
+  timerApi = globalThis,
+}: {
+  input: Pick<HTMLInputElement | HTMLTextAreaElement, 'setSelectionRange'> | null | undefined;
+  pastedTextLength: number;
+  start: number;
+  timerApi?: TranscriptionTimerApi | null;
+}): ReturnType<typeof setTimeout> | null {
+  const restoreCursor = () => {
+    const nextCursorPosition = start + pastedTextLength;
+    input?.setSelectionRange(nextCursorPosition, nextCursorPosition);
+  };
+
+  if (!timerApi || typeof timerApi.setTimeout !== 'function') {
+    restoreCursor();
+    return null;
+  }
+
+  return timerApi.setTimeout(restoreCursor, 0);
+}
+
 export const DesktopTranscriptionRegionRuntime = Object.freeze({
   appendTranscriptionText,
   buildValueAfterPaste,
   createEmptyTranscriptionRegion,
+  readTextFromPasteEvent,
   replaceTranscriptionText,
+  scheduleCursorRestoreAfterPaste,
   updateRegionAfterInputChange,
   updateRegionAfterPaste,
 });

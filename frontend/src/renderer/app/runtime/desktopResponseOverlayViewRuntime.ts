@@ -3,15 +3,13 @@
  */
 
 import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLayoutRuntime';
-import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
 
-const {
-  isOverlayTurnLifecycleAwaiting,
-} = DesktopOverlayTurnLifecycleRuntime;
+const AWAITING_VISIBLE_LIFECYCLE_STATUSES = new Set(['local_pending', 'awaiting']);
 
 type CurrentTurnPresentationStateLike = {
-  showChatboxAwaitingReply?: boolean;
-  overlayTurnLifecycle?: string;
+  visibleTurnLifecycle?: {
+    status?: string | null;
+  } | null;
   visibleResponse?: {
     id?: string | null;
   } | null;
@@ -33,30 +31,32 @@ function resolveResponseOverlayViewContract({
   const latestResponseOverlayEntryId = responseOverlayEntries.length > 0
     ? responseOverlayEntries[responseOverlayEntries.length - 1].id || null
     : null;
-  const awaitingReply = currentTurnPresentationState.showChatboxAwaitingReply === true;
-  const overlayTurnLifecycle = currentTurnPresentationState.overlayTurnLifecycle;
+  const visibleTurnLifecycleStatus = currentTurnPresentationState.visibleTurnLifecycle?.status;
+  const awaitingReply = AWAITING_VISIBLE_LIFECYCLE_STATUSES.has(
+    visibleTurnLifecycleStatus || '',
+  );
   const visibleResponseId = currentTurnPresentationState.visibleResponse?.id || null;
   const isStaleVisibleResponseDuringAwaiting = (
     awaitingReply
-    && isOverlayTurnLifecycleAwaiting(overlayTurnLifecycle)
+    && AWAITING_VISIBLE_LIFECYCLE_STATUSES.has(visibleTurnLifecycleStatus || '')
     && visibleResponseId !== null
     && latestResponseOverlayEntryId === visibleResponseId
   );
-  const showResponse = (
+  const responseVisible = (
     responseOverlayEntries.length > 0
     && latestResponseOverlayEntryId !== dismissedResponseId
     && !isStaleVisibleResponseDuringAwaiting
   );
-  const showAwaitingReply = !showResponse && awaitingReply;
+  const awaitingVisible = !responseVisible && awaitingReply;
   const overlayLayoutMode = DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayLayoutMode({
-    showResponse,
-    showAwaitingReply,
+    responseVisible,
+    awaitingVisible,
   });
 
   return {
     latestResponseOverlayEntryId,
-    showResponse,
-    showAwaitingReply,
+    responseVisible,
+    awaitingVisible,
     overlayLayoutMode,
     isVisible: DesktopResponseOverlayLayoutRuntime.isVisibleResponseOverlayLayoutMode(
       overlayLayoutMode,

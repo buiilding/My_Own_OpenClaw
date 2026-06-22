@@ -50,10 +50,18 @@ describe('renderer voice runtime boundary', () => {
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionStartOverIfOpen');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionAudioMessageIfOpen');
     expect(source).toContain('DesktopVoiceRuntimeClient.closeTranscriptionWebSocket');
+    expect(source).toContain('DesktopVoiceRuntimeClient.scheduleTranscriptionReconnectTimer');
+    expect(source).toContain('DesktopVoiceRuntimeClient.clearTranscriptionReconnectTimer');
+    expect(runtimeSource).toContain('scheduleTranscriptionReconnectTimer');
+    expect(runtimeSource).toContain('clearTranscriptionReconnectTimer');
+    expect(runtimeSource).toContain('setTimeout');
+    expect(runtimeSource).toContain('clearTimeout');
     expect(source).not.toContain('buildTranscriptionWebSocketUrl');
     expect(source).not.toContain('new WebSocket');
     expect(source).not.toContain('.readyState');
     expect(source).not.toContain('.close()');
+    expect(source).not.toContain('setTimeout(');
+    expect(source).not.toContain('clearTimeout(');
     expect(source).not.toContain('websocketRef.current.send');
     expect(source).not.toContain('JSON.parse');
     expect(source).not.toContain('switch (data.type)');
@@ -83,6 +91,10 @@ describe('renderer voice runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts'),
       'utf8',
     );
+    const audioInputDeviceRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVoiceAudioInputDeviceRuntime.ts'),
+      'utf8',
+    );
     const audioProcessorRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts'),
       'utf8',
@@ -93,6 +105,8 @@ describe('renderer voice runtime boundary', () => {
       expect(source).toContain('DesktopVoiceAudioEncodingRuntime');
       expect(source).toContain('desktopVoiceAudioCaptureCleanupRuntime');
       expect(source).toContain('DesktopVoiceAudioCaptureCleanupRuntime');
+      expect(source).toContain('desktopVoiceAudioInputDeviceRuntime');
+      expect(source).toContain('DesktopVoiceAudioInputDeviceRuntime');
       expect(source).toContain('desktopVoiceAudioProcessorNodeRuntime');
       expect(source).toContain('DesktopVoiceAudioProcessorNodeRuntime');
       expect(source).not.toContain('import { float32ToPcm16');
@@ -101,6 +115,9 @@ describe('renderer voice runtime boundary', () => {
       expect(source).not.toContain('../utils/audioEncoding');
       expect(source).not.toContain('../utils/audioCaptureCleanup');
       expect(source).not.toContain('../utils/audioProcessorNode');
+      expect(source).not.toContain('navigator.mediaDevices');
+      expect(source).not.toContain('window.AudioContext');
+      expect(source).not.toContain('webkitAudioContext');
     }
     expect(audioEncodingRuntimeSource).toContain('export const DesktopVoiceAudioEncodingRuntime = Object.freeze');
     expect(audioEncodingRuntimeSource).not.toContain('export function float32ToPcm16');
@@ -110,6 +127,10 @@ describe('renderer voice runtime boundary', () => {
     expect(audioCleanupRuntimeSource).not.toContain('export function cleanupAudioCaptureNodes');
     expect(audioCleanupRuntimeSource).not.toContain('export function takeAudioContext');
     expect(audioCleanupRuntimeSource).not.toContain('export async function closeAudioContextSafely');
+    expect(audioInputDeviceRuntimeSource).toContain('export const DesktopVoiceAudioInputDeviceRuntime = Object.freeze');
+    expect(audioInputDeviceRuntimeSource).not.toContain('export async function requestAudioInputStream');
+    expect(audioInputDeviceRuntimeSource).not.toContain('export function createAudioInputContext');
+    expect(audioInputDeviceRuntimeSource).not.toContain('export function onAudioInputDeviceChange');
     expect(audioProcessorRuntimeSource).toContain('export const DesktopVoiceAudioProcessorNodeRuntime = Object.freeze');
     expect(audioProcessorRuntimeSource).not.toContain('export async function createAudioCaptureProcessorNode');
 
@@ -205,6 +226,8 @@ describe('renderer voice runtime boundary', () => {
     expect(detectionSource).toContain('desktopWakewordCaptureGuardRuntime');
     expect(detectionSource).toContain('DesktopWakewordCaptureGuardRuntime');
     expect(detectionSource).toContain('desktopWakewordEventRuntime');
+    expect(detectionSource).toContain('onAudioInputDeviceChange');
+    expect(detectionSource).not.toContain('devicechange');
     expect(bridgeSource).toContain('desktopWakewordEventRuntime');
     for (const source of [detectionSource, bridgeSource]) {
       expect(source).not.toContain('../utils/wakewordCaptureGuard');

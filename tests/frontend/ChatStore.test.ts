@@ -503,7 +503,6 @@ describe('chatStore', () => {
       presentation: expect.objectContaining({
         isBusy: false,
         isTerminal: true,
-        overlayVisible: true,
         entries: [{ id: 'entry-partial', text: 'partial' }],
         overlayIntent: expect.objectContaining({
           visible: true,
@@ -511,5 +510,11 @@ describe('chatStore', () => {
         }),
       }),
     }));
+    expect(useChatStore.getState().currentTurnProjection?.presentation).not.toHaveProperty(
+      'typingVisible',
+    );
+    expect(useChatStore.getState().currentTurnProjection?.presentation).not.toHaveProperty(
+      'overlayVisible',
+    );
   });
 });

@@ -17,6 +17,7 @@ The chat pill is the small always-available desktop command surface. It is rende
 - Response renderer app: `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
 - Response component: `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - Bindings: `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
+- Browser interaction runtime: `frontend/src/renderer/app/runtime/desktopChatboxInteractionRuntime.js`
 - Composer state: `frontend/src/renderer/features/chat/hooks/useChatComposerDraft.js`
 - Message sending: `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - Selectors: `frontend/src/renderer/features/chat/stores/chatStore.ts`, with
@@ -155,8 +156,17 @@ Electron main owns the BrowserWindow policy that hook applies:
 
 The renderer does not apply native click-through timing or screenshot
 invisibility. It renders the pill and response overlay, sends user text,
-displays the current-turn projection, handles dragging, and reports normal
-hit-test intent.
+displays the current-turn projection, handles drag intent through renderer
+app-runtime interaction adapters, and reports normal hit-test intent. Pointer
+hit-test subscriptions and pill-bounds checks route through
+`DesktopChatboxInteractionRuntime`; the component reports only deduped boolean
+active state and trace values. Close-button anchor measurement, resize
+subscriptions, `ResizeObserver`, and animation-frame scheduling also route
+through that runtime so the component supplies only the pill/send-button refs
+and anchor snapshot. Native-frame collapse timeout scheduling and the
+post-presize composer-height animation-frame commit also route through
+`DesktopChatboxInteractionRuntime`, leaving the component with only the
+empty-input/attachment policy and anchor values.
 
 ## Deep Docs
 

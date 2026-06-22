@@ -55,20 +55,20 @@ Render priority:
 
 This ensures tool cards are chosen before generic markdown rendering.
 
-## Hidden Tool Log Presentation Contract
+## Tool Log Presentation Contract
 
-When the frontend-only `show_tool_logs` setting is `false`, `ChatInterface` transforms dashboard
-message rendering without mutating the underlying transcript:
+Dashboard thread presentation no longer branches on the frontend
+`show_tool_logs` setting or active loop busy state. `ChatInterface` passes
+durable rows and SDK current-turn projection data into
+`DesktopThreadPresentationRuntime.buildThreadPresentationMessages(...)`, and
+the runtime keeps tool-call, tool-output, search-source, and tool-explanation
+rows as rendering data rather than using them as typing or busy lifecycle
+authority.
 
-- raw `tool-output` rows are omitted from the dashboard thread
-- completed-turn `tool-call` rows are replaced with one collapsed `tool-actions-summary` row per
-  user turn, populated from each tool call's `explanation`
-- in-flight tool calls for the active turn are shown as live `tool-explanation` rows until the loop
-  completes, at which point they collapse into the summary row on the next render
-
-Explanation extraction is shared with the response overlay helper and checks the canonical model/tool
-payload paths first (`modelFacingToolCall.arguments`, `toolCallDetails.parameters`, bundled tool
-entries inside `toolCallDetails.tools`)
+The old hidden-tool-log filtering path was removed from the dashboard thread
+projection. Tests now assert that toggling `show_tool_logs` does not reorder or
+filter transcript rows; visible lifecycle and SDK current-turn entries decide
+live projection separately from this setting.
 
 ## LLM Output Rendering Contract
 
@@ -149,12 +149,9 @@ Screenshot source is resolved through screenshot utility:
 
 The old renderer `toolExplanationMessages.js` helper is no longer an active
 message-scanning path. Tool explanations are rendered by the current
-`MessageContent` routing and tool message components:
-
-- live hidden-tool-log explanation rows use `tool-explanation`
-- completed hidden-tool-log summaries use `tool-actions-summary`
-- explanation extraction reads canonical model/tool payload fields from the
-  active message shape
+`MessageContent` routing and tool message components. When rows use
+`tool-explanation` or `tool-actions-summary`, explanation copy comes from the
+canonical model/tool payload fields on the active message shape.
 
 The old `MessageToolMetadata.test.js` suite covered a standalone
 `messageToolMetadata` formatter. That helper path is gone; current tool-output
@@ -276,8 +273,8 @@ Metadata panel prints each key/value pair with string coercion.
 - inline screenshot URL defaults to jpeg when content type missing
 - tool output details toggle reveals model-facing output + detail payload
 - tool call details toggle reveals model-facing call JSON + details payload
-- hidden-tool-log presentation rows render subdued explanation text and expandable `View actions`
-  summaries
+- tool explanation and tool action summary rows render subdued explanation text
+  and expandable `View actions` summaries
 
 `tests/frontend/DesktopMessageTransparencyRuntime.test.js` verifies:
 

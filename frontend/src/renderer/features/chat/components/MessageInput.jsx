@@ -17,6 +17,7 @@ import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
 import { DesktopAttachmentPresentationRuntime } from '../../../app/runtime/desktopAttachmentPresentationRuntime';
+import { DesktopMessageInputRuntime } from '../../../app/runtime/desktopMessageInputRuntime';
 import {
   useClosePlusMenuOnLoopActive,
   useComposerFocusRequest,
@@ -85,9 +86,7 @@ function MessageInput({
     if (!textareaRef.current || isLoopActive) {
       return;
     }
-    textareaRef.current.focus();
-    const textLength = textareaRef.current.value.length;
-    textareaRef.current.setSelectionRange(textLength, textLength);
+    DesktopMessageInputRuntime.focusTextInputAtEnd(textareaRef.current);
   }, [isLoopActive]);
 
   useTextareaAutoResize(inputValue, resizeTextarea);

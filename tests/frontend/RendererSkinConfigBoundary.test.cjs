@@ -68,10 +68,10 @@ const configFilterPath = path.join(rendererRoot, 'app/runtime/desktopRendererCon
 const configStoragePath = path.join(rendererRoot, 'app/runtime/desktopRendererConfigStorageRuntime.js');
 const appConfigPersistencePath = path.join(rendererRoot, 'app/providers/appConfigPersistence.js');
 const appearanceThemeRuntimePath = path.join(rendererRoot, 'app/runtime/desktopAppearanceThemeRuntime.js');
-const applyAppearanceThemePath = path.join(rendererRoot, 'app/applyAppearanceTheme.js');
 const memoryPreferencePath = path.join(rendererRoot, 'app/runtime/desktopMemoryRetrievalPreferenceRuntime.js');
 const permissionStoragePath = path.join(rendererRoot, 'app/runtime/desktopPermissionOnboardingStorageRuntime.js');
 const appConfigProviderPath = path.join(rendererRoot, 'app/providers/AppConfigProvider.jsx');
+const appProviderPath = path.join(rendererRoot, 'app/providers/AppProvider.jsx');
 
 function read(relativePath) {
   return fs.readFileSync(path.join(settingsRoot, relativePath), 'utf8');
@@ -469,7 +469,7 @@ describe('renderer skin/config boundary', () => {
     const appearanceSettingsSource = fs.readFileSync(appearanceSettingsPath, 'utf8');
     const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
     const appearanceThemeRuntimeSource = fs.readFileSync(appearanceThemeRuntimePath, 'utf8');
-    const applyAppearanceThemeSource = fs.readFileSync(applyAppearanceThemePath, 'utf8');
+    const appProviderSource = fs.readFileSync(appProviderPath, 'utf8');
     const appearanceTabSource = read('AppearanceSettingsTab.jsx');
 
     expect(configFacadeSource).toContain("from './appearanceSettings'");
@@ -486,16 +486,19 @@ describe('renderer skin/config boundary', () => {
     expect(appearanceThemeRuntimeSource).not.toContain('export function resolveEffectiveAppearanceTheme');
     expect(appearanceThemeRuntimeSource).not.toContain('export function normalizeAppearanceTheme');
     expect(appearanceThemeRuntimeSource).not.toContain('export function resolveAppearanceThemeSection');
+    expect(appearanceThemeRuntimeSource).toContain('applyAppearanceTheme');
+    expect(appearanceThemeRuntimeSource).toContain('document?.documentElement');
+    expect(appearanceThemeRuntimeSource).toContain('window?.matchMedia');
     expect(configStorageSource).toContain('desktopRuntimeConfig');
     expect(configStorageSource).toContain('desktopAppearanceThemeRuntime');
     expect(configStorageSource).toContain('DesktopAppearanceThemeRuntime');
     expect(configStorageSource).not.toContain('DEFAULT_APPEARANCE_THEME');
     expect(configStorageSource).not.toContain('DEFAULT_APPEARANCE_THEME = Object.freeze');
     expect(configStorageSource).not.toContain("accent: '#339CFF'");
-    expect(applyAppearanceThemeSource).toContain('desktopAppearanceThemeRuntime');
-    expect(applyAppearanceThemeSource).toContain('DesktopAppearanceThemeRuntime');
-    expect(applyAppearanceThemeSource).not.toContain('DEFAULT_APPEARANCE_THEME');
-    expect(applyAppearanceThemeSource).not.toContain('../utils/configStorage');
+    expect(appProviderSource).toContain('DesktopAppearanceThemeRuntime.applyAppearanceTheme');
+    expect(appProviderSource).not.toContain('../applyAppearanceTheme');
+    expect(appProviderSource).not.toContain('DEFAULT_APPEARANCE_THEME');
+    expect(appProviderSource).not.toContain('../utils/configStorage');
     expect(appearanceTabSource).toContain('desktopAppearanceThemeRuntime');
     expect(appearanceTabSource).toContain('DesktopAppearanceThemeRuntime');
     expect(appearanceTabSource).not.toContain('DEFAULT_APPEARANCE_THEME');

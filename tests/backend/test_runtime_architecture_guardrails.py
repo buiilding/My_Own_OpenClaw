@@ -212,3 +212,22 @@ def test_client_settings_patch_guard_doc_path_uses_client_settings_wording():
 
     assert new_reference.exists()
     assert not old_reference.exists()
+
+
+def test_backend_transcription_protocol_uses_client_gateway_wording():
+    protocol_source = _read("backend/src/api/services/transcription/protocol.py")
+    audio_frame_source = _read(
+        "backend/src/api/services/transcription/audio_frames.py"
+    )
+    endpoint_reference = _read("docs/backend/api/http_and_ws_endpoint_reference.md")
+    combined = f"{protocol_source}\n{audio_frame_source}\n{endpoint_reference}"
+
+    assert "client gateway control message" in protocol_source
+    assert "local transcription gateway" in protocol_source
+    assert "gateway-framed metadata + PCM16 audio payload" in audio_frame_source
+    assert "gateway-compatible audio frame" in audio_frame_source
+    assert "client gateway protocol" in endpoint_reference
+    assert "renderer control message" not in combined
+    assert "local renderer gateway" not in combined
+    assert "renderer-compatible audio frame" not in combined
+    assert "renderer protocol" not in combined

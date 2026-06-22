@@ -79,6 +79,9 @@ All notable changes to WindieOS will be documented in this file.
   runtime display-row loading so chat-pill camera query rows render as
   dashboard screenshots after `user_message_metadata` replay. No migration
   required.
+- backend/tools: remove WindieOS repository build-output paths from the
+  model-visible `run_shell_command` schema while preserving generic
+  generated-directory search guidance. No migration required.
 - backend/provider: stop the dev-only scripted model from replaying the same
   scripted tool command after matching tool outputs are already present in
   rebuilt model history, so `@script tool` and `@script batch` finish the turn
@@ -107,6 +110,270 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: route backend-event overlay phase mapping through
+  `createOverlayPhaseEventRuntime(...)` so `ipc_overlay_phase_events.cjs` keeps
+  transition resolution, correlation-id precedence, and recovery metadata
+  shaping private while `ipc_runtime_helpers.cjs` consumes a facade. No
+  migration required.
+- frontend/main: route replay conversation-event projection through
+  `createConversationEventProjectionRuntime(...)` so
+  `ipc_conversation_event_projection.cjs` keeps backend-event validation and
+  SDK normalizer delegation private while `ipc.cjs` consumes a projection
+  facade. No migration required.
+- frontend/main: route query conversation-ref extraction and SDK-shaped
+  failure/interruption event construction through `createQueryEventsRuntime(...)`
+  so `ipc_query_events.cjs` keeps the lower-level resolver/builders private
+  while `ipc.cjs` consumes a query-events facade. No migration required.
+- frontend/main: route renderer query agent-definition payload assembly through
+  `buildRendererBackendQueryPayloadWithAgentDefinition(...)` so
+  `ipc_query_runtime.cjs` keeps SDK turn resource/metadata preservation private
+  while `ipc.cjs` consumes a purpose-named query facade. No migration required.
+- frontend/renderer: route dashboard thread-find input focus/select mechanics
+  through `DesktopChatInterfaceBindingsRuntime.focusAndSelectInput(...)` so
+  `ChatInterface` keeps find-bar state while the app runtime owns the input DOM
+  adapter. No migration required.
+- frontend/renderer: route minimal chat pill explicit text-entry focus and
+  caret placement through
+  `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)` so the
+  pill keeps activation state while the app runtime owns chatbox input DOM
+  focus mechanics. No migration required.
+- frontend/renderer: route dashboard composer focus-request focus and caret
+  placement through `DesktopMessageInputRuntime.focusTextInputAtEnd(...)` so
+  `MessageInput` keeps request-token and loop-lock gating while the app runtime
+  owns textarea DOM focus mechanics. No migration required.
+- frontend/renderer: route transcription pasted-text extraction through
+  `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)` so
+  `useTranscription` keeps React state while the app runtime owns browser
+  clipboard text reads. No migration required.
+- frontend/renderer: route composer paste-event clipboard item inspection
+  through `DesktopComposerAttachmentRuntime.parseClipboardImagePasteEvent(...)`
+  so `useChatComposerDraft` keeps draft state while the app runtime owns
+  browser clipboard mechanics. No migration required.
+- frontend/renderer: move default app startup surface selection into
+  `DesktopStartupRuntimeClient.selectStartupSurface(...)` and delete the
+  standalone `startupSurface.js` helper so `App.jsx` consumes the startup
+  runtime facade for VM/dashboard/onboarding routing. No migration required.
+- frontend/renderer: route renderer React root-element lookup through
+  `DesktopStartupRuntimeClient.getRendererRootElement(...)` so `main.jsx`
+  no longer reads `document.getElementById('root')` directly. No migration
+  required.
+- frontend/renderer: move document-level appearance theme application and
+  system `matchMedia` subscription cleanup into
+  `DesktopAppearanceThemeRuntime`, deleting the standalone
+  `applyAppearanceTheme.js` helper so `AppProvider` consumes the app-runtime
+  facade directly. No migration required.
+- docs/renderer: mark ADR 006 renderer-owned typing lifecycle migration
+  implemented after auditing live surface ownership, pending handoff, raw
+  lifecycle non-authorities, and regression-pack coverage. No migration
+  required.
+- frontend/renderer: route renderer startup `view` query parsing and initial
+  wakeword suppression seeding through `DesktopStartupRuntimeClient` so
+  `main.jsx` and `AppConfigProvider` no longer read `window.location.search`
+  directly. No migration required.
+- frontend/renderer: stop treating SDK `presentation.hasVisibleContent` as
+  standalone visible lifecycle evidence; renderer typing, overlay mode, and
+  send-latch/stopped-turn side effects now require concrete entries, text,
+  errors, or tool progress. No migration required.
+- frontend/renderer: route chat pill drag-start window-position reads through
+  `DesktopChatboxLayoutRuntime.startChatboxDragFromWindow(...)` so
+  `MinimalChatPill` no longer reads `window.screenX` / `window.screenY`
+  directly. No migration required.
+- frontend/renderer: route voice and wakeword browser audio-input capture,
+  AudioContext construction, device availability probing, and wakeword
+  device-change recovery through `DesktopVoiceAudioInputDeviceRuntime` instead
+  of raw browser adapters in feature hooks. No migration required.
+- frontend/renderer: delete the public `shouldUseLocalPendingTurn` live-surface
+  handoff predicate so overlay pending state reads the already-resolved visible
+  lifecycle `local_pending` status. No migration required.
+- frontend/renderer: stop treating SDK `presentation.overlayIntent.mode` as
+  live-surface presentation evidence; overlay intent now stays metadata for
+  turn and guard refs while mode is derived from renderer-visible lifecycle
+  inputs. No migration required.
+- frontend/renderer: delete the retired `overlayTurnLifecycle` compatibility
+  scrubber from visible lifecycle presentation stamping; renderer production
+  code now keeps the old overlay lifecycle name out of the contract instead of
+  adapting or stripping it. No migration required.
+- frontend/renderer: delete unused `showToolLogs` and `isBusy` inputs from
+  dashboard thread presentation, keeping tool rows as rendering data instead
+  of tool-log or busy lifecycle branches. No migration required.
+- frontend/renderer: name thread live-row fallback as projection fallback
+  instead of legacy projection rows, keeping SDK presentation-entry precedence
+  explicit in the app-runtime thread presenter. No migration required.
+- frontend/renderer: rename the visible-lifecycle local handoff facade from
+  `shouldUseLocalSendPreflight` to `shouldUseLocalPendingTurn`, delete the
+  live-surface send-preflight wrapper/source branch, and describe presentation
+  output as overlay-compatible fields while keeping retired
+  `overlayTurnLifecycle` cleanup explicit. No migration required.
+- frontend/renderer: refresh the renderer source map so it routes config
+  persistence through `desktopRendererConfigStorageRuntime` and labels
+  `isSending` / `thinkingStatus` as compatibility state instead of visible
+  lifecycle owners. No migration required.
+- frontend/renderer: delete the live-surface `useLocalSendLatch` diagnostic
+  alias; response overlay view-model traces and live-surface projection now use
+  `useLocalPendingTurn` for the renderer `pendingTurn` path. No migration
+  required.
+- frontend/main: align chat-pill main debug trace visibility fields with the
+  renderer response-overlay contract by emitting `response_visible` and
+  `awaiting_visible` instead of legacy `show_response` and
+  `show_awaiting_reply`. No migration required.
+- frontend/tests: delete the minimal chat pill pending-stop `isSending`
+  fixture; the pre-first-stream Stop replay now uses renderer `pendingTurn`
+  plus visible lifecycle instead of a raw send latch. No migration required.
+- frontend/renderer: delete the response-overlay view-intent `showResponse`
+  and `showAwaitingReply` aliases; overlay view, layout, component, and trace
+  inputs now use explicit `responseVisible` and `awaitingVisible` fields. No
+  migration required.
+- frontend/renderer: delete the SDK response-overlay `fallbackState`
+  presentation adapter; SDK response projection now returns explicit response
+  entry data and overlay-intent metadata before visible lifecycle stamping. No
+  migration required.
+- backend/api: route transcription websocket protocol wording through the
+  client gateway boundary instead of renderer-specific labels in backend
+  service docstrings and endpoint docs. No migration required.
+- frontend/renderer: delete the duplicate `showResponse` live-surface alias;
+  response overlay visibility remains owned by the response-overlay view intent
+  after entries and dismissal state are resolved. No migration required.
+- frontend/renderer: delete the duplicate `showAwaiting` live-surface alias;
+  live-turn surface output now keeps typing state on the renderer-owned visible
+  lifecycle and preserves phase/busy/response fields. No migration required.
+- frontend/renderer: delete the response-overlay awaiting layout helper alias;
+  overlay window sizing now uses compact-hover mode and native mode resolution
+  stays inside the layout runtime. No migration required.
+- frontend/renderer: delete the duplicate `showChatboxResponse`
+  presentation alias; chatbox response state now stays on
+  `chatboxSurfaceState` and response-overlay entries. No migration required.
+- frontend/renderer: delete the duplicate `showChatboxAwaitingReply`
+  presentation alias; response overlay awaiting visibility now derives from
+  `visibleTurnLifecycle.status` directly. No migration required.
+- frontend/renderer: delete the stale current-turn presentation `loopUiState`
+  alias; visible lifecycle status and chatbox surface state now carry
+  awaiting/response state while the transport recovery hook keeps its separate
+  loop state. No migration required.
+- frontend/renderer: delete the legacy `isAwaitingReply` presentation alias;
+  awaiting state now stays on `visibleTurnLifecycle.status`,
+  `chatboxSurfaceState`, and the concrete `awaitingDotTargetMessageId`
+  anchor. No migration required.
+- frontend/renderer: route dashboard shell opening timers and document
+  scroll-lock DOM updates through `DesktopDashboardLayoutRuntime`, keeping raw
+  browser timer/document access out of `DashboardShell`. No migration required.
+- frontend/renderer: route dashboard conversation retry, generated-title poll,
+  and search debounce timers through `DesktopDashboardConversationLoadRuntime`,
+  keeping raw browser timeout calls out of `useDashboardConversations`. No
+  migration required.
+- frontend/renderer: route voice-mode reconnect backoff timers through
+  `DesktopVoiceRuntimeClient`, keeping raw browser timeout calls out of
+  `useVoiceMode`. No migration required.
+- frontend/renderer: route transcription paste caret restoration through
+  `DesktopTranscriptionRegionRuntime`, keeping raw browser timeout calls out of
+  `useTranscription`. No migration required.
+- frontend/renderer: delete the duplicate `showAssistantAwaitingDot`
+  presentation field; dashboard awaiting placement now stays on the concrete
+  `awaitingDotTargetMessageId` anchor. No migration required.
+- frontend/renderer: route dashboard model-reset warning timer scheduling
+  through `DesktopModelSelectionRuntime`, keeping raw browser timeout
+  scheduling out of `ModelsSection`. No migration required.
+- frontend/renderer: route debug tool-ghost hide/restart timer scheduling
+  through `DesktopToolGhostRuntime`, keeping raw browser timeout scheduling out
+  of `ToolGhostDebugApp`. No migration required.
+- frontend/renderer: delete the legacy `normalizeThinkingText` export from
+  `DesktopCurrentTurnMessageRuntime`; response-overlay reasoning copy now
+  normalizes SDK `currentTurn.reasoningText` locally while store
+  `thinkingStatus` remains dashboard compaction/manual status text. No
+  migration required.
+- frontend/renderer: remove raw `streamTracking` from the chat-interface
+  selector projection so dashboard surfaces no longer receive stream phase as a
+  legacy lifecycle-shaped field. No migration required.
+- frontend/renderer: route the chat-loop disconnect recovery watchdog timer
+  through `DesktopChatLoopUiRuntime`, keeping raw browser timeout scheduling
+  out of `useChatLoopUiState`. No migration required.
+- frontend/renderer: route app-provider keydown/storage subscriptions,
+  editable-target checks, localStorage access, and save-status timers through
+  `DesktopAppProviderRuntime`, keeping provider browser adapters out of
+  provider state components. No migration required.
+- frontend/renderer: route chat message action copy-reset and assistant-action
+  reveal timers through `DesktopMessageActionRuntime`, keeping raw browser
+  timeout scheduling out of message action feature code. No migration required.
+- frontend/renderer: delete the thin `useCurrentTurnPresentationState` hook
+  shim and have chat surface/response overlay hooks call
+  `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState`
+  directly. No migration required.
+- frontend/tests: route the pending-stop integration replay through
+  `useChatSurfaceController(...)` and assert a pending turn can still be
+  stopped when raw `isSending` is stale false, protecting visible lifecycle as
+  the Stop/busy authority. No migration required.
+- frontend/renderer: route message-list active find-match scrolling,
+  auto-scroll RAF coalescing/cleanup, and resize observation through
+  `DesktopMessageListRuntime`, keeping browser scheduling adapters out of
+  `MessageList` and `useMessageListAutoScroll`. No migration required.
+- frontend/renderer: route minimal chat pill native-frame collapse timers and
+  post-presize composer height animation-frame commits through
+  `DesktopChatboxInteractionRuntime`, leaving `MinimalChatPill` with only
+  value-level callbacks and anchor policy. No migration required.
+- frontend/renderer: remove the dead `typingVisible` cursor field from
+  `DesktopCurrentTurnProjectionEffectsRuntime`; SDK current-turn side effects
+  now track only text lengths, phase, errors, and seen tool-event ids while
+  continuing to ignore SDK presentation visibility flags as send-latch
+  authority. No migration required.
+- frontend/renderer: delete the unused empty `ChatContext` compatibility
+  wrapper from `ChatProvider` and trim provider-injected live-surface trace
+  snapshots so they carry identity/message evidence instead of raw
+  `isSending`, `thinkingStatus`, or stream phase lifecycle latches. No
+  migration required.
+- frontend/renderer: route minimal chat pill close-button anchor measurement,
+  resize subscription, ResizeObserver, and animation-frame scheduling through
+  `DesktopChatboxInteractionRuntime`, keeping close-anchor browser adapters out
+  of `MinimalChatPill`. No migration required.
+- frontend/renderer: route minimal chat pill pointer hit-test window
+  subscriptions and pill-bounds checks through
+  `DesktopChatboxInteractionRuntime`, keeping raw mouse hit-test browser
+  adapters out of `MinimalChatPill`. No migration required.
+- frontend/renderer: route chat interface window-focus refresh subscriptions
+  and thread-find deferred focus animation-frame scheduling through
+  `DesktopChatInterfaceBindingsRuntime`, keeping raw focus/RAF browser
+  adapters out of `ChatInterface`. No migration required.
+- frontend/renderer: route response overlay hit-test window subscriptions and
+  pointer bounds checks through `DesktopResponseOverlayInteractionRuntime`,
+  keeping raw browser listeners out of `MinimalResponseOverlay`. No migration
+  required.
+- frontend/renderer: stop copying SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` into renderer current-turn applied trace
+  payloads; traces now keep visible-content evidence without preserving legacy
+  lifecycle visibility flags. No migration required.
+- frontend/renderer: remove store `thinkingStatus` from the response-overlay
+  live-turn selector and view model; overlay reasoning text now comes only from
+  SDK `currentTurn.reasoningText`, while dashboard compaction/manual status
+  remains on the chat-interface path. No migration required.
+- frontend/renderer: strip SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` from stopped current-turn projections, leaving
+  post-stop typing and response visibility to renderer visible lifecycle plus
+  visible entries. No migration required.
+- frontend/renderer: remove raw `isSending` from minimal chat pill and response
+  overlay trace payloads, deleting the trace-only send-latch subscription after
+  visible lifecycle became the surface authority. No migration required.
+- frontend/renderer: delete the unused
+  `DesktopOverlayTurnLifecycleRuntime`, its shared overlay lifecycle JSON
+  contract, and the stale helper test now that renderer surfaces consume
+  `DesktopVisibleTurnLifecycleRuntime` directly. No migration required.
+- frontend/renderer: remove the legacy `overlayTurnLifecycle` presentation
+  field from visible lifecycle stamping and response overlay traces; renderer
+  surfaces now carry `visibleTurnLifecycle` plus busy/awaiting fields without
+  adapting back to overlay lifecycle names. No migration required.
+- frontend/renderer: route minimal chat pill drag window subscriptions and
+  visual-anchor ResizeObserver/timer/animation-frame scheduling through
+  `DesktopChatboxInteractionRuntime`, keeping raw browser adapters out of
+  `useMinimalChatPillBindings`. No migration required.
+- frontend/renderer: route dashboard search modal focus and Escape-key browser
+  lifecycle wiring through `DesktopDashboardSearchModalRuntime`, keeping raw
+  timer and `window` listener adapters out of `SearchChatsModal`. No migration
+  required.
+- frontend/renderer: route chat interface menu-dismiss, stop-shortcut, and
+  thread-find shortcut window subscriptions through
+  `DesktopChatInterfaceBindingsRuntime`, keeping raw browser listener wiring
+  out of `useChatInterfaceBindings`. No migration required.
+- frontend/renderer: route chat browser session, plus-menu, and dashboard
+  sidebar outside-dismiss subscriptions through `DesktopDismissOnOutsideRuntime`
+  so pointer and Escape dismissal rules share one renderer app-runtime owner. No
+  migration required.
 - frontend/renderer: route chat message and transparency-section clipboard
   writes through `DesktopClipboardRuntime.writeText(...)`, keeping browser
   clipboard access in the renderer app-runtime boundary while preserving local
@@ -140,6 +407,18 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`; live
   surface consumers now use visible-lifecycle `isBusy`, awaiting, and response
   fields only. No migration required.
+- frontend/renderer: delete live-surface runtime reads of SDK
+  `presentation.typingVisible` and `presentation.overlayVisible`; SDK
+  presentation rows are recognized from entries or explicit overlay intent, and
+  fallback overlay intent now comes from SDK phase plus visible content/progress
+  evidence. No migration required.
+- frontend/renderer: remove the response-overlay view runtime's dependency on
+  the legacy overlay lifecycle adapter; stale previous responses are now
+  suppressed from `visibleTurnLifecycle.status` directly. No migration required.
+- frontend/renderer: delete the passthrough
+  `resolveVisibleTurnLifecycleForPresentation(...)` facade; chat surface and
+  response overlay now stamp presentation state from the resolved visible
+  lifecycle directly. No migration required.
 - frontend/renderer: remove stale raw `isSending` prop plumbing from the
   dashboard, minimal pill, and response-overlay surface hook boundaries; the
   full chat selector no longer exposes `isSending`, while live overlay traces
@@ -148,6 +427,10 @@ All notable changes to WindieOS will be documented in this file.
   `selectLiveTurnSurfaceState(...)` and the app-runtime live-surface selector;
   response overlay keeps any raw send-latch access as an explicit trace-only
   store read. No migration required.
+- frontend/renderer: stop treating SDK `presentation.isBusy` as a Stop target
+  authority; Stop targeting now follows active SDK phases or renderer
+  `pendingTurn` while visible lifecycle owns Stop button availability. No
+  migration required.
 - frontend/renderer: route dashboard conversation rename/delete browser dialogs
   through `DesktopDashboardConversationDialogRuntime`, keeping `window.prompt`
   and `window.confirm` adapter details out of dashboard feature hooks. No
