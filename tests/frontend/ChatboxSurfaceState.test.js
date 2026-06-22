@@ -77,7 +77,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     expect(state.chatboxSurfaceState).toBe('compact');
   });
 
-  test('projects SDK response entries onto fallback lifecycle state', () => {
+  test('projects SDK response entries into explicit response-overlay state', () => {
     const state = resolveSdkResponseOverlayPresentationState({
       currentTurnProjection: {
         conversationRef: 'conv-1',
@@ -100,9 +100,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       responseOverlayEntries: [
         { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
       ],
-      fallbackState: {
-        isBusy: false,
-      },
       includeOverlayIntent: true,
     });
 
@@ -134,9 +131,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
         },
       },
       responseOverlayEntries: [],
-      fallbackState: {
-        chatboxSurfaceState: 'compact',
-      },
       includeOverlayIntent: true,
     });
 
@@ -166,9 +160,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
         { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
       ],
       dismissedResponseId: 'assistant-1',
-      fallbackState: {
-        chatboxSurfaceState: 'compact',
-      },
     });
 
     expect(state).toMatchObject({

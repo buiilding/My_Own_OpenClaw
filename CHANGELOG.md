@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the SDK response-overlay `fallbackState`
+  presentation adapter; SDK response projection now returns explicit response
+  entry data and overlay-intent metadata before visible lifecycle stamping. No
+  migration required.
 - backend/api: route transcription websocket protocol wording through the
   client gateway boundary instead of renderer-specific labels in backend
   service docstrings and endpoint docs. No migration required.

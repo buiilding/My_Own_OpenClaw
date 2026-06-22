@@ -80,14 +80,13 @@ function resolveCurrentTurnPresentationState({
 
 function resolveSdkResponseOverlayPresentationState({
   currentTurnProjection = null,
-  fallbackState = null,
   responseOverlayEntries = [],
   dismissedResponseId = null,
   includeOverlayIntent = false,
 } = {}) {
   const presentation = currentTurnProjection?.presentation;
   if (!presentation) {
-    return fallbackState;
+    return null;
   }
   const latestEntry = responseOverlayEntries.length > 0
     ? responseOverlayEntries[responseOverlayEntries.length - 1]
@@ -100,13 +99,12 @@ function resolveSdkResponseOverlayPresentationState({
   const overlayIntent = resolveSdkOverlayIntent(presentation, currentTurnProjection);
   const responseVisible = Boolean(visibleResponse);
   const state = {
-    ...fallbackState,
     activeResponse: visibleResponse,
     hasVisibleReply: presentation.hasVisibleContent === true,
     visibleResponse,
     chatboxSurfaceState: responseVisible
       ? CHATBOX_SURFACE_STATE.RESPONSE
-      : fallbackState?.chatboxSurfaceState,
+      : CHATBOX_SURFACE_STATE.COMPACT,
   };
   if (includeOverlayIntent) {
     state.overlayIntent = overlayIntent;

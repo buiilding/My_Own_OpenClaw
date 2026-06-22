@@ -565,6 +565,8 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).not.toContain('loopUiState');
     expect(currentTurnPresentationSource).not.toContain('showChatboxAwaitingReply');
     expect(currentTurnPresentationSource).not.toContain('showChatboxResponse');
+    expect(currentTurnPresentationSource).not.toContain('fallbackState');
+    expect(overlayViewModelSource).not.toContain('fallbackState');
     expect(currentTurnMessageSource).not.toContain('features/chat');
     expect(currentTurnMessageSource).not.toContain('features/minimalChatPill');
     expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');

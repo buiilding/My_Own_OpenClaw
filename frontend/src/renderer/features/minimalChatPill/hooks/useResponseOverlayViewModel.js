@@ -151,11 +151,10 @@ export function useResponseOverlayViewModel({
       if (useSdkLiveTurnPresentation && !useLocalSendLatch) {
         presentationState = resolveSdkResponseOverlayPresentationState({
           currentTurnProjection,
-          fallbackState: currentTurnPresentationState,
           responseOverlayEntries,
           dismissedResponseId,
           includeOverlayIntent: true,
-        });
+        }) || currentTurnPresentationState;
       } else if (useLocalSendLatch) {
         presentationState = {
           ...currentTurnPresentationState,

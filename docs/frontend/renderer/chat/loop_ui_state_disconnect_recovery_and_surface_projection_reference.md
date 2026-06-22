@@ -169,9 +169,10 @@ message-only presentation snapshot from `DesktopCurrentTurnPresentationRuntime`
 and passes the resolved lifecycle directly into presentation stamping; it no
 longer calls an SDK presentation reducer, and the response overlay uses
 `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
-only for SDK response-entry data plus overlay-intent metadata. Actual response
-visibility requires a visible response entry; overlay intent alone is not a
-response lifecycle authority.
+only for explicit SDK response-entry data plus overlay-intent metadata instead
+of merging a fallback presentation snapshot. Actual response visibility
+requires a visible response entry; overlay intent alone is not a response
+lifecycle authority.
 The controller resolves the active lifecycle against the SDK current-turn
 conversation ref when present, so a lagging session ref does not hide the
 visible same-turn projection.

@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 SDK Response Overlay Fallback State Deletion
+
+- Finding: `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
+  still accepted `fallbackState` and merged it into SDK response-overlay
+  projection, preserving a legacy adapter path after message-only presentation
+  and visible lifecycle stamping had become separate owner steps.
+- Change: removed the fallback parameter. SDK response-overlay projection now
+  returns explicit SDK response-entry data and overlay-intent metadata only;
+  `useResponseOverlayViewModel(...)` composes that data before visible lifecycle
+  stamping instead of asking the helper to merge a fallback presentation
+  snapshot.
+- Validation target: `ChatboxSurfaceState.test.js` and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed response overlay
+  presentation contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Live Surface Response Alias Deletion
 
 - Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
