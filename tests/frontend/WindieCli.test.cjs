@@ -327,6 +327,7 @@ describe('windie CLI', () => {
     expect(userFacingPlan.concurrent[1].args).toEqual(expect.arrayContaining([
       'DesktopAppearanceThemeRuntime.test.js',
       'SettingsSection.test.jsx',
+      'ChatBoxAppearanceCss.test.cjs',
       'SettingsSurfaceCss.test.js',
     ]));
     expect(userFacingPlan.concurrent[2]).toMatchObject({

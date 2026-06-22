@@ -62,6 +62,9 @@ Light-mode readability:
   or translucent desktop surfaces
 - chat header utility controls also route their light-mode text and labels
   through the same foreground token
+- the minimal chat pill close badge routes through the same foreground token in
+  light appearance so the close affordance remains readable on the light close
+  bump
 - dev-only source badges and transparency panels use the same foreground in
   light appearance so diagnostic metadata remains readable
 - user message bubbles use `--user-message-background` and

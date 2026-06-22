@@ -21,6 +21,9 @@
   --appearance-contrast: 60;
   --user-message-background: #339CFF;
   --user-message-foreground: #ffffff;
+  --chatbox-close-badge-fg: rgba(255, 255, 255, 0.94);
+  --chatbox-close-badge-hover-fg: var(--ui-text-primary);
+  --chatbox-close-badge-hover-bg: var(--ui-hover-bg);
 
   --bg-base: var(--agent-black);
   --bg-muted: var(--agent-gray);
@@ -225,6 +228,9 @@
   --ui-shadow-strong: var(--pill-shadow-strong);
   --ui-send-bg-disabled: color-mix(in srgb, var(--agent-accent) 26%, #d5e3f4 74%);
   --ui-send-text: #ffffff;
+  --chatbox-close-badge-fg: var(--appearance-foreground);
+  --chatbox-close-badge-hover-fg: var(--appearance-foreground);
+  --chatbox-close-badge-hover-bg: color-mix(in srgb, var(--appearance-foreground) 10%, transparent 90%);
   --ui-neutral-white: #ffffff;
   --ui-neutral-black: #101318;
   --ui-brand-dot-fg: #ffffff;

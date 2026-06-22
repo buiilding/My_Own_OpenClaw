@@ -1,0 +1,38 @@
+/**
+ * Covers minimal chat pill appearance token behavior in the frontend suite.
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const repoRoot = path.resolve(__dirname, '../..');
+
+function readRepoFile(relativePath) {
+  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+}
+
+describe('chat box appearance CSS', () => {
+  test('routes the minimal pill close badge through theme tokens', () => {
+    const chatBoxCss = readRepoFile('frontend/src/renderer/styles/ChatBox.css');
+
+    expect(chatBoxCss).toContain('.chatbox-close-badge');
+    expect(chatBoxCss).toContain('color: var(--chatbox-close-badge-fg);');
+    expect(chatBoxCss).toContain('color: var(--chatbox-close-badge-hover-fg);');
+    expect(chatBoxCss).toContain('background: var(--chatbox-close-badge-hover-bg);');
+    expect(chatBoxCss).not.toContain('color: rgba(255, 255, 255, 0.94);');
+  });
+
+  test('keeps the close badge readable in light appearance', () => {
+    const themeCss = readRepoFile('frontend/src/renderer/styles/theme.css');
+    const lightThemeStart = themeCss.indexOf(":root[data-agent-theme='light']");
+    const lightThemeEnd = themeCss.indexOf(":root[data-agent-translucent-sidebar='false']");
+    const lightThemeBlock = themeCss.slice(lightThemeStart, lightThemeEnd);
+
+    expect(lightThemeStart).toBeGreaterThanOrEqual(0);
+    expect(lightThemeBlock).toContain('--chatbox-close-badge-fg: var(--appearance-foreground);');
+    expect(lightThemeBlock).toContain('--chatbox-close-badge-hover-fg: var(--appearance-foreground);');
+    expect(lightThemeBlock).toContain(
+      '--chatbox-close-badge-hover-bg: color-mix(in srgb, var(--appearance-foreground) 10%, transparent 90%);',
+    );
+  });
+});

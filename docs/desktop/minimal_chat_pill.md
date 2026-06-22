@@ -43,6 +43,9 @@ The chat pill is the small always-available desktop command surface. It is rende
   dashboard-close handoff may reopen the pill and clear the user-hidden intent.
 - Screenshot capture behavior differs by platform; Linux hides desktop overlay surfaces, Windows/macOS do not.
 - Drag and resize behavior should preserve the user-perceived anchor, especially when multiline input or image previews grow.
+- In light appearance, the close badge foreground must resolve through the
+  active appearance foreground token so the close affordance stays readable on
+  the pill's light close bump.
 - Press-and-hold dragging is a shell interaction, not text entry. The first
   unfocused press on the textarea may request native text-entry activation for
   click-to-type, but if the pointer moves past the drag threshold that same

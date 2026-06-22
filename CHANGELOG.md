@@ -89,6 +89,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: route the minimal chat pill close badge through appearance
+  foreground tokens in light mode so the close affordance remains visible on the
+  light close bump. No migration required.
 - frontend/renderer: give disabled primary and secondary settings buttons
   explicit readable disabled palettes instead of opacity-only styling, closing
   the remaining light-mode settings-control contrast gap. No migration
