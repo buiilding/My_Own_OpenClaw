@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Pending Stop Visible Lifecycle Regression
+
+- Finding: `PendingStopLiveSurfaceIntegration.test.jsx` still wired the shared
+  stop hook with raw store `isSending`, preserving a test-only stop affordance
+  authority after production Stop routing had moved to visible lifecycle busy
+  state.
+- Change: the pending-stop replay now derives stop enablement through
+  `useChatSurfaceController(...)` and explicitly forces raw `isSending=false`
+  after accepting a pending turn, proving renderer `pendingTurn` plus visible
+  lifecycle still stops and clears the correct turn.
+- Validation target: `PendingStopLiveSurfaceIntegration.test.jsx` remains in
+  `<windie> test core-loop` and protects pending Stop from regressing to a raw
+  send-latch gate.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Current-Turn Presentation Hook Deletion
 
 - Finding: `useCurrentTurnPresentationState(...)` had become a feature-level
