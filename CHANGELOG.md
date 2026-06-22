@@ -228,6 +228,10 @@ All notable changes to WindieOS will be documented in this file.
   mutation commands. Display edits now persist through display timeline
   checkpoints and normal sends, while `conversation_events` stays append-only
   audit history. No storage migration required.
+- sdk: expose `loadModelHistory(...)` and `checkoutRevision(...)` on the
+  conversation runtime and Agent facade so SDK callers can inspect bounded
+  model-history checkpoints and move the runtime head to an existing display
+  revision without raw event-log reconstruction. No storage migration required.
 - backend/sdk: add backend-safe typed `display_attachments` support at
   tool-result, tool-bundle-result, rehydrate, and outgoing tool-output
   websocket boundaries while keeping `screenshot_ref`/artifact refs as the

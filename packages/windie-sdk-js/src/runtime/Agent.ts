@@ -16,6 +16,7 @@ import type {
   JsonRecord,
   ListConversationOptions,
   LocalToolExecutionLifecycle,
+  ModelHistoryCheckpoint,
   SearchConversationOptions,
   TurnResourceResolverRegistry,
   TraceEventPayload,
@@ -50,6 +51,7 @@ import type {
 } from './LocalRuntime.js';
 import {
   SdkConversationRuntime,
+  type CheckoutRevisionResult,
   type ForkConversationInput,
   type ForkConversationResult,
   type ReplaceRowsInput,
@@ -1008,6 +1010,34 @@ export class Agent {
     }).loadDisplayTimeline({
       revisionId: revisionId ?? null,
     });
+  }
+
+  async loadModelHistory(options: {
+    conversationRef: string;
+    revisionId?: string | null;
+    store?: ConversationStore;
+  }): Promise<ModelHistoryCheckpoint | null> {
+    const { conversationRef, revisionId, store } = options;
+    return this.conversation({
+      conversationRef,
+      revisionId: revisionId ?? undefined,
+      store: store ?? this.defaultConversationStore,
+    }).loadModelHistory({
+      revisionId: revisionId ?? null,
+    });
+  }
+
+  async checkoutRevision(options: {
+    conversationRef: string;
+    revisionId: string;
+    store?: ConversationStore;
+  }): Promise<CheckoutRevisionResult> {
+    const { conversationRef, revisionId, store } = options;
+    return this.conversation({
+      conversationRef,
+      revisionId,
+      store: store ?? this.defaultConversationStore,
+    }).checkoutRevision({ revisionId });
   }
 
   async replaceRows(

@@ -549,6 +549,18 @@ class SdkConversationRuntime {
             baseRevisionId: null,
         };
     }
+    async loadModelHistory(options = {}) {
+        const loader = this.options.store.loadModelHistory;
+        if (!loader) {
+            return null;
+        }
+        return loader.call(this.options.store, {
+            conversationRef: this.options.conversationRef,
+            revisionId: Object.prototype.hasOwnProperty.call(options, 'revisionId')
+                ? options.revisionId ?? null
+                : null,
+        });
+    }
     async loadStoredDisplayTimeline(revisionId = null) {
         const loader = this.options.store.loadDisplayTimeline;
         if (!loader) {
@@ -558,6 +570,39 @@ class SdkConversationRuntime {
             conversationRef: this.options.conversationRef,
             revisionId,
         });
+    }
+    async checkoutRevision(input) {
+        const revisionId = typeof input.revisionId === 'string'
+            ? input.revisionId.trim()
+            : '';
+        if (!revisionId) {
+            throw new Error('checkoutRevision requires revisionId');
+        }
+        const displayTimeline = await this.loadStoredDisplayTimeline(revisionId);
+        if (!displayTimeline) {
+            throw new Error('checkoutRevision requires an existing display timeline revision');
+        }
+        const modelHistoryCheckpoint = await this.loadModelHistory({ revisionId });
+        this.activeDisplayTimeline = displayTimeline;
+        this.state = {
+            ...this.state,
+            revisionId,
+        };
+        await this.recordRuntimeTrace({
+            path: 'conversation.revision',
+            stage: 'checkout',
+            status: 'succeeded',
+            data: {
+                revisionId,
+                displayRowCount: displayTimeline.rows.length,
+                modelHistoryRowCount: modelHistoryCheckpoint?.rows.length ?? 0,
+                modelHistoryCheckpointId: modelHistoryCheckpoint?.checkpointId ?? null,
+            },
+        }, { revisionId });
+        return {
+            displayTimeline,
+            modelHistoryCheckpoint,
+        };
     }
     async replaceRows(input) {
         if (!this.options.store.replaceDisplayTimeline) {

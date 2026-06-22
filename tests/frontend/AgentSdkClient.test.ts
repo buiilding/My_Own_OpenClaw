@@ -4065,6 +4065,124 @@ describe('Agent SDK client behavior', () => {
     }));
   });
 
+  test('Agent exposes model-history loading and revision checkout primitives', async () => {
+    const store = new InMemoryConversationStore();
+    await store.replaceDisplayTimeline?.({
+      conversationRef: 'conv-checkout',
+      revisionId: 'rev-parent',
+      createdAt: '2026-06-22T11:00:00.000Z',
+      reason: 'send',
+      baseRevisionId: null,
+      rows: [
+        {
+          id: 'row-parent-user',
+          conversationRef: 'conv-checkout',
+          revisionId: 'rev-parent',
+          turnRef: 'turn-parent',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'original question',
+          metadata: { revisionId: 'rev-parent' },
+        },
+      ],
+    });
+    await store.replaceDisplayTimeline?.({
+      conversationRef: 'conv-checkout',
+      revisionId: 'rev-child',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: 'user_edit',
+      baseRevisionId: 'rev-parent',
+      rows: [
+        {
+          id: 'row-child-user',
+          conversationRef: 'conv-checkout',
+          revisionId: 'rev-child',
+          turnRef: 'turn-child',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'edited question',
+          metadata: { revisionId: 'rev-child' },
+        },
+      ],
+    });
+    await store.replaceModelHistory?.({
+      checkpointId: 'mh-child',
+      conversationRef: 'conv-checkout',
+      revisionId: 'rev-child',
+      createdAt: '2026-06-22T12:01:00.000Z',
+      rows: [
+        {
+          id: 'mh-child-user',
+          conversationRef: 'conv-checkout',
+          revisionId: 'rev-child',
+          role: 'user',
+          messageType: 'user_query',
+          content: 'edited question',
+          sourceDisplayRowIds: ['row-child-user'],
+        },
+      ],
+    });
+    const agent = new Agent(
+      'revision-agent',
+      { on: jest.fn(() => () => undefined), close: jest.fn() } as any,
+      {},
+      {} as any,
+      { listAgents: jest.fn(() => []) },
+      undefined,
+      'user-1',
+      store,
+    );
+
+    await expect(agent.loadModelHistory({
+      conversationRef: 'conv-checkout',
+      revisionId: 'rev-child',
+    })).resolves.toMatchObject({
+      checkpointId: 'mh-child',
+      revisionId: 'rev-child',
+      rows: [
+        expect.objectContaining({
+          id: 'mh-child-user',
+          content: 'edited question',
+          sourceDisplayRowIds: ['row-child-user'],
+        }),
+      ],
+    });
+
+    await expect(agent.checkoutRevision({
+      conversationRef: 'conv-checkout',
+      revisionId: 'rev-child',
+    })).resolves.toMatchObject({
+      displayTimeline: {
+        revisionId: 'rev-child',
+        rows: [
+          expect.objectContaining({
+            id: 'row-child-user',
+            content: 'edited question',
+          }),
+        ],
+      },
+      modelHistoryCheckpoint: {
+        checkpointId: 'mh-child',
+        revisionId: 'rev-child',
+      },
+    });
+
+    const traceEvents = await store.loadEvents('conv-checkout');
+    expect(traceEvents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'trace_event',
+        revisionId: 'rev-child',
+        payload: expect.objectContaining({
+          path: 'conversation.revision',
+          stage: 'checkout',
+          status: 'succeeded',
+        }),
+      }),
+    ]));
+  });
+
   test('LocalRuntimeConversationStore merges host write params before local runtime rpc', async () => {
     const rpc = jest.fn(async () => ({ success: true, data: {} }));
     const store = new LocalRuntimeConversationStore({

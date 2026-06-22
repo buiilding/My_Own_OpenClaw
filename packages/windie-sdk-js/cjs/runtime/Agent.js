@@ -785,6 +785,24 @@ class Agent {
             revisionId: revisionId ?? null,
         });
     }
+    async loadModelHistory(options) {
+        const { conversationRef, revisionId, store } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId: revisionId ?? undefined,
+            store: store ?? this.defaultConversationStore,
+        }).loadModelHistory({
+            revisionId: revisionId ?? null,
+        });
+    }
+    async checkoutRevision(options) {
+        const { conversationRef, revisionId, store } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId,
+            store: store ?? this.defaultConversationStore,
+        }).checkoutRevision({ revisionId });
+    }
     async replaceRows(options) {
         const { conversationRef, revisionId, store, ...input } = options;
         return this.conversation({

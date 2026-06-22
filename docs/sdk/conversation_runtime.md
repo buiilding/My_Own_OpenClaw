@@ -336,6 +336,16 @@ store.loadModelHistory({ conversationRef, revisionId? })
   -> load the active provider-neutral checkpoint for backend install during normal resume
 ```
 
+SDK callers use the matching public revision primitives:
+
+```text
+conversation.loadDisplayTimeline({ revisionId? })
+conversation.loadModelHistory({ revisionId? })
+conversation.replaceRows({ rows, baseRevisionId, reason })
+conversation.fork({ sourceRevisionId, cutAfterRowId, newConversationRef })
+conversation.checkoutRevision({ revisionId })
+```
+
 Do not implement separate role/message/tool interpretation inside each adapter.
 The adapter methods are API conveniences; they must delegate to shared SDK
 projection builders or to a complete active compacted replay snapshot. This
@@ -376,6 +386,12 @@ reason only. No migration is required for adding the checkpoint table or store
 methods: conversations without display timeline checkpoints continue to
 project display rows from events until a replacement writes the first
 checkpoint.
+
+`checkoutRevision(...)` is an SDK runtime checkout primitive for existing
+display revisions. It requires a stored display timeline for the requested
+revision, moves the runtime head to that revision, returns the matching
+model-history checkpoint when one exists, and records only sanitized checkout
+trace metadata. It does not rebuild backend history from raw events.
 
 Fork uses the same display timeline boundary. `conversation.fork(...)` copies
 the selected display prefix into a new conversation revision with reason
