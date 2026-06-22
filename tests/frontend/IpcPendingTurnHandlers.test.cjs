@@ -55,6 +55,16 @@ describe('pending turn IPC handlers', () => {
         text: '',
         timestamp: ' 2026-06-19T00:00:00.000Z ',
         attachmentFilenames: [' one.png ', '', 42, 'two.png'],
+        screenshots: [
+          {
+            screenshot: 'inline-base64',
+            screenshotContentType: ' image/png ',
+          },
+          {
+            screenshot: '',
+            screenshotUrl: ' ',
+          },
+        ],
       },
     });
 
@@ -65,6 +75,14 @@ describe('pending turn IPC handlers', () => {
       text: '',
       timestamp: ' 2026-06-19T00:00:00.000Z ',
       attachmentFilenames: [' one.png ', 'two.png'],
+      screenshots: [
+        {
+          screenshot: 'inline-base64',
+          screenshotRef: null,
+          screenshotUrl: null,
+          screenshotContentType: 'image/png',
+        },
+      ],
     });
   });
 
@@ -104,6 +122,7 @@ describe('pending turn IPC handlers', () => {
       text: 'hello',
       timestamp: '2026-06-19T00:00:00.000Z',
       attachmentFilenames: null,
+      screenshots: null,
     });
     expect(broadcastToRenderers).toHaveBeenCalledWith('windie:pending-turn', {
       type: 'pending',
@@ -267,6 +286,7 @@ describe('pending turn IPC handlers', () => {
       text: 'next',
       timestamp: '2026-06-20T00:00:00.000Z',
       attachmentFilenames: null,
+      screenshots: null,
     });
   });
 

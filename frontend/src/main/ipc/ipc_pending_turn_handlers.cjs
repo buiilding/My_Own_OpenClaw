@@ -11,6 +11,24 @@ function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function normalizePendingTurnScreenshots(value) {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const screenshots = value
+    .filter((entry) => entry && typeof entry === 'object' && !Array.isArray(entry))
+    .map((entry) => ({
+      screenshot: typeof entry.screenshot === 'string' && entry.screenshot.length > 0
+        ? entry.screenshot
+        : null,
+      screenshotRef: normalizeOptionalString(entry.screenshotRef),
+      screenshotUrl: normalizeOptionalString(entry.screenshotUrl),
+      screenshotContentType: normalizeOptionalString(entry.screenshotContentType),
+    }))
+    .filter((entry) => entry.screenshot || entry.screenshotRef || entry.screenshotUrl);
+  return screenshots.length > 0 ? screenshots : null;
+}
+
 function normalizePendingTurnPayload(value) {
   const source = value && typeof value === 'object' && !Array.isArray(value)
     ? value
@@ -33,6 +51,7 @@ function normalizePendingTurnPayload(value) {
       typeof entry === 'string' && entry.trim()
     ))
     : null;
+  const screenshots = normalizePendingTurnScreenshots(pendingTurn.screenshots);
   return {
     conversationRef,
     turnRef,
@@ -42,6 +61,7 @@ function normalizePendingTurnPayload(value) {
     attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
       ? attachmentFilenames
       : null,
+    screenshots,
   };
 }
 

@@ -42,6 +42,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: render user-provided image attachments in the optimistic
+  pending user row before SDK artifact metadata arrives, while preserving
+  auto-capture screenshots as SDK-materialized resources. No migration required.
 - sdk/projection: preserve chat-pill screenshot metadata when dashboard display
   reload replays a later same-turn `user_message_metadata` event that does not
   carry screenshot fields. No migration required.

@@ -12,6 +12,12 @@ export type DesktopPendingTurn = {
   text?: string | null;
   timestamp?: string | null;
   attachmentFilenames?: string[] | null;
+  screenshots?: Array<{
+    screenshot?: string | null;
+    screenshotRef?: string | null;
+    screenshotUrl?: string | null;
+    screenshotContentType?: string | null;
+  }> | null;
 };
 
 export type DesktopPendingTurnClearInput = {

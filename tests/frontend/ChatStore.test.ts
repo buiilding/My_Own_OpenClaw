@@ -269,6 +269,10 @@ describe('chatStore', () => {
       text: 'start now',
       timestamp: '2026-06-16T00:00:00.000Z',
       attachmentFilenames: ['note.txt'],
+      screenshots: [{
+        screenshot: 'inline-image-base64',
+        screenshotContentType: 'image/png',
+      }],
     });
 
     const state = useChatStore.getState();
@@ -289,6 +293,12 @@ describe('chatStore', () => {
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
         attachmentFilenames: ['note.txt'],
+        screenshots: [{
+          screenshot: 'inline-image-base64',
+          screenshotContentType: 'image/png',
+          screenshotRef: null,
+          screenshotUrl: null,
+        }],
       }),
     ]);
   });
@@ -303,6 +313,10 @@ describe('chatStore', () => {
         text: 'replay this',
         timestamp: '2026-06-16T00:00:00.000Z',
         attachmentFilenames: null,
+        screenshots: [{
+          screenshot: 'broadcast-image-base64',
+          screenshotContentType: 'image/jpeg',
+        }],
       },
     });
 
@@ -316,6 +330,12 @@ describe('chatStore', () => {
         sender: 'user',
         text: 'replay this',
         turnRef: 'turn-replay',
+        screenshots: [{
+          screenshot: 'broadcast-image-base64',
+          screenshotContentType: 'image/jpeg',
+          screenshotRef: null,
+          screenshotUrl: null,
+        }],
       }),
     ]);
   });

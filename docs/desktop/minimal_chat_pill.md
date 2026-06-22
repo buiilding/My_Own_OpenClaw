@@ -72,6 +72,11 @@ The chat pill is the small always-available desktop command surface. It is rende
   that pending user row so sibling renderer windows keep the optimistic row and
   busy state until the matching SDK current-turn projection arrives or the turn
   is explicitly cleared after send failure.
+- User-provided image attachments that already exist in the composer are
+  included on the pending user row as inline screenshot attachments so the
+  dashboard can render them immediately. Auto-capture screenshots are different:
+  they are requested as SDK turn resources and render after SDK resource
+  materialization emits artifact-backed screenshot metadata.
 - The response overlay renderer resolves local pre-SDK waiting from pending-turn
   and chat state, not from a renderer-invoked phase override. Hidden or idle SDK
   startup projections must not clear the pending-turn presentation; active SDK

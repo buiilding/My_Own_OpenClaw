@@ -11,6 +11,7 @@ import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessio
 import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
 import { DesktopWindowRuntimeClient } from './desktopWindowRuntimeClient';
 import type { AgentModelSelection, TurnInputResource } from './desktopConversationRuntimeContracts';
+import type { ChatMessage } from './desktopChatMessageTypes';
 import type { ChatSendSurface } from './desktopMessageSendUiRuntime';
 import {
   DesktopConversationSessionRuntime,
@@ -63,6 +64,7 @@ type PendingDesktopChatTurn = {
   text: string;
   timestamp: string;
   attachmentFilenames: string[] | null;
+  screenshots: ChatMessage['screenshots'];
 };
 
 type PrepareDesktopChatSendDependencies = {
@@ -194,6 +196,7 @@ function acceptPendingTurn({
   attachmentFilenames,
   conversationRef,
   dependencies,
+  screenshots,
   text,
   timestamp,
   turnId,
@@ -201,6 +204,7 @@ function acceptPendingTurn({
   attachmentFilenames: string[];
   conversationRef: string;
   dependencies: Pick<PrepareDesktopChatSendDependencies, 'acceptPendingTurn'>;
+  screenshots: ChatMessage['screenshots'];
   text: string;
   timestamp: string;
   turnId: string;
@@ -212,9 +216,25 @@ function acceptPendingTurn({
     text,
     timestamp,
     attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
+    screenshots,
   };
   dependencies.acceptPendingTurn(pendingTurn);
   DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
+}
+
+function buildOptimisticScreenshots(
+  clipboardImages: ClipboardImagePayload[],
+): ChatMessage['screenshots'] {
+  const screenshots = clipboardImages
+    .filter((clipboardImage) => (
+      typeof clipboardImage.base64 === 'string'
+      && clipboardImage.base64.length > 0
+    ))
+    .map((clipboardImage) => ({
+      screenshot: clipboardImage.base64,
+      screenshotContentType: clipboardImage.contentType ?? null,
+    }));
+  return screenshots.length > 0 ? screenshots : null;
 }
 
 async function runSendSurfaceWindowPolicy({
@@ -253,6 +273,7 @@ async function prepareDesktopChatSend({
   const clipboardImages = normalizedPayload.clipboardImages;
   const readableFiles = normalizedPayload.readableFiles;
   const attachmentFilenames = normalizeAttachmentFilenames(clipboardImages, readableFiles);
+  const optimisticScreenshots = buildOptimisticScreenshots(clipboardImages);
 
   dependencies.stopPlayback?.();
 
@@ -264,6 +285,7 @@ async function prepareDesktopChatSend({
     attachmentFilenames,
     conversationRef,
     dependencies,
+    screenshots: optimisticScreenshots,
     text,
     timestamp,
     turnId,

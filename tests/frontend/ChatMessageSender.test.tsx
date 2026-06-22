@@ -154,6 +154,7 @@ describe('useChatMessageSender', () => {
   function expectOptimisticUserMessage(
     text: string,
     attachmentFilenames: string[] | null = null,
+    screenshots: unknown[] | null = null,
   ) {
     expect(useChatStore.getState().messages).toEqual([
       expect.objectContaining({
@@ -165,6 +166,7 @@ describe('useChatMessageSender', () => {
         sourceChannel: 'renderer-local',
         isComplete: true,
         attachmentFilenames,
+        screenshots,
       }),
     ]);
   }
@@ -499,6 +501,7 @@ describe('useChatMessageSender', () => {
       required: false,
     }]);
     expectOptimisticUserMessage('hello');
+    expect(useChatStore.getState().messages[0].screenshots ?? null).toBeNull();
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
@@ -539,7 +542,14 @@ describe('useChatMessageSender', () => {
     }], {
       attachment_filenames: ['clipboard-image.png'],
     });
-    expectOptimisticUserMessage('Please inspect this image', ['clipboard-image.png']);
+    expectOptimisticUserMessage('Please inspect this image', ['clipboard-image.png'], [
+      {
+        screenshot: 'clipboard-image-base64',
+        screenshotContentType: 'image/png',
+        screenshotRef: null,
+        screenshotUrl: null,
+      },
+    ]);
   });
 
   test('sends multiple pasted clipboard images as SDK resource handles', async () => {
@@ -582,6 +592,20 @@ describe('useChatMessageSender', () => {
     expectOptimisticUserMessage(
       'Please inspect both images',
       ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
+      [
+        {
+          screenshot: 'clipboard-image-base64-1',
+          screenshotContentType: 'image/png',
+          screenshotRef: null,
+          screenshotUrl: null,
+        },
+        {
+          screenshot: 'clipboard-image-base64-2',
+          screenshotContentType: 'image/jpeg',
+          screenshotRef: null,
+          screenshotUrl: null,
+        },
+      ],
     );
   });
 

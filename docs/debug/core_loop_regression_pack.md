@@ -36,6 +36,7 @@ selection matrix.
 | Dashboard assistant feedback/retry actions follow visible lifecycle busy/Stop state instead of stale raw send latches. | `ChatInterfaceWiring.test.jsx` |
 | Response overlay consumes renderer visible lifecycle instead of phase-only typing state. | `ChatBoxResponse.state.test.jsx`, `DesktopVisibleTurnLifecycleRuntime.test.js` |
 | Chat-pill query screenshot metadata survives dashboard display load and later same-turn metadata replay. | `AgentConversationStoreApi.test.ts`, `AgentSdkConversationRuntime.test.ts`, `SdkDisplayChatMessageProjection.test.ts` |
+| User-included images render in the optimistic pending user row before SDK artifact metadata arrives. | `ChatMessageSender.test.tsx`, `ChatStore.test.ts`, `ConversationRuntimeProjectionStream.test.ts` |
 | Typing/awaiting state does not flash because of transient idle events. | `AgentSdkConversationRuntime.test.ts`, `ConversationRuntimeProjectionStream.test.ts`, `ResponseOverlayPhaseHandler.test.cjs` |
 | Dashboard and pill render the same active turn projection. | `DesktopLiveTurnRuntimeClient.test.ts`, `IpcLiveTurnState.test.cjs`, `IpcConversationEventProjection.test.cjs` |
 | Stop clears busy/thinking state for the correct conversation and turn. | `PendingStopLiveSurfaceIntegration.test.jsx`, `DesktopStopTurnRuntime.test.js` |

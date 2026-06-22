@@ -82,6 +82,10 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       sourceEventType: 'renderer-compose',
       sourceChannel: 'renderer-local',
       isComplete: true,
+      screenshots: [{
+        screenshot: 'inline-optimistic-base64',
+        screenshotContentType: 'image/png',
+      }],
     });
 
     useChatStore.getState().setMessages([optimisticUser], 'conv-1');
@@ -160,6 +164,15 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       expect.objectContaining({
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
+      }),
+    );
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages[0]).not.toEqual(
+      expect.objectContaining({
+        screenshots: [
+          expect.objectContaining({
+            screenshot: 'inline-optimistic-base64',
+          }),
+        ],
       }),
     );
   });

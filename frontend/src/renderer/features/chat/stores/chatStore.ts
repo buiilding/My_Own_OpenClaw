@@ -78,6 +78,7 @@ export interface PendingTurn {
   text: string;
   timestamp: string;
   attachmentFilenames: string[] | null;
+  screenshots?: ChatMessage['screenshots'];
 }
 
 interface ResponseOverlayDismissalInput {
@@ -265,6 +266,7 @@ function buildPendingTurnUserMessage(pendingTurn: PendingTurn): ChatMessage {
     isComplete: true,
     timestamp: pendingTurn.timestamp,
     attachmentFilenames: pendingTurn.attachmentFilenames,
+    screenshots: pendingTurn.screenshots ?? null,
   };
 }
 
@@ -308,6 +310,27 @@ function normalizePendingTurn(value: unknown): PendingTurn | null {
       typeof entry === 'string' && entry.trim().length > 0
     ))
     : null;
+  const screenshots = Array.isArray(source.screenshots)
+    ? source.screenshots
+      .filter((entry): entry is Record<string, unknown> => (
+        Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry)
+      ))
+      .map((entry) => ({
+        screenshot: typeof entry.screenshot === 'string' && entry.screenshot.length > 0
+          ? entry.screenshot
+          : null,
+        screenshotRef: typeof entry.screenshotRef === 'string' && entry.screenshotRef.trim()
+          ? entry.screenshotRef.trim()
+          : null,
+        screenshotUrl: typeof entry.screenshotUrl === 'string' && entry.screenshotUrl.trim()
+          ? entry.screenshotUrl.trim()
+          : null,
+        screenshotContentType: typeof entry.screenshotContentType === 'string' && entry.screenshotContentType.trim()
+          ? entry.screenshotContentType.trim()
+          : null,
+      }))
+      .filter((entry) => Boolean(entry.screenshot || entry.screenshotRef || entry.screenshotUrl))
+    : null;
   return {
     conversationRef,
     turnRef,
@@ -317,6 +340,7 @@ function normalizePendingTurn(value: unknown): PendingTurn | null {
     attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
       ? attachmentFilenames
       : null,
+    screenshots: screenshots && screenshots.length > 0 ? screenshots : null,
   };
 }
 
