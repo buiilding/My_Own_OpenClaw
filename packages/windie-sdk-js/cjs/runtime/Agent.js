@@ -770,11 +770,6 @@ class Agent {
         const conversationStore = appendOptions.store ?? this.defaultConversationStore;
         await conversationStore.appendEvent(appendOptions.event);
     }
-    async rewriteConversation(options) {
-        const rewriteOptions = 'plan' in options ? options : { plan: options };
-        const conversationStore = rewriteOptions.store ?? this.defaultConversationStore;
-        await conversationStore.rewriteConversation(rewriteOptions.plan);
-    }
     async replaceCompactedReplay(options) {
         const replaceOptions = 'snapshot' in options ? options : { snapshot: options };
         const conversationStore = replaceOptions.store ?? this.defaultConversationStore;

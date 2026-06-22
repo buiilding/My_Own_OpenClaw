@@ -55,7 +55,6 @@ function createAgent(runtimeFactory = () => createRuntime()) {
     clearConversations: jest.fn(async () => ({ cleared: true })),
     getConversationRevision: jest.fn(async () => ({ revision: true })),
     appendConversationEvent: jest.fn(async () => ({ appended: true })),
-    rewriteConversation: jest.fn(async () => ({ rewritten: true })),
     replaceCompactedReplay: jest.fn(async () => ({ replaced: true })),
     wakewordDetected: jest.fn(async () => ({ detected: true })),
     ensureConnected: jest.fn(async () => true),

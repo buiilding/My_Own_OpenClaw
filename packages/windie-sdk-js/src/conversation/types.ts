@@ -752,7 +752,7 @@ export type ConversationRuntimeState = {
 export interface ConversationStore {
   appendEvent(event: ConversationEvent): Promise<void>;
   appendEvents(events: ConversationEvent[]): Promise<void>;
-  rewriteConversation(plan: ConversationRewritePlan): Promise<void>;
+  rewriteConversation?(plan: ConversationRewritePlan): Promise<void>;
   replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void>;
   loadEvents(conversationRef: string): Promise<ConversationEvent[]>;
   loadForDisplay(conversationRef: string): Promise<DisplayConversation>;

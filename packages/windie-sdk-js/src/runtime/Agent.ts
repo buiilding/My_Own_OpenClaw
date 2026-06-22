@@ -12,7 +12,6 @@ import type {
   DisplayTimelineCheckpoint,
   ConversationMetadata,
   ConversationRevision,
-  ConversationRewritePlan,
   ConversationStore,
   JsonRecord,
   ListConversationOptions,
@@ -985,15 +984,6 @@ export class Agent {
     const appendOptions = 'event' in options ? options : { event: options };
     const conversationStore = appendOptions.store ?? this.defaultConversationStore;
     await conversationStore.appendEvent(appendOptions.event);
-  }
-
-  async rewriteConversation(options: ConversationRewritePlan | {
-    plan: ConversationRewritePlan;
-    store?: ConversationStore;
-  }): Promise<void> {
-    const rewriteOptions = 'plan' in options ? options : { plan: options };
-    const conversationStore = rewriteOptions.store ?? this.defaultConversationStore;
-    await conversationStore.rewriteConversation(rewriteOptions.plan);
   }
 
   async replaceCompactedReplay(options: CompactedReplaySnapshot | {

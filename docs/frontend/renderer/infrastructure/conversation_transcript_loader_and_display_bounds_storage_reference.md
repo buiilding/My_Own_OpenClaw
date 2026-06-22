@@ -49,8 +49,8 @@ conversation storage commands.
 Command mapping:
 
 - `appendEvent`/`appendEvents` -> `conversation.appendEvent`
-- `rewriteConversation` -> `conversation.rewrite`
 - `replaceCompactedReplay` -> `conversation.replaceCompactedReplay`
+- `replaceDisplayTimeline` -> `conversation.replaceRows`
 - `loadEvents` -> `conversation.load`
 - `loadForDisplay` and `loadDisplayRows` -> `conversation.loadDisplay`
 - `loadForRehydrate` -> `conversation.loadRehydrate`

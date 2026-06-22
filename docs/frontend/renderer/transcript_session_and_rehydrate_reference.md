@@ -132,17 +132,17 @@ Storage split:
 
 Event write enrichment, local-runtime persistence payload shaping, and attachment
 storage belong to the SDK `LocalRuntimeConversationStore` plus local-runtime
-write/read RPCs. Display and backend rehydrate snapshots come from the SDK
-projection path, and backend resume is triggered by the SDK continuity service
-rather than by dashboard or chat feature code.
+write/read RPCs. Display snapshots come from the SDK projection path, model
+history supplies backend resume, and backend resume is triggered by the SDK
+continuity service rather than by dashboard or chat feature code.
 
 The removed renderer write-enrichment helpers must not be reintroduced. The
 desktop store no longer normalizes workspace metadata, tool ids, or broad
 screenshot attachment aliases before appending events. It sends canonical SDK
-events through `conversation.appendEvent`, `conversation.rewrite`,
-`conversation.replaceCompactedReplay`, `conversation.load*`, and
-`conversations.*` commands; enrichment belongs behind those SDK/local-runtime
-store commands.
+events through `conversation.appendEvent`,
+`conversation.replaceCompactedReplay`, `conversation.replaceRows`,
+`conversation.load*`, and `conversations.*` commands; enrichment belongs behind
+those SDK/local-runtime store commands.
 
 Direct `store-chat-event` calls and replay append mutation are not renderer
 feature-code surfaces; local-runtime chat-event RPC names remain inside SDK

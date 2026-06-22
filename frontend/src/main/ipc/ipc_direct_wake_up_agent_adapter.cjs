@@ -351,19 +351,6 @@ function createDirectWakeUpAgentAdapter({
         await reloadRuntimeSnapshot(handle);
       }
     },
-    rewriteConversation: async (options = {}) => {
-      const plan = options && typeof options === 'object' && 'plan' in options
-        ? options.plan
-        : options;
-      const rewriteConversationRef = resolveSdkCommandConversationRef(plan)
-        || resolveSdkCommandConversationRef(options);
-      await agent.rewriteConversation(options);
-      if (rewriteConversationRef) {
-        const handle = getConversationRuntimeHandle(rewriteConversationRef);
-        markInferenceContextStale(rewriteConversationRef);
-        await reloadRuntimeSnapshot(handle);
-      }
-    },
     replaceCompactedReplay: async (options = {}) => {
       const snapshot = options && typeof options === 'object' && 'snapshot' in options
         ? options.snapshot

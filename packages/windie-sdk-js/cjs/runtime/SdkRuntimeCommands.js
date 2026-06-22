@@ -14,7 +14,6 @@ exports.SDK_RUNTIME_COMMANDS = {
     CONVERSATION_LOAD_DISPLAY_TIMELINE: 'conversation.loadDisplayTimeline',
     CONVERSATION_LOAD_REHYDRATE: 'conversation.loadRehydrate',
     CONVERSATION_APPEND_EVENT: 'conversation.appendEvent',
-    CONVERSATION_REWRITE: 'conversation.rewrite',
     CONVERSATION_REPLACE_ROWS: 'conversation.replaceRows',
     CONVERSATION_REPLACE_COMPACTED_REPLAY: 'conversation.replaceCompactedReplay',
     CONVERSATION_GET_REVISION: 'conversation.getRevision',

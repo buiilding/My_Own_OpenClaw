@@ -338,19 +338,6 @@ function buildAgentSdkCommandHandlers({
       await runtimeRegistry.appendConversationEvent(conversationEvent);
       return { stored: true };
     },
-    [SDK_RUNTIME_COMMANDS.CONVERSATION_REWRITE]: async (payload = {}) => {
-      requireCommandUserId(payload, deps.getState().currentUserId);
-      const plan = isPlainObject(payload.plan) ? payload.plan : null;
-      if (!plan) {
-        throw new Error('conversation.rewrite requires a plan payload');
-      }
-      const runtimeRegistry = await deps.ensureAgent({
-        reason: 'sdk-command:conversation.rewrite',
-        conversationRef: optionalCommandConversationRef(plan) || optionalCommandConversationRef(payload),
-      });
-      await runtimeRegistry.rewriteConversation(plan);
-      return { rewritten: true };
-    },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_ROWS]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
       const conversationRef = requireCommandConversationRef(payload);

@@ -770,6 +770,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_STOP]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT]');
+    expect(source).not.toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_REWRITE]');
     expect(source).not.toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_EDIT_AND_RESEND]');
     expect(source).not.toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_RETRY_TURN]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE]');
@@ -786,6 +787,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('agent.clearConversations(');
     expect(source).not.toContain('runtimeRegistry.prepareEditAndResend(');
     expect(source).not.toContain('runtimeRegistry.prepareRetryTurn(');
+    expect(source).not.toContain('runtimeRegistry.rewriteConversation(');
     expect(source).not.toContain('agent.prepareEditAndResend(');
     expect(source).not.toContain('agent.prepareRetryTurn(');
     expect(source).toContain('requireCommandUserId');
