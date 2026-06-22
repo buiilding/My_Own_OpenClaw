@@ -137,8 +137,6 @@ export type RendererCurrentTurnAppliedTraceValues = {
         staleGuardRef?: unknown;
         turnRef?: unknown;
       } | null;
-      typingVisible?: boolean;
-      overlayVisible?: boolean;
       hasVisibleContent?: boolean;
       entries?: readonly unknown[];
     } | null;
@@ -690,8 +688,6 @@ function buildRendererCurrentTurnAppliedTracePayload(
       || traceString(currentTurn?.turnRef)
       || null
     ),
-    typingVisible: presentation?.typingVisible === true,
-    overlayVisible: presentation?.overlayVisible === true,
     hasVisibleContent: presentation?.hasVisibleContent === true,
     entryCount: Array.isArray(presentation?.entries) ? presentation.entries.length : 0,
     assistantLength: typeof currentTurn?.assistantText === 'string'

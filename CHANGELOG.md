@@ -72,6 +72,10 @@ All notable changes to WindieOS will be documented in this file.
   pointer bounds checks through `DesktopResponseOverlayInteractionRuntime`,
   keeping raw browser listeners out of `MinimalResponseOverlay`. No migration
   required.
+- frontend/renderer: stop copying SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` into renderer current-turn applied trace
+  payloads; traces now keep visible-content evidence without preserving legacy
+  lifecycle visibility flags. No migration required.
 - frontend/renderer: delete the unused
   `DesktopOverlayTurnLifecycleRuntime`, its shared overlay lifecycle JSON
   contract, and the stale helper test now that renderer surfaces consume
