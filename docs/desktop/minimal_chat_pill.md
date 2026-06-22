@@ -75,11 +75,14 @@ The chat pill is the small always-available desktop command surface. It is rende
 - User-provided image attachments that already exist in the composer are
   included on the pending user row as inline screenshot attachments so the
   dashboard can render them immediately and keep them visible if the SDK first
-  projects a text-only user row. When the SDK later replaces that same-turn
-  inline attachment with artifact-backed screenshot metadata, the renderer keeps
-  the already-rendered inline image source visible until the artifact image
-  fetch resolves, even if the message component remounts during dashboard
-  handoff or display-row replay, then swaps to the artifact-backed source.
+  projects one or more text-only user rows. Dashboard open/reload and live SDK
+  display projections must use the same renderer annotation merge so a repeated
+  same-turn text-only replay cannot downgrade an already image-bearing user row
+  to text only. When the SDK later replaces that same-turn inline attachment
+  with artifact-backed screenshot metadata, the renderer keeps the
+  already-rendered inline image source visible until the artifact image fetch
+  resolves, even if the message component remounts during dashboard handoff or
+  display-row replay, then swaps to the artifact-backed source.
   Auto-capture screenshots are different: they are requested as SDK turn
   resources and render after SDK resource materialization emits artifact-backed
   screenshot metadata.

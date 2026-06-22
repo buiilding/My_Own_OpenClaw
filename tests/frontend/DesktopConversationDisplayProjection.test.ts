@@ -153,6 +153,76 @@ describe('desktopConversationDisplayProjection', () => {
     )).toEqual([sdkUserSameTurn]);
   });
 
+  test('keeps copied same-turn screenshot metadata through repeated text-only SDK projections', () => {
+    const sdkTextOnlyUser = message({
+      id: 'turn-1-sdk-evt-000002-user_message',
+      sender: 'user',
+      text: 'Please review the attached files.',
+      turnRef: 'turn-1',
+      sourceEventType: 'user_message',
+      sourceChannel: 'sdk:conversation-event',
+      isComplete: true,
+    });
+    const optimisticUser = message({
+      id: 'turn-1-sdk-evt-000002-user_message',
+      sender: 'user',
+      text: 'Please review the attached files.',
+      turnRef: 'turn-1',
+      sourceEventType: 'renderer-compose',
+      sourceChannel: 'renderer-local',
+      attachmentFilenames: ['clipboard-image.png'],
+      screenshots: [{
+        screenshot: 'inline-optimistic-base64',
+        screenshotContentType: 'image/png',
+      }],
+      isComplete: true,
+    });
+
+    const firstMerge = mergeRendererAnnotationsIntoSdkMessages(
+      [sdkTextOnlyUser],
+      [optimisticUser],
+    );
+    expect(firstMerge).toEqual([
+      expect.objectContaining({
+        id: 'turn-1-sdk-evt-000002-user_message',
+        sourceEventType: 'user_message',
+        screenshots: optimisticUser.screenshots,
+        attachmentFilenames: ['clipboard-image.png'],
+      }),
+    ]);
+
+    const secondMerge = mergeRendererAnnotationsIntoSdkMessages(
+      [sdkTextOnlyUser],
+      firstMerge,
+    );
+    expect(secondMerge).toEqual([
+      expect.objectContaining({
+        id: 'turn-1-sdk-evt-000002-user_message',
+        sourceEventType: 'user_message',
+        screenshots: optimisticUser.screenshots,
+        attachmentFilenames: ['clipboard-image.png'],
+      }),
+    ]);
+    expect(buildDisplayProjectionTraceSummary({
+      rows: [{
+        id: 'turn-1-sdk-evt-000002-user_message',
+        role: 'user',
+        type: 'user_message',
+        metadata: {
+          screenshot: null,
+        },
+      }],
+      sdkMessages: [sdkTextOnlyUser],
+      currentMessages: firstMerge,
+      mergedMessages: secondMerge,
+    })).toEqual(expect.objectContaining({
+      currentOptimisticUserCount: 0,
+      sdkUserImageCount: 0,
+      sdkProjectedUserImageCount: 0,
+      mergedUserImageCount: 1,
+    }));
+  });
+
   test('summarizes display projection image counts without exposing content', () => {
     const optimisticUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',

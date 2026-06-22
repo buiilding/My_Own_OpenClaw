@@ -98,39 +98,50 @@ function mergeRendererAnnotationsIntoSdkMessages(
     return sdkMessages;
   }
   const currentById = new Map(currentMessages.map((message) => [message.id, message]));
+  const usersWithImagesByTurn = new Map<string, ChatMessage>();
   const optimisticUsersByTurn = new Map<string, ChatMessage>();
   for (const message of currentMessages) {
     const turnRef = normalizeTurnRef(message.turnRef);
-    if (turnRef && isOptimisticUserMessage(message)) {
-      optimisticUsersByTurn.set(turnRef, message);
+    if (message.sender === 'user' && turnRef && countMessageImages(message) > 0) {
+      usersWithImagesByTurn.set(turnRef, message);
+      if (isOptimisticUserMessage(message)) {
+        optimisticUsersByTurn.set(turnRef, message);
+      }
     }
   }
   const mergedSdkMessages = sdkMessages.map((message) => {
     const current = currentById.get(message.id);
     const turnRef = normalizeTurnRef(message.turnRef);
-    const optimisticUser = current && isOptimisticUserMessage(current)
+    const currentImageUser = (
+      current?.sender === 'user'
+      && countMessageImages(current) > 0
+    )
       ? current
-      : (turnRef ? optimisticUsersByTurn.get(turnRef) : undefined);
-    const optimisticScreenshots = (
+      : (turnRef ? usersWithImagesByTurn.get(turnRef) : undefined);
+    const fallbackImageUser = currentImageUser
+      ?? (turnRef ? optimisticUsersByTurn.get(turnRef) : undefined);
+    const rendererScreenshots = (
       message.sender === 'user'
       && countMessageImages(message) === 0
-      && optimisticUser
-      && countMessageImages(optimisticUser) > 0
+      && fallbackImageUser
+      && countMessageImages(fallbackImageUser) > 0
     )
       ? {
-        ...(optimisticUser.screenshot ? { screenshot: optimisticUser.screenshot } : {}),
-        ...(optimisticUser.screenshotRef ? { screenshotRef: optimisticUser.screenshotRef } : {}),
-        ...(optimisticUser.screenshotUrl ? { screenshotUrl: optimisticUser.screenshotUrl } : {}),
-        ...(optimisticUser.screenshotContentType ? { screenshotContentType: optimisticUser.screenshotContentType } : {}),
-        ...(optimisticUser.screenshots ? { screenshots: optimisticUser.screenshots } : {}),
-        ...(optimisticUser.attachmentFilenames && !message.attachmentFilenames
-          ? { attachmentFilenames: optimisticUser.attachmentFilenames }
+        ...(fallbackImageUser.screenshot ? { screenshot: fallbackImageUser.screenshot } : {}),
+        ...(fallbackImageUser.screenshotRef ? { screenshotRef: fallbackImageUser.screenshotRef } : {}),
+        ...(fallbackImageUser.screenshotUrl ? { screenshotUrl: fallbackImageUser.screenshotUrl } : {}),
+        ...(fallbackImageUser.screenshotContentType
+          ? { screenshotContentType: fallbackImageUser.screenshotContentType }
+          : {}),
+        ...(fallbackImageUser.screenshots ? { screenshots: fallbackImageUser.screenshots } : {}),
+        ...(fallbackImageUser.attachmentFilenames && !message.attachmentFilenames
+          ? { attachmentFilenames: fallbackImageUser.attachmentFilenames }
           : {}),
       }
       : {};
     return {
       ...message,
-      ...optimisticScreenshots,
+      ...rendererScreenshots,
       ...(current?.systemPrompt ? { systemPrompt: current.systemPrompt } : {}),
       ...(current?.toolSchemas ? { toolSchemas: current.toolSchemas } : {}),
       ...(current?.fullUserMessage ? { fullUserMessage: current.fullUserMessage } : {}),

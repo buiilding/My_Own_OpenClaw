@@ -374,6 +374,64 @@ describe('useDashboardConversations', () => {
     expect(result.current.openingConversationRef).toBeNull();
   });
 
+  test('preserves renderer screenshot annotations while opening text-only SDK display rows', async () => {
+    DesktopConversationLibraryClient.loadDisplayRows.mockResolvedValueOnce([
+      {
+        id: 'turn-1-sdk-evt-000002-user_message',
+        conversationRef: 'conv-open',
+        turnRef: 'turn-1',
+        role: 'user',
+        type: 'user_message',
+        content: 'Please review the attached files.',
+        metadata: { timestamp: '2026-06-08T00:00:00.000Z' },
+      },
+    ]);
+    const setChatMessages = jest.fn();
+    const getChatWorkspaceState = jest.fn(() => ({
+      messages: [
+        {
+          id: 'turn-1-sdk-evt-000002-user_message',
+          sender: 'user',
+          text: 'Please review the attached files.',
+          turnRef: 'turn-1',
+          sourceEventType: 'user_message',
+          sourceChannel: 'sdk:conversation-event',
+          attachmentFilenames: ['clipboard-image.png'],
+          screenshots: [{
+            screenshot: 'inline-optimistic-base64',
+            screenshotContentType: 'image/png',
+          }],
+        },
+      ],
+    }));
+
+    const { result } = renderDashboardConversations({
+      getChatWorkspaceState,
+      setChatMessages,
+    });
+
+    await act(async () => {
+      await result.current.handleOpenConversation({
+        conversation_id: 'conv-open',
+        workspace_path: '/work/project-alpha',
+        workspace_name: 'Project Alpha',
+      });
+    });
+
+    expect(setChatMessages).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: 'turn-1-sdk-evt-000002-user_message',
+        sender: 'user',
+        text: 'Please review the attached files.',
+        screenshots: [{
+          screenshot: 'inline-optimistic-base64',
+          screenshotContentType: 'image/png',
+        }],
+        attachmentFilenames: ['clipboard-image.png'],
+      }),
+    ], 'conv-open');
+  });
+
   test('treats selecting the active conversation as an idempotent no-op', async () => {
     const clearChatMessages = jest.fn();
     const setChatMessages = jest.fn();

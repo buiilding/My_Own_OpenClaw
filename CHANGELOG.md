@@ -47,6 +47,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: preserve renderer-visible user image metadata through
+  repeated same-turn SDK text-only display projections and dashboard-open
+  display loads so user-included screenshots do not briefly downgrade to a
+  text-only message while artifact metadata is still arriving. No migration
+  required.
 - frontend/renderer: cache same-turn screenshot sources across artifact-backed
   replacement fetches and message remounts so user-included image attachments do
   not briefly disappear after SDK metadata arrives. No migration required.

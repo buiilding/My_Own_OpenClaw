@@ -41,6 +41,7 @@ const {
 const {
   buildChatMessagesFromSdkDisplayRows,
   buildDisplayProjectionTraceSummary,
+  mergeRendererAnnotationsIntoSdkMessages,
 } = DesktopConversationDisplayProjection;
 const {
   logRendererDisplayRowsProjectionTrace,
@@ -247,17 +248,22 @@ export function useDashboardConversations({
       if (openConversationRequestIdRef.current !== requestId) {
         return;
       }
-      const projectedMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
+      const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
       const latestWorkspace = typeof getChatWorkspaceState === 'function'
         ? getChatWorkspaceState(conversationRef)
         : null;
+      const currentMessages = Array.isArray(latestWorkspace?.messages) ? latestWorkspace.messages : [];
+      const projectedMessages = mergeRendererAnnotationsIntoSdkMessages(
+        sdkMessages,
+        currentMessages,
+      );
       logRendererDisplayRowsProjectionTrace({
         source: 'dashboard-open-conversation',
         conversationRef,
         ...buildDisplayProjectionTraceSummary({
           rows: displayRows,
-          sdkMessages: projectedMessages,
-          currentMessages: Array.isArray(latestWorkspace?.messages) ? latestWorkspace.messages : [],
+          sdkMessages,
+          currentMessages,
           mergedMessages: projectedMessages,
         }),
       });
