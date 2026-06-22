@@ -327,13 +327,8 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
       return undefined;
     }
 
-    const focusInput = () => {
-      findInputRef.current?.focus();
-      findInputRef.current?.select();
-    };
-
     return DesktopChatInterfaceBindingsRuntime.scheduleDeferredFocus({
-      focus: focusInput,
+      focus: () => DesktopChatInterfaceBindingsRuntime.focusAndSelectInput(findInputRef),
     });
   }, [findBarOpen, findFocusToken]);
 

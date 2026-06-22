@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route dashboard thread-find input focus/select mechanics
+  through `DesktopChatInterfaceBindingsRuntime.focusAndSelectInput(...)` so
+  `ChatInterface` keeps find-bar state while the app runtime owns the input DOM
+  adapter. No migration required.
 - frontend/renderer: route minimal chat pill explicit text-entry focus and
   caret placement through
   `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)` so the

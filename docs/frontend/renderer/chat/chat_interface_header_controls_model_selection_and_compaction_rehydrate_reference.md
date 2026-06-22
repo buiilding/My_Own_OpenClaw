@@ -98,7 +98,8 @@ Chat interface event subscriptions are routed through app runtime clients:
   `keydown` listener adapters used by provider/model/reasoning menu dismissal,
   local Stop shortcut handling, and thread-find open/close shortcuts. It also
   owns window-focus subscriptions for active-workspace refresh and
-  animation-frame scheduling for thread-find input focus.
+  animation-frame scheduling plus input focus/select mechanics for thread-find
+  input focus.
 
 Provider dropdown:
 

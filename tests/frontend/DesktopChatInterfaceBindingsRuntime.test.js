@@ -38,6 +38,28 @@ function shortcutEvent(overrides = {}) {
 }
 
 describe('desktopChatInterfaceBindingsRuntime', () => {
+  test('focuses and selects input refs through the runtime adapter', () => {
+    const input = {
+      focus: jest.fn(),
+      select: jest.fn(),
+    };
+
+    expect(DesktopChatInterfaceBindingsRuntime.focusAndSelectInput({ current: input })).toBe(true);
+    expect(input.focus).toHaveBeenCalledTimes(1);
+    expect(input.select).toHaveBeenCalledTimes(1);
+  });
+
+  test('focus and select adapter tolerates unavailable inputs and missing select APIs', () => {
+    expect(DesktopChatInterfaceBindingsRuntime.focusAndSelectInput({ current: null })).toBe(false);
+
+    const input = {
+      focus: jest.fn(),
+    };
+
+    expect(DesktopChatInterfaceBindingsRuntime.focusAndSelectInput(input)).toBe(true);
+    expect(input.focus).toHaveBeenCalledTimes(1);
+  });
+
   test('dismisses each menu whose container does not contain the pointer target', () => {
     const eventTarget = createEventTarget();
     const providerTarget = {};

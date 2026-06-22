@@ -2227,10 +2227,14 @@ describe('renderer chat runtime boundary', () => {
     expect(bindingsSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToFindShortcut');
     expect(chatInterfaceSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToWindowFocus');
     expect(chatInterfaceSource).toContain('DesktopChatInterfaceBindingsRuntime.scheduleDeferredFocus');
+    expect(chatInterfaceSource).toContain('DesktopChatInterfaceBindingsRuntime.focusAndSelectInput');
+    expect(chatInterfaceSource).not.toContain('.focus()');
+    expect(chatInterfaceSource).not.toContain('.select()');
     expect(chatInterfaceBindingsRuntimeSource).toContain('DesktopShortcutRuntimeClient.isAgentStopShortcutEvent');
     expect(chatInterfaceBindingsRuntimeSource).toContain('addEventListener');
     expect(chatInterfaceBindingsRuntimeSource).toContain('removeEventListener');
     expect(chatInterfaceBindingsRuntimeSource).toContain('requestAnimationFrame');
+    expect(chatInterfaceBindingsRuntimeSource).toContain('focusAndSelectInput');
     expect(chatInterfaceBindingsRuntimeSource).not.toContain('features/chat');
     expect(audioClientSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
     expect(audioClientSource).toContain('PlayerService');

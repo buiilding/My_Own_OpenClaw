@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer ChatInterface Find Focus Runtime
+
+- Finding: `ChatInterface` already delegated menu dismissal, stop shortcuts,
+  thread-find shortcuts, window-focus subscriptions, and deferred focus
+  animation-frame scheduling to `DesktopChatInterfaceBindingsRuntime`, but the
+  deferred callback still called the find input `.focus()` and `.select()`
+  directly.
+- Change: added `DesktopChatInterfaceBindingsRuntime.focusAndSelectInput(...)`
+  and routed the thread-find deferred focus callback through it. `ChatInterface`
+  keeps find-bar state and focus token timing while the bindings runtime owns
+  input DOM focus/select mechanics.
+- Validation target: `DesktopChatInterfaceBindingsRuntime.test.js` and
+  `RendererChatRuntimeBoundary.test.ts` protect the focus/select adapter and
+  reject direct `.focus()`/`.select()` calls in `ChatInterface`.
+- Compatibility/security: no thread-find query state shape, keyboard shortcut
+  behavior, IPC channel, SDK event payload, renderer config, persisted storage,
+  permission, credential, local execution, trust-boundary, or migration change
+  required.
+
 ### 2026-06-22 Renderer Chatbox Text-Entry Focus Runtime
 
 - Finding: `MinimalChatPill` already delegated chatbox drag, hit-test,

@@ -91,6 +91,17 @@ function subscribeToWindowFocus({
   return subscribeToEvent(eventTarget, 'focus', onFocus);
 }
 
+function focusAndSelectInput(inputRef) {
+  const input = resolveElement(inputRef);
+  if (!input || typeof input.focus !== 'function') {
+    return false;
+  }
+
+  input.focus();
+  input.select?.();
+  return true;
+}
+
 function scheduleDeferredFocus({
   focus,
   animationFrameApi = globalThis.window,
@@ -145,6 +156,7 @@ function subscribeToFindShortcut({
 }
 
 export const DesktopChatInterfaceBindingsRuntime = Object.freeze({
+  focusAndSelectInput,
   scheduleDeferredFocus,
   subscribeToFindShortcut,
   subscribeToMenuDismiss,
