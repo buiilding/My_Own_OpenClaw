@@ -9,6 +9,25 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Live Surface Local Pending Alias Deletion
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
+  still exposed the renderer-local pending path as `useLocalSendLatch`, and
+  response-overlay traces forwarded that legacy send-latch name even though the
+  value is now derived from accepted renderer `pendingTurn` plus visible
+  lifecycle handoff rules.
+- Change: renamed the live-surface and overlay trace boundary to
+  `useLocalPendingTurn`, changed local awaiting trace reasons to
+  `local-pending-awaiting`, and added renderer boundary coverage rejecting the
+  old `useLocalSendLatch` field.
+- Validation target: `LiveTurnSurfaceState.test.js`,
+  `DesktopRendererTraceRuntime.test.ts`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the pending-turn projection and
+  trace contract without preserving the send-latch alias.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Minimal Pill Stop Test Send Latch Deletion
 
 - Finding: `ChatBoxOverlayMouseIgnore.test.jsx` still described the

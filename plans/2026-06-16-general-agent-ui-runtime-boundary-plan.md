@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer Source Map Lifecycle Wording
+
+- Finding: `frontend/src/renderer/folder_structure.md` still described
+  renderer config persistence as direct localStorage work and chat-store
+  `isSending` / `thinkingStatus` as primary message-send/thinking state, even
+  though visible lifecycle and response-overlay reasoning now flow through
+  app-runtime facades and SDK current-turn projection.
+- Change: routed config persistence wording through
+  `desktopRendererConfigStorageRuntime` and described `isSending` /
+  `thinkingStatus` as compatibility/diagnostic state.
+- Validation target: `RendererAppRuntimeBoundary.test.ts` now guards the
+  renderer source map against stale localStorage and raw lifecycle wording.
+- Compatibility/security: no runtime code, IPC channel, SDK event payload,
+  renderer config shape, persisted transcript, permission, credential, local
+  execution, trust-boundary, storage, or migration change required.
+
 ### 2026-06-22 Main Chat Pill Trace Visibility Fields
 
 - Finding: the main-process chat-pill debug trace normalizer still emitted

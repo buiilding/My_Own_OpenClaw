@@ -175,11 +175,11 @@ function resolveLiveTurnPresentationInput({
     currentTurnProjection,
     messages,
   });
-  const useLocalSendLatch = shouldUseSendPreflight({
+  const useLocalPendingTurn = shouldUseSendPreflight({
     currentTurnProjection,
     pendingTurn,
   });
-  if (useLocalSendLatch) {
+  if (useLocalPendingTurn) {
     const turnRef = normalizeTurnRef(pendingTurn?.turnRef);
     const preflightGuardRef = getResponseOverlayPreflightGuardRef();
     const conversationRef = (
@@ -191,7 +191,7 @@ function resolveLiveTurnPresentationInput({
       phase: getAwaitingFirstChunkResponseOverlayPhase(),
       isBusy: true,
       source: isPendingTurn(pendingTurn) ? 'pending-turn' : 'send-preflight',
-      useLocalSendLatch: true,
+      useLocalPendingTurn: true,
       useSdkLiveTurnPresentation,
       overlayIntent: {
         visible: true,
@@ -220,7 +220,7 @@ function resolveLiveTurnPresentationInput({
       phase: visibleLifecyclePhase,
       isBusy: lifecycleIsBusy,
       source: 'sdk-current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: true,
       overlayIntent,
       entries: Array.isArray(presentation.entries) ? presentation.entries : [],
@@ -236,7 +236,7 @@ function resolveLiveTurnPresentationInput({
       phase: visibleLifecyclePhase,
       isBusy: lifecycleIsBusy,
       source: 'current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
       overlayIntent: null,
       entries: [],
@@ -250,7 +250,7 @@ function resolveLiveTurnPresentationInput({
     phase: getIdleResponseOverlayPhase(),
     isBusy: false,
     source: 'idle',
-    useLocalSendLatch: false,
+    useLocalPendingTurn: false,
     useSdkLiveTurnPresentation: false,
     overlayIntent: null,
     entries: [],

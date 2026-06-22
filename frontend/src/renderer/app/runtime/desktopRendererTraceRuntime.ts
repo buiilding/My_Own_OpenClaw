@@ -228,7 +228,7 @@ export type RendererOverlayViewModelTraceValues = {
     latestResponseOverlayEntryId?: unknown;
   } | null;
   useSdkLiveTurnPresentation?: boolean;
-  useLocalSendLatch?: boolean;
+  useLocalPendingTurn?: boolean;
 };
 
 type RendererOverlayViewModelTraceEvent = {
@@ -807,7 +807,7 @@ function buildRendererOverlayViewModelTracePayload(
     visibleResponseId: traceString(viewIntent?.visibleResponse?.id) || null,
     latestEntryId: traceString(viewIntent?.latestResponseOverlayEntryId) || null,
     useSdkLiveTurnPresentation: values.useSdkLiveTurnPresentation === true,
-    useLocalSendLatch: values.useLocalSendLatch === true,
+    useLocalPendingTurn: values.useLocalPendingTurn === true,
   };
 }
 
@@ -821,7 +821,7 @@ function buildRendererOverlayTypingTraceEvent(
     event: awaitingVisible ? 'typing.show' : 'typing.hide',
     mode: awaitingVisible ? 'awaiting' : (responseVisible ? 'response' : 'hidden'),
     reason: awaitingVisible
-      ? (useSdkLiveTurnPresentation ? 'sdk-awaiting' : 'preflight-awaiting')
+      ? (useSdkLiveTurnPresentation ? 'sdk-awaiting' : 'local-pending-awaiting')
       : (responseVisible ? 'response-visible' : 'not-awaiting'),
   };
 }

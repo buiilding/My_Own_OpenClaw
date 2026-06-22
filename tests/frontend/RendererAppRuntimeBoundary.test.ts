@@ -72,6 +72,21 @@ describe('renderer app runtime boundary', () => {
     expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
   });
 
+  test('renderer source map keeps app-runtime ownership current', async () => {
+    const sourceMap = await fs.readFile(
+      path.join(rendererRoot, 'folder_structure.md'),
+      'utf8',
+    );
+
+    expect(sourceMap).toContain('desktopRendererConfigStorageRuntime');
+    expect(sourceMap).toContain('visible lifecycle comes from pending turns plus SDK current-turn projection');
+    expect(sourceMap).toContain('response overlay reasoning follows SDK `currentTurn.reasoningText`');
+    expect(sourceMap).not.toContain('Load config from localStorage');
+    expect(sourceMap).not.toContain('localStorage.setItem()');
+    expect(sourceMap).not.toContain('Whether a message is being sent');
+    expect(sourceMap).not.toContain('Accumulated thinking tokens');
+  });
+
   test('app runtime helper comments use renderer app-runtime labels', async () => {
     const offenders = await collectSourceNeedleOffenders(path.join(appRoot, 'runtime'), [
       'renderer runtime clients',
@@ -499,6 +514,7 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).not.toContain('showResponse');
     expect(liveSurfaceSource).not.toContain('typingVisible');
     expect(liveSurfaceSource).not.toContain('overlayVisible');
+    expect(liveSurfaceSource).not.toContain('useLocalSendLatch');
     expect(liveSurfaceSource).not.toContain('export function resolveSdkOverlayIntent');
     expect(liveSurfaceSource).not.toContain('export function resolveLiveTurnPresentationInput');
     expect(chatSurfaceControllerSource).toContain('desktopLiveTurnSurfaceRuntime');

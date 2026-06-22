@@ -38,7 +38,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'complete',
       isBusy: false,
       source: 'current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
     });
   });
@@ -66,7 +66,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'awaiting-first-chunk',
       isBusy: true,
       source: 'pending-turn',
-      useLocalSendLatch: true,
+      useLocalPendingTurn: true,
       useSdkLiveTurnPresentation: false,
       turnRef: 'turn-2',
       guardRef: preflightGuardRef,
@@ -90,7 +90,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'awaiting-first-chunk',
       isBusy: true,
       source: 'pending-turn',
-      useLocalSendLatch: true,
+      useLocalPendingTurn: true,
       useSdkLiveTurnPresentation: false,
       guardRef: preflightGuardRef,
       overlayIntent: expect.objectContaining({
@@ -114,7 +114,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'awaiting-first-chunk',
       isBusy: true,
       source: 'pending-turn',
-      useLocalSendLatch: true,
+      useLocalPendingTurn: true,
       turnRef: 'turn-pending',
       conversationRef: 'conv-1',
       overlayIntent: {
@@ -162,7 +162,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'awaiting-first-chunk',
       isBusy: true,
       source: 'sdk-current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: true,
       turnRef: 'turn-pending',
       conversationRef: 'conv-1',
@@ -197,7 +197,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'streaming',
       isBusy: true,
       source: 'sdk-current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: true,
       entries: [
         expect.objectContaining({
@@ -255,7 +255,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'awaiting-first-chunk',
       isBusy: true,
       source: 'sdk-current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: true,
     });
   });
@@ -288,7 +288,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       source: 'pending-turn',
-      useLocalSendLatch: true,
+      useLocalPendingTurn: true,
       useSdkLiveTurnPresentation: true,
     });
   });
@@ -324,7 +324,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'complete',
       isBusy: false,
       source: 'sdk-current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: true,
     });
   });
@@ -351,7 +351,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       source: 'pending-turn',
-      useLocalSendLatch: true,
+      useLocalPendingTurn: true,
       useSdkLiveTurnPresentation: false,
     });
   });
@@ -390,7 +390,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       source: 'sdk-current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: true,
       guardRef: 'turn-2',
     });
@@ -426,7 +426,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'awaiting-first-chunk',
       isBusy: true,
       source: 'sdk-current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: true,
       overlayIntent: expect.objectContaining({
         mode: 'hidden',
@@ -465,7 +465,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       phase: 'streaming',
       isBusy: true,
       source: 'sdk-current-turn',
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: true,
       overlayIntent: expect.objectContaining({
         mode: 'hidden',

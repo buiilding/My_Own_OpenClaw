@@ -86,11 +86,11 @@ export function useResponseOverlayViewModel({
     visibleTurnLifecycle,
   });
   const useSdkLiveTurnPresentation = liveTurnPresentationInput.useSdkLiveTurnPresentation;
-  const useLocalSendLatch = liveTurnPresentationInput.useLocalSendLatch;
+  const useLocalPendingTurn = liveTurnPresentationInput.useLocalPendingTurn;
   const currentTurnPhase = liveTurnPresentationInput.phase;
   const responseOverlayEntries = useMemo(
     () => {
-      if (useLocalSendLatch) {
+      if (useLocalPendingTurn) {
         return [];
       }
       if (useSdkLiveTurnPresentation) {
@@ -102,16 +102,16 @@ export function useResponseOverlayViewModel({
       }
       return normalizeProjectedCurrentTurnEntries(currentTurnProjection);
     },
-    [currentTurnProjection, useLocalSendLatch, useSdkLiveTurnPresentation],
+    [currentTurnProjection, useLocalPendingTurn, useSdkLiveTurnPresentation],
   );
 
   const currentTurnMessages = useMemo(
     () => (
-      useLocalSendLatch
+      useLocalPendingTurn
         ? messages
         : responseOverlayEntries
     ),
-    [messages, responseOverlayEntries, useLocalSendLatch],
+    [messages, responseOverlayEntries, useLocalPendingTurn],
   );
 
   const responseOverlayDismissalTarget = useMemo(() => {
@@ -148,14 +148,14 @@ export function useResponseOverlayViewModel({
   const resolvedCurrentTurnPresentationState = useMemo(
     () => {
       let presentationState;
-      if (useSdkLiveTurnPresentation && !useLocalSendLatch) {
+      if (useSdkLiveTurnPresentation && !useLocalPendingTurn) {
         presentationState = resolveSdkResponseOverlayPresentationState({
           currentTurnProjection,
           responseOverlayEntries,
           dismissedResponseId,
           includeOverlayIntent: true,
         }) || currentTurnPresentationState;
-      } else if (useLocalSendLatch) {
+      } else if (useLocalPendingTurn) {
         presentationState = {
           ...currentTurnPresentationState,
           overlayIntent: liveTurnPresentationInput.overlayIntent,
@@ -175,7 +175,7 @@ export function useResponseOverlayViewModel({
       liveTurnPresentationInput.overlayIntent,
       visibleTurnLifecycle,
       responseOverlayEntries,
-      useLocalSendLatch,
+      useLocalPendingTurn,
       useSdkLiveTurnPresentation,
     ],
   );
@@ -240,7 +240,7 @@ export function useResponseOverlayViewModel({
       responseOverlayEntries,
       viewIntent,
       useSdkLiveTurnPresentation,
-      useLocalSendLatch,
+      useLocalPendingTurn,
     });
     const signature = JSON.stringify(tracePayload);
     if (lastResolvedTraceSignatureRef.current !== signature) {
@@ -270,7 +270,7 @@ export function useResponseOverlayViewModel({
     currentTurnProjection,
     responseOverlayEntries,
     resolvedCurrentTurnPresentationState,
-    useLocalSendLatch,
+    useLocalPendingTurn,
     useSdkLiveTurnPresentation,
     viewIntent,
   ]);

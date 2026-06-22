@@ -71,6 +71,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: refresh the renderer source map so it routes config
+  persistence through `desktopRendererConfigStorageRuntime` and labels
+  `isSending` / `thinkingStatus` as compatibility state instead of visible
+  lifecycle owners. No migration required.
+- frontend/renderer: delete the live-surface `useLocalSendLatch` diagnostic
+  alias; response overlay view-model traces and live-surface projection now use
+  `useLocalPendingTurn` for the renderer `pendingTurn` path. No migration
+  required.
 - frontend/main: align chat-pill main debug trace visibility fields with the
   renderer response-overlay contract by emitting `response_visible` and
   `awaiting_visible` instead of legacy `show_response` and

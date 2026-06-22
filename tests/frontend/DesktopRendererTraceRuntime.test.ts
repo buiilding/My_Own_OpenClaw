@@ -651,7 +651,7 @@ describe('desktopRendererTraceRuntime', () => {
         latestResponseOverlayEntryId: ' latest-entry ',
       },
       useSdkLiveTurnPresentation: true,
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
     })).toEqual({
       source: 'renderer-overlay-view-model',
       turnRef: 'turn-projection',
@@ -668,7 +668,7 @@ describe('desktopRendererTraceRuntime', () => {
       visibleResponseId: 'visible-entry',
       latestEntryId: 'latest-entry',
       useSdkLiveTurnPresentation: true,
-      useLocalSendLatch: false,
+      useLocalPendingTurn: false,
     });
   });
 

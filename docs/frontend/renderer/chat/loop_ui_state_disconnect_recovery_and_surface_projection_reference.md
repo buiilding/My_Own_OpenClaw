@@ -193,7 +193,8 @@ overlay intent object rather than legacy SDK visibility booleans; when overlay
 intent is absent, fallback intent is derived from SDK phase and actual visible
 content/progress evidence.
 `selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`, and minimal
-surface trace payloads do not subscribe to the raw send latch separately.
+surface trace payloads name the renderer-local path `useLocalPendingTurn`
+instead of a send-latch alias.
 It also omits store `thinkingStatus`; response overlay reasoning text follows
 SDK `currentTurn.reasoningText`, while dashboard message-list compaction/manual
 status text remains on the chat-interface selector path.
