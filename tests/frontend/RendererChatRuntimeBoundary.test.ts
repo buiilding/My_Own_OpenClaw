@@ -2436,6 +2436,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useChatComposerDraft.js'),
       'utf8',
     );
+    const messageInputSource = await fs.readFile(
+      path.join(chatRoot, 'components/MessageInput.jsx'),
+      'utf8',
+    );
     const messageInputRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js'),
       'utf8',
@@ -2444,7 +2448,12 @@ describe('renderer chat runtime boundary', () => {
     expect(composerDraftSource).toContain('desktopMessageInputRuntime');
     expect(composerDraftSource).toContain('DesktopMessageInputRuntime');
     expect(composerDraftSource).not.toContain('utils/message/messageInput');
+    expect(messageInputSource).toContain('desktopMessageInputRuntime');
+    expect(messageInputSource).toContain('DesktopMessageInputRuntime.focusTextInputAtEnd');
+    expect(messageInputSource).not.toContain('setSelectionRange');
+    expect(messageInputSource).not.toContain('.focus()');
     expect(messageInputRuntimeSource).toContain('export const DesktopMessageInputRuntime = Object.freeze');
+    expect(messageInputRuntimeSource).toContain('focusTextInputAtEnd');
     expect(messageInputRuntimeSource).not.toContain('export function buildOutgoingMessage');
     expect(messageInputRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(

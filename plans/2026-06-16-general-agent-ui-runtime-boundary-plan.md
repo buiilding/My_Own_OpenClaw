@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer MessageInput Focus Runtime
+
+- Finding: `MessageInput` already delegated composer payload normalization,
+  attachment parsing, dismiss-on-outside behavior, and focus-request
+  subscription mechanics to runtime facades, but still called textarea
+  `.focus()` and `setSelectionRange(...)` directly when a focus request token
+  arrived.
+- Change: added `DesktopMessageInputRuntime.focusTextInputAtEnd(...)` and
+  routed focus requests through it. `MessageInput` keeps request-token and
+  loop-lock gating while the message input runtime owns textarea DOM focus and
+  caret placement mechanics.
+- Validation target: `DesktopMessageInputRuntime.test.js` and
+  `RendererChatRuntimeBoundary.test.ts` protect the focus/caret adapter and
+  reject direct `setSelectionRange`/`.focus()` calls in `MessageInput`.
+- Compatibility/security: no outgoing message payload shape, focus-request
+  token shape, IPC channel, SDK event payload, renderer config, persisted
+  storage, permission, credential, local execution, trust-boundary, or
+  migration change required.
+
 ### 2026-06-22 Renderer Transcription Paste Text Runtime
 
 - Finding: `useTranscription` already delegated transcription-region paste

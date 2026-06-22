@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route dashboard composer focus-request focus and caret
+  placement through `DesktopMessageInputRuntime.focusTextInputAtEnd(...)` so
+  `MessageInput` keeps request-token and loop-lock gating while the app runtime
+  owns textarea DOM focus mechanics. No migration required.
 - frontend/renderer: route transcription pasted-text extraction through
   `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)` so
   `useTranscription` keeps React state while the app runtime owns browser

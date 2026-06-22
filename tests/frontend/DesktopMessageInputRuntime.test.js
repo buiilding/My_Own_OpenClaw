@@ -7,6 +7,7 @@ import { DesktopMessageInputRuntime } from '../../frontend/src/renderer/app/runt
 describe('desktopMessageInputRuntime', () => {
   const {
     buildOutgoingMessage,
+    focusTextInputAtEnd,
   } = DesktopMessageInputRuntime;
 
   test('returns null for blank/whitespace-only messages', () => {
@@ -65,5 +66,29 @@ describe('desktopMessageInputRuntime', () => {
       clipboardImages: [],
       readableFiles: [{ filePath: '/tmp/a.txt', filename: 'a.txt' }],
     });
+  });
+
+  test('focusTextInputAtEnd focuses input and moves caret to text end', () => {
+    const input = {
+      value: 'hello',
+      focus: jest.fn(),
+      setSelectionRange: jest.fn(),
+    };
+
+    expect(focusTextInputAtEnd(input)).toBe(true);
+    expect(input.focus).toHaveBeenCalledTimes(1);
+    expect(input.setSelectionRange).toHaveBeenCalledWith(5, 5);
+  });
+
+  test('focusTextInputAtEnd tolerates unavailable inputs and missing selection APIs', () => {
+    expect(focusTextInputAtEnd(null)).toBe(false);
+
+    const input = {
+      value: 'hello',
+      focus: jest.fn(),
+    };
+
+    expect(focusTextInputAtEnd(input)).toBe(true);
+    expect(input.focus).toHaveBeenCalledTimes(1);
   });
 });

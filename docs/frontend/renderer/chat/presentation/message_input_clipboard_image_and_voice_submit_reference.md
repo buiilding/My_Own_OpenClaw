@@ -36,7 +36,9 @@ UI-effect bindings (`useMessageInputUiBindings`) own:
 - plus-menu outside-click dismissal through
   `DesktopDismissOnOutsideRuntime.subscribeToDismissOnOutside(...)`
 - automatic plus-menu close when the visible lifecycle loop lock begins (`isLoopActive=true`)
-- focus-request token handling for composer autofocus
+- focus-request token handling for composer autofocus; the actual textarea
+  focus and caret placement route through
+  `DesktopMessageInputRuntime.focusTextInputAtEnd(...)`
 
 Hook-owned text/transcription state (`useTranscription`):
 
@@ -191,6 +193,8 @@ The menu does not alter outbound query payload; it only opens the native file-pi
 ## Test-Backed Invariants
 
 - trimmed send text and whitespace block behavior.
+- focus requests move the composer caret to the end through
+  `DesktopMessageInputRuntime.focusTextInputAtEnd(...)`.
 - `isLoopActive` submit block + stop-button rendering.
 - voice button starts and stops a temporary dictation session.
 - utterance-end keeps the latest transcription in the composer without auto-send.
@@ -207,7 +211,10 @@ The menu does not alter outbound query payload; it only opens the native file-pi
 3. Removing preview reset after submit can leak stale image/file payloads across messages.
 4. Reading `event.clipboardData.items` directly in composer hooks can split
    paste-event browser mechanics away from `DesktopComposerAttachmentRuntime`.
-5. Replacing `DesktopMessageInputRuntime.buildOutgoingMessage(...)` with ad-hoc payload construction can desync sender hook payload union.
+5. Calling textarea focus or `setSelectionRange(...)` directly from
+   `MessageInput` can split composer focus mechanics away from
+   `DesktopMessageInputRuntime`.
+6. Replacing `DesktopMessageInputRuntime.buildOutgoingMessage(...)` with ad-hoc payload construction can desync sender hook payload union.
 
 ## Related Pages
 
