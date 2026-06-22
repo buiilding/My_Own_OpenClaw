@@ -149,6 +149,15 @@ renderer-only resize pulse used by layout observers. `DashboardShell` owns the
 animation and routing state, while the app-runtime facade owns the browser
 resize event dispatch timing.
 
+Dashboard shell browser adapters:
+
+- `DesktopDashboardLayoutRuntime.scheduleDashboardOpeningClear(...)` owns the
+  opening-animation timeout scheduling/cleanup
+- `DesktopDashboardLayoutRuntime.applyDashboardScrollLock(...)` owns document,
+  body, and root scroll-lock class add/remove mechanics
+- `DashboardShell` keeps shell state, class intent, and panel routing, but does
+  not call raw browser timer or document APIs for those effects
+
 Accepted targets:
 
 - `chat` -> close panels only.
@@ -177,6 +186,8 @@ loading until transcript session state supplies a current user.
 2. Changing hook search debounce/query-length threshold without tests can regress network chatter and stale list behavior.
 3. Changing conversation grouping logic in one path (recent/search) but not the other causes UI ordering drift.
 4. Skipping `updateTranscriptSession` after rehydrate causes transcript write routing to stale conversation ids.
+5. Moving opening timers or scroll-lock DOM access back into `DashboardShell`
+   can split browser adapter cleanup from the dashboard layout runtime.
 
 ## Related Pages
 

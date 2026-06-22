@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Dashboard Shell Browser Adapter Runtime
+
+- Finding: `DashboardShell` already delegated resize pulses to
+  `DesktopDashboardLayoutRuntime`, but still owned raw browser timeout
+  scheduling for the opening animation flag and direct document/root DOM
+  access for scroll-lock class application.
+- Change: extended `DesktopDashboardLayoutRuntime` with opening timer and
+  scroll-lock helpers, then routed `DashboardShell` through them. The shell
+  keeps animation state and class intent while the app-runtime facade owns
+  browser timer and DOM target mechanics.
+- Validation target: focused dashboard layout runtime, dashboard shell, and
+  renderer app-boundary tests protect timer cleanup, missing-adapter fallback,
+  scroll-lock add/remove behavior, and rejection of raw browser timer/document
+  calls in the shell.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-22 Model Reset Warning Timer Runtime
 
 - Finding: `ModelsSection` already delegated model reconciliation to

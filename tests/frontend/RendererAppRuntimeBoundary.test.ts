@@ -558,6 +558,7 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).not.toContain('export function isResponseOverlayProgressMessage');
     expect(currentTurnMessageSource).not.toContain('export function isResponseOverlaySourceTaggedMessage');
     expect(currentTurnMessageSource).not.toContain('normalizeThinkingText');
+    expect(currentTurnPresentationSource).not.toContain('showAssistantAwaitingDot');
     expect(currentTurnMessageSource).not.toContain('features/chat');
     expect(currentTurnMessageSource).not.toContain('features/minimalChatPill');
     expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -856,14 +857,30 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(dashboardLayoutSource).toContain('requestDashboardLayoutPass');
+    expect(dashboardLayoutSource).toContain('scheduleDashboardOpeningClear');
+    expect(dashboardLayoutSource).toContain('applyDashboardScrollLock');
+    expect(dashboardLayoutSource).toContain('getDashboardScrollLockTargets');
     expect(dashboardLayoutSource).toContain('export const DesktopDashboardLayoutRuntime = Object.freeze');
     expect(dashboardLayoutSource).not.toContain('export function requestDashboardLayoutPass');
+    expect(dashboardLayoutSource).not.toContain('export function scheduleDashboardOpeningClear');
+    expect(dashboardLayoutSource).not.toContain('export function applyDashboardScrollLock');
     expect(dashboardLayoutSource).toContain("new Event('resize')");
     expect(dashboardLayoutSource).toContain('requestAnimationFrame');
+    expect(dashboardLayoutSource).toContain('setTimeout');
+    expect(dashboardLayoutSource).toContain('clearTimeout');
+    expect(dashboardLayoutSource).toContain('documentElement');
+    expect(dashboardLayoutSource).toContain('getElementById');
     expect(dashboardShellSource).toContain('desktopDashboardLayoutRuntime');
     expect(dashboardShellSource).toContain('DesktopDashboardLayoutRuntime');
+    expect(dashboardShellSource).toContain('scheduleDashboardOpeningClear');
+    expect(dashboardShellSource).toContain('applyDashboardScrollLock');
     expect(dashboardShellSource).not.toContain("window.dispatchEvent(new Event('resize'))");
     expect(dashboardShellSource).not.toContain('window.requestAnimationFrame');
+    expect(dashboardShellSource).not.toContain('window.setTimeout');
+    expect(dashboardShellSource).not.toContain('window.clearTimeout');
+    expect(dashboardShellSource).not.toContain('document.getElementById');
+    expect(dashboardShellSource).not.toContain('document.documentElement');
+    expect(dashboardShellSource).not.toContain('document.body');
   });
 
   test('conversation library facade uses SDK-shaped commands for user-facing conversation actions', async () => {

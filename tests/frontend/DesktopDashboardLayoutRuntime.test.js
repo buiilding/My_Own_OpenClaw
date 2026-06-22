@@ -5,10 +5,40 @@
 import { DesktopDashboardLayoutRuntime } from '../../frontend/src/renderer/app/runtime/desktopDashboardLayoutRuntime';
 
 const {
+  applyDashboardScrollLock,
+  getDashboardScrollLockTargets,
   requestDashboardLayoutPass,
+  scheduleDashboardOpeningClear,
 } = DesktopDashboardLayoutRuntime;
 
 describe('desktopDashboardLayoutRuntime', () => {
+  function createTimerApi() {
+    let nextId = 0;
+    const timers = new Map();
+    return {
+      timers,
+      setTimeout(callback, delayMs) {
+        const id = ++nextId;
+        timers.set(id, { callback, delayMs });
+        return id;
+      },
+      clearTimeout(id) {
+        timers.delete(id);
+      },
+    };
+  }
+
+  function createClassTarget() {
+    const classes = new Set();
+    return {
+      classes,
+      classList: {
+        add: (className) => classes.add(className),
+        remove: (className) => classes.delete(className),
+      },
+    };
+  }
+
   test('requestDashboardLayoutPass dispatches resize over two animation frames', () => {
     const callbacks = [];
     const eventTarget = {
@@ -48,5 +78,69 @@ describe('desktopDashboardLayoutRuntime', () => {
 
   test('requestDashboardLayoutPass no-ops without an event target', () => {
     expect(requestDashboardLayoutPass(null)).toBe(false);
+  });
+
+  test('dashboard opening clear timer schedules through adapter and cleans up', () => {
+    const timerApi = createTimerApi();
+    const onClear = jest.fn();
+
+    const cleanup = scheduleDashboardOpeningClear({
+      delayMs: 420,
+      onClear,
+      timerApi,
+    });
+
+    expect(timerApi.timers.size).toBe(1);
+    const [timerId, timer] = Array.from(timerApi.timers.entries())[0];
+    expect(timer.delayMs).toBe(420);
+
+    timer.callback();
+    expect(onClear).toHaveBeenCalledTimes(1);
+
+    cleanup();
+    expect(timerApi.timers.has(timerId)).toBe(false);
+  });
+
+  test('dashboard opening clear timer invokes immediately without timer adapter', () => {
+    const onClear = jest.fn();
+
+    const cleanup = scheduleDashboardOpeningClear({
+      onClear,
+      timerApi: {},
+    });
+
+    expect(onClear).toHaveBeenCalledTimes(1);
+    expect(cleanup).not.toThrow();
+  });
+
+  test('dashboard scroll lock applies and removes class on document targets', () => {
+    const documentElement = createClassTarget();
+    const body = createClassTarget();
+    const root = createClassTarget();
+    const documentApi = {
+      documentElement,
+      body,
+      getElementById: jest.fn(() => root),
+    };
+
+    expect(getDashboardScrollLockTargets({ documentApi })).toEqual([
+      documentElement,
+      body,
+      root,
+    ]);
+
+    const cleanup = applyDashboardScrollLock({
+      className: 'cg-scroll-locked',
+      documentApi,
+    });
+
+    for (const target of [documentElement, body, root]) {
+      expect(target.classes.has('cg-scroll-locked')).toBe(true);
+    }
+
+    cleanup();
+    for (const target of [documentElement, body, root]) {
+      expect(target.classes.has('cg-scroll-locked')).toBe(false);
+    }
   });
 });
