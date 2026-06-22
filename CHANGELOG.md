@@ -92,6 +92,9 @@ All notable changes to WindieOS will be documented in this file.
   `presentation.overlayVisible` from stopped current-turn projections, leaving
   post-stop typing and response visibility to renderer visible lifecycle plus
   visible entries. No migration required.
+- frontend/renderer: remove raw `isSending` from minimal chat pill and response
+  overlay trace payloads, deleting the trace-only send-latch subscription after
+  visible lifecycle became the surface authority. No migration required.
 - frontend/renderer: delete the unused
   `DesktopOverlayTurnLifecycleRuntime`, its shared overlay lifecycle JSON
   contract, and the stale helper test now that renderer surfaces consume

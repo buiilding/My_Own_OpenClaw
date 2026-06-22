@@ -9,6 +9,22 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Minimal Surface Trace Send Latch Deletion
+
+- Finding: after lifecycle consumers stopped reading raw `isSending`, both
+  `MinimalChatPill` and `MinimalResponseOverlay` still subscribed to the store
+  send latch only to include it in diagnostic trace payloads, preserving a
+  trace-only compatibility exception at the live surface boundary.
+- Change: minimal surface state and response snapshot traces no longer accept
+  or emit raw send-latch fields, and the components no longer subscribe to
+  `state.isSending` outside the renderer-owned visible lifecycle.
+- Validation target: `DesktopRendererTraceRuntime.test.ts` and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed payloads and surface
+  source boundaries.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Stop Projection SDK Visibility Flag Deletion
 
 - Finding: `DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)`

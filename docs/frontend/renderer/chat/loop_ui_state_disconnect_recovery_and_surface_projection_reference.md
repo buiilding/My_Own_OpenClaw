@@ -185,9 +185,8 @@ It recognizes SDK presentation rows from `presentation.entries` or an explicit
 overlay intent object rather than legacy SDK visibility booleans; when overlay
 intent is absent, fallback intent is derived from SDK phase and actual visible
 content/progress evidence.
-`selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`; minimal
-surfaces that include the legacy send latch in trace payloads read it
-separately as diagnostic store compatibility state, not as lifecycle input.
+`selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`, and minimal
+surface trace payloads do not subscribe to the raw send latch separately.
 It also omits store `thinkingStatus`; response overlay reasoning text follows
 SDK `currentTurn.reasoningText`, while dashboard message-list compaction/manual
 status text remains on the chat-interface selector path.

@@ -84,7 +84,6 @@ export type RendererChatPillStateTraceValues = {
   currentTurnPhase?: unknown;
   liveTurnPhase?: unknown;
   liveTurnSource?: unknown;
-  isSending?: boolean;
   busy?: boolean;
   stopAvailable?: boolean;
   messageCount?: unknown;
@@ -177,7 +176,6 @@ export type RendererResponseOverlayStateTraceValues = {
   activeResponseTextLength?: unknown;
   thinkingText?: unknown;
   thinkingTextLength?: unknown;
-  isSending?: boolean;
   messageCount?: unknown;
 };
 
@@ -194,7 +192,6 @@ export type RendererResponseSurfaceRenderTraceValues = {
 export type RendererResponseSurfaceSnapshotTraceValues = {
   source?: string;
   phase?: unknown;
-  isSending?: boolean;
   messageCount?: unknown;
   activeResponseTextLength?: unknown;
   responseType?: unknown;
@@ -489,7 +486,6 @@ function buildRendererResponseOverlayStateTracePayload(
     response_entry_count: traceNumberOrZero(values.responseEntryCount),
     active_response_text_length: traceNumberOrZero(values.activeResponseTextLength),
     thinking_text_length: traceTextLength(values),
-    is_sending: values.isSending === true,
     message_count: traceNumberOrZero(values.messageCount),
   };
 }
@@ -506,7 +502,6 @@ function buildRendererResponseSurfaceSnapshotTracePayload(
   return {
     source: traceString(values.source) || 'minimal-response-overlay',
     overlayPhase: traceString(values.phase) || 'idle',
-    isSending: values.isSending === true,
     messageCount: traceNumberOrZero(values.messageCount),
     activeResponseTextLength: traceNumberOrZero(values.activeResponseTextLength),
     activeResponseType: traceString(values.responseType) || null,
@@ -565,7 +560,6 @@ function buildRendererChatPillStateTracePayload(
     current_turn_phase: traceString(values.currentTurnPhase) || null,
     live_turn_phase: traceString(values.liveTurnPhase) || null,
     live_turn_source: traceString(values.liveTurnSource) || null,
-    is_sending: values.isSending === true,
     busy: values.busy === true,
     stop_available: values.stopAvailable === true,
     message_count: traceNumberOrZero(values.messageCount),

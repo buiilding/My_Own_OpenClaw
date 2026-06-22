@@ -47,7 +47,6 @@ const {
 function MinimalChatPill() {
   const closeBumpHeight = DesktopChatboxLayoutRuntime.getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
-  const isSending = useChatStore((state) => state.isSending);
   const currentTurnProjection = useChatStore((state) => (
     state.latestCurrentTurnProjection || state.currentTurnProjection
   ));
@@ -64,7 +63,6 @@ function MinimalChatPill() {
   const pillRef = useRef(null);
   const shellRef = useRef(null);
   const sendButtonRef = useRef(null);
-  const closeButtonAnchorFrameRef = useRef(null);
   const closeButtonAnchorSnapshotRef = useRef({ centerX: null });
   const composerResizeSequenceRef = useRef(0);
   const reservedChatboxFrameHeightRef = useRef(null);
@@ -242,7 +240,6 @@ function MinimalChatPill() {
 
   useEffect(() => {
     const nextPillStateSignature = JSON.stringify({
-      isSending,
       loopInteractionLocked,
       liveTurnPhase,
       liveTurnSource,
@@ -259,7 +256,6 @@ function MinimalChatPill() {
       currentTurnPhase: currentTurnProjection?.phase || null,
       liveTurnPhase,
       liveTurnSource,
-      isSending,
       busy: loopInteractionLocked,
       stopAvailable: loopInteractionLocked,
       messageCount: messages.length,
@@ -267,7 +263,6 @@ function MinimalChatPill() {
   }, [
     currentTurnProjection?.phase,
     currentTurnProjection?.turnRef,
-    isSending,
     liveTurnPhase,
     liveTurnSource,
     loopInteractionLocked,
@@ -368,72 +363,13 @@ function MinimalChatPill() {
 
   useTextareaAutoResize(inputValue, resizeComposer);
 
-  const syncCloseButtonAnchor = useCallback(() => {
-    const pillElement = pillRef.current;
-    const sendButtonElement = sendButtonRef.current;
-    if (!pillElement || !sendButtonElement) {
-      return;
-    }
-
-    const pillRect = pillElement.getBoundingClientRect();
-    const sendRect = sendButtonElement.getBoundingClientRect();
-    if (pillRect.width <= 0 || sendRect.width <= 0) {
-      return;
-    }
-
-    const pillWidth = Math.max(
-      Math.round(Number(pillElement.offsetWidth) || 0),
-      Math.round(Number(pillRect.width) || 0),
-    );
-    if (pillWidth <= 0) {
-      return;
-    }
-
-    const centerX = Math.round((sendRect.left - pillRect.left) + (sendRect.width / 2));
-    if (closeButtonAnchorSnapshotRef.current.centerX !== centerX) {
-      pillElement.style.setProperty('--chatbox-close-center-x', `${centerX}px`);
-      closeButtonAnchorSnapshotRef.current.centerX = centerX;
-    }
-  }, []);
-
-  const scheduleCloseButtonAnchorSync = useCallback(() => {
-    if (closeButtonAnchorFrameRef.current !== null) {
-      window.cancelAnimationFrame(closeButtonAnchorFrameRef.current);
-    }
-    closeButtonAnchorFrameRef.current = window.requestAnimationFrame(() => {
-      closeButtonAnchorFrameRef.current = null;
-      syncCloseButtonAnchor();
-    });
-  }, [syncCloseButtonAnchor]);
-
   useLayoutEffect(() => {
-    scheduleCloseButtonAnchorSync();
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', scheduleCloseButtonAnchorSync);
-    }
-
-    let resizeObserver = null;
-    if (typeof ResizeObserver === 'function') {
-      resizeObserver = new ResizeObserver(() => {
-        scheduleCloseButtonAnchorSync();
-      });
-      if (pillRef.current) {
-        resizeObserver.observe(pillRef.current);
-      }
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('resize', scheduleCloseButtonAnchorSync);
-      }
-      if (closeButtonAnchorFrameRef.current !== null) {
-        window.cancelAnimationFrame(closeButtonAnchorFrameRef.current);
-        closeButtonAnchorFrameRef.current = null;
-      }
-      resizeObserver?.disconnect();
-    };
-  }, [scheduleCloseButtonAnchorSync, devUiEnabled]);
+    return DesktopChatboxInteractionRuntime.startChatboxCloseButtonAnchorSync({
+      pillRef,
+      sendButtonRef,
+      snapshotRef: closeButtonAnchorSnapshotRef,
+    });
+  }, [devUiEnabled]);
 
   const setChatboxHitTestActive = useCallback((active) => {
     const nextActive = active === true;

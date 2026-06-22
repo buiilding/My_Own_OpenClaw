@@ -347,6 +347,7 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).not.toContain('export function buildRendererChatPillStateTracePayload');
     expect(traceRuntimeSource).toContain('conversation_ref');
     expect(traceRuntimeSource).toContain('current_turn_phase');
+    expect(traceRuntimeSource).not.toContain('is_sending');
     expect(minimalPillSource).toContain('DesktopRendererTraceRuntime');
     expect(minimalPillSource).toContain('logRendererChatPillResetTrace');
     expect(minimalPillSource).toContain('logRendererChatPillLifecycleTrace');
@@ -363,6 +364,7 @@ describe('renderer app runtime boundary', () => {
     expect(minimalPillSource).not.toContain('current_turn_phase');
     expect(minimalPillSource).not.toContain('live_turn_phase');
     expect(minimalPillSource).not.toContain('message_count');
+    expect(minimalPillSource).not.toContain('state.isSending');
   });
 
   test('response overlay trace payload shaping stays behind the app runtime facade', async () => {
@@ -424,6 +426,7 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlaySource).not.toContain('thinking_text_length');
     expect(responseOverlaySource).not.toContain('is_sending');
     expect(responseOverlaySource).not.toContain('message_count');
+    expect(responseOverlaySource).not.toContain('state.isSending');
     expect(responseOverlaySource).not.toContain('overlayPhase');
     expect(responseOverlaySource).not.toContain('activeResponseType');
     expect(responseOverlayViewModelSource).not.toContain("logRendererLiveSurfaceTrace");
@@ -1605,6 +1608,8 @@ describe('renderer app runtime boundary', () => {
     expect(responseOverlayViewModelSource).not.toContain('thinkingStatus');
     expect(normalizedChatInterfaceSource).not.toContain('useChatSurfaceController({\n    isSending,');
     expect(normalizedMinimalPillSource).not.toContain('useChatSurfaceController({\n    isSending,');
+    expect(normalizedMinimalPillSource).not.toContain('state.isSending');
+    expect(normalizedResponseOverlaySource).not.toContain('state.isSending');
     expect(normalizedResponseOverlaySource).not.toContain(
       'useResponseOverlayViewModel({\n    messages,\n    isSending,',
     );
