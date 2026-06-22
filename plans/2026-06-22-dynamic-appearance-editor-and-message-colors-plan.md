@@ -6,7 +6,9 @@ Fix the remaining light-appearance inconsistency so every WindieOS-controlled
 text and button foreground in light mode resolves to the same readable
 appearance foreground, then simplify Appearance settings to one dynamic editor
 section. Add first-class controls for the user message pill background and user
-message pill text color.
+message pill text color. Also increase light-mode contrast for enabled,
+disabled, and destructive settings controls so toggles and red actions remain
+legible instead of looking washed out.
 
 This plan intentionally does not implement code changes.
 
@@ -84,6 +86,30 @@ Owner files:
 - `frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js`
 - `frontend/src/renderer/app/skin/appearanceSettings.js`
 
+### Settings State Controls
+
+Current behavior:
+
+- General, Agent, Appearance, and other settings tabs share
+  `SettingsToggle`, which renders `.settings-surface-toggle` and
+  `.settings-surface-toggle-thumb`.
+- Tool enablement controls in `AgentSettingsTab.jsx` reuse the same toggle
+  inside `.settings-surface-tool-toggle` and `.settings-surface-tool-card`.
+- Memory destructive actions use `.settings-surface-danger-button`.
+- Light mode currently mixes pale blue tracks, white/on-white thumbs,
+  transparent red destructive backgrounds, and opacity-only disabled states.
+  In screenshots, this makes enabled/disabled states hard to distinguish and
+  destructive red buttons too low contrast.
+
+Owner files:
+
+- `frontend/src/renderer/features/dashboard/components/sections/settings/settingsControls.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/settings/GeneralSettingsTab.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/settings/AgentSettingsTab.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/settings/MemorySettingsTab.jsx`
+- `frontend/src/renderer/styles/SettingsSurface.css`
+- `frontend/src/renderer/styles/theme.css`
+
 ## Product Invariants
 
 1. Light appearance foreground:
@@ -104,7 +130,14 @@ Owner files:
    User message pill background and foreground are first-class appearance theme
    fields, independent from global accent and send-button colors.
 
-4. Config compatibility:
+4. Settings state contrast:
+   Enabled, disabled, checked, unchecked, destructive, hover, focus, and
+   pending settings controls must have state-specific contrast in light mode.
+   Disabled controls may look inactive, but their label, border, track, and
+   thumb must remain readable. Destructive red actions must be visibly red with
+   enough foreground/background/border contrast to communicate danger.
+
+5. Config compatibility:
    Keep the persisted `appearance_theme.light` / `appearance_theme.dark` shape.
    Missing new fields are filled by normalization defaults. No migration should
    be required.
@@ -257,20 +290,90 @@ Add CSS-focused tests:
 - add a new CSS test if Dashboard/Settings-specific hardcoded text paths need
   coverage
 
-### 5. Docs and Regression Pack
+### 5. Improve Settings Control State Contrast
+
+Add shared theme variables in `frontend/src/renderer/styles/theme.css` for
+settings state controls instead of encoding pale state colors directly in
+`SettingsSurface.css`:
+
+- `--ui-toggle-track-off`
+- `--ui-toggle-track-on`
+- `--ui-toggle-track-disabled`
+- `--ui-toggle-thumb-off`
+- `--ui-toggle-thumb-on`
+- `--ui-toggle-thumb-disabled`
+- `--ui-toggle-border-off`
+- `--ui-toggle-border-on`
+- `--ui-toggle-border-disabled`
+- `--ui-danger-bg`
+- `--ui-danger-bg-hover`
+- `--ui-danger-fg`
+- `--ui-danger-border`
+- `--ui-danger-disabled-bg`
+- `--ui-danger-disabled-fg`
+- `--ui-danger-disabled-border`
+
+Update `frontend/src/renderer/styles/SettingsSurface.css`:
+
+- make `.settings-surface-toggle` use explicit track and border variables
+- make `.settings-surface-toggle-thumb` use off/on/disabled thumb variables
+- add `:has(input:disabled)` or an equivalent disabled class path so disabled
+  toggles do not rely only on opacity
+- keep checked state visibly distinct from unchecked state in light mode
+- give focus-visible state a clear outline using the active appearance
+  foreground or accent with sufficient contrast
+- make `.settings-surface-danger-button` use the shared danger variables
+  instead of transparent red mixes
+- give disabled destructive buttons a readable disabled palette rather than
+  reducing opacity over an already-low-contrast red
+
+State targets:
+
+- unchecked/off toggle: visible neutral track, visible dark thumb, visible
+  border
+- checked/on toggle: accent or active-state track, contrasting thumb, visible
+  border
+- disabled toggle: muted but readable track/thumb/border, no ambiguity with
+  enabled-on
+- destructive enabled button: red-tinted background, dark/readable red text,
+  stronger red border
+- destructive disabled button: muted red surface with readable label and border
+
+Update tests:
+
+- add or extend a CSS test for `SettingsSurface.css` asserting that light-mode
+  toggle and danger button selectors use the new semantic state variables
+  rather than raw low-contrast colors or opacity-only disabled styling
+- extend `tests/frontend/SettingsSection.test.jsx` only if the component needs
+  a disabled class or aria/state change beyond CSS selectors
+- add User-Facing Regression Pack coverage for settings toggles and destructive
+  controls in light mode
+
+Manual visual checks:
+
+- General tab wakeword/STT/tool-log toggles
+- Agent tab local and cloud tool toggles
+- Appearance tab translucent sidebar toggle after the editor is collapsed
+- Memory tab `Delete memories` and `Delete chats` buttons, enabled and pending
+- hover/focus/disabled states for all of the above
+
+### 6. Docs and Regression Pack
 
 Update:
 
 - `docs/frontend/renderer/settings/sections/settings_section_tabs_and_wakeword_toggle_runtime_reference.md`
   - one dynamic appearance editor section
   - new user message color fields
+  - high-contrast settings toggles and destructive buttons
 - `docs/frontend/renderer/styles/global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md`
   - unified light foreground invariant
   - user message pill variables
+  - settings state-control contrast variables
 - `docs/frontend/renderer/styles/chat_interface_thinking_stream_and_token_count_style_contract_reference.md`
   - user message pill background/text owner tokens
 - `docs/debug/user_facing_regression_pack.md`
-  - include the focused CSS/settings tests for the light appearance invariant
+  - include the focused CSS/settings tests for the light appearance and
+    settings state-control contrast invariants
 - `docs/debug/core_loop_regression_pack.md`
   - only if screenshot resolver tests change
 
@@ -306,9 +409,13 @@ Manual visual validation:
 4. Toggle Light/Dark/System and confirm the editor changes to the active theme.
 5. Set foreground to the requested Notes-like text color and verify all
    WindieOS-controlled light-mode app text/buttons/icons match.
-6. Change user message pill background and foreground colors.
-7. Send a message and verify the user bubble uses the configured colors.
-8. Attach images and verify DevTools no longer shows maximum update depth
+6. Verify General, Agent, Appearance, and Memory settings toggles have clear
+   checked/unchecked/disabled contrast in light mode.
+7. Verify Memory destructive buttons have stronger red contrast when enabled,
+   hovered, focused, and disabled/pending.
+8. Change user message pill background and foreground colors.
+9. Send a message and verify the user bubble uses the configured colors.
+10. Attach images and verify DevTools no longer shows maximum update depth
    warnings after a hard reload.
 
 ## Risks and Decisions
@@ -322,4 +429,6 @@ Manual visual validation:
   screenshot is outside WindieOS renderer CSS control.
 - Avoid repurposing global `accent`; user message color should not implicitly
   recolor every accent control.
-
+- Avoid relying on opacity alone for disabled settings controls. Opacity makes
+  the already-light control palettes less readable and caused the current
+  screenshots to look ambiguous.
