@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route minimal chat pill pointer hit-test window
+  subscriptions and pill-bounds checks through
+  `DesktopChatboxInteractionRuntime`, keeping raw mouse hit-test browser
+  adapters out of `MinimalChatPill`. No migration required.
 - frontend/renderer: route chat interface window-focus refresh subscriptions
   and thread-find deferred focus animation-frame scheduling through
   `DesktopChatInterfaceBindingsRuntime`, keeping raw focus/RAF browser

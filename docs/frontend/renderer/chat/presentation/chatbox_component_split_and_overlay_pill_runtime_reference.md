@@ -123,6 +123,8 @@ compaction behind its loop lock.
   `DesktopChatboxLayoutRuntime` before dispatching native movement IPC
 - drag window listeners are installed through
   `DesktopChatboxInteractionRuntime.subscribeToChatboxDragWindowEvents(...)`
+- pointer hit-test listeners and pill-bounds checks are installed through
+  `DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents(...)`
 - visual-anchor IPC sync:
   - preview off -> `height: 64`
   - preview on -> `height: 116`

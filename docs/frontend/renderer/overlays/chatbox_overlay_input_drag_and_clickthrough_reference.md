@@ -56,6 +56,8 @@ This keeps overlay window lightweight:
 - explicit focus lifecycle through `DesktopWindowRuntimeClient` + mount focus
 - wakeword STT trigger handling through `DesktopWindowRuntimeClient`
 - global drag window listeners through `DesktopChatboxInteractionRuntime`
+- pointer hit-test listeners and pill-bounds checks through
+  `DesktopChatboxInteractionRuntime`
 - visual-anchor sync through `DesktopChatboxInteractionRuntime`, which owns
   `ResizeObserver`, debounce timer, animation-frame scheduling, and
   `DesktopWindowRuntimeClient` anchor-height reporting from measured shell
@@ -195,6 +197,15 @@ Movement path:
 4. compute absolute target window coordinates
 5. call `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
 6. stop on mouseup/window blur through `DesktopChatboxInteractionRuntime`
+
+Hit-test path:
+
+1. `DesktopChatboxInteractionRuntime` subscribes to pointer leave, blur, and
+   mousemove browser events for the pill window.
+2. the runtime compares pointer coordinates with the current pill bounds.
+3. `MinimalChatPill` receives a boolean active state, dedupes it, and reports
+   it through `DesktopWindowRuntimeClient.setChatboxHitTestActiveValue(...)`
+   plus renderer trace value logging.
 
 ## Visual Loop Activity Signal
 

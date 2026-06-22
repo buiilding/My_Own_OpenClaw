@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Chat Pill Hit-Test Interaction Runtime
+
+- Finding: `MinimalChatPill` still owned raw browser
+  `mousemove`/`mouseleave`/`blur` subscriptions and pill-bounds checks for
+  chatbox hit-test activation while the app-runtime client only owned IPC
+  payload construction.
+- Change: extended `DesktopChatboxInteractionRuntime` with pointer hit-test
+  subscription and bounds-check helpers. The component now supplies the pill ref
+  plus deduped boolean/text-entry callbacks while the runtime facade owns raw
+  browser listener mechanics and pointer coordinate checks.
+- Validation target: focused chatbox interaction runtime, chatbox overlay
+  behavior, renderer app-runtime boundary, and renderer chat boundary tests
+  protect pointer activation, cleanup, text-entry blur reset, and rejection of
+  mouse hit-test listener wiring in `MinimalChatPill`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Chat Interface Focus Browser Adapter Runtime
 
 - Finding: `ChatInterface` still owned raw `window.addEventListener('focus',

@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: chat interface window-focus active-workspace refresh
-  subscriptions and thread-find deferred focus RAF scheduling now route through
-  `DesktopChatInterfaceBindingsRuntime`; `ChatInterface` supplies callbacks and
-  refs without owning raw focus listener or animation-frame browser adapters.
+- Latest completed slice: minimal chat pill pointer hit-test subscriptions and
+  pill-bounds checks now route through `DesktopChatboxInteractionRuntime`;
+  `MinimalChatPill` supplies the pill ref plus deduped boolean/text-entry
+  callbacks without owning raw mouse hit-test listener or bounds-check browser
+  adapters.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

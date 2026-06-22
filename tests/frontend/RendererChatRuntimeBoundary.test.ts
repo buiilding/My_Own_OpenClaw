@@ -2280,9 +2280,17 @@ describe('renderer chat runtime boundary', () => {
     expect(layoutRuntimeSource).not.toContain('export const CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
     expect(interactionRuntimeSource).toContain('DesktopChatboxLayoutRuntime');
     expect(interactionRuntimeSource).toContain('DesktopWindowRuntimeClient');
+    expect(interactionRuntimeSource).toContain('isPointerInsideChatbox');
+    expect(interactionRuntimeSource).toContain('subscribeToChatboxHitTestEvents');
+    expect(interactionRuntimeSource).toContain('getBoundingClientRect');
     expect(interactionRuntimeSource).not.toContain('features/chat');
     expect(interactionRuntimeSource).not.toContain('features/minimalChatPill');
     expect(pillSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxNativeFrameHeight');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents');
+    expect(pillSource).not.toContain("window.addEventListener('mousemove'");
+    expect(pillSource).not.toContain("window.addEventListener('mouseleave'");
+    expect(pillSource).not.toContain("window.removeEventListener('mousemove'");
+    expect(pillSource).not.toContain("window.removeEventListener('mouseleave'");
     expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync');
     expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.resetChatboxVisualAnchorHeight');
     expect(pillSource).not.toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');

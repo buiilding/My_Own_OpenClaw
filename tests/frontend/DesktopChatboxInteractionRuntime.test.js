@@ -75,6 +75,12 @@ function createResizeObserverCtor(instances) {
   };
 }
 
+function createPill(bounds) {
+  return {
+    getBoundingClientRect: jest.fn(() => bounds),
+  };
+}
+
 describe('desktopChatboxInteractionRuntime', () => {
   beforeEach(() => {
     DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue.mockClear();
@@ -102,6 +108,58 @@ describe('desktopChatboxInteractionRuntime', () => {
 
     cleanup();
     expect(eventTarget.listeners.size).toBe(0);
+  });
+
+  test('reports chatbox hit-test state from pointer bounds and blur', () => {
+    const eventTarget = createEventTarget();
+    const onHitTestActiveChange = jest.fn();
+    const onTextEntryBlur = jest.fn();
+    const pill = createPill({
+      bottom: 120,
+      left: 10,
+      right: 410,
+      top: 20,
+    });
+
+    const cleanup = DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents({
+      eventTarget,
+      onHitTestActiveChange,
+      onTextEntryBlur,
+      pillRef: { current: pill },
+    });
+
+    eventTarget.dispatch('mousemove', { clientX: 220, clientY: 60 });
+    eventTarget.dispatch('mousemove', { clientX: 220, clientY: 10 });
+    eventTarget.dispatch('mouseleave');
+    eventTarget.dispatch('blur');
+
+    expect(onHitTestActiveChange).toHaveBeenNthCalledWith(1, true);
+    expect(onHitTestActiveChange).toHaveBeenNthCalledWith(2, false);
+    expect(onHitTestActiveChange).toHaveBeenNthCalledWith(3, false);
+    expect(onHitTestActiveChange).toHaveBeenNthCalledWith(4, false);
+    expect(onTextEntryBlur).toHaveBeenCalledTimes(1);
+
+    cleanup();
+    expect(eventTarget.listeners.size).toBe(0);
+  });
+
+  test('treats missing chatbox bounds or invalid pointer coordinates as inactive', () => {
+    expect(DesktopChatboxInteractionRuntime.isPointerInsideChatbox({
+      event: { clientX: 20, clientY: 20 },
+      pillRef: { current: null },
+    })).toBe(false);
+
+    expect(DesktopChatboxInteractionRuntime.isPointerInsideChatbox({
+      event: { clientX: 'x', clientY: 20 },
+      pillRef: {
+        current: createPill({
+          bottom: 20,
+          left: 0,
+          right: 20,
+          top: 0,
+        }),
+      },
+    })).toBe(false);
   });
 
   test('reports initial and resize-settled visual anchor height', () => {

@@ -46,6 +46,61 @@ function subscribeToChatboxDragWindowEvents({
   };
 }
 
+function isPointerInsideChatbox({ event, pillRef } = {}) {
+  const pillBounds = resolveElement(pillRef)?.getBoundingClientRect?.();
+  if (!pillBounds) {
+    return false;
+  }
+
+  const pointerX = Number(event?.clientX);
+  const pointerY = Number(event?.clientY);
+  return (
+    Number.isFinite(pointerX)
+    && Number.isFinite(pointerY)
+    && pointerX >= pillBounds.left
+    && pointerX <= pillBounds.right
+    && pointerY >= pillBounds.top
+    && pointerY <= pillBounds.bottom
+  );
+}
+
+function subscribeToChatboxHitTestEvents({
+  pillRef,
+  onHitTestActiveChange,
+  onTextEntryBlur,
+  eventTarget = globalThis.window,
+} = {}) {
+  if (
+    !eventTarget
+    || typeof eventTarget.addEventListener !== 'function'
+    || typeof eventTarget.removeEventListener !== 'function'
+    || typeof onHitTestActiveChange !== 'function'
+  ) {
+    return () => {};
+  }
+
+  const syncHitTestForPointer = (event) => {
+    onHitTestActiveChange(isPointerInsideChatbox({ event, pillRef }));
+  };
+  const disableHitTest = () => {
+    onHitTestActiveChange(false);
+  };
+  const handleBlur = () => {
+    disableHitTest();
+    onTextEntryBlur?.();
+  };
+
+  eventTarget.addEventListener('mousemove', syncHitTestForPointer);
+  eventTarget.addEventListener('mouseleave', disableHitTest);
+  eventTarget.addEventListener('blur', handleBlur);
+
+  return () => {
+    eventTarget.removeEventListener('mousemove', syncHitTestForPointer);
+    eventTarget.removeEventListener('mouseleave', disableHitTest);
+    eventTarget.removeEventListener('blur', handleBlur);
+  };
+}
+
 function scheduleAnimationFrameCommit({
   animationFrameApi,
   commit,
@@ -184,7 +239,9 @@ function resetChatboxVisualAnchorHeight() {
 }
 
 export const DesktopChatboxInteractionRuntime = Object.freeze({
+  isPointerInsideChatbox,
   resetChatboxVisualAnchorHeight,
   startChatboxVisualAnchorSync,
   subscribeToChatboxDragWindowEvents,
+  subscribeToChatboxHitTestEvents,
 });

@@ -18,6 +18,7 @@ import { useTextareaAutoResize } from '../../chat/hooks/useMessageInputUiBinding
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 import { DesktopChatboxLayoutRuntime } from '../../../app/runtime/desktopChatboxLayoutRuntime';
+import { DesktopChatboxInteractionRuntime } from '../../../app/runtime/desktopChatboxInteractionRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { useChatSurfaceController } from '../../chat/hooks/useChatSurfaceController';
 import {
@@ -454,45 +455,17 @@ function MinimalChatPill() {
     };
   }, [setChatboxHitTestActive]);
 
-  const syncChatboxHitTestForPointer = useCallback((event) => {
-    const pillBounds = pillRef.current?.getBoundingClientRect?.();
-    if (!pillBounds) {
-      setChatboxHitTestActive(false);
-      return;
-    }
-    const pointerX = Number(event.clientX);
-    const pointerY = Number(event.clientY);
-    const isInsidePill = (
-      Number.isFinite(pointerX)
-      && Number.isFinite(pointerY)
-      && pointerX >= pillBounds.left
-      && pointerX <= pillBounds.right
-      && pointerY >= pillBounds.top
-      && pointerY <= pillBounds.bottom
-    );
-    setChatboxHitTestActive(isInsidePill);
-  }, [setChatboxHitTestActive]);
-
-  const disableChatboxHitTest = useCallback(() => {
-    setChatboxHitTestActive(false);
-  }, [setChatboxHitTestActive]);
-
   const clearTextEntryActive = useCallback(() => {
     textEntryActiveRef.current = false;
   }, []);
 
   useEffect(() => {
-    window.addEventListener('mousemove', syncChatboxHitTestForPointer);
-    window.addEventListener('mouseleave', disableChatboxHitTest);
-    window.addEventListener('blur', disableChatboxHitTest);
-    window.addEventListener('blur', clearTextEntryActive);
-    return () => {
-      window.removeEventListener('mousemove', syncChatboxHitTestForPointer);
-      window.removeEventListener('mouseleave', disableChatboxHitTest);
-      window.removeEventListener('blur', disableChatboxHitTest);
-      window.removeEventListener('blur', clearTextEntryActive);
-    };
-  }, [clearTextEntryActive, disableChatboxHitTest, syncChatboxHitTestForPointer]);
+    return DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents({
+      pillRef,
+      onHitTestActiveChange: setChatboxHitTestActive,
+      onTextEntryBlur: clearTextEntryActive,
+    });
+  }, [clearTextEntryActive, setChatboxHitTestActive]);
 
   useVoiceMode(
     wakewordSttEnabled && wakewordSttSessionActive,

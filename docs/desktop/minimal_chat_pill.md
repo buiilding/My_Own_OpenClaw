@@ -143,7 +143,10 @@ Electron main owns the BrowserWindow policy that hook applies:
 The renderer does not apply native click-through timing or screenshot
 invisibility. It renders the pill and response overlay, sends user text,
 displays the current-turn projection, handles drag intent through renderer
-app-runtime interaction adapters, and reports normal hit-test intent.
+app-runtime interaction adapters, and reports normal hit-test intent. Pointer
+hit-test subscriptions and pill-bounds checks route through
+`DesktopChatboxInteractionRuntime`; the component reports only deduped boolean
+active state and trace values.
 
 ## Deep Docs
 
