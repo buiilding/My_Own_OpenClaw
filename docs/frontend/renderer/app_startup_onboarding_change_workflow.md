@@ -18,7 +18,9 @@ gate state, and main-process surface visibility.
 
 - Electron main owns window creation, renderer URL query parameters, primary
   surface mode, and show/hide behavior for main window, chat pill, and overlays.
-- Renderer `main.jsx` owns root component selection from the `view` query
+- Renderer `main.jsx` owns React root/render selection while
+  `DesktopStartupRuntimeClient` owns the root DOM lookup and `view` query
+  adapter used for component selection
   parameter.
 - Renderer `App.jsx` owns the default main-app startup decision between VM
   dashboard, onboarding slideshow, and normal dashboard/chat-pill handoff.
@@ -54,7 +56,8 @@ sequenceDiagram
     participant Surface as surface runtime
 
     Main->>Entry: load renderer URL with optional view/vm_mode
-    Entry->>Entry: choose root app from view query
+    Entry->>StartupRuntime: resolve root element and view query
+    Entry->>Entry: choose root app from resolved view
     Entry->>App: default app when no overlay view
     App->>Perm: read bootstrapped, needsOnboarding, completed
     App->>App: selectStartupSurface(...)
@@ -199,7 +202,7 @@ Surface rules:
 | VM worker opens chat pill or tray | main process VM mode branch and renderer `vm_mode=1` query. | Electron main VM worker runtime |
 | Wakeword prompts before onboarding completion | `WakewordController` placement in `App.jsx`. | Renderer app startup |
 | Settings "Open onboarding" does not route | main-window open-target emission and `OnboardingSettingsTab`. | Settings plus surface runtime |
-| Overlay window renders full dashboard | renderer URL `view` query and `main.jsx` root selection. | Window loader/root routing |
+| Overlay window renders full dashboard | renderer URL `view` query, `DesktopStartupRuntimeClient`, and `main.jsx` root selection. | Window loader/root routing |
 
 ## Validation Matrix
 

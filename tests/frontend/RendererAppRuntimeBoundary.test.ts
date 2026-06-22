@@ -1271,14 +1271,18 @@ describe('renderer app runtime boundary', () => {
 
     expect(mainSource).toContain('DesktopInteractionRuntimeClient.installInteractionLogger');
     expect(mainSource).toContain('DesktopStartupRuntimeClient.getRendererEntrypointView');
+    expect(mainSource).toContain('DesktopStartupRuntimeClient.getRendererRootElement');
     expect(mainSource).not.toContain('infrastructure/interaction/rendererInteractionLogger');
     expect(mainSource).not.toContain('installRendererInteractionLogger');
     expect(mainSource).not.toContain('window.location.search');
     expect(mainSource).not.toContain('new URLSearchParams');
+    expect(mainSource).not.toContain('document.getElementById');
     expect(clientSource).toContain('installRendererInteractionLogger()');
     expect(clientSource).toContain('logUserSentMessage(details)');
     expect(startupClientSource).toContain('getRendererEntrypointView');
+    expect(startupClientSource).toContain('getRendererRootElement');
     expect(startupClientSource).toContain('shouldSuppressWakewordOnStartup');
+    expect(startupClientSource).toContain('getElementById');
     expect(startupClientSource).toContain('new URLSearchParams');
   });
 

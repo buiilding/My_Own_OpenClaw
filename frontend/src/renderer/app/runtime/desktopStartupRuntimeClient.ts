@@ -39,8 +39,15 @@ function shouldSuppressWakewordOnStartup(
   return getRendererEntrypointView(windowApi) !== 'main';
 }
 
+function getRendererRootElement(
+  documentApi: Pick<Document, 'getElementById'> | null | undefined = globalThis.document,
+): HTMLElement | null {
+  return documentApi?.getElementById('root') ?? null;
+}
+
 export const DesktopStartupRuntimeClient = {
   getRendererEntrypointView,
+  getRendererRootElement,
   isVmModeEnabled,
   shouldSuppressWakewordOnStartup,
 };

@@ -24,7 +24,8 @@ title: "Entrypoint View Routing and Provider Stack Reference"
 
 ## Root Component Selection
 
-`main.jsx` asks
+`main.jsx` asks `DesktopStartupRuntimeClient.getRendererRootElement(...)` for
+the DOM mount target, then asks
 `DesktopStartupRuntimeClient.getRendererEntrypointView(...)` for the current
 renderer `view` route:
 
@@ -37,6 +38,9 @@ Dev-only behavior:
 
 - `React.StrictMode` wrapper enabled when `import.meta.env.DEV` is true
 - production skips strict mode wrapper
+
+The entrypoint keeps React root/render selection. Raw startup document and URL
+query access belongs in `DesktopStartupRuntimeClient`.
 
 ## Provider Baseline per Surface
 
@@ -105,7 +109,8 @@ Overlay-only windows do not host this controller, avoiding duplicate detection s
 2. enabling `ChatProvider` execution side effects in overlay surfaces (can duplicate executions)
 3. mounting `WakewordController` in multiple surfaces (duplicate wakeword events)
 4. reintroducing permission-gate dependencies in `App.jsx` and blocking normal shell startup
-5. parsing renderer `view` query params outside `DesktopStartupRuntimeClient`
+5. parsing renderer `view` query params or reading the renderer root DOM
+   element outside `DesktopStartupRuntimeClient`
 6. changing provider order and breaking context hook assumptions
 
 ## Debug Checklist

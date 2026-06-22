@@ -56,7 +56,7 @@ This matrix maps frontend capabilities to implementation files.
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
-| Entry view router | `frontend/src/renderer/app/main.jsx`, `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts` | Chooses root component by runtime-owned `?view=` parsing (`App`, `minimal-chat-pill`, `minimal-response-overlay`, debug). |
+| Entry view router | `frontend/src/renderer/app/main.jsx`, `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts` | Chooses root component by runtime-owned root-element lookup and `?view=` parsing (`App`, `minimal-chat-pill`, `minimal-response-overlay`, debug). |
 | Main app provider composition | `frontend/src/renderer/app/App.jsx`, `frontend/src/renderer/app/providers/*` | Mounts app/chat providers and permission bootstrap gate. |
 | Overlay-focused app roots | `frontend/src/renderer/app/{MinimalChatPillApp,MinimalResponseOverlayApp}.jsx` | Overlay-specific renderer shells. |
 | Tool ghost debug entry | `frontend/src/renderer/app/ToolGhostDebugApp.jsx` | Debug-only animation harness for tool ghost timing. |

@@ -15,7 +15,7 @@ import { DesktopStartupRuntimeClient } from './runtime/desktopStartupRuntimeClie
 // StrictMode causes double rendering in development - disable in production for performance
 const isDev = import.meta.env.DEV;
 DesktopInteractionRuntimeClient.installInteractionLogger();
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(DesktopStartupRuntimeClient.getRendererRootElement());
 const view = DesktopStartupRuntimeClient.getRendererEntrypointView();
 const RootComponent = view === 'minimal-chat-pill'
   ? MinimalChatPillApp

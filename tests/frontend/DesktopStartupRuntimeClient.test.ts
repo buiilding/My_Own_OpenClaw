@@ -38,4 +38,13 @@ describe('DesktopStartupRuntimeClient', () => {
       location: { search: '' } as Location,
     })).toBe(false);
   });
+
+  test('resolves the renderer root element through the startup document adapter', () => {
+    const root = document.createElement('div');
+    const getElementById = jest.fn((id: string) => (id === 'root' ? root : null));
+
+    expect(DesktopStartupRuntimeClient.getRendererRootElement({ getElementById })).toBe(root);
+    expect(getElementById).toHaveBeenCalledWith('root');
+    expect(DesktopStartupRuntimeClient.getRendererRootElement(null)).toBeNull();
+  });
 });

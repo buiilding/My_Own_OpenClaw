@@ -16,7 +16,7 @@ frontend/src/renderer/
 |   |-- MinimalResponseOverlayApp.jsx    # Minimal response overlay root component
 |   |-- ToolGhostDebugApp.jsx            # Debug-only tool ghost overlay root component
 |   |-- WakewordController.jsx           # WakewordController - Always-on wakeword detection + chatbox trigger
-|   |-- main.jsx                         # React entry point - routes App/minimal overlays through desktopStartupRuntimeClient ?view= parsing
+|   |-- main.jsx                         # React entry point - creates root from desktopStartupRuntimeClient and routes App/minimal overlays by resolved view
 |   |
 |   |-- runtime/                         # App-level SDK/runtime command facades
 |   |   |-- desktopArtifactRuntimeClient.ts # Renderer artifact URL, image fetch, screenshot attachment, and content-type facade
@@ -94,7 +94,7 @@ frontend/src/renderer/
 |   |   |-- desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 |   |   |-- desktopPresentationSourceChannels.js # Renderer presentation source-channel labels
 |   |   |-- desktopShortcutRuntimeClient.ts # Renderer shortcut label, predicate, option, and config-normalization facade
-|   |   |-- desktopStartupRuntimeClient.ts # Renderer startup query/view and VM-mode facade
+|   |   |-- desktopStartupRuntimeClient.ts # Renderer startup root-element, query/view, wakeword suppression, and VM-mode facade
 |   |   |-- desktopSettingsEventRuntimeClient.ts # Renderer settings-event handler facade for providers
 |   |   |-- desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
 |   |   |-- desktopSettingsTabRuntime.js # Renderer settings tab descriptor facade

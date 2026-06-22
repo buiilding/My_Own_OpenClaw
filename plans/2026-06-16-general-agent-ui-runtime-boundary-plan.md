@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer Startup Root Element Runtime
+
+- Finding: `main.jsx` already delegated renderer `view` query parsing to
+  `DesktopStartupRuntimeClient`, but still read the React mount target through
+  `document.getElementById('root')` directly at startup.
+- Change: added `DesktopStartupRuntimeClient.getRendererRootElement(...)` as
+  the startup document adapter and routed `main.jsx` through it. The entrypoint
+  keeps React root creation and component selection while the startup runtime
+  owns the browser document lookup.
+- Validation target: `DesktopStartupRuntimeClient.test.ts` and
+  `RendererAppRuntimeBoundary.test.ts` protect root lookup behavior and reject
+  direct `document.getElementById(...)` calls in `main.jsx`.
+- Compatibility/security: no DOM root id, renderer URL query contract, IPC
+  channel, SDK event payload, config shape, persisted storage, permission,
+  credential, local execution, trust-boundary, or migration change required.
+
 ### 2026-06-22 Renderer Appearance Theme Application Runtime
 
 - Finding: `DesktopAppearanceThemeRuntime` already owned appearance-mode

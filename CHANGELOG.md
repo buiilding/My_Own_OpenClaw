@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route renderer React root-element lookup through
+  `DesktopStartupRuntimeClient.getRendererRootElement(...)` so `main.jsx`
+  no longer reads `document.getElementById('root')` directly. No migration
+  required.
 - frontend/renderer: move document-level appearance theme application and
   system `matchMedia` subscription cleanup into
   `DesktopAppearanceThemeRuntime`, deleting the standalone

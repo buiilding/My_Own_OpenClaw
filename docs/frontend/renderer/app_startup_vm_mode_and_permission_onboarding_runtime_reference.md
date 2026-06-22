@@ -89,16 +89,20 @@ Pre-bootstrap startup behavior:
 - `isVmModeEnabled()` is renderer-URL based through
   `infrastructure/runtime/vmMode.js`
 - `getRendererEntrypointView()` resolves the `view` route used by `main.jsx`
+- `getRendererRootElement()` resolves the React mount target used by
+  `main.jsx`
 - `shouldSuppressWakewordOnStartup()` starts wakeword suppressed on secondary
   renderer views and active on the main dashboard view
 
-URL query behavior:
+Startup adapter behavior:
 
 - returns true only when query parameter `vm_mode=1` is present
 - supported `view` values are `minimal-chat-pill`,
   `minimal-response-overlay`, and `tool-ghost-debug`
 - missing or unsupported `view` values resolve to the main app route
 - fails closed (`false`) on missing window/location or parse exceptions
+- root target lookup reads the `root` element through the startup runtime
+  document adapter rather than directly in `main.jsx`
 
 This is intentionally independent from backend and renderer config state.
 
