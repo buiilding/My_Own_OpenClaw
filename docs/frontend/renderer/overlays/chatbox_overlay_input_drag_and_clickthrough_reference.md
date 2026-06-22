@@ -58,6 +58,8 @@ This keeps overlay window lightweight:
 - global drag window listeners through `DesktopChatboxInteractionRuntime`
 - pointer hit-test listeners and pill-bounds checks through
   `DesktopChatboxInteractionRuntime`
+- close-button anchor measurement, resize listener wiring, `ResizeObserver`,
+  and animation-frame scheduling through `DesktopChatboxInteractionRuntime`
 - visual-anchor sync through `DesktopChatboxInteractionRuntime`, which owns
   `ResizeObserver`, debounce timer, animation-frame scheduling, and
   `DesktopWindowRuntimeClient` anchor-height reporting from measured shell
@@ -206,6 +208,15 @@ Hit-test path:
 3. `MinimalChatPill` receives a boolean active state, dedupes it, and reports
    it through `DesktopWindowRuntimeClient.setChatboxHitTestActiveValue(...)`
    plus renderer trace value logging.
+
+Close-anchor path:
+
+1. `DesktopChatboxInteractionRuntime` schedules close-anchor measurement on the
+   next animation frame.
+2. the runtime listens for window resize and pill `ResizeObserver` callbacks,
+   then remeasures the send button center relative to the pill bounds.
+3. `MinimalChatPill` supplies refs and an anchor snapshot while the runtime
+   writes `--chatbox-close-center-x` only when the resolved center changes.
 
 ## Visual Loop Activity Signal
 

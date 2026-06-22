@@ -34,7 +34,16 @@ function createWindowApi() {
   let nextFrameId = 100;
   const timeouts = new Map();
   const frames = new Map();
+  const listeners = new Map();
   return {
+    addEventListener: jest.fn((type, listener) => {
+      listeners.set(type, listener);
+    }),
+    removeEventListener: jest.fn((type, listener) => {
+      if (listeners.get(type) === listener) {
+        listeners.delete(type);
+      }
+    }),
     setTimeout: jest.fn((callback, delayMs) => {
       const id = nextTimeoutId;
       nextTimeoutId += 1;
@@ -53,6 +62,9 @@ function createWindowApi() {
     cancelAnimationFrame: jest.fn((id) => {
       frames.delete(id);
     }),
+    dispatch(type, event) {
+      listeners.get(type)?.(event);
+    },
     runTimeout(id) {
       timeouts.get(id)?.callback();
     },
@@ -60,6 +72,7 @@ function createWindowApi() {
       frames.get(id)?.(0);
     },
     frames,
+    listeners,
     timeouts,
   };
 }
@@ -75,8 +88,12 @@ function createResizeObserverCtor(instances) {
   };
 }
 
-function createPill(bounds) {
+function createPill(bounds, options = {}) {
   return {
+    offsetWidth: options.offsetWidth ?? bounds?.width ?? 0,
+    style: {
+      setProperty: jest.fn(),
+    },
     getBoundingClientRect: jest.fn(() => bounds),
   };
 }
@@ -160,6 +177,74 @@ describe('desktopChatboxInteractionRuntime', () => {
         }),
       },
     })).toBe(false);
+  });
+
+  test('syncs close button anchor through resize and observer browser adapters', () => {
+    const windowApi = createWindowApi();
+    const resizeObserverInstances = [];
+    const ResizeObserverCtor = createResizeObserverCtor(resizeObserverInstances);
+    const snapshotRef = { current: { centerX: null } };
+    const pill = createPill({
+      left: 10,
+      width: 520,
+    }, { offsetWidth: 520 });
+    let sendBounds = {
+      left: 450,
+      width: 40,
+    };
+    const sendButton = {
+      getBoundingClientRect: jest.fn(() => sendBounds),
+    };
+
+    const cleanup = DesktopChatboxInteractionRuntime.startChatboxCloseButtonAnchorSync({
+      pillRef: { current: pill },
+      resizeObserverCtor: ResizeObserverCtor,
+      sendButtonRef: { current: sendButton },
+      snapshotRef,
+      windowApi,
+    });
+
+    expect(windowApi.addEventListener).toHaveBeenCalledWith('resize', expect.any(Function));
+    expect(resizeObserverInstances[0].observe).toHaveBeenCalledWith(pill);
+    windowApi.runFrame(100);
+    expect(pill.style.setProperty).toHaveBeenCalledWith('--chatbox-close-center-x', '460px');
+    expect(snapshotRef.current.centerX).toBe(460);
+
+    windowApi.dispatch('resize');
+    windowApi.runFrame(101);
+    expect(pill.style.setProperty).toHaveBeenCalledTimes(1);
+
+    sendBounds = {
+      left: 430,
+      width: 40,
+    };
+    resizeObserverInstances[0].callback();
+    windowApi.runFrame(102);
+    expect(pill.style.setProperty).toHaveBeenLastCalledWith('--chatbox-close-center-x', '440px');
+
+    cleanup();
+    expect(windowApi.removeEventListener).toHaveBeenCalledWith('resize', expect.any(Function));
+    expect(resizeObserverInstances[0].disconnect).toHaveBeenCalled();
+    expect(windowApi.listeners.size).toBe(0);
+  });
+
+  test('ignores invalid close button anchor measurements', () => {
+    const pill = createPill({
+      left: 10,
+      width: 0,
+    }, { offsetWidth: 0 });
+    const sendButton = {
+      getBoundingClientRect: jest.fn(() => ({
+        left: 450,
+        width: 40,
+      })),
+    };
+
+    expect(DesktopChatboxInteractionRuntime.resolveChatboxCloseButtonAnchorCenterX({
+      pillRef: { current: pill },
+      sendButtonRef: { current: sendButton },
+    })).toBeNull();
+    expect(pill.style.setProperty).not.toHaveBeenCalled();
   });
 
   test('reports initial and resize-settled visual anchor height', () => {

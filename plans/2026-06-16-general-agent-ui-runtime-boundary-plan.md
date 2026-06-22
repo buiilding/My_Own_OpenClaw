@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Chat Pill Close-Anchor Interaction Runtime
+
+- Finding: `MinimalChatPill` still owned close-button anchor DOM measurement,
+  `window.resize` subscription wiring, `ResizeObserver`, animation-frame
+  scheduling, and cleanup while chatbox drag, visual-anchor, and hit-test
+  browser adapters had already moved behind `DesktopChatboxInteractionRuntime`.
+- Change: extended `DesktopChatboxInteractionRuntime` with close-anchor center
+  resolution plus a start/cleanup helper for resize, observer, and RAF
+  scheduling. The component now supplies pill/send-button refs and an anchor
+  snapshot while the runtime owns browser adapter mechanics and CSS variable
+  updates.
+- Validation target: focused chatbox interaction runtime and renderer
+  app/chat-boundary tests protect close-anchor measurement, snapshot dedupe,
+  observer/resize cleanup, and rejection of raw close-anchor browser wiring in
+  `MinimalChatPill`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Stop-Turn SDK Visibility Field Cleanup
 
 - Finding: `DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)`

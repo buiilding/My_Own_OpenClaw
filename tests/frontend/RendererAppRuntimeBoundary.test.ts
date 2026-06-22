@@ -226,6 +226,8 @@ describe('renderer app runtime boundary', () => {
     expect(interactionRuntimeSource).toContain('removeEventListener');
     expect(interactionRuntimeSource).toContain('isPointerInsideChatbox');
     expect(interactionRuntimeSource).toContain('subscribeToChatboxHitTestEvents');
+    expect(interactionRuntimeSource).toContain('startChatboxCloseButtonAnchorSync');
+    expect(interactionRuntimeSource).toContain('resolveChatboxCloseButtonAnchorCenterX');
     expect(interactionRuntimeSource).toContain('getBoundingClientRect');
     expect(interactionRuntimeSource).toContain('setTimeout');
     expect(interactionRuntimeSource).toContain('requestAnimationFrame');
@@ -237,13 +239,18 @@ describe('renderer app runtime boundary', () => {
     expect(bindingsSource).toContain('desktopChatboxInteractionRuntime');
     expect(pillSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxNativeFrameHeight');
     expect(pillSource).toContain('DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.startChatboxCloseButtonAnchorSync');
     expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync');
     expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.subscribeToChatboxDragWindowEvents');
     expect(pillSource).not.toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
     expect(pillSource).not.toContain("window.addEventListener('mousemove'");
     expect(pillSource).not.toContain("window.addEventListener('mouseleave'");
+    expect(pillSource).not.toContain("window.addEventListener('resize'");
     expect(pillSource).not.toContain("window.removeEventListener('mousemove'");
     expect(pillSource).not.toContain("window.removeEventListener('mouseleave'");
+    expect(pillSource).not.toContain("window.removeEventListener('resize'");
+    expect(pillSource).not.toContain('new ResizeObserver');
+    expect(pillSource).not.toContain('closeButtonAnchorFrameRef');
     expect(bindingsSource).not.toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(bindingsSource).not.toContain('window.addEventListener');
     expect(bindingsSource).not.toContain('window.removeEventListener');

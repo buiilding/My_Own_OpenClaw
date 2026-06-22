@@ -146,7 +146,10 @@ displays the current-turn projection, handles drag intent through renderer
 app-runtime interaction adapters, and reports normal hit-test intent. Pointer
 hit-test subscriptions and pill-bounds checks route through
 `DesktopChatboxInteractionRuntime`; the component reports only deduped boolean
-active state and trace values.
+active state and trace values. Close-button anchor measurement, resize
+subscriptions, `ResizeObserver`, and animation-frame scheduling also route
+through that runtime so the component supplies only the pill/send-button refs
+and anchor snapshot.
 
 ## Deep Docs
 

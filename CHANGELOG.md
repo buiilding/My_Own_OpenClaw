@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route minimal chat pill close-button anchor measurement,
+  resize subscription, ResizeObserver, and animation-frame scheduling through
+  `DesktopChatboxInteractionRuntime`, keeping close-anchor browser adapters out
+  of `MinimalChatPill`. No migration required.
 - frontend/renderer: route minimal chat pill pointer hit-test window
   subscriptions and pill-bounds checks through
   `DesktopChatboxInteractionRuntime`, keeping raw mouse hit-test browser

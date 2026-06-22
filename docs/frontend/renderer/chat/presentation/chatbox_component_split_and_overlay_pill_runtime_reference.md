@@ -125,6 +125,9 @@ compaction behind its loop lock.
   `DesktopChatboxInteractionRuntime.subscribeToChatboxDragWindowEvents(...)`
 - pointer hit-test listeners and pill-bounds checks are installed through
   `DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents(...)`
+- close-button anchor measurement, resize listener wiring, observer callbacks,
+  and animation-frame scheduling are installed through
+  `DesktopChatboxInteractionRuntime.startChatboxCloseButtonAnchorSync(...)`
 - visual-anchor IPC sync:
   - preview off -> `height: 64`
   - preview on -> `height: 116`

@@ -101,6 +101,124 @@ function subscribeToChatboxHitTestEvents({
   };
 }
 
+function resolveChatboxCloseButtonAnchorCenterX({
+  pillRef,
+  sendButtonRef,
+} = {}) {
+  const pillElement = resolveElement(pillRef);
+  const sendButtonElement = resolveElement(sendButtonRef);
+  if (!pillElement || !sendButtonElement) {
+    return null;
+  }
+
+  const pillRect = pillElement.getBoundingClientRect?.();
+  const sendRect = sendButtonElement.getBoundingClientRect?.();
+  if (!pillRect || !sendRect || pillRect.width <= 0 || sendRect.width <= 0) {
+    return null;
+  }
+
+  const pillWidth = Math.max(
+    Math.round(Number(pillElement.offsetWidth) || 0),
+    Math.round(Number(pillRect.width) || 0),
+  );
+  if (pillWidth <= 0) {
+    return null;
+  }
+
+  return Math.round((sendRect.left - pillRect.left) + (sendRect.width / 2));
+}
+
+function resolveMutableSnapshot(snapshotRef) {
+  if (snapshotRef && Object.prototype.hasOwnProperty.call(snapshotRef, 'current')) {
+    return snapshotRef.current;
+  }
+  return snapshotRef || null;
+}
+
+function syncChatboxCloseButtonAnchor({
+  pillRef,
+  sendButtonRef,
+  snapshotRef,
+} = {}) {
+  const pillElement = resolveElement(pillRef);
+  const centerX = resolveChatboxCloseButtonAnchorCenterX({
+    pillRef,
+    sendButtonRef,
+  });
+  if (!pillElement || centerX === null) {
+    return null;
+  }
+
+  const snapshot = resolveMutableSnapshot(snapshotRef);
+  if (snapshot?.centerX === centerX) {
+    return centerX;
+  }
+
+  pillElement.style?.setProperty?.('--chatbox-close-center-x', `${centerX}px`);
+  if (snapshot) {
+    snapshot.centerX = centerX;
+  }
+  return centerX;
+}
+
+function startChatboxCloseButtonAnchorSync({
+  pillRef,
+  sendButtonRef,
+  snapshotRef,
+  resizeObserverCtor = globalThis.ResizeObserver,
+  windowApi = globalThis.window,
+} = {}) {
+  const browserApi = resolveWindowApi(windowApi);
+  let scheduledFrame = null;
+
+  const syncAnchor = () => {
+    scheduledFrame = null;
+    syncChatboxCloseButtonAnchor({
+      pillRef,
+      sendButtonRef,
+      snapshotRef,
+    });
+  };
+
+  const scheduleAnchorSync = () => {
+    if (typeof browserApi.requestAnimationFrame !== 'function') {
+      syncAnchor();
+      return;
+    }
+    if (scheduledFrame !== null && typeof browserApi.cancelAnimationFrame === 'function') {
+      browserApi.cancelAnimationFrame(scheduledFrame);
+    }
+    scheduledFrame = browserApi.requestAnimationFrame(syncAnchor);
+  };
+
+  scheduleAnchorSync();
+
+  const canListenForResize = (
+    typeof browserApi.addEventListener === 'function'
+    && typeof browserApi.removeEventListener === 'function'
+  );
+  if (canListenForResize) {
+    browserApi.addEventListener('resize', scheduleAnchorSync);
+  }
+
+  const pillElement = resolveElement(pillRef);
+  const resizeObserver = typeof resizeObserverCtor === 'function' && pillElement
+    ? new resizeObserverCtor(scheduleAnchorSync)
+    : null;
+  resizeObserver?.observe?.(pillElement);
+
+  return () => {
+    if (canListenForResize) {
+      browserApi.removeEventListener('resize', scheduleAnchorSync);
+    }
+    if (scheduledFrame !== null && typeof browserApi.cancelAnimationFrame === 'function') {
+      browserApi.cancelAnimationFrame(scheduledFrame);
+      scheduledFrame = null;
+    }
+    resizeObserver?.disconnect?.();
+  };
+}
+
 function scheduleAnimationFrameCommit({
   animationFrameApi,
   commit,
@@ -240,8 +358,10 @@ function resetChatboxVisualAnchorHeight() {
 
 export const DesktopChatboxInteractionRuntime = Object.freeze({
   isPointerInsideChatbox,
+  resolveChatboxCloseButtonAnchorCenterX,
   resetChatboxVisualAnchorHeight,
   startChatboxVisualAnchorSync,
+  startChatboxCloseButtonAnchorSync,
   subscribeToChatboxDragWindowEvents,
   subscribeToChatboxHitTestEvents,
 });
