@@ -113,7 +113,7 @@ Architecture rules:
   normalize inputs at boundaries, fail fast on invalid state, and split distinct
   states into named handlers instead of stacking nested fallbacks.
 - Prefer deletion-first cleanup. Remove duplicate authorities, stale bridges,
-  alias paths, compatibility shims, and adapter layers that only rename payloads
+  alias paths, compatibility shims, legacy code,  and adapter layers that only rename payloads
   unless the user explicitly asks for compatibility or a verified dependency
   needs it.
 - Widen within the same runtime boundary when it reduces code, duplication,
