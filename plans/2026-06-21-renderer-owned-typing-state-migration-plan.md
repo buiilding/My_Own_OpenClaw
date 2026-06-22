@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Stop Projection SDK Visibility Flag Deletion
+
+- Finding: `DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)`
+  still copied or restamped SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` when terminalizing a stopped current turn,
+  preserving legacy visibility fields after the renderer visible lifecycle had
+  already become the post-stop typing/visibility authority.
+- Change: stopped current-turn projections now strip those SDK visibility
+  compatibility fields while preserving visible entries and overlay-intent
+  metadata for response rendering and dismissal.
+- Validation target: `DesktopStopTurnRuntime.test.js`, `ChatStore.test.ts`,
+  and `RendererChatRuntimeBoundary.test.ts` protect stopped projection
+  terminalization without SDK visibility flags.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Response Overlay Thinking Status Fallback Deletion
 
 - Finding: `selectLiveTurnSurfaceState(...)`, `MinimalResponseOverlay`, and

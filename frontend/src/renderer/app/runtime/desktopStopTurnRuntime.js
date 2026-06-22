@@ -44,16 +44,17 @@ function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   const overlayIntent = presentation.overlayIntent && typeof presentation.overlayIntent === 'object'
     ? presentation.overlayIntent
     : {};
+  const nextPresentation = { ...presentation };
+  delete nextPresentation.typingVisible;
+  delete nextPresentation.overlayVisible;
   return {
     ...currentTurnProjection,
     phase: 'complete',
     presentation: {
-      ...presentation,
+      ...nextPresentation,
       phase: 'complete',
       isBusy: false,
       isTerminal: true,
-      typingVisible: false,
-      overlayVisible: hasVisibleContent,
       overlayIntent: {
         ...overlayIntent,
         visible: hasVisibleContent,

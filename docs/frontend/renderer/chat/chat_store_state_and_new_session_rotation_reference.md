@@ -81,7 +81,9 @@ Message attachment fields used by current send/runtime paths include:
 - `acceptStoppedTurn` immediately clears local busy/thinking state, clears a
   matching pending turn, patches stream tracking to terminal `complete`, and
   terminalizes the matching SDK current-turn projection while preserving any
-  already visible assistant content
+  already visible assistant content. Stopped projections strip SDK
+  `typingVisible` and `overlayVisible` compatibility fields; visible lifecycle
+  derives busy/typing state from terminal phase plus visible entries.
 - `clearMessages` clears messages and resets `streamTracking` to initial idle shape
 - `setActiveConversationRef` switches the projected top-level state to that workspace snapshot
 - `registerTurnConversationRef` / `resolveConversationRefForTurn` maintain turn->conversation routing for events that omit `conversation_ref`

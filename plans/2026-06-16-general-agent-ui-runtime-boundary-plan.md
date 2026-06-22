@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Stop-Turn SDK Visibility Field Cleanup
+
+- Finding: `DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)`
+  still stamped stopped SDK projections with legacy `typingVisible` and
+  `overlayVisible` presentation fields, even after renderer visible lifecycle
+  became the owner for post-stop typing and response visibility.
+- Change: stopped current-turn projection building now copies the SDK
+  presentation, deletes those legacy visibility fields, and only updates
+  terminal phase, busy state, and overlay intent from visible-content evidence.
+- Validation target: focused stop-turn runtime and chat-store tests protect the
+  stopped projection shape, while the renderer chat boundary test keeps
+  stop-turn state owned by `DesktopStopTurnRuntime`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Chat Pill Hit-Test Interaction Runtime
 
 - Finding: `MinimalChatPill` still owned raw browser

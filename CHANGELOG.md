@@ -88,6 +88,10 @@ All notable changes to WindieOS will be documented in this file.
   live-turn selector and view model; overlay reasoning text now comes only from
   SDK `currentTurn.reasoningText`, while dashboard compaction/manual status
   remains on the chat-interface path. No migration required.
+- frontend/renderer: strip SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` from stopped current-turn projections, leaving
+  post-stop typing and response visibility to renderer visible lifecycle plus
+  visible entries. No migration required.
 - frontend/renderer: delete the unused
   `DesktopOverlayTurnLifecycleRuntime`, its shared overlay lifecycle JSON
   contract, and the stale helper test now that renderer surfaces consume

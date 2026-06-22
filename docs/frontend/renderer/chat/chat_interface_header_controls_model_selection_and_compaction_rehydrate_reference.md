@@ -53,6 +53,11 @@ Dashboard stop behavior is owned by `useStopTurnHandler(...)`:
 6. call `DesktopLiveTurnRuntimeClient.stop(...)` with the resolved
    conversation ref and turn ref
 
+`DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)` terminalizes
+the stopped SDK projection without restamping SDK `typingVisible` or
+`overlayVisible`; renderer visible lifecycle owns post-stop typing and response
+visibility from terminal phase and visible entries.
+
 Keyboard binding:
 
 - `useChatInterfaceStopShortcut(canStop, handleStopTurn)`

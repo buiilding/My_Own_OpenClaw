@@ -7,6 +7,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime';
 
 const {
+  buildStoppedCurrentTurnProjection,
   isStopTurnTargetFromCurrentTurn,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
@@ -110,5 +111,43 @@ describe('desktopStopTurnRuntime', () => {
     expect(isStopTurnTargetFromPendingTurn(pendingTarget)).toBe(true);
     expect(isStopTurnTargetFromCurrentTurn(idleTarget)).toBe(false);
     expect(isStopTurnTargetFromPendingTurn(idleTarget)).toBe(false);
+  });
+
+  test('buildStoppedCurrentTurnProjection strips legacy SDK visibility fields', () => {
+    const stoppedProjection = buildStoppedCurrentTurnProjection({
+      conversationRef: 'conv-stop',
+      turnRef: 'turn-stop',
+      phase: 'streaming',
+      presentation: {
+        phase: 'streaming',
+        typingVisible: true,
+        overlayVisible: true,
+        isBusy: true,
+        isTerminal: false,
+        hasVisibleContent: true,
+        entries: [{ id: 'entry-1', text: 'partial' }],
+        overlayIntent: {
+          visible: true,
+          mode: 'response',
+        },
+      },
+    });
+
+    expect(stoppedProjection).toEqual(expect.objectContaining({
+      phase: 'complete',
+      presentation: expect.objectContaining({
+        phase: 'complete',
+        isBusy: false,
+        isTerminal: true,
+        hasVisibleContent: true,
+        entries: [{ id: 'entry-1', text: 'partial' }],
+        overlayIntent: expect.objectContaining({
+          visible: true,
+          mode: 'response',
+        }),
+      }),
+    }));
+    expect(stoppedProjection.presentation).not.toHaveProperty('typingVisible');
+    expect(stoppedProjection.presentation).not.toHaveProperty('overlayVisible');
   });
 });

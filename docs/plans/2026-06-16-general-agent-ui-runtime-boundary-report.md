@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: minimal chat pill pointer hit-test subscriptions and
-  pill-bounds checks now route through `DesktopChatboxInteractionRuntime`;
-  `MinimalChatPill` supplies the pill ref plus deduped boolean/text-entry
-  callbacks without owning raw mouse hit-test listener or bounds-check browser
-  adapters.
+- Latest completed slice: stopped current-turn projection building now strips
+  legacy SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` fields in `DesktopStopTurnRuntime`, leaving
+  terminal busy state and overlay intent as the only post-stop projection
+  updates while renderer visible lifecycle owns typing and response visibility.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
