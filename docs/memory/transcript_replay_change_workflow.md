@@ -77,6 +77,11 @@ flowchart LR
 4. Preserve replay shape.
    - Stored transcript rows must reconstruct stable user, assistant, tool-call, tool-output, bundle, transparency, screenshot, and model metadata rows.
    - Replay should not invent backend-only history fields for UI display.
+   - Visible screenshot/image replay should produce ordered SDK
+     `attachments[]` descriptors before rows reach renderer components. Legacy
+     screenshot aliases are allowed only as input to
+     `legacyVisualAttachmentReplayAdapter`, the narrow old-row compatibility
+     owner retained until a durable local-store migration rewrites those rows.
    - Local snapshots should not replace durable transcript storage unless the code explicitly uses them as a fallback.
    - Edit/resend and try-again must cut by canonical SDK event or payload
      message id. Renderer replay row-index selection is owned by
@@ -91,6 +96,10 @@ flowchart LR
    - Backend rehydrate should normalize message roles, structured tool
      payloads, transparency rows, screenshot refs, and tool-call/tool-output
      linkage, while rejecting stale message-type aliases at the API boundary.
+   - Backend-safe `display_attachments` may cross rehydrate/tool-result
+     websocket boundaries for display/replay parity, but model-visible image
+     hydration remains `screenshot_ref`/artifact-ref owned until provider
+     history becomes attachment-aware.
    - Provider-strict history should be rejected at the backend rehydrate layer when
      current transcript projections omit required tool linkage or structured tool
      payloads.

@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from backend.src.api.schemas.common import BaseMessage
+from backend.src.api.schemas.common import BaseMessage, DisplayAttachment
 
 
 class ErrorPayload(BaseModel):
@@ -108,6 +108,9 @@ class ToolOutputPayload(BaseModel):
     error: Optional[str] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
+    screenshot_url: Optional[str] = None
+    screenshot_content_type: Optional[str] = None
+    display_attachments: Optional[List[DisplayAttachment]] = None
     metadata: Optional[ToolOutputMetadata] = None
 
 

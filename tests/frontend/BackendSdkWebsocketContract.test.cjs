@@ -144,8 +144,23 @@ function expectedPayloadKeysByType() {
 }
 
 function samplePayloadValue(type, key) {
-  if (key === 'messages' || key === 'repo_instruction_messages' || key === 'client_prompt_layers' || key === 'screenshot_refs' || key === 'step_results') {
+  if (
+    key === 'messages'
+    || key === 'repo_instruction_messages'
+    || key === 'client_prompt_layers'
+    || key === 'screenshot_refs'
+    || key === 'step_results'
+  ) {
     return [];
+  }
+  if (key === 'display_attachments') {
+    return [{
+      id: `${type}:display-attachment`,
+      kind: 'image',
+      source: 'tool_result',
+      status: 'ready',
+      screenshot_ref: `${type}:display-artifact`,
+    }];
   }
   if (key === 'force' || key === 'success') {
     return true;
@@ -536,12 +551,29 @@ describe('backend-to-sdk websocket incoming contract', () => {
         success: true,
         data: {
           output: 'tool-specific extra field is allowed in data',
+          attachments: [{
+            id: 'attach-tool-1',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotRef: 'artifact-tool-1.png',
+            screenshotUrl: '/api/artifacts/artifact-tool-1.png',
+            previewSrc: 'data:image/png;base64,renderer-preview',
+          }],
         },
       });
       await session.sendToolBundleResultPayload({
         bundle_id: 'bundle-1',
         status: 'success',
         screenshot_url: 'renderer-only-url',
+        display_attachments: [{
+          id: 'attach-bundle-1',
+          kind: 'image',
+          source: 'tool_result',
+          status: 'ready',
+          screenshot_ref: 'artifact-bundle-1.png',
+          screenshot_url: 'data:image/png;base64,inline',
+        }],
         step_results: [{
           tool: 'read_file',
           status: 'success',
@@ -556,6 +588,23 @@ describe('backend-to-sdk websocket incoming contract', () => {
       assertPayloadMatchesContract('tool-result', toolResultPayload);
       assertPayloadMatchesContract('tool-bundle-result', bundleResultPayload);
       expect(bundleResultPayload).not.toHaveProperty('screenshot_url');
+      expect(toolResultPayload.data.display_attachments).toEqual([{
+        id: 'attach-tool-1',
+        kind: 'image',
+        source: 'tool_result',
+        status: 'ready',
+        screenshot_ref: 'artifact-tool-1.png',
+        screenshot_url: '/api/artifacts/artifact-tool-1.png',
+      }]);
+      expect(toolResultPayload.data).not.toHaveProperty('attachments');
+      expect(bundleResultPayload.display_attachments).toEqual([{
+        id: 'attach-bundle-1',
+        kind: 'image',
+        source: 'tool_result',
+        status: 'ready',
+        screenshot_ref: 'artifact-bundle-1.png',
+      }]);
+      expect(JSON.stringify([toolResultPayload, bundleResultPayload])).not.toContain('data:image');
     } finally {
       session.close('test-cleanup');
     }

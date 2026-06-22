@@ -185,7 +185,9 @@ async def test_parse_and_validate_message_accepts_sdk_prepared_content() -> None
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_overrides_client_user_id_with_connection_user_id() -> None:
+async def test_parse_and_validate_message_overrides_client_user_id_with_connection_user_id() -> (
+    None
+):
     payload = json.dumps(
         {
             "id": "msg_user_override",
@@ -248,7 +250,9 @@ async def test_parse_and_validate_message_enforces_utf8_byte_size_limit() -> Non
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_accepts_payload_at_exact_utf8_byte_limit() -> None:
+async def test_parse_and_validate_message_accepts_payload_at_exact_utf8_byte_limit() -> (
+    None
+):
     payload = json.dumps(
         {
             "id": "msg_unicode_exact",
@@ -256,6 +260,7 @@ async def test_parse_and_validate_message_accepts_payload_at_exact_utf8_byte_lim
             "payload": {
                 "text": "🙂" * 10,
                 "conversation_ref": "conv_test",
+                "content": "<user_query>hello</user_query>",
             },
         },
         ensure_ascii=False,
@@ -278,7 +283,11 @@ async def test_parse_and_validate_message_accepts_payload_at_exact_size_limit() 
         {
             "id": "msg_exact_size",
             "type": "query",
-            "payload": {"text": "hello", "conversation_ref": "conv_test"},
+            "payload": {
+                "text": "hello",
+                "conversation_ref": "conv_test",
+                "content": "<user_query>hello</user_query>",
+            },
         }
     )
 
@@ -323,7 +332,9 @@ async def test_parse_and_validate_message_returns_multiple_validation_details() 
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_includes_indexed_nested_validation_paths() -> None:
+async def test_parse_and_validate_message_includes_indexed_nested_validation_paths() -> (
+    None
+):
     payload = json.dumps(
         {
             "id": "msg_nested_invalid",
@@ -350,7 +361,9 @@ async def test_parse_and_validate_message_includes_indexed_nested_validation_pat
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_delegates_to_runtime_parser(monkeypatch) -> None:
+async def test_parse_and_validate_message_delegates_to_runtime_parser(
+    monkeypatch,
+) -> None:
     captured = {}
 
     async def fake_parse_runtime(
@@ -429,7 +442,9 @@ async def test_parse_and_validate_message_returns_validation_error() -> None:
     ],
     ids=["query", "rehydrate-conversation"],
 )
-async def test_parse_and_validate_message_rejects_whitespace_conversation_ref(payload: dict) -> None:
+async def test_parse_and_validate_message_rejects_whitespace_conversation_ref(
+    payload: dict,
+) -> None:
     message, error = await mh.parse_and_validate_message(
         json.dumps(payload),
         user_id="user_1",
@@ -528,7 +543,9 @@ async def test_parse_and_validate_message_rejects_non_object_json_root() -> None
         "tool-bundle-result",
     ],
 )
-async def test_parse_and_validate_message_rejects_removed_screenshot_fields(payload: dict) -> None:
+async def test_parse_and_validate_message_rejects_removed_screenshot_fields(
+    payload: dict,
+) -> None:
     message, error = await mh.parse_and_validate_message(
         json.dumps(payload),
         user_id="user_1",
@@ -541,7 +558,9 @@ async def test_parse_and_validate_message_rejects_removed_screenshot_fields(payl
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_accepts_structured_bundle_step_output() -> None:
+async def test_parse_and_validate_message_accepts_structured_bundle_step_output() -> (
+    None
+):
     payload = json.dumps(
         {
             "id": "msg_bundle_output",
@@ -574,7 +593,9 @@ async def test_parse_and_validate_message_accepts_structured_bundle_step_output(
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_accepts_tool_result_contract_payload() -> None:
+async def test_parse_and_validate_message_accepts_tool_result_contract_payload() -> (
+    None
+):
     payload = json.dumps(
         {
             "id": "msg_tool_result_contract",
@@ -624,7 +645,9 @@ async def test_parse_and_validate_message_accepts_tool_result_contract_payload()
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_accepts_sdk_failed_tool_result_payload() -> None:
+async def test_parse_and_validate_message_accepts_sdk_failed_tool_result_payload() -> (
+    None
+):
     payload = json.dumps(
         {
             "id": "msg_sdk_failed_tool_result",
@@ -742,7 +765,9 @@ async def test_parse_and_validate_message_trims_tool_bundle_result_bundle_id() -
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_rejects_tool_result_system_state_without_mouse_position() -> None:
+async def test_parse_and_validate_message_rejects_tool_result_system_state_without_mouse_position() -> (
+    None
+):
     payload = json.dumps(
         {
             "id": "msg_tool_result_bad_state",
@@ -862,7 +887,9 @@ async def test_parse_and_validate_message_rejects_non_string_tool_result_correla
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_rejects_tool_bundle_result_missing_step_results() -> None:
+async def test_parse_and_validate_message_rejects_tool_bundle_result_missing_step_results() -> (
+    None
+):
     payload = json.dumps(
         {
             "id": "msg_tool_bundle_result_missing_step_results",
@@ -886,7 +913,9 @@ async def test_parse_and_validate_message_rejects_tool_bundle_result_missing_ste
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_passes_default_offload_threshold_to_runtime(monkeypatch) -> None:
+async def test_parse_and_validate_message_passes_default_offload_threshold_to_runtime(
+    monkeypatch,
+) -> None:
     captured = {}
 
     async def fake_parse_runtime(
@@ -1090,7 +1119,10 @@ async def test_send_error_with_fallback_logging_uses_warning_for_non_critical_fa
     )
 
     assert len(warning_calls) == 1
-    assert "Failed to send %serror response to user %s (msg_id=%s): %s" in warning_calls[0][0][0]
+    assert (
+        "Failed to send %serror response to user %s (msg_id=%s): %s"
+        in warning_calls[0][0][0]
+    )
 
 
 @pytest.mark.asyncio
@@ -1113,4 +1145,7 @@ async def test_send_error_with_fallback_logging_uses_error_for_critical_failures
     )
 
     assert len(error_calls) == 1
-    assert "Failed to send %serror response to user %s (msg_id=%s): %s" in error_calls[0][0][0]
+    assert (
+        "Failed to send %serror response to user %s (msg_id=%s): %s"
+        in error_calls[0][0][0]
+    )

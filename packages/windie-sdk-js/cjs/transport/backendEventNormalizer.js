@@ -65,6 +65,105 @@ function stringField(record, ...keys) {
     }
     return null;
 }
+function nonDataUrlStringField(record, ...keys) {
+    const value = stringField(record, ...keys);
+    if (!value || value.trim().toLowerCase().startsWith('data:')) {
+        return null;
+    }
+    return value.trim();
+}
+function stringArrayField(record, ...keys) {
+    for (const key of keys) {
+        const value = record[key];
+        if (!Array.isArray(value)) {
+            continue;
+        }
+        const normalized = value
+            .filter((entry) => typeof entry === 'string' && entry.trim().length > 0)
+            .map(entry => entry.trim())
+            .filter(entry => !entry.toLowerCase().startsWith('data:'));
+        if (normalized.length > 0) {
+            return normalized;
+        }
+    }
+    return null;
+}
+function recordFromUnknown(value) {
+    return value && typeof value === 'object' && !Array.isArray(value)
+        ? value
+        : null;
+}
+function displayAttachmentFromBackendRecord(record) {
+    const id = nonDataUrlStringField(record, 'id');
+    const kind = record.kind === 'image' || record.kind === 'screenshot_request' ? record.kind : null;
+    const source = (record.source === 'user_included'
+        || record.source === 'camera_button'
+        || record.source === 'tool_result'
+        || record.source === 'replay') ? record.source : null;
+    const status = (record.status === 'materializing'
+        || record.status === 'pending_capture'
+        || record.status === 'ready'
+        || record.status === 'failed') ? record.status : null;
+    if (!id || !kind || !source || !status) {
+        return null;
+    }
+    const filename = nonDataUrlStringField(record, 'filename');
+    const contentType = nonDataUrlStringField(record, 'contentType', 'content_type');
+    const screenshotRef = nonDataUrlStringField(record, 'screenshotRef', 'screenshot_ref');
+    const screenshotUrl = nonDataUrlStringField(record, 'screenshotUrl', 'screenshot_url');
+    const errorCode = nonDataUrlStringField(record, 'errorCode', 'error_code');
+    return {
+        id,
+        kind,
+        source,
+        status,
+        ...(filename ? { filename } : {}),
+        ...(contentType ? { contentType } : {}),
+        ...(screenshotRef ? { screenshotRef } : {}),
+        ...(screenshotUrl ? { screenshotUrl } : {}),
+        ...(errorCode ? { errorCode } : {}),
+    };
+}
+function displayAttachmentsFromBackendField(payload) {
+    for (const key of ['attachments', 'display_attachments']) {
+        const value = payload[key];
+        if (!Array.isArray(value)) {
+            continue;
+        }
+        const attachments = value
+            .map(recordFromUnknown)
+            .filter((record) => Boolean(record))
+            .map(displayAttachmentFromBackendRecord)
+            .filter((attachment) => Boolean(attachment));
+        if (attachments.length > 0) {
+            return attachments;
+        }
+    }
+    return null;
+}
+function displayAttachmentsFromScreenshotAliases(payload, eventId) {
+    const screenshotRef = nonDataUrlStringField(payload, 'screenshot_ref', 'screenshotRef');
+    const screenshotRefs = stringArrayField(payload, 'screenshot_refs', 'screenshotRefs')
+        ?? (screenshotRef ? [screenshotRef] : null);
+    if (!screenshotRefs || screenshotRefs.length === 0) {
+        return null;
+    }
+    const screenshotUrl = nonDataUrlStringField(payload, 'screenshot_url', 'screenshotUrl');
+    const contentType = nonDataUrlStringField(payload, 'screenshot_content_type', 'screenshotContentType');
+    return screenshotRefs.map((ref, index) => ({
+        id: `${eventId}:attachment:${index.toString().padStart(3, '0')}`,
+        kind: 'image',
+        source: 'tool_result',
+        status: 'ready',
+        ...(contentType ? { contentType } : {}),
+        screenshotRef: ref,
+        ...(index === 0 && screenshotUrl ? { screenshotUrl } : {}),
+    }));
+}
+function normalizeBackendDisplayAttachments(payload, eventId) {
+    return displayAttachmentsFromBackendField(payload)
+        ?? displayAttachmentsFromScreenshotAliases(payload, eventId);
+}
 function toolCorrelationIdFromPayload(payload) {
     return stringField(payload, 'correlation_id', 'request_id');
 }
@@ -475,6 +574,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
         });
     }
     if (event.type === 'tool-output') {
+        const attachments = normalizeBackendDisplayAttachments(payload, base.eventId);
         return (0, events_js_1.createConversationEvent)({
             ...base,
             type: 'tool_output',
@@ -486,6 +586,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 correlationId: toolCorrelationIdFromPayload(payload),
                 screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
                 screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
+                attachments,
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
                 structuredPayload: payload,
                 ...backendMetadata,

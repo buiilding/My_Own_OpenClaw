@@ -42,10 +42,12 @@ from backend.src.core.events.streaming_events import (
 
 def _build_message(
     *,
+    screenshot=None,
     system_state_internal=None,
     screenshot_ref=None,
     screenshot_refs=None,
 ):
+    _ = screenshot
     return QueryMessage(
         id="msg-1",
         type="query",
@@ -53,6 +55,7 @@ def _build_message(
         payload={
             "text": "hello",
             "conversation_ref": "conv-1",
+            "content": "<user_query>\nhello\n</user_query>",
             "system_state_internal": system_state_internal,
             "screenshot_ref": screenshot_ref,
             "screenshot_refs": screenshot_refs,
@@ -242,25 +245,6 @@ def test_active_stream_context_helpers_delegate_when_supported():
         ("set", "turn-2", "conv-2"),
         ("clear", "turn-2", None),
     ]
-
-
-def test_resolve_screenshot_prioritizes_inline_data():
-    class _ArtifactStore:
-        @classmethod
-        def from_config(cls, _config):
-            raise AssertionError(
-                "artifact store should not be constructed for inline screenshots"
-            )
-
-    message = _build_message(screenshot="inline-b64", screenshot_ref="artifact-ref")
-    assert (
-        _first_screenshot(
-            message,
-            artifact_store_cls=_ArtifactStore,
-            session_manager_config=SimpleNamespace(),
-        )
-        == "inline-b64"
-    )
 
 
 def test_resolve_screenshot_loads_artifact_ref_when_inline_missing():

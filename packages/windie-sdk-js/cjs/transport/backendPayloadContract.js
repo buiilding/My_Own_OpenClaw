@@ -50,6 +50,7 @@ const BACKEND_PAYLOAD_KEYS_BY_TYPE = Object.freeze({
         'status',
         'screenshot',
         'screenshot_ref',
+        'display_attachments',
         'capture_meta',
         'system_state',
         'step_results',
@@ -81,6 +82,11 @@ const CAPTURE_META_REQUIRED_NUMBER_KEYS = Object.freeze([
     'timestamp',
 ]);
 const CAPTURE_BOUNDS_KEYS = Object.freeze(['x', 'y', 'width', 'height']);
+const DISPLAY_ATTACHMENT_REQUIRED_VALUES = Object.freeze({
+    kind: new Set(['image', 'screenshot_request']),
+    source: new Set(['tool_result', 'replay', 'user_included', 'camera_button']),
+    status: new Set(['ready', 'failed', 'materializing', 'pending_capture']),
+});
 function isJsonRecord(value) {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
@@ -141,6 +147,59 @@ function normalizeCaptureMeta(value) {
     }
     return captureMeta;
 }
+function safeDisplayAttachmentString(value) {
+    if (typeof value !== 'string') {
+        return null;
+    }
+    const normalized = value.trim();
+    if (!normalized || normalized.toLowerCase().startsWith('data:')) {
+        return null;
+    }
+    return normalized;
+}
+function normalizeDisplayAttachment(value) {
+    if (!isJsonRecord(value)) {
+        return null;
+    }
+    const id = safeDisplayAttachmentString(value.id);
+    const kind = safeDisplayAttachmentString(value.kind);
+    const source = safeDisplayAttachmentString(value.source);
+    const status = safeDisplayAttachmentString(value.status);
+    if (!id
+        || !kind
+        || !source
+        || !status
+        || !DISPLAY_ATTACHMENT_REQUIRED_VALUES.kind.has(kind)
+        || !DISPLAY_ATTACHMENT_REQUIRED_VALUES.source.has(source)
+        || !DISPLAY_ATTACHMENT_REQUIRED_VALUES.status.has(status)) {
+        return null;
+    }
+    const filename = safeDisplayAttachmentString(value.filename);
+    const contentType = safeDisplayAttachmentString(value.content_type ?? value.contentType);
+    const screenshotRef = safeDisplayAttachmentString(value.screenshot_ref ?? value.screenshotRef);
+    const screenshotUrl = safeDisplayAttachmentString(value.screenshot_url ?? value.screenshotUrl);
+    const errorCode = safeDisplayAttachmentString(value.error_code ?? value.errorCode);
+    return {
+        id,
+        kind,
+        source,
+        status,
+        ...(filename ? { filename } : {}),
+        ...(contentType ? { content_type: contentType } : {}),
+        ...(screenshotRef ? { screenshot_ref: screenshotRef } : {}),
+        ...(screenshotUrl ? { screenshot_url: screenshotUrl } : {}),
+        ...(errorCode ? { error_code: errorCode } : {}),
+    };
+}
+function normalizeDisplayAttachments(value) {
+    if (!Array.isArray(value)) {
+        return null;
+    }
+    const attachments = value
+        .map(normalizeDisplayAttachment)
+        .filter((attachment) => Boolean(attachment));
+    return attachments.length > 0 ? attachments : null;
+}
 function normalizeUpdateSettingsPayload(payload) {
     const nextPayload = { ...payload };
     const tools = filterKeys(nextPayload.tools, TOOL_SETTINGS_KEYS);
@@ -172,6 +231,18 @@ function normalizeToolResultPayload(payload) {
         }
         nextPayload.data = data;
     }
+    if (isJsonRecord(nextPayload.data)) {
+        const data = { ...nextPayload.data };
+        const displayAttachments = normalizeDisplayAttachments(data.display_attachments ?? data.attachments);
+        if (displayAttachments) {
+            data.display_attachments = displayAttachments;
+        }
+        else {
+            delete data.display_attachments;
+        }
+        delete data.attachments;
+        nextPayload.data = data;
+    }
     return nextPayload;
 }
 function normalizeToolBundleResultPayload(payload) {
@@ -185,6 +256,14 @@ function normalizeToolBundleResultPayload(payload) {
             delete nextPayload.capture_meta;
         }
     }
+    const displayAttachments = normalizeDisplayAttachments(nextPayload.display_attachments ?? nextPayload.attachments);
+    if (displayAttachments) {
+        nextPayload.display_attachments = displayAttachments;
+    }
+    else {
+        delete nextPayload.display_attachments;
+    }
+    delete nextPayload.attachments;
     return nextPayload;
 }
 function normalizeKnownPayload(type, payload) {

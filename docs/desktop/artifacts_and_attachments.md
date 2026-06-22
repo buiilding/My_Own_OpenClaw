@@ -54,6 +54,11 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
   descriptors. Backend/provider payload compatibility may still carry
   `screenshot_ref` or `screenshot_refs` until those durable contracts emit
   ordered `attachments[]`/`display_attachments` directly.
+- Backend websocket boundaries accept backend-safe `display_attachments`
+  descriptors for tool-result, tool-bundle-result, rehydrate, and outgoing
+  tool-output payloads. These descriptors are display/replay metadata only:
+  backend model history and artifact hydration still use scoped artifact refs,
+  and inline preview bytes or data URLs are rejected or stripped.
 - Do not make app startup import upload IPC just to construct display image URLs.
 - Hosted artifact uploads must include install auth headers when available.
 

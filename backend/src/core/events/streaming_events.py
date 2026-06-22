@@ -128,6 +128,10 @@ class ToolOutputEvent(StreamingEvent):
     execution_time: Optional[float] = None
     error: Optional[str] = None
     screenshot: Optional[str] = None
+    screenshot_ref: Optional[str] = None
+    screenshot_url: Optional[str] = None
+    screenshot_content_type: Optional[str] = None
+    display_attachments: Optional[List[Dict[str, Any]]] = None
     metadata: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):

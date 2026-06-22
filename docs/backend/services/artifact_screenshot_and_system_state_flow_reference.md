@@ -86,6 +86,15 @@ Tool result routing (`ToolResultRouter.route_result`):
 
 `ScreenshotProcessor` delegates to `ScreenshotManager.process_screenshot(...)`.
 
+Typed display descriptors:
+
+- websocket tool-result, tool-bundle-result, rehydrate, and outgoing
+  tool-output payloads may carry `display_attachments[]`
+- these descriptors are display/replay metadata and are validated to exclude
+  preview bytes and data URLs
+- backend model-visible screenshot hydration still uses `screenshot_ref` and
+  scoped artifact lookup until provider history is attachment-aware
+
 ## Screenshot Manager and OCR Refresh Semantics
 
 `ScreenshotManager.process_screenshot(...)` behavior:

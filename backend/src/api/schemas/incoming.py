@@ -39,7 +39,7 @@ def _validate_optional_workspace_path(value: Optional[str]) -> Optional[str]:
 
 
 from backend.src.api.schemas.agent_definition import AgentDefinition
-from backend.src.api.schemas.common import BaseMessage
+from backend.src.api.schemas.common import BaseMessage, DisplayAttachment
 
 
 class QueryPayload(BaseModel):
@@ -139,6 +139,7 @@ class RehydrateConversationEntry(BaseModel):
     tool_calls: Optional[List[Dict[str, Any]]] = None
     timestamp: Optional[str] = None
     screenshot_ref: Optional[str] = None
+    display_attachments: Optional[List[DisplayAttachment]] = None
     transparency: Optional[Dict[str, Any]] = None
     structured_payload: Optional[Dict[str, Any]] = None
     structured_content: Optional[List[Dict[str, Any]]] = None
@@ -333,6 +334,7 @@ class ToolResultData(BaseModel):
     system_state: Optional[ToolResultSystemState] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
+    display_attachments: Optional[List[DisplayAttachment]] = None
     capture_meta: Optional[ToolCaptureMeta] = None
 
 
@@ -378,6 +380,7 @@ class ToolBundleResultPayload(BaseModel):
     # Screenshot fields are conditional: include only for computer-use bundles.
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
+    display_attachments: Optional[List[DisplayAttachment]] = None
     capture_meta: Optional[ToolCaptureMeta] = None
     system_state: Optional[Dict[str, Any]] = None
     step_results: List[ToolBundleStepResult]

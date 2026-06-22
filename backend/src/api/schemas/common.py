@@ -55,6 +55,46 @@ class BaseMessage(BaseModel):
             raise ValueError(e.message) from e
 
 
+class DisplayAttachment(BaseModel):
+    """Backend-safe visual descriptor for display/replay surfaces."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(min_length=1)
+    kind: Literal["image", "screenshot_request"]
+    source: Literal["tool_result", "replay", "user_included", "camera_button"]
+    status: Literal["ready", "failed", "materializing", "pending_capture"]
+    filename: Optional[str] = None
+    content_type: Optional[str] = None
+    screenshot_ref: Optional[str] = None
+    screenshot_url: Optional[str] = None
+    error_code: Optional[str] = None
+
+    @field_validator("id")
+    @classmethod
+    def validate_id(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("display attachment id cannot be empty or whitespace-only")
+        if normalized.lower().startswith("data:"):
+            raise ValueError("display attachments must not carry inline data URLs")
+        return normalized
+
+    @field_validator(
+        "filename", "content_type", "screenshot_ref", "screenshot_url", "error_code"
+    )
+    @classmethod
+    def validate_optional_text(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            return None
+        if normalized.lower().startswith("data:"):
+            raise ValueError("display attachments must not carry inline data URLs")
+        return normalized
+
+
 class HandshakeMessage(BaseModel):
     """Handshake payload sent before base envelope messages."""
 

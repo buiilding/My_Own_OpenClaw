@@ -5,7 +5,14 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 _ASSISTANT_FULL_CONTENT_MESSAGE_TYPES = frozenset(
-    {"", "llm-text", "assistant", "assistant-response", "assistant-message"}
+    {
+        "",
+        "llm-text",
+        "assistant",
+        "assistant_response",
+        "assistant-response",
+        "assistant-message",
+    }
 )
 
 
@@ -60,7 +67,10 @@ def resolve_rehydrated_content(
         )
         return full_user_content or base_content
 
-    if normalized_role == "assistant" and normalized_message_type in _ASSISTANT_FULL_CONTENT_MESSAGE_TYPES:
+    if (
+        normalized_role == "assistant"
+        and normalized_message_type in _ASSISTANT_FULL_CONTENT_MESSAGE_TYPES
+    ):
         full_assistant_content = resolve_transparency_content(
             transparency=transparency,
             message_key="fullAssistantMessage",

@@ -93,6 +93,9 @@ All notable changes to WindieOS will be documented in this file.
   explicit readable disabled palettes instead of opacity-only styling, closing
   the remaining light-mode settings-control contrast gap. No migration
   required.
+- backend/rehydrate: restore `fullAssistantMessage` transparency content for
+  canonical `assistant_response` rows during transcript rehydrate instead of
+  only legacy assistant message-type aliases. No migration required.
 - frontend/renderer: keep SDK visual attachment previews visible while ready
   artifact images resolve, and avoid repeated equivalent screenshot-source
   state writes that could trigger React maximum update depth warnings in
@@ -170,6 +173,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: add backend-safe typed `display_attachments` support at
+  tool-result, tool-bundle-result, rehydrate, and outgoing tool-output
+  websocket boundaries while keeping `screenshot_ref`/artifact refs as the
+  model-visible hydration contract. The SDK backend normalizer now exposes
+  backend-origin tool-output visuals as typed `attachments[]` and strips
+  preview/data URL fields from outbound descriptors. No migration required;
+  old stored rows continue through the narrow SDK replay adapter.
 - sdk/renderer: route replayed and active tool-output visuals through typed
   SDK `attachments[]`, extract the narrow legacy screenshot replay adapter, and
   delete the renderer whole-message screenshot helper path. Old stored

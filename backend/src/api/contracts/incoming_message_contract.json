@@ -115,6 +115,7 @@
             "system_state",
             "screenshot",
             "screenshot_ref",
+            "display_attachments",
             "capture_meta"
           ]
         }
@@ -126,6 +127,7 @@
         "status",
         "screenshot",
         "screenshot_ref",
+        "display_attachments",
         "capture_meta",
         "system_state",
         "step_results",

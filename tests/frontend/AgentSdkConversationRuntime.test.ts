@@ -2842,6 +2842,8 @@ describe('Agent SDK conversation runtime core', () => {
   test('backend tool-output normalization exposes renderer identity and attachment fields', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'tool-output',
+      event_id: 'backend-tool-output-alias',
+      sequence: 1,
       conversation_ref: 'conv-sdk-runtime',
       user_id: 'user-sdk-runtime',
       turn_ref: 'turn-output',
@@ -2852,6 +2854,8 @@ describe('Agent SDK conversation runtime core', () => {
         output: 'clicked',
         screenshot: 'inline-shot',
         screenshot_ref: 'artifact-shot',
+        screenshot_url: '/api/artifacts/artifact-shot',
+        screenshot_content_type: 'image/png',
       },
     });
 
@@ -2863,9 +2867,84 @@ describe('Agent SDK conversation runtime core', () => {
         correlationId: 'corr-output',
         screenshot: 'inline-shot',
         screenshotRef: 'artifact-shot',
+        attachments: [
+          expect.objectContaining({
+            id: `${normalized?.eventId}:attachment:000`,
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            contentType: 'image/png',
+            screenshotRef: 'artifact-shot',
+            screenshotUrl: '/api/artifacts/artifact-shot',
+          }),
+        ],
         userId: 'user-sdk-runtime',
       }),
     });
+  });
+
+  test('backend tool-output normalization exposes typed display attachments directly', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'tool-output',
+      event_id: 'backend-tool-output-typed',
+      sequence: 1,
+      conversation_ref: 'conv-sdk-runtime',
+      user_id: 'user-sdk-runtime',
+      turn_ref: 'turn-output',
+      payload: {
+        tool_name: 'screenshot',
+        request_id: 'req-output',
+        output: 'captured',
+        display_attachments: [
+          {
+            id: 'typed-attach-1',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshot_ref: 'artifact-typed-1',
+            screenshot_url: '/api/artifacts/artifact-typed-1',
+            content_type: 'image/png',
+            previewSrc: 'data:image/png;base64,should-not-cross',
+          },
+          {
+            id: 'typed-attach-2',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshot_ref: 'artifact-typed-2',
+            screenshot_url: 'data:image/png;base64,should-not-cross',
+          },
+        ],
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'tool_output',
+      payload: expect.objectContaining({
+        attachments: [
+          {
+            id: 'typed-attach-1',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            contentType: 'image/png',
+            screenshotRef: 'artifact-typed-1',
+            screenshotUrl: '/api/artifacts/artifact-typed-1',
+          },
+          {
+            id: 'typed-attach-2',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotRef: 'artifact-typed-2',
+          },
+        ],
+      }),
+    });
+    expect(normalized?.payload.attachments).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ previewSrc: expect.anything() }),
+    ]));
+    expect(JSON.stringify(normalized?.payload.attachments)).not.toContain('data:image');
   });
 
   test('backend tool-bundle normalization exposes renderer identity fields', () => {
