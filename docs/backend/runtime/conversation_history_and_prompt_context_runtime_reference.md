@@ -200,9 +200,10 @@ artifact `image_refs`, and compaction facts. They intentionally omit raw
 `image_data` and provider-specific prompt payloads.
 
 Storage/API migration note: no migration is required for this emission step.
-Older conversations without model-history checkpoints still resume through the
-existing rehydrate projection until the model-history install phase replaces
-normal resume.
+When no model-history checkpoint exists, current SDK normal resume skips
+backend hydration instead of sending an event/display projection. Legacy
+rehydrate projections remain available to SDK store diagnostics/export paths,
+but they are no longer the backend session-history install path.
 
 ## HistoryCommitter Role
 

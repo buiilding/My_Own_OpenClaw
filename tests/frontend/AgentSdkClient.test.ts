@@ -5160,19 +5160,7 @@ describe('Agent SDK client behavior', () => {
         conversation_ref: 'conv-runtime-public',
       },
     });
-    expect(sentMessageOfType(socket, 'rehydrate-conversation')).toMatchObject({
-      type: 'rehydrate-conversation',
-      payload: {
-        conversation_ref: 'conv-runtime-public',
-        rehydrate_mode: 'replace',
-        messages: [
-          expect.objectContaining({
-            role: 'user',
-            content: 'hello runtime',
-          }),
-        ],
-      },
-    });
+    expect(sentMessageOfType(socket, 'rehydrate-conversation')).toBeUndefined();
     const loadedConversation = await conversation.load();
     expect(loadedConversation).toMatchObject({
       state: {

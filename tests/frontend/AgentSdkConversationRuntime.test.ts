@@ -4968,7 +4968,7 @@ describe('Agent SDK conversation runtime core', () => {
     });
   });
 
-  test('conversation runtime stores events and sends rehydrate from projection', async () => {
+  test('conversation runtime stores events and skips normal rehydrate without model history', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const sentRehydrates: Record<string, unknown>[] = [];
     const transport = createMockAgentRuntimeTransport({
@@ -5012,12 +5012,9 @@ describe('Agent SDK conversation runtime core', () => {
       }),
       { messageId: 'turn-send' },
     );
-    expect(rehydrate.messages).toEqual([
-      expect.objectContaining({ role: 'user', message_type: 'user_query', content: 'hello' }),
-    ]);
-    expect(sentRehydrates[0]).toMatchObject({
-      conversation_ref: 'conv-sdk-runtime',
-      rehydrate_mode: 'replace',
+    expect(rehydrate.messages).toEqual([]);
+    expect(sentRehydrates).toEqual([]);
+    await expect(store.loadForRehydrate('conv-sdk-runtime')).resolves.toMatchObject({
       messages: [
         expect.objectContaining({ role: 'user', message_type: 'user_query', content: 'hello' }),
       ],
@@ -8111,7 +8108,7 @@ describe('Agent SDK conversation runtime core', () => {
     })).resolves.toBeNull();
   });
 
-  test('rehydrate uses the active complete compacted replay generation when present', async () => {
+  test('rehydrate skips compacted replay installation while store snapshots expose it', async () => {
     const sentRehydrates: Record<string, unknown>[] = [];
     const store = new InMemoryConversationStore();
     await store.appendEvent(event('user_message', { text: 'long original history' }));
@@ -8137,13 +8134,12 @@ describe('Agent SDK conversation runtime core', () => {
     const snapshot = await runtime.rehydrate();
 
     expect(snapshot).toMatchObject({
+      messages: [],
+    });
+    await expect(store.loadForRehydrate('conv-sdk-runtime')).resolves.toMatchObject({
       replayGenerationId: 'gen-active',
       messages: [{ role: 'assistant', content: 'summary' }],
     });
-    expect(sentRehydrates[0]).toMatchObject({
-      conversation_ref: 'conv-sdk-runtime',
-      rehydrate_mode: 'replace',
-      messages: [{ role: 'assistant', content: 'summary' }],
-    });
+    expect(sentRehydrates).toEqual([]);
   });
 });

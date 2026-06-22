@@ -33,8 +33,13 @@ import {
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import { isCompactionStdoutEnabled } from '../runtime/debugEnv.js';
+import { rehydrateSnapshotFromModelHistoryCheckpoint } from '../runtime/modelHistoryPayload.js';
 import type { AgentLocalRuntimeClient } from '../runtime/LocalRuntime.js';
 import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
+import {
+  displayConversationFromTimeline,
+  displayRowsFromTimeline,
+} from './displayTimelineStoreProjection.js';
 
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
 const LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE = 'local_runtime_rpc';
@@ -448,11 +453,21 @@ export class LocalRuntimeConversationStore implements ConversationStore {
   }
 
   async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
-    return buildDisplayConversation(await this.loadEvents(conversationRef));
+    const events = await this.loadEvents(conversationRef);
+    const timeline = await this.loadDisplayTimeline({ conversationRef });
+    if (!timeline) {
+      return buildDisplayConversation(events);
+    }
+    return displayConversationFromTimeline(timeline, events);
   }
 
   async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
-    return buildDisplayRows(await this.loadEvents(conversationRef));
+    const events = await this.loadEvents(conversationRef);
+    const timeline = await this.loadDisplayTimeline({ conversationRef });
+    if (!timeline) {
+      return buildDisplayRows(events);
+    }
+    return displayRowsFromTimeline(timeline, events);
   }
 
   async replaceDisplayTimeline(checkpoint: DisplayTimelineCheckpoint): Promise<void> {
@@ -508,6 +523,17 @@ export class LocalRuntimeConversationStore implements ConversationStore {
   }
 
   async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
+    const revision = await this.getRevision(conversationRef).catch(() => null);
+    const modelHistoryCheckpoint = await this.loadModelHistory({
+      conversationRef,
+      revisionId: revision?.revisionId && revision.revisionId !== 'rev-empty' ? revision.revisionId : null,
+    });
+    const modelHistorySnapshot = modelHistoryCheckpoint
+      ? rehydrateSnapshotFromModelHistoryCheckpoint(modelHistoryCheckpoint)
+      : null;
+    if (modelHistorySnapshot) {
+      return modelHistorySnapshot;
+    }
     const events = await this.loadEvents(conversationRef);
     const replay = latestCompactedReplayFromEvents(events);
     if (replay?.complete && replay.active !== false && replay.entryCount === replay.entries.length) {

@@ -1571,29 +1571,45 @@ export class SdkConversationRuntime {
 
   async rehydrate(): Promise<RehydrateSnapshot> {
     const startedAtMs = nowMs();
-    const snapshot = await this.options.store.loadForRehydrate(this.options.conversationRef);
     const modelHistoryCheckpoint = await this.loadModelHistoryCheckpointForRehydrate();
     const modelHistoryPayload = modelHistoryCheckpoint && modelHistoryCheckpoint.rows.length > 0
       ? modelHistoryPayloadFromCheckpoint(modelHistoryCheckpoint)
       : null;
-    const payload: RehydratePayload = modelHistoryPayload
-      ? {
-          conversation_ref: this.options.conversationRef,
+    const snapshot = modelHistoryCheckpoint
+      ? rehydrateSnapshotFromModelHistoryCheckpoint(modelHistoryCheckpoint) ?? {
+          conversationRef: this.options.conversationRef,
+          revisionId: modelHistoryCheckpoint.revisionId,
           messages: [],
-          model_history: modelHistoryPayload,
-          rehydrate_mode: 'replace',
         }
       : {
-          conversation_ref: this.options.conversationRef,
-          messages: snapshot.messages,
-          rehydrate_mode: 'replace',
+          conversationRef: this.options.conversationRef,
+          revisionId: this.state.revisionId,
+          messages: [],
         };
     const rehydrateTraceData = {
-      messageCount: Array.isArray(payload.messages) ? payload.messages.length : 0,
+      messageCount: 0,
       modelHistoryRowCount: modelHistoryCheckpoint?.rows.length ?? 0,
       modelHistoryCheckpointId: modelHistoryCheckpoint?.checkpointId ?? null,
-      source: modelHistoryPayload ? 'model_history' : 'event_projection',
+      source: modelHistoryPayload ? 'model_history' : 'missing_model_history',
       rehydrateMode: 'replace',
+    };
+    if (!modelHistoryPayload) {
+      await this.recordRuntimeTrace({
+        path: 'conversation.rehydrate',
+        stage: 'transport_send',
+        status: 'skipped',
+        data: {
+          reason: 'missing_model_history_checkpoint',
+          ...rehydrateTraceData,
+        },
+      });
+      return snapshot;
+    }
+    const payload: RehydratePayload = {
+      conversation_ref: this.options.conversationRef,
+      messages: [],
+      model_history: modelHistoryPayload,
+      rehydrate_mode: 'replace',
     };
     if (!this.options.transport) {
       await this.recordRuntimeTrace({

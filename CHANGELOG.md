@@ -11,18 +11,19 @@ All notable changes to WindieOS will be documented in this file.
   methods so future rehydrate/revision work can persist bounded inference
   history separately from full display/runtime events. No migration required;
   the local-runtime table is created lazily with the existing chat-history
-  schema and normal resume still uses the current rehydrate path.
+  schema.
 - backend/sdk: emit backend-normalized `model-history-updated` checkpoints
   after assistant completion and tool-result history commits, pass SDK
   revision ids through query payloads, and persist the hidden checkpoint event
   through SDK stores without adding it to display or rehydrate projections. No
-  migration required; old conversations without checkpoints continue to use the
-  existing rehydrate path until the model-history install phase lands.
+  migration required for new checkpoint storage.
 - backend/sdk: make normal rehydrate prefer persisted model-history checkpoints
   and install those backend-normalized rows directly into session history,
-  keeping event-projection rehydrate only as the no-checkpoint fallback during
-  migration. No migration required; conversations that do not yet have a
-  checkpoint still resume through the existing projection path.
+  skipping backend hydration when no checkpoint exists instead of rebuilding
+  provider history from display/runtime events. No storage migration required;
+  older no-checkpoint conversations remain visible through display and
+  diagnostic/export snapshots but need a checkpoint to preserve prior model
+  context on continuation.
 - sdk/local-runtime: add the first display timeline revision API with SDK
   `replaceRows(...)` / `loadDisplayTimeline(...)`, local-runtime
   `conversation.display.replace/load` storage, and file/in-memory store

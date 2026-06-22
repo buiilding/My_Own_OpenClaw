@@ -35,8 +35,8 @@ SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`.
 | event store adapters | SDK-defined interface; adapter implementation owns persistence mechanics | stores append/load events and snapshots, but do not interpret display or rehydrate shape |
 | display transcript | SDK projection + display timeline checkpoints | React, CLI, and custom UIs render the projection fallback or the editable display timeline document |
 | current-turn projection | SDK projection | active assistant text, reasoning text, tool rows, phase, error state, and live presentation state for UI surfaces |
-| backend rehydrate payload | SDK projection | generated from normalized events, not visible transcript rows |
-| model-history checkpoints | backend-normalized contract + SDK store adapters | provider-neutral, bounded inference rows persisted separately from full display/runtime events; normal resume installs these checkpoints when available and falls back to `loadForRehydrate(...)` only when no checkpoint exists |
+| backend rehydrate payload | SDK model-history install | normal resume sends backend-normalized model-history checkpoints, not display/runtime-event projections |
+| model-history checkpoints | backend-normalized contract + SDK store adapters | provider-neutral, bounded inference rows persisted separately from full display/runtime events; normal resume installs these checkpoints and skips backend hydration when no checkpoint exists |
 | tool execution coordination | SDK runtime | claimed local tools must return exactly one backend result or failure |
 | local tool execution | SDK local runtime | the local runtime runs local-runtime-backed tools; it does not own conversation replay semantics |
 | backend provider history | backend | provider-safe history remains backend-owned after result ingress |
@@ -208,7 +208,8 @@ here.
 Current ownership:
 
 - SDK conversation runtime owns normalized conversation events, display rows,
-  replay snapshots, and provider-safe backend rehydrate projections.
+  replay/diagnostic rehydrate snapshots, and model-history-backed resume
+  install.
 - Electron/renderer app-runtime facades call SDK continuity APIs; they do not
   rebuild transcript payload or backend rehydrate shape from renderer-local row
   helpers.
@@ -318,9 +319,8 @@ store.loadForDisplay(conversationRef)
   -> SDK display projection
 
 store.loadForRehydrate(conversationRef)
-  -> complete active replay snapshot, when present
-  -> otherwise store.loadEvents(conversationRef)
-  -> SDK rehydrate projection
+  -> active model-history checkpoint snapshot, when present
+  -> diagnostic/export fallback projection for legacy no-checkpoint conversations
 
 store.replaceDisplayTimeline(checkpoint)
   -> persist an editable display timeline checkpoint for a child revision
@@ -348,10 +348,12 @@ Normal `ConversationRuntime.rehydrate()` and
 `ConversationContinuityService.rehydrateFromStore(...)` prefer
 `loadModelHistory(...)` and send `rehydrate-conversation.payload.model_history`
 with an empty `messages` array. The backend installs those rows directly into
-session history. If no checkpoint exists, SDK rehydrate falls back to the
-existing event-projection payload. No migration is required; old conversations
-without checkpoints continue on the fallback path until a migration creates
-checkpoints for them.
+session history. If no checkpoint exists, normal resume skips backend
+hydration instead of rebuilding provider history from display/runtime events.
+No storage migration is required for the new checkpoint format; older
+no-checkpoint conversations remain inspectable through display and diagnostic
+snapshot loaders, but they need a model-history checkpoint before continuation
+can preserve prior model context.
 
 ## Display Timeline Rule
 
@@ -437,9 +439,10 @@ normal feature-code surface.
 
 Desktop stored-conversation rehydrate is also SDK-continuity-owned.
 Feature/session helpers ask `DesktopConversationContinuityService.rehydrateFromStore(...)`
-to load the SDK rehydrate projection from the configured store and send the
-backend rehydrate command.
-They should not fetch projection rows and shape provider history themselves.
+to load the active model-history checkpoint from the configured store and send
+the backend rehydrate command.
+They should not fetch display/runtime projections and shape provider history
+themselves.
 
 Desktop compaction replay persistence follows the same rule. Chat stream
 handlers render visible lifecycle/debug state from SDK `compaction_*` events and
@@ -557,7 +560,10 @@ store.loadForDisplay(conversationRef)
   -> SDK display projection
 
 store.loadForRehydrate(conversationRef)
-  -> provider-safe backend rehydrate payload
+  -> diagnostic/export rehydrate snapshot
+
+store.loadModelHistory({ conversationRef, revisionId? })
+  -> provider-safe backend model-history payload
   -> agentRuntimeTransport.rehydrateConversation(...)
 ```
 
@@ -572,8 +578,8 @@ maps that SDK command to the backend `compact-history` control message.
 
 Responsibility split:
 
-- SDK owns conversation semantics, display projection, rehydrate projection, and
-  continuity orchestration.
+- SDK owns conversation semantics, display projection, diagnostic/export
+  rehydrate snapshots, model-history install, and continuity orchestration.
 - Electron owns local IPC, local-runtime-backed persistence, and renderer wiring.
 - Local runtime owns durable rows, ordering, list/search/title/delete queries,
   and SQLite/FAISS mechanics; the current desktop implementation remains behind
@@ -617,9 +623,10 @@ Only `compaction_applied` with actual replacement history should affect compacte
 replay snapshots. A store adapter must activate a compacted replay generation
 only after the generation is complete and its entry count matches.
 
-When a complete active compacted replay generation exists, `rehydrate()` uses
-that replay snapshot. Otherwise it derives rehydrate messages from normalized
-events. Rehydrate projection keeps only complete tool-call/tool-output pairs;
+Complete active compacted replay generations remain available through
+`store.loadForRehydrate(...)` for diagnostics/export and legacy inspection, but
+normal `rehydrate()` does not install compacted replay or event projections into
+backend session history. Rehydrate projection keeps only complete tool-call/tool-output pairs;
 dangling calls, orphan outputs, or incomplete bundle pairs stay available to
 display/debug projections but are not sent back to backend provider history.
 Generated rehydrate rows must carry canonical backend stored-history

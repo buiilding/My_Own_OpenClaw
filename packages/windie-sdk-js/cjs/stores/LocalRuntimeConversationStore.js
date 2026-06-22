@@ -7,7 +7,9 @@ exports.LocalRuntimeConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
 const debugEnv_js_1 = require("../runtime/debugEnv.js");
+const modelHistoryPayload_js_1 = require("../runtime/modelHistoryPayload.js");
 const compactedReplayEvents_js_1 = require("./compactedReplayEvents.js");
+const displayTimelineStoreProjection_js_1 = require("./displayTimelineStoreProjection.js");
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
 const LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE = 'local_runtime_rpc';
 function normalizeRecord(value) {
@@ -361,10 +363,20 @@ class LocalRuntimeConversationStore {
         return rows.map(storedEventFromRow).filter((event) => Boolean(event));
     }
     async loadForDisplay(conversationRef) {
-        return (0, conversationProjections_js_1.buildDisplayConversation)(await this.loadEvents(conversationRef));
+        const events = await this.loadEvents(conversationRef);
+        const timeline = await this.loadDisplayTimeline({ conversationRef });
+        if (!timeline) {
+            return (0, conversationProjections_js_1.buildDisplayConversation)(events);
+        }
+        return (0, displayTimelineStoreProjection_js_1.displayConversationFromTimeline)(timeline, events);
     }
     async loadDisplayRows(conversationRef) {
-        return (0, conversationProjections_js_1.buildDisplayRows)(await this.loadEvents(conversationRef));
+        const events = await this.loadEvents(conversationRef);
+        const timeline = await this.loadDisplayTimeline({ conversationRef });
+        if (!timeline) {
+            return (0, conversationProjections_js_1.buildDisplayRows)(events);
+        }
+        return (0, displayTimelineStoreProjection_js_1.displayRowsFromTimeline)(timeline, events);
     }
     async replaceDisplayTimeline(checkpoint) {
         await this.call('conversation.display.replace', {
@@ -414,6 +426,17 @@ class LocalRuntimeConversationStore {
         };
     }
     async loadForRehydrate(conversationRef) {
+        const revision = await this.getRevision(conversationRef).catch(() => null);
+        const modelHistoryCheckpoint = await this.loadModelHistory({
+            conversationRef,
+            revisionId: revision?.revisionId && revision.revisionId !== 'rev-empty' ? revision.revisionId : null,
+        });
+        const modelHistorySnapshot = modelHistoryCheckpoint
+            ? (0, modelHistoryPayload_js_1.rehydrateSnapshotFromModelHistoryCheckpoint)(modelHistoryCheckpoint)
+            : null;
+        if (modelHistorySnapshot) {
+            return modelHistorySnapshot;
+        }
         const events = await this.loadEvents(conversationRef);
         const replay = (0, compactedReplayEvents_js_1.latestCompactedReplayFromEvents)(events);
         if (replay?.complete && replay.active !== false && replay.entryCount === replay.entries.length) {

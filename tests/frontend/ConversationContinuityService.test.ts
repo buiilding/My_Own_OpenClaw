@@ -173,7 +173,7 @@ describe('ConversationContinuityService', () => {
     ]);
   });
 
-  test('rehydrateFromStore builds provider-safe backend payload from store projection', async () => {
+  test('rehydrateFromStore skips event-projection hydration without model history', async () => {
     const store = createStore({
       loadForRehydrate: jest.fn().mockResolvedValue({
         conversationRef: 'conv-1',
@@ -196,20 +196,14 @@ describe('ConversationContinuityService', () => {
       conversationRef: 'conv-1',
       workspacePath: '/repo',
     })).resolves.toMatchObject({
-      hydrated: true,
-      messageCount: 2,
-      revisionId: 'rev-1',
+      hydrated: false,
+      messageCount: 0,
+      revisionId: 'rev-empty',
+      source: 'missing_model_history',
     });
 
-    expect(rehydrateConversation).toHaveBeenCalledWith({
-      conversation_ref: 'conv-1',
-      messages: [
-        { role: 'user', content: 'hello' },
-        { role: 'assistant', content: '{"text":"structured"}' },
-      ],
-      rehydrate_mode: 'replace',
-      workspace_path: '/repo',
-    });
+    expect(store.loadForRehydrate).not.toHaveBeenCalled();
+    expect(rehydrateConversation).not.toHaveBeenCalled();
   });
 
   test('rehydrateFromStore installs persisted model history when available', async () => {
@@ -247,7 +241,7 @@ describe('ConversationContinuityService', () => {
         ],
       }),
     });
-    const rehydrateConversation = jest.fn<Promise<void>, [RehydratePayload]>().mockResolvedValue(undefined);
+    const rehydrateConversation = jest.fn();
     const service = new ConversationContinuityService({
       storeFactory: () => store,
       transportFactory: () => ({ rehydrateConversation }),
@@ -280,6 +274,40 @@ describe('ConversationContinuityService', () => {
       rehydrate_mode: 'replace',
       workspace_path: null,
     });
+  });
+
+  test('rehydrateFromStore requires transport when model history exists', async () => {
+    const store = createStore({
+      getRevision: jest.fn().mockResolvedValue({
+        conversationRef: 'conv-1',
+        revisionId: 'rev-model-history',
+        updatedAt: '2026-06-22T12:00:00.000Z',
+      }),
+      loadModelHistory: jest.fn().mockResolvedValue({
+        checkpointId: 'mh-rev-model-history-turn-1',
+        conversationRef: 'conv-1',
+        revisionId: 'rev-model-history',
+        createdAt: '2026-06-22T12:00:00.000Z',
+        rows: [
+          {
+            id: 'mh-row-user',
+            conversationRef: 'conv-1',
+            revisionId: 'rev-model-history',
+            role: 'user',
+            messageType: 'user_query',
+            content: 'hello',
+          },
+        ],
+      }),
+    });
+    const service = new ConversationContinuityService({
+      storeFactory: () => store,
+    });
+
+    await expect(service.rehydrateFromStore({
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+    })).rejects.toThrow('Conversation continuity rehydrate requires an agent runtime transport');
   });
 
   test('rehydrateFromStore binds model history loaders on real store adapters', async () => {
@@ -326,7 +354,7 @@ describe('ConversationContinuityService', () => {
     }));
   });
 
-  test('rehydrateFromStore skips agent runtime transport when projection has no provider messages', async () => {
+  test('rehydrateFromStore skips transport when model history is missing even if projection has rows', async () => {
     const store = createStore({
       loadForRehydrate: jest.fn().mockResolvedValue({
         conversationRef: 'conv-empty',
@@ -353,7 +381,7 @@ describe('ConversationContinuityService', () => {
     expect(rehydrateConversation).not.toHaveBeenCalled();
   });
 
-  test('rehydrateFromStore requires an agent runtime transport when provider messages exist', async () => {
+  test('rehydrateFromStore does not require transport when model history is missing', async () => {
     const store = createStore({
       loadForRehydrate: jest.fn().mockResolvedValue({
         conversationRef: 'conv-provider',
@@ -370,7 +398,12 @@ describe('ConversationContinuityService', () => {
     await expect(service.rehydrateFromStore({
       userId: 'user-1',
       conversationRef: 'conv-provider',
-    })).rejects.toThrow('Conversation continuity rehydrate requires an agent runtime transport');
+    })).resolves.toMatchObject({
+      hydrated: false,
+      messageCount: 0,
+      source: 'missing_model_history',
+    });
+    expect(store.loadForRehydrate).not.toHaveBeenCalled();
   });
 
   test('deleteConversation delegates to store adapter deletion when available', async () => {
