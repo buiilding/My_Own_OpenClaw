@@ -2,10 +2,10 @@
  * Provides the use chat surface controller module for the renderer UI.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopManualCompactionRuntime } from '../../../app/runtime/desktopManualCompactionRuntime';
-import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
+import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
   DesktopLiveTurnSurfaceRuntime,
 } from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
@@ -18,6 +18,9 @@ const {
 const {
   resolveLiveTurnPresentationInput,
 } = DesktopLiveTurnSurfaceRuntime;
+const {
+  resolveCurrentTurnPresentationState,
+} = DesktopCurrentTurnPresentationRuntime;
 const {
   runManualCompaction: runManualCompactionCommand,
 } = DesktopManualCompactionRuntime;
@@ -55,9 +58,10 @@ export function useChatSurfaceController({
     messages,
     visibleTurnLifecycle,
   });
-  const currentTurnPresentationState = useCurrentTurnPresentationState({
-    messages,
-  });
+  const currentTurnPresentationState = useMemo(
+    () => resolveCurrentTurnPresentationState({ messages }),
+    [messages],
+  );
   const visibleLifecyclePresentationState = applyVisibleTurnLifecycleToPresentationState(
     currentTurnPresentationState,
     visibleTurnLifecycle,

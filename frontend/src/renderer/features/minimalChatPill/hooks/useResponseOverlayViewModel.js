@@ -3,7 +3,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useCurrentTurnPresentationState } from '../../chat/hooks/useCurrentTurnPresentationState';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 import {
   buildResponseOverlayDismissalKey,
@@ -29,6 +28,7 @@ const {
 } = DesktopRendererTraceRuntime;
 
 const {
+  resolveCurrentTurnPresentationState,
   resolveResponseOverlayDismissalTarget,
   resolveSdkResponseOverlayPresentationState,
 } = DesktopCurrentTurnPresentationRuntime;
@@ -134,10 +134,13 @@ export function useResponseOverlayViewModel({
     responseOverlayDismissalTarget,
   ]);
 
-  const currentTurnPresentationState = useCurrentTurnPresentationState({
-    messages: currentTurnMessages,
-    dismissedResponseId,
-  });
+  const currentTurnPresentationState = useMemo(
+    () => resolveCurrentTurnPresentationState({
+      messages: currentTurnMessages,
+      dismissedResponseId,
+    }),
+    [currentTurnMessages, dismissedResponseId],
+  );
 
   const resolvedCurrentTurnPresentationState = useMemo(
     () => {

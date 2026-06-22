@@ -13,7 +13,7 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 - `frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
 - `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
@@ -144,11 +144,13 @@ renderer app-runtime facade.
 
 It does not mutate stream tracking or backend query state; it is UI projection only.
 
-`useCurrentTurnPresentationState(...)` now only adapts visible assistant
-message rows into the legacy current-turn presentation shape. It does not
-compose transport recovery or `phase + isSending` lifecycle mapping; those
-decisions belong to `useChatSurfaceController(...)` and
-`DesktopVisibleTurnLifecycleRuntime`.
+The deleted `useCurrentTurnPresentationState(...)` shim no longer sits between
+surface hooks and app runtime projection. `useChatSurfaceController(...)` and
+`useResponseOverlayViewModel(...)` call
+`DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+directly for message/response data, then apply
+`DesktopVisibleTurnLifecycleRuntime` for busy, awaiting, Stop, and typing
+state.
 `useResponseOverlayViewModel(...)` reads SDK presentation entries through
 `DesktopCurrentTurnMessageRuntime.buildCurrentTurnMessagesFromPresentation(...)`
 and uses `DesktopCurrentTurnPresentationRuntime` only for response-overlay
@@ -160,12 +162,10 @@ lifecycle reducer.
 `useChatSurfaceController(...)` resolves
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` and uses
 that projection for dashboard/pill busy state, stop affordance gating,
-awaiting-dot visibility, and chatbox awaiting state. The older
-`useCurrentTurnPresentationState(...)` result remains an adapter for legacy
-presentation fields while visible lifecycle owns the typing decision; the
-controller passes the resolved lifecycle directly into presentation stamping,
-no longer calls an SDK presentation reducer, and the response
-overlay uses
+awaiting-dot visibility, and chatbox awaiting state. The controller builds the
+message-only presentation snapshot from `DesktopCurrentTurnPresentationRuntime`
+and passes the resolved lifecycle directly into presentation stamping; it no
+longer calls an SDK presentation reducer, and the response overlay uses
 `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
 only for SDK response-entry data plus overlay-intent metadata. Actual response
 visibility requires a visible response entry; overlay intent alone is not a

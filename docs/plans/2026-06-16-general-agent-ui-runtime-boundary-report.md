@@ -12,11 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: message-list active find-match scrolling,
-  auto-scroll RAF coalescing/cleanup, bottom-scroll execution, and resize
-  observation now route through `DesktopMessageListRuntime`; `MessageList` and
-  `useMessageListAutoScroll` supply refs and policy callbacks while the runtime
-  owns browser scheduling and observer mechanics.
+- Latest completed slice: the thin `useCurrentTurnPresentationState` hook shim
+  was deleted; `useChatSurfaceController` and `useResponseOverlayViewModel`
+  call `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+  directly with React `useMemo(...)`.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -95,6 +94,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   cleanup, and resize observation now route through
   `DesktopMessageListRuntime` instead of raw browser scheduling in
   `MessageList` or `useMessageListAutoScroll`.
+  Current-turn presentation state no longer passes through the deleted
+  `useCurrentTurnPresentationState` hook shim; chat surface and response
+  overlay hooks now call the renderer app-runtime facade directly.
   Conversation replay database tests describe edit/resend cutoff rewrites as
   local-runtime SQLite behavior while the renderer owns preparation error
   projection.

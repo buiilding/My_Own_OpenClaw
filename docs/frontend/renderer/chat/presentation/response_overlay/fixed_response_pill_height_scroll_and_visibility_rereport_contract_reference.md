@@ -12,7 +12,7 @@ title: "Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Rep
 
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient.ts`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
@@ -38,9 +38,10 @@ Contract:
 
 Selection pipeline:
 
-1. `useCurrentTurnPresentationState(...)` picks the turn-bounded candidate reply.
-2. `hasVisibleChatboxResponse(...)` applies dismissal state (`closedResponseId`).
-3. The same shared current-turn presentation state decides:
+1. `useResponseOverlayViewModel(...)` builds the current-turn entry list.
+2. `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+   picks the turn-bounded candidate reply and applies dismissal state.
+3. The visible-lifecycle-stamped presentation state decides:
   - awaiting indicator visibility
   - response-pill visibility
 

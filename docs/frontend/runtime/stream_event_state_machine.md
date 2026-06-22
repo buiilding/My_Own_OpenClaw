@@ -24,7 +24,7 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/app/runtime/desktopChatStreamTerminalHandoffRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
@@ -273,9 +273,9 @@ Transport safety:
 
 Consumers:
 
-- `ChatInterface.jsx` stop button and awaiting-dot behavior via `useCurrentTurnPresentationState(...)`
-- `ChatBox.jsx` interaction-lock behavior via `useCurrentTurnPresentationState(...)`
-- `ChatBoxResponse.jsx` compact/awaiting/response surface mode via the same shared current-turn presentation contract
+- `ChatInterface.jsx` stop button and awaiting-dot behavior via `useChatSurfaceController(...)`
+- `ChatBox.jsx` interaction-lock behavior via `useChatSurfaceController(...)`
+- `ChatBoxResponse.jsx` compact/awaiting/response surface mode via `useResponseOverlayViewModel(...)`
 
 ## Turn Correlation and Late Event Safety
 

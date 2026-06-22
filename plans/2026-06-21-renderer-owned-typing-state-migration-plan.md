@@ -9,6 +9,25 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Current-Turn Presentation Hook Deletion
+
+- Finding: `useCurrentTurnPresentationState(...)` had become a feature-level
+  compatibility shim that only memoized calls into
+  `DesktopCurrentTurnPresentationRuntime`, while lifecycle stamping already
+  belonged to `DesktopVisibleTurnLifecycleRuntime`.
+- Change: deleted the hook and its dedicated hook test. `useChatSurfaceController`
+  and `useResponseOverlayViewModel` now call
+  `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+  directly for message/response data before applying renderer-owned visible
+  lifecycle state.
+- Validation target: `ChatSurfaceController.test.jsx`,
+  `ChatBoxResponse.state.test.jsx`, and `RendererAppRuntimeBoundary.test.ts`
+  protect direct app-runtime presentation projection and keep the removed hook
+  from returning.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Current-Turn Projection Cursor Visibility Field Deletion
 
 - Finding: `DesktopCurrentTurnProjectionEffectsRuntime` still stored a
@@ -814,8 +833,9 @@ lifecycle:
   `desktopLiveTurnSurfaceRuntime.js`.
 - Dashboard-specific `hasLiveProgressMessages ? null : awaitingDotTargetMessageId`
   lifecycle suppression once visible lifecycle carries `active`.
-- `useCurrentTurnPresentationState` as a lifecycle authority. It can become a
-  thin renderer of the visible lifecycle or be removed if no longer needed.
+- `useCurrentTurnPresentationState` as a lifecycle authority or presentation
+  shim. It has been deleted; surface hooks call app-runtime presentation
+  projection directly and visible lifecycle remains the lifecycle authority.
 - `resolveSdkCurrentTurnPresentationState` as a competing lifecycle reducer.
   It has been deleted in favor of response-overlay data projection plus visible
   lifecycle adaptation.

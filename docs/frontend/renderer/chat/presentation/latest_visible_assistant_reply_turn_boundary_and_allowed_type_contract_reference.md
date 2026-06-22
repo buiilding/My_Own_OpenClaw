@@ -10,13 +10,13 @@ title: "Current-Turn Presentation and Visible Assistant Reply Contract Reference
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
+- `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `tests/frontend/ChatInterfaceWiring.test.jsx`
-- `tests/frontend/CurrentTurnPresentationStateHook.test.jsx`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
 
 ## Helper API Surface
@@ -67,10 +67,10 @@ the facade methods when they need an explicit override.
 
 ## Shared Presentation Contract
 
-`useCurrentTurnPresentationState(...)` composes:
-
-1. `DesktopCurrentTurnPresentationRuntime.findLatestVisibleAssistantReply(...)`
-2. `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+Surface hooks call
+`DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+directly. That app-runtime facade composes
+`findLatestVisibleAssistantReply(...)` with message-only presentation state.
 
 It returns a message-only presentation snapshot before visible lifecycle
 stamping:
@@ -88,9 +88,9 @@ stamping:
 
 `useChatSurfaceController(...)` owns transport/lifecycle composition by applying
 `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
-to that snapshot. `useCurrentTurnPresentationState(...)` does not read
-`phase`, overlay lifecycle, `isSending`, SDK presentation visibility flags, or
-transport recovery state as typing authorities.
+to that snapshot. Message-only presentation resolution does not read `phase`,
+overlay lifecycle, `isSending`, SDK presentation visibility flags, or transport
+recovery state as typing authorities.
 
 After visible lifecycle stamping, awaiting-dot visibility is stricter than
 response-pane visibility:

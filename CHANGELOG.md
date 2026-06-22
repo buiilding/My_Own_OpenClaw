@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the thin `useCurrentTurnPresentationState` hook
+  shim and have chat surface/response overlay hooks call
+  `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState`
+  directly. No migration required.
 - frontend/renderer: route message-list active find-match scrolling,
   auto-scroll RAF coalescing/cleanup, and resize observation through
   `DesktopMessageListRuntime`, keeping browser scheduling adapters out of

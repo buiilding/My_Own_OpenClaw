@@ -19,7 +19,7 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
@@ -30,9 +30,10 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 `ChatInterface` derives loop state via:
 
 - `useChatSurfaceController({ messages, currentTurnProjection, pendingTurn, ... })`
-- `useCurrentTurnPresentationState(...)` inside that controller uses the
-  app-runtime default visible-assistant reply types, keeping the raw type set
-  private to `desktopCurrentTurnPresentationRuntime.js`.
+- `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+  inside that controller uses the app-runtime default visible-assistant reply
+  types, keeping the raw type set private to
+  `desktopCurrentTurnPresentationRuntime.js`.
 
 Derived flags:
 

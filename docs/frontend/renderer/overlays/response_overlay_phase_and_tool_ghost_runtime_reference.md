@@ -17,7 +17,6 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayScrollState.js`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayInteractionRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
@@ -73,9 +72,10 @@ Selection logic:
 
 1. `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns
    awaiting/active/terminal lifecycle for the overlay.
-2. `useCurrentTurnPresentationState(...)` remains the adapter for legacy
-   presentation fields, while SDK presentation snapshots provide response-entry
-   and overlay-intent data only.
+2. `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+   provides message/response fields directly to the overlay view model, while
+   SDK presentation snapshots provide response-entry and overlay-intent data
+   only.
 3. `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
 4. `showResponse` is true when current-turn entry list is non-empty and not dismissed, including tool/progress entries.
 5. during `local_pending` / `awaiting` lifecycle only, a still-mounted prior visible response with the same entry id is treated as stale so the typing indicator can appear immediately for the new turn before the response window's local message store catches up.

@@ -18,7 +18,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/PillIcons.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
-- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
 - `frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
@@ -231,7 +231,9 @@ Close-anchor path:
 - `awaiting-reply`: chat pill + typing indicator
 - `response`: chat pill + response overlay
 
-`ChatBox` derives pill lock/loop state from `useCurrentTurnPresentationState(...)`, which composes the shared loop-state reducer (`useChatLoopUiState`) with one current-turn assistant-reply/surface projection helper.
+`ChatBox` derives pill lock/loop state from `useChatSurfaceController(...)`,
+which applies `DesktopVisibleTurnLifecycleRuntime` to the message-only
+presentation snapshot from `DesktopCurrentTurnPresentationRuntime`.
 
 `ChatBoxResponse` keeps one additional renderer-local transcript projection for the current turn:
 

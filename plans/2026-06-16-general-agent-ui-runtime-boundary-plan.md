@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Current-Turn Presentation Hook Shim Deletion
+
+- Finding: `useCurrentTurnPresentationState(...)` had become a thin React hook
+  shim over `DesktopCurrentTurnPresentationRuntime` while the surface
+  controller and response overlay view model already owned the React lifecycle
+  around current-turn presentation values.
+- Change: deleted the hook and its hook-only test. `useChatSurfaceController`
+  and `useResponseOverlayViewModel` now call
+  `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
+  directly with `useMemo(...)`, keeping current-turn presentation projection
+  in the renderer app-runtime facade.
+- Validation target: focused chat surface controller, chatbox surface state,
+  latest visible assistant reply, and renderer app-boundary tests protect the
+  direct runtime call path and deleted hook file.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-22 Message List Browser Scheduling Runtime
 
 - Finding: `MessageList` and `useMessageListAutoScroll` still owned raw
