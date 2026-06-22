@@ -95,6 +95,7 @@ class QueryExecutionService:
             agent_instance=agent_instance,
             msg_id=msg_id,
             conversation_ref=message.payload.conversation_ref,
+            revision_id=message.payload.revision_id,
         )
         try:
             await websocket.send_json(
@@ -199,6 +200,7 @@ class QueryExecutionService:
                     capture_meta=query_inputs.capture_meta,
                     message_content=query_inputs.message_content,
                     conversation_ref=query_inputs.conversation_ref,
+                    revision_id=query_inputs.revision_id,
                     operating_system=client_operating_system,
                     workspace_path=query_inputs.workspace_path,
                     repo_instruction_messages=query_inputs.repo_instruction_messages,
@@ -357,10 +359,17 @@ class QueryExecutionService:
         agent_instance: Any,
         msg_id: str,
         conversation_ref: Optional[str],
+        revision_id: Optional[str] = None,
     ) -> None:
         setter = getattr(agent_instance, "set_active_stream_context", None)
         if callable(setter):
-            setter(turn_ref=msg_id, conversation_ref=conversation_ref)
+            kwargs: Dict[str, Any] = {
+                "turn_ref": msg_id,
+                "conversation_ref": conversation_ref,
+            }
+            if revision_id is not None:
+                kwargs["revision_id"] = revision_id
+            setter(**kwargs)
 
     @staticmethod
     def _clear_active_stream_context(
@@ -403,4 +412,3 @@ class QueryExecutionService:
         else:
             operating_system = get_client_operating_system()
         return operating_system if isinstance(operating_system, str) else None
-

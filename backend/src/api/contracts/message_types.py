@@ -70,6 +70,7 @@ class OutgoingMessageType:
         StreamingEventType.CONTEXT_COMPACTION_FAILED.value
     )
     TRACE_EVENT: Final[str] = StreamingEventType.TRACE_EVENT.value
+    MODEL_HISTORY_UPDATED: Final[str] = StreamingEventType.MODEL_HISTORY_UPDATED.value
     STOP_QUERY_ACK: Final[str] = "stop-query-ack"
     SETTINGS_LOADED: Final[str] = "settings-loaded"
     SETTINGS_UPDATED: Final[str] = "settings-updated"
@@ -102,4 +103,5 @@ OUTGOING_SCHEMA_MESSAGE_TYPES: Final[tuple[str, ...]] = (
     OutgoingMessageType.CONTEXT_COMPACTION_COMPLETED,
     OutgoingMessageType.CONTEXT_COMPACTION_FAILED,
     OutgoingMessageType.TRACE_EVENT,
+    OutgoingMessageType.MODEL_HISTORY_UPDATED,
 )

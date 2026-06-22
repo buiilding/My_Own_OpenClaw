@@ -178,6 +178,22 @@ From `InteractionLoop.run_loop()`:
 
 `finally` block always attempts `process_results(...)` to prevent leaked pending tool state when execution errors/disconnects occur.
 
+After assistant completion and after tool-result commits, `InteractionLoop`
+builds a provider-neutral model-history checkpoint from
+`ConversationHistory.get_stored_messages()` and emits `model-history-updated`
+when the active stream context has both `conversation_ref` and `revision_id`.
+The query websocket payload accepts optional `revision_id`; the query execution
+service records it on `SessionRuntimeState.active_revision_id` alongside the
+active turn and conversation refs. Checkpoint rows include backend stored roles,
+canonical `message_type`, bounded `content`, tool-call linkage, tool name,
+artifact `image_refs`, and compaction facts. They intentionally omit raw
+`image_data` and provider-specific prompt payloads.
+
+Storage/API migration note: no migration is required for this emission step.
+Older conversations without model-history checkpoints still resume through the
+existing rehydrate projection until the model-history install phase replaces
+normal resume.
+
 ## HistoryCommitter Role
 
 `HistoryCommitter.commit(...)` is intentionally narrow:
@@ -203,6 +219,8 @@ It does not transform content or make control-flow decisions.
 
 - empty final-response fallback uses latest tool output summary
 - fallback strips `<system_context>` payload before user-facing completion
+- model-history checkpoint events require active revision context and omit raw
+  image payloads
 
 `tests/backend/test_api_handlers.py` (rehydrate path) validates:
 

@@ -52,6 +52,7 @@ class QueryPayload(BaseModel):
 
     text: str
     conversation_ref: str
+    revision_id: Optional[str] = None
     content: str = Field(min_length=1)
     screenshot_ref: Optional[str] = None
     screenshot_refs: Optional[List[str]] = None
@@ -66,6 +67,14 @@ class QueryPayload(BaseModel):
     @classmethod
     def validate_conversation_ref(cls, value: str) -> str:
         return _validate_conversation_ref(value)
+
+    @field_validator("revision_id")
+    @classmethod
+    def validate_revision_id(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
 
     @field_validator("workspace_path")
     @classmethod

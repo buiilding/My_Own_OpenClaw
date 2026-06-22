@@ -1607,7 +1607,8 @@ function toDisplayMessage(event) {
     }
     if (event.type === 'memory_retrieval_diagnostic'
         || event.type === 'memory_store_changed'
-        || event.type === 'trace_event') {
+        || event.type === 'trace_event'
+        || event.type === 'model_history_updated') {
         return null;
     }
     if (event.type === 'turn_completed') {

@@ -59,6 +59,7 @@ Renderer typed union currently includes:
 - `assistant-message-full`
 - `token-count`
 - `tool-schemas`
+- `model-history-updated`
 - `error`
 
 Type guard:
@@ -79,6 +80,8 @@ Core effects:
 - tool-call/tool-output/tool-bundle -> chat message rendering + transcript rows
 - system-prompt/tool-schemas/user-message-full/assistant-message-full -> transparency annotations
 - token-count -> token display state
+- model-history-updated -> SDK hidden model-history checkpoint persistence; it
+  does not create chat display rows
 - error -> assistant error row (with settings-update error suppression)
 
 ### Audio consumer (`ChatInterface`)

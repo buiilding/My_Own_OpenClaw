@@ -8,6 +8,7 @@ const BACKEND_PAYLOAD_KEYS_BY_TYPE: Record<string, readonly string[]> = Object.f
   query: Object.freeze([
     'text',
     'conversation_ref',
+    'revision_id',
     'content',
     'screenshot_ref',
     'screenshot_refs',

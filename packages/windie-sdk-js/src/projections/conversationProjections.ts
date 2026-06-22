@@ -1847,6 +1847,7 @@ function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
     event.type === 'memory_retrieval_diagnostic'
     || event.type === 'memory_store_changed'
     || event.type === 'trace_event'
+    || event.type === 'model_history_updated'
   ) {
     return null;
   }

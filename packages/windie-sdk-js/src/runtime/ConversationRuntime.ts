@@ -16,6 +16,8 @@ import type {
   LocalToolExecutionLifecycle,
   LocalRuntime,
   MemoryStoreChangedPayload,
+  ModelHistoryCheckpoint,
+  ModelHistoryRow,
   RehydratePayload,
   RehydrateSnapshot,
   SdkDisplayAttachment,
@@ -759,6 +761,7 @@ export class SdkConversationRuntime {
             ...transportPayload,
             text: input.text,
             conversation_ref: this.options.conversationRef,
+            revision_id: revisionId,
           }, {
             messageId: turnRef,
           });
@@ -1481,7 +1484,44 @@ export class SdkConversationRuntime {
     const snapshot = this.snapshot(this.events);
     this.notify(snapshot, event);
     await this.options.store.appendEvent(event);
+    await this.persistModelHistoryCheckpoint(event);
     await this.maybeExecuteTool(event);
+  }
+
+  private async persistModelHistoryCheckpoint(event: ConversationEvent): Promise<void> {
+    if (event.type !== 'model_history_updated' || !this.options.store.replaceModelHistory) {
+      return;
+    }
+    const checkpoint = this.modelHistoryCheckpointFromEvent(event);
+    if (!checkpoint) {
+      return;
+    }
+    await this.options.store.replaceModelHistory(checkpoint);
+  }
+
+  private modelHistoryCheckpointFromEvent(event: ConversationEvent): ModelHistoryCheckpoint | null {
+    const checkpointId = typeof event.payload.checkpointId === 'string'
+      ? event.payload.checkpointId
+      : null;
+    const revisionId = typeof event.payload.revisionId === 'string'
+      ? event.payload.revisionId
+      : event.revisionId;
+    const createdAt = typeof event.payload.createdAt === 'string'
+      ? event.payload.createdAt
+      : event.timestamp;
+    const rows = Array.isArray(event.payload.rows)
+      ? event.payload.rows.filter((row): row is ModelHistoryRow => Boolean(row && typeof row === 'object'))
+      : [];
+    if (!checkpointId || !revisionId) {
+      return null;
+    }
+    return {
+      checkpointId,
+      conversationRef: event.conversationRef,
+      revisionId,
+      createdAt,
+      rows,
+    };
   }
 
   private async recordRuntimeTrace(

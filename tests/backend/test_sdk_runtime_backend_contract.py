@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from functools import lru_cache
@@ -22,12 +23,21 @@ ROOT = Path(__file__).resolve().parents[2]
 SDK_PACKAGE_DIR = ROOT / "packages" / "windie-sdk-js"
 
 
+def _npm_executable() -> str | None:
+    candidates = ("npm.cmd", "npm") if os.name == "nt" else ("npm",)
+    for candidate in candidates:
+        executable = shutil.which(candidate)
+        if executable is not None:
+            return executable
+    return None
+
+
 def _sdk_build_prerequisite_skip_reason(
     package_dir: Path = SDK_PACKAGE_DIR,
 ) -> str | None:
     if shutil.which("node") is None:
         return "node is required for SDK/backend contract tests"
-    if shutil.which("npm") is None:
+    if _npm_executable() is None:
         return "npm is required for SDK/backend contract tests"
     if not (package_dir / "node_modules").is_dir():
         try:
@@ -46,8 +56,11 @@ def _build_sdk_dist() -> None:
     skip_reason = _sdk_build_prerequisite_skip_reason()
     if skip_reason:
         pytest.skip(skip_reason)
+    npm = _npm_executable()
+    if npm is None:
+        pytest.skip("npm is required for SDK/backend contract tests")
     subprocess.run(
-        ["npm", "run", "build"],
+        [npm, "run", "build"],
         cwd=SDK_PACKAGE_DIR,
         check=True,
         capture_output=True,
@@ -281,7 +294,7 @@ def test_backend_query_payload_rejects_turn_ref_context_field():
 
 def test_sdk_build_prerequisite_reason_when_npm_is_missing(monkeypatch):
     def fake_which(name):
-        if name == "npm":
+        if name in {"npm", "npm.cmd"}:
             return None
         return f"/usr/bin/{name}"
 

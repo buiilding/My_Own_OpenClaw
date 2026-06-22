@@ -3055,6 +3055,53 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
+  test('backend model-history-updated normalization creates hidden checkpoint rows', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'model-history-updated',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-model-history',
+      payload: {
+        revision_id: 'rev-model-history',
+        checkpoint_id: 'mh-rev-model-history-turn',
+        created_at: '2026-06-22T12:00:00.000Z',
+        rows: [
+          {
+            id: 'mh-row-tool',
+            conversation_ref: 'conv-sdk-runtime',
+            revision_id: 'rev-model-history',
+            role: 'tool',
+            message_type: 'tool_output',
+            content: 'bounded output',
+            tool_call_id: 'call-1',
+            tool_name: 'read_file',
+            image_refs: ['artifact-1'],
+            source_display_row_ids: ['display-tool'],
+          },
+        ],
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'model_history_updated',
+      source: 'backend',
+      revisionId: 'rev-model-history',
+      payload: expect.objectContaining({
+        checkpointId: 'mh-rev-model-history-turn',
+        rows: [
+          expect.objectContaining({
+            id: 'mh-row-tool',
+            messageType: 'tool_output',
+            content: 'bounded output',
+            toolCallId: 'call-1',
+            imageRefs: ['artifact-1'],
+          }),
+        ],
+      }),
+    });
+    expect(buildDisplayConversation([normalized as ConversationEvent]).messages).toEqual([]);
+    expect(buildRehydrateSnapshot([normalized as ConversationEvent]).messages).toEqual([]);
+  });
+
   test('backend trace-event normalization ignores removed snake_case trace payload aliases', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'trace-event',
@@ -3166,6 +3213,59 @@ describe('Agent SDK conversation runtime core', () => {
     expect(emitted.some(event => event.type === 'trace_event')).toBe(true);
     expect(buildDisplayConversation(events).messages).toEqual([]);
     expect(buildRehydrateSnapshot(events).messages).toEqual([]);
+  });
+
+  test('conversation runtime persists backend model-history checkpoints from transport', async () => {
+    const transport = createControllableAgentRuntimeTransport();
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-model-history',
+      store,
+      transport,
+    });
+    runtime.attachTransport();
+
+    transport.emit(backendEvent('model-history-updated', {
+      revision_id: 'rev-model-history',
+      checkpoint_id: 'mh-rev-model-history-turn',
+      created_at: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'mh-row-assistant',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: 'rev-model-history',
+          role: 'assistant',
+          message_type: 'assistant_response',
+          content: 'hello',
+          source_display_row_ids: ['display-assistant'],
+        },
+      ],
+    }, {
+      eventId: 'turn-model-history-evt-000001-model-history-updated',
+      turnRef: 'turn-model-history',
+    }));
+
+    await waitForExpect(async () => {
+      await expect(store.loadModelHistory({
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-model-history',
+      })).resolves.toEqual({
+        checkpointId: 'mh-rev-model-history-turn',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-model-history',
+        createdAt: '2026-06-22T12:00:00.000Z',
+        rows: [
+          expect.objectContaining({
+            id: 'mh-row-assistant',
+            role: 'assistant',
+            messageType: 'assistant_response',
+            content: 'hello',
+          }),
+        ],
+      });
+    });
+    expect(buildDisplayConversation(await store.loadEvents('conv-sdk-runtime')).messages).toEqual([]);
   });
 
   test('conversation runtime records overlay phase projection traces for backend turn events', async () => {

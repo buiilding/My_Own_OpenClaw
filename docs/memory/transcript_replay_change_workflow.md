@@ -39,6 +39,10 @@ flowchart LR
   checkpoints. This is a separate inference ledger, not a visible transcript
   projection. Normal rehydrate still uses the existing event projection until
   the ADR 008 install path replaces it.
+- Backend live turns now emit `model-history-updated` checkpoints after
+  assistant and tool-result history commits. The SDK persists those hidden
+  events through `replaceModelHistory(...)`; display and current normal
+  rehydrate projections ignore them.
 - Electron main owns IPC/RPC mapping and identity sync between windows. It should not interpret chat semantics beyond normalizing bridge payload keys and forwarding session updates.
 - The SDK local-runtime store owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs; local-runtime Python implements the current SQLite backing store.
 - Backend rehydrate owns conversion from stored transcript entries into

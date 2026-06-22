@@ -82,6 +82,7 @@ The runtime records normalized events:
 - `compaction_applied`
 - `compaction_failed`
 - `settings_updated`
+- `model_history_updated`
 - `runtime_error`
 
 Every event carries `eventId`, `conversationRef`, `revisionId`, `timestamp`,
@@ -118,6 +119,15 @@ per-turn `model` options write this event only after the backend settings update
 succeeds. Runtime snapshots expose the latest merged settings on
 `snapshot.state.settings`, but display and rehydrate projections do not render
 or replay those settings as chat/provider history.
+
+Backend `model-history-updated` packets normalize to hidden
+`model_history_updated` conversation events. They carry a provider-neutral
+checkpoint id, revision id, creation timestamp, and backend-normalized
+`ModelHistoryRow[]`; display and existing rehydrate projections ignore them.
+`ConversationRuntime` persists the checkpoint through
+`store.replaceModelHistory(...)` when the store exposes that method. `send()`
+passes the active SDK `revision_id` to the backend query payload so emitted
+checkpoints can prove which display revision they belong to.
 
 Runtime snapshots expose `snapshot.currentTurn` alongside `state`, `display`,
 and `rehydrate`. The current-turn projection is the SDK-owned live-turn view for
@@ -328,6 +338,9 @@ Model-history checkpoint methods are the ADR 008 migration surface. They do not
 make display rows, runtime events, and backend active history interchangeable:
 checkpoints store bounded model-facing rows only, while full tool output and
 display attachments remain in display/runtime history.
+No migration is required for adding checkpoint persistence or the hidden
+backend event; old conversations without checkpoints continue on the existing
+rehydrate path until the backend model-history install phase replaces it.
 
 Metadata pagination and search helpers stay in the `conversation/metadata`
 owner module for SDK stores and runtime classes. Public package-root callers

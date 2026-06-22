@@ -30,6 +30,7 @@ export type ConversationEventType =
   | 'memory_retrieval_diagnostic'
   | 'memory_store_changed'
   | 'trace_event'
+  | 'model_history_updated'
   | 'compaction_started'
   | 'compaction_skipped'
   | 'compaction_applied'

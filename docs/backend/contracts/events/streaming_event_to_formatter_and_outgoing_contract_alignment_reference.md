@@ -50,6 +50,7 @@ The intended contract is now one vocabulary for streamed backend events and webs
 - `ContextCompactionCompletedEvent` -> `context-compaction-completed` -> `ContextCompactionCompletedEventFormatter` -> `ContextCompactionCompletedMessage`
 - `ContextCompactionFailedEvent` -> `context-compaction-failed` -> `ContextCompactionFailedEventFormatter` -> `ContextCompactionFailedMessage`
 - `ToolBundleEvent` -> `tool-bundle` -> `ToolBundleEventFormatter` -> `ToolBundleMessage`
+- `ModelHistoryUpdatedEvent` -> `model-history-updated` -> `ModelHistoryUpdatedEventFormatter` -> `ModelHistoryUpdatedMessage`
 
 ## Event Name Handling
 

@@ -12,6 +12,12 @@ All notable changes to WindieOS will be documented in this file.
   history separately from full display/runtime events. No migration required;
   the local-runtime table is created lazily with the existing chat-history
   schema and normal resume still uses the current rehydrate path.
+- backend/sdk: emit backend-normalized `model-history-updated` checkpoints
+  after assistant completion and tool-result history commits, pass SDK
+  revision ids through query payloads, and persist the hidden checkpoint event
+  through SDK stores without adding it to display or rehydrate projections. No
+  migration required; old conversations without checkpoints continue to use the
+  existing rehydrate path until the model-history install phase lands.
 - docs/adr: add ADR 008 and the conversation history revision architecture
   plan for separating full display history, backend-normalized model history,
   runtime events, and revision graph ownership so edit/resend, compaction,

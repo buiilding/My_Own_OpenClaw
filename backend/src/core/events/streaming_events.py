@@ -304,6 +304,20 @@ class TraceEvent(StreamingEvent):
         self.type = StreamingEventType.TRACE_EVENT
 
 
+@dataclass
+class ModelHistoryUpdatedEvent(StreamingEvent):
+    """Event emitted when backend model history has a new checkpoint."""
+
+    conversation_ref: str
+    revision_id: str
+    checkpoint_id: str
+    rows: List[Dict[str, Any]]
+    created_at: str
+
+    def __post_init__(self):
+        self.type = StreamingEventType.MODEL_HISTORY_UPDATED
+
+
 # Union type for all event types
 AgentStreamingEvent = Union[
     ThinkingEvent,
@@ -324,4 +338,5 @@ AgentStreamingEvent = Union[
     ContextCompactionFailedEvent,
     ToolBundleEvent,
     TraceEvent,
+    ModelHistoryUpdatedEvent,
 ]

@@ -41,6 +41,7 @@ from backend.src.api.schemas.outgoing import (
     ContextCompactionStartedMessage,
     ErrorResponse,
     LlmThought,
+    ModelHistoryUpdatedMessage,
     ModelsListedMessage,
     QueryAcceptedMessage,
     SettingsLoadedMessage,
@@ -123,6 +124,10 @@ OUTGOING_SCHEMA_CONTRACTS: tuple[MessageContract, ...] = (
         ContextCompactionFailedMessage,
     ),
     MessageContract(OutgoingMessageType.TRACE_EVENT, TraceEventMessage),
+    MessageContract(
+        OutgoingMessageType.MODEL_HISTORY_UPDATED,
+        ModelHistoryUpdatedMessage,
+    ),
 )
 
 
