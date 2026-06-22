@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- docs/plans: add the dynamic appearance editor and message color plan for
+  collapsing Appearance settings to one effective-theme editor, adding
+  user-message pill background/text colors, unifying light-mode foreground
+  behavior, and verifying the screenshot resolver warning path. No migration
+  required.
 - sdk/frontend: add SDK-owned ordered live display attachments for
   user-included images, camera screenshot requests, mixed visual sends, ready
   artifact replacement, sanitized display diagnostics, and the renderer
