@@ -128,6 +128,13 @@ compaction behind its loop lock.
 - close-button anchor measurement, resize listener wiring, observer callbacks,
   and animation-frame scheduling are installed through
   `DesktopChatboxInteractionRuntime.startChatboxCloseButtonAnchorSync(...)`
+- native-frame collapse timeout scheduling is installed through
+  `DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse(...)`
+  and cleaned up through
+  `DesktopChatboxInteractionRuntime.clearChatboxNativeFrameCollapse(...)`
+- post-presize composer height commits are scheduled through
+  `DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit(...)`
+  so sequence-guarded animation-frame behavior stays outside the component
 - visual-anchor IPC sync:
   - preview off -> `height: 64`
   - preview on -> `height: 116`

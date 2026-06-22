@@ -348,6 +348,81 @@ function startChatboxVisualAnchorSync({
   };
 }
 
+function hasMutableCurrentRef(ref) {
+  return ref && Object.prototype.hasOwnProperty.call(ref, 'current');
+}
+
+function clearChatboxNativeFrameCollapse({
+  timeoutRef,
+  windowApi = globalThis.window,
+} = {}) {
+  if (!hasMutableCurrentRef(timeoutRef) || timeoutRef.current === null) {
+    return false;
+  }
+  const browserApi = resolveWindowApi(windowApi);
+  if (typeof browserApi.clearTimeout === 'function') {
+    browserApi.clearTimeout(timeoutRef.current);
+  }
+  timeoutRef.current = null;
+  return true;
+}
+
+function scheduleChatboxNativeFrameCollapse({
+  timeoutRef,
+  callback,
+  delayMs = 0,
+  windowApi = globalThis.window,
+} = {}) {
+  if (!hasMutableCurrentRef(timeoutRef) || typeof callback !== 'function') {
+    return null;
+  }
+
+  clearChatboxNativeFrameCollapse({ timeoutRef, windowApi });
+  const browserApi = resolveWindowApi(windowApi);
+  const runCollapse = () => {
+    timeoutRef.current = null;
+    callback();
+  };
+
+  if (typeof browserApi.setTimeout !== 'function') {
+    runCollapse();
+    return null;
+  }
+
+  timeoutRef.current = browserApi.setTimeout(runCollapse, delayMs);
+  return timeoutRef.current;
+}
+
+function scheduleChatboxComposerHeightCommit({
+  sequenceRef,
+  sequence,
+  height,
+  applyComposerHeight,
+  windowApi = globalThis.window,
+} = {}) {
+  if (
+    !hasMutableCurrentRef(sequenceRef)
+    || sequenceRef.current !== sequence
+    || typeof applyComposerHeight !== 'function'
+  ) {
+    return null;
+  }
+
+  const browserApi = resolveWindowApi(windowApi);
+  const commitHeight = () => {
+    if (sequenceRef.current === sequence) {
+      applyComposerHeight(height);
+    }
+  };
+
+  if (typeof browserApi.requestAnimationFrame !== 'function') {
+    commitHeight();
+    return null;
+  }
+
+  return browserApi.requestAnimationFrame(commitHeight);
+}
+
 function resetChatboxVisualAnchorHeight() {
   return DesktopWindowRuntimeClient
     .setChatboxVisualAnchorHeightValue(
@@ -357,9 +432,12 @@ function resetChatboxVisualAnchorHeight() {
 }
 
 export const DesktopChatboxInteractionRuntime = Object.freeze({
+  clearChatboxNativeFrameCollapse,
   isPointerInsideChatbox,
   resolveChatboxCloseButtonAnchorCenterX,
   resetChatboxVisualAnchorHeight,
+  scheduleChatboxComposerHeightCommit,
+  scheduleChatboxNativeFrameCollapse,
   startChatboxVisualAnchorSync,
   startChatboxCloseButtonAnchorSync,
   subscribeToChatboxDragWindowEvents,

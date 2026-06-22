@@ -247,6 +247,114 @@ describe('desktopChatboxInteractionRuntime', () => {
     expect(pill.style.setProperty).not.toHaveBeenCalled();
   });
 
+  test('schedules and clears native frame collapse work through timer adapters', () => {
+    const windowApi = createWindowApi();
+    const timeoutRef = { current: null };
+    const callback = jest.fn();
+
+    const firstTimeout = DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse({
+      timeoutRef,
+      callback,
+      delayMs: 180,
+      windowApi,
+    });
+    const secondTimeout = DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse({
+      timeoutRef,
+      callback,
+      delayMs: 180,
+      windowApi,
+    });
+
+    expect(firstTimeout).toBe(1);
+    expect(secondTimeout).toBe(2);
+    expect(windowApi.clearTimeout).toHaveBeenCalledWith(1);
+    expect(timeoutRef.current).toBe(2);
+
+    windowApi.runTimeout(1);
+    expect(callback).not.toHaveBeenCalled();
+
+    windowApi.runTimeout(2);
+    expect(timeoutRef.current).toBeNull();
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse({
+      timeoutRef,
+      callback,
+      delayMs: 180,
+      windowApi,
+    });
+    expect(timeoutRef.current).toBe(3);
+
+    expect(DesktopChatboxInteractionRuntime.clearChatboxNativeFrameCollapse({
+      timeoutRef,
+      windowApi,
+    })).toBe(true);
+    expect(windowApi.clearTimeout).toHaveBeenCalledWith(3);
+    expect(timeoutRef.current).toBeNull();
+  });
+
+  test('runs native frame collapse immediately when timer adapter is unavailable', () => {
+    const timeoutRef = { current: null };
+    const callback = jest.fn();
+
+    const timeoutId = DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse({
+      timeoutRef,
+      callback,
+      delayMs: 180,
+      windowApi: {},
+    });
+
+    expect(timeoutId).toBeNull();
+    expect(timeoutRef.current).toBeNull();
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  test('commits composer height on the next matching animation frame', () => {
+    const windowApi = createWindowApi();
+    const sequenceRef = { current: 7 };
+    const applyComposerHeight = jest.fn();
+
+    const frameId = DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit({
+      sequenceRef,
+      sequence: 7,
+      height: 42,
+      applyComposerHeight,
+      windowApi,
+    });
+
+    expect(frameId).toBe(100);
+    expect(applyComposerHeight).not.toHaveBeenCalled();
+
+    sequenceRef.current = 8;
+    windowApi.runFrame(100);
+    expect(applyComposerHeight).not.toHaveBeenCalled();
+
+    DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit({
+      sequenceRef,
+      sequence: 8,
+      height: 56,
+      applyComposerHeight,
+      windowApi,
+    });
+    windowApi.runFrame(101);
+    expect(applyComposerHeight).toHaveBeenCalledWith(56);
+  });
+
+  test('commits composer height immediately when animation frame adapter is unavailable', () => {
+    const applyComposerHeight = jest.fn();
+
+    const frameId = DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit({
+      sequenceRef: { current: 3 },
+      sequence: 3,
+      height: 64,
+      applyComposerHeight,
+      windowApi: {},
+    });
+
+    expect(frameId).toBeNull();
+    expect(applyComposerHeight).toHaveBeenCalledWith(64);
+  });
+
   test('reports initial and resize-settled visual anchor height', () => {
     const shell = { offsetHeight: 90 };
     const windowApi = createWindowApi();

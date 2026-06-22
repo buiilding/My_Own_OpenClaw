@@ -64,6 +64,8 @@ This keeps overlay window lightweight:
   `ResizeObserver`, debounce timer, animation-frame scheduling, and
   `DesktopWindowRuntimeClient` anchor-height reporting from measured shell
   height plus compact-height cleanup on unmount
+- native-frame collapse timeout scheduling and post-presize composer height
+  animation-frame commits through `DesktopChatboxInteractionRuntime`
 - text-entry activation reason reporting through `DesktopWindowRuntimeClient`;
   the runtime client assembles the host-shaped `{ reason }` IPC payload
 
@@ -169,6 +171,9 @@ This is required after main-process `showChatWindow({ focus: true })`.
   - preview-expanded pill: `with-preview` on shell/pill while image attachments exist (`116px` anchor fallback)
   - multiline composer growth can exceed those fallback heights because the measured shell height becomes the live visual anchor
 - multiline resize reporting is batched to one animation-frame commit so the main process sees the settled shell height instead of intermediate `ResizeObserver` steps, and main uses that anchor only for overlay re-positioning while the native chat frame stays fixed.
+- the delayed native-frame collapse after empty composer shrinkage is scheduled
+  through `DesktopChatboxInteractionRuntime`; `MinimalChatPill` owns only the
+  empty-input/attachment guard and the anchor height values it reports.
 - manual drag persistence now stores the dragged bottom edge rather than the raw overlay top-left `y`, so vertical dragging still works while multiline/preview growth continues to move upward from the same visual baseline.
 - response/typing overlays in main process use the reported chat visual anchor height so their vertical position follows the visible pill baseline instead of the full transparent chat window height.
 - response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in the current non-dashboard Electron main overlay runtime) to keep the response pill visually near the chat pill.

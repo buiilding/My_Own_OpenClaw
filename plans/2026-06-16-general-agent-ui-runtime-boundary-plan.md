@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Chat Pill Native Frame Scheduling Runtime
+
+- Finding: `MinimalChatPill` still owned raw `window.setTimeout`,
+  `window.clearTimeout`, and `window.requestAnimationFrame` calls for delayed
+  native-frame collapse after empty composer shrinkage and post-presize
+  composer height commits.
+- Change: extended `DesktopChatboxInteractionRuntime` with native-frame
+  collapse timer scheduling/cleanup and sequence-guarded composer height commit
+  helpers. The pill now supplies only refs, callbacks, anchor values, and the
+  empty-input/attachment guard while the runtime owns browser timer and
+  animation-frame adapters.
+- Validation target: focused chatbox interaction runtime and renderer
+  app/chat-boundary tests protect timer rescheduling, missing-adapter fallback,
+  stale sequence suppression, and rejection of raw timer/RAF calls in
+  `MinimalChatPill`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Response Overlay Window Scheduling Runtime
 
 - Finding: `useResponseOverlayWindowSync(...)` still owned raw

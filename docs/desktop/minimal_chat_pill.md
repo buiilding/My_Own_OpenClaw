@@ -149,7 +149,10 @@ hit-test subscriptions and pill-bounds checks route through
 active state and trace values. Close-button anchor measurement, resize
 subscriptions, `ResizeObserver`, and animation-frame scheduling also route
 through that runtime so the component supplies only the pill/send-button refs
-and anchor snapshot.
+and anchor snapshot. Native-frame collapse timeout scheduling and the
+post-presize composer-height animation-frame commit also route through
+`DesktopChatboxInteractionRuntime`, leaving the component with only the
+empty-input/attachment policy and anchor values.
 
 ## Deep Docs
 

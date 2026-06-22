@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route minimal chat pill native-frame collapse timers and
+  post-presize composer height animation-frame commits through
+  `DesktopChatboxInteractionRuntime`, leaving `MinimalChatPill` with only
+  value-level callbacks and anchor policy. No migration required.
 - frontend/renderer: remove the dead `typingVisible` cursor field from
   `DesktopCurrentTurnProjectionEffectsRuntime`; SDK current-turn side effects
   now track only text lengths, phase, errors, and seen tool-event ids while

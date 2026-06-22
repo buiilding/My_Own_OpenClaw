@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: response-overlay visibility re-report frame
-  scheduling and visible size-update RAF/retry/`ResizeObserver` cleanup now
-  route through `DesktopResponseOverlayInteractionRuntime`;
-  `useResponseOverlayWindowSync` supplies callbacks and refs while retaining
-  sizing policy, traces, turn guards, and responsebox IPC values.
+- Latest completed slice: minimal chat pill native-frame collapse timer
+  scheduling/cleanup and post-presize composer height RAF commits now route
+  through `DesktopChatboxInteractionRuntime`; `MinimalChatPill` supplies refs,
+  callbacks, anchor values, and empty-input/attachment policy while the runtime
+  owns browser timer and animation-frame adapters.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -87,6 +87,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   WindieOS query event copy remains host-skin owned.
   Renderer app-runtime boundary tests keep app/features on SDK/runtime facades
   rather than direct SDK-owned transport and conversation/history IPC channels.
+  Minimal chat pill native-frame collapse timers and sequence-guarded
+  composer-height animation-frame commits now route through
+  `DesktopChatboxInteractionRuntime` instead of raw browser scheduling in the
+  component.
   Conversation replay database tests describe edit/resend cutoff rewrites as
   local-runtime SQLite behavior while the renderer owns preparation error
   projection.

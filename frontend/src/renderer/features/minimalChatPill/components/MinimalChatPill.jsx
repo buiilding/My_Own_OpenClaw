@@ -136,11 +136,9 @@ function MinimalChatPill() {
   }, [reservedChatboxFrameHeight]);
 
   const clearNativeFrameCollapse = useCallback(() => {
-    if (nativeFrameCollapseTimeoutRef.current === null) {
-      return;
-    }
-    window.clearTimeout?.(nativeFrameCollapseTimeoutRef.current);
-    nativeFrameCollapseTimeoutRef.current = null;
+    DesktopChatboxInteractionRuntime.clearChatboxNativeFrameCollapse({
+      timeoutRef: nativeFrameCollapseTimeoutRef,
+    });
   }, []);
 
   const resolveNativeFrameHeightForShellHeight = useCallback((shellHeight) => {
@@ -160,24 +158,26 @@ function MinimalChatPill() {
   }, []);
 
   const scheduleNativeFrameCollapse = useCallback(() => {
-    clearNativeFrameCollapse();
-    nativeFrameCollapseTimeoutRef.current = window.setTimeout(() => {
-      nativeFrameCollapseTimeoutRef.current = null;
-      if ((inputRef.current?.value || '').trim() || hasAttachmentPreview) {
-        return;
-      }
-      const shellHeight = shellRef.current?.offsetHeight ?? null;
-      const nextAnchorHeight = DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight({
-        hasImagePreview: hasAttachmentPreview,
-        shellHeight,
-      });
-      reservedChatboxFrameHeightRef.current = null;
-      setReservedChatboxFrameHeight(null);
-      DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(nextAnchorHeight).catch((error) => {
-        console.warn('[MinimalChatPill] Failed to collapse chat window frame:', error);
-      });
-    }, CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS);
-  }, [clearNativeFrameCollapse, hasAttachmentPreview]);
+    DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse({
+      timeoutRef: nativeFrameCollapseTimeoutRef,
+      delayMs: CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS,
+      callback: () => {
+        if ((inputRef.current?.value || '').trim() || hasAttachmentPreview) {
+          return;
+        }
+        const shellHeight = shellRef.current?.offsetHeight ?? null;
+        const nextAnchorHeight = DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight({
+          hasImagePreview: hasAttachmentPreview,
+          shellHeight,
+        });
+        reservedChatboxFrameHeightRef.current = null;
+        setReservedChatboxFrameHeight(null);
+        DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(nextAnchorHeight).catch((error) => {
+          console.warn('[MinimalChatPill] Failed to collapse chat window frame:', error);
+        });
+      },
+    });
+  }, [hasAttachmentPreview]);
 
   useEffect(() => {
     return () => {
@@ -338,17 +338,11 @@ function MinimalChatPill() {
     ).catch((error) => {
       console.warn('[MinimalChatPill] Failed to presize chat window:', error);
     }).finally(() => {
-      if (composerResizeSequenceRef.current !== sequence) {
-        return;
-      }
-      if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-        applyComposerHeight(nextHeight);
-        return;
-      }
-      window.requestAnimationFrame(() => {
-        if (composerResizeSequenceRef.current === sequence) {
-          applyComposerHeight(nextHeight);
-        }
+      DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit({
+        sequenceRef: composerResizeSequenceRef,
+        sequence,
+        height: nextHeight,
+        applyComposerHeight,
       });
     });
   }, [
