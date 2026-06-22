@@ -106,4 +106,48 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
     expect(result.current).toBe('https://cdn.example/static.png');
     expect(DesktopArtifactRuntimeClient.fetchArtifactImage).not.toHaveBeenCalled();
   });
+
+  test('does not loop state updates when equivalent artifact messages are recreated', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    DesktopArtifactRuntimeClient.fetchArtifactImage.mockResolvedValue({
+      success: true,
+      dataUrl: 'data:image/png;base64,artifact-loop-safe',
+    });
+    const createMessage = () => ({
+      id: 'turn-loop-sdk-evt-000002-user_message',
+      turnRef: 'turn-loop',
+      sender: 'user',
+      text: 'same turn recreated',
+      screenshots: [{
+        screenshotRef: 'artifact-loop-safe',
+      }],
+    });
+
+    try {
+      const { result, rerender } = renderHook(
+        ({ message }) => (
+          DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList(message)
+        ),
+        { initialProps: { message: createMessage() } },
+      );
+
+      await waitFor(() => {
+        expect(result.current).toEqual(['data:image/png;base64,artifact-loop-safe']);
+      });
+
+      for (let index = 0; index < 5; index += 1) {
+        act(() => {
+          rerender({ message: createMessage() });
+        });
+        expect(result.current).toEqual(['data:image/png;base64,artifact-loop-safe']);
+      }
+
+      expect(DesktopArtifactRuntimeClient.fetchArtifactImage).toHaveBeenCalledTimes(1);
+      expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('Maximum update depth exceeded'),
+      );
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
+  });
 });

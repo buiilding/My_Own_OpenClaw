@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: keep SDK visual attachment previews visible while ready
+  artifact images resolve, and avoid repeated equivalent screenshot-source
+  state writes that could trigger React maximum update depth warnings in
+  image-bearing user rows. No migration required.
 - frontend/renderer: make light-mode dev source badges and transparency panels
   use readable appearance foreground text on light surfaces instead of dark
   debug-card colors. No migration required.

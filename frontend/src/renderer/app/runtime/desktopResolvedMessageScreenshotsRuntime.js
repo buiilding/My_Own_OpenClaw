@@ -48,6 +48,22 @@ function cachedArtifactAttachmentSrc(attachment) {
   return cacheKey ? artifactImageSourceCache.get(cacheKey) ?? null : null;
 }
 
+function sourceListsEqual(left, right) {
+  if (left === right) {
+    return true;
+  }
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+    return false;
+  }
+  return left.every((source, index) => source === right[index]);
+}
+
+function setResolvedSourcesIfChanged(setResolvedSources, nextSources) {
+  setResolvedSources((previousSources) => (
+    sourceListsEqual(previousSources, nextSources) ? previousSources : nextSources
+  ));
+}
+
 function normalizeContinuityKey(value) {
   return typeof value === 'string' && value.trim()
     ? value.trim()
@@ -140,7 +156,7 @@ function useResolvedMessageScreenshotSrcList(message) {
     );
 
     if (!needsArtifactResolution) {
-      setResolvedSources(initialSources);
+      setResolvedSourcesIfChanged(setResolvedSources, initialSources);
       return () => {
         cancelled = true;
       };
@@ -167,11 +183,11 @@ function useResolvedMessageScreenshotSrcList(message) {
       if (continuityKey && nextSources.length > 0) {
         rememberBoundedCacheEntry(messageScreenshotSourceCache, continuityKey, nextSources);
       }
-      setResolvedSources(nextSources);
+      setResolvedSourcesIfChanged(setResolvedSources, nextSources);
     }
 
     if (initialSources.length > 0 || !isSameMessageContinuity) {
-      setResolvedSources(initialSources);
+      setResolvedSourcesIfChanged(setResolvedSources, initialSources);
     }
     void resolveSources();
 

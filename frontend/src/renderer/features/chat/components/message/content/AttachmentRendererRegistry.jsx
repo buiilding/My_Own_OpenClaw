@@ -2,7 +2,7 @@
  * Routes SDK display attachments to focused user-message attachment renderers.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { DesktopArtifactRuntimeClient } from '../../../../../app/runtime/desktopArtifactRuntimeClient';
 import {
@@ -11,9 +11,17 @@ import {
 
 function ImageAttachment({ attachment }) {
   const resolvedArtifactSrc = DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc(attachment);
+  const [lastVisibleSrc, setLastVisibleSrc] = useState(null);
   const src = attachment.status === 'materializing'
     ? attachment.previewSrc
-    : resolvedArtifactSrc;
+    : resolvedArtifactSrc ?? lastVisibleSrc;
+
+  useEffect(() => {
+    if (typeof src === 'string' && src.trim().length > 0) {
+      setLastVisibleSrc(src);
+    }
+  }, [src]);
+
   const handleContextMenu = useCallback((event) => {
     if (typeof src !== 'string' || src.trim().length === 0) {
       return;
