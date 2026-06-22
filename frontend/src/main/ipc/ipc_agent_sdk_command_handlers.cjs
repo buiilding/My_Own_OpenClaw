@@ -22,6 +22,13 @@ function cloneJsonObject(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function cloneJsonArray(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
@@ -299,6 +306,17 @@ function buildAgentSdkCommandHandlers({
         currentTurn: snapshot.currentTurn,
       };
     },
+    [SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY_TIMELINE]: async (payload = {}) => {
+      requireCommandUserId(payload, deps.getState().currentUserId);
+      const agent = await deps.ensureAgent({
+        reason: 'sdk-command:conversation.loadDisplayTimeline',
+        conversationRef: optionalCommandConversationRef(payload),
+      });
+      return agent.loadDisplayTimeline({
+        conversationRef: requireCommandConversationRef(payload),
+        revisionId: normalizeOptionalString(payload.revisionId),
+      });
+    },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_REHYDRATE]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
       const agent = await deps.ensureAgent({
@@ -348,6 +366,20 @@ function buildAgentSdkCommandHandlers({
       });
       await runtimeRegistry.rewriteConversation(plan);
       return { rewritten: true };
+    },
+    [SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_ROWS]: async (payload = {}) => {
+      requireCommandUserId(payload, deps.getState().currentUserId);
+      const conversationRef = requireCommandConversationRef(payload);
+      const runtimeRegistry = await deps.ensureAgent({
+        reason: 'sdk-command:conversation.replaceRows',
+        conversationRef,
+      });
+      return runtimeRegistry.replaceRows({
+        conversationRef,
+        baseRevisionId: requireCommandString(payload, 'baseRevisionId', 'base revision id'),
+        reason: requireCommandString(payload, 'reason', 'display replacement reason'),
+        rows: cloneJsonArray(payload.rows),
+      });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_COMPACTED_REPLAY]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);

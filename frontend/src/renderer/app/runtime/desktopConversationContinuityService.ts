@@ -8,6 +8,9 @@ import {
   type JsonRecord,
   type ListConversationOptions,
   type DisplayConversation,
+  type DisplayTimelineCheckpoint,
+  type DisplayTimelineReplaceReason,
+  type DisplayTimelineRow,
   type SdkDisplayRow,
   type ConversationMetadata,
   type ConversationMetadataInvalidationListener,
@@ -60,6 +63,14 @@ type PreparedReplayTurn = {
   turnRef?: string | null;
 };
 
+type ReplaceDisplayRowsInput = {
+  userId: string;
+  conversationRef: string;
+  baseRevisionId: string;
+  reason: DisplayTimelineReplaceReason;
+  rows: DisplayTimelineRow[];
+};
+
 type SearchConversationsInput = {
   userId: string;
   query: string;
@@ -108,6 +119,34 @@ export const DesktopConversationContinuityService = {
       },
     );
     return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
+  },
+
+  async loadDisplayTimeline(
+    userId: string,
+    conversationRef: string,
+    revisionId: string | null = null,
+  ): Promise<DisplayTimelineCheckpoint> {
+    return invokeAgentSdkCommand<DisplayTimelineCheckpoint>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY_TIMELINE,
+      {
+        userId,
+        conversationRef,
+        revisionId: revisionId ?? undefined,
+      },
+    );
+  },
+
+  async replaceRows(input: ReplaceDisplayRowsInput): Promise<DisplayTimelineCheckpoint> {
+    return invokeAgentSdkCommand<DisplayTimelineCheckpoint>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_ROWS,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        baseRevisionId: input.baseRevisionId,
+        reason: input.reason,
+        rows: input.rows,
+      },
+    );
   },
 
   loadTraceTimeline(

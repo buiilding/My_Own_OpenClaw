@@ -62,6 +62,63 @@ function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   return conversationRef;
 }
 
+function readyImageAttachmentsFromRow(row) {
+  const attachments = row?.metadata?.attachments;
+  if (!Array.isArray(attachments)) {
+    return [];
+  }
+  return attachments.filter((attachment) => (
+    attachment
+    && typeof attachment === 'object'
+    && attachment.kind === 'image'
+    && attachment.status === 'ready'
+    && typeof attachment.id === 'string'
+    && attachment.id.trim()
+  ));
+}
+
+function buildReplayAttachmentPayload(row) {
+  const attachments = readyImageAttachmentsFromRow(row);
+  if (attachments.length === 0) {
+    return {};
+  }
+  return {
+    screenshot_refs: attachments.map((attachment) => attachment.id.trim()),
+    attachment_filenames: attachments
+      .map((attachment) => (
+        typeof attachment.filename === 'string' && attachment.filename.trim()
+          ? attachment.filename.trim()
+          : null
+      ))
+      .filter(Boolean),
+  };
+}
+
+function findTimelineRowIndex(rows, messageId, predicate = () => true) {
+  if (!Array.isArray(rows) || typeof messageId !== 'string' || !messageId) {
+    return -1;
+  }
+  return rows.findIndex((row) => row?.id === messageId && predicate(row));
+}
+
+function findTimelineRetryUserIndex(rows, assistantMessageId) {
+  const assistantIndex = findTimelineRowIndex(
+    rows,
+    assistantMessageId,
+    (row) => row.role === 'assistant' || row.type === 'assistant_message',
+  );
+  if (assistantIndex < 0) {
+    return -1;
+  }
+  for (let index = assistantIndex; index >= 0; index -= 1) {
+    const row = rows[index];
+    if (row?.role === 'user' && row?.type === 'user_message') {
+      return index;
+    }
+  }
+  return -1;
+}
+
 async function executeReplayAction({
   sessionInfo,
   activeConversationRef,
@@ -77,6 +134,7 @@ async function executeReplayAction({
   deferredQueryModelSelection,
   action,
   messageId,
+  targetUserMessageId,
   pendingUserMessageId,
   addMessage,
 }) {
@@ -99,32 +157,53 @@ async function executeReplayAction({
     text: queryText,
     timestamp: replayStartedAt,
   });
-
-  setMessages(replayMessages, conversationRef);
-  setThinkingStatus(null, conversationRef);
-  if (typeof setThinkingSourceEventType === 'function') {
-    setThinkingSourceEventType(null, conversationRef);
-  }
-  useChatStore.getState().acceptPendingTurn(pendingTurn);
-  DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
+  let visibleRowsApplied = false;
 
   try {
-    const rewritePayload = {
+    const displayTimeline = await DesktopConversationContinuityService.loadDisplayTimeline(
+      sessionInfo.userId,
       conversationRef,
-      userId: sessionInfo.userId,
-      messageId,
-      text: queryText,
-      payload: buildReplayPreparationPayload({ screenshotRef, screenshotUrl }),
-      model: deferredQueryModelSelection || null,
-      turnRef: replayTurnRef,
-      workspacePath: workspaceBinding.workspacePath || null,
+    );
+    const rows = Array.isArray(displayTimeline?.rows) ? displayTimeline.rows : [];
+    const userRowIndex = action === 'edit_resend'
+      ? findTimelineRowIndex(
+        rows,
+        targetUserMessageId,
+        (row) => row.role === 'user' && row.type === 'user_message',
+      )
+      : findTimelineRetryUserIndex(rows, messageId);
+    if (userRowIndex < 0) {
+      throw new Error(`Cannot ${action === 'edit_resend' ? 'edit' : 'retry'} missing display user row`);
+    }
+    const replayPayload = {
+      ...buildReplayAttachmentPayload(rows[userRowIndex]),
+      ...buildReplayPreparationPayload({ screenshotRef, screenshotUrl }),
     };
-    const preparedReplayTurn = action === 'edit_resend'
-      ? await DesktopConversationContinuityService.prepareEditAndResend(rewritePayload)
-      : await DesktopConversationContinuityService.prepareRetryTurn(rewritePayload);
+    await DesktopConversationContinuityService.replaceRows({
+      userId: sessionInfo.userId,
+      conversationRef,
+      baseRevisionId: displayTimeline.revisionId,
+      reason: action === 'edit_resend' ? 'user_edit' : 'retry',
+      rows: rows.slice(0, userRowIndex),
+    });
+    setMessages(replayMessages, conversationRef);
+    visibleRowsApplied = true;
+    setThinkingStatus(null, conversationRef);
+    if (typeof setThinkingSourceEventType === 'function') {
+      setThinkingSourceEventType(null, conversationRef);
+    }
+    useChatStore.getState().acceptPendingTurn(pendingTurn);
+    DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
     try {
       await dispatchPreparedDesktopChatTurn(buildPreparedReplayDesktopChatTurn({
-        preparedReplayTurn,
+        preparedReplayTurn: {
+          conversationRef,
+          text: queryText,
+          payload: replayPayload,
+          model: deferredQueryModelSelection || null,
+          workspacePath: workspaceBinding.workspacePath || null,
+          turnRef: replayTurnRef,
+        },
         conversationRef,
         deferredQueryModelSelection,
         screenshotRef,
@@ -141,7 +220,9 @@ async function executeReplayAction({
     return true;
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
-    setMessages(sourceMessages, conversationRef);
+    if (visibleRowsApplied) {
+      setMessages(sourceMessages, conversationRef);
+    }
     useChatStore.getState().clearPendingTurn({
       conversationRef,
       turnRef: replayTurnRef,
@@ -221,6 +302,7 @@ export function useConversationReplayActions({
       deferredQueryModelSelection,
       action: 'edit_resend',
       messageId: userMessageId,
+      targetUserMessageId: userMessageId,
       pendingUserMessageId: editUserMessage.id,
       addMessage,
     });
@@ -264,6 +346,7 @@ export function useConversationReplayActions({
       deferredQueryModelSelection,
       action: 'retry',
       messageId: assistantMessageId,
+      targetUserMessageId: retryUserMessage.id,
       pendingUserMessageId: retryUserMessage.id,
       addMessage,
     });

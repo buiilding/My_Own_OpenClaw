@@ -13,7 +13,15 @@ Use this workflow for the visible-chat projection path. Transcript replay is
 related to memory, but it is not the same thing as semantic memory or backend
 active model history.
 
-The core rule is: SDK local-runtime `conversation_events` rows are the canonical client-runtime state. Visible transcript rows are projections persisted for display/search, and backend active history is rebuilt from SDK rehydrate projections before resume. Fix display and replay at the SDK projection/store layer. Fix resumed model context at the rehydrate projection layer. Fix derived memory search/semantic facts in local-runtime memory and semanticization code.
+The core rule is: SDK local-runtime `conversation_events` rows are the canonical
+runtime/audit log, display timeline checkpoints are the editable user-visible
+document, and model-history checkpoints are the bounded inference ledger.
+Edit/resend and retry must replace display timeline rows and then send; they
+must not cut raw runtime events or pre-mutate visible rows before the SDK
+accepts the child display revision. Fix display and replay at the SDK
+projection/store layer. Fix resumed model context at the model-history
+rehydrate layer. Fix derived memory search/semantic facts in local-runtime
+memory and semanticization code.
 
 ## Runtime Path
 
@@ -53,10 +61,10 @@ flowchart LR
   events through `replaceModelHistory(...)`; display projections ignore them.
 - Electron main owns IPC/RPC mapping and identity sync between windows. It should not interpret chat semantics beyond normalizing bridge payload keys and forwarding session updates.
 - The SDK local-runtime store owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs; local-runtime Python implements the current SQLite backing store.
-- Backend rehydrate owns conversion from stored transcript entries into
-  model-compatible backend history. It normalizes current transcript
-  projections and rejects missing or stale tool linkage instead of repairing or
-  synthesizing provider history.
+- Backend rehydrate owns installing persisted model-history checkpoints into
+  model-compatible backend history. It may use the legacy event projection only
+  for conversations that do not yet have a checkpoint; normal edit/resend and
+  retry preparation must not invoke backend rehydrate.
 - Backend active history is not the source of dashboard conversation list truth. Do not patch backend history to make a missing sidebar conversation appear.
 - Model-history checkpoint rows are not dashboard/list truth and must not copy
   full raw tool output, screenshots, or provider-specific payloads as durable
@@ -105,10 +113,12 @@ flowchart LR
      `legacyVisualAttachmentReplayAdapter`, the narrow old-row compatibility
      owner retained until a durable local-store migration rewrites those rows.
    - Local snapshots should not replace durable transcript storage unless the code explicitly uses them as a fallback.
-   - Edit/resend and try-again must cut by canonical SDK event or payload
-     message id. Renderer replay row-index selection is owned by
-     `desktopConversationReplayRuntime.js`; do not restore user-message ordinal
-     fallback or latest-user retry fallback for renderer-only transcript ids.
+   - Edit/resend and try-again must load the active display timeline, replace
+     the prefix before the target user row as a child display revision, and
+     send the replacement text only after `replaceRows` succeeds. Do not
+     restore event-log cutting through `conversation.rewrite_after_event`, SDK
+     `prepareEditAndResend`, SDK `prepareRetryTurn`, or visible-row rollback
+     caused by preemptive renderer mutation.
 
 5. Preserve rehydrate shape.
    - SDK `buildRehydrateSnapshot(...)` should emit backend-compatible entries

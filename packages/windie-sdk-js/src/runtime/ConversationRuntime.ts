@@ -360,8 +360,8 @@ function normalizeDisplayTimelineRows(
     newRevisionId: string;
   },
 ): DisplayTimelineRow[] {
-  if (!Array.isArray(rows) || rows.length === 0) {
-    throw new Error('replaceRows requires at least one display row');
+  if (!Array.isArray(rows)) {
+    throw new Error('replaceRows rows must be an array');
   }
   const normalized = rows.map((row, index): DisplayTimelineRow => {
     if (!row || typeof row !== 'object') {
@@ -514,6 +514,7 @@ export class SdkConversationRuntime {
   private readonly backendTurnSequences = new Map<string, { lastSequence: number; eventIds: Set<string> }>();
   private readonly pendingTurns = new Map<string, PendingTurn>();
   private readonly liveDisplayAttachmentsByTurn = new Map<string, SdkDisplayAttachment[]>();
+  private activeDisplayTimeline: DisplayTimelineCheckpoint | null = null;
   private backendEventQueue: Promise<void> = Promise.resolve();
   private detachTransport?: () => void;
 
@@ -536,23 +537,20 @@ export class SdkConversationRuntime {
         events[events.length - 1]?.revisionId ?? this.state.revisionId,
       ),
     );
+    this.activeDisplayTimeline = await this.loadStoredDisplayTimeline();
     return this.snapshot(this.events);
   }
 
   async loadDisplayTimeline(options: { revisionId?: string | null } = {}): Promise<DisplayTimelineCheckpoint> {
-    const loader = this.options.store.loadDisplayTimeline;
-    const revisionId = options.revisionId ?? (this.state.revisionId === 'rev-empty' ? null : this.state.revisionId);
-    if (loader) {
-      const checkpoint = await loader.call(this.options.store, {
-        conversationRef: this.options.conversationRef,
-        revisionId,
-      });
-      if (checkpoint) {
-        return checkpoint;
-      }
+    const requestedRevisionId = Object.prototype.hasOwnProperty.call(options, 'revisionId')
+      ? options.revisionId ?? null
+      : null;
+    const checkpoint = await this.loadStoredDisplayTimeline(requestedRevisionId);
+    if (checkpoint) {
+      return checkpoint;
     }
     const rows = await this.options.store.loadDisplayRows(this.options.conversationRef);
-    const fallbackRevisionId = revisionId ?? this.state.revisionId;
+    const fallbackRevisionId = requestedRevisionId ?? this.state.revisionId;
     return {
       conversationRef: this.options.conversationRef,
       revisionId: fallbackRevisionId,
@@ -565,6 +563,19 @@ export class SdkConversationRuntime {
       reason: null,
       baseRevisionId: null,
     };
+  }
+
+  private async loadStoredDisplayTimeline(
+    revisionId: string | null = null,
+  ): Promise<DisplayTimelineCheckpoint | null> {
+    const loader = this.options.store.loadDisplayTimeline;
+    if (!loader) {
+      return null;
+    }
+    return loader.call(this.options.store, {
+      conversationRef: this.options.conversationRef,
+      revisionId,
+    });
   }
 
   async replaceRows(input: ReplaceRowsInput): Promise<DisplayTimelineCheckpoint> {
@@ -591,6 +602,7 @@ export class SdkConversationRuntime {
       baseRevisionId,
     };
     await this.options.store.replaceDisplayTimeline(checkpoint);
+    this.activeDisplayTimeline = checkpoint;
     this.state = {
       ...this.state,
       revisionId: newRevisionId,
@@ -2517,14 +2529,33 @@ export class SdkConversationRuntime {
     }
   }
 
+  private displayRowsForSnapshot(events: ConversationEvent[]): SdkDisplayRow[] {
+    const eventRows = buildDisplayRows(events, {
+      liveAttachments: this.liveDisplayAttachmentsRecord(),
+    });
+    if (!this.activeDisplayTimeline) {
+      return eventRows;
+    }
+    const rowIds = new Set(this.activeDisplayTimeline.rows.map(row => row.id));
+    const timelineRevisionId = this.activeDisplayTimeline.revisionId;
+    const appendedRows = eventRows.filter(row => (
+      rowMetadataRevision(row) === timelineRevisionId && !rowIds.has(row.id)
+    ));
+    return [
+      ...this.activeDisplayTimeline.rows,
+      ...appendedRows.map((row, offset) => ({
+        ...row,
+        index: this.activeDisplayTimeline!.rows.length + offset,
+      })),
+    ];
+  }
+
   private snapshot(events: ConversationEvent[]): ConversationSnapshot {
     const currentTurn = buildCurrentTurnProjection(events);
     return {
       state: this.state,
       display: buildDisplayConversation(events),
-      displayRows: buildDisplayRows(events, {
-        liveAttachments: this.liveDisplayAttachmentsRecord(),
-      }),
+      displayRows: this.displayRowsForSnapshot(events),
       rehydrate: buildRehydrateSnapshot(events),
       currentTurn,
     };

@@ -156,6 +156,91 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
+  test('loadDisplayTimeline routes through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          conversationRef: 'conv-display',
+          revisionId: 'rev-display',
+          createdAt: '2026-06-22T12:00:00.000Z',
+          rows: [],
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.loadDisplayTimeline(
+        'user-1',
+        'conv-display',
+      )).resolves.toEqual(expect.objectContaining({
+        revisionId: 'rev-display',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.loadDisplayTimeline',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          revisionId: undefined,
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('replaceRows routes display timeline replacement through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          conversationRef: 'conv-display',
+          revisionId: 'rev-child',
+          createdAt: '2026-06-22T12:01:00.000Z',
+          rows: [],
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.replaceRows({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        baseRevisionId: 'rev-base',
+        reason: 'retry',
+        rows: [],
+      })).resolves.toEqual(expect.objectContaining({
+        revisionId: 'rev-child',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.replaceRows',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          baseRevisionId: 'rev-base',
+          reason: 'retry',
+          rows: [],
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
   test('compactHistory routes through the SDK runtime transport', async () => {
     const send = jest.fn();
     const originalIpc = window.ipc;

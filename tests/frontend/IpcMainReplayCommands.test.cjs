@@ -35,6 +35,20 @@ describe('ipc.cjs replay command handling', () => {
           ...(input.payload || {}),
         },
       })),
+      loadDisplayTimeline: jest.fn(async () => ({
+        conversationRef: 'conv-ipc-display',
+        revisionId: 'rev-display',
+        createdAt: '2026-06-22T12:00:00.000Z',
+        rows: [],
+      })),
+      replaceRows: jest.fn(async input => ({
+        conversationRef: 'conv-ipc-display',
+        revisionId: 'rev-child',
+        createdAt: '2026-06-22T12:01:00.000Z',
+        reason: input.reason,
+        baseRevisionId: input.baseRevisionId,
+        rows: input.rows,
+      })),
       close: jest.fn(),
     };
     const agent = {
@@ -220,6 +234,51 @@ describe('ipc.cjs replay command handling', () => {
         retry_reason: 'user-requested',
       },
       model: undefined,
+    });
+  });
+
+  test('routes display timeline load and replacement through the Agent SDK runtime adapter', async () => {
+    const sdk = installMockAgentClient();
+    const bridge = initIpc();
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.loadDisplayTimeline',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+      },
+    )).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        revisionId: 'rev-display',
+      }),
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.replaceRows',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        baseRevisionId: 'rev-display',
+        reason: 'retry',
+        rows: [],
+      },
+    )).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        revisionId: 'rev-child',
+      }),
+    });
+
+    expect(sdk.runtime.loadDisplayTimeline).toHaveBeenCalledWith({
+      revisionId: null,
+    });
+    expect(sdk.runtime.replaceRows).toHaveBeenCalledWith({
+      baseRevisionId: 'rev-display',
+      reason: 'retry',
+      rows: [],
     });
   });
 });

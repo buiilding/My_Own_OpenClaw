@@ -9,6 +9,7 @@ import type {
   CompactedReplaySnapshot,
   AppDiagnosticEventDraft,
   ConversationEvent,
+  DisplayTimelineCheckpoint,
   ConversationMetadata,
   ConversationRevision,
   ConversationRewritePlan,
@@ -52,6 +53,7 @@ import {
   SdkConversationRuntime,
   type EditAndResendInput,
   type PreparedReplayTurn,
+  type ReplaceRowsInput,
   type RetryTurnInput,
   type SendInput,
 } from './ConversationRuntime.js';
@@ -1002,6 +1004,36 @@ export class Agent {
     const replaceOptions = 'snapshot' in options ? options : { snapshot: options };
     const conversationStore = replaceOptions.store ?? this.defaultConversationStore;
     await conversationStore.replaceCompactedReplay(replaceOptions.snapshot);
+  }
+
+  async loadDisplayTimeline(options: {
+    conversationRef: string;
+    revisionId?: string | null;
+    store?: ConversationStore;
+  }): Promise<DisplayTimelineCheckpoint> {
+    const { conversationRef, revisionId, store } = options;
+    return this.conversation({
+      conversationRef,
+      revisionId: revisionId ?? undefined,
+      store: store ?? this.defaultConversationStore,
+    }).loadDisplayTimeline({
+      revisionId: revisionId ?? null,
+    });
+  }
+
+  async replaceRows(
+    options: ReplaceRowsInput & {
+      conversationRef: string;
+      revisionId?: string;
+      store?: ConversationStore;
+    },
+  ): Promise<DisplayTimelineCheckpoint> {
+    const { conversationRef, revisionId, store, ...input } = options;
+    return this.conversation({
+      conversationRef,
+      revisionId,
+      store: store ?? this.defaultConversationStore,
+    }).replaceRows(input);
   }
 
   async prepareEditAndResend(

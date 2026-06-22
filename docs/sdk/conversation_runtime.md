@@ -363,13 +363,16 @@ conversation and base revision, normalizes row indexes and revision metadata,
 checks basic tool-output pairing, and persists the result through
 `store.replaceDisplayTimeline(...)`.
 
-This API is the Phase 4 foundation for replacing edit/resend and retry replay.
-It does not rewrite raw runtime events. Raw events remain the audit/runtime log;
-display timeline checkpoints are the user-editable document. The SDK records a
-sanitized trace event with row counts, revision ids, and reason only. No
-migration is required for adding the checkpoint table or store methods:
-conversations without display timeline checkpoints continue to project display
-rows from events until a replacement writes the first checkpoint.
+This API is the foundation for edit/resend and retry replay. It does not
+rewrite raw runtime events. Raw events remain the audit/runtime log; display
+timeline checkpoints are the user-editable document. Runtime snapshots prefer
+the active display timeline checkpoint and append same-revision live send rows
+on top of it, so a replacement becomes visible state instead of a side table.
+The SDK records a sanitized trace event with row counts, revision ids, and
+reason only. No migration is required for adding the checkpoint table or store
+methods: conversations without display timeline checkpoints continue to
+project display rows from events until a replacement writes the first
+checkpoint.
 
 Metadata pagination and search helpers stay in the `conversation/metadata`
 owner module for SDK stores and runtime classes. Public package-root callers
@@ -618,49 +621,36 @@ rehydrate message types.
 
 ## Revision and Resource Preservation Rule
 
-Edit/resend and retry are revision operations:
+Edit/resend and retry are display revision operations:
 
 ```text
-load events
-  -> choose target user turn
-  -> preserve events before that user turn
-  -> commit conversation_rewritten with new revisionId
-  -> build and send the SDK rehydrate projection for the new revision
-  -> send replacement user message as a new turn
+load active display timeline
+  -> choose target display user row
+  -> replace display rows before that user row as a child revision
+  -> publish pending turn only after replaceRows succeeds
+  -> send replacement user message as a normal new turn
 ```
 
-The old revision remains valid until the rewrite commits. The SDK does not
-delete display rows and then reconstruct backend history through a separate
-lossy path.
+The old raw event log remains intact for audit and diagnostics. The active
+display child revision hides the edited/retried suffix from the user-facing
+document without deleting the original events. The renderer active path calls
+`conversation.loadDisplayTimeline`, `conversation.replaceRows`, then
+`conversation.send`; it does not call `prepareEditAndResend`,
+`prepareRetryTurn`, `conversation.rewrite_after_event`, or backend rehydrate as
+part of normal edit/retry preparation.
 
-Replay preparation reconstructs the target user turn from the normalized event
-ledger before cutting the revision. It merges the base `user_message` with
-same-turn `user_message_metadata`, so resolved resources such as
-`screenshot_refs` and `attachment_filenames` survive edit/resend and retry even
-when the visible row was produced by display projection metadata merging.
-Renderer replay payloads are preserve-by-default: absent or null attachment
-fields must not erase prior resolved resources without an explicit removal
-operation.
+Resource preservation comes from the target display row. Typed display
+attachments become `screenshot_refs` and `attachment_filenames` for the resend,
+while legacy single screenshot refs still flow through replay screenshot
+resolution. Renderer replay payloads are preserve-by-default: absent or null
+attachment fields must not erase prior resolved resources without an explicit
+removal operation.
 
-Edit/resend identifies the target user turn by canonical event or payload
-message id. Retry with an explicit `messageId` first resolves that canonical
-event, then walks backward to the preceding user turn. The SDK no longer accepts
-a user-message ordinal fallback and no longer silently retries the latest user
-turn when an explicit retry id is missing from the event ledger. Renderer-only
-transcript ids must be normalized to canonical SDK event ids before they reach
-`editAndResend` or `retryTurn`.
-
-Desktop edit/resend and try-again seed the current visible projection into the
-desktop conversation store adapter, then call `SdkConversationRuntime.editAndResend`
-or `SdkConversationRuntime.retryTurn`. The renderer hook may identify which
-button was clicked, but revision cutting, rewritten persistence, rehydrate
-projection generation, model sync, and query send live behind the SDK runtime
-facade.
-The Electron renderer may publish a temporary replay `pendingTurn` with a
-preallocated `turnRef` before continuity preparation resolves so desktop
-surfaces stay in the same visible lifecycle handoff as normal sends. That
-pending state is UI projection only; the SDK continuity service still owns the
-rewrite/retry revision and the prepared replay turn.
+The Electron renderer publishes the replay `pendingTurn` only after
+`replaceRows` succeeds. A rejected display replacement must not pre-mutate
+visible rows or pending-turn state. No migration is required for existing
+conversations; before their first display checkpoint, the active timeline loads
+from the event projection fallback.
 
 ## Stream Rule
 

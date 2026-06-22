@@ -5195,6 +5195,49 @@ describe('Agent SDK conversation runtime core', () => {
     })).rejects.toThrow('replaceRows attachment refs require stable ids');
   });
 
+  test('conversation runtime snapshots use active display timeline revisions', async () => {
+    const store = new InMemoryConversationStore();
+    const transport = createMockAgentRuntimeTransport({
+      sendQuery: jest.fn(async () => 'accepted'),
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+      store,
+      transport,
+    });
+
+    const checkpoint = await runtime.replaceRows({
+      baseRevisionId: 'rev-base',
+      reason: 'retry',
+      rows: [],
+    });
+    let snapshot = await runtime.load();
+
+    expect(snapshot.state.revisionId).toBe(checkpoint.revisionId);
+    expect(snapshot.displayRows).toEqual([]);
+
+    await runtime.send({
+      text: 'retry question',
+      turnRef: 'turn-retry',
+    });
+    snapshot = await runtime.load();
+
+    expect(snapshot.displayRows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'user_message',
+        content: 'retry question',
+        metadata: expect.objectContaining({
+          revisionId: checkpoint.revisionId,
+        }),
+      }),
+    ]));
+    await expect(store.loadEvents('conv-sdk-runtime')).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'trace_event', revisionId: checkpoint.revisionId }),
+      expect.objectContaining({ type: 'user_message', revisionId: checkpoint.revisionId }),
+    ]));
+  });
+
   test('conversation runtime records query dispatch trace around backend send', async () => {
     const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-dispatch-accepted'),

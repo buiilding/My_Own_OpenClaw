@@ -780,6 +780,24 @@ class Agent {
         const conversationStore = replaceOptions.store ?? this.defaultConversationStore;
         await conversationStore.replaceCompactedReplay(replaceOptions.snapshot);
     }
+    async loadDisplayTimeline(options) {
+        const { conversationRef, revisionId, store } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId: revisionId ?? undefined,
+            store: store ?? this.defaultConversationStore,
+        }).loadDisplayTimeline({
+            revisionId: revisionId ?? null,
+        });
+    }
+    async replaceRows(options) {
+        const { conversationRef, revisionId, store, ...input } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId,
+            store: store ?? this.defaultConversationStore,
+        }).replaceRows(input);
+    }
     async prepareEditAndResend(options) {
         const { conversationRef, revisionId, store, ...input } = options;
         return this.conversation({

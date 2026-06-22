@@ -377,6 +377,26 @@ function createDirectWakeUpAgentAdapter({
         await reloadRuntimeSnapshot(handle);
       }
     },
+    loadDisplayTimeline: async (options = {}) => {
+      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const handle = getConversationRuntimeHandle(displayConversationRef);
+      return handle.runtime.loadDisplayTimeline({
+        revisionId: normalizeOptionalString(options.revisionId),
+      });
+    },
+    replaceRows: async (options = {}) => {
+      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const handle = getConversationRuntimeHandle(displayConversationRef);
+      const input = { ...options };
+      delete input.conversationRef;
+      delete input.revisionId;
+      delete input.revision_id;
+      delete input.store;
+      const checkpoint = await handle.runtime.replaceRows(input);
+      markInferenceContextStale(handle.conversationRef);
+      await reloadRuntimeSnapshot(handle);
+      return checkpoint;
+    },
     prepareEditAndResend: async (options = {}) => {
       const editConversationRef = resolveSdkCommandConversationRef(options);
       const handle = getConversationRuntimeHandle(editConversationRef);

@@ -29,6 +29,13 @@ All notable changes to WindieOS will be documented in this file.
   checkpoint support so editable display history can diverge from raw runtime
   events. No migration required; existing display rows still project from the
   event log until a timeline checkpoint is written.
+- frontend/sdk: route desktop edit/resend and try-again through
+  `conversation.loadDisplayTimeline`, `conversation.replaceRows`, and normal
+  send instead of replay preparation, raw event-log cutting, or backend
+  rehydrate. The renderer now waits for the display child revision before
+  publishing pending visible state, while raw runtime events remain available
+  for audit/diagnostics. No migration required; old conversations load their
+  first display timeline from the event projection fallback.
 - docs/adr: add ADR 008 and the conversation history revision architecture
   plan for separating full display history, backend-normalized model history,
   runtime events, and revision graph ownership so edit/resend, compaction,

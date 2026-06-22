@@ -346,6 +346,7 @@ class SqliteConversationHistory {
   readonly dir = mkdtempSync(join(tmpdir(), 'agent-replay-db-'));
   readonly dbPath = join(this.dir, 'history.db');
   rewriteFailure: string | null = null;
+  readonly displayTimelineByConversation = new Map<string, JsonRecord>();
 
   constructor() {
     runPythonSqliteBridge('init', this.dbPath);
@@ -372,11 +373,69 @@ class SqliteConversationHistory {
     return runPythonSqliteBridge('rows', this.dbPath, { conversationRef });
   }
 
+  displayRows(conversationRef: string): JsonRecord[] {
+    return this.rows(conversationRef)
+      .filter(row => row.event_type === 'user_message' || row.event_type === 'assistant_message')
+      .map((row, index) => ({
+        id: row.id,
+        conversationRef,
+        revisionId: row.revision_id ?? 'rev-old',
+        index,
+        role: row.role ?? (row.event_type === 'user_message' ? 'user' : 'assistant'),
+        type: row.event_type === 'user_message' ? 'user_message' : 'assistant_message',
+        content: row.content,
+        turnRef: row.turn_ref,
+        metadata: {
+          eventId: row.id,
+          revisionId: row.revision_id ?? 'rev-old',
+          timestamp: row.timestamp,
+        },
+      }));
+  }
+
   async rpc({ method, params }: { method: string; params?: JsonRecord }): Promise<JsonRecord> {
-    if (method === 'conversation.rewrite_after_event' && this.rewriteFailure) {
+    if (
+      (method === 'conversation.rewrite_after_event' || method === 'conversation.display.replace')
+      && this.rewriteFailure
+    ) {
       return {
         success: false,
         error: this.rewriteFailure,
+      };
+    }
+    if (method === 'conversation.display.load') {
+      const conversationId = String(params?.conversation_id ?? '');
+      const stored = this.displayTimelineByConversation.get(conversationId);
+      return {
+        success: true,
+        data: stored ?? {
+          conversation_id: conversationId,
+          revision_id: 'rev-old',
+          created_at: '2026-06-06T12:00:00.000Z',
+          reason: null,
+          base_revision_id: null,
+          rows: this.displayRows(conversationId),
+        },
+      };
+    }
+    if (method === 'conversation.display.replace') {
+      const conversationId = String(params?.conversation_id ?? '');
+      const checkpoint = {
+        conversation_id: conversationId,
+        revision_id: params?.revision_id,
+        created_at: params?.created_at,
+        reason: params?.reason ?? null,
+        base_revision_id: params?.base_revision_id ?? null,
+        rows: Array.isArray(params?.rows) ? params.rows : [],
+      };
+      this.displayTimelineByConversation.set(conversationId, checkpoint);
+      return {
+        success: true,
+        data: {
+          revision_id: params?.revision_id,
+          row_count: checkpoint.rows.length,
+          created_at: params?.created_at,
+        },
       };
     }
     return runPythonSqliteBridge('rpc', this.dbPath, {
@@ -476,7 +535,7 @@ describe('conversation replay database integration', () => {
     });
 
     mockCommandHandler = async (command, payload = {}) => {
-      if (command === 'conversation.prepareEditAndResend') {
+      if (command === 'conversation.loadDisplayTimeline' || command === 'conversation.replaceRows') {
         if (payload.userId !== 'user-replay-db') {
           throw new Error(
             payload.userId
@@ -503,11 +562,15 @@ describe('conversation replay database integration', () => {
           } as never,
         });
         await runtime.load();
-        return runtime.prepareEditAndResend({
-          messageId: String(payload.messageId),
-          text: String(payload.text),
-          payload: (payload.payload ?? {}) as JsonRecord,
-          model: (payload.model ?? null) as never,
+        if (command === 'conversation.loadDisplayTimeline') {
+          return runtime.loadDisplayTimeline({
+            revisionId: typeof payload.revisionId === 'string' ? payload.revisionId : null,
+          });
+        }
+        return runtime.replaceRows({
+          baseRevisionId: String(payload.baseRevisionId),
+          reason: payload.reason as never,
+          rows: Array.isArray(payload.rows) ? payload.rows as never : [],
         });
       }
 
@@ -525,7 +588,7 @@ describe('conversation replay database integration', () => {
     history.close();
   });
 
-  test('edit and resend cuts stored conversation events, rehydrates backend history, and dispatches the edited turn', async () => {
+  test('edit and resend replaces display rows without cutting raw events and dispatches the edited turn', async () => {
     const { result } = renderReplayHook(BASE_MESSAGES);
 
     await act(async () => {
@@ -539,23 +602,21 @@ describe('conversation replay database integration', () => {
       'conv-replay-db',
       'user-replay-db',
     );
-    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.prepareEditAndResend', expect.objectContaining({
+    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.loadDisplayTimeline', expect.objectContaining({
       conversationRef: 'conv-replay-db',
       userId: 'user-replay-db',
-      messageId: 'stored-user-2',
-      text: 'edited second question',
     }));
-    expect(backendRehydrates).toEqual([
-      expect.objectContaining({
-        conversation_ref: 'conv-replay-db',
-        rehydrate_mode: 'replace',
-        messages: [
-          expect.objectContaining({ role: 'user', content: 'first question' }),
-          expect.objectContaining({ role: 'assistant', content: 'first answer' }),
-        ],
-      }),
-    ]);
-    expect(JSON.stringify(backendRehydrates[0])).not.toContain('second answer');
+    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.replaceRows', expect.objectContaining({
+      conversationRef: 'conv-replay-db',
+      userId: 'user-replay-db',
+      baseRevisionId: 'rev-old',
+      reason: 'user_edit',
+      rows: [
+        expect.objectContaining({ id: 'stored-user-1' }),
+        expect.objectContaining({ id: 'stored-assistant-1' }),
+      ],
+    }));
+    expect(backendRehydrates).toEqual([]);
 
     expect(sentQueries).toEqual([
       expect.objectContaining({
@@ -571,19 +632,22 @@ describe('conversation replay database integration', () => {
     expect(conversationRows.map(row => row.id)).toEqual([
       'stored-user-1',
       'stored-assistant-1',
-      expect.stringMatching(/conversation_rewritten$/),
+      'stored-user-2',
+      'stored-assistant-2',
     ]);
     expect(conversationRows.map(row => row.event_type)).toEqual([
       'user_message',
       'assistant_message',
-      'conversation_rewritten',
+      'user_message',
+      'assistant_message',
     ]);
-    expect(conversationRows.map(row => row.message_index)).toEqual([1, 2, 3]);
-    expect(storedRows.some(row => row.id === 'stored-user-2')).toBe(false);
-    expect(storedRows.some(row => row.id === 'stored-assistant-2')).toBe(false);
+    expect(history.displayTimelineByConversation.get('conv-replay-db')?.rows).toEqual([
+      expect.objectContaining({ row_id: 'stored-user-1' }),
+      expect.objectContaining({ row_id: 'stored-assistant-1' }),
+    ]);
   });
 
-  test('edit and resend of the first user turn rewrites the whole tail and still sends', async () => {
+  test('edit and resend of the first user turn stores an empty display prefix and still sends', async () => {
     const { result } = renderReplayHook(BASE_MESSAGES);
 
     await act(async () => {
@@ -593,19 +657,14 @@ describe('conversation replay database integration', () => {
       )).resolves.toBe(true);
     });
 
-    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.prepareEditAndResend', expect.objectContaining({
+    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.replaceRows', expect.objectContaining({
       conversationRef: 'conv-replay-db',
       userId: 'user-replay-db',
-      messageId: 'stored-user-1',
-      text: 'edited first question',
+      baseRevisionId: 'rev-old',
+      reason: 'user_edit',
+      rows: [],
     }));
-    expect(backendRehydrates).toEqual([
-      expect.objectContaining({
-        conversation_ref: 'conv-replay-db',
-        rehydrate_mode: 'replace',
-        messages: [],
-      }),
-    ]);
+    expect(backendRehydrates).toEqual([]);
     expect(sentQueries).toEqual([
       expect.objectContaining({
         conversation_ref: 'conv-replay-db',
@@ -617,12 +676,12 @@ describe('conversation replay database integration', () => {
     const storedRows = history.rows('conv-replay-db');
     const conversationRows = storedRows.filter(row => row.event_type !== 'trace_event');
     expect(conversationRows.map(row => row.id)).toEqual([
-      expect.stringMatching(/conversation_rewritten$/),
+      'stored-user-1',
+      'stored-assistant-1',
+      'stored-user-2',
+      'stored-assistant-2',
     ]);
-    expect(conversationRows.map(row => row.event_type)).toEqual([
-      'conversation_rewritten',
-    ]);
-    expect(conversationRows.map(row => row.message_index)).toEqual([1]);
+    expect(history.displayTimelineByConversation.get('conv-replay-db')?.rows).toEqual([]);
   });
 
   test('reports preparation failure when renderer message identity cannot map to a stored user_message', async () => {
@@ -643,7 +702,7 @@ describe('conversation replay database integration', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '[ChatInterface] Failed to edit user message:',
       expect.objectContaining({
-        message: expect.stringContaining('Cannot edit missing user message'),
+        message: expect.stringContaining('Cannot edit missing display user row'),
       }),
     );
     expect(backendRehydrates).toEqual([]);
@@ -728,7 +787,7 @@ describe('conversation replay database integration', () => {
     expectReplayPreparationErrorMessage();
   });
 
-  test('reports preparation failure when backend rehydrate fails before final send', async () => {
+  test('backend rehydrate failure is not part of display replacement resend', async () => {
     mockBackendRehydrateFailure = new Error('forced backend rehydrate failure');
     const { result } = renderReplayHook(BASE_MESSAGES);
 
@@ -736,23 +795,25 @@ describe('conversation replay database integration', () => {
       await expect(result.current.handleEditFromUser(
         'stored-user-2',
         'edited second question',
-      )).resolves.toBe(false);
+      )).resolves.toBe(true);
     });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '[ChatInterface] Failed to edit user message:',
-      expect.objectContaining({ message: 'forced backend rehydrate failure' }),
-    );
-    expect(backendRehydrates).toHaveLength(1);
-    expect(sentQueries).toEqual([]);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(backendRehydrates).toEqual([]);
+    expect(sentQueries).toEqual([
+      expect.objectContaining({
+        conversation_ref: 'conv-replay-db',
+        text: 'edited second question',
+      }),
+    ]);
     const conversationRows = history
       .rows('conv-replay-db')
       .filter(row => row.event_type !== 'trace_event');
     expect(conversationRows.map(row => row.id)).toEqual([
       'stored-user-1',
       'stored-assistant-1',
-      expect.stringMatching(/conversation_rewritten$/),
+      'stored-user-2',
+      'stored-assistant-2',
     ]);
-    expectReplayPreparationErrorMessage();
   });
 });
