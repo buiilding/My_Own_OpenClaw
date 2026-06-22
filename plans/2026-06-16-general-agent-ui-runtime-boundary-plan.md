@@ -9,6 +9,26 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Main Query Runtime SDK Turn Field Privacy
+
+- Finding: `ipc_query_runtime.cjs` owned backend query payload filtering and
+  SDK turn resource/metadata preservation, but still exported
+  `preserveSdkTurnInputFields(...)` as a lower-level helper used only by
+  `ipc.cjs` while composing renderer query payloads with agent-definition
+  context.
+- Change: added
+  `buildRendererBackendQueryPayloadWithAgentDefinition(...)` as the public
+  query-runtime facade for agent-definition context attachment plus SDK turn
+  resource/metadata preservation, routed `ipc.cjs` through it, and kept
+  `preserveSdkTurnInputFields(...)` private.
+- Validation target: `IpcQueryRuntime.test.cjs` protects backend query payload
+  filtering, SDK turn resource/metadata preservation, and rejection of the raw
+  helper as a public export.
+- Compatibility/security: no renderer query payload shape, backend query
+  payload key allowlist, SDK turn resource/metadata payload shape, IPC channel,
+  provider policy, credential, permission, local execution, trust-boundary, or
+  migration change required.
+
 ### 2026-06-22 Renderer ChatInterface Find Focus Runtime
 
 - Finding: `ChatInterface` already delegated menu dismissal, stop shortcuts,

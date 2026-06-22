@@ -59,6 +59,18 @@ Returns:
 - `conversationRef`
 - `queryUsedInitialContext`
 
+### `buildRendererBackendQueryPayloadWithAgentDefinition(...)`
+
+Responsibilities:
+
+- attach Electron-collected agent-definition context to a renderer query payload
+- filter the enriched object to backend query payload keys
+- preserve SDK turn input `resources` and `metadata` from the original renderer
+  command payload after backend filtering
+
+This keeps SDK turn-resource preservation private to `ipc_query_runtime.cjs`
+instead of exporting a lower-level field-copy helper.
+
 ### `prepareAutomatedQueryPayload(options, currentConversationRef)`
 
 Responsibilities:
@@ -118,7 +130,10 @@ Returns:
 1. `prepareRendererQueryPayload(...)` normalizes mutable relay payload.
 2. optimistic local-user message uses normalized conversation/attachment context.
 3. `buildQueryPayload(...)` filters backend query fields and preserves required identity fields; SDK context enrichment renders model-facing XML-style content later.
-4. `ipc.cjs` replaces original payload object contents with normalized/built payload before send.
+4. `buildRendererBackendQueryPayloadWithAgentDefinition(...)` attaches
+   agent-definition context while preserving SDK turn resources/metadata from
+   the original command payload.
+5. `ipc.cjs` replaces original payload object contents with normalized/built payload before send.
 
 ### Automated query path (`sendAutomatedQuery`)
 

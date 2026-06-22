@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: route renderer query agent-definition payload assembly through
+  `buildRendererBackendQueryPayloadWithAgentDefinition(...)` so
+  `ipc_query_runtime.cjs` keeps SDK turn resource/metadata preservation private
+  while `ipc.cjs` consumes a purpose-named query facade. No migration required.
 - frontend/renderer: route dashboard thread-find input focus/select mechanics
   through `DesktopChatInterfaceBindingsRuntime.focusAndSelectInput(...)` so
   `ChatInterface` keeps find-bar state while the app runtime owns the input DOM

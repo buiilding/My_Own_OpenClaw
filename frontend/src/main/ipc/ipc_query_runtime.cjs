@@ -89,6 +89,19 @@ function preserveSdkTurnInputFields(targetPayload, sourcePayload) {
   return target;
 }
 
+function buildRendererBackendQueryPayloadWithAgentDefinition({
+  payload,
+  attachAgentDefinitionContext,
+} = {}) {
+  const enrichedPayload = typeof attachAgentDefinitionContext === 'function'
+    ? attachAgentDefinitionContext(payload)
+    : payload;
+  return preserveSdkTurnInputFields(
+    buildBackendQueryPayload(enrichedPayload),
+    payload,
+  );
+}
+
 function prepareRendererQueryPayload(payload, currentConversationRef, resolveConversationRef) {
   const nextPayload = (
     payload && typeof payload === 'object' && !Array.isArray(payload)
@@ -176,7 +189,7 @@ function prepareAutomatedQueryPayload(options) {
 module.exports = {
   buildBackendQueryPayload,
   buildQueryPayload,
+  buildRendererBackendQueryPayloadWithAgentDefinition,
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
-  preserveSdkTurnInputFields,
 };

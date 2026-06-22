@@ -197,9 +197,9 @@ const {
 const {
   buildBackendQueryPayload,
   buildQueryPayload,
+  buildRendererBackendQueryPayloadWithAgentDefinition,
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
-  preserveSdkTurnInputFields,
 } = require('./ipc/ipc_query_runtime.cjs');
 const {
   createAutomatedQueryRuntime,
@@ -614,9 +614,11 @@ const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
   setFirstQuery: (nextValue) => {
     backendConnectionGateState.setFirstQuery(nextValue);
   },
-  attachAgentDefinitionContextToPayload: (payload) => preserveSdkTurnInputFields(
-    buildBackendQueryPayload(attachAgentDefinitionContext(payload)),
-    payload,
+  attachAgentDefinitionContextToPayload: (payload) => (
+    buildRendererBackendQueryPayloadWithAgentDefinition({
+      payload,
+      attachAgentDefinitionContext,
+    })
   ),
   ensureInstallAuthState: () => installAuthContextRuntime.ensureInstallAuthState(),
   isBackendRuntimeConnected,

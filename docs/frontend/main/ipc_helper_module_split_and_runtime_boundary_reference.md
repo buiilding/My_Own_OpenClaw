@@ -110,6 +110,9 @@ Owns query payload shaping helpers used by renderer query sends and automated VM
 
 - `prepareRendererQueryPayload` (attachment/memory toggle/conversation-ref normalization)
 - `buildQueryPayload` (backend query field filtering + authenticated user/conversation identity)
+- `buildRendererBackendQueryPayloadWithAgentDefinition` (agent-definition
+  context attachment plus SDK turn resource/metadata preservation for renderer
+  query sends)
 - `prepareAutomatedQueryPayload` (automated query option normalization + validation)
 
 ### `ipc_chat_query_handlers.cjs`

@@ -3,6 +3,7 @@
 const {
   buildBackendQueryPayload,
   buildQueryPayload,
+  buildRendererBackendQueryPayloadWithAgentDefinition,
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
 } = require('../../frontend/src/main/ipc/ipc_query_runtime.cjs');
@@ -16,6 +17,13 @@ const sampleQueryEventsCopy = Object.freeze({
 });
 
 describe('ipc_query_runtime', () => {
+  test('keeps lower-level SDK turn field preservation private', () => {
+    const queryRuntimeModule = require('../../frontend/src/main/ipc/ipc_query_runtime.cjs');
+
+    expect(queryRuntimeModule.preserveSdkTurnInputFields).toBeUndefined();
+    expect(typeof queryRuntimeModule.buildRendererBackendQueryPayloadWithAgentDefinition).toBe('function');
+  });
+
   test('buildBackendQueryPayload keeps the exact backend query contract keys', () => {
     expect(buildBackendQueryPayload({
       text: 'hello',
@@ -51,6 +59,30 @@ describe('ipc_query_runtime', () => {
       repo_instruction_messages: [],
       client_prompt_layers: [],
       agent_definition: { mode: 'custom' },
+    });
+  });
+
+  test('renderer backend payload context facade preserves SDK turn input fields', () => {
+    const payload = buildRendererBackendQueryPayloadWithAgentDefinition({
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conv-1',
+        resources: [{ type: 'screenshot', id: 'resource-1' }],
+        metadata: { query_message_id: 'turn-1' },
+        turn_ref: 'envelope-only',
+      },
+      attachAgentDefinitionContext: (input) => ({
+        ...input,
+        agent_definition: { id: 'agent-1' },
+      }),
+    });
+
+    expect(payload).toEqual({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      resources: [{ type: 'screenshot', id: 'resource-1' }],
+      metadata: { query_message_id: 'turn-1' },
+      agent_definition: { id: 'agent-1' },
     });
   });
 

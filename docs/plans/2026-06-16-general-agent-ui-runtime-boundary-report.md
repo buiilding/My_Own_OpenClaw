@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: renderer dashboard thread-find input focus/select
-  mechanics now route through `DesktopChatInterfaceBindingsRuntime`, keeping
-  `ChatInterface` off direct input `.focus()`/`.select()` calls.
+- Latest completed slice: Electron main renderer-query backend payload assembly
+  now routes SDK turn resource/metadata preservation through the query runtime
+  facade, keeping the raw preservation helper private.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -50,6 +50,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer dashboard thread-find deferred focus now routes input focus/select
   mechanics through `DesktopChatInterfaceBindingsRuntime`; `ChatInterface`
   keeps find-bar state and focus token timing.
+  Electron main renderer-query agent-definition payload assembly now routes
+  through `buildRendererBackendQueryPayloadWithAgentDefinition(...)`;
+  `ipc_query_runtime.cjs` keeps SDK turn resource/metadata preservation private.
   Active local-runtime validation docs use the canonical `local-runtime`
   wrapper, test, and build commands; historical plan/report records and
   CLI-specific compatibility alias rows still mention the old names where the
