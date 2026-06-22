@@ -12,7 +12,6 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
-- `frontend/src/renderer/app/startupSurface.js`
 - `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/runtime/vmMode.js`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
@@ -44,7 +43,9 @@ step.
 
 ## Startup Routing in `AppContent`
 
-`AppContent` resolves startup destination through `selectStartupSurface(...)`, which centralizes the two gates:
+`AppContent` resolves startup destination through
+`DesktopStartupRuntimeClient.selectStartupSurface(...)`, which centralizes the
+two gates:
 
 1. VM mode gate (`DesktopStartupRuntimeClient.isVmModeEnabled()`)
 2. permission onboarding gate (`permissionStore.needsOnboarding`)
@@ -78,7 +79,9 @@ Routing behavior:
 
 Pre-bootstrap startup behavior:
 
-- when permission bootstrap has not finished yet, `selectStartupSurface(...)` uses the persisted onboarding completion bit from `permissionStore.onboardingState`
+- when permission bootstrap has not finished yet,
+  `DesktopStartupRuntimeClient.selectStartupSurface(...)` uses the persisted
+  onboarding completion bit from `permissionStore.onboardingState`
 - this avoids a first-frame onboarding flash for users who already completed onboarding on the current install
 - after bootstrap resolves, `needsOnboarding` becomes authoritative again so manifest-version changes can still route users back into onboarding
 
@@ -88,6 +91,8 @@ Pre-bootstrap startup behavior:
 
 - `isVmModeEnabled()` is renderer-URL based through
   `infrastructure/runtime/vmMode.js`
+- `selectStartupSurface()` resolves VM/dashboard/onboarding startup surface
+  selection used by `App.jsx`
 - `getRendererEntrypointView()` resolves the `view` route used by `main.jsx`
 - `getRendererRootElement()` resolves the React mount target used by
   `main.jsx`
@@ -197,7 +202,8 @@ The same permission store also powers focused settings checks such as Browser au
 
 `tests/frontend/startupSurface.test.js`:
 
-- startup selector sends VM launches straight to dashboard
+- startup selector sends VM launches straight to dashboard through
+  `DesktopStartupRuntimeClient.selectStartupSurface(...)`
 - pre-bootstrap routing uses persisted onboarding completion
 - post-bootstrap routing uses the manifest-aware permission gate
 

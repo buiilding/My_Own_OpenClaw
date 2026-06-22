@@ -9,6 +9,26 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer Startup Surface Selection Runtime
+
+- Finding: default renderer startup surface selection for VM dashboard,
+  onboarding, and normal dashboard/chat-pill handoff still lived in the
+  standalone `startupSurface.js` helper after `DesktopStartupRuntimeClient`
+  had become the owner for startup query and root-element adapters.
+- Change: moved the selector into
+  `DesktopStartupRuntimeClient.selectStartupSurface(...)`, routed `App.jsx`
+  through it, and deleted `startupSurface.js`. `App.jsx` keeps React rendering
+  and window visibility side effects while the startup runtime owns the
+  reusable startup surface decision.
+- Validation target: `startupSurface.test.js`, `AppPermissionGate.test.jsx`,
+  `AppVmMode.test.jsx`, and `RendererAppRuntimeBoundary.test.ts` protect VM,
+  pre-bootstrap onboarding completion, manifest-aware onboarding routing, and
+  rejection of the deleted helper import path.
+- Compatibility/security: no renderer route, DOM root id, permission-store
+  state shape, onboarding storage payload, IPC channel, SDK event payload,
+  config shape, persisted storage, permission, credential, local execution,
+  trust-boundary, or migration change required.
+
 ### 2026-06-22 Renderer Startup Root Element Runtime
 
 - Finding: `main.jsx` already delegated renderer `view` query parsing to

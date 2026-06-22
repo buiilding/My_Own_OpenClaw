@@ -10,6 +10,11 @@ export type RendererEntrypointView =
   | 'minimal-response-overlay'
   | 'tool-ghost-debug';
 
+export type RendererStartupSurface =
+  | 'dashboard'
+  | 'dashboard-vm'
+  | 'onboarding';
+
 const RENDERER_ENTRYPOINT_VIEWS = new Set<RendererEntrypointView>([
   'minimal-chat-pill',
   'minimal-response-overlay',
@@ -45,9 +50,36 @@ function getRendererRootElement(
   return documentApi?.getElementById('root') ?? null;
 }
 
+function selectStartupSurface({
+  vmModeEnabled,
+  bootstrapped,
+  needsOnboarding,
+  onboardingCompleted,
+}: {
+  vmModeEnabled: boolean;
+  bootstrapped: boolean;
+  needsOnboarding: boolean;
+  onboardingCompleted: boolean;
+}): RendererStartupSurface {
+  if (vmModeEnabled) {
+    return 'dashboard-vm';
+  }
+
+  const shouldShowOnboarding = bootstrapped
+    ? needsOnboarding
+    : !onboardingCompleted;
+
+  if (shouldShowOnboarding) {
+    return 'onboarding';
+  }
+
+  return 'dashboard';
+}
+
 export const DesktopStartupRuntimeClient = {
   getRendererEntrypointView,
   getRendererRootElement,
   isVmModeEnabled,
+  selectStartupSurface,
   shouldSuppressWakewordOnStartup,
 };

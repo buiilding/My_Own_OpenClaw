@@ -1,12 +1,14 @@
 /**
- * Covers startup surface. behavior in the frontend test suite.
+ * Covers renderer startup surface selection in the frontend test suite.
  */
 
-import { selectStartupSurface } from '../../frontend/src/renderer/app/startupSurface';
+import {
+  DesktopStartupRuntimeClient,
+} from '../../frontend/src/renderer/app/runtime/desktopStartupRuntimeClient';
 
 describe('startupSurface', () => {
   test('routes vm mode directly to dashboard', () => {
-    expect(selectStartupSurface({
+    expect(DesktopStartupRuntimeClient.selectStartupSurface({
       vmModeEnabled: true,
       bootstrapped: false,
       needsOnboarding: true,
@@ -15,7 +17,7 @@ describe('startupSurface', () => {
   });
 
   test('uses persisted onboarding completion before bootstrap', () => {
-    expect(selectStartupSurface({
+    expect(DesktopStartupRuntimeClient.selectStartupSurface({
       vmModeEnabled: false,
       bootstrapped: false,
       needsOnboarding: true,
@@ -24,7 +26,7 @@ describe('startupSurface', () => {
   });
 
   test('uses manifest-aware onboarding gate after bootstrap', () => {
-    expect(selectStartupSurface({
+    expect(DesktopStartupRuntimeClient.selectStartupSurface({
       vmModeEnabled: false,
       bootstrapped: true,
       needsOnboarding: true,

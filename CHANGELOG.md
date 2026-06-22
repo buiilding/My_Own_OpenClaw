@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: move default app startup surface selection into
+  `DesktopStartupRuntimeClient.selectStartupSurface(...)` and delete the
+  standalone `startupSurface.js` helper so `App.jsx` consumes the startup
+  runtime facade for VM/dashboard/onboarding routing. No migration required.
 - frontend/renderer: route renderer React root-element lookup through
   `DesktopStartupRuntimeClient.getRendererRootElement(...)` so `main.jsx`
   no longer reads `document.getElementById('root')` directly. No migration

@@ -1286,6 +1286,24 @@ describe('renderer app runtime boundary', () => {
     expect(startupClientSource).toContain('new URLSearchParams');
   });
 
+  test('renderer app startup surface selection is owned by startup runtime client', async () => {
+    const appSource = await fs.readFile(
+      path.join(appRoot, 'App.jsx'),
+      'utf8',
+    );
+    const startupClientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopStartupRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(appSource).toContain('DesktopStartupRuntimeClient.selectStartupSurface');
+    expect(appSource).not.toContain('import { selectStartupSurface');
+    expect(appSource).not.toContain('./startupSurface');
+    expect(startupClientSource).toContain('selectStartupSurface');
+    expect(startupClientSource).toContain('dashboard-vm');
+    expect(startupClientSource).toContain('onboarding');
+  });
+
   test('app providers read latest-ref helper through renderer hooks runtime client', async () => {
     const providerFiles = [
       'providers/AppProvider.jsx',

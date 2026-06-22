@@ -19,6 +19,16 @@ const mockPermissionState = {
 jest.mock('../../frontend/src/renderer/app/runtime/desktopStartupRuntimeClient', () => ({
   DesktopStartupRuntimeClient: {
     isVmModeEnabled: () => false,
+    selectStartupSurface: ({
+      bootstrapped,
+      needsOnboarding,
+      onboardingCompleted,
+    }) => {
+      const shouldShowOnboarding = bootstrapped
+        ? needsOnboarding
+        : !onboardingCompleted;
+      return shouldShowOnboarding ? 'onboarding' : 'dashboard';
+    },
   },
 }));
 

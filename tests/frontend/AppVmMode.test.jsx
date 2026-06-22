@@ -12,6 +12,7 @@ const mockWakewordController = jest.fn(() => null);
 jest.mock('../../frontend/src/renderer/app/runtime/desktopStartupRuntimeClient', () => ({
   DesktopStartupRuntimeClient: {
     isVmModeEnabled: () => true,
+    selectStartupSurface: () => 'dashboard-vm',
   },
 }));
 

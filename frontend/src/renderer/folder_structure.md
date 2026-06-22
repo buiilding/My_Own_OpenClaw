@@ -94,7 +94,7 @@ frontend/src/renderer/
 |   |   |-- desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 |   |   |-- desktopPresentationSourceChannels.js # Renderer presentation source-channel labels
 |   |   |-- desktopShortcutRuntimeClient.ts # Renderer shortcut label, predicate, option, and config-normalization facade
-|   |   |-- desktopStartupRuntimeClient.ts # Renderer startup root-element, query/view, wakeword suppression, and VM-mode facade
+|   |   |-- desktopStartupRuntimeClient.ts # Renderer startup root-element, surface selection, query/view, wakeword suppression, and VM-mode facade
 |   |   |-- desktopSettingsEventRuntimeClient.ts # Renderer settings-event handler facade for providers
 |   |   |-- desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
 |   |   |-- desktopSettingsTabRuntime.js # Renderer settings tab descriptor facade
