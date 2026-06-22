@@ -89,6 +89,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route voice-mode reconnect backoff timers through
   `DesktopVoiceRuntimeClient`, keeping raw browser timeout calls out of
   `useVoiceMode`. No migration required.
+- frontend/renderer: route transcription paste caret restoration through
+  `DesktopTranscriptionRegionRuntime`, keeping raw browser timeout calls out of
+  `useTranscription`. No migration required.
 - frontend/renderer: delete the duplicate `showAssistantAwaitingDot`
   presentation field; dashboard awaiting placement now stays on the concrete
   `awaitingDotTargetMessageId` anchor. No migration required.

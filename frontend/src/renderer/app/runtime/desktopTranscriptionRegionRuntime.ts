@@ -8,6 +8,10 @@ type TranscriptionRegion = {
   active: boolean;
 };
 
+type TranscriptionTimerApi = {
+  setTimeout?: (callback: () => void, delayMs: number) => ReturnType<typeof setTimeout>;
+};
+
 function createEmptyTranscriptionRegion(): TranscriptionRegion {
   return {
     start: 0,
@@ -125,11 +129,36 @@ function updateRegionAfterPaste(
   return createEmptyTranscriptionRegion();
 }
 
+function scheduleCursorRestoreAfterPaste({
+  input,
+  pastedTextLength,
+  start,
+  timerApi = globalThis,
+}: {
+  input: Pick<HTMLInputElement | HTMLTextAreaElement, 'setSelectionRange'> | null | undefined;
+  pastedTextLength: number;
+  start: number;
+  timerApi?: TranscriptionTimerApi | null;
+}): ReturnType<typeof setTimeout> | null {
+  const restoreCursor = () => {
+    const nextCursorPosition = start + pastedTextLength;
+    input?.setSelectionRange(nextCursorPosition, nextCursorPosition);
+  };
+
+  if (!timerApi || typeof timerApi.setTimeout !== 'function') {
+    restoreCursor();
+    return null;
+  }
+
+  return timerApi.setTimeout(restoreCursor, 0);
+}
+
 export const DesktopTranscriptionRegionRuntime = Object.freeze({
   appendTranscriptionText,
   buildValueAfterPaste,
   createEmptyTranscriptionRegion,
   replaceTranscriptionText,
+  scheduleCursorRestoreAfterPaste,
   updateRegionAfterInputChange,
   updateRegionAfterPaste,
 });

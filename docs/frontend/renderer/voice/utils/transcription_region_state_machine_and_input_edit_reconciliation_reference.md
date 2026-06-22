@@ -29,8 +29,11 @@ Runtime invariant:
 
 - only one active transcription replacement region is tracked at a time
 - append, replace, input-change, and paste offset rules are owned by
-  `DesktopTranscriptionRegionRuntime`; `useTranscription` keeps React state
-  and mutable refs around that app-runtime facade.
+  `DesktopTranscriptionRegionRuntime`
+- pasted-text caret restoration scheduling is also owned by
+  `DesktopTranscriptionRegionRuntime.scheduleCursorRestoreAfterPaste(...)`
+- `useTranscription` keeps React state and mutable refs around that
+  app-runtime facade.
 
 ## Transcript Update State Machine
 
@@ -67,7 +70,8 @@ This preserves replacement targeting only when edit happened outside the live tr
 - paste after region -> region unchanged
 - replacement inside or overlapping region -> invalidate region
 - missing cursor -> invalidate region
-3. sets caret asynchronously to pasted-text end (`setTimeout(... setSelectionRange ...)`)
+3. asks `DesktopTranscriptionRegionRuntime.scheduleCursorRestoreAfterPaste(...)`
+   to asynchronously restore the caret to the pasted-text end
 4. prevents default browser paste
 
 ## Mutable Value and Region Refs

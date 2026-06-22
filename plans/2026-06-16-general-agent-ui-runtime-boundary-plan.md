@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Transcription Paste Cursor Timer Runtime
+
+- Finding: `useTranscription` already delegated transcription-region append,
+  replace, input-change, and paste reconciliation to
+  `DesktopTranscriptionRegionRuntime`, but still owned raw browser timeout
+  scheduling for restoring the caret after paste.
+- Change: extended `DesktopTranscriptionRegionRuntime` with a paste cursor
+  restoration scheduler and routed the hook through it. The hook keeps React
+  input state and region refs while the app-runtime facade owns the browser
+  timer and `setSelectionRange` timing detail.
+- Validation target: focused transcription region runtime, transcription hook,
+  and renderer chat-boundary tests protect scheduled cursor restoration,
+  missing-adapter fallback, paste behavior, and rejection of raw timeout calls
+  in the hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-22 Voice Reconnect Timer Runtime
 
 - Finding: `useVoiceMode` already delegated transcription gateway protocol,

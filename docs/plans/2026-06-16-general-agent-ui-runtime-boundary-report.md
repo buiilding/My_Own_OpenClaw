@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: voice-mode reconnect backoff timers now route through
-  `DesktopVoiceRuntimeClient`; `useVoiceMode` keeps enabled state, reconnect
-  attempt counts, and callbacks while the runtime client owns browser timer
-  scheduling and cleanup.
+- Latest completed slice: transcription paste caret restoration now routes
+  through `DesktopTranscriptionRegionRuntime`; `useTranscription` keeps React
+  input state and region refs while the runtime owns the browser timer and
+  `setSelectionRange` scheduling detail.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -123,6 +123,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Voice-mode reconnect backoff timer scheduling and cleanup now route through
   `DesktopVoiceRuntimeClient` instead of raw browser timeout calls in
   `useVoiceMode`.
+  Transcription paste caret restoration now routes through
+  `DesktopTranscriptionRegionRuntime` instead of raw browser timeout calls in
+  `useTranscription`.
   Conversation replay database tests describe edit/resend cutoff rewrites as
   local-runtime SQLite behavior while the renderer owns preparation error
   projection.

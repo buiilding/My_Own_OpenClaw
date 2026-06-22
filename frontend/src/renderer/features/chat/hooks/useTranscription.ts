@@ -10,6 +10,7 @@ const {
   buildValueAfterPaste,
   createEmptyTranscriptionRegion,
   replaceTranscriptionText,
+  scheduleCursorRestoreAfterPaste,
   updateRegionAfterInputChange,
   updateRegionAfterPaste,
 } = DesktopTranscriptionRegionRuntime;
@@ -96,11 +97,11 @@ export function useTranscription(initialValue: string = '') {
         pastedText.length,
       );
       
-      // Set cursor position after pasted text
-      setTimeout(() => {
-        const newCursorPosition = pasted.start + pastedText.length;
-        input.setSelectionRange(newCursorPosition, newCursorPosition);
-      }, 0);
+      scheduleCursorRestoreAfterPaste({
+        input,
+        pastedTextLength: pastedText.length,
+        start: pasted.start,
+      });
       
       return pasted.value;
     });
