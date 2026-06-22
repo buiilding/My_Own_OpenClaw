@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- docs/adr: add ADR 008 and the conversation history revision architecture
+  plan for separating full display history, backend-normalized model history,
+  runtime events, and revision graph ownership so edit/resend, compaction,
+  rehydrate, and fork share one target architecture. No migration required.
 - frontend/renderer: add a dynamic one-section Appearance editor for the active
   light/dark theme, first-class user-message pill background/text colors, and
   high-contrast settings toggle/destructive-control state tokens, with the
