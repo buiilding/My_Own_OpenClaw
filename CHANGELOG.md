@@ -173,6 +173,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove the remaining tool-output chat-message screenshot
+  alias state builder path so renderer tool-output visuals are represented by
+  typed `attachments[]` only. Old persisted screenshot rows remain covered by
+  the SDK replay adapter before they reach renderer message components. No
+  migration required.
 - backend/sdk: add backend-safe typed `display_attachments` support at
   tool-result, tool-bundle-result, rehydrate, and outgoing tool-output
   websocket boundaries while keeping `screenshot_ref`/artifact refs as the

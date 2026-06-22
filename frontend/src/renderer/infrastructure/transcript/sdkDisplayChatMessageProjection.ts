@@ -180,7 +180,6 @@ function buildToolOutputMessage(message: DisplayMessage): ChatMessage {
     toolOutputDetails: payload,
     turnRef: message.turnRef ?? null,
     isComplete: true,
-    preserveNullAttachmentFields: false,
     preserveNullToolMetadata: false,
     preserveNullToolOutputDetails: false,
   }) as ChatMessage;

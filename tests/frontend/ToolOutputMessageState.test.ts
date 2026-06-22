@@ -5,16 +5,13 @@
 import { buildToolOutputChatMessageState } from '../../frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState';
 
 describe('toolOutputChatMessageState', () => {
-  test('normalizes screenshots and common tool-output fields', () => {
+  test('uses typed attachments and common tool-output fields without screenshot aliases', () => {
     const uuidSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('tool-output-state-1');
 
     const message = buildToolOutputChatMessageState({
       outputText: 'clicked',
       sourceEventType: 'tool-output',
       sourceChannel: 'sdk:conversation-event',
-      screenshot: 'inline-shot',
-      screenshotRef: 'artifact-shot-1',
-      screenshotUrl: null,
       toolMetadata: { source: 'backend' },
       toolName: 'mouse_control',
       executionTime: 0.5,
@@ -40,10 +37,6 @@ describe('toolOutputChatMessageState', () => {
       type: 'tool-output',
       sourceEventType: 'tool-output',
       sourceChannel: 'sdk:conversation-event',
-      screenshot: null,
-      screenshotRef: 'artifact-shot-1',
-      screenshotUrl: expect.stringContaining('/api/artifacts/artifact-shot-1'),
-      screenshotContentType: null,
       toolMetadata: { source: 'backend' },
       toolName: 'mouse_control',
       executionTime: 0.5,
@@ -62,6 +55,10 @@ describe('toolOutputChatMessageState', () => {
       modelId: 'model-1',
       modelProvider: 'provider-1',
     });
+    expect(message).not.toHaveProperty('screenshot');
+    expect(message).not.toHaveProperty('screenshotRef');
+    expect(message).not.toHaveProperty('screenshotUrl');
+    expect(message).not.toHaveProperty('screenshotContentType');
 
     uuidSpy.mockRestore();
   });

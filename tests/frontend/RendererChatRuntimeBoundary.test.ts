@@ -1981,6 +1981,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/content/ToolOutputMessage.jsx'),
       'utf8',
     );
+    const toolOutputStateSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState.ts'),
+      'utf8',
+    );
     const attachmentRegistrySource = await fs.readFile(
       path.join(chatRoot, 'components/message/content/AttachmentRendererRegistry.jsx'),
       'utf8',
@@ -2003,6 +2007,9 @@ describe('renderer chat runtime boundary', () => {
     expect(attachmentRegistrySource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
     expect(toolOutputSource).toContain('AttachmentList');
     expect(toolOutputSource).not.toContain('DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrc');
+    expect(toolOutputStateSource).not.toContain('screenshotMessageState');
+    expect(toolOutputStateSource).not.toContain('screenshotRef');
+    expect(toolOutputStateSource).not.toContain('screenshotUrl');
     expect(clientSource).toContain('INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU');
   });
