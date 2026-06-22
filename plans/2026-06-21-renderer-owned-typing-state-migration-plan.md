@@ -9,12 +9,30 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Chatbox Awaiting Boolean Deletion
+
+- Finding: current-turn presentation still stamped
+  `showChatboxAwaitingReply`, a duplicate awaiting boolean after response
+  overlay view intent could read `visibleTurnLifecycle.status` directly.
+- Change: removed `showChatboxAwaitingReply` from message-only presentation,
+  visible-lifecycle stamping, chat-pill session typing, and response-overlay
+  view contract inputs. Awaiting overlay visibility now derives from
+  `local_pending` or `awaiting` lifecycle status.
+- Validation target: `ChatboxSurfaceState.test.js`,
+  `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatSurfaceController.test.jsx`, `ChatPillSessionFlow.test.ts`,
+  `ResponseOverlayViewContract.test.ts`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Presentation Loop UI State Alias Deletion
 
 - Finding: current-turn presentation still stamped `loopUiState`, a stale
   chatbox-era alias after transport recovery moved to `useChatLoopUiState(...)`
   and desktop typing/awaiting state moved to `visibleTurnLifecycle.status`,
-  `chatboxSurfaceState`, and `showChatboxAwaitingReply`.
+  and `chatboxSurfaceState`.
 - Change: removed the presentation-level `loopUiState` field from
   message-only current-turn presentation and visible lifecycle stamping while
   leaving the real chat-loop transport hook untouched.
@@ -32,8 +50,7 @@ Date: 2026-06-21
 - Finding: message-only current-turn presentation and visible-lifecycle
   stamping still carried `isAwaitingReply`, a duplicate boolean after
   production consumers had moved to `visibleTurnLifecycle.status`,
-  `showChatboxAwaitingReply`, and the concrete
-  `awaitingDotTargetMessageId` anchor.
+  `chatboxSurfaceState`, and the concrete `awaitingDotTargetMessageId` anchor.
 - Change: removed `isAwaitingReply` from the presentation snapshot and visible
   lifecycle adapter, and added boundary coverage so the legacy alias is not
   reintroduced in the current-turn or visible-lifecycle runtimes.

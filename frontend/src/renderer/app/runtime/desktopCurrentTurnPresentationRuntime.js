@@ -79,7 +79,6 @@ function resolveCurrentTurnPresentationState({
     awaitingDotTargetMessageId: null,
     visibleResponse,
     chatboxSurfaceState,
-    showChatboxAwaitingReply: false,
     showChatboxResponse: shouldShowChatboxResponse(chatboxSurfaceState),
   };
 }

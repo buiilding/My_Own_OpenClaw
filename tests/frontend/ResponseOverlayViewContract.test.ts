@@ -12,7 +12,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
   test('shows response when entries exist and are not dismissed', () => {
     expect(resolveResponseOverlayViewContract({
       currentTurnPresentationState: {
-        showChatboxAwaitingReply: true,
+        visibleTurnLifecycle: {
+          status: 'awaiting',
+        },
       },
       responseOverlayEntries: [{ id: 'assistant-1' }],
       dismissedResponseId: null,
@@ -28,7 +30,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
   test('falls back to awaiting typing when no response entry is visible', () => {
     expect(resolveResponseOverlayViewContract({
       currentTurnPresentationState: {
-        showChatboxAwaitingReply: true,
+        visibleTurnLifecycle: {
+          status: 'awaiting',
+        },
         visibleResponse: null,
       },
       responseOverlayEntries: [],
@@ -45,7 +49,6 @@ describe('desktopResponseOverlayViewRuntime', () => {
   test('prefers awaiting typing over a stale visible response during new-turn preflight', () => {
     expect(resolveResponseOverlayViewContract({
       currentTurnPresentationState: {
-        showChatboxAwaitingReply: true,
         visibleTurnLifecycle: {
           status: 'local_pending',
         },
@@ -67,7 +70,6 @@ describe('desktopResponseOverlayViewRuntime', () => {
   test('keeps the current-turn response visible during active tool phases', () => {
     expect(resolveResponseOverlayViewContract({
       currentTurnPresentationState: {
-        showChatboxAwaitingReply: true,
         visibleTurnLifecycle: {
           status: 'active',
         },
@@ -89,7 +91,9 @@ describe('desktopResponseOverlayViewRuntime', () => {
   test('hides overlay when no response or awaiting state is active', () => {
     expect(resolveResponseOverlayViewContract({
       currentTurnPresentationState: {
-        showChatboxAwaitingReply: false,
+        visibleTurnLifecycle: {
+          status: 'idle',
+        },
       },
       responseOverlayEntries: [],
       dismissedResponseId: null,

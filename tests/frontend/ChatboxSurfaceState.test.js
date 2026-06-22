@@ -18,7 +18,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
     expect(state.isBusy).toBe(false);
     expect(state.chatboxSurfaceState).toBe('compact');
-    expect(state.showChatboxAwaitingReply).toBe(false);
     expect(state.showChatboxResponse).toBe(false);
   });
 
@@ -32,7 +31,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
     expect(state.chatboxSurfaceState).toBe('response');
     expect(state.showChatboxResponse).toBe(true);
-    expect(state.showChatboxAwaitingReply).toBe(false);
   });
 
   test('keeps visible response data independent from lifecycle state', () => {
@@ -45,7 +43,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
     expect(state.chatboxSurfaceState).toBe('response');
     expect(state.showChatboxResponse).toBe(true);
-    expect(state.showChatboxAwaitingReply).toBe(false);
   });
 
   test('keeps compact state when no response is visible and loop is terminal', () => {
@@ -54,7 +51,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     });
 
     expect(state.chatboxSurfaceState).toBe('compact');
-    expect(state.showChatboxAwaitingReply).toBe(false);
     expect(state.showChatboxResponse).toBe(false);
   });
 
@@ -82,7 +78,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
     expect(state.hasVisibleReply).toBe(false);
     expect(state.awaitingDotTargetMessageId).toBeNull();
-    expect(state.showChatboxAwaitingReply).toBe(false);
     expect(state.showChatboxResponse).toBe(false);
   });
 
@@ -111,7 +106,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       ],
       fallbackState: {
         isBusy: false,
-        showChatboxAwaitingReply: false,
       },
       includeOverlayIntent: true,
     });
@@ -122,7 +116,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       hasVisibleReply: true,
       showChatboxResponse: true,
       chatboxSurfaceState: 'response',
-      showChatboxAwaitingReply: false,
       overlayIntent: expect.objectContaining({
         mode: 'response',
         turnRef: 'turn-1',

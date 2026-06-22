@@ -100,7 +100,6 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
-        showChatboxAwaitingReply: false,
       },
       responseOverlayEntries: [{ id: 'assistant-1' }],
     });
@@ -124,7 +123,6 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-visible', sender: 'assistant', text: 'visible reply', turnRef: 'turn-visible' },
         activeResponse: { id: 'assistant-active', sender: 'assistant', text: 'old reply', turnRef: 'turn-active' },
-        showChatboxAwaitingReply: false,
       },
       responseOverlayEntries: [{ id: 'assistant-visible' }],
     });
@@ -145,7 +143,6 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         visibleResponse: null,
         activeResponse: { id: 'assistant-active', sender: 'assistant', text: 'reply', turnRef: 'turn-active' },
-        showChatboxAwaitingReply: false,
       },
       responseOverlayEntries: [{ id: 'assistant-active' }],
     });
@@ -164,7 +161,9 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         activeResponse: null,
         visibleResponse: null,
-        showChatboxAwaitingReply: true,
+        visibleTurnLifecycle: {
+          status: 'awaiting',
+        },
       },
       responseOverlayEntries: [],
     });
@@ -188,7 +187,9 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         activeResponse: null,
         visibleResponse: null,
-        showChatboxAwaitingReply: false,
+        visibleTurnLifecycle: {
+          status: 'idle',
+        },
       },
       responseOverlayEntries: [],
     });
@@ -210,7 +211,6 @@ describe('desktopChatPillSessionRuntime', () => {
       currentTurnPresentationState: {
         visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
         activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
-        showChatboxAwaitingReply: false,
       },
       responseOverlayEntries: [{ id: 'assistant-1' }],
       dismissedResponseId: 'assistant-1',
@@ -238,7 +238,6 @@ describe('desktopChatPillSessionRuntime', () => {
         visibleTurnLifecycle: {
           status: 'local_pending',
         },
-        showChatboxAwaitingReply: true,
       },
       responseOverlayEntries: [{ id: 'assistant-1' }],
     });

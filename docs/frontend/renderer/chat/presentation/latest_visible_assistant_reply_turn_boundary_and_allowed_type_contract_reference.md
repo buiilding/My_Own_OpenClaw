@@ -81,7 +81,6 @@ stamping:
 - `awaitingDotTargetMessageId` (`null` until visible lifecycle stamping)
 - `visibleResponse`
 - `chatboxSurfaceState`
-- `showChatboxAwaitingReply`
 - `showChatboxResponse`
 
 `useChatSurfaceController(...)` owns transport/lifecycle composition by applying

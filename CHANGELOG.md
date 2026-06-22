@@ -68,14 +68,17 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the duplicate `showChatboxAwaitingReply`
+  presentation alias; response overlay awaiting visibility now derives from
+  `visibleTurnLifecycle.status` directly. No migration required.
 - frontend/renderer: delete the stale current-turn presentation `loopUiState`
   alias; visible lifecycle status and chatbox surface state now carry
   awaiting/response state while the transport recovery hook keeps its separate
   loop state. No migration required.
 - frontend/renderer: delete the legacy `isAwaitingReply` presentation alias;
   awaiting state now stays on `visibleTurnLifecycle.status`,
-  `showChatboxAwaitingReply`, and the concrete
-  `awaitingDotTargetMessageId` anchor. No migration required.
+  `chatboxSurfaceState`, and the concrete `awaitingDotTargetMessageId`
+  anchor. No migration required.
 - frontend/renderer: route dashboard shell opening timers and document
   scroll-lock DOM updates through `DesktopDashboardLayoutRuntime`, keeping raw
   browser timer/document access out of `DashboardShell`. No migration required.

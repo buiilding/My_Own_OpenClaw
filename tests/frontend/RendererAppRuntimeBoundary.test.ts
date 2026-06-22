@@ -561,6 +561,7 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).not.toContain('showAssistantAwaitingDot');
     expect(currentTurnPresentationSource).not.toContain('isAwaitingReply');
     expect(currentTurnPresentationSource).not.toContain('loopUiState');
+    expect(currentTurnPresentationSource).not.toContain('showChatboxAwaitingReply');
     expect(currentTurnMessageSource).not.toContain('features/chat');
     expect(currentTurnMessageSource).not.toContain('features/minimalChatPill');
     expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -707,12 +708,14 @@ describe('renderer app runtime boundary', () => {
     expect(visibleLifecycleRuntimeSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
     expect(visibleLifecycleRuntimeSource).not.toContain('isAwaitingReply');
     expect(visibleLifecycleRuntimeSource).not.toContain('loopUiState');
+    expect(visibleLifecycleRuntimeSource).not.toContain('showChatboxAwaitingReply');
     expect(visibleLifecycleRuntimeSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(visibleLifecycleRuntimeSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(chatSurfaceControllerSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
     expect(overlayViewModelSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
     expect(overlayViewModelSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('overlayTurnLifecycleContract');
+    expect(responseViewRuntimeSource).not.toContain('showChatboxAwaitingReply');
     expect(overlayViewModelSource).not.toContain('overlayTurnLifecycleContract');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/overlay/overlayTurnLifecycleContract.js'),

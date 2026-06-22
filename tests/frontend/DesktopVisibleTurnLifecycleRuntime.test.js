@@ -316,7 +316,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     const localPendingPresentation = applyVisibleTurnLifecycleToPresentationState({
       awaitingDotTargetMessageId: null,
       chatboxSurfaceState: 'compact',
-      showChatboxAwaitingReply: false,
       showChatboxResponse: true,
       overlayIntent: {
         mode: 'awaiting',
@@ -327,7 +326,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       isBusy: true,
       awaitingDotTargetMessageId: 'user-local',
       chatboxSurfaceState: 'awaiting-reply',
-      showChatboxAwaitingReply: true,
       showChatboxResponse: false,
       overlayIntent: {
         mode: 'awaiting',
@@ -338,7 +336,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     const activePresentation = applyVisibleTurnLifecycleToPresentationState({
       isBusy: true,
       awaitingDotTargetMessageId: 'user-local',
-      showChatboxAwaitingReply: true,
       showChatboxResponse: true,
     }, {
       ...visibleLifecycle,
@@ -353,7 +350,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       }),
       isBusy: true,
       awaitingDotTargetMessageId: null,
-      showChatboxAwaitingReply: false,
       showChatboxResponse: true,
     });
     expect(activePresentation.overlayTurnLifecycle).toBeUndefined();
@@ -362,7 +358,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       overlayTurnLifecycle: 'active',
       isBusy: true,
       awaitingDotTargetMessageId: 'user-local',
-      showChatboxAwaitingReply: true,
     }, {
       ...visibleLifecycle,
       status: 'terminal',
@@ -376,7 +371,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       }),
       isBusy: false,
       awaitingDotTargetMessageId: null,
-      showChatboxAwaitingReply: false,
     });
     expect(terminalPresentation.overlayTurnLifecycle).toBeUndefined();
   });
