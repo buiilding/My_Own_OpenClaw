@@ -531,10 +531,6 @@ function isResponseOverlaySourceTaggedMessage(message) {
   );
 }
 
-function normalizeThinkingText(thinkingStatus) {
-  return typeof thinkingStatus === 'string' ? thinkingStatus.trim() : '';
-}
-
 export const DesktopCurrentTurnMessageRuntime = Object.freeze({
   buildCurrentTurnMessagesFromPresentation,
   buildCurrentTurnMessagesFromProjection,
@@ -542,5 +538,4 @@ export const DesktopCurrentTurnMessageRuntime = Object.freeze({
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
-  normalizeThinkingText,
 });

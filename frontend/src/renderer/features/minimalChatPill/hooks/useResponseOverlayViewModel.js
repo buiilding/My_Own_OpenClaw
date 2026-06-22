@@ -39,7 +39,6 @@ const {
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
-  normalizeThinkingText,
 } = DesktopCurrentTurnMessageRuntime;
 const {
   resolveLiveTurnPresentationInput,
@@ -55,6 +54,10 @@ const {
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
   return buildCurrentTurnMessagesFromProjection(currentTurnProjection)
     .filter(isVisibleResponseOverlayMessage);
+}
+
+function normalizeReasoningText(reasoningText) {
+  return typeof reasoningText === 'string' ? reasoningText.trim() : '';
 }
 
 export function useResponseOverlayViewModel({
@@ -222,7 +225,7 @@ export function useResponseOverlayViewModel({
   ]);
 
   const thinkingText = useMemo(
-    () => normalizeThinkingText(
+    () => normalizeReasoningText(
       currentTurnProjection?.reasoningText,
     ),
     [currentTurnProjection?.reasoningText],

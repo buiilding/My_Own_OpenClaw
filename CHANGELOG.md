@@ -71,6 +71,11 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route debug tool-ghost hide/restart timer scheduling
   through `DesktopToolGhostRuntime`, keeping raw browser timeout scheduling out
   of `ToolGhostDebugApp`. No migration required.
+- frontend/renderer: delete the legacy `normalizeThinkingText` export from
+  `DesktopCurrentTurnMessageRuntime`; response-overlay reasoning copy now
+  normalizes SDK `currentTurn.reasoningText` locally while store
+  `thinkingStatus` remains dashboard compaction/manual status text. No
+  migration required.
 - frontend/renderer: route the chat-loop disconnect recovery watchdog timer
   through `DesktopChatLoopUiRuntime`, keeping raw browser timeout scheduling
   out of `useChatLoopUiState`. No migration required.

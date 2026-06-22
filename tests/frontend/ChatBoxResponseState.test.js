@@ -12,7 +12,6 @@ const {
   isResponseOverlayProgressMessage,
   isResponseOverlaySourceTaggedMessage,
   isVisibleResponseOverlayMessage,
-  normalizeThinkingText,
 } = DesktopCurrentTurnMessageRuntime;
 
 describe('desktopCurrentTurnMessageRuntime', () => {
@@ -58,12 +57,6 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     expect(isResponseOverlaySourceTaggedMessage({ type: 'error' })).toBe(true);
     expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: 'tool-call' })).toBe(true);
     expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: '   ' })).toBe(false);
-  });
-
-  test('normalizeThinkingText trims string input and normalizes non-string to empty', () => {
-    expect(normalizeThinkingText('  Thinking...  ')).toBe('Thinking...');
-    expect(normalizeThinkingText('')).toBe('');
-    expect(normalizeThinkingText(null)).toBe('');
   });
 
   test('buildCurrentTurnMessagesFromProjection creates overlay-ready active turn messages', () => {

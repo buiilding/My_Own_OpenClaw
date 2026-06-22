@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Response Overlay Reasoning Text Helper Deletion
+
+- Finding: `DesktopCurrentTurnMessageRuntime` still exported
+  `normalizeThinkingText(...)`, a legacy-named helper with a `thinkingStatus`
+  parameter even though response overlay reasoning copy now comes from SDK
+  `currentTurn.reasoningText` and store `thinkingStatus` is dashboard-only
+  compaction/manual status text.
+- Change: deleted the message-runtime helper export and moved the trivial
+  reasoning-text normalization into `useResponseOverlayViewModel(...)` beside
+  the SDK reasoning input it normalizes.
+- Validation target: `ChatBoxResponseState.test.js` and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed message-runtime
+  surface while response-overlay tests continue to cover SDK reasoning text
+  rendering.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Pending Stop Visible Lifecycle Regression
 
 - Finding: `PendingStopLiveSurfaceIntegration.test.jsx` still wired the shared
