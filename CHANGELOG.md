@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: mark ADR 006 renderer-owned typing lifecycle migration
+  implemented after auditing live surface ownership, pending handoff, raw
+  lifecycle non-authorities, and regression-pack coverage. No migration
+  required.
 - frontend/renderer: route renderer startup `view` query parsing and initial
   wakeword suppression seeding through `DesktopStartupRuntimeClient` so
   `main.jsx` and `AppConfigProvider` no longer read `window.location.search`

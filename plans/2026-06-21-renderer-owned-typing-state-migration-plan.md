@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Completion Audit
+
+- Evidence: `DesktopVisibleTurnLifecycleRuntime` owns visible lifecycle and
+  pending-turn handoff; chat surface, response overlay, live surface, Stop, and
+  chat-store pending clearing route through that owner.
+- Evidence: production scans show remaining raw `isSending`, `streamTracking`,
+  and `thinkingStatus` reads are store state, transport guards, trace identity,
+  or dashboard compaction/reasoning rendering data rather than surface
+  lifecycle authorities.
+- Evidence: Core Loop Regression Pack and `scripts/windie/commands.cjs`
+  include the visible lifecycle, projection effects, live surface, dashboard,
+  response overlay, pending-turn, pending-stop, and stop-runtime suites.
+- Completion: ADR 006 renderer-owned typing state migration is implemented for
+  the renderer desktop lifecycle boundary. No persisted transcript, SDK event
+  payload, IPC payload, renderer config storage, permission, credential, local
+  execution, trust-boundary, or storage migration required.
+
 ### 2026-06-22 SDK Visible Content Flag Authority Deletion
 
 - Finding: visible lifecycle, live-surface overlay metadata, stopped-turn
