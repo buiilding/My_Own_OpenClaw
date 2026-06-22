@@ -6,9 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
-- docs/plans: add the SDK display-row metadata canonical image shape migration
-  plan for replacing duplicate screenshot alias fields with one SDK display
-  attachment contract consumed by the renderer. No migration required.
+- docs/plans: add an implementation-ready SDK display-row metadata canonical
+  image shape migration plan for replacing duplicate screenshot alias fields
+  with one SDK display attachment contract consumed by the renderer. No
+  migration required.
 - docs/plans: add the screenshot metadata display-row plan for fixing chat-pill
   query screenshots that reach SDK `user_message_metadata` but disappear from
   dashboard rows. No migration required.

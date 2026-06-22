@@ -70,6 +70,78 @@ Rules:
 - Backend/local-runtime transport contracts remain snake_case. This plan does
   not change persisted event payloads or backend provider history.
 
+## Current Code Inventory
+
+SDK display row producers:
+
+- `packages/windie-sdk-js/src/conversation/types.ts`
+  - `SdkDisplayRowMetadata` currently publishes both camelCase and snake_case
+    screenshot fields plus inline `screenshot`.
+  - The type is exported from `packages/windie-sdk-js/src/index.ts`, so this is
+    a public SDK display-contract cleanup, not an internal-only refactor.
+- `packages/windie-sdk-js/src/projections/conversationProjections.ts`
+  - `displayRowMetadata(...)` reads both camelCase and snake_case screenshot
+    payload fields and emits both alias families.
+  - `SCREENSHOT_METADATA_KEYS` and `hasScreenshotMetadata(...)` decide whether
+    a later same-turn metadata event is an explicit image patch.
+  - `preserveExistingScreenshotMetadata(...)` currently preserves old top-level
+    screenshot aliases during sparse metadata replay.
+  - `currentTurnToolEventFrom(...)` and `buildLiveTurnPresentation(...)` expose
+    screenshot fields for live tool output entries. Those are separate current
+    turn/tool contracts and are out of scope for this display-row migration.
+- `packages/windie-sdk-js/cjs/projections/conversationProjections.js`
+  - Checked-in CommonJS mirror used by Electron/main packaging and CJS tests.
+    It must be regenerated or manually kept byte-for-byte behavior-compatible
+    with the TypeScript projection.
+- `packages/windie-sdk-js/src/stores/{InMemoryConversationStore,FileConversationStore,LocalRuntimeConversationStore}.ts`
+  - `loadDisplayRows(...)` delegates to `buildDisplayRows(...)`.
+  - Store adapters should stay dumb; do not canonicalize display images in
+    store adapters.
+- `packages/windie-sdk-js/src/stores/LocalRuntimeConversationStore.ts`
+  - `eventPayloadWriteParams(...)` writes local-runtime search/list metadata,
+    including a flattened `metadata.screenshot` value. That is persistence
+    indexing metadata and should not become the display contract.
+- `buildDisplayConversation(...)` / `DisplayMessage`
+  - This older display projection returns raw event payloads as
+    `DisplayMessage.metadata` and does not merge `user_message_metadata`.
+    Keep it out of scope unless a caller still uses it for screenshot display.
+
+Renderer display row consumers:
+
+- `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
+  - `recordPayloadFromRow(...)` copies SDK display metadata into a
+    `DisplayMessage.metadata` compatibility payload.
+  - `screenshotFieldsFromPayload(...)` reads both alias families and inline
+    screenshot fields from that payload.
+  - `displayMessageFromSdkDisplayRow(...)` is the main adapter to update so SDK
+    rows become renderer `ChatMessage` objects from `metadata.imageAttachments`.
+- `frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts`
+  - `countSdkRowImages(...)` currently counts `metadata.screenshotRefs`,
+    `metadata.screenshot`, `metadata.screenshotRef`, and `metadata.screenshotUrl`.
+  - `countMessageImages(...)` counts renderer `ChatMessage` images and should
+    remain unchanged for optimistic/replay/tool-output messages.
+- `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
+  - Keep as the renderer `ChatMessage` image normalization helper. It should
+    not be responsible for recovering SDK display metadata aliases after this
+    migration.
+- `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
+  - Keep as the UI screenshot attachment resolver for renderer messages.
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
+  - Live current-turn/tool output screenshot handling is separate and should not
+    be changed by this plan.
+
+Docs and diagnostics:
+
+- `docs/sdk/conversation_runtime.md` owns the SDK projection contract.
+- `docs/frontend/renderer/transcript/screenshot_message_state_and_sdk_projection_reference.md`
+  currently documents renderer SDK projection recovery from screenshot aliases;
+  this page must be updated to describe `metadata.imageAttachments`.
+- `docs/debug/runtime_traces.md` and `docs/debug/logging.md` describe
+  `renderer.display_projection`; keep the count names, but update their source
+  semantics from “screenshot metadata fields” to “SDK image attachments”.
+- `frontend/src/main/diagnostics/app_diagnostics_store.cjs` already sanitizes
+  image diagnostics to counts only. No diagnostic schema expansion is needed.
+
 ## Non-Goals
 
 - Do not change `conversation_events.event_payload` storage.
@@ -79,8 +151,48 @@ Rules:
   tool-output rendering.
 - Do not remove inline/base64 screenshot support where tool-output or older
   event payloads still use it.
+- Do not canonicalize `CurrentTurnToolEvent` or `LiveTurnPresentationEntry`
+  screenshot fields in this migration. Live tool/current-turn rendering is a
+  different SDK presentation contract.
+- Do not change `DisplayConversation.messages` or `DisplayMessage.metadata`
+  unless implementation evidence proves an active display-row caller still
+  depends on that older projection for screenshots.
 
 ## Owner-Correct Migration
+
+### Phase 0: Add Failing Tests First
+
+Add or adjust tests before changing implementation:
+
+- In `tests/frontend/AgentSdkConversationRuntime.test.ts`, assert
+  `buildDisplayRows(...)` emits `metadata.imageAttachments` for:
+  - `screenshot_ref` + `screenshot_url`
+  - `screenshot_refs` with multiple artifact ids
+  - URL-only screenshot metadata
+  - inline `screenshot`
+  - legacy `image`
+- Extend the same-turn replay invariant so:
+  - SDK metadata event with image fields creates `imageAttachments`
+  - later backend metadata without image fields preserves `imageAttachments`
+  - later backend metadata with explicit image keys replaces or clears
+    `imageAttachments`, depending on the explicit value
+- In `tests/frontend/SdkDisplayChatMessageProjection.test.ts`, add a canonical
+  `metadata.imageAttachments` input case and a negative alias case proving the
+  renderer SDK-row projection does not recover images from
+  `metadata.screenshot_ref`, `metadata.screenshotRefs`, or `metadata.raw`.
+- In `tests/frontend/DesktopConversationDisplayProjection.test.ts`, assert
+  `sdkUserImageCount` comes from `metadata.imageAttachments`.
+- In `tests/frontend/AgentConversationStoreApi.test.ts`, update the persisted
+  local-runtime display-row replay fixture to assert `imageAttachments` after
+  `LocalRuntimeConversationStore.loadDisplayRows(...)`.
+
+Keep the existing user-visible bug invariant active throughout the migration:
+
+- `user_message`
+- SDK `user_message_metadata` with screenshot fields
+- backend `user_message_metadata` without screenshot fields
+- `assistant_message`
+- final display row still has image attachments
 
 ### Phase 1: SDK Projection Contract
 
@@ -101,6 +213,33 @@ event payload:
 - `screenshot_content_type` or `screenshotContentType` populates
   `contentType`.
 
+Recommended helper shape:
+
+```ts
+function imageAttachmentsFromPayload(payload: JsonRecord): SdkDisplayImageAttachment[] | null
+```
+
+Keep the helper private to `conversationProjections.ts` unless another SDK
+projection needs the exact same display contract in the same change. The helper
+should return `null` instead of `[]` when no image exists so absence stays
+distinct from an explicit empty patch.
+
+Suggested normalization behavior:
+
+- Trim strings and discard empty strings.
+- Normalize `screenshot_refs`/`screenshotRefs` first; if present, each ref
+  becomes one `{ kind: 'screenshot', ref, url, inlineBase64: null, contentType }`
+  entry.
+- Apply a single URL to the first attachment only, matching current renderer
+  behavior.
+- If there are no refs but a URL exists, create one URL-only attachment with
+  `ref: null`.
+- If there are no remote refs or URLs and inline image data exists, create one
+  inline attachment.
+- Treat `artifact://`, `http://`, and `https://` values in inline fields as not
+  inline image data, preserving the current no-artifact-inference rule for
+  `screenshot`.
+
 Then update `displayRowMetadata(...)` to emit:
 
 - `imageAttachments`
@@ -119,12 +258,28 @@ of the screenshot input keys.
 Mirror the generated CommonJS projection under
 `packages/windie-sdk-js/cjs/projections/conversationProjections.js`.
 
+Implementation detail:
+
+- Add `export type SdkDisplayImageAttachment` in
+  `packages/windie-sdk-js/src/conversation/types.ts`.
+- Replace the screenshot fields in `SdkDisplayRowMetadata` with
+  `imageAttachments?: SdkDisplayImageAttachment[] | null`.
+- Update TypeScript first, then run or mirror the CJS build. Preferred command
+  when dependency state allows it:
+
+```bash
+npm --prefix packages/windie-sdk-js run build:cjs
+```
+
+If the build cannot be run in the local environment, manually mirror the CJS
+projection and document that limitation in the implementation summary.
+
 ### Phase 2: Renderer SDK Row Consumer
 
 Owner:
 `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
 
-Replace alias-reading helpers in the SDK row adapter:
+Replace alias-reading helpers only for SDK display rows:
 
 - Delete SDK-row reads of `metadata.screenshotRef`.
 - Delete SDK-row reads of `metadata.screenshot_ref`.
@@ -144,6 +299,28 @@ Instead, convert `metadata.imageAttachments` to renderer `ChatMessage` fields:
 Keep `screenshotMessageState.js` as the renderer UI normalization helper for
 `ChatMessage`, but stop using it to recover SDK metadata aliases.
 
+Implementation detail:
+
+- `recordPayloadFromRow(...)` should copy `imageAttachments` and non-image
+  metadata only. It should not copy SDK screenshot aliases.
+- `screenshotFieldsFromPayload(...)` can remain for legacy `DisplayMessage`
+  conversion if still needed, but SDK-row conversion should use a new helper
+  like:
+
+```ts
+function screenshotFieldsFromImageAttachments(
+  attachments: unknown,
+): Partial<ChatMessage>
+```
+
+- `displayMessageFromSdkDisplayRow(...)` may bypass the old
+  `DisplayMessage.metadata` compatibility payload for user/tool image fields if
+  that removes alias copying. Keep the change local to
+  `sdkDisplayChatMessageProjection.ts`; feature code should continue using
+  `DesktopConversationDisplayProjection`.
+- Do not read `metadata.raw` for display recovery. Existing boundary tests
+  already assert this file does not contain `metadata.raw`.
+
 ### Phase 3: Diagnostics And Counts
 
 Owner:
@@ -158,6 +335,19 @@ messages outside SDK display rows.
 
 Update durable `renderer.display_projection` summaries to ensure the SDK-row
 image count comes from the canonical SDK shape.
+
+Implementation detail:
+
+- Replace `stringArrayFromUnknown(metadata.screenshotRefs)` and top-level
+  screenshot field checks with an `imageAttachments` count.
+- Count only attachment objects that contain `ref`, `url`, or `inlineBase64`.
+- Preserve existing diagnostic field names:
+  - `sdkUserImageCount`
+  - `sdkUserRowsWithImages`
+  - `sdkProjectedUserImageCount`
+  - `mergedUserImageCount`
+- Do not add screenshot refs, URLs, inline bytes, prompts, or message text to
+  diagnostic payloads.
 
 ### Phase 4: Tests And Regression Pack
 
@@ -182,6 +372,12 @@ Required assertions:
   `metadata.screenshot_ref`, `metadata.screenshotRefs`, or `metadata.raw`.
 - Dashboard display projection image-count diagnostics count SDK row images from
   `metadata.imageAttachments`.
+- Renderer boundary tests continue to prove feature code routes through the app
+  runtime facade, not the infrastructure SDK-row adapter directly:
+  `tests/frontend/RendererChatRuntimeBoundary.test.ts` and
+  `tests/frontend/RendererAppRuntimeBoundary.test.ts`.
+- SDK package boundary tests still prove source and CJS projection boundaries:
+  `tests/frontend/AgentSdkPackageBoundary.test.ts`.
 
 Keep the behavior registered in the Core Loop Regression Pack:
 
@@ -198,6 +394,13 @@ Update:
 - `docs/sdk/conversation_runtime.md`: document
   `metadata.imageAttachments` as the SDK display-row image contract and clarify
   that snake_case screenshot fields remain event/backend payload contracts only.
+- `docs/frontend/renderer/transcript/screenshot_message_state_and_sdk_projection_reference.md`:
+  replace the current “SDK display projection reads screenshot aliases” section
+  with “SDK display projection consumes `metadata.imageAttachments`; event
+  aliases are normalized inside SDK projection.”
+- `docs/debug/runtime_traces.md` and `docs/debug/logging.md`: update the
+  `sdkUserImageCount` explanation to say the SDK row carried canonical image
+  attachments.
 - `docs/debug/core_loop_regression_pack.md`: keep the protected behavior entry
   tied to the canonical SDK metadata shape.
 - `CHANGELOG.md`: note the SDK display metadata contract cleanup and migration
@@ -228,6 +431,38 @@ Do not delete:
 - Query/replay snake_case transport fields.
 - Tool-output screenshot payload support.
 - Renderer `ChatMessage` screenshot fields used outside SDK display rows.
+- Current-turn/tool presentation screenshot fields.
+- `DisplayMessage.metadata` raw event payload behavior unless a separate
+  migration proves it is unused for display or rehydrate callers.
+
+## Post-Implementation Search Gates
+
+After implementation, these searches should prove the SDK-row display path no
+longer depends on alias fields:
+
+```bash
+rg -n "metadata\\.(screenshotRef|screenshot_ref|screenshotUrl|screenshot_url|screenshotRefs|screenshot_refs|screenshotContentType|screenshot)" \
+  frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts \
+  frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts
+
+rg -n "'screenshotRef'|'screenshot_ref'|'screenshotUrl'|'screenshot_url'|'screenshotRefs'|'screenshot_refs'|'screenshotContentType'|'screenshot'" \
+  frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts
+```
+
+Expected result: no SDK-row display alias reads remain. If
+`screenshotFieldsFromPayload(...)` remains for non-SDK `DisplayMessage`
+compatibility, document why and keep tests proving SDK rows do not use it.
+
+SDK type and projection searches should show:
+
+```bash
+rg -n "imageAttachments|SdkDisplayImageAttachment" packages/windie-sdk-js/src packages/windie-sdk-js/cjs
+rg -n "screenshot_ref|screenshotRefs|screenshot_refs|screenshotRef" packages/windie-sdk-js/src/projections/conversationProjections.ts
+```
+
+Expected result: screenshot alias reads remain only in event-payload
+normalization helpers and current-turn/tool projection code, not as emitted
+`SdkDisplayRowMetadata` top-level fields.
 
 ## Validation
 
@@ -235,17 +470,27 @@ Run:
 
 ```bash
 ./bin/windie.sh test frontend -- AgentSdkConversationRuntime.test.ts SdkDisplayChatMessageProjection.test.ts DesktopConversationDisplayProjection.test.ts AgentConversationStoreApi.test.ts
+./bin/windie.sh test frontend -- RendererChatRuntimeBoundary.test.ts RendererAppRuntimeBoundary.test.ts AgentSdkPackageBoundary.test.ts AppDiagnosticsStore.test.cjs DesktopRendererTraceRuntime.test.ts
 ./bin/windie.sh test core-loop
+npm --prefix packages/windie-sdk-js run build:cjs
+cd frontend && npm run typecheck
 git diff --check
 ```
 
 For an implementation PR touching generated SDK output, also verify the checked
 in CommonJS projection is updated with the TypeScript source.
 
+If `npm --prefix packages/windie-sdk-js run build:cjs` or
+`cd frontend && npm run typecheck` cannot run in the local environment, state
+the blocker and run the focused Jest tests plus `git diff --check`.
+
 ## Migration And Security Notes
 
 No persisted-data migration should be required. Existing event payload rows keep
 their current screenshot fields and are normalized during SDK projection replay.
+This is a public SDK display type cleanup, so release notes should call out that
+`SdkDisplayRowMetadata` no longer exposes screenshot aliases after migration;
+callers should read `metadata.imageAttachments`.
 
 This is a display-contract cleanup. It must not log image bytes, prompts,
 credentials, arbitrary local paths, or raw screenshots in diagnostics. Durable
