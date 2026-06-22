@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer Thread Projection Fallback Naming
+
+- Finding: `DesktopThreadPresentationRuntime` correctly preferred SDK
+  presentation entries before falling back to projection-derived current-turn
+  rows, but the runtime local, focused tests, and active renderer transport
+  docs still described the supported fallback as legacy projection rows.
+- Change: renamed the runtime local to `projectionFallbackMessages`, updated
+  focused presentation tests to call the path projection fallback rows, and
+  refreshed active renderer transport docs to keep SDK presentation-entry
+  precedence explicit without legacy wording.
+- Validation target: `RendererAppRuntimeBoundary.test.ts` now guards the
+  thread presenter against reintroducing a legacy-named projection fallback
+  local.
+- Compatibility/security: no IPC channel, SDK event payload, transcript row
+  shape, renderer config shape, persisted storage, permission, credential,
+  local execution, trust-boundary, storage, or migration change required.
+
 ### 2026-06-22 Renderer Visible Lifecycle Local Pending Facade
 
 - Finding: `DesktopVisibleTurnLifecycleRuntime` already deleted the retired

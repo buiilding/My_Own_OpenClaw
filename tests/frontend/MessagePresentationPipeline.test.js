@@ -11,7 +11,7 @@ const {
 } = DesktopThreadPresentationRuntime;
 
 describe('desktopThreadPresentationRuntime', () => {
-  test('buildThreadPresentationMessages keeps SDK row order even when tool logs are hidden', () => {
+  test('buildThreadPresentationMessages keeps durable row order without tool-log filtering', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
       {
@@ -36,10 +36,7 @@ describe('desktopThreadPresentationRuntime', () => {
       },
     ];
 
-    const rendered = buildThreadPresentationMessages(messages, {
-      showToolLogs: false,
-      isBusy: false,
-    });
+    const rendered = buildThreadPresentationMessages(messages);
 
     expect(rendered).toBe(messages);
   });
@@ -152,7 +149,7 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages derives legacy current-turn rows from the projection', () => {
+  test('buildThreadPresentationMessages derives current-turn rows from projection fallback', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];
@@ -184,7 +181,7 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
-  test('buildThreadPresentationMessages prefers SDK presentation entries over legacy projection rows', () => {
+  test('buildThreadPresentationMessages prefers SDK presentation entries over projection fallback rows', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
     ];
@@ -479,7 +476,7 @@ describe('desktopThreadPresentationRuntime', () => {
     })).toBe(messages);
   });
 
-  test('keeps live search-source rows visible in hidden-thread presentation', () => {
+  test('keeps live search-source rows visible in thread presentation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Search the web' },
       {
@@ -491,13 +488,10 @@ describe('desktopThreadPresentationRuntime', () => {
       },
     ];
 
-    expect(buildThreadPresentationMessages(messages, {
-      showToolLogs: false,
-      isBusy: true,
-    })).toEqual(messages);
+    expect(buildThreadPresentationMessages(messages)).toEqual(messages);
   });
 
-  test('keeps active tool-output rows visible while tool logs are collapsed', () => {
+  test('keeps active tool-output rows visible in thread presentation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Read files' },
       {
@@ -516,13 +510,10 @@ describe('desktopThreadPresentationRuntime', () => {
       },
     ];
 
-    expect(buildThreadPresentationMessages(messages, {
-      showToolLogs: false,
-      isBusy: true,
-    })).toEqual(messages);
+    expect(buildThreadPresentationMessages(messages)).toEqual(messages);
   });
 
-  test('keeps completed raw tool-call rows while tool logs are collapsed', () => {
+  test('keeps completed raw tool-call rows in thread presentation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Read files' },
       {
@@ -548,13 +539,10 @@ describe('desktopThreadPresentationRuntime', () => {
       },
     ];
 
-    expect(buildThreadPresentationMessages(messages, {
-      showToolLogs: false,
-      isBusy: false,
-    })).toBe(messages);
+    expect(buildThreadPresentationMessages(messages)).toBe(messages);
   });
 
-  test('keeps completed tool-output rows while tool logs are collapsed', () => {
+  test('keeps completed tool-output rows in thread presentation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Read files' },
       {
@@ -573,10 +561,7 @@ describe('desktopThreadPresentationRuntime', () => {
       },
     ];
 
-    expect(buildThreadPresentationMessages(messages, {
-      showToolLogs: false,
-      isBusy: false,
-    })).toBe(messages);
+    expect(buildThreadPresentationMessages(messages)).toBe(messages);
   });
 
 });

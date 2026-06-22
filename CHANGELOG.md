@@ -71,6 +71,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: name thread live-row fallback as projection fallback
+  instead of legacy projection rows, keeping SDK presentation-entry precedence
+  explicit in the app-runtime thread presenter. No migration required.
 - frontend/renderer: rename the visible-lifecycle local handoff facade from
   `shouldUseLocalSendPreflight` to `shouldUseLocalPendingTurn`, delete the
   live-surface send-preflight wrapper/source branch, and describe presentation

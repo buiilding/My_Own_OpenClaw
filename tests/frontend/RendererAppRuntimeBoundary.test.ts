@@ -609,6 +609,10 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopPresentationSourceChannels');
     expect(threadPresentationSource).toContain('DesktopThreadPresentationRuntime');
+    expect(threadPresentationSource).toContain('projectionFallbackMessages');
+    expect(threadPresentationSource).not.toContain('legacyProjectionMessages');
+    expect(threadPresentationSource).not.toContain('showToolLogs');
+    expect(threadPresentationSource).not.toContain('isBusy');
     expect(threadPresentationSource).not.toContain('hasCurrentTurnLiveProgressMessages');
     expect(threadPresentationSource).not.toContain('export function hasCurrentTurnLiveProgressMessages');
     expect(threadPresentationSource).not.toContain('export function buildThreadPresentationMessages');
@@ -676,6 +680,8 @@ describe('renderer app runtime boundary', () => {
     expect(chatSurfaceControllerSource).not.toContain('resolveSdkCurrentTurnPresentationState');
     expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');
     expect(chatInterfaceSource).toContain('DesktopThreadPresentationRuntime');
+    expect(chatInterfaceSource).not.toContain('showToolLogs');
+    expect(chatInterfaceSource).not.toContain('show_tool_logs === true');
     expect(chatInterfaceSource).not.toContain('VISIBLE_ASSISTANT_REPLY_TYPE_SET');
     expect(chatInterfaceSource).not.toContain('allowedTypes:');
     expect(chatSurfaceControllerSource).not.toContain('allowedTypes');
