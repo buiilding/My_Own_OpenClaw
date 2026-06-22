@@ -318,46 +318,4 @@ describe('FileConversationStore', () => {
     expect(storedEvents.map(item => item.eventId)).toEqual(['evt-first', 'evt-second']);
   });
 
-  test('rewrites conversations without leaving removed events in the active revision', async () => {
-    const store = new FileConversationStore({ directory: tempDir });
-    const first = event('user_message', { text: 'original' }, {
-      eventId: 'evt-first',
-      timestamp: '2026-05-15T12:00:00.000Z',
-    });
-    const second = event('assistant_message', { text: 'remove me' }, {
-      eventId: 'evt-second',
-      timestamp: '2026-05-15T12:00:01.000Z',
-    });
-    const rewrite = event(
-      'conversation_rewritten',
-      {
-        reason: 'edit_resend',
-        removedEventIds: [second.eventId],
-      },
-      {
-        revisionId: 'rev-2',
-        eventId: 'evt-rewrite',
-        timestamp: '2026-05-15T12:00:02.000Z',
-      },
-    );
-    await store.appendEvents([first, second]);
-
-    await store.rewriteConversation({
-      conversationRef: 'conv-file-store',
-      baseRevisionId: 'rev-1',
-      newRevisionId: 'rev-2',
-      cutAfterEventId: first.eventId,
-      replacementUserMessage: { text: 'replacement' },
-      preservedEvents: [first, rewrite],
-      removedEventIds: [second.eventId],
-      reason: 'edit_resend',
-    });
-
-    const reopened = new FileConversationStore({ directory: tempDir });
-    expect(await reopened.loadEvents('conv-file-store')).toEqual([first, rewrite]);
-    expect(await reopened.getRevision('conv-file-store')).toMatchObject({
-      conversationRef: 'conv-file-store',
-      revisionId: 'rev-2',
-    });
-  });
 });

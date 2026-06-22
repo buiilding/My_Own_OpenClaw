@@ -47,8 +47,6 @@ from memory.chat_event_store import (
     list_conversations,
     replace_display_timeline,
     replace_model_history_checkpoint,
-    replace_conversation,
-    rewrite_conversation_after_event,
     search_conversations,
 )
 from memory.conversation_semanticization_runtime import (
@@ -1388,46 +1386,6 @@ class LocalMemoryStore:
             user_id=user_id,
             limit=limit,
         )
-
-    async def replace_conversation(
-        self,
-        *,
-        user_id: str,
-        conversation_id: Optional[str],
-        events: List[Dict[str, Any]],
-        revision_id: Optional[str] = None,
-        revision_updated_at: Optional[str] = None,
-    ) -> Dict[str, int]:
-        result = await replace_conversation(
-            db_path=self.history_db_path,
-            user_id=user_id,
-            conversation_id=conversation_id,
-            events=events,
-            revision_id=revision_id,
-            revision_updated_at=revision_updated_at,
-        )
-        return result
-
-    async def rewrite_conversation_after_event(
-        self,
-        *,
-        user_id: str,
-        conversation_id: Optional[str],
-        cut_after_event_id: Optional[str],
-        event: Dict[str, Any],
-        revision_id: Optional[str] = None,
-        revision_updated_at: Optional[str] = None,
-    ) -> Dict[str, int]:
-        result = await rewrite_conversation_after_event(
-            db_path=self.history_db_path,
-            user_id=user_id,
-            conversation_id=conversation_id,
-            cut_after_event_id=cut_after_event_id,
-            event=event,
-            revision_id=revision_id,
-            revision_updated_at=revision_updated_at,
-        )
-        return result
 
     async def get_conversation_revision(
         self,

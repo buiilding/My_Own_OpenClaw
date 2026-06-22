@@ -7,7 +7,6 @@ import type {
   ConversationEvent,
   ConversationMetadata,
   ConversationRevision,
-  ConversationRewritePlan,
   ConversationStore,
   DisplayTimelineCheckpoint,
   DisplayConversation,
@@ -197,23 +196,6 @@ export class FileConversationStore implements ConversationStore {
         });
       });
     }
-  }
-
-  async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    await this.runConversationMutation(plan.conversationRef, async () => {
-      const events = [...plan.preservedEvents];
-      const stored = await this.readConversation(plan.conversationRef);
-      await this.writeConversation({
-        ...stored,
-        conversationRef: plan.conversationRef,
-        events,
-        revision: {
-          conversationRef: plan.conversationRef,
-          revisionId: plan.newRevisionId,
-          updatedAt: new Date().toISOString(),
-        },
-      });
-    });
   }
 
   async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {

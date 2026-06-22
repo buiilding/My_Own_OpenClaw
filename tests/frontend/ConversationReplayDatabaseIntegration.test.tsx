@@ -265,56 +265,6 @@ try:
                     "record_kind": "chat_event",
                 },
             }))
-        elif method == "conversation.rewrite_after_event":
-            cutoff_index = 0
-            cut_after_event_id = params.get("cut_after_event_id")
-            if isinstance(cut_after_event_id, str) and cut_after_event_id.strip():
-                cutoff = conn.execute(
-                    """
-                    SELECT message_index
-                    FROM conversation_events
-                    WHERE user_id = ? AND conversation_id = ? AND id = ?
-                    """,
-                    (
-                        params.get("user_id"),
-                        params.get("conversation_id"),
-                        cut_after_event_id,
-                    ),
-                ).fetchone()
-                if cutoff is None:
-                    print(json.dumps({
-                        "success": False,
-                        "error": "cut_after_event_id was not found",
-                    }))
-                    sys.exit(0)
-                cutoff_index = int(cutoff["message_index"] or 0)
-            deleted = conn.execute(
-                """
-                DELETE FROM conversation_events
-                WHERE user_id = ? AND conversation_id = ? AND message_index > ?
-                """,
-                (
-                    params.get("user_id"),
-                    params.get("conversation_id"),
-                    cutoff_index,
-                ),
-            ).rowcount
-            insert_event(
-                conn,
-                str(params.get("user_id")),
-                params["event"]["event_payload"],
-                cutoff_index + 1,
-            )
-            conn.commit()
-            print(json.dumps({
-                "success": True,
-                "data": {
-                    "deleted_count": deleted,
-                    "inserted_count": 1,
-                    "conversation_id": params.get("conversation_id"),
-                    "record_kind": "chat_event",
-                },
-            }))
         else:
             print(json.dumps({
                 "success": False,
@@ -345,7 +295,7 @@ function runPythonSqliteBridge<T>(
 class SqliteConversationHistory {
   readonly dir = mkdtempSync(join(tmpdir(), 'agent-replay-db-'));
   readonly dbPath = join(this.dir, 'history.db');
-  rewriteFailure: string | null = null;
+  displayReplaceFailure: string | null = null;
   readonly displayTimelineByConversation = new Map<string, JsonRecord>();
 
   constructor() {
@@ -394,13 +344,10 @@ class SqliteConversationHistory {
   }
 
   async rpc({ method, params }: { method: string; params?: JsonRecord }): Promise<JsonRecord> {
-    if (
-      (method === 'conversation.rewrite_after_event' || method === 'conversation.display.replace')
-      && this.rewriteFailure
-    ) {
+    if (method === 'conversation.display.replace' && this.displayReplaceFailure) {
       return {
         success: false,
-        error: this.rewriteFailure,
+        error: this.displayReplaceFailure,
       };
     }
     if (method === 'conversation.display.load') {
@@ -761,8 +708,8 @@ describe('conversation replay database integration', () => {
     expectReplayPreparationErrorMessage();
   });
 
-  test('reports preparation failure when local-runtime SQLite cutoff rewrite fails', async () => {
-    history.rewriteFailure = 'forced sqlite rewrite failure';
+  test('reports preparation failure when local-runtime display replacement fails', async () => {
+    history.displayReplaceFailure = 'forced display replacement failure';
     const { result } = renderReplayHook(BASE_MESSAGES);
 
     await act(async () => {
@@ -774,7 +721,7 @@ describe('conversation replay database integration', () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '[ChatInterface] Failed to edit user message:',
-      expect.objectContaining({ message: 'forced sqlite rewrite failure' }),
+      expect.objectContaining({ message: 'forced display replacement failure' }),
     );
     expect(backendRehydrates).toEqual([]);
     expect(sentQueries).toEqual([]);

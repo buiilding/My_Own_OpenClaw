@@ -50,8 +50,10 @@ SDK command names:
 - `conversation.load_events`
 - `conversation.get_revision`
 - `conversation.delete`
-- `conversation.replace`
-- `conversation.rewrite_after_event`
+- `conversation.display.replace`
+- `conversation.display.load`
+- `conversation.model_history.replace`
+- `conversation.model_history.load`
 - `clear_chat_history`
 - `list_episodic_memories`
 - `list_semantic_memories`
@@ -116,16 +118,17 @@ command boundaries.
 
 ### `conversation.append_event`
 
-- appends or replaces an event in `conversation_events`
+- appends an event in `conversation_events`
 - stores metadata, attachments, full event payload, and optional compaction checkpoint
 - assigns `message_index` when omitted
 
-### `conversation.replace`
+### Display And Model-History Commands
 
-- atomically replaces all `conversation_events` rows for one user conversation
-- accepts the same event fields as `conversation.append_event`, batched in `events`
-- uses the provided `message_index` values to preserve replacement order
-- rolls back the delete if any replacement event cannot be inserted
+- `conversation.display.replace/load` stores and reads editable display
+  timeline checkpoints.
+- `conversation.model_history.replace/load` stores and reads bounded
+  provider-neutral model-history checkpoints for backend resume.
+- These commands do not delete or rewrite `conversation_events` rows.
 
 ### `conversation.list`
 

@@ -214,8 +214,8 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
 - dashboard chat deletion goes through the SDK store path so visible transcript
   rows, chat-event rows, metadata, title/search rows, attachments, and working
   memories are deleted together
-- compacted transcript replacements use `conversation.replace` so the
-  durable chat-event log is updated in one transaction
+- compacted model-facing replacements use model-history checkpoints while the
+  durable chat-event log keeps compaction lifecycle/audit events
 
 ## Troubleshooting
 

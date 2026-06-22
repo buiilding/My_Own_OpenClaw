@@ -8,7 +8,6 @@ import type {
   ConversationEvent,
   ConversationMetadata,
   ConversationRevision,
-  ConversationRewritePlan,
   ConversationStore,
   DisplayTimelineCheckpoint,
   DisplayTimelineRow,
@@ -372,35 +371,6 @@ export class LocalRuntimeConversationStore implements ConversationStore {
         logStoredCompactionEvent(event, params, response);
       }
     }
-  }
-
-  async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    const rewriteEvent = plan.preservedEvents[plan.preservedEvents.length - 1] ?? null;
-    if (
-      (plan.reason === 'edit_resend' || plan.reason === 'retry')
-      && rewriteEvent?.type === 'conversation_rewritten'
-    ) {
-      await this.call('conversation.rewrite_after_event', {
-        user_id: this.options.userId,
-        conversation_id: plan.conversationRef,
-        record_kind: CHAT_EVENT_RECORD_KIND,
-        cut_after_event_id: plan.cutAfterEventId ?? null,
-        revision_id: plan.newRevisionId,
-        revision_updated_at: new Date().toISOString(),
-        event: this.buildEventWriteParams(rewriteEvent),
-      });
-      return;
-    }
-    await this.call('conversation.replace', {
-      user_id: this.options.userId,
-      conversation_id: plan.conversationRef,
-      record_kind: CHAT_EVENT_RECORD_KIND,
-      revision_id: plan.newRevisionId,
-      revision_updated_at: new Date().toISOString(),
-      events: plan.preservedEvents.map((event, index) => (
-        this.buildEventWriteParams(event, index + 1)
-      )),
-    });
   }
 
   async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {

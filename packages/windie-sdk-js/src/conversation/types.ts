@@ -133,17 +133,6 @@ export type ToolEventPayload = JsonRecord & {
   structuredPayload?: JsonRecord | null;
 };
 
-export type ConversationRewritePlan = {
-  conversationRef: string;
-  baseRevisionId: string;
-  newRevisionId: string;
-  cutAfterEventId?: string | null;
-  replacementUserMessage?: JsonRecord | null;
-  preservedEvents: ConversationEvent[];
-  removedEventIds: string[];
-  reason: 'edit_resend' | 'retry' | 'transcript_projection_rewrite';
-};
-
 export type DisplayTimelineReplaceReason =
   | 'user_edit'
   | 'retry'
@@ -752,7 +741,6 @@ export type ConversationRuntimeState = {
 export interface ConversationStore {
   appendEvent(event: ConversationEvent): Promise<void>;
   appendEvents(events: ConversationEvent[]): Promise<void>;
-  rewriteConversation?(plan: ConversationRewritePlan): Promise<void>;
   replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void>;
   loadEvents(conversationRef: string): Promise<ConversationEvent[]>;
   loadForDisplay(conversationRef: string): Promise<DisplayConversation>;

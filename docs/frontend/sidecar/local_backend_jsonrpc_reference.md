@@ -73,13 +73,15 @@ Memory methods:
 Chat-event methods:
 
 - `conversation.append_event`
-- `conversation.replace`
-- `conversation.rewrite_after_event`
 - `conversation.list`
 - `conversation.search`
 - `conversation.load_events`
 - `conversation.get_revision`
 - `conversation.delete`
+- `conversation.display.replace`
+- `conversation.display.load`
+- `conversation.model_history.replace`
+- `conversation.model_history.load`
 
 Legacy transcript-row conversation methods and retired direct chat-history
 method names are not registered.
@@ -119,13 +121,13 @@ Removed direct memory-search bridge:
 
 `conversation_events` is the durable chat log. It stores visible user,
 assistant, tool-call, tool-output, compaction, metadata, and attachment events.
-Conversation listing/search/replay reads from this table.
+Conversation listing/search/replay reads from this table. Normal SDK
+conversation flow appends to this table and does not rewrite it.
 
 `conversation_revisions` stores the current SDK conversation revision for
-local-runtime-backed conversations. `conversation.replace` updates it
-atomically with the replacement event rows, and `conversation.get_revision`
-reads it before falling back to the latest event revision. This keeps
-edit/resend and retry rewrites from reporting an old preserved event revision.
+local-runtime-backed conversations. Display timeline and model-history
+checkpoint writes advance revision metadata, and `conversation.get_revision`
+reads it before falling back to the latest event revision.
 
 `store_memory_by_embedding` writes SDK-formatted interaction memory rows with `record_kind='interaction'` and a caller-provided embedding. Those rows power Episodic Memory and semantic summarization. They are not the visible chat replay source. The sidecar does not call backend embeddings for memory writes.
 

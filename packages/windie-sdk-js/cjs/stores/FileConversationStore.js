@@ -163,22 +163,6 @@ class FileConversationStore {
             });
         }
     }
-    async rewriteConversation(plan) {
-        await this.runConversationMutation(plan.conversationRef, async () => {
-            const events = [...plan.preservedEvents];
-            const stored = await this.readConversation(plan.conversationRef);
-            await this.writeConversation({
-                ...stored,
-                conversationRef: plan.conversationRef,
-                events,
-                revision: {
-                    conversationRef: plan.conversationRef,
-                    revisionId: plan.newRevisionId,
-                    updatedAt: new Date().toISOString(),
-                },
-            });
-        });
-    }
     async replaceCompactedReplay(snapshot) {
         if (!snapshot.complete || snapshot.entryCount !== snapshot.entries.length) {
             return;

@@ -90,9 +90,9 @@ timeline checkpoint and append same-revision live rows on top of it, so the UI
 does not need to roll back a preemptive local transcript mutation if
 replacement fails.
 
-Full replacement remains available for projection bootstraps and explicit
-conversation rewrites. A failed replacement or cutoff rewrite leaves the
-previous transcript intact.
+Display replacement remains available for projection bootstraps and explicit
+conversation revisions. A failed display replacement leaves the previous
+transcript intact.
 
 Dashboard recent-chat loading reads canonical chat-event metadata plus active
 display timeline checkpoints. Fork-only child conversations appear before they

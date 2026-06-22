@@ -1368,7 +1368,6 @@ describe('Agent SDK client behavior', () => {
         messages: [],
       })),
       listMetadata: jest.fn(async () => []),
-      rewriteConversation: jest.fn(async () => undefined),
     };
     const client = new AgentClientClass({
       backendUrl: 'https://sdk.example.test',
@@ -3722,44 +3721,9 @@ describe('Agent SDK client behavior', () => {
         expect.objectContaining({ text: 'hello' }),
       ],
     });
-    await store.rewriteConversation({
-      conversationRef: 'conv-local-runtime',
-      baseRevisionId: 'rev-1',
-      newRevisionId: 'rev-2',
-      preservedEvents: [
-        {
-          eventId: 'evt-rewrite',
-          type: 'user_message',
-          conversationRef: 'conv-local-runtime',
-          revisionId: 'rev-2',
-          timestamp: '2026-05-22T00:01:00.000Z',
-          source: 'sdk',
-          payload: { text: 'edited' },
-        },
-      ],
-      removedEventIds: ['evt-1'],
-      reason: 'edit_resend',
-    });
     await store.deleteConversation('conv-local-runtime');
     await store.clearConversations();
 
-    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'conversation.replace',
-      params: expect.objectContaining({
-        conversation_id: 'conv-local-runtime',
-        revision_id: 'rev-2',
-        revision_updated_at: expect.any(String),
-        events: [
-          expect.objectContaining({
-            event_type: 'user_message',
-            message_index: 1,
-            event_payload: expect.objectContaining({
-              eventId: 'evt-rewrite',
-            }),
-          }),
-        ],
-      }),
-    }));
     expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
       method: 'conversation.delete',
     }));
@@ -3869,76 +3833,6 @@ describe('Agent SDK client behavior', () => {
     await expect(agent.listConversations()).resolves.toHaveLength(1);
     await agent.clearConversations();
     await expect(agent.listConversations()).resolves.toEqual([]);
-  });
-
-  test('LocalRuntimeConversationStore keeps rewrite revision metadata for old or empty events', async () => {
-    const revisions = new Map<string, { revision_id: string; updated_at: string }>();
-    const eventsByConversation = new Map<string, unknown[]>();
-    const rpc = jest.fn(async ({ method, params }) => {
-      if (method === 'conversation.replace') {
-        revisions.set(params.conversation_id, {
-          revision_id: params.revision_id,
-          updated_at: params.revision_updated_at,
-        });
-        eventsByConversation.set(params.conversation_id, params.events);
-        return { success: true, data: {} };
-      }
-      if (method === 'conversation.get_revision') {
-        return {
-          success: true,
-          data: revisions.get(params.conversation_id) ?? {},
-        };
-      }
-      if (method === 'conversation.load_events') {
-        return {
-          success: true,
-          data: {
-            events: eventsByConversation.get(params.conversation_id) ?? [],
-          },
-        };
-      }
-      return { success: true, data: {} };
-    });
-    const store = new LocalRuntimeConversationStore({
-      userId: 'user-1',
-      runtime: { rpc },
-    });
-
-    await store.rewriteConversation({
-      conversationRef: 'conv-preserved',
-      baseRevisionId: 'rev-old',
-      newRevisionId: 'rev-new',
-      preservedEvents: [
-        {
-          eventId: 'evt-old',
-          type: 'user_message',
-          conversationRef: 'conv-preserved',
-          revisionId: 'rev-old',
-          timestamp: '2026-05-22T00:01:00.000Z',
-          source: 'sdk',
-          payload: { text: 'preserved' },
-        },
-      ],
-      removedEventIds: [],
-      reason: 'retry',
-    });
-    await store.rewriteConversation({
-      conversationRef: 'conv-empty',
-      baseRevisionId: 'rev-empty-old',
-      newRevisionId: 'rev-empty-new',
-      preservedEvents: [],
-      removedEventIds: ['evt-removed'],
-      reason: 'edit_resend',
-    });
-
-    await expect(store.getRevision('conv-preserved')).resolves.toMatchObject({
-      conversationRef: 'conv-preserved',
-      revisionId: 'rev-new',
-    });
-    await expect(store.getRevision('conv-empty')).resolves.toMatchObject({
-      conversationRef: 'conv-empty',
-      revisionId: 'rev-empty-new',
-    });
   });
 
   test('LocalRuntimeConversationStore persists and loads model-history checkpoints', async () => {

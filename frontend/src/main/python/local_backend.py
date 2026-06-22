@@ -237,13 +237,6 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
             "conversation.delete", self._handle_conversation_delete
         )
         self.protocol.register_method(
-            "conversation.replace", self._handle_conversation_replace
-        )
-        self.protocol.register_method(
-            "conversation.rewrite_after_event",
-            self._handle_conversation_rewrite_after_event,
-        )
-        self.protocol.register_method(
             "conversation.display.replace",
             self._handle_conversation_display_replace,
         )

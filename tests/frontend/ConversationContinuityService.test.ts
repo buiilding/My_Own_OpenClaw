@@ -17,7 +17,6 @@ function createStore(overrides: Partial<ConversationStore> = {}) {
   return {
     appendEvent: jest.fn(),
     appendEvents: jest.fn(),
-    rewriteConversation: jest.fn(),
     replaceCompactedReplay: jest.fn(),
     loadEvents: jest.fn(),
     loadForDisplay: jest.fn(),
@@ -421,7 +420,6 @@ describe('ConversationContinuityService', () => {
     });
 
     expect(store.deleteConversation).toHaveBeenCalledWith('conv-delete');
-    expect(store.rewriteConversation).not.toHaveBeenCalled();
   });
 
   test('deleteConversation fails clearly when store adapter cannot delete', async () => {
@@ -434,8 +432,6 @@ describe('ConversationContinuityService', () => {
       userId: 'user-1',
       conversationRef: 'conv-delete',
     })).rejects.toThrow('deletable conversation store');
-
-    expect(store.rewriteConversation).not.toHaveBeenCalled();
   });
 
   test('subscribeMetadataInvalidations maps local runtime title updates', () => {

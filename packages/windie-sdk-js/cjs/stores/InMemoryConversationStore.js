@@ -59,16 +59,6 @@ class InMemoryConversationStore {
             });
         }
     }
-    async rewriteConversation(plan) {
-        const rewritten = [...plan.preservedEvents];
-        this.eventsByConversation.set(plan.conversationRef, rewritten);
-        this.eventIdsByConversation.set(plan.conversationRef, new Set(rewritten.map(event => event.eventId)));
-        this.revisionsByConversation.set(plan.conversationRef, {
-            conversationRef: plan.conversationRef,
-            revisionId: plan.newRevisionId,
-            updatedAt: new Date().toISOString(),
-        });
-    }
     async replaceCompactedReplay(snapshot) {
         if (!snapshot.complete || snapshot.entryCount !== snapshot.entries.length) {
             return;

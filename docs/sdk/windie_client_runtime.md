@@ -568,16 +568,12 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
   id because same-timestamp turns, tool pairs, and assistant commits depend on
   append order.
 - desktop edit/resend and try-again visible transcript rewrites are routed
-  through `DesktopConversationContinuityService`, the desktop conversation
-  store factory, and the SDK
-  `LocalRuntimeConversationStore`. The factory owns local transcript projection
-  replacement, workspace metadata, rewritten row enrichment, and the rehydrate
-  projection used before the resend turn. Replacement is one local-runtime
-  `conversation.replace` call so local durable state is not deleted before
-  the rewritten projection is stored. The call carries the rewrite
-  `newRevisionId` as conversation revision metadata, so local-runtime metadata and
-  `getRevision()` report the replacement revision even if the preserved rows
-  still carry older event revisions or the rewrite removes every row.
+  through `DesktopConversationContinuityService`, active display timeline
+  loading, `conversation.replaceRows`, and a normal send. Raw
+  `conversation_events` remain append-only audit history; replacement state is
+  stored as display timeline checkpoints and bounded model-history checkpoints.
+  Local-runtime metadata and `getRevision()` follow the active display/model
+  revision instead of deleting and rewriting event rows.
 - desktop visible transcript state routes through SDK conversation events and
   the desktop conversation store factory, so renderer feature code no longer
   owns direct row IPC, replay append mutation, or retry queues.

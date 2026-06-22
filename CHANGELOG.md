@@ -223,6 +223,11 @@ All notable changes to WindieOS will be documented in this file.
   checkpoints and backend-normalized model-history checkpoints over raw
   event-log replay, with raw events retained only for audit/diagnostics and no
   storage migration required.
+- sdk/sidecar: remove the remaining SDK store and local-runtime
+  `conversation.replace` / `conversation.rewrite_after_event` event-log
+  mutation commands. Display edits now persist through display timeline
+  checkpoints and normal sends, while `conversation_events` stays append-only
+  audit history. No storage migration required.
 - backend/sdk: add backend-safe typed `display_attachments` support at
   tool-result, tool-bundle-result, rehydrate, and outgoing tool-output
   websocket boundaries while keeping `screenshot_ref`/artifact refs as the
