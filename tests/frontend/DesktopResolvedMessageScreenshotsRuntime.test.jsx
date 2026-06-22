@@ -137,4 +137,52 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
 
     expect(result.current).toEqual([]);
   });
+
+  test('keeps cached same-turn inline source after artifact-only message remounts', () => {
+    const artifactFetch = createDeferred();
+    DesktopArtifactRuntimeClient.fetchArtifactImage.mockReturnValueOnce(artifactFetch.promise);
+    const inlineMessage = {
+      id: 'turn-remount-sdk-evt-000002-user_message',
+      turnRef: 'turn-remount',
+      sender: 'user',
+      text: 'same turn before remount',
+      screenshots: [{
+        screenshot: 'inline-remount-base64',
+        screenshotContentType: 'image/png',
+      }],
+    };
+    const artifactMessage = {
+      id: 'turn-remount-sdk-evt-000002-user_message',
+      turnRef: 'turn-remount',
+      sender: 'user',
+      text: 'same turn after remount',
+      screenshots: [{
+        screenshotRef: 'artifact-screen-remount',
+      }],
+    };
+
+    const inlineHook = renderHook(
+      ({ message }) => (
+        DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList(message)
+      ),
+      { initialProps: { message: inlineMessage } },
+    );
+
+    expect(inlineHook.result.current).toEqual(['data:image/png;base64,inline-remount-base64']);
+
+    inlineHook.unmount();
+
+    const artifactHook = renderHook(
+      ({ message }) => (
+        DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList(message)
+      ),
+      { initialProps: { message: artifactMessage } },
+    );
+
+    expect(DesktopArtifactRuntimeClient.fetchArtifactImage).toHaveBeenCalledWith({
+      artifactId: 'artifact-screen-remount',
+      url: 'http://runtime.test/api/artifacts/artifact-screen-remount',
+    });
+    expect(artifactHook.result.current).toEqual(['data:image/png;base64,inline-remount-base64']);
+  });
 });

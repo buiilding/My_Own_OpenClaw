@@ -13,7 +13,25 @@ const {
   resolveStaticScreenshotAttachmentSrc,
 } = DesktopMessageScreenshotRuntime;
 
+const MAX_SCREENSHOT_SOURCE_CACHE_ENTRIES = 100;
+
 const artifactImagePromiseCache = new Map();
+const artifactImageSourceCache = new Map();
+const messageScreenshotSourceCache = new Map();
+
+function rememberBoundedCacheEntry(cache, key, value) {
+  if (!key) {
+    return;
+  }
+  if (cache.has(key)) {
+    cache.delete(key);
+  }
+  cache.set(key, value);
+  while (cache.size > MAX_SCREENSHOT_SOURCE_CACHE_ENTRIES) {
+    const oldestKey = cache.keys().next().value;
+    cache.delete(oldestKey);
+  }
+}
 
 function buildArtifactCacheKey(attachment) {
   if (!attachment || typeof attachment !== 'object') {
@@ -23,6 +41,11 @@ function buildArtifactCacheKey(attachment) {
     return attachment.screenshotRef.trim();
   }
   return DesktopArtifactRuntimeClient.inferArtifactRefFromUrl(attachment.screenshotUrl);
+}
+
+function cachedArtifactAttachmentSrc(attachment) {
+  const cacheKey = buildArtifactCacheKey(attachment);
+  return cacheKey ? artifactImageSourceCache.get(cacheKey) ?? null : null;
 }
 
 function normalizeContinuityKey(value) {
@@ -62,6 +85,8 @@ async function resolveArtifactAttachmentSrc(attachment) {
       .then((dataUrl) => {
         if (!dataUrl) {
           artifactImagePromiseCache.delete(cacheKey);
+        } else {
+          rememberBoundedCacheEntry(artifactImageSourceCache, cacheKey, dataUrl);
         }
         return dataUrl;
       })
@@ -78,13 +103,28 @@ function useResolvedMessageScreenshotSrcList(message) {
   const attachments = useMemo(() => resolveMessageScreenshotAttachments(message), [message]);
   const continuityKey = useMemo(() => messageScreenshotContinuityKey(message), [message]);
   const initialSources = useMemo(
-    () => attachments
-      .map((attachment) => resolveStaticScreenshotAttachmentSrc(attachment))
-      .filter((source) => typeof source === 'string' && source.length > 0),
-    [attachments],
+    () => {
+      const staticOrCachedSources = attachments
+        .map((attachment) => (
+          resolveStaticScreenshotAttachmentSrc(attachment)
+          || cachedArtifactAttachmentSrc(attachment)
+        ))
+        .filter((source) => typeof source === 'string' && source.length > 0);
+      if (staticOrCachedSources.length > 0) {
+        return staticOrCachedSources;
+      }
+      return continuityKey ? messageScreenshotSourceCache.get(continuityKey) ?? [] : [];
+    },
+    [attachments, continuityKey],
   );
   const [resolvedSources, setResolvedSources] = useState(initialSources);
   const previousContinuityKeyRef = useRef(continuityKey);
+
+  useEffect(() => {
+    if (continuityKey && resolvedSources.length > 0) {
+      rememberBoundedCacheEntry(messageScreenshotSourceCache, continuityKey, resolvedSources);
+    }
+  }, [continuityKey, resolvedSources]);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,15 +153,21 @@ function useResolvedMessageScreenshotSrcList(message) {
           if (staticSrc) {
             return staticSrc;
           }
+          const cachedSrc = cachedArtifactAttachmentSrc(attachment);
+          if (cachedSrc) {
+            return cachedSrc;
+          }
           return resolveArtifactAttachmentSrc(attachment);
         }),
       );
       if (cancelled) {
         return;
       }
-      setResolvedSources(
-        results.filter((source) => typeof source === 'string' && source.length > 0),
-      );
+      const nextSources = results.filter((source) => typeof source === 'string' && source.length > 0);
+      if (continuityKey && nextSources.length > 0) {
+        rememberBoundedCacheEntry(messageScreenshotSourceCache, continuityKey, nextSources);
+      }
+      setResolvedSources(nextSources);
     }
 
     if (initialSources.length > 0 || !isSameMessageContinuity) {
