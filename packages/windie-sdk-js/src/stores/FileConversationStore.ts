@@ -27,6 +27,11 @@ import {
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
+import { rehydrateSnapshotFromModelHistoryCheckpoint } from '../runtime/modelHistoryPayload.js';
+import {
+  displayConversationFromTimeline,
+  displayRowsFromTimeline,
+} from './displayTimelineStoreProjection.js';
 
 type NodeFsPromisesLike = {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
@@ -233,11 +238,21 @@ export class FileConversationStore implements ConversationStore {
   }
 
   async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
-    return buildDisplayConversation(await this.loadEvents(conversationRef));
+    const stored = await this.readConversation(conversationRef);
+    const timeline = await this.loadDisplayTimeline({ conversationRef });
+    if (!timeline) {
+      return buildDisplayConversation(stored.events);
+    }
+    return displayConversationFromTimeline(timeline, stored.events);
   }
 
   async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
-    return buildDisplayRows(await this.loadEvents(conversationRef));
+    const stored = await this.readConversation(conversationRef);
+    const timeline = await this.loadDisplayTimeline({ conversationRef });
+    if (!timeline) {
+      return buildDisplayRows(stored.events);
+    }
+    return displayRowsFromTimeline(timeline, stored.events);
   }
 
   async replaceDisplayTimeline(checkpoint: DisplayTimelineCheckpoint): Promise<void> {
@@ -277,6 +292,18 @@ export class FileConversationStore implements ConversationStore {
   }
 
   async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
+    const stored = await this.readConversation(conversationRef);
+    const activeRevisionId = stored.revision?.revisionId ?? null;
+    const modelHistoryCheckpoint = await this.loadModelHistory({
+      conversationRef,
+      revisionId: activeRevisionId,
+    });
+    const modelHistorySnapshot = modelHistoryCheckpoint
+      ? rehydrateSnapshotFromModelHistoryCheckpoint(modelHistoryCheckpoint)
+      : null;
+    if (modelHistorySnapshot) {
+      return modelHistorySnapshot;
+    }
     const compactedReplay = await this.loadCompactedReplay(conversationRef);
     if (
       compactedReplay?.complete
@@ -290,7 +317,7 @@ export class FileConversationStore implements ConversationStore {
         replayGenerationId: compactedReplay.generationId,
       };
     }
-    return buildRehydrateSnapshot(await this.loadEvents(conversationRef));
+    return buildRehydrateSnapshot(stored.events);
   }
 
   async replaceModelHistory(checkpoint: ModelHistoryCheckpoint): Promise<void> {

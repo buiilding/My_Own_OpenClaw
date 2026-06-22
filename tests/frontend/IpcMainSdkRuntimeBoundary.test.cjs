@@ -770,8 +770,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_STOP]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT]');
-    expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_EDIT_AND_RESEND]');
-    expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_RETRY_TURN]');
+    expect(source).not.toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_EDIT_AND_RESEND]');
+    expect(source).not.toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_RETRY_TURN]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE]');
     expect(source).toContain("'agent-sdk-command'");
     expect(source).not.toContain("'renderer-sdk-command'");
@@ -784,8 +784,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('agent.deleteMemory(');
     expect(source).toContain('agent.clearMemories(');
     expect(source).toContain('agent.clearConversations(');
-    expect(source).toContain('runtimeRegistry.prepareEditAndResend(');
-    expect(source).toContain('runtimeRegistry.prepareRetryTurn(');
+    expect(source).not.toContain('runtimeRegistry.prepareEditAndResend(');
+    expect(source).not.toContain('runtimeRegistry.prepareRetryTurn(');
     expect(source).not.toContain('agent.prepareEditAndResend(');
     expect(source).not.toContain('agent.prepareRetryTurn(');
     expect(source).toContain('requireCommandUserId');
@@ -1074,36 +1074,4 @@ describe('main ipc sdk runtime boundary', () => {
     expect(ensureAgent).not.toHaveBeenCalled();
   });
 
-  test('electron main rejects removed edit and retry SDK command aliases', async () => {
-    const ensureAgent = jest.fn(async () => ({
-      prepareRetryTurn: jest.fn(async () => ({})),
-    }));
-
-    const result = await invokeAgentSdkCommand(
-      {
-        command: 'conversation.prepareRetryTurn',
-        payload: {
-          userId: 'user-1',
-          conversationRef: 'conv-1',
-          message_id: 'message-1',
-          turn_ref: 'turn-1',
-        },
-      },
-      {
-        deps: {
-          ensureAgent,
-          appendAppDiagnostic: jest.fn(input => input),
-          getState: () => ({
-            currentUserId: 'user-1',
-          }),
-        },
-      },
-    );
-
-    expect(result).toEqual({
-      ok: false,
-      error: 'Agent SDK edit/retry commands require camelCase fields; removed field(s): turn_ref, message_id.',
-    });
-    expect(ensureAgent).not.toHaveBeenCalled();
-  });
 });

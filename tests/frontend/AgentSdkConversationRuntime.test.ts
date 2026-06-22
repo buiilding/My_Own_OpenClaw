@@ -5070,7 +5070,13 @@ describe('Agent SDK conversation runtime core', () => {
     const rehydrate = await runtime.rehydrate();
 
     expect(rehydrate.messages).toEqual([
-      expect.objectContaining({ role: 'user', message_type: 'user_query', content: 'full visible user text' }),
+      expect.objectContaining({
+        role: 'tool',
+        message_type: 'tool_output',
+        content: 'bounded tool output',
+        tool_call_id: 'call-1',
+        image_refs: ['artifact-1'],
+      }),
     ]);
     expect(sentRehydrates).toEqual([
       expect.objectContaining({
@@ -6881,6 +6887,48 @@ describe('Agent SDK conversation runtime core', () => {
       const snapshot = await runtime.load();
       expect(snapshot.state.phase).toBe('completed');
     });
+    const originalRevisionId = (await runtime.load()).state.revisionId;
+    transport.emit(backendEvent('model-history-updated', {
+      checkpoint_id: 'mh-original',
+      revision_id: originalRevisionId,
+      rows: [
+        {
+          id: 'mh-original-user',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: originalRevisionId,
+          role: 'user',
+          message_type: 'user_query',
+          content: 'Read README.md and summarize it.',
+        },
+        {
+          id: 'mh-original-call',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: originalRevisionId,
+          role: 'assistant',
+          message_type: 'assistant_response',
+          content: '',
+          tool_call_id: 'call-original',
+        },
+        {
+          id: 'mh-original-output',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: originalRevisionId,
+          role: 'tool',
+          message_type: 'tool_output',
+          content: 'backend accepted README contents',
+          tool_call_id: 'call-original',
+          tool_name: 'read_file',
+        },
+        {
+          id: 'mh-original-assistant',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: originalRevisionId,
+          role: 'assistant',
+          message_type: 'assistant_response',
+          content: 'README summary done.',
+        },
+      ],
+    }, { eventId: 'model-history-original', turnRef: 'turn-original' }));
 
     const originalSnapshot = await runtime.load();
     expect(originalSnapshot.display.compaction).toMatchObject({
@@ -6929,6 +6977,7 @@ describe('Agent SDK conversation runtime core', () => {
       text: 'Read package.json and summarize it in bullets.',
       turnRef: 'turn-edited',
     });
+    const editedRevisionId = (await runtime.load()).state.revisionId;
 
     expect(sentQueries).toEqual([
       expect.objectContaining({
@@ -6940,20 +6989,21 @@ describe('Agent SDK conversation runtime core', () => {
         conversation_ref: 'conv-sdk-runtime',
       }),
     ]);
-    expect(sentRehydrates).toEqual([
-      expect.objectContaining({
-        conversation_ref: 'conv-sdk-runtime',
-        rehydrate_mode: 'replace',
-        messages: [],
-      }),
-    ]);
-    let rewrittenEvents = await store.loadEvents('conv-sdk-runtime');
-    expect(rewrittenEvents.map(storedEvent => storedEvent.eventId)).not.toEqual(
+    expect(sentRehydrates).toEqual([]);
+    let storedEvents = await store.loadEvents('conv-sdk-runtime');
+    expect(storedEvents.map(storedEvent => storedEvent.eventId)).toEqual(
       expect.arrayContaining([
         'backend-tool-call-original',
         'backend-tool-output-original',
         'assistant-original',
         'compaction-complete-original',
+      ]),
+    );
+    expect((await runtime.load()).display.messages).toEqual(
+      expect.not.arrayContaining([
+        expect.objectContaining({ toolCallId: 'call-original' }),
+        expect.objectContaining({ text: 'backend accepted README contents' }),
+        expect.objectContaining({ text: '- original summary' }),
       ]),
     );
 
@@ -6988,6 +7038,47 @@ describe('Agent SDK conversation runtime core', () => {
     transport.emit(backendEvent('streaming-complete', {
       final_response: '- package summary',
     }, { eventId: 'complete-edited', turnRef: 'turn-edited' }));
+    transport.emit(backendEvent('model-history-updated', {
+      checkpoint_id: 'mh-edited',
+      revision_id: editedRevisionId,
+      rows: [
+        {
+          id: 'mh-edited-user',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: editedRevisionId,
+          role: 'user',
+          message_type: 'user_query',
+          content: 'Read package.json and summarize it in bullets.',
+        },
+        {
+          id: 'mh-edited-call',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: editedRevisionId,
+          role: 'assistant',
+          message_type: 'assistant_response',
+          content: '',
+          tool_call_id: 'call-edited',
+        },
+        {
+          id: 'mh-edited-output',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: editedRevisionId,
+          role: 'tool',
+          message_type: 'tool_output',
+          content: 'backend accepted package contents',
+          tool_call_id: 'call-edited',
+          tool_name: 'read_file',
+        },
+        {
+          id: 'mh-edited-assistant',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: editedRevisionId,
+          role: 'assistant',
+          message_type: 'assistant_response',
+          content: '- package summary',
+        },
+      ],
+    }, { eventId: 'model-history-edited', turnRef: 'turn-edited' }));
 
     await waitForExpect(async () => {
       const snapshot = await runtime.load();
@@ -7058,8 +7149,8 @@ describe('Agent SDK conversation runtime core', () => {
     expect((await store.loadForRehydrate('conv-sdk-runtime')).messages).toEqual(
       finalSnapshot.rehydrate.messages,
     );
-    rewrittenEvents = await store.loadEvents('conv-sdk-runtime');
-    expect(rewrittenEvents.some(storedEvent => storedEvent.type === 'compaction_applied')).toBe(false);
+    storedEvents = await store.loadEvents('conv-sdk-runtime');
+    expect(storedEvents.some(storedEvent => storedEvent.type === 'compaction_applied')).toBe(true);
   });
 
   test('conversation runtime validates model selections before sending a turn', async () => {
@@ -7775,7 +7866,7 @@ describe('Agent SDK conversation runtime core', () => {
     expect((await runtime.load()).state.phase).toBe('error');
   });
 
-  test('editAndResend rewrites from the edited user message and sends a new revision turn', async () => {
+  test('editAndResend replaces display rows before the edited user and sends normally', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async payload => {
@@ -7820,27 +7911,31 @@ describe('Agent SDK conversation runtime core', () => {
     });
 
     const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-stale');
-    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('user-edit');
-    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
-      'user_message',
-      'conversation_rewritten',
-      'turn_started',
-      'user_message',
-    ]);
+    expect(events.map(storedEvent => storedEvent.eventId)).toEqual(expect.arrayContaining([
+      'user-keep',
+      'user-edit',
+      'assistant-stale',
+    ]));
     expect(sentQueries[0]).toMatchObject({
       text: 'new text',
       conversation_ref: 'conv-sdk-runtime',
-      artifactRefs: ['artifact-old'],
     });
     expect(sentQueries[0]).not.toHaveProperty('turn_ref');
-    expect(buildDisplayConversation(events).messages.map(message => message.text)).toEqual([
+    const displayTimeline = await store.loadDisplayTimeline?.({
+      conversationRef: 'conv-sdk-runtime',
+    });
+    expect(displayTimeline).toEqual(expect.objectContaining({
+      reason: 'user_edit',
+      baseRevisionId: 'rev-old',
+    }));
+    expect(displayTimeline?.rows.map(row => row.content)).toEqual(['keep this']);
+    expect((await runtime.load()).display.messages.map(message => message.text)).toEqual([
       'keep this',
       'new text',
     ]);
   });
 
-  test('retryTurn cuts stale assistant/tool history and resends the previous user message', async () => {
+  test('retryTurn replaces display rows before the retried user and sends normally', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const store = new InMemoryConversationStore();
     await store.appendEvents([
@@ -7884,171 +7979,101 @@ describe('Agent SDK conversation runtime core', () => {
     });
 
     const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('tool-stale');
-    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-retry');
+    expect(events.map(storedEvent => storedEvent.eventId)).toEqual(expect.arrayContaining([
+      'user-retry',
+      'tool-stale',
+      'assistant-retry',
+    ]));
     expect(sentQueries[0]).toMatchObject({
       text: 'try this again',
     });
     expect(sentQueries[0]).not.toHaveProperty('turn_ref');
+    const displayTimeline = await store.loadDisplayTimeline?.({
+      conversationRef: 'conv-sdk-runtime',
+    });
+    expect(displayTimeline).toEqual(expect.objectContaining({
+      reason: 'retry',
+      baseRevisionId: 'rev-old',
+    }));
+    expect(displayTimeline?.rows).toEqual([]);
   });
 
-  test('prepareEditAndResend rewrites and rehydrates without sending a query', async () => {
-    const sendQuery = jest.fn(async () => 'query-should-not-send');
-    const sentRehydrates: Record<string, unknown>[] = [];
+  test('editAndResend preserves ready display image attachments', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
     const store = new InMemoryConversationStore();
-    await store.appendEvents([
-      createConversationEvent({
-        type: 'user_message',
-        conversationRef: 'conv-sdk-runtime',
-        revisionId: 'rev-old',
-        eventId: 'user-edit',
-        payload: { text: 'old text', screenshot_ref: 'artifact-old' },
-      }),
-      createConversationEvent({
-        type: 'assistant_message',
-        conversationRef: 'conv-sdk-runtime',
-        revisionId: 'rev-old',
-        eventId: 'assistant-stale',
-        payload: { text: 'stale answer' },
-      }),
-    ]);
+    await store.replaceDisplayTimeline({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-display',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: null,
+      baseRevisionId: null,
+      rows: [
+        {
+          id: 'display-user-edit',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-display',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'old text',
+          metadata: {
+            attachments: [
+              {
+                id: 'artifact-one',
+                kind: 'image',
+                source: 'upload',
+                status: 'ready',
+                filename: 'one.png',
+              },
+              {
+                id: 'artifact-two',
+                kind: 'image',
+                source: 'upload',
+                status: 'ready',
+                filename: 'two.png',
+              },
+            ],
+          },
+        },
+        {
+          id: 'display-assistant-stale',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-display',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'stale answer',
+        },
+      ],
+    });
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
       transport: createMockAgentRuntimeTransport({
-        sendQuery,
-        rehydrateConversation: jest.fn(async payload => {
-          sentRehydrates.push(payload);
+        sendQuery: jest.fn(async payload => {
+          sentQueries.push(payload);
+          return 'query-edited';
         }),
       }),
     });
 
     await runtime.load();
-    const prepared = await runtime.prepareEditAndResend({
-      messageId: 'user-edit',
-      text: 'new text',
-      payload: { screenshot_ref: 'artifact-new' },
-      turnRef: 'turn-prepared',
-    });
-
-    expect(sendQuery).not.toHaveBeenCalled();
-    expect(sentRehydrates).toHaveLength(1);
-    expect(prepared).toEqual(expect.objectContaining({
-      text: 'new text',
-      turnRef: 'turn-prepared',
-      payload: expect.objectContaining({
-        screenshot_ref: 'artifact-new',
-      }),
-    }));
-    const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-stale');
-    expect(events.filter(storedEvent => storedEvent.type !== 'trace_event').map(storedEvent => storedEvent.type)).toEqual([
-      'conversation_rewritten',
-    ]);
-  });
-
-  test('prepareEditAndResend preserves same-turn resolved image metadata', async () => {
-    const store = new InMemoryConversationStore();
-    await store.appendEvents([
-      createConversationEvent({
-        type: 'user_message',
-        conversationRef: 'conv-sdk-runtime',
-        revisionId: 'rev-old',
-        eventId: 'user-edit',
-        turnRef: 'turn-original',
-        payload: { text: 'old text' },
-      }),
-      createConversationEvent({
-        type: 'user_message_metadata',
-        conversationRef: 'conv-sdk-runtime',
-        revisionId: 'rev-old',
-        eventId: 'user-edit-metadata',
-        turnRef: 'turn-original',
-        payload: {
-          text: 'old text',
-          screenshot_ref: 'artifact-one',
-          screenshot_refs: ['artifact-one', 'artifact-two'],
-          attachment_filenames: ['one.png', 'two.png'],
-        },
-      }),
-      createConversationEvent({
-        type: 'assistant_message',
-        conversationRef: 'conv-sdk-runtime',
-        revisionId: 'rev-old',
-        eventId: 'assistant-stale',
-        turnRef: 'turn-original',
-        payload: { text: 'stale answer' },
-      }),
-    ]);
-    const runtime = new SdkConversationRuntime({
-      conversationRef: 'conv-sdk-runtime',
-      store,
-      transport: createMockAgentRuntimeTransport(),
-    });
-
-    await runtime.load();
-    const prepared = await runtime.prepareEditAndResend({
-      messageId: 'user-edit',
+    await runtime.editAndResend({
+      messageId: 'display-user-edit',
       text: 'new text',
       payload: {
-        screenshot_ref: null,
         screenshot_refs: null,
       },
     });
 
-    expect(prepared.payload).toEqual(expect.objectContaining({
-      screenshot_ref: 'artifact-one',
+    expect(sentQueries[0]).toEqual(expect.objectContaining({
+      text: 'new text',
       screenshot_refs: ['artifact-one', 'artifact-two'],
       attachment_filenames: ['one.png', 'two.png'],
     }));
-    const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('user-edit-metadata');
-    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-stale');
   });
 
-  test('prepareRetryTurn rewrites and rehydrates without sending a query', async () => {
-    const sendQuery = jest.fn(async () => 'query-should-not-send');
-    const store = new InMemoryConversationStore();
-    await store.appendEvents([
-      createConversationEvent({
-        type: 'user_message',
-        conversationRef: 'conv-sdk-runtime',
-        revisionId: 'rev-old',
-        eventId: 'user-retry',
-        payload: { text: 'try this again' },
-      }),
-      createConversationEvent({
-        type: 'assistant_message',
-        conversationRef: 'conv-sdk-runtime',
-        revisionId: 'rev-old',
-        eventId: 'assistant-retry',
-        payload: { text: 'bad answer' },
-      }),
-    ]);
-    const runtime = new SdkConversationRuntime({
-      conversationRef: 'conv-sdk-runtime',
-      store,
-      transport: createMockAgentRuntimeTransport({
-        sendQuery,
-      }),
-    });
-
-    await runtime.load();
-    const prepared = await runtime.prepareRetryTurn({
-      messageId: 'assistant-retry',
-      turnRef: 'turn-retry',
-    });
-
-    expect(sendQuery).not.toHaveBeenCalled();
-    expect(prepared).toEqual(expect.objectContaining({
-      text: 'try this again',
-      turnRef: 'turn-retry',
-    }));
-    const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-retry');
-  });
-
-  test('prepareRetryTurn rejects explicit missing message ids', async () => {
+  test('retryTurn rejects explicit missing message ids without changing display revisions', async () => {
     const store = new InMemoryConversationStore();
     await store.appendEvents([
       createConversationEvent({
@@ -8073,7 +8098,7 @@ describe('Agent SDK conversation runtime core', () => {
     });
 
     await runtime.load();
-    await expect(runtime.prepareRetryTurn({
+    await expect(runtime.retryTurn({
       messageId: 'missing-assistant-message',
     })).rejects.toThrow('Cannot retry missing message: missing-assistant-message');
     const events = await store.loadEvents('conv-sdk-runtime');
@@ -8081,64 +8106,9 @@ describe('Agent SDK conversation runtime core', () => {
       'user-retry',
       'assistant-retry',
     ]);
-  });
-
-  test('prepareRetryTurn preserves same-turn resolved image metadata', async () => {
-    const store = new InMemoryConversationStore();
-    await store.appendEvents([
-      createConversationEvent({
-        type: 'user_message',
-        conversationRef: 'conv-sdk-runtime',
-        revisionId: 'rev-old',
-        eventId: 'user-retry',
-        turnRef: 'turn-original',
-        payload: { text: 'try this again' },
-      }),
-      createConversationEvent({
-        type: 'user_message_metadata',
-        conversationRef: 'conv-sdk-runtime',
-        revisionId: 'rev-old',
-        eventId: 'user-retry-metadata',
-        turnRef: 'turn-original',
-        payload: {
-          text: 'try this again',
-          screenshot_refs: ['artifact-one', 'artifact-two'],
-          attachment_filenames: ['one.png', 'two.png'],
-        },
-      }),
-      createConversationEvent({
-        type: 'assistant_message',
-        conversationRef: 'conv-sdk-runtime',
-        revisionId: 'rev-old',
-        eventId: 'assistant-retry',
-        turnRef: 'turn-original',
-        payload: { text: 'bad answer' },
-      }),
-    ]);
-    const runtime = new SdkConversationRuntime({
+    await expect(store.loadDisplayTimeline?.({
       conversationRef: 'conv-sdk-runtime',
-      store,
-      transport: createMockAgentRuntimeTransport(),
-    });
-
-    await runtime.load();
-    const prepared = await runtime.prepareRetryTurn({
-      messageId: 'assistant-retry',
-      payload: {
-        screenshot_refs: null,
-      },
-    });
-
-    expect(prepared).toEqual(expect.objectContaining({
-      text: 'try this again',
-      payload: expect.objectContaining({
-        screenshot_refs: ['artifact-one', 'artifact-two'],
-        attachment_filenames: ['one.png', 'two.png'],
-      }),
-    }));
-    const events = await store.loadEvents('conv-sdk-runtime');
-    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('user-retry-metadata');
-    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-retry');
+    })).resolves.toBeNull();
   });
 
   test('rehydrate uses the active complete compacted replay generation when present', async () => {

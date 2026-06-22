@@ -11,6 +11,7 @@ import type {
   ConversationRuntimeState,
   ConversationStore,
   CurrentTurnProjection,
+  DisplayMessage,
   DisplayTimelineCheckpoint,
   DisplayTimelineReplaceReason,
   DisplayTimelineRow,
@@ -33,6 +34,7 @@ import type {
 } from '../conversation/types.js';
 import {
   buildCurrentTurnProjection,
+  buildCompactionState,
   buildDisplayConversation,
   buildDisplayRows,
   buildRehydrateSnapshot,
@@ -53,11 +55,16 @@ import { TraceRecorder, type TraceEventInput } from './TraceRecorder.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 import { getConversationEventScope, isConversationControlEvent } from './conversationEventScope.js';
 import { isCompactionStdoutEnabled } from './debugEnv.js';
-import { modelHistoryPayloadFromCheckpoint } from './modelHistoryPayload.js';
+import {
+  modelHistoryPayloadFromCheckpoint,
+  rehydrateSnapshotFromModelHistoryCheckpoint,
+} from './modelHistoryPayload.js';
 import {
   resolveTurnInputResources,
   type TurnInputResourceResolutionResult,
 } from './TurnInputPipeline.js';
+import { resolveToolOutputDedupeKey } from '../tools/toolCorrelationIds.js';
+import { readToolOutputContent } from '../tools/toolOutputContent.js';
 
 function nowMs(): number {
   return Date.now();
@@ -110,13 +117,6 @@ export type RetryTurnInput = {
   messageId?: string;
   turnRef?: string;
   payload?: JsonRecord;
-  model?: AgentModelSelection;
-};
-
-export type PreparedReplayTurn = {
-  text: string;
-  turnRef?: string;
-  payload: JsonRecord;
   model?: AgentModelSelection;
 };
 
@@ -217,40 +217,6 @@ function eventText(event: ConversationEvent): string {
   return '';
 }
 
-function eventMatchesId(event: ConversationEvent, messageId: string): boolean {
-  return event.eventId === messageId
-    || event.payload.id === messageId
-    || event.payload.messageId === messageId
-    || event.payload.message_id === messageId;
-}
-
-function resolvedUserTurnPayload(events: ConversationEvent[], userIndex: number): JsonRecord {
-  const userEvent = events[userIndex];
-  if (!userEvent || userEvent.type !== 'user_message') {
-    return {};
-  }
-  const payload: JsonRecord = { ...userEvent.payload };
-  const turnRef = userEvent.turnRef;
-  for (let index = userIndex + 1; index < events.length; index += 1) {
-    const event = events[index];
-    if (!event || event.type === 'user_message') {
-      break;
-    }
-    if (event.type !== 'user_message_metadata') {
-      continue;
-    }
-    if (turnRef) {
-      if (event.turnRef !== turnRef) {
-        continue;
-      }
-    } else if (event.turnRef) {
-      continue;
-    }
-    Object.assign(payload, event.payload);
-  }
-  return payload;
-}
-
 function mergeReplayPayload(
   resolvedPayload: JsonRecord,
   overridePayload?: JsonRecord | null,
@@ -266,6 +232,105 @@ function mergeReplayPayload(
     payload[key] = value;
   }
   return payload;
+}
+
+function displayRowMatchesId(row: DisplayTimelineRow, messageId: string): boolean {
+  return row.id === messageId
+    || row.metadata?.eventId === messageId
+    || row.metadata?.raw?.id === messageId
+    || row.metadata?.raw?.messageId === messageId
+    || row.metadata?.raw?.message_id === messageId;
+}
+
+function readyImageAttachmentsFromDisplayRow(row: DisplayTimelineRow): SdkDisplayAttachment[] {
+  const attachments = row.metadata?.attachments;
+  if (!Array.isArray(attachments)) {
+    return [];
+  }
+  return attachments.filter((attachment): attachment is SdkDisplayAttachment => (
+    Boolean(attachment)
+    && attachment.kind === 'image'
+    && attachment.status === 'ready'
+    && typeof attachment.id === 'string'
+    && attachment.id.trim().length > 0
+  ));
+}
+
+function replayPayloadFromDisplayRow(row: DisplayTimelineRow): JsonRecord {
+  const payload: JsonRecord = {};
+  const metadata = row.metadata;
+  if (metadata) {
+    const screenshotRefs = Array.isArray(metadata.screenshotRefs)
+      ? metadata.screenshotRefs
+      : metadata.screenshot_refs;
+    if (Array.isArray(screenshotRefs) && screenshotRefs.length > 0) {
+      payload.screenshot_refs = screenshotRefs.filter((value): value is string => (
+        typeof value === 'string' && value.trim().length > 0
+      ));
+    }
+    const screenshotRef = metadata.screenshotRef
+      ?? metadata.screenshot_ref
+      ?? metadata.screenshot;
+    if (!payload.screenshot_refs && typeof screenshotRef === 'string' && screenshotRef.trim()) {
+      payload.screenshot_ref = screenshotRef.trim();
+    }
+    const screenshotUrl = metadata.screenshotUrl ?? metadata.screenshot_url;
+    if (typeof screenshotUrl === 'string' && screenshotUrl.trim()) {
+      payload.screenshot_url = screenshotUrl.trim();
+    }
+  }
+  const attachments = readyImageAttachmentsFromDisplayRow(row);
+  if (attachments.length > 0) {
+    payload.screenshot_refs = attachments.map(attachment => attachment.id.trim());
+    const attachmentFilenames = attachments
+      .map(attachment => (
+        typeof attachment.filename === 'string' && attachment.filename.trim()
+          ? attachment.filename.trim()
+          : null
+      ))
+      .filter((value): value is string => Boolean(value));
+    if (attachmentFilenames.length > 0) {
+      payload.attachment_filenames = attachmentFilenames;
+    }
+  }
+  return payload;
+}
+
+function displayMessageFromRow(row: SdkDisplayRow, fallbackTimestamp: string): DisplayMessage | null {
+  const metadata = isJsonRecord(row.metadata) ? row.metadata : {};
+  const metadataRevisionId = typeof metadata.revisionId === 'string' ? metadata.revisionId : '';
+  const messageType = row.type === 'error'
+    ? 'turn_error'
+    : row.type === 'reasoning'
+      ? null
+      : row.type;
+  if (!messageType) {
+    return null;
+  }
+  const text = typeof row.content === 'string'
+    ? row.content
+    : row.content == null
+      ? ''
+      : JSON.stringify(row.content);
+  if (!text && row.role === 'system') {
+    return null;
+  }
+  return {
+    id: row.id,
+    conversationRef: row.conversationRef,
+    turnRef: row.turnRef ?? null,
+    revisionId: rowMetadataRevision(row) ?? metadataRevisionId,
+    timestamp: typeof metadata.timestamp === 'string' ? metadata.timestamp : fallbackTimestamp,
+    sender: row.role,
+    text,
+    messageType,
+    toolName: typeof metadata.toolName === 'string' ? metadata.toolName : null,
+    requestId: typeof metadata.requestId === 'string' ? metadata.requestId : null,
+    bundleId: typeof metadata.bundleId === 'string' ? metadata.bundleId : null,
+    toolCallId: typeof metadata.toolCallId === 'string' ? metadata.toolCallId : null,
+    correlationId: typeof metadata.correlationId === 'string' ? metadata.correlationId : null,
+    metadata,
+  };
 }
 
 function isTerminalConversationEvent(event: ConversationEvent): boolean {
@@ -309,7 +374,10 @@ function displayAttachmentsFromUnknown(value: unknown): SdkDisplayAttachment[] {
   });
 }
 
-function rowMetadataRevision(row: DisplayTimelineRow | SdkDisplayRow): string | null {
+function rowMetadataRevision(row: DisplayTimelineRow | SdkDisplayRow | null | undefined): string | null {
+  if (!row) {
+    return null;
+  }
   const explicit = (row as Partial<DisplayTimelineRow>).revisionId;
   if (typeof explicit === 'string' && explicit.trim()) {
     return explicit.trim();
@@ -318,6 +386,121 @@ function rowMetadataRevision(row: DisplayTimelineRow | SdkDisplayRow): string | 
   return typeof metadataRevision === 'string' && metadataRevision.trim()
     ? metadataRevision.trim()
     : null;
+}
+
+function displayRowToolOutputDedupeKey(row: DisplayTimelineRow | SdkDisplayRow): string | null {
+  if (row.type !== 'tool_output' && row.type !== 'tool_bundle_output') {
+    return null;
+  }
+  const raw = isJsonRecord(row.metadata?.raw) ? row.metadata.raw : null;
+  const rawKey = raw ? resolveToolOutputDedupeKey(raw) : null;
+  if (rawKey) {
+    return rawKey;
+  }
+  const requestId = typeof row.metadata?.requestId === 'string' && row.metadata.requestId.trim()
+    ? row.metadata.requestId.trim()
+    : null;
+  if (requestId) {
+    return `request:${requestId}`;
+  }
+  const correlationId = typeof row.metadata?.correlationId === 'string' && row.metadata.correlationId.trim()
+    ? row.metadata.correlationId.trim()
+    : null;
+  if (correlationId) {
+    return `request:${correlationId}`;
+  }
+  const bundleId = typeof row.metadata?.bundleId === 'string' && row.metadata.bundleId.trim()
+    ? row.metadata.bundleId.trim()
+    : null;
+  if (bundleId) {
+    return `bundle:${bundleId}`;
+  }
+  const toolCallId = typeof row.metadata?.toolCallId === 'string' && row.metadata.toolCallId.trim()
+    ? row.metadata.toolCallId.trim()
+    : null;
+  return toolCallId ? `tool-call:${toolCallId}` : null;
+}
+
+function displayRowHasModelContent(row: DisplayTimelineRow | SdkDisplayRow): boolean {
+  const raw = isJsonRecord(row.metadata?.raw) ? row.metadata.raw : null;
+  if (raw) {
+    return readToolOutputContent(raw).hasModelContent;
+  }
+  return typeof row.content === 'string' && row.content.trim().length > 0;
+}
+
+function displayRowSource(row: DisplayTimelineRow | SdkDisplayRow): string | null {
+  const source = row.metadata?.source;
+  return typeof source === 'string' && source.trim() ? source.trim() : null;
+}
+
+function withoutDuplicateDisplayToolOutputs<T extends DisplayTimelineRow | SdkDisplayRow>(rows: T[]): T[] {
+  const preferredRows = new Map<string, T>();
+  const prefers = (candidate: T, current: T): boolean => {
+    const candidateHasModelContent = displayRowHasModelContent(candidate);
+    const currentHasModelContent = displayRowHasModelContent(current);
+    if (candidateHasModelContent !== currentHasModelContent) {
+      return candidateHasModelContent;
+    }
+    if (displayRowSource(candidate) === 'backend' && displayRowSource(current) !== 'backend') {
+      return true;
+    }
+    if (displayRowSource(candidate) !== 'backend' && displayRowSource(current) === 'backend') {
+      return false;
+    }
+    return false;
+  };
+  for (const row of rows) {
+    const key = displayRowToolOutputDedupeKey(row);
+    if (!key) {
+      continue;
+    }
+    const current = preferredRows.get(key);
+    if (!current || prefers(row, current)) {
+      preferredRows.set(key, row);
+    }
+  }
+  return rows
+    .filter(row => {
+      const key = displayRowToolOutputDedupeKey(row);
+      return !key || preferredRows.get(key) === row;
+    })
+    .map((row, index) => ({
+      ...row,
+      index,
+    }));
+}
+
+function rehydrateSnapshotFromModelHistory(
+  events: ConversationEvent[],
+  conversationRef: string,
+  revisionId: string,
+): RehydrateSnapshot | null {
+  const modelHistoryEvent = [...events].reverse().find(event => (
+    event.type === 'model_history_updated'
+    && event.conversationRef === conversationRef
+    && event.revisionId === revisionId
+  ));
+  if (!modelHistoryEvent) {
+    return null;
+  }
+  const rows = Array.isArray(modelHistoryEvent.payload.rows)
+    ? modelHistoryEvent.payload.rows.filter((row): row is ModelHistoryRow => Boolean(row && typeof row === 'object'))
+    : [];
+  if (rows.length === 0) {
+    return null;
+  }
+  return rehydrateSnapshotFromModelHistoryCheckpoint({
+    checkpointId: typeof modelHistoryEvent.payload.checkpointId === 'string'
+      ? modelHistoryEvent.payload.checkpointId
+      : `${revisionId}-model-history`,
+    conversationRef,
+    revisionId,
+    createdAt: typeof modelHistoryEvent.payload.createdAt === 'string'
+      ? modelHistoryEvent.payload.createdAt
+      : modelHistoryEvent.timestamp,
+    rows,
+  });
 }
 
 function displayTimelinePairKeys(row: DisplayTimelineRow): string[] {
@@ -1248,60 +1431,50 @@ export class SdkConversationRuntime {
   }
 
   async editAndResend(input: EditAndResendInput): Promise<TurnResult> {
-    const prepared = await this.prepareEditAndResend(input);
-    return this.send(prepared);
-  }
-
-  async prepareEditAndResend(input: EditAndResendInput): Promise<PreparedReplayTurn> {
     const normalizedText = input.text.trim();
     if (!normalizedText) {
       throw new Error('editAndResend requires non-empty text');
     }
-    const events = await this.options.store.loadEvents(this.options.conversationRef);
-    const userIndex = events.findIndex(event => (
-      event.type === 'user_message' && eventMatchesId(event, input.messageId)
+    const displayTimeline = await this.loadDisplayTimeline();
+    const userIndex = displayTimeline.rows.findIndex(row => (
+      row.role === 'user'
+      && row.type === 'user_message'
+      && displayRowMatchesId(row, input.messageId)
     ));
     if (userIndex < 0) {
       throw new Error(`Cannot edit missing user message: ${input.messageId}`);
     }
     const replayPayload = mergeReplayPayload(
-      resolvedUserTurnPayload(events, userIndex),
+      replayPayloadFromDisplayRow(displayTimeline.rows[userIndex]),
       input.payload,
     );
     replayPayload.text = normalizedText;
-    await this.rewriteToRevision({
-      events,
-      preservedEvents: events.slice(0, userIndex),
-      removedEvents: events.slice(userIndex),
-      reason: 'edit_resend',
-      replacementText: normalizedText,
+    await this.replaceRows({
+      rows: displayTimeline.rows.slice(0, userIndex),
+      baseRevisionId: displayTimeline.revisionId,
+      reason: 'user_edit',
     });
-    await this.rehydrate();
-    return {
+    return this.send({
       text: normalizedText,
       turnRef: input.turnRef,
       model: input.model,
       payload: replayPayload,
-    };
+    });
   }
 
   async retryTurn(input: RetryTurnInput = {}): Promise<TurnResult> {
-    const prepared = await this.prepareRetryTurn(input);
-    return this.send(prepared);
-  }
-
-  async prepareRetryTurn(input: RetryTurnInput = {}): Promise<PreparedReplayTurn> {
-    const events = await this.options.store.loadEvents(this.options.conversationRef);
+    const displayTimeline = await this.loadDisplayTimeline();
     const targetIndex = input.messageId
-      ? events.findIndex(event => eventMatchesId(event, input.messageId))
-      : events.length - 1;
+      ? displayTimeline.rows.findIndex(row => displayRowMatchesId(row, input.messageId as string))
+      : displayTimeline.rows.length - 1;
     if (input.messageId && targetIndex < 0) {
       throw new Error(`Cannot retry missing message: ${input.messageId}`);
     }
-    const searchStart = targetIndex >= 0 ? targetIndex : events.length - 1;
+    const searchStart = targetIndex >= 0 ? targetIndex : displayTimeline.rows.length - 1;
     let userIndex = -1;
     for (let index = searchStart; index >= 0; index -= 1) {
-      if (events[index]?.type === 'user_message') {
+      const row = displayTimeline.rows[index];
+      if (row?.role === 'user' && row.type === 'user_message') {
         userIndex = index;
         break;
       }
@@ -1309,29 +1482,27 @@ export class SdkConversationRuntime {
     if (userIndex < 0) {
       throw new Error('Cannot retry without a previous user message');
     }
-    const retryText = eventText(events[userIndex]);
+    const userRow = displayTimeline.rows[userIndex];
+    const retryText = typeof userRow.content === 'string' ? userRow.content : '';
     if (!retryText.trim()) {
       throw new Error('Cannot retry a user message with empty text');
     }
     const replayPayload = mergeReplayPayload(
-      resolvedUserTurnPayload(events, userIndex),
+      replayPayloadFromDisplayRow(userRow),
       input.payload,
     );
     replayPayload.text = retryText;
-    await this.rewriteToRevision({
-      events,
-      preservedEvents: events.slice(0, userIndex),
-      removedEvents: events.slice(userIndex),
+    await this.replaceRows({
+      rows: displayTimeline.rows.slice(0, userIndex),
+      baseRevisionId: displayTimeline.revisionId,
       reason: 'retry',
-      replacementText: retryText,
     });
-    await this.rehydrate();
-    return {
+    return this.send({
       text: retryText,
       turnRef: input.turnRef,
       model: input.model,
       payload: replayPayload,
-    };
+    });
   }
 
   async stop(turnRef: string | null = this.state.activeTurnRef ?? null): Promise<void> {
@@ -1796,57 +1967,6 @@ export class SdkConversationRuntime {
     this.detachTransport = undefined;
     this.listeners.clear();
     this.eventListeners.clear();
-  }
-
-  private async rewriteToRevision({
-    events,
-    preservedEvents,
-    removedEvents,
-    reason,
-    replacementText,
-  }: {
-    events: ConversationEvent[];
-    preservedEvents: ConversationEvent[];
-    removedEvents: ConversationEvent[];
-    reason: 'edit_resend' | 'retry';
-    replacementText: string;
-  }): Promise<void> {
-    const baseRevisionId = events[events.length - 1]?.revisionId ?? this.state.revisionId;
-    const newRevisionId = createRuntimeId('rev');
-    const rewriteEvent = createConversationEvent({
-      eventId: this.nextLocalEventId(null, 'conversation_rewritten'),
-      type: 'conversation_rewritten',
-      conversationRef: this.options.conversationRef,
-      revisionId: newRevisionId,
-      source: 'sdk',
-      payload: {
-        baseRevisionId,
-        reason,
-        replacementUserMessage: {
-          text: replacementText,
-        },
-        removedEventIds: removedEvents.map(event => event.eventId),
-      },
-    });
-    const nextEvents = [...preservedEvents, rewriteEvent];
-    this.events = nextEvents;
-    await this.options.store.rewriteConversation({
-      conversationRef: this.options.conversationRef,
-      baseRevisionId,
-      newRevisionId,
-      cutAfterEventId: preservedEvents[preservedEvents.length - 1]?.eventId ?? null,
-      replacementUserMessage: { text: replacementText },
-      preservedEvents: nextEvents,
-      removedEventIds: removedEvents.map(event => event.eventId),
-      reason,
-    });
-    this.state = nextEvents.reduce(
-      (state, event) => reduceConversationRuntimeState(state, event),
-      createInitialConversationRuntimeState(this.options.conversationRef, newRevisionId),
-    );
-    this.events = await this.options.store.loadEvents(this.options.conversationRef);
-    const snapshot = this.snapshot(this.events);
-    this.notify(snapshot, rewriteEvent);
   }
 
   private async applyEvent(event: ConversationEvent): Promise<void> {
@@ -2701,22 +2821,49 @@ export class SdkConversationRuntime {
     const appendedRows = eventRows.filter(row => (
       rowMetadataRevision(row) === timelineRevisionId && !rowIds.has(row.id)
     ));
-    return [
+    return withoutDuplicateDisplayToolOutputs([
       ...this.activeDisplayTimeline.rows,
       ...appendedRows.map((row, offset) => ({
         ...row,
         index: this.activeDisplayTimeline!.rows.length + offset,
       })),
-    ];
+    ]);
+  }
+
+  private displayConversationForSnapshot(
+    events: ConversationEvent[],
+    displayRows: SdkDisplayRow[],
+  ): DisplayConversation {
+    if (!this.activeDisplayTimeline) {
+      return buildDisplayConversation(events);
+    }
+    const fallbackTimestamp = this.activeDisplayTimeline.createdAt;
+    const first = displayRows[0];
+    const last = displayRows[displayRows.length - 1];
+    const activeRevisionId = this.activeDisplayTimeline.revisionId;
+    const activeRevisionEvents = events.filter(event => event.revisionId === activeRevisionId);
+    return {
+      conversationRef: first?.conversationRef ?? this.options.conversationRef,
+      revisionId: rowMetadataRevision(last) ?? activeRevisionId,
+      messages: displayRows
+        .map(row => displayMessageFromRow(row, fallbackTimestamp))
+        .filter((message): message is DisplayMessage => Boolean(message)),
+      compaction: buildCompactionState(activeRevisionEvents),
+    };
   }
 
   private snapshot(events: ConversationEvent[]): ConversationSnapshot {
     const currentTurn = buildCurrentTurnProjection(events);
+    const displayRows = this.displayRowsForSnapshot(events);
     return {
       state: this.state,
-      display: buildDisplayConversation(events),
-      displayRows: this.displayRowsForSnapshot(events),
-      rehydrate: buildRehydrateSnapshot(events),
+      display: this.displayConversationForSnapshot(events, displayRows),
+      displayRows,
+      rehydrate: rehydrateSnapshotFromModelHistory(
+        events,
+        this.options.conversationRef,
+        this.state.revisionId,
+      ) ?? buildRehydrateSnapshot(events),
       currentTurn,
     };
   }

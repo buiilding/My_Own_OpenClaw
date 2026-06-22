@@ -60,22 +60,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
       baseRevisionId: input.baseRevisionId,
       rows: input.rows,
     })),
-    prepareEditAndResend: jest.fn(async (input) => ({
-      conversationRef: input.conversationRef,
-      text: input.text,
-      payload: input.payload,
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: null,
-    })),
-    prepareRetryTurn: jest.fn(async (input) => ({
-      conversationRef: input.conversationRef,
-      text: input.text,
-      payload: input.payload,
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: null,
-    })),
   },
 }));
 
@@ -96,8 +80,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-const mockPrepareEditAndResend = DesktopConversationContinuityService.prepareEditAndResend;
-const mockPrepareRetryTurn = DesktopConversationContinuityService.prepareRetryTurn;
 const mockLoadDisplayTimeline = DesktopConversationContinuityService.loadDisplayTimeline;
 const mockReplaceRows = DesktopConversationContinuityService.replaceRows;
 const mockSendQuery = DesktopLiveTurnRuntimeClient.sendQuery;
@@ -121,22 +103,6 @@ describe('useConversationReplayActions', () => {
       return null;
     });
     jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
-    mockPrepareEditAndResend.mockImplementation(async (input) => ({
-      conversationRef: input.conversationRef,
-      text: input.text,
-      payload: input.payload,
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: null,
-    }));
-    mockPrepareRetryTurn.mockImplementation(async (input) => ({
-      conversationRef: input.conversationRef,
-      text: input.text,
-      payload: input.payload,
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: null,
-    }));
     mockLoadDisplayTimeline.mockImplementation(async (userId, conversationRef) => ({
       conversationRef,
       revisionId: 'rev-base',
@@ -203,7 +169,6 @@ describe('useConversationReplayActions', () => {
       reason: 'retry',
       rows: [],
     }));
-    expect(mockPrepareRetryTurn).not.toHaveBeenCalled();
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
       text: 'first question',
@@ -214,7 +179,6 @@ describe('useConversationReplayActions', () => {
       },
     }));
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
-    expect(mockPrepareEditAndResend).not.toHaveBeenCalled();
   });
 
   test('retry replay waits for display replacement before publishing pending turn', async () => {
@@ -321,7 +285,6 @@ describe('useConversationReplayActions', () => {
       reason: 'retry',
       rows: [],
     }));
-    expect(mockPrepareRetryTurn).not.toHaveBeenCalled();
     expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('screenshot');
   });
 
@@ -369,7 +332,6 @@ describe('useConversationReplayActions', () => {
         expect.objectContaining({ id: 'assistant-1' }),
       ],
     }));
-    expect(mockPrepareEditAndResend).not.toHaveBeenCalled();
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       text: 'edited second question',
     }));
@@ -407,7 +369,6 @@ describe('useConversationReplayActions', () => {
       reason: 'retry',
       rows: [],
     }));
-    expect(mockPrepareRetryTurn).not.toHaveBeenCalled();
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       screenshotRef: 'artifact-99',
       screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
@@ -456,7 +417,6 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-multi-image');
     });
 
-    expect(mockPrepareRetryTurn).not.toHaveBeenCalled();
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       screenshotRefs: ['artifact-1', 'artifact-2'],
       attachmentFilenames: ['one.png', 'two.png'],

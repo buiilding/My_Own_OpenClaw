@@ -7,6 +7,8 @@ exports.InMemoryConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
 const compactedReplayEvents_js_1 = require("./compactedReplayEvents.js");
+const modelHistoryPayload_js_1 = require("../runtime/modelHistoryPayload.js");
+const displayTimelineStoreProjection_js_1 = require("./displayTimelineStoreProjection.js");
 function lastTextEvent(events) {
     return [...events].reverse().find(event => {
         if (event.type === 'user_message' || event.type === 'assistant_message') {
@@ -80,10 +82,20 @@ class InMemoryConversationStore {
         return [...(this.eventsByConversation.get(conversationRef) ?? [])];
     }
     async loadForDisplay(conversationRef) {
-        return (0, conversationProjections_js_1.buildDisplayConversation)(await this.loadEvents(conversationRef));
+        const events = await this.loadEvents(conversationRef);
+        const timeline = await this.loadDisplayTimeline({ conversationRef });
+        if (!timeline) {
+            return (0, conversationProjections_js_1.buildDisplayConversation)(events);
+        }
+        return (0, displayTimelineStoreProjection_js_1.displayConversationFromTimeline)(timeline, events);
     }
     async loadDisplayRows(conversationRef) {
-        return (0, conversationProjections_js_1.buildDisplayRows)(await this.loadEvents(conversationRef));
+        const events = await this.loadEvents(conversationRef);
+        const timeline = await this.loadDisplayTimeline({ conversationRef });
+        if (!timeline) {
+            return (0, conversationProjections_js_1.buildDisplayRows)(events);
+        }
+        return (0, displayTimelineStoreProjection_js_1.displayRowsFromTimeline)(timeline, events);
     }
     async replaceDisplayTimeline(checkpoint) {
         const existing = this.displayTimelineByConversation.get(checkpoint.conversationRef) ?? [];
@@ -110,6 +122,17 @@ class InMemoryConversationStore {
         return latest ? { ...latest, rows: [...latest.rows] } : null;
     }
     async loadForRehydrate(conversationRef) {
+        const activeRevisionId = this.revisionsByConversation.get(conversationRef)?.revisionId ?? null;
+        const modelHistoryCheckpoint = await this.loadModelHistory({
+            conversationRef,
+            revisionId: activeRevisionId,
+        });
+        const modelHistorySnapshot = modelHistoryCheckpoint
+            ? (0, modelHistoryPayload_js_1.rehydrateSnapshotFromModelHistoryCheckpoint)(modelHistoryCheckpoint)
+            : null;
+        if (modelHistorySnapshot) {
+            return modelHistorySnapshot;
+        }
         const compactedReplay = await this.loadCompactedReplay(conversationRef);
         if (compactedReplay?.complete
             && compactedReplay.active !== false

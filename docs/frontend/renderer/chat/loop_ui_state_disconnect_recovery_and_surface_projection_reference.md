@@ -205,13 +205,14 @@ The decision to keep renderer-local pending typing through idle, hidden, stale,
 terminal, or visible SDK projections lives with the visible lifecycle owner and
 requires an accepted renderer `pendingTurn`.
 
-Conversation replay actions now allocate a replay `turnRef` before SDK
-continuity preparation, publish a renderer `pendingTurn` through
-`DesktopConversationReplayRuntime.buildReplayPendingTurn(...)`, and forward the
-same `turnRef` to `DesktopConversationContinuityService.prepareEditAndResend`
-or `prepareRetryTurn`. That keeps edit/resend and retry in the same
-`local_pending -> SDK handoff` path as normal sends; replay preparation latency
-does not rely on bare `isSending` as a visible lifecycle authority.
+Conversation replay actions now allocate a replay `turnRef`, load the active
+display timeline, replace the display prefix through
+`DesktopConversationContinuityService.replaceRows(...)`, then publish a
+renderer `pendingTurn` through
+`DesktopConversationReplayRuntime.buildReplayPendingTurn(...)` before sending
+the normal replacement query. That keeps edit/resend and retry in the same
+`local_pending -> SDK handoff` path as normal sends; display replacement
+latency does not rely on bare `isSending` as a visible lifecycle authority.
 
 `useResponseOverlayViewModel(...)` also resolves the same visible lifecycle and
 applies `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`

@@ -210,6 +210,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: remove the public edit/retry replay preparation commands and
+  main-process bridge handlers; high-level edit/resend and retry now load the
+  active display timeline, create a child display revision with
+  `replaceRows(...)`, and send a normal turn. Runtime and SDK store snapshots
+  now prefer active display timeline checkpoints and backend-normalized
+  model-history checkpoints over raw event-log replay, with raw events retained
+  only for audit/diagnostics and no storage migration required.
 - backend/sdk: add backend-safe typed `display_attachments` support at
   tool-result, tool-bundle-result, rehydrate, and outgoing tool-output
   websocket boundaries while keeping `screenshot_ref`/artifact refs as the

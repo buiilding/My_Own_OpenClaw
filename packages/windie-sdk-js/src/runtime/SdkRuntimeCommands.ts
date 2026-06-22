@@ -16,8 +16,6 @@ export const SDK_RUNTIME_COMMANDS = {
   CONVERSATION_REPLACE_ROWS: 'conversation.replaceRows',
   CONVERSATION_REPLACE_COMPACTED_REPLAY: 'conversation.replaceCompactedReplay',
   CONVERSATION_GET_REVISION: 'conversation.getRevision',
-  CONVERSATION_PREPARE_EDIT_AND_RESEND: 'conversation.prepareEditAndResend',
-  CONVERSATION_PREPARE_RETRY_TURN: 'conversation.prepareRetryTurn',
   CONVERSATIONS_LIST: 'conversations.list',
   CONVERSATIONS_SEARCH: 'conversations.search',
   CONVERSATIONS_DELETE: 'conversations.delete',

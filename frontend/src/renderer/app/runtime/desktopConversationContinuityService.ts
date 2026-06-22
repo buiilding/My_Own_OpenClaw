@@ -4,8 +4,6 @@
 
 import {
   DesktopConversationRuntimeContracts,
-  type AgentModelSelection,
-  type JsonRecord,
   type ListConversationOptions,
   type DisplayConversation,
   type DisplayTimelineCheckpoint,
@@ -42,26 +40,6 @@ const {
 const {
   metadataListToDashboardConversations,
 } = DesktopDashboardConversationLoadRuntime;
-
-type RewriteAndResendInput = {
-  conversationRef: string;
-  userId: string;
-  messageId: string;
-  text?: string;
-  payload?: JsonRecord;
-  model?: AgentModelSelection | null;
-  turnRef?: string | null;
-  workspacePath?: string | null;
-};
-
-type PreparedReplayTurn = {
-  conversationRef: string;
-  text: string;
-  payload: JsonRecord;
-  model?: AgentModelSelection | null;
-  workspacePath?: string | null;
-  turnRef?: string | null;
-};
 
 type ReplaceDisplayRowsInput = {
   userId: string;
@@ -155,53 +133,6 @@ export const DesktopConversationContinuityService = {
     options: DesktopTraceTimelineOptions = {},
   ): Promise<TraceTimelineEntry[]> {
     return loadDesktopTraceTimeline(userId, conversationRef, options);
-  },
-
-  async prepareEditAndResend(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
-    const prepared = await invokeAgentSdkCommand<PreparedReplayTurn>(
-      SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_EDIT_AND_RESEND,
-      {
-        userId: input.userId,
-        conversationRef: input.conversationRef,
-        messageId: input.messageId,
-        text: input.text ?? '',
-        turnRef: input.turnRef ?? undefined,
-        payload: input.payload,
-        model: input.model ?? undefined,
-        workspace_path: input.workspacePath ?? null,
-      },
-    );
-    return {
-      conversationRef: input.conversationRef,
-      text: prepared.text,
-      payload: prepared.payload,
-      model: prepared.model ?? null,
-      workspacePath: prepared.workspacePath ?? input.workspacePath ?? null,
-      turnRef: prepared.turnRef ?? null,
-    };
-  },
-
-  async prepareRetryTurn(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
-    const prepared = await invokeAgentSdkCommand<PreparedReplayTurn>(
-      SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_RETRY_TURN,
-      {
-        userId: input.userId,
-        conversationRef: input.conversationRef,
-        messageId: input.messageId,
-        turnRef: input.turnRef ?? undefined,
-        payload: input.payload,
-        model: input.model ?? undefined,
-        workspace_path: input.workspacePath ?? null,
-      },
-    );
-    return {
-      conversationRef: input.conversationRef,
-      text: prepared.text,
-      payload: prepared.payload,
-      model: prepared.model ?? null,
-      workspacePath: prepared.workspacePath ?? input.workspacePath ?? null,
-      turnRef: prepared.turnRef ?? null,
-    };
   },
 
   async compactHistory(force: boolean = true, conversationRef: string | null = null): Promise<void> {

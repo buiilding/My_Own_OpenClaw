@@ -40,6 +40,8 @@ exports.FileConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
 const compactedReplayEvents_js_1 = require("./compactedReplayEvents.js");
+const modelHistoryPayload_js_1 = require("../runtime/modelHistoryPayload.js");
+const displayTimelineStoreProjection_js_1 = require("./displayTimelineStoreProjection.js");
 async function importNodeModule(specifier) {
     return Promise.resolve(`${specifier}`).then(s => __importStar(require(s)));
 }
@@ -197,10 +199,20 @@ class FileConversationStore {
         return (await this.readConversation(conversationRef)).events;
     }
     async loadForDisplay(conversationRef) {
-        return (0, conversationProjections_js_1.buildDisplayConversation)(await this.loadEvents(conversationRef));
+        const stored = await this.readConversation(conversationRef);
+        const timeline = await this.loadDisplayTimeline({ conversationRef });
+        if (!timeline) {
+            return (0, conversationProjections_js_1.buildDisplayConversation)(stored.events);
+        }
+        return (0, displayTimelineStoreProjection_js_1.displayConversationFromTimeline)(timeline, stored.events);
     }
     async loadDisplayRows(conversationRef) {
-        return (0, conversationProjections_js_1.buildDisplayRows)(await this.loadEvents(conversationRef));
+        const stored = await this.readConversation(conversationRef);
+        const timeline = await this.loadDisplayTimeline({ conversationRef });
+        if (!timeline) {
+            return (0, conversationProjections_js_1.buildDisplayRows)(stored.events);
+        }
+        return (0, displayTimelineStoreProjection_js_1.displayRowsFromTimeline)(timeline, stored.events);
     }
     async replaceDisplayTimeline(checkpoint) {
         await this.runConversationMutation(checkpoint.conversationRef, async () => {
@@ -234,6 +246,18 @@ class FileConversationStore {
         return latest ? { ...latest, rows: [...latest.rows] } : null;
     }
     async loadForRehydrate(conversationRef) {
+        const stored = await this.readConversation(conversationRef);
+        const activeRevisionId = stored.revision?.revisionId ?? null;
+        const modelHistoryCheckpoint = await this.loadModelHistory({
+            conversationRef,
+            revisionId: activeRevisionId,
+        });
+        const modelHistorySnapshot = modelHistoryCheckpoint
+            ? (0, modelHistoryPayload_js_1.rehydrateSnapshotFromModelHistoryCheckpoint)(modelHistoryCheckpoint)
+            : null;
+        if (modelHistorySnapshot) {
+            return modelHistorySnapshot;
+        }
         const compactedReplay = await this.loadCompactedReplay(conversationRef);
         if (compactedReplay?.complete
             && compactedReplay.active !== false
@@ -245,7 +269,7 @@ class FileConversationStore {
                 replayGenerationId: compactedReplay.generationId,
             };
         }
-        return (0, conversationProjections_js_1.buildRehydrateSnapshot)(await this.loadEvents(conversationRef));
+        return (0, conversationProjections_js_1.buildRehydrateSnapshot)(stored.events);
     }
     async replaceModelHistory(checkpoint) {
         await this.runConversationMutation(checkpoint.conversationRef, async () => {

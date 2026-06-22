@@ -48,8 +48,8 @@ const mockSendRehydrateConversation = jest.fn();
 const mockSetModel = jest.fn();
 const mockUpdateSettings = jest.fn();
 const mockRewriteTranscriptProjection = jest.fn(async () => ({ entries: [], messages: [] }));
-const mockPrepareEditAndResend = jest.fn();
-const mockPrepareRetryTurn = jest.fn();
+const mockLoadDisplayTimeline = jest.fn();
+const mockReplaceRows = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockClearMessages = jest.fn();
 const mockSetMessages = jest.fn();
@@ -104,6 +104,19 @@ const mockChatState = {
   },
   setActiveConversationRef: (...args) => mockSetChatActiveConversationRef(...args),
 };
+
+function timelineRowsFromMessages(messages, conversationRef = 'conv_existing', revisionId = 'rev-base') {
+  return messages.map((message, index) => ({
+    id: message.id,
+    conversationRef,
+    revisionId,
+    index,
+    role: message.sender === 'user' ? 'user' : 'assistant',
+    type: message.sender === 'user' ? 'user_message' : 'assistant_message',
+    content: message.text,
+    metadata: { revisionId },
+  }));
+}
 
 function setMockCurrentTurnProjection(phase, overrides = {}) {
   const normalizedPhase = {
@@ -202,8 +215,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient'
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
   DesktopConversationContinuityService: {
     compactHistory: (...args) => mockCompactHistory(...args),
-    prepareEditAndResend: (...args) => mockPrepareEditAndResend(...args),
-    prepareRetryTurn: (...args) => mockPrepareRetryTurn(...args),
+    loadDisplayTimeline: (...args) => mockLoadDisplayTimeline(...args),
+    replaceRows: (...args) => mockReplaceRows(...args),
   },
 }));
 
@@ -280,23 +293,23 @@ describe('ChatInterface wiring', () => {
     mockUpdateSettings.mockClear();
     mockRewriteTranscriptProjection.mockClear();
     mockRewriteTranscriptProjection.mockResolvedValue({ entries: [], messages: [] });
-    mockPrepareEditAndResend.mockClear();
-    mockPrepareEditAndResend.mockImplementation(async (input) => ({
-      conversationRef: input.conversationRef,
-      text: input.text,
-      payload: input.payload,
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: input.turnRef,
+    mockLoadDisplayTimeline.mockClear();
+    mockLoadDisplayTimeline.mockImplementation(async (userId, conversationRef) => ({
+      conversationRef,
+      revisionId: 'rev-base',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: null,
+      baseRevisionId: null,
+      rows: timelineRowsFromMessages(mockChatState.messages, conversationRef),
     }));
-    mockPrepareRetryTurn.mockClear();
-    mockPrepareRetryTurn.mockImplementation(async (input) => ({
+    mockReplaceRows.mockClear();
+    mockReplaceRows.mockImplementation(async (input) => ({
       conversationRef: input.conversationRef,
-      text: input.text,
-      payload: input.payload,
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: input.turnRef,
+      revisionId: 'rev-child',
+      createdAt: '2026-06-22T12:01:00.000Z',
+      reason: input.reason,
+      baseRevisionId: input.baseRevisionId,
+      rows: input.rows,
     }));
     mockClearMessages.mockClear();
     mockSetMessages.mockClear();
@@ -1756,12 +1769,13 @@ describe('ChatInterface wiring', () => {
       text: 'create a dashboard for this',
     }));
 
-    const retryPayload = mockPrepareRetryTurn.mock.calls[0]?.[0];
+    const retryPayload = mockReplaceRows.mock.calls[0]?.[0];
     expect(retryPayload).toEqual(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
-      text: 'create a dashboard for this',
-      turnRef: mockAcceptPendingTurn.mock.calls[0]?.[0].turnRef,
+      baseRevisionId: 'rev-base',
+      reason: 'retry',
+      rows: [],
     }));
     expect(retryPayload).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
@@ -1793,13 +1807,13 @@ describe('ChatInterface wiring', () => {
       text: 'new prompt',
     }));
 
-    const editPayload = mockPrepareEditAndResend.mock.calls[0]?.[0];
+    const editPayload = mockReplaceRows.mock.calls[0]?.[0];
     expect(editPayload).toEqual(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
-      messageId: 'user-1',
-      text: 'new prompt',
-      turnRef: mockAcceptPendingTurn.mock.calls[0]?.[0].turnRef,
+      baseRevisionId: 'rev-base',
+      reason: 'user_edit',
+      rows: [],
     }));
     expect(editPayload).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({

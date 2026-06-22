@@ -806,22 +806,6 @@ class Agent {
             store: store ?? this.defaultConversationStore,
         }).fork(input);
     }
-    async prepareEditAndResend(options) {
-        const { conversationRef, revisionId, store, ...input } = options;
-        return this.conversation({
-            conversationRef,
-            revisionId,
-            store: store ?? this.defaultConversationStore,
-        }).prepareEditAndResend(input);
-    }
-    async prepareRetryTurn(options) {
-        const { conversationRef, revisionId, store, ...input } = options;
-        return this.conversation({
-            conversationRef,
-            revisionId,
-            store: store ?? this.defaultConversationStore,
-        }).prepareRetryTurn(input);
-    }
     listAgents() {
         return this.owner.listAgents();
     }

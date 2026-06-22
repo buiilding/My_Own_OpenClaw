@@ -5,10 +5,22 @@
 import type {
   JsonRecord,
   ModelHistoryCheckpoint,
+  ModelHistoryRow,
+  RehydrateSnapshot,
 } from '../conversation/types.js';
 
 function isJsonRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function safeImageRefs(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter(entry => (
+        typeof entry === 'string'
+        && entry.trim()
+        && !entry.trim().toLowerCase().startsWith('data:')
+      ))
+    : [];
 }
 
 export function modelHistoryPayloadFromCheckpoint(checkpoint: ModelHistoryCheckpoint): JsonRecord {
@@ -26,13 +38,38 @@ export function modelHistoryPayloadFromCheckpoint(checkpoint: ModelHistoryCheckp
       tool_call_id: row.toolCallId ?? null,
       tool_calls: Array.isArray(row.toolCalls) ? row.toolCalls.filter(isJsonRecord) : null,
       tool_name: row.toolName ?? null,
-      image_refs: Array.isArray(row.imageRefs)
-        ? row.imageRefs.filter(value => typeof value === 'string' && value.trim() && !value.trim().toLowerCase().startsWith('data:'))
-        : [],
+      image_refs: safeImageRefs(row.imageRefs),
       compaction_facts: isJsonRecord(row.compactionFacts) ? row.compactionFacts : null,
       source_display_row_ids: Array.isArray(row.sourceDisplayRowIds)
         ? row.sourceDisplayRowIds.filter(value => typeof value === 'string' && value.trim())
         : [],
     })),
+  };
+}
+
+function rehydrateMessageFromModelHistoryRow(row: ModelHistoryRow): JsonRecord {
+  return {
+    role: row.role,
+    message_type: row.messageType,
+    content: row.content,
+    ...(row.toolCallId ? { tool_call_id: row.toolCallId } : {}),
+    ...(Array.isArray(row.toolCalls) ? { tool_calls: row.toolCalls.filter(isJsonRecord) } : {}),
+    ...(row.toolName ? { tool_name: row.toolName } : {}),
+    ...(Array.isArray(row.imageRefs) ? { image_refs: safeImageRefs(row.imageRefs) } : {}),
+    ...(isJsonRecord(row.compactionFacts) ? { compaction_facts: row.compactionFacts } : {}),
+    ...(Array.isArray(row.sourceDisplayRowIds) ? { source_display_row_ids: [...row.sourceDisplayRowIds] } : {}),
+  };
+}
+
+export function rehydrateSnapshotFromModelHistoryCheckpoint(
+  checkpoint: ModelHistoryCheckpoint,
+): RehydrateSnapshot | null {
+  if (checkpoint.rows.length === 0) {
+    return null;
+  }
+  return {
+    conversationRef: checkpoint.conversationRef,
+    revisionId: checkpoint.revisionId,
+    messages: checkpoint.rows.map(rehydrateMessageFromModelHistoryRow),
   };
 }

@@ -51,12 +51,9 @@ import type {
 } from './LocalRuntime.js';
 import {
   SdkConversationRuntime,
-  type EditAndResendInput,
   type ForkConversationInput,
   type ForkConversationResult,
-  type PreparedReplayTurn,
   type ReplaceRowsInput,
-  type RetryTurnInput,
   type SendInput,
 } from './ConversationRuntime.js';
 import { TraceRecorder, type TraceEventInput } from './TraceRecorder.js';
@@ -1051,36 +1048,6 @@ export class Agent {
       revisionId,
       store: store ?? this.defaultConversationStore,
     }).fork(input);
-  }
-
-  async prepareEditAndResend(
-    options: EditAndResendInput & {
-      conversationRef: string;
-      revisionId?: string;
-      store?: ConversationStore;
-    },
-  ): Promise<PreparedReplayTurn> {
-    const { conversationRef, revisionId, store, ...input } = options;
-    return this.conversation({
-      conversationRef,
-      revisionId,
-      store: store ?? this.defaultConversationStore,
-    }).prepareEditAndResend(input);
-  }
-
-  async prepareRetryTurn(
-    options: RetryTurnInput & {
-      conversationRef: string;
-      revisionId?: string;
-      store?: ConversationStore;
-    },
-  ): Promise<PreparedReplayTurn> {
-    const { conversationRef, revisionId, store, ...input } = options;
-    return this.conversation({
-      conversationRef,
-      revisionId,
-      store: store ?? this.defaultConversationStore,
-    }).prepareRetryTurn(input);
   }
 
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }> {
