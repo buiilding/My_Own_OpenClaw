@@ -9,6 +9,22 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Chat Interface Stream Tracking Selector Deletion
+
+- Finding: `DesktopChatSurfaceSelectorRuntime.projectDesktopChatInterfaceState(...)`
+  still forwarded raw `streamTracking` into the dashboard selector result even
+  though `ChatInterface` no longer reads stream phase for typing, busy, Stop, or
+  row projection.
+- Change: removed `streamTracking` from the chat-interface selector projection
+  while keeping it in the store for transport diagnostics and focused stream
+  runtime tests.
+- Validation target: `ChatSelectors.test.js` and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed selector contract and
+  keep raw stream phase out of the app-runtime surface projection.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Response Overlay Reasoning Text Helper Deletion
 
 - Finding: `DesktopCurrentTurnMessageRuntime` still exported

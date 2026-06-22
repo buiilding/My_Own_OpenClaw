@@ -79,6 +79,9 @@ All notable changes to WindieOS will be documented in this file.
   normalizes SDK `currentTurn.reasoningText` locally while store
   `thinkingStatus` remains dashboard compaction/manual status text. No
   migration required.
+- frontend/renderer: remove raw `streamTracking` from the chat-interface
+  selector projection so dashboard surfaces no longer receive stream phase as a
+  legacy lifecycle-shaped field. No migration required.
 - frontend/renderer: route the chat-loop disconnect recovery watchdog timer
   through `DesktopChatLoopUiRuntime`, keeping raw browser timeout scheduling
   out of `useChatLoopUiState`. No migration required.

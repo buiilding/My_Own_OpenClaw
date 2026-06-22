@@ -8,7 +8,6 @@ type DesktopChatWorkspaceProjection = {
   thinkingSourceEventType?: string | null;
   compactionDebugInfo?: unknown | null;
   tokenCounts?: unknown | null;
-  streamTracking: unknown;
   currentTurnProjection?: unknown | null;
   pendingTurn?: unknown | null;
 };
@@ -22,7 +21,6 @@ function projectDesktopChatInterfaceState(
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
     compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,
     tokenCounts: activeWorkspace.tokenCounts ?? null,
-    streamTracking: activeWorkspace.streamTracking,
     currentTurnProjection: activeWorkspace.currentTurnProjection ?? null,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };

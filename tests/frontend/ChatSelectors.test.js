@@ -34,10 +34,10 @@ describe('chatSelectors', () => {
       thinkingSourceEventType: 'reasoning_delta',
       compactionDebugInfo: activeWorkspace.compactionDebugInfo,
       tokenCounts: activeWorkspace.tokenCounts,
-      streamTracking: activeWorkspace.streamTracking,
       currentTurnProjection: activeWorkspace.currentTurnProjection,
       pendingTurn: activeWorkspace.pendingTurn,
     });
+    expect(projectDesktopChatInterfaceState(activeWorkspace)).not.toHaveProperty('streamTracking');
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
       latestCurrentTurnProjection: liveProjection,
@@ -75,10 +75,10 @@ describe('chatSelectors', () => {
       thinkingSourceEventType: null,
       compactionDebugInfo: null,
       tokenCounts: { total_tokens: 42 },
-      streamTracking: state.streamTracking,
       currentTurnProjection: null,
       pendingTurn: null,
     });
+    expect(selectChatInterfaceState(state)).not.toHaveProperty('streamTracking');
   });
 
   test('keeps selected object references (no cloning)', () => {
@@ -236,9 +236,7 @@ describe('chatSelectors', () => {
       currentTurnProjection: null,
       pendingTurn: null,
     }));
-    expect(selected.streamTracking).toEqual(expect.objectContaining({
-      phase: 'idle',
-    }));
+    expect(selected).not.toHaveProperty('streamTracking');
   });
 
 });

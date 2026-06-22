@@ -1656,6 +1656,7 @@ describe('renderer app runtime boundary', () => {
     expect(selectorRuntimeSource).not.toContain('export function projectDesktopChatInterfaceState');
     expect(selectorRuntimeSource).not.toContain('export function projectDesktopLiveTurnSurfaceState');
     expect(selectorRuntimeSource).not.toContain('isSending');
+    expect(selectorRuntimeSource).not.toContain('streamTracking');
     expect(selectorRuntimeSource).not.toContain('features/chat');
     expect(chatStoreSource).toContain('desktopChatSurfaceSelectorRuntime');
     expect(chatStoreSource).toContain('DesktopChatSurfaceSelectorRuntime');
