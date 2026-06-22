@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 App Provider Browser Adapter Runtime
+
+- Finding: `AppProvider`, `AppConfigProvider`, and `AppStatusProvider` still
+  owned raw browser `keydown`/`storage` listener wiring, editable-target DOM
+  checks, localStorage access for storage-event filtering, and save-status
+  timeout scheduling/cleanup.
+- Change: added `DesktopAppProviderRuntime` for provider browser adapters. App
+  providers now keep config/status state policy while delegating listener
+  setup/cleanup, editable-target checks, localStorage access, and timers to the
+  app-runtime facade.
+- Validation target: focused app-provider runtime, app provider, app config
+  storage/IPC, app status, and renderer app-boundary tests protect listener
+  cleanup, storage-event filtering parity, timer replacement/fallback, and
+  rejection of raw listener/timer calls in providers.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config data shape, permission, credential, local execution,
+  storage, or trust-boundary migration required.
+
 ### 2026-06-22 Message Action Timer Runtime
 
 - Finding: `useCopyMessageAction` and `AssistantMessageActions` still owned raw

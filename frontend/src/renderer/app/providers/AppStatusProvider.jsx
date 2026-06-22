@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DesktopAppConfigRuntimeClient } from '../runtime/desktopAppConfigRuntimeClient';
+import { DesktopAppProviderRuntime } from '../runtime/desktopAppProviderRuntime';
 import { AppStatusContext } from './AppStatusContext';
 
 /**
@@ -22,18 +23,20 @@ export function AppStatusProvider({ children }) {
   const resetTimeoutId = useRef(null);
 
   const clearTimer = useCallback((timerRef) => {
-    if (!timerRef.current) {
-      return;
-    }
-    clearTimeout(timerRef.current);
-    timerRef.current = null;
+    DesktopAppProviderRuntime.clearProviderTimer({
+      timerRef,
+    });
   }, []);
 
   const scheduleIdleReset = useCallback(() => {
     clearTimer(resetTimeoutId);
-    resetTimeoutId.current = setTimeout(() => {
-      setSaveStatus('idle');
-    }, 3000);
+    DesktopAppProviderRuntime.scheduleProviderTimer({
+      timerRef: resetTimeoutId,
+      delayMs: 3000,
+      callback: () => {
+        setSaveStatus('idle');
+      },
+    });
   }, [clearTimer]);
 
   const onSettingsSaveStatusAction = useCallback((status) => {
@@ -59,10 +62,14 @@ export function AppStatusProvider({ children }) {
     clearTimer(saveTimeoutId);
     clearTimer(resetTimeoutId);
     setSaveStatus('saving');
-    saveTimeoutId.current = setTimeout(() => {
-      setSaveStatus('error');
-      scheduleIdleReset();
-    }, 10000);
+    DesktopAppProviderRuntime.scheduleProviderTimer({
+      timerRef: saveTimeoutId,
+      delayMs: 10000,
+      callback: () => {
+        setSaveStatus('error');
+        scheduleIdleReset();
+      },
+    });
   }, [clearTimer, scheduleIdleReset]);
 
   const value = {

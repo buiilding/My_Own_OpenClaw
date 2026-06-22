@@ -1175,6 +1175,46 @@ describe('renderer app runtime boundary', () => {
     expect(hookClientSource).not.toContain('export {');
   });
 
+  test('app providers route browser listeners and timers through provider runtime facade', async () => {
+    const appProviderSource = await fs.readFile(
+      path.join(appRoot, 'providers/AppProvider.jsx'),
+      'utf8',
+    );
+    const appConfigProviderSource = await fs.readFile(
+      path.join(appRoot, 'providers/AppConfigProvider.jsx'),
+      'utf8',
+    );
+    const appStatusProviderSource = await fs.readFile(
+      path.join(appRoot, 'providers/AppStatusProvider.jsx'),
+      'utf8',
+    );
+    const providerRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopAppProviderRuntime.js'),
+      'utf8',
+    );
+
+    expect(providerRuntimeSource).toContain('subscribeToAppProviderKeyDown');
+    expect(providerRuntimeSource).toContain('subscribeToAppConfigStorageEvents');
+    expect(providerRuntimeSource).toContain('scheduleProviderTimer');
+    expect(providerRuntimeSource).toContain('clearProviderTimer');
+    expect(providerRuntimeSource).toContain('addEventListener');
+    expect(providerRuntimeSource).toContain('removeEventListener');
+    expect(providerRuntimeSource).toContain('setTimeout');
+    expect(providerRuntimeSource).toContain('clearTimeout');
+    expect(providerRuntimeSource).not.toContain('providers/');
+    expect(appProviderSource).toContain('DesktopAppProviderRuntime.subscribeToAppProviderKeyDown');
+    expect(appProviderSource).toContain('DesktopAppProviderRuntime.isEditableShortcutTarget');
+    expect(appProviderSource).not.toContain('window.addEventListener');
+    expect(appProviderSource).not.toContain('window.removeEventListener');
+    expect(appConfigProviderSource).toContain('DesktopAppProviderRuntime.subscribeToAppConfigStorageEvents');
+    expect(appConfigProviderSource).not.toContain('window.addEventListener');
+    expect(appConfigProviderSource).not.toContain('window.removeEventListener');
+    expect(appStatusProviderSource).toContain('DesktopAppProviderRuntime.scheduleProviderTimer');
+    expect(appStatusProviderSource).toContain('DesktopAppProviderRuntime.clearProviderTimer');
+    expect(appStatusProviderSource).not.toContain('setTimeout(');
+    expect(appStatusProviderSource).not.toContain('clearTimeout(');
+  });
+
   test('app provider code routes desktop transport through runtime clients', async () => {
     const files = await listSourceFiles(path.join(appRoot, 'providers'));
     const offenders: string[] = [];

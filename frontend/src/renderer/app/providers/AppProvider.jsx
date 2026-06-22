@@ -8,23 +8,12 @@ import { AppStatusProvider } from './AppStatusProvider';
 import { useAppConfigContext } from './AppConfigContext';
 import { useAppStatusContext } from './AppStatusContext';
 import { DesktopRendererHooksRuntimeClient } from '../runtime/desktopRendererHooksRuntimeClient';
+import { DesktopAppProviderRuntime } from '../runtime/desktopAppProviderRuntime';
 import { applyAppearanceTheme } from '../applyAppearanceTheme';
 
 const {
   useLatestRef,
 } = DesktopRendererHooksRuntimeClient;
-
-const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"]';
-
-function isEditableShortcutTarget(target) {
-  if (!(target instanceof Element)) {
-    return false;
-  }
-  if (target.closest(EDITABLE_SELECTOR)) {
-    return true;
-  }
-  return target instanceof HTMLElement && target.isContentEditable;
-}
 
 /**
  * Internal component that coordinates between AppConfigContext and AppStatusContext.
@@ -66,7 +55,7 @@ function AppContextCoordinator({ children }) {
       if (typeof updateConfigRef.current !== 'function') {
         return;
       }
-      if (isEditableShortcutTarget(event.target)) {
+      if (DesktopAppProviderRuntime.isEditableShortcutTarget(event.target)) {
         return;
       }
 
@@ -80,8 +69,9 @@ function AppContextCoordinator({ children }) {
       });
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return DesktopAppProviderRuntime.subscribeToAppProviderKeyDown({
+      onKeyDown: handleKeyDown,
+    });
   }, [configRef, updateConfigRef]);
 
   return <>{children}</>;

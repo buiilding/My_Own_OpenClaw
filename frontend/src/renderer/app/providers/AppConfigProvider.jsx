@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { DesktopRendererConfigStorageRuntime } from '../runtime/desktopRendererConfigStorageRuntime';
+import { DesktopAppProviderRuntime } from '../runtime/desktopAppProviderRuntime';
 import { AppConfigContext } from './AppConfigContext';
 import { DesktopRendererHooksRuntimeClient } from '../runtime/desktopRendererHooksRuntimeClient';
 import {
@@ -255,7 +256,7 @@ export function AppConfigProvider({ children }) {
 
   useEffect(() => {
     const handleStorage = (event) => {
-      if (!isRendererConfigStorageEvent(event, window.localStorage)) {
+      if (!isRendererConfigStorageEvent(event, DesktopAppProviderRuntime.getAppLocalStorage())) {
         return;
       }
 
@@ -272,10 +273,9 @@ export function AppConfigProvider({ children }) {
       });
     };
 
-    window.addEventListener('storage', handleStorage);
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-    };
+    return DesktopAppProviderRuntime.subscribeToAppConfigStorageEvents({
+      onStorage: handleStorage,
+    });
   }, [applyResolvedConfig, resolveMergedRendererConfig]);
 
   const updateConfig = useCallback((newConfig) => {

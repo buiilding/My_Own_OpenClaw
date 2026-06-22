@@ -13,6 +13,7 @@ title: "App Provider Coordinator and Save-Status Runtime Reference"
 - `frontend/src/renderer/app/providers/AppProvider.jsx`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopAppProviderRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntimeClient.ts`
@@ -27,6 +28,7 @@ title: "App Provider Coordinator and Save-Status Runtime Reference"
 - `tests/frontend/AppConfigProvider.models.test.tsx`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 - `tests/frontend/AppStatusProvider.test.tsx`
+- `tests/frontend/DesktopAppProviderRuntime.test.js`
 
 ## Provider Split and Coordination
 
@@ -41,6 +43,8 @@ Coordinator responsibilities:
 - register `statusContext.setSaving` callback into config provider
 - maintain ref snapshots of `config` and `updateConfig`
 - own global `Shift+Tab` interaction-mode toggle shortcut
+- route global keydown listener setup/cleanup and editable-target checks
+  through `DesktopAppProviderRuntime`
 
 This keeps config data and transient save-status state decoupled while still connected for settings save UX.
 
@@ -157,8 +161,14 @@ Electron host transport is routed through app runtime clients:
   settings feature code consume app-runtime facade methods instead of provider
   hook exports.
 - `DesktopSettingsRuntimeClient` owns SDK settings/model commands.
+- `DesktopAppProviderRuntime` owns browser listener adapters for provider
+  keydown/storage events, app localStorage access for storage-event filtering,
+  editable-target detection, and save-status timeout scheduling/cleanup.
 
 Provider code should not import `IpcBridge`, channel constants, or SDK desktop transport channel names directly.
+Provider code should also avoid raw browser listener/timer calls; route those
+through `DesktopAppProviderRuntime` while keeping state transition policy in
+the provider.
 
 ## AppStatusProvider Save-State Machine
 
@@ -178,6 +188,7 @@ Transitions:
 Cleanup:
 
 - clears settings-event listener and both timers on unmount
+- timer scheduling and cleanup are delegated to `DesktopAppProviderRuntime`
 
 ## Wakeword Suppression Wiring
 

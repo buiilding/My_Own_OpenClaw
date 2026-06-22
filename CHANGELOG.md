@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route app-provider keydown/storage subscriptions,
+  editable-target checks, localStorage access, and save-status timers through
+  `DesktopAppProviderRuntime`, keeping provider browser adapters out of
+  provider state components. No migration required.
 - frontend/renderer: route chat message action copy-reset and assistant-action
   reveal timers through `DesktopMessageActionRuntime`, keeping raw browser
   timeout scheduling out of message action feature code. No migration required.
@@ -75,6 +79,10 @@ All notable changes to WindieOS will be documented in this file.
   shim and have chat surface/response overlay hooks call
   `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState`
   directly. No migration required.
+- frontend/tests: route the pending-stop integration replay through
+  `useChatSurfaceController(...)` and assert a pending turn can still be
+  stopped when raw `isSending` is stale false, protecting visible lifecycle as
+  the Stop/busy authority. No migration required.
 - frontend/renderer: route message-list active find-match scrolling,
   auto-scroll RAF coalescing/cleanup, and resize observation through
   `DesktopMessageListRuntime`, keeping browser scheduling adapters out of

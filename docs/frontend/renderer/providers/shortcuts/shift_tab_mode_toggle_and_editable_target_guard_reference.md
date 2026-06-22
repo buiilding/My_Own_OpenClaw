@@ -11,11 +11,14 @@ title: "Shift+Tab Mode Toggle and Editable Target Guard Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/providers/AppProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopAppProviderRuntime.js`
 - `tests/frontend/AppProvider.test.tsx`
+- `tests/frontend/DesktopAppProviderRuntime.test.js`
 
 ## Listener Ownership and Lifetime
 
-`AppContextCoordinator` owns one global keydown listener on `window`.
+`AppContextCoordinator` owns the shortcut policy and installs one global
+keydown subscription through `DesktopAppProviderRuntime`.
 
 Lifetime behavior:
 
@@ -45,7 +48,7 @@ When matched:
 
 ## Editable-Target Guard Contract
 
-`isEditableShortcutTarget(target)` returns true for:
+`DesktopAppProviderRuntime.isEditableShortcutTarget(target)` returns true for:
 
 - elements inside selector:
 - `input`
