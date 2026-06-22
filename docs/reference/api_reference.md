@@ -1124,6 +1124,33 @@ Used when switching or resuming conversations from the SDK/local conversation st
 ```json
 {
   "conversation_ref": "conv_123",
+  "messages": [],
+  "model_history": {
+    "checkpoint_id": "mh:rev_123:turn_456",
+    "revision_id": "rev_123",
+    "created_at": "2026-06-22T12:00:00Z",
+    "rows": [
+      {
+        "id": "mh-row-1",
+        "conversation_ref": "conv_123",
+        "revision_id": "rev_123",
+        "role": "user",
+        "message_type": "user_query",
+        "content": "Earlier prompt"
+      }
+    ]
+  },
+  "rehydrate_mode": "replace",
+  "workspace_path": "/Users/example/project",
+  "repo_instruction_messages": []
+}
+```
+
+Fallback `messages` shape when no model-history checkpoint exists:
+
+```json
+{
+  "conversation_ref": "conv_123",
   "messages": [
     {
       "role": "user",
@@ -1157,9 +1184,14 @@ Used when switching or resuming conversations from the SDK/local conversation st
 - `repo_instruction_messages`: optional contextual repo-instruction messages
 
 **Behavior**:
-- Backend replaces session history for `conversation_ref` with provided message list.
-- For entries with `screenshot_ref`, backend attempts artifact lookup and inlines base64 for model history.
-- If artifact lookup fails, backend logs a warning and continues rehydrate with `image_data=None` for that entry (text history still restored).
+- Backend prefers `model_history` and installs those provider-neutral rows
+  directly into session history.
+- When `model_history` is absent, backend replaces session history for
+  `conversation_ref` with the fallback message list.
+- For fallback entries with `screenshot_ref`, backend attempts artifact lookup
+  and inlines base64 for model history.
+- If artifact lookup fails, backend logs a warning and continues fallback
+  rehydrate with `image_data=None` for that entry (text history still restored).
 
 **Response**:
 - Success: no dedicated success event (rehydrate is applied silently).

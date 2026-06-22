@@ -16,6 +16,7 @@ import type {
   SearchConversationOptions,
 } from '../conversation/types.js';
 import { searchConversationMetadata } from '../conversation/metadata.js';
+import { modelHistoryPayloadFromCheckpoint } from './modelHistoryPayload.js';
 
 type DeletableConversationStore = ConversationStore & {
   searchMetadata?: (options: SearchConversationOptions) => Promise<ConversationMetadata[]>;
@@ -71,6 +72,8 @@ export type RehydrateConversationFromStoreResult = {
   messageCount: number;
   hydrated: boolean;
   replayGenerationId?: string | null;
+  modelHistoryCheckpointId?: string | null;
+  source?: 'model_history' | 'event_projection';
 };
 
 export type ReplaceCompactedReplayInput = ConversationUserInput & {
@@ -157,7 +160,45 @@ export class ConversationContinuityService {
   async rehydrateFromStore(
     input: RehydrateConversationFromStoreInput,
   ): Promise<RehydrateConversationFromStoreResult> {
-    const snapshot = await this.loadRehydrateSnapshot(input);
+    const store = this.storeFor(input);
+    const revision = await Promise.resolve(
+      store.getRevision(input.conversationRef),
+    ).catch(() => null);
+    const revisionId = revision?.revisionId && revision.revisionId !== 'rev-empty'
+      ? revision.revisionId
+      : null;
+    const modelHistoryCheckpoint = store.loadModelHistory
+      ? await store.loadModelHistory.call(store, {
+          conversationRef: input.conversationRef,
+          revisionId,
+        })
+      : null;
+    if (modelHistoryCheckpoint && modelHistoryCheckpoint.rows.length > 0) {
+      const transport = this.options.transportFactory?.({
+        workspacePath: input.workspacePath ?? null,
+      });
+      if (!transport) {
+        throw new Error('Conversation continuity rehydrate requires an agent runtime transport');
+      }
+      await transport.rehydrateConversation({
+        conversation_ref: input.conversationRef,
+        messages: [],
+        model_history: modelHistoryPayloadFromCheckpoint(modelHistoryCheckpoint),
+        rehydrate_mode: 'replace',
+        workspace_path: optionalString(input.workspacePath),
+      });
+      return {
+        conversationRef: input.conversationRef,
+        revisionId: modelHistoryCheckpoint.revisionId,
+        messageCount: modelHistoryCheckpoint.rows.length,
+        hydrated: true,
+        replayGenerationId: null,
+        modelHistoryCheckpointId: modelHistoryCheckpoint.checkpointId,
+        source: 'model_history',
+      };
+    }
+
+    const snapshot = await store.loadForRehydrate(input.conversationRef);
     const messages = toProviderHistoryMessages(snapshot.messages);
     if (messages.length === 0) {
       return {
@@ -166,6 +207,8 @@ export class ConversationContinuityService {
         messageCount: 0,
         hydrated: false,
         replayGenerationId: snapshot.replayGenerationId ?? null,
+        modelHistoryCheckpointId: null,
+        source: 'event_projection',
       };
     }
 
@@ -190,6 +233,8 @@ export class ConversationContinuityService {
       messageCount: messages.length,
       hydrated: true,
       replayGenerationId: snapshot.replayGenerationId ?? null,
+      modelHistoryCheckpointId: null,
+      source: 'event_projection',
     };
   }
 

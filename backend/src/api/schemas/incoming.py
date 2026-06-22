@@ -155,13 +155,49 @@ class RehydrateConversationEntry(BaseModel):
     compaction_facts: Optional[Dict[str, Any]] = None
 
 
+class RehydrateModelHistoryRow(BaseModel):
+    """One backend-normalized model-history row to install directly."""
+
+    model_config = ConfigDict(extra="forbid", protected_namespaces=())
+
+    id: str
+    conversation_ref: str
+    revision_id: str
+    role: Literal["system", "user", "assistant", "tool"]
+    message_type: Literal[
+        "user_query",
+        "assistant_response",
+        "tool_output",
+        "context_compaction",
+    ]
+    content: Any
+    tool_call_id: Optional[str] = None
+    tool_calls: Optional[List[Dict[str, Any]]] = None
+    tool_name: Optional[str] = None
+    image_refs: Optional[List[str]] = None
+    compaction_facts: Optional[Dict[str, Any]] = None
+    source_display_row_ids: Optional[List[str]] = None
+
+
+class RehydrateModelHistoryCheckpoint(BaseModel):
+    """Provider-neutral model-history checkpoint to install during resume."""
+
+    model_config = ConfigDict(extra="forbid", protected_namespaces=())
+
+    checkpoint_id: str
+    revision_id: str
+    created_at: Optional[str] = None
+    rows: List[RehydrateModelHistoryRow]
+
+
 class RehydrateConversationPayload(BaseModel):
     """Payload for `rehydrate-conversation` messages."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", protected_namespaces=())
 
     conversation_ref: str
-    messages: List[RehydrateConversationEntry]
+    messages: List[RehydrateConversationEntry] = Field(default_factory=list)
+    model_history: Optional[RehydrateModelHistoryCheckpoint] = None
     rehydrate_mode: Literal["replace"]
     workspace_path: Optional[str] = None
     repo_instruction_messages: Optional[List[RepoInstructionMessage]] = None

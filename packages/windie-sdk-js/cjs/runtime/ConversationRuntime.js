@@ -17,6 +17,7 @@ const TraceRecorder_js_1 = require("./TraceRecorder.js");
 const conversationReducer_js_1 = require("./conversationReducer.js");
 const conversationEventScope_js_1 = require("./conversationEventScope.js");
 const debugEnv_js_1 = require("./debugEnv.js");
+const modelHistoryPayload_js_1 = require("./modelHistoryPayload.js");
 const TurnInputPipeline_js_1 = require("./TurnInputPipeline.js");
 function nowMs() {
     return Date.now();
@@ -820,6 +821,29 @@ class SdkConversationRuntime {
     async rehydrate() {
         const startedAtMs = nowMs();
         const snapshot = await this.options.store.loadForRehydrate(this.options.conversationRef);
+        const modelHistoryCheckpoint = await this.loadModelHistoryCheckpointForRehydrate();
+        const modelHistoryPayload = modelHistoryCheckpoint && modelHistoryCheckpoint.rows.length > 0
+            ? (0, modelHistoryPayload_js_1.modelHistoryPayloadFromCheckpoint)(modelHistoryCheckpoint)
+            : null;
+        const payload = modelHistoryPayload
+            ? {
+                conversation_ref: this.options.conversationRef,
+                messages: [],
+                model_history: modelHistoryPayload,
+                rehydrate_mode: 'replace',
+            }
+            : {
+                conversation_ref: this.options.conversationRef,
+                messages: snapshot.messages,
+                rehydrate_mode: 'replace',
+            };
+        const rehydrateTraceData = {
+            messageCount: Array.isArray(payload.messages) ? payload.messages.length : 0,
+            modelHistoryRowCount: modelHistoryCheckpoint?.rows.length ?? 0,
+            modelHistoryCheckpointId: modelHistoryCheckpoint?.checkpointId ?? null,
+            source: modelHistoryPayload ? 'model_history' : 'event_projection',
+            rehydrateMode: 'replace',
+        };
         if (!this.options.transport) {
             await this.recordRuntimeTrace({
                 path: 'conversation.rehydrate',
@@ -827,8 +851,7 @@ class SdkConversationRuntime {
                 status: 'skipped',
                 data: {
                     reason: 'transport_unavailable',
-                    messageCount: snapshot.messages.length,
-                    rehydrateMode: 'replace',
+                    ...rehydrateTraceData,
                 },
             });
             return snapshot;
@@ -837,26 +860,16 @@ class SdkConversationRuntime {
             path: 'conversation.rehydrate',
             stage: 'transport_send',
             status: 'started',
-            data: {
-                messageCount: snapshot.messages.length,
-                rehydrateMode: 'replace',
-            },
+            data: rehydrateTraceData,
         });
         try {
-            await this.options.transport.rehydrateConversation({
-                conversation_ref: this.options.conversationRef,
-                messages: snapshot.messages,
-                rehydrate_mode: 'replace',
-            });
+            await this.options.transport.rehydrateConversation(payload);
             await this.recordRuntimeTrace({
                 path: 'conversation.rehydrate',
                 stage: 'transport_send',
                 status: 'succeeded',
                 durationMs: durationSince(startedAtMs),
-                data: {
-                    messageCount: snapshot.messages.length,
-                    rehydrateMode: 'replace',
-                },
+                data: rehydrateTraceData,
             });
         }
         catch (error) {
@@ -866,10 +879,7 @@ class SdkConversationRuntime {
                 status: 'failed',
                 durationMs: durationSince(startedAtMs),
                 error,
-                data: {
-                    messageCount: snapshot.messages.length,
-                    rehydrateMode: 'replace',
-                },
+                data: rehydrateTraceData,
             });
             throw error;
         }
@@ -1285,6 +1295,17 @@ class SdkConversationRuntime {
             createdAt,
             rows,
         };
+    }
+    async loadModelHistoryCheckpointForRehydrate() {
+        const loader = this.options.store.loadModelHistory;
+        if (!loader) {
+            return null;
+        }
+        const revisionId = this.state.revisionId === 'rev-empty' ? null : this.state.revisionId;
+        return loader.call(this.options.store, {
+            conversationRef: this.options.conversationRef,
+            revisionId,
+        });
     }
     async recordRuntimeTrace(input, options = {}) {
         const turnRef = options.turnRef ?? null;

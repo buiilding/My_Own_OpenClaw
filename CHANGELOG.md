@@ -18,6 +18,11 @@ All notable changes to WindieOS will be documented in this file.
   through SDK stores without adding it to display or rehydrate projections. No
   migration required; old conversations without checkpoints continue to use the
   existing rehydrate path until the model-history install phase lands.
+- backend/sdk: make normal rehydrate prefer persisted model-history checkpoints
+  and install those backend-normalized rows directly into session history,
+  keeping event-projection rehydrate only as the no-checkpoint fallback during
+  migration. No migration required; conversations that do not yet have a
+  checkpoint still resume through the existing projection path.
 - docs/adr: add ADR 008 and the conversation history revision architecture
   plan for separating full display history, backend-normalized model history,
   runtime events, and revision graph ownership so edit/resend, compaction,

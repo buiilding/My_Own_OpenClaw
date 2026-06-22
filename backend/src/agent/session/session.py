@@ -524,6 +524,22 @@ class AgentSession:
             self.runtime.active_conversation_ref = conversation_ref
             self.history.replace_with_entries(entries)
 
+    async def install_model_history(
+        self,
+        *,
+        conversation_ref: str,
+        revision_id: str,
+        entries: List[Dict[str, Any]],
+        system_prompt: Optional[str] = None,
+    ) -> None:
+        """Replace in-memory history with backend-normalized model-history rows."""
+        async with self._lock:
+            self.runtime.active_conversation_ref = conversation_ref
+            self.runtime.active_revision_id = revision_id
+            self.history.replace_with_entries(entries)
+            if system_prompt:
+                self.history.system_prompt = system_prompt
+
     async def run_history_compaction(
         self,
         *,

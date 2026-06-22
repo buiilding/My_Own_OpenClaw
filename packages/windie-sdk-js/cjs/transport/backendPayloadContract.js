@@ -23,6 +23,7 @@ const BACKEND_PAYLOAD_KEYS_BY_TYPE = Object.freeze({
     'rehydrate-conversation': Object.freeze([
         'conversation_ref',
         'messages',
+        'model_history',
         'rehydrate_mode',
         'workspace_path',
         'repo_instruction_messages',

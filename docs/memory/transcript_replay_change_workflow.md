@@ -27,7 +27,7 @@ flowchart LR
     E --> F["dashboard conversation list/search"]
     E --> G["SDK display/rehydrate projections"]
     G --> I["backend RehydrateExecutionService"]
-    H --> J["future backend model-history install path"]
+    H --> J["backend model-history install path"]
     I --> J["backend conversation-scoped history"]
 ```
 
@@ -37,12 +37,12 @@ flowchart LR
 - SDK store adapters expose `replaceModelHistory(...)` and
   `loadModelHistory(...)` for provider-neutral, bounded model-history
   checkpoints. This is a separate inference ledger, not a visible transcript
-  projection. Normal rehydrate still uses the existing event projection until
-  the ADR 008 install path replaces it.
+  projection. Normal rehydrate installs this checkpoint when available and
+  falls back to the existing event projection only when a conversation has no
+  checkpoint yet.
 - Backend live turns now emit `model-history-updated` checkpoints after
   assistant and tool-result history commits. The SDK persists those hidden
-  events through `replaceModelHistory(...)`; display and current normal
-  rehydrate projections ignore them.
+  events through `replaceModelHistory(...)`; display projections ignore them.
 - Electron main owns IPC/RPC mapping and identity sync between windows. It should not interpret chat semantics beyond normalizing bridge payload keys and forwarding session updates.
 - The SDK local-runtime store owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs; local-runtime Python implements the current SQLite backing store.
 - Backend rehydrate owns conversion from stored transcript entries into

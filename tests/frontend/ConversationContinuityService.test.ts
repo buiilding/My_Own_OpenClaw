@@ -11,6 +11,7 @@ import type {
   JsonRecord,
   RehydratePayload,
 } from '../../packages/windie-sdk-js/src';
+import { InMemoryConversationStore } from '../../packages/windie-sdk-js/src/stores/InMemoryConversationStore';
 
 function createStore(overrides: Partial<ConversationStore> = {}) {
   return {
@@ -209,6 +210,120 @@ describe('ConversationContinuityService', () => {
       rehydrate_mode: 'replace',
       workspace_path: '/repo',
     });
+  });
+
+  test('rehydrateFromStore installs persisted model history when available', async () => {
+    const store = createStore({
+      getRevision: jest.fn().mockResolvedValue({
+        conversationRef: 'conv-1',
+        revisionId: 'rev-model-history',
+        updatedAt: '2026-06-22T12:00:00.000Z',
+      }),
+      loadModelHistory: jest.fn().mockResolvedValue({
+        checkpointId: 'mh-rev-model-history-turn-1',
+        conversationRef: 'conv-1',
+        revisionId: 'rev-model-history',
+        createdAt: '2026-06-22T12:00:00.000Z',
+        rows: [
+          {
+            id: 'mh-row-tool',
+            conversationRef: 'conv-1',
+            revisionId: 'rev-model-history',
+            role: 'tool',
+            messageType: 'tool_output',
+            content: 'bounded output',
+            toolCallId: 'call-1',
+            toolName: 'read_file',
+            imageRefs: ['artifact-1'],
+            sourceDisplayRowIds: ['display-tool'],
+          },
+        ],
+      }),
+      loadForRehydrate: jest.fn().mockResolvedValue({
+        conversationRef: 'conv-1',
+        revisionId: 'rev-model-history',
+        messages: [
+          { role: 'tool', content: 'full display output' },
+        ],
+      }),
+    });
+    const rehydrateConversation = jest.fn<Promise<void>, [RehydratePayload]>().mockResolvedValue(undefined);
+    const service = new ConversationContinuityService({
+      storeFactory: () => store,
+      transportFactory: () => ({ rehydrateConversation }),
+    });
+
+    await expect(service.rehydrateFromStore({
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+    })).resolves.toMatchObject({
+      hydrated: true,
+      messageCount: 1,
+      revisionId: 'rev-model-history',
+      modelHistoryCheckpointId: 'mh-rev-model-history-turn-1',
+      source: 'model_history',
+    });
+
+    expect(store.loadForRehydrate).not.toHaveBeenCalled();
+    expect(rehydrateConversation).toHaveBeenCalledWith({
+      conversation_ref: 'conv-1',
+      messages: [],
+      model_history: expect.objectContaining({
+        checkpoint_id: 'mh-rev-model-history-turn-1',
+        rows: [
+          expect.objectContaining({
+            content: 'bounded output',
+            tool_call_id: 'call-1',
+          }),
+        ],
+      }),
+      rehydrate_mode: 'replace',
+      workspace_path: null,
+    });
+  });
+
+  test('rehydrateFromStore binds model history loaders on real store adapters', async () => {
+    const store = new InMemoryConversationStore();
+    await store.replaceModelHistory({
+      checkpointId: 'mh-latest',
+      conversationRef: 'conv-real-store',
+      revisionId: 'rev-real-store',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'mh-row-user',
+          conversationRef: 'conv-real-store',
+          revisionId: 'rev-real-store',
+          role: 'user',
+          messageType: 'user_query',
+          content: 'bounded user query',
+        },
+      ],
+    });
+    const loadForRehydrate = jest.spyOn(store, 'loadForRehydrate');
+    const rehydrateConversation = jest.fn<Promise<void>, [RehydratePayload]>().mockResolvedValue(undefined);
+    const service = new ConversationContinuityService({
+      storeFactory: () => store,
+      transportFactory: () => ({ rehydrateConversation }),
+    });
+
+    await expect(service.rehydrateFromStore({
+      userId: 'user-1',
+      conversationRef: 'conv-real-store',
+    })).resolves.toMatchObject({
+      hydrated: true,
+      source: 'model_history',
+      modelHistoryCheckpointId: 'mh-latest',
+    });
+
+    expect(loadForRehydrate).not.toHaveBeenCalled();
+    expect(rehydrateConversation).toHaveBeenCalledWith(expect.objectContaining({
+      conversation_ref: 'conv-real-store',
+      messages: [],
+      model_history: expect.objectContaining({
+        checkpoint_id: 'mh-latest',
+      }),
+    }));
   });
 
   test('rehydrateFromStore skips agent runtime transport when projection has no provider messages', async () => {

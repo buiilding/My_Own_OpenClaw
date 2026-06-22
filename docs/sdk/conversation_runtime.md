@@ -36,7 +36,7 @@ SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`.
 | display transcript | SDK projection | React, CLI, and custom UIs render this projection |
 | current-turn projection | SDK projection | active assistant text, reasoning text, tool rows, phase, error state, and live presentation state for UI surfaces |
 | backend rehydrate payload | SDK projection | generated from normalized events, not visible transcript rows |
-| model-history checkpoints | backend-normalized contract + SDK store adapters | provider-neutral, bounded inference rows persisted separately from full display/runtime events; normal resume still uses `loadForRehydrate(...)` until the rehydrate migration switches to checkpoint install |
+| model-history checkpoints | backend-normalized contract + SDK store adapters | provider-neutral, bounded inference rows persisted separately from full display/runtime events; normal resume installs these checkpoints when available and falls back to `loadForRehydrate(...)` only when no checkpoint exists |
 | tool execution coordination | SDK runtime | claimed local tools must return exactly one backend result or failure |
 | local tool execution | SDK local runtime | the local runtime runs local-runtime-backed tools; it does not own conversation replay semantics |
 | backend provider history | backend | provider-safe history remains backend-owned after result ingress |
@@ -326,7 +326,7 @@ store.replaceModelHistory(checkpoint)
   -> persist provider-neutral bounded model-history rows for a revision
 
 store.loadModelHistory({ conversationRef, revisionId? })
-  -> load the latest active provider-neutral checkpoint for later backend install
+  -> load the active provider-neutral checkpoint for backend install during normal resume
 ```
 
 Do not implement separate role/message/tool interpretation inside each adapter.
@@ -338,9 +338,14 @@ Model-history checkpoint methods are the ADR 008 migration surface. They do not
 make display rows, runtime events, and backend active history interchangeable:
 checkpoints store bounded model-facing rows only, while full tool output and
 display attachments remain in display/runtime history.
-No migration is required for adding checkpoint persistence or the hidden
-backend event; old conversations without checkpoints continue on the existing
-rehydrate path until the backend model-history install phase replaces it.
+Normal `ConversationRuntime.rehydrate()` and
+`ConversationContinuityService.rehydrateFromStore(...)` prefer
+`loadModelHistory(...)` and send `rehydrate-conversation.payload.model_history`
+with an empty `messages` array. The backend installs those rows directly into
+session history. If no checkpoint exists, SDK rehydrate falls back to the
+existing event-projection payload. No migration is required; old conversations
+without checkpoints continue on the fallback path until a migration creates
+checkpoints for them.
 
 Metadata pagination and search helpers stay in the `conversation/metadata`
 owner module for SDK stores and runtime classes. Public package-root callers

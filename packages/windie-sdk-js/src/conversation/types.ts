@@ -643,7 +643,8 @@ export type ToolBundleResultPayload = {
 
 export type RehydratePayload = {
   conversation_ref: string;
-  messages: JsonRecord[];
+  messages?: JsonRecord[];
+  model_history?: JsonRecord | null;
   rehydrate_mode: 'replace';
   workspace_path?: string | null;
   repo_instruction_messages?: JsonRecord[] | null;

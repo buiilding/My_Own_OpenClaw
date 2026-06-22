@@ -39,6 +39,7 @@
       "keys": [
         "conversation_ref",
         "messages",
+        "model_history",
         "rehydrate_mode",
         "workspace_path",
         "repo_instruction_messages"

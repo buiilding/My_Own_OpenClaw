@@ -5024,6 +5024,77 @@ describe('Agent SDK conversation runtime core', () => {
     });
   });
 
+  test('conversation runtime sends persisted model-history checkpoint for rehydrate', async () => {
+    const sentRehydrates: Record<string, unknown>[] = [];
+    const transport = createMockAgentRuntimeTransport({
+      rehydrateConversation: jest.fn(async payload => {
+        sentRehydrates.push(payload);
+      }),
+    });
+    const store = new InMemoryConversationStore();
+    await store.appendEvent(createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-model-history',
+      turnRef: 'turn-1',
+      source: 'sdk',
+      payload: { text: 'full visible user text' },
+    }));
+    await store.replaceModelHistory({
+      checkpointId: 'mh-rev-model-history-turn-1',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-model-history',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'mh-row-tool',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-model-history',
+          role: 'tool',
+          messageType: 'tool_output',
+          content: 'bounded tool output',
+          toolCallId: 'call-1',
+          toolName: 'read_file',
+          imageRefs: ['artifact-1', 'data:image/png;base64,raw-preview'],
+          sourceDisplayRowIds: ['display-tool'],
+        },
+      ],
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-model-history',
+      store,
+      transport,
+    });
+
+    const rehydrate = await runtime.rehydrate();
+
+    expect(rehydrate.messages).toEqual([
+      expect.objectContaining({ role: 'user', message_type: 'user_query', content: 'full visible user text' }),
+    ]);
+    expect(sentRehydrates).toEqual([
+      expect.objectContaining({
+        conversation_ref: 'conv-sdk-runtime',
+        rehydrate_mode: 'replace',
+        messages: [],
+        model_history: expect.objectContaining({
+          checkpoint_id: 'mh-rev-model-history-turn-1',
+          revision_id: 'rev-model-history',
+          rows: [
+            expect.objectContaining({
+              id: 'mh-row-tool',
+              role: 'tool',
+              message_type: 'tool_output',
+              content: 'bounded tool output',
+              tool_call_id: 'call-1',
+              image_refs: ['artifact-1'],
+            }),
+          ],
+        }),
+      }),
+    ]);
+  });
+
   test('conversation runtime records query dispatch trace around backend send', async () => {
     const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-dispatch-accepted'),

@@ -106,7 +106,17 @@ This preserves strict provider tool-message linkage while keeping screenshot con
 
 ## Rehydrate Normalization Rules
 
-`replace_with_entries(entries)` reconstructs history from SDK rehydrate payloads.
+Normal resume prefers persisted backend-normalized model-history checkpoints.
+When `rehydrate-conversation.payload.model_history` is present, the backend
+validates checkpoint row conversation/revision identity and installs those rows
+directly into `ConversationHistory` without resolving display screenshots or
+rebuilding model history from SDK display/runtime events. System rows restore
+the session system prompt; non-system rows become the active model-facing
+history. This path preserves bounded tool output and tool-call/tool-output
+linkage as backend emitted it.
+
+When no model-history checkpoint exists, `replace_with_entries(entries)`
+reconstructs history from SDK rehydrate payloads as the migration fallback.
 
 Normalization includes:
 
