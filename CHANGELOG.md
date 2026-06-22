@@ -85,6 +85,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: give disabled primary and secondary settings buttons
+  explicit readable disabled palettes instead of opacity-only styling, closing
+  the remaining light-mode settings-control contrast gap. No migration
+  required.
 - frontend/renderer: keep SDK visual attachment previews visible while ready
   artifact images resolve, and avoid repeated equivalent screenshot-source
   state writes that could trigger React maximum update depth warnings in
