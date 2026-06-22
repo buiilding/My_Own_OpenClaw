@@ -71,6 +71,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete unused `showToolLogs` and `isBusy` inputs from
+  dashboard thread presentation, keeping tool rows as rendering data instead
+  of tool-log or busy lifecycle branches. No migration required.
 - frontend/renderer: name thread live-row fallback as projection fallback
   instead of legacy projection rows, keeping SDK presentation-entry precedence
   explicit in the app-runtime thread presenter. No migration required.

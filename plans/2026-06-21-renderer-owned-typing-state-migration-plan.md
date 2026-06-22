@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Dashboard Thread Tool-Log Input Deletion
+
+- Finding: `ChatInterface` still read `config.show_tool_logs` and passed
+  `showToolLogs` plus `isBusy` into
+  `DesktopThreadPresentationRuntime.buildThreadPresentationMessages(...)`,
+  even though the thread presenter no longer consumed either value and visible
+  lifecycle already owns busy/typing state.
+- Change: removed the unused dashboard thread projection inputs, kept durable
+  and SDK current-turn rows as rendering data, and updated tests/docs to state
+  that tool-log toggles do not drive thread row projection or typing lifecycle.
+- Validation target: `ChatInterfaceWiring.test.jsx`,
+  `MessagePresentationPipeline.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed thread presentation
+  boundary.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Live Surface Send-Preflight Predicate Deletion
 
 - Finding: the visible lifecycle owner still exported the local pending-turn

@@ -200,7 +200,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     };
   }, [sessionInfo.conversationRef, startWorkspaceBoundNewChat]);
 
-  const showToolLogs = config?.show_tool_logs === true;
   const chatSurface = useChatSurfaceController({
     messages,
     currentTurnProjection,
@@ -220,11 +219,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     speechModeEnabled,
   } = chatSurface;
   const renderedMessages = useMemo(() => buildThreadPresentationMessages(messages, {
-    showToolLogs,
-    isBusy: composerBusy,
     currentTurnProjection,
     activeConversationRef: sessionInfo.conversationRef || null,
-  }), [composerBusy, currentTurnProjection, messages, sessionInfo.conversationRef, showToolLogs]);
+  }), [currentTurnProjection, messages, sessionInfo.conversationRef]);
   const activeConversationRef = sessionInfo.conversationRef || null;
   const isLoadingSelectedConversation = (
     typeof loadingConversationRef === 'string'

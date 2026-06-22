@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Dashboard Thread Tool-Log Input Deletion
+
+- Finding: `ChatInterface` still forwarded `showToolLogs` and lifecycle busy
+  state into `DesktopThreadPresentationRuntime.buildThreadPresentationMessages(...)`
+  after thread projection had moved to durable rows plus SDK current-turn
+  rendering data and stopped filtering rows through tool-log settings.
+- Change: removed the unused inputs from the dashboard caller, kept thread
+  projection independent from busy lifecycle state, and updated boundary
+  coverage to reject reintroducing those knobs in the thread presenter.
+- Validation target: `ChatInterfaceWiring.test.jsx`,
+  `MessagePresentationPipeline.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed boundary.
+- Compatibility/security: no IPC channel, SDK event payload, transcript row
+  shape, renderer config shape, persisted storage, permission, credential,
+  local execution, trust-boundary, storage, or migration change required.
+
 ### 2026-06-22 Renderer Thread Projection Fallback Naming
 
 - Finding: `DesktopThreadPresentationRuntime` correctly preferred SDK
