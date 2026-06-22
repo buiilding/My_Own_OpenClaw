@@ -136,7 +136,7 @@ main process, React renderer, and the local-runtime Python implementation.
 - [App Provider Coordinator and Save-Status Runtime Reference](renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md)
 - [Renderer Provider Contexts Docs Hub](renderer/providers/contexts/README.md)
 - [App Config and Status Context Hook Guard and Re-Export Boundary Reference](renderer/providers/contexts/app_config_and_status_context_hook_guard_and_reexport_boundary_reference.md)
-- [Chat Provider Bootstrap Flag and Empty-Context Contract Reference](renderer/providers/contexts/chat_provider_bootstrap_flag_and_empty_context_contract_reference.md)
+- [Chat Provider Bootstrap Flag Contract Reference](renderer/providers/contexts/chat_provider_bootstrap_flag_contract_reference.md)
 - [Renderer Provider Components Docs Hub](renderer/providers/components/README.md)
 - [Error Boundary Fallback and Component-Tree Crash Isolation Contract Reference](renderer/providers/components/error_boundary_fallback_and_component_tree_crash_isolation_contract_reference.md)
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)

@@ -79,7 +79,7 @@ title: "Frontend Renderer Docs Hub"
 - [App Provider Coordinator and Save-Status Runtime Reference](providers/app_provider_coordinator_and_save_status_runtime_reference.md)
 - [Renderer Provider Contexts Docs Hub](providers/contexts/README.md)
 - [App Config and Status Context Hook Guard and Re-Export Boundary Reference](providers/contexts/app_config_and_status_context_hook_guard_and_reexport_boundary_reference.md)
-- [Chat Provider Bootstrap Flag and Empty-Context Contract Reference](providers/contexts/chat_provider_bootstrap_flag_and_empty_context_contract_reference.md)
+- [Chat Provider Bootstrap Flag Contract Reference](providers/contexts/chat_provider_bootstrap_flag_contract_reference.md)
 - [Renderer Provider Components Docs Hub](providers/components/README.md)
 - [Error Boundary Fallback and Component-Tree Crash Isolation Contract Reference](providers/components/error_boundary_fallback_and_component_tree_crash_isolation_contract_reference.md)
 - [Renderer Provider Shortcut Docs Hub](providers/shortcuts/README.md)

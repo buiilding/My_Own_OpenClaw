@@ -15,7 +15,7 @@ title: "Frontend Renderer Provider Docs Hub"
 - [App Provider Coordinator and Save-Status Runtime Reference](app_provider_coordinator_and_save_status_runtime_reference.md)
 - [Renderer Provider Contexts Docs Hub](contexts/README.md)
 - [App Config and Status Context Hook Guard Reference](contexts/app_config_and_status_context_hook_guard_and_reexport_boundary_reference.md)
-- [Chat Provider Bootstrap Flag and Empty-Context Contract Reference](contexts/chat_provider_bootstrap_flag_and_empty_context_contract_reference.md)
+- [Chat Provider Bootstrap Flag Contract Reference](contexts/chat_provider_bootstrap_flag_contract_reference.md)
 - [Renderer Provider Components Docs Hub](components/README.md)
 - [Error Boundary Fallback and Component-Tree Crash Isolation Contract Reference](components/error_boundary_fallback_and_component_tree_crash_isolation_contract_reference.md)
 - [Renderer Provider Shortcut Docs Hub](shortcuts/README.md)
@@ -29,7 +29,6 @@ title: "Frontend Renderer Provider Docs Hub"
 - `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
 - `frontend/src/renderer/app/providers/*`
-- `frontend/src/renderer/app/providers/ChatContext.jsx`
 - `frontend/src/renderer/app/providers/ChatProvider.jsx`
 - `tests/frontend/AppProvider.test.tsx`
 - `tests/frontend/AppConfigProvider.*.test.tsx`

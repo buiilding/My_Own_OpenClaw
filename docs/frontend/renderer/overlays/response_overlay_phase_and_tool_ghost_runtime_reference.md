@@ -171,6 +171,11 @@ Contract ownership:
   visibility re-report behavior, delegating responsebox size payload assembly,
   IPC, and visibility payload normalization/boolean subscription projection to
   `DesktopResponseOverlayRuntimeClient`.
+- `DesktopResponseOverlayInteractionRuntime` owns the browser scheduling behind
+  response-window visibility re-reporting and visible size updates:
+  animation-frame scheduling, retry timer scheduling, `ResizeObserver`, and
+  cleanup. `useResponseOverlayWindowSync(...)` supplies value-level callbacks
+  and refs.
 - `DesktopRendererTraceRuntime` owns response-surface stream-trace and
   live-surface size-report payload field shaping.
   `useResponseOverlayWindowSync(...)` reports value-level sizing and turn
@@ -249,6 +254,12 @@ Response overlay hit-test browser subscriptions and pointer bounds checks use
 `MinimalResponseOverlay` reports boolean active state only, and
 `DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(...)`
 assembles the host-shaped `{ active }` IPC payload.
+
+Response overlay size re-report and resize scheduling use
+`DesktopResponseOverlayInteractionRuntime.scheduleResponseOverlayFrame(...)`
+and `DesktopResponseOverlayInteractionRuntime.startResponseOverlaySizeUpdateSync(...)`.
+`useResponseOverlayWindowSync(...)` remains the owner for hidden/shown sizing
+policy, turn guard metadata, and responsebox size IPC values.
 
 Layout-specific sizing:
 

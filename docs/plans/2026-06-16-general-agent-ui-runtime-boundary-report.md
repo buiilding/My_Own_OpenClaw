@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: minimal chat pill close-button anchor measurement,
-  resize subscriptions, `ResizeObserver`, and animation-frame scheduling now
-  route through `DesktopChatboxInteractionRuntime`; `MinimalChatPill` supplies
-  pill/send-button refs and the anchor snapshot without owning close-anchor
-  browser adapters or CSS-variable update mechanics.
+- Latest completed slice: response-overlay visibility re-report frame
+  scheduling and visible size-update RAF/retry/`ResizeObserver` cleanup now
+  route through `DesktopResponseOverlayInteractionRuntime`;
+  `useResponseOverlayWindowSync` supplies callbacks and refs while retaining
+  sizing policy, traces, turn guards, and responsebox IPC values.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

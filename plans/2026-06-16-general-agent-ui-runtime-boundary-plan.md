@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Response Overlay Window Scheduling Runtime
+
+- Finding: `useResponseOverlayWindowSync(...)` still owned raw
+  `requestAnimationFrame`, retry `setTimeout`, `ResizeObserver`, and cleanup
+  mechanics for response-overlay visibility re-reporting and visible size
+  updates, even though responsebox hit testing had already moved into
+  `DesktopResponseOverlayInteractionRuntime`.
+- Change: extended `DesktopResponseOverlayInteractionRuntime` with visibility
+  re-report frame scheduling and visible size-update browser adapters. The hook
+  now supplies value-level callbacks and refs while keeping hidden/shown sizing
+  policy, turn guard metadata, traces, and responsebox IPC values.
+- Validation target: focused response overlay interaction runtime and renderer
+  chat boundary tests protect frame scheduling, retry/observer cleanup, and
+  rejection of raw response-window scheduling in `useResponseOverlayWindowSync`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Chat Pill Close-Anchor Interaction Runtime
 
 - Finding: `MinimalChatPill` still owned close-button anchor DOM measurement,

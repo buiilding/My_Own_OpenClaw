@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Chat Provider Context And Trace Latch Deletion
+
+- Finding: `ChatProvider` still wrapped children in an empty `ChatContext`
+  compatibility provider with no consumers, and provider-injected live-surface
+  trace snapshots still exposed raw `isSending`, `thinkingStatus`, and
+  `streamTracking.phase` fields after visible lifecycle had become the desktop
+  surface authority.
+- Change: deleted `ChatContext.jsx`, made `ChatProvider` return children
+  directly after mounting setup hooks, and restricted trace workspace snapshots
+  to conversation/message identity evidence.
+- Validation target: `ChatProvider.test.jsx`, `DesktopRendererTraceRuntime.test.ts`,
+  `RendererAppRuntimeBoundary.test.ts`, and `RendererChatRuntimeBoundary.test.ts`
+  protect provider setup behavior, deleted context compatibility, and trimmed
+  trace lifecycle payloads.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Minimal Surface Trace Send Latch Deletion
 
 - Finding: after lifecycle consumers stopped reading raw `isSending`, both

@@ -8,9 +8,6 @@ import { DesktopResponseOverlayLayoutRuntime } from './desktopResponseOverlayLay
 export type RendererTraceWorkspaceSnapshot = {
   activeConversationRef?: string | null;
   workspaceMessageCount?: number;
-  isSending?: boolean;
-  thinkingStatus?: string | null;
-  phase?: string | null;
   activeTurnRef?: string | null;
   lastMessage?: {
     sender?: string | null;
@@ -279,7 +276,21 @@ function getRendererTraceView(): string {
 }
 
 function summarizeWorkspaceForTrace(conversationRef: string | null): RendererTraceWorkspaceSnapshot {
-  return workspaceSnapshotResolver?.(conversationRef) ?? {};
+  const snapshot = workspaceSnapshotResolver?.(conversationRef) ?? {};
+  const summary: RendererTraceWorkspaceSnapshot = {};
+  if (snapshot.activeConversationRef !== undefined) {
+    summary.activeConversationRef = snapshot.activeConversationRef;
+  }
+  if (snapshot.workspaceMessageCount !== undefined) {
+    summary.workspaceMessageCount = snapshot.workspaceMessageCount;
+  }
+  if (snapshot.activeTurnRef !== undefined) {
+    summary.activeTurnRef = snapshot.activeTurnRef;
+  }
+  if (snapshot.lastMessage !== undefined) {
+    summary.lastMessage = snapshot.lastMessage;
+  }
+  return summary;
 }
 
 function logRendererResponseSurfaceTrace(data: Record<string, unknown>): void {

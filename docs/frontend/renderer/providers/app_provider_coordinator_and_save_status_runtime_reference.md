@@ -205,7 +205,7 @@ Net effect:
 
 - [Renderer Provider Contexts Docs Hub](contexts/README.md)
 - [App Config and Status Context Hook Guard and Re-Export Boundary Reference](contexts/app_config_and_status_context_hook_guard_and_reexport_boundary_reference.md)
-- [Chat Provider Bootstrap Flag and Empty-Context Contract Reference](contexts/chat_provider_bootstrap_flag_and_empty_context_contract_reference.md)
+- [Chat Provider Bootstrap Flag Contract Reference](contexts/chat_provider_bootstrap_flag_contract_reference.md)
 - [Renderer Provider Shortcut Docs Hub](shortcuts/README.md)
 - [Shift+Tab Mode Toggle and Editable Target Guard Reference](shortcuts/shift_tab_mode_toggle_and_editable_target_guard_reference.md)
 

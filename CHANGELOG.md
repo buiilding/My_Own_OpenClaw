@@ -68,6 +68,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the unused empty `ChatContext` compatibility
+  wrapper from `ChatProvider` and trim provider-injected live-surface trace
+  snapshots so they carry identity/message evidence instead of raw
+  `isSending`, `thinkingStatus`, or stream phase lifecycle latches. No
+  migration required.
 - frontend/renderer: route minimal chat pill close-button anchor measurement,
   resize subscription, ResizeObserver, and animation-frame scheduling through
   `DesktopChatboxInteractionRuntime`, keeping close-anchor browser adapters out

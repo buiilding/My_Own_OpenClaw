@@ -70,11 +70,11 @@ describe('ipc image interaction handlers', () => {
       clipboard,
       nativeImage,
       fetchImpl,
-      getBackendHttpUrl: () => 'https://backend.example.com',
-      getBackendCandidates: () => [
-        { httpUrl: 'https://candidate.backend.example.com' },
-      ],
-    });
+          getBackendHttpUrl: () => 'https://backend.example.com',
+          getBackendCandidates: () => [
+            { httpUrl: 'https://candidate-a.backend.example.com' },
+          ],
+        });
 
     runtime.register({ ipcMain });
 
@@ -87,13 +87,13 @@ describe('ipc image interaction handlers', () => {
       expect.any(Function),
     );
 
-    await expect(invokeHandlers['copy-image-to-clipboard'](null, {
-      src: 'https://candidate.backend.example.com/api/artifacts/image.png',
-    })).resolves.toEqual({ success: true });
-    expect(fetchImpl).toHaveBeenCalledWith(
-      'https://candidate.backend.example.com/api/artifacts/image.png',
-      { redirect: 'manual' },
-    );
+        await expect(invokeHandlers['copy-image-to-clipboard'](null, {
+          src: 'https://candidate-a.backend.example.com/api/artifacts/image.png',
+        })).resolves.toEqual({ success: true });
+        expect(fetchImpl).toHaveBeenCalledWith(
+          'https://candidate-a.backend.example.com/api/artifacts/image.png',
+          { redirect: 'manual' },
+        );
 
     await expect(invokeHandlers['copy-image-to-clipboard'](null, {
       src: 'https://backend.example.com/api/artifacts/image.png',

@@ -77,9 +77,6 @@ describe('desktopRendererTraceRuntime', () => {
     configureRendererTraceWorkspaceSnapshotResolver((conversationRef) => ({
       activeConversationRef: conversationRef,
       workspaceMessageCount: 2,
-      isSending: true,
-      thinkingStatus: 'Thinking...',
-      phase: 'streaming',
       activeTurnRef: 'turn-1',
       lastMessage: {
         sender: 'assistant',
@@ -99,6 +96,12 @@ describe('desktopRendererTraceRuntime', () => {
       workspaceMessageCount: 2,
       event: 'pill',
     }));
+    const chatPillTrace = consoleLog.mock.calls.find(
+      ([channel]) => channel === '[ChatPillTrace][renderer]',
+    )?.[1];
+    expect(chatPillTrace).not.toHaveProperty('isSending');
+    expect(chatPillTrace).not.toHaveProperty('thinkingStatus');
+    expect(chatPillTrace).not.toHaveProperty('phase');
     expect(consoleLog).toHaveBeenCalledWith('[LiveSurfaceTrace]', expect.objectContaining({
       event: 'typing.show',
       view: 'minimal-chat-pill',
@@ -106,11 +109,20 @@ describe('desktopRendererTraceRuntime', () => {
       workspaceMessageCount: 2,
       extra: true,
     }));
+    const liveSurfaceTrace = consoleLog.mock.calls.find(
+      ([channel]) => channel === '[LiveSurfaceTrace]',
+    )?.[1];
+    expect(liveSurfaceTrace).not.toHaveProperty('isSending');
+    expect(liveSurfaceTrace).not.toHaveProperty('thinkingStatus');
+    expect(liveSurfaceTrace).not.toHaveProperty('phase');
     expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
       event: 'typing.show',
       activeConversationRef: 'conv-1',
       workspaceMessageCount: 2,
     }));
+    expect(mockSendLiveSurfaceTrace.mock.calls[0]?.[0]).not.toHaveProperty('isSending');
+    expect(mockSendLiveSurfaceTrace.mock.calls[0]?.[0]).not.toHaveProperty('thinkingStatus');
+    expect(mockSendLiveSurfaceTrace.mock.calls[0]?.[0]).not.toHaveProperty('phase');
   });
 
   test('builds and emits display-row projection image-count traces', () => {

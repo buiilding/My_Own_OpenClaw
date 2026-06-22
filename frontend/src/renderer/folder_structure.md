@@ -113,7 +113,6 @@ frontend/src/renderer/
 │       ├── AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
 │       ├── AppStatusProvider.jsx        # AppStatusProvider - Manages saveStatus (transient, frequent changes)
 │       ├── appConfigPersistence.js      # appConfigPersistence - Config sanitization + changed-config apply helpers
-│       ├── ChatContext.jsx              # ChatContext constants for ChatProvider wiring
 │       ├── ChatProvider.jsx             # ChatProvider - Sets up chat stream hooks and transcript session sync
 │       └── configComparison.ts          # configComparison - Shallow config change detection helpers
 │

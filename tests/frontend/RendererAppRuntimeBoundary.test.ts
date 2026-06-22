@@ -1722,10 +1722,6 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'providers/AppStatusContext.jsx'),
       'utf8',
     );
-    const chatContextSource = await fs.readFile(
-      path.join(appRoot, 'providers/ChatContext.jsx'),
-      'utf8',
-    );
 
     expect(configContextSource).toContain('export const AppConfigContext');
     expect(configContextSource).toContain('export function useAppConfigContext');
@@ -1733,9 +1729,21 @@ describe('renderer app runtime boundary', () => {
     expect(statusContextSource).toContain('export const AppStatusContext');
     expect(statusContextSource).toContain('export function useAppStatusContext');
     expect(statusContextSource).not.toContain('export {');
-    expect(chatContextSource).toContain('export const EMPTY_CHAT_CONTEXT');
-    expect(chatContextSource).toContain('export const ChatContext');
-    expect(chatContextSource).not.toContain('export {');
+    await expect(fs.stat(
+      path.join(appRoot, 'providers/ChatContext.jsx'),
+    )).rejects.toThrow();
+  });
+
+  test('chat provider does not keep an empty context compatibility wrapper', async () => {
+    const providerSource = await fs.readFile(
+      path.join(appRoot, 'providers/ChatProvider.jsx'),
+      'utf8',
+    );
+
+    expect(providerSource).not.toContain('ChatContext');
+    expect(providerSource).not.toContain('EMPTY_CHAT_CONTEXT');
+    expect(providerSource).not.toContain('.Provider');
+    expect(providerSource).toContain('return children');
   });
 
   test('renderer app and feature code does not call SDK-owned transport/internal IPC channels', async () => {

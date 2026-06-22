@@ -78,9 +78,14 @@ Visibility re-report rule:
 
 - on `DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility(...)` show
   event, the runtime client has already normalized the host payload and emits a
-  boolean visibility value; renderer schedules re-report on next animation
-  frame when overlay should be visible
+  boolean visibility value; renderer schedules re-report through
+  `DesktopResponseOverlayInteractionRuntime.scheduleResponseOverlayFrame(...)`
+  when overlay should be visible
 - on hide event, cached frame state resets so next show forces fresh size report
+- visible resize retry, animation-frame coalescing, `ResizeObserver`, and
+  cleanup are installed through
+  `DesktopResponseOverlayInteractionRuntime.startResponseOverlaySizeUpdateSync(...)`
+  while `useResponseOverlayWindowSync(...)` keeps the sizing policy.
 
 ## Scroll-Anchor Policy
 

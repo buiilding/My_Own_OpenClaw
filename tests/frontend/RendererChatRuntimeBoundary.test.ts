@@ -1845,6 +1845,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('export function configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('configureRendererTraceWorkspaceSnapshotResolver');
     expect(chatProviderSource).toContain('DesktopRendererTraceRuntime');
+    expect(chatProviderSource).not.toContain('isSending: workspace.isSending');
+    expect(chatProviderSource).not.toContain('thinkingStatus: workspace.thinkingStatus');
+    expect(chatProviderSource).not.toContain('phase: workspace.streamTracking.phase');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/chatStream/chatStreamDebugTrace.ts'),
