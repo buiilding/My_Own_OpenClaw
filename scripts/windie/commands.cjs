@@ -174,6 +174,7 @@ const RENDERER_LIGHT_APPEARANCE_USER_FACING_REGRESSION_TESTS = Object.freeze([
   'ThemeCss.test.js',
   'ChatHeaderAppearanceCss.test.cjs',
   'ChatBoxAppearanceCss.test.cjs',
+  'ChatBoxResponseAppearanceCss.test.cjs',
   'ToolCallRenderingCss.test.js',
   'SettingsSurfaceCss.test.js',
 ]);

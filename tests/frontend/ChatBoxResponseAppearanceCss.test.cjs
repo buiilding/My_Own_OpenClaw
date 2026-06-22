@@ -19,9 +19,12 @@ describe('chatbox response appearance CSS', () => {
     const lightBlock = css.slice(lightBlockStart, lightBlockEnd);
 
     expect(lightBlockStart).toBeGreaterThanOrEqual(0);
-    expect(lightBlock).toContain('--chatbox-typing-surface-bg: rgba(15, 23, 42, 0.07);');
-    expect(lightBlock).toContain('--chatbox-typing-border: rgba(15, 23, 42, 0.18);');
-    expect(lightBlock).toContain('--chatbox-typing-dot-bg: rgba(15, 23, 42, 0.74);');
+    expect(lightBlock).toContain(
+      '--chatbox-typing-surface-bg: color-mix(in srgb, var(--appearance-foreground) 7%, var(--appearance-background) 93%);',
+    );
+    expect(lightBlock).toContain('--chatbox-typing-border: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);');
+    expect(lightBlock).toContain('--chatbox-typing-dot-bg: var(--appearance-foreground);');
+    expect(lightBlock).not.toContain('--chatbox-typing-dot-bg: rgba(15, 23, 42, 0.74);');
   });
 
   test('routes awaiting indicator paint through typing tokens', () => {

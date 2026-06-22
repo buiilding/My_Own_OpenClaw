@@ -65,6 +65,9 @@ Light-mode readability:
 - the minimal chat pill close badge routes through the same foreground token in
   light appearance so the close affordance remains readable on the light close
   bump
+- dashboard awaiting dots and response-overlay typing dots route through
+  foreground-backed appearance tokens in light mode, avoiding white-on-light
+  typing indicators
 - dev-only source badges and transparency panels use the same foreground in
   light appearance so diagnostic metadata remains readable
 - user message bubbles use `--user-message-background` and

@@ -11,11 +11,11 @@
 }
 
 :root[data-agent-theme='light'] .chatbox-response-shell-wrap {
-  --chatbox-typing-surface-bg: rgba(15, 23, 42, 0.07);
-  --chatbox-typing-border: rgba(15, 23, 42, 0.18);
-  --chatbox-typing-dot-bg: rgba(15, 23, 42, 0.74);
+  --chatbox-typing-surface-bg: color-mix(in srgb, var(--appearance-foreground) 7%, var(--appearance-background) 93%);
+  --chatbox-typing-border: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);
+  --chatbox-typing-dot-bg: var(--appearance-foreground);
   --chatbox-typing-shadow:
-    0 10px 24px rgba(15, 23, 42, 0.08),
+    0 10px 24px color-mix(in srgb, var(--appearance-foreground) 8%, transparent 92%),
     inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
 

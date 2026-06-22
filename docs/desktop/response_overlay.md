@@ -40,6 +40,10 @@ is the primary visible surface. When the dashboard or onboarding window owns
 presentation, SDK current-turn content remains available to the dashboard, but
 the floating response overlay and its typing shell stay hidden.
 
+In light appearance, the response-overlay typing shell and dots must route
+through appearance foreground-backed tokens so the awaiting state remains
+readable against light desktop surfaces.
+
 Click-through/focusability and screenshot content protection are scoped to SDK
 local tool lifecycle leases in Electron main.
 

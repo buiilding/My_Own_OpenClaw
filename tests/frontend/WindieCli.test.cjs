@@ -328,6 +328,7 @@ describe('windie CLI', () => {
       'DesktopAppearanceThemeRuntime.test.js',
       'SettingsSection.test.jsx',
       'ChatBoxAppearanceCss.test.cjs',
+      'ChatBoxResponseAppearanceCss.test.cjs',
       'SettingsSurfaceCss.test.js',
     ]));
     expect(userFacingPlan.concurrent[2]).toMatchObject({

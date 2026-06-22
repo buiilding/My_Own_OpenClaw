@@ -20,6 +20,9 @@
   --chat-utility-text-secondary: rgba(226, 232, 240, 0.7);
   --chat-utility-text-muted: rgba(226, 232, 240, 0.52);
   --chat-utility-label-color: var(--agent-accent-pale);
+  --chat-awaiting-dot-surface-bg: rgba(255, 255, 255, 0.04);
+  --chat-awaiting-dot-border: var(--ui-border-soft);
+  --chat-awaiting-dot-bg: var(--ui-text-primary);
   --chat-utility-panel-bg:
     linear-gradient(180deg, rgba(17, 18, 20, 0.98), rgba(10, 11, 13, 0.96));
   display: flex;
@@ -47,6 +50,9 @@
   --chat-utility-text-secondary: var(--appearance-foreground);
   --chat-utility-text-muted: color-mix(in srgb, var(--appearance-foreground) 72%, var(--appearance-background) 28%);
   --chat-utility-label-color: var(--appearance-foreground);
+  --chat-awaiting-dot-surface-bg: color-mix(in srgb, var(--appearance-foreground) 7%, var(--appearance-background) 93%);
+  --chat-awaiting-dot-border: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);
+  --chat-awaiting-dot-bg: var(--appearance-foreground);
 }
 
 .chat-header {
@@ -984,15 +990,15 @@
   gap: 5px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--ui-border-soft);
+  background: var(--chat-awaiting-dot-surface-bg);
+  border: 1px solid var(--chat-awaiting-dot-border);
 }
 
 .message-list-awaiting-dot-indicator span {
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--chat-awaiting-dot-bg);
   will-change: opacity, transform;
   animation: messageListTyping 1.08s ease-in-out infinite;
 }

@@ -105,6 +105,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: route dashboard awaiting dots and response-overlay typing
+  dots through light appearance foreground tokens so typing states stay visible
+  on light surfaces. No migration required.
 - frontend/renderer: route the minimal chat pill close badge through appearance
   foreground tokens in light mode so the close affordance remains visible on the
   light close bump. No migration required.

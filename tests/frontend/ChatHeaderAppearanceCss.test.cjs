@@ -46,4 +46,22 @@ describe('chat header appearance CSS', () => {
     expect(chatCss).toContain('text-decoration-color: color-mix(in srgb, var(--user-message-foreground) 72%, transparent 28%);');
     expect(chatCss).not.toContain('background: linear-gradient(180deg, var(--agent-accent) 0%, var(--agent-accent-hover) 100%)');
   });
+
+  test('routes message-list awaiting dots through readable light appearance tokens', () => {
+    const chatCss = readRepoFile('frontend/src/renderer/styles/ChatInterface.css');
+    const lightUtilityBlockStart = chatCss.indexOf(":root[data-agent-theme='light'] .chat-container");
+    const lightUtilityBlockEnd = chatCss.indexOf('.chat-header', lightUtilityBlockStart);
+    const lightUtilityBlock = chatCss.slice(lightUtilityBlockStart, lightUtilityBlockEnd);
+
+    expect(lightUtilityBlockStart).toBeGreaterThanOrEqual(0);
+    expect(lightUtilityBlock).toContain(
+      '--chat-awaiting-dot-surface-bg: color-mix(in srgb, var(--appearance-foreground) 7%, var(--appearance-background) 93%);',
+    );
+    expect(lightUtilityBlock).toContain('--chat-awaiting-dot-border: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);');
+    expect(lightUtilityBlock).toContain('--chat-awaiting-dot-bg: var(--appearance-foreground);');
+    expect(chatCss).toContain('background: var(--chat-awaiting-dot-surface-bg);');
+    expect(chatCss).toContain('border: 1px solid var(--chat-awaiting-dot-border);');
+    expect(chatCss).toContain('background: var(--chat-awaiting-dot-bg);');
+    expect(chatCss).not.toContain('background: rgba(255, 255, 255, 0.92);');
+  });
 });
