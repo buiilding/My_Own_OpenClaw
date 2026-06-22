@@ -2582,6 +2582,7 @@ describe('renderer chat runtime boundary', () => {
     expect(layoutRuntimeSource).toContain('getResponseOverlayFixedHeight');
     expect(layoutRuntimeSource).toContain('getHiddenResponseOverlayLayoutMode');
     expect(layoutRuntimeSource).toContain('isVisibleResponseOverlayLayoutMode');
+    expect(layoutRuntimeSource).not.toContain('isAwaitingResponseOverlayLayoutMode');
     expect(layoutRuntimeSource).toContain('DesktopResponseOverlayLayoutRuntime');
     expect(layoutRuntimeSource).not.toContain('export function resolveResponseOverlayLayoutMode');
     expect(layoutRuntimeSource).not.toContain('export function isCompactHoverLayoutMode');

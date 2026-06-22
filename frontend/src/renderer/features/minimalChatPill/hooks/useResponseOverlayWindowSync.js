@@ -106,7 +106,7 @@ export function useResponseOverlayWindowSync({
 
     const compactHover = DesktopResponseOverlayLayoutRuntime.isCompactHoverLayoutMode(layoutMode);
     let { width, height } = nextFrame;
-    if (DesktopResponseOverlayLayoutRuntime.isAwaitingResponseOverlayLayoutMode(layoutMode)) {
+    if (compactHover) {
       height = TYPING_FRAME_HEIGHT;
     }
 

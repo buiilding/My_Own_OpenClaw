@@ -9,7 +9,6 @@ describe('desktopResponseOverlayLayoutRuntime layout mode', () => {
     getHiddenResponseOverlayLayoutMode,
     getResponseOverlayAwaitingFrameHeight,
     getResponseOverlayFixedHeight,
-    isAwaitingResponseOverlayLayoutMode,
     isCompactHoverLayoutMode,
     isVisibleResponseOverlayLayoutMode,
     resolveResponseOverlayNativeMode,
@@ -48,8 +47,6 @@ describe('desktopResponseOverlayLayoutRuntime layout mode', () => {
     expect(isVisibleResponseOverlayLayoutMode('hidden')).toBe(false);
     expect(isVisibleResponseOverlayLayoutMode('response')).toBe(true);
     expect(isVisibleResponseOverlayLayoutMode('awaiting-typing')).toBe(true);
-    expect(isAwaitingResponseOverlayLayoutMode('response')).toBe(false);
-    expect(isAwaitingResponseOverlayLayoutMode('awaiting-typing')).toBe(true);
     expect(resolveResponseOverlayNativeMode('awaiting-typing')).toBe('awaiting');
     expect(resolveResponseOverlayNativeMode('response')).toBe('response');
   });

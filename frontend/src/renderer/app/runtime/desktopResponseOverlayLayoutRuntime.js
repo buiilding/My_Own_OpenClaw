@@ -36,10 +36,6 @@ function isVisibleResponseOverlayLayoutMode(layoutMode) {
   return layoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
 }
 
-function isAwaitingResponseOverlayLayoutMode(layoutMode) {
-  return layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING;
-}
-
 function getHiddenResponseOverlayLayoutMode() {
   return RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
 }
@@ -53,7 +49,7 @@ function getResponseOverlayFixedHeight() {
 }
 
 function resolveResponseOverlayNativeMode(layoutMode) {
-  return isAwaitingResponseOverlayLayoutMode(layoutMode) ? 'awaiting' : 'response';
+  return layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING ? 'awaiting' : 'response';
 }
 
 function getRoundedFrameSize(element) {
@@ -78,7 +74,6 @@ export const DesktopResponseOverlayLayoutRuntime = Object.freeze({
   resolveResponseOverlayLayoutMode,
   isCompactHoverLayoutMode,
   isVisibleResponseOverlayLayoutMode,
-  isAwaitingResponseOverlayLayoutMode,
   getHiddenResponseOverlayLayoutMode,
   getResponseOverlayAwaitingFrameHeight,
   getResponseOverlayFixedHeight,

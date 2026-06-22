@@ -104,7 +104,6 @@ adapter layer.
 `DesktopResponseOverlayLayoutRuntime.isCompactHoverLayoutMode(mode)` is true only for `awaiting-typing`.
 `DesktopResponseOverlayLayoutRuntime.getHiddenResponseOverlayLayoutMode()`,
 `DesktopResponseOverlayLayoutRuntime.isVisibleResponseOverlayLayoutMode(mode)`,
-`DesktopResponseOverlayLayoutRuntime.isAwaitingResponseOverlayLayoutMode(mode)`, and
 `DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayNativeMode(mode)` keep renderer feature code on
 behavior-level checks instead of importing raw layout-mode tables.
 

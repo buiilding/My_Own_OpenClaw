@@ -9,6 +9,21 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Response Overlay Awaiting Layout Helper Deletion
+
+- Finding: `DesktopResponseOverlayLayoutRuntime` still exported
+  `isAwaitingResponseOverlayLayoutMode(...)`, a public awaiting-mode predicate
+  after compact-hover layout mode and native mode resolution already encoded the
+  only remaining response-overlay sizing/native behavior.
+- Change: removed the awaiting-layout helper export. Window sync now sizes the
+  typing frame from `isCompactHoverLayoutMode(...)`, and native mode resolution
+  stays inside the layout runtime.
+- Validation target: `ResponseOverlayLayoutMode.test.js` and
+  `RendererChatRuntimeBoundary.test.ts` protect the trimmed layout facade.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Chatbox Response Boolean Deletion
 
 - Finding: current-turn presentation still returned `showChatboxResponse`, a
