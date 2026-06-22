@@ -49,7 +49,7 @@ Routing model:
 - `appearance` renders renderer-local theme editing controls for the currently
   editable light/dark theme section, including accent, background, foreground,
   user-message pill colors, fonts, translucent sidebar, and contrast values
-- `agent` renders custom instructions, extension runtime diagnostics, and local/remote tool toggles
+- `agent` renders system prompt editing, extension runtime diagnostics, and local/remote tool toggles
 - `workspace` renders workspace permission/status controls
 - `browser` renders skin-named dedicated browser permission/status controls
 - `memory` renders destructive local-data controls for memory/chat resets
@@ -164,7 +164,7 @@ opacity over a low-contrast light-mode palette.
 
 `AgentSettingsTab` owns presentation for:
 
-- custom instruction config patches
+- system prompt config patches
 - extension runtime diagnostics
 - local/remote tool enablement controls
 - accepted/rejected local tool schema display

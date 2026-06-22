@@ -533,7 +533,8 @@ Owns Electron-main query-level agent-definition context attachment:
   predicate once
 - keeps lower-level context attachment and merge helpers private behind the
   runtime facade
-- reads custom instructions from cached desktop UI config
+- reads the Agent settings system prompt and disabled/enabled tool policy from
+  cached desktop UI config
 - resolves workspace `AGENTS.md` prompt layers for the query workspace
 - loads extension prompt layers once before calling
   `buildElectronAgentDefinitionInputs(...)`

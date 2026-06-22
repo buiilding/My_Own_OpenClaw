@@ -75,12 +75,12 @@ jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => {
       agent: {
         title: 'Agent',
         customInstructions: {
-          label: 'Custom instructions',
-          description: 'Saved locally and included with each workspace query.',
+          label: 'System prompt',
+          description: '',
         },
         extensions: {
           label: 'Extensions',
-          description: 'Extension contributions are grouped by tools, prompt skills, and MCP servers.',
+          description: '',
           emptyPlugins: 'No local tool plugins loaded',
         },
         localTools: {
@@ -90,12 +90,12 @@ jest.mock('../../frontend/src/renderer/app/skin/desktopRuntimeSkin', () => {
         },
         remoteTools: {
           label: 'Cloud tools',
-          description: 'These execute through the hosted sample runtime when available.',
+          description: '',
           unavailableFallback: 'Unavailable',
           ids: ['web_search'],
         },
         toolAcceptance: {
-          pending: 'Waiting for runtime acceptance',
+          pending: '',
           rejectedPrefix: 'Rejected',
           acceptedSummary: 'Accepted schema',
           argumentResolutionFallback: 'passthrough',

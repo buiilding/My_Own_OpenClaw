@@ -67,6 +67,9 @@ describe('AgentSettingsTab', () => {
       />,
     );
 
+    expect(screen.getByText('System prompt')).toBeInTheDocument();
+    expect(document.querySelectorAll('.settings-surface-tool-status').length).toBe(1);
+
     fireEvent.click(screen.getByLabelText('Enable browser'));
     expect(onConfigChange).toHaveBeenCalledWith({
       agent_disabled_local_tools: ['browser'],

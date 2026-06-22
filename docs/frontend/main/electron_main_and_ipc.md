@@ -137,9 +137,10 @@ Responsibilities:
   adapter dependency map is built by
   `ipc_direct_wake_up_agent_adapter_deps.cjs`.
 - Delegates query-level agent-definition context attachment to a focused helper
-  that gathers custom instructions, workspace AGENTS.md layers, extension prompt
-  layers, and host OS/workspace facts before calling the SDK builder; its
-  runtime wrapper owns the latest-config/platform/SDK-builder injection.
+  that gathers the Agent settings system prompt, disabled/enabled tool policy,
+  workspace AGENTS.md layers, extension prompt layers, and host OS/workspace
+  facts before calling the SDK builder; its runtime wrapper owns the
+  latest-config/platform/SDK-builder injection.
 - Delegates extension and MCP registry channel registration to a focused helper
   runtime while `ipc.cjs` supplies Electron agent-host state and
   `ipc_mcp_refresh_runtime.cjs` owns MCP startup/latest-config refresh helpers.

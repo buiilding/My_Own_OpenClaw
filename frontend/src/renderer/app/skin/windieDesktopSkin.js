@@ -11,12 +11,12 @@ export const windieDesktopSkin = Object.freeze({
     agent: Object.freeze({
       title: 'Agent',
       customInstructions: Object.freeze({
-        label: 'Custom instructions',
-        description: 'Saved locally and included with each workspace query.',
+        label: 'System prompt',
+        description: '',
       }),
       extensions: Object.freeze({
         label: 'Extensions',
-        description: 'Extension contributions are grouped by tools, prompt skills, and MCP servers.',
+        description: '',
         emptyPlugins: 'No local tool plugins loaded',
       }),
       localTools: Object.freeze({
@@ -41,14 +41,14 @@ export const windieDesktopSkin = Object.freeze({
       }),
       remoteTools: Object.freeze({
         label: 'Cloud tools',
-        description: `These execute through the hosted ${productName} runtime when available.`,
+        description: '',
         unavailableFallback: 'Unavailable',
         ids: Object.freeze([
           'web_search',
         ]),
       }),
       toolAcceptance: Object.freeze({
-        pending: 'Waiting for runtime acceptance',
+        pending: '',
         rejectedPrefix: 'Rejected',
         acceptedSummary: 'Accepted schema',
         argumentResolutionFallback: 'passthrough',

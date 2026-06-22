@@ -48,6 +48,10 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 - `include_query_screenshot`
 - `provider_api_keys`
 - `appearance_mode`
+
+`agent_custom_instructions` is a legacy persisted key. The Agent settings UI
+labels and sends it as the next-turn system prompt replacement; the key remains
+unchanged to avoid a renderer config migration.
 - `appearance_theme`
 
 Intentionally excluded backend-owned speech/transcription runtime policy:

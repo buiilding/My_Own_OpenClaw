@@ -4,6 +4,18 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- frontend/main: treat the Agent settings prompt field as a query-level system
+  prompt replacement and forward local/remote tool toggles as next-turn
+  `agent_definition` tool policy, so current conversations pick up system
+  prompt and tool visibility changes on the next user turn. The persisted
+  `agent_custom_instructions` config key is unchanged; no migration required.
+- frontend/renderer: simplify Agent settings copy by renaming Custom
+  instructions to System prompt and removing helper/pending status text from
+  the prompt, extension, pending local-tool, and cloud-tool sections. No
+  migration required.
+
 ### Added
 
 - docs/adr: add ADR 008 and the conversation history revision architecture

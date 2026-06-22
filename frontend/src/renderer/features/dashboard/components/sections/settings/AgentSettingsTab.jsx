@@ -61,7 +61,9 @@ function AgentSettingsTab({ config, onConfigChange }) {
       <div className="settings-surface-row settings-surface-row-rich">
         <div>
           <span>{agentSettingsSkin.customInstructions.label}</span>
-          <p>{agentSettingsSkin.customInstructions.description}</p>
+          {agentSettingsSkin.customInstructions.description ? (
+            <p>{agentSettingsSkin.customInstructions.description}</p>
+          ) : null}
           <textarea
             className="settings-surface-textarea"
             value={config?.agent_custom_instructions || ''}
@@ -77,7 +79,9 @@ function AgentSettingsTab({ config, onConfigChange }) {
       <div className="settings-surface-row settings-surface-row-rich settings-surface-row-stack">
         <div>
           <span>{agentSettingsSkin.extensions.label}</span>
-          <p>{agentSettingsSkin.extensions.description}</p>
+          {agentSettingsSkin.extensions.description ? (
+            <p>{agentSettingsSkin.extensions.description}</p>
+          ) : null}
         </div>
         <div className="settings-surface-layer-list">
           {extensionRuntime.plugins.length > 0 ? extensionRuntime.plugins.map((plugin) => {
@@ -128,7 +132,9 @@ function AgentSettingsTab({ config, onConfigChange }) {
       <div className="settings-surface-row settings-surface-row-rich settings-surface-row-stack">
         <div>
           <span>{agentSettingsSkin.localTools.label}</span>
-          <p>{agentSettingsSkin.localTools.description}</p>
+          {agentSettingsSkin.localTools.description ? (
+            <p>{agentSettingsSkin.localTools.description}</p>
+          ) : null}
         </div>
         <div className="settings-surface-tool-grid">
           {agentSettingsSkin.localTools.ids.map((toolName) => (
@@ -161,7 +167,9 @@ function AgentSettingsTab({ config, onConfigChange }) {
       <div className="settings-surface-row settings-surface-row-rich settings-surface-row-stack">
         <div>
           <span>{agentSettingsSkin.remoteTools.label}</span>
-          <p>{agentSettingsSkin.remoteTools.description}</p>
+          {agentSettingsSkin.remoteTools.description ? (
+            <p>{agentSettingsSkin.remoteTools.description}</p>
+          ) : null}
         </div>
         <div className="settings-surface-tool-grid">
           {agentSettingsSkin.remoteTools.ids.map((toolName) => {
@@ -241,9 +249,9 @@ function ToolAcceptanceStatus({ presentation }) {
     );
   }
   if (presentation.status !== 'accepted' || !presentation.acceptedTool) {
-    return (
+    return config.pending ? (
       <p className="settings-surface-tool-status">{config.pending}</p>
-    );
+    ) : null;
   }
   const { acceptedTool } = presentation;
   return (

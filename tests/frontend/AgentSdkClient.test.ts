@@ -257,6 +257,31 @@ describe('Agent SDK client behavior', () => {
     expect(definition).not.toHaveProperty('contributionsDir');
   });
 
+  test('buildAgentDefinition keeps tool-policy-only definitions non-default', () => {
+    expect(buildAgentDefinition({
+      includeToolManifest: false,
+      disabledTools: ['browser'],
+    })).toMatchObject({
+      mode: 'default_plus_overrides',
+      tools: expect.objectContaining({
+        disabled_tools: ['browser'],
+      }),
+    });
+
+    expect(buildAgentDefinition({
+      includeToolManifest: false,
+      availableTools: ['web_search'],
+      enabledRemoteTools: ['web_search'],
+    })).toMatchObject({
+      mode: 'default_plus_overrides',
+      tools: expect.objectContaining({
+        mode: 'explicit',
+        available_tools: ['web_search'],
+        enabled_remote_tools: ['web_search'],
+      }),
+    });
+  });
+
   test('buildAgentDefinition uses generic display defaults', () => {
     const definition = buildAgentDefinition();
 

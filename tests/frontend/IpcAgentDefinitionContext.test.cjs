@@ -79,7 +79,7 @@ describe('ipc_agent_definition_context', () => {
     expect(runtime.attach(payload)).toBe(payload);
   });
 
-  test('attaches generated repo, extension, custom instruction, workspace, and OS context', async () => {
+  test('attaches generated repo, extension, system prompt, tool policy, workspace, and OS context', async () => {
     const repoRoot = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'agent-definition-context-'));
     await fs.promises.writeFile(
       path.join(repoRoot, 'AGENTS.md'),
@@ -95,15 +95,22 @@ describe('ipc_agent_definition_context', () => {
       },
       prompt_layers: input.promptLayers,
       agents_md: input.agentsMd,
-      system_prompt: input.customInstructions
-        ? { mode: 'replace', content: input.customInstructions }
+      system_prompt: input.systemPrompt
+        ? { mode: 'replace', content: input.systemPrompt }
         : { mode: 'default' },
+      tools: {
+        available_tools: input.availableTools,
+        disabled_tools: input.disabledTools,
+        enabled_remote_tools: input.enabledRemoteTools,
+      },
     }));
 
     try {
       const runtime = createAgentDefinitionContextRuntime({
         getLatestDesktopUiConfig: () => ({
           agent_custom_instructions: ' Be concise. ',
+          agent_disabled_local_tools: ['browser', 'read_file'],
+          agent_disabled_remote_tools: ['web_search'],
         }),
         platformName: 'win32',
         buildAgentDefinition,
@@ -120,7 +127,10 @@ describe('ipc_agent_definition_context', () => {
 
       expect(buildAgentDefinition).toHaveBeenCalledWith(expect.objectContaining({
         includeToolManifest: false,
-        customInstructions: 'Be concise.',
+        systemPrompt: 'Be concise.',
+        availableTools: [],
+        disabledTools: ['browser', 'read_file', 'web_search'],
+        enabledRemoteTools: [],
         workspacePath: repoRoot,
         operatingSystem: 'Windows',
       }));
@@ -154,13 +164,22 @@ describe('ipc_agent_definition_context', () => {
   test('runtime attaches context using the latest injected desktop config', () => {
     const configs = [
       { agent_custom_instructions: ' First instructions. ' },
-      { agent_custom_instructions: ' Second instructions. ' },
+      {
+        agent_custom_instructions: ' Second instructions. ',
+        agent_disabled_local_tools: ['browser'],
+      },
     ];
     const buildAgentDefinition = jest.fn(input => ({
       mode: 'default_plus_overrides',
-      system_prompt: input.customInstructions
-        ? { mode: 'replace', content: input.customInstructions }
+      system_prompt: input.systemPrompt
+        ? { mode: 'replace', content: input.systemPrompt }
         : { mode: 'default' },
+      tools: {
+        mode: 'explicit',
+        available_tools: input.availableTools,
+        disabled_tools: input.disabledTools,
+        enabled_remote_tools: input.enabledRemoteTools,
+      },
     }));
     const runtime = createAgentDefinitionContextRuntime({
       getLatestDesktopUiConfig: jest.fn(() => configs.shift()),
@@ -176,6 +195,16 @@ describe('ipc_agent_definition_context', () => {
     expect(runtime.attach({ text: 'second' }).agent_definition.system_prompt).toEqual({
       mode: 'replace',
       content: 'Second instructions.',
+    });
+    expect(buildAgentDefinition.mock.calls[0][0]).toMatchObject({
+      availableTools: ['web_search'],
+      disabledTools: [],
+      enabledRemoteTools: ['web_search'],
+    });
+    expect(buildAgentDefinition.mock.calls[1][0]).toMatchObject({
+      availableTools: ['web_search'],
+      disabledTools: ['browser'],
+      enabledRemoteTools: ['web_search'],
     });
   });
 

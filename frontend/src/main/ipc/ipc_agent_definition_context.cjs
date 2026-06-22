@@ -15,6 +15,10 @@ const {
   resolveDesktopHostOperatingSystem,
 } = require('./ipc_desktop_host_os_runtime.cjs');
 
+const REMOTE_AGENT_TOOL_NAMES = Object.freeze([
+  'web_search',
+]);
+
 function isPlainObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
@@ -24,6 +28,47 @@ function cloneJsonObject(value) {
     return {};
   }
   return JSON.parse(JSON.stringify(value));
+}
+
+function normalizeStringList(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const normalized = [];
+  const seen = new Set();
+  for (const item of value) {
+    if (typeof item !== 'string') {
+      continue;
+    }
+    const name = item.trim();
+    if (!name || seen.has(name)) {
+      continue;
+    }
+    seen.add(name);
+    normalized.push(name);
+  }
+  return normalized;
+}
+
+function resolveAgentToolConfig(latestDesktopUiConfig) {
+  const disabledLocalTools = normalizeStringList(
+    latestDesktopUiConfig?.agent_disabled_local_tools,
+  );
+  const disabledRemoteTools = normalizeStringList(
+    latestDesktopUiConfig?.agent_disabled_remote_tools,
+  );
+  const disabledRemoteToolSet = new Set(disabledRemoteTools);
+  const enabledRemoteTools = REMOTE_AGENT_TOOL_NAMES.filter(
+    (toolName) => !disabledRemoteToolSet.has(toolName),
+  );
+  return {
+    availableTools: enabledRemoteTools,
+    disabledTools: [
+      ...disabledLocalTools,
+      ...disabledRemoteTools,
+    ],
+    enabledRemoteTools,
+  };
 }
 
 function mergeAgentDefinitionContext(generatedDefinition, suppliedDefinition) {
@@ -83,6 +128,7 @@ function attachAgentDefinitionContext(payload, {
   const customInstructions = typeof latestDesktopUiConfig?.agent_custom_instructions === 'string'
     ? latestDesktopUiConfig.agent_custom_instructions.trim()
     : '';
+  const toolConfig = resolveAgentToolConfig(latestDesktopUiConfig);
   const workspacePath = typeof payload.workspace_path === 'string'
     ? payload.workspace_path.trim()
     : '';
@@ -92,7 +138,10 @@ function attachAgentDefinitionContext(payload, {
   const generatedAgentDefinition = buildAgentDefinition(buildElectronAgentDefinitionInputs({
     includeToolManifest: false,
     includeExtensionPromptLayers: false,
-    customInstructions,
+    systemPrompt: customInstructions,
+    availableTools: toolConfig.availableTools,
+    disabledTools: toolConfig.disabledTools,
+    enabledRemoteTools: toolConfig.enabledRemoteTools,
     promptLayers: loadExtensionSkillPromptLayers(),
     agentsMd,
     workspacePath,

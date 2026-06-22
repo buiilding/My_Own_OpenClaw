@@ -120,6 +120,10 @@ export function buildAgentDefinition(options: BuildAgentDefinitionOptions = {}):
 
   const systemPromptContent = normalizeString(options.systemPrompt);
   const workspacePath = normalizeString(options.workspacePath);
+  const hasToolPolicyOverrides = explicitAvailableTools.length > 0
+    || enabledRemoteTools.length > 0
+    || disabledTools.length > 0
+    || disabledCapabilities.length > 0;
   const tools: JsonRecord = {
     mode: explicitAvailableTools.length > 0 ? 'explicit' : 'default_plus_client',
     enabled_remote_tools: enabledRemoteTools,
@@ -144,6 +148,7 @@ export function buildAgentDefinition(options: BuildAgentDefinitionOptions = {}):
       || agentsMd.length > 0
       || plugins.length > 0
       || workspacePath
+      || hasToolPolicyOverrides
       || clientManifestHasTools(clientToolManifest)
     )
       ? 'default_plus_overrides'
