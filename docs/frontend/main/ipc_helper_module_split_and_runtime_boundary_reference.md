@@ -656,11 +656,14 @@ Owns turn-scoped replay buffer primitives used for late renderer mount recovery:
 
 Owns backend-event to SDK conversation-event projection for replay fan-out:
 
+- `createConversationEventProjectionRuntime`: composes replay fallback
+  conversation/revision/turn refs once for `ipc.cjs`
 - rejects invalid backend event envelopes before invoking the SDK normalizer
 - delegates canonical event conversion to the SDK backend event normalizer
 - passes replay fallback conversation, revision, and turn refs for scoped
   backend errors
-- keeps SDK backend normalizer imports out of the `ipc.cjs` composition root
+- keeps backend-event builder details and SDK backend normalizer imports out of
+  the `ipc.cjs` composition root
 
 ### `ipc_overlay_phase_events.cjs`
 

@@ -73,7 +73,8 @@ Clone safety:
 1. sends current `response-overlay-phase`
 2. requests replay snapshot
 3. rebuilds SDK conversation events from the replay buffer and re-emits them on
-   `windie:conversation-event` through `ipc_conversation_event_projection.cjs`
+   `windie:conversation-event` through
+   `createConversationEventProjectionRuntime(...)`
 
 Result:
 

@@ -673,7 +673,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('latestPendingTurn = pendingTurn');
     expect(liveTurnStateSource).toContain('let latestCurrentTurnProjection = initialCurrentTurn;');
     expect(liveTurnStateSource).toContain('let latestPendingTurn = initialPendingTurn;');
-    expect(source).toContain('buildConversationEventFromBackendEvent(event');
+    expect(source).toContain('createConversationEventProjectionRuntime({');
+    expect(source).toContain('conversationEventProjectionRuntime.build(event)');
+    expect(source).not.toContain('buildConversationEventFromBackendEvent(event');
     expect(source).not.toContain('normalizeBackendEventToConversationEvent');
     expect(conversationEventProjectionSource).toContain('normalizeBackendEventToConversationEvent');
     expect(conversationEventProjectionSource).toContain('fallbackConversationRef: options.fallbackConversationRef');

@@ -9755,3 +9755,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   envelopes, IPC channels, renderer projection, storage, local-runtime
   execution, provider policy, permissions, backend behavior, and trust
   boundaries are unchanged; no migration is required.
+- Main replay conversation-event projection now routes through
+  `createConversationEventProjectionRuntime` instead of a standalone backend
+  event builder export. Renderer-window replay consumes the facade object while
+  the module keeps backend-event envelope validation, SDK backend normalizer
+  delegation, and dynamic fallback conversation/revision/turn refs private.
+  Replay event shapes, SDK conversation-event envelopes, IPC channels, renderer
+  projection, storage, local-runtime execution, provider policy, permissions,
+  backend behavior, and trust boundaries are unchanged; no migration is
+  required.

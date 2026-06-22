@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Main Conversation Event Projection Runtime Privacy
+
+- Finding: `ipc_conversation_event_projection.cjs` owned backend-event to SDK
+  conversation-event projection for late-window replay, but exported the raw
+  backend-event builder while `ipc.cjs` supplied active conversation fallback
+  state at the callsite.
+- Change: added `createConversationEventProjectionRuntime(...)` as the public
+  projection facade, routed renderer-window replay through the facade, and kept
+  backend-event validation plus SDK normalizer delegation private inside the
+  module.
+- Validation target: `IpcConversationEventProjection.test.cjs` and
+  `IpcMainSdkRuntimeBoundary.test.cjs` protect replay projection, scoped error
+  fallback identity, dynamic fallback composition, SDK normalizer isolation,
+  and rejection of the raw helper export.
+- Compatibility/security: no replay event shape, SDK conversation-event
+  envelope, IPC channel, renderer projection, provider policy, credential,
+  permission, local execution, trust-boundary, or migration change required.
+
 ### 2026-06-22 Main Query Events Runtime Privacy
 
 - Finding: `ipc_query_events.cjs` owned query conversation-ref extraction and

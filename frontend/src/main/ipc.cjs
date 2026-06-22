@@ -67,7 +67,7 @@ const {
   createBackendConnectionGateState,
 } = require('./ipc/ipc_backend_connection_gate_state.cjs');
 const {
-  buildConversationEventFromBackendEvent,
+  createConversationEventProjectionRuntime,
 } = require('./ipc/ipc_conversation_event_projection.cjs');
 const {
   createElectronAgentClientFactoryRuntime,
@@ -297,6 +297,9 @@ const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const activeQueryContextState = createActiveQueryContextState();
 const backendSessionState = createBackendSessionState();
+const conversationEventProjectionRuntime = createConversationEventProjectionRuntime({
+  getFallbackConversationRef: () => backendSessionState.getConversationRef(),
+});
 const runtimeConversationRefRuntime = createRuntimeConversationRefRuntime({
   getFallbackConversationRef: () => backendSessionState.getConversationRef(),
 });
@@ -337,9 +340,7 @@ const rendererWindowRuntime = createRendererWindowRuntime({
   getLatestCurrentTurn: () => liveTurnState.getLatestCurrentTurn(),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
   getReplayEvents: () => ipcEventReplayState.snapshot(),
-  buildConversationEvent: (event) => buildConversationEventFromBackendEvent(event, {
-    fallbackConversationRef: backendSessionState.getConversationRef(),
-  }),
+  buildConversationEvent: (event) => conversationEventProjectionRuntime.build(event),
 });
 const backendMessageObserverRegistry = createBackendMessageObserverRegistry({
   log,
