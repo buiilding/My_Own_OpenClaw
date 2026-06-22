@@ -149,52 +149,13 @@ Core-loop UI bug rule:
 
 ## Invariants
 
-Tool and extension contracts:
-
-- Tools execute on the local runtime, currently backed by the Python sidecar,
-  unless they are explicit backend remote tools such as `web_search`.
-  Frontend/local-runtime owners provide executable implementations and
-  manifests; backend validates client manifests, enforces schema and trust
-  boundaries, applies provider projection, owns backend remote tools, and owns
-  final prompt compilation.
-- Local tool schemas are client-side and assembled from selected built-ins plus
-  plugins and MCP contributions. Backend default built-in schemas are
-  fallback/hosted defaults; the client manifest may overwrite the active local
-  tool surface.
-- Tool changes should update the client manifest, docs, and focused tests while
-  preserving schema parity without importing backend code into frontend or
-  local-runtime implementation code.
-- MCP tool results should preserve the raw MCP result for every MCP tool,
-  current and future. The MCP adapter may wrap results in WindieOS native tool
-  call/tool output envelopes while preserving MCP `content`,
-  `structuredContent`, and other returned fields without summarizing,
-  flattening, or discarding them. Model-facing `data.output` should contain the
-  MCP result content, and `data.mcp_result` should keep the raw object for
-  inspection. If an MCP result contains image content, additively promote it
-  into WindieOS native image fields such as `data.screenshot` and
-  `data.screenshot_content_type` without rewriting or removing the raw MCP
-  result.
-- Computer-use tools should return automatic post-action screenshot context in
-  their tool outputs. Tool bundles that include any computer-use action should
-  also return screenshot context for the bundle output; capture once after the
-  bundle unless an explicit successful screenshot step already provides the
-  needed image.
-- Built-in grounded tools should preserve the model-schema vs prepared-argument
-  distinction. Use `backend_grounding` only when OCR, vision, or prediction
-  prepares executable local-runtime arguments; otherwise use `passthrough`.
-  Example: backend may resolve higher-level screen intent into coordinates
-  while frontend/local runtime receives and executes a simpler action such as
-  `click(100, 200)`.
-- Prefer parity tests that verify schemas and registries stay aligned.
-- Extension contribution types stay separated by active contribution root:
-  plugin metadata and local-runtime tool declarations in
-  `plugins/<id>/plugin.json`, plugin schemas in `plugins/<id>/schemas/`, plugin
-  Python entrypoints in `plugins/<id>/python/`, MCP server specs in
-  `mcps/<id>/mcp.json`, and skills in `skills/<skill-id>/SKILL.md`.
-- Python sidecar-backed plugin tools use `name`, `schema`, and `entrypoint`.
-  Skills become prompt layers, not executable tools. Keep
-  `docs/development/extensions.md` as the canonical extension authoring guide
-  and `docs/plugins/README.md` as the routing hub.
+- Use `docs/debug/invariants.md` as the central ledger for durable WindieOS
+  invariants and route detailed contracts to owner docs such as
+  `docs/tools/tool_contracts.md`, `docs/debug/user_facing_regression_pack.md`,
+  `docs/debug/core_loop_regression_pack.md`, and
+  `docs/frontend/runtime/frontend_runtime_invariants_checklist.md`.
+- Keep this section short. When invariant details grow, move them to the
+  relevant docs page and leave AGENTS.md as the orientation pointer.
 
 For architectural or product-flow questions, explain conceptually first:
 describe how the runtime works, where a change fits, what boundaries change, and

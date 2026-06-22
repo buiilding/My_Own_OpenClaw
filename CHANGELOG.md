@@ -6,9 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
-- docs/agents: restore tool and extension contract guidance under a new
-  `AGENTS.md` invariants section while keeping the detailed implementation map
-  in `docs/tools/tool_contracts.md`. No migration required.
+- docs/debug: add a central invariants ledger that routes durable product,
+  runtime, tool, and extension invariants to owner docs and regression packs,
+  while keeping `AGENTS.md` as a compact orientation pointer. No migration
+  required.
 - docs/plans: add an implementation-ready SDK display-row metadata canonical
   image shape migration plan for replacing duplicate screenshot alias fields
   with one SDK display attachment contract consumed by the renderer. No
