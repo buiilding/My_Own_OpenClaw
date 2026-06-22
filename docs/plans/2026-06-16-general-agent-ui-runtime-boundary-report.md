@@ -12,11 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: response overlay hit-test window subscriptions and
-  pointer bounds checks now route through
-  `DesktopResponseOverlayInteractionRuntime`; `MinimalResponseOverlay` keeps
-  deduped boolean reporting, IPC value calls, and trace handoff without owning
-  raw browser listener or bounds-check adapters.
+- Latest completed slice: current-turn applied live-surface traces no longer
+  copy SDK `presentation.typingVisible` or `presentation.overlayVisible`;
+  `DesktopRendererTraceRuntime` now keeps visible-content evidence, entry
+  counts, text lengths, tool event counts, phase, overlay intent metadata, and
+  stale-side-effect suppression without preserving legacy lifecycle visibility
+  flags.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

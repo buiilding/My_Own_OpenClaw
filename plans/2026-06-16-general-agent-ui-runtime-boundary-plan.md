@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Current-Turn Trace SDK Visibility Flag Removal
+
+- Finding: `DesktopRendererTraceRuntime.buildRendererCurrentTurnAppliedTracePayload(...)`
+  still copied SDK `presentation.typingVisible` and
+  `presentation.overlayVisible` into current-turn live-surface traces after
+  renderer lifecycle consumers had stopped treating those SDK presentation
+  booleans as authority.
+- Change: current-turn applied trace payloads now report phase, overlay intent
+  metadata, visible-content evidence, entry counts, text lengths, tool event
+  count, and stale-side-effect suppression without preserving legacy SDK
+  presentation visibility flags.
+- Validation target: focused renderer trace runtime tests protect the trimmed
+  payload shape while visible lifecycle tests continue to cover typing and
+  overlay lifecycle authority.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Response Overlay Hit-Test Interaction Runtime
 
 - Finding: `MinimalResponseOverlay` still owned raw browser
