@@ -36,6 +36,33 @@ all visible visual attachments -> ordered typed attachment descriptors
 legacy screenshot aliases -> migration/replay input only, never primary display input
 ```
 
+## Non-Regression Matrix
+
+This cleanup is not complete unless every behavior below is protected by an
+owner-correct regression test before the matching legacy path is deleted.
+
+| Behavior that must not regress | Owner layer | Required proof before deletion |
+| --- | --- | --- |
+| Old persisted user screenshots still display after restart/replay when rows only contain legacy screenshot metadata. | SDK display/replay projection | Feed legacy `user_message` / `user_message_metadata` events into display projection and assert ordered `attachments[]` are emitted and rendered. |
+| Old persisted tool-output screenshots still display after restart/replay when rows only contain `screenshot_ref` / `screenshot_refs`. | SDK display/replay projection plus renderer tool UI | Feed legacy `tool_output` and `tool_bundle_output` events into SDK projection, then renderer projection, and assert tool rows render typed image attachments. |
+| Backend rehydrate keeps old screenshots model-visible, not only UI-visible. | SDK rehydrate projection and backend rehydrate service | Rehydrate legacy rows with `screenshot_ref` and assert backend resolves artifact bytes/refs exactly as before. |
+| New user-included images render optimistically and stay visible while artifact-backed ready descriptors replace previews. | SDK live projection plus renderer attachment UI | Existing/extended `AttachmentDisplayComponents` and SDK runtime tests assert no blank state during `materializing -> ready`. |
+| New camera-button screenshots start as pending requests and become ready image attachments after capture/materialization. | SDK turn resource resolution and display projection | SDK runtime tests assert `screenshot_request/pending_capture` transitions to `image/ready` with stable id. |
+| Mixed sends preserve order: included images first, camera screenshot after. | Chat send preparation and SDK projection | `ChatMessageSender` and SDK projection tests assert resource and attachment ordering. |
+| Multi-image sends preserve every image and order. | Chat send preparation and SDK projection | Tests assert all image descriptors survive send, projection, replay, and renderer mapping. |
+| Active live-turn tool-output screenshots still render while the turn is running. | SDK current-turn projection and renderer message content | Current-turn/tool-output tests assert live presentation entries carry typed attachments and render them. |
+| Tool-bundle screenshots still render. | Backend tool-bundle result handling, SDK projection, renderer tool UI | Backend handler plus SDK/renderer projection tests assert bundle screenshot descriptors are preserved. |
+| Failed capture/materialization is explicit, not silently dropped. | SDK resource resolution and renderer attachment UI | Tests assert `status: "failed"` descriptors render or expose a failure state according to surface rules. |
+| Inline preview bytes are never persisted to durable history, diagnostics, logs, or backend payloads. | SDK runtime/store, renderer diagnostics, backend transport | Snapshot/store/trace tests assert `previewSrc` and data URLs are absent outside live display projection. |
+| Screenshot URLs, local temp paths, and preview bytes are not logged. | SDK/main/backend diagnostics | Diagnostic tests or reviewed trace payload assertions cover counts/statuses only. |
+| Renderer components do not infer primary visuals from legacy screenshot aliases. | Renderer message components | Component tests assert legacy user screenshot aliases alone do not render primary user visuals. |
+
+Deletion rule:
+
+```text
+if a behavior above is not protected, do not delete the old reader yet
+```
+
 ## Current State
 
 ### Already Done
@@ -269,6 +296,9 @@ Add or update tests proving current behavior before migration:
 - tool-bundle screenshot appears through `attachments[]`
 - backend rehydrate still resolves old `screenshot_ref` rows
 - query prompt construction still handles model-visible screenshots
+- live tool-output screenshots still render before the active turn completes
+- failed visual attachments stay explicit
+- no preview bytes/data URLs/temp paths leak into durable stores or traces
 
 Likely test files:
 
@@ -313,6 +343,9 @@ Deletion gate:
 
 - delete the adapter only after stored rows are migrated or a durable local
   store migration rewrites old screenshot fields into typed attachments.
+- keep this adapter, or its replacement migration adapter, until old
+  conversations with only screenshot aliases have a replay test that proves
+  screenshots still display after restart.
 
 ### Phase 3. Project Tool Outputs As Typed Attachments In SDK
 
@@ -340,6 +373,16 @@ Requirements:
 - support inline screenshot data only as migration input; prefer materialized
   artifact refs
 - preserve `toolOutputDetails` separately from visual attachments
+- support live current-turn and persisted replay paths, not just completed
+  dashboard rows
+- support tool bundle output screenshots
+
+Regression gates:
+
+- old legacy `tool_output` rows still display through the typed adapter
+- new backend-normalized `tool_output` rows expose `attachments[]` directly
+- renderer receives the same ordered attachments for live current-turn rows and
+  replayed rows
 
 ### Phase 4. Migrate Renderer Tool UI To Attachment Components
 
@@ -375,6 +418,15 @@ MessageRow
 
 Renderer components should not inspect `screenshot`, `screenshotRef`,
 `screenshotUrl`, `screenshots`, or `screenshot_refs` after this phase.
+
+Regression gates:
+
+- `MessageContent` and `ToolOutputMessage` tests render tool-result
+  screenshots through typed attachments
+- tests assert legacy user screenshot aliases still do not render as primary
+  user-message visuals
+- context menu/image fetch behavior remains available for attachment-rendered
+  tool screenshots
 
 ### Phase 5. Backend Contract Migration
 
@@ -415,6 +467,10 @@ Deletion gate:
   compatibility tests
 - SDK transport contract accepts typed attachments
 - renderer no longer consumes legacy fields
+- rehydrate tests prove old `screenshot_ref` rows still become model-visible
+  screenshots
+- query execution tests prove model-visible screenshot refs still hydrate
+  correctly after the display contract changes
 
 ### Phase 6. Local Store Migration Or Permanent Replay Adapter Decision
 
@@ -426,12 +482,15 @@ Option A: durable migration
   screenshot aliases and writes typed `attachments[]`
 - keep a backup path for failed migration
 - delete SDK legacy replay adapter after migration validation
+- migration must be idempotent and preserve ordering for `screenshot_refs`
+- migration must not persist inline preview bytes
 
 Option B: permanent narrow replay adapter
 
 - keep one small SDK/local replay adapter forever
 - delete every other renderer/backend alias display reader
 - document that this is not active architecture, only old-row compatibility
+- adapter must remain covered by old-conversation replay tests
 
 Preferred approach:
 
@@ -455,6 +514,13 @@ Keep:
 - direct attachment artifact resolver:
   `useResolvedArtifactImageSrc(attachment)` or a renamed attachment-first
   runtime
+
+Do not delete this phase unless:
+
+- tool-output screenshots render from typed attachments
+- old tool-output screenshot rows are adapted before they reach renderer
+  components
+- no renderer component calls the whole-message screenshot resolver
 
 ### Phase 8. Delete SDK/Backend Alias Writers Where Safe
 
@@ -480,7 +546,13 @@ Only delete a legacy path when all are true:
 - a typed attachment path exists at the owner runtime
 - old persisted screenshots still display after restart
 - active tool-output screenshots still display
+- tool-bundle screenshots still display
 - backend rehydrate still makes old screenshots model-visible
+- mixed image plus camera sends preserve display order
+- multi-image sends preserve display order
+- failed visual attachment states are explicit
+- preview bytes, screenshot URLs, and temp paths are absent from durable logs
+  and stores
 - core-loop and user-facing regression routes pass
 - docs name any remaining compatibility owner and deletion condition
 
@@ -563,4 +635,3 @@ cd frontend && npm run lint
   owner/user scoping.
 - Existing old conversations must keep screenshot display either through a
   tested migration or a deliberately retained narrow replay adapter.
-

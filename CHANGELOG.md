@@ -9,8 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/plans: add the typed visual attachments full cleanup plan for migrating
   replay, tool-output visuals, backend payloads, and renderer helpers to one
   ordered attachment contract before deleting legacy screenshot compatibility,
-  while preserving screenshot display for old conversations. No migration
-  required.
+  with explicit non-regression gates preserving old conversation screenshots,
+  tool-output visuals, rehydrate model visibility, multi-image ordering,
+  failure states, and preview-byte privacy. No migration required.
 - docs/plans: add the dynamic appearance editor and message color plan for
   collapsing Appearance settings to one effective-theme editor, adding
   user-message pill background/text colors, unifying light-mode foreground
