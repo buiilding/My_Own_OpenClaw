@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: renderer dashboard composer focus/caret mechanics now
-  route through `DesktopMessageInputRuntime`, keeping `MessageInput` off direct
-  textarea focus and `setSelectionRange(...)` calls.
+- Latest completed slice: renderer minimal chatbox text-entry focus/caret
+  mechanics now route through `DesktopChatboxInteractionRuntime`, keeping
+  `MinimalChatPill` off direct textarea focus and `setSelectionRange(...)`
+  calls.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -44,6 +45,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer dashboard composer focus requests now route textarea focus/caret
   placement through `DesktopMessageInputRuntime`; `MessageInput` keeps
   request-token and loop-lock gating.
+  Renderer minimal chatbox explicit text-entry focus now routes input
+  focus/caret placement through `DesktopChatboxInteractionRuntime`;
+  `MinimalChatPill` keeps text-entry active state and loop-lock gating.
   Active local-runtime validation docs use the canonical `local-runtime`
   wrapper, test, and build commands; historical plan/report records and
   CLI-specific compatibility alias rows still mention the old names where the

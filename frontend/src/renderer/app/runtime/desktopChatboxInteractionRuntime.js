@@ -352,6 +352,18 @@ function hasMutableCurrentRef(ref) {
   return ref && Object.prototype.hasOwnProperty.call(ref, 'current');
 }
 
+function focusChatboxTextInputAtEnd(inputRef) {
+  const input = resolveElement(inputRef);
+  if (!input || typeof input.focus !== 'function') {
+    return false;
+  }
+
+  input.focus();
+  const textLength = typeof input.value === 'string' ? input.value.length : 0;
+  input.setSelectionRange?.(textLength, textLength);
+  return true;
+}
+
 function clearChatboxNativeFrameCollapse({
   timeoutRef,
   windowApi = globalThis.window,
@@ -433,6 +445,7 @@ function resetChatboxVisualAnchorHeight() {
 
 export const DesktopChatboxInteractionRuntime = Object.freeze({
   clearChatboxNativeFrameCollapse,
+  focusChatboxTextInputAtEnd,
   isPointerInsideChatbox,
   resolveChatboxCloseButtonAnchorCenterX,
   resetChatboxVisualAnchorHeight,

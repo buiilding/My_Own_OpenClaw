@@ -9,6 +9,28 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer Chatbox Text-Entry Focus Runtime
+
+- Finding: `MinimalChatPill` already delegated chatbox drag, hit-test,
+  close-anchor measurement, visual-anchor sync, native-frame collapse, and
+  composer-height animation-frame commits to app-runtime facades, but still
+  called the chatbox textarea `.focus()` and `setSelectionRange(...)` directly
+  when explicit text-entry focus arrived.
+- Change: added
+  `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)` and
+  routed the pill focus handler through it. The pill keeps text-entry active
+  state and loop-lock gating while the chatbox interaction runtime owns input
+  DOM focus and caret placement mechanics.
+- Validation target: `DesktopChatboxInteractionRuntime.test.js`,
+  `ChatBoxOverlayMouseIgnore.test.jsx`, `RendererAppRuntimeBoundary.test.ts`,
+  and `RendererChatRuntimeBoundary.test.ts` protect the focus adapter,
+  explicit chatbox-focus behavior, and rejection of direct
+  `setSelectionRange`/`.focus()` calls in `MinimalChatPill`.
+- Compatibility/security: no chatbox-focus IPC channel, text-entry activation
+  payload, outgoing message payload shape, SDK event payload, renderer config,
+  persisted storage, permission, credential, local execution, trust-boundary,
+  or migration change required.
+
 ### 2026-06-22 Renderer MessageInput Focus Runtime
 
 - Finding: `MessageInput` already delegated composer payload normalization,

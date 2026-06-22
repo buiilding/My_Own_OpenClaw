@@ -71,6 +71,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route minimal chat pill explicit text-entry focus and
+  caret placement through
+  `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)` so the
+  pill keeps activation state while the app runtime owns chatbox input DOM
+  focus mechanics. No migration required.
 - frontend/renderer: route dashboard composer focus-request focus and caret
   placement through `DesktopMessageInputRuntime.focusTextInputAtEnd(...)` so
   `MessageInput` keeps request-token and loop-lock gating while the app runtime

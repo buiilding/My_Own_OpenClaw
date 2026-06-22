@@ -78,6 +78,8 @@ compaction behind its loop lock.
 
 - input focus on mount through `useChatboxFocusBindings`
 - explicit refocus only on the chatbox-focus event via `DesktopWindowRuntimeClient`
+- text input DOM focus and caret placement through
+  `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)`
 - wakeword STT trigger via `DesktopWindowRuntimeClient` starts STT session only when `wakeword_stt_enabled === true`
 - loop lock blocks refocus and blurs input while active
 - unfocused textarea pointer-down reports a text-entry activation reason through
@@ -137,6 +139,8 @@ compaction behind its loop lock.
 - post-presize composer height commits are scheduled through
   `DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit(...)`
   so sequence-guarded animation-frame behavior stays outside the component
+- explicit chatbox text-entry focus/caret mechanics are owned by
+  `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)`
 - visual-anchor IPC sync:
   - preview off -> `height: 64`
   - preview on -> `height: 116`

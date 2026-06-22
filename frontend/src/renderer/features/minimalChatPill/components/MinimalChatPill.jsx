@@ -187,9 +187,7 @@ function MinimalChatPill() {
 
   const focusInput = useCallback(() => {
     textEntryActiveRef.current = true;
-    inputRef.current?.focus();
-    const textLength = inputRef.current?.value?.length || 0;
-    inputRef.current?.setSelectionRange?.(textLength, textLength);
+    DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(inputRef);
   }, []);
 
   const activateTextEntry = useCallback(() => {

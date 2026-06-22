@@ -248,6 +248,7 @@ describe('renderer app runtime boundary', () => {
     expect(interactionRuntimeSource).toContain('scheduleChatboxNativeFrameCollapse');
     expect(interactionRuntimeSource).toContain('clearChatboxNativeFrameCollapse');
     expect(interactionRuntimeSource).toContain('scheduleChatboxComposerHeightCommit');
+    expect(interactionRuntimeSource).toContain('focusChatboxTextInputAtEnd');
     expect(interactionRuntimeSource).toContain('getBoundingClientRect');
     expect(interactionRuntimeSource).toContain('setTimeout');
     expect(interactionRuntimeSource).toContain('requestAnimationFrame');
@@ -264,6 +265,7 @@ describe('renderer app runtime boundary', () => {
     expect(pillSource).toContain('DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse');
     expect(pillSource).toContain('DesktopChatboxInteractionRuntime.clearChatboxNativeFrameCollapse');
     expect(pillSource).toContain('DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd');
     expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync');
     expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.subscribeToChatboxDragWindowEvents');
     expect(pillSource).not.toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
@@ -279,6 +281,8 @@ describe('renderer app runtime boundary', () => {
     expect(pillSource).not.toContain('window.requestAnimationFrame');
     expect(pillSource).not.toContain('window.screenX');
     expect(pillSource).not.toContain('window.screenY');
+    expect(pillSource).not.toContain('setSelectionRange');
+    expect(pillSource).not.toContain('.focus()');
     expect(pillSource).not.toContain('closeButtonAnchorFrameRef');
     expect(bindingsSource).not.toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(bindingsSource).not.toContain('window.addEventListener');

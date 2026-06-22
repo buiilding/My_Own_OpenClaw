@@ -54,6 +54,9 @@ This keeps overlay window lightweight:
 `useMinimalChatPillBindings` encapsulates chat pill runtime effect bindings:
 
 - explicit focus lifecycle through `DesktopWindowRuntimeClient` + mount focus
+- text-input DOM focus and caret placement through
+  `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)`; the pill
+  keeps only its text-entry active state
 - wakeword STT trigger handling through `DesktopWindowRuntimeClient`
 - global drag window listeners through `DesktopChatboxInteractionRuntime`
 - pointer hit-test listeners and pill-bounds checks through
@@ -149,7 +152,9 @@ Listener:
 
 - channel: `chatbox-focus`
 - action:
-  - focus input element when loop lock is not active
+  - mark text entry active and focus the input at the current text end through
+    `DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(...)` when
+    loop lock is not active
 
 Non-listeners:
 

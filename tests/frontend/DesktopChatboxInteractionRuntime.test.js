@@ -103,6 +103,30 @@ describe('desktopChatboxInteractionRuntime', () => {
     DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue.mockClear();
   });
 
+  test('focuses chatbox text input at the current text end', () => {
+    const input = {
+      value: 'overlay text',
+      focus: jest.fn(),
+      setSelectionRange: jest.fn(),
+    };
+
+    expect(DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd({ current: input })).toBe(true);
+    expect(input.focus).toHaveBeenCalledTimes(1);
+    expect(input.setSelectionRange).toHaveBeenCalledWith(12, 12);
+  });
+
+  test('focus chatbox text input adapter tolerates unavailable inputs and missing selection APIs', () => {
+    expect(DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd({ current: null })).toBe(false);
+
+    const input = {
+      value: 'overlay text',
+      focus: jest.fn(),
+    };
+
+    expect(DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd(input)).toBe(true);
+    expect(input.focus).toHaveBeenCalledTimes(1);
+  });
+
   test('subscribes and cleans up chatbox drag window events', () => {
     const eventTarget = createEventTarget();
     const onDragMove = jest.fn();

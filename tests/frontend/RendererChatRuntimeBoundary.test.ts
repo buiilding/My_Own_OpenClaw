@@ -2342,6 +2342,7 @@ describe('renderer chat runtime boundary', () => {
     expect(interactionRuntimeSource).toContain('scheduleChatboxNativeFrameCollapse');
     expect(interactionRuntimeSource).toContain('clearChatboxNativeFrameCollapse');
     expect(interactionRuntimeSource).toContain('scheduleChatboxComposerHeightCommit');
+    expect(interactionRuntimeSource).toContain('focusChatboxTextInputAtEnd');
     expect(interactionRuntimeSource).toContain('getBoundingClientRect');
     expect(interactionRuntimeSource).not.toContain('features/chat');
     expect(interactionRuntimeSource).not.toContain('features/minimalChatPill');
@@ -2352,6 +2353,7 @@ describe('renderer chat runtime boundary', () => {
     expect(pillSource).toContain('DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse');
     expect(pillSource).toContain('DesktopChatboxInteractionRuntime.clearChatboxNativeFrameCollapse');
     expect(pillSource).toContain('DesktopChatboxInteractionRuntime.scheduleChatboxComposerHeightCommit');
+    expect(pillSource).toContain('DesktopChatboxInteractionRuntime.focusChatboxTextInputAtEnd');
     expect(pillSource).not.toContain("window.addEventListener('mousemove'");
     expect(pillSource).not.toContain("window.addEventListener('mouseleave'");
     expect(pillSource).not.toContain("window.addEventListener('resize'");
@@ -2364,6 +2366,8 @@ describe('renderer chat runtime boundary', () => {
     expect(pillSource).not.toContain('window.requestAnimationFrame');
     expect(pillSource).not.toContain('window.screenX');
     expect(pillSource).not.toContain('window.screenY');
+    expect(pillSource).not.toContain('setSelectionRange');
+    expect(pillSource).not.toContain('.focus()');
     expect(pillSource).not.toContain('closeButtonAnchorFrameRef');
     expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync');
     expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.resetChatboxVisualAnchorHeight');
