@@ -75,7 +75,6 @@ directly. That app-runtime facade composes
 It returns a message-only presentation snapshot before visible lifecycle
 stamping:
 
-- `loopUiState` (`idle` until visible lifecycle stamping)
 - `isBusy` (`false` until visible lifecycle stamping)
 - `activeResponse`
 - `hasVisibleReply`

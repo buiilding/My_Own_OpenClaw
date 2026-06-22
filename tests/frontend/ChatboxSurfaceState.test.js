@@ -16,7 +16,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       messages: [{ id: 'user-1', sender: 'user', text: 'hello', type: 'user' }],
     });
 
-    expect(state.loopUiState).toBe('idle');
     expect(state.isBusy).toBe(false);
     expect(state.chatboxSurfaceState).toBe('compact');
     expect(state.showChatboxAwaitingReply).toBe(false);

@@ -560,6 +560,7 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).not.toContain('normalizeThinkingText');
     expect(currentTurnPresentationSource).not.toContain('showAssistantAwaitingDot');
     expect(currentTurnPresentationSource).not.toContain('isAwaitingReply');
+    expect(currentTurnPresentationSource).not.toContain('loopUiState');
     expect(currentTurnMessageSource).not.toContain('features/chat');
     expect(currentTurnMessageSource).not.toContain('features/minimalChatPill');
     expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -705,6 +706,7 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(visibleLifecycleRuntimeSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
     expect(visibleLifecycleRuntimeSource).not.toContain('isAwaitingReply');
+    expect(visibleLifecycleRuntimeSource).not.toContain('loopUiState');
     expect(visibleLifecycleRuntimeSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(visibleLifecycleRuntimeSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(chatSurfaceControllerSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');

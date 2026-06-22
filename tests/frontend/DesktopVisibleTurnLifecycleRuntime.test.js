@@ -314,7 +314,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
 
     const localPendingPresentation = applyVisibleTurnLifecycleToPresentationState({
-      loopUiState: 'idle',
       awaitingDotTargetMessageId: null,
       chatboxSurfaceState: 'compact',
       showChatboxAwaitingReply: false,
@@ -326,7 +325,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(localPendingPresentation).toMatchObject({
       visibleTurnLifecycle: visibleLifecycle,
       isBusy: true,
-      loopUiState: 'awaiting-reply',
       awaitingDotTargetMessageId: 'user-local',
       chatboxSurfaceState: 'awaiting-reply',
       showChatboxAwaitingReply: true,

@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Presentation Loop UI State Alias Deletion
+
+- Finding: current-turn presentation still stamped `loopUiState`, a stale
+  chatbox-era alias after transport recovery moved to `useChatLoopUiState(...)`
+  and desktop typing/awaiting state moved to `visibleTurnLifecycle.status`,
+  `chatboxSurfaceState`, and `showChatboxAwaitingReply`.
+- Change: removed the presentation-level `loopUiState` field from
+  message-only current-turn presentation and visible lifecycle stamping while
+  leaving the real chat-loop transport hook untouched.
+- Validation target: `ChatboxSurfaceState.test.js`,
+  `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatSurfaceController.test.jsx`, and `LatestVisibleAssistantReply.test.js`
+  protect the trimmed presentation contract and the remaining visible
+  lifecycle fields.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Awaiting Reply Alias Deletion
 
 - Finding: message-only current-turn presentation and visible-lifecycle

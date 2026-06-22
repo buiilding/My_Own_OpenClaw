@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the stale current-turn presentation `loopUiState`
+  alias; visible lifecycle status and chatbox surface state now carry
+  awaiting/response state while the transport recovery hook keeps its separate
+  loop state. No migration required.
 - frontend/renderer: delete the legacy `isAwaitingReply` presentation alias;
   awaiting state now stays on `visibleTurnLifecycle.status`,
   `showChatboxAwaitingReply`, and the concrete

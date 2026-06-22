@@ -285,7 +285,6 @@ function applyVisibleTurnLifecycleToPresentationState(presentationState, visible
   ) {
     return {
       ...nextState,
-      loopUiState: 'awaiting-reply',
       awaitingDotTargetMessageId: visibleTurnLifecycle.awaitingAnchor?.rowId || null,
       chatboxSurfaceState: 'awaiting-reply',
       showChatboxAwaitingReply: true,

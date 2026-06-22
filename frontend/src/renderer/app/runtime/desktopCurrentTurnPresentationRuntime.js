@@ -75,7 +75,6 @@ function resolveCurrentTurnPresentationState({
   return {
     activeResponse,
     hasVisibleReply,
-    loopUiState: 'idle',
     isBusy: false,
     awaitingDotTargetMessageId: null,
     visibleResponse,
