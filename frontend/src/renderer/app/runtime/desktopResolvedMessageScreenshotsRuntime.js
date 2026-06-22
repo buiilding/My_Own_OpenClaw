@@ -204,11 +204,14 @@ function useResolvedMessageScreenshotSrc(message) {
 }
 
 function useResolvedArtifactImageSrc(attachment) {
+  const screenshotRef = attachment?.screenshotRef ?? null;
+  const screenshotUrl = attachment?.screenshotUrl ?? null;
+  const screenshotContentType = attachment?.contentType ?? attachment?.screenshotContentType ?? null;
   const normalizedAttachment = useMemo(() => ({
-    screenshotRef: attachment?.screenshotRef ?? null,
-    screenshotUrl: attachment?.screenshotUrl ?? null,
-    screenshotContentType: attachment?.contentType ?? attachment?.screenshotContentType ?? null,
-  }), [attachment]);
+    screenshotRef,
+    screenshotUrl,
+    screenshotContentType,
+  }), [screenshotRef, screenshotUrl, screenshotContentType]);
   const [resolvedSrc, setResolvedSrc] = useState(
     resolveStaticScreenshotAttachmentSrc(normalizedAttachment)
     || cachedArtifactAttachmentSrc(normalizedAttachment)
@@ -219,22 +222,29 @@ function useResolvedArtifactImageSrc(attachment) {
     let cancelled = false;
     const staticSrc = resolveStaticScreenshotAttachmentSrc(normalizedAttachment);
     if (staticSrc) {
-      setResolvedSrc(staticSrc);
+      setResolvedSrc((currentSrc) => (currentSrc === staticSrc ? currentSrc : staticSrc));
       return () => {
         cancelled = true;
       };
     }
     const cachedSrc = cachedArtifactAttachmentSrc(normalizedAttachment);
     if (cachedSrc) {
-      setResolvedSrc(cachedSrc);
+      setResolvedSrc((currentSrc) => (currentSrc === cachedSrc ? currentSrc : cachedSrc));
       return () => {
         cancelled = true;
       };
     }
-    setResolvedSrc(null);
+    const cacheKey = buildArtifactCacheKey(normalizedAttachment);
+    if (!cacheKey) {
+      setResolvedSrc((currentSrc) => (currentSrc === null ? currentSrc : null));
+      return () => {
+        cancelled = true;
+      };
+    }
+    setResolvedSrc((currentSrc) => (currentSrc === null ? currentSrc : null));
     void resolveArtifactAttachmentSrc(normalizedAttachment).then((src) => {
       if (!cancelled) {
-        setResolvedSrc(src);
+        setResolvedSrc((currentSrc) => (currentSrc === src ? currentSrc : src));
       }
     });
     return () => {
