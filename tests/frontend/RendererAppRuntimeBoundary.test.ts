@@ -1331,6 +1331,8 @@ describe('renderer app runtime boundary', () => {
     expect(providerRuntimeSource).not.toContain('providers/');
     expect(appProviderSource).toContain('DesktopAppProviderRuntime.subscribeToAppProviderKeyDown');
     expect(appProviderSource).toContain('DesktopAppProviderRuntime.isEditableShortcutTarget');
+    expect(appProviderSource).toContain('DesktopAppearanceThemeRuntime.applyAppearanceTheme');
+    expect(appProviderSource).not.toContain('../applyAppearanceTheme');
     expect(appProviderSource).not.toContain('window.addEventListener');
     expect(appProviderSource).not.toContain('window.removeEventListener');
     expect(appConfigProviderSource).toContain('DesktopAppProviderRuntime.subscribeToAppConfigStorageEvents');

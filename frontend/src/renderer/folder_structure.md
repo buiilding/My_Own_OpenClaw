@@ -89,7 +89,7 @@ frontend/src/renderer/
 |   |   |-- desktopPermissionOnboardingStorageRuntime.js # Renderer permission onboarding localStorage persistence facade
 |   |   |-- desktopRendererHooksRuntimeClient.ts # Renderer shared React hook facade for feature clients
 |   |   |-- desktopRendererConfigFilterRuntime.js # Renderer app-config allowlist facade
-|   |   |-- desktopAppearanceThemeRuntime.js # Renderer appearance theme normalization and fallback facade
+|   |   |-- desktopAppearanceThemeRuntime.js # Renderer appearance theme normalization, system matching, and document token application facade
 |   |   |-- desktopRendererConfigStorageRuntime.js # Renderer app-config local persistence facade
 |   |   |-- desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 |   |   |-- desktopPresentationSourceChannels.js # Renderer presentation source-channel labels
@@ -111,7 +111,7 @@ frontend/src/renderer/
 |   `-- providers/                       # Context providers for global state
 |       |-- AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
 |       |-- AppConfigProvider.jsx        # AppConfigProvider - Manages config/models/wakeword and syncs renderer config through startup/settings app-runtime clients on connect/startup
-|       |-- AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider
+|       |-- AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider and routes appearance theme application through app-runtime facade
 |       |-- AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
 |       |-- AppStatusProvider.jsx        # AppStatusProvider - Manages saveStatus (transient, frequent changes)
 |       |-- appConfigPersistence.js      # appConfigPersistence - Config sanitization + changed-config apply helpers

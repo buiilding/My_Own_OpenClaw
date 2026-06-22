@@ -9,6 +9,29 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer Appearance Theme Application Runtime
+
+- Finding: `DesktopAppearanceThemeRuntime` already owned appearance-mode
+  fallback, theme section normalization, system theme resolution, and editor
+  descriptors, but the app root still routed document CSS-variable application
+  through a standalone `applyAppearanceTheme.js` helper that owned raw
+  `document.documentElement` and `window.matchMedia` adapters.
+- Change: moved document-level theme attributes, CSS-variable writes, and
+  system `matchMedia` subscription cleanup into
+  `DesktopAppearanceThemeRuntime.applyAppearanceTheme(...)`; routed
+  `AppProvider` through the app-runtime facade and deleted the standalone
+  helper module. The provider keeps React effect timing while the runtime owns
+  browser document/media-query mechanics.
+- Validation target: `DesktopAppearanceThemeRuntime.test.js`,
+  `applyAppearanceTheme.test.js`, `AppProvider.test.tsx`,
+  `RendererAppRuntimeBoundary.test.ts`, and
+  `RendererSkinConfigBoundary.test.cjs` protect theme projection,
+  document-application behavior, provider routing, and deletion of the
+  standalone helper path.
+- Compatibility/security: no renderer config key, persisted storage payload,
+  CSS variable name, IPC channel, SDK event payload, permission, credential,
+  local execution, trust-boundary, or migration change required.
+
 ### 2026-06-22 Renderer Startup View Runtime
 
 - Finding: `main.jsx` and `AppConfigProvider` still parsed

@@ -1,10 +1,14 @@
 /**
- * Covers apply appearance theme. behavior in the frontend test suite.
+ * Covers appearance theme application behavior in the frontend test suite.
  */
 
 import {
+  DesktopAppearanceThemeRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopAppearanceThemeRuntime.js';
+
+const {
   applyAppearanceTheme,
-} from '../../frontend/src/renderer/app/applyAppearanceTheme';
+} = DesktopAppearanceThemeRuntime;
 
 function createMediaQueryList(matches = false) {
   const listeners = new Set();

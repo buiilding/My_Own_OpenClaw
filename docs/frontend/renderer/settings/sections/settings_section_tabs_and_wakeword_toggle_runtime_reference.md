@@ -138,10 +138,13 @@ The values are persisted through renderer config as `appearance_mode` and
 because they do not affect model behavior, tools, prompt construction, or
 provider policy.
 
-The renderer root consumes `appearance_mode` and the active `appearance_theme` section by
-setting document-level theme attributes and CSS variables. Light/dark/system selection is
-therefore a renderer presentation concern: the settings tab produces the config patch, and
-the app root applies the effective theme to shared dashboard/settings tokens.
+The renderer root consumes `appearance_mode` and the active `appearance_theme`
+section through `DesktopAppearanceThemeRuntime.applyAppearanceTheme(...)`,
+which owns document-level theme attributes, CSS variables, and system
+`matchMedia` subscription cleanup. Light/dark/system selection is therefore a
+renderer presentation concern: the settings tab produces the config patch, and
+the app root asks the runtime facade to apply the effective theme to shared
+dashboard/settings tokens.
 
 ## Agent Tab Ownership Model
 

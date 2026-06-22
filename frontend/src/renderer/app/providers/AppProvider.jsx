@@ -9,7 +9,7 @@ import { useAppConfigContext } from './AppConfigContext';
 import { useAppStatusContext } from './AppStatusContext';
 import { DesktopRendererHooksRuntimeClient } from '../runtime/desktopRendererHooksRuntimeClient';
 import { DesktopAppProviderRuntime } from '../runtime/desktopAppProviderRuntime';
-import { applyAppearanceTheme } from '../applyAppearanceTheme';
+import { DesktopAppearanceThemeRuntime } from '../runtime/desktopAppearanceThemeRuntime';
 
 const {
   useLatestRef,
@@ -34,7 +34,7 @@ function AppContextCoordinator({ children }) {
     }
   }, [registerSaveStatusCallback, statusContext.setSaving]);
 
-  useEffect(() => applyAppearanceTheme({
+  useEffect(() => DesktopAppearanceThemeRuntime.applyAppearanceTheme({
     appearance_mode: appearanceMode,
     appearance_theme: appearanceTheme,
   }), [appearanceMode, appearanceTheme]);

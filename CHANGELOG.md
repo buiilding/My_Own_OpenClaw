@@ -71,6 +71,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: move document-level appearance theme application and
+  system `matchMedia` subscription cleanup into
+  `DesktopAppearanceThemeRuntime`, deleting the standalone
+  `applyAppearanceTheme.js` helper so `AppProvider` consumes the app-runtime
+  facade directly. No migration required.
 - docs/renderer: mark ADR 006 renderer-owned typing lifecycle migration
   implemented after auditing live surface ownership, pending handoff, raw
   lifecycle non-authorities, and regression-pack coverage. No migration
