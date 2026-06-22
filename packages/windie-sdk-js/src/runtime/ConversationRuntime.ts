@@ -484,6 +484,7 @@ function rehydrateSnapshotFromModelHistory(
   events: ConversationEvent[],
   conversationRef: string,
   revisionId: string,
+  displayRows: SdkDisplayRow[] = buildDisplayRows(events),
 ): RehydrateSnapshot | null {
   const modelHistoryEvent = [...events].reverse().find(event => (
     event.type === 'model_history_updated'
@@ -508,7 +509,10 @@ function rehydrateSnapshotFromModelHistory(
     createdAt: typeof modelHistoryEvent.payload.createdAt === 'string'
       ? modelHistoryEvent.payload.createdAt
       : modelHistoryEvent.timestamp,
-    rows,
+    rows: attachDisplaySourcesToModelHistoryRows(
+      rows,
+      displayRows.filter(row => rowMetadataRevision(row) === revisionId),
+    ),
   });
 }
 
@@ -679,6 +683,128 @@ function modelRowsForDisplayRevision(
     keptDisplayRowIds: options.keptDisplayRowIds,
     newConversationRef: options.conversationRef,
     newRevisionId: options.newRevisionId,
+  });
+}
+
+function stringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0);
+}
+
+function firstToolCallIdFromUnknown(value: unknown): string | null {
+  const calls = Array.isArray(value) ? value : [];
+  for (const call of calls) {
+    const record = isJsonRecord(call) ? call : null;
+    const id = typeof record?.id === 'string' && record.id.trim() ? record.id.trim() : null;
+    if (id) {
+      return id;
+    }
+  }
+  return null;
+}
+
+function displayRowToolCallId(row: SdkDisplayRow): string | null {
+  const metadata = row.metadata ?? {};
+  const metadataId = typeof metadata.toolCallId === 'string' && metadata.toolCallId.trim()
+    ? metadata.toolCallId.trim()
+    : null;
+  if (metadataId) {
+    return metadataId;
+  }
+  if (isJsonRecord(row.content)) {
+    const direct = typeof row.content.toolCallId === 'string' && row.content.toolCallId.trim()
+      ? row.content.toolCallId.trim()
+      : null;
+    if (direct) {
+      return direct;
+    }
+    const calls = Array.isArray(row.content.tool_calls)
+      ? row.content.tool_calls
+      : (Array.isArray(row.content.toolCalls) ? row.content.toolCalls : []);
+    return firstToolCallIdFromUnknown(calls);
+  }
+  return null;
+}
+
+function modelRowToolCallId(row: ModelHistoryRow): string | null {
+  if (typeof row.toolCallId === 'string' && row.toolCallId.trim()) {
+    return row.toolCallId.trim();
+  }
+  return firstToolCallIdFromUnknown(row.toolCalls);
+}
+
+function displayRowMatchesModelHistory(row: SdkDisplayRow, modelRow: ModelHistoryRow): boolean {
+  if (modelRow.messageType === 'user_query') {
+    return row.role === 'user' && row.type === 'user_message';
+  }
+  if (modelRow.messageType === 'tool_output') {
+    if (row.type !== 'tool_output' && row.type !== 'tool_bundle_output') {
+      return false;
+    }
+    const modelToolCallId = modelRowToolCallId(modelRow);
+    const displayToolCallId = displayRowToolCallId(row);
+    return !modelToolCallId || !displayToolCallId || modelToolCallId === displayToolCallId;
+  }
+  if (modelRow.messageType === 'assistant_response') {
+    const hasToolCalls = Array.isArray(modelRow.toolCalls) && modelRow.toolCalls.length > 0;
+    if (hasToolCalls) {
+      if (row.type !== 'tool_call' && row.type !== 'tool_bundle_call') {
+        return false;
+      }
+      const modelToolCallId = modelRowToolCallId(modelRow);
+      const displayToolCallId = displayRowToolCallId(row);
+      return !modelToolCallId || !displayToolCallId || modelToolCallId === displayToolCallId;
+    }
+    return row.role === 'assistant' && row.type === 'assistant_message';
+  }
+  return false;
+}
+
+function attachDisplaySourcesToModelHistoryRows(
+  rows: ModelHistoryRow[],
+  displayRows: SdkDisplayRow[],
+): ModelHistoryRow[] {
+  let cursor = 0;
+  let canInferFromOrder = true;
+  return rows.map(row => {
+    const existingSources = stringArray(row.sourceDisplayRowIds);
+    if (existingSources.length > 0) {
+      const indexes = existingSources
+        .map(sourceId => displayRows.findIndex(displayRow => displayRow.id === sourceId))
+        .filter(index => index >= 0);
+      if (indexes.length > 0) {
+        cursor = Math.max(cursor, Math.max(...indexes) + 1);
+        canInferFromOrder = true;
+      }
+      return {
+        ...row,
+        sourceDisplayRowIds: existingSources,
+      };
+    }
+    if (!canInferFromOrder || row.messageType === 'context_compaction') {
+      canInferFromOrder = false;
+      return {
+        ...row,
+        sourceDisplayRowIds: [],
+      };
+    }
+    const matchIndex = displayRows.findIndex((displayRow, index) => (
+      index >= cursor && displayRowMatchesModelHistory(displayRow, row)
+    ));
+    if (matchIndex < 0) {
+      canInferFromOrder = false;
+      return {
+        ...row,
+        sourceDisplayRowIds: [],
+      };
+    }
+    cursor = matchIndex + 1;
+    return {
+      ...row,
+      sourceDisplayRowIds: [displayRows[matchIndex].id],
+    };
   });
 }
 
@@ -2127,7 +2253,10 @@ export class SdkConversationRuntime {
       conversationRef: event.conversationRef,
       revisionId,
       createdAt,
-      rows,
+      rows: attachDisplaySourcesToModelHistoryRows(
+        rows,
+        this.displayRowsForSnapshot(this.events).filter(row => rowMetadataRevision(row) === revisionId),
+      ),
     };
   }
 
@@ -2976,6 +3105,7 @@ export class SdkConversationRuntime {
         events,
         this.options.conversationRef,
         this.state.revisionId,
+        displayRows,
       ) ?? buildRehydrateSnapshot(events),
       currentTurn,
     };

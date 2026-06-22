@@ -236,6 +236,11 @@ All notable changes to WindieOS will be documented in this file.
   retained base rows when those rows carry `sourceDisplayRowIds`, preventing
   edit/retry revisions from reusing stale model context after the display
   suffix changes. No storage migration required.
+- sdk: enrich persisted backend model-history checkpoints with SDK display row
+  provenance when role/message-type order can be matched unambiguously, allowing
+  later edit/retry/fork revisions to retain bounded model context without
+  copying raw runtime events. Compaction rows stop inferred binding unless later
+  rows carry explicit display provenance. No storage migration required.
 - backend/sdk: add backend-safe typed `display_attachments` support at
   tool-result, tool-bundle-result, rehydrate, and outgoing tool-output
   websocket boundaries while keeping `screenshot_ref`/artifact refs as the

@@ -355,6 +355,12 @@ Model-history checkpoint methods are the ADR 008 migration surface. They do not
 make display rows, runtime events, and backend active history interchangeable:
 checkpoints store bounded model-facing rows only, while full tool output and
 display attachments remain in display/runtime history.
+When backend `model-history-updated` rows omit `sourceDisplayRowIds`, the SDK
+enriches persisted checkpoint rows only when the current display projection can
+match role/message-type order unambiguously. Unmatched rows keep an empty source
+list and are not guessed into edit/fork child checkpoints. Inference stops after
+`context_compaction` rows unless a later model row carries explicit display
+provenance, so compacted model-history tails do not bind to old visible rows.
 Normal `ConversationRuntime.rehydrate()` and
 `ConversationContinuityService.rehydrateFromStore(...)` prefer
 `loadModelHistory(...)` and send `rehydrate-conversation.payload.model_history`

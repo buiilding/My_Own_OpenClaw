@@ -145,12 +145,13 @@ function createControllableAgentRuntimeTransport(
 function backendEvent(
   type: BackendEvent['type'],
   payload: Record<string, unknown>,
-  options: { eventId: string; turnRef: string; sequence?: number },
+  options: { eventId: string; turnRef: string; sequence?: number; revisionId?: string },
 ): BackendEvent {
   return {
     id: options.turnRef,
     event_id: options.eventId,
     ...(typeof options.sequence === 'number' ? { sequence: options.sequence } : {}),
+    ...(options.revisionId ? { revision_id: options.revisionId } : {}),
     type,
     conversation_ref: 'conv-sdk-runtime',
     turn_ref: options.turnRef,
@@ -5096,6 +5097,180 @@ describe('Agent SDK conversation runtime core', () => {
         }),
       }),
     ]);
+  });
+
+  test('conversation runtime attaches display row provenance to backend model-history checkpoints', async () => {
+    const transport = createControllableAgentRuntimeTransport({
+      sendQuery: jest.fn(async () => 'accepted'),
+    });
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-model-history',
+      store,
+      transport,
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'visible question', turnRef: 'turn-provenance' });
+    transport.emit(backendEvent('assistant-message-full', {
+      conversation_ref: 'conv-sdk-runtime',
+      revision_id: 'rev-model-history',
+      content: 'visible answer',
+    }, {
+      eventId: 'evt-assistant-provenance',
+      turnRef: 'turn-provenance',
+      sequence: 1,
+      revisionId: 'rev-model-history',
+    }));
+    transport.emit(backendEvent('model-history-updated', {
+      revision_id: 'rev-model-history',
+      checkpoint_id: 'mh-rev-model-history-turn-provenance',
+      created_at: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'mh-user-provenance',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: 'rev-model-history',
+          role: 'user',
+          message_type: 'user_query',
+          content: 'bounded visible question',
+          source_display_row_ids: [],
+        },
+        {
+          id: 'mh-assistant-provenance',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: 'rev-model-history',
+          role: 'assistant',
+          message_type: 'assistant_response',
+          content: 'visible answer',
+          source_display_row_ids: [],
+        },
+      ],
+    }, {
+      eventId: 'evt-model-history-provenance',
+      turnRef: 'turn-provenance',
+      sequence: 2,
+      revisionId: 'rev-model-history',
+    }));
+
+    await waitForExpect(async () => {
+      await expect(store.loadModelHistory?.({
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-model-history',
+      })).resolves.toMatchObject({
+        checkpointId: 'mh-rev-model-history-turn-provenance',
+        rows: [
+          expect.objectContaining({
+            id: 'mh-user-provenance',
+            sourceDisplayRowIds: [expect.stringContaining('user_message')],
+          }),
+          expect.objectContaining({
+            id: 'mh-assistant-provenance',
+            sourceDisplayRowIds: ['conv-sdk-runtime:turn-provenance:assistant'],
+          }),
+        ],
+      });
+    });
+  });
+
+  test('conversation runtime does not guess model-history provenance after compaction rows', async () => {
+    const transport = createControllableAgentRuntimeTransport({
+      sendQuery: jest.fn(async () => 'accepted'),
+    });
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-model-history',
+      store,
+      transport,
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'old visible question', turnRef: 'turn-old-visible' });
+    transport.emit(backendEvent('assistant-message-full', {
+      conversation_ref: 'conv-sdk-runtime',
+      revision_id: 'rev-model-history',
+      content: 'old visible answer',
+    }, {
+      eventId: 'evt-old-assistant',
+      turnRef: 'turn-old-visible',
+      sequence: 1,
+      revisionId: 'rev-model-history',
+    }));
+    await runtime.send({ text: 'recent visible question', turnRef: 'turn-recent-visible' });
+    transport.emit(backendEvent('assistant-message-full', {
+      conversation_ref: 'conv-sdk-runtime',
+      revision_id: 'rev-model-history',
+      content: 'recent visible answer',
+    }, {
+      eventId: 'evt-recent-assistant',
+      turnRef: 'turn-recent-visible',
+      sequence: 1,
+      revisionId: 'rev-model-history',
+    }));
+    transport.emit(backendEvent('model-history-updated', {
+      revision_id: 'rev-model-history',
+      checkpoint_id: 'mh-compacted-recent-tail',
+      created_at: '2026-06-22T12:01:00.000Z',
+      rows: [
+        {
+          id: 'mh-compaction-summary',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: 'rev-model-history',
+          role: 'assistant',
+          message_type: 'context_compaction',
+          content: 'Older messages were summarized.',
+          source_display_row_ids: [],
+        },
+        {
+          id: 'mh-recent-user',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: 'rev-model-history',
+          role: 'user',
+          message_type: 'user_query',
+          content: 'recent visible question',
+          source_display_row_ids: [],
+        },
+        {
+          id: 'mh-recent-assistant',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: 'rev-model-history',
+          role: 'assistant',
+          message_type: 'assistant_response',
+          content: 'recent visible answer',
+          source_display_row_ids: [],
+        },
+      ],
+    }, {
+      eventId: 'evt-compacted-model-history',
+      turnRef: 'turn-recent-visible',
+      sequence: 2,
+      revisionId: 'rev-model-history',
+    }));
+
+    await waitForExpect(async () => {
+      await expect(store.loadModelHistory?.({
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-model-history',
+      })).resolves.toMatchObject({
+        checkpointId: 'mh-compacted-recent-tail',
+        rows: [
+          expect.objectContaining({
+            id: 'mh-compaction-summary',
+            sourceDisplayRowIds: [],
+          }),
+          expect.objectContaining({
+            id: 'mh-recent-user',
+            sourceDisplayRowIds: [],
+          }),
+          expect.objectContaining({
+            id: 'mh-recent-assistant',
+            sourceDisplayRowIds: [],
+          }),
+        ],
+      });
+    });
   });
 
   test('conversation runtime replaces display rows as a child timeline revision without rewriting events', async () => {
