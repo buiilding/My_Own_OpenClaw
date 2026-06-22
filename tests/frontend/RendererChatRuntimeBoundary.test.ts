@@ -2464,14 +2464,18 @@ describe('renderer chat runtime boundary', () => {
 
     expect(composerDraftSource).toContain('desktopComposerAttachmentRuntime');
     expect(composerDraftSource).toContain('DesktopComposerAttachmentRuntime');
+    expect(composerDraftSource).toContain('parseClipboardImagePasteEvent');
     expect(composerDraftSource).not.toContain('clipboardImageUtils');
     expect(composerDraftSource).not.toContain('fileAttachmentUtils');
+    expect(composerDraftSource).not.toContain('clipboardData');
     expect(composerAttachmentSource).toContain('DesktopComposerAttachmentRuntime');
+    expect(composerAttachmentSource).toContain('parseClipboardImagePasteEvent');
     expect(composerAttachmentSource).toContain('parseClipboardImageItems');
     expect(composerAttachmentSource).toContain('parseSelectedComposerFiles');
     expect(composerAttachmentSource).toContain('parseBase64ImageDataUrl');
     expect(composerAttachmentSource).not.toContain('export function readFileAsDataUrl');
     expect(composerAttachmentSource).not.toContain('export function parseBase64ImageDataUrl');
+    expect(composerAttachmentSource).not.toContain('export async function parseClipboardImagePasteEvent');
     expect(composerAttachmentSource).not.toContain('export async function parseClipboardImageItems');
     expect(composerAttachmentSource).not.toContain('export async function parseSelectedComposerFiles');
     expect(composerAttachmentSource).not.toContain('features/chat');

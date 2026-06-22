@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route composer paste-event clipboard item inspection
+  through `DesktopComposerAttachmentRuntime.parseClipboardImagePasteEvent(...)`
+  so `useChatComposerDraft` keeps draft state while the app runtime owns
+  browser clipboard mechanics. No migration required.
 - frontend/renderer: move default app startup surface selection into
   `DesktopStartupRuntimeClient.selectStartupSurface(...)` and delete the
   standalone `startupSurface.js` helper so `App.jsx` consumes the startup

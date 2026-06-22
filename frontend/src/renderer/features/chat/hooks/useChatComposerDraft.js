@@ -13,7 +13,7 @@ const {
   buildOutgoingMessage,
 } = DesktopMessageInputRuntime;
 const {
-  parseClipboardImageItems,
+  parseClipboardImagePasteEvent,
   parseSelectedComposerFiles,
 } = DesktopComposerAttachmentRuntime;
 
@@ -92,17 +92,15 @@ export function useChatComposerDraft({
   ]);
 
   const handleComposerPaste = useCallback(async (event) => {
-    const clipboardItems = event.clipboardData?.items || [];
-    const hasImageItems = Array.from(clipboardItems).some((item) => item?.type?.startsWith('image/'));
-    if (!hasImageItems) {
+    const pasteResult = await parseClipboardImagePasteEvent(event);
+    if (!pasteResult.hasImageItems) {
       handlePaste(event);
       return;
     }
 
-    const parsedImages = await parseClipboardImageItems(clipboardItems);
-    if (parsedImages.length > 0) {
+    if (pasteResult.images.length > 0) {
       event.preventDefault();
-      setClipboardImages((previous) => [...previous, ...parsedImages]);
+      setClipboardImages((previous) => [...previous, ...pasteResult.images]);
     }
   }, [handlePaste]);
 

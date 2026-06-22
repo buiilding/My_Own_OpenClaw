@@ -52,6 +52,15 @@ Returned shape:
 
 ## Clipboard Image Flow Contract
 
+`DesktopComposerAttachmentRuntime.parseClipboardImagePasteEvent(event)`:
+
+1. reads `event.clipboardData.items` at the app-runtime boundary
+2. reports `hasImageItems: false` with an empty image list for text-only paste
+   events so composer hooks can delegate to normal transcription/text paste
+   handling
+3. when image items are present, returns `hasImageItems: true` plus parsed
+   image preview payloads from the shared clipboard-item parser
+
 `DesktopComposerAttachmentRuntime.parseClipboardImageItems(clipboardItems)`:
 
 1. filters clipboard items to `image/*` MIME types
@@ -120,14 +129,15 @@ Attachment-only fallback text:
 
 `MessageInput`:
 
-- clipboard paste path uses `parseClipboardImageItems`
+- clipboard paste path uses `parseClipboardImagePasteEvent`
 - native file picker path uses `parseSelectedComposerFiles`
 - catches paste and picker parse failures at the component boundary and logs scoped warnings
 - send button is enabled when attachments exist (even with empty typed text)
 
 `ChatBox` overlay:
 
-- uses `parseClipboardImageItems` for pasted image previews
+- uses `parseClipboardImagePasteEvent` for pasted image previews through the
+  shared composer draft hook
 - does not use readable-file picker path
 - screenshot-capture button creates preview payloads directly from `extractOSstate` output
 
@@ -136,6 +146,7 @@ Attachment-only fallback text:
 `tests/frontend/DesktopComposerAttachmentRuntime.test.js`:
 
 - data URL parsing and FileReader error behavior stay stable
+- paste-event adapter detects text-only versus image paste events
 - non-image clipboard items are ignored
 - parsed image payload includes base64/contentType/filename/previewUrl
 - separates image attachments from readable files

@@ -162,6 +162,24 @@ async function parseClipboardImageItems(clipboardItems = []) {
   return parsedImages;
 }
 
+async function parseClipboardImagePasteEvent(event) {
+  const clipboardItems = event?.clipboardData?.items || [];
+  const hasImageItems = Array.from(clipboardItems).some((item) => (
+    item?.type?.startsWith('image/')
+  ));
+  if (!hasImageItems) {
+    return {
+      hasImageItems: false,
+      images: [],
+    };
+  }
+
+  return {
+    hasImageItems: true,
+    images: await parseClipboardImageItems(clipboardItems),
+  };
+}
+
 async function parseSelectedComposerFiles(fileList = []) {
   const files = Array.from(fileList || []);
   if (files.length === 0) {
@@ -208,6 +226,7 @@ async function parseSelectedComposerFiles(fileList = []) {
 
 export const DesktopComposerAttachmentRuntime = Object.freeze({
   parseBase64ImageDataUrl,
+  parseClipboardImagePasteEvent,
   parseClipboardImageItems,
   parseSelectedComposerFiles,
   readFileAsDataUrl,

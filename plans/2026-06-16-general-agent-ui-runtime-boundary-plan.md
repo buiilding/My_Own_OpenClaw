@@ -9,6 +9,27 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer Composer Clipboard Paste Runtime
+
+- Finding: `useChatComposerDraft` already delegated clipboard/file attachment
+  parsing to `DesktopComposerAttachmentRuntime`, but still inspected
+  `event.clipboardData.items` directly to decide whether a paste event carried
+  images.
+- Change: added
+  `DesktopComposerAttachmentRuntime.parseClipboardImagePasteEvent(...)` as the
+  paste-event adapter and routed the composer draft hook through it. The hook
+  keeps React draft state, text-paste fallback, and preview append behavior
+  while the app runtime owns browser clipboard-event item inspection and image
+  parsing.
+- Validation target: `DesktopComposerAttachmentRuntime.test.js`,
+  `ChatComposerDraft.test.jsx`, and `RendererChatRuntimeBoundary.test.ts`
+  protect text-only paste delegation, image paste parsing, and rejection of
+  direct `clipboardData` reads in the composer hook.
+- Compatibility/security: no outgoing message payload shape, attachment
+  preview shape, IPC channel, SDK event payload, renderer config, persisted
+  storage, permission, credential, local execution, trust-boundary, or
+  migration change required.
+
 ### 2026-06-22 Renderer Startup Surface Selection Runtime
 
 - Finding: default renderer startup surface selection for VM dashboard,

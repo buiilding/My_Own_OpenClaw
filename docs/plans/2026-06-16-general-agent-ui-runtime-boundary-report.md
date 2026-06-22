@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: renderer thread presentation now drops unused
-  tool-log and busy inputs while naming its SDK-current-turn projection
-  fallback explicitly behind the app-runtime thread presenter.
+- Latest completed slice: renderer composer paste-event clipboard inspection
+  now routes through `DesktopComposerAttachmentRuntime` so shared dashboard and
+  chat-pill composer hooks no longer read browser `clipboardData` directly.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -35,6 +35,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   neutral injected skin values while real WindieOS app icon, tray tooltip, log
   prefix, bundled runtime copy, env keys, runs header, wakeword model, and
   browser warmup copy remain host-skin owned.
+  Renderer composer paste-event clipboard item inspection and image parsing now
+  route through `DesktopComposerAttachmentRuntime`; composer hooks keep draft
+  state, text-paste fallback, and preview append behavior.
   Active local-runtime validation docs use the canonical `local-runtime`
   wrapper, test, and build commands; historical plan/report records and
   CLI-specific compatibility alias rows still mention the old names where the

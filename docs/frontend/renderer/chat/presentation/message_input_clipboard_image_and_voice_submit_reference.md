@@ -77,11 +77,12 @@ Outgoing payload variants:
 
 Paste handler logic:
 
-1. inspect `clipboardData.items`.
-2. if no `image/*` item -> delegate to `handlePaste`.
+1. delegate paste-event clipboard item inspection to
+   `DesktopComposerAttachmentRuntime.parseClipboardImagePasteEvent(...)`.
+2. if the runtime reports no `image/*` item -> delegate to `handlePaste`.
 3. if one or more image items exist:
  - prevent default paste behavior
- - parse images via shared `parseClipboardImageItems(...)` helper
+ - append images parsed by the shared runtime facade
  - append new preview payload(s) into `clipboardImages[]` (do not replace previous pasted images)
   - catch parse failures at the composer boundary and log a scoped warning instead of leaving an unhandled promise rejection
 
@@ -95,6 +96,7 @@ Parsed payload shape:
 
 The helper path uses shared data-URL parse/normalization primitives:
 
+- `DesktopComposerAttachmentRuntime.parseClipboardImagePasteEvent(...)`
 - `DesktopComposerAttachmentRuntime.readFileAsDataUrl(...)`
 - `DesktopComposerAttachmentRuntime.parseBase64ImageDataUrl(...)`
 
@@ -203,7 +205,9 @@ The menu does not alter outbound query payload; it only opens the native file-pi
 1. Changing data-URL parse helpers without updating clipboard/file attachment utilities can break preview/base64 payload shaping.
 2. Re-introducing config-driven microphone enablement can make the button look live while doing nothing.
 3. Removing preview reset after submit can leak stale image/file payloads across messages.
-4. Replacing `DesktopMessageInputRuntime.buildOutgoingMessage(...)` with ad-hoc payload construction can desync sender hook payload union.
+4. Reading `event.clipboardData.items` directly in composer hooks can split
+   paste-event browser mechanics away from `DesktopComposerAttachmentRuntime`.
+5. Replacing `DesktopMessageInputRuntime.buildOutgoingMessage(...)` with ad-hoc payload construction can desync sender hook payload union.
 
 ## Related Pages
 
