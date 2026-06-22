@@ -56,6 +56,10 @@ replace `local_pending`.
 Local send preflight requires a valid renderer `pendingTurn`; bare
 `isSending=true` is store/diagnostic compatibility state and does not create
 visible typing or busy lifecycle by itself.
+`DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+stamps only renderer-owned visible lifecycle, busy, awaiting, and chatbox
+surface fields. It strips the retired `overlayTurnLifecycle` compatibility
+field instead of adapting visible lifecycle back into overlay lifecycle names.
 
 ## Overlay Turn Lifecycle Contract
 

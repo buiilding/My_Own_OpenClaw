@@ -9,6 +9,25 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Visible Lifecycle Overlay Field Deletion
+
+- Finding: after response overlay view logic moved to
+  `visibleTurnLifecycle.status`, `applyVisibleTurnLifecycleToPresentationState(...)`
+  still imported the overlay lifecycle runtime to stamp a legacy
+  `overlayTurnLifecycle` field, and response overlay traces/tests continued to
+  preserve that compatibility field.
+- Change: the visible lifecycle presentation adapter now strips incoming
+  `overlayTurnLifecycle` data and does not restamp it; response overlay traces
+  no longer emit the legacy field, and tests assert visible lifecycle status
+  plus busy/awaiting fields instead.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatboxSurfaceState.test.js`, and `DesktopRendererTraceRuntime.test.ts`
+  protect the deleted field while preserving response-entry rendering and
+  trace payload behavior.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Visible Lifecycle Presentation Facade Removal
 
 - Finding: `DesktopVisibleTurnLifecycleRuntime` still exported

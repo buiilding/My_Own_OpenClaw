@@ -2,16 +2,6 @@
  * Owns renderer-visible turn lifecycle projection for desktop surfaces.
  */
 
-import { DesktopOverlayTurnLifecycleRuntime } from './desktopOverlayTurnLifecycleRuntime';
-
-const {
-  getActiveOverlayTurnLifecycle,
-  getAwaitingOverlayTurnLifecycle,
-  getIdleOverlayTurnLifecycle,
-  getPreflightOverlayTurnLifecycle,
-  getTerminalOverlayTurnLifecycle,
-} = DesktopOverlayTurnLifecycleRuntime;
-
 const TERMINAL_PHASES = new Set(['complete', 'error']);
 const ACTIVE_PROGRESS_PHASES = new Set(['tool_call', 'tool_output']);
 const AWAITING_PHASES = new Set(['awaiting']);
@@ -279,27 +269,14 @@ function shouldUseLocalSendPreflight({
   return !hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, currentTurnProjection);
 }
 
-function resolveOverlayTurnLifecycleForVisibleLifecycle(visibleTurnLifecycle) {
-  if (visibleTurnLifecycle?.status === 'local_pending') {
-    return getPreflightOverlayTurnLifecycle();
-  }
-  if (visibleTurnLifecycle?.status === 'awaiting') {
-    return getAwaitingOverlayTurnLifecycle();
-  }
-  if (visibleTurnLifecycle?.status === 'active') {
-    return getActiveOverlayTurnLifecycle();
-  }
-  if (visibleTurnLifecycle?.status === 'terminal') {
-    return getTerminalOverlayTurnLifecycle();
-  }
-  return getIdleOverlayTurnLifecycle();
-}
-
 function applyVisibleTurnLifecycleToPresentationState(presentationState, visibleTurnLifecycle) {
+  const presentationStateWithoutLegacyLifecycle = {
+    ...(presentationState || {}),
+  };
+  delete presentationStateWithoutLegacyLifecycle.overlayTurnLifecycle;
   const nextState = {
-    ...presentationState,
+    ...presentationStateWithoutLegacyLifecycle,
     visibleTurnLifecycle,
-    overlayTurnLifecycle: resolveOverlayTurnLifecycleForVisibleLifecycle(visibleTurnLifecycle),
     isBusy: visibleTurnLifecycle?.isBusy === true,
   };
   if (

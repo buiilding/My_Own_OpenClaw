@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove the legacy `overlayTurnLifecycle` presentation
+  field from visible lifecycle stamping and response overlay traces; renderer
+  surfaces now carry `visibleTurnLifecycle` plus busy/awaiting fields without
+  adapting back to overlay lifecycle names. No migration required.
 - frontend/renderer: route minimal chat pill drag window subscriptions and
   visual-anchor ResizeObserver/timer/animation-frame scheduling through
   `DesktopChatboxInteractionRuntime`, keeping raw browser adapters out of

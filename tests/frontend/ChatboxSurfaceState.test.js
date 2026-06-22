@@ -114,7 +114,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       fallbackState: {
         isBusy: false,
         isAwaitingReply: false,
-        overlayTurnLifecycle: 'terminal',
         showChatboxAwaitingReply: false,
       },
       includeOverlayIntent: true,
@@ -126,7 +125,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       hasVisibleReply: true,
       showChatboxResponse: true,
       chatboxSurfaceState: 'response',
-      overlayTurnLifecycle: 'terminal',
       showChatboxAwaitingReply: false,
       overlayIntent: expect.objectContaining({
         mode: 'response',

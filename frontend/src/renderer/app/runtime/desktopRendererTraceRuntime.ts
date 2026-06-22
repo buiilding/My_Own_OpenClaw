@@ -225,7 +225,6 @@ export type RendererOverlayViewModelTraceValues = {
     showAssistantAwaitingDot?: boolean;
     hasVisibleReply?: boolean;
     isBusy?: boolean;
-    overlayTurnLifecycle?: unknown;
   } | null;
   responseOverlayEntries?: unknown[];
   viewIntent?: {
@@ -800,7 +799,6 @@ function buildRendererOverlayViewModelTracePayload(
     showAwaitingDot: currentTurnPresentationState?.showAssistantAwaitingDot === true,
     hasVisibleReply: currentTurnPresentationState?.hasVisibleReply === true,
     isBusy: currentTurnPresentationState?.isBusy === true,
-    overlayTurnLifecycle: traceString(currentTurnPresentationState?.overlayTurnLifecycle) || null,
     entryCount: responseOverlayEntries.length,
     visibleResponseId: traceString(viewIntent?.visibleResponse?.id) || null,
     latestEntryId: traceString(viewIntent?.latestResponseOverlayEntryId) || null,

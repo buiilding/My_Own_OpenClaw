@@ -636,7 +636,6 @@ describe('desktopRendererTraceRuntime', () => {
         showAssistantAwaitingDot: true,
         hasVisibleReply: true,
         isBusy: true,
-        overlayTurnLifecycle: ' active ',
       },
       responseOverlayEntries: [{ id: 'entry-1' }, { id: 'entry-2' }],
       viewIntent: {
@@ -659,7 +658,6 @@ describe('desktopRendererTraceRuntime', () => {
       showAwaitingDot: true,
       hasVisibleReply: true,
       isBusy: true,
-      overlayTurnLifecycle: 'active',
       entryCount: 2,
       visibleResponseId: 'visible-entry',
       latestEntryId: 'latest-entry',

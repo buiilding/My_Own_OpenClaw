@@ -313,7 +313,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       showTyping: true,
     });
 
-    expect(applyVisibleTurnLifecycleToPresentationState({
+    const localPendingPresentation = applyVisibleTurnLifecycleToPresentationState({
       loopUiState: 'idle',
       isAwaitingReply: false,
       showAssistantAwaitingDot: false,
@@ -324,9 +324,9 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       overlayIntent: {
         mode: 'awaiting',
       },
-    }, visibleLifecycle)).toMatchObject({
+    }, visibleLifecycle);
+    expect(localPendingPresentation).toMatchObject({
       visibleTurnLifecycle: visibleLifecycle,
-      overlayTurnLifecycle: 'preflight',
       isBusy: true,
       loopUiState: 'awaiting-reply',
       isAwaitingReply: true,
@@ -339,8 +339,9 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         mode: 'awaiting',
       },
     });
+    expect(localPendingPresentation.overlayTurnLifecycle).toBeUndefined();
 
-    expect(applyVisibleTurnLifecycleToPresentationState({
+    const activePresentation = applyVisibleTurnLifecycleToPresentationState({
       isBusy: true,
       isAwaitingReply: true,
       showAssistantAwaitingDot: true,
@@ -353,8 +354,11 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       source: 'sdk',
       isBusy: true,
       showTyping: false,
-    })).toMatchObject({
-      overlayTurnLifecycle: 'active',
+    });
+    expect(activePresentation).toMatchObject({
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'active',
+      }),
       isBusy: true,
       isAwaitingReply: false,
       showAssistantAwaitingDot: false,
@@ -362,8 +366,9 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       showChatboxAwaitingReply: false,
       showChatboxResponse: true,
     });
+    expect(activePresentation.overlayTurnLifecycle).toBeUndefined();
 
-    expect(applyVisibleTurnLifecycleToPresentationState({
+    const terminalPresentation = applyVisibleTurnLifecycleToPresentationState({
       overlayTurnLifecycle: 'active',
       isBusy: true,
       isAwaitingReply: true,
@@ -376,14 +381,18 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       source: 'sdk',
       isBusy: false,
       showTyping: false,
-    })).toMatchObject({
-      overlayTurnLifecycle: 'terminal',
+    });
+    expect(terminalPresentation).toMatchObject({
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'terminal',
+      }),
       isBusy: false,
       isAwaitingReply: false,
       showAssistantAwaitingDot: false,
       awaitingDotTargetMessageId: null,
       showChatboxAwaitingReply: false,
     });
+    expect(terminalPresentation.overlayTurnLifecycle).toBeUndefined();
   });
 
   test('centralizes local send preflight handoff for live surface consumers', () => {
