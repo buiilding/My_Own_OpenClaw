@@ -420,6 +420,13 @@ function modelRowsForFork(rows, options) {
     }
     return forkRows;
 }
+function modelRowsForDisplayRevision(rows, options) {
+    return modelRowsForFork(rows, {
+        keptDisplayRowIds: options.keptDisplayRowIds,
+        newConversationRef: options.conversationRef,
+        newRevisionId: options.newRevisionId,
+    });
+}
 function getAgentDefinitionClientManifestTools(agentDefinition) {
     if (!isJsonRecord(agentDefinition)) {
         return [];
@@ -628,6 +635,30 @@ class SdkConversationRuntime {
             baseRevisionId,
         };
         await this.options.store.replaceDisplayTimeline(checkpoint);
+        let modelHistoryRowCount = 0;
+        let modelHistoryCheckpointId = null;
+        if (this.options.store.loadModelHistory && this.options.store.replaceModelHistory) {
+            const baseModelHistory = await this.options.store.loadModelHistory.call(this.options.store, {
+                conversationRef: this.options.conversationRef,
+                revisionId: baseRevisionId,
+            });
+            if (baseModelHistory) {
+                const modelRows = modelRowsForDisplayRevision(baseModelHistory.rows, {
+                    keptDisplayRowIds: new Set(rows.map(row => row.id)),
+                    conversationRef: this.options.conversationRef,
+                    newRevisionId,
+                });
+                modelHistoryCheckpointId = `${newRevisionId}-replace-rows-model-history`;
+                await this.options.store.replaceModelHistory.call(this.options.store, {
+                    checkpointId: modelHistoryCheckpointId,
+                    conversationRef: this.options.conversationRef,
+                    revisionId: newRevisionId,
+                    createdAt,
+                    rows: modelRows,
+                });
+                modelHistoryRowCount = modelRows.length;
+            }
+        }
         this.activeDisplayTimeline = checkpoint;
         this.state = {
             ...this.state,
@@ -642,6 +673,8 @@ class SdkConversationRuntime {
                 reason: input.reason,
                 baseRevisionId,
                 revisionId: newRevisionId,
+                modelHistoryRowCount,
+                modelHistoryCheckpointId,
             },
         }, { revisionId: newRevisionId });
         return checkpoint;

@@ -667,6 +667,21 @@ function modelRowsForFork(
   return forkRows;
 }
 
+function modelRowsForDisplayRevision(
+  rows: ModelHistoryRow[],
+  options: {
+    keptDisplayRowIds: Set<string>;
+    conversationRef: string;
+    newRevisionId: string;
+  },
+): ModelHistoryRow[] {
+  return modelRowsForFork(rows, {
+    keptDisplayRowIds: options.keptDisplayRowIds,
+    newConversationRef: options.conversationRef,
+    newRevisionId: options.newRevisionId,
+  });
+}
+
 function getAgentDefinitionClientManifestTools(agentDefinition: unknown): JsonRecord[] {
   if (!isJsonRecord(agentDefinition)) {
     return [];
@@ -911,6 +926,30 @@ export class SdkConversationRuntime {
       baseRevisionId,
     };
     await this.options.store.replaceDisplayTimeline(checkpoint);
+    let modelHistoryRowCount = 0;
+    let modelHistoryCheckpointId: string | null = null;
+    if (this.options.store.loadModelHistory && this.options.store.replaceModelHistory) {
+      const baseModelHistory = await this.options.store.loadModelHistory.call(this.options.store, {
+        conversationRef: this.options.conversationRef,
+        revisionId: baseRevisionId,
+      });
+      if (baseModelHistory) {
+        const modelRows = modelRowsForDisplayRevision(baseModelHistory.rows, {
+          keptDisplayRowIds: new Set(rows.map(row => row.id)),
+          conversationRef: this.options.conversationRef,
+          newRevisionId,
+        });
+        modelHistoryCheckpointId = `${newRevisionId}-replace-rows-model-history`;
+        await this.options.store.replaceModelHistory.call(this.options.store, {
+          checkpointId: modelHistoryCheckpointId,
+          conversationRef: this.options.conversationRef,
+          revisionId: newRevisionId,
+          createdAt,
+          rows: modelRows,
+        });
+        modelHistoryRowCount = modelRows.length;
+      }
+    }
     this.activeDisplayTimeline = checkpoint;
     this.state = {
       ...this.state,
@@ -925,6 +964,8 @@ export class SdkConversationRuntime {
         reason: input.reason,
         baseRevisionId,
         revisionId: newRevisionId,
+        modelHistoryRowCount,
+        modelHistoryCheckpointId,
       },
     }, { revisionId: newRevisionId });
     return checkpoint;

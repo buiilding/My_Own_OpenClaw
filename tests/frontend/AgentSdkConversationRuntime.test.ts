@@ -5198,6 +5198,117 @@ describe('Agent SDK conversation runtime core', () => {
     })).rejects.toThrow('replaceRows attachment refs require stable ids');
   });
 
+  test('conversation runtime replaces rows with matching bounded model-history prefix', async () => {
+    const store = new InMemoryConversationStore();
+    await store.replaceModelHistory({
+      checkpointId: 'mh-base',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'mh-user-1',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          role: 'user',
+          messageType: 'user_query',
+          content: 'first question',
+          sourceDisplayRowIds: ['display-user-1'],
+        },
+        {
+          id: 'mh-assistant-1',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          role: 'assistant',
+          messageType: 'assistant_response',
+          content: 'first answer',
+          sourceDisplayRowIds: ['display-assistant-1'],
+        },
+        {
+          id: 'mh-user-2',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          role: 'user',
+          messageType: 'user_query',
+          content: 'second question',
+          sourceDisplayRowIds: ['display-user-2'],
+        },
+      ],
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+      store,
+    });
+
+    const checkpoint = await runtime.replaceRows({
+      baseRevisionId: 'rev-base',
+      reason: 'retry',
+      rows: [
+        {
+          id: 'display-user-1',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'first question',
+          metadata: { revisionId: 'rev-base' },
+        },
+        {
+          id: 'display-assistant-1',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'first answer',
+          metadata: { revisionId: 'rev-base' },
+        },
+      ],
+    });
+    const childModelHistory = await store.loadModelHistory?.({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: checkpoint.revisionId,
+    });
+    const traceEvents = await store.loadEvents('conv-sdk-runtime');
+
+    expect(childModelHistory).toEqual(expect.objectContaining({
+      checkpointId: `${checkpoint.revisionId}-replace-rows-model-history`,
+      revisionId: checkpoint.revisionId,
+      rows: [
+        expect.objectContaining({
+          content: 'first question',
+          revisionId: checkpoint.revisionId,
+          sourceDisplayRowIds: ['display-user-1'],
+        }),
+        expect.objectContaining({
+          content: 'first answer',
+          revisionId: checkpoint.revisionId,
+          sourceDisplayRowIds: ['display-assistant-1'],
+        }),
+      ],
+    }));
+    expect(childModelHistory?.rows.map(row => row.content)).toEqual([
+      'first question',
+      'first answer',
+    ]);
+    expect(traceEvents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'trace_event',
+        revisionId: checkpoint.revisionId,
+        payload: expect.objectContaining({
+          path: 'conversation.display_timeline',
+          stage: 'replace_rows',
+          data: expect.objectContaining({
+            modelHistoryRowCount: 2,
+            modelHistoryCheckpointId: `${checkpoint.revisionId}-replace-rows-model-history`,
+          }),
+        }),
+      }),
+    ]));
+  });
+
   test('conversation runtime snapshots use active display timeline revisions', async () => {
     const store = new InMemoryConversationStore();
     const transport = createMockAgentRuntimeTransport({

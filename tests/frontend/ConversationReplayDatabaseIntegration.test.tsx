@@ -297,6 +297,7 @@ class SqliteConversationHistory {
   readonly dbPath = join(this.dir, 'history.db');
   displayReplaceFailure: string | null = null;
   readonly displayTimelineByConversation = new Map<string, JsonRecord>();
+  readonly modelHistoryByConversation = new Map<string, JsonRecord>();
 
   constructor() {
     runPythonSqliteBridge('init', this.dbPath);
@@ -380,6 +381,35 @@ class SqliteConversationHistory {
         success: true,
         data: {
           revision_id: params?.revision_id,
+          row_count: checkpoint.rows.length,
+          created_at: params?.created_at,
+        },
+      };
+    }
+    if (method === 'conversation.model_history.load') {
+      const conversationId = String(params?.conversation_id ?? '');
+      const revisionId = String(params?.revision_id ?? '');
+      return {
+        success: true,
+        data: this.modelHistoryByConversation.get(`${conversationId}:${revisionId}`) ?? null,
+      };
+    }
+    if (method === 'conversation.model_history.replace') {
+      const conversationId = String(params?.conversation_id ?? '');
+      const revisionId = String(params?.revision_id ?? '');
+      const checkpoint = {
+        conversation_id: conversationId,
+        revision_id: revisionId,
+        checkpoint_id: params?.checkpoint_id,
+        created_at: params?.created_at,
+        rows: Array.isArray(params?.rows) ? params.rows : [],
+      };
+      this.modelHistoryByConversation.set(`${conversationId}:${revisionId}`, checkpoint);
+      return {
+        success: true,
+        data: {
+          checkpoint_id: params?.checkpoint_id,
+          revision_id: revisionId,
           row_count: checkpoint.rows.length,
           created_at: params?.created_at,
         },

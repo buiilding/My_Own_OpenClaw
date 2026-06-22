@@ -374,7 +374,12 @@ display document when a store has one, and otherwise falls back to
 child display revision, validates that submitted rows belong to the active
 conversation and base revision, normalizes row indexes and revision metadata,
 checks basic tool-output pairing, and persists the result through
-`store.replaceDisplayTimeline(...)`.
+`store.replaceDisplayTimeline(...)`. When the base revision has a model-history
+checkpoint with `sourceDisplayRowIds`, `replaceRows(...)` also writes a child
+model-history checkpoint containing only rows whose source display ids are all
+still present in the retained display prefix. Rows without display provenance
+are not guessed into the child checkpoint; this avoids carrying stale inference
+context after an edit.
 
 This API is the foundation for edit/resend and retry replay. It does not
 rewrite raw runtime events. Raw events remain the audit/runtime log; display

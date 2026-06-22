@@ -232,6 +232,10 @@ All notable changes to WindieOS will be documented in this file.
   conversation runtime and Agent facade so SDK callers can inspect bounded
   model-history checkpoints and move the runtime head to an existing display
   revision without raw event-log reconstruction. No storage migration required.
+- sdk: make `replaceRows(...)` create a child model-history checkpoint from
+  retained base rows when those rows carry `sourceDisplayRowIds`, preventing
+  edit/retry revisions from reusing stale model context after the display
+  suffix changes. No storage migration required.
 - backend/sdk: add backend-safe typed `display_attachments` support at
   tool-result, tool-bundle-result, rehydrate, and outgoing tool-output
   websocket boundaries while keeping `screenshot_ref`/artifact refs as the
