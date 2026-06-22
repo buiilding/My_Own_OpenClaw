@@ -286,7 +286,6 @@ function applyVisibleTurnLifecycleToPresentationState(presentationState, visible
     return {
       ...nextState,
       loopUiState: 'awaiting-reply',
-      isAwaitingReply: true,
       awaitingDotTargetMessageId: visibleTurnLifecycle.awaitingAnchor?.rowId || null,
       chatboxSurfaceState: 'awaiting-reply',
       showChatboxAwaitingReply: true,
@@ -296,14 +295,12 @@ function applyVisibleTurnLifecycleToPresentationState(presentationState, visible
   if (visibleTurnLifecycle?.status === 'active') {
     return {
       ...nextState,
-      isAwaitingReply: false,
       awaitingDotTargetMessageId: null,
       showChatboxAwaitingReply: false,
     };
   }
   return {
     ...nextState,
-    isAwaitingReply: false,
     awaitingDotTargetMessageId: null,
     showChatboxAwaitingReply: false,
   };

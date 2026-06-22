@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Awaiting Reply Alias Deletion
+
+- Finding: message-only current-turn presentation and visible-lifecycle
+  stamping still carried `isAwaitingReply`, a duplicate boolean after
+  production consumers had moved to `visibleTurnLifecycle.status`,
+  `showChatboxAwaitingReply`, and the concrete
+  `awaitingDotTargetMessageId` anchor.
+- Change: removed `isAwaitingReply` from the presentation snapshot and visible
+  lifecycle adapter, and added boundary coverage so the legacy alias is not
+  reintroduced in the current-turn or visible-lifecycle runtimes.
+- Validation target: `ChatboxSurfaceState.test.js`,
+  `DesktopVisibleTurnLifecycleRuntime.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed presentation
+  contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Assistant Awaiting Dot Boolean Deletion
 
 - Finding: `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`

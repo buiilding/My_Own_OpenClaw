@@ -18,7 +18,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
     expect(state.loopUiState).toBe('idle');
     expect(state.isBusy).toBe(false);
-    expect(state.isAwaitingReply).toBe(false);
     expect(state.chatboxSurfaceState).toBe('compact');
     expect(state.showChatboxAwaitingReply).toBe(false);
     expect(state.showChatboxResponse).toBe(false);
@@ -113,7 +112,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       ],
       fallbackState: {
         isBusy: false,
-        isAwaitingReply: false,
         showChatboxAwaitingReply: false,
       },
       includeOverlayIntent: true,

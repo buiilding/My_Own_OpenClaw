@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the legacy `isAwaitingReply` presentation alias;
+  awaiting state now stays on `visibleTurnLifecycle.status`,
+  `showChatboxAwaitingReply`, and the concrete
+  `awaitingDotTargetMessageId` anchor. No migration required.
 - frontend/renderer: route dashboard shell opening timers and document
   scroll-lock DOM updates through `DesktopDashboardLayoutRuntime`, keeping raw
   browser timer/document access out of `DashboardShell`. No migration required.

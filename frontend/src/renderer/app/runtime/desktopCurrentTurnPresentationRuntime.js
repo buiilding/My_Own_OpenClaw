@@ -77,7 +77,6 @@ function resolveCurrentTurnPresentationState({
     hasVisibleReply,
     loopUiState: 'idle',
     isBusy: false,
-    isAwaitingReply: false,
     awaitingDotTargetMessageId: null,
     visibleResponse,
     chatboxSurfaceState,

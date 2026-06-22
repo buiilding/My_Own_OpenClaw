@@ -77,7 +77,6 @@ stamping:
 
 - `loopUiState` (`idle` until visible lifecycle stamping)
 - `isBusy` (`false` until visible lifecycle stamping)
-- `isAwaitingReply` (`false` until visible lifecycle stamping)
 - `activeResponse`
 - `hasVisibleReply`
 - `awaitingDotTargetMessageId` (`null` until visible lifecycle stamping)
