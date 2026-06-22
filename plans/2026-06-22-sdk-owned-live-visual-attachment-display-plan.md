@@ -141,6 +141,33 @@ metadata.
 | Backend | Owns artifact storage, provider/model payload construction, and artifact serving. |
 | Renderer display surfaces | Render SDK display attachments and authenticated artifact images. They do not infer remote artifact identity from legacy screenshot fields. |
 
+## Frontend Component Target
+
+The frontend target is a small, pluggable component tree over the SDK display
+contract:
+
+```text
+MessageRow
+  -> MessageText
+  -> AttachmentList
+       -> AttachmentRendererRegistry
+            -> ImageAttachment
+            -> PendingScreenshotAttachment
+            -> FileAttachment
+            -> future attachment renderers
+```
+
+`AttachmentRendererRegistry` should dispatch by SDK attachment `kind`, `status`,
+and, when needed, `source`. Adding a new visual attachment type should mean:
+
+1. SDK emits a typed attachment descriptor.
+2. Renderer adds or swaps one attachment renderer component.
+3. No global message merge, screenshot alias inference, or dashboard-specific
+   display fallback changes are required.
+
+The registry is not a second state authority. It is only a presentation router
+for the SDK-owned `attachments[]` display contract.
+
 ## Non-Goals
 
 - Do not move camera screenshot capture into renderer code.
@@ -242,6 +269,9 @@ Migration approach:
 4. Delete renderer-only same-turn screenshot merge compatibility after the SDK
    projection tests cover repeated text-only rebuilds, dashboard open, replay,
    and mixed visual-resource sends.
+5. Route message attachment rendering through `AttachmentList` and
+   `AttachmentRendererRegistry` so per-kind renderers are replaceable without
+   changing the message projection pipeline.
 
 Owner candidates:
 
@@ -250,6 +280,8 @@ Owner candidates:
 - `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
 - user-message presentation components under
   `frontend/src/renderer/features/chat/components/message/content/`
+- new or existing attachment presentation components under the renderer chat
+  component tree
 
 ### 6. Diagnostics
 
@@ -285,6 +317,9 @@ Deletion targets:
   `screenshot_url` aliases when `attachments[]` covers the same cases
 - UI branches that treat user-included images and camera screenshots as one
   ambiguous screenshot slot
+- ad hoc screenshot conditionals inside message components once
+  `AttachmentList` and `AttachmentRendererRegistry` own attachment
+  presentation
 - compatibility tests whose only purpose was protecting the retired renderer
   fallback, after equivalent SDK-owned tests exist
 - duplicate SDK display-row metadata alias writers once all consumers read the
@@ -322,6 +357,10 @@ Renderer tests:
 
 - message projection prefers SDK `attachments[]`
 - user message presentation renders multiple ordered display attachments
+- attachment renderer registry dispatches image, pending screenshot, and ready
+  artifact image descriptors to the expected components
+- new attachment types can be added without touching the global message merge
+  path
 - renderer compatibility guard remains only during the parity gate
 - renderer fallback deletion is covered by boundary tests that reject the old
   merge/alias implementation after SDK contract coverage is complete
@@ -375,6 +414,9 @@ Compatibility should be temporary and explicit:
   attachments.
 - Renderer surfaces render the SDK display attachment list without screenshot
   alias merging.
+- Renderer message attachment UI routes through `AttachmentList` and
+  `AttachmentRendererRegistry`, with typed per-kind components instead of ad
+  hoc screenshot branches.
 - Renderer same-turn screenshot merge compatibility and dashboard-open
   screenshot annotation merge are deleted after SDK projection owns monotonic
   display rows.
