@@ -9,6 +9,7 @@ const {
   appendTranscriptionText,
   buildValueAfterPaste,
   createEmptyTranscriptionRegion,
+  readTextFromPasteEvent,
   replaceTranscriptionText,
   scheduleCursorRestoreAfterPaste,
   updateRegionAfterInputChange,
@@ -77,7 +78,7 @@ export function useTranscription(initialValue: string = '') {
   }, [setInputValue]);
 
   const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const pastedText = e.clipboardData.getData('text');
+    const pastedText = readTextFromPasteEvent(e);
     if (!pastedText) return;
 
     const input = e.target as HTMLInputElement | HTMLTextAreaElement;

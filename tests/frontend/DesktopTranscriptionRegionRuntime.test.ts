@@ -10,6 +10,7 @@ const {
   appendTranscriptionText,
   buildValueAfterPaste,
   createEmptyTranscriptionRegion,
+  readTextFromPasteEvent,
   replaceTranscriptionText,
   scheduleCursorRestoreAfterPaste,
   updateRegionAfterInputChange,
@@ -56,6 +57,19 @@ describe('desktopTranscriptionRegionRuntime', () => {
   test('builds pasted value from selection range', () => {
     const pasted = buildValueAfterPaste('abcXYZdef', '123', 3, 6);
     expect(pasted).toEqual({ value: 'abc123def', start: 3 });
+  });
+
+  test('reads text from paste events through the runtime adapter', () => {
+    expect(readTextFromPasteEvent({
+      clipboardData: {
+        getData: (format) => (format === 'text' ? 'pasted text' : ''),
+      },
+    })).toBe('pasted text');
+  });
+
+  test('returns empty text when paste event clipboard data is unavailable', () => {
+    expect(readTextFromPasteEvent({})).toBe('');
+    expect(readTextFromPasteEvent(null)).toBe('');
   });
 
   test('updates region after paste based on cursor position', () => {

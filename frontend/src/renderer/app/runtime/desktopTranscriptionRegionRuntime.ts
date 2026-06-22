@@ -12,6 +12,12 @@ type TranscriptionTimerApi = {
   setTimeout?: (callback: () => void, delayMs: number) => ReturnType<typeof setTimeout>;
 };
 
+type TranscriptionPasteEvent = {
+  clipboardData?: {
+    getData?: (format: string) => string;
+  } | null;
+};
+
 function createEmptyTranscriptionRegion(): TranscriptionRegion {
   return {
     start: 0,
@@ -95,6 +101,11 @@ function buildValueAfterPaste(
   };
 }
 
+function readTextFromPasteEvent(event: TranscriptionPasteEvent | null | undefined): string {
+  const pastedText = event?.clipboardData?.getData?.('text');
+  return typeof pastedText === 'string' ? pastedText : '';
+}
+
 function updateRegionAfterPaste(
   region: TranscriptionRegion,
   selectionStart: number | null,
@@ -157,6 +168,7 @@ export const DesktopTranscriptionRegionRuntime = Object.freeze({
   appendTranscriptionText,
   buildValueAfterPaste,
   createEmptyTranscriptionRegion,
+  readTextFromPasteEvent,
   replaceTranscriptionText,
   scheduleCursorRestoreAfterPaste,
   updateRegionAfterInputChange,

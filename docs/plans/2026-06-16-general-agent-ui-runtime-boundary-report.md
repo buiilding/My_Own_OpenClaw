@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: renderer composer paste-event clipboard inspection
-  now routes through `DesktopComposerAttachmentRuntime` so shared dashboard and
-  chat-pill composer hooks no longer read browser `clipboardData` directly.
+- Latest completed slice: renderer transcription pasted-text extraction now
+  routes through `DesktopTranscriptionRegionRuntime`, keeping
+  `useTranscription` off direct browser `clipboardData` reads.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -38,6 +38,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer composer paste-event clipboard item inspection and image parsing now
   route through `DesktopComposerAttachmentRuntime`; composer hooks keep draft
   state, text-paste fallback, and preview append behavior.
+  Renderer transcription paste text extraction now routes through
+  `DesktopTranscriptionRegionRuntime`; `useTranscription` keeps React state,
+  selection range, region refs, and prevent-default behavior.
   Active local-runtime validation docs use the canonical `local-runtime`
   wrapper, test, and build commands; historical plan/report records and
   CLI-specific compatibility alias rows still mention the old names where the

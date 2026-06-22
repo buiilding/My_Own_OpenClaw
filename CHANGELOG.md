@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route transcription pasted-text extraction through
+  `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)` so
+  `useTranscription` keeps React state while the app runtime owns browser
+  clipboard text reads. No migration required.
 - frontend/renderer: route composer paste-event clipboard item inspection
   through `DesktopComposerAttachmentRuntime.parseClipboardImagePasteEvent(...)`
   so `useChatComposerDraft` keeps draft state while the app runtime owns

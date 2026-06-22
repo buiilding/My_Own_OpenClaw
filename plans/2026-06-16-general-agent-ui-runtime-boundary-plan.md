@@ -9,6 +9,26 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer Transcription Paste Text Runtime
+
+- Finding: `useTranscription` already delegated transcription-region paste
+  value building, region offset reconciliation, and cursor restoration timing
+  to `DesktopTranscriptionRegionRuntime`, but still read
+  `event.clipboardData.getData('text')` directly in the hook.
+- Change: added
+  `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)` as the
+  paste-event text adapter and routed `useTranscription` through it. The hook
+  keeps React state, selection range, region refs, and prevent-default behavior
+  while the transcription runtime owns browser clipboard text extraction.
+- Validation target: `DesktopTranscriptionRegionRuntime.test.ts`,
+  `TranscriptionHook.test.ts`, and `RendererChatRuntimeBoundary.test.ts`
+  protect text extraction, paste behavior, and rejection of direct
+  `clipboardData` reads in the transcription hook.
+- Compatibility/security: no composer text value shape, paste behavior,
+  cursor-restoration behavior, IPC channel, SDK event payload, renderer config,
+  persisted storage, permission, credential, local execution, trust-boundary,
+  or migration change required.
+
 ### 2026-06-22 Renderer Composer Clipboard Paste Runtime
 
 - Finding: `useChatComposerDraft` already delegated clipboard/file attachment

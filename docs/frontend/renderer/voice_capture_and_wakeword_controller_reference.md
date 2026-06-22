@@ -167,6 +167,8 @@ Cleanup path uses shared helpers:
 - first transcription chunk appends and marks region
 - subsequent chunks replace same region (avoids repeated duplication)
 - manual typing/paste updates region offsets
+- pasted-text extraction from the browser clipboard event is owned by
+  `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)`
 - send/reset clears region so next utterance starts fresh
 
 This is why partial real-time updates can overwrite earlier draft text but preserve user edits outside region boundaries.

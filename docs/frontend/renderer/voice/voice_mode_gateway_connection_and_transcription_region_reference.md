@@ -150,6 +150,8 @@ happens on a detached reference to prevent duplicate-close races.
 - first transcript chunk appends text and opens region
 - subsequent chunks replace only that region
 - manual typing/paste adjusts region offsets via helper utilities
+- pasted-text extraction from `ClipboardEvent.clipboardData` routes through
+  `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)`
 - reset clears region after message send
 
 Effect:

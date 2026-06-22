@@ -2504,11 +2504,14 @@ describe('renderer chat runtime boundary', () => {
     expect(transcriptionHookSource).not.toContain('utils/transcriptionRegions');
     expect(transcriptionRuntimeSource).toContain('DesktopTranscriptionRegionRuntime');
     expect(transcriptionRuntimeSource).toContain('updateRegionAfterInputChange');
+    expect(transcriptionRuntimeSource).toContain('readTextFromPasteEvent');
     expect(transcriptionRuntimeSource).toContain('updateRegionAfterPaste');
     expect(transcriptionRuntimeSource).toContain('scheduleCursorRestoreAfterPaste');
     expect(transcriptionRuntimeSource).toContain('setTimeout');
     expect(transcriptionRuntimeSource).not.toContain('export function updateRegionAfterInputChange');
     expect(transcriptionHookSource).toContain('scheduleCursorRestoreAfterPaste');
+    expect(transcriptionHookSource).toContain('readTextFromPasteEvent');
+    expect(transcriptionHookSource).not.toContain('clipboardData');
     expect(transcriptionHookSource).not.toContain('setTimeout(');
     expect(transcriptionRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(

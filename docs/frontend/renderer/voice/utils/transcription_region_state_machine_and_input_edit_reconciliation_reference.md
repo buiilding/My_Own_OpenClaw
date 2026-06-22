@@ -30,6 +30,8 @@ Runtime invariant:
 - only one active transcription replacement region is tracked at a time
 - append, replace, input-change, and paste offset rules are owned by
   `DesktopTranscriptionRegionRuntime`
+- pasted-text extraction from `ClipboardEvent.clipboardData` is owned by
+  `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)`
 - pasted-text caret restoration scheduling is also owned by
   `DesktopTranscriptionRegionRuntime.scheduleCursorRestoreAfterPaste(...)`
 - `useTranscription` keeps React state and mutable refs around that
@@ -64,15 +66,17 @@ This preserves replacement targeting only when edit happened outside the live tr
 
 `handlePaste` path:
 
-1. builds next value from selection range (`DesktopTranscriptionRegionRuntime.buildValueAfterPaste`)
-2. adjusts region with `DesktopTranscriptionRegionRuntime.updateRegionAfterPaste(...)`:
+1. reads pasted text through
+   `DesktopTranscriptionRegionRuntime.readTextFromPasteEvent(...)`
+2. builds next value from selection range (`DesktopTranscriptionRegionRuntime.buildValueAfterPaste`)
+3. adjusts region with `DesktopTranscriptionRegionRuntime.updateRegionAfterPaste(...)`:
 - replacement before region -> shift start/end by net length delta
 - paste after region -> region unchanged
 - replacement inside or overlapping region -> invalidate region
 - missing cursor -> invalidate region
-3. asks `DesktopTranscriptionRegionRuntime.scheduleCursorRestoreAfterPaste(...)`
+4. asks `DesktopTranscriptionRegionRuntime.scheduleCursorRestoreAfterPaste(...)`
    to asynchronously restore the caret to the pasted-text end
-4. prevents default browser paste
+5. prevents default browser paste
 
 ## Mutable Value and Region Refs
 
@@ -111,7 +115,9 @@ This prevents the next utterance from replacing stale region bounds from previou
 1. removing active-region replacement causes duplicated transcript text across realtime updates.
 2. failing to invalidate region when editing/pasting inside region causes unexpected overwrite of user-modified text.
 3. removing the immediate `inputValueRef` mirror without auditing async consumers can reintroduce stale-value reads outside React render timing.
-4. skipping region reset after send can apply next utterance to wrong span in emptied/reused input.
+4. reading `event.clipboardData` directly in `useTranscription` splits browser
+   paste mechanics away from the transcription-region runtime.
+5. skipping region reset after send can apply next utterance to wrong span in emptied/reused input.
 
 ## Related Pages
 
