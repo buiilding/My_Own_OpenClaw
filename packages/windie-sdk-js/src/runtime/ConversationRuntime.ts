@@ -18,6 +18,7 @@ import type {
   MemoryStoreChangedPayload,
   RehydratePayload,
   RehydrateSnapshot,
+  SdkDisplayAttachment,
   SdkDisplayRow,
   SettingsPayload,
   TraceEventPayload,
@@ -254,6 +255,31 @@ function arrayRecordCount(value: unknown): number {
   return Array.isArray(value) ? value.length : 0;
 }
 
+function displayAttachmentsFromUnknown(value: unknown): SdkDisplayAttachment[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((entry): entry is SdkDisplayAttachment => {
+    if (!isJsonRecord(entry)) {
+      return false;
+    }
+    return typeof entry.id === 'string'
+      && (entry.kind === 'image' || entry.kind === 'screenshot_request')
+      && (
+        entry.source === 'user_included'
+        || entry.source === 'camera_button'
+        || entry.source === 'tool_result'
+        || entry.source === 'replay'
+      )
+      && (
+        entry.status === 'materializing'
+        || entry.status === 'pending_capture'
+        || entry.status === 'ready'
+        || entry.status === 'failed'
+      );
+  });
+}
+
 function getAgentDefinitionClientManifestTools(agentDefinition: unknown): JsonRecord[] {
   if (!isJsonRecord(agentDefinition)) {
     return [];
@@ -362,6 +388,7 @@ export class SdkConversationRuntime {
   private readonly localEventCounters = new Map<string, number>();
   private readonly backendTurnSequences = new Map<string, { lastSequence: number; eventIds: Set<string> }>();
   private readonly pendingTurns = new Map<string, PendingTurn>();
+  private readonly liveDisplayAttachmentsByTurn = new Map<string, SdkDisplayAttachment[]>();
   private backendEventQueue: Promise<void> = Promise.resolve();
   private detachTransport?: () => void;
 
@@ -467,6 +494,12 @@ export class SdkConversationRuntime {
         source: 'sdk',
         payload: {},
       }));
+      const resources = this.withStableDisplayAttachmentIds(input.resources ?? [], turnRef);
+      this.setLiveDisplayAttachments(
+        this.options.conversationRef,
+        turnRef,
+        this.initialLiveDisplayAttachments(resources),
+      );
       const baseUserPayload = isJsonRecord(input.metadata)
         ? input.metadata
         : (isJsonRecord(input.payload) ? input.payload : {});
@@ -483,7 +516,6 @@ export class SdkConversationRuntime {
         },
       }));
       const sourcePayload = isJsonRecord(input.payload) ? input.payload : {};
-      const resources = input.resources ?? [];
       const resourceKinds = resources.map(resource => resource.kind);
       const resourceResolutionStartedAtMs = nowMs();
       await traceRecorder.record({
@@ -501,7 +533,7 @@ export class SdkConversationRuntime {
       let resourceResolution: TurnInputResourceResolutionResult;
       try {
         resourceResolution = await resolveTurnInputResources({
-          resources: input.resources ?? null,
+          resources,
           resolvers: this.options.resourceResolvers ?? null,
           context: {
             text: input.text,
@@ -527,6 +559,7 @@ export class SdkConversationRuntime {
           },
         });
       } catch (error) {
+        this.markLiveDisplayAttachmentsFailed(this.options.conversationRef, turnRef);
         await traceRecorder.record({
           path: 'query.resources',
           stage: 'resolve',
@@ -540,6 +573,11 @@ export class SdkConversationRuntime {
         });
         throw error;
       }
+      this.mergeLiveDisplayAttachments(
+        this.options.conversationRef,
+        turnRef,
+        displayAttachmentsFromUnknown(resourceResolution.metadata.attachments),
+      );
       const payloadForEnrichment = {
         ...sourcePayload,
         ...resourceResolution.payload,
@@ -661,7 +699,7 @@ export class SdkConversationRuntime {
           hasAgentDefinition: Boolean(agentDefinition),
         },
       });
-      if ((input.resources ?? []).some(resource => resource.kind === 'query_screenshot_request')) {
+      if (resources.some(resource => resource.kind === 'query_screenshot_request')) {
         await traceRecorder.record({
           path: 'screenshot.capture',
           stage: 'query_payload_applied',
@@ -697,7 +735,7 @@ export class SdkConversationRuntime {
           status: 'skipped',
           data: {
             reason: 'transport_unavailable',
-            resourceCount: input.resources?.length ?? 0,
+            resourceCount: resources.length,
             payloadKeyCount: Object.keys(transportPayload).length,
             hasModelOverride: Boolean(input.model),
           },
@@ -710,7 +748,7 @@ export class SdkConversationRuntime {
           stage: 'transport_send',
           status: 'started',
           data: {
-            resourceCount: input.resources?.length ?? 0,
+            resourceCount: resources.length,
             payloadKeyCount: Object.keys(transportPayload).length,
             hasModelOverride: Boolean(input.model),
             hasConversationRef: true,
@@ -2038,6 +2076,130 @@ export class SdkConversationRuntime {
     }
   }
 
+  private turnAttachmentKey(conversationRef: string, turnRef: string | null | undefined): string | null {
+    return turnRef ? `${conversationRef}:${turnRef}` : null;
+  }
+
+  private withStableDisplayAttachmentIds(resources: TurnInputResource[], turnRef: string): TurnInputResource[] {
+    let visualIndex = 0;
+    return resources.map(resource => {
+      if (resource.kind !== 'clipboard_image' && resource.kind !== 'query_screenshot_request') {
+        return resource;
+      }
+      const displayAttachmentId = stringPayloadField({ value: resource.displayAttachmentId }, 'value')
+        ?? `${turnRef}:attachment:${visualIndex.toString().padStart(3, '0')}`;
+      visualIndex += 1;
+      return {
+        ...resource,
+        displayAttachmentId,
+      };
+    });
+  }
+
+  private initialLiveDisplayAttachments(resources: TurnInputResource[]): SdkDisplayAttachment[] {
+    const attachments: SdkDisplayAttachment[] = [];
+    for (const resource of resources) {
+      if (resource.kind === 'clipboard_image') {
+        const id = stringPayloadField({ value: resource.displayAttachmentId }, 'value');
+        if (!id) {
+          continue;
+        }
+        const contentType = stringPayloadField({ value: resource.contentType }, 'value') ?? 'image/png';
+        attachments.push({
+          id,
+          kind: 'image',
+          source: 'user_included',
+          status: 'materializing',
+          ...(resource.filename ? { filename: resource.filename } : {}),
+          contentType,
+          previewSrc: `data:${contentType};base64,${resource.base64}`,
+        });
+      } else if (resource.kind === 'query_screenshot_request') {
+        const id = stringPayloadField({ value: resource.displayAttachmentId }, 'value');
+        if (!id) {
+          continue;
+        }
+        attachments.push({
+          id,
+          kind: 'screenshot_request',
+          source: 'camera_button',
+          status: 'pending_capture',
+        });
+      }
+    }
+    return attachments;
+  }
+
+  private setLiveDisplayAttachments(
+    conversationRef: string,
+    turnRef: string | null | undefined,
+    attachments: SdkDisplayAttachment[],
+  ): void {
+    const key = this.turnAttachmentKey(conversationRef, turnRef);
+    if (!key) {
+      return;
+    }
+    if (attachments.length === 0) {
+      this.liveDisplayAttachmentsByTurn.delete(key);
+      return;
+    }
+    this.liveDisplayAttachmentsByTurn.set(key, attachments);
+  }
+
+  private mergeLiveDisplayAttachments(
+    conversationRef: string,
+    turnRef: string | null | undefined,
+    attachments: SdkDisplayAttachment[],
+  ): void {
+    if (attachments.length === 0) {
+      return;
+    }
+    const key = this.turnAttachmentKey(conversationRef, turnRef);
+    if (!key) {
+      return;
+    }
+    const byId = new Map((this.liveDisplayAttachmentsByTurn.get(key) ?? []).map(attachment => [attachment.id, attachment]));
+    for (const attachment of attachments) {
+      byId.set(
+        attachment.id,
+        attachment.status === 'ready' || attachment.status === 'failed'
+          ? attachment
+          : {
+            ...(byId.get(attachment.id) ?? {}),
+            ...attachment,
+          },
+      );
+    }
+    this.liveDisplayAttachmentsByTurn.set(key, Array.from(byId.values()));
+  }
+
+  private markLiveDisplayAttachmentsFailed(
+    conversationRef: string,
+    turnRef: string | null | undefined,
+  ): void {
+    const key = this.turnAttachmentKey(conversationRef, turnRef);
+    if (!key) {
+      return;
+    }
+    const existing = this.liveDisplayAttachmentsByTurn.get(key) ?? [];
+    if (existing.length === 0) {
+      return;
+    }
+    this.liveDisplayAttachmentsByTurn.set(key, existing.map(attachment => ({
+      id: attachment.id,
+      kind: attachment.kind,
+      source: attachment.source,
+      status: 'failed',
+      ...(attachment.filename ? { filename: attachment.filename } : {}),
+      ...(attachment.contentType ? { contentType: attachment.contentType } : {}),
+      errorCode: 'resource_resolution_failed',
+    })));
+  }
+
+  private liveDisplayAttachmentsRecord(): Record<string, SdkDisplayAttachment[]> {
+    return Object.fromEntries(this.liveDisplayAttachmentsByTurn.entries());
+  }
+
   private async maybeExecuteTool(event: ConversationEvent): Promise<void> {
     if (
       event.source !== 'backend'
@@ -2106,7 +2268,9 @@ export class SdkConversationRuntime {
     return {
       state: this.state,
       display: buildDisplayConversation(events),
-      displayRows: buildDisplayRows(events),
+      displayRows: buildDisplayRows(events, {
+        liveAttachments: this.liveDisplayAttachmentsRecord(),
+      }),
       rehydrate: buildRehydrateSnapshot(events),
       currentTurn,
     };

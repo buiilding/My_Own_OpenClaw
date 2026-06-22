@@ -4,6 +4,7 @@
 
 import type {
   JsonRecord,
+  SdkDisplayAttachment,
   TurnInputResource,
   TurnResourceResolution,
   TurnResourceResolverContext,
@@ -61,6 +62,63 @@ function mergeStringArray(existing: unknown, incoming: unknown): string[] | null
     ...optionalStringArray(incoming),
   ]);
   return values.size > 0 ? Array.from(values) : null;
+}
+
+function normalizeDisplayAttachment(input: unknown): SdkDisplayAttachment | null {
+  if (!isJsonRecord(input)) {
+    return null;
+  }
+  const id = optionalString(input.id);
+  const kind = input.kind === 'image' || input.kind === 'screenshot_request' ? input.kind : null;
+  const source = (
+    input.source === 'user_included'
+    || input.source === 'camera_button'
+    || input.source === 'tool_result'
+    || input.source === 'replay'
+  ) ? input.source : null;
+  const status = (
+    input.status === 'materializing'
+    || input.status === 'pending_capture'
+    || input.status === 'ready'
+    || input.status === 'failed'
+  ) ? input.status : null;
+  if (!id || !kind || !source || !status) {
+    return null;
+  }
+  return {
+    id,
+    kind,
+    source,
+    status,
+    ...(optionalString(input.filename) ? { filename: optionalString(input.filename) } : {}),
+    ...(optionalString(input.contentType) ? { contentType: optionalString(input.contentType) } : {}),
+    ...(optionalString(input.screenshotRef) ? { screenshotRef: optionalString(input.screenshotRef) } : {}),
+    ...(optionalString(input.screenshotUrl) ? { screenshotUrl: optionalString(input.screenshotUrl) } : {}),
+    ...(optionalString(input.errorCode) ? { errorCode: optionalString(input.errorCode) } : {}),
+  };
+}
+
+function displayAttachmentFailure(resource: TurnInputResource, message: string): SdkDisplayAttachment | null {
+  if (resource.kind !== 'clipboard_image' && resource.kind !== 'query_screenshot_request') {
+    return null;
+  }
+  const id = optionalString(resource.displayAttachmentId);
+  if (!id) {
+    return null;
+  }
+  return {
+    id,
+    kind: resource.kind === 'query_screenshot_request' ? 'screenshot_request' : 'image',
+    source: resource.kind === 'query_screenshot_request' ? 'camera_button' : 'user_included',
+    status: 'failed',
+    ...(resource.kind === 'clipboard_image' && optionalString(resource.filename)
+      ? { filename: optionalString(resource.filename) }
+      : {}),
+    ...(resource.kind === 'clipboard_image' && optionalString(resource.contentType)
+      ? { contentType: optionalString(resource.contentType) }
+      : {}),
+    errorCode: message.trim() ? 'resource_resolution_failed' : 'resource_resolution_failed',
+  };
 }
 
 function errorMessage(error: unknown): string {
@@ -134,16 +192,22 @@ export async function resolveTurnInputResources(input: {
   const resolvers = input.resolvers ?? {};
   const payload: JsonRecord = {};
   const metadata: JsonRecord = {};
+  const displayAttachments: SdkDisplayAttachment[] = [];
   const failures: TurnInputResourceResolutionFailure[] = [];
 
   for (const resource of resources) {
     const resolver = resolvers[resource.kind];
     if (!resolver) {
+      const message = `No resolver registered for ${resource.kind}`;
       failures.push({
         kind: resource.kind,
-        message: `No resolver registered for ${resource.kind}`,
+        message,
         fatal: resourceRequired(resource),
       });
+      const failedAttachment = displayAttachmentFailure(resource, message);
+      if (failedAttachment) {
+        displayAttachments.push(failedAttachment);
+      }
       continue;
     }
 
@@ -151,11 +215,16 @@ export async function resolveTurnInputResources(input: {
     try {
       resolution = await resolver(resource, input.context);
     } catch (error) {
+      const message = errorMessage(error);
       failures.push({
         kind: resource.kind,
-        message: errorMessage(error),
+        message,
         fatal: resourceRequired(resource),
       });
+      const failedAttachment = displayAttachmentFailure(resource, message);
+      if (failedAttachment) {
+        displayAttachments.push(failedAttachment);
+      }
       continue;
     }
 
@@ -166,6 +235,10 @@ export async function resolveTurnInputResources(input: {
     if (isJsonRecord(resolution.metadata)) {
       Object.assign(metadata, resolution.metadata);
     }
+    const displayAttachment = normalizeDisplayAttachment(resolution.displayAttachment);
+    if (displayAttachment) {
+      displayAttachments.push(displayAttachment);
+    }
     const message = optionalString(resolution.error);
     if (message) {
       failures.push({
@@ -173,7 +246,17 @@ export async function resolveTurnInputResources(input: {
         message,
         fatal: resolution.fatal === true || resourceRequired(resource),
       });
+      if (!displayAttachment) {
+        const failedAttachment = displayAttachmentFailure(resource, message);
+        if (failedAttachment) {
+          displayAttachments.push(failedAttachment);
+        }
+      }
     }
+  }
+
+  if (displayAttachments.length > 0) {
+    metadata.attachments = displayAttachments;
   }
 
   if (failures.length > 0) {

@@ -639,6 +639,15 @@ describe('Agent SDK conversation runtime core', () => {
         screenshot_url: '/api/artifacts/artifact-1',
         screenshotRefs: ['artifact-1'],
         screenshot_refs: ['artifact-1'],
+        attachments: [
+          expect.objectContaining({
+            kind: 'image',
+            source: 'replay',
+            status: 'ready',
+            screenshotRef: 'artifact-1',
+            screenshotUrl: '/api/artifacts/artifact-1',
+          }),
+        ],
         raw: expect.objectContaining({
           attachmentFilenames: ['notes.txt'],
         }),
@@ -709,12 +718,194 @@ describe('Agent SDK conversation runtime core', () => {
         screenshot_url: '/api/artifacts/artifact-1',
         screenshotRefs: ['artifact-1'],
         screenshot_refs: ['artifact-1'],
+        attachments: [
+          expect.objectContaining({
+            kind: 'image',
+            source: 'replay',
+            status: 'ready',
+            screenshotRef: 'artifact-1',
+          }),
+        ],
         raw: expect.objectContaining({
           sourceEventType: 'user-message-full',
           attachment_filenames: ['clipboard-image.png'],
         }),
       }),
     });
+  });
+
+  test('SDK display rows project ordered live visual attachments by stable id', () => {
+    const user = createConversationEvent({
+      eventId: 'evt-user',
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-visual',
+      source: 'ui',
+      payload: { text: 'review these images' },
+    });
+
+    const rows = buildDisplayRows([user], {
+      liveAttachments: {
+        'conv-sdk-runtime:turn-visual': [
+          {
+            id: 'turn-visual:attachment:000',
+            kind: 'image',
+            source: 'user_included',
+            status: 'materializing',
+            filename: 'first.png',
+            contentType: 'image/png',
+            previewSrc: 'data:image/png;base64,first',
+          },
+          {
+            id: 'turn-visual:attachment:001',
+            kind: 'image',
+            source: 'user_included',
+            status: 'materializing',
+            filename: 'second.png',
+            contentType: 'image/png',
+            previewSrc: 'data:image/png;base64,second',
+          },
+          {
+            id: 'turn-visual:attachment:002',
+            kind: 'screenshot_request',
+            source: 'camera_button',
+            status: 'pending_capture',
+          },
+        ],
+      },
+    });
+
+    expect(rows[0].metadata?.attachments).toEqual([
+      expect.objectContaining({
+        id: 'turn-visual:attachment:000',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,first',
+      }),
+      expect.objectContaining({
+        id: 'turn-visual:attachment:001',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,second',
+      }),
+      expect.objectContaining({
+        id: 'turn-visual:attachment:002',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'pending_capture',
+      }),
+    ]);
+  });
+
+  test('SDK display rows replace live previews with ready descriptors without carrying preview bytes', () => {
+    const user = createConversationEvent({
+      eventId: 'evt-user',
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-visual',
+      source: 'ui',
+      payload: { text: 'review this image' },
+    });
+    const metadata = createConversationEvent({
+      eventId: 'evt-user-metadata',
+      type: 'user_message_metadata',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-visual',
+      source: 'sdk',
+      payload: {
+        text: 'review this image',
+        attachments: [{
+          id: 'turn-visual:attachment:000',
+          kind: 'image',
+          source: 'user_included',
+          status: 'ready',
+          screenshotRef: 'artifact-ready',
+          screenshotUrl: '/api/artifacts/artifact-ready',
+          contentType: 'image/png',
+        }],
+      },
+    });
+
+    const rows = buildDisplayRows([user, metadata], {
+      liveAttachments: {
+        'conv-sdk-runtime:turn-visual': [{
+          id: 'turn-visual:attachment:000',
+          kind: 'image',
+          source: 'user_included',
+          status: 'materializing',
+          contentType: 'image/png',
+          previewSrc: 'data:image/png;base64,live-preview',
+        }],
+      },
+    });
+
+    expect(rows[0].metadata?.attachments).toEqual([
+      {
+        id: 'turn-visual:attachment:000',
+        kind: 'image',
+        source: 'user_included',
+        status: 'ready',
+        contentType: 'image/png',
+        screenshotRef: 'artifact-ready',
+        screenshotUrl: '/api/artifacts/artifact-ready',
+      },
+    ]);
+    expect(JSON.stringify(buildRehydrateSnapshot([user, metadata]))).not.toContain('live-preview');
+  });
+
+  test('SDK display rows preserve attachments across later text-only same-turn metadata', () => {
+    const user = createConversationEvent({
+      eventId: 'evt-user',
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-visual',
+      source: 'ui',
+      payload: { text: 'review this image' },
+    });
+    const sdkMetadata = createConversationEvent({
+      eventId: 'evt-user-metadata-sdk',
+      type: 'user_message_metadata',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-visual',
+      source: 'sdk',
+      payload: {
+        attachments: [{
+          id: 'turn-visual:attachment:000',
+          kind: 'image',
+          source: 'camera_button',
+          status: 'ready',
+          screenshotRef: 'artifact-camera',
+        }],
+      },
+    });
+    const backendMetadata = createConversationEvent({
+      eventId: 'evt-user-metadata-backend',
+      type: 'user_message_metadata',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-visual',
+      source: 'backend',
+      payload: {
+        sourceEventType: 'user-message-full',
+        content: 'backend text only',
+      },
+    });
+
+    const rows = buildDisplayRows([user, sdkMetadata, backendMetadata]);
+
+    expect(rows[0].metadata?.attachments).toEqual([
+      expect.objectContaining({
+        id: 'turn-visual:attachment:000',
+        source: 'camera_button',
+        status: 'ready',
+        screenshotRef: 'artifact-camera',
+      }),
+    ]);
   });
 
   test('orphan empty-chat greeting is not display or rehydrate history', () => {

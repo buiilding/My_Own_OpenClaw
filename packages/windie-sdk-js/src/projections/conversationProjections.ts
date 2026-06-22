@@ -15,6 +15,7 @@ import type {
   LiveTurnPresentation,
   LiveTurnPresentationEntry,
   RehydrateSnapshot,
+  SdkDisplayAttachment,
   SdkDisplayRow,
   SdkDisplayRowMetadata,
   TraceEventPayload,
@@ -264,6 +265,105 @@ function stringArrayField(record: JsonRecord, ...keys: string[]): string[] | nul
   return null;
 }
 
+function displayAttachmentFromRecord(record: JsonRecord): SdkDisplayAttachment | null {
+  const id = stringField(record, 'id');
+  const kind = record.kind === 'image' || record.kind === 'screenshot_request' ? record.kind : null;
+  const source = (
+    record.source === 'user_included'
+    || record.source === 'camera_button'
+    || record.source === 'tool_result'
+    || record.source === 'replay'
+  ) ? record.source : null;
+  const status = (
+    record.status === 'materializing'
+    || record.status === 'pending_capture'
+    || record.status === 'ready'
+    || record.status === 'failed'
+  ) ? record.status : null;
+  if (!id || !kind || !source || !status) {
+    return null;
+  }
+  return {
+    id,
+    kind,
+    source,
+    status,
+    ...(stringField(record, 'filename') ? { filename: stringField(record, 'filename') } : {}),
+    ...(stringField(record, 'contentType', 'content_type') ? {
+      contentType: stringField(record, 'contentType', 'content_type'),
+    } : {}),
+    ...(stringField(record, 'screenshotRef', 'screenshot_ref') ? {
+      screenshotRef: stringField(record, 'screenshotRef', 'screenshot_ref'),
+    } : {}),
+    ...(stringField(record, 'screenshotUrl', 'screenshot_url') ? {
+      screenshotUrl: stringField(record, 'screenshotUrl', 'screenshot_url'),
+    } : {}),
+    ...(stringField(record, 'errorCode', 'error_code') ? { errorCode: stringField(record, 'errorCode', 'error_code') } : {}),
+  };
+}
+
+function displayAttachmentsField(record: JsonRecord, ...keys: string[]): SdkDisplayAttachment[] | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (!Array.isArray(value)) {
+      continue;
+    }
+    const attachments = value
+      .map(entry => recordFromUnknown(entry))
+      .filter((entry): entry is JsonRecord => Boolean(entry))
+      .map(displayAttachmentFromRecord)
+      .filter((entry): entry is SdkDisplayAttachment => Boolean(entry));
+    if (attachments.length > 0) {
+      return attachments;
+    }
+  }
+  return null;
+}
+
+function legacyScreenshotDisplayAttachments(
+  event: ConversationEvent,
+  screenshotRefs: string[] | null,
+  screenshotUrl: string | null,
+  contentType: string | null,
+): SdkDisplayAttachment[] | null {
+  if (!screenshotRefs || screenshotRefs.length === 0) {
+    return null;
+  }
+  const source = event.type === 'tool_output' || event.type === 'tool_bundle_output'
+    ? 'tool_result'
+    : 'replay';
+  return screenshotRefs.map((screenshotRef, index) => ({
+    id: `${event.eventId}:attachment:${index.toString().padStart(3, '0')}`,
+    kind: 'image',
+    source,
+    status: 'ready',
+    ...(contentType ? { contentType } : {}),
+    screenshotRef,
+    ...(index === 0 && screenshotUrl ? { screenshotUrl } : {}),
+  }));
+}
+
+function mergeDisplayAttachments(
+  existing?: SdkDisplayAttachment[] | null,
+  incoming?: SdkDisplayAttachment[] | null,
+): SdkDisplayAttachment[] | null {
+  const ordered = new Map<string, SdkDisplayAttachment>();
+  for (const attachment of [...(existing ?? []), ...(incoming ?? [])]) {
+    const previous = ordered.get(attachment.id);
+    ordered.set(
+      attachment.id,
+      attachment.status === 'ready' || attachment.status === 'failed'
+        ? attachment
+        : {
+          ...(previous ?? {}),
+          ...attachment,
+        },
+    );
+  }
+  const attachments = Array.from(ordered.values());
+  return attachments.length > 0 ? attachments : null;
+}
+
 function sourceEventTypeFromPayload(payload: JsonRecord): string | null {
   return stringField(payload, 'sourceEventType', 'source_event_type');
 }
@@ -273,6 +373,9 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   const screenshotUrl = stringField(event.payload, 'screenshotUrl', 'screenshot_url');
   const screenshotRefs = stringArrayField(event.payload, 'screenshotRefs', 'screenshot_refs')
     ?? (screenshotRef ? [screenshotRef] : null);
+  const screenshotContentType = stringField(event.payload, 'screenshotContentType', 'screenshot_content_type');
+  const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
+    ?? legacyScreenshotDisplayAttachments(event, screenshotRefs, screenshotUrl, screenshotContentType);
   return {
     eventId: event.eventId,
     source: event.source,
@@ -290,7 +393,8 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
     screenshotRefs,
     screenshot_refs: screenshotRefs,
     screenshot: stringField(event.payload, 'screenshot', 'image'),
-    screenshotContentType: stringField(event.payload, 'screenshotContentType', 'screenshot_content_type'),
+    screenshotContentType,
+    attachments,
     structuredPayload: structuredPayloadFrom(event.payload),
     sourceEventType: sourceEventTypeFromPayload(event.payload),
     success: typeof event.payload.success === 'boolean' ? event.payload.success : null,
@@ -311,6 +415,8 @@ const SCREENSHOT_METADATA_KEYS = [
   'image',
   'screenshotContentType',
   'screenshot_content_type',
+  'attachments',
+  'display_attachments',
 ];
 
 function hasScreenshotMetadata(payload: JsonRecord): boolean {
@@ -327,6 +433,7 @@ function preserveExistingScreenshotMetadata(
   const screenshotRefs = previous?.screenshotRefs
     ?? previous?.screenshot_refs
     ?? (screenshotRef ? [screenshotRef] : null);
+  const attachments = mergeDisplayAttachments(previous?.attachments, metadata.attachments);
   return {
     ...metadata,
     screenshotRef,
@@ -337,6 +444,7 @@ function preserveExistingScreenshotMetadata(
     screenshot_refs: screenshotRefs,
     screenshot: previous?.screenshot ?? null,
     screenshotContentType: previous?.screenshotContentType ?? null,
+    attachments,
   };
 }
 
@@ -425,6 +533,32 @@ function displayRowBase(event: ConversationEvent, index: number) {
     turnRef: event.turnRef,
     index,
     metadata: displayRowMetadata(event),
+  };
+}
+
+export type BuildDisplayRowsOptions = {
+  liveAttachments?: Record<string, SdkDisplayAttachment[]> | null;
+};
+
+function userTurnKey(row: Pick<SdkDisplayRow, 'conversationRef' | 'turnRef'>): string | null {
+  return row.turnRef ? `${row.conversationRef}:${row.turnRef}` : null;
+}
+
+function applyLiveAttachmentsToUserRow(
+  row: Extract<SdkDisplayRow, { type: 'user_message' }>,
+  options: BuildDisplayRowsOptions,
+): Extract<SdkDisplayRow, { type: 'user_message' }> {
+  const key = userTurnKey(row);
+  const liveAttachments = key ? options.liveAttachments?.[key] ?? null : null;
+  if (!liveAttachments || liveAttachments.length === 0) {
+    return row;
+  }
+  return {
+    ...row,
+    metadata: {
+      ...row.metadata,
+      attachments: mergeDisplayAttachments(liveAttachments, row.metadata?.attachments),
+    },
   };
 }
 
@@ -648,7 +782,10 @@ function replaceAssistantRowsForTurnWithError(
   return true;
 }
 
-export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
+export function buildDisplayRows(
+  events: ConversationEvent[],
+  options: BuildDisplayRowsOptions = {},
+): SdkDisplayRow[] {
   const rows: SdkDisplayRow[] = [];
   const streamingAssistants = new Map<string, StreamingAssistantState>();
   const userRowsByTurn = new Map<string, number>();
@@ -659,7 +796,10 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
       const rowIndex = key ? userRowsByTurn.get(key) : undefined;
       const row = typeof rowIndex === 'number' ? rows[rowIndex] : null;
       if (row?.type === 'user_message') {
-        rows[rowIndex] = mergeUserMessageMetadata(row, event);
+        rows[rowIndex] = applyLiveAttachmentsToUserRow(
+          mergeUserMessageMetadata(row, event),
+          options,
+        );
       }
       continue;
     }
@@ -758,6 +898,7 @@ export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
     if (row) {
       rows.push(row);
       if (row.type === 'user_message') {
+        rows[rows.length - 1] = applyLiveAttachmentsToUserRow(row, options);
         const key = userMetadataKey(event);
         if (key) {
           userRowsByTurn.set(key, rows.length - 1);

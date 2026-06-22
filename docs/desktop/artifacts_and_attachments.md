@@ -32,6 +32,13 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
 ## Rules
 
 - Prefer artifact refs for replay-safe screenshot context.
+- SDK display rows own live visual attachment projection through ordered
+  `attachments[]` descriptors. User-included images may use volatile
+  `previewSrc` only in live display projection; ready, replayed, and
+  persisted attachments use artifact refs and lightweight metadata instead.
+- Mixed visual sends order user-included images first and camera screenshot
+  requests after them. Camera requests may display as pending placeholders
+  until main/SDK materializes the artifact-backed screenshot.
 - Preserve screenshot context across edit/resend and retry flows.
 - Materialize user images, query screenshots, and tool screenshots through the
   SDK/main visual-resource materializer before backend payload assembly.
@@ -44,6 +51,12 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
   or `screenshot_refs`.
 - Do not make app startup import upload IPC just to construct display image URLs.
 - Hosted artifact uploads must include install auth headers when available.
+
+## Migration
+
+No user-data migration is required for SDK-owned live `attachments[]`
+projection. Existing conversations can continue replaying through legacy
+screenshot metadata while new live rows expose ordered attachment descriptors.
 
 ## Deep Docs
 

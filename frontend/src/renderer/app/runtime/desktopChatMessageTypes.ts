@@ -3,6 +3,7 @@
  */
 
 import type { ToolSchema } from '../../types/toolSchemas';
+import type { SdkDisplayAttachment } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
 
 export interface TokenCounts {
   prompt_tokens?: number;
@@ -31,6 +32,7 @@ export interface ChatMessage {
   screenshotUrl?: string | null;
   screenshotContentType?: string | null;
   attachmentFilenames?: string[] | null;
+  attachments?: SdkDisplayAttachment[] | null;
   screenshots?: Array<{
     screenshot?: string | null;
     screenshotRef?: string | null;

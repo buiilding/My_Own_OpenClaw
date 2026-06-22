@@ -214,20 +214,38 @@ function localRuntimeCaptureTraceData(data: JsonRecord): JsonRecord {
 }
 
 function screenshotResolutionFromMaterialized(
-  kind: TurnInputResource['kind'],
+  resource: Extract<TurnInputResource, { kind: 'clipboard_image' | 'query_screenshot_request' }>,
   materialized: MaterializedVisualResource | null,
 ): TurnResourceResolution | null {
   if (!materialized) {
     return null;
   }
+  const displayAttachmentId = optionalString(resource.displayAttachmentId);
+  const screenshotRef = materialized.screenshot_ref ?? null;
+  const screenshotUrl = materialized.screenshot_url ?? null;
+  const filename = resource.kind === 'clipboard_image' ? optionalString(resource.filename) : null;
+  const contentType = optionalString(materialized.screenshot_content_type)
+    ?? (resource.kind === 'clipboard_image' ? optionalString(resource.contentType) : null);
   return {
-    kind,
-    screenshotRef: materialized.screenshot_ref ?? null,
-    screenshotUrl: materialized.screenshot_url ?? null,
+    kind: resource.kind,
+    screenshotRef,
+    screenshotUrl,
     screenshotRefs: materialized.screenshot_refs ?? null,
     captureMeta: materialized.capture_meta ?? null,
     attachmentFilenames: materialized.attachment_filenames ?? null,
     metadata: materialized.display_metadata ?? null,
+    displayAttachment: displayAttachmentId && screenshotRef
+      ? {
+        id: displayAttachmentId,
+        kind: 'image',
+        source: resource.kind === 'query_screenshot_request' ? 'camera_button' : 'user_included',
+        status: 'ready',
+        ...(filename ? { filename } : {}),
+        ...(contentType ? { contentType } : {}),
+        screenshotRef,
+        ...(screenshotUrl ? { screenshotUrl } : {}),
+      }
+      : null,
   };
 }
 
@@ -279,7 +297,7 @@ export function createDefaultTurnResourceResolvers(
       }, {
         artifactUploader: options.sdkClient?.artifacts,
       });
-      return screenshotResolutionFromMaterialized(resource.kind, materialized);
+      return screenshotResolutionFromMaterialized(resource, materialized);
     },
 
     async query_screenshot_request(resource, context) {
@@ -513,7 +531,7 @@ export function createDefaultTurnResourceResolvers(
         return fail(error);
       }
 
-      const existing = screenshotResolutionFromMaterialized(resource.kind, materialized);
+      const existing = screenshotResolutionFromMaterialized(resource, materialized);
       if (existing && materialized) {
         if (materialized.materialization_mode === 'existing_ref') {
           await emitArtifactUploadTrace(context, {

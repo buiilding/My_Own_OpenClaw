@@ -153,7 +153,7 @@ describe('desktopConversationDisplayProjection', () => {
     )).toEqual([sdkUserSameTurn]);
   });
 
-  test('keeps copied same-turn screenshot metadata through repeated text-only SDK projections', () => {
+  test('does not copy renderer screenshot metadata into text-only SDK user projections', () => {
     const sdkTextOnlyUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',
       sender: 'user',
@@ -182,27 +182,13 @@ describe('desktopConversationDisplayProjection', () => {
       [sdkTextOnlyUser],
       [optimisticUser],
     );
-    expect(firstMerge).toEqual([
-      expect.objectContaining({
-        id: 'turn-1-sdk-evt-000002-user_message',
-        sourceEventType: 'user_message',
-        screenshots: optimisticUser.screenshots,
-        attachmentFilenames: ['clipboard-image.png'],
-      }),
-    ]);
+    expect(firstMerge).toEqual([sdkTextOnlyUser]);
 
     const secondMerge = mergeRendererAnnotationsIntoSdkMessages(
       [sdkTextOnlyUser],
       firstMerge,
     );
-    expect(secondMerge).toEqual([
-      expect.objectContaining({
-        id: 'turn-1-sdk-evt-000002-user_message',
-        sourceEventType: 'user_message',
-        screenshots: optimisticUser.screenshots,
-        attachmentFilenames: ['clipboard-image.png'],
-      }),
-    ]);
+    expect(secondMerge).toEqual([sdkTextOnlyUser]);
     expect(buildDisplayProjectionTraceSummary({
       rows: [{
         id: 'turn-1-sdk-evt-000002-user_message',
@@ -219,7 +205,55 @@ describe('desktopConversationDisplayProjection', () => {
       currentOptimisticUserCount: 0,
       sdkUserImageCount: 0,
       sdkProjectedUserImageCount: 0,
+      mergedUserImageCount: 0,
+    }));
+  });
+
+  test('summarizes SDK attachment descriptors as projected user images', () => {
+    const sdkUser = message({
+      id: 'turn-1-sdk-evt-000002-user_message',
+      sender: 'user',
+      text: 'inspect recent commits',
+      turnRef: 'turn-1',
+      attachments: [
+        {
+          id: 'turn-1:attachment:000',
+          kind: 'image',
+          source: 'user_included',
+          status: 'materializing',
+          previewSrc: 'data:image/png;base64,preview',
+        },
+        {
+          id: 'turn-1:attachment:001',
+          kind: 'screenshot_request',
+          source: 'camera_button',
+          status: 'pending_capture',
+        },
+      ],
+      isComplete: true,
+    });
+
+    expect(buildDisplayProjectionTraceSummary({
+      rows: [{
+        id: 'turn-1-sdk-evt-000002-user_message',
+        role: 'user',
+        type: 'user_message',
+        metadata: {
+          attachments: sdkUser.attachments,
+        },
+      }],
+      sdkMessages: [sdkUser],
+      currentMessages: [],
+      mergedMessages: [sdkUser],
+    })).toEqual(expect.objectContaining({
+      sdkUserImageCount: 1,
+      sdkProjectedUserImageCount: 1,
       mergedUserImageCount: 1,
+      userAttachmentCount: 2,
+      attachmentSources: ['camera_button', 'user_included'],
+      attachmentStatuses: ['materializing', 'pending_capture'],
+      materializingPreviewCount: 1,
+      pendingScreenshotRequestCount: 1,
     }));
   });
 

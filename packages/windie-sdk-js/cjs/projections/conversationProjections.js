@@ -223,6 +223,86 @@ function stringArrayField(record, ...keys) {
     }
     return null;
 }
+function displayAttachmentFromRecord(record) {
+    const id = (0, toolOutputContent_js_1.stringField)(record, 'id');
+    const kind = record.kind === 'image' || record.kind === 'screenshot_request' ? record.kind : null;
+    const source = (record.source === 'user_included'
+        || record.source === 'camera_button'
+        || record.source === 'tool_result'
+        || record.source === 'replay') ? record.source : null;
+    const status = (record.status === 'materializing'
+        || record.status === 'pending_capture'
+        || record.status === 'ready'
+        || record.status === 'failed') ? record.status : null;
+    if (!id || !kind || !source || !status) {
+        return null;
+    }
+    return {
+        id,
+        kind,
+        source,
+        status,
+        ...((0, toolOutputContent_js_1.stringField)(record, 'filename') ? { filename: (0, toolOutputContent_js_1.stringField)(record, 'filename') } : {}),
+        ...((0, toolOutputContent_js_1.stringField)(record, 'contentType', 'content_type') ? {
+            contentType: (0, toolOutputContent_js_1.stringField)(record, 'contentType', 'content_type'),
+        } : {}),
+        ...((0, toolOutputContent_js_1.stringField)(record, 'screenshotRef', 'screenshot_ref') ? {
+            screenshotRef: (0, toolOutputContent_js_1.stringField)(record, 'screenshotRef', 'screenshot_ref'),
+        } : {}),
+        ...((0, toolOutputContent_js_1.stringField)(record, 'screenshotUrl', 'screenshot_url') ? {
+            screenshotUrl: (0, toolOutputContent_js_1.stringField)(record, 'screenshotUrl', 'screenshot_url'),
+        } : {}),
+        ...((0, toolOutputContent_js_1.stringField)(record, 'errorCode', 'error_code') ? { errorCode: (0, toolOutputContent_js_1.stringField)(record, 'errorCode', 'error_code') } : {}),
+    };
+}
+function displayAttachmentsField(record, ...keys) {
+    for (const key of keys) {
+        const value = record[key];
+        if (!Array.isArray(value)) {
+            continue;
+        }
+        const attachments = value
+            .map(entry => (0, toolOutputContent_js_1.recordFromUnknown)(entry))
+            .filter((entry) => Boolean(entry))
+            .map(displayAttachmentFromRecord)
+            .filter((entry) => Boolean(entry));
+        if (attachments.length > 0) {
+            return attachments;
+        }
+    }
+    return null;
+}
+function legacyScreenshotDisplayAttachments(event, screenshotRefs, screenshotUrl, contentType) {
+    if (!screenshotRefs || screenshotRefs.length === 0) {
+        return null;
+    }
+    const source = event.type === 'tool_output' || event.type === 'tool_bundle_output'
+        ? 'tool_result'
+        : 'replay';
+    return screenshotRefs.map((screenshotRef, index) => ({
+        id: `${event.eventId}:attachment:${index.toString().padStart(3, '0')}`,
+        kind: 'image',
+        source,
+        status: 'ready',
+        ...(contentType ? { contentType } : {}),
+        screenshotRef,
+        ...(index === 0 && screenshotUrl ? { screenshotUrl } : {}),
+    }));
+}
+function mergeDisplayAttachments(existing, incoming) {
+    const ordered = new Map();
+    for (const attachment of [...(existing ?? []), ...(incoming ?? [])]) {
+        const previous = ordered.get(attachment.id);
+        ordered.set(attachment.id, attachment.status === 'ready' || attachment.status === 'failed'
+            ? attachment
+            : {
+                ...(previous ?? {}),
+                ...attachment,
+            });
+    }
+    const attachments = Array.from(ordered.values());
+    return attachments.length > 0 ? attachments : null;
+}
 function sourceEventTypeFromPayload(payload) {
     return (0, toolOutputContent_js_1.stringField)(payload, 'sourceEventType', 'source_event_type');
 }
@@ -231,6 +311,9 @@ function displayRowMetadata(event) {
     const screenshotUrl = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url');
     const screenshotRefs = stringArrayField(event.payload, 'screenshotRefs', 'screenshot_refs')
         ?? (screenshotRef ? [screenshotRef] : null);
+    const screenshotContentType = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotContentType', 'screenshot_content_type');
+    const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
+        ?? legacyScreenshotDisplayAttachments(event, screenshotRefs, screenshotUrl, screenshotContentType);
     return {
         eventId: event.eventId,
         source: event.source,
@@ -248,7 +331,8 @@ function displayRowMetadata(event) {
         screenshotRefs,
         screenshot_refs: screenshotRefs,
         screenshot: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshot', 'image'),
-        screenshotContentType: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotContentType', 'screenshot_content_type'),
+        screenshotContentType,
+        attachments,
         structuredPayload: structuredPayloadFrom(event.payload),
         sourceEventType: sourceEventTypeFromPayload(event.payload),
         success: typeof event.payload.success === 'boolean' ? event.payload.success : null,
@@ -268,6 +352,8 @@ const SCREENSHOT_METADATA_KEYS = [
     'image',
     'screenshotContentType',
     'screenshot_content_type',
+    'attachments',
+    'display_attachments',
 ];
 function hasScreenshotMetadata(payload) {
     return SCREENSHOT_METADATA_KEYS.some(key => Object.prototype.hasOwnProperty.call(payload, key));
@@ -279,6 +365,7 @@ function preserveExistingScreenshotMetadata(row, metadata) {
     const screenshotRefs = previous?.screenshotRefs
         ?? previous?.screenshot_refs
         ?? (screenshotRef ? [screenshotRef] : null);
+    const attachments = mergeDisplayAttachments(previous?.attachments, metadata.attachments);
     return {
         ...metadata,
         screenshotRef,
@@ -289,6 +376,7 @@ function preserveExistingScreenshotMetadata(row, metadata) {
         screenshot_refs: screenshotRefs,
         screenshot: previous?.screenshot ?? null,
         screenshotContentType: previous?.screenshotContentType ?? null,
+        attachments,
     };
 }
 function toolRowIdentity(event, index) {
@@ -360,6 +448,23 @@ function displayRowBase(event, index) {
         turnRef: event.turnRef,
         index,
         metadata: displayRowMetadata(event),
+    };
+}
+function userTurnKey(row) {
+    return row.turnRef ? `${row.conversationRef}:${row.turnRef}` : null;
+}
+function applyLiveAttachmentsToUserRow(row, options) {
+    const key = userTurnKey(row);
+    const liveAttachments = key ? options.liveAttachments?.[key] ?? null : null;
+    if (!liveAttachments || liveAttachments.length === 0) {
+        return row;
+    }
+    return {
+        ...row,
+        metadata: {
+            ...row.metadata,
+            attachments: mergeDisplayAttachments(liveAttachments, row.metadata?.attachments),
+        },
     };
 }
 function displayRowFromEvent(event, index) {
@@ -546,7 +651,7 @@ function replaceAssistantRowsForTurnWithError(rows, event, errorRow) {
     };
     return true;
 }
-function buildDisplayRows(events) {
+function buildDisplayRows(events, options = {}) {
     const rows = [];
     const streamingAssistants = new Map();
     const userRowsByTurn = new Map();
@@ -557,7 +662,7 @@ function buildDisplayRows(events) {
             const rowIndex = key ? userRowsByTurn.get(key) : undefined;
             const row = typeof rowIndex === 'number' ? rows[rowIndex] : null;
             if (row?.type === 'user_message') {
-                rows[rowIndex] = mergeUserMessageMetadata(row, event);
+                rows[rowIndex] = applyLiveAttachmentsToUserRow(mergeUserMessageMetadata(row, event), options);
             }
             continue;
         }
@@ -642,6 +747,7 @@ function buildDisplayRows(events) {
         if (row) {
             rows.push(row);
             if (row.type === 'user_message') {
+                rows[rows.length - 1] = applyLiveAttachmentsToUserRow(row, options);
                 const key = userMetadataKey(event);
                 if (key) {
                     userRowsByTurn.set(key, rows.length - 1);

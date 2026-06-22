@@ -8,6 +8,7 @@ import { DesktopArtifactRuntimeClient } from '../../../../../app/runtime/desktop
 import {
   DesktopResolvedMessageScreenshotsRuntime,
 } from '../../../../../app/runtime/desktopResolvedMessageScreenshotsRuntime';
+import AttachmentList from './AttachmentList';
 import MarkdownMessage from './MarkdownMessage';
 
 export default function UserMessage({
@@ -17,6 +18,10 @@ export default function UserMessage({
   activeFindMatchIndex = null,
 }) {
   const screenshotSources = DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList(message);
+  const displayAttachments = Array.isArray(message.attachments)
+    ? message.attachments
+    : [];
+  const hasDisplayAttachments = displayAttachments.length > 0;
   const attachmentFilenames = Array.isArray(message.attachmentFilenames)
     ? message.attachmentFilenames.filter((filename) => typeof filename === 'string' && filename.length > 0)
     : [];
@@ -43,7 +48,10 @@ export default function UserMessage({
           ))}
         </div>
       ) : null}
-      {screenshotSources.length > 0 ? (
+      {hasDisplayAttachments ? (
+        <AttachmentList attachments={displayAttachments} />
+      ) : null}
+      {!hasDisplayAttachments && screenshotSources.length > 0 ? (
         <div className="user-screenshot-gallery">
           {screenshotSources.map((screenshotSrc, index) => (
             <div className="user-screenshot-container" key={`${screenshotSrc}-${index}`}>
@@ -75,6 +83,12 @@ UserMessage.propTypes = {
   message: PropTypes.shape({
     text: PropTypes.string.isRequired,
     attachmentFilenames: PropTypes.arrayOf(PropTypes.string),
+    attachments: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      kind: PropTypes.oneOf(['image', 'screenshot_request']).isRequired,
+      source: PropTypes.oneOf(['user_included', 'camera_button', 'tool_result', 'replay']).isRequired,
+      status: PropTypes.oneOf(['materializing', 'pending_capture', 'ready', 'failed']).isRequired,
+    })),
     screenshot: PropTypes.string,
     screenshotUrl: PropTypes.string,
     screenshotContentType: PropTypes.string,

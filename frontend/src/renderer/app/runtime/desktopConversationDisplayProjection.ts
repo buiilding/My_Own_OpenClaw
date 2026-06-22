@@ -98,50 +98,10 @@ function mergeRendererAnnotationsIntoSdkMessages(
     return sdkMessages;
   }
   const currentById = new Map(currentMessages.map((message) => [message.id, message]));
-  const usersWithImagesByTurn = new Map<string, ChatMessage>();
-  const optimisticUsersByTurn = new Map<string, ChatMessage>();
-  for (const message of currentMessages) {
-    const turnRef = normalizeTurnRef(message.turnRef);
-    if (message.sender === 'user' && turnRef && countMessageImages(message) > 0) {
-      usersWithImagesByTurn.set(turnRef, message);
-      if (isOptimisticUserMessage(message)) {
-        optimisticUsersByTurn.set(turnRef, message);
-      }
-    }
-  }
   const mergedSdkMessages = sdkMessages.map((message) => {
     const current = currentById.get(message.id);
-    const turnRef = normalizeTurnRef(message.turnRef);
-    const currentImageUser = (
-      current?.sender === 'user'
-      && countMessageImages(current) > 0
-    )
-      ? current
-      : (turnRef ? usersWithImagesByTurn.get(turnRef) : undefined);
-    const fallbackImageUser = currentImageUser
-      ?? (turnRef ? optimisticUsersByTurn.get(turnRef) : undefined);
-    const rendererScreenshots = (
-      message.sender === 'user'
-      && countMessageImages(message) === 0
-      && fallbackImageUser
-      && countMessageImages(fallbackImageUser) > 0
-    )
-      ? {
-        ...(fallbackImageUser.screenshot ? { screenshot: fallbackImageUser.screenshot } : {}),
-        ...(fallbackImageUser.screenshotRef ? { screenshotRef: fallbackImageUser.screenshotRef } : {}),
-        ...(fallbackImageUser.screenshotUrl ? { screenshotUrl: fallbackImageUser.screenshotUrl } : {}),
-        ...(fallbackImageUser.screenshotContentType
-          ? { screenshotContentType: fallbackImageUser.screenshotContentType }
-          : {}),
-        ...(fallbackImageUser.screenshots ? { screenshots: fallbackImageUser.screenshots } : {}),
-        ...(fallbackImageUser.attachmentFilenames && !message.attachmentFilenames
-          ? { attachmentFilenames: fallbackImageUser.attachmentFilenames }
-          : {}),
-      }
-      : {};
     return {
       ...message,
-      ...rendererScreenshots,
       ...(current?.systemPrompt ? { systemPrompt: current.systemPrompt } : {}),
       ...(current?.toolSchemas ? { toolSchemas: current.toolSchemas } : {}),
       ...(current?.fullUserMessage ? { fullUserMessage: current.fullUserMessage } : {}),
@@ -157,6 +117,15 @@ function mergeRendererAnnotationsIntoSdkMessages(
 }
 
 function countMessageImages(message: ChatMessage): number {
+  if (Array.isArray(message.attachments) && message.attachments.length > 0) {
+    return message.attachments.filter((attachment) => (
+      attachment.kind === 'image'
+      && (
+        attachment.status === 'materializing'
+        || attachment.status === 'ready'
+      )
+    )).length;
+  }
   if (Array.isArray(message.screenshots) && message.screenshots.length > 0) {
     return message.screenshots.filter((attachment) => (
       Boolean(attachment?.screenshot)
@@ -177,6 +146,17 @@ function countSdkRowImages(row: unknown): number {
   if (!metadata) {
     return 0;
   }
+  const attachments = Array.isArray(metadata.attachments) ? metadata.attachments : [];
+  if (attachments.length > 0) {
+    return attachments.filter((attachment) => {
+      const attachmentRecord = recordFromUnknown(attachment);
+      return attachmentRecord?.kind === 'image'
+        && (
+          attachmentRecord.status === 'materializing'
+          || attachmentRecord.status === 'ready'
+        );
+    }).length;
+  }
   const screenshotRefs = stringArrayFromUnknown(metadata.screenshotRefs);
   if (screenshotRefs.length > 0) {
     return screenshotRefs.length;
@@ -186,6 +166,58 @@ function countSdkRowImages(row: unknown): number {
     || metadata.screenshotRef
     || metadata.screenshotUrl
   ) ? 1 : 0;
+}
+
+function summarizeSdkRowAttachments(rows: unknown[]): Record<string, unknown> {
+  let userAttachmentCount = 0;
+  let readyArtifactCount = 0;
+  let materializingPreviewCount = 0;
+  let pendingScreenshotRequestCount = 0;
+  let failedAttachmentCount = 0;
+  const sources = new Set<string>();
+  const statuses = new Set<string>();
+  for (const row of rows) {
+    const record = recordFromUnknown(row);
+    if (record?.role !== 'user' && record?.type !== 'user_message') {
+      continue;
+    }
+    const metadata = recordFromUnknown(record?.metadata);
+    const attachments = Array.isArray(metadata?.attachments) ? metadata.attachments : [];
+    for (const attachment of attachments) {
+      const attachmentRecord = recordFromUnknown(attachment);
+      if (!attachmentRecord) {
+        continue;
+      }
+      userAttachmentCount += 1;
+      if (typeof attachmentRecord.source === 'string') {
+        sources.add(attachmentRecord.source);
+      }
+      if (typeof attachmentRecord.status === 'string') {
+        statuses.add(attachmentRecord.status);
+      }
+      if (attachmentRecord.status === 'ready' && attachmentRecord.kind === 'image') {
+        readyArtifactCount += 1;
+      } else if (attachmentRecord.status === 'materializing') {
+        materializingPreviewCount += 1;
+      } else if (
+        attachmentRecord.status === 'pending_capture'
+        && attachmentRecord.kind === 'screenshot_request'
+      ) {
+        pendingScreenshotRequestCount += 1;
+      } else if (attachmentRecord.status === 'failed') {
+        failedAttachmentCount += 1;
+      }
+    }
+  }
+  return {
+    userAttachmentCount,
+    attachmentSources: Array.from(sources).sort(),
+    attachmentStatuses: Array.from(statuses).sort(),
+    readyArtifactCount,
+    materializingPreviewCount,
+    pendingScreenshotRequestCount,
+    failedAttachmentCount,
+  };
 }
 
 function summarizeUserMessageImages(messages: ChatMessage[]): {
@@ -248,6 +280,7 @@ function buildDisplayProjectionTraceSummary({
   sdkMessages = [],
 }: DisplayProjectionTraceInput): Record<string, unknown> {
   const sdkRowSummary = summarizeSdkUserRows(rows);
+  const sdkAttachmentSummary = summarizeSdkRowAttachments(rows);
   const sdkMessageSummary = summarizeUserMessageImages(sdkMessages);
   const mergedMessageSummary = summarizeUserMessageImages(mergedMessages);
   return {
@@ -257,6 +290,7 @@ function buildDisplayProjectionTraceSummary({
     mergedMessageCount: mergedMessages.length,
     currentOptimisticUserCount: currentMessages.filter(isOptimisticUserMessage).length,
     ...sdkRowSummary,
+    ...sdkAttachmentSummary,
     sdkProjectedUserImageCount: sdkMessageSummary.userImageCount,
     sdkProjectedUserMessageCount: sdkMessageSummary.userMessageCount,
     sdkProjectedUserMessagesWithImages: sdkMessageSummary.userMessagesWithImages,

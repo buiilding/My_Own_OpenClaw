@@ -374,7 +374,7 @@ describe('useDashboardConversations', () => {
     expect(result.current.openingConversationRef).toBeNull();
   });
 
-  test('preserves renderer screenshot annotations while opening text-only SDK display rows', async () => {
+  test('does not copy renderer screenshot annotations while opening text-only SDK display rows', async () => {
     DesktopConversationLibraryClient.loadDisplayRows.mockResolvedValueOnce([
       {
         id: 'turn-1-sdk-evt-000002-user_message',
@@ -423,13 +423,10 @@ describe('useDashboardConversations', () => {
         id: 'turn-1-sdk-evt-000002-user_message',
         sender: 'user',
         text: 'Please review the attached files.',
-        screenshots: [{
-          screenshot: 'inline-optimistic-base64',
-          screenshotContentType: 'image/png',
-        }],
-        attachmentFilenames: ['clipboard-image.png'],
       }),
     ], 'conv-open');
+    expect(setChatMessages.mock.calls[0][0][0]).not.toHaveProperty('screenshots');
+    expect(setChatMessages.mock.calls[0][0][0]).not.toHaveProperty('attachmentFilenames');
   });
 
   test('treats selecting the active conversation as an idempotent no-op', async () => {

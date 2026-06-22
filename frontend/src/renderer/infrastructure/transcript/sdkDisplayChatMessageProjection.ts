@@ -5,6 +5,7 @@
 import type { ChatMessage } from '../../app/runtime/desktopChatMessageTypes';
 import type {
   SdkDisplayRow,
+  SdkDisplayAttachment,
   DisplayMessage,
 } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
 import { buildAssistantTextChatMessageState } from './assistantTextChatMessageState';
@@ -77,6 +78,7 @@ function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
     'screenshot_refs',
     'screenshot',
     'screenshotContentType',
+    'attachments',
     'sourceEventType',
     'success',
     'modelId',
@@ -95,7 +97,82 @@ function displayTextFromRowContent(content: unknown): string {
   return typeof content === 'string' ? content : JSON.stringify(content, null, 2);
 }
 
-function screenshotFieldsFromPayload(payload: Record<string, unknown>): Partial<ChatMessage> {
+function displayAttachmentsFromPayload(payload: Record<string, unknown>): SdkDisplayAttachment[] {
+  const value = recordField(payload, 'attachments');
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((entry): entry is SdkDisplayAttachment => {
+    const record = recordFromPayloadValue(entry);
+    return Boolean(
+      record
+      && typeof record.id === 'string'
+      && (record.kind === 'image' || record.kind === 'screenshot_request')
+      && (
+        record.source === 'user_included'
+        || record.source === 'camera_button'
+        || record.source === 'tool_result'
+        || record.source === 'replay'
+      )
+      && (
+        record.status === 'materializing'
+        || record.status === 'pending_capture'
+        || record.status === 'ready'
+        || record.status === 'failed'
+      ),
+    );
+  });
+}
+
+function screenshotFieldsFromDisplayAttachments(
+  attachments: SdkDisplayAttachment[],
+): Partial<ChatMessage> {
+  const imageAttachments = attachments.flatMap((attachment) => {
+    if (attachment.kind !== 'image') {
+      return [];
+    }
+    if (attachment.status === 'materializing' && attachment.previewSrc) {
+      return [{
+        screenshot: attachment.previewSrc,
+        screenshotContentType: attachment.contentType ?? null,
+      }];
+    }
+    if (attachment.status === 'ready' && (attachment.screenshotRef || attachment.screenshotUrl)) {
+      return [{
+        screenshotRef: attachment.screenshotRef ?? null,
+        screenshotUrl: attachment.screenshotUrl ?? null,
+        screenshotContentType: attachment.contentType ?? null,
+      }];
+    }
+    return [];
+  });
+  if (imageAttachments.length === 0) {
+    return {
+      attachments,
+    };
+  }
+  const first = imageAttachments[0];
+  return {
+    attachments,
+    screenshots: imageAttachments,
+    ...(first.screenshot ? { screenshot: first.screenshot } : {}),
+    ...(first.screenshotRef ? { screenshotRef: first.screenshotRef } : {}),
+    ...(first.screenshotUrl ? { screenshotUrl: first.screenshotUrl } : {}),
+    ...(first.screenshotContentType ? { screenshotContentType: first.screenshotContentType } : {}),
+  };
+}
+
+function screenshotFieldsFromPayload(
+  payload: Record<string, unknown>,
+  options: { allowLegacyFallback?: boolean } = {},
+): Partial<ChatMessage> {
+  const attachments = displayAttachmentsFromPayload(payload);
+  if (attachments.length > 0) {
+    return screenshotFieldsFromDisplayAttachments(attachments);
+  }
+  if (options.allowLegacyFallback === false) {
+    return {};
+  }
   const screenshotRef = stringField(payload, 'screenshotRef', 'screenshot_ref');
   const screenshotUrl = stringField(payload, 'screenshotUrl', 'screenshot_url');
   const screenshotRefs = stringArrayField(payload, 'screenshotRefs', 'screenshot_refs');
@@ -133,7 +210,7 @@ function buildUserChatMessage(message: DisplayMessage): ChatMessage {
     sender: 'user',
     timestamp: message.timestamp,
     isComplete: true,
-    ...screenshotFieldsFromPayload(payload),
+    ...screenshotFieldsFromPayload(payload, { allowLegacyFallback: false }),
   };
 }
 

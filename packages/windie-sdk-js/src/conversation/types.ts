@@ -220,6 +220,31 @@ export type DisplayMessage = {
   metadata?: JsonRecord;
 };
 
+export type SdkDisplayAttachmentSource =
+  | 'user_included'
+  | 'camera_button'
+  | 'tool_result'
+  | 'replay';
+
+export type SdkDisplayAttachmentStatus =
+  | 'materializing'
+  | 'pending_capture'
+  | 'ready'
+  | 'failed';
+
+export type SdkDisplayAttachment = {
+  id: string;
+  kind: 'image' | 'screenshot_request';
+  source: SdkDisplayAttachmentSource;
+  status: SdkDisplayAttachmentStatus;
+  filename?: string | null;
+  contentType?: string | null;
+  previewSrc?: string | null;
+  screenshotRef?: string | null;
+  screenshotUrl?: string | null;
+  errorCode?: string | null;
+};
+
 export type DisplayConversation = {
   conversationRef: string;
   revisionId: string;
@@ -248,6 +273,7 @@ export type SdkDisplayRowMetadata = {
   screenshot_refs?: string[] | null;
   screenshot?: string | null;
   screenshotContentType?: string | null;
+  attachments?: SdkDisplayAttachment[] | null;
   sourceEventType?: string | null;
   success?: boolean | null;
   modelId?: string | null;
@@ -499,6 +525,7 @@ export type TurnInputResource =
     }
   | {
       kind: 'clipboard_image';
+      displayAttachmentId?: string | null;
       base64: string;
       contentType?: string | null;
       filename?: string | null;
@@ -506,6 +533,7 @@ export type TurnInputResource =
     }
   | {
       kind: 'query_screenshot_request';
+      displayAttachmentId?: string | null;
       isFirstUserMessage?: boolean;
       reason?: string | null;
       required?: boolean;
@@ -528,6 +556,7 @@ export type TurnResourceResolution = {
   captureMeta?: JsonRecord | null;
   workspacePath?: string | null;
   metadata?: JsonRecord | null;
+  displayAttachment?: SdkDisplayAttachment | null;
   error?: string | null;
   fatal?: boolean;
 };

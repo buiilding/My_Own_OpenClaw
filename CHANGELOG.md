@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- sdk/frontend: add SDK-owned ordered live display attachments for
+  user-included images, camera screenshot requests, mixed visual sends, ready
+  artifact replacement, sanitized display diagnostics, and the renderer
+  `AttachmentList`/`AttachmentRendererRegistry` presentation path. No migration
+  required.
 - docs/debug: add a central invariants ledger that routes durable product,
   runtime, tool, and extension invariants to owner docs and regression packs,
   while keeping `AGENTS.md` as a compact orientation pointer. No migration

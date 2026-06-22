@@ -178,7 +178,7 @@ function useResolvedMessageScreenshotSrcList(message) {
     return () => {
       cancelled = true;
     };
-  }, [attachments, initialSources]);
+  }, [attachments, continuityKey, initialSources]);
 
   return resolvedSources;
 }

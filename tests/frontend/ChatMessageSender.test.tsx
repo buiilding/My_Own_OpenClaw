@@ -424,6 +424,7 @@ describe('useChatMessageSender', () => {
 
     expectSingleSendQueryCall('hello', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
+      displayAttachmentId: 'msg-1:attachment:000',
       isFirstUserMessage: true,
       reason: 'query_send_with_capture',
       required: false,
@@ -449,6 +450,7 @@ describe('useChatMessageSender', () => {
 
     expectSingleSendQueryCall('second', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
+      displayAttachmentId: 'msg-1:attachment:000',
       isFirstUserMessage: false,
       reason: 'query_send_with_capture',
       required: false,
@@ -484,6 +486,7 @@ describe('useChatMessageSender', () => {
 
     expectSingleSendQueryCall('hello', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
+      displayAttachmentId: 'msg-1:attachment:000',
       isFirstUserMessage: true,
       reason: 'query_send_with_capture',
       required: false,
@@ -496,6 +499,7 @@ describe('useChatMessageSender', () => {
 
     expectSingleSendQueryCall('hello', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
+      displayAttachmentId: 'msg-1:attachment:000',
       isFirstUserMessage: true,
       reason: 'query_send_with_capture',
       required: false,
@@ -512,6 +516,7 @@ describe('useChatMessageSender', () => {
 
     expectSingleSendQueryCall('hello auto screenshot', 'conv_msg-1', [{
       kind: 'query_screenshot_request',
+      displayAttachmentId: 'msg-1:attachment:000',
       isFirstUserMessage: true,
       reason: 'query_send_with_capture',
       required: false,
@@ -535,6 +540,7 @@ describe('useChatMessageSender', () => {
 
     expectSingleSendQueryCall('Please inspect this image', 'conv_msg-1', [{
       kind: 'clipboard_image',
+      displayAttachmentId: 'msg-1:attachment:000',
       base64: 'clipboard-image-base64',
       contentType: 'image/png',
       filename: 'clipboard-image.png',
@@ -550,6 +556,41 @@ describe('useChatMessageSender', () => {
         screenshotUrl: null,
       },
     ]);
+  });
+
+  test('sends pasted image before camera screenshot request for mixed visual sends', async () => {
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+
+    await sendPayload(result, {
+      text: 'Please inspect this image and screen',
+      clipboardImages: [
+        {
+          base64: 'clipboard-image-base64',
+          contentType: 'image/png',
+          filename: 'clipboard-image.png',
+        },
+      ],
+    });
+
+    expectSingleSendQueryCall('Please inspect this image and screen', 'conv_msg-1', [
+      {
+        kind: 'clipboard_image',
+        displayAttachmentId: 'msg-1:attachment:000',
+        base64: 'clipboard-image-base64',
+        contentType: 'image/png',
+        filename: 'clipboard-image.png',
+        required: true,
+      },
+      {
+        kind: 'query_screenshot_request',
+        displayAttachmentId: 'msg-1:attachment:001',
+        isFirstUserMessage: true,
+        reason: 'query_send_with_capture',
+        required: false,
+      },
+    ], {
+      attachment_filenames: ['clipboard-image.png'],
+    });
   });
 
   test('sends multiple pasted clipboard images as SDK resource handles', async () => {
@@ -574,6 +615,7 @@ describe('useChatMessageSender', () => {
     expectSingleSendQueryCall('Please inspect both images', 'conv_msg-1', [
       {
         kind: 'clipboard_image',
+        displayAttachmentId: 'msg-1:attachment:000',
         base64: 'clipboard-image-base64-1',
         contentType: 'image/png',
         filename: 'clipboard-image-1.png',
@@ -581,6 +623,7 @@ describe('useChatMessageSender', () => {
       },
       {
         kind: 'clipboard_image',
+        displayAttachmentId: 'msg-1:attachment:001',
         base64: 'clipboard-image-base64-2',
         contentType: 'image/jpeg',
         filename: 'clipboard-image-2.jpg',
