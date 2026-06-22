@@ -9,7 +9,6 @@ import { DesktopArtifactRuntimeClient } from '../../frontend/src/renderer/app/ru
 
 const {
   hasMessageScreenshot,
-  isUserMessageWithScreenshot,
   resolveMessageScreenshotAttachments,
   resolveStaticScreenshotAttachmentSrc,
 } = DesktopMessageScreenshotRuntime;
@@ -59,12 +58,6 @@ describe('desktopMessageScreenshotRuntime', () => {
     expect(hasMessageScreenshot({ screenshotUrl: '' })).toBe(false);
     expect(hasMessageScreenshot({ screenshotRef: '' })).toBe(false);
     expect(hasMessageScreenshot({ screenshot: '' })).toBe(false);
-  });
-
-  test('matches only user messages with screenshot payloads', () => {
-    expect(isUserMessageWithScreenshot({ sender: 'user', screenshotRef: 'artifact-123' })).toBe(true);
-    expect(isUserMessageWithScreenshot({ sender: 'assistant', screenshotRef: 'artifact-123' })).toBe(false);
-    expect(isUserMessageWithScreenshot({ sender: 'user' })).toBe(false);
   });
 
   test('normalizes multiple screenshot attachments from screenshots array', () => {

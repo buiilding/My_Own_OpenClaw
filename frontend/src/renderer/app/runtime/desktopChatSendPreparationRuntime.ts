@@ -64,7 +64,7 @@ type PendingDesktopChatTurn = {
   text: string;
   timestamp: string;
   attachmentFilenames: string[] | null;
-  screenshots: ChatMessage['screenshots'];
+  attachments: ChatMessage['attachments'];
 };
 
 type PrepareDesktopChatSendDependencies = {
@@ -199,18 +199,18 @@ async function resolveImmediateConversationRef(
 }
 
 function acceptPendingTurn({
+  attachments,
   attachmentFilenames,
   conversationRef,
   dependencies,
-  screenshots,
   text,
   timestamp,
   turnId,
 }: {
+  attachments: ChatMessage['attachments'];
   attachmentFilenames: string[];
   conversationRef: string;
   dependencies: Pick<PrepareDesktopChatSendDependencies, 'acceptPendingTurn'>;
-  screenshots: ChatMessage['screenshots'];
   text: string;
   timestamp: string;
   turnId: string;
@@ -222,25 +222,48 @@ function acceptPendingTurn({
     text,
     timestamp,
     attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
-    screenshots,
+    attachments,
   };
   dependencies.acceptPendingTurn(pendingTurn);
   DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
 }
 
-function buildOptimisticScreenshots(
-  clipboardImages: ClipboardImagePayload[],
-): ChatMessage['screenshots'] {
-  const screenshots = clipboardImages
-    .filter((clipboardImage) => (
-      typeof clipboardImage.base64 === 'string'
-      && clipboardImage.base64.length > 0
-    ))
-    .map((clipboardImage) => ({
-      screenshot: clipboardImage.base64,
-      screenshotContentType: clipboardImage.contentType ?? null,
-    }));
-  return screenshots.length > 0 ? screenshots : null;
+function buildOptimisticDisplayAttachments({
+  clipboardImages,
+  shouldCaptureQueryScreenshot,
+  turnId,
+}: {
+  clipboardImages: ClipboardImagePayload[];
+  shouldCaptureQueryScreenshot: boolean;
+  turnId: string;
+}): ChatMessage['attachments'] {
+  const attachments: NonNullable<ChatMessage['attachments']> = [];
+  let visualIndex = 0;
+  for (const clipboardImage of clipboardImages) {
+    if (typeof clipboardImage.base64 !== 'string' || clipboardImage.base64.length === 0) {
+      continue;
+    }
+    const contentType = clipboardImage.contentType ?? 'image/png';
+    attachments.push({
+      id: `${turnId}:attachment:${visualIndex.toString().padStart(3, '0')}`,
+      kind: 'image',
+      source: 'user_included',
+      status: 'materializing',
+      ...(clipboardImage.filename ? { filename: clipboardImage.filename } : {}),
+      contentType,
+      previewSrc: `data:${contentType};base64,${clipboardImage.base64}`,
+    });
+    visualIndex += 1;
+  }
+  if (shouldCaptureQueryScreenshot) {
+    attachments.push({
+      id: `${turnId}:attachment:${visualIndex.toString().padStart(3, '0')}`,
+      kind: 'screenshot_request',
+      source: 'camera_button',
+      status: 'pending_capture',
+    });
+  }
+  return attachments.length > 0 ? attachments : null;
 }
 
 async function runSendSurfaceWindowPolicy({
@@ -279,19 +302,23 @@ async function prepareDesktopChatSend({
   const clipboardImages = normalizedPayload.clipboardImages;
   const readableFiles = normalizedPayload.readableFiles;
   const attachmentFilenames = normalizeAttachmentFilenames(clipboardImages, readableFiles);
-  const optimisticScreenshots = buildOptimisticScreenshots(clipboardImages);
 
   dependencies.stopPlayback?.();
 
   const hadUserMessages = hasUserMessages(dependencies.getMessages());
   const turnId = crypto.randomUUID();
+  const optimisticAttachments = buildOptimisticDisplayAttachments({
+    clipboardImages,
+    shouldCaptureQueryScreenshot: sendLifecycle.shouldCaptureQueryScreenshot,
+    turnId,
+  });
   const timestamp = new Date().toISOString();
   const conversationRef = await resolveImmediateConversationRef(dependencies);
   acceptPendingTurn({
+    attachments: optimisticAttachments,
     attachmentFilenames,
     conversationRef,
     dependencies,
-    screenshots: optimisticScreenshots,
     text,
     timestamp,
     turnId,

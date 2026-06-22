@@ -41,56 +41,61 @@ describe('MessageContent', () => {
     });
   });
 
-  test('prefers screenshot URL over inline screenshot data', () => {
+  test('renders user materializing display attachments through AttachmentList', () => {
     render(
       <MessageContent
         message={{
           sender: 'user',
           text: 'hello',
-          screenshotUrl: 'https://cdn.example/screenshot.png',
-          screenshot: 'inline-base64',
+          attachments: [{
+            id: 'attachment-1',
+            kind: 'image',
+            source: 'user_included',
+            status: 'materializing',
+            previewSrc: 'data:image/png;base64,inline-base64',
+            contentType: 'image/png',
+          }],
         }}
       />,
     );
 
-    const image = screen.getByRole('img', { name: 'User message screenshot' });
-    expect(image.getAttribute('src')).toBe('https://cdn.example/screenshot.png');
+    const image = screen.getByRole('img', { name: 'User message attachment' });
+    expect(image.getAttribute('src')).toBe('data:image/png;base64,inline-base64');
   });
 
-  test('renders inline screenshot data URL with png content type', () => {
+  test('renders pending camera display attachment placeholders', () => {
     render(
       <MessageContent
         message={{
           sender: 'user',
           text: 'hello',
-          screenshot: 'abc123',
-          screenshotContentType: 'image/png',
+          attachments: [{
+            id: 'attachment-camera',
+            kind: 'screenshot_request',
+            source: 'camera_button',
+            status: 'pending_capture',
+          }],
         }}
       />,
     );
 
-    const image = screen.getByRole('img', { name: 'User message screenshot' });
-    expect(image.getAttribute('src')).toBe('data:image/png;base64,abc123');
+    expect(screen.getByText('Screenshot pending')).toBeInTheDocument();
   });
 
-  test('renders multiple user screenshots when message includes screenshots array', () => {
+  test('does not render legacy user screenshot aliases as primary display input', () => {
     render(
       <MessageContent
         message={{
           sender: 'user',
           text: 'hello',
-          screenshots: [
-            { screenshotUrl: 'https://cdn.example/screenshot-a.png' },
-            { screenshot: 'inline-b', screenshotContentType: 'image/png' },
-          ],
+          screenshotUrl: 'https://cdn.example/screenshot-a.png',
+          screenshot: 'inline-b',
         }}
       />,
     );
 
-    const firstImage = screen.getByRole('img', { name: 'User message screenshot 1' });
-    const secondImage = screen.getByRole('img', { name: 'User message screenshot 2' });
-    expect(firstImage.getAttribute('src')).toBe('https://cdn.example/screenshot-a.png');
-    expect(secondImage.getAttribute('src')).toBe('data:image/png;base64,inline-b');
+    expect(screen.queryByRole('img', { name: 'User message attachment' })).toBeNull();
+    expect(screen.getByText('hello')).toBeInTheDocument();
   });
 
   test('renders authenticated artifact screenshots via IPC-backed data url resolution', async () => {
@@ -181,12 +186,19 @@ describe('MessageContent', () => {
         message={{
           sender: 'user',
           text: 'hello',
-          screenshotUrl: 'https://cdn.example/screenshot.png',
+          attachments: [{
+            id: 'attachment-1',
+            kind: 'image',
+            source: 'user_included',
+            status: 'materializing',
+            previewSrc: 'data:image/png;base64,inline-base64',
+            contentType: 'image/png',
+          }],
         }}
       />,
     );
 
-    const image = screen.getByRole('img', { name: 'User message screenshot' });
+    const image = screen.getByRole('img', { name: 'User message attachment' });
 
     await act(async () => {
       fireEvent.contextMenu(image);
@@ -195,7 +207,7 @@ describe('MessageContent', () => {
     await waitFor(() => {
       expect(IpcBridge.invoke).toHaveBeenCalledWith(
         INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU,
-        { src: 'https://cdn.example/screenshot.png' },
+        { src: 'data:image/png;base64,inline-base64' },
       );
     });
   });

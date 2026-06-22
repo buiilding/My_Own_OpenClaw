@@ -374,7 +374,7 @@ describe('useDashboardConversations', () => {
     expect(result.current.openingConversationRef).toBeNull();
   });
 
-  test('does not copy renderer screenshot annotations while opening text-only SDK display rows', async () => {
+  test('does not copy renderer attachment annotations while opening text-only SDK display rows', async () => {
     DesktopConversationLibraryClient.loadDisplayRows.mockResolvedValueOnce([
       {
         id: 'turn-1-sdk-evt-000002-user_message',
@@ -397,9 +397,12 @@ describe('useDashboardConversations', () => {
           sourceEventType: 'user_message',
           sourceChannel: 'sdk:conversation-event',
           attachmentFilenames: ['clipboard-image.png'],
-          screenshots: [{
-            screenshot: 'inline-optimistic-base64',
-            screenshotContentType: 'image/png',
+          attachments: [{
+            id: 'turn-1:attachment:000',
+            kind: 'image',
+            source: 'user_included',
+            status: 'materializing',
+            previewSrc: 'data:image/png;base64,inline-optimistic-base64',
           }],
         },
       ],
@@ -425,7 +428,7 @@ describe('useDashboardConversations', () => {
         text: 'Please review the attached files.',
       }),
     ], 'conv-open');
-    expect(setChatMessages.mock.calls[0][0][0]).not.toHaveProperty('screenshots');
+    expect(setChatMessages.mock.calls[0][0][0]).not.toHaveProperty('attachments');
     expect(setChatMessages.mock.calls[0][0][0]).not.toHaveProperty('attachmentFilenames');
   });
 

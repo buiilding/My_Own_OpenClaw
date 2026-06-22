@@ -154,7 +154,7 @@ describe('useChatMessageSender', () => {
   function expectOptimisticUserMessage(
     text: string,
     attachmentFilenames: string[] | null = null,
-    screenshots: unknown[] | null = null,
+    attachments: unknown[] | null = null,
   ) {
     expect(useChatStore.getState().messages).toEqual([
       expect.objectContaining({
@@ -166,7 +166,7 @@ describe('useChatMessageSender', () => {
         sourceChannel: 'renderer-local',
         isComplete: true,
         attachmentFilenames,
-        screenshots,
+        attachments,
       }),
     ]);
   }
@@ -504,8 +504,22 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expectOptimisticUserMessage('hello');
-    expect(useChatStore.getState().messages[0].screenshots ?? null).toBeNull();
+    expectOptimisticUserMessage('hello', null, [
+      expect.objectContaining({
+        id: 'msg-1:attachment:000',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'pending_capture',
+      }),
+    ]);
+    expect(useChatStore.getState().messages[0].attachments).toEqual([
+      expect.objectContaining({
+        id: 'msg-1:attachment:000',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'pending_capture',
+      }),
+    ]);
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
@@ -521,7 +535,14 @@ describe('useChatMessageSender', () => {
       reason: 'query_send_with_capture',
       required: false,
     }]);
-    expectOptimisticUserMessage('hello auto screenshot');
+    expectOptimisticUserMessage('hello auto screenshot', null, [
+      expect.objectContaining({
+        id: 'msg-1:attachment:000',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'pending_capture',
+      }),
+    ]);
   });
 
   test('sends pasted clipboard image as a SDK resource handle', async () => {
@@ -550,10 +571,13 @@ describe('useChatMessageSender', () => {
     });
     expectOptimisticUserMessage('Please inspect this image', ['clipboard-image.png'], [
       {
-        screenshot: 'clipboard-image-base64',
-        screenshotContentType: 'image/png',
-        screenshotRef: null,
-        screenshotUrl: null,
+        id: 'msg-1:attachment:000',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        filename: 'clipboard-image.png',
+        contentType: 'image/png',
+        previewSrc: 'data:image/png;base64,clipboard-image-base64',
       },
     ]);
   });
@@ -591,6 +615,20 @@ describe('useChatMessageSender', () => {
     ], {
       attachment_filenames: ['clipboard-image.png'],
     });
+    expectOptimisticUserMessage('Please inspect this image and screen', ['clipboard-image.png'], [
+      expect.objectContaining({
+        id: 'msg-1:attachment:000',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+      }),
+      expect.objectContaining({
+        id: 'msg-1:attachment:001',
+        kind: 'screenshot_request',
+        source: 'camera_button',
+        status: 'pending_capture',
+      }),
+    ]);
   });
 
   test('sends multiple pasted clipboard images as SDK resource handles', async () => {
@@ -637,16 +675,22 @@ describe('useChatMessageSender', () => {
       ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
       [
         {
-          screenshot: 'clipboard-image-base64-1',
-          screenshotContentType: 'image/png',
-          screenshotRef: null,
-          screenshotUrl: null,
+          id: 'msg-1:attachment:000',
+          kind: 'image',
+          source: 'user_included',
+          status: 'materializing',
+          filename: 'clipboard-image-1.png',
+          contentType: 'image/png',
+          previewSrc: 'data:image/png;base64,clipboard-image-base64-1',
         },
         {
-          screenshot: 'clipboard-image-base64-2',
-          screenshotContentType: 'image/jpeg',
-          screenshotRef: null,
-          screenshotUrl: null,
+          id: 'msg-1:attachment:001',
+          kind: 'image',
+          source: 'user_included',
+          status: 'materializing',
+          filename: 'clipboard-image-2.jpg',
+          contentType: 'image/jpeg',
+          previewSrc: 'data:image/jpeg;base64,clipboard-image-base64-2',
         },
       ],
     );

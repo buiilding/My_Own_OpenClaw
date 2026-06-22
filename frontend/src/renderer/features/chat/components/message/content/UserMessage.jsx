@@ -2,12 +2,7 @@
  * Provides the user message module for the renderer UI.
  */
 
-import { useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { DesktopArtifactRuntimeClient } from '../../../../../app/runtime/desktopArtifactRuntimeClient';
-import {
-  DesktopResolvedMessageScreenshotsRuntime,
-} from '../../../../../app/runtime/desktopResolvedMessageScreenshotsRuntime';
 import AttachmentList from './AttachmentList';
 import MarkdownMessage from './MarkdownMessage';
 
@@ -17,7 +12,6 @@ export default function UserMessage({
   findMatchIndexes = [],
   activeFindMatchIndex = null,
 }) {
-  const screenshotSources = DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList(message);
   const displayAttachments = Array.isArray(message.attachments)
     ? message.attachments
     : [];
@@ -25,17 +19,6 @@ export default function UserMessage({
   const attachmentFilenames = Array.isArray(message.attachmentFilenames)
     ? message.attachmentFilenames.filter((filename) => typeof filename === 'string' && filename.length > 0)
     : [];
-
-  const handleScreenshotContextMenu = useCallback((event, screenshotSrc) => {
-    if (typeof screenshotSrc !== 'string' || screenshotSrc.trim().length === 0) {
-      return;
-    }
-
-    event.preventDefault();
-    void DesktopArtifactRuntimeClient.showImageContextMenu({
-      src: screenshotSrc,
-    });
-  }, []);
 
   return (
     <div className="user-message-container">
@@ -50,23 +33,6 @@ export default function UserMessage({
       ) : null}
       {hasDisplayAttachments ? (
         <AttachmentList attachments={displayAttachments} />
-      ) : null}
-      {!hasDisplayAttachments && screenshotSources.length > 0 ? (
-        <div className="user-screenshot-gallery">
-          {screenshotSources.map((screenshotSrc, index) => (
-            <div className="user-screenshot-container" key={`${screenshotSrc}-${index}`}>
-              <div className="user-screenshot-frame">
-                <img
-                  src={screenshotSrc}
-                  alt={screenshotSources.length > 1 ? `User message screenshot ${index + 1}` : 'User message screenshot'}
-                  className="user-screenshot-image"
-                  loading="lazy"
-                  onContextMenu={(event) => handleScreenshotContextMenu(event, screenshotSrc)}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
       ) : null}
       <MarkdownMessage
         text={message.text}
@@ -88,15 +54,6 @@ UserMessage.propTypes = {
       kind: PropTypes.oneOf(['image', 'screenshot_request']).isRequired,
       source: PropTypes.oneOf(['user_included', 'camera_button', 'tool_result', 'replay']).isRequired,
       status: PropTypes.oneOf(['materializing', 'pending_capture', 'ready', 'failed']).isRequired,
-    })),
-    screenshot: PropTypes.string,
-    screenshotUrl: PropTypes.string,
-    screenshotContentType: PropTypes.string,
-    screenshots: PropTypes.arrayOf(PropTypes.shape({
-      screenshot: PropTypes.string,
-      screenshotRef: PropTypes.string,
-      screenshotUrl: PropTypes.string,
-      screenshotContentType: PropTypes.string,
     })),
   }).isRequired,
   findQuery: PropTypes.string,

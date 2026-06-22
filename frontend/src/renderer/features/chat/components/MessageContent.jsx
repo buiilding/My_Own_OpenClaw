@@ -71,7 +71,7 @@ export default function MessageContent({
     return <ToolActionsSummaryMessage message={message} />;
   }
 
-  if (DesktopMessageContentRuntime.isUserScreenshotMessageContentPresentation(contentPresentation)) {
+  if (DesktopMessageContentRuntime.isUserAttachmentMessageContentPresentation(contentPresentation)) {
     return (
       <UserMessage
         message={message}
@@ -121,6 +121,12 @@ MessageContent.propTypes = {
     screenshot: PropTypes.string,
     screenshotUrl: PropTypes.string,
     screenshotContentType: PropTypes.string,
+    attachments: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      kind: PropTypes.oneOf(['image', 'screenshot_request']).isRequired,
+      source: PropTypes.oneOf(['user_included', 'camera_button', 'tool_result', 'replay']).isRequired,
+      status: PropTypes.oneOf(['materializing', 'pending_capture', 'ready', 'failed']).isRequired,
+    })),
     modelFacingToolCall: PropTypes.object,
     toolCallDisplayText: PropTypes.string,
     modelFacingToolOutput: PropTypes.string,

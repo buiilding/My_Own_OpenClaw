@@ -124,18 +124,10 @@ function displayAttachmentsFromPayload(payload: Record<string, unknown>): SdkDis
   });
 }
 
-function screenshotFieldsFromDisplayAttachments(
-  attachments: SdkDisplayAttachment[],
-): Partial<ChatMessage> {
-  const imageAttachments = attachments.flatMap((attachment) => {
+function screenshotFieldsFromDisplayAttachments(attachments: SdkDisplayAttachment[]): Partial<ChatMessage> {
+  const screenshotAttachments = attachments.flatMap((attachment) => {
     if (attachment.kind !== 'image') {
       return [];
-    }
-    if (attachment.status === 'materializing' && attachment.previewSrc) {
-      return [{
-        screenshot: attachment.previewSrc,
-        screenshotContentType: attachment.contentType ?? null,
-      }];
     }
     if (attachment.status === 'ready' && (attachment.screenshotRef || attachment.screenshotUrl)) {
       return [{
@@ -146,32 +138,22 @@ function screenshotFieldsFromDisplayAttachments(
     }
     return [];
   });
-  if (imageAttachments.length === 0) {
-    return {
-      attachments,
-    };
+  if (screenshotAttachments.length === 0) {
+    return {};
   }
-  const first = imageAttachments[0];
+  const first = screenshotAttachments[0];
   return {
-    attachments,
-    screenshots: imageAttachments,
-    ...(first.screenshot ? { screenshot: first.screenshot } : {}),
+    screenshots: screenshotAttachments,
     ...(first.screenshotRef ? { screenshotRef: first.screenshotRef } : {}),
     ...(first.screenshotUrl ? { screenshotUrl: first.screenshotUrl } : {}),
     ...(first.screenshotContentType ? { screenshotContentType: first.screenshotContentType } : {}),
   };
 }
 
-function screenshotFieldsFromPayload(
-  payload: Record<string, unknown>,
-  options: { allowLegacyFallback?: boolean } = {},
-): Partial<ChatMessage> {
+function screenshotFieldsFromPayload(payload: Record<string, unknown>): Partial<ChatMessage> {
   const attachments = displayAttachmentsFromPayload(payload);
   if (attachments.length > 0) {
     return screenshotFieldsFromDisplayAttachments(attachments);
-  }
-  if (options.allowLegacyFallback === false) {
-    return {};
   }
   const screenshotRef = stringField(payload, 'screenshotRef', 'screenshot_ref');
   const screenshotUrl = stringField(payload, 'screenshotUrl', 'screenshot_url');
@@ -204,13 +186,14 @@ function recordFromPayloadValue(value: unknown): Record<string, unknown> | null 
 
 function buildUserChatMessage(message: DisplayMessage): ChatMessage {
   const payload = recordPayload(message);
+  const attachments = displayAttachmentsFromPayload(payload);
   return {
     id: message.id,
     text: message.text,
     sender: 'user',
     timestamp: message.timestamp,
     isComplete: true,
-    ...screenshotFieldsFromPayload(payload, { allowLegacyFallback: false }),
+    ...(attachments.length > 0 ? { attachments } : {}),
   };
 }
 

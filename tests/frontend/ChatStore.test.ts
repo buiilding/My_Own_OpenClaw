@@ -269,9 +269,14 @@ describe('chatStore', () => {
       text: 'start now',
       timestamp: '2026-06-16T00:00:00.000Z',
       attachmentFilenames: ['note.txt'],
-      screenshots: [{
-        screenshot: 'inline-image-base64',
-        screenshotContentType: 'image/png',
+      attachments: [{
+        id: 'turn-pending:attachment:000',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        filename: 'note.txt',
+        contentType: 'image/png',
+        previewSrc: 'data:image/png;base64,inline-image-base64',
       }],
     });
 
@@ -293,11 +298,14 @@ describe('chatStore', () => {
         sourceEventType: 'renderer-compose',
         sourceChannel: 'renderer-local',
         attachmentFilenames: ['note.txt'],
-        screenshots: [{
-          screenshot: 'inline-image-base64',
-          screenshotContentType: 'image/png',
-          screenshotRef: null,
-          screenshotUrl: null,
+        attachments: [{
+          id: 'turn-pending:attachment:000',
+          kind: 'image',
+          source: 'user_included',
+          status: 'materializing',
+          filename: 'note.txt',
+          contentType: 'image/png',
+          previewSrc: 'data:image/png;base64,inline-image-base64',
         }],
       }),
     ]);
@@ -313,9 +321,13 @@ describe('chatStore', () => {
         text: 'replay this',
         timestamp: '2026-06-16T00:00:00.000Z',
         attachmentFilenames: null,
-        screenshots: [{
-          screenshot: 'broadcast-image-base64',
-          screenshotContentType: 'image/jpeg',
+        attachments: [{
+          id: 'turn-replay:attachment:000',
+          kind: 'image',
+          source: 'user_included',
+          status: 'materializing',
+          contentType: 'image/jpeg',
+          previewSrc: 'data:image/jpeg;base64,broadcast-image-base64',
         }],
       },
     });
@@ -330,11 +342,13 @@ describe('chatStore', () => {
         sender: 'user',
         text: 'replay this',
         turnRef: 'turn-replay',
-        screenshots: [{
-          screenshot: 'broadcast-image-base64',
-          screenshotContentType: 'image/jpeg',
-          screenshotRef: null,
-          screenshotUrl: null,
+        attachments: [{
+          id: 'turn-replay:attachment:000',
+          kind: 'image',
+          source: 'user_included',
+          status: 'materializing',
+          contentType: 'image/jpeg',
+          previewSrc: 'data:image/jpeg;base64,broadcast-image-base64',
         }],
       }),
     ]);

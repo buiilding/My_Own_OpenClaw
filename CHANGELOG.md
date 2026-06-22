@@ -11,6 +11,10 @@ All notable changes to WindieOS will be documented in this file.
   artifact replacement, sanitized display diagnostics, and the renderer
   `AttachmentList`/`AttachmentRendererRegistry` presentation path. No migration
   required.
+- frontend/sdk: remove renderer user-message screenshot alias fallback as a
+  primary display input; optimistic and SDK-projected user visuals now render
+  through ordered `attachments[]`, with legacy screenshot metadata adapted only
+  in the SDK/local replay compatibility path. No migration required.
 - docs/debug: add a central invariants ledger that routes durable product,
   runtime, tool, and extension invariants to owner docs and regression packs,
   while keeping `AGENTS.md` as a compact orientation pointer. No migration

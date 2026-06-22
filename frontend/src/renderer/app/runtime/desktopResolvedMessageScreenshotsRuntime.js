@@ -187,7 +187,50 @@ function useResolvedMessageScreenshotSrc(message) {
   return useResolvedMessageScreenshotSrcList(message)[0] || null;
 }
 
+function useResolvedArtifactImageSrc(attachment) {
+  const normalizedAttachment = useMemo(() => ({
+    screenshotRef: attachment?.screenshotRef ?? null,
+    screenshotUrl: attachment?.screenshotUrl ?? null,
+    screenshotContentType: attachment?.contentType ?? attachment?.screenshotContentType ?? null,
+  }), [attachment]);
+  const [resolvedSrc, setResolvedSrc] = useState(
+    resolveStaticScreenshotAttachmentSrc(normalizedAttachment)
+    || cachedArtifactAttachmentSrc(normalizedAttachment)
+    || null,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    const staticSrc = resolveStaticScreenshotAttachmentSrc(normalizedAttachment);
+    if (staticSrc) {
+      setResolvedSrc(staticSrc);
+      return () => {
+        cancelled = true;
+      };
+    }
+    const cachedSrc = cachedArtifactAttachmentSrc(normalizedAttachment);
+    if (cachedSrc) {
+      setResolvedSrc(cachedSrc);
+      return () => {
+        cancelled = true;
+      };
+    }
+    setResolvedSrc(null);
+    void resolveArtifactAttachmentSrc(normalizedAttachment).then((src) => {
+      if (!cancelled) {
+        setResolvedSrc(src);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [normalizedAttachment]);
+
+  return resolvedSrc;
+}
+
 export const DesktopResolvedMessageScreenshotsRuntime = Object.freeze({
+  useResolvedArtifactImageSrc,
   useResolvedMessageScreenshotSrc,
   useResolvedMessageScreenshotSrcList,
 });

@@ -140,18 +140,14 @@ describe('sdkDisplayChatMessageProjection', () => {
             source: 'replay',
           }),
         ],
-        screenshotRef: 'artifact-user-1',
-        screenshots: [
-          expect.objectContaining({
-            screenshotRef: 'artifact-user-1',
-          }),
-        ],
       }),
     ]);
     expect(messages[0]).not.toHaveProperty('screenshot');
+    expect(messages[0]).not.toHaveProperty('screenshotRef');
+    expect(messages[0]).not.toHaveProperty('screenshots');
   });
 
-  test('projects multi-image SDK replay attachments into renderer screenshot attachments', () => {
+  test('projects multi-image SDK replay attachments into renderer attachments', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {
         id: 'msg-user-multi-shot',
@@ -185,7 +181,7 @@ describe('sdkDisplayChatMessageProjection', () => {
       expect.objectContaining({
         id: 'msg-user-multi-shot',
         sender: 'user',
-        screenshots: [
+        attachments: [
           expect.objectContaining({
             screenshotRef: 'artifact-user-1',
           }),
@@ -238,19 +234,23 @@ describe('sdkDisplayChatMessageProjection', () => {
           expect.objectContaining({ id: 'turn-1:attachment:000' }),
           expect.objectContaining({ id: 'turn-1:attachment:001' }),
         ],
-        screenshot: 'data:image/png;base64,first',
-        screenshots: [
-          expect.objectContaining({
-            screenshot: 'data:image/png;base64,first',
-            screenshotContentType: 'image/png',
-          }),
-          expect.objectContaining({
-            screenshotRef: 'artifact-second',
-            screenshotUrl: '/api/artifacts/artifact-second',
-          }),
-        ],
       }),
     ]);
+    const [message] = buildChatMessagesFromSdkDisplayRows([{
+      id: 'msg-user-legacy-only',
+      conversationRef: 'conv-attachments',
+      index: 0,
+      role: 'user',
+      type: 'user_message',
+      content: 'legacy aliases only',
+      metadata: {
+        revisionId: 'rev-1',
+        timestamp: '2026-06-22T12:00:00.000Z',
+        screenshotRef: 'legacy-artifact',
+      },
+    }]);
+    expect(message).not.toHaveProperty('screenshotRef');
+    expect(message).not.toHaveProperty('screenshots');
   });
 
   test('keeps pending screenshot request descriptors without fabricating image state', () => {
@@ -324,8 +324,7 @@ describe('sdkDisplayChatMessageProjection', () => {
       expect.objectContaining({
         id: 'msg-user-snake-shot',
         sender: 'user',
-        screenshotRef: 'artifact-user-1',
-        screenshots: [
+        attachments: [
           expect.objectContaining({
             screenshotRef: 'artifact-user-1',
             screenshotUrl: '/api/artifacts/artifact-user-1',
@@ -338,7 +337,7 @@ describe('sdkDisplayChatMessageProjection', () => {
     ]);
   });
 
-  test('projects live SDK row ready attachments into renderer screenshot attachments', () => {
+  test('projects live SDK row ready attachments into renderer attachments', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {
         id: 'row-user-multi-shot',
@@ -374,7 +373,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         id: 'row-user-multi-shot',
         sender: 'user',
         text: 'look at both',
-        screenshots: [
+        attachments: [
           expect.objectContaining({
             screenshotRef: 'artifact-user-1',
           }),

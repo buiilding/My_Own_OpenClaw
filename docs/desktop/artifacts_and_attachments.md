@@ -46,17 +46,23 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
   materializer after main validates and reads the file bytes.
 - Keep raw local screenshot temp-path validation and cleanup in Electron main;
   SDK query resolution does not trust or read `screenshot_path` values directly.
-- Renderer display rows treat `screenshot` as inline image data only; remote
-  artifact images must carry explicit `screenshotRef`/`screenshotUrl` metadata
-  or `screenshot_refs`.
+- Renderer user-message display rows consume SDK-owned `attachments[]` as the
+  visual attachment contract. They do not infer primary user visuals from
+  legacy `screenshot`, `screenshotRef`, `screenshotUrl`, or `screenshot_refs`
+  fields.
+- Tool-result and backend/provider payload compatibility may still carry
+  `screenshot_ref` or `screenshot_refs` until those durable contracts emit
+  ordered `attachments[]`/`display_attachments` directly.
 - Do not make app startup import upload IPC just to construct display image URLs.
 - Hosted artifact uploads must include install auth headers when available.
 
 ## Migration
 
 No user-data migration is required for SDK-owned live `attachments[]`
-projection. Existing conversations can continue replaying through legacy
-screenshot metadata while new live rows expose ordered attachment descriptors.
+projection. Existing conversations replay through the SDK/local replay adapter
+that converts legacy screenshot metadata into ordered attachment descriptors;
+delete that adapter after persisted rows and tool-result artifact payloads emit
+ordered `attachments[]`/`display_attachments` directly.
 
 ## Deep Docs
 

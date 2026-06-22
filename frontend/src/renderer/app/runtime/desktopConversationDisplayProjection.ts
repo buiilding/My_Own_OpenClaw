@@ -20,12 +20,6 @@ function recordFromUnknown(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function stringArrayFromUnknown(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
-    : [];
-}
-
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.trim()
     ? turnRef.trim()
@@ -126,18 +120,7 @@ function countMessageImages(message: ChatMessage): number {
       )
     )).length;
   }
-  if (Array.isArray(message.screenshots) && message.screenshots.length > 0) {
-    return message.screenshots.filter((attachment) => (
-      Boolean(attachment?.screenshot)
-      || Boolean(attachment?.screenshotRef)
-      || Boolean(attachment?.screenshotUrl)
-    )).length;
-  }
-  return (
-    message.screenshot
-    || message.screenshotRef
-    || message.screenshotUrl
-  ) ? 1 : 0;
+  return 0;
 }
 
 function countSdkRowImages(row: unknown): number {
@@ -157,15 +140,7 @@ function countSdkRowImages(row: unknown): number {
         );
     }).length;
   }
-  const screenshotRefs = stringArrayFromUnknown(metadata.screenshotRefs);
-  if (screenshotRefs.length > 0) {
-    return screenshotRefs.length;
-  }
-  return (
-    metadata.screenshot
-    || metadata.screenshotRef
-    || metadata.screenshotUrl
-  ) ? 1 : 0;
+  return 0;
 }
 
 function summarizeSdkRowAttachments(rows: unknown[]): Record<string, unknown> {

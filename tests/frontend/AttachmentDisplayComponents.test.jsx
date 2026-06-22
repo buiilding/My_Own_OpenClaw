@@ -13,8 +13,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient'
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime', () => ({
   DesktopResolvedMessageScreenshotsRuntime: {
-    useResolvedMessageScreenshotSrc: (message) => {
-      const ref = message?.screenshots?.[0]?.screenshotRef;
+    useResolvedArtifactImageSrc: (attachment) => {
+      const ref = attachment?.screenshotRef;
       return ref ? `resolved://${ref}` : null;
     },
   },
@@ -88,4 +88,3 @@ describe('AttachmentList', () => {
     expect(screen.queryByText('Attachment unavailable')).not.toBeInTheDocument();
   });
 });
-

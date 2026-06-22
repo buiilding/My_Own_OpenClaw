@@ -78,7 +78,7 @@ export interface PendingTurn {
   text: string;
   timestamp: string;
   attachmentFilenames: string[] | null;
-  screenshots?: ChatMessage['screenshots'];
+  attachments?: ChatMessage['attachments'];
 }
 
 interface ResponseOverlayDismissalInput {
@@ -266,7 +266,7 @@ function buildPendingTurnUserMessage(pendingTurn: PendingTurn): ChatMessage {
     isComplete: true,
     timestamp: pendingTurn.timestamp,
     attachmentFilenames: pendingTurn.attachmentFilenames,
-    screenshots: pendingTurn.screenshots ?? null,
+    attachments: pendingTurn.attachments ?? null,
   };
 }
 
@@ -310,27 +310,7 @@ function normalizePendingTurn(value: unknown): PendingTurn | null {
       typeof entry === 'string' && entry.trim().length > 0
     ))
     : null;
-  const screenshots = Array.isArray(source.screenshots)
-    ? source.screenshots
-      .filter((entry): entry is Record<string, unknown> => (
-        Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry)
-      ))
-      .map((entry) => ({
-        screenshot: typeof entry.screenshot === 'string' && entry.screenshot.length > 0
-          ? entry.screenshot
-          : null,
-        screenshotRef: typeof entry.screenshotRef === 'string' && entry.screenshotRef.trim()
-          ? entry.screenshotRef.trim()
-          : null,
-        screenshotUrl: typeof entry.screenshotUrl === 'string' && entry.screenshotUrl.trim()
-          ? entry.screenshotUrl.trim()
-          : null,
-        screenshotContentType: typeof entry.screenshotContentType === 'string' && entry.screenshotContentType.trim()
-          ? entry.screenshotContentType.trim()
-          : null,
-      }))
-      .filter((entry) => Boolean(entry.screenshot || entry.screenshotRef || entry.screenshotUrl))
-    : null;
+  const attachments = normalizePendingTurnAttachments(source.attachments);
   return {
     conversationRef,
     turnRef,
@@ -340,8 +320,58 @@ function normalizePendingTurn(value: unknown): PendingTurn | null {
     attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
       ? attachmentFilenames
       : null,
-    screenshots: screenshots && screenshots.length > 0 ? screenshots : null,
+    attachments,
   };
+}
+
+function normalizeAttachmentString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim()
+    ? value.trim()
+    : null;
+}
+
+function normalizePendingTurnAttachments(value: unknown): ChatMessage['attachments'] {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const attachments = value
+    .filter((entry): entry is Record<string, unknown> => (
+      Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry)
+    ))
+    .flatMap((entry) => {
+      const id = normalizeAttachmentString(entry.id);
+      const kind = entry.kind === 'image' || entry.kind === 'screenshot_request'
+        ? entry.kind
+        : null;
+      const source = (
+        entry.source === 'user_included'
+        || entry.source === 'camera_button'
+        || entry.source === 'tool_result'
+        || entry.source === 'replay'
+      ) ? entry.source : null;
+      const status = (
+        entry.status === 'materializing'
+        || entry.status === 'pending_capture'
+        || entry.status === 'ready'
+        || entry.status === 'failed'
+      ) ? entry.status : null;
+      if (!id || !kind || !source || !status) {
+        return [];
+      }
+      return [{
+        id,
+        kind,
+        source,
+        status,
+        ...(normalizeAttachmentString(entry.filename) ? { filename: normalizeAttachmentString(entry.filename) } : {}),
+        ...(normalizeAttachmentString(entry.contentType) ? { contentType: normalizeAttachmentString(entry.contentType) } : {}),
+        ...(normalizeAttachmentString(entry.previewSrc) ? { previewSrc: normalizeAttachmentString(entry.previewSrc) } : {}),
+        ...(normalizeAttachmentString(entry.screenshotRef) ? { screenshotRef: normalizeAttachmentString(entry.screenshotRef) } : {}),
+        ...(normalizeAttachmentString(entry.screenshotUrl) ? { screenshotUrl: normalizeAttachmentString(entry.screenshotUrl) } : {}),
+        ...(normalizeAttachmentString(entry.errorCode) ? { errorCode: normalizeAttachmentString(entry.errorCode) } : {}),
+      }];
+    });
+  return attachments.length > 0 ? attachments : null;
 }
 
 function doesCurrentTurnProjectionMatch(

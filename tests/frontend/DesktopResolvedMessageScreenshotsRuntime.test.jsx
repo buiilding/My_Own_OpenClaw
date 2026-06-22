@@ -47,44 +47,29 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
     DesktopArtifactRuntimeClient.fetchArtifactImage.mockReset();
   });
 
-  test('keeps same-turn inline screenshot source visible while artifact source resolves', async () => {
+  test('resolves artifact image attachments through the artifact runtime', async () => {
     const artifactFetch = createDeferred();
     DesktopArtifactRuntimeClient.fetchArtifactImage.mockReturnValueOnce(artifactFetch.promise);
-    const inlineMessage = {
-      id: 'turn-1-sdk-evt-000002-user_message',
-      turnRef: 'turn-1',
-      sender: 'user',
-      text: 'hello my name is peter',
-      screenshots: [{
-        screenshot: 'inline-optimistic-base64',
-        screenshotContentType: 'image/png',
-      }],
-    };
-    const artifactMessage = {
-      ...inlineMessage,
-      screenshots: [{
-        screenshotRef: 'artifact-screen-1',
-      }],
-    };
 
     const { result, rerender } = renderHook(
-      ({ message }) => (
-        DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList(message)
+      ({ attachment }) => (
+        DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc(attachment)
       ),
-      { initialProps: { message: inlineMessage } },
+      {
+        initialProps: {
+          attachment: {
+            id: 'attachment-1',
+            screenshotRef: 'artifact-screen-1',
+          },
+        },
+      },
     );
-
-    expect(result.current).toEqual(['data:image/png;base64,inline-optimistic-base64']);
-
-    act(() => {
-      rerender({ message: artifactMessage });
-    });
 
     expect(DesktopArtifactRuntimeClient.fetchArtifactImage).toHaveBeenCalledWith({
       artifactId: 'artifact-screen-1',
-      url: 'http://runtime.test/api/artifacts/artifact-screen-1',
+      url: null,
     });
-    expect(result.current).toEqual(['data:image/png;base64,inline-optimistic-base64']);
+    expect(result.current).toBeNull();
 
     await act(async () => {
       artifactFetch.resolve({
@@ -95,94 +80,30 @@ describe('DesktopResolvedMessageScreenshotsRuntime', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(['data:image/png;base64,artifact-backed-base64']);
+      expect(result.current).toBe('data:image/png;base64,artifact-backed-base64');
     });
-  });
-
-  test('clears stale inline source when an artifact-only screenshot belongs to a different message', () => {
-    const artifactFetch = createDeferred();
-    DesktopArtifactRuntimeClient.fetchArtifactImage.mockReturnValueOnce(artifactFetch.promise);
-    const inlineMessage = {
-      id: 'turn-1-sdk-evt-000002-user_message',
-      turnRef: 'turn-1',
-      sender: 'user',
-      text: 'first',
-      screenshots: [{
-        screenshot: 'inline-first-base64',
-        screenshotContentType: 'image/png',
-      }],
-    };
-    const nextArtifactMessage = {
-      id: 'turn-2-sdk-evt-000002-user_message',
-      turnRef: 'turn-2',
-      sender: 'user',
-      text: 'second',
-      screenshots: [{
-        screenshotRef: 'artifact-screen-2',
-      }],
-    };
-
-    const { result, rerender } = renderHook(
-      ({ message }) => (
-        DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList(message)
-      ),
-      { initialProps: { message: inlineMessage } },
-    );
-
-    expect(result.current).toEqual(['data:image/png;base64,inline-first-base64']);
 
     act(() => {
-      rerender({ message: nextArtifactMessage });
+      rerender({
+        attachment: {
+          id: 'attachment-1',
+          screenshotRef: 'artifact-screen-1',
+        },
+      });
     });
 
-    expect(result.current).toEqual([]);
+    expect(result.current).toBe('data:image/png;base64,artifact-backed-base64');
   });
 
-  test('keeps cached same-turn inline source after artifact-only message remounts', () => {
-    const artifactFetch = createDeferred();
-    DesktopArtifactRuntimeClient.fetchArtifactImage.mockReturnValueOnce(artifactFetch.promise);
-    const inlineMessage = {
-      id: 'turn-remount-sdk-evt-000002-user_message',
-      turnRef: 'turn-remount',
-      sender: 'user',
-      text: 'same turn before remount',
-      screenshots: [{
-        screenshot: 'inline-remount-base64',
-        screenshotContentType: 'image/png',
-      }],
-    };
-    const artifactMessage = {
-      id: 'turn-remount-sdk-evt-000002-user_message',
-      turnRef: 'turn-remount',
-      sender: 'user',
-      text: 'same turn after remount',
-      screenshots: [{
-        screenshotRef: 'artifact-screen-remount',
-      }],
-    };
-
-    const inlineHook = renderHook(
-      ({ message }) => (
-        DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList(message)
-      ),
-      { initialProps: { message: inlineMessage } },
+  test('returns static non-artifact attachment urls without fetching', () => {
+    const { result } = renderHook(
+      () => DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc({
+        id: 'attachment-static',
+        screenshotUrl: 'https://cdn.example/static.png',
+      }),
     );
 
-    expect(inlineHook.result.current).toEqual(['data:image/png;base64,inline-remount-base64']);
-
-    inlineHook.unmount();
-
-    const artifactHook = renderHook(
-      ({ message }) => (
-        DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList(message)
-      ),
-      { initialProps: { message: artifactMessage } },
-    );
-
-    expect(DesktopArtifactRuntimeClient.fetchArtifactImage).toHaveBeenCalledWith({
-      artifactId: 'artifact-screen-remount',
-      url: 'http://runtime.test/api/artifacts/artifact-screen-remount',
-    });
-    expect(artifactHook.result.current).toEqual(['data:image/png;base64,inline-remount-base64']);
+    expect(result.current).toBe('https://cdn.example/static.png');
+    expect(DesktopArtifactRuntimeClient.fetchArtifactImage).not.toHaveBeenCalled();
   });
 });

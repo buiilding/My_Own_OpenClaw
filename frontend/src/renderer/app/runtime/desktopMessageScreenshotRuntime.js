@@ -77,13 +77,8 @@ function hasMessageScreenshot(message) {
   return resolveMessageScreenshotAttachments(message).length > 0;
 }
 
-function isUserMessageWithScreenshot(message) {
-  return message?.sender === 'user' && hasMessageScreenshot(message);
-}
-
 export const DesktopMessageScreenshotRuntime = Object.freeze({
   hasMessageScreenshot,
-  isUserMessageWithScreenshot,
   resolveMessageScreenshotAttachments,
   resolveStaticScreenshotAttachmentSrc,
 });

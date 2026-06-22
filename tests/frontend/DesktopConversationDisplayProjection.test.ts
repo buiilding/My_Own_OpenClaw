@@ -171,9 +171,12 @@ describe('desktopConversationDisplayProjection', () => {
       sourceEventType: 'renderer-compose',
       sourceChannel: 'renderer-local',
       attachmentFilenames: ['clipboard-image.png'],
-      screenshots: [{
-        screenshot: 'inline-optimistic-base64',
-        screenshotContentType: 'image/png',
+      attachments: [{
+        id: 'turn-1:attachment:000',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,inline-optimistic-base64',
       }],
       isComplete: true,
     });
@@ -257,7 +260,7 @@ describe('desktopConversationDisplayProjection', () => {
     }));
   });
 
-  test('summarizes display projection image counts without exposing content', () => {
+  test('summarizes display projection attachment image counts without exposing content', () => {
     const optimisticUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',
       sender: 'user',
@@ -272,8 +275,12 @@ describe('desktopConversationDisplayProjection', () => {
       sender: 'user',
       text: 'inspect recent commits',
       turnRef: 'turn-1',
-      screenshots: [
+      attachments: [
         {
+          id: 'turn-1:attachment:000',
+          kind: 'image',
+          source: 'replay',
+          status: 'ready',
           screenshotRef: 'artifact-1',
           screenshotUrl: '/api/artifacts/artifact-1',
         },
@@ -287,7 +294,7 @@ describe('desktopConversationDisplayProjection', () => {
         role: 'user',
         type: 'user_message',
         metadata: {
-          screenshotRefs: ['artifact-1'],
+          attachments: sdkUser.attachments,
         },
       }],
       sdkMessages: [sdkUser],
@@ -298,6 +305,32 @@ describe('desktopConversationDisplayProjection', () => {
       sdkUserImageCount: 1,
       sdkProjectedUserImageCount: 1,
       mergedUserImageCount: 1,
+    }));
+  });
+
+  test('does not count legacy screenshot aliases as SDK-owned user attachment coverage', () => {
+    expect(buildDisplayProjectionTraceSummary({
+      rows: [{
+        id: 'turn-1-sdk-evt-000002-user_message',
+        role: 'user',
+        type: 'user_message',
+        metadata: {
+          screenshotRefs: ['artifact-1'],
+        },
+      }],
+      sdkMessages: [message({
+        id: 'turn-1-sdk-evt-000002-user_message',
+        sender: 'user',
+        text: 'legacy alias only',
+        turnRef: 'turn-1',
+        screenshotRef: 'artifact-1',
+      })],
+      currentMessages: [],
+      mergedMessages: [],
+    })).toEqual(expect.objectContaining({
+      sdkUserImageCount: 0,
+      sdkProjectedUserImageCount: 0,
+      mergedUserImageCount: 0,
     }));
   });
 });

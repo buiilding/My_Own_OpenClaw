@@ -4,6 +4,7 @@
 
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_SEND_CHANNELS } from '../../infrastructure/ipc/channels';
+import type { ChatMessage } from './desktopChatMessageTypes';
 
 export type DesktopPendingTurn = {
   conversationRef: string | null;
@@ -12,12 +13,7 @@ export type DesktopPendingTurn = {
   text?: string | null;
   timestamp?: string | null;
   attachmentFilenames?: string[] | null;
-  screenshots?: Array<{
-    screenshot?: string | null;
-    screenshotRef?: string | null;
-    screenshotUrl?: string | null;
-    screenshotContentType?: string | null;
-  }> | null;
+  attachments?: ChatMessage['attachments'];
 };
 
 export type DesktopPendingTurnClearInput = {

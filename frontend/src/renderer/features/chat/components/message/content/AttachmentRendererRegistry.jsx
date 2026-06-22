@@ -10,16 +10,7 @@ import {
 } from '../../../../../app/runtime/desktopResolvedMessageScreenshotsRuntime';
 
 function ImageAttachment({ attachment }) {
-  const resolvedArtifactSrc = DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrc({
-    id: attachment.id,
-    sender: 'user',
-    text: '',
-    screenshots: [{
-      screenshotRef: attachment.screenshotRef ?? null,
-      screenshotUrl: attachment.screenshotUrl ?? null,
-      screenshotContentType: attachment.contentType ?? null,
-    }],
-  });
+  const resolvedArtifactSrc = DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc(attachment);
   const src = attachment.status === 'materializing'
     ? attachment.previewSrc
     : resolvedArtifactSrc;
@@ -118,4 +109,3 @@ AttachmentRendererRegistry.propTypes = {
   attachment: attachmentShape.isRequired,
   surface: PropTypes.string,
 };
-

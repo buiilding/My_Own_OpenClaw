@@ -98,7 +98,7 @@ The runtime owns row classification for:
 - tool call/output rows
 - tool explanation and search-source rows
 - tool action summaries
-- user rows with screenshots
+- user rows with SDK display attachments
 - assistant LLM-text rows, including whether visible assistant text should render below thinking
 - generic markdown fallback rows
 
@@ -110,7 +110,7 @@ keeps raw render-kind constants out of the component; callers should use
 `DesktopMessageContentRuntime.isToolCallMessageContentPresentation(...)`,
 `DesktopMessageContentRuntime.isToolExplanationMessageContentPresentation(...)`,
 `DesktopMessageContentRuntime.isToolActionsSummaryMessageContentPresentation(...)`,
-`DesktopMessageContentRuntime.isUserScreenshotMessageContentPresentation(...)`,
+`DesktopMessageContentRuntime.isUserAttachmentMessageContentPresentation(...)`,
 and `DesktopMessageContentRuntime.isAssistantResponseMessageContentPresentation(...)`
 instead.
 
@@ -124,9 +124,11 @@ instead.
 - `message-type-${type}` for typed rows (`tool-call`, `tool-output`, `error`, etc.)
 - `message-has-screenshot` when screenshot attachment fields resolve true
 
-Screenshot presence for row classes and user-message routing is resolved through
+Screenshot presence for row classes is resolved through
 `DesktopMessageScreenshotRuntime` in
-`frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`.
+`frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`; user-message
+visual routing uses SDK-owned `attachments[]` through
+`DesktopMessageContentRuntime.isUserAttachmentMessageContentPresentation(...)`.
 The React-only async artifact image fetch/cache hook remains in
 `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`.
 

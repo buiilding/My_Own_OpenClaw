@@ -326,6 +326,9 @@ function legacyScreenshotDisplayAttachments(
   screenshotUrl: string | null,
   contentType: string | null,
 ): SdkDisplayAttachment[] | null {
+  // Compatibility owner: SDK/local replay and durable tool-result payloads that
+  // still store screenshot_ref(s). Delete after persisted rows and tool-result
+  // artifact payloads emit ordered attachments/display_attachments directly.
   if (!screenshotRefs || screenshotRefs.length === 0) {
     return null;
   }

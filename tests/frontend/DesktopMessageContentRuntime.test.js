@@ -15,7 +15,7 @@ describe('desktopMessageContentRuntime', () => {
     isToolCallMessageContentPresentation,
     isToolExplanationMessageContentPresentation,
     isToolOutputMessageContentPresentation,
-    isUserScreenshotMessageContentPresentation,
+    isUserAttachmentMessageContentPresentation,
     resolveMessageContentPresentation,
   } = DesktopMessageContentRuntime;
 
@@ -40,24 +40,36 @@ describe('desktopMessageContentRuntime', () => {
     expect(isToolCallMessageContentPresentation({ renderKind: 'tool-call' })).toBe(true);
     expect(isToolExplanationMessageContentPresentation({ renderKind: 'tool-explanation' })).toBe(true);
     expect(isToolActionsSummaryMessageContentPresentation({ renderKind: 'tool-actions-summary' })).toBe(true);
-    expect(isUserScreenshotMessageContentPresentation({ renderKind: 'user-with-screenshot' })).toBe(true);
+    expect(isUserAttachmentMessageContentPresentation({ renderKind: 'user-with-attachments' })).toBe(true);
     expect(isAssistantResponseMessageContentPresentation({ renderKind: 'assistant-response' })).toBe(true);
     expect(isMarkdownMessageContentPresentation({ renderKind: 'markdown' })).toBe(true);
     expect(isMarkdownMessageContentPresentation({ renderKind: 'error' })).toBe(false);
   });
 
-  test('classifies user screenshot rows through the screenshot runtime contract', () => {
+  test('classifies user display attachment rows through the SDK attachment contract', () => {
     expect(resolveMessageContentPresentation({
       sender: 'user',
       text: 'show this',
-      screenshotRef: 'artifact-1',
-    }).renderKind).toBe('user-with-screenshot');
+      attachments: [{
+        id: 'attachment-1',
+        kind: 'image',
+        source: 'user_included',
+        status: 'ready',
+        screenshotRef: 'artifact-1',
+      }],
+    }).renderKind).toBe('user-with-attachments');
 
     expect(resolveMessageContentPresentation({
       sender: 'assistant',
       text: 'tool screenshot',
       screenshotRef: 'artifact-1',
     }).renderKind).toBe('assistant-response');
+
+    expect(resolveMessageContentPresentation({
+      sender: 'user',
+      text: 'legacy user screenshot',
+      screenshotRef: 'artifact-1',
+    }).renderKind).toBe('markdown');
   });
 
   test('classifies assistant llm text rows and exposes visible text state', () => {

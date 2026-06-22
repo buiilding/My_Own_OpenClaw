@@ -2,19 +2,13 @@
  * Resolves renderer message content presentation kinds for chat surfaces.
  */
 
-import { DesktopMessageScreenshotRuntime } from './desktopMessageScreenshotRuntime';
-
-const {
-  isUserMessageWithScreenshot,
-} = DesktopMessageScreenshotRuntime;
-
 const MESSAGE_CONTENT_RENDER_KIND = Object.freeze({
   ERROR: 'error',
   TOOL_OUTPUT: 'tool-output',
   TOOL_CALL: 'tool-call',
   TOOL_EXPLANATION: 'tool-explanation',
   TOOL_ACTIONS_SUMMARY: 'tool-actions-summary',
-  USER_WITH_SCREENSHOT: 'user-with-screenshot',
+  USER_WITH_ATTACHMENTS: 'user-with-attachments',
   ASSISTANT_RESPONSE: 'assistant-response',
   MARKDOWN: 'markdown',
 });
@@ -28,6 +22,17 @@ function isAssistantLlmTextMessage(message) {
     message?.sender === 'assistant'
     && (!message.type || message.type === 'llm-text')
   );
+}
+
+function hasSdkDisplayAttachments(message) {
+  return message?.sender === 'user'
+    && Array.isArray(message.attachments)
+    && message.attachments.some((attachment) => (
+      attachment
+      && typeof attachment === 'object'
+      && typeof attachment.id === 'string'
+      && attachment.id.trim().length > 0
+    ));
 }
 
 function resolveMessageContentPresentation(message) {
@@ -51,8 +56,8 @@ function resolveMessageContentPresentation(message) {
     return { renderKind: MESSAGE_CONTENT_RENDER_KIND.TOOL_ACTIONS_SUMMARY };
   }
 
-  if (isUserMessageWithScreenshot(message)) {
-    return { renderKind: MESSAGE_CONTENT_RENDER_KIND.USER_WITH_SCREENSHOT };
+  if (hasSdkDisplayAttachments(message)) {
+    return { renderKind: MESSAGE_CONTENT_RENDER_KIND.USER_WITH_ATTACHMENTS };
   }
 
   if (isAssistantLlmTextMessage(message)) {
@@ -89,8 +94,8 @@ function isToolActionsSummaryMessageContentPresentation(contentPresentation) {
   return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.TOOL_ACTIONS_SUMMARY);
 }
 
-function isUserScreenshotMessageContentPresentation(contentPresentation) {
-  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.USER_WITH_SCREENSHOT);
+function isUserAttachmentMessageContentPresentation(contentPresentation) {
+  return hasRenderKind(contentPresentation, MESSAGE_CONTENT_RENDER_KIND.USER_WITH_ATTACHMENTS);
 }
 
 function isAssistantResponseMessageContentPresentation(contentPresentation) {
@@ -109,6 +114,6 @@ export const DesktopMessageContentRuntime = Object.freeze({
   isToolCallMessageContentPresentation,
   isToolExplanationMessageContentPresentation,
   isToolOutputMessageContentPresentation,
-  isUserScreenshotMessageContentPresentation,
+  isUserAttachmentMessageContentPresentation,
   resolveMessageContentPresentation,
 });

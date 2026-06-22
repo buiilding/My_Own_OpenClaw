@@ -73,7 +73,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     ]);
   });
 
-  test('does not copy optimistic screenshots once sdk projects a text-only same-turn user row', () => {
+  test('does not copy optimistic attachments once sdk projects a text-only same-turn user row', () => {
     const optimisticUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',
       sender: 'user',
@@ -82,9 +82,12 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       sourceEventType: 'renderer-compose',
       sourceChannel: 'renderer-local',
       isComplete: true,
-      screenshots: [{
-        screenshot: 'inline-optimistic-base64',
-        screenshotContentType: 'image/png',
+      attachments: [{
+        id: 'turn-1:attachment:000',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,inline-optimistic-base64',
       }],
     });
 
@@ -111,7 +114,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
         isComplete: true,
       }),
     ]);
-    expect(useChatStore.getState().getWorkspaceState('conv-1').messages[0]).not.toHaveProperty('screenshots');
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages[0]).not.toHaveProperty('attachments');
     expect(useChatStore.getState().getWorkspaceState('conv-1').messages[0]).not.toEqual(
       expect.objectContaining({
         sourceEventType: 'renderer-compose',
@@ -120,7 +123,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     );
   });
 
-  test('replaces optimistic user row with sdk row carrying screenshot metadata', () => {
+  test('replaces optimistic user row with sdk row carrying display attachments', () => {
     const optimisticUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',
       sender: 'user',
@@ -129,9 +132,12 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       sourceEventType: 'renderer-compose',
       sourceChannel: 'renderer-local',
       isComplete: true,
-      screenshots: [{
-        screenshot: 'inline-optimistic-base64',
-        screenshotContentType: 'image/png',
+      attachments: [{
+        id: 'turn-1:attachment:000',
+        kind: 'image',
+        source: 'user_included',
+        status: 'materializing',
+        previewSrc: 'data:image/png;base64,inline-optimistic-base64',
       }],
     });
 
@@ -164,7 +170,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
         id: 'turn-1-sdk-evt-000002-user_message',
         sender: 'user',
         text: 'inspect the screen',
-        screenshots: [
+        attachments: [
           expect.objectContaining({
             screenshotRef: 'artifact-screen-1',
           }),
@@ -179,9 +185,9 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     );
     expect(useChatStore.getState().getWorkspaceState('conv-1').messages[0]).not.toEqual(
       expect.objectContaining({
-        screenshots: [
+        attachments: [
           expect.objectContaining({
-            screenshot: 'inline-optimistic-base64',
+            previewSrc: 'data:image/png;base64,inline-optimistic-base64',
           }),
         ],
       }),
