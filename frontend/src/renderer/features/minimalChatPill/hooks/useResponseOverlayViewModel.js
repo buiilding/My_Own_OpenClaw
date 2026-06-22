@@ -59,7 +59,6 @@ function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
 
 export function useResponseOverlayViewModel({
   messages = [],
-  thinkingStatus,
   currentTurnProjection = null,
   pendingTurn = null,
 }) {
@@ -221,9 +220,9 @@ export function useResponseOverlayViewModel({
 
   const thinkingText = useMemo(
     () => normalizeThinkingText(
-      currentTurnProjection?.reasoningText ?? thinkingStatus,
+      currentTurnProjection?.reasoningText,
     ),
-    [currentTurnProjection?.reasoningText, thinkingStatus],
+    [currentTurnProjection?.reasoningText],
   );
 
   useEffect(() => {

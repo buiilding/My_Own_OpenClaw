@@ -37,8 +37,6 @@ function projectDesktopLiveTurnSurfaceState({
 }) {
   return {
     messages: activeWorkspace.messages,
-    thinkingStatus: activeWorkspace.thinkingStatus,
-    thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
     currentTurnProjection: latestCurrentTurnProjection || activeWorkspace.currentTurnProjection || null,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };

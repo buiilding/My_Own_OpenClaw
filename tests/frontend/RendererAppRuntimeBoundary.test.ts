@@ -1590,8 +1590,10 @@ describe('renderer app runtime boundary', () => {
     expect(normalizedChatInterfaceSource).toContain('useChatSurfaceController({\n    messages,');
     expect(normalizedMinimalPillSource).toContain('useChatSurfaceController({\n    messages,');
     expect(normalizedResponseOverlaySource).toContain(
-      'useResponseOverlayViewModel({\n    messages,\n    thinkingStatus,',
+      'useResponseOverlayViewModel({\n    messages,\n    currentTurnProjection,',
     );
+    expect(normalizedResponseOverlaySource).not.toContain('thinkingStatus');
+    expect(responseOverlayViewModelSource).not.toContain('thinkingStatus');
     expect(normalizedChatInterfaceSource).not.toContain('useChatSurfaceController({\n    isSending,');
     expect(normalizedMinimalPillSource).not.toContain('useChatSurfaceController({\n    isSending,');
     expect(normalizedResponseOverlaySource).not.toContain(

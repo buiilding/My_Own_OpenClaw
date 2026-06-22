@@ -41,7 +41,7 @@ Primary inputs:
 
 - SDK `currentTurn` projection from `conversation-runtime-updated`
 - `messages`
-- `thinkingStatus`
+- renderer `pendingTurn`
 
 Current-turn entry construction:
 
@@ -64,6 +64,10 @@ Current-turn entry construction:
   - `tool-output`
   - `search-source`
   - `tool-explanation`
+
+Reasoning copy for overlay window sync comes from SDK
+`currentTurn.reasoningText` only. Store `thinkingStatus` remains dashboard
+compaction/manual status text and is not a response-overlay live-turn input.
 
 Selection logic:
 

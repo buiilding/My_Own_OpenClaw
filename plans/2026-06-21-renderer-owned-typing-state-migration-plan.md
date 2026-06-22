@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Response Overlay Thinking Status Fallback Deletion
+
+- Finding: `selectLiveTurnSurfaceState(...)`, `MinimalResponseOverlay`, and
+  `useResponseOverlayViewModel(...)` still threaded store `thinkingStatus` into
+  response overlay window sync as a fallback when SDK `currentTurn.reasoningText`
+  was absent, preserving a stale live-turn text compatibility path outside the
+  renderer-owned lifecycle projection.
+- Change: live-turn surface selection no longer exposes `thinkingStatus` or
+  `thinkingSourceEventType`; response overlay reasoning text is derived only
+  from SDK `currentTurn.reasoningText`. Dashboard compaction/manual status
+  display remains on the chat-interface `MessageList` path.
+- Validation target: `ChatSelectors.test.js`, `ChatBoxResponse.state.test.jsx`,
+  and `RendererAppRuntimeBoundary.test.ts` protect the trimmed selector and
+  response-overlay hook boundary.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Current-Turn Trace SDK Visibility Flag Removal
 
 - Finding: `DesktopRendererTraceRuntime.buildRendererCurrentTurnAppliedTracePayload(...)`
