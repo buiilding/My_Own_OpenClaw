@@ -12,6 +12,7 @@ import MessageItem from '../../chat/components/message/MessageItem';
 import { DesktopMessageTransparencyRuntime } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { DesktopResponseOverlayLayoutRuntime } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
+import { DesktopResponseOverlayInteractionRuntime } from '../../../app/runtime/desktopResponseOverlayInteractionRuntime';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 
 const RESPONSE_FIXED_HEIGHT = DesktopResponseOverlayLayoutRuntime.getResponseOverlayFixedHeight();
@@ -102,39 +103,12 @@ function MinimalResponseOverlay() {
     };
   }, [setResponseboxHitTestActive]);
 
-  const syncResponseboxHitTestForPointer = useCallback((event) => {
-    const shellBounds = shellRef.current?.getBoundingClientRect?.();
-    if (!shellBounds) {
-      setResponseboxHitTestActive(false);
-      return;
-    }
-    const pointerX = Number(event.clientX);
-    const pointerY = Number(event.clientY);
-    const isInsideResponse = (
-      Number.isFinite(pointerX)
-      && Number.isFinite(pointerY)
-      && pointerX >= shellBounds.left
-      && pointerX <= shellBounds.right
-      && pointerY >= shellBounds.top
-      && pointerY <= shellBounds.bottom
-    );
-    setResponseboxHitTestActive(isInsideResponse);
-  }, [setResponseboxHitTestActive]);
-
-  const disableResponseboxHitTest = useCallback(() => {
-    setResponseboxHitTestActive(false);
-  }, [setResponseboxHitTestActive]);
-
   useEffect(() => {
-    window.addEventListener('mousemove', syncResponseboxHitTestForPointer);
-    window.addEventListener('mouseleave', disableResponseboxHitTest);
-    window.addEventListener('blur', disableResponseboxHitTest);
-    return () => {
-      window.removeEventListener('mousemove', syncResponseboxHitTestForPointer);
-      window.removeEventListener('mouseleave', disableResponseboxHitTest);
-      window.removeEventListener('blur', disableResponseboxHitTest);
-    };
-  }, [disableResponseboxHitTest, syncResponseboxHitTestForPointer]);
+    return DesktopResponseOverlayInteractionRuntime.subscribeToResponseboxHitTestEvents({
+      shellRef,
+      onHitTestActiveChange: setResponseboxHitTestActive,
+    });
+  }, [setResponseboxHitTestActive]);
 
   useEffect(() => {
     const typingRendered = isVisible && showAwaitingReply;

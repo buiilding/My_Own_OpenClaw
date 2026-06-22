@@ -2245,15 +2245,20 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js'),
       'utf8',
     );
+    const interactionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatboxInteractionRuntime.js'),
+      'utf8',
+    );
 
     for (const source of [pillSource, bindingsSource]) {
       expect(source).not.toContain('IpcBridge');
       expect(source).not.toContain('INVOKE_CHANNELS');
       expect(source).not.toContain('SEND_CHANNELS');
       expect(source).not.toContain('ON_CHANNELS');
-      expect(source).toContain('desktopChatboxLayoutRuntime');
       expect(source).not.toContain('chat/utils/state/chatBoxState');
     }
+    expect(pillSource).toContain('desktopChatboxLayoutRuntime');
+    expect(bindingsSource).toContain('desktopChatboxInteractionRuntime');
     expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
     expect(layoutRuntimeSource).toContain('resolveChatboxNativeFrameHeight');
     expect(layoutRuntimeSource).toContain('DesktopChatboxLayoutRuntime');
@@ -2266,12 +2271,17 @@ describe('renderer chat runtime boundary', () => {
     expect(layoutRuntimeSource).not.toContain('export function getChatboxCloseBumpHeight');
     expect(layoutRuntimeSource).not.toContain('export const CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(layoutRuntimeSource).not.toContain('export const CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
+    expect(interactionRuntimeSource).toContain('DesktopChatboxLayoutRuntime');
+    expect(interactionRuntimeSource).toContain('DesktopWindowRuntimeClient');
+    expect(interactionRuntimeSource).not.toContain('features/chat');
+    expect(interactionRuntimeSource).not.toContain('features/minimalChatPill');
     expect(pillSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxNativeFrameHeight');
-    expect(bindingsSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight');
+    expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync');
+    expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.resetChatboxVisualAnchorHeight');
     expect(pillSource).not.toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
     expect(bindingsSource).not.toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(pillSource).toContain('setChatboxVisualAnchorHeightValue');
-    expect(bindingsSource).toContain('setChatboxVisualAnchorHeightValue');
+    expect(bindingsSource).not.toContain('setChatboxVisualAnchorHeightValue');
     expect(pillSource).not.toContain('setChatboxVisualAnchorHeight({');
     expect(bindingsSource).not.toContain('payload.frameHeight');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.activateChatboxTextEntryForReason');
@@ -2434,6 +2444,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js'),
       'utf8',
     );
+    const interactionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayInteractionRuntime.js'),
+      'utf8',
+    );
 
     for (const source of [overlaySource, syncSource, viewModelSource]) {
       expect(source).not.toContain('IpcBridge');
@@ -2496,9 +2510,22 @@ describe('renderer chat runtime boundary', () => {
     expect(layoutRuntimeSource).not.toContain('export function getRoundedFrameSize');
     expect(layoutRuntimeSource).not.toContain('export const RESPONSE_OVERLAY_LAYOUT_MODE');
     expect(layoutRuntimeSource).not.toContain('export const RESPONSE_OVERLAY_LAYOUT');
+    expect(interactionRuntimeSource).toContain('DesktopResponseOverlayInteractionRuntime');
+    expect(interactionRuntimeSource).toContain('addEventListener');
+    expect(interactionRuntimeSource).toContain('removeEventListener');
+    expect(interactionRuntimeSource).toContain('getBoundingClientRect');
+    expect(interactionRuntimeSource).not.toContain('features/chat');
+    expect(interactionRuntimeSource).not.toContain('features/minimalChatPill');
     expect(overlaySource).not.toContain('RESPONSE_OVERLAY_LAYOUT');
     expect(syncSource).not.toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
     expect(syncSource).not.toContain('RESPONSE_OVERLAY_LAYOUT');
+    expect(overlaySource).toContain('desktopResponseOverlayInteractionRuntime');
+    expect(overlaySource).toContain(
+      'DesktopResponseOverlayInteractionRuntime.subscribeToResponseboxHitTestEvents',
+    );
+    expect(overlaySource).not.toContain('window.addEventListener');
+    expect(overlaySource).not.toContain('window.removeEventListener');
+    expect(overlaySource).not.toContain('getBoundingClientRect');
     expect(overlaySource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue');
     expect(overlaySource).not.toContain('setResponseboxHitTestActive({');
     expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxSize');

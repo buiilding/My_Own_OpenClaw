@@ -19,6 +19,7 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayScrollState.js`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayInteractionRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js`
@@ -239,9 +240,10 @@ Manual response dismissal uses
 model passes only turn/guard refs while the runtime client owns the hidden
 `dismissed` size payload shape.
 
-Response overlay hit-test commands use
-`DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(...)`.
-`MinimalResponseOverlay` reports boolean active state only; the runtime client
+Response overlay hit-test browser subscriptions and pointer bounds checks use
+`DesktopResponseOverlayInteractionRuntime.subscribeToResponseboxHitTestEvents(...)`.
+`MinimalResponseOverlay` reports boolean active state only, and
+`DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(...)`
 assembles the host-shaped `{ active }` IPC payload.
 
 Layout-specific sizing:

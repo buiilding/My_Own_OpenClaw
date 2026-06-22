@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Response Overlay Hit-Test Interaction Runtime
+
+- Finding: `MinimalResponseOverlay` still owned raw browser
+  `mousemove`/`mouseleave`/`blur` subscriptions and shell-bounds checks for
+  responsebox hit-test activation, even though IPC payload construction already
+  lived behind the response overlay runtime client.
+- Change: added `DesktopResponseOverlayInteractionRuntime` as the renderer
+  app-runtime browser adapter for response overlay hit-test subscriptions and
+  pointer bounds checks. The component now keeps only the deduped boolean
+  report, IPC call, and trace value handoff.
+- Validation target: focused response overlay interaction runtime, response
+  overlay state behavior, and renderer chat/runtime boundary tests protect
+  pointer activation, cleanup, and rejection of raw listener/bounds wiring in
+  the feature component.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Visible Lifecycle Overlay Field Deletion
 
 - Finding: `DesktopVisibleTurnLifecycleRuntime` still imported the overlay
