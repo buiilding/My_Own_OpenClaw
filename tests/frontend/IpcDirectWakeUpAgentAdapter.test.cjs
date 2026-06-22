@@ -153,11 +153,52 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     expect(deps.clearLatestPendingTurn).toHaveBeenCalledWith({
       conversationRef: 'conv-agent-1',
       turnRef: 'turn-1',
-      broadcast: true,
+      broadcast: false,
     });
     expect(deps.currentTurnTraceLogger.trace).toHaveBeenCalledWith(expect.objectContaining({
       turnRef: 'turn-1',
     }));
+  });
+
+  test('clears main pending cache without broadcasting renderer pending-clear before current-turn handoff', () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const pendingTurn = { conversationRef: 'conv-agent-1', turnRef: 'turn-1' };
+    const deps = createDeps({
+      getLatestPendingTurn: jest.fn(() => pendingTurn),
+      pendingTurnMatchesCurrentTurn: jest.fn(() => true),
+    });
+
+    createDirectWakeUpAgentAdapter({
+      agent,
+      workspacePath: 'C:/repo',
+      deps,
+    });
+    runtime.eventHandler(
+      { type: 'turn_started' },
+      {
+        displayRows: [],
+        currentTurn: {
+          conversationRef: 'conv-agent-1',
+          turnRef: 'turn-1',
+          phase: 'awaiting',
+        },
+      },
+    );
+
+    expect(deps.clearLatestPendingTurn).toHaveBeenCalledWith({
+      conversationRef: 'conv-agent-1',
+      turnRef: 'turn-1',
+      broadcast: false,
+    });
+    expect(deps.broadcastToRenderers).not.toHaveBeenCalledWith(
+      DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN,
+      expect.objectContaining({ type: 'clear' }),
+    );
+    expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
+      DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN,
+      expect.objectContaining({ turnRef: 'turn-1', phase: 'awaiting' }),
+    );
   });
 
   test('rehydrates stored context before sending a query through the conversation runtime', async () => {

@@ -120,7 +120,7 @@ function createDirectWakeUpAgentAdapter({
         clearLatestPendingTurn({
           conversationRef: latestPendingTurn.conversationRef,
           turnRef: latestPendingTurn.turnRef,
-          broadcast: true,
+          broadcast: false,
         });
       }
       if (typeof logLiveSurfaceTrace === 'function') {

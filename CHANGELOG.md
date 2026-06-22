@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: keep SDK current-turn handoff from broadcasting a renderer
+  pending-turn clear before the current-turn projection, preventing a one-frame
+  typing overlay hide/remount during pending-to-awaiting transitions. No
+  migration required.
 - frontend/main: treat the Agent settings prompt field as a query-level system
   prompt replacement and forward local/remote tool toggles as next-turn
   `agent_definition` tool policy, so current conversations pick up system
