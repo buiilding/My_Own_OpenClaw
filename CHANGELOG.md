@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: align chat-pill main debug trace visibility fields with the
+  renderer response-overlay contract by emitting `response_visible` and
+  `awaiting_visible` instead of legacy `show_response` and
+  `show_awaiting_reply`. No migration required.
 - frontend/tests: delete the minimal chat pill pending-stop `isSending`
   fixture; the pre-first-stream Stop replay now uses renderer `pendingTurn`
   plus visible lifecycle instead of a raw send latch. No migration required.
