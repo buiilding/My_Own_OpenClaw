@@ -191,18 +191,60 @@ export class InMemoryConversationStore implements ConversationStore {
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
-    const metadata = Array.from(this.eventsByConversation.entries()).map(([conversationRef, events]) => {
+    const metadataByConversation = new Map<string, ConversationMetadata>();
+    Array.from(this.eventsByConversation.entries()).forEach(([conversationRef, events]) => {
       const revision = this.revisionsByConversation.get(conversationRef);
       const lastEvent = [...events].sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))[0];
-      return {
+      const latestDisplayTimeline = [...(this.displayTimelineByConversation.get(conversationRef) ?? [])]
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0] ?? null;
+      const firstDisplayUserRow = latestDisplayTimeline?.rows.find(row => row.role === 'user') ?? null;
+      const lastDisplayTextRow = latestDisplayTimeline
+        ? [...latestDisplayTimeline.rows].reverse().find(row => typeof row.content === 'string') ?? null
+        : null;
+      const eventUpdatedAt = revision?.updatedAt ?? lastEvent?.timestamp ?? new Date(0).toISOString();
+      const displayIsCurrent = latestDisplayTimeline
+        ? Date.parse(latestDisplayTimeline.createdAt) >= Date.parse(eventUpdatedAt)
+        : false;
+      const eventLastMessage = eventText(lastTextEvent(events));
+      const displayLastMessage = typeof lastDisplayTextRow?.content === 'string'
+        ? lastDisplayTextRow.content
+        : null;
+      metadataByConversation.set(conversationRef, {
         conversationRef,
-        revisionId: revision?.revisionId ?? lastEvent?.revisionId ?? 'rev-missing',
-        title: eventText(events.find(event => event.type === 'user_message')) ?? conversationRef,
-        lastMessage: eventText(lastTextEvent(events)),
-        updatedAt: revision?.updatedAt ?? lastEvent?.timestamp ?? new Date(0).toISOString(),
+        revisionId: displayIsCurrent
+          ? latestDisplayTimeline?.revisionId ?? revision?.revisionId ?? lastEvent?.revisionId ?? 'rev-missing'
+          : revision?.revisionId ?? lastEvent?.revisionId ?? latestDisplayTimeline?.revisionId ?? 'rev-missing',
+        title: (typeof firstDisplayUserRow?.content === 'string' ? firstDisplayUserRow.content : null)
+          ?? eventText(events.find(event => event.type === 'user_message'))
+          ?? conversationRef,
+        lastMessage: displayIsCurrent
+          ? displayLastMessage ?? eventLastMessage
+          : eventLastMessage ?? displayLastMessage,
+        updatedAt: displayIsCurrent ? latestDisplayTimeline?.createdAt ?? eventUpdatedAt : eventUpdatedAt,
         eventCount: events.length,
-      };
-    }).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+      });
+    });
+    Array.from(this.displayTimelineByConversation.entries()).forEach(([conversationRef, checkpoints]) => {
+      if (metadataByConversation.has(conversationRef)) {
+        return;
+      }
+      const latest = [...checkpoints].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+      if (!latest) {
+        return;
+      }
+      const firstUserRow = latest.rows.find(row => row.role === 'user');
+      const lastTextRow = [...latest.rows].reverse().find(row => typeof row.content === 'string');
+      metadataByConversation.set(conversationRef, {
+        conversationRef,
+        revisionId: latest.revisionId,
+        title: typeof firstUserRow?.content === 'string' ? firstUserRow.content : conversationRef,
+        lastMessage: typeof lastTextRow?.content === 'string' ? lastTextRow.content : null,
+        updatedAt: latest.createdAt,
+        eventCount: 0,
+      });
+    });
+    const metadata = Array.from(metadataByConversation.values())
+      .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
     return applyConversationMetadataPagination(metadata, options);
   }
 

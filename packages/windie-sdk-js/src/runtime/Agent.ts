@@ -52,6 +52,8 @@ import type {
 import {
   SdkConversationRuntime,
   type EditAndResendInput,
+  type ForkConversationInput,
+  type ForkConversationResult,
   type PreparedReplayTurn,
   type ReplaceRowsInput,
   type RetryTurnInput,
@@ -1034,6 +1036,21 @@ export class Agent {
       revisionId,
       store: store ?? this.defaultConversationStore,
     }).replaceRows(input);
+  }
+
+  async forkConversation(
+    options: ForkConversationInput & {
+      conversationRef: string;
+      revisionId?: string;
+      store?: ConversationStore;
+    },
+  ): Promise<ForkConversationResult> {
+    const { conversationRef, revisionId, store, ...input } = options;
+    return this.conversation({
+      conversationRef,
+      revisionId,
+      store: store ?? this.defaultConversationStore,
+    }).fork(input);
   }
 
   async prepareEditAndResend(

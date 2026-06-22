@@ -66,6 +66,11 @@ flowchart LR
   for conversations that do not yet have a checkpoint; normal edit/resend and
   retry preparation must not invoke backend rehydrate.
 - Backend active history is not the source of dashboard conversation list truth. Do not patch backend history to make a missing sidebar conversation appear.
+- Fork children are visible from their active display timeline checkpoint before
+  they have child events. Dashboard/list metadata should union visible event
+  conversations with active display timeline conversations, preserve the forked
+  display title, and use newer child events for the tail when the child
+  continues.
 - Model-history checkpoint rows are not dashboard/list truth and must not copy
   full raw tool output, screenshots, or provider-specific payloads as durable
   local truth.

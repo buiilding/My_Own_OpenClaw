@@ -37,9 +37,11 @@ Live sends, assistant turns, tool rows, and compaction events are stored as SDK
 conversation events through the desktop conversation store factory and
 local-runtime `conversation_events` storage. Edit/resend and retry replace the
 active display timeline prefix as a child revision, then send the replacement
-user turn. Renderer chat handlers project SDK display rows for live display;
-durable replay and dashboard state read through SDK display APIs rather than
-editing SQLite rows directly.
+user turn. Fork copies a display prefix and matching bounded model-history rows
+into a new conversation revision without copying ancestor raw events. Renderer
+chat handlers project SDK display rows for live display; durable replay and
+dashboard state read through SDK display APIs rather than editing SQLite rows
+directly.
 
 Transcript session identity includes:
 
@@ -56,7 +58,7 @@ SDK-owned conversation state uses a dedicated local-runtime chat-event table:
 
 - `conversation_events`: normalized SDK event log for runtime/load/rehydrate/display
 - `conversation_display_timeline`: editable display checkpoints for child
-  revisions created by edit/resend, retry, and future fork flows
+  revisions created by edit/resend, retry, and fork flows
 - `conversation_model_history`: bounded provider-neutral model-history
   checkpoints for backend resume
 - `attachments`: normalized image attachment records extracted from user-message screenshots, screenshot refs/URLs, artifact refs, and tool-output screenshot payloads
@@ -87,7 +89,10 @@ Full replacement remains available for projection bootstraps and explicit
 conversation rewrites. A failed replacement or cutoff rewrite leaves the
 previous transcript intact.
 
-Dashboard recent-chat loading reads canonical chat-event metadata.
+Dashboard recent-chat loading reads canonical chat-event metadata plus active
+display timeline checkpoints. Fork-only child conversations appear before they
+have raw child events, and later continuation events can update the child tail
+without flattening ancestor events into the child event log.
 
 Key files:
 

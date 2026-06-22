@@ -339,12 +339,30 @@ export class FileConversationStore implements ConversationStore {
       const conversationRef = decodeURIComponent(file.slice(0, -5));
       const stored = await this.readConversation(conversationRef);
       const revision = stored.revision ?? buildRevision(conversationRef, stored.events);
+      const latestDisplayTimeline = [...(stored.displayTimeline ?? [])]
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0] ?? null;
+      const firstDisplayUserRow = latestDisplayTimeline?.rows.find(row => row.role === 'user') ?? null;
+      const lastDisplayTextRow = latestDisplayTimeline
+        ? [...latestDisplayTimeline.rows].reverse().find(row => typeof row.content === 'string') ?? null
+        : null;
+      const eventUpdatedAt = revision.updatedAt;
+      const displayIsCurrent = latestDisplayTimeline
+        ? Date.parse(latestDisplayTimeline.createdAt) >= Date.parse(eventUpdatedAt)
+        : false;
+      const eventLastMessage = eventText(lastTextEvent(stored.events));
+      const displayLastMessage = typeof lastDisplayTextRow?.content === 'string'
+        ? lastDisplayTextRow.content
+        : null;
       metadata.push({
         conversationRef,
-        revisionId: revision.revisionId,
-        title: eventText(stored.events.find(event => event.type === 'user_message')) ?? conversationRef,
-        lastMessage: eventText(lastTextEvent(stored.events)),
-        updatedAt: revision.updatedAt,
+        revisionId: displayIsCurrent ? latestDisplayTimeline?.revisionId ?? revision.revisionId : revision.revisionId,
+        title: (typeof firstDisplayUserRow?.content === 'string' ? firstDisplayUserRow.content : null)
+          ?? eventText(stored.events.find(event => event.type === 'user_message'))
+          ?? conversationRef,
+        lastMessage: displayIsCurrent
+          ? displayLastMessage ?? eventLastMessage
+          : eventLastMessage ?? displayLastMessage,
+        updatedAt: displayIsCurrent ? latestDisplayTimeline?.createdAt ?? eventUpdatedAt : eventUpdatedAt,
         eventCount: stored.events.length,
       });
     }

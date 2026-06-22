@@ -5238,6 +5238,157 @@ describe('Agent SDK conversation runtime core', () => {
     ]));
   });
 
+  test('conversation runtime forks display prefix and matching model history into a child conversation', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvent(createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+      turnRef: 'turn-1',
+      source: 'sdk',
+      payload: { text: 'first question' },
+    }));
+    await store.replaceDisplayTimeline({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: null,
+      baseRevisionId: null,
+      rows: [
+        {
+          id: 'display-user-1',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'first question',
+          metadata: { revisionId: 'rev-base' },
+        },
+        {
+          id: 'display-assistant-1',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'first answer',
+          metadata: { revisionId: 'rev-base' },
+        },
+        {
+          id: 'display-user-2',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          index: 2,
+          role: 'user',
+          type: 'user_message',
+          content: 'second question',
+          metadata: { revisionId: 'rev-base' },
+        },
+      ],
+    });
+    await store.replaceModelHistory({
+      checkpointId: 'mh-base',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'mh-user-1',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          role: 'user',
+          messageType: 'user_query',
+          content: 'first question',
+          sourceDisplayRowIds: ['display-user-1'],
+        },
+        {
+          id: 'mh-assistant-1',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          role: 'assistant',
+          messageType: 'assistant_response',
+          content: 'first answer',
+          sourceDisplayRowIds: ['display-assistant-1'],
+        },
+        {
+          id: 'mh-user-2',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          role: 'user',
+          messageType: 'user_query',
+          content: 'second question',
+          sourceDisplayRowIds: ['display-user-2'],
+        },
+      ],
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+      store,
+    });
+
+    const fork = await runtime.fork({
+      sourceRevisionId: 'rev-base',
+      cutAfterRowId: 'display-assistant-1',
+      newConversationRef: 'conv-forked',
+    });
+    const display = await store.loadDisplayTimeline?.({
+      conversationRef: 'conv-forked',
+      revisionId: fork.revisionId,
+    });
+    const modelHistory = await store.loadModelHistory?.({
+      conversationRef: 'conv-forked',
+      revisionId: fork.revisionId,
+    });
+    const metadata = await store.listMetadata();
+
+    expect(fork).toEqual(expect.objectContaining({
+      conversationRef: 'conv-forked',
+      sourceConversationRef: 'conv-sdk-runtime',
+      sourceRevisionId: 'rev-base',
+      displayRowCount: 2,
+      modelHistoryRowCount: 2,
+    }));
+    expect(display?.rows.map(row => row.id)).toEqual(['display-user-1', 'display-assistant-1']);
+    expect(display?.rows.every(row => row.conversationRef === 'conv-forked')).toBe(true);
+    expect(modelHistory?.rows.map(row => row.content)).toEqual(['first question', 'first answer']);
+    expect(await store.loadEvents('conv-forked')).toEqual([]);
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'user_message', revisionId: 'rev-base' }),
+      expect.objectContaining({ type: 'trace_event' }),
+    ]));
+    expect(metadata).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        conversationRef: 'conv-forked',
+        revisionId: fork.revisionId,
+        title: 'first question',
+        lastMessage: 'first answer',
+        eventCount: 0,
+      }),
+    ]));
+
+    await store.appendEvent(createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-forked',
+      revisionId: fork.revisionId,
+      turnRef: 'turn-child',
+      source: 'sdk',
+      timestamp: '2030-06-22T12:01:00.000Z',
+      payload: { text: 'continue child branch' },
+    }));
+
+    expect(await store.listMetadata()).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        conversationRef: 'conv-forked',
+        revisionId: fork.revisionId,
+        title: 'first question',
+        lastMessage: 'continue child branch',
+        eventCount: 1,
+      }),
+    ]));
+  });
+
   test('conversation runtime records query dispatch trace around backend send', async () => {
     const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-dispatch-accepted'),

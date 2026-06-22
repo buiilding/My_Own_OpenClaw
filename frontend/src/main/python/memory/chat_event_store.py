@@ -87,6 +87,24 @@ def _json_loads_list(value: Any) -> List[Any]:
     return parsed if isinstance(parsed, list) else []
 
 
+def _display_content_to_sidebar_text(value: Any) -> str:
+    if value is None:
+        return ""
+    parsed: Any = value
+    if isinstance(value, str):
+        if not value.strip():
+            return ""
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            return value.strip()
+    if parsed is None:
+        return ""
+    if isinstance(parsed, str):
+        return parsed.strip()
+    return json.dumps(parsed, separators=(",", ":"), ensure_ascii=False)
+
+
 def _conversation_clause(conversation_id: Optional[str]) -> Tuple[str, Tuple[Any, ...]]:
     if conversation_id is None:
         return "conversation_id IS NULL", ()
@@ -886,9 +904,19 @@ async def list_conversations(
                   AND conversation_id IS NOT NULL
                   AND event_type IN ({metadata_event_placeholders})
             ),
+            active_display_rows AS (
+                SELECT *
+                FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                WHERE user_id = ?
+                  AND conversation_id IS NOT NULL
+                  AND active = 1
+            ),
             conversation_ids AS (
                 SELECT DISTINCT conversation_id
                 FROM visible_events
+                UNION
+                SELECT DISTINCT conversation_id
+                FROM active_display_rows
             )
             SELECT c.conversation_id,
                    (
@@ -899,6 +927,14 @@ async def list_conversations(
                      SELECT MAX(timestamp) FROM visible_events e
                      WHERE e.conversation_id = c.conversation_id
                    ) as last_timestamp,
+                   (
+                     SELECT MIN(created_at) FROM active_display_rows d
+                     WHERE d.conversation_id = c.conversation_id
+                   ) as display_first_timestamp,
+                   (
+                     SELECT MAX(created_at) FROM active_display_rows d
+                     WHERE d.conversation_id = c.conversation_id
+                   ) as display_last_timestamp,
                    (
                      SELECT COUNT(*) FROM {CONVERSATION_EVENTS_TABLE} e
                      WHERE e.user_id = ? AND e.conversation_id = c.conversation_id
@@ -922,6 +958,15 @@ async def list_conversations(
                      LIMIT 1
                    ) as first_user_content,
                    (
+                     SELECT content FROM active_display_rows d
+                     WHERE d.conversation_id = c.conversation_id
+                       AND d.role = 'user'
+                       AND d.content IS NOT NULL
+                       AND d.content != ''
+                     ORDER BY d.row_index ASC
+                     LIMIT 1
+                   ) as display_first_user_content,
+                   (
                      SELECT content FROM visible_events e2
                      WHERE e2.conversation_id = c.conversation_id
                        AND e2.content IS NOT NULL
@@ -930,6 +975,14 @@ async def list_conversations(
                      ORDER BY e2.message_index DESC, e2.timestamp DESC
                      LIMIT 1
                    ) as last_content,
+                   (
+                     SELECT content FROM active_display_rows d
+                     WHERE d.conversation_id = c.conversation_id
+                       AND d.content IS NOT NULL
+                       AND d.content != ''
+                     ORDER BY d.row_index DESC
+                     LIMIT 1
+                   ) as display_last_content,
                    (
                      SELECT revision_id FROM {CONVERSATION_REVISIONS_TABLE} r
                      WHERE r.user_id = ?
@@ -966,12 +1019,18 @@ async def list_conversations(
                      LIMIT 1
                    ) as workspace_name
             FROM conversation_ids c
-            ORDER BY COALESCE(last_timestamp, revision_updated_at) DESC
+            ORDER BY CASE
+              WHEN display_last_timestamp IS NOT NULL
+                AND (last_timestamp IS NULL OR display_last_timestamp >= last_timestamp)
+              THEN display_last_timestamp
+              ELSE COALESCE(last_timestamp, revision_updated_at)
+            END DESC
             LIMIT ?
             """,
             (
                 user_id,
                 *SIDEBAR_METADATA_EVENT_TYPES,
+                user_id,
                 user_id,
                 user_id,
                 user_id,
@@ -987,21 +1046,47 @@ async def list_conversations(
         conversation_id = row["conversation_id"]
         if not isinstance(conversation_id, str) or not conversation_id.strip():
             continue
+        display_first_user_content = _display_content_to_sidebar_text(
+            row["display_first_user_content"]
+        )
+        display_last_content = _display_content_to_sidebar_text(
+            row["display_last_content"]
+        )
+        display_last_timestamp = row["display_last_timestamp"]
+        event_last_timestamp = row["last_timestamp"]
+        display_last_is_current = bool(display_last_timestamp) and (
+            not event_last_timestamp
+            or str(display_last_timestamp) >= str(event_last_timestamp)
+        )
         title = str(
-            row["stored_title"] or row["first_user_content"] or conversation_id
+            row["stored_title"]
+            or display_first_user_content
+            or row["first_user_content"]
+            or conversation_id
         ).strip()
         results.append(
             {
                 "conversation_id": conversation_id,
-                "first_timestamp": row["first_timestamp"] or row["revision_updated_at"],
-                "last_timestamp": row["last_timestamp"] or row["revision_updated_at"],
+                "first_timestamp": row["display_first_timestamp"]
+                or row["first_timestamp"]
+                or row["revision_updated_at"],
+                "last_timestamp": (
+                    display_last_timestamp
+                    if display_last_is_current
+                    else event_last_timestamp
+                )
+                or row["revision_updated_at"],
                 "entry_count": row["entry_count"],
                 "record_kind": "chat_event",
                 "revision_id": row["stored_revision_id"]
                 or row["event_revision_id"]
                 or f"rev-stored-{conversation_id}",
                 "title": title or conversation_id,
-                "last_message": row["last_content"] or "",
+                "last_message": (
+                    display_last_content
+                    if display_last_is_current and display_last_content
+                    else row["last_content"] or display_last_content or ""
+                ),
                 "workspace_path": row["workspace_path"] or "",
                 "workspace_name": row["workspace_name"] or "",
                 "is_resumable": True,

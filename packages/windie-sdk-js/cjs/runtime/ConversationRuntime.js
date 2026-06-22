@@ -218,6 +218,43 @@ function normalizeDisplayTimelineRows(rows, options) {
     }
     return normalized;
 }
+function rowsForFork(rows, options) {
+    const cutIndex = rows.findIndex(row => row.id === options.cutAfterRowId);
+    if (cutIndex < 0) {
+        throw new Error(`Cannot fork missing display row: ${options.cutAfterRowId}`);
+    }
+    return rows.slice(0, cutIndex + 1).map((row, index) => ({
+        ...row,
+        conversationRef: options.newConversationRef,
+        revisionId: options.newRevisionId,
+        index,
+        metadata: {
+            ...(row.metadata ?? {}),
+            revisionId: options.newRevisionId,
+            forkedFromConversationRef: row.conversationRef,
+            forkedFromRevisionId: row.revisionId,
+        },
+    }));
+}
+function modelRowsForFork(rows, options) {
+    const forkRows = [];
+    for (const row of rows) {
+        const sourceIds = Array.isArray(row.sourceDisplayRowIds)
+            ? row.sourceDisplayRowIds.filter(value => typeof value === 'string' && value.trim())
+            : [];
+        if (sourceIds.length === 0 || !sourceIds.every(id => options.keptDisplayRowIds.has(id))) {
+            continue;
+        }
+        forkRows.push({
+            ...row,
+            id: `${options.newRevisionId}-mh-row-${String(forkRows.length + 1).padStart(4, '0')}`,
+            conversationRef: options.newConversationRef,
+            revisionId: options.newRevisionId,
+            sourceDisplayRowIds: sourceIds,
+        });
+    }
+    return forkRows;
+}
 function getAgentDefinitionClientManifestTools(agentDefinition) {
     if (!isJsonRecord(agentDefinition)) {
         return [];
@@ -398,6 +435,92 @@ class SdkConversationRuntime {
             },
         }, { revisionId: newRevisionId });
         return checkpoint;
+    }
+    async fork(input) {
+        const newConversationRef = typeof input.newConversationRef === 'string'
+            ? input.newConversationRef.trim()
+            : '';
+        if (!newConversationRef) {
+            throw new Error('fork requires newConversationRef');
+        }
+        if (newConversationRef === this.options.conversationRef) {
+            throw new Error('fork requires a distinct newConversationRef');
+        }
+        if (!input.cutAfterRowId || !input.cutAfterRowId.trim()) {
+            throw new Error('fork requires cutAfterRowId');
+        }
+        if (!this.options.store.replaceDisplayTimeline) {
+            throw new Error('fork requires a display timeline capable conversation store');
+        }
+        const sourceTimeline = await this.loadDisplayTimeline({
+            revisionId: input.sourceRevisionId ?? null,
+        });
+        const newRevisionId = (0, events_js_1.createRuntimeId)('rev');
+        const createdAt = new Date().toISOString();
+        const displayRows = rowsForFork(sourceTimeline.rows, {
+            cutAfterRowId: input.cutAfterRowId.trim(),
+            newConversationRef,
+            newRevisionId,
+        });
+        const displayCheckpoint = {
+            conversationRef: newConversationRef,
+            revisionId: newRevisionId,
+            createdAt,
+            rows: displayRows,
+            reason: 'fork',
+            baseRevisionId: sourceTimeline.revisionId,
+        };
+        await this.options.store.replaceDisplayTimeline(displayCheckpoint);
+        let modelHistoryRowCount = 0;
+        let modelHistoryCheckpointId = null;
+        if (this.options.store.loadModelHistory && this.options.store.replaceModelHistory) {
+            const sourceModelHistory = await this.options.store.loadModelHistory.call(this.options.store, {
+                conversationRef: this.options.conversationRef,
+                revisionId: input.sourceRevisionId ?? sourceTimeline.revisionId,
+            });
+            if (sourceModelHistory) {
+                const modelRows = modelRowsForFork(sourceModelHistory.rows, {
+                    keptDisplayRowIds: new Set(sourceTimeline.rows.slice(0, displayRows.length).map(row => row.id)),
+                    newConversationRef,
+                    newRevisionId,
+                });
+                if (modelRows.length > 0) {
+                    modelHistoryCheckpointId = `${newRevisionId}-fork-model-history`;
+                    await this.options.store.replaceModelHistory.call(this.options.store, {
+                        checkpointId: modelHistoryCheckpointId,
+                        conversationRef: newConversationRef,
+                        revisionId: newRevisionId,
+                        createdAt,
+                        rows: modelRows,
+                    });
+                    modelHistoryRowCount = modelRows.length;
+                }
+            }
+        }
+        await this.recordRuntimeTrace({
+            path: 'conversation.revision',
+            stage: 'fork',
+            status: 'succeeded',
+            data: {
+                sourceConversationRef: this.options.conversationRef,
+                sourceRevisionId: sourceTimeline.revisionId,
+                conversationRef: newConversationRef,
+                revisionId: newRevisionId,
+                cutAfterRowId: input.cutAfterRowId,
+                displayRowCount: displayRows.length,
+                modelHistoryRowCount,
+            },
+        });
+        return {
+            conversationRef: newConversationRef,
+            revisionId: newRevisionId,
+            sourceConversationRef: this.options.conversationRef,
+            sourceRevisionId: sourceTimeline.revisionId,
+            cutAfterRowId: input.cutAfterRowId,
+            displayRowCount: displayRows.length,
+            modelHistoryRowCount,
+            modelHistoryCheckpointId,
+        };
     }
     subscribe(listener) {
         this.listeners.add(listener);

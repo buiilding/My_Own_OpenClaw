@@ -36,6 +36,13 @@ All notable changes to WindieOS will be documented in this file.
   publishing pending visible state, while raw runtime events remain available
   for audit/diagnostics. No migration required; old conversations load their
   first display timeline from the event projection fallback.
+- sdk/local-runtime: add `conversation.fork(...)` for copying a display prefix
+  and matching bounded model-history rows into a new child conversation without
+  copying ancestor raw events. Dashboard/list metadata now includes fork
+  children from active display timeline checkpoints before they have raw child
+  events, while later child events can update the metadata tail. No migration
+  required; existing conversations continue to list from event metadata until a
+  fork/display checkpoint exists.
 - docs/adr: add ADR 008 and the conversation history revision architecture
   plan for separating full display history, backend-normalized model history,
   runtime events, and revision graph ownership so edit/resend, compaction,

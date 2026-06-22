@@ -147,6 +147,7 @@ export type ConversationRewritePlan = {
 export type DisplayTimelineReplaceReason =
   | 'user_edit'
   | 'retry'
+  | 'fork'
   | 'manual_rewrite';
 
 export type DisplayTimelineRow = SdkDisplayRow & {

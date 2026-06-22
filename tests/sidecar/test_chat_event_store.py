@@ -803,6 +803,148 @@ async def test_list_conversations_uses_user_facing_metadata(
 
 
 @pytest.mark.asyncio
+async def test_list_conversations_includes_display_only_fork_metadata(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "memory.db")
+    await init_episodic_schema(db_path)
+    await init_chat_event_schema(db_path)
+
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-fork",
+        revision_id="rev-fork",
+        created_at="2026-06-22T12:30:00+00:00",
+        reason="fork",
+        base_revision_id="rev-parent",
+        rows=[
+            {
+                "id": "display-user-1",
+                "conversationRef": "conv-fork",
+                "revisionId": "rev-fork",
+                "index": 0,
+                "role": "user",
+                "type": "user_message",
+                "content": "where should this branch go?",
+                "metadata": {"revisionId": "rev-fork"},
+            },
+            {
+                "id": "display-assistant-1",
+                "conversationRef": "conv-fork",
+                "revisionId": "rev-fork",
+                "index": 1,
+                "role": "assistant",
+                "type": "assistant_message",
+                "content": "It can continue independently.",
+                "metadata": {"revisionId": "rev-fork"},
+            },
+        ],
+    )
+
+    conversations = await list_conversations(
+        db_path=db_path,
+        user_id="user-1",
+        limit=10,
+    )
+
+    assert conversations == [
+        {
+            "conversation_id": "conv-fork",
+            "first_timestamp": "2026-06-22T12:30:00+00:00",
+            "last_timestamp": "2026-06-22T12:30:00+00:00",
+            "entry_count": 0,
+            "record_kind": "chat_event",
+            "revision_id": "rev-fork",
+            "title": "where should this branch go?",
+            "last_message": "It can continue independently.",
+            "workspace_path": "",
+            "workspace_name": "",
+            "is_resumable": True,
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_list_conversations_keeps_fork_title_but_uses_newer_event_tail(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "memory.db")
+    await init_episodic_schema(db_path)
+    await init_chat_event_schema(db_path)
+
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-fork",
+        revision_id="rev-fork",
+        created_at="2026-06-22T12:30:00+00:00",
+        reason="fork",
+        base_revision_id="rev-parent",
+        rows=[
+            {
+                "id": "display-user-1",
+                "conversationRef": "conv-fork",
+                "revisionId": "rev-fork",
+                "index": 0,
+                "role": "user",
+                "type": "user_message",
+                "content": "original branch question",
+                "metadata": {"revisionId": "rev-fork"},
+            },
+            {
+                "id": "display-assistant-1",
+                "conversationRef": "conv-fork",
+                "revisionId": "rev-fork",
+                "index": 1,
+                "role": "assistant",
+                "type": "assistant_message",
+                "content": "original branch answer",
+                "metadata": {"revisionId": "rev-fork"},
+            },
+        ],
+    )
+    await append_chat_event(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-fork",
+        event_type="user_message",
+        role="user",
+        content="continue from here",
+        timestamp="2026-06-22T12:31:00+00:00",
+        message_index=None,
+        revision_id="rev-fork",
+        turn_ref="turn-child",
+        tool_name=None,
+        correlation_id=None,
+        workspace_path=None,
+        workspace_name=None,
+        metadata={},
+        attachments=[],
+        event_payload={
+            "eventId": "evt-child-user",
+            "type": "user_message",
+            "conversationRef": "conv-fork",
+            "revisionId": "rev-fork",
+            "timestamp": "2026-06-22T12:31:00+00:00",
+            "source": "sdk",
+            "payload": {"text": "continue from here"},
+        },
+    )
+
+    conversations = await list_conversations(
+        db_path=db_path,
+        user_id="user-1",
+        limit=10,
+    )
+
+    assert conversations[0]["title"] == "original branch question"
+    assert conversations[0]["last_message"] == "continue from here"
+    assert conversations[0]["last_timestamp"] == "2026-06-22T12:31:00+00:00"
+    assert conversations[0]["entry_count"] == 1
+
+
+@pytest.mark.asyncio
 async def test_list_conversations_returns_one_row_per_conversation(
     tmp_path: Path,
 ):

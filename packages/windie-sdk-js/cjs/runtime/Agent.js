@@ -798,6 +798,14 @@ class Agent {
             store: store ?? this.defaultConversationStore,
         }).replaceRows(input);
     }
+    async forkConversation(options) {
+        const { conversationRef, revisionId, store, ...input } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId,
+            store: store ?? this.defaultConversationStore,
+        }).fork(input);
+    }
     async prepareEditAndResend(options) {
         const { conversationRef, revisionId, store, ...input } = options;
         return this.conversation({

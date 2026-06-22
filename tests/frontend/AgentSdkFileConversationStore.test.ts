@@ -102,6 +102,65 @@ describe('FileConversationStore', () => {
     ]);
   });
 
+  test('lists fork-only display timelines and preserves their title after continuation events', async () => {
+    const store = new FileConversationStore({ directory: tempDir });
+    await store.replaceDisplayTimeline?.({
+      conversationRef: 'conv-fork-file',
+      revisionId: 'rev-fork-file',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: 'fork',
+      baseRevisionId: 'rev-parent',
+      rows: [
+        {
+          id: 'display-user-1',
+          conversationRef: 'conv-fork-file',
+          revisionId: 'rev-fork-file',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'fork source question',
+        },
+        {
+          id: 'display-assistant-1',
+          conversationRef: 'conv-fork-file',
+          revisionId: 'rev-fork-file',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'fork source answer',
+        },
+      ],
+    });
+
+    const reopened = new FileConversationStore({ directory: tempDir });
+    await expect(reopened.listMetadata()).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-fork-file',
+        revisionId: 'rev-fork-file',
+        title: 'fork source question',
+        lastMessage: 'fork source answer',
+        eventCount: 0,
+      }),
+    ]);
+
+    await reopened.appendEvent(event('user_message', { text: 'child continuation' }, {
+      conversationRef: 'conv-fork-file',
+      revisionId: 'rev-fork-file',
+      turnRef: 'turn-child',
+      timestamp: '2026-06-22T12:01:00.000Z',
+    }));
+
+    await expect(reopened.listMetadata()).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-fork-file',
+        revisionId: 'rev-fork-file',
+        title: 'fork source question',
+        lastMessage: 'child continuation',
+        eventCount: 1,
+      }),
+    ]);
+  });
+
   test('uses only complete compacted replay snapshots for rehydrate', async () => {
     const store = new FileConversationStore({ directory: tempDir });
     await store.appendEvent(event('user_message', { text: 'full history' }, {

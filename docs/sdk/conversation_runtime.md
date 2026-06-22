@@ -374,6 +374,15 @@ methods: conversations without display timeline checkpoints continue to
 project display rows from events until a replacement writes the first
 checkpoint.
 
+Fork uses the same display timeline boundary. `conversation.fork(...)` copies
+the selected display prefix into a new conversation revision with reason
+`fork`, copies only model-history rows whose `sourceDisplayRowIds` are wholly
+inside that prefix, and leaves the source branch unmodified aside from a
+sanitized runtime trace. Store metadata must list fork children from their
+active display checkpoint even before the child has raw events; after the child
+continues, the forked display prefix can still provide the title while newer
+child events provide the last-message tail.
+
 Metadata pagination and search helpers stay in the `conversation/metadata`
 owner module for SDK stores and runtime classes. Public package-root callers
 should use `agent.listConversations(...)`, `agent.searchConversations(...)`,
@@ -651,6 +660,19 @@ The Electron renderer publishes the replay `pendingTurn` only after
 visible rows or pending-turn state. No migration is required for existing
 conversations; before their first display checkpoint, the active timeline loads
 from the event projection fallback.
+
+Fork is also a revision operation rather than a raw-event rewrite:
+
+```text
+load source display timeline
+  -> copy rows through cutAfterRowId into newConversationRef
+  -> copy matching bounded model-history rows into the child revision
+  -> continue the child conversation independently
+```
+
+The source conversation keeps its original branch. The fork child does not copy
+unbounded raw tool output into model history, and it appears in list/dashboard
+metadata from the active display checkpoint without flattening ancestor events.
 
 ## Stream Rule
 
