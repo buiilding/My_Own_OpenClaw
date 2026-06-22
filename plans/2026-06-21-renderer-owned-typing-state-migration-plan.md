@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Live Surface Response Alias Deletion
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
+  still returned `showResponse`, a duplicate response-visibility boolean after
+  response-overlay visibility moved to the view intent that combines visible
+  entries and dismissal state.
+- Change: removed `showResponse` from live-turn surface output. Focused tests
+  now assert phase, busy state, source handoff, and SDK presentation data while
+  a boundary test rejects reintroducing the alias in the live-surface runtime.
+- Validation target: `LiveTurnSurfaceState.test.js`,
+  `PendingTurnLiveSurfaceIntegration.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed live-surface
+  contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Live Surface Awaiting Alias Deletion
 
 - Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`

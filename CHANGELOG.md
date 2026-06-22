@@ -68,6 +68,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/api: route transcription websocket protocol wording through the
+  client gateway boundary instead of renderer-specific labels in backend
+  service docstrings and endpoint docs. No migration required.
+- frontend/renderer: delete the duplicate `showResponse` live-surface alias;
+  response overlay visibility remains owned by the response-overlay view intent
+  after entries and dismissal state are resolved. No migration required.
 - frontend/renderer: delete the duplicate `showAwaiting` live-surface alias;
   live-turn surface output now keeps typing state on the renderer-owned visible
   lifecycle and preserves phase/busy/response fields. No migration required.

@@ -195,7 +195,6 @@ describe('pending-turn live surface integration', () => {
       source: 'pending-turn',
       phase: 'awaiting-first-chunk',
       isBusy: true,
-      showResponse: false,
     });
     expect(mockSend).toHaveBeenCalledWith('windie:pending-turn', {
       type: 'pending',
@@ -233,7 +232,6 @@ describe('pending-turn live surface integration', () => {
     })).toMatchObject({
       source: 'sdk-current-turn',
       phase: 'streaming',
-      showResponse: true,
     });
 
     const dashboardMessages = buildThreadPresentationMessages(state.messages, {

@@ -9,6 +9,20 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Backend Transcription Gateway Boundary Wording
+
+- Finding: backend transcription provider protocol docstrings still described
+  control/audio frames as renderer-owned even though the backend owns the
+  `/ws/transcription` provider session and gateway frame parser/builder.
+- Change: renamed the active backend wording to client/local transcription
+  gateway protocol in service docstrings and endpoint docs, and added a backend
+  architecture guardrail test rejecting the retired renderer-specific wording.
+- Validation target: `test_runtime_architecture_guardrails.py` protects the
+  backend transcription service and endpoint reference wording.
+- Compatibility/security: no websocket payload shape, SDK event payload, IPC
+  channel, renderer config, permission, credential, local execution, storage,
+  trust-boundary, or migration change required.
+
 ### 2026-06-22 Transcription Paste Cursor Timer Runtime
 
 - Finding: `useTranscription` already delegated transcription-region append,

@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: transcription paste caret restoration now routes
-  through `DesktopTranscriptionRegionRuntime`; `useTranscription` keeps React
-  input state and region refs while the runtime owns the browser timer and
-  `setSelectionRange` scheduling detail.
+- Latest completed slice: backend transcription websocket service wording now
+  uses the client/local transcription gateway boundary instead of
+  renderer-specific labels in provider-session and audio-frame protocol docs.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

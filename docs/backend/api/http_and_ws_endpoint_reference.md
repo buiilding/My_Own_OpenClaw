@@ -31,7 +31,7 @@ Behavior:
 - immediately emits `{"type":"status","client_id":"<uuid>"}` after accept
 - routes text control messages to the active provider session
 - routes binary audio frames through `parse_gateway_audio_frame(...)`
-- keeps one renderer protocol while backend chooses `stt_provider="nova"` or `stt_provider="openai"`
+- keeps one client gateway protocol while backend chooses `stt_provider="nova"` or `stt_provider="openai"`
 
 Client-to-backend transcription messages:
 

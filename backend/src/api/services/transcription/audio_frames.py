@@ -11,7 +11,7 @@ DEFAULT_SAMPLE_RATE = 16000
 
 
 def parse_gateway_audio_frame(frame: bytes) -> tuple[int, bytes]:
-    """Parse the renderer's length-prefixed metadata + PCM16 frame."""
+    """Parse a gateway-framed metadata + PCM16 audio payload."""
     if len(frame) < 4:
         raise ValueError("Audio frame is too short to contain metadata length")
 
@@ -34,7 +34,7 @@ def parse_gateway_audio_frame(frame: bytes) -> tuple[int, bytes]:
 
 
 def build_gateway_audio_frame(audio_bytes: bytes, sample_rate: int) -> bytes:
-    """Build the renderer-compatible audio frame for proxy providers."""
+    """Build the gateway-compatible audio frame for proxy providers."""
     metadata = json.dumps({"sampleRate": int(sample_rate)}).encode("utf-8")
     return len(metadata).to_bytes(4, byteorder="little") + metadata + audio_bytes
 

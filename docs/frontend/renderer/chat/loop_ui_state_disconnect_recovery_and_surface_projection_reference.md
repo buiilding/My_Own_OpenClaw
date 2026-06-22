@@ -184,7 +184,9 @@ metadata, but phase, busy, awaiting, and response flags now come from
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`. The
 live-surface adapter exposes `isBusy` rather than a legacy `isSending` alias,
 and no longer returns a separate `showAwaiting` typing alias; typing state
-stays on `visibleTurnLifecycle.showTyping`.
+stays on `visibleTurnLifecycle.showTyping`. It also omits the duplicate
+`showResponse` alias; response overlay visibility is resolved by the
+response-overlay view intent after entries and dismissal state are applied.
 It recognizes SDK presentation rows from `presentation.entries` or an explicit
 overlay intent object rather than legacy SDK visibility booleans; when overlay
 intent is absent, fallback intent is derived from SDK phase and actual visible
