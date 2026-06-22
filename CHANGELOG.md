@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the duplicate `showAssistantAwaitingDot`
+  presentation field; dashboard awaiting placement now stays on the concrete
+  `awaitingDotTargetMessageId` anchor. No migration required.
 - frontend/renderer: route dashboard model-reset warning timer scheduling
   through `DesktopModelSelectionRuntime`, keeping raw browser timeout
   scheduling out of `ModelsSection`. No migration required.

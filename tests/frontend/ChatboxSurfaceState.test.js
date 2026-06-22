@@ -83,7 +83,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     });
 
     expect(state.hasVisibleReply).toBe(false);
-    expect(state.showAssistantAwaitingDot).toBe(false);
+    expect(state.awaitingDotTargetMessageId).toBeNull();
     expect(state.showChatboxAwaitingReply).toBe(false);
     expect(state.showChatboxResponse).toBe(false);
   });

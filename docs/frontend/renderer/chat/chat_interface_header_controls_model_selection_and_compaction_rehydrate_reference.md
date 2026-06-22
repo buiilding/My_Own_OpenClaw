@@ -39,7 +39,8 @@ Derived flags:
 
 - `composerBusy` drives send/stop lock behavior
 - `canStop = composerBusy`
-- `showAssistantAwaitingDot` comes from the shared current-turn presentation contract
+- `awaitingDotTargetMessageId` comes from the shared current-turn presentation
+  contract and is the concrete dashboard awaiting-dot render target
 
 ## Stop Query Contract
 

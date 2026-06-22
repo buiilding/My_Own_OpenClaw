@@ -214,7 +214,7 @@ export type RendererOverlayViewModelTraceValues = {
     staleGuardRef?: unknown;
   } | null;
   currentTurnPresentationState?: {
-    showAssistantAwaitingDot?: boolean;
+    awaitingDotTargetMessageId?: unknown;
     hasVisibleReply?: boolean;
     isBusy?: boolean;
   } | null;
@@ -797,7 +797,10 @@ function buildRendererOverlayViewModelTracePayload(
     ),
     awaitingVisible: viewIntent?.showAwaitingReply === true,
     responseVisible: viewIntent?.showResponse === true,
-    showAwaitingDot: currentTurnPresentationState?.showAssistantAwaitingDot === true,
+    showAwaitingDot: (
+      viewIntent?.showAwaitingReply === true
+      && traceString(currentTurnPresentationState?.awaitingDotTargetMessageId) !== null
+    ),
     hasVisibleReply: currentTurnPresentationState?.hasVisibleReply === true,
     isBusy: currentTurnPresentationState?.isBusy === true,
     entryCount: responseOverlayEntries.length,

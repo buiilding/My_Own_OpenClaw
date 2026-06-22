@@ -228,8 +228,8 @@ longer imports the overlay lifecycle adapter.
   phase and visible entries
 - disables assistant feedback/retry actions from visible lifecycle busy/Stop
   state instead of raw `isSending`
-- uses visible lifecycle awaiting anchor for `showAssistantAwaitingDot` instead
-  of component-local reply scanning
+- uses visible lifecycle awaiting anchor for `awaitingDotTargetMessageId`
+  instead of component-local reply scanning
 - passes the visible lifecycle awaiting anchor directly to `MessageList`; live
   progress row shape remains rendering data and does not suppress lifecycle
   typing state

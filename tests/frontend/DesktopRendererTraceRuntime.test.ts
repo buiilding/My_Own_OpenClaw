@@ -639,7 +639,7 @@ describe('desktopRendererTraceRuntime', () => {
         mode: ' response ',
       },
       currentTurnPresentationState: {
-        showAssistantAwaitingDot: true,
+        awaitingDotTargetMessageId: ' user-row-1 ',
         hasVisibleReply: true,
         isBusy: true,
       },
@@ -661,7 +661,7 @@ describe('desktopRendererTraceRuntime', () => {
       guardRef: 'guard-intent',
       awaitingVisible: false,
       responseVisible: true,
-      showAwaitingDot: true,
+      showAwaitingDot: false,
       hasVisibleReply: true,
       isBusy: true,
       entryCount: 2,

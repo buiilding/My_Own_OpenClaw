@@ -9,6 +9,25 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Assistant Awaiting Dot Boolean Deletion
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+  still stamped `showAssistantAwaitingDot`, a duplicate dashboard boolean after
+  production rendering had moved to the concrete
+  `awaitingDotTargetMessageId` anchor from the visible lifecycle.
+- Change: removed `showAssistantAwaitingDot` from message-only presentation,
+  visible-lifecycle stamping, and response-overlay trace inputs. Traces now
+  derive `showAwaitingDot` from the presence of an awaiting target id.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatSurfaceController.test.jsx`, `DesktopRendererTraceRuntime.test.ts`,
+  `ChatboxSurfaceState.test.js`, `LatestVisibleAssistantReply.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed presentation
+  contract while keeping dashboard awaiting placement on
+  `awaitingDotTargetMessageId`.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Chat Interface Stream Tracking Selector Deletion
 
 - Finding: `DesktopChatSurfaceSelectorRuntime.projectDesktopChatInterfaceState(...)`

@@ -80,7 +80,7 @@ stamping:
 - `isAwaitingReply` (`false` until visible lifecycle stamping)
 - `activeResponse`
 - `hasVisibleReply`
-- `showAssistantAwaitingDot` (`false` until visible lifecycle stamping)
+- `awaitingDotTargetMessageId` (`null` until visible lifecycle stamping)
 - `visibleResponse`
 - `chatboxSurfaceState`
 - `showChatboxAwaitingReply`

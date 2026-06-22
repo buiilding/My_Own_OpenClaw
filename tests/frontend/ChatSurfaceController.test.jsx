@@ -180,7 +180,6 @@ describe('useChatSurfaceController', () => {
 
     expect(result.current.currentTurnPresentationState).toMatchObject({
       loopUiState: 'awaiting-reply',
-      showAssistantAwaitingDot: true,
       awaitingDotTargetMessageId: 'user-row-1',
       showChatboxAwaitingReply: true,
       showChatboxResponse: false,
@@ -312,7 +311,6 @@ describe('useChatSurfaceController', () => {
     });
     expect(result.current.currentTurnPresentationState).toMatchObject({
       loopUiState: 'awaiting-reply',
-      showAssistantAwaitingDot: true,
       awaitingDotTargetMessageId: 'user-local',
       showChatboxAwaitingReply: true,
       showChatboxResponse: false,
