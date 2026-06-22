@@ -10,6 +10,11 @@ All notable changes to WindieOS will be documented in this file.
   runtime, tool, and extension invariants to owner docs and regression packs,
   while keeping `AGENTS.md` as a compact orientation pointer. No migration
   required.
+- docs/adr: add ADR 007 for SDK-owned live visual attachment display,
+  distinguishing user-included images from camera screenshot requests, mixed
+  visual-send ordering, dashboard pending placeholders, compact-pill omission,
+  stable attachment ids, failed attachment states, and volatile preview
+  privacy. No migration required.
 - docs/plans: add the SDK-owned live visual attachment display plan for moving
   mixed user-included images, multi-image sends, camera screenshot requests,
   and combined image-plus-camera display continuity into SDK projection while

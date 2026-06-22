@@ -21,12 +21,15 @@ The user-visible invariant is:
 - camera-button screenshots are represented as requested screenshots until
   capture/materialization completes
 - mixed sends, such as two included images plus camera enabled, show included
-  images immediately and add the captured screenshot when it is ready
+  images immediately in composer order and add the captured screenshot after
+  the included images when it is ready
 - repeated SDK display projections must be monotonic: a same-turn user row must
   not downgrade from image-bearing to text-only while resources materialize
 
 This plan is the display-projection complement to
 `plans/2026-06-18-shared-image-resource-materialization-plan.md`.
+The durable ownership decision is ADR 007:
+`docs/adr/007-sdk-owned-live-visual-attachment-display.md`.
 
 ## Current Problem
 
@@ -55,9 +58,16 @@ source semantics instead of collapsing them into one legacy `screenshot` slot.
 | --- | --- | --- | --- |
 | User-included pasted/selected image | Yes | Image descriptor with volatile preview source | SDK/main materializes to artifact |
 | Multiple user-included images | Yes | Ordered image descriptors with volatile preview sources | SDK/main materializes each image |
-| Camera button / auto screenshot | No | Screenshot request descriptor, optionally pending placeholder | SDK/main captures and materializes |
+| Camera button / auto screenshot | No | Screenshot request descriptor; dashboard shows a placeholder, compact pill omits it | SDK/main captures and materializes |
 | Included images plus camera enabled | Mixed | Included images immediately; camera screenshot added or resolved later | SDK/main owns capture/materialization |
-| Replay/history | Artifact refs exist or not | Artifact-backed descriptors only | SDK/local store/backend |
+| Tool-result visual attachment | Artifact result exists after tool execution | Ready artifact-backed descriptor only; no preview state | SDK/main/backend materialize tool output |
+| Replay/history | Artifact refs exist or not | Artifact-backed descriptors only, no live preview bytes | SDK/local store/backend |
+
+Mixed visual sends use this display order:
+
+```text
+user-included images in composer order -> camera screenshot request
+```
 
 ## Proposed Display Contract
 
@@ -92,6 +102,14 @@ type SdkDisplayAttachment =
       contentType?: string | null;
       screenshotRef: string;
       screenshotUrl?: string | null;
+    }
+  | {
+      id: string;
+      kind: 'image' | 'screenshot_request';
+      source: 'user_included' | 'camera_button' | 'tool_result' | 'replay';
+      status: 'failed';
+      filename?: string | null;
+      errorCode?: string | null;
     };
 ```
 
@@ -99,9 +117,14 @@ The renderer should consume this list as rendering data:
 
 - render `image/materializing` with `previewSrc`
 - render `screenshot_request/pending_capture` as a small pending attachment
-  placeholder or omit it where product design chooses no placeholder
+  placeholder in dashboard
+- omit `screenshot_request/pending_capture` in the compact pill because the pill
+  is space-constrained
 - render `image/ready` through the existing authenticated artifact image
   resolver
+- render `failed` as a compact nonblocking attachment failure state where the
+  surface has room; compact surfaces may omit it or expose it through existing
+  turn error details
 - preserve list order from the SDK
 
 Renderer components should not merge `screenshotRef`, `screenshotRefs`,
@@ -186,12 +209,18 @@ for the SDK-owned `attachments[]` display contract.
 
 ### 1. ADR
 
-Create `docs/adr/007-sdk-owned-live-visual-attachment-display.md` with proposed
-or accepted-target status. It should decide:
+Create `docs/adr/007-sdk-owned-live-visual-attachment-display.md` with
+accepted-target status. It should decide:
 
 - SDK display projection owns live user visual attachment state.
 - User-included images get immediate live image descriptors.
 - Camera-button screenshots get request descriptors until captured.
+- Mixed sends order user-included images first, then the camera screenshot
+  request.
+- Dashboard renders pending camera placeholders; compact pill omits them.
+- Stable attachment ids survive materializing, ready, and failed transitions.
+- Tool-result visual attachments are ready artifact-backed descriptors only,
+  with no preview state.
 - Durable history stores artifact refs and metadata, not live preview bytes.
 - Renderer remains a display-row consumer.
 
@@ -206,8 +235,8 @@ Expected behavior:
 
 - each pasted/selected image maps to a stable ordered attachment id
 - camera screenshot request maps to a distinct stable attachment id
-- mixed sends keep user-included image ids before or around camera request ids
-  according to product display order
+- mixed sends keep user-included image ids in composer order before the camera
+  request id
 - resource tracing logs counts, kinds, and status only, not preview bytes
 
 Owner candidates:
@@ -228,6 +257,7 @@ The state should support:
 - materializing user-included image preview descriptors
 - pending camera screenshot request descriptors
 - ready artifact-backed image descriptors
+- failed descriptors for capture/materialization failures
 - replacement by stable attachment id
 - monotonic merge when display rows are rebuilt after trace/progress events
 
@@ -246,13 +276,15 @@ Expected row behavior:
 
 - first user row after send includes materializing user-included image
   attachments when present
-- camera-only sends include a pending screenshot request descriptor or no visual
-  descriptor until captured, depending on final product design
+- camera-only sends include a pending screenshot request descriptor; dashboard
+  renders it as a placeholder and compact pill omits it
 - mixed sends include user images immediately and later include/replace the
-  camera request with a ready screenshot image
+  camera request with a ready screenshot image after the included images
 - repeated display projections caused by trace/progress events never drop
   same-turn visual attachment descriptors unless a terminal failure explicitly
   marks the resource failed
+- failed capture/materialization is represented as `status: 'failed'` rather
+  than inferred from missing attachments
 
 ### 5. Renderer Consumer Switch
 
@@ -295,6 +327,7 @@ without storing image data:
 - ready artifact count
 - materializing preview count
 - pending screenshot request count
+- failed attachment count and sanitized failure code buckets
 - monotonic downgrade detection count, if practical
 
 Do not log text, preview bytes, screenshot URLs, screenshot paths, or filenames
@@ -324,6 +357,9 @@ Deletion targets:
   fallback, after equivalent SDK-owned tests exist
 - duplicate SDK display-row metadata alias writers once all consumers read the
   ordered attachment list
+- any tool-result preview branch if one appears during implementation; tool
+  results should enter display projection only as ready artifact-backed
+  descriptors for this ADR
 
 Allowed remaining compatibility must be narrow:
 
@@ -344,19 +380,29 @@ SDK/runtime tests:
 - user-included single image projects a materializing image descriptor before
   artifact refs exist
 - multiple user-included images project ordered materializing descriptors
-- camera-only request projects pending screenshot request or waits until ready,
-  according to final design
+- camera-only request projects a pending screenshot request descriptor
 - mixed included images plus camera request projects included images
   immediately and adds/replaces the camera descriptor when ready
+- mixed included images plus camera request preserves the order:
+  included images in composer order, then camera screenshot
+- capture/materialization failure projects `status: 'failed'`
 - repeated trace/progress display rebuilds do not downgrade image-bearing rows
   to text-only
 - replay/history projection emits artifact-backed descriptors without preview
   bytes
+- persistence/replay tests assert `previewSrc` is never written to durable
+  history, diagnostics, logs, or backend payloads
+- tool-result visual attachments project ready artifact-backed descriptors
+  without preview state
 
 Renderer tests:
 
 - message projection prefers SDK `attachments[]`
 - user message presentation renders multiple ordered display attachments
+- dashboard renders pending camera screenshot placeholders
+- compact pill omits pending camera screenshot placeholders
+- failed attachments render nonblocking failure state where the surface supports
+  it
 - attachment renderer registry dispatches image, pending screenshot, and ready
   artifact image descriptors to the expected components
 - new attachment types can be added without touching the global message merge
