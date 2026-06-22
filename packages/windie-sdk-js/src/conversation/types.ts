@@ -144,6 +144,24 @@ export type ConversationRewritePlan = {
   reason: 'edit_resend' | 'retry' | 'transcript_projection_rewrite';
 };
 
+export type DisplayTimelineReplaceReason =
+  | 'user_edit'
+  | 'retry'
+  | 'manual_rewrite';
+
+export type DisplayTimelineRow = SdkDisplayRow & {
+  revisionId: string;
+};
+
+export type DisplayTimelineCheckpoint = {
+  conversationRef: string;
+  revisionId: string;
+  rows: DisplayTimelineRow[];
+  createdAt: string;
+  reason?: DisplayTimelineReplaceReason | null;
+  baseRevisionId?: string | null;
+};
+
 export type CompactedReplaySnapshot = {
   generationId: string;
   conversationRef: string;
@@ -739,6 +757,11 @@ export interface ConversationStore {
   loadForDisplay(conversationRef: string): Promise<DisplayConversation>;
   loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]>;
   loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot>;
+  replaceDisplayTimeline?(checkpoint: DisplayTimelineCheckpoint): Promise<void>;
+  loadDisplayTimeline?(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<DisplayTimelineCheckpoint | null>;
   replaceModelHistory?(checkpoint: ModelHistoryCheckpoint): Promise<void>;
   loadModelHistory?(input: {
     conversationRef: string;

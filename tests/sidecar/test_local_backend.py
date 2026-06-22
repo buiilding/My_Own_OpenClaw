@@ -120,6 +120,8 @@ class DummyMemoryStore:
         self.chat_event_rows = []
         self.deleted_chat_conversation_calls = []
         self.replaced_chat_conversation_calls = []
+        self.replaced_display_timeline_calls = []
+        self.loaded_display_timeline_calls = []
         self.replaced_model_history_calls = []
         self.loaded_model_history_calls = []
         self.delete_semantic_return = True
@@ -219,6 +221,56 @@ class DummyMemoryStore:
             "revision_id": "rev-next",
             "updated_at": "2026-05-17T12:00:00+00:00",
             "record_kind": "chat_event",
+        }
+
+    async def replace_display_timeline(
+        self,
+        user_id,
+        conversation_id,
+        revision_id,
+        rows,
+        created_at=None,
+        reason=None,
+        base_revision_id=None,
+    ):
+        self.replaced_display_timeline_calls.append(
+            (
+                user_id,
+                conversation_id,
+                revision_id,
+                rows,
+                created_at,
+                reason,
+                base_revision_id,
+            )
+        )
+        return {
+            "revision_id": revision_id,
+            "row_count": len(rows),
+            "created_at": created_at,
+        }
+
+    async def load_display_timeline(
+        self,
+        user_id,
+        conversation_id,
+        revision_id=None,
+    ):
+        self.loaded_display_timeline_calls.append(
+            (user_id, conversation_id, revision_id)
+        )
+        return {
+            "conversation_id": conversation_id,
+            "revision_id": revision_id or "rev-latest",
+            "created_at": "2026-06-22T12:00:00+00:00",
+            "rows": [
+                {
+                    "id": "display-row-1",
+                    "role": "user",
+                    "type": "user_message",
+                    "content": "hello",
+                }
+            ],
         }
 
     async def replace_model_history_checkpoint(
@@ -1082,6 +1134,10 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "conversation.delete",
         "conversation.replace",
         "conversation.rewrite_after_event",
+        "conversation.display.replace",
+        "conversation.display.load",
+        "conversation.model_history.replace",
+        "conversation.model_history.load",
         "update_conversation_title",
         "get_conversation_title_state",
     }
@@ -1637,6 +1693,88 @@ async def test_handle_conversation_get_revision_returns_store_revision():
             "record_kind": "chat_event",
         },
     }
+
+
+@pytest.mark.asyncio
+async def test_handle_conversation_display_replace_routes_to_store():
+    backend = LocalRuntimeService()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_conversation_display_replace(
+        user_id="user-1",
+        conversation_id="conv-chat",
+        revision_id="rev-display",
+        created_at="2026-06-22T12:00:00+00:00",
+        reason="user_edit",
+        base_revision_id="rev-base",
+        rows=[
+            {
+                "id": "display-row-1",
+                "role": "user",
+                "type": "user_message",
+                "content": "edited",
+            }
+        ],
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "revision_id": "rev-display",
+            "row_count": 1,
+            "created_at": "2026-06-22T12:00:00+00:00",
+        },
+    }
+    assert backend.memory_store.replaced_display_timeline_calls == [
+        (
+            "user-1",
+            "conv-chat",
+            "rev-display",
+            [
+                {
+                    "id": "display-row-1",
+                    "role": "user",
+                    "type": "user_message",
+                    "content": "edited",
+                }
+            ],
+            "2026-06-22T12:00:00+00:00",
+            "user_edit",
+            "rev-base",
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_handle_conversation_display_load_returns_timeline():
+    backend = LocalRuntimeService()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_conversation_display_load(
+        user_id="user-1",
+        conversation_id="conv-chat",
+        revision_id="rev-display",
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "conversation_id": "conv-chat",
+            "revision_id": "rev-display",
+            "created_at": "2026-06-22T12:00:00+00:00",
+            "rows": [
+                {
+                    "id": "display-row-1",
+                    "role": "user",
+                    "type": "user_message",
+                    "content": "hello",
+                }
+            ],
+        },
+    }
+    assert backend.memory_store.loaded_display_timeline_calls == [
+        ("user-1", "conv-chat", "rev-display")
+    ]
 
 
 @pytest.mark.asyncio

@@ -9,6 +9,7 @@ import type {
   ConversationRevision,
   ConversationRewritePlan,
   ConversationStore,
+  DisplayTimelineCheckpoint,
   DisplayConversation,
   ListConversationOptions,
   ModelHistoryCheckpoint,
@@ -51,6 +52,7 @@ type StoredConversationFile = {
   events: ConversationEvent[];
   replay?: CompactedReplaySnapshot | null;
   modelHistory?: ModelHistoryCheckpoint[];
+  displayTimeline?: DisplayTimelineCheckpoint[];
   revision?: ConversationRevision | null;
 };
 
@@ -143,6 +145,9 @@ function normalizeStoredFile(conversationRef: string, raw: unknown): StoredConve
     modelHistory: Array.isArray(payload.modelHistory)
       ? payload.modelHistory
       : [],
+    displayTimeline: Array.isArray(payload.displayTimeline)
+      ? payload.displayTimeline
+      : [],
     revision: payload.revision ?? buildRevision(conversationRef, events),
   };
 }
@@ -233,6 +238,42 @@ export class FileConversationStore implements ConversationStore {
 
   async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
     return buildDisplayRows(await this.loadEvents(conversationRef));
+  }
+
+  async replaceDisplayTimeline(checkpoint: DisplayTimelineCheckpoint): Promise<void> {
+    await this.runConversationMutation(checkpoint.conversationRef, async () => {
+      const stored = await this.readConversation(checkpoint.conversationRef);
+      const existing = stored.displayTimeline ?? [];
+      await this.writeConversation({
+        ...stored,
+        conversationRef: checkpoint.conversationRef,
+        displayTimeline: [
+          ...existing.filter(entry => entry.revisionId !== checkpoint.revisionId),
+          {
+            ...checkpoint,
+            rows: [...checkpoint.rows],
+          },
+        ],
+        revision: {
+          conversationRef: checkpoint.conversationRef,
+          revisionId: checkpoint.revisionId,
+          updatedAt: checkpoint.createdAt,
+        },
+      });
+    });
+  }
+
+  async loadDisplayTimeline(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<DisplayTimelineCheckpoint | null> {
+    const stored = await this.readConversation(input.conversationRef);
+    const checkpoints = stored.displayTimeline ?? [];
+    const candidates = input.revisionId
+      ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+      : checkpoints;
+    const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+    return latest ? { ...latest, rows: [...latest.rows] } : null;
   }
 
   async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {

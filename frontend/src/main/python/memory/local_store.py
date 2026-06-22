@@ -39,11 +39,13 @@ from memory.chat_event_store import (
     clear_chat_events,
     delete_conversation,
     get_conversation_revision,
+    load_display_timeline,
     load_model_history_checkpoint,
     load_conversation_events,
     get_next_chat_event_index,
     init_chat_event_schema,
     list_conversations,
+    replace_display_timeline,
     replace_model_history_checkpoint,
     replace_conversation,
     rewrite_conversation_after_event,
@@ -1436,6 +1438,42 @@ class LocalMemoryStore:
             db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
+        )
+
+    async def replace_display_timeline(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        revision_id: str,
+        rows: List[Dict[str, Any]],
+        created_at: Optional[str] = None,
+        reason: Optional[str] = None,
+        base_revision_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        return await replace_display_timeline(
+            db_path=self.history_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            revision_id=revision_id,
+            rows=rows,
+            created_at=created_at,
+            reason=reason,
+            base_revision_id=base_revision_id,
+        )
+
+    async def load_display_timeline(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        revision_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        return await load_display_timeline(
+            db_path=self.history_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            revision_id=revision_id,
         )
 
     async def replace_model_history_checkpoint(

@@ -11,10 +11,12 @@ ensure_frontend_python_path()
 from memory.chat_event_store import (  # noqa: E402
     append_chat_event,
     get_conversation_revision,
+    load_display_timeline,
     load_model_history_checkpoint,
     load_conversation_events,
     init_chat_event_schema,
     list_conversations,
+    replace_display_timeline,
     replace_model_history_checkpoint,
     replace_conversation,
     rewrite_conversation_after_event,
@@ -35,6 +37,7 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
                 FROM sqlite_master
                 WHERE name IN (
                     'conversation_events',
+                    'conversation_display_timeline',
                     'conversation_model_history',
                     'conversation_revisions',
                     'conversations',
@@ -47,12 +50,165 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
         )
 
     assert objects["conversation_events"] == "table"
+    assert objects["conversation_display_timeline"] == "table"
     assert objects["conversation_model_history"] == "table"
     assert objects["conversation_revisions"] == "table"
     assert objects["conversations"] == "table"
     assert objects["conversation_turns"] == "table"
     assert objects["conversation_titles"] == "table"
     assert objects["conversation_display_messages"] == "view"
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_round_trips_display_timeline(tmp_path: Path):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    result = await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+        created_at="2026-06-22T12:00:00+00:00",
+        reason="user_edit",
+        base_revision_id="rev-parent",
+        rows=[
+            {
+                "id": "display-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-child",
+                "index": 0,
+                "role": "user",
+                "type": "user_message",
+                "content": "edited hello",
+                "metadata": {"eventId": "evt-user"},
+            },
+            {
+                "id": "display-assistant",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-child",
+                "index": 1,
+                "role": "assistant",
+                "type": "assistant_message",
+                "content": "answer",
+            },
+        ],
+    )
+
+    loaded = await load_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+    )
+    revision = await get_conversation_revision(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert result == {
+        "revision_id": "rev-child",
+        "row_count": 2,
+        "created_at": "2026-06-22T12:00:00+00:00",
+    }
+    assert loaded == {
+        "conversation_id": "conv-1",
+        "revision_id": "rev-child",
+        "created_at": "2026-06-22T12:00:00+00:00",
+        "reason": "user_edit",
+        "base_revision_id": "rev-parent",
+        "rows": [
+            {
+                "id": "display-user",
+                "conversation_id": "conv-1",
+                "revision_id": "rev-child",
+                "index": 0,
+                "role": "user",
+                "type": "user_message",
+                "content": "edited hello",
+                "turn_ref": None,
+                "metadata": {"eventId": "evt-user"},
+            },
+            {
+                "id": "display-assistant",
+                "conversation_id": "conv-1",
+                "revision_id": "rev-child",
+                "index": 1,
+                "role": "assistant",
+                "type": "assistant_message",
+                "content": "answer",
+                "turn_ref": None,
+                "metadata": {},
+            },
+        ],
+    }
+    assert revision["revision_id"] == "rev-child"
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_loads_inactive_display_timeline_by_revision(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-parent",
+        created_at="2026-06-22T12:00:00+00:00",
+        reason=None,
+        base_revision_id=None,
+        rows=[
+            {
+                "id": "display-parent-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-parent",
+                "role": "user",
+                "type": "user_message",
+                "content": "original",
+            },
+        ],
+    )
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+        created_at="2026-06-22T12:01:00+00:00",
+        reason="user_edit",
+        base_revision_id="rev-parent",
+        rows=[
+            {
+                "id": "display-child-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-child",
+                "role": "user",
+                "type": "user_message",
+                "content": "edited",
+            },
+        ],
+    )
+
+    active = await load_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+    parent = await load_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-parent",
+    )
+
+    assert active is not None
+    assert active["revision_id"] == "rev-child"
+    assert parent is not None
+    assert parent["revision_id"] == "rev-parent"
+    assert parent["rows"][0]["content"] == "original"
 
 
 @pytest.mark.asyncio

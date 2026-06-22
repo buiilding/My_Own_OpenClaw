@@ -838,6 +838,74 @@ class LocalRuntimeMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
+    async def _handle_conversation_display_replace(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        revision_id: Optional[str] = None,
+        rows: Optional[List[Dict[str, Any]]] = None,
+        created_at: Optional[str] = None,
+        reason: Optional[str] = None,
+        base_revision_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        if not revision_id:
+            return {"success": False, "error": "revision_id is required"}
+        if not isinstance(rows, list):
+            return {"success": False, "error": "rows must be a list"}
+        try:
+            result = await self.memory_store.replace_display_timeline(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                revision_id=sanitize_surrogates_in_text(revision_id),
+                rows=sanitize_surrogates(rows),
+                created_at=(
+                    sanitize_surrogates_in_text(created_at) if created_at else None
+                ),
+                reason=sanitize_surrogates_in_text(reason) if reason else None,
+                base_revision_id=(
+                    sanitize_surrogates_in_text(base_revision_id)
+                    if base_revision_id
+                    else None
+                ),
+            )
+            return {"success": True, "data": result}
+        except Exception as e:
+            logger.error(
+                f"Conversation display timeline replace failed: {e}",
+                exc_info=True,
+            )
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_conversation_display_load(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        revision_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        try:
+            timeline = await self.memory_store.load_display_timeline(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                revision_id=(
+                    sanitize_surrogates_in_text(revision_id) if revision_id else None
+                ),
+            )
+            return {"success": True, "data": timeline or {}}
+        except Exception as e:
+            logger.error(
+                f"Conversation display timeline load failed: {e}",
+                exc_info=True,
+            )
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
     async def _handle_conversation_model_history_load(
         self,
         user_id: str = "default_user",

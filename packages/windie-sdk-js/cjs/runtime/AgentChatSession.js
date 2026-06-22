@@ -26,6 +26,9 @@ class AgentChatSession {
     async display() {
         return (await this.load()).display;
     }
+    async loadDisplayTimeline(options = {}) {
+        return this.runtime.loadDisplayTimeline(options);
+    }
     async send(input) {
         return this.runtime.send(normalizeSendInput(input));
     }
@@ -53,6 +56,9 @@ class AgentChatSession {
     }
     async retry(input = {}) {
         return this.runtime.retryTurn(input);
+    }
+    async replaceRows(input) {
+        return this.runtime.replaceRows(input);
     }
     async stop(turnRef) {
         await this.runtime.stop(turnRef ?? null);

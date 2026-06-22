@@ -23,6 +23,12 @@ All notable changes to WindieOS will be documented in this file.
   keeping event-projection rehydrate only as the no-checkpoint fallback during
   migration. No migration required; conversations that do not yet have a
   checkpoint still resume through the existing projection path.
+- sdk/local-runtime: add the first display timeline revision API with SDK
+  `replaceRows(...)` / `loadDisplayTimeline(...)`, local-runtime
+  `conversation.display.replace/load` storage, and file/in-memory store
+  checkpoint support so editable display history can diverge from raw runtime
+  events. No migration required; existing display rows still project from the
+  event log until a timeline checkpoint is written.
 - docs/adr: add ADR 008 and the conversation history revision architecture
   plan for separating full display history, backend-normalized model history,
   runtime events, and revision graph ownership so edit/resend, compaction,

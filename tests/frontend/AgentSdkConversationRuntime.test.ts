@@ -5095,6 +5095,106 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
+  test('conversation runtime replaces display rows as a child timeline revision without rewriting events', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvent(createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+      turnRef: 'turn-1',
+      source: 'sdk',
+      payload: { text: 'original hello' },
+    }));
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+      store,
+    });
+    await runtime.load();
+
+    const checkpoint = await runtime.replaceRows({
+      baseRevisionId: 'rev-base',
+      reason: 'user_edit',
+      rows: [
+        {
+          id: 'display-user',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'edited hello',
+          metadata: { revisionId: 'rev-base', eventId: 'evt-user' },
+        },
+      ],
+    });
+
+    expect(checkpoint.revisionId).not.toBe('rev-base');
+    expect(checkpoint).toEqual(expect.objectContaining({
+      conversationRef: 'conv-sdk-runtime',
+      reason: 'user_edit',
+      baseRevisionId: 'rev-base',
+      rows: [
+        expect.objectContaining({
+          id: 'display-user',
+          content: 'edited hello',
+          revisionId: checkpoint.revisionId,
+          metadata: expect.objectContaining({
+            revisionId: checkpoint.revisionId,
+          }),
+        }),
+      ],
+    }));
+    await expect(store.loadDisplayTimeline?.({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: checkpoint.revisionId,
+    })).resolves.toMatchObject({
+      revisionId: checkpoint.revisionId,
+      rows: [
+        expect.objectContaining({ content: 'edited hello' }),
+      ],
+    });
+    await expect(store.loadEvents('conv-sdk-runtime')).resolves.toEqual([
+      expect.objectContaining({ type: 'user_message', revisionId: 'rev-base' }),
+      expect.objectContaining({ type: 'trace_event', revisionId: checkpoint.revisionId }),
+    ]);
+  });
+
+  test('conversation runtime rejects display timeline rows with malformed attachment refs', async () => {
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-base',
+      store,
+    });
+
+    await expect(runtime.replaceRows({
+      baseRevisionId: 'rev-base',
+      reason: 'user_edit',
+      rows: [
+        {
+          id: 'display-user',
+          conversationRef: 'conv-sdk-runtime',
+          revisionId: 'rev-base',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'hello',
+          metadata: {
+            revisionId: 'rev-base',
+            attachments: [
+              {
+                kind: 'image',
+                source: 'user_included',
+                status: 'ready',
+              },
+            ],
+          },
+        },
+      ],
+    })).rejects.toThrow('replaceRows attachment refs require stable ids');
+  });
+
   test('conversation runtime records query dispatch trace around backend send', async () => {
     const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-dispatch-accepted'),

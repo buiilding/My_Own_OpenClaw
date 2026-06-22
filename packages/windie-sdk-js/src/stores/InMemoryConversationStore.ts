@@ -9,6 +9,7 @@ import type {
   ConversationRevision,
   ConversationRewritePlan,
   ConversationStore,
+  DisplayTimelineCheckpoint,
   DisplayConversation,
   ListConversationOptions,
   ModelHistoryCheckpoint,
@@ -55,6 +56,7 @@ export class InMemoryConversationStore implements ConversationStore {
   private readonly revisionsByConversation = new Map<string, ConversationRevision>();
   private readonly replayByConversation = new Map<string, CompactedReplaySnapshot>();
   private readonly modelHistoryByConversation = new Map<string, ModelHistoryCheckpoint[]>();
+  private readonly displayTimelineByConversation = new Map<string, DisplayTimelineCheckpoint[]>();
 
   async appendEvent(event: ConversationEvent): Promise<void> {
     await this.appendEvents([event]);
@@ -113,6 +115,35 @@ export class InMemoryConversationStore implements ConversationStore {
 
   async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
     return buildDisplayRows(await this.loadEvents(conversationRef));
+  }
+
+  async replaceDisplayTimeline(checkpoint: DisplayTimelineCheckpoint): Promise<void> {
+    const existing = this.displayTimelineByConversation.get(checkpoint.conversationRef) ?? [];
+    const next = [
+      ...existing.filter(entry => entry.revisionId !== checkpoint.revisionId),
+      {
+        ...checkpoint,
+        rows: [...checkpoint.rows],
+      },
+    ];
+    this.displayTimelineByConversation.set(checkpoint.conversationRef, next);
+    this.revisionsByConversation.set(checkpoint.conversationRef, {
+      conversationRef: checkpoint.conversationRef,
+      revisionId: checkpoint.revisionId,
+      updatedAt: checkpoint.createdAt,
+    });
+  }
+
+  async loadDisplayTimeline(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<DisplayTimelineCheckpoint | null> {
+    const checkpoints = this.displayTimelineByConversation.get(input.conversationRef) ?? [];
+    const candidates = input.revisionId
+      ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+      : checkpoints;
+    const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+    return latest ? { ...latest, rows: [...latest.rows] } : null;
   }
 
   async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
@@ -185,6 +216,7 @@ export class InMemoryConversationStore implements ConversationStore {
     this.revisionsByConversation.delete(conversationRef);
     this.replayByConversation.delete(conversationRef);
     this.modelHistoryByConversation.delete(conversationRef);
+    this.displayTimelineByConversation.delete(conversationRef);
   }
 
   async clearConversations(): Promise<void> {
@@ -193,6 +225,7 @@ export class InMemoryConversationStore implements ConversationStore {
     this.revisionsByConversation.clear();
     this.replayByConversation.clear();
     this.modelHistoryByConversation.clear();
+    this.displayTimelineByConversation.clear();
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {

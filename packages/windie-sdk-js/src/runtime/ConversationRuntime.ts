@@ -11,6 +11,9 @@ import type {
   ConversationRuntimeState,
   ConversationStore,
   CurrentTurnProjection,
+  DisplayTimelineCheckpoint,
+  DisplayTimelineReplaceReason,
+  DisplayTimelineRow,
   DisplayConversation,
   JsonRecord,
   LocalToolExecutionLifecycle,
@@ -120,6 +123,12 @@ export type PreparedReplayTurn = {
 export type CompactHistoryInput = {
   force?: boolean;
   payload?: JsonRecord;
+};
+
+export type ReplaceRowsInput = {
+  rows: Array<DisplayTimelineRow | SdkDisplayRow>;
+  baseRevisionId: string;
+  reason: DisplayTimelineReplaceReason;
 };
 
 export type AgentRuntimeEvent =
@@ -283,6 +292,119 @@ function displayAttachmentsFromUnknown(value: unknown): SdkDisplayAttachment[] {
   });
 }
 
+function rowMetadataRevision(row: DisplayTimelineRow | SdkDisplayRow): string | null {
+  const explicit = (row as Partial<DisplayTimelineRow>).revisionId;
+  if (typeof explicit === 'string' && explicit.trim()) {
+    return explicit.trim();
+  }
+  const metadataRevision = row.metadata?.revisionId;
+  return typeof metadataRevision === 'string' && metadataRevision.trim()
+    ? metadataRevision.trim()
+    : null;
+}
+
+function displayTimelinePairKeys(row: DisplayTimelineRow): string[] {
+  const metadata = row.metadata ?? {};
+  const keys = [
+    metadata.toolCallId,
+    metadata.requestId,
+    metadata.correlationId,
+    metadata.bundleId,
+  ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+  if ((row.type === 'tool_call' || row.type === 'tool_bundle_call') && isJsonRecord(row.content)) {
+    const toolCalls = Array.isArray(row.content.tool_calls)
+      ? row.content.tool_calls
+      : Array.isArray(row.content.toolCalls) ? row.content.toolCalls : [];
+    for (const toolCall of toolCalls) {
+      const record = isJsonRecord(toolCall) ? toolCall : null;
+      const id = typeof record?.id === 'string' && record.id.trim() ? record.id.trim() : null;
+      if (id) {
+        keys.push(id);
+      }
+    }
+  }
+  return Array.from(new Set(keys));
+}
+
+function validateDisplayTimelineAttachments(row: DisplayTimelineRow): void {
+  const attachments = row.metadata?.attachments;
+  if (attachments == null) {
+    return;
+  }
+  if (!Array.isArray(attachments)) {
+    throw new Error('replaceRows attachment refs must be an array');
+  }
+  for (const attachment of attachments) {
+    if (!attachment || typeof attachment !== 'object') {
+      throw new Error('replaceRows attachment refs must be objects');
+    }
+    const record = attachment as Partial<SdkDisplayAttachment>;
+    const id = typeof record.id === 'string' ? record.id.trim() : '';
+    if (!id) {
+      throw new Error('replaceRows attachment refs require stable ids');
+    }
+    if (record.kind !== 'image' && record.kind !== 'screenshot_request') {
+      throw new Error('replaceRows attachment refs require canonical kind');
+    }
+    if (!record.source || !record.status) {
+      throw new Error('replaceRows attachment refs require source and status');
+    }
+  }
+}
+
+function normalizeDisplayTimelineRows(
+  rows: Array<DisplayTimelineRow | SdkDisplayRow>,
+  options: {
+    conversationRef: string;
+    baseRevisionId: string;
+    newRevisionId: string;
+  },
+): DisplayTimelineRow[] {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    throw new Error('replaceRows requires at least one display row');
+  }
+  const normalized = rows.map((row, index): DisplayTimelineRow => {
+    if (!row || typeof row !== 'object') {
+      throw new Error('replaceRows rows must be objects');
+    }
+    if (row.conversationRef !== options.conversationRef) {
+      throw new Error('replaceRows rows must match the active conversation');
+    }
+    if (rowMetadataRevision(row) !== options.baseRevisionId) {
+      throw new Error('replaceRows rows must belong to the base revision');
+    }
+    if (!row.id || typeof row.id !== 'string') {
+      throw new Error('replaceRows rows require stable ids');
+    }
+    return {
+      ...row,
+      index,
+      revisionId: options.newRevisionId,
+      metadata: {
+        ...(row.metadata ?? {}),
+        revisionId: options.newRevisionId,
+      },
+    } as DisplayTimelineRow;
+  });
+
+  normalized.forEach(validateDisplayTimelineAttachments);
+
+  const openToolKeys = new Set<string>();
+  for (const row of normalized) {
+    const keys = displayTimelinePairKeys(row);
+    if (row.type === 'tool_call' || row.type === 'tool_bundle_call') {
+      keys.forEach(key => openToolKeys.add(key));
+    }
+    if (row.type === 'tool_output' || row.type === 'tool_bundle_output') {
+      const hasPair = keys.length === 0 || keys.some(key => openToolKeys.has(key));
+      if (!hasPair) {
+        throw new Error('replaceRows tool outputs require a preceding tool call');
+      }
+    }
+  }
+  return normalized;
+}
+
 function getAgentDefinitionClientManifestTools(agentDefinition: unknown): JsonRecord[] {
   if (!isJsonRecord(agentDefinition)) {
     return [];
@@ -415,6 +537,76 @@ export class SdkConversationRuntime {
       ),
     );
     return this.snapshot(this.events);
+  }
+
+  async loadDisplayTimeline(options: { revisionId?: string | null } = {}): Promise<DisplayTimelineCheckpoint> {
+    const loader = this.options.store.loadDisplayTimeline;
+    const revisionId = options.revisionId ?? (this.state.revisionId === 'rev-empty' ? null : this.state.revisionId);
+    if (loader) {
+      const checkpoint = await loader.call(this.options.store, {
+        conversationRef: this.options.conversationRef,
+        revisionId,
+      });
+      if (checkpoint) {
+        return checkpoint;
+      }
+    }
+    const rows = await this.options.store.loadDisplayRows(this.options.conversationRef);
+    const fallbackRevisionId = revisionId ?? this.state.revisionId;
+    return {
+      conversationRef: this.options.conversationRef,
+      revisionId: fallbackRevisionId,
+      createdAt: new Date().toISOString(),
+      rows: rows.map((row, index) => ({
+        ...row,
+        index,
+        revisionId: rowMetadataRevision(row) ?? fallbackRevisionId,
+      })),
+      reason: null,
+      baseRevisionId: null,
+    };
+  }
+
+  async replaceRows(input: ReplaceRowsInput): Promise<DisplayTimelineCheckpoint> {
+    if (!this.options.store.replaceDisplayTimeline) {
+      throw new Error('replaceRows requires a display timeline capable conversation store');
+    }
+    if (!input.baseRevisionId || !input.baseRevisionId.trim()) {
+      throw new Error('replaceRows requires baseRevisionId');
+    }
+    const baseRevisionId = input.baseRevisionId.trim();
+    const newRevisionId = createRuntimeId('rev');
+    const createdAt = new Date().toISOString();
+    const rows = normalizeDisplayTimelineRows(input.rows, {
+      conversationRef: this.options.conversationRef,
+      baseRevisionId,
+      newRevisionId,
+    });
+    const checkpoint: DisplayTimelineCheckpoint = {
+      conversationRef: this.options.conversationRef,
+      revisionId: newRevisionId,
+      createdAt,
+      rows,
+      reason: input.reason,
+      baseRevisionId,
+    };
+    await this.options.store.replaceDisplayTimeline(checkpoint);
+    this.state = {
+      ...this.state,
+      revisionId: newRevisionId,
+    };
+    await this.recordRuntimeTrace({
+      path: 'conversation.display_timeline',
+      stage: 'replace_rows',
+      status: 'succeeded',
+      data: {
+        rowCount: rows.length,
+        reason: input.reason,
+        baseRevisionId,
+        revisionId: newRevisionId,
+      },
+    }, { revisionId: newRevisionId });
+    return checkpoint;
   }
 
   subscribe(listener: ConversationListener): () => void {

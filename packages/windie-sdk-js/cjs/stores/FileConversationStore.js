@@ -116,6 +116,9 @@ function normalizeStoredFile(conversationRef, raw) {
         modelHistory: Array.isArray(payload.modelHistory)
             ? payload.modelHistory
             : [],
+        displayTimeline: Array.isArray(payload.displayTimeline)
+            ? payload.displayTimeline
+            : [],
         revision: payload.revision ?? buildRevision(conversationRef, events),
     };
 }
@@ -198,6 +201,37 @@ class FileConversationStore {
     }
     async loadDisplayRows(conversationRef) {
         return (0, conversationProjections_js_1.buildDisplayRows)(await this.loadEvents(conversationRef));
+    }
+    async replaceDisplayTimeline(checkpoint) {
+        await this.runConversationMutation(checkpoint.conversationRef, async () => {
+            const stored = await this.readConversation(checkpoint.conversationRef);
+            const existing = stored.displayTimeline ?? [];
+            await this.writeConversation({
+                ...stored,
+                conversationRef: checkpoint.conversationRef,
+                displayTimeline: [
+                    ...existing.filter(entry => entry.revisionId !== checkpoint.revisionId),
+                    {
+                        ...checkpoint,
+                        rows: [...checkpoint.rows],
+                    },
+                ],
+                revision: {
+                    conversationRef: checkpoint.conversationRef,
+                    revisionId: checkpoint.revisionId,
+                    updatedAt: checkpoint.createdAt,
+                },
+            });
+        });
+    }
+    async loadDisplayTimeline(input) {
+        const stored = await this.readConversation(input.conversationRef);
+        const checkpoints = stored.displayTimeline ?? [];
+        const candidates = input.revisionId
+            ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+            : checkpoints;
+        const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+        return latest ? { ...latest, rows: [...latest.rows] } : null;
     }
     async loadForRehydrate(conversationRef) {
         const compactedReplay = await this.loadCompactedReplay(conversationRef);

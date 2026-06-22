@@ -4060,6 +4060,117 @@ describe('Agent SDK client behavior', () => {
     }));
   });
 
+  test('LocalRuntimeConversationStore persists and loads display timeline checkpoints', async () => {
+    const rpc = jest.fn(async ({ method, params }) => {
+      if (method === 'conversation.display.replace') {
+        return {
+          success: true,
+          data: {
+            revision_id: params.revision_id,
+            row_count: params.rows.length,
+          },
+        };
+      }
+      if (method === 'conversation.display.load') {
+        return {
+          success: true,
+          data: {
+            revision_id: params.revision_id,
+            created_at: '2026-06-22T12:00:00.000Z',
+            reason: 'user_edit',
+            base_revision_id: 'rev-base',
+            rows: [
+              {
+                id: 'display-user',
+                conversation_id: params.conversation_id,
+                revision_id: params.revision_id,
+                index: 0,
+                role: 'user',
+                type: 'user_message',
+                content: 'edited hello',
+                metadata: { revisionId: params.revision_id },
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+    const store = new LocalRuntimeConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+    });
+
+    await store.replaceDisplayTimeline?.({
+      conversationRef: 'conv-display',
+      revisionId: 'rev-display',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: 'user_edit',
+      baseRevisionId: 'rev-base',
+      rows: [
+        {
+          id: 'display-user',
+          conversationRef: 'conv-display',
+          revisionId: 'rev-display',
+          turnRef: null,
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'edited hello',
+          metadata: { revisionId: 'rev-display' },
+        },
+      ],
+    });
+
+    await expect(store.loadDisplayTimeline?.({
+      conversationRef: 'conv-display',
+      revisionId: 'rev-display',
+    })).resolves.toEqual({
+      conversationRef: 'conv-display',
+      revisionId: 'rev-display',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: 'user_edit',
+      baseRevisionId: 'rev-base',
+      rows: [
+        {
+          id: 'display-user',
+          conversationRef: 'conv-display',
+          revisionId: 'rev-display',
+          turnRef: null,
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'edited hello',
+          metadata: { revisionId: 'rev-display' },
+        },
+      ],
+    });
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'conversation.display.replace',
+      params: expect.objectContaining({
+        user_id: 'user-1',
+        conversation_id: 'conv-display',
+        revision_id: 'rev-display',
+        reason: 'user_edit',
+        base_revision_id: 'rev-base',
+        rows: [
+          expect.objectContaining({
+            row_id: 'display-user',
+            row_type: 'user_message',
+          }),
+        ],
+      }),
+    }));
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'conversation.display.load',
+      params: {
+        user_id: 'user-1',
+        conversation_id: 'conv-display',
+        revision_id: 'rev-display',
+      },
+    }));
+  });
+
   test('LocalRuntimeConversationStore merges host write params before local runtime rpc', async () => {
     const rpc = jest.fn(async () => ({ success: true, data: {} }));
     const store = new LocalRuntimeConversationStore({

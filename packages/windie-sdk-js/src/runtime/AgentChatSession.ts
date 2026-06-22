@@ -3,6 +3,7 @@
  */
 
 import type {
+  DisplayTimelineCheckpoint,
   DisplayConversation,
   RehydrateSnapshot,
 } from '../conversation/types.js';
@@ -16,6 +17,7 @@ import type {
   ConversationSnapshot,
   EditAndResendInput,
   RetryTurnInput,
+  ReplaceRowsInput,
   SdkConversationRuntime,
   SendInput,
   TurnResult,
@@ -44,6 +46,10 @@ export class AgentChatSession {
 
   async display(): Promise<DisplayConversation> {
     return (await this.load()).display;
+  }
+
+  async loadDisplayTimeline(options: { revisionId?: string | null } = {}): Promise<DisplayTimelineCheckpoint> {
+    return this.runtime.loadDisplayTimeline(options);
   }
 
   async send(input: string | SendInput): Promise<TurnResult> {
@@ -76,6 +82,10 @@ export class AgentChatSession {
 
   async retry(input: RetryTurnInput = {}): Promise<TurnResult> {
     return this.runtime.retryTurn(input);
+  }
+
+  async replaceRows(input: ReplaceRowsInput): Promise<DisplayTimelineCheckpoint> {
+    return this.runtime.replaceRows(input);
   }
 
   async stop(turnRef?: string | null): Promise<void> {

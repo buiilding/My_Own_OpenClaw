@@ -26,6 +26,7 @@ SIDEBAR_METADATA_EVENT_TYPES = (
 )
 
 CONVERSATION_EVENTS_TABLE = "conversation_events"
+CONVERSATION_DISPLAY_TIMELINE_TABLE = "conversation_display_timeline"
 CONVERSATION_MODEL_HISTORY_TABLE = "conversation_model_history"
 CONVERSATION_REVISIONS_TABLE = "conversation_revisions"
 CONVERSATIONS_TABLE = "conversations"
@@ -212,6 +213,34 @@ async def init_chat_event_schema(db_path: str) -> None:
             """
             CREATE INDEX IF NOT EXISTS idx_conversation_events_producer_order
             ON conversation_events(user_id, conversation_id, turn_ref, producer, producer_sequence)
+            """
+        )
+        await cursor.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS {CONVERSATION_DISPLAY_TIMELINE_TABLE} (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                revision_id TEXT NOT NULL,
+                row_index INTEGER NOT NULL,
+                row_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                row_type TEXT NOT NULL,
+                content TEXT,
+                turn_ref TEXT,
+                metadata TEXT,
+                reason TEXT,
+                base_revision_id TEXT,
+                created_at TEXT NOT NULL,
+                active INTEGER NOT NULL DEFAULT 1,
+                PRIMARY KEY (user_id, conversation_id, revision_id, row_index)
+            )
+            """
+        )
+        await cursor.execute(
+            f"""
+            CREATE INDEX IF NOT EXISTS idx_conversation_display_timeline_active
+            ON {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+            (user_id, conversation_id, revision_id, active, created_at)
             """
         )
         await cursor.execute(
@@ -1114,6 +1143,13 @@ async def delete_conversation(
                 )
                 await cursor.execute(
                     f"""
+                    DELETE FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                    WHERE user_id = ? AND conversation_id = ?
+                    """,
+                    (user_id, conversation_id),
+                )
+                await cursor.execute(
+                    f"""
                     DELETE FROM {CONVERSATION_MODEL_HISTORY_TABLE}
                     WHERE user_id = ? AND conversation_id = ?
                     """,
@@ -1124,6 +1160,212 @@ async def delete_conversation(
             await conn.rollback()
             raise
     return int(deleted)
+
+
+def _normalize_display_timeline_row(
+    row: Dict[str, Any],
+    *,
+    fallback_conversation_id: str,
+    fallback_revision_id: str,
+    fallback_index: int,
+) -> Dict[str, Any]:
+    row_id = row.get("id") or row.get("row_id") or row.get("rowId")
+    role = row.get("role")
+    row_type = row.get("type") or row.get("row_type") or row.get("rowType")
+    if not isinstance(row_id, str) or not row_id.strip():
+        raise ValueError("display timeline rows require id")
+    if role not in {"system", "user", "assistant", "tool"}:
+        raise ValueError("display timeline rows require role")
+    if row_type not in {
+        "user_message",
+        "assistant_message",
+        "tool_progress",
+        "tool_call",
+        "tool_bundle_call",
+        "tool_output",
+        "tool_bundle_output",
+        "reasoning",
+        "error",
+    }:
+        raise ValueError("display timeline rows require canonical type")
+    return {
+        "row_id": row_id.strip(),
+        "row_index": int(row.get("row_index") or row.get("rowIndex") or fallback_index),
+        "conversation_id": (
+            row.get("conversation_id")
+            or row.get("conversationRef")
+            or row.get("conversationId")
+            or fallback_conversation_id
+        ),
+        "revision_id": (
+            row.get("revision_id") or row.get("revisionId") or fallback_revision_id
+        ),
+        "role": role,
+        "row_type": row_type,
+        "content": row.get("content"),
+        "turn_ref": row.get("turn_ref") or row.get("turnRef"),
+        "metadata": (
+            row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+        ),
+    }
+
+
+async def replace_display_timeline(
+    *,
+    db_path: str,
+    user_id: str,
+    conversation_id: str,
+    revision_id: str,
+    rows: List[Dict[str, Any]],
+    created_at: Optional[str] = None,
+    reason: Optional[str] = None,
+    base_revision_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    if not conversation_id:
+        raise ValueError("conversation_id is required")
+    if not revision_id:
+        raise ValueError("revision_id is required")
+    if not isinstance(rows, list):
+        raise ValueError("rows must be a list")
+    normalized_created_at = _normalize_timestamp(created_at)
+    normalized_rows = [
+        _normalize_display_timeline_row(
+            row,
+            fallback_conversation_id=conversation_id,
+            fallback_revision_id=revision_id,
+            fallback_index=index,
+        )
+        for index, row in enumerate(rows)
+    ]
+    async with aiosqlite.connect(db_path) as conn:
+        cursor = await conn.cursor()
+        await conn.execute("BEGIN")
+        try:
+            await cursor.execute(
+                f"""
+                UPDATE {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                SET active = 0
+                WHERE user_id = ? AND conversation_id = ?
+                """,
+                (user_id, conversation_id),
+            )
+            await cursor.execute(
+                f"""
+                DELETE FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                WHERE user_id = ? AND conversation_id = ? AND revision_id = ?
+                """,
+                (user_id, conversation_id, revision_id),
+            )
+            for row in normalized_rows:
+                await conn.execute(
+                    f"""
+                    INSERT INTO {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                    (user_id, conversation_id, revision_id, row_index, row_id,
+                     role, row_type, content, turn_ref, metadata, reason,
+                     base_revision_id, created_at, active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+                    """,
+                    (
+                        user_id,
+                        conversation_id,
+                        revision_id,
+                        row["row_index"],
+                        row["row_id"],
+                        row["role"],
+                        row["row_type"],
+                        _json_dumps_value(row["content"]),
+                        row["turn_ref"],
+                        _json_dumps(row["metadata"]),
+                        reason,
+                        base_revision_id,
+                        normalized_created_at,
+                    ),
+                )
+            await cursor.execute(
+                """
+                INSERT OR REPLACE INTO conversation_revisions
+                (user_id, conversation_id, revision_id, updated_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (user_id, conversation_id, revision_id, normalized_created_at),
+            )
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
+    return {
+        "revision_id": revision_id,
+        "row_count": len(normalized_rows),
+        "created_at": normalized_created_at,
+    }
+
+
+async def load_display_timeline(
+    *,
+    db_path: str,
+    user_id: str,
+    conversation_id: str,
+    revision_id: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    if not conversation_id:
+        raise ValueError("conversation_id is required")
+    if revision_id:
+        revision_clause = "AND revision_id = ?"
+        revision_params: Tuple[Any, ...] = (revision_id,)
+        active_clause = ""
+    else:
+        revision_clause = ""
+        revision_params = ()
+        active_clause = "AND active = 1"
+    async with aiosqlite.connect(db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        await cursor.execute(
+            f"""
+            SELECT revision_id, created_at, reason, base_revision_id
+            FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+            WHERE user_id = ? AND conversation_id = ?
+            {active_clause}
+            {revision_clause}
+            ORDER BY created_at DESC, revision_id DESC
+            LIMIT 1
+            """,
+            (user_id, conversation_id, *revision_params),
+        )
+        checkpoint = await cursor.fetchone()
+        if checkpoint is None:
+            return None
+        await cursor.execute(
+            f"""
+            SELECT row_id, row_index, role, row_type, content, turn_ref, metadata
+            FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+            WHERE user_id = ? AND conversation_id = ? AND revision_id = ?
+            ORDER BY row_index ASC
+            """,
+            (user_id, conversation_id, checkpoint["revision_id"]),
+        )
+        rows = await cursor.fetchall()
+    return {
+        "conversation_id": conversation_id,
+        "revision_id": checkpoint["revision_id"],
+        "created_at": checkpoint["created_at"],
+        "reason": checkpoint["reason"],
+        "base_revision_id": checkpoint["base_revision_id"],
+        "rows": [
+            {
+                "id": row["row_id"],
+                "conversation_id": conversation_id,
+                "revision_id": checkpoint["revision_id"],
+                "index": row["row_index"],
+                "role": row["role"],
+                "type": row["row_type"],
+                "content": json.loads(row["content"]) if row["content"] else None,
+                "turn_ref": row["turn_ref"],
+                "metadata": _json_loads(row["metadata"]),
+            }
+            for row in rows
+        ],
+    }
 
 
 def _normalize_model_history_row(

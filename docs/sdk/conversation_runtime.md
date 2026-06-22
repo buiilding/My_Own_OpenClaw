@@ -33,7 +33,7 @@ SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`.
 | --- | --- | --- |
 | normalized conversation events | SDK runtime | source of truth for local client-side conversation state |
 | event store adapters | SDK-defined interface; adapter implementation owns persistence mechanics | stores append/load events and snapshots, but do not interpret display or rehydrate shape |
-| display transcript | SDK projection | React, CLI, and custom UIs render this projection |
+| display transcript | SDK projection + display timeline checkpoints | React, CLI, and custom UIs render the projection fallback or the editable display timeline document |
 | current-turn projection | SDK projection | active assistant text, reasoning text, tool rows, phase, error state, and live presentation state for UI surfaces |
 | backend rehydrate payload | SDK projection | generated from normalized events, not visible transcript rows |
 | model-history checkpoints | backend-normalized contract + SDK store adapters | provider-neutral, bounded inference rows persisted separately from full display/runtime events; normal resume installs these checkpoints when available and falls back to `loadForRehydrate(...)` only when no checkpoint exists |
@@ -322,6 +322,12 @@ store.loadForRehydrate(conversationRef)
   -> otherwise store.loadEvents(conversationRef)
   -> SDK rehydrate projection
 
+store.replaceDisplayTimeline(checkpoint)
+  -> persist an editable display timeline checkpoint for a child revision
+
+store.loadDisplayTimeline({ conversationRef, revisionId? })
+  -> load the active editable display timeline checkpoint for a revision
+
 store.replaceModelHistory(checkpoint)
   -> persist provider-neutral bounded model-history rows for a revision
 
@@ -346,6 +352,24 @@ session history. If no checkpoint exists, SDK rehydrate falls back to the
 existing event-projection payload. No migration is required; old conversations
 without checkpoints continue on the fallback path until a migration creates
 checkpoints for them.
+
+## Display Timeline Rule
+
+`ConversationRuntime.loadDisplayTimeline()` loads the first-class editable
+display document when a store has one, and otherwise falls back to
+`loadDisplayRows(...)` from the event projection. `replaceRows(...)` creates a
+child display revision, validates that submitted rows belong to the active
+conversation and base revision, normalizes row indexes and revision metadata,
+checks basic tool-output pairing, and persists the result through
+`store.replaceDisplayTimeline(...)`.
+
+This API is the Phase 4 foundation for replacing edit/resend and retry replay.
+It does not rewrite raw runtime events. Raw events remain the audit/runtime log;
+display timeline checkpoints are the user-editable document. The SDK records a
+sanitized trace event with row counts, revision ids, and reason only. No
+migration is required for adding the checkpoint table or store methods:
+conversations without display timeline checkpoints continue to project display
+rows from events until a replacement writes the first checkpoint.
 
 Metadata pagination and search helpers stay in the `conversation/metadata`
 owner module for SDK stores and runtime classes. Public package-root callers

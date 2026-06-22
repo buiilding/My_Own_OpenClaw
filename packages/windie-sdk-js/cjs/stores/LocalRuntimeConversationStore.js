@@ -242,6 +242,35 @@ function modelHistoryRowFromRuntime(row) {
         sourceDisplayRowIds: normalizeStringArray(record.sourceDisplayRowIds ?? record.source_display_row_ids),
     };
 }
+function displayTimelineRowFromRuntime(row) {
+    const record = normalizeRecord(row);
+    if (!record) {
+        return null;
+    }
+    const id = normalizeString(record.id ?? record.row_id ?? record.rowId);
+    const conversationRef = normalizeString(record.conversationRef ?? record.conversation_id ?? record.conversationId);
+    const revisionId = normalizeString(record.revisionId ?? record.revision_id);
+    const role = normalizeString(record.role);
+    const type = normalizeString(record.type ?? record.row_type ?? record.rowType);
+    const indexValue = record.index ?? record.row_index ?? record.rowIndex;
+    const index = typeof indexValue === 'number' && Number.isFinite(indexValue)
+        ? indexValue
+        : Number(indexValue);
+    if (!id || !conversationRef || !revisionId || !role || !type || !Number.isFinite(index)) {
+        return null;
+    }
+    return {
+        id,
+        conversationRef,
+        revisionId,
+        turnRef: normalizeString(record.turnRef ?? record.turn_ref),
+        index,
+        role,
+        type,
+        content: record.content,
+        metadata: normalizeRecord(record.metadata) ?? undefined,
+    };
+}
 class LocalRuntimeConversationStore {
     constructor(options) {
         this.options = options;
@@ -336,6 +365,53 @@ class LocalRuntimeConversationStore {
     }
     async loadDisplayRows(conversationRef) {
         return (0, conversationProjections_js_1.buildDisplayRows)(await this.loadEvents(conversationRef));
+    }
+    async replaceDisplayTimeline(checkpoint) {
+        await this.call('conversation.display.replace', {
+            user_id: this.options.userId,
+            conversation_id: checkpoint.conversationRef,
+            revision_id: checkpoint.revisionId,
+            created_at: checkpoint.createdAt,
+            reason: checkpoint.reason ?? null,
+            base_revision_id: checkpoint.baseRevisionId ?? null,
+            rows: checkpoint.rows.map((row, index) => ({
+                id: row.id,
+                row_id: row.id,
+                conversation_id: row.conversationRef,
+                revision_id: row.revisionId,
+                row_index: index,
+                role: row.role,
+                type: row.type,
+                row_type: row.type,
+                content: row.content,
+                turn_ref: row.turnRef ?? null,
+                metadata: row.metadata ?? null,
+            })),
+        });
+    }
+    async loadDisplayTimeline(input) {
+        const result = await this.call('conversation.display.load', {
+            user_id: this.options.userId,
+            conversation_id: input.conversationRef,
+            revision_id: input.revisionId ?? null,
+        });
+        const data = normalizeRecord(result.data) ?? {};
+        const revisionId = normalizeString(data.revision_id ?? data.revisionId);
+        const createdAt = normalizeString(data.created_at ?? data.createdAt);
+        const rows = Array.isArray(data.rows)
+            ? data.rows.map(displayTimelineRowFromRuntime).filter((row) => Boolean(row))
+            : [];
+        if (!revisionId || !createdAt) {
+            return null;
+        }
+        return {
+            conversationRef: input.conversationRef,
+            revisionId,
+            createdAt,
+            rows,
+            reason: normalizeString(data.reason),
+            baseRevisionId: normalizeString(data.base_revision_id ?? data.baseRevisionId),
+        };
     }
     async loadForRehydrate(conversationRef) {
         const events = await this.loadEvents(conversationRef);

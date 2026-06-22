@@ -23,9 +23,11 @@ flowchart LR
     B --> C["Electron main memory RPC mapper"]
     C --> D["local-runtime Python chat event handler"]
     D --> E["local-runtime conversation_events rows"]
+    D --> T["local-runtime conversation_display_timeline rows"]
     D --> H["local-runtime conversation_model_history checkpoints"]
     E --> F["dashboard conversation list/search"]
     E --> G["SDK display/rehydrate projections"]
+    T --> F
     G --> I["backend RehydrateExecutionService"]
     H --> J["backend model-history install path"]
     I --> J["backend conversation-scoped history"]
@@ -34,6 +36,12 @@ flowchart LR
 ## Boundary Rules
 
 - SDK projection/runtime code owns visible chat projection, local replay snapshots, and the rehydrate payload assembled from stored conversation events.
+- SDK store adapters expose `replaceDisplayTimeline(...)` and
+  `loadDisplayTimeline(...)` for first-class editable display timeline
+  checkpoints. This is the public user-visible document surface for child
+  revisions. It is distinct from raw runtime events and from bounded model
+  history. When no checkpoint exists, display still falls back to the current
+  event projection.
 - SDK store adapters expose `replaceModelHistory(...)` and
   `loadModelHistory(...)` for provider-neutral, bounded model-history
   checkpoints. This is a separate inference ledger, not a visible transcript
