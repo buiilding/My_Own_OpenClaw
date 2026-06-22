@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- sdk/local-runtime: add provider-neutral model-history checkpoint contracts,
+  `conversation.model_history.replace/load` storage commands, and SDK store
+  methods so future rehydrate/revision work can persist bounded inference
+  history separately from full display/runtime events. No migration required;
+  the local-runtime table is created lazily with the existing chat-history
+  schema and normal resume still uses the current rehydrate path.
 - docs/adr: add ADR 008 and the conversation history revision architecture
   plan for separating full display history, backend-normalized model history,
   runtime events, and revision graph ownership so edit/resend, compaction,

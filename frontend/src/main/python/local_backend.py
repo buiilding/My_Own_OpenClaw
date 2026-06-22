@@ -244,6 +244,14 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
             self._handle_conversation_rewrite_after_event,
         )
         self.protocol.register_method(
+            "conversation.model_history.replace",
+            self._handle_conversation_model_history_replace,
+        )
+        self.protocol.register_method(
+            "conversation.model_history.load",
+            self._handle_conversation_model_history_load,
+        )
+        self.protocol.register_method(
             "update_conversation_title", self._handle_update_conversation_title
         )
         self.protocol.register_method(

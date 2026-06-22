@@ -11,6 +11,7 @@ import type {
   ConversationStore,
   DisplayConversation,
   ListConversationOptions,
+  ModelHistoryCheckpoint,
   RehydrateSnapshot,
   SdkDisplayRow,
   SearchConversationOptions,
@@ -49,6 +50,7 @@ type StoredConversationFile = {
   conversationRef: string;
   events: ConversationEvent[];
   replay?: CompactedReplaySnapshot | null;
+  modelHistory?: ModelHistoryCheckpoint[];
   revision?: ConversationRevision | null;
 };
 
@@ -138,6 +140,9 @@ function normalizeStoredFile(conversationRef: string, raw: unknown): StoredConve
       : conversationRef,
     events,
     replay: payload.replay ?? null,
+    modelHistory: Array.isArray(payload.modelHistory)
+      ? payload.modelHistory
+      : [],
     revision: payload.revision ?? buildRevision(conversationRef, events),
   };
 }
@@ -245,6 +250,40 @@ export class FileConversationStore implements ConversationStore {
       };
     }
     return buildRehydrateSnapshot(await this.loadEvents(conversationRef));
+  }
+
+  async replaceModelHistory(checkpoint: ModelHistoryCheckpoint): Promise<void> {
+    await this.runConversationMutation(checkpoint.conversationRef, async () => {
+      const stored = await this.readConversation(checkpoint.conversationRef);
+      const existing = stored.modelHistory ?? [];
+      await this.writeConversation({
+        ...stored,
+        conversationRef: checkpoint.conversationRef,
+        modelHistory: [
+          ...existing.filter(entry => !(
+            entry.revisionId === checkpoint.revisionId
+            && entry.checkpointId === checkpoint.checkpointId
+          )),
+          {
+            ...checkpoint,
+            rows: [...checkpoint.rows],
+          },
+        ],
+      });
+    });
+  }
+
+  async loadModelHistory(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<ModelHistoryCheckpoint | null> {
+    const stored = await this.readConversation(input.conversationRef);
+    const checkpoints = stored.modelHistory ?? [];
+    const candidates = input.revisionId
+      ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+      : checkpoints;
+    const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+    return latest ? { ...latest, rows: [...latest.rows] } : null;
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {

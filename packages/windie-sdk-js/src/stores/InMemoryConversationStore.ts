@@ -11,6 +11,7 @@ import type {
   ConversationStore,
   DisplayConversation,
   ListConversationOptions,
+  ModelHistoryCheckpoint,
   RehydrateSnapshot,
   SdkDisplayRow,
   SearchConversationOptions,
@@ -53,6 +54,7 @@ export class InMemoryConversationStore implements ConversationStore {
   private readonly eventIdsByConversation = new Map<string, Set<string>>();
   private readonly revisionsByConversation = new Map<string, ConversationRevision>();
   private readonly replayByConversation = new Map<string, CompactedReplaySnapshot>();
+  private readonly modelHistoryByConversation = new Map<string, ModelHistoryCheckpoint[]>();
 
   async appendEvent(event: ConversationEvent): Promise<void> {
     await this.appendEvents([event]);
@@ -130,6 +132,33 @@ export class InMemoryConversationStore implements ConversationStore {
     return buildRehydrateSnapshot(await this.loadEvents(conversationRef));
   }
 
+  async replaceModelHistory(checkpoint: ModelHistoryCheckpoint): Promise<void> {
+    const existing = this.modelHistoryByConversation.get(checkpoint.conversationRef) ?? [];
+    const next = [
+      ...existing.filter(entry => !(
+        entry.revisionId === checkpoint.revisionId
+        && entry.checkpointId === checkpoint.checkpointId
+      )),
+      {
+        ...checkpoint,
+        rows: [...checkpoint.rows],
+      },
+    ];
+    this.modelHistoryByConversation.set(checkpoint.conversationRef, next);
+  }
+
+  async loadModelHistory(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<ModelHistoryCheckpoint | null> {
+    const checkpoints = this.modelHistoryByConversation.get(input.conversationRef) ?? [];
+    const candidates = input.revisionId
+      ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+      : checkpoints;
+    const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+    return latest ? { ...latest, rows: [...latest.rows] } : null;
+  }
+
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
     const metadata = Array.from(this.eventsByConversation.entries()).map(([conversationRef, events]) => {
       const revision = this.revisionsByConversation.get(conversationRef);
@@ -155,6 +184,7 @@ export class InMemoryConversationStore implements ConversationStore {
     this.eventIdsByConversation.delete(conversationRef);
     this.revisionsByConversation.delete(conversationRef);
     this.replayByConversation.delete(conversationRef);
+    this.modelHistoryByConversation.delete(conversationRef);
   }
 
   async clearConversations(): Promise<void> {
@@ -162,6 +192,7 @@ export class InMemoryConversationStore implements ConversationStore {
     this.eventIdsByConversation.clear();
     this.revisionsByConversation.clear();
     this.replayByConversation.clear();
+    this.modelHistoryByConversation.clear();
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {

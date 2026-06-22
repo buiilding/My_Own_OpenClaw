@@ -155,6 +155,37 @@ export type CompactedReplaySnapshot = {
   active?: boolean;
 };
 
+export type ModelHistoryRole = 'system' | 'user' | 'assistant' | 'tool';
+
+export type ModelHistoryMessageType =
+  | 'user_query'
+  | 'assistant_response'
+  | 'tool_output'
+  | 'context_compaction';
+
+export type ModelHistoryRow = {
+  id: string;
+  conversationRef: string;
+  revisionId: string;
+  role: ModelHistoryRole;
+  messageType: ModelHistoryMessageType;
+  content: unknown;
+  toolCallId?: string | null;
+  toolCalls?: unknown[] | null;
+  toolName?: string | null;
+  imageRefs?: string[] | null;
+  compactionFacts?: JsonRecord | null;
+  sourceDisplayRowIds?: string[];
+};
+
+export type ModelHistoryCheckpoint = {
+  checkpointId: string;
+  conversationRef: string;
+  revisionId: string;
+  rows: ModelHistoryRow[];
+  createdAt: string;
+};
+
 export type ConversationRevision = {
   conversationRef: string;
   revisionId: string;
@@ -706,6 +737,11 @@ export interface ConversationStore {
   loadForDisplay(conversationRef: string): Promise<DisplayConversation>;
   loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]>;
   loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot>;
+  replaceModelHistory?(checkpoint: ModelHistoryCheckpoint): Promise<void>;
+  loadModelHistory?(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<ModelHistoryCheckpoint | null>;
   listMetadata(options?: ListConversationOptions): Promise<ConversationMetadata[]>;
   searchMetadata?(options: SearchConversationOptions): Promise<ConversationMetadata[]>;
   deleteConversation?(conversationRef: string): Promise<void>;

@@ -13,6 +13,10 @@ import type {
   DisplayConversation,
   JsonRecord,
   ListConversationOptions,
+  ModelHistoryCheckpoint,
+  ModelHistoryMessageType,
+  ModelHistoryRole,
+  ModelHistoryRow,
   RehydrateSnapshot,
   SdkDisplayRow,
   SearchConversationOptions,
@@ -165,6 +169,16 @@ function normalizeJsonArray(value: unknown): JsonRecord[] {
     : [];
 }
 
+function normalizeUnknownArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? [...value] : [];
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === 'string')
+    : [];
+}
+
 function eventPayloadWriteParams(event: ConversationEvent): JsonRecord {
   const payload = normalizeRecord(event.payload) ?? {};
   const metadata = normalizeRecord(payload.metadata) ?? {};
@@ -250,6 +264,53 @@ function metadataFromRow(row: Record<string, unknown>): ConversationMetadata | n
     workspaceName: normalizeString(row.workspace_name),
     snippet: normalizeString(row.snippet),
     matchedRole: normalizeString(row.matched_role),
+  };
+}
+
+function normalizeModelHistoryRole(value: unknown): ModelHistoryRole | null {
+  return value === 'system'
+    || value === 'user'
+    || value === 'assistant'
+    || value === 'tool'
+    ? value
+    : null;
+}
+
+function normalizeModelHistoryMessageType(value: unknown): ModelHistoryMessageType | null {
+  return value === 'user_query'
+    || value === 'assistant_response'
+    || value === 'tool_output'
+    || value === 'context_compaction'
+    ? value
+    : null;
+}
+
+function modelHistoryRowFromRuntime(row: unknown): ModelHistoryRow | null {
+  const record = normalizeRecord(row);
+  if (!record) {
+    return null;
+  }
+  const id = normalizeString(record.id ?? record.row_id ?? record.rowId);
+  const conversationRef = normalizeString(record.conversationRef ?? record.conversation_id ?? record.conversationId);
+  const revisionId = normalizeString(record.revisionId ?? record.revision_id);
+  const role = normalizeModelHistoryRole(record.role);
+  const messageType = normalizeModelHistoryMessageType(record.messageType ?? record.message_type);
+  if (!id || !conversationRef || !revisionId || !role || !messageType) {
+    return null;
+  }
+  return {
+    id,
+    conversationRef,
+    revisionId,
+    role,
+    messageType,
+    content: record.content,
+    toolCallId: normalizeString(record.toolCallId ?? record.tool_call_id),
+    toolCalls: normalizeUnknownArray(record.toolCalls ?? record.tool_calls),
+    toolName: normalizeString(record.toolName ?? record.tool_name),
+    imageRefs: normalizeStringArray(record.imageRefs ?? record.image_refs),
+    compactionFacts: normalizeRecord(record.compactionFacts ?? record.compaction_facts),
+    sourceDisplayRowIds: normalizeStringArray(record.sourceDisplayRowIds ?? record.source_display_row_ids),
   };
 }
 
@@ -374,6 +435,60 @@ export class LocalRuntimeConversationStore implements ConversationStore {
       };
     }
     return buildRehydrateSnapshot(events);
+  }
+
+  async replaceModelHistory(checkpoint: ModelHistoryCheckpoint): Promise<void> {
+    await this.call('conversation.model_history.replace', {
+      user_id: this.options.userId,
+      conversation_id: checkpoint.conversationRef,
+      revision_id: checkpoint.revisionId,
+      checkpoint_id: checkpoint.checkpointId,
+      created_at: checkpoint.createdAt,
+      rows: checkpoint.rows.map((row, index) => ({
+        id: row.id,
+        row_id: row.id,
+        row_index: index + 1,
+        conversation_id: row.conversationRef,
+        revision_id: row.revisionId,
+        role: row.role,
+        message_type: row.messageType,
+        content: row.content,
+        tool_call_id: row.toolCallId ?? null,
+        tool_calls: row.toolCalls ?? null,
+        tool_name: row.toolName ?? null,
+        image_refs: row.imageRefs ?? null,
+        compaction_facts: row.compactionFacts ?? null,
+        source_display_row_ids: row.sourceDisplayRowIds ?? [],
+      })),
+    });
+  }
+
+  async loadModelHistory(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<ModelHistoryCheckpoint | null> {
+    const result = await this.call('conversation.model_history.load', {
+      user_id: this.options.userId,
+      conversation_id: input.conversationRef,
+      revision_id: input.revisionId ?? null,
+    });
+    const data = normalizeRecord(result.data) ?? {};
+    const checkpointId = normalizeString(data.checkpoint_id ?? data.checkpointId);
+    const revisionId = normalizeString(data.revision_id ?? data.revisionId);
+    const createdAt = normalizeString(data.created_at ?? data.createdAt);
+    const rows = Array.isArray(data.rows)
+      ? data.rows.map(modelHistoryRowFromRuntime).filter((row): row is ModelHistoryRow => Boolean(row))
+      : [];
+    if (!checkpointId || !revisionId || !createdAt) {
+      return null;
+    }
+    return {
+      checkpointId,
+      conversationRef: input.conversationRef,
+      revisionId,
+      createdAt,
+      rows,
+    };
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {

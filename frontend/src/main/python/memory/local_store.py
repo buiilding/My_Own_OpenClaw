@@ -39,10 +39,12 @@ from memory.chat_event_store import (
     clear_chat_events,
     delete_conversation,
     get_conversation_revision,
+    load_model_history_checkpoint,
     load_conversation_events,
     get_next_chat_event_index,
     init_chat_event_schema,
     list_conversations,
+    replace_model_history_checkpoint,
     replace_conversation,
     rewrite_conversation_after_event,
     search_conversations,
@@ -1436,6 +1438,40 @@ class LocalMemoryStore:
             conversation_id=conversation_id,
         )
 
+    async def replace_model_history_checkpoint(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        revision_id: str,
+        checkpoint_id: str,
+        rows: List[Dict[str, Any]],
+        created_at: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        return await replace_model_history_checkpoint(
+            db_path=self.history_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            revision_id=revision_id,
+            checkpoint_id=checkpoint_id,
+            rows=rows,
+            created_at=created_at,
+        )
+
+    async def load_model_history_checkpoint(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        revision_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        return await load_model_history_checkpoint(
+            db_path=self.history_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            revision_id=revision_id,
+        )
+
     async def search_conversations(
         self, user_id: str, query: str, limit: int = 40
     ) -> List[Dict[str, Any]]:
@@ -1661,13 +1697,10 @@ class LocalMemoryStore:
             getattr(self, "_embedding_space_metadata", None)
             or self._load_embedding_space_metadata()
         )
-        embedding_dimension = (
-            self._index_dimension(index)
-            or (
-                metadata.embedding_dimension
-                if metadata is not None
-                else self._default_embedding_dimension
-            )
+        embedding_dimension = self._index_dimension(index) or (
+            metadata.embedding_dimension
+            if metadata is not None
+            else self._default_embedding_dimension
         )
         cleanup_result = await cleanup_index_artifacts_if_empty(
             memory_type=memory_type,

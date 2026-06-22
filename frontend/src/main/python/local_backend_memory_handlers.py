@@ -800,6 +800,70 @@ class LocalRuntimeMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
+    async def _handle_conversation_model_history_replace(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        revision_id: Optional[str] = None,
+        checkpoint_id: Optional[str] = None,
+        rows: Optional[List[Dict[str, Any]]] = None,
+        created_at: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        if not revision_id:
+            return {"success": False, "error": "revision_id is required"}
+        if not checkpoint_id:
+            return {"success": False, "error": "checkpoint_id is required"}
+        if not isinstance(rows, list):
+            return {"success": False, "error": "rows must be a list"}
+        try:
+            result = await self.memory_store.replace_model_history_checkpoint(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                revision_id=sanitize_surrogates_in_text(revision_id),
+                checkpoint_id=sanitize_surrogates_in_text(checkpoint_id),
+                rows=sanitize_surrogates(rows),
+                created_at=(
+                    sanitize_surrogates_in_text(created_at) if created_at else None
+                ),
+            )
+            return {"success": True, "data": result}
+        except Exception as e:
+            logger.error(
+                f"Conversation model-history checkpoint replace failed: {e}",
+                exc_info=True,
+            )
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_conversation_model_history_load(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        revision_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        try:
+            checkpoint = await self.memory_store.load_model_history_checkpoint(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                revision_id=(
+                    sanitize_surrogates_in_text(revision_id) if revision_id else None
+                ),
+            )
+            return {"success": True, "data": checkpoint or {}}
+        except Exception as e:
+            logger.error(
+                f"Conversation model-history checkpoint load failed: {e}",
+                exc_info=True,
+            )
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
     async def _handle_conversation_list(
         self,
         user_id: str = "default_user",
@@ -813,7 +877,9 @@ class LocalRuntimeMemoryHandlersMixin:
         diagnostic_events.append(
             self._conversation_list_diagnostic_event(
                 stage="history_db_checked",
-                status="succeeded" if status_data["canonicalHistoryDbExists"] else "failed",
+                status=(
+                    "succeeded" if status_data["canonicalHistoryDbExists"] else "failed"
+                ),
                 started_at=checked_at,
                 data=status_data,
             )

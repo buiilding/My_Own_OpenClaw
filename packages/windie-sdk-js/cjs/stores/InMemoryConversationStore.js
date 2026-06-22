@@ -33,6 +33,7 @@ class InMemoryConversationStore {
         this.eventIdsByConversation = new Map();
         this.revisionsByConversation = new Map();
         this.replayByConversation = new Map();
+        this.modelHistoryByConversation = new Map();
     }
     async appendEvent(event) {
         await this.appendEvents([event]);
@@ -97,6 +98,26 @@ class InMemoryConversationStore {
         }
         return (0, conversationProjections_js_1.buildRehydrateSnapshot)(await this.loadEvents(conversationRef));
     }
+    async replaceModelHistory(checkpoint) {
+        const existing = this.modelHistoryByConversation.get(checkpoint.conversationRef) ?? [];
+        const next = [
+            ...existing.filter(entry => !(entry.revisionId === checkpoint.revisionId
+                && entry.checkpointId === checkpoint.checkpointId)),
+            {
+                ...checkpoint,
+                rows: [...checkpoint.rows],
+            },
+        ];
+        this.modelHistoryByConversation.set(checkpoint.conversationRef, next);
+    }
+    async loadModelHistory(input) {
+        const checkpoints = this.modelHistoryByConversation.get(input.conversationRef) ?? [];
+        const candidates = input.revisionId
+            ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+            : checkpoints;
+        const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+        return latest ? { ...latest, rows: [...latest.rows] } : null;
+    }
     async listMetadata(options = {}) {
         const metadata = Array.from(this.eventsByConversation.entries()).map(([conversationRef, events]) => {
             const revision = this.revisionsByConversation.get(conversationRef);
@@ -120,12 +141,14 @@ class InMemoryConversationStore {
         this.eventIdsByConversation.delete(conversationRef);
         this.revisionsByConversation.delete(conversationRef);
         this.replayByConversation.delete(conversationRef);
+        this.modelHistoryByConversation.delete(conversationRef);
     }
     async clearConversations() {
         this.eventsByConversation.clear();
         this.eventIdsByConversation.clear();
         this.revisionsByConversation.clear();
         this.replayByConversation.clear();
+        this.modelHistoryByConversation.clear();
     }
     async getRevision(conversationRef) {
         const revision = this.revisionsByConversation.get(conversationRef);

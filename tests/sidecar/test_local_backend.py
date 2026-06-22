@@ -77,14 +77,18 @@ def test_local_runtime_python_tests_use_boundary_labels():
     retired_docstring = (
         "Covers " + "local " + "backend behavior in the sidecar test suite."
     )
-    retired_backend_test = "test_" + "local_backend_runtime_copy_uses_local_runtime_terms"
+    retired_backend_test = (
+        "test_" + "local_backend_runtime_copy_uses_local_runtime_terms"
+    )
     retired_helper_paths = "SIDECAR_" + "TOOL_HELPER_PATHS"
     retired_helper_test = "test_" + "sidecar_tool_helper_copy_uses_local_runtime_terms"
 
     assert "Covers local-runtime Python service behavior." in test_sources
     assert "test_local_runtime_service_copy_uses_local_runtime_terms" in test_sources
     assert "LOCAL_RUNTIME_TOOL_HELPER_PATHS" in test_sources
-    assert "test_local_runtime_tool_helper_copy_uses_local_runtime_terms" in test_sources
+    assert (
+        "test_local_runtime_tool_helper_copy_uses_local_runtime_terms" in test_sources
+    )
     assert retired_docstring not in test_sources
     assert retired_backend_test not in test_sources
     assert retired_helper_paths not in test_sources
@@ -116,6 +120,8 @@ class DummyMemoryStore:
         self.chat_event_rows = []
         self.deleted_chat_conversation_calls = []
         self.replaced_chat_conversation_calls = []
+        self.replaced_model_history_calls = []
+        self.loaded_model_history_calls = []
         self.delete_semantic_return = True
         self.delete_episodic_return = True
         self.clear_local_memory_return = {
@@ -213,6 +219,47 @@ class DummyMemoryStore:
             "revision_id": "rev-next",
             "updated_at": "2026-05-17T12:00:00+00:00",
             "record_kind": "chat_event",
+        }
+
+    async def replace_model_history_checkpoint(
+        self,
+        user_id,
+        conversation_id,
+        revision_id,
+        checkpoint_id,
+        rows,
+        created_at=None,
+    ):
+        self.replaced_model_history_calls.append(
+            (user_id, conversation_id, revision_id, checkpoint_id, rows, created_at)
+        )
+        return {
+            "checkpoint_id": checkpoint_id,
+            "revision_id": revision_id,
+            "row_count": len(rows),
+            "created_at": created_at,
+        }
+
+    async def load_model_history_checkpoint(
+        self,
+        user_id,
+        conversation_id,
+        revision_id=None,
+    ):
+        self.loaded_model_history_calls.append((user_id, conversation_id, revision_id))
+        return {
+            "checkpoint_id": "mh-1",
+            "conversation_id": conversation_id,
+            "revision_id": revision_id or "rev-latest",
+            "created_at": "2026-06-22T12:00:00+00:00",
+            "rows": [
+                {
+                    "id": "row-1",
+                    "role": "user",
+                    "message_type": "user_query",
+                    "content": "hello",
+                }
+            ],
         }
 
 
@@ -1590,6 +1637,88 @@ async def test_handle_conversation_get_revision_returns_store_revision():
             "record_kind": "chat_event",
         },
     }
+
+
+@pytest.mark.asyncio
+async def test_handle_conversation_model_history_replace_routes_to_store():
+    backend = LocalRuntimeService()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_conversation_model_history_replace(
+        user_id="user-1",
+        conversation_id="conv-chat",
+        revision_id="rev-1",
+        checkpoint_id="mh-1",
+        created_at="2026-06-22T12:00:00+00:00",
+        rows=[
+            {
+                "id": "row-1",
+                "role": "user",
+                "message_type": "user_query",
+                "content": "hello",
+            }
+        ],
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "checkpoint_id": "mh-1",
+            "revision_id": "rev-1",
+            "row_count": 1,
+            "created_at": "2026-06-22T12:00:00+00:00",
+        },
+    }
+    assert backend.memory_store.replaced_model_history_calls == [
+        (
+            "user-1",
+            "conv-chat",
+            "rev-1",
+            "mh-1",
+            [
+                {
+                    "id": "row-1",
+                    "role": "user",
+                    "message_type": "user_query",
+                    "content": "hello",
+                }
+            ],
+            "2026-06-22T12:00:00+00:00",
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_handle_conversation_model_history_load_returns_checkpoint():
+    backend = LocalRuntimeService()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_conversation_model_history_load(
+        user_id="user-1",
+        conversation_id="conv-chat",
+        revision_id="rev-1",
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "checkpoint_id": "mh-1",
+            "conversation_id": "conv-chat",
+            "revision_id": "rev-1",
+            "created_at": "2026-06-22T12:00:00+00:00",
+            "rows": [
+                {
+                    "id": "row-1",
+                    "role": "user",
+                    "message_type": "user_query",
+                    "content": "hello",
+                }
+            ],
+        },
+    }
+    assert backend.memory_store.loaded_model_history_calls == [
+        ("user-1", "conv-chat", "rev-1")
+    ]
 
 
 @pytest.mark.asyncio

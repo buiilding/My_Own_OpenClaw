@@ -3941,6 +3941,125 @@ describe('Agent SDK client behavior', () => {
     });
   });
 
+  test('LocalRuntimeConversationStore persists and loads model-history checkpoints', async () => {
+    const rpc = jest.fn(async ({ method, params }) => {
+      if (method === 'conversation.model_history.replace') {
+        return {
+          success: true,
+          data: {
+            checkpoint_id: params.checkpoint_id,
+            revision_id: params.revision_id,
+            row_count: params.rows.length,
+          },
+        };
+      }
+      if (method === 'conversation.model_history.load') {
+        return {
+          success: true,
+          data: {
+            checkpoint_id: 'mh-1',
+            revision_id: params.revision_id,
+            created_at: '2026-06-22T12:00:00.000Z',
+            rows: [
+              {
+                id: 'row-tool',
+                conversation_id: params.conversation_id,
+                revision_id: params.revision_id,
+                role: 'tool',
+                message_type: 'tool_output',
+                content: 'bounded output',
+                tool_call_id: 'call-1',
+                tool_calls: [{ id: 'call-1' }],
+                tool_name: 'read_file',
+                image_refs: ['artifact-1'],
+                compaction_facts: { bounded: true },
+                source_display_row_ids: ['display-tool'],
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+    const store = new LocalRuntimeConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+    });
+
+    await store.replaceModelHistory({
+      checkpointId: 'mh-1',
+      conversationRef: 'conv-model-history',
+      revisionId: 'rev-1',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'row-tool',
+          conversationRef: 'conv-model-history',
+          revisionId: 'rev-1',
+          role: 'tool',
+          messageType: 'tool_output',
+          content: 'bounded output',
+          toolCallId: 'call-1',
+          toolCalls: [{ id: 'call-1' }],
+          toolName: 'read_file',
+          imageRefs: ['artifact-1'],
+          compactionFacts: { bounded: true },
+          sourceDisplayRowIds: ['display-tool'],
+        },
+      ],
+    });
+
+    await expect(store.loadModelHistory({
+      conversationRef: 'conv-model-history',
+      revisionId: 'rev-1',
+    })).resolves.toEqual({
+      checkpointId: 'mh-1',
+      conversationRef: 'conv-model-history',
+      revisionId: 'rev-1',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'row-tool',
+          conversationRef: 'conv-model-history',
+          revisionId: 'rev-1',
+          role: 'tool',
+          messageType: 'tool_output',
+          content: 'bounded output',
+          toolCallId: 'call-1',
+          toolCalls: [{ id: 'call-1' }],
+          toolName: 'read_file',
+          imageRefs: ['artifact-1'],
+          compactionFacts: { bounded: true },
+          sourceDisplayRowIds: ['display-tool'],
+        },
+      ],
+    });
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'conversation.model_history.replace',
+      params: expect.objectContaining({
+        user_id: 'user-1',
+        conversation_id: 'conv-model-history',
+        revision_id: 'rev-1',
+        checkpoint_id: 'mh-1',
+        rows: [
+          expect.objectContaining({
+            row_id: 'row-tool',
+            message_type: 'tool_output',
+            tool_call_id: 'call-1',
+          }),
+        ],
+      }),
+    }));
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'conversation.model_history.load',
+      params: {
+        user_id: 'user-1',
+        conversation_id: 'conv-model-history',
+        revision_id: 'rev-1',
+      },
+    }));
+  });
+
   test('LocalRuntimeConversationStore merges host write params before local runtime rpc', async () => {
     const rpc = jest.fn(async () => ({ success: true, data: {} }));
     const store = new LocalRuntimeConversationStore({

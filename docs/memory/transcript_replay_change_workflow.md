@@ -23,15 +23,22 @@ flowchart LR
     B --> C["Electron main memory RPC mapper"]
     C --> D["local-runtime Python chat event handler"]
     D --> E["local-runtime conversation_events rows"]
+    D --> H["local-runtime conversation_model_history checkpoints"]
     E --> F["dashboard conversation list/search"]
     E --> G["SDK display/rehydrate projections"]
     G --> I["backend RehydrateExecutionService"]
+    H --> J["future backend model-history install path"]
     I --> J["backend conversation-scoped history"]
 ```
 
 ## Boundary Rules
 
 - SDK projection/runtime code owns visible chat projection, local replay snapshots, and the rehydrate payload assembled from stored conversation events.
+- SDK store adapters expose `replaceModelHistory(...)` and
+  `loadModelHistory(...)` for provider-neutral, bounded model-history
+  checkpoints. This is a separate inference ledger, not a visible transcript
+  projection. Normal rehydrate still uses the existing event projection until
+  the ADR 008 install path replaces it.
 - Electron main owns IPC/RPC mapping and identity sync between windows. It should not interpret chat semantics beyond normalizing bridge payload keys and forwarding session updates.
 - The SDK local-runtime store owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs; local-runtime Python implements the current SQLite backing store.
 - Backend rehydrate owns conversion from stored transcript entries into
@@ -39,6 +46,9 @@ flowchart LR
   projections and rejects missing or stale tool linkage instead of repairing or
   synthesizing provider history.
 - Backend active history is not the source of dashboard conversation list truth. Do not patch backend history to make a missing sidebar conversation appear.
+- Model-history checkpoint rows are not dashboard/list truth and must not copy
+  full raw tool output, screenshots, or provider-specific payloads as durable
+  local truth.
 - Semantic memory is derived from transcript/interaction rows. Do not edit semantic memory as a shortcut for fixing replay or visible transcript bugs.
 - `conversationRef`/`conversation_id`, `userId`/`user_id`, role, message type, timestamp, message index, tool identifiers, and screenshot refs must survive any row that can be replayed or rehydrated later.
 

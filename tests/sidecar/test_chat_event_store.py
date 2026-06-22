@@ -11,9 +11,11 @@ ensure_frontend_python_path()
 from memory.chat_event_store import (  # noqa: E402
     append_chat_event,
     get_conversation_revision,
+    load_model_history_checkpoint,
     load_conversation_events,
     init_chat_event_schema,
     list_conversations,
+    replace_model_history_checkpoint,
     replace_conversation,
     rewrite_conversation_after_event,
 )
@@ -33,6 +35,7 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
                 FROM sqlite_master
                 WHERE name IN (
                     'conversation_events',
+                    'conversation_model_history',
                     'conversation_revisions',
                     'conversations',
                     'conversation_turns',
@@ -44,6 +47,7 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
         )
 
     assert objects["conversation_events"] == "table"
+    assert objects["conversation_model_history"] == "table"
     assert objects["conversation_revisions"] == "table"
     assert objects["conversations"] == "table"
     assert objects["conversation_turns"] == "table"
@@ -52,7 +56,120 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
 
 
 @pytest.mark.asyncio
-async def test_chat_event_store_display_messages_view_filters_visible_rows(tmp_path: Path):
+async def test_chat_event_store_round_trips_model_history_checkpoint(tmp_path: Path):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    result = await replace_model_history_checkpoint(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-1",
+        checkpoint_id="mh-1",
+        created_at="2026-06-22T12:00:00+00:00",
+        rows=[
+            {
+                "id": "mh-row-user",
+                "role": "user",
+                "message_type": "user_query",
+                "content": {"text": "hello"},
+                "source_display_row_ids": ["display-user"],
+            },
+            {
+                "id": "mh-row-tool",
+                "role": "tool",
+                "message_type": "tool_output",
+                "content": "bounded tool output",
+                "tool_call_id": "call-1",
+                "tool_name": "read_file",
+                "image_refs": ["artifact-1"],
+                "tool_calls": [{"id": "call-1", "type": "function"}],
+                "compaction_facts": {"bounded": True},
+                "source_display_row_ids": ["display-tool"],
+            },
+        ],
+    )
+
+    loaded = await load_model_history_checkpoint(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-1",
+    )
+
+    assert result == {
+        "checkpoint_id": "mh-1",
+        "revision_id": "rev-1",
+        "row_count": 2,
+        "created_at": "2026-06-22T12:00:00+00:00",
+    }
+    assert loaded == {
+        "checkpoint_id": "mh-1",
+        "conversation_id": "conv-1",
+        "revision_id": "rev-1",
+        "created_at": "2026-06-22T12:00:00+00:00",
+        "rows": [
+            {
+                "id": "mh-row-user",
+                "conversation_id": "conv-1",
+                "revision_id": "rev-1",
+                "role": "user",
+                "message_type": "user_query",
+                "content": {"text": "hello"},
+                "tool_call_id": None,
+                "tool_calls": [],
+                "tool_name": None,
+                "image_refs": [],
+                "compaction_facts": {},
+                "source_display_row_ids": ["display-user"],
+            },
+            {
+                "id": "mh-row-tool",
+                "conversation_id": "conv-1",
+                "revision_id": "rev-1",
+                "role": "tool",
+                "message_type": "tool_output",
+                "content": "bounded tool output",
+                "tool_call_id": "call-1",
+                "tool_calls": [{"id": "call-1", "type": "function"}],
+                "tool_name": "read_file",
+                "image_refs": ["artifact-1"],
+                "compaction_facts": {"bounded": True},
+                "source_display_row_ids": ["display-tool"],
+            },
+        ],
+    }
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_rejects_provider_specific_model_history_rows(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    with pytest.raises(ValueError, match="canonical message_type"):
+        await replace_model_history_checkpoint(
+            db_path=db_path,
+            user_id="user-1",
+            conversation_id="conv-1",
+            revision_id="rev-1",
+            checkpoint_id="mh-1",
+            rows=[
+                {
+                    "id": "mh-row-openai",
+                    "role": "assistant",
+                    "message_type": "openai_assistant_message",
+                    "content": "provider-shaped",
+                }
+            ],
+        )
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_display_messages_view_filters_visible_rows(
+    tmp_path: Path,
+):
     db_path = tmp_path / "history.db"
     await init_chat_event_schema(str(db_path))
 
@@ -474,7 +591,14 @@ async def test_list_conversations_uses_user_facing_metadata(
             {},
         ),
     ]
-    for index, (event_type, role, content, workspace_path, workspace_name, payload) in enumerate(
+    for index, (
+        event_type,
+        role,
+        content,
+        workspace_path,
+        workspace_name,
+        payload,
+    ) in enumerate(
         events,
         start=1,
     ):
@@ -574,7 +698,9 @@ async def test_list_conversations_returns_one_row_per_conversation(
         limit=10,
     )
 
-    assert [conversation["conversation_id"] for conversation in conversations] == ["conv-1"]
+    assert [conversation["conversation_id"] for conversation in conversations] == [
+        "conv-1"
+    ]
     assert conversations[0]["entry_count"] == 5
     assert conversations[0]["title"] == "hello"
 

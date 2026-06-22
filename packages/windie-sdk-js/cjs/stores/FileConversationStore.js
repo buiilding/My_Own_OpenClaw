@@ -113,6 +113,9 @@ function normalizeStoredFile(conversationRef, raw) {
             : conversationRef,
         events,
         replay: payload.replay ?? null,
+        modelHistory: Array.isArray(payload.modelHistory)
+            ? payload.modelHistory
+            : [],
         revision: payload.revision ?? buildRevision(conversationRef, events),
     };
 }
@@ -209,6 +212,33 @@ class FileConversationStore {
             };
         }
         return (0, conversationProjections_js_1.buildRehydrateSnapshot)(await this.loadEvents(conversationRef));
+    }
+    async replaceModelHistory(checkpoint) {
+        await this.runConversationMutation(checkpoint.conversationRef, async () => {
+            const stored = await this.readConversation(checkpoint.conversationRef);
+            const existing = stored.modelHistory ?? [];
+            await this.writeConversation({
+                ...stored,
+                conversationRef: checkpoint.conversationRef,
+                modelHistory: [
+                    ...existing.filter(entry => !(entry.revisionId === checkpoint.revisionId
+                        && entry.checkpointId === checkpoint.checkpointId)),
+                    {
+                        ...checkpoint,
+                        rows: [...checkpoint.rows],
+                    },
+                ],
+            });
+        });
+    }
+    async loadModelHistory(input) {
+        const stored = await this.readConversation(input.conversationRef);
+        const checkpoints = stored.modelHistory ?? [];
+        const candidates = input.revisionId
+            ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+            : checkpoints;
+        const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+        return latest ? { ...latest, rows: [...latest.rows] } : null;
     }
     async listMetadata(options = {}) {
         const { fs } = await this.modules();
