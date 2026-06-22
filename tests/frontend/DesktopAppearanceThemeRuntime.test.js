@@ -11,9 +11,11 @@ const {
   getAppearanceModeDescriptors,
   getAppearanceThemeFieldDescriptors,
   getAppearanceThemeSectionDescriptors,
+  getEditableAppearanceThemeDescriptor,
   normalizeAppearanceMode,
   normalizeAppearanceTheme,
   resolveAppearanceThemeSection,
+  resolveEditableAppearanceThemeId,
   resolveEffectiveAppearanceTheme,
 } = DesktopAppearanceThemeRuntime;
 
@@ -32,6 +34,8 @@ describe('desktopAppearanceThemeRuntime', () => {
       { key: 'accent', label: 'Accent', kind: 'color' },
       { key: 'background', label: 'Background', kind: 'color' },
       { key: 'foreground', label: 'Foreground', kind: 'color' },
+      { key: 'user_message_background', label: 'User message background', kind: 'color' },
+      { key: 'user_message_foreground', label: 'User message text', kind: 'color' },
       { key: 'ui_font', label: 'UI font', kind: 'font' },
       { key: 'code_font', label: 'Code font', kind: 'font' },
       { key: 'translucent_sidebar', label: 'Translucent sidebar', kind: 'toggle' },
@@ -52,6 +56,8 @@ describe('desktopAppearanceThemeRuntime', () => {
         accent: '#007aff',
         background: 'invalid',
         foreground: '#111827',
+        user_message_background: '#1d4ed8',
+        user_message_foreground: 'bad-color',
         ui_font: 'Inter, sans-serif',
         code_font: '',
         translucent_sidebar: false,
@@ -63,6 +69,8 @@ describe('desktopAppearanceThemeRuntime', () => {
       accent: '#007AFF',
       background: '#FFFFFF',
       foreground: '#111827',
+      user_message_background: '#1D4ED8',
+      user_message_foreground: '#FFFFFF',
       ui_font: 'Inter, sans-serif',
       code_font: 'ui-monospace, "SFMono-Regular", monospace',
       translucent_sidebar: false,
@@ -72,6 +80,8 @@ describe('desktopAppearanceThemeRuntime', () => {
       accent: '#339CFF',
       background: '#181818',
       foreground: '#FFFFFF',
+      user_message_background: '#339CFF',
+      user_message_foreground: '#FFFFFF',
       ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       code_font: 'ui-monospace, "SFMono-Regular", monospace',
       translucent_sidebar: true,
@@ -92,6 +102,17 @@ describe('desktopAppearanceThemeRuntime', () => {
     expect(resolveEffectiveAppearanceTheme('system', () => ({ matches: false }))).toBe('dark');
   });
 
+  test('resolves the single editable appearance theme from explicit and system modes', () => {
+    expect(resolveEditableAppearanceThemeId('light', jest.fn())).toBe('light');
+    expect(resolveEditableAppearanceThemeId('dark', jest.fn())).toBe('dark');
+    expect(resolveEditableAppearanceThemeId('system', () => ({ matches: true }))).toBe('light');
+    expect(resolveEditableAppearanceThemeId('system', () => ({ matches: false }))).toBe('dark');
+    expect(getEditableAppearanceThemeDescriptor('system', () => ({ matches: true }))).toEqual({
+      id: 'light',
+      title: 'System theme (currently Light)',
+    });
+  });
+
   test('resolves config theme sections without exposing raw skin defaults to UI code', () => {
     expect(resolveAppearanceThemeSection({
       appearance_theme: {
@@ -104,6 +125,8 @@ describe('desktopAppearanceThemeRuntime', () => {
       accent: '#F97316',
       background: '#181818',
       foreground: '#FFFFFF',
+      user_message_background: '#339CFF',
+      user_message_foreground: '#FFFFFF',
       ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       code_font: 'ui-monospace, "SFMono-Regular", monospace',
       translucent_sidebar: true,
@@ -122,6 +145,8 @@ describe('desktopAppearanceThemeRuntime', () => {
           accent: '#F97316',
           background: '#111827',
           foreground: '#F9FAFB',
+          user_message_background: '#2563EB',
+          user_message_foreground: '#F8FAFC',
           ui_font: 'Inter, sans-serif',
           code_font: 'JetBrains Mono, monospace',
           translucent_sidebar: false,
@@ -138,6 +163,8 @@ describe('desktopAppearanceThemeRuntime', () => {
     expect(target.style.getPropertyValue('--appearance-background')).toBe('#111827');
     expect(target.style.getPropertyValue('--appearance-foreground')).toBe('#F9FAFB');
     expect(target.style.getPropertyValue('--appearance-contrast')).toBe('88');
+    expect(target.style.getPropertyValue('--user-message-background')).toBe('#2563EB');
+    expect(target.style.getPropertyValue('--user-message-foreground')).toBe('#F8FAFC');
     expect(target.style.getPropertyValue('--font-ui')).toBe('Inter, sans-serif');
     expect(target.style.getPropertyValue('--font-mono')).toBe('JetBrains Mono, monospace');
     expect(matchMedia).not.toHaveBeenCalled();

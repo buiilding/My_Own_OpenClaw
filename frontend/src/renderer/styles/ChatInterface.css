@@ -1200,26 +1200,26 @@
 .message-user .message-content {
   width: fit-content;
   max-width: 100%;
-  background: linear-gradient(180deg, var(--agent-accent) 0%, var(--agent-accent-hover) 100%);
-  border: 1px solid rgba(166, 216, 255, 0.42);
-  color: var(--ui-on-accent);
+  background: var(--user-message-background);
+  border: 1px solid color-mix(in srgb, var(--user-message-background) 72%, var(--user-message-foreground) 28%);
+  color: var(--user-message-foreground);
   border-radius: 20px;
   padding: 14px 18px;
   box-shadow:
-    0 14px 34px rgba(0, 122, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    0 14px 34px color-mix(in srgb, var(--user-message-background) 24%, transparent 76%),
+    inset 0 1px 0 color-mix(in srgb, var(--user-message-foreground) 28%, transparent 72%);
   overflow-wrap: anywhere;
 }
 
 .message-user .message-content-markdown a {
-  color: var(--ui-on-accent);
-  text-decoration-color: rgba(255, 255, 255, 0.7);
+  color: var(--user-message-foreground);
+  text-decoration-color: color-mix(in srgb, var(--user-message-foreground) 72%, transparent 28%);
 }
 
 .message-user .message-content-markdown code {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.24);
-  color: var(--ui-on-accent);
+  background: color-mix(in srgb, var(--user-message-foreground) 18%, transparent 82%);
+  border-color: color-mix(in srgb, var(--user-message-foreground) 24%, transparent 76%);
+  color: var(--user-message-foreground);
 }
 
 .user-message-editor {

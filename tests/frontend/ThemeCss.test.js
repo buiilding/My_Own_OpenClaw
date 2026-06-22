@@ -28,4 +28,20 @@ describe('theme CSS', () => {
     expect(lightThemeBody).toEqual(expect.stringContaining('--ui-text-secondary: var(--appearance-foreground);'));
     expect(lightThemeBody).not.toEqual(expect.stringContaining('--ui-text-secondary: color-mix(in srgb, var(--appearance-foreground)'));
   });
+
+  test('defines user message and settings state-control theme tokens', () => {
+    const css = readThemeCss();
+    const rootBody = collectRuleBodies(css, String.raw`:root`);
+    const lightThemeBody = collectRuleBodies(css, String.raw`:root\[data-agent-theme='light'\]`);
+
+    expect(rootBody).toEqual(expect.stringContaining('--user-message-background: #339CFF;'));
+    expect(rootBody).toEqual(expect.stringContaining('--user-message-foreground: #ffffff;'));
+    expect(rootBody).toEqual(expect.stringContaining('--ui-toggle-track-off:'));
+    expect(rootBody).toEqual(expect.stringContaining('--ui-toggle-track-on:'));
+    expect(rootBody).toEqual(expect.stringContaining('--ui-toggle-track-disabled:'));
+    expect(rootBody).toEqual(expect.stringContaining('--ui-danger-bg:'));
+    expect(rootBody).toEqual(expect.stringContaining('--ui-danger-disabled-fg:'));
+    expect(lightThemeBody).toEqual(expect.stringContaining('--ui-toggle-thumb-off: var(--appearance-foreground);'));
+    expect(lightThemeBody).toEqual(expect.stringContaining('--ui-danger-fg: #9f2418;'));
+  });
 });

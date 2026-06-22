@@ -10,9 +10,9 @@ import {
 } from '../../../../../app/runtime/desktopAppearanceThemeRuntime';
 
 const {
+  getEditableAppearanceThemeDescriptor,
   getAppearanceModeDescriptors,
   getAppearanceThemeFieldDescriptors,
-  getAppearanceThemeSectionDescriptors,
   normalizeAppearanceMode,
   normalizeAppearanceTheme,
 } = DesktopAppearanceThemeRuntime;
@@ -24,9 +24,7 @@ const THEME_MODE_ICONS = Object.freeze({
 });
 
 const THEME_MODE_OPTIONS = getAppearanceModeDescriptors();
-const THEME_SECTIONS = getAppearanceThemeSectionDescriptors();
 const THEME_FIELDS = getAppearanceThemeFieldDescriptors();
-const THEME_SECTION_IDS = THEME_SECTIONS.map((section) => section.id);
 
 function getPillTextColor(value) {
   return String(value || '').toUpperCase() === '#FFFFFF' ? 'var(--agent-black)' : '#ffffff';
@@ -35,6 +33,8 @@ function getPillTextColor(value) {
 function AppearanceSettingsTab({ config, onConfigChange }) {
   const appearanceTheme = normalizeAppearanceTheme(config?.appearance_theme);
   const appearanceMode = normalizeAppearanceMode(config?.appearance_mode);
+  const editableTheme = getEditableAppearanceThemeDescriptor(appearanceMode);
+  const theme = appearanceTheme[editableTheme.id];
 
   const updateAppearanceMode = (mode) => {
     onConfigChange({ appearance_mode: mode });
@@ -81,39 +81,34 @@ function AppearanceSettingsTab({ config, onConfigChange }) {
         </div>
       </section>
 
-      {THEME_SECTIONS.map((section) => {
-        const theme = appearanceTheme[section.id];
-        return (
-          <section key={section.id} className="settings-surface-theme-card" aria-label={section.title}>
-            <header className="settings-surface-theme-card-header">
-              <h3>{section.title}</h3>
-            </header>
+      <section className="settings-surface-theme-card" aria-label={editableTheme.title}>
+        <header className="settings-surface-theme-card-header">
+          <h3>{editableTheme.title}</h3>
+        </header>
 
-            <div className="settings-surface-theme-grid">
-              {THEME_FIELDS.map((field) => (
-                <ThemeField
-                  key={`${section.id}-${field.key}`}
-                  themeId={section.id}
-                  field={field}
-                  value={theme[field.key]}
-                  onChange={(value) => updateThemeValue(section.id, field.key, value)}
-                />
-              ))}
-            </div>
-          </section>
-        );
-      })}
+        <div className="settings-surface-theme-grid">
+          {THEME_FIELDS.map((field) => (
+            <ThemeField
+              key={`${editableTheme.id}-${field.key}`}
+              sectionTitle={editableTheme.title}
+              field={field}
+              value={theme[field.key]}
+              onChange={(value) => updateThemeValue(editableTheme.id, field.key, value)}
+            />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
 
 function ThemeField({
-  themeId,
+  sectionTitle,
   field,
   value,
   onChange,
 }) {
-  const label = `${themeId === 'light' ? 'Light' : 'Dark'} theme ${field.label.toLowerCase()}`;
+  const label = `${sectionTitle} ${field.label.toLowerCase()}`;
 
   if (field.kind === 'toggle') {
     return (
@@ -189,6 +184,8 @@ const themeSectionShape = PropTypes.shape({
   accent: PropTypes.string,
   background: PropTypes.string,
   foreground: PropTypes.string,
+  user_message_background: PropTypes.string,
+  user_message_foreground: PropTypes.string,
   ui_font: PropTypes.string,
   code_font: PropTypes.string,
   translucent_sidebar: PropTypes.bool,
@@ -207,7 +204,7 @@ AppearanceSettingsTab.propTypes = {
 };
 
 ThemeField.propTypes = {
-  themeId: PropTypes.oneOf(THEME_SECTION_IDS).isRequired,
+  sectionTitle: PropTypes.string.isRequired,
   field: PropTypes.shape({
     key: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,

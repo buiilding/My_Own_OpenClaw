@@ -477,6 +477,8 @@ describe('renderer skin/config boundary', () => {
     expect(appearanceSettingsSource).toContain('DEFAULT_APPEARANCE_THEME');
     expect(appearanceSettingsSource).toContain("accent: '#339CFF'");
     expect(appearanceSettingsSource).toContain("foreground: '#4C4C4C'");
+    expect(appearanceSettingsSource).toContain("user_message_background: '#339CFF'");
+    expect(appearanceSettingsSource).toContain("user_message_foreground: '#FFFFFF'");
     expect(appearanceThemeRuntimeSource).toContain('desktopRuntimeConfig');
     expect(appearanceThemeRuntimeSource).toContain('DesktopAppearanceThemeRuntime');
     expect(appearanceThemeRuntimeSource).not.toContain('export function normalizeAppearanceMode');

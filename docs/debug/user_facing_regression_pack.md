@@ -28,7 +28,7 @@ reappear through normal product use. Use narrower owner tests while iterating.
 | Category | Route | Purpose |
 | --- | --- | --- |
 | Core loop UI | `<windie> test core-loop` | Chat pill, dashboard, response overlay, renderer-owned visible turn lifecycle, screenshot metadata display load, SDK projection, conversation runtime, IPC, replay, stop, tool-row, and surface-lease invariants. |
-| Renderer light appearance | `<windie> test frontend -- DesktopAppearanceThemeRuntime.test.js ThemeCss.test.js ChatHeaderAppearanceCss.test.cjs ToolCallRenderingCss.test.js` | Light appearance defaults keep primary readable text aligned with native desktop content text instead of washed-out translucent labels. |
+| Renderer light appearance | `<windie> test frontend -- DesktopAppearanceThemeRuntime.test.js SettingsSection.test.jsx RendererSkinConfigBoundary.test.cjs ThemeCss.test.js ChatHeaderAppearanceCss.test.cjs ToolCallRenderingCss.test.js SettingsSurfaceCss.test.js` | Light appearance defaults keep primary readable text aligned with native desktop content text, the Appearance tab edits one active theme section, user-message pill colors are first-class, and settings toggles/destructive controls remain readable instead of washed-out. |
 | Scripted provider tool loop | `<windie> test backend -- tests/backend/test_scripted_provider.py -q` | Dev-visible scripted model behavior, including the invariant that completed scripted tool calls do not replay forever after tool output enters model history. |
 
 ## Adding A User-Visible Bug

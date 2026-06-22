@@ -54,6 +54,10 @@ Message list:
 Role-based surface:
 
 - `.message-user` right-aligned bubble lane.
+- `.message-user .message-content` reads `--user-message-background` and
+  `--user-message-foreground` from `DesktopAppearanceThemeRuntime`, keeping the
+  user pill background/text pair first-class and independent from the global
+  accent/send-button tokens.
 - `.message-assistant` full-width transparent lane for nested tool/transparency sections.
 
 Markdown surface:

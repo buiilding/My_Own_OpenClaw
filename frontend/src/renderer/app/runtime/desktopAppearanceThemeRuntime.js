@@ -23,6 +23,8 @@ const APPEARANCE_THEME_FIELD_DESCRIPTORS = Object.freeze([
   Object.freeze({ key: 'accent', label: 'Accent', kind: 'color' }),
   Object.freeze({ key: 'background', label: 'Background', kind: 'color' }),
   Object.freeze({ key: 'foreground', label: 'Foreground', kind: 'color' }),
+  Object.freeze({ key: 'user_message_background', label: 'User message background', kind: 'color' }),
+  Object.freeze({ key: 'user_message_foreground', label: 'User message text', kind: 'color' }),
   Object.freeze({ key: 'ui_font', label: 'UI font', kind: 'font' }),
   Object.freeze({ key: 'code_font', label: 'Code font', kind: 'font' }),
   Object.freeze({ key: 'translucent_sidebar', label: 'Translucent sidebar', kind: 'toggle' }),
@@ -83,6 +85,22 @@ function resolveEffectiveAppearanceTheme(mode, matchMediaImpl = globalThis.windo
   return normalizedMode === 'system' ? resolveSystemAppearanceTheme(matchMediaImpl) : normalizedMode;
 }
 
+function resolveEditableAppearanceThemeId(mode, matchMediaImpl = globalThis.window?.matchMedia) {
+  return resolveEffectiveAppearanceTheme(mode, matchMediaImpl);
+}
+
+function getEditableAppearanceThemeDescriptor(mode, matchMediaImpl = globalThis.window?.matchMedia) {
+  const normalizedMode = normalizeAppearanceMode(mode);
+  const themeId = resolveEditableAppearanceThemeId(normalizedMode, matchMediaImpl);
+  const themeLabel = themeId === 'light' ? 'Light' : 'Dark';
+  return {
+    id: themeId,
+    title: normalizedMode === 'system'
+      ? `System theme (currently ${themeLabel})`
+      : `${themeLabel} theme`,
+  };
+}
+
 function normalizeAppearanceThemeSection(overrides = null, defaults) {
   const source = toPlainRecord(overrides);
   const contrast = Number(source.contrast);
@@ -91,6 +109,14 @@ function normalizeAppearanceThemeSection(overrides = null, defaults) {
     accent: normalizeHexColor(source.accent, defaults.accent),
     background: normalizeHexColor(source.background, defaults.background),
     foreground: normalizeHexColor(source.foreground, defaults.foreground),
+    user_message_background: normalizeHexColor(
+      source.user_message_background,
+      defaults.user_message_background,
+    ),
+    user_message_foreground: normalizeHexColor(
+      source.user_message_foreground,
+      defaults.user_message_foreground,
+    ),
     ui_font: typeof source.ui_font === 'string' && source.ui_font.trim()
       ? source.ui_font
       : defaults.ui_font,
@@ -127,6 +153,8 @@ function applyThemeVariables(target, theme) {
   target.style.setProperty('--appearance-background', theme.background);
   target.style.setProperty('--appearance-foreground', theme.foreground);
   target.style.setProperty('--appearance-contrast', String(theme.contrast));
+  target.style.setProperty('--user-message-background', theme.user_message_background);
+  target.style.setProperty('--user-message-foreground', theme.user_message_foreground);
   target.style.setProperty('--font-ui', theme.ui_font);
   target.style.setProperty('--font-mono', theme.code_font);
   target.dataset.agentTranslucentSidebar = theme.translucent_sidebar ? 'true' : 'false';
@@ -191,12 +219,14 @@ function applyAppearanceTheme(
 
 export const DesktopAppearanceThemeRuntime = Object.freeze({
   applyAppearanceTheme,
+  getEditableAppearanceThemeDescriptor,
   getAppearanceModeDescriptors,
   getAppearanceThemeFieldDescriptors,
   getAppearanceThemeSectionDescriptors,
   normalizeAppearanceMode,
   normalizeAppearanceTheme,
   resolveAppearanceThemeSection,
+  resolveEditableAppearanceThemeId,
   resolveEffectiveAppearanceTheme,
   resolveSystemAppearanceTheme,
 });

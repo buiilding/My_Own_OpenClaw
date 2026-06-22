@@ -36,4 +36,14 @@ describe('chat header appearance CSS', () => {
     expect(chatCss).toContain(":root[data-agent-theme='light'] .chat-provider-selector svg");
     expect(chatCss).toContain('color: var(--appearance-foreground);');
   });
+
+  test('routes user message pills through message-specific appearance tokens', () => {
+    const chatCss = readRepoFile('frontend/src/renderer/styles/ChatInterface.css');
+
+    expect(chatCss).toContain('background: var(--user-message-background);');
+    expect(chatCss).toContain('color: var(--user-message-foreground);');
+    expect(chatCss).toContain('.message-user .message-content-markdown a');
+    expect(chatCss).toContain('text-decoration-color: color-mix(in srgb, var(--user-message-foreground) 72%, transparent 28%);');
+    expect(chatCss).not.toContain('background: linear-gradient(180deg, var(--agent-accent) 0%, var(--agent-accent-hover) 100%)');
+  });
 });

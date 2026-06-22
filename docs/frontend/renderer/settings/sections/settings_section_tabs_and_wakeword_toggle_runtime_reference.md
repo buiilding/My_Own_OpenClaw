@@ -46,7 +46,9 @@ routes tab ids to concrete tab components through `renderTabContent()`.
 Routing model:
 
 - `general` renders live settings controls (`GeneralTab`)
-- `appearance` renders renderer-local theme editing controls for light/dark accent, background, foreground, fonts, translucent sidebar, and contrast values
+- `appearance` renders renderer-local theme editing controls for the currently
+  editable light/dark theme section, including accent, background, foreground,
+  user-message pill colors, fonts, translucent sidebar, and contrast values
 - `agent` renders custom instructions, extension runtime diagnostics, and local/remote tool toggles
 - `workspace` renders workspace permission/status controls
 - `browser` renders skin-named dedicated browser permission/status controls
@@ -124,7 +126,13 @@ fallback fields directly.
 descriptors:
 
 - light, dark, or system theme mode
+- one visible editor section for the active editable theme:
+  - light mode edits `appearance_theme.light`
+  - dark mode edits `appearance_theme.dark`
+  - system mode edits the effective system light/dark section and labels which
+    section is currently active
 - light and dark accent/background/foreground colors
+- light and dark user-message pill background/text colors
 - light and dark UI/code font strings
 - light and dark translucent sidebar toggles
 - light and dark contrast slider values
@@ -145,6 +153,11 @@ which owns document-level theme attributes, CSS variables, and system
 renderer presentation concern: the settings tab produces the config patch, and
 the app root asks the runtime facade to apply the effective theme to shared
 dashboard/settings tokens.
+
+Settings state controls use shared theme variables for toggle track/thumb/border
+states and destructive button enabled/hover/disabled states. Disabled toggles
+and destructive actions should remain muted but readable; they should not rely
+on opacity over a low-contrast light-mode palette.
 
 ## Agent Tab Ownership Model
 

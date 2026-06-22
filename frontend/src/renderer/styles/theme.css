@@ -19,6 +19,8 @@
   --appearance-background: #181818;
   --appearance-foreground: #ffffff;
   --appearance-contrast: 60;
+  --user-message-background: #339CFF;
+  --user-message-foreground: #ffffff;
 
   --bg-base: var(--agent-black);
   --bg-muted: var(--agent-gray);
@@ -114,7 +116,22 @@
   --ui-brand-dot-fg: var(--ui-neutral-white);
   --ui-on-accent: var(--ui-neutral-white);
   --ui-settings-swatch-bg: var(--ui-neutral-black);
+  --ui-toggle-track-off: rgba(255, 255, 255, 0.12);
+  --ui-toggle-track-on: var(--agent-accent);
+  --ui-toggle-track-disabled: rgba(255, 255, 255, 0.08);
+  --ui-toggle-thumb-off: rgba(233, 238, 246, 0.82);
   --ui-toggle-thumb-on: var(--ui-neutral-white);
+  --ui-toggle-thumb-disabled: rgba(154, 163, 175, 0.82);
+  --ui-toggle-border-off: rgba(255, 255, 255, 0.18);
+  --ui-toggle-border-on: color-mix(in srgb, var(--agent-accent) 80%, white 20%);
+  --ui-toggle-border-disabled: rgba(255, 255, 255, 0.12);
+  --ui-danger-bg: rgba(200, 77, 60, 0.16);
+  --ui-danger-bg-hover: rgba(200, 77, 60, 0.26);
+  --ui-danger-fg: #ffd9d4;
+  --ui-danger-border: rgba(224, 98, 78, 0.72);
+  --ui-danger-disabled-bg: rgba(145, 77, 70, 0.16);
+  --ui-danger-disabled-fg: rgba(255, 217, 212, 0.68);
+  --ui-danger-disabled-border: rgba(145, 77, 70, 0.42);
 }
 
 :root[data-agent-theme='light'] {
@@ -207,7 +224,22 @@
   --ui-brand-dot-fg: #ffffff;
   --ui-on-accent: #ffffff;
   --ui-settings-swatch-bg: #ffffff;
+  --ui-toggle-track-off: color-mix(in srgb, var(--appearance-foreground) 13%, var(--appearance-background) 87%);
+  --ui-toggle-track-on: var(--agent-accent);
+  --ui-toggle-track-disabled: color-mix(in srgb, var(--appearance-foreground) 8%, var(--appearance-background) 92%);
+  --ui-toggle-thumb-off: var(--appearance-foreground);
   --ui-toggle-thumb-on: #ffffff;
+  --ui-toggle-thumb-disabled: color-mix(in srgb, var(--appearance-foreground) 48%, var(--appearance-background) 52%);
+  --ui-toggle-border-off: color-mix(in srgb, var(--appearance-foreground) 24%, transparent 76%);
+  --ui-toggle-border-on: color-mix(in srgb, var(--agent-accent) 84%, var(--appearance-foreground) 16%);
+  --ui-toggle-border-disabled: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);
+  --ui-danger-bg: color-mix(in srgb, #c83324 16%, var(--appearance-background) 84%);
+  --ui-danger-bg-hover: color-mix(in srgb, #c83324 24%, var(--appearance-background) 76%);
+  --ui-danger-fg: #9f2418;
+  --ui-danger-border: color-mix(in srgb, #c83324 62%, var(--appearance-foreground) 38%);
+  --ui-danger-disabled-bg: color-mix(in srgb, #c83324 9%, var(--appearance-background) 91%);
+  --ui-danger-disabled-fg: color-mix(in srgb, #9f2418 58%, var(--appearance-foreground) 42%);
+  --ui-danger-disabled-border: color-mix(in srgb, #c83324 28%, var(--appearance-foreground) 72%);
 }
 
 :root[data-agent-translucent-sidebar='false'] {

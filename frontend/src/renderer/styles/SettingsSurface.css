@@ -443,10 +443,10 @@
 }
 
 .settings-surface-danger-button {
-  border: 1px solid color-mix(in srgb, #c84d3c 68%, var(--ui-border-soft) 32%);
+  border: 1px solid var(--ui-danger-border);
   border-radius: 999px;
-  background: color-mix(in srgb, #c84d3c 14%, transparent 86%);
-  color: color-mix(in srgb, #ffd9d4 72%, var(--ui-text-primary) 28%);
+  background: var(--ui-danger-bg);
+  color: var(--ui-danger-fg);
   cursor: pointer;
   flex-shrink: 0;
   font-size: 12px;
@@ -458,13 +458,20 @@
 }
 
 .settings-surface-danger-button:hover:not(:disabled) {
-  background: color-mix(in srgb, #c84d3c 24%, transparent 76%);
-  border-color: color-mix(in srgb, #e0624e 78%, var(--ui-border-soft) 22%);
+  background: var(--ui-danger-bg-hover);
+  border-color: var(--ui-danger-border);
+}
+
+.settings-surface-danger-button:focus-visible {
+  outline: 2px solid var(--ui-danger-border);
+  outline-offset: 2px;
 }
 
 .settings-surface-danger-button:disabled {
   cursor: default;
-  opacity: 0.55;
+  background: var(--ui-danger-disabled-bg);
+  border-color: var(--ui-danger-disabled-border);
+  color: var(--ui-danger-disabled-fg);
 }
 
 .settings-surface-secondary-button {
@@ -654,12 +661,14 @@
   position: relative;
   width: 34px;
   height: 20px;
+  border: 1px solid var(--ui-toggle-border-off);
   border-radius: 999px;
-  background: var(--ui-hover-bg);
+  background: var(--ui-toggle-track-off);
   display: inline-flex;
   align-items: center;
   cursor: pointer;
   flex-shrink: 0;
+  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .settings-surface-toggle input {
@@ -672,19 +681,34 @@
 .settings-surface-toggle-thumb {
   width: 14px;
   height: 14px;
-  margin-left: 3px;
+  margin-left: 2px;
   border-radius: 999px;
-  background: var(--ui-text-secondary);
-  transition: transform 0.2s ease;
+  background: var(--ui-toggle-thumb-off);
+  transition: transform 0.2s ease, background 140ms ease;
 }
 
 .settings-surface-toggle.checked {
-  background: var(--ui-hover-strong-bg);
+  background: var(--ui-toggle-track-on);
+  border-color: var(--ui-toggle-border-on);
 }
 
 .settings-surface-toggle.checked .settings-surface-toggle-thumb {
   transform: translateX(14px);
   background: var(--ui-toggle-thumb-on);
+}
+
+.settings-surface-toggle:focus-within {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--agent-accent) 36%, transparent 64%);
+}
+
+.settings-surface-toggle:has(input:disabled) {
+  cursor: default;
+  background: var(--ui-toggle-track-disabled);
+  border-color: var(--ui-toggle-border-disabled);
+}
+
+.settings-surface-toggle:has(input:disabled) .settings-surface-toggle-thumb {
+  background: var(--ui-toggle-thumb-disabled);
 }
 
 .settings-surface-placeholder p {

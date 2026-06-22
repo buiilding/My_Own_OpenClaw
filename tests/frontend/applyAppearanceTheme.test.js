@@ -68,6 +68,8 @@ describe('applyAppearanceTheme', () => {
           accent: '#007AFF',
           background: '#FAFCFF',
           foreground: '#111827',
+          user_message_background: '#1D4ED8',
+          user_message_foreground: '#F8FAFC',
           ui_font: 'Manrope, sans-serif',
           code_font: 'JetBrains Mono, monospace',
           translucent_sidebar: false,
@@ -84,6 +86,8 @@ describe('applyAppearanceTheme', () => {
     expect(target.style.getPropertyValue('--appearance-background')).toBe('#FAFCFF');
     expect(target.style.getPropertyValue('--appearance-foreground')).toBe('#111827');
     expect(target.style.getPropertyValue('--appearance-contrast')).toBe('52');
+    expect(target.style.getPropertyValue('--user-message-background')).toBe('#1D4ED8');
+    expect(target.style.getPropertyValue('--user-message-foreground')).toBe('#F8FAFC');
     expect(target.style.getPropertyValue('--font-ui')).toBe('Manrope, sans-serif');
     expect(target.style.getPropertyValue('--font-mono')).toBe('JetBrains Mono, monospace');
   });

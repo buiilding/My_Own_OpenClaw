@@ -64,6 +64,13 @@ Light-mode readability:
   through the same foreground token
 - dev-only source badges and transparency panels use the same foreground in
   light appearance so diagnostic metadata remains readable
+- user message bubbles use `--user-message-background` and
+  `--user-message-foreground`, applied from the active appearance theme section,
+  so message pill colors are independent from global accent and send-button
+  colors
+- settings toggles and destructive buttons use shared state-control variables
+  (`--ui-toggle-*` and `--ui-danger-*`) so checked, unchecked, disabled,
+  hover, focus, and destructive states stay readable in light appearance
 
 Motion baseline:
 

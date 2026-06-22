@@ -205,6 +205,8 @@ describe('SettingsSection', () => {
         accent: '#339CFF',
         background: '#FFFFFF',
         foreground: '#4C4C4C',
+        user_message_background: '#339CFF',
+        user_message_foreground: '#FFFFFF',
         ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         code_font: 'ui-monospace, "SFMono-Regular", monospace',
         translucent_sidebar: true,
@@ -214,6 +216,8 @@ describe('SettingsSection', () => {
         accent: '#339CFF',
         background: '#181818',
         foreground: '#FFFFFF',
+        user_message_background: '#339CFF',
+        user_message_foreground: '#FFFFFF',
         ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         code_font: 'ui-monospace, "SFMono-Regular", monospace',
         translucent_sidebar: true,
@@ -522,14 +526,72 @@ describe('SettingsSection', () => {
 
   test('appearance tab updates theme controls through renderer config', () => {
     const onConfigChange = jest.fn();
-    renderSettingsSection({ initialTab: 'appearance', onConfigChange });
+    const onClose = jest.fn();
+    const onChatsCleared = jest.fn();
+    const lightConfig = {
+      ...defaultConfig,
+      appearance_mode: 'light',
+    };
+    const view = renderSettingsSection({
+      initialTab: 'appearance',
+      config: lightConfig,
+      onConfigChange,
+      onClose,
+      onChatsCleared,
+    });
 
+    expect(view.container.querySelectorAll('.settings-surface-theme-card')).toHaveLength(1);
     expect(screen.getByText('Light theme')).toBeInTheDocument();
-    expect(screen.getByText('Dark theme')).toBeInTheDocument();
+    expect(screen.queryByText('Dark theme')).not.toBeInTheDocument();
     expect(screen.getByText('Use light, dark, or match your system')).toBeInTheDocument();
     expect(screen.queryByText('Import')).not.toBeInTheDocument();
     expect(screen.queryByText('Copy theme')).not.toBeInTheDocument();
     expect(screen.queryByText('Codex')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Light theme user message background'), {
+      target: { value: '#1D4ED8' },
+    });
+
+    expect(onConfigChange).toHaveBeenCalledWith({
+      appearance_theme: {
+        ...defaultConfig.appearance_theme,
+        light: {
+          ...defaultConfig.appearance_theme.light,
+          user_message_background: '#1D4ED8',
+        },
+      },
+    });
+
+    fireEvent.change(screen.getByLabelText('Light theme user message text'), {
+      target: { value: '#F8FAFC' },
+    });
+
+    expect(onConfigChange).toHaveBeenCalledWith({
+      appearance_theme: {
+        ...defaultConfig.appearance_theme,
+        light: {
+          ...defaultConfig.appearance_theme.light,
+          user_message_foreground: '#F8FAFC',
+        },
+      },
+    });
+
+    view.rerender(
+      <SettingsSection
+        config={{
+          ...defaultConfig,
+          appearance_mode: 'dark',
+        }}
+        onConfigChange={onConfigChange}
+        onClose={onClose}
+        onChatsCleared={onChatsCleared}
+        initialTab="appearance"
+      />,
+    );
+
+    expect(view.container.querySelectorAll('.settings-surface-theme-card')).toHaveLength(1);
+    expect(screen.getByText('Dark theme')).toBeInTheDocument();
+    expect(screen.queryByText('Light theme')).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Dark theme accent'), {
       target: { value: '#007AFF' },

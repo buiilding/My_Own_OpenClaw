@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- frontend/renderer: add a dynamic one-section Appearance editor for the active
+  light/dark theme, first-class user-message pill background/text colors, and
+  high-contrast settings toggle/destructive-control state tokens. No migration
+  required.
 - docs/plans: add the dynamic appearance editor and message color plan for
   collapsing Appearance settings to one effective-theme editor, adding
   user-message pill background/text colors, unifying light-mode foreground
