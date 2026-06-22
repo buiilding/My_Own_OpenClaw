@@ -95,10 +95,10 @@ adapter layer.
 
 ## Layout-Mode Resolver Contract
 
-`DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayLayoutMode({ showResponse, showAwaitingReply })`:
+`DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayLayoutMode({ responseVisible, awaitingVisible })`:
 
-- `showResponse=true` -> `response`
-- else if `showAwaitingReply=true` -> `awaiting-typing`
+- `responseVisible=true` -> `response`
+- else if `awaitingVisible=true` -> `awaiting-typing`
 - else -> `hidden`
 
 `DesktopResponseOverlayLayoutRuntime.isCompactHoverLayoutMode(mode)` is true only for `awaiting-typing`.

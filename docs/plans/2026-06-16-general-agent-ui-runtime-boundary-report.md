@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: backend model-visible shell schema wording now uses
-  generic generated-directory guidance instead of naming WindieOS repository
-  build-output paths in hosted orchestration prompt contracts.
+- Latest completed slice: response-overlay view/layout intent now uses
+  explicit `responseVisible` / `awaitingVisible` fields instead of legacy
+  `showResponse` / `showAwaitingReply` aliases across renderer runtime,
+  component, trace, docs, and focused tests.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

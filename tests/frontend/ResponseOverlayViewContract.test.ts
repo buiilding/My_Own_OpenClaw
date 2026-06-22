@@ -20,8 +20,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
       dismissedResponseId: null,
     })).toMatchObject({
       latestResponseOverlayEntryId: 'assistant-1',
-      showResponse: true,
-      showAwaitingReply: false,
+      responseVisible: true,
+      awaitingVisible: false,
       overlayLayoutMode: 'response',
       isVisible: true,
     });
@@ -39,8 +39,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
       dismissedResponseId: null,
     })).toMatchObject({
       latestResponseOverlayEntryId: null,
-      showResponse: false,
-      showAwaitingReply: true,
+      responseVisible: false,
+      awaitingVisible: true,
       overlayLayoutMode: 'awaiting-typing',
       isVisible: true,
     });
@@ -60,8 +60,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
       dismissedResponseId: null,
     })).toMatchObject({
       latestResponseOverlayEntryId: 'assistant-1',
-      showResponse: false,
-      showAwaitingReply: true,
+      responseVisible: false,
+      awaitingVisible: true,
       overlayLayoutMode: 'awaiting-typing',
       isVisible: true,
     });
@@ -81,8 +81,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
       dismissedResponseId: null,
     })).toMatchObject({
       latestResponseOverlayEntryId: 'assistant-1',
-      showResponse: true,
-      showAwaitingReply: false,
+      responseVisible: true,
+      awaitingVisible: false,
       overlayLayoutMode: 'response',
       isVisible: true,
     });
@@ -98,8 +98,8 @@ describe('desktopResponseOverlayViewRuntime', () => {
       responseOverlayEntries: [],
       dismissedResponseId: null,
     })).toMatchObject({
-      showResponse: false,
-      showAwaitingReply: false,
+      responseVisible: false,
+      awaitingVisible: false,
       overlayLayoutMode: 'hidden',
       isVisible: false,
     });

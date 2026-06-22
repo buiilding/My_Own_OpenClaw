@@ -9,6 +9,26 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Response Overlay View Intent Alias Deletion
+
+- Finding: `DesktopResponseOverlayViewRuntime.resolveResponseOverlayViewContract(...)`,
+  `DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayLayoutMode(...)`,
+  and minimal response-overlay consumers still exposed `showResponse` and
+  `showAwaitingReply` as view-intent booleans after response visibility and
+  awaiting visibility were owned by explicit response entries plus
+  `visibleTurnLifecycle.status`.
+- Change: renamed the view and layout contract to `responseVisible` and
+  `awaitingVisible`. Minimal response-overlay hooks, component rendering, and
+  renderer trace builders now consume the explicit visibility fields instead of
+  the legacy `show*` aliases.
+- Validation target: `ResponseOverlayViewContract.test.ts`,
+  `ChatPillSessionFlow.test.ts`, `ResponseOverlayLayoutMode.test.js`,
+  `DesktopRendererTraceRuntime.test.ts`, and renderer boundary tests protect
+  the trimmed response-overlay view contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 SDK Response Overlay Fallback State Deletion
 
 - Finding: `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`

@@ -34,7 +34,7 @@ export function useResponseOverlayWindowSync({
   overlayLayoutMode,
   overlayIntent = null,
   responseEntrySignature,
-  showResponse,
+  responseVisible,
   thinkingText,
 }) {
   const lastFrameRef = useRef(createHiddenFrameState());
@@ -137,7 +137,7 @@ export function useResponseOverlayWindowSync({
         conversationRef: overlayIntent?.conversationRef || null,
         visible: true,
         layoutMode,
-        showResponse,
+        responseVisible,
         thinkingText,
         compactHover: Boolean(compactHover),
         turnRef,
@@ -161,7 +161,7 @@ export function useResponseOverlayWindowSync({
     overlayIntent?.staleGuardRef,
     overlayIntent?.turnRef,
     shellRef,
-    showResponse,
+    responseVisible,
     thinkingText,
   ]);
 
@@ -229,7 +229,7 @@ export function useResponseOverlayWindowSync({
     reportOverlaySize,
     responseEntrySignature,
     shellRef,
-    showResponse,
+    responseVisible,
     thinkingText,
   ]);
 

@@ -16,13 +16,13 @@ const RESPONSE_OVERLAY_LAYOUT_MODE = Object.freeze({
 });
 
 function resolveResponseOverlayLayoutMode({
-  showResponse,
-  showAwaitingReply,
+  responseVisible,
+  awaitingVisible,
 }) {
-  if (showResponse) {
+  if (responseVisible) {
     return RESPONSE_OVERLAY_LAYOUT_MODE.RESPONSE;
   }
-  if (!showAwaitingReply) {
+  if (!awaitingVisible) {
     return RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
   }
   return RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING;

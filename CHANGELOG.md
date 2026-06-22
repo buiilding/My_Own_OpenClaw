@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the response-overlay view-intent `showResponse`
+  and `showAwaitingReply` aliases; overlay view, layout, component, and trace
+  inputs now use explicit `responseVisible` and `awaitingVisible` fields. No
+  migration required.
 - frontend/renderer: delete the SDK response-overlay `fallbackState`
   presentation adapter; SDK response projection now returns explicit response
   entry data and overlay-intent metadata before visible lifecycle stamping. No

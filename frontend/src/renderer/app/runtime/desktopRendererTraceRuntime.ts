@@ -28,7 +28,7 @@ export type RendererResponseSurfaceSizeTraceValues = {
   conversationRef?: unknown;
   visible: boolean;
   layoutMode?: string | null;
-  showResponse?: boolean;
+  responseVisible?: boolean;
   thinkingText?: unknown;
   thinkingTextLength?: unknown;
   compactHover?: boolean;
@@ -68,8 +68,8 @@ export type RendererResponseOverlayTypingRenderedTraceValues = {
   } | null;
   overlayLayoutMode?: unknown;
   isVisible?: boolean;
-  showAwaitingReply?: boolean;
-  showResponse?: boolean;
+  awaitingVisible?: boolean;
+  responseVisible?: boolean;
   responseOverlayEntryCount?: unknown;
 };
 
@@ -165,8 +165,8 @@ export type RendererResponseOverlayStateTraceValues = {
   turnRef?: unknown;
   phase?: unknown;
   isVisible?: boolean;
-  showAwaitingReply?: boolean;
-  showResponse?: boolean;
+  awaitingVisible?: boolean;
+  responseVisible?: boolean;
   responseLayoutMode?: unknown;
   visibleResponseId?: unknown;
   responseEntryCount?: unknown;
@@ -182,8 +182,8 @@ export type RendererResponseSurfaceRenderTraceValues = {
   turnRef?: unknown;
   phase?: unknown;
   responseLayoutMode?: unknown;
-  showResponse?: boolean;
-  showAwaitingReply?: boolean;
+  responseVisible?: boolean;
+  awaitingVisible?: boolean;
 };
 
 export type RendererResponseSurfaceSnapshotTraceValues = {
@@ -194,8 +194,8 @@ export type RendererResponseSurfaceSnapshotTraceValues = {
   responseType?: unknown;
   visibleResponseId?: unknown;
   responseOverlayEntryCount?: unknown;
-  showAwaitingReply?: boolean;
-  showResponse?: boolean;
+  awaitingVisible?: boolean;
+  responseVisible?: boolean;
   thinkingText?: unknown;
   thinkingTextLength?: unknown;
 };
@@ -220,8 +220,8 @@ export type RendererOverlayViewModelTraceValues = {
   } | null;
   responseOverlayEntries?: unknown[];
   viewIntent?: {
-    showAwaitingReply?: boolean;
-    showResponse?: boolean;
+    awaitingVisible?: boolean;
+    responseVisible?: boolean;
     visibleResponse?: {
       id?: unknown;
     } | null;
@@ -333,8 +333,8 @@ function buildRendererResponseSurfaceSizeTracePayload(
     width: traceNumberOrZero(values.width),
     height: traceNumberOrZero(values.height),
   };
-  if (typeof values.showResponse === 'boolean') {
-    payload.show_response = values.showResponse;
+  if (typeof values.responseVisible === 'boolean') {
+    payload.response_visible = values.responseVisible;
   }
   const thinkingTextLength = traceTextLength(values);
   if (thinkingTextLength !== null) {
@@ -370,8 +370,8 @@ function buildRendererResponseSurfaceSizeLiveTracePayload(
     payload.overlayMode = DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayNativeMode(
       layoutMode,
     );
-    if (typeof values.showResponse === 'boolean') {
-      payload.showResponse = values.showResponse;
+    if (typeof values.responseVisible === 'boolean') {
+      payload.responseVisible = values.responseVisible;
     }
     const thinkingTextLength = traceTextLength(values);
     if (thinkingTextLength !== null) {
@@ -462,8 +462,8 @@ function buildRendererResponseOverlayTypingRenderedTracePayload(
       || null
     ),
     isVisible: values.isVisible === true,
-    showAwaitingReply: values.showAwaitingReply === true,
-    showResponse: values.showResponse === true,
+    awaitingVisible: values.awaitingVisible === true,
+    responseVisible: values.responseVisible === true,
     layoutMode: traceString(values.overlayLayoutMode) || null,
     entryCount: traceNumberOrZero(values.responseOverlayEntryCount),
     hasVisibleContent: traceNumberOrZero(values.responseOverlayEntryCount) > 0,
@@ -490,8 +490,8 @@ function buildRendererResponseOverlayStateTracePayload(
     turn_id: traceString(values.turnRef) || null,
     phase: traceString(values.phase) || 'idle',
     is_visible: values.isVisible === true,
-    show_awaiting_reply: values.showAwaitingReply === true,
-    show_response: values.showResponse === true,
+    awaiting_visible: values.awaitingVisible === true,
+    response_visible: values.responseVisible === true,
     response_layout_mode: traceString(values.responseLayoutMode) || 'hidden',
     visible_response_id: traceString(values.visibleResponseId) || null,
     response_entry_count: traceNumberOrZero(values.responseEntryCount),
@@ -518,8 +518,8 @@ function buildRendererResponseSurfaceSnapshotTracePayload(
     activeResponseType: traceString(values.responseType) || null,
     visibleResponseId: traceString(values.visibleResponseId) || null,
     responseOverlayEntryCount: traceNumberOrZero(values.responseOverlayEntryCount),
-    showAwaitingReply: values.showAwaitingReply === true,
-    showResponse: values.showResponse === true,
+    awaitingVisible: values.awaitingVisible === true,
+    responseVisible: values.responseVisible === true,
     thinkingTextLength: traceTextLength(values) ?? 0,
   };
 }
@@ -758,8 +758,8 @@ function buildRendererResponseSurfaceRenderTracePayload(
     turn_id: traceString(values.turnRef) || null,
     phase: traceString(values.phase) || 'idle',
     response_layout_mode: traceString(values.responseLayoutMode) || 'hidden',
-    show_response: values.showResponse === true,
-    show_awaiting_reply: values.showAwaitingReply === true,
+    response_visible: values.responseVisible === true,
+    awaiting_visible: values.awaitingVisible === true,
   };
 }
 
@@ -795,10 +795,10 @@ function buildRendererOverlayViewModelTracePayload(
       || traceString(currentTurnProjection?.turnRef)
       || null
     ),
-    awaitingVisible: viewIntent?.showAwaitingReply === true,
-    responseVisible: viewIntent?.showResponse === true,
+    awaitingVisible: viewIntent?.awaitingVisible === true,
+    responseVisible: viewIntent?.responseVisible === true,
     showAwaitingDot: (
-      viewIntent?.showAwaitingReply === true
+      viewIntent?.awaitingVisible === true
       && traceString(currentTurnPresentationState?.awaitingDotTargetMessageId) !== null
     ),
     hasVisibleReply: currentTurnPresentationState?.hasVisibleReply === true,

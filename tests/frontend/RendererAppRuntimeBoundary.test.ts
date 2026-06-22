@@ -749,6 +749,18 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopMessageSendUiRuntime.ts'),
       'utf8',
     );
+    const responseLayoutRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopResponseOverlayLayoutRuntime.js'),
+      'utf8',
+    );
+    const responseOverlayComponentSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/components/MinimalResponseOverlay.jsx'),
+      'utf8',
+    );
+    const responseOverlayViewModelSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
+      'utf8',
+    );
 
     expect(responseViewRuntimeSource).toContain('export const DesktopResponseOverlayViewRuntime = Object.freeze');
     expect(responseViewRuntimeSource).not.toContain('export function resolveResponseOverlayViewContract');
@@ -759,6 +771,16 @@ describe('renderer app runtime boundary', () => {
     expect(responseViewRuntimeSource).not.toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
     expect(responseViewRuntimeSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('features/chat');
+    expect(responseViewRuntimeSource).toContain('responseVisible');
+    expect(responseViewRuntimeSource).toContain('awaitingVisible');
+    expect(responseViewRuntimeSource).not.toContain('showResponse');
+    expect(responseViewRuntimeSource).not.toContain('showAwaitingReply');
+    expect(responseLayoutRuntimeSource).not.toContain('showResponse');
+    expect(responseLayoutRuntimeSource).not.toContain('showAwaitingReply');
+    expect(responseOverlayComponentSource).not.toContain('showResponse');
+    expect(responseOverlayComponentSource).not.toContain('showAwaitingReply');
+    expect(responseOverlayViewModelSource).not.toContain('showResponse');
+    expect(responseOverlayViewModelSource).not.toContain('showAwaitingReply');
     expect(chatPillFlowSource).toContain('desktopResponseOverlayViewRuntime');
     expect(chatPillFlowSource).toContain('desktopMessageSendUiRuntime');
     expect(chatPillFlowSource).toContain('export const DesktopChatPillSessionRuntime = Object.freeze');

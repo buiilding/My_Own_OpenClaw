@@ -106,8 +106,8 @@ describe('desktopChatPillSessionRuntime', () => {
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-assistant',
-      showResponse: true,
-      showAwaitingReply: false,
+      responseVisible: true,
+      awaitingVisible: false,
       overlayLayoutMode: 'response',
       isVisible: true,
     });
@@ -129,7 +129,7 @@ describe('desktopChatPillSessionRuntime', () => {
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-visible',
-      showResponse: true,
+      responseVisible: true,
       latestResponseOverlayEntryId: 'assistant-visible',
     });
   });
@@ -149,7 +149,7 @@ describe('desktopChatPillSessionRuntime', () => {
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-active',
-      showResponse: true,
+      responseVisible: true,
     });
   });
 
@@ -170,8 +170,8 @@ describe('desktopChatPillSessionRuntime', () => {
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-user',
-      showResponse: false,
-      showAwaitingReply: true,
+      responseVisible: false,
+      awaitingVisible: true,
       overlayLayoutMode: 'awaiting-typing',
       isVisible: true,
     });
@@ -196,7 +196,7 @@ describe('desktopChatPillSessionRuntime', () => {
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-user',
-      showResponse: false,
+      responseVisible: false,
       overlayLayoutMode: 'hidden',
       isVisible: false,
     });
@@ -219,8 +219,8 @@ describe('desktopChatPillSessionRuntime', () => {
     expect(viewIntent).toMatchObject({
       latestResponseOverlayEntryId: 'assistant-1',
       turnId: 'turn-assistant',
-      showResponse: false,
-      showAwaitingReply: false,
+      responseVisible: false,
+      awaitingVisible: false,
       overlayLayoutMode: 'hidden',
       isVisible: false,
     });
@@ -244,8 +244,8 @@ describe('desktopChatPillSessionRuntime', () => {
 
     expect(viewIntent).toMatchObject({
       turnId: 'turn-assistant',
-      showResponse: false,
-      showAwaitingReply: true,
+      responseVisible: false,
+      awaitingVisible: true,
       overlayLayoutMode: 'awaiting-typing',
       isVisible: true,
     });

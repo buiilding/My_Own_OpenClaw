@@ -208,7 +208,7 @@ export function useResponseOverlayViewModel({
   );
 
   const responseIsCloseable = useMemo(() => {
-    if (!viewIntent.showResponse) {
+    if (!viewIntent.responseVisible) {
       return false;
     }
     if (resolvedCurrentTurnPresentationState.isBusy) {
@@ -220,7 +220,7 @@ export function useResponseOverlayViewModel({
     resolvedCurrentTurnPresentationState.isBusy,
     latestSourceTaggedResponseEntry,
     responseOverlayEntries,
-    viewIntent.showResponse,
+    viewIntent.responseVisible,
   ]);
 
   const thinkingText = useMemo(

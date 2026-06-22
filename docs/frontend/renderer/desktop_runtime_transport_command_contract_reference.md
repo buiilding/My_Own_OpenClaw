@@ -241,9 +241,9 @@ runtime maps those values to diagnostic `conversation_ref`, `turn_id`,
 state/render effects pass value-level phase, response, visibility, layout,
 entry-count, text-length, send, and message-count inputs; the trace runtime
 maps those values to the existing response-surface diagnostic fields. Response
-overlay hooks pass value-level `layoutMode`, `showResponse`, `thinkingText`,
+overlay hooks pass value-level `layoutMode`, `responseVisible`, `thinkingText`,
 `compactHover`, `turnRef`, and `staleGuardRef` inputs; the trace runtime maps
-those values to the existing diagnostic `layout_mode`, `show_response`,
+those values to diagnostic `layout_mode`, `response_visible`,
 `thinking_text_length`, `compact_hover`, `turn_ref`, and `stale_guard_ref`
 fields.
 

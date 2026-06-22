@@ -42,21 +42,21 @@ function resolveResponseOverlayViewContract({
     && visibleResponseId !== null
     && latestResponseOverlayEntryId === visibleResponseId
   );
-  const showResponse = (
+  const responseVisible = (
     responseOverlayEntries.length > 0
     && latestResponseOverlayEntryId !== dismissedResponseId
     && !isStaleVisibleResponseDuringAwaiting
   );
-  const showAwaitingReply = !showResponse && awaitingReply;
+  const awaitingVisible = !responseVisible && awaitingReply;
   const overlayLayoutMode = DesktopResponseOverlayLayoutRuntime.resolveResponseOverlayLayoutMode({
-    showResponse,
-    showAwaitingReply,
+    responseVisible,
+    awaitingVisible,
   });
 
   return {
     latestResponseOverlayEntryId,
-    showResponse,
-    showAwaitingReply,
+    responseVisible,
+    awaitingVisible,
     overlayLayoutMode,
     isVisible: DesktopResponseOverlayLayoutRuntime.isVisibleResponseOverlayLayoutMode(
       overlayLayoutMode,

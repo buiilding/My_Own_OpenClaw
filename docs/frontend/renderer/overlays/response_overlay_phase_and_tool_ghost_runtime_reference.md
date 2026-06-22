@@ -77,7 +77,7 @@ Selection logic:
    SDK presentation snapshots provide response-entry and overlay-intent data
    only.
 3. `DesktopChatPillSessionRuntime.resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
-4. `showResponse` is true when current-turn entry list is non-empty and not dismissed, including tool/progress entries.
+4. `responseVisible` is true when current-turn entry list is non-empty and not dismissed, including tool/progress entries.
 5. during `local_pending` / `awaiting` lifecycle only, a still-mounted prior visible response with the same entry id is treated as stale so the typing indicator can appear immediately for the new turn before the response window's local message store catches up.
 6. phase-only SDK projections with no visible text, entries, tool/search
    progress, error, or renderer pending turn are not typing authority.
@@ -115,10 +115,10 @@ Phase ownership boundary:
 
 Modes:
 
-- `showResponse`:
+- `responseVisible`:
   - response-overlay entry list for current turn is non-empty (`llm-text`, `error`, and/or `tool-explanation`)
   - entry id is not manually dismissed
-- `showAwaitingReply`:
+- `awaitingVisible`:
   - no visible response-entry list
   - and current-turn presentation state reports awaiting-reply mode
   - or the only visible response entry is the stale prior-turn response during `preflight` / `awaiting`
@@ -141,8 +141,8 @@ Contract ownership:
 - `DesktopResponseOverlayViewRuntime.resolveResponseOverlayViewContract(...)`
   is the canonical pure helper for:
   - latest visible response entry id
-  - `showResponse`
-  - `showAwaitingReply`
+  - `responseVisible`
+  - `awaitingVisible`
   - overlay layout mode (`hidden` / `awaiting-typing` / `response`)
 - `DesktopCurrentTurnMessageRuntime` owns response-overlay row classification:
   visible entries, progress entries, source-tagged entries, closeability, and
@@ -284,14 +284,14 @@ Under `WINDIE_DEBUG_STREAM_EVENTS=1` (main injects `?debug_stream=1`) or explici
   - `turn_id`
   - phase
   - layout mode
-  - `show_response`
-  - `show_awaiting_reply`
+  - `response_visible`
+  - `awaiting_visible`
 - `useChatMessageSender` logs send start and backend dispatch intent
 - `desktopChatSendPreparation` logs SDK screenshot-resource decision
 - `ChatBoxResponse` logs the resolved overlay view contract each render pass that matters
 - response-window size traces go through
   `logRendererResponseSurfaceSizeTrace(...)`, so the window-sync hook does not
-  assemble trace fields such as `layout_mode`, `show_response`,
+  assemble trace fields such as `layout_mode`, `response_visible`,
   `thinking_text_length`, `compact_hover`, `turn_ref`, `stale_guard_ref`,
   `thinkingTextLength`, `overlayMode`, `guardRef`, or the
   `response_overlay.renderer.size_report` event name directly

@@ -17,22 +17,22 @@ describe('desktopResponseOverlayLayoutRuntime layout mode', () => {
 
   test('resolves response mode when response content is visible', () => {
     expect(resolveResponseOverlayLayoutMode({
-      showResponse: true,
-      showAwaitingReply: true,
+      responseVisible: true,
+      awaitingVisible: true,
     })).toBe('response');
   });
 
   test('resolves hidden mode when no overlay content is visible', () => {
     expect(resolveResponseOverlayLayoutMode({
-      showResponse: false,
-      showAwaitingReply: false,
+      responseVisible: false,
+      awaitingVisible: false,
     })).toBe('hidden');
   });
 
   test('resolves awaiting-typing mode when awaiting', () => {
     expect(resolveResponseOverlayLayoutMode({
-      showResponse: false,
-      showAwaitingReply: true,
+      responseVisible: false,
+      awaitingVisible: true,
     })).toBe('awaiting-typing');
   });
 
