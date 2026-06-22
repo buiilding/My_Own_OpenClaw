@@ -167,6 +167,16 @@ const SCRIPTED_PROVIDER_USER_FACING_REGRESSION_TESTS = Object.freeze([
   '-q',
 ]);
 
+const RENDERER_LIGHT_APPEARANCE_USER_FACING_REGRESSION_TESTS = Object.freeze([
+  'DesktopAppearanceThemeRuntime.test.js',
+  'SettingsSection.test.jsx',
+  'RendererSkinConfigBoundary.test.cjs',
+  'ThemeCss.test.js',
+  'ChatHeaderAppearanceCss.test.cjs',
+  'ToolCallRenderingCss.test.js',
+  'SettingsSurfaceCss.test.js',
+]);
+
 function coreLoopRegressionPackCommand(extraArgs = []) {
   return {
     command: 'npm',
@@ -186,6 +196,19 @@ function coreLoopRegressionPackCommand(extraArgs = []) {
 function userFacingRegressionPackProcesses() {
   return [
     { label: 'core-loop', ...coreLoopRegressionPackCommand() },
+    {
+      label: 'renderer-light-appearance',
+      command: 'npm',
+      args: [
+        '--prefix',
+        FRONTEND_DIR,
+        'run',
+        'test:ci',
+        '--',
+        ...RENDERER_LIGHT_APPEARANCE_USER_FACING_REGRESSION_TESTS,
+      ],
+      cwd: REPO_ROOT,
+    },
     {
       label: 'scripted-provider',
       command: script('scripts/test-backend.sh'),

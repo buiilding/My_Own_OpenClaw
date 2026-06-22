@@ -309,7 +309,7 @@ describe('windie CLI', () => {
       '--listTests',
     ]));
     const userFacingPlan = getSpawnPlan(['test', 'user-facing']);
-    expect(userFacingPlan.concurrent).toHaveLength(2);
+    expect(userFacingPlan.concurrent).toHaveLength(3);
     expect(userFacingPlan.concurrent[0]).toMatchObject({
       label: 'core-loop',
       command: 'npm',
@@ -320,6 +320,16 @@ describe('windie CLI', () => {
       'PendingTurnLiveSurfaceIntegration.test.js',
     ]));
     expect(userFacingPlan.concurrent[1]).toMatchObject({
+      label: 'renderer-light-appearance',
+      command: 'npm',
+      cwd: repoRoot,
+    });
+    expect(userFacingPlan.concurrent[1].args).toEqual(expect.arrayContaining([
+      'DesktopAppearanceThemeRuntime.test.js',
+      'SettingsSection.test.jsx',
+      'SettingsSurfaceCss.test.js',
+    ]));
+    expect(userFacingPlan.concurrent[2]).toMatchObject({
       label: 'scripted-provider',
       command: path.join(repoRoot, 'scripts/test-backend.sh'),
       args: ['tests/backend/test_scripted_provider.py', '-q'],
