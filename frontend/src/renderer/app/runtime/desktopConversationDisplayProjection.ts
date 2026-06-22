@@ -98,19 +98,45 @@ function mergeRendererAnnotationsIntoSdkMessages(
     return sdkMessages;
   }
   const currentById = new Map(currentMessages.map((message) => [message.id, message]));
+  const optimisticUsersByTurn = new Map<string, ChatMessage>();
+  for (const message of currentMessages) {
+    const turnRef = normalizeTurnRef(message.turnRef);
+    if (turnRef && isOptimisticUserMessage(message)) {
+      optimisticUsersByTurn.set(turnRef, message);
+    }
+  }
   const mergedSdkMessages = sdkMessages.map((message) => {
     const current = currentById.get(message.id);
-    if (!current) {
-      return message;
-    }
+    const turnRef = normalizeTurnRef(message.turnRef);
+    const optimisticUser = current && isOptimisticUserMessage(current)
+      ? current
+      : (turnRef ? optimisticUsersByTurn.get(turnRef) : undefined);
+    const optimisticScreenshots = (
+      message.sender === 'user'
+      && countMessageImages(message) === 0
+      && optimisticUser
+      && countMessageImages(optimisticUser) > 0
+    )
+      ? {
+        ...(optimisticUser.screenshot ? { screenshot: optimisticUser.screenshot } : {}),
+        ...(optimisticUser.screenshotRef ? { screenshotRef: optimisticUser.screenshotRef } : {}),
+        ...(optimisticUser.screenshotUrl ? { screenshotUrl: optimisticUser.screenshotUrl } : {}),
+        ...(optimisticUser.screenshotContentType ? { screenshotContentType: optimisticUser.screenshotContentType } : {}),
+        ...(optimisticUser.screenshots ? { screenshots: optimisticUser.screenshots } : {}),
+        ...(optimisticUser.attachmentFilenames && !message.attachmentFilenames
+          ? { attachmentFilenames: optimisticUser.attachmentFilenames }
+          : {}),
+      }
+      : {};
     return {
       ...message,
-      ...(current.systemPrompt ? { systemPrompt: current.systemPrompt } : {}),
-      ...(current.toolSchemas ? { toolSchemas: current.toolSchemas } : {}),
-      ...(current.fullUserMessage ? { fullUserMessage: current.fullUserMessage } : {}),
-      ...(current.fullAssistantMessage ? { fullAssistantMessage: current.fullAssistantMessage } : {}),
-      ...(current.feedback ? { feedback: current.feedback } : {}),
-      ...(current.tokenCounts ? { tokenCounts: current.tokenCounts } : {}),
+      ...optimisticScreenshots,
+      ...(current?.systemPrompt ? { systemPrompt: current.systemPrompt } : {}),
+      ...(current?.toolSchemas ? { toolSchemas: current.toolSchemas } : {}),
+      ...(current?.fullUserMessage ? { fullUserMessage: current.fullUserMessage } : {}),
+      ...(current?.fullAssistantMessage ? { fullAssistantMessage: current.fullAssistantMessage } : {}),
+      ...(current?.feedback ? { feedback: current.feedback } : {}),
+      ...(current?.tokenCounts ? { tokenCounts: current.tokenCounts } : {}),
     };
   });
   return mergePendingOptimisticUserMessages(

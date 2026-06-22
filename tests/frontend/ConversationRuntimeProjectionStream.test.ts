@@ -73,7 +73,7 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     ]);
   });
 
-  test('drops optimistic user row once sdk projects the same user turn', () => {
+  test('preserves optimistic user screenshots once sdk projects a text-only same-turn user row', () => {
     const optimisticUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',
       sender: 'user',
@@ -109,6 +109,12 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
         sender: 'user',
         text: 'inspect recent commits',
         isComplete: true,
+        screenshots: [
+          expect.objectContaining({
+            screenshot: 'inline-optimistic-base64',
+            screenshotContentType: 'image/png',
+          }),
+        ],
       }),
     ]);
     expect(useChatStore.getState().getWorkspaceState('conv-1').messages[0]).not.toEqual(
@@ -128,6 +134,10 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       sourceEventType: 'renderer-compose',
       sourceChannel: 'renderer-local',
       isComplete: true,
+      screenshots: [{
+        screenshot: 'inline-optimistic-base64',
+        screenshotContentType: 'image/png',
+      }],
     });
 
     useChatStore.getState().setMessages([optimisticUser], 'conv-1');

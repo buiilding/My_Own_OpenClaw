@@ -46,6 +46,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: keep optimistic user-provided images visible when a
+  same-turn SDK text-only user row arrives before SDK artifact screenshot
+  metadata. No migration required.
 - frontend/renderer: render user-provided image attachments in the optimistic
   pending user row before SDK artifact metadata arrives, while preserving
   auto-capture screenshots as SDK-materialized resources. No migration required.
