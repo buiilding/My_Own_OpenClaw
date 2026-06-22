@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Visible Lifecycle Overlay Field Deletion
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime` still imported the overlay
+  lifecycle runtime to restamp a legacy `overlayTurnLifecycle` compatibility
+  field onto renderer-visible presentation state after consumers moved to
+  `visibleTurnLifecycle.status`.
+- Change: visible lifecycle presentation stamping now strips any incoming
+  `overlayTurnLifecycle` data and does not recreate it. Response overlay traces
+  and surface projection tests assert renderer-owned visible lifecycle, busy,
+  awaiting, and chatbox fields directly.
+- Validation target: focused visible lifecycle, chatbox surface state, and
+  renderer trace runtime tests protect the deleted compatibility field while
+  preserving response-entry rendering and trace payload behavior.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Chatbox Interaction Browser Adapter Runtime
 
 - Finding: `useMinimalChatPillBindings(...)` still owned raw browser drag
