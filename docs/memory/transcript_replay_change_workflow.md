@@ -125,6 +125,10 @@ flowchart LR
      restore event-log cutting through `conversation.rewrite_after_event`, SDK
      `prepareEditAndResend`, SDK `prepareRetryTurn`, or visible-row rollback
      caused by preemptive renderer mutation.
+   - If send fails after `replaceRows` accepts the child revision, keep the
+     accepted child display timeline visible, clear only the pending turn, and
+     append a send-failure row. Do not restore the parent transcript after the
+     durable display revision has changed.
 
 5. Preserve model-history resume shape.
    - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit

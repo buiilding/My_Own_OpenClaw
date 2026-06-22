@@ -44,6 +44,11 @@ All notable changes to WindieOS will be documented in this file.
   events, while later child events can update the metadata tail. No migration
   required; existing conversations continue to list from event metadata until a
   fork/display checkpoint exists.
+- sdk/local-runtime: harden ADR 008 revision storage from a single active
+  revision pointer into durable revision graph nodes with parent revision,
+  operation, display timeline id, model-history checkpoint id, timestamps, and
+  active state. Existing local-runtime databases migrate their legacy active
+  revision row into a `send` node during schema initialization.
 - docs/adr: add ADR 008 and the conversation history revision architecture
   plan for separating full display history, backend-normalized model history,
   runtime events, and revision graph ownership so edit/resend, compaction,
@@ -130,6 +135,11 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: give disabled primary and secondary settings buttons
   explicit readable disabled palettes instead of opacity-only styling, closing
   the remaining light-mode settings-control contrast gap. No migration
+  required.
+- frontend/renderer: keep the accepted child display revision visible when a
+  retry/edit resend fails during the normal send step after `replaceRows`
+  succeeds, clearing only the pending turn and appending a send-failure row
+  instead of rolling visible state back to the parent transcript. No migration
   required.
 - backend/rehydrate: restore `fullAssistantMessage` transparency content for
   canonical `assistant_response` rows during transcript rehydrate instead of

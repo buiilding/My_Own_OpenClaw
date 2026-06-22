@@ -55,6 +55,19 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
     assert objects["conversation_turns"] == "table"
     assert objects["conversation_titles"] == "table"
     assert objects["conversation_display_messages"] == "view"
+    with sqlite3.connect(db_path) as conn:
+        revision_columns = {
+            row[1]
+            for row in conn.execute("PRAGMA table_info(conversation_revisions)")
+        }
+    assert {
+        "parent_revision_id",
+        "operation",
+        "display_timeline_id",
+        "model_history_checkpoint_id",
+        "created_at",
+        "active",
+    }.issubset(revision_columns)
 
 
 @pytest.mark.asyncio
@@ -141,7 +154,62 @@ async def test_chat_event_store_round_trips_display_timeline(tmp_path: Path):
             },
         ],
     }
-    assert revision["revision_id"] == "rev-child"
+    assert revision == {
+        "conversation_id": "conv-1",
+        "revision_id": "rev-child",
+        "parent_revision_id": "rev-parent",
+        "operation": "edit",
+        "display_timeline_id": "rev-child",
+        "model_history_checkpoint_id": None,
+        "created_at": "2026-06-22T12:00:00+00:00",
+        "updated_at": "2026-06-22T12:00:00+00:00",
+        "active": True,
+        "record_kind": "chat_event",
+    }
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_migrates_legacy_revision_table(tmp_path: Path):
+    db_path = tmp_path / "history.db"
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE conversation_revisions (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                revision_id TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, conversation_id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO conversation_revisions
+            (user_id, conversation_id, revision_id, updated_at)
+            VALUES ('user-1', 'conv-1', 'rev-legacy', '2026-06-22T11:00:00+00:00')
+            """
+        )
+
+    await init_chat_event_schema(str(db_path))
+    revision = await get_conversation_revision(
+        db_path=str(db_path),
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert revision == {
+        "conversation_id": "conv-1",
+        "revision_id": "rev-legacy",
+        "parent_revision_id": None,
+        "operation": "send",
+        "display_timeline_id": "rev-legacy",
+        "model_history_checkpoint_id": None,
+        "created_at": "2026-06-22T11:00:00+00:00",
+        "updated_at": "2026-06-22T11:00:00+00:00",
+        "active": True,
+        "record_kind": "chat_event",
+    }
 
 
 @pytest.mark.asyncio
@@ -250,6 +318,11 @@ async def test_chat_event_store_round_trips_model_history_checkpoint(tmp_path: P
         conversation_id="conv-1",
         revision_id="rev-1",
     )
+    revision = await get_conversation_revision(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
 
     assert result == {
         "checkpoint_id": "mh-1",
@@ -293,6 +366,10 @@ async def test_chat_event_store_round_trips_model_history_checkpoint(tmp_path: P
             },
         ],
     }
+    assert revision is not None
+    assert revision["revision_id"] == "rev-1"
+    assert revision["operation"] == "send"
+    assert revision["model_history_checkpoint_id"] == "mh-1"
 
 
 @pytest.mark.asyncio

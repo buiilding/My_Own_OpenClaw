@@ -398,6 +398,15 @@ methods: conversations without display timeline checkpoints continue to
 project display rows from events until a replacement writes the first
 checkpoint.
 
+The local-runtime store records display replacements as durable revision graph
+nodes, not only active display checkpoints. Each node keeps the revision id,
+parent revision id, operation (`edit`, `retry`, `fork`, `send`, `compact`, or
+`manual_rewrite`), display timeline id, model-history checkpoint id when one
+is attached, timestamps, and active state. The public `getRevision(...)` path
+still returns the active head for existing callers, while
+`loadDisplayTimeline({ revisionId })` and `loadModelHistory({ revisionId })`
+can inspect inactive ancestors.
+
 `checkoutRevision(...)` is an SDK runtime checkout primitive for existing
 display revisions. It requires a stored display timeline for the requested
 revision, moves the runtime head to that revision, returns the matching
@@ -692,9 +701,12 @@ removal operation.
 
 The Electron renderer publishes the replay `pendingTurn` only after
 `replaceRows` succeeds. A rejected display replacement must not pre-mutate
-visible rows or pending-turn state. No migration is required for existing
-conversations; before their first display checkpoint, the active timeline loads
-from the event projection fallback.
+visible rows or pending-turn state. If the later normal send fails after the
+child display revision is accepted, the renderer keeps the accepted child
+timeline visible, clears only the pending turn, and appends a send-failure
+error row instead of rolling back to the parent transcript. No migration is
+required for existing conversations; before their first display checkpoint,
+the active timeline loads from the event projection fallback.
 
 Fork is also a revision operation rather than a raw-event rewrite:
 

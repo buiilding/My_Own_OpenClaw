@@ -53,9 +53,13 @@ class InMemoryConversationStore {
             existing.push(event);
             this.eventsByConversation.set(event.conversationRef, existing);
             this.revisionsByConversation.set(event.conversationRef, {
+                ...this.revisionsByConversation.get(event.conversationRef),
                 conversationRef: event.conversationRef,
                 revisionId: event.revisionId,
+                operation: this.revisionsByConversation.get(event.conversationRef)?.operation ?? 'send',
+                createdAt: this.revisionsByConversation.get(event.conversationRef)?.createdAt ?? event.timestamp,
                 updatedAt: event.timestamp,
+                active: true,
             });
         }
     }
@@ -100,7 +104,12 @@ class InMemoryConversationStore {
         this.revisionsByConversation.set(checkpoint.conversationRef, {
             conversationRef: checkpoint.conversationRef,
             revisionId: checkpoint.revisionId,
+            parentRevisionId: checkpoint.baseRevisionId ?? null,
+            operation: checkpoint.reason === 'user_edit' ? 'edit' : checkpoint.reason ?? 'send',
+            displayTimelineId: checkpoint.revisionId,
+            createdAt: checkpoint.createdAt,
             updatedAt: checkpoint.createdAt,
+            active: true,
         });
     }
     async loadDisplayTimeline(input) {
@@ -147,6 +156,17 @@ class InMemoryConversationStore {
             },
         ];
         this.modelHistoryByConversation.set(checkpoint.conversationRef, next);
+        const existingRevision = this.revisionsByConversation.get(checkpoint.conversationRef);
+        this.revisionsByConversation.set(checkpoint.conversationRef, {
+            ...existingRevision,
+            conversationRef: checkpoint.conversationRef,
+            revisionId: checkpoint.revisionId,
+            operation: existingRevision?.operation ?? 'send',
+            modelHistoryCheckpointId: checkpoint.checkpointId,
+            createdAt: existingRevision?.createdAt ?? checkpoint.createdAt,
+            updatedAt: checkpoint.createdAt,
+            active: true,
+        });
     }
     async loadModelHistory(input) {
         const checkpoints = this.modelHistoryByConversation.get(input.conversationRef) ?? [];

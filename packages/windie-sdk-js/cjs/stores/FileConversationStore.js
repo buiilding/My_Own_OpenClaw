@@ -91,7 +91,10 @@ function buildRevision(conversationRef, events) {
     return {
         conversationRef,
         revisionId: lastEvent?.revisionId ?? 'rev-empty',
+        operation: 'send',
+        createdAt: events[0]?.timestamp ?? new Date(0).toISOString(),
         updatedAt: lastEvent?.timestamp ?? new Date(0).toISOString(),
+        active: true,
     };
 }
 function normalizeStoredFile(conversationRef, raw) {
@@ -215,7 +218,12 @@ class FileConversationStore {
                 revision: {
                     conversationRef: checkpoint.conversationRef,
                     revisionId: checkpoint.revisionId,
+                    parentRevisionId: checkpoint.baseRevisionId ?? null,
+                    operation: checkpoint.reason === 'user_edit' ? 'edit' : checkpoint.reason ?? 'send',
+                    displayTimelineId: checkpoint.revisionId,
+                    createdAt: checkpoint.createdAt,
                     updatedAt: checkpoint.createdAt,
+                    active: true,
                 },
             });
         });
@@ -270,6 +278,14 @@ class FileConversationStore {
                         rows: [...checkpoint.rows],
                     },
                 ],
+                revision: {
+                    ...(stored.revision ?? buildRevision(checkpoint.conversationRef, stored.events)),
+                    conversationRef: checkpoint.conversationRef,
+                    revisionId: checkpoint.revisionId,
+                    modelHistoryCheckpointId: checkpoint.checkpointId,
+                    updatedAt: checkpoint.createdAt,
+                    active: true,
+                },
             });
         });
     }

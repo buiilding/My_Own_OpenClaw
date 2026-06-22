@@ -595,7 +595,12 @@ describe('windie CLI', () => {
 
   test('conversation messages defaults to local-runtime desktop-runtime history root', () => {
     const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-cli-runtime-history-'));
-    const historyDir = path.join(homeDir, 'Library', 'Application Support', 'desktop-runtime', 'history');
+    const appDataDir = path.join(homeDir, 'AppData', 'Roaming');
+    const historyRoot =
+      process.platform === 'win32'
+        ? path.join(appDataDir, 'desktop-runtime')
+        : path.join(homeDir, 'Library', 'Application Support', 'desktop-runtime');
+    const historyDir = path.join(historyRoot, 'history');
     const dbPath = path.join(historyDir, 'history.db');
     fs.mkdirSync(historyDir, { recursive: true });
     const sql = `
@@ -641,6 +646,7 @@ describe('windie CLI', () => {
 
     const result = runCli(['conversation', 'messages', 'conv-runtime', '--json'], {
       HOME: homeDir,
+      APPDATA: appDataDir,
       AGENT_USER_DATA_DIR: '',
       WINDIE_USER_DATA_DIR: '',
     });

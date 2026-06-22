@@ -33,6 +33,22 @@ CONVERSATIONS_TABLE = "conversations"
 CONVERSATION_TURNS_TABLE = "conversation_turns"
 CONVERSATION_TITLES_TABLE = "conversation_titles"
 CONVERSATION_DISPLAY_MESSAGES_VIEW = "conversation_display_messages"
+REVISION_OPERATIONS = {
+    "send",
+    "edit",
+    "retry",
+    "fork",
+    "compact",
+    "manual_rewrite",
+}
+
+
+def _revision_operation_from_display_reason(reason: Optional[str]) -> str:
+    if reason == "user_edit":
+        return "edit"
+    if reason in {"retry", "fork", "manual_rewrite"}:
+        return reason
+    return "send"
 
 
 def _normalize_timestamp(timestamp: Optional[str]) -> str:
@@ -151,6 +167,126 @@ def _resolve_producer_fields(
         event.get("producer_sequence", event.get("producerSequence"))
     )
     return producer, normalized_producer_event_id, producer_sequence
+
+
+async def _create_revision_graph_table(conn: Any) -> None:
+    await conn.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS {CONVERSATION_REVISIONS_TABLE} (
+            user_id TEXT NOT NULL,
+            conversation_id TEXT NOT NULL,
+            revision_id TEXT NOT NULL,
+            parent_revision_id TEXT,
+            operation TEXT NOT NULL DEFAULT 'send',
+            display_timeline_id TEXT,
+            model_history_checkpoint_id TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            active INTEGER NOT NULL DEFAULT 1,
+            PRIMARY KEY (user_id, conversation_id, revision_id)
+        )
+        """
+    )
+
+
+async def _ensure_revision_graph_schema(conn: Any) -> None:
+    cursor = await conn.execute(f"PRAGMA table_info({CONVERSATION_REVISIONS_TABLE})")
+    columns = {row[1] for row in await cursor.fetchall()}
+    expected = {
+        "parent_revision_id",
+        "operation",
+        "display_timeline_id",
+        "model_history_checkpoint_id",
+        "created_at",
+        "active",
+    }
+    if columns and expected.issubset(columns):
+        return
+    if columns:
+        legacy_table = f"{CONVERSATION_REVISIONS_TABLE}_legacy"
+        await conn.execute(f"DROP TABLE IF EXISTS {legacy_table}")
+        await conn.execute(
+            f"ALTER TABLE {CONVERSATION_REVISIONS_TABLE} RENAME TO {legacy_table}"
+        )
+        await _create_revision_graph_table(conn)
+        await conn.execute(
+            f"""
+            INSERT OR REPLACE INTO {CONVERSATION_REVISIONS_TABLE}
+            (user_id, conversation_id, revision_id, parent_revision_id,
+             operation, display_timeline_id, model_history_checkpoint_id,
+             created_at, updated_at, active)
+            SELECT user_id, conversation_id, revision_id, NULL,
+                   'send', revision_id, NULL, updated_at, updated_at, 1
+            FROM {legacy_table}
+            WHERE revision_id IS NOT NULL AND revision_id != ''
+            """
+        )
+        await conn.execute(f"DROP TABLE IF EXISTS {legacy_table}")
+        return
+    await _create_revision_graph_table(conn)
+
+
+async def _upsert_revision_node(
+    conn: Any,
+    *,
+    user_id: str,
+    conversation_id: str,
+    revision_id: str,
+    updated_at: str,
+    operation: str = "send",
+    parent_revision_id: Optional[str] = None,
+    display_timeline_id: Optional[str] = None,
+    model_history_checkpoint_id: Optional[str] = None,
+    active: bool = True,
+) -> None:
+    if not conversation_id or not revision_id:
+        return
+    normalized_operation = operation if operation in REVISION_OPERATIONS else "send"
+    if active:
+        await conn.execute(
+            f"""
+            UPDATE {CONVERSATION_REVISIONS_TABLE}
+            SET active = 0
+            WHERE user_id = ? AND conversation_id = ? AND revision_id != ?
+            """,
+            (user_id, conversation_id, revision_id),
+        )
+    await conn.execute(
+        f"""
+        INSERT INTO {CONVERSATION_REVISIONS_TABLE}
+        (user_id, conversation_id, revision_id, parent_revision_id, operation,
+         display_timeline_id, model_history_checkpoint_id, created_at,
+         updated_at, active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(user_id, conversation_id, revision_id)
+        DO UPDATE SET
+            parent_revision_id = COALESCE(excluded.parent_revision_id, parent_revision_id),
+            operation = CASE
+                WHEN excluded.operation = 'send' AND operation != 'send'
+                THEN operation
+                ELSE excluded.operation
+            END,
+            display_timeline_id = COALESCE(excluded.display_timeline_id, display_timeline_id),
+            model_history_checkpoint_id = COALESCE(
+                excluded.model_history_checkpoint_id,
+                model_history_checkpoint_id
+            ),
+            updated_at = excluded.updated_at,
+            active = excluded.active
+        """,
+        (
+            user_id,
+            conversation_id,
+            revision_id,
+            parent_revision_id,
+            normalized_operation,
+            display_timeline_id,
+            model_history_checkpoint_id,
+            updated_at,
+            updated_at,
+            1 if active else 0,
+        ),
+    )
 
 
 async def init_chat_event_schema(db_path: str) -> None:
@@ -292,21 +428,23 @@ async def init_chat_event_schema(db_path: str) -> None:
             (user_id, conversation_id, revision_id, active, created_at)
             """
         )
-        await cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS conversation_revisions (
-                user_id TEXT NOT NULL,
-                conversation_id TEXT NOT NULL,
-                revision_id TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, conversation_id)
-            )
-            """
-        )
+        await _ensure_revision_graph_schema(conn)
         await cursor.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_conversation_revisions_updated
             ON conversation_revisions(user_id, updated_at)
+            """
+        )
+        await cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_conversation_revisions_active
+            ON conversation_revisions(user_id, conversation_id, active, updated_at)
+            """
+        )
+        await cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_conversation_revisions_parent
+            ON conversation_revisions(user_id, conversation_id, parent_revision_id)
             """
         )
         await cursor.execute(
@@ -497,6 +635,7 @@ async def _rebuild_materialized_conversation_indexes(cursor: Any) -> None:
                    FROM {CONVERSATION_REVISIONS_TABLE} r
                    WHERE r.user_id = e.user_id
                      AND r.conversation_id = e.conversation_id
+                   ORDER BY r.active DESC, r.updated_at DESC, r.revision_id DESC
                    LIMIT 1
                  ),
                  (
@@ -794,17 +933,14 @@ async def append_chat_event(
             ),
         )
         if isinstance(conversation_id, str) and conversation_id.strip() and revision_id:
-            await conn.execute(
-                f"""
-                INSERT INTO {CONVERSATION_REVISIONS_TABLE}
-                (user_id, conversation_id, revision_id, updated_at)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(user_id, conversation_id)
-                DO UPDATE SET
-                    revision_id = excluded.revision_id,
-                    updated_at = excluded.updated_at
-                """,
-                (user_id, conversation_id, revision_id, normalized_timestamp),
+            await _upsert_revision_node(
+                conn,
+                user_id=user_id,
+                conversation_id=conversation_id,
+                revision_id=revision_id,
+                updated_at=normalized_timestamp,
+                operation="send",
+                active=True,
             )
         await _refresh_conversation_indexes(
             conn, user_id=user_id, conversation_id=conversation_id
@@ -987,12 +1123,14 @@ async def list_conversations(
                      SELECT revision_id FROM {CONVERSATION_REVISIONS_TABLE} r
                      WHERE r.user_id = ?
                        AND r.conversation_id = c.conversation_id
+                     ORDER BY r.active DESC, r.updated_at DESC, r.revision_id DESC
                      LIMIT 1
                    ) as stored_revision_id,
                    (
                      SELECT updated_at FROM {CONVERSATION_REVISIONS_TABLE} r
                      WHERE r.user_id = ?
                        AND r.conversation_id = c.conversation_id
+                     ORDER BY r.active DESC, r.updated_at DESC, r.revision_id DESC
                      LIMIT 1
                    ) as revision_updated_at,
                    (
@@ -1108,9 +1246,12 @@ async def get_conversation_revision(
         cursor = await conn.cursor()
         await cursor.execute(
             f"""
-            SELECT revision_id, updated_at
+            SELECT revision_id, parent_revision_id, operation,
+                   display_timeline_id, model_history_checkpoint_id,
+                   created_at, updated_at, active
             FROM {CONVERSATION_REVISIONS_TABLE}
             WHERE user_id = ? AND conversation_id = ?
+            ORDER BY active DESC, updated_at DESC, revision_id DESC
             LIMIT 1
             """,
             (user_id, conversation_id),
@@ -1120,7 +1261,13 @@ async def get_conversation_revision(
             return {
                 "conversation_id": conversation_id,
                 "revision_id": row["revision_id"],
+                "parent_revision_id": row["parent_revision_id"],
+                "operation": row["operation"],
+                "display_timeline_id": row["display_timeline_id"],
+                "model_history_checkpoint_id": row["model_history_checkpoint_id"],
+                "created_at": row["created_at"],
                 "updated_at": row["updated_at"],
+                "active": bool(row["active"]),
                 "record_kind": "chat_event",
             }
         await cursor.execute(
@@ -1366,13 +1513,16 @@ async def replace_display_timeline(
                         normalized_created_at,
                     ),
                 )
-            await cursor.execute(
-                """
-                INSERT OR REPLACE INTO conversation_revisions
-                (user_id, conversation_id, revision_id, updated_at)
-                VALUES (?, ?, ?, ?)
-                """,
-                (user_id, conversation_id, revision_id, normalized_created_at),
+            await _upsert_revision_node(
+                conn,
+                user_id=user_id,
+                conversation_id=conversation_id,
+                revision_id=revision_id,
+                updated_at=normalized_created_at,
+                operation=_revision_operation_from_display_reason(reason),
+                parent_revision_id=base_revision_id,
+                display_timeline_id=revision_id,
+                active=True,
             )
             await conn.commit()
         except Exception:
@@ -1574,6 +1724,16 @@ async def replace_model_history_checkpoint(
                         normalized_created_at,
                     ),
                 )
+            await _upsert_revision_node(
+                conn,
+                user_id=user_id,
+                conversation_id=conversation_id,
+                revision_id=revision_id,
+                updated_at=normalized_created_at,
+                operation="send",
+                model_history_checkpoint_id=checkpoint_id,
+                active=True,
+            )
             await conn.commit()
         except Exception:
             await conn.rollback()

@@ -573,12 +573,32 @@ class LocalRuntimeConversationStore {
         const revision = normalizeRecord(result.data) ?? {};
         const revisionId = normalizeString(revision.revision_id) ?? normalizeString(revision.revisionId);
         if (revisionId) {
+            const operation = normalizeString(revision.operation);
             return {
                 conversationRef,
                 revisionId,
+                parentRevisionId: normalizeString(revision.parent_revision_id)
+                    ?? normalizeString(revision.parentRevisionId),
+                operation: operation === 'send'
+                    || operation === 'edit'
+                    || operation === 'retry'
+                    || operation === 'fork'
+                    || operation === 'compact'
+                    || operation === 'manual_rewrite'
+                    ? operation
+                    : null,
+                displayTimelineId: normalizeString(revision.display_timeline_id)
+                    ?? normalizeString(revision.displayTimelineId),
+                modelHistoryCheckpointId: normalizeString(revision.model_history_checkpoint_id)
+                    ?? normalizeString(revision.modelHistoryCheckpointId),
+                createdAt: normalizeString(revision.created_at)
+                    ?? normalizeString(revision.createdAt),
                 updatedAt: normalizeString(revision.updated_at)
                     ?? normalizeString(revision.updatedAt)
                     ?? new Date(0).toISOString(),
+                active: typeof revision.active === 'boolean'
+                    ? revision.active
+                    : revision.active === 1,
             };
         }
         const events = await this.loadEvents(conversationRef);
