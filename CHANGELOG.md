@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: stop treating SDK `presentation.overlayIntent.mode` as
+  live-surface presentation evidence; overlay intent now stays metadata for
+  turn and guard refs while mode is derived from renderer-visible lifecycle
+  inputs. No migration required.
 - frontend/renderer: delete the retired `overlayTurnLifecycle` compatibility
   scrubber from visible lifecycle presentation stamping; renderer production
   code now keeps the old overlay lifecycle name out of the contract instead of

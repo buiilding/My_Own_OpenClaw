@@ -676,11 +676,22 @@ describe('desktopRendererTraceRuntime', () => {
     expect(buildRendererOverlayTypingTraceEvent({
       awaitingVisible: true,
       responseVisible: false,
-      useSdkLiveTurnPresentation: true,
+      useLocalPendingTurn: false,
     })).toEqual({
       event: 'typing.show',
       mode: 'awaiting',
       reason: 'sdk-awaiting',
+    });
+
+    expect(buildRendererOverlayTypingTraceEvent({
+      awaitingVisible: true,
+      responseVisible: false,
+      useSdkLiveTurnPresentation: false,
+      useLocalPendingTurn: true,
+    })).toEqual({
+      event: 'typing.show',
+      mode: 'awaiting',
+      reason: 'local-pending-awaiting',
     });
 
     expect(buildRendererOverlayTypingTraceEvent({

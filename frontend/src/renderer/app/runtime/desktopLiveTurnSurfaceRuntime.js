@@ -76,22 +76,11 @@ function resolveVisibleLifecycleSurfacePhase(visibleTurnLifecycle, currentTurnPr
 
 function hasSdkLiveTurnPresentation(currentTurnProjection) {
   const presentation = currentTurnProjection?.presentation;
-  const overlayIntent = presentation?.overlayIntent;
   return Boolean(
     presentation
       && typeof presentation === 'object'
-      && (
-        Array.isArray(presentation.entries)
-        || (
-          overlayIntent
-          && typeof overlayIntent === 'object'
-          && (
-            overlayIntent.mode === 'hidden'
-            || overlayIntent.mode === 'awaiting'
-            || overlayIntent.mode === 'response'
-          )
-        )
-      ),
+      && Array.isArray(presentation.entries)
+      && presentation.entries.length > 0,
   );
 }
 
@@ -125,20 +114,25 @@ function resolveSdkOverlayIntentMode(currentTurnProjection) {
 
 function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
   const intent = presentation?.overlayIntent;
-  if (
-    intent
-    && typeof intent === 'object'
-    && (intent.mode === 'hidden' || intent.mode === 'awaiting' || intent.mode === 'response')
-  ) {
-    return intent;
-  }
   const mode = resolveSdkOverlayIntentMode(currentTurnProjection);
+  const turnRef = (
+    normalizeTurnRef(intent?.turnRef)
+    || normalizeTurnRef(currentTurnProjection?.turnRef)
+  );
+  const conversationRef = (
+    normalizeConversationRef(intent?.conversationRef)
+    || normalizeConversationRef(currentTurnProjection?.conversationRef)
+  );
+  const staleGuardRef = (
+    normalizeTurnRef(intent?.staleGuardRef)
+    || turnRef
+  );
   return {
     visible: mode !== 'hidden',
     mode,
-    turnRef: currentTurnProjection?.turnRef ?? null,
-    conversationRef: currentTurnProjection?.conversationRef ?? '',
-    staleGuardRef: currentTurnProjection?.turnRef ?? null,
+    turnRef,
+    conversationRef,
+    staleGuardRef,
   };
 }
 
@@ -211,17 +205,21 @@ function resolveLiveTurnPresentationInput({
 
   const currentTurnPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase);
   if (currentTurnPhase) {
+    const overlayIntent = resolveSdkOverlayIntent(
+      currentTurnProjection?.presentation,
+      currentTurnProjection,
+    );
     return {
       phase: visibleLifecyclePhase,
       isBusy: lifecycleIsBusy,
       source: 'current-turn',
       useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
-      overlayIntent: null,
+      overlayIntent,
       entries: [],
-      turnRef: currentTurnProjection?.turnRef ?? null,
-      conversationRef: currentTurnProjection?.conversationRef ?? null,
-      guardRef: currentTurnProjection?.turnRef ?? null,
+      turnRef: overlayIntent.turnRef || currentTurnProjection?.turnRef || null,
+      conversationRef: overlayIntent.conversationRef || currentTurnProjection?.conversationRef || null,
+      guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || currentTurnProjection?.turnRef || null,
     };
   }
 

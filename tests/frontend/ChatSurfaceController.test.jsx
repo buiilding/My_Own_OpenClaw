@@ -238,7 +238,7 @@ describe('useChatSurfaceController', () => {
       isBusy: true,
       canStop: true,
       liveTurnPhase: 'awaiting-first-chunk',
-      liveTurnSource: 'sdk-current-turn',
+      liveTurnSource: 'current-turn',
     });
     expect(result.current.currentTurnPresentationState).toMatchObject({
       awaitingDotTargetMessageId: 'user-2',

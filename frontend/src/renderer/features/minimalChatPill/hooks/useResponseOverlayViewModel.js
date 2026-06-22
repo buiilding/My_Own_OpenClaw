@@ -160,6 +160,11 @@ export function useResponseOverlayViewModel({
           ...currentTurnPresentationState,
           overlayIntent: liveTurnPresentationInput.overlayIntent,
         };
+      } else if (liveTurnPresentationInput.overlayIntent) {
+        presentationState = {
+          ...currentTurnPresentationState,
+          overlayIntent: liveTurnPresentationInput.overlayIntent,
+        };
       } else {
         presentationState = currentTurnPresentationState;
       }

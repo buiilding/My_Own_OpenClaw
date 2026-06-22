@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Overlay Intent Mode Authority Deletion
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.hasSdkLiveTurnPresentation(...)`
+  still accepted an SDK `presentation.overlayIntent.mode` object as proof that
+  SDK live presentation existed, and copied SDK overlay-intent mode through to
+  overlay metadata even though ADR 006 treats overlay intent mode as a
+  non-authority for typing and response lifecycle.
+- Change: narrowed SDK live presentation detection to non-empty
+  `presentation.entries`, derived overlay-intent metadata mode from SDK phase
+  plus visible content/progress evidence, and kept SDK overlay intent only as a
+  source of turn/conversation/stale-guard refs for window sync.
+- Validation target: `LiveTurnSurfaceState.test.js`,
+  `ChatBoxResponse.state.test.jsx`, and `RendererAppRuntimeBoundary.test.ts`
+  protect overlay intent as metadata instead of a lifecycle authority.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Retired Overlay Lifecycle Scrubber Deletion
 
 - Finding: `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`

@@ -816,12 +816,12 @@ function buildRendererOverlayTypingTraceEvent(
 ): RendererOverlayViewModelTraceEvent {
   const awaitingVisible = tracePayload.awaitingVisible === true;
   const responseVisible = tracePayload.responseVisible === true;
-  const useSdkLiveTurnPresentation = tracePayload.useSdkLiveTurnPresentation === true;
+  const useLocalPendingTurn = tracePayload.useLocalPendingTurn === true;
   return {
     event: awaitingVisible ? 'typing.show' : 'typing.hide',
     mode: awaitingVisible ? 'awaiting' : (responseVisible ? 'response' : 'hidden'),
     reason: awaitingVisible
-      ? (useSdkLiveTurnPresentation ? 'sdk-awaiting' : 'local-pending-awaiting')
+      ? (useLocalPendingTurn ? 'local-pending-awaiting' : 'sdk-awaiting')
       : (responseVisible ? 'response-visible' : 'not-awaiting'),
   };
 }

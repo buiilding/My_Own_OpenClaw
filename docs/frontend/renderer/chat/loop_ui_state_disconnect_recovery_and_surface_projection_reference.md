@@ -189,10 +189,11 @@ and no longer returns a separate `showAwaiting` typing alias; typing state
 stays on `visibleTurnLifecycle.showTyping`. It also omits the duplicate
 `showResponse` alias; response overlay visibility is resolved by the
 response-overlay view intent after entries and dismissal state are applied.
-It recognizes SDK presentation rows from `presentation.entries` or an explicit
-overlay intent object rather than legacy SDK visibility booleans; when overlay
-intent is absent, fallback intent is derived from SDK phase and actual visible
-content/progress evidence.
+It recognizes SDK presentation rows from non-empty `presentation.entries`
+rather than legacy SDK visibility booleans or overlay intent mode. Overlay
+intent remains guard/window metadata; its mode is derived from SDK phase and
+actual visible content/progress evidence instead of copied as lifecycle
+authority.
 `selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`, and minimal
 surface trace payloads name the renderer-local path `useLocalPendingTurn`
 instead of a send-latch alias.
@@ -264,7 +265,7 @@ longer imports the overlay lifecycle adapter.
   projections
 - same-turn SDK awaiting, visible progress/text, and terminal projections
   replace local pending
-- shared presentation adapters map renderer visible lifecycle into legacy busy,
+- shared presentation adapters map renderer visible lifecycle into busy,
   awaiting-dot, chatbox, and response overlay presentation fields
 - bare `isSending=true` does not create local pending without `pendingTurn`
 - the handoff predicate stays behind the visible lifecycle runtime facade

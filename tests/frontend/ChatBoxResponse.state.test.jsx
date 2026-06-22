@@ -1342,8 +1342,8 @@ describe('ChatBoxResponse state behavior', () => {
           visible: false,
           width: 0,
           height: 0,
-          turn_ref: null,
-          stale_guard_ref: null,
+          turn_ref: 'turn-test',
+          stale_guard_ref: 'turn-test',
         }),
       );
     });

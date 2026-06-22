@@ -525,6 +525,7 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).not.toContain('showResponse');
     expect(liveSurfaceSource).not.toContain('typingVisible');
     expect(liveSurfaceSource).not.toContain('overlayVisible');
+    expect(liveSurfaceSource).not.toContain('overlayIntent.mode ===');
     expect(liveSurfaceSource).not.toContain('useLocalSendLatch');
     expect(liveSurfaceSource).not.toContain('shouldUseSendPreflight');
     expect(liveSurfaceSource).not.toContain("'send-preflight'");
