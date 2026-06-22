@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Chatbox Drag Window Position Runtime
+
+- Finding: `MinimalChatPill` already delegated drag-state math and native
+  movement target projection to `DesktopChatboxLayoutRuntime`, but it still
+  read `window.screenX` / `window.screenY` directly when beginning drag
+  tracking.
+- Change: added `DesktopChatboxLayoutRuntime.startChatboxDragFromWindow(...)`
+  as the renderer app-runtime owner for current window-position adapter reads
+  and routed the pill through it. The pill keeps gesture gating and native move
+  dispatch while the layout runtime owns window-position and drag math.
+- Validation target: `ChatBoxPillLayout.test.js`,
+  `RendererAppRuntimeBoundary.test.ts`, and
+  `RendererChatRuntimeBoundary.test.ts` protect the wrapper behavior and reject
+  direct window-position reads in the pill component.
+- Compatibility/security: no IPC channel, SDK event payload, native window
+  move payload shape, renderer config, persisted storage, permission,
+  credential, local execution, trust-boundary, or migration change required.
+
 ### 2026-06-22 Voice Audio Input Device Runtime
 
 - Finding: `useVoiceMode` and `useWakewordDetection` already delegated audio

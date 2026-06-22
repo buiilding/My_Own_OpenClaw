@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route chat pill drag-start window-position reads through
+  `DesktopChatboxLayoutRuntime.startChatboxDragFromWindow(...)` so
+  `MinimalChatPill` no longer reads `window.screenX` / `window.screenY`
+  directly. No migration required.
 - frontend/renderer: route voice and wakeword browser audio-input capture,
   AudioContext construction, device availability probing, and wakeword
   device-change recovery through `DesktopVoiceAudioInputDeviceRuntime` instead

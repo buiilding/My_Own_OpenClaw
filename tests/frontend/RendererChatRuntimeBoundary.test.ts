@@ -2317,11 +2317,13 @@ describe('renderer chat runtime boundary', () => {
     expect(bindingsSource).toContain('desktopChatboxInteractionRuntime');
     expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
     expect(layoutRuntimeSource).toContain('resolveChatboxNativeFrameHeight');
+    expect(layoutRuntimeSource).toContain('startChatboxDragFromWindow');
     expect(layoutRuntimeSource).toContain('DesktopChatboxLayoutRuntime');
     expect(layoutRuntimeSource).not.toContain('export function createChatboxDragState');
     expect(layoutRuntimeSource).not.toContain('export function resolveChatboxVisualAnchorHeight');
     expect(layoutRuntimeSource).not.toContain('export function resolveChatboxNativeFrameHeight');
     expect(layoutRuntimeSource).not.toContain('export function startChatboxDrag');
+    expect(layoutRuntimeSource).not.toContain('export function startChatboxDragFromWindow');
     expect(layoutRuntimeSource).not.toContain('export function stopChatboxDrag');
     expect(layoutRuntimeSource).not.toContain('export function getChatboxDragTarget');
     expect(layoutRuntimeSource).not.toContain('export function getChatboxCloseBumpHeight');
@@ -2340,6 +2342,7 @@ describe('renderer chat runtime boundary', () => {
     expect(interactionRuntimeSource).not.toContain('features/chat');
     expect(interactionRuntimeSource).not.toContain('features/minimalChatPill');
     expect(pillSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxNativeFrameHeight');
+    expect(pillSource).toContain('DesktopChatboxLayoutRuntime.startChatboxDragFromWindow');
     expect(pillSource).toContain('DesktopChatboxInteractionRuntime.subscribeToChatboxHitTestEvents');
     expect(pillSource).toContain('DesktopChatboxInteractionRuntime.startChatboxCloseButtonAnchorSync');
     expect(pillSource).toContain('DesktopChatboxInteractionRuntime.scheduleChatboxNativeFrameCollapse');
@@ -2355,6 +2358,8 @@ describe('renderer chat runtime boundary', () => {
     expect(pillSource).not.toContain('window.setTimeout');
     expect(pillSource).not.toContain('window.clearTimeout');
     expect(pillSource).not.toContain('window.requestAnimationFrame');
+    expect(pillSource).not.toContain('window.screenX');
+    expect(pillSource).not.toContain('window.screenY');
     expect(pillSource).not.toContain('closeButtonAnchorFrameRef');
     expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync');
     expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.resetChatboxVisualAnchorHeight');

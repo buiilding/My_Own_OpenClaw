@@ -120,8 +120,9 @@ compaction behind its loop lock.
 - visual-anchor IPC payload assembly is owned by
   `DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(...)`; the pill
   reports measured height values and optional native-frame height values.
-- drag-state and absolute move targets are resolved through
-  `DesktopChatboxLayoutRuntime` before dispatching native movement IPC
+- drag-state, current window-position reads, and absolute move targets are
+  resolved through `DesktopChatboxLayoutRuntime` before dispatching native
+  movement IPC
 - drag window listeners are installed through
   `DesktopChatboxInteractionRuntime.subscribeToChatboxDragWindowEvents(...)`
 - pointer hit-test listeners and pill-bounds checks are installed through

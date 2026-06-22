@@ -59,6 +59,15 @@ function startChatboxDrag(dragState, event, windowScreenX, windowScreenY) {
   dragState.lastTargetY = Math.round(Number(windowScreenY) || 0);
 }
 
+function startChatboxDragFromWindow(dragState, event, windowApi = window) {
+  startChatboxDrag(
+    dragState,
+    event,
+    windowApi?.screenX,
+    windowApi?.screenY,
+  );
+}
+
 function stopChatboxDrag(dragState) {
   dragState.isDragging = false;
   dragState.lastTargetX = null;
@@ -103,6 +112,7 @@ export const DesktopChatboxLayoutRuntime = Object.freeze({
   resolveChatboxVisualAnchorHeight,
   resolveChatboxNativeFrameHeight,
   startChatboxDrag,
+  startChatboxDragFromWindow,
   stopChatboxDrag,
   getChatboxDragTarget,
   getChatboxCloseBumpHeight,

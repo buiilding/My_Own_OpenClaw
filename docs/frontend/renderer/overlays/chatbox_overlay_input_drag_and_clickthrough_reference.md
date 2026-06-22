@@ -197,13 +197,15 @@ Interaction contract:
 
 Movement path:
 
-1. cache pointer offset from current window origin
-2. on mousemove, ignore small movement (`<5px` Manhattan distance) through
+1. begin drag through `DesktopChatboxLayoutRuntime.startChatboxDragFromWindow(...)`
+   so current `window.screenX/screenY` reads stay inside the layout runtime
+2. cache pointer offset from current window origin
+3. on mousemove, ignore small movement (`<5px` Manhattan distance) through
    `DesktopChatboxLayoutRuntime.getChatboxDragTarget(...)`
-3. once the threshold is crossed, mark the gesture as a real drag
-4. compute absolute target window coordinates
-5. call `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
-6. stop on mouseup/window blur through `DesktopChatboxInteractionRuntime`
+4. once the threshold is crossed, mark the gesture as a real drag
+5. compute absolute target window coordinates
+6. call `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
+7. stop on mouseup/window blur through `DesktopChatboxInteractionRuntime`
 
 Hit-test path:
 

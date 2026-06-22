@@ -484,11 +484,9 @@ function MinimalChatPill() {
     if (event.button !== 0) {
       return;
     }
-    DesktopChatboxLayoutRuntime.startChatboxDrag(
+    DesktopChatboxLayoutRuntime.startChatboxDragFromWindow(
       dragStateRef.current,
       event,
-      window.screenX,
-      window.screenY,
     );
   }, []);
 
