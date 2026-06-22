@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the duplicate `showAwaiting` live-surface alias;
+  live-turn surface output now keeps typing state on the renderer-owned visible
+  lifecycle and preserves phase/busy/response fields. No migration required.
 - frontend/renderer: delete the response-overlay awaiting layout helper alias;
   overlay window sizing now uses compact-hover mode and native mode resolution
   stays inside the layout runtime. No migration required.

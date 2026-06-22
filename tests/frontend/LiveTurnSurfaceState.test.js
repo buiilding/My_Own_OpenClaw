@@ -65,7 +65,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       isBusy: true,
-      showAwaiting: true,
       source: 'pending-turn',
       useLocalSendLatch: true,
       useSdkLiveTurnPresentation: false,
@@ -197,7 +196,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'streaming',
       isBusy: true,
-      showAwaiting: false,
       showResponse: true,
       source: 'sdk-current-turn',
       useLocalSendLatch: false,
@@ -260,7 +258,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       source: 'sdk-current-turn',
       useLocalSendLatch: false,
       useSdkLiveTurnPresentation: true,
-      showAwaiting: true,
     });
   });
 
@@ -396,7 +393,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
       source: 'sdk-current-turn',
       useLocalSendLatch: false,
       useSdkLiveTurnPresentation: true,
-      showAwaiting: true,
       guardRef: 'turn-2',
     });
   });
@@ -430,7 +426,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'awaiting-first-chunk',
       isBusy: true,
-      showAwaiting: true,
       showResponse: false,
       source: 'sdk-current-turn',
       useLocalSendLatch: false,
@@ -471,7 +466,6 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     expect(state).toMatchObject({
       phase: 'streaming',
       isBusy: true,
-      showAwaiting: false,
       showResponse: true,
       source: 'sdk-current-turn',
       useLocalSendLatch: false,

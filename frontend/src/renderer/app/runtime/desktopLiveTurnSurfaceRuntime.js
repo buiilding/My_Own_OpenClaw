@@ -190,7 +190,6 @@ function resolveLiveTurnPresentationInput({
     return {
       phase: getAwaitingFirstChunkResponseOverlayPhase(),
       isBusy: true,
-      showAwaiting: true,
       showResponse: false,
       source: isPendingTurn(pendingTurn) ? 'pending-turn' : 'send-preflight',
       useLocalSendLatch: true,
@@ -214,7 +213,6 @@ function resolveLiveTurnPresentationInput({
     currentTurnProjection,
   );
   const lifecycleIsBusy = resolvedVisibleTurnLifecycle?.isBusy === true;
-  const lifecycleShowsTyping = resolvedVisibleTurnLifecycle?.showTyping === true;
   const lifecycleShowsResponse = resolvedVisibleTurnLifecycle?.status === 'active';
 
   if (useSdkLiveTurnPresentation) {
@@ -223,7 +221,6 @@ function resolveLiveTurnPresentationInput({
     return {
       phase: visibleLifecyclePhase,
       isBusy: lifecycleIsBusy,
-      showAwaiting: lifecycleShowsTyping,
       showResponse: lifecycleShowsResponse,
       source: 'sdk-current-turn',
       useLocalSendLatch: false,
@@ -241,7 +238,6 @@ function resolveLiveTurnPresentationInput({
     return {
       phase: visibleLifecyclePhase,
       isBusy: lifecycleIsBusy,
-      showAwaiting: lifecycleShowsTyping,
       showResponse: lifecycleShowsResponse,
       source: 'current-turn',
       useLocalSendLatch: false,
@@ -257,7 +253,6 @@ function resolveLiveTurnPresentationInput({
   return {
     phase: getIdleResponseOverlayPhase(),
     isBusy: false,
-    showAwaiting: false,
     showResponse: false,
     source: 'idle',
     useLocalSendLatch: false,

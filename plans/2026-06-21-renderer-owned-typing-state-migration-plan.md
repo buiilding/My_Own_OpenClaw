@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Live Surface Awaiting Alias Deletion
+
+- Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`
+  still returned `showAwaiting`, a duplicate typing boolean after the visible
+  lifecycle owner already exposed `showTyping` and production overlay/chat
+  surfaces no longer consumed the live-surface alias.
+- Change: removed `showAwaiting` from live-turn surface output. Focused tests
+  now assert phase, busy state, source handoff, and response visibility while a
+  boundary test rejects reintroducing the alias in the live-surface runtime.
+- Validation target: `LiveTurnSurfaceState.test.js`,
+  `PendingTurnLiveSurfaceIntegration.test.js`, and
+  `RendererAppRuntimeBoundary.test.ts` protect the trimmed live-surface
+  contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Response Overlay Awaiting Layout Helper Deletion
 
 - Finding: `DesktopResponseOverlayLayoutRuntime` still exported
