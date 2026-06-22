@@ -175,9 +175,7 @@ const {
   createArtifactHandlersRuntime,
 } = require('./ipc/ipc_artifact_handlers.cjs');
 const {
-  resolveConversationRef: resolveConversationRefFromPayload,
-  buildQueryInterrupted,
-  buildQuerySendFailure,
+  createQueryEventsRuntime,
 } = require('./ipc/ipc_query_events.cjs');
 const {
   buildConversationTerminalStatus,
@@ -287,6 +285,14 @@ const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 const BACKEND_CONNECT_TIMEOUT_MS = 10000;
 const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
 const ipcHostCopyRuntime = createIpcHostCopyRuntime();
+const queryEventsRuntime = createQueryEventsRuntime({
+  getCopy: () => ipcHostCopyRuntime.getQueryEvents(),
+});
+const {
+  resolveConversationRefFromPayload,
+  buildQueryInterrupted,
+  buildQuerySendFailure,
+} = queryEventsRuntime;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const activeQueryContextState = createActiveQueryContextState();
@@ -648,10 +654,7 @@ const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
     ipcEventReplayState,
     buildQueryPayload,
     broadcastQuerySendFailureRuntime,
-    buildQuerySendFailure: (input) => buildQuerySendFailure({
-      ...input,
-      copy: ipcHostCopyRuntime.getQueryEvents(),
-    }),
+    buildQuerySendFailure,
     traceRendererQuery: (input) => electronMainTraceLogger.traceRendererQuery(input),
   },
 });

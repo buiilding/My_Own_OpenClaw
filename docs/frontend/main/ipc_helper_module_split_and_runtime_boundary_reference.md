@@ -766,13 +766,17 @@ Owns query-scope send-failure event fan-out:
   from query failure context when SDK/backend send fails, fans it out to
   renderer windows, and resets phase to idle
 
-### `ipc_query_events.cjs` (shape builder dependency)
+### `ipc_query_events.cjs`
 
-Owns query-context and send-failure context constructors consumed by
-`ipc_query_broadcast.cjs`:
+Owns query-context, send-failure, interruption, and conversation-ref extraction
+behind a runtime facade consumed by `ipc.cjs`, `ipc_query_send_runtime.cjs`,
+`ipc_query_broadcast.cjs`, and backend-close cleanup:
 
-- `resolveConversationRef`
-- `buildQuerySendFailure`
+- `createQueryEventsRuntime`
+
+The lower-level conversation-ref resolver and event builders stay private inside
+the runtime facade. The facade applies dynamic host-skinned query-event copy
+while preserving the SDK-shaped error/interruption event envelope.
 
 SDK `ConversationRuntime.send(...)` owns `turn_started` and `user_message`
 projection. Electron main must not synthesize a duplicate local user message.

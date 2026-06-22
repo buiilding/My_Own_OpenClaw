@@ -219,7 +219,7 @@ If backend send fails for query path:
 
 - overlay phase reset to `idle`
 - replay state cleared for that turn
-- synthetic error event built by `buildQuerySendFailure(...)`
+- synthetic error event built by the query-events runtime
 - event includes query context ids + user-facing failure message
 - broadcast to renderer through the SDK conversation-event channel
 

@@ -33,7 +33,8 @@ Responsibilities:
 - normalize `attachment_filenames` to trimmed non-empty string array
 - extract and remove `attachment_context` from outbound payload
 - extract and remove `memory_retrieval_enabled` (defaults to enabled when omitted)
-- resolve `conversationRef` using existing `resolveConversationRefFromPayload(...)`
+- resolve `conversationRef` through
+  `createQueryEventsRuntime(...).resolveConversationRefFromPayload(...)`
 - reject renderer queries that do not carry an explicit `conversation_ref`
 
 Returns:

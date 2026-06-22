@@ -9746,3 +9746,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   session state, IPC sync, storage, local-runtime execution, provider policy,
   backend behavior, and trust boundaries are unchanged; no migration is
   required.
+- Main query event construction now routes through `createQueryEventsRuntime`
+  instead of standalone helper exports. `ipc.cjs`, query-send failure handling,
+  Agent SDK command conversation-ref resolution, and backend-close interruption
+  synthesis consume the facade object while the module keeps conversation-ref
+  extraction, send-failure event construction, interruption event construction,
+  and dynamic host-copy fallback private. Query payloads, SDK conversation-event
+  envelopes, IPC channels, renderer projection, storage, local-runtime
+  execution, provider policy, permissions, backend behavior, and trust
+  boundaries are unchanged; no migration is required.

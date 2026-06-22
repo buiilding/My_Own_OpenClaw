@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Main Query Events Runtime Privacy
+
+- Finding: `ipc_query_events.cjs` owned query conversation-ref extraction and
+  SDK-shaped send-failure/interruption event construction, but exported the
+  lower-level resolver and builders directly while `ipc.cjs` composed the
+  dynamic host-copy wiring around them.
+- Change: added `createQueryEventsRuntime(...)` as the public query-events
+  facade, routed `ipc.cjs` through it, and kept the conversation-ref resolver,
+  send-failure builder, and interruption builder private inside the module.
+- Validation target: `IpcQueryRuntime.test.cjs` protects direct/wrapped
+  conversation-ref extraction, dynamic host-copy send-failure wording,
+  interrupted event shape, and rejection of the raw helper exports.
+- Compatibility/security: no query payload shape, SDK conversation-event
+  envelope, IPC channel, renderer projection, provider policy, credential,
+  permission, local execution, trust-boundary, or migration change required.
+
 ### 2026-06-22 Main Query Runtime SDK Turn Field Privacy
 
 - Finding: `ipc_query_runtime.cjs` owned backend query payload filtering and

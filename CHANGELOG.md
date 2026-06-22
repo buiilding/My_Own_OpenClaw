@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: route query conversation-ref extraction and SDK-shaped
+  failure/interruption event construction through `createQueryEventsRuntime(...)`
+  so `ipc_query_events.cjs` keeps the lower-level resolver/builders private
+  while `ipc.cjs` consumes a query-events facade. No migration required.
 - frontend/main: route renderer query agent-definition payload assembly through
   `buildRendererBackendQueryPayloadWithAgentDefinition(...)` so
   `ipc_query_runtime.cjs` keeps SDK turn resource/metadata preservation private

@@ -8,8 +8,7 @@ const {
   prepareRendererQueryPayload,
 } = require('../../frontend/src/main/ipc/ipc_query_runtime.cjs');
 const {
-  resolveConversationRef,
-  buildQueryInterrupted: buildQueryInterruptedEvent,
+  createQueryEventsRuntime,
 } = require('../../frontend/src/main/ipc/ipc_query_events.cjs');
 
 const sampleQueryEventsCopy = Object.freeze({
@@ -22,6 +21,15 @@ describe('ipc_query_runtime', () => {
 
     expect(queryRuntimeModule.preserveSdkTurnInputFields).toBeUndefined();
     expect(typeof queryRuntimeModule.buildRendererBackendQueryPayloadWithAgentDefinition).toBe('function');
+  });
+
+  test('keeps lower-level query event helpers private', () => {
+    const queryEventsModule = require('../../frontend/src/main/ipc/ipc_query_events.cjs');
+
+    expect(queryEventsModule.resolveConversationRef).toBeUndefined();
+    expect(queryEventsModule.buildQuerySendFailure).toBeUndefined();
+    expect(queryEventsModule.buildQueryInterrupted).toBeUndefined();
+    expect(typeof queryEventsModule.createQueryEventsRuntime).toBe('function');
   });
 
   test('buildBackendQueryPayload keeps the exact backend query contract keys', () => {
@@ -192,7 +200,9 @@ describe('ipc_query_runtime', () => {
   });
 
   test('buildQueryInterrupted marks active accepted turns as retryable errors', () => {
-    expect(buildQueryInterruptedEvent({
+    const queryEventsRuntime = createQueryEventsRuntime();
+
+    expect(queryEventsRuntime.buildQueryInterrupted({
       queryMessageId: 'turn-1',
       conversationRef: 'conv-1',
       currentSessionId: 'session-1',
@@ -215,11 +225,41 @@ describe('ipc_query_runtime', () => {
     });
   });
 
-  test('resolveConversationRef accepts direct and wrapped command payloads', () => {
-    expect(resolveConversationRef({
+  test('query events runtime applies dynamic host copy to send failures', () => {
+    const getCopy = jest.fn(() => ({
+      sendFailure: 'Sample app is offline. Try again after reconnecting.',
+    }));
+    const queryEventsRuntime = createQueryEventsRuntime({ getCopy });
+
+    expect(queryEventsRuntime.buildQuerySendFailure({
+      queryMessageId: 'turn-1',
+      conversationRef: 'conv-1',
+      currentSessionId: 'session-1',
+      currentServerUserId: null,
+      currentUserId: 'client-user-1',
+    })).toEqual({
+      type: 'error',
+      id: 'turn-1',
+      event_id: 'turn-1:query-send-failed',
+      sequence: 1,
+      turn_ref: 'turn-1',
+      session_id: 'session-1',
+      user_id: 'client-user-1',
+      conversation_ref: 'conv-1',
+      payload: {
+        message: 'Sample app is offline. Try again after reconnecting.',
+      },
+    });
+    expect(getCopy).toHaveBeenCalledTimes(1);
+  });
+
+  test('query events runtime accepts direct and wrapped command payloads', () => {
+    const queryEventsRuntime = createQueryEventsRuntime();
+
+    expect(queryEventsRuntime.resolveConversationRefFromPayload({
       conversation_ref: ' conv-direct ',
     })).toBe('conv-direct');
-    expect(resolveConversationRef({
+    expect(queryEventsRuntime.resolveConversationRefFromPayload({
       payload: {
         conversation_ref: ' conv-wrapped ',
       },
