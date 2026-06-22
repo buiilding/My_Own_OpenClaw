@@ -59,9 +59,11 @@ The core rule is: preserve the durable conversation key separately from live bac
 
 1. Dashboard loads local-runtime transcript rows for the selected conversation.
 2. Renderer converts rows to visible chat messages.
-3. Renderer builds a backend rehydrate payload from the stored transcript rows.
+3. SDK continuity loads the active model-history checkpoint for the selected
+   conversation.
 4. Backend `RehydrateConversationHandler` delegates to `RehydrateExecutionService`.
-5. Backend normalizes message roles, repairs tool-call/tool-output linkage, and installs model-compatible history into the conversation-scoped session.
+5. Backend installs provider-neutral model-history rows into the
+   conversation-scoped session.
 6. Renderer sets active transcript session info to the resumed `conversationRef`.
 7. The next query uses the same `conversation_ref`, so backend history and visible replay stay aligned.
 
@@ -102,13 +104,13 @@ The core rule is: preserve the durable conversation key separately from live bac
 4. Add stale-event tests for old conversation, old turn, and missing identity cases.
 5. Update websocket event and streaming docs if event shape changes.
 
-### Change Replay or Rehydrate
+### Change Replay or Resume
 
-1. Keep renderer replay display separate from backend rehydrate history construction.
-2. Update SDK rehydrate projections when stored conversation events need different backend payloads.
-3. Update backend rehydrate normalization, transparency restoration, and tool-linkage validation together.
+1. Keep renderer replay display separate from backend model-history install.
+2. Update SDK model-history checkpoint persistence/payload conversion when backend resume needs different rows.
+3. Update backend rehydrate install, transparency restoration, and tool-linkage validation together.
 4. Preserve valid tool-call/tool-output pairs and prune or synthesize only where strict provider history requires it.
-5. Validate frontend rehydrate payload tests and backend rehydrate execution/linkage tests.
+5. Validate frontend model-history resume tests and backend rehydrate execution/linkage tests.
 
 ### Change Transcript Storage or Conversation Lists
 

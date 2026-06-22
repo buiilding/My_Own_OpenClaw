@@ -1,7 +1,7 @@
 ---
-summary: "Renderer transcript and replay guide covering SDK-backed conversation events, session identity, local snapshots, canonical conversation storage, and rehydrate projections."
+summary: "Renderer transcript and replay guide covering SDK-backed conversation events, session identity, local snapshots, canonical conversation storage, and model-history resume."
 read_when:
-  - When changing SDK display/rehydrate projections, canonical conversation events, or local snapshots.
+  - When changing SDK display projections, diagnostic rehydrate snapshots, model-history resume, canonical conversation events, or local snapshots.
   - When debugging visible chat rows that do not persist or replay correctly.
 title: "Transcript and Replay"
 ---
@@ -15,7 +15,7 @@ inference context resumes from model-history checkpoints when available.
 Neither renderer-visible rows nor backend active model history are the only
 storage truth.
 
-For code changes or debugging, start with [Transcript Replay Change Workflow](transcript_replay_change_workflow.md). That workflow maps SDK store/display projections, local-runtime event storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, and validation.
+For code changes or debugging, start with [Transcript Replay Change Workflow](transcript_replay_change_workflow.md). That workflow maps SDK store/display projections, local-runtime event storage, dashboard replay/resume, model-history resume payloads, tool-row reconstruction, and validation.
 
 ## Code Ownership
 
@@ -50,13 +50,15 @@ Transcript session identity includes:
 
 Do not invent a second conversation id in a component. Use the transcript session runtime and existing conversation workspace binding.
 
-## Replay And Rehydrate
+## Replay And Resume
 
-SDK projections convert stored conversation events back into chat messages for renderer display. Rehydrate converts those events into backend-compatible state so an active backend session can continue.
+SDK projections convert stored conversation events back into chat messages for
+renderer display. Normal resume installs persisted model-history checkpoints
+into backend-compatible state so an active backend session can continue.
 
 SDK-owned conversation state uses a dedicated local-runtime chat-event table:
 
-- `conversation_events`: normalized SDK event log for runtime/load/rehydrate/display
+- `conversation_events`: normalized SDK event log for runtime/load/display and diagnostic snapshots
 - `conversation_display_timeline`: editable display checkpoints for child
   revisions created by edit/resend, retry, and fork flows
 - `conversation_model_history`: bounded provider-neutral model-history
@@ -64,9 +66,12 @@ SDK-owned conversation state uses a dedicated local-runtime chat-event table:
 - `attachments`: normalized image attachment records extracted from user-message screenshots, screenshot refs/URLs, artifact refs, and tool-output screenshot payloads
 - compaction replay generations: complete `compaction_applied` events with replacement-history entries
 
-SDK callers should read display and rehydrate state through SDK projections over
-chat events. The SDK/local-runtime replay path does not write hidden replay rows
-or fall back to visible transcript rows for runtime truth.
+SDK callers should read display state through SDK display APIs and model-facing
+resume state through `loadModelHistory(...)`. Diagnostic/export rehydrate
+snapshots may still project legacy event rows, but normal backend resume does
+not use them as provider history. The SDK/local-runtime replay path does not
+write hidden replay rows or fall back to visible transcript rows for runtime
+truth.
 
 Edit/resend and try-again no longer cut the canonical local-runtime chat-event
 log. The renderer loads the active display timeline, asks the SDK to
@@ -98,8 +103,8 @@ Key files:
 
 - Desktop conversation store adapter: `desktopConversationStore.ts`,
 - SDK display projection: `sdkDisplayChatMessageProjection.ts`,
-- backend rehydrate snapshot projection: `packages/windie-sdk-js/src/projections/conversationProjections.ts`,
-- backend rehydrate dispatch: `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`,
+- diagnostic rehydrate snapshot projection: `packages/windie-sdk-js/src/projections/conversationProjections.ts`,
+- model-history resume dispatch: `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`,
 - tool-message reconstruction and replay payload/turn shaping:
   `DesktopConversationReplayRuntime` in `desktopConversationReplayRuntime.js`,
 - edit/resend and try-again replay row-index selection:

@@ -211,6 +211,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sdk/memory: update transcript replay and SDK runtime references so
+  normal resume is documented as model-history checkpoint install only, with
+  event-projection rehydrate snapshots kept as diagnostic/export surfaces. No
+  migration required.
 - sdk/frontend: remove the public edit/retry replay preparation commands and
   main-process bridge handlers; high-level edit/resend and retry now load the
   active display timeline, create a child display revision with

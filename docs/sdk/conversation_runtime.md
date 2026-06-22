@@ -1,7 +1,7 @@
 ---
-summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display/rehydrate projections, toolPairKeys pairing after the removed toolPairKey helper, removed renderer ToolRunnerHook callback/turn-guard tests, removed renderer transcript/rehydrate helpers, tool output content fallback behavior, removed fallbackText top-level tool-output fallback helper behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
+summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display projections, diagnostic rehydrate snapshots, model-history resume, toolPairKeys pairing after the removed toolPairKey helper, removed renderer ToolRunnerHook callback/turn-guard tests, removed renderer transcript/rehydrate helpers, tool output content fallback behavior, removed fallbackText top-level tool-output fallback helper behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
 read_when:
-  - When changing SDK conversation state, store adapters, live turn projection, display/rehydrate projections, edit/resend, retry, compaction replay, or desktop chat migration.
+  - When changing SDK conversation state, store adapters, live turn projection, display projections, diagnostic rehydrate snapshots, model-history resume, edit/resend, retry, compaction replay, or desktop chat migration.
   - When resolving stale references to removed `ToolRunnerHook.callbacks.test.ts` or `ToolRunnerHook.turnGuards.test.ts`; local tool execution moved from renderer hooks into SDK runtime coordination.
   - When resolving stale references to the removed standalone `currentTurnProjection.ts` or `currentTurnProjection.js` files; current-turn projection is built in `conversationProjections.ts`.
   - When resolving stale references to removed renderer transcript helpers such as `transcriptMessagePayload.js`, `structuredToolPayload.js`, `rehydrateMessageState.js`, `rehydratePayload.js`, `transparencyNormalization.ts`, `storedTranscriptSdkProjection.ts`, `storedTranscriptMemoryState.js`, `storedTranscriptChatMessageState.js`, `desktopTranscriptProjectionRuntimeClient.ts`, `pendingTranscriptMessages.ts`, `pendingAssistantQueue.ts`, `pendingUserQueue.ts`, `transcriptPendingFlush.ts`, `TranscriptPendingFlush.test.ts`, or `transcriptRecordWrite.ts`.
@@ -117,13 +117,14 @@ preserves that loop's existing turn-stream phase without extending it.
 changes such as model/provider selection. `conversation.setModel(...)` and
 per-turn `model` options write this event only after the backend settings update
 succeeds. Runtime snapshots expose the latest merged settings on
-`snapshot.state.settings`, but display and rehydrate projections do not render
-or replay those settings as chat/provider history.
+`snapshot.state.settings`, but display projections and diagnostic rehydrate
+snapshots do not render or replay those settings as chat/provider history.
 
 Backend `model-history-updated` packets normalize to hidden
 `model_history_updated` conversation events. They carry a provider-neutral
 checkpoint id, revision id, creation timestamp, and backend-normalized
-`ModelHistoryRow[]`; display and existing rehydrate projections ignore them.
+`ModelHistoryRow[]`; display projections and diagnostic rehydrate snapshots
+ignore them.
 `ConversationRuntime` persists the checkpoint through
 `store.replaceModelHistory(...)` when the store exposes that method. `send()`
 passes the active SDK `revision_id` to the backend query payload so emitted
@@ -237,8 +238,8 @@ ledger entry, the SDK skips memory storage without emitting a memory-store
 invalidation.
 
 `trace_event` is the SDK-owned durable path trace row. It is stored in the same
-conversation event ledger as normal conversation events, but display and
-rehydrate projections must ignore it. A trace row records sanitized runtime
+conversation event ledger as normal conversation events, but display projections
+and diagnostic rehydrate snapshots must ignore it. A trace row records sanitized runtime
 timeline metadata such as `traceId`, `spanId`, `path`, `stage`, `status`,
 `runtime`, timestamps, duration, ids, counts, limits, and sanitized error
 summaries. It must not store user message text, retrieved memory text,
@@ -684,9 +685,9 @@ metadata from the active display checkpoint without flattening ancestor events.
 ## Stream Rule
 
 `SdkConversationRuntime.stream(input)` is the canonical custom-client loop
-surface. It sends the user turn, stores the same normalized events used by
-display and rehydrate projections, yields `conversation_event` updates as
-backend packets normalize, and exits when the conversation reaches
+surface. It sends the user turn, stores normalized events for display and
+diagnostic snapshots, persists model-history checkpoints for resume, yields
+`conversation_event` updates as backend packets normalize, and exits when the conversation reaches
 `completed`, `stopped`, or `error`.
 
 Prefer this over wiring `send()` and `subscribe()` separately in CLI or custom

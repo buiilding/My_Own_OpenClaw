@@ -84,7 +84,11 @@ SDK/local-runtime camelCase to Python JSON-RPC snake_case conversions include:
 
 ## Storage Ownership
 
-- `conversation_events`: visible chat replay, conversation list/search, rehydrate snapshots, edit/resend continuity, attachments, and compaction checkpoints.
+- `conversation_events`: visible chat replay, conversation list/search,
+  diagnostic/export rehydrate snapshots, edit/resend continuity, attachments,
+  and compaction checkpoints.
+- `conversation_model_history`: bounded model-facing checkpoints used for
+  normal backend resume.
 - `episodic.db` memory rows with `record_kind='interaction'`: completed user+assistant memory pairs used by the Episodic Memory view and semantic summarizer.
 - `semantic.db` memory rows: extracted durable facts and summaries.
 
