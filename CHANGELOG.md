@@ -75,6 +75,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route dashboard shell opening timers and document
   scroll-lock DOM updates through `DesktopDashboardLayoutRuntime`, keeping raw
   browser timer/document access out of `DashboardShell`. No migration required.
+- frontend/renderer: route dashboard conversation retry, generated-title poll,
+  and search debounce timers through `DesktopDashboardConversationLoadRuntime`,
+  keeping raw browser timeout calls out of `useDashboardConversations`. No
+  migration required.
 - frontend/renderer: delete the duplicate `showAssistantAwaitingDot`
   presentation field; dashboard awaiting placement now stays on the concrete
   `awaitingDotTargetMessageId` anchor. No migration required.

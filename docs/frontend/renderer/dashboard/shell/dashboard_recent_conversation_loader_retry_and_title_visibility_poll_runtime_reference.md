@@ -52,10 +52,11 @@ recent list, schedule the per-conversation title poll, or ignore the event.
 
 `DesktopDashboardConversationLoadRuntime.getTitleVisibilityPollSchedule(...)`
 and `shouldContinueTitleVisibilityPoll(...)` own the poll interval, maximum
-attempt count, and dashboard-row visibility predicate. The hook owns timer
-creation/cleanup and list reload side effects, but it should not hard-code the
-poll numbers or inspect raw row ids to decide whether a generated title is
-visible.
+attempt count, dashboard-row visibility predicate, and browser timer
+scheduling/cleanup adapters for title polling. The hook owns the pending timer
+map, list reload side effects, and polling callback, but it should not hard-code
+the poll numbers, call browser timers directly, or inspect raw row ids to decide
+whether a generated title is visible.
 
 `DesktopLocalRuntimeStatusRuntimeClient.onReady(...)` owns local-runtime status
 snapshot readiness projection. The dashboard hook owns the reload side effect
@@ -101,6 +102,10 @@ Retry behavior:
   - last error is transient
 
 On successful load, retry counter resets to `0`.
+The timeout adapter lives in
+`DesktopDashboardConversationLoadRuntime.scheduleRecentConversationsRetryTimer(...)`
+and `clearRecentConversationsRetryTimer(...)`; the hook supplies the reload
+callback and current retry delay.
 
 ## Title Visibility Poll After Transcript Writes
 
@@ -125,8 +130,11 @@ Poll contract:
 - interval `1250ms`, provided by `getTitleVisibilityPollSchedule(...)`
 - max attempts `240`, enforced by `shouldContinueTitleVisibilityPoll(...)`
 - checks if target conversation is visible in latest recent list
-- per-conversation timer is replaced when a new poll starts
-- cleanup clears all pending timers on unmount
+- per-conversation timer is replaced through
+  `scheduleTitleVisibilityPollTimer(...)` when a new poll starts
+- cleanup clears pending timers through
+  `clearTitleVisibilityPollTimer(...)` and
+  `clearAllTitleVisibilityPollTimers(...)`
 
 This path handles title generation lag between transcript persistence, the
 SDK-owned generated-title enrichment write, and indexed conversation-list
@@ -165,9 +173,11 @@ Search behavior when modal is open:
 
 - input is trimmed
 - minimum query length is `2`
-- debounce delay `180ms`
+- debounce delay `180ms`, owned by
+  `DesktopDashboardConversationLoadRuntime.scheduleConversationSearchDebounce(...)`
 - invokes SDK-shaped `conversations.search` with `limit: 60`
 - cancellation flag prevents stale async search results from mutating state after query changes or unmount
+- cleanup routes through `clearConversationSearchDebounce(...)`
 
 ## Grouping and Pin State
 

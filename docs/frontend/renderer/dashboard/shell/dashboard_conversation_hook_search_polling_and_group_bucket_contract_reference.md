@@ -79,13 +79,15 @@ Failure behavior:
 Hook search policy (active only when `searchOpen=true`):
 
 - query `< 2` chars -> clear searched list and skip runtime search
-- query `>= 2` chars -> debounced
+- query `>= 2` chars -> debounced through
+  `DesktopDashboardConversationLoadRuntime.scheduleConversationSearchDebounce(...)`
   `DesktopConversationLibraryClient.searchConversations(...)` call to the
   SDK-shaped `conversations.search` command (`180ms`)
 - request payload: `{ userId, query, limit: 60 }`
 - result metadata is projected through the shared dashboard conversation load
   runtime metadata mapper before search groups consume it
-- cancellation guard prevents stale async writes
+- cancellation guard prevents stale async writes, and debounce cleanup routes
+  through `clearConversationSearchDebounce(...)`
 
 Search groups are derived from searched rows using the app-runtime conversation
 grouping facade with metadata enabled.
@@ -193,12 +195,16 @@ Poll behavior:
 - interval `1250ms`
 - each attempt calls `loadRecentConversations()`
 - stops when conversation id becomes visible or attempt budget exhausted
+- browser timer scheduling/cleanup routes through
+  `DesktopDashboardConversationLoadRuntime` helpers instead of direct hook
+  `window.setTimeout`/`window.clearTimeout` calls
 
 Timer hygiene:
 
 - per-conversation timer map in ref
-- old timer cleared before scheduling new poll for same conversation
-- all timers cleared on unmount
+- old timer cleared by `scheduleTitleVisibilityPollTimer(...)` before
+  scheduling a new poll for the same conversation
+- all timers cleared on unmount through `clearAllTitleVisibilityPollTimers(...)`
 
 ## Drift Hotspots
 

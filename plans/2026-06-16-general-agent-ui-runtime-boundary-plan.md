@@ -9,6 +9,24 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Dashboard Conversation Timer Runtime
+
+- Finding: `useDashboardConversations` already delegated recent-list
+  projection, retry policy, event classification, and grouping to renderer
+  app-runtime facades, but still owned raw browser timeout scheduling for
+  startup retries, generated-title visibility polling, and search debounce.
+- Change: extended `DesktopDashboardConversationLoadRuntime` with semantic
+  retry, title-poll, and search-debounce timer helpers. The hook keeps
+  conversation/search state and reload side effects while the app-runtime facade
+  owns browser timer scheduling and cleanup.
+- Validation target: focused dashboard conversation load, hook, and renderer
+  app-boundary tests protect timer replacement, cleanup, missing-adapter
+  fallback, search debounce delay, and rejection of raw timeout calls in the
+  hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-22 Dashboard Shell Browser Adapter Runtime
 
 - Finding: `DashboardShell` already delegated resize pulses to
