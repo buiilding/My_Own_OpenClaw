@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route the chat-loop disconnect recovery watchdog timer
+  through `DesktopChatLoopUiRuntime`, keeping raw browser timeout scheduling
+  out of `useChatLoopUiState`. No migration required.
 - frontend/renderer: route app-provider keydown/storage subscriptions,
   editable-target checks, localStorage access, and save-status timers through
   `DesktopAppProviderRuntime`, keeping provider browser adapters out of

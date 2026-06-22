@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Chat Loop Recovery Watchdog Runtime
+
+- Finding: `useChatLoopUiState` already delegated disconnect/reconnect state to
+  `DesktopChatLoopUiRuntime`, but still owned raw browser timeout
+  scheduling/cleanup for the reconnect recovery watchdog.
+- Change: added a watchdog timer adapter to `DesktopChatLoopUiRuntime` and
+  routed the hook through it. The hook now supplies the timeout callback and
+  delay while the app-runtime facade owns browser timer scheduling and cleanup.
+- Validation target: focused chat-loop runtime, chat-loop hook, and renderer
+  chat-boundary tests protect timeout dispatch, cleanup, missing-adapter
+  fallback, and rejection of raw timeout calls in the hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-22 App Provider Browser Adapter Runtime
 
 - Finding: `AppProvider`, `AppConfigProvider`, and `AppStatusProvider` still

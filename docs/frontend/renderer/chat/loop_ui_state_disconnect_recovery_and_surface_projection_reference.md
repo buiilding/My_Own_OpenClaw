@@ -137,10 +137,12 @@ The renderer client-session runtime client normalizes raw `ipc-status` and
 startup snapshot payloads into observed boolean connection updates for this hook.
 The client filters snapshots/events without a boolean connection field; the hook
 owns only subscriptions, `DesktopChatLoopUiRuntime` snapshot event creation,
-and the recovery watchdog timer. Disconnect/reconnect state transitions live in
-`DesktopChatLoopUiRuntime.reduceChatLoopTransportMachineState(...)`; the raw
-state constants, reducer events, and helper functions stay private behind that
-renderer app-runtime facade.
+and watchdog callback dispatch. Disconnect/reconnect state transitions live in
+`DesktopChatLoopUiRuntime.reduceChatLoopTransportMachineState(...)`, while
+recovery watchdog timeout scheduling/cleanup lives in
+`DesktopChatLoopUiRuntime.scheduleChatLoopRecoveryWatchdog(...)`. The raw state
+constants, reducer events, browser timer adapter, and helper functions stay
+private behind that renderer app-runtime facade.
 
 It does not mutate stream tracking or backend query state; it is UI projection only.
 
@@ -273,6 +275,8 @@ longer imports the overlay lifecycle adapter.
 - disconnect/reconnect arms the recovery watchdog
 - changed snapshot signatures disarm recovery after reconnect progress
 - stale snapshots keep the recovery watchdog armed until timeout
+- recovery watchdog scheduling uses the app-runtime browser timer adapter and
+  cleans up through the returned cleanup callback
 
 `tests/frontend/ChatLoopUiStateHook.test.jsx` validates:
 

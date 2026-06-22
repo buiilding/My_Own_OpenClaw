@@ -11,7 +11,24 @@ describe('desktopChatLoopUiRuntime', () => {
     createChatLoopTransportStatusEvent,
     createInitialChatLoopTransportMachineState,
     reduceChatLoopTransportMachineState,
+    scheduleChatLoopRecoveryWatchdog,
   } = DesktopChatLoopUiRuntime;
+
+  function createTimerApi() {
+    let nextId = 0;
+    const timers = new Map();
+    return {
+      timers,
+      setTimeout(callback, delayMs) {
+        const id = ++nextId;
+        timers.set(id, { callback, delayMs });
+        return id;
+      },
+      clearTimeout(id) {
+        timers.delete(id);
+      },
+    };
+  }
 
   test('transport machine drops disconnected loops and arms recovery on reconnect', () => {
     const initialState = reduceChatLoopTransportMachineState(
@@ -83,5 +100,38 @@ describe('desktopChatLoopUiRuntime', () => {
     expect(progressedState.currentSnapshotSignature).toBe('streaming|0|1');
     expect(progressedState.recoveryWatchdogArmed).toBe(false);
     expect(progressedState.preDisconnectSnapshotSignature).toBeNull();
+  });
+
+  test('recovery watchdog timer schedules through injected browser adapter and cleans up', () => {
+    const timerApi = createTimerApi();
+    const onTimeout = jest.fn();
+
+    const cleanup = scheduleChatLoopRecoveryWatchdog({
+      delayMs: 3500,
+      onTimeout,
+      timerApi,
+    });
+
+    expect(timerApi.timers.size).toBe(1);
+    const [timerId, timer] = Array.from(timerApi.timers.entries())[0];
+    expect(timer.delayMs).toBe(3500);
+
+    timer.callback();
+    expect(onTimeout).toHaveBeenCalledTimes(1);
+
+    cleanup();
+    expect(timerApi.timers.has(timerId)).toBe(false);
+  });
+
+  test('recovery watchdog invokes immediately when timer adapter is unavailable', () => {
+    const onTimeout = jest.fn();
+
+    const cleanup = scheduleChatLoopRecoveryWatchdog({
+      onTimeout,
+      timerApi: {},
+    });
+
+    expect(onTimeout).toHaveBeenCalledTimes(1);
+    expect(cleanup).not.toThrow();
   });
 });

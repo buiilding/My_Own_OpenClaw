@@ -12,6 +12,7 @@ const {
   createChatLoopTransportStatusEvent,
   createInitialChatLoopTransportMachineState,
   reduceChatLoopTransportMachineState,
+  scheduleChatLoopRecoveryWatchdog,
 } = DesktopChatLoopUiRuntime;
 
 export function useChatLoopTransportState({
@@ -56,12 +57,12 @@ export function useChatLoopTransportState({
     if (!machineState.recoveryWatchdogArmed || isBusy !== true) {
       return undefined;
     }
-    const timerId = window.setTimeout(() => {
-      dispatch(createChatLoopRecoveryTimeoutEvent());
-    }, recoveryWatchdogMs);
-    return () => {
-      window.clearTimeout(timerId);
-    };
+    return scheduleChatLoopRecoveryWatchdog({
+      delayMs: recoveryWatchdogMs,
+      onTimeout: () => {
+        dispatch(createChatLoopRecoveryTimeoutEvent());
+      },
+    });
   }, [isBusy, machineState.recoveryWatchdogArmed, recoveryWatchdogMs]);
 
   return useMemo(() => ({
