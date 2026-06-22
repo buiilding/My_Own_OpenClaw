@@ -399,6 +399,7 @@ export type CurrentTurnToolEvent = {
   toolOutputDetails?: JsonRecord | null;
   toolMetadata?: JsonRecord | null;
   toolDisplayMetadata?: JsonRecord | null;
+  attachments?: SdkDisplayAttachment[] | null;
   toolCallValidationFailed?: boolean | null;
   rawToolCallPreview?: string | null;
   rawArgumentsPreview?: string | null;
@@ -441,6 +442,7 @@ export type LiveTurnPresentationEntry = {
   toolOutputDetails?: JsonRecord | null;
   toolMetadata?: JsonRecord | null;
   toolDisplayMetadata?: JsonRecord | null;
+  attachments?: SdkDisplayAttachment[] | null;
   toolCallValidationFailed?: boolean | null;
   rawToolCallPreview?: string | null;
   rawArgumentsPreview?: string | null;

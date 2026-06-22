@@ -138,11 +138,12 @@ UI adapters:
   `modelFacingToolCall`, `toolArguments`, `toolCallDetails`,
   `toolOutputDetails`, `toolMetadata`, `toolDisplayMetadata`, normalized
   bundled `toolCalls`, recovery fields (`toolCallValidationFailed`,
-  `rawToolCallPreview`, `rawArgumentsPreview`, `parseError`), screenshot
-  refs/URLs, `executionTime`, `success`, and `executionSkipped`. Renderer
-  adapters may preserve `payload` and raw `toolMetadata` for diagnostics, but
-  should render live tool rows and side effects from these SDK fields rather
-  than decoding backend-wire event payloads.
+  `rawToolCallPreview`, `rawArgumentsPreview`, `parseError`), typed
+  `attachments[]`, compatibility screenshot refs/URLs, `executionTime`,
+  `success`, and `executionSkipped`. Renderer adapters should render live tool
+  screenshots from typed attachments rather than decoding backend-wire event
+  payloads or whole-message screenshot aliases; screenshot aliases remain
+  compatibility metadata for replay/provider boundaries.
 
 ### Removed Standalone Current Turn Projector
 
@@ -463,8 +464,10 @@ reconstruct backend `tool-call` events from `payload.sourceEvent`.
 
 Desktop tool-output transcript persistence may consume SDK `tool_output`
 directly. The SDK payload exposes normalized identity, request/correlation id,
-tool name, and screenshot fields, while `structuredPayload` carries backend
-detail fields used for transcript trace rows and malformed-payload fallbacks.
+tool name, and typed display attachments adapted from either
+`attachments[]`/`display_attachments` or old screenshot refs, while
+`structuredPayload` carries backend detail fields used for transcript trace
+rows and malformed-payload fallbacks.
 For `tool_output` and `tool_progress`, normalized `correlationId` prefers
 backend `payload.correlation_id` and falls back to `payload.request_id`.
 Renderer active tool-output display should come from

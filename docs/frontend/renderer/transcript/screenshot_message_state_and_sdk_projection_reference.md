@@ -1,8 +1,8 @@
 ---
-summary: "Renderer screenshot message state and SDK display projection reference for explicit screenshotRef/screenshotUrl metadata, screenshot_refs attachments, inline screenshot payloads, and removed screenshot-field artifact inference."
+summary: "Legacy screenshot metadata and SDK typed attachment projection reference for explicit screenshotRef/screenshotUrl metadata, screenshot_refs replay input, typed attachments, and removed renderer whole-message screenshot display."
 read_when:
-  - When changing `screenshotMessageState.js`, SDK display screenshot projection, message screenshot resolution, or replay screenshot metadata.
-  - When debugging missing renderer screenshot attachments, `screenshotRef`/`screenshotUrl` display, `screenshot_refs` multi-image projection, or stale screenshot artifact inference behavior.
+  - When changing `screenshotMessageState.js`, SDK display attachment projection, artifact image resolution, or replay screenshot metadata.
+  - When debugging missing renderer visual attachments, `screenshotRef`/`screenshotUrl` replay input, `screenshot_refs` multi-image projection, or stale screenshot artifact inference behavior.
 title: "Screenshot Message State and SDK Projection Reference"
 ---
 
@@ -12,25 +12,26 @@ title: "Screenshot Message State and SDK Projection Reference"
 
 - `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
-- `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
+- `packages/windie-sdk-js/src/projections/legacyVisualAttachmentReplayAdapter.ts`
 - `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
 - `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
+- `frontend/src/renderer/features/chat/components/message/content/AttachmentList.jsx`
 - `tests/frontend/ScreenshotMessageState.test.js`
 - `tests/frontend/SdkDisplayChatMessageProjection.test.ts`
-- `tests/frontend/DesktopMessageScreenshotRuntime.test.js`
+- `tests/frontend/MessageContent.test.jsx`
 - `tests/frontend/ConversationReplayActions.test.jsx`
 
 ## Current Contract
 
-Renderer chat rows separate inline screenshot bytes from remote artifact
-metadata.
+Renderer display rows consume ordered typed `attachments[]`. Legacy screenshot
+metadata remains compatibility input for SDK replay/backend provider history.
 
 - `screenshot`: inline image payload only. It may be a `data:image/*;base64,...`
   URL or bare base64 image data.
 - `screenshotRef` / `screenshot_ref`: durable artifact id.
 - `screenshotUrl` / `screenshot_url`: display URL for a remote artifact image.
-- `screenshotRefs` / `screenshot_refs`: ordered multi-image artifact ids, mapped
-  into the renderer `screenshots[]` attachment array.
+- `screenshotRefs` / `screenshot_refs`: ordered multi-image artifact ids,
+  adapted by the SDK replay adapter into ordered typed `attachments[]`.
 
 Do not reintroduce the retired compatibility path that treats a non-inline
 `screenshot` string as an artifact id. Remote screenshots require explicit
@@ -51,13 +52,11 @@ URLs such as `/api/artifacts/<id>`. That lets replay preserve a canonical
    exists and no URL was provided
 5. optionally drops inline screenshot bytes when remote metadata exists
 
-`screenshotMessageState.js` keeps the low-level normalization rules and defaults
-to the runtime endpoint store for owner-level infrastructure tests. Renderer
-feature code should call screenshot presentation helpers through
-`DesktopMessageScreenshotRuntime`, which delegates artifact URL and
-attachment-state work to `DesktopArtifactRuntimeClient`. That client injects the
-app runtime artifact URL builder and keeps endpoint-derived URLs behind the
-renderer runtime boundary.
+`screenshotMessageState.js` keeps low-level legacy normalization rules for
+producer/replay paths. Renderer feature code should render image descriptors
+through `AttachmentList`/`AttachmentRendererRegistry`; those components resolve
+ready artifact-backed images with
+`DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc`.
 
 `buildMessageScreenshotState(...)` uses
 `preserveInlineScreenshotWithRemote: false`, so renderer chat rows prefer the
@@ -69,34 +68,33 @@ preserving content type metadata for inline fallback rows.
 
 ## SDK Display Projection
 
-`sdkDisplayChatMessageProjection.ts` reads screenshot metadata from SDK display
-row payloads and raw metadata:
+`sdkDisplayChatMessageProjection.ts` reads typed attachment descriptors from SDK
+display row metadata. It does not adapt legacy screenshot aliases for primary
+renderer display; old rows must be adapted earlier by
+`legacyVisualAttachmentReplayAdapter`.
 
-- single-image fields: `screenshotRef`, `screenshot_ref`, `screenshotUrl`,
-  `screenshot_url`
-- multi-image fields: `screenshotRefs`, `screenshot_refs`
-- inline fallback fields: `screenshot`, `image`
-- content type fields: `screenshotContentType`, `screenshot_content_type`
+- primary display field: `attachments[]`
+- backend/replay compatibility input before renderer projection:
+  `screenshotRef`, `screenshot_ref`, `screenshotUrl`, `screenshot_url`,
+  `screenshotRefs`, and `screenshot_refs`
 
 Projection rules:
 
-- Remote metadata wins over inline screenshot bytes.
-- `screenshot_refs` becomes `screenshots[]` with one attachment per ref.
-- The first explicit `screenshotUrl` applies to the first attachment only;
-  remaining refs derive URLs from the active runtime artifact URL builder.
-- SDK display projection must not infer artifact ids from the old
+- `attachments[]` is the renderer display contract.
+- `screenshot_refs` becomes typed `attachments[]` only in the SDK replay
+  adapter.
+- SDK display projection must not infer renderer visuals from the old
   `screenshot` field.
 
 ## Debug Checklist
 
 If a replayed or resumed image is missing:
 
-1. inspect the SDK display row raw metadata for `screenshotRef`,
-   `screenshotUrl`, or `screenshot_refs`
-2. verify `DesktopArtifactRuntimeClient` has the active runtime HTTP URL before
-   deriving artifact URLs
-3. confirm `screenshot` is actual inline image data, not an artifact id
-4. check `DesktopMessageScreenshotRuntime` for attachment descriptor state
+1. inspect the SDK display row metadata for `attachments[]`
+2. if the stored row is old, confirm `legacyVisualAttachmentReplayAdapter`
+   converted `screenshotRef`, `screenshotUrl`, or `screenshot_refs`
+3. confirm `screenshot` is not being used as renderer display input
+4. check `AttachmentList` / `AttachmentRendererRegistry` for descriptor state
 5. check `desktopResolvedMessageScreenshotsRuntime.js` fetch/cache behavior for remote
    artifact URLs
 
@@ -110,10 +108,11 @@ replacing the optimistic row.
 
 If a row shows one image instead of multiple:
 
-1. confirm SDK display metadata has `screenshot_refs` with all artifact ids
-2. inspect `buildRemoteScreenshotAttachments(...)` output
-3. verify downstream message rendering consumes `screenshots[]`, not just the
-   compatibility `screenshotRef`
+1. confirm SDK display metadata has `attachments[]` with all artifact ids
+2. if the row is old, confirm the replay adapter saw every `screenshot_refs`
+   value in order
+3. verify downstream message rendering consumes `attachments[]`, not
+   compatibility aliases
 
 ## Related Pages
 

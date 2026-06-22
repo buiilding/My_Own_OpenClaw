@@ -11,10 +11,6 @@ import type {
 import { buildAssistantTextChatMessageState } from './assistantTextChatMessageState';
 import { buildToolCallChatMessageState } from './toolCallChatMessageState';
 import { buildToolOutputChatMessageState } from './toolOutputChatMessageState';
-import {
-  buildRemoteScreenshotAttachments,
-  resolveScreenshotAttachmentState,
-} from '../services/screenshotMessageState';
 import { DesktopPresentationSourceChannels } from '../../app/runtime/desktopPresentationSourceChannels';
 
 const sdkDisplayRowsSourceChannel = DesktopPresentationSourceChannels.getSdkDisplayRowsSourceChannel();
@@ -28,22 +24,6 @@ function stringField(record: Record<string, unknown> | null | undefined, ...keys
     const value = recordField(record, key);
     if (typeof value === 'string' && value.trim()) {
       return value;
-    }
-  }
-  return null;
-}
-
-function stringArrayField(record: Record<string, unknown> | null | undefined, ...keys: string[]): string[] | null {
-  for (const key of keys) {
-    const value = recordField(record, key);
-    if (!Array.isArray(value)) {
-      continue;
-    }
-    const normalized = value
-      .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
-      .map((entry) => entry.trim());
-    if (normalized.length > 0) {
-      return normalized;
     }
   }
   return null;
@@ -124,60 +104,6 @@ function displayAttachmentsFromPayload(payload: Record<string, unknown>): SdkDis
   });
 }
 
-function screenshotFieldsFromDisplayAttachments(attachments: SdkDisplayAttachment[]): Partial<ChatMessage> {
-  const screenshotAttachments = attachments.flatMap((attachment) => {
-    if (attachment.kind !== 'image') {
-      return [];
-    }
-    if (attachment.status === 'ready' && (attachment.screenshotRef || attachment.screenshotUrl)) {
-      return [{
-        screenshotRef: attachment.screenshotRef ?? null,
-        screenshotUrl: attachment.screenshotUrl ?? null,
-        screenshotContentType: attachment.contentType ?? null,
-      }];
-    }
-    return [];
-  });
-  if (screenshotAttachments.length === 0) {
-    return {};
-  }
-  const first = screenshotAttachments[0];
-  return {
-    screenshots: screenshotAttachments,
-    ...(first.screenshotRef ? { screenshotRef: first.screenshotRef } : {}),
-    ...(first.screenshotUrl ? { screenshotUrl: first.screenshotUrl } : {}),
-    ...(first.screenshotContentType ? { screenshotContentType: first.screenshotContentType } : {}),
-  };
-}
-
-function screenshotFieldsFromPayload(payload: Record<string, unknown>): Partial<ChatMessage> {
-  const attachments = displayAttachmentsFromPayload(payload);
-  if (attachments.length > 0) {
-    return screenshotFieldsFromDisplayAttachments(attachments);
-  }
-  const screenshotRef = stringField(payload, 'screenshotRef', 'screenshot_ref');
-  const screenshotUrl = stringField(payload, 'screenshotUrl', 'screenshot_url');
-  const screenshotRefs = stringArrayField(payload, 'screenshotRefs', 'screenshot_refs');
-  const screenshotState = resolveScreenshotAttachmentState({
-    screenshot: stringField(payload, 'screenshot'),
-    screenshotRef,
-    screenshotUrl,
-    screenshotContentType: stringField(payload, 'screenshotContentType'),
-    preserveInlineScreenshotWithRemote: false,
-  });
-  const screenshotAttachments = buildRemoteScreenshotAttachments(
-    screenshotRefs ?? (screenshotState.screenshotRef ? [screenshotState.screenshotRef] : null),
-    screenshotState.screenshotUrl,
-  );
-  return {
-    ...(screenshotState.screenshot ? { screenshot: screenshotState.screenshot } : {}),
-    ...(screenshotState.screenshotRef ? { screenshotRef: screenshotState.screenshotRef } : {}),
-    ...(screenshotState.screenshotUrl ? { screenshotUrl: screenshotState.screenshotUrl } : {}),
-    ...(screenshotState.screenshotContentType ? { screenshotContentType: screenshotState.screenshotContentType } : {}),
-    ...(screenshotAttachments.length > 0 ? { screenshots: screenshotAttachments } : {}),
-  };
-}
-
 function recordFromPayloadValue(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -250,11 +176,12 @@ function buildToolCallMessage(message: DisplayMessage): ChatMessage {
 
 function buildToolOutputMessage(message: DisplayMessage): ChatMessage {
   const payload = recordPayload(message);
+  const attachments = displayAttachmentsFromPayload(payload);
   const base = buildToolOutputChatMessageState({
     id: message.id,
     outputText: message.text,
     sourceEventType: message.messageType,
-    ...screenshotFieldsFromPayload(payload),
+    attachments,
     toolName: message.toolName ?? null,
     success: typeof payload.success === 'boolean' ? payload.success : null,
     correlationId: message.requestId ?? message.bundleId ?? message.toolCallId ?? message.correlationId ?? null,

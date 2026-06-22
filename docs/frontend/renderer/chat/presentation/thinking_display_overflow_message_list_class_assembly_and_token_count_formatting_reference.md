@@ -17,7 +17,8 @@ title: "Thinking Display Overflow, Message Content/Class Assembly, and Stream To
 - `frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
-- `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
+- `frontend/src/renderer/features/chat/components/message/content/AttachmentList.jsx`
 - `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
@@ -25,7 +26,8 @@ title: "Thinking Display Overflow, Message Content/Class Assembly, and Stream To
 - `tests/frontend/DesktopMessageContentRuntime.test.js`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`
 - `tests/frontend/DesktopMessageListRuntime.test.js`
-- `tests/frontend/DesktopMessageScreenshotRuntime.test.js`
+- `tests/frontend/DesktopResolvedMessageScreenshotsRuntime.test.jsx`
+- `tests/frontend/AttachmentDisplayComponents.test.jsx`
 - `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`
 - `tests/frontend/ChatStore.test.ts`
 
@@ -122,13 +124,11 @@ instead.
 - always: `message`, `message-${sender}`
 - `message-streaming` for unfinished assistant LLM rows
 - `message-type-${type}` for typed rows (`tool-call`, `tool-output`, `error`, etc.)
-- `message-has-screenshot` when screenshot attachment fields resolve true
+- `message-has-screenshot` when typed ready image attachments resolve true
 
-Screenshot presence for row classes is resolved through
-`DesktopMessageScreenshotRuntime` in
-`frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`; user-message
-visual routing uses SDK-owned `attachments[]` through
-`DesktopMessageContentRuntime.isUserAttachmentMessageContentPresentation(...)`.
+Screenshot presence for row classes is resolved from typed `attachments[]`;
+user-message and tool-output visual routing use SDK-owned descriptors through
+`AttachmentList` / `AttachmentRendererRegistry`.
 The React-only async artifact image fetch/cache hook remains in
 `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`.
 
@@ -169,8 +169,8 @@ Important:
     assistant, and generic markdown rows
 - `DesktopMessageListRuntime.test.js`:
   - verifies compaction status metadata and assistant/user action gating
-- `DesktopMessageScreenshotRuntime.test.js`:
-  - verifies screenshot attachment detection and static source resolution
+- `DesktopResolvedMessageScreenshotsRuntime.test.jsx`:
+  - verifies artifact-backed attachment image resolution and equivalent-source stability
 - `ChatStore.test.ts`:
   - validates token-count state updates and reset behavior
 

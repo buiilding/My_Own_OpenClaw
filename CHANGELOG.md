@@ -162,6 +162,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/renderer: route replayed and active tool-output visuals through typed
+  SDK `attachments[]`, extract the narrow legacy screenshot replay adapter, and
+  delete the renderer whole-message screenshot helper path. Old stored
+  `screenshot_ref(s)` rows still display through the SDK replay adapter;
+  backend/provider screenshot refs remain compatibility/model-visible fields.
+  No migration required.
 - frontend/main: route backend-event overlay phase mapping through
   `createOverlayPhaseEventRuntime(...)` so `ipc_overlay_phase_events.cjs` keeps
   transition resolution, correlation-id precedence, and recovery metadata

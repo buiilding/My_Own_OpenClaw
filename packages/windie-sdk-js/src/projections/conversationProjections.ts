@@ -32,6 +32,7 @@ import {
   recordFromUnknown,
   stringField,
 } from '../tools/toolOutputContent.js';
+import { legacyVisualAttachmentReplayAdapter } from './legacyVisualAttachmentReplayAdapter.js';
 
 function textFromPayload(payload: JsonRecord): string {
   if (typeof payload.text === 'string') {
@@ -320,32 +321,6 @@ function displayAttachmentsField(record: JsonRecord, ...keys: string[]): SdkDisp
   return null;
 }
 
-function legacyScreenshotDisplayAttachments(
-  event: ConversationEvent,
-  screenshotRefs: string[] | null,
-  screenshotUrl: string | null,
-  contentType: string | null,
-): SdkDisplayAttachment[] | null {
-  // Compatibility owner: SDK/local replay and durable tool-result payloads that
-  // still store screenshot_ref(s). Delete after persisted rows and tool-result
-  // artifact payloads emit ordered attachments/display_attachments directly.
-  if (!screenshotRefs || screenshotRefs.length === 0) {
-    return null;
-  }
-  const source = event.type === 'tool_output' || event.type === 'tool_bundle_output'
-    ? 'tool_result'
-    : 'replay';
-  return screenshotRefs.map((screenshotRef, index) => ({
-    id: `${event.eventId}:attachment:${index.toString().padStart(3, '0')}`,
-    kind: 'image',
-    source,
-    status: 'ready',
-    ...(contentType ? { contentType } : {}),
-    screenshotRef,
-    ...(index === 0 && screenshotUrl ? { screenshotUrl } : {}),
-  }));
-}
-
 function mergeDisplayAttachments(
   existing?: SdkDisplayAttachment[] | null,
   incoming?: SdkDisplayAttachment[] | null,
@@ -376,9 +351,9 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   const screenshotUrl = stringField(event.payload, 'screenshotUrl', 'screenshot_url');
   const screenshotRefs = stringArrayField(event.payload, 'screenshotRefs', 'screenshot_refs')
     ?? (screenshotRef ? [screenshotRef] : null);
-  const screenshotContentType = stringField(event.payload, 'screenshotContentType', 'screenshot_content_type');
   const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
-    ?? legacyScreenshotDisplayAttachments(event, screenshotRefs, screenshotUrl, screenshotContentType);
+    ?? legacyVisualAttachmentReplayAdapter(event);
+  const screenshotContentType = stringField(event.payload, 'screenshotContentType', 'screenshot_content_type');
   return {
     eventId: event.eventId,
     source: event.source,
@@ -1041,6 +1016,8 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
   const toolMetadata = toolMetadataFromPayload(event.payload);
   const recoveryFields = toolRecoveryFieldsFromMetadata(toolMetadata);
   const success = typeof event.payload.success === 'boolean' ? event.payload.success : null;
+  const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
+    ?? legacyVisualAttachmentReplayAdapter(event);
   return {
     id: event.eventId,
     kind,
@@ -1055,6 +1032,7 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
     toolOutputDetails: structuredPayload ?? event.payload,
     toolMetadata,
     toolDisplayMetadata: toolDisplayMetadataFromMetadata(toolMetadata),
+    attachments,
     ...recoveryFields,
     screenshot: stringField(event.payload, 'screenshot', 'image'),
     screenshotRef: stringField(event.payload, 'screenshotRef', 'screenshot_ref'),
@@ -1192,6 +1170,7 @@ function buildLiveTurnPresentation(
       toolOutputDetails: toolEvent.toolOutputDetails ?? null,
       toolMetadata: toolEvent.toolMetadata ?? null,
       toolDisplayMetadata: toolEvent.toolDisplayMetadata ?? null,
+      attachments: toolEvent.attachments ?? null,
       toolCallValidationFailed: toolEvent.toolCallValidationFailed ?? null,
       rawToolCallPreview: toolEvent.rawToolCallPreview ?? null,
       rawArgumentsPreview: toolEvent.rawArgumentsPreview ?? null,

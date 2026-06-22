@@ -3,6 +3,7 @@
  */
 
 import { buildMessageScreenshotState, resolveScreenshotAttachmentState } from '../services/screenshotMessageState';
+import type { SdkDisplayAttachment } from '../../../../../packages/windie-sdk-js/src/conversation/types.js';
 
 type ToolOutputChatMessageStateInput = {
   id?: string | null;
@@ -19,6 +20,7 @@ type ToolOutputChatMessageStateInput = {
   success?: boolean | null;
   correlationId?: string | null;
   toolOutputDetails?: Record<string, unknown> | null;
+  attachments?: SdkDisplayAttachment[] | null;
   turnRef?: string | null;
   modelId?: string | null;
   modelProvider?: string | null;
@@ -45,6 +47,7 @@ export function buildToolOutputChatMessageState({
   success = null,
   correlationId = null,
   toolOutputDetails = null,
+  attachments = null,
   turnRef = null,
   modelId = null,
   modelProvider = null,
@@ -100,6 +103,7 @@ export function buildToolOutputChatMessageState({
     ...(correlationId ? { correlationId } : {}),
     ...(modelFacingToolOutput !== null ? { modelFacingToolOutput } : {}),
     ...(preserveNullToolOutputDetails || toolOutputDetails !== null ? { toolOutputDetails } : {}),
+    ...(attachments && attachments.length > 0 ? { attachments } : {}),
     ...(turnRef ? { turnRef } : {}),
     ...(modelId ? { modelId } : {}),
     ...(modelProvider ? { modelProvider } : {}),

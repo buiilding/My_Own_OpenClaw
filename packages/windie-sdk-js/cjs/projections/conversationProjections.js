@@ -13,6 +13,7 @@ exports.buildConversationMetadata = buildConversationMetadata;
 exports.buildRehydrateSnapshot = buildRehydrateSnapshot;
 const toolCorrelationIds_js_1 = require("../tools/toolCorrelationIds.js");
 const toolOutputContent_js_1 = require("../tools/toolOutputContent.js");
+const legacyVisualAttachmentReplayAdapter_js_1 = require("./legacyVisualAttachmentReplayAdapter.js");
 function textFromPayload(payload) {
     if (typeof payload.text === 'string') {
         return payload.text;
@@ -272,26 +273,6 @@ function displayAttachmentsField(record, ...keys) {
     }
     return null;
 }
-function legacyScreenshotDisplayAttachments(event, screenshotRefs, screenshotUrl, contentType) {
-    // Compatibility owner: SDK/local replay and durable tool-result payloads that
-    // still store screenshot_ref(s). Delete after persisted rows and tool-result
-    // artifact payloads emit ordered attachments/display_attachments directly.
-    if (!screenshotRefs || screenshotRefs.length === 0) {
-        return null;
-    }
-    const source = event.type === 'tool_output' || event.type === 'tool_bundle_output'
-        ? 'tool_result'
-        : 'replay';
-    return screenshotRefs.map((screenshotRef, index) => ({
-        id: `${event.eventId}:attachment:${index.toString().padStart(3, '0')}`,
-        kind: 'image',
-        source,
-        status: 'ready',
-        ...(contentType ? { contentType } : {}),
-        screenshotRef,
-        ...(index === 0 && screenshotUrl ? { screenshotUrl } : {}),
-    }));
-}
 function mergeDisplayAttachments(existing, incoming) {
     const ordered = new Map();
     for (const attachment of [...(existing ?? []), ...(incoming ?? [])]) {
@@ -314,9 +295,9 @@ function displayRowMetadata(event) {
     const screenshotUrl = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url');
     const screenshotRefs = stringArrayField(event.payload, 'screenshotRefs', 'screenshot_refs')
         ?? (screenshotRef ? [screenshotRef] : null);
-    const screenshotContentType = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotContentType', 'screenshot_content_type');
     const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
-        ?? legacyScreenshotDisplayAttachments(event, screenshotRefs, screenshotUrl, screenshotContentType);
+        ?? (0, legacyVisualAttachmentReplayAdapter_js_1.legacyVisualAttachmentReplayAdapter)(event);
+    const screenshotContentType = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotContentType', 'screenshot_content_type');
     return {
         eventId: event.eventId,
         source: event.source,
@@ -877,6 +858,8 @@ function currentTurnToolEventFrom(event) {
     const toolMetadata = toolMetadataFromPayload(event.payload);
     const recoveryFields = toolRecoveryFieldsFromMetadata(toolMetadata);
     const success = typeof event.payload.success === 'boolean' ? event.payload.success : null;
+    const attachments = displayAttachmentsField(event.payload, 'attachments', 'display_attachments')
+        ?? (0, legacyVisualAttachmentReplayAdapter_js_1.legacyVisualAttachmentReplayAdapter)(event);
     return {
         id: event.eventId,
         kind,
@@ -891,6 +874,7 @@ function currentTurnToolEventFrom(event) {
         toolOutputDetails: structuredPayload ?? event.payload,
         toolMetadata,
         toolDisplayMetadata: toolDisplayMetadataFromMetadata(toolMetadata),
+        attachments,
         ...recoveryFields,
         screenshot: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshot', 'image'),
         screenshotRef: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref'),
@@ -1008,6 +992,7 @@ function buildLiveTurnPresentation(projection) {
             toolOutputDetails: toolEvent.toolOutputDetails ?? null,
             toolMetadata: toolEvent.toolMetadata ?? null,
             toolDisplayMetadata: toolEvent.toolDisplayMetadata ?? null,
+            attachments: toolEvent.attachments ?? null,
             toolCallValidationFailed: toolEvent.toolCallValidationFailed ?? null,
             rawToolCallPreview: toolEvent.rawToolCallPreview ?? null,
             rawArgumentsPreview: toolEvent.rawArgumentsPreview ?? null,

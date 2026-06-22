@@ -32,7 +32,6 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
 - `frontend/src/renderer/app/runtime/desktopClipboardRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`
-- `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
 - `frontend/src/renderer/infrastructure/llmOutputContract.ts`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/MessageContent.test.jsx`
@@ -140,10 +139,22 @@ Details payload precedence:
 - `success`
 - `toolMetadata`
 
-Screenshot source is resolved through screenshot utility:
+Visible tool-output screenshots render through the same typed attachment path as
+user visuals:
 
-- prefers explicit `screenshotUrl`
-- falls back to inline base64 (`message.screenshot`) with content type default handling
+```text
+SDK tool_output/tool_bundle_output metadata.attachments[]
+-> renderer ChatMessage.attachments
+-> ToolOutputMessage
+-> AttachmentList / AttachmentRendererRegistry
+-> useResolvedArtifactImageSrc(attachment)
+```
+
+Renderer tool-output components do not infer display visuals from
+`screenshot`, `screenshotRef`, `screenshotUrl`, `screenshots`, or
+`screenshot_refs`. Legacy aliases are converted earlier by the SDK replay
+adapter for old stored rows, or retained by backend/provider compatibility for
+model-visible history.
 
 ### Removed Tool Explanation, Metadata, and Screenshot Helper Paths
 
@@ -160,10 +171,10 @@ source, channel, and token badges are covered through `MessageSourceBadge` and
 by the message content components listed above.
 
 The old standalone screenshot-source test path `MessageScreenshotSrc.test.js`
-was also removed. Screenshot source selection is covered through
-`desktopMessageScreenshotRuntime.js`, message rendering, and
-attachment/artifact tests. Stale searches for either removed helper should
-route here.
+and the whole-message `DesktopMessageScreenshotRuntime` path were removed.
+Screenshot source selection is covered through typed attachment rendering,
+`desktopResolvedMessageScreenshotsRuntime.js`, and attachment/artifact tests.
+Stale searches for either removed helper should route here.
 
 ## Tool Call Card Contract
 
@@ -272,8 +283,8 @@ Metadata panel prints each key/value pair with string coercion.
 
 `tests/frontend/MessageContent.test.jsx` verifies:
 
-- screenshot URL takes precedence over inline base64
-- inline screenshot URL defaults to jpeg when content type missing
+- tool-output screenshots render from typed `attachments[]`
+- legacy tool-output screenshot aliases alone do not render primary visuals
 - tool output details toggle reveals model-facing output + detail payload
 - tool call details toggle reveals model-facing call JSON + details payload
 - tool explanation and tool action summary rows render subdued explanation text

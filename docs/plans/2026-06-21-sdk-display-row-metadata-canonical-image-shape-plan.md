@@ -124,7 +124,7 @@ Renderer display row consumers:
   - Keep as the renderer `ChatMessage` image normalization helper. It should
     not be responsible for recovering SDK display metadata aliases after this
     migration.
-- `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
+- `packages/windie-sdk-js/src/projections/legacyVisualAttachmentReplayAdapter.ts`
   - Keep as the UI screenshot attachment resolver for renderer messages.
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
   - Live current-turn/tool output screenshot handling is separate and should not

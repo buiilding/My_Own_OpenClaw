@@ -2,7 +2,6 @@
  * Projects SDK current-turn state into renderer chat message rows.
  */
 
-import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
 import { DesktopChatMessageRuntimeClient } from './desktopChatMessageRuntimeClient';
 import { DesktopPresentationSourceChannels } from './desktopPresentationSourceChannels';
 
@@ -31,6 +30,30 @@ function readString(value) {
 
 function readArray(value) {
   return Array.isArray(value) ? value : null;
+}
+
+function normalizeDisplayAttachments(value) {
+  return Array.isArray(value)
+    ? value.filter((attachment) => (
+      attachment
+      && typeof attachment === 'object'
+      && typeof attachment.id === 'string'
+      && attachment.id.trim().length > 0
+      && (attachment.kind === 'image' || attachment.kind === 'screenshot_request')
+      && (
+        attachment.source === 'user_included'
+        || attachment.source === 'camera_button'
+        || attachment.source === 'tool_result'
+        || attachment.source === 'replay'
+      )
+      && (
+        attachment.status === 'materializing'
+        || attachment.status === 'pending_capture'
+        || attachment.status === 'ready'
+        || attachment.status === 'failed'
+      )
+    ))
+    : [];
 }
 
 function normalizeText(value) {
@@ -142,26 +165,19 @@ function buildProjectedToolOutputMessage({
   toolEvent,
 }) {
   const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || {};
-  const screenshot = readString(toolEvent.screenshot);
-  const screenshotRefValue = readString(toolEvent.screenshotRef);
-  const screenshotAttachment = DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment(screenshotRefValue);
-  const screenshotRef = screenshotAttachment.screenshotRef;
-  const screenshotUrl = readString(toolEvent.screenshotUrl) || screenshotAttachment.screenshotUrl;
   const requestId = readString(toolEvent.requestId);
   const correlationId = (
     readString(toolEvent.correlationId)
     || requestId
     || undefined
   );
+  const attachments = normalizeDisplayAttachments(toolEvent.attachments);
   return buildToolOutputChatMessageState({
     id: `${baseId}:tool:${toolEvent.id}`,
     outputText: toolEvent.text || formatProjectedToolOutputText(toolOutputDetails),
     sourceEventType: toolEvent.kind,
     sourceChannel: sdkCurrentTurnSourceChannel,
-    screenshot: screenshotRef ? null : screenshot,
-    screenshotRef,
-    screenshotUrl,
-    screenshotContentType: readString(toolEvent.screenshotContentType),
+    attachments,
     toolMetadata: asObject(toolEvent.toolMetadata),
     toolName: readString(toolEvent.toolName),
     executionTime: typeof toolEvent.executionTime === 'number' ? toolEvent.executionTime : null,
@@ -419,15 +435,13 @@ function buildToolOutputMessage(entry, currentTurnProjection) {
   const toolDetails = asRecord(entry.toolOutputDetails);
   const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
+  const attachments = normalizeDisplayAttachments(entry.attachments);
   return buildToolOutputChatMessageState({
     id: entry.id,
     outputText: text,
     sourceEventType: entry.sourceEventType || 'tool_output',
     sourceChannel: entry.sourceChannel || sdkCurrentTurnSourceChannel,
-    screenshot: normalizeOptionalText(entry.screenshot),
-    screenshotRef: normalizeOptionalText(entry.screenshotRef),
-    screenshotUrl: normalizeOptionalText(entry.screenshotUrl),
-    screenshotContentType: normalizeOptionalText(entry.screenshotContentType),
+    attachments,
     toolMetadata: asRecord(entry.toolMetadata),
     toolName,
     executionTime: typeof entry.executionTime === 'number' ? entry.executionTime : null,

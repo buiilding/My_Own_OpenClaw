@@ -147,6 +147,77 @@ describe('sdkDisplayChatMessageProjection', () => {
     expect(messages[0]).not.toHaveProperty('screenshots');
   });
 
+  test('projects tool-result attachments without forwarding legacy screenshot aliases', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-output-shot',
+        conversationRef: 'conv-tool-shot',
+        index: 0,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'captured screen',
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-06-22T12:00:00.000Z',
+          toolName: 'screenshot',
+          requestId: 'req-shot',
+          screenshotRef: 'legacy-artifact',
+          attachments: [{
+            id: 'tool-output-shot:attachment:000',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotRef: 'artifact-tool-1',
+            screenshotUrl: '/api/artifacts/artifact-tool-1',
+          }],
+        },
+      },
+    ]);
+
+    expect(message).toEqual(expect.objectContaining({
+      id: 'msg-tool-output-shot',
+      type: 'tool-output',
+      attachments: [
+        expect.objectContaining({
+          source: 'tool_result',
+          screenshotRef: 'artifact-tool-1',
+        }),
+      ],
+    }));
+    expect(message).not.toHaveProperty('screenshot');
+    expect(message).not.toHaveProperty('screenshotRef');
+    expect(message).not.toHaveProperty('screenshots');
+  });
+
+  test('does not adapt legacy tool-output screenshot aliases in renderer projection', () => {
+    const [message] = buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'msg-tool-output-legacy-shot',
+        conversationRef: 'conv-tool-shot',
+        index: 0,
+        role: 'tool',
+        type: 'tool_output',
+        content: 'captured screen',
+        metadata: {
+          revisionId: 'rev-1',
+          timestamp: '2026-06-22T12:00:00.000Z',
+          toolName: 'screenshot',
+          requestId: 'req-shot',
+          screenshotRef: 'legacy-artifact',
+        },
+      },
+    ]);
+
+    expect(message).toEqual(expect.objectContaining({
+      id: 'msg-tool-output-legacy-shot',
+      type: 'tool-output',
+    }));
+    expect(message).not.toHaveProperty('attachments');
+    expect(message).not.toHaveProperty('screenshot');
+    expect(message).not.toHaveProperty('screenshotRef');
+    expect(message).not.toHaveProperty('screenshots');
+  });
+
   test('projects multi-image SDK replay attachments into renderer attachments', () => {
     expect(buildChatMessagesFromSdkDisplayRows([
       {

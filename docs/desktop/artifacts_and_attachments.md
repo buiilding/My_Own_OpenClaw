@@ -16,8 +16,8 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
 - Query screenshot resource preparation: `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`
 - SDK resource resolution: `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - SDK visual materialization: `packages/windie-sdk-js/src/runtime/VisualResourceMaterializer.ts`
-- Message screenshot descriptors: `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
-- Message screenshot async image resolution: `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
+- Attachment image async resolution: `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
+- Renderer attachment components: `frontend/src/renderer/features/chat/components/message/content/AttachmentList.jsx` and `frontend/src/renderer/features/chat/components/message/content/AttachmentRendererRegistry.jsx`
 - Main screenshot artifact bridge: `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - Backend routes: `backend/src/api/routes/artifacts/*`
 - Backend store: `backend/src/services/artifacts/store.py`
@@ -50,7 +50,8 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
   visual attachment contract. They do not infer primary user visuals from
   legacy `screenshot`, `screenshotRef`, `screenshotUrl`, or `screenshot_refs`
   fields.
-- Tool-result and backend/provider payload compatibility may still carry
+- Tool-result display rows render through SDK-owned typed `attachments[]`
+  descriptors. Backend/provider payload compatibility may still carry
   `screenshot_ref` or `screenshot_refs` until those durable contracts emit
   ordered `attachments[]`/`display_attachments` directly.
 - Do not make app startup import upload IPC just to construct display image URLs.
@@ -59,10 +60,11 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
 ## Migration
 
 No user-data migration is required for SDK-owned live `attachments[]`
-projection. Existing conversations replay through the SDK/local replay adapter
-that converts legacy screenshot metadata into ordered attachment descriptors;
-delete that adapter after persisted rows and tool-result artifact payloads emit
-ordered `attachments[]`/`display_attachments` directly.
+projection. Existing conversations replay through
+`legacyVisualAttachmentReplayAdapter`, the narrow SDK/local replay adapter that
+converts legacy screenshot metadata into ordered attachment descriptors; delete
+that adapter after persisted rows and tool-result artifact payloads emit ordered
+`attachments[]`/`display_attachments` directly.
 
 ## Deep Docs
 

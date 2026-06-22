@@ -116,7 +116,9 @@ placeholder. Compact pill rendering omits that placeholder because the pill is
 space-constrained.
 
 Tool-result visual attachments are ready artifact-backed descriptors only for
-this ADR. There is no tool-result preview state.
+this ADR. There is no tool-result preview state. Renderer tool-output
+components consume these descriptors through `AttachmentList`; they do not read
+whole-message screenshot aliases as display input.
 
 ### Frontend Shape
 
@@ -180,6 +182,8 @@ metadata.
 - Legacy screenshot aliases may remain only in SDK/local-store replay or
   backend/provider compatibility paths with named dependencies and deletion
   conditions.
+- The retained `legacyVisualAttachmentReplayAdapter` is the named SDK replay
+  compatibility owner for old rows until a durable store migration replaces it.
 
 ## Validation And Docs Impact
 

@@ -105,13 +105,19 @@ describe('MessageContent', () => {
           sender: 'assistant',
           type: 'tool-output',
           text: 'result',
-          screenshotRef: 'artifact-1',
+          attachments: [{
+            id: 'tool-output-1:attachment:000',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotRef: 'artifact-1',
+          }],
         }}
       />,
     );
 
     await waitFor(() => {
-      const image = screen.getByRole('img', { name: 'Screenshot after tool execution' });
+      const image = screen.getByRole('img', { name: 'User message attachment' });
       expect(image.getAttribute('src')).toBe('data:image/png;base64,resolved-artifact-image');
     });
 
@@ -145,7 +151,13 @@ describe('MessageContent', () => {
           sender: 'assistant',
           type: 'tool-output',
           text: 'result',
-          screenshotRef: 'artifact-retry-1',
+          attachments: [{
+            id: 'tool-output-retry:attachment:000',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotRef: 'artifact-retry-1',
+          }],
         }}
       />,
     );
@@ -156,7 +168,7 @@ describe('MessageContent', () => {
       );
       expect(artifactFetchCalls).toHaveLength(1);
     });
-    expect(screen.queryByRole('img', { name: 'Screenshot after tool execution' })).toBeNull();
+    expect(screen.queryByRole('img', { name: 'User message attachment' })).toBeNull();
 
     rerender(
       <MessageContent
@@ -164,13 +176,19 @@ describe('MessageContent', () => {
           sender: 'assistant',
           type: 'tool-output',
           text: 'result',
-          screenshotRef: 'artifact-retry-1',
+          attachments: [{
+            id: 'tool-output-retry:attachment:000',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotRef: 'artifact-retry-1',
+          }],
         }}
       />,
     );
 
     await waitFor(() => {
-      const image = screen.getByRole('img', { name: 'Screenshot after tool execution' });
+      const image = screen.getByRole('img', { name: 'User message attachment' });
       expect(image.getAttribute('src')).toBe('data:image/png;base64,recovered-artifact-image');
     });
 
@@ -212,7 +230,7 @@ describe('MessageContent', () => {
     });
   });
 
-  test('defaults inline screenshot data URL to jpeg when content type missing', () => {
+  test('does not render legacy tool-output screenshot aliases as primary display input', () => {
     render(
       <MessageContent
         message={{
@@ -224,8 +242,8 @@ describe('MessageContent', () => {
       />,
     );
 
-    const image = screen.getByRole('img', { name: 'Screenshot after tool execution' });
-    expect(image.getAttribute('src')).toBe('data:image/jpeg;base64,tool-shot');
+    expect(screen.queryByRole('img', { name: 'User message attachment' })).toBeNull();
+    expect(screen.getByText('result')).toBeInTheDocument();
   });
 
   test('tool output details button reveals model-facing output and details payload', () => {

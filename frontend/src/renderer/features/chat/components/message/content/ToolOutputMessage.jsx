@@ -4,9 +4,7 @@
 
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import {
-  DesktopResolvedMessageScreenshotsRuntime,
-} from '../../../../../app/runtime/desktopResolvedMessageScreenshotsRuntime';
+import AttachmentList from './AttachmentList';
 import HighlightedPlainText from './HighlightedPlainText';
 
 export default function ToolOutputMessage({
@@ -16,7 +14,7 @@ export default function ToolOutputMessage({
   activeFindMatchIndex = null,
 }) {
   const [showDetails, setShowDetails] = useState(false);
-  const screenshotSrc = DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrc(message);
+  const attachments = Array.isArray(message.attachments) ? message.attachments : [];
   const modelFacingOutput = (
     typeof message.modelFacingToolOutput === 'string'
       ? message.modelFacingToolOutput
@@ -55,15 +53,10 @@ export default function ToolOutputMessage({
         findMatchIndexes={findMatchIndexes}
         activeFindMatchIndex={activeFindMatchIndex}
       />
-      {screenshotSrc ? (
+      {attachments.length > 0 ? (
         <div className="tool-screenshot-container">
           <div className="tool-screenshot-header">📸 Screenshot After Action</div>
-          <img
-            src={screenshotSrc}
-            alt="Screenshot after tool execution"
-            className="tool-screenshot-image"
-            loading="lazy"
-          />
+          <AttachmentList attachments={attachments} />
         </div>
       ) : null}
       {showDetails ? (
@@ -81,9 +74,12 @@ export default function ToolOutputMessage({
 ToolOutputMessage.propTypes = {
   message: PropTypes.shape({
     text: PropTypes.string.isRequired,
-    screenshot: PropTypes.string,
-    screenshotUrl: PropTypes.string,
-    screenshotContentType: PropTypes.string,
+    attachments: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      kind: PropTypes.oneOf(['image', 'screenshot_request']).isRequired,
+      source: PropTypes.oneOf(['user_included', 'camera_button', 'tool_result', 'replay']).isRequired,
+      status: PropTypes.oneOf(['materializing', 'pending_capture', 'ready', 'failed']).isRequired,
+    })),
     modelFacingToolOutput: PropTypes.string,
     toolOutputDetails: PropTypes.object,
     toolMetadata: PropTypes.object,

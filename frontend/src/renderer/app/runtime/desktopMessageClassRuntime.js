@@ -2,11 +2,19 @@
  * Provides renderer message row class-name assembly for presentation surfaces.
  */
 
-import { DesktopMessageScreenshotRuntime } from './desktopMessageScreenshotRuntime';
-
-const {
-  hasMessageScreenshot,
-} = DesktopMessageScreenshotRuntime;
+function hasVisualAttachment(message) {
+  return Array.isArray(message?.attachments)
+    && message.attachments.some((attachment) => (
+      attachment
+      && typeof attachment === 'object'
+      && attachment.kind === 'image'
+      && attachment.status === 'ready'
+      && (
+        typeof attachment.screenshotRef === 'string'
+        || typeof attachment.screenshotUrl === 'string'
+      )
+    ));
+}
 
 function buildMessageClassName(message) {
   const classNames = ['message', `message-${message.sender}`];
@@ -19,7 +27,7 @@ function buildMessageClassName(message) {
     classNames.push(`message-type-${message.type}`);
   }
 
-  if (hasMessageScreenshot(message)) {
+  if (hasVisualAttachment(message)) {
     classNames.push('message-has-screenshot');
   }
 

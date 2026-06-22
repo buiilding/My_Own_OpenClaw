@@ -908,6 +908,81 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
+  test('SDK display rows adapt old tool-output screenshot refs into typed tool-result attachments', () => {
+    const rows = buildDisplayRows([
+      event('tool_output', {
+        toolName: 'screenshot',
+        requestId: 'req-shot',
+        result: { output: 'captured screen' },
+        success: true,
+        screenshot_refs: ['artifact-tool-1', 'artifact-tool-2'],
+        screenshot_url: '/api/artifacts/artifact-tool-1',
+        screenshot_content_type: 'image/png',
+      }),
+    ]);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      type: 'tool_output',
+      metadata: expect.objectContaining({
+        attachments: [
+          expect.objectContaining({
+            id: `${rows[0].metadata?.eventId}:attachment:000`,
+            source: 'tool_result',
+            status: 'ready',
+            contentType: 'image/png',
+            screenshotRef: 'artifact-tool-1',
+            screenshotUrl: '/api/artifacts/artifact-tool-1',
+          }),
+          expect.objectContaining({
+            id: `${rows[0].metadata?.eventId}:attachment:001`,
+            source: 'tool_result',
+            status: 'ready',
+            contentType: 'image/png',
+            screenshotRef: 'artifact-tool-2',
+          }),
+        ],
+      }),
+    });
+  });
+
+  test('current turn presentation carries typed tool-output attachments', () => {
+    const projection = buildCurrentTurnProjection([
+      event('turn_started'),
+      event('tool_output', {
+        toolName: 'screenshot',
+        requestId: 'req-shot',
+        result: { output: 'captured screen' },
+        success: true,
+        screenshot_ref: 'artifact-tool-live',
+        screenshot_url: '/api/artifacts/artifact-tool-live',
+      }),
+    ]);
+
+    expect(projection.toolEvents[0]).toEqual(expect.objectContaining({
+      kind: 'tool_output',
+      attachments: [
+        expect.objectContaining({
+          source: 'tool_result',
+          status: 'ready',
+          screenshotRef: 'artifact-tool-live',
+          screenshotUrl: '/api/artifacts/artifact-tool-live',
+        }),
+      ],
+    }));
+    expect(projection.presentation.entries).toEqual([
+      expect.objectContaining({
+        type: 'tool-output',
+        attachments: [
+          expect.objectContaining({
+            source: 'tool_result',
+            screenshotRef: 'artifact-tool-live',
+          }),
+        ],
+      }),
+    ]);
+  });
+
   test('orphan empty-chat greeting is not display or rehydrate history', () => {
     const events = [
       event('conversation_rewritten', { reason: 'retry' }),

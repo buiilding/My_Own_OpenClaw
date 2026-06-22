@@ -840,10 +840,6 @@ describe('renderer chat runtime boundary', () => {
   });
 
   test('chat screenshot presentation builds artifact URLs through app runtime client', async () => {
-    const screenshotSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js'),
-      'utf8',
-    );
     const resolvedScreenshotSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js'),
       'utf8',
@@ -869,11 +865,7 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
 
-    expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.buildArtifactUrl');
-    expect(screenshotSource).not.toContain('RuntimeEndpointStore');
-    expect(screenshotSource).not.toContain('buildRuntimeArtifactUrl');
     for (const source of [
-      screenshotSource,
       resolvedScreenshotSource,
       replayActionsSource,
       composerAttachmentSource,
@@ -882,12 +874,11 @@ describe('renderer chat runtime boundary', () => {
       expect(source).not.toContain('infrastructure/services/screenshotMessageState');
       expect(source).not.toContain('infrastructure/services/ArtifactImageUtils');
     }
-    expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.resolveScreenshotAttachmentState');
-    expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.normalizeArtifactImageContentType');
-    expect(resolvedScreenshotSource).toContain('desktopMessageScreenshotRuntime');
+    expect(resolvedScreenshotSource).not.toContain('desktopMessageScreenshotRuntime');
     expect(resolvedScreenshotSource).toContain('export const DesktopResolvedMessageScreenshotsRuntime = Object.freeze');
-    expect(resolvedScreenshotSource).not.toContain('export function useResolvedMessageScreenshotSrc');
+    expect(resolvedScreenshotSource).not.toContain('useResolvedMessageScreenshotSrc');
     expect(resolvedScreenshotSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
+    expect(resolvedScreenshotSource).toContain('DesktopArtifactRuntimeClient.fetchArtifactImage');
     expect(replayActionsSource).toContain('DesktopArtifactRuntimeClient.resolveReplayScreenshotState');
     expect(composerAttachmentSource).toContain('DesktopArtifactRuntimeClient.resolveArtifactImageExtension');
     expect(chatStreamEventPayloadSource).toContain('DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment');
@@ -1125,7 +1116,7 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
-  test('message row classes, content kinds, and screenshot descriptors stay behind app runtime facades', async () => {
+  test('message row classes, content kinds, and attachment descriptors stay behind app runtime facades', async () => {
     const messageItemSource = await fs.readFile(
       path.join(chatRoot, 'components/message/MessageItem.jsx'),
       'utf8',
@@ -1142,11 +1133,6 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js'),
       'utf8',
     );
-    const screenshotRuntimeSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js'),
-      'utf8',
-    );
-
     expect(messageItemSource).toContain('desktopMessageClassRuntime');
     expect(messageItemSource).toContain('DesktopMessageClassRuntime.buildMessageClassName');
     expect(messageItemSource).not.toContain('utils/message/messageListClasses');
@@ -1161,14 +1147,14 @@ describe('renderer chat runtime boundary', () => {
     expect(messageContentSource).not.toContain("message.type === 'tool-actions-summary'");
     expect(messageContentSource).not.toContain("message.type === 'llm-text'");
     expect(messageContentSource).not.toContain('utils/message/messageScreenshots');
-    expect(classRuntimeSource).toContain('desktopMessageScreenshotRuntime');
     expect(classRuntimeSource).toContain('DesktopMessageClassRuntime');
-    expect(classRuntimeSource).toContain('DesktopMessageScreenshotRuntime');
+    expect(classRuntimeSource).toContain('hasVisualAttachment');
+    expect(classRuntimeSource).toContain('message.attachments');
+    expect(classRuntimeSource).not.toContain('message.screenshot');
     expect(classRuntimeSource).not.toContain('export function buildMessageClassName');
     expect(classRuntimeSource).not.toContain('features/chat');
-    expect(contentRuntimeSource).toContain('desktopMessageScreenshotRuntime');
     expect(contentRuntimeSource).toContain('DesktopMessageContentRuntime');
-    expect(contentRuntimeSource).toContain('DesktopMessageScreenshotRuntime');
+    expect(contentRuntimeSource).toContain('message.attachments');
     expect(contentRuntimeSource).toContain('isErrorMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export function resolveMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export function isErrorMessageContentPresentation');
@@ -1176,17 +1162,14 @@ describe('renderer chat runtime boundary', () => {
     expect(contentRuntimeSource).not.toContain('export function isAssistantResponseMessageContentPresentation');
     expect(contentRuntimeSource).not.toContain('export const MESSAGE_CONTENT_RENDER_KIND');
     expect(contentRuntimeSource).not.toContain('features/chat');
-    expect(screenshotRuntimeSource).toContain('export const DesktopMessageScreenshotRuntime = Object.freeze');
-    expect(screenshotRuntimeSource).not.toContain('export function resolveStaticScreenshotAttachmentSrc');
-    expect(screenshotRuntimeSource).not.toContain('export function resolveMessageScreenshotAttachments');
-    expect(screenshotRuntimeSource).not.toContain('export function hasMessageScreenshot');
-    expect(screenshotRuntimeSource).not.toContain('export function isUserMessageWithScreenshot');
-    expect(screenshotRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageListClasses.js'),
     )).rejects.toThrow();
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageScreenshots.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js'),
     )).rejects.toThrow();
   });
 
@@ -1998,6 +1981,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/content/ToolOutputMessage.jsx'),
       'utf8',
     );
+    const attachmentRegistrySource = await fs.readFile(
+      path.join(chatRoot, 'components/message/content/AttachmentRendererRegistry.jsx'),
+      'utf8',
+    );
     const clientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts'),
       'utf8',
@@ -2012,9 +1999,10 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
     expect(userMessageSource).not.toContain('SHOW_IMAGE_CONTEXT_MENU');
     expect(userMessageSource).not.toContain('IpcBridge.invoke');
-    expect(userMessageSource).toContain('DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrcList');
-    expect(userMessageSource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
-    expect(toolOutputSource).toContain('DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrc');
+    expect(userMessageSource).toContain('AttachmentList');
+    expect(attachmentRegistrySource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
+    expect(toolOutputSource).toContain('AttachmentList');
+    expect(toolOutputSource).not.toContain('DesktopResolvedMessageScreenshotsRuntime.useResolvedMessageScreenshotSrc');
     expect(clientSource).toContain('INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU');
   });
