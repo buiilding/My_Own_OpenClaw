@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: make light-mode dev source badges and transparency panels
+  use readable appearance foreground text on light surfaces instead of dark
+  debug-card colors. No migration required.
 - frontend/renderer: route light-mode chat header utility text, workspace
   labels, icon controls, and selector chevrons through the readable appearance
   foreground so the top bar matches native desktop body text. No migration

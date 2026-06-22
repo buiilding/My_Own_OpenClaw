@@ -256,6 +256,9 @@ stream metadata updates or transparency section rendering.
 - content render-mode and clipboard serialization are resolved by
   `DesktopMessageTransparencyRuntime`, so the component renders the runtime
   presentation model without branching on raw transparency type strings.
+- light appearance uses light transparency panels and the active appearance
+  foreground for the header, metadata, and content text instead of inheriting
+  dark debug-card colors.
 
 Render mode by `type`:
 

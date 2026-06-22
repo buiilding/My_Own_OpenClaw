@@ -50,4 +50,15 @@ describe('tool call rendering CSS', () => {
     expect(contentBody).not.toEqual(expect.stringContaining('color: var(--text-primary);'));
     expect(detailsContentBody).not.toEqual(expect.stringContaining('color: var(--text-primary);'));
   });
+
+  test('uses readable light appearance text for dev source badges and transparency sections', () => {
+    const css = readChatInterfaceCss();
+    const sourceBadgeBody = collectRuleBodies(css, String.raw`:root\[data-agent-theme='light'\]\s*\.message-source-badge,\s*:root\[data-agent-theme='light'\]\s*\.thinking-source-badge`);
+    const transparencyHeaderBody = collectRuleBodies(css, String.raw`:root\[data-agent-theme='light'\]\s*\.transparency-header`);
+    const transparencyContentBody = collectRuleBodies(css, String.raw`:root\[data-agent-theme='light'\]\s*\.transparency-content-text,\s*:root\[data-agent-theme='light'\]\s*\.transparency-content-json`);
+
+    expect(sourceBadgeBody).toEqual(expect.stringContaining('color: var(--appearance-foreground);'));
+    expect(transparencyHeaderBody).toEqual(expect.stringContaining('color: var(--appearance-foreground);'));
+    expect(transparencyContentBody).toEqual(expect.stringContaining('color: var(--appearance-foreground);'));
+  });
 });

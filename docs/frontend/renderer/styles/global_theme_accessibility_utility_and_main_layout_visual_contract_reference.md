@@ -62,6 +62,8 @@ Light-mode readability:
   or translucent desktop surfaces
 - chat header utility controls also route their light-mode text and labels
   through the same foreground token
+- dev-only source badges and transparency panels use the same foreground in
+  light appearance so diagnostic metadata remains readable
 
 Motion baseline:
 

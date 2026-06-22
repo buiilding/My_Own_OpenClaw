@@ -1377,6 +1377,13 @@
   align-self: flex-start;
 }
 
+:root[data-agent-theme='light'] .message-source-badge,
+:root[data-agent-theme='light'] .thinking-source-badge {
+  color: var(--appearance-foreground);
+  border-color: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);
+  background: color-mix(in srgb, var(--appearance-background) 94%, var(--appearance-foreground) 6%);
+}
+
 .assistant-message-actions {
   margin-top: 8px;
   margin-left: -4px;
@@ -2218,6 +2225,34 @@
 
 .transparency-content-json {
   color: #d6dce6;
+}
+
+:root[data-agent-theme='light'] .transparency-section {
+  background: color-mix(in srgb, var(--appearance-background) 92%, #eef5ff 8%);
+  border-color: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);
+  color: var(--appearance-foreground);
+}
+
+:root[data-agent-theme='light'] .transparency-header {
+  background: color-mix(in srgb, var(--appearance-background) 88%, #e5edf7 12%);
+  color: var(--appearance-foreground);
+}
+
+:root[data-agent-theme='light'] .transparency-metadata {
+  border-bottom-color: color-mix(in srgb, var(--appearance-foreground) 14%, transparent 86%);
+}
+
+:root[data-agent-theme='light'] .transparency-metadata-item,
+:root[data-agent-theme='light'] .transparency-metadata-item strong,
+:root[data-agent-theme='light'] .transparency-content-text,
+:root[data-agent-theme='light'] .transparency-content-json {
+  color: var(--appearance-foreground);
+}
+
+:root[data-agent-theme='light'] .transparency-content-text,
+:root[data-agent-theme='light'] .transparency-content-json {
+  background: color-mix(in srgb, var(--appearance-background) 88%, var(--appearance-foreground) 12%);
+  border-color: color-mix(in srgb, var(--appearance-foreground) 14%, transparent 86%);
 }
 
 .thinking-source-badge {

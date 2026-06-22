@@ -109,6 +109,9 @@ Source badge presentation is resolved by
 `MessageSourceBadge` only checks the dev-UI gate and renders the returned
 `badgeText` and `title`.
 
+Light appearance renders source badges with the active appearance foreground so
+dev metadata remains readable against desktop-light surfaces.
+
 Source fallback normalization inside the runtime:
 
 - `sourceEventType`: fallback `transcript`
