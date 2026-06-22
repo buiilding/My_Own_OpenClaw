@@ -63,7 +63,6 @@ frontend/src/renderer/
 │   │   ├── desktopThreadFindRuntime.js # Renderer thread-find match projection facade
 │   │   ├── desktopThreadPresentationRuntime.js # Renderer durable thread plus SDK live current-turn message presentation facade
 │   │   ├── desktopTranscriptionRegionRuntime.ts # Renderer transcription-region edit reconciliation facade
-│   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle resolver/predicate facade
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
 │   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase helper and parity snapshot facade
 │   │   ├── desktopResponseOverlayViewRuntime.ts # Renderer response overlay visibility and layout intent facade

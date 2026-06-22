@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for shared chat loop UI state resolution: overlay-turn lifecycle projection, transport-disconnect recovery watchdog behavior, and dashboard/minimal-pill surface consumers."
 read_when:
-  - When changing `useChatLoopUiState`, `desktopOverlayTurnLifecycleRuntime`, `desktopChatLoopUiRuntime`, or stream-phase-to-UI mapping behavior.
+  - When changing `useChatLoopUiState`, `desktopVisibleTurnLifecycleRuntime`, `desktopChatLoopUiRuntime`, or stream-phase-to-UI mapping behavior.
   - When debugging stuck stop buttons, minimal-pill loop locks, or reconnect races after missing terminal events.
 title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 ---
@@ -10,9 +10,7 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 
 ## Canonical Modules
 
-- `frontend/src/shared/overlay_turn_lifecycle_contract.json`
 - `frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js`
-- `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
@@ -24,7 +22,6 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 - `tests/frontend/DesktopVisibleTurnLifecycleRuntime.test.js`
 - `tests/frontend/ChatLoopUiState.test.js`
 - `tests/frontend/ChatLoopUiStateHook.test.jsx`
-- `tests/frontend/OverlayTurnLifecycle.test.js`
 
 ## Visible Turn Lifecycle Contract (`desktopVisibleTurnLifecycleRuntime.js`)
 
@@ -61,34 +58,15 @@ stamps only renderer-owned visible lifecycle, busy, awaiting, and chatbox
 surface fields. It strips the retired `overlayTurnLifecycle` compatibility
 field instead of adapting visible lifecycle back into overlay lifecycle names.
 
-## Overlay Turn Lifecycle Contract
+## Deleted Overlay Turn Lifecycle Contract
 
-Shared lifecycle source of truth:
-
-- `frontend/src/shared/overlay_turn_lifecycle_contract.json`
-
-Public lifecycle states:
-
-- `idle`
-- `preflight`
-- `awaiting`
-- `active`
-- `terminal`
-
-`DesktopOverlayTurnLifecycleRuntime` exposes only semantic lifecycle value
-getters and predicates. It no longer reduces `phase + isSending` into lifecycle
-state; `DesktopVisibleTurnLifecycleRuntime` owns that visible-state decision.
-
-Busy lifecycle states:
-
-- `preflight`
-- `awaiting`
-- `active`
-
-Awaiting lifecycle states:
-
-- `preflight`
-- `awaiting`
+The older `overlay_turn_lifecycle_contract.json`,
+`desktopOverlayTurnLifecycleRuntime.js`, and `OverlayTurnLifecycle.test.js`
+surfaces were deleted after all production consumers moved to
+`visibleTurnLifecycle.status`. Do not reintroduce overlay lifecycle names such
+as `preflight` as desktop typing or busy state. Use
+`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` for
+local-pending, awaiting, active, terminal, and idle projection.
 
 ## Transport Recovery Runtime (`desktopChatLoopUiRuntime.js`)
 
@@ -291,13 +269,6 @@ longer imports the overlay lifecycle adapter.
 - changed snapshot signatures disarm recovery after reconnect progress
 - stale snapshots keep the recovery watchdog armed until timeout
 
-`tests/frontend/OverlayTurnLifecycle.test.js` validates:
-
-- overlay lifecycle runtime exposes only semantic lifecycle value getters and
-  predicates
-- raw lifecycle constants, phase groups, and `phase + isSending` reducers stay
-  private/removed
-
 `tests/frontend/ChatLoopUiStateHook.test.jsx` validates:
 
 - active-loop disconnect immediately forces transport idle
@@ -307,7 +278,7 @@ longer imports the overlay lifecycle adapter.
 
 ## Drift Hotspots
 
-1. Changing phase groups in `overlay_turn_lifecycle_contract.json` without updating the renderer lifecycle resolver can desync preflight/awaiting/active transitions.
+1. Reintroducing overlay lifecycle names or `phase + isSending` reducers can split desktop typing state away from `DesktopVisibleTurnLifecycleRuntime`.
 2. Removing snapshot-signature progress detection can cause false watchdog idle resets during valid reconnect recovery.
 3. Treating transport disconnection as non-terminal in lifecycle projection can leave dashboard/chatbox permanently loop-locked after backend outages.
 

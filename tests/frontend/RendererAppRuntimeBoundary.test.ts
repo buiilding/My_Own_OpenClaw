@@ -7,6 +7,8 @@ import path from 'node:path';
 
 const appRoot = path.resolve(__dirname, '../../frontend/src/renderer/app');
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
+const sharedRoot = path.resolve(__dirname, '../../frontend/src/shared');
+const testRoot = path.resolve(__dirname);
 const allowedRelativePaths = new Set<string>();
 const allowedSdkOwnedInternalChannelPaths = new Set([
   'infrastructure/ipc/channels.ts',
@@ -620,13 +622,13 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
-  test('overlay turn lifecycle contract stays behind the app runtime facade', async () => {
-    const lifecycleRuntimeSource = await fs.readFile(
-      path.join(appRoot, 'runtime/desktopOverlayTurnLifecycleRuntime.js'),
-      'utf8',
-    );
+  test('legacy overlay turn lifecycle contract stays deleted', async () => {
     const chatLoopUiStateSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopChatLoopUiRuntime.js'),
+      'utf8',
+    );
+    const visibleLifecycleRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopVisibleTurnLifecycleRuntime.js'),
       'utf8',
     );
     const responseViewRuntimeSource = await fs.readFile(
@@ -650,17 +652,15 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(lifecycleRuntimeSource).toContain('overlay_turn_lifecycle_contract.json');
-    expect(lifecycleRuntimeSource).not.toContain('features/chat');
-    expect(lifecycleRuntimeSource).not.toContain('export const OVERLAY_TURN_LIFECYCLE');
-    expect(lifecycleRuntimeSource).toContain('export const DesktopOverlayTurnLifecycleRuntime = Object.freeze');
-    expect(lifecycleRuntimeSource).toContain('getIdleOverlayTurnLifecycle');
-    expect(lifecycleRuntimeSource).toContain('isOverlayTurnLifecycleActive');
-    expect(lifecycleRuntimeSource).toContain('isOverlayTurnLifecycleBusy');
-    expect(lifecycleRuntimeSource).not.toContain('resolveOverlayTurnLifecycle');
-    expect(lifecycleRuntimeSource).not.toContain('export function resolveOverlayTurnLifecycle');
-    expect(lifecycleRuntimeSource).not.toContain('export function getIdleOverlayTurnLifecycle');
-    expect(lifecycleRuntimeSource).not.toContain('export function isOverlayTurnLifecycleBusy');
+    await expect(fs.stat(
+      path.join(appRoot, 'runtime/desktopOverlayTurnLifecycleRuntime.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(sharedRoot, 'overlay_turn_lifecycle_contract.json'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(testRoot, 'OverlayTurnLifecycle.test.js'),
+    )).rejects.toThrow();
     expect(chatLoopUiStateSource).not.toContain('OVERLAY_TURN_LIFECYCLE');
     expect(chatLoopUiStateSource).not.toContain('features/chat');
     expect(chatLoopUiStateSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
@@ -677,7 +677,9 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationHookSource).not.toContain('useChatLoopTransportState');
     expect(currentTurnPresentationHookSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
     expect(currentTurnPresentationHookSource).not.toContain('resolveOverlayTurnLifecycle');
-    expect(lifecycleRuntimeSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
+    expect(visibleLifecycleRuntimeSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
+    expect(visibleLifecycleRuntimeSource).not.toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(visibleLifecycleRuntimeSource).not.toContain('DesktopOverlayTurnLifecycleRuntime');
     expect(chatSurfaceControllerSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
     expect(overlayViewModelSource).not.toContain('resolveVisibleTurnLifecycleForPresentation');
     expect(overlayViewModelSource).not.toContain('desktopOverlayTurnLifecycleRuntime');

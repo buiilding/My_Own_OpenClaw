@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for renderer response-overlay utility modules: shared phase-contract JSON parity, removed responseOverlayPhasePayload parser behavior, layout-mode resolution, and frame-size measurement semantics."
 read_when:
-  - When changing `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`, `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`, `frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`, or `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`.
+  - When changing `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`, `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`, or `frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`.
   - When debugging overlay phase payload drops, renderer/main phase-contract drift, or response overlay sizing regressions.
   - When resolving stale references to removed `responseOverlayPhasePayload.js` or `ResponseOverlayPhasePayload.test.js` files.
 title: "Response Overlay Utility Contract Reference"
@@ -13,11 +13,9 @@ title: "Response Overlay Utility Contract Reference"
 
 - `frontend/src/shared/response_overlay_phase_contract.json`
 - `frontend/src/shared/response_overlay_layout_contract.json`
-- `frontend/src/shared/overlay_turn_lifecycle_contract.json`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`
-- `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`
 - `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`
 - `tests/frontend/ResponseOverlayPhaseContract.test.js`
 - `tests/frontend/OverlayPhaseContractParity.test.js`
@@ -84,42 +82,16 @@ payload behavior is owned by:
 
 Searches for the removed parser or test should route here.
 
-## Turn Lifecycle Contract
+## Deleted Turn Lifecycle Adapter
 
-Shared lifecycle source of truth:
-
-- `frontend/src/shared/overlay_turn_lifecycle_contract.json`
-
-Renderer adapter:
-
-- `desktopOverlayTurnLifecycleRuntime.js` keeps the raw lifecycle table private
-  behind `DesktopOverlayTurnLifecycleRuntime`.
-- `getIdleOverlayTurnLifecycle()`, `getPreflightOverlayTurnLifecycle()`,
-  `getAwaitingOverlayTurnLifecycle()`, `getActiveOverlayTurnLifecycle()`, and
-  `getTerminalOverlayTurnLifecycle()` expose semantic lifecycle values for
-  callers that need to create fixture, adapter, or SDK-derived lifecycle
-  values.
-- `isOverlayTurnLifecycleIdle(...)`, `isOverlayTurnLifecycleAwaiting(...)`,
-  `isOverlayTurnLifecycleActive(...)`, `isOverlayTurnLifecycleTerminal(...)`,
-  and `isOverlayTurnLifecycleBusy(...)` keep app and feature code on
-  behavior-level checks through the facade instead of importing raw lifecycle
-  tables or standalone helper exports.
-
-Important behavior:
-
-- visible lifecycle status is mapped to overlay lifecycle values by
-  `DesktopVisibleTurnLifecycleRuntime`.
-- renderer-local `isSending` and main-process overlay phase do not directly
-  resolve overlay lifecycle in this adapter.
-- terminal, preflight, awaiting, and active decisions belong to the visible
-  lifecycle owner before this adapter exposes the legacy overlay lifecycle
-  value.
-
-Purpose:
-
-- keep `useCurrentTurnPresentationState`, `ChatBox`, `ChatInterface`, and
-  `ChatBoxResponse` on one shared turn-lifecycle contract derived from SDK
-  current-turn projection instead of each reducing overlay phase independently
+The renderer no longer has `overlay_turn_lifecycle_contract.json` or
+`desktopOverlayTurnLifecycleRuntime.js`. Response overlay state consumes
+`DesktopVisibleTurnLifecycleRuntime` output and
+`DesktopResponseOverlayViewRuntime.resolveResponseOverlayViewContract(...)`
+directly. Searches for `getIdleOverlayTurnLifecycle(...)`,
+`isOverlayTurnLifecycleBusy(...)`, or overlay lifecycle names such as
+`preflight` should route to the visible lifecycle owner instead of adding a new
+adapter layer.
 
 ## Layout-Mode Resolver Contract
 

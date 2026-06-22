@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the unused
+  `DesktopOverlayTurnLifecycleRuntime`, its shared overlay lifecycle JSON
+  contract, and the stale helper test now that renderer surfaces consume
+  `DesktopVisibleTurnLifecycleRuntime` directly. No migration required.
 - frontend/renderer: remove the legacy `overlayTurnLifecycle` presentation
   field from visible lifecycle stamping and response overlay traces; renderer
   surfaces now carry `visibleTurnLifecycle` plus busy/awaiting fields without

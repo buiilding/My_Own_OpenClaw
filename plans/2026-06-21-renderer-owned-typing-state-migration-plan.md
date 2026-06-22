@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-21 Overlay Lifecycle Runtime Deletion
+
+- Finding: after visible lifecycle stopped stamping `overlayTurnLifecycle`, the
+  JSON-backed `DesktopOverlayTurnLifecycleRuntime` had no production consumers;
+  only its dedicated test and documentation still kept the legacy
+  preflight/awaiting/active/terminal overlay lifecycle contract alive.
+- Change: deleted `desktopOverlayTurnLifecycleRuntime.js`,
+  `overlay_turn_lifecycle_contract.json`, and `OverlayTurnLifecycle.test.js`.
+  Boundary tests now assert those files stay removed, and renderer docs route
+  stale overlay lifecycle searches to `DesktopVisibleTurnLifecycleRuntime`.
+- Validation target: `RendererAppRuntimeBoundary.test.ts`,
+  `DesktopVisibleTurnLifecycleRuntime.test.js`, `ChatLoopUiState.test.js`,
+  and response-overlay focused tests protect visible lifecycle and transport
+  recovery without the old overlay lifecycle facade.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-21 Visible Lifecycle Overlay Field Deletion
 
 - Finding: after response overlay view logic moved to
