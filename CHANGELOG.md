@@ -11,6 +11,12 @@ All notable changes to WindieOS will be documented in this file.
   high-contrast settings toggle/destructive-control state tokens, with the
   renderer light-appearance route registered in the user-facing regression
   pack. No migration required.
+- docs/plans: add the typed visual attachments full cleanup plan for migrating
+  replay, tool-output visuals, backend payloads, and renderer helpers to one
+  ordered attachment contract before deleting legacy screenshot compatibility,
+  with explicit non-regression gates preserving old conversation screenshots,
+  tool-output visuals, rehydrate model visibility, multi-image ordering,
+  failure states, and preview-byte privacy. No migration required.
 - docs/plans: add the dynamic appearance editor and message color plan for
   collapsing Appearance settings to one effective-theme editor, adding
   user-message pill background/text colors, unifying light-mode foreground
