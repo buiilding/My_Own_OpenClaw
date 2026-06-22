@@ -2,7 +2,7 @@
  * Resolves message screenshot sources, including asynchronous artifact images.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
 import {
   DesktopMessageScreenshotRuntime,
@@ -23,6 +23,21 @@ function buildArtifactCacheKey(attachment) {
     return attachment.screenshotRef.trim();
   }
   return DesktopArtifactRuntimeClient.inferArtifactRefFromUrl(attachment.screenshotUrl);
+}
+
+function normalizeContinuityKey(value) {
+  return typeof value === 'string' && value.trim()
+    ? value.trim()
+    : null;
+}
+
+function messageScreenshotContinuityKey(message) {
+  if (!message || typeof message !== 'object') {
+    return null;
+  }
+  return normalizeContinuityKey(message.turnRef)
+    ?? normalizeContinuityKey(message.id)
+    ?? null;
 }
 
 async function resolveArtifactAttachmentSrc(attachment) {
@@ -61,6 +76,7 @@ async function resolveArtifactAttachmentSrc(attachment) {
 
 function useResolvedMessageScreenshotSrcList(message) {
   const attachments = useMemo(() => resolveMessageScreenshotAttachments(message), [message]);
+  const continuityKey = useMemo(() => messageScreenshotContinuityKey(message), [message]);
   const initialSources = useMemo(
     () => attachments
       .map((attachment) => resolveStaticScreenshotAttachmentSrc(attachment))
@@ -68,9 +84,17 @@ function useResolvedMessageScreenshotSrcList(message) {
     [attachments],
   );
   const [resolvedSources, setResolvedSources] = useState(initialSources);
+  const previousContinuityKeyRef = useRef(continuityKey);
 
   useEffect(() => {
     let cancelled = false;
+    const previousContinuityKey = previousContinuityKeyRef.current;
+    previousContinuityKeyRef.current = continuityKey;
+    const isSameMessageContinuity = (
+      previousContinuityKey !== null
+      && continuityKey !== null
+      && previousContinuityKey === continuityKey
+    );
     const needsArtifactResolution = attachments.some(
       (attachment) => !resolveStaticScreenshotAttachmentSrc(attachment),
     );
@@ -100,7 +124,9 @@ function useResolvedMessageScreenshotSrcList(message) {
       );
     }
 
-    setResolvedSources(initialSources);
+    if (initialSources.length > 0 || !isSameMessageContinuity) {
+      setResolvedSources(initialSources);
+    }
     void resolveSources();
 
     return () => {

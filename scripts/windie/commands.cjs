@@ -134,6 +134,7 @@ const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'DesktopCurrentTurnProjectionEffectsRuntime.test.ts',
   'LiveTurnSurfaceState.test.js',
   'ChatMessageSender.test.tsx',
+  'DesktopResolvedMessageScreenshotsRuntime.test.jsx',
   'ChatStore.test.ts',
   'ChatSurfaceController.test.jsx',
   'ChatInterfaceWiring.test.jsx',

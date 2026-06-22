@@ -46,6 +46,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: keep same-turn inline screenshot sources visible while
+  artifact-backed replacements fetch so user-included image attachments do not
+  briefly disappear after SDK metadata arrives. No migration required.
 - frontend/renderer: keep optimistic user-provided images visible when a
   same-turn SDK text-only user row arrives before SDK artifact screenshot
   metadata. No migration required.
