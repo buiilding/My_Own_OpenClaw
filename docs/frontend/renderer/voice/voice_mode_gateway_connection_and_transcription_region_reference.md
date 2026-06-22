@@ -11,6 +11,7 @@ title: "Voice Mode Gateway Connection and Transcription Region Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
@@ -76,6 +77,11 @@ Reconnect policy:
 - max 5 attempts
 - exponential delay (`1s, 2s, 4s, 8s, 16s`)
 - reconnect only while hook remains enabled
+- reconnect timer scheduling, replacement, missing-adapter fallback, and cleanup
+  route through
+  `DesktopVoiceRuntimeClient.scheduleTranscriptionReconnectTimer(...)` and
+  `clearTranscriptionReconnectTimer(...)`; the hook owns enabled state,
+  attempt count, and reconnect callbacks
 
 ## Audio Capture Pipeline
 
@@ -119,7 +125,7 @@ Optimization:
 Shutdown path (`stopAudioCapture` + `disconnectWebSocket`):
 
 - invalidate any pending capture start before it can mark recording active
-- clear reconnect timer
+- clear reconnect timer through `DesktopVoiceRuntimeClient`
 - disconnect processor/source nodes
 - null `AudioWorkletNode.port.onmessage`
 - stop media tracks

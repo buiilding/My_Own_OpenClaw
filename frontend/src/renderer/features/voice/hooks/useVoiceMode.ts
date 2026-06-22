@@ -62,7 +62,7 @@ export function useVoiceMode(
     setSourceNodeRef,
     setProcessorNodeRef,
   } = useAudioCaptureRefs();
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const isRecordingRef = useRef(false);
   const isStartingCaptureRef = useRef(false);
@@ -72,10 +72,7 @@ export function useVoiceMode(
   const onUtteranceEndRef = useLatestRef(onUtteranceEnd);
 
   const clearReconnectTimeout = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
+    DesktopVoiceRuntimeClient.clearTranscriptionReconnectTimer(reconnectTimeoutRef);
   }, []);
 
   const logUnexpectedAudioContextCloseError = useCallback((err: unknown) => {
@@ -178,12 +175,15 @@ export function useVoiceMode(
           attempt,
         });
 
-        clearReconnectTimeout();
-        reconnectTimeoutRef.current = setTimeout(() => {
-          if (enabledRef.current) {
-            connectWebSocket();
-          }
-        }, delay) as any;
+        DesktopVoiceRuntimeClient.scheduleTranscriptionReconnectTimer({
+          timerRef: reconnectTimeoutRef,
+          callback: () => {
+            if (enabledRef.current) {
+              connectWebSocket();
+            }
+          },
+          delayMs: delay,
+        });
       };
     } catch (err) {
       console.error('[VoiceMode] Error creating WebSocket:', err);

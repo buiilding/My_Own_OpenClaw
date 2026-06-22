@@ -50,10 +50,18 @@ describe('renderer voice runtime boundary', () => {
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionStartOverIfOpen');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionAudioMessageIfOpen');
     expect(source).toContain('DesktopVoiceRuntimeClient.closeTranscriptionWebSocket');
+    expect(source).toContain('DesktopVoiceRuntimeClient.scheduleTranscriptionReconnectTimer');
+    expect(source).toContain('DesktopVoiceRuntimeClient.clearTranscriptionReconnectTimer');
+    expect(runtimeSource).toContain('scheduleTranscriptionReconnectTimer');
+    expect(runtimeSource).toContain('clearTranscriptionReconnectTimer');
+    expect(runtimeSource).toContain('setTimeout');
+    expect(runtimeSource).toContain('clearTimeout');
     expect(source).not.toContain('buildTranscriptionWebSocketUrl');
     expect(source).not.toContain('new WebSocket');
     expect(source).not.toContain('.readyState');
     expect(source).not.toContain('.close()');
+    expect(source).not.toContain('setTimeout(');
+    expect(source).not.toContain('clearTimeout(');
     expect(source).not.toContain('websocketRef.current.send');
     expect(source).not.toContain('JSON.parse');
     expect(source).not.toContain('switch (data.type)');

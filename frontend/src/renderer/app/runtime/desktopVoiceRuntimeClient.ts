@@ -78,6 +78,17 @@ export type WakewordToggleState = {
   enabled: boolean;
 };
 
+type VoiceReconnectTimerId = ReturnType<typeof setTimeout>;
+
+type VoiceTimerApi = {
+  setTimeout?: (callback: () => void, delayMs: number) => VoiceReconnectTimerId;
+  clearTimeout?: (timerId: VoiceReconnectTimerId) => void;
+};
+
+type VoiceTimerRef = {
+  current: VoiceReconnectTimerId | null;
+};
+
 function parseBoolean(value: unknown): boolean {
   return value === true || value === 'true';
 }
@@ -182,6 +193,10 @@ function resolveWakewordToggleState(
   return { enabled: source.enabled };
 }
 
+function resolveVoiceTimerApi(timerApi?: VoiceTimerApi | null): VoiceTimerApi {
+  return timerApi || globalThis;
+}
+
 /**
  * Renderer voice command facade for the SDK runtime hosted by Electron main.
  */
@@ -264,6 +279,42 @@ export const DesktopVoiceRuntimeClient = {
 
   closeTranscriptionWebSocket(websocket: WebSocket | null | undefined): void {
     websocket?.close();
+  },
+
+  clearTranscriptionReconnectTimer(
+    timerRef: VoiceTimerRef,
+    timerApi?: VoiceTimerApi | null,
+  ): void {
+    if (!timerRef.current) {
+      return;
+    }
+    const api = resolveVoiceTimerApi(timerApi);
+    if (typeof api.clearTimeout === 'function') {
+      api.clearTimeout(timerRef.current);
+    }
+    timerRef.current = null;
+  },
+
+  scheduleTranscriptionReconnectTimer({
+    timerRef,
+    callback,
+    delayMs,
+    timerApi,
+  }: {
+    timerRef: VoiceTimerRef;
+    callback: () => void;
+    delayMs: number;
+    timerApi?: VoiceTimerApi | null;
+  }): VoiceReconnectTimerId | null {
+    this.clearTranscriptionReconnectTimer(timerRef, timerApi);
+    const api = resolveVoiceTimerApi(timerApi);
+    if (typeof api.setTimeout !== 'function') {
+      callback();
+      return null;
+    }
+    const timerId = api.setTimeout(callback, delayMs);
+    timerRef.current = timerId;
+    return timerId;
   },
 
   sendDefaultTranscriptionLanguage(websocket: WebSocket): void {

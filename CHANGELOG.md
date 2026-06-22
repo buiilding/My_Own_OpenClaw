@@ -83,6 +83,9 @@ All notable changes to WindieOS will be documented in this file.
   and search debounce timers through `DesktopDashboardConversationLoadRuntime`,
   keeping raw browser timeout calls out of `useDashboardConversations`. No
   migration required.
+- frontend/renderer: route voice-mode reconnect backoff timers through
+  `DesktopVoiceRuntimeClient`, keeping raw browser timeout calls out of
+  `useVoiceMode`. No migration required.
 - frontend/renderer: delete the duplicate `showAssistantAwaitingDot`
   presentation field; dashboard awaiting placement now stays on the concrete
   `awaitingDotTargetMessageId` anchor. No migration required.

@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Voice Reconnect Timer Runtime
+
+- Finding: `useVoiceMode` already delegated transcription gateway protocol,
+  socket creation/close, message dispatch, and audio sends to
+  `DesktopVoiceRuntimeClient`, but still owned raw browser timeout
+  scheduling/cleanup for reconnect backoff.
+- Change: extended `DesktopVoiceRuntimeClient` with reconnect timer
+  schedule/clear helpers and routed the hook through them. The hook keeps
+  enabled state, attempt counts, and reconnect callbacks while the app-runtime
+  client owns browser timer adapters.
+- Validation target: focused voice runtime client, voice-mode hook, and renderer
+  voice-boundary tests protect timer replacement, cleanup, missing-adapter
+  fallback, reconnect behavior, and rejection of raw timeout calls in the hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-22 Dashboard Conversation Timer Runtime
 
 - Finding: `useDashboardConversations` already delegated recent-list

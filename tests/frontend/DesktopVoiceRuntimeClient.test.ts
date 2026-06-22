@@ -158,6 +158,49 @@ describe('DesktopVoiceRuntimeClient', () => {
     expect(websocket.send).toHaveBeenNthCalledWith(2, '{"type":"start_over"}');
   });
 
+  test('owns transcription reconnect timer scheduling and cleanup', () => {
+    let nextTimerId = 0;
+    const timerApi = {
+      setTimeout: jest.fn(() => {
+        nextTimerId += 1;
+        return `timer-${nextTimerId}`;
+      }),
+      clearTimeout: jest.fn(),
+    };
+    const timerRef = {
+      current: 'old-timer' as unknown as ReturnType<typeof setTimeout> | null,
+    };
+    const callback = jest.fn();
+
+    const timerId = DesktopVoiceRuntimeClient.scheduleTranscriptionReconnectTimer({
+      timerRef,
+      callback,
+      delayMs: 500,
+      timerApi,
+    });
+
+    expect(timerId).toBe('timer-1');
+    expect(timerRef.current).toBe('timer-1');
+    expect(timerApi.clearTimeout).toHaveBeenCalledWith('old-timer');
+    expect(timerApi.setTimeout).toHaveBeenCalledWith(callback, 500);
+
+    DesktopVoiceRuntimeClient.clearTranscriptionReconnectTimer(timerRef, timerApi);
+
+    expect(timerApi.clearTimeout).toHaveBeenCalledWith('timer-1');
+    expect(timerRef.current).toBeNull();
+
+    const fallbackCallback = jest.fn();
+    const fallbackTimerRef = { current: null };
+    expect(DesktopVoiceRuntimeClient.scheduleTranscriptionReconnectTimer({
+      timerRef: fallbackTimerRef,
+      callback: fallbackCallback,
+      delayMs: 100,
+      timerApi: {},
+    })).toBeNull();
+    expect(fallbackCallback).toHaveBeenCalledTimes(1);
+    expect(fallbackTimerRef.current).toBeNull();
+  });
+
   test('owns transcription socket state, close, and conditional sends', () => {
     const openWebsocket = {
       readyState: WebSocket.OPEN,
