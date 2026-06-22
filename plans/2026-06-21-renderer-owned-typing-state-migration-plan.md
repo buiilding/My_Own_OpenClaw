@@ -9,6 +9,22 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Retired Overlay Lifecycle Scrubber Deletion
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
+  still cloned presentation state through a compatibility scrubber whose only
+  purpose was deleting a retired `overlayTurnLifecycle` field, even though no
+  production renderer owner produces that field anymore.
+- Change: removed the scrubber and its legacy-field unit fixture, and tightened
+  renderer boundary coverage so the visible lifecycle runtime cannot reintroduce
+  the retired overlay lifecycle name.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js` and
+  `RendererAppRuntimeBoundary.test.ts` protect the presentation stamping
+  contract without preserving a legacy payload adapter.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Dashboard Thread Tool-Log Input Deletion
 
 - Finding: `ChatInterface` still read `config.show_tool_logs` and passed

@@ -55,8 +55,9 @@ Local pending rendering requires a valid renderer `pendingTurn`; bare
 visible typing or busy lifecycle by itself.
 `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
 stamps only renderer-owned visible lifecycle, busy, awaiting, and chatbox
-surface fields. It strips the retired `overlayTurnLifecycle` compatibility
-field instead of adapting visible lifecycle back into overlay lifecycle names.
+surface fields. It no longer preserves a compatibility scrubber for retired
+overlay lifecycle payloads; the renderer contract is that those fields are not
+produced.
 
 ## Deleted Overlay Turn Lifecycle Contract
 

@@ -270,12 +270,8 @@ function shouldUseLocalPendingTurn({
 }
 
 function applyVisibleTurnLifecycleToPresentationState(presentationState, visibleTurnLifecycle) {
-  const presentationStateWithoutRetiredOverlayLifecycle = {
-    ...(presentationState || {}),
-  };
-  delete presentationStateWithoutRetiredOverlayLifecycle.overlayTurnLifecycle;
   const nextState = {
-    ...presentationStateWithoutRetiredOverlayLifecycle,
+    ...(presentationState || {}),
     visibleTurnLifecycle,
     isBusy: visibleTurnLifecycle?.isBusy === true,
   };

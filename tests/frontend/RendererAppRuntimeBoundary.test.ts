@@ -530,7 +530,7 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).not.toContain("'send-preflight'");
     expect(visibleLifecycleSource).toContain('shouldUseLocalPendingTurn');
     expect(visibleLifecycleSource).not.toContain('shouldUseLocalSendPreflight');
-    expect(visibleLifecycleSource).toContain('presentationStateWithoutRetiredOverlayLifecycle');
+    expect(visibleLifecycleSource).not.toContain('overlayTurnLifecycle');
     expect(visibleLifecycleSource).not.toContain('presentationStateWithoutLegacyLifecycle');
     expect(overlayRuntimeDoc).toContain('overlay-compatible phase, busy, awaiting, and response fields');
     expect(overlayRuntimeDoc).not.toContain('legacy overlay phase');

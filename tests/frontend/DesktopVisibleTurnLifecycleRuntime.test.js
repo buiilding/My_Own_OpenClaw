@@ -331,7 +331,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         mode: 'awaiting',
       },
     });
-    expect(localPendingPresentation.overlayTurnLifecycle).toBeUndefined();
 
     const activePresentation = applyVisibleTurnLifecycleToPresentationState({
       isBusy: true,
@@ -352,10 +351,8 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       awaitingDotTargetMessageId: null,
       chatboxSurfaceState: 'response',
     });
-    expect(activePresentation.overlayTurnLifecycle).toBeUndefined();
 
     const terminalPresentation = applyVisibleTurnLifecycleToPresentationState({
-      overlayTurnLifecycle: 'active',
       isBusy: true,
       awaitingDotTargetMessageId: 'user-local',
     }, {
@@ -372,7 +369,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       isBusy: false,
       awaitingDotTargetMessageId: null,
     });
-    expect(terminalPresentation.overlayTurnLifecycle).toBeUndefined();
   });
 
   test('centralizes local pending-turn handoff for live surface consumers', () => {

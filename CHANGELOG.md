@@ -71,6 +71,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the retired `overlayTurnLifecycle` compatibility
+  scrubber from visible lifecycle presentation stamping; renderer production
+  code now keeps the old overlay lifecycle name out of the contract instead of
+  adapting or stripping it. No migration required.
 - frontend/renderer: delete unused `showToolLogs` and `isBusy` inputs from
   dashboard thread presentation, keeping tool rows as rendering data instead
   of tool-log or busy lifecycle branches. No migration required.
