@@ -89,7 +89,7 @@ describe('current turn projection side effects', () => {
     expect(deps.setIsSending).toHaveBeenCalledWith(true, 'conv-1');
   });
 
-  test('does not clear sending for overlay intent without visible content', () => {
+  test('does not clear sending for presentation flags without visible content', () => {
     const deps = createDeps();
     const awaitingCursor = applyCurrentTurnProjectionSideEffects({
       conversationRef: 'conv-1',
@@ -108,6 +108,7 @@ describe('current turn projection side effects', () => {
           turnRef: 'turn-1',
           phase: 'streaming',
           entries: [],
+          hasVisibleContent: true,
           isBusy: true,
           isTerminal: false,
           lastError: null,

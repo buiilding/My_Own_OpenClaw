@@ -186,7 +186,8 @@ Primary files:
 Functionality:
 
 - Entry view routing:
-  - `main.jsx` selects root by `?view=` (`App`, `minimal-chat-pill`, `minimal-response-overlay`, `tool-ghost-debug`).
+  - `main.jsx` selects root by `?view=` through `desktopStartupRuntimeClient.ts`
+    (`App`, `minimal-chat-pill`, `minimal-response-overlay`, `tool-ghost-debug`).
 - Mounts provider stack (`AppConfigProvider` + `AppStatusProvider` + `ChatProvider`).
 - Loads/syncs renderer config through disk, localStorage, and backend `update-settings`.
 - Uses provider-layer diff/merge guards to avoid redundant writes and stale config merges.

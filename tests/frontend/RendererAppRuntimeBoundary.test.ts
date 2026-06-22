@@ -530,6 +530,7 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).not.toContain('showResponse');
     expect(liveSurfaceSource).not.toContain('typingVisible');
     expect(liveSurfaceSource).not.toContain('overlayVisible');
+    expect(liveSurfaceSource).not.toContain('hasVisibleContent');
     expect(liveSurfaceSource).not.toContain('overlayIntent.mode ===');
     expect(liveSurfaceSource).not.toContain('useLocalSendLatch');
     expect(liveSurfaceSource).not.toContain('shouldUseSendPreflight');
@@ -607,6 +608,7 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).not.toContain('loopUiState');
     expect(currentTurnPresentationSource).not.toContain('showChatboxAwaitingReply');
     expect(currentTurnPresentationSource).not.toContain('showChatboxResponse');
+    expect(currentTurnPresentationSource).not.toContain('hasVisibleContent');
     expect(currentTurnPresentationSource).not.toContain('fallbackState');
     expect(overlayViewModelSource).not.toContain('fallbackState');
     expect(currentTurnMessageSource).not.toContain('features/chat');
@@ -1262,12 +1264,22 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopInteractionRuntimeClient.ts'),
       'utf8',
     );
+    const startupClientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopStartupRuntimeClient.ts'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('DesktopInteractionRuntimeClient.installInteractionLogger');
+    expect(mainSource).toContain('DesktopStartupRuntimeClient.getRendererEntrypointView');
     expect(mainSource).not.toContain('infrastructure/interaction/rendererInteractionLogger');
     expect(mainSource).not.toContain('installRendererInteractionLogger');
+    expect(mainSource).not.toContain('window.location.search');
+    expect(mainSource).not.toContain('new URLSearchParams');
     expect(clientSource).toContain('installRendererInteractionLogger()');
     expect(clientSource).toContain('logUserSentMessage(details)');
+    expect(startupClientSource).toContain('getRendererEntrypointView');
+    expect(startupClientSource).toContain('shouldSuppressWakewordOnStartup');
+    expect(startupClientSource).toContain('new URLSearchParams');
   });
 
   test('app providers read latest-ref helper through renderer hooks runtime client', async () => {
@@ -1322,8 +1334,11 @@ describe('renderer app runtime boundary', () => {
     expect(appProviderSource).not.toContain('window.addEventListener');
     expect(appProviderSource).not.toContain('window.removeEventListener');
     expect(appConfigProviderSource).toContain('DesktopAppProviderRuntime.subscribeToAppConfigStorageEvents');
+    expect(appConfigProviderSource).toContain('DesktopStartupRuntimeClient.shouldSuppressWakewordOnStartup');
     expect(appConfigProviderSource).not.toContain('window.addEventListener');
     expect(appConfigProviderSource).not.toContain('window.removeEventListener');
+    expect(appConfigProviderSource).not.toContain('window.location.search');
+    expect(appConfigProviderSource).not.toContain('new URLSearchParams');
     expect(appStatusProviderSource).toContain('DesktopAppProviderRuntime.scheduleProviderTimer');
     expect(appStatusProviderSource).toContain('DesktopAppProviderRuntime.clearProviderTimer');
     expect(appStatusProviderSource).not.toContain('setTimeout(');

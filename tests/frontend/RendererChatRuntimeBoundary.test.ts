@@ -919,6 +919,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).toContain('DesktopStartupRuntimeClient.isVmModeEnabled');
     expect(chatInterfaceSource).not.toContain('infrastructure/runtime/vmMode');
     expect(startupClientSource).toContain('isVmModeEnabled');
+    expect(startupClientSource).toContain('getRendererEntrypointView');
+    expect(startupClientSource).toContain('shouldSuppressWakewordOnStartup');
   });
 
   test('dashboard conversation hook subscribes through app runtime conversation event client', async () => {
@@ -1844,8 +1846,10 @@ describe('renderer chat runtime boundary', () => {
     expect(stopRuntimeSource).toContain('DesktopStopTurnRuntime');
     expect(stopRuntimeSource).toContain('delete nextPresentation.typingVisible');
     expect(stopRuntimeSource).toContain('delete nextPresentation.overlayVisible');
+    expect(stopRuntimeSource).toContain('delete nextPresentation.hasVisibleContent');
     expect(stopRuntimeSource).not.toContain('typingVisible: false');
     expect(stopRuntimeSource).not.toContain('overlayVisible: hasVisibleContent');
+    expect(stopRuntimeSource).not.toContain('presentation?.hasVisibleContent');
     expect(stopRuntimeSource).not.toContain('export function buildStopQueryTrackingPatch');
     expect(stopRuntimeSource).not.toContain('export function buildStoppedCurrentTurnProjection');
     expect(stopRuntimeSource).not.toContain('export function isStopTurnTargetFromCurrentTurn');

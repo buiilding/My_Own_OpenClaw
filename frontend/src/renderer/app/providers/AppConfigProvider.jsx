@@ -26,6 +26,7 @@ import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeC
 import { DesktopShortcutRuntimeClient } from '../runtime/desktopShortcutRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../runtime/desktopVoiceRuntimeClient';
+import { DesktopStartupRuntimeClient } from '../runtime/desktopStartupRuntimeClient';
 
 const {
   isRendererConfigStorageEvent,
@@ -35,14 +36,6 @@ const {
 const {
   useLatestRef,
 } = DesktopRendererHooksRuntimeClient;
-
-function resolveInitialWakewordSuppressed() {
-  if (typeof window === 'undefined') {
-    return true;
-  }
-  const view = new URLSearchParams(window.location.search).get('view');
-  return Boolean(view);
-}
 
 function isWakewordEnabledInConfig(config) {
   return config?.wakeword_enabled !== false;
@@ -76,7 +69,9 @@ export function AppConfigProvider({ children }) {
     return storedConfig;
   });
   const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
-  const [wakewordSuppressed, setWakewordSuppressed] = useState(resolveInitialWakewordSuppressed);
+  const [wakewordSuppressed, setWakewordSuppressed] = useState(
+    DesktopStartupRuntimeClient.shouldSuppressWakewordOnStartup,
+  );
   const [globalAgentStopShortcutStatus, setGlobalAgentStopShortcutStatus] = useState(null);
 
   const settingsHandlers = DesktopSettingsEventRuntimeClient.useDesktopSettingsEventHandlers(setAvailableModels);

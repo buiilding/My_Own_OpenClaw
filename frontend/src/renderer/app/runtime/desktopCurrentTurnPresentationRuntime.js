@@ -100,7 +100,7 @@ function resolveSdkResponseOverlayPresentationState({
   const responseVisible = Boolean(visibleResponse);
   const state = {
     activeResponse: visibleResponse,
-    hasVisibleReply: presentation.hasVisibleContent === true,
+    hasVisibleReply: Boolean(visibleResponse),
     visibleResponse,
     chatboxSurfaceState: responseVisible
       ? CHATBOX_SURFACE_STATE.RESPONSE

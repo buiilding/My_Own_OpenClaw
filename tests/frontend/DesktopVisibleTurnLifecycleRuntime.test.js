@@ -261,6 +261,37 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       showTyping: false,
     });
 
+    const flagOnlyProjection = projection({
+      phase: 'streaming',
+      presentation: {
+        hasVisibleContent: true,
+        entries: [],
+      },
+    });
+    expect(resolvePendingTurnForCurrentProjection({
+      pendingTurn: pending,
+      currentTurnProjection: flagOnlyProjection,
+    })).toBe(pending);
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      pendingTurn: pending,
+      currentTurnProjection: flagOnlyProjection,
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      isBusy: true,
+      showTyping: true,
+    });
+    expect(resolveVisibleTurnLifecycle({
+      activeConversationRef: 'conv-1',
+      currentTurnProjection: flagOnlyProjection,
+    })).toMatchObject({
+      status: 'idle',
+      source: 'sdk',
+      isBusy: false,
+      showTyping: false,
+    });
+
     const terminalProjection = projection({
       phase: 'complete',
       presentation: {

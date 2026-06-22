@@ -84,6 +84,9 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
         turnRef: 'turn-1',
         presentation: {
           hasVisibleContent: true,
+          entries: [
+            { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
+          ],
           typingVisible: false,
           overlayVisible: true,
           isBusy: false,
@@ -136,10 +139,11 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
     expect(state).toMatchObject({
       activeResponse: null,
+      hasVisibleReply: false,
       visibleResponse: null,
       chatboxSurfaceState: 'compact',
       overlayIntent: expect.objectContaining({
-        mode: 'response',
+        mode: 'hidden',
       }),
     });
   });

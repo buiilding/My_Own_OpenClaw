@@ -91,9 +91,6 @@ function resolveSdkPresentationHasVisibleContent(currentTurn: CurrentTurnProject
   if (Array.isArray(presentation?.entries) && presentation.entries.length > 0) {
     return true;
   }
-  if (typeof presentation?.hasVisibleContent === 'boolean') {
-    return presentation.hasVisibleContent;
-  }
   return typeof presentation?.lastError === 'string'
     && presentation.lastError.trim().length > 0;
 }

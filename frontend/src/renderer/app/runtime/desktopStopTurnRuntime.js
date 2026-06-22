@@ -23,10 +23,7 @@ function buildStopQueryTrackingPatch(stoppedAt) {
 }
 
 function hasVisibleCurrentTurnContent(presentation) {
-  return (
-    presentation?.hasVisibleContent === true
-    || (Array.isArray(presentation?.entries) && presentation.entries.length > 0)
-  );
+  return Array.isArray(presentation?.entries) && presentation.entries.length > 0;
 }
 
 function buildStoppedCurrentTurnProjection(currentTurnProjection) {
@@ -47,6 +44,7 @@ function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   const nextPresentation = { ...presentation };
   delete nextPresentation.typingVisible;
   delete nextPresentation.overlayVisible;
+  delete nextPresentation.hasVisibleContent;
   return {
     ...currentTurnProjection,
     phase: 'complete',

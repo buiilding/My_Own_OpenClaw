@@ -56,8 +56,7 @@ function hasVisiblePresentationContent(presentation) {
   }
   const entries = Array.isArray(presentation.entries) ? presentation.entries : [];
   return (
-    presentation.hasVisibleContent === true
-    || entries.length > 0
+    entries.length > 0
     || Boolean(normalizeString(presentation.lastError))
   );
 }

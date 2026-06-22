@@ -139,7 +139,6 @@ describe('desktopStopTurnRuntime', () => {
         phase: 'complete',
         isBusy: false,
         isTerminal: true,
-        hasVisibleContent: true,
         entries: [{ id: 'entry-1', text: 'partial' }],
         overlayIntent: expect.objectContaining({
           visible: true,
@@ -149,5 +148,40 @@ describe('desktopStopTurnRuntime', () => {
     }));
     expect(stoppedProjection.presentation).not.toHaveProperty('typingVisible');
     expect(stoppedProjection.presentation).not.toHaveProperty('overlayVisible');
+    expect(stoppedProjection.presentation).not.toHaveProperty('hasVisibleContent');
+  });
+
+  test('buildStoppedCurrentTurnProjection does not use SDK visible-content flag as overlay evidence', () => {
+    const stoppedProjection = buildStoppedCurrentTurnProjection({
+      conversationRef: 'conv-stop',
+      turnRef: 'turn-stop',
+      phase: 'streaming',
+      presentation: {
+        phase: 'streaming',
+        isBusy: true,
+        isTerminal: false,
+        hasVisibleContent: true,
+        entries: [],
+        overlayIntent: {
+          visible: true,
+          mode: 'response',
+        },
+      },
+    });
+
+    expect(stoppedProjection).toEqual(expect.objectContaining({
+      phase: 'complete',
+      presentation: expect.objectContaining({
+        phase: 'complete',
+        isBusy: false,
+        isTerminal: true,
+        entries: [],
+        overlayIntent: expect.objectContaining({
+          visible: false,
+          mode: 'hidden',
+        }),
+      }),
+    }));
+    expect(stoppedProjection.presentation).not.toHaveProperty('hasVisibleContent');
   });
 });

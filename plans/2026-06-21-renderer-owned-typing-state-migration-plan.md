@@ -9,6 +9,26 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 SDK Visible Content Flag Authority Deletion
+
+- Finding: visible lifecycle, live-surface overlay metadata, stopped-turn
+  projection, and current-turn projection side effects still treated SDK
+  `presentation.hasVisibleContent` as visible response evidence even when no
+  SDK presentation entries, text, errors, or tool events were present.
+- Change: removed `hasVisibleContent` from lifecycle, stopped-turn overlay, and
+  send-latch authority. Renderer surfaces now require concrete entries,
+  assistant/reasoning/error text, terminal phase, or tool progress/call/output
+  evidence; response-overlay presentation state marks visible replies from
+  actual entries only and stopped projections strip the legacy SDK flag.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `DesktopCurrentTurnProjectionEffectsRuntime.test.ts`,
+  `LiveTurnSurfaceState.test.js`, `ChatboxSurfaceState.test.js`, and
+  `DesktopStopTurnRuntime.test.js`, plus app/chat runtime boundary tests,
+  protect flag-only projections as non-authoritative.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Local Pending Surface Predicate Deletion
 
 - Finding: `DesktopVisibleTurnLifecycleRuntime` still exported

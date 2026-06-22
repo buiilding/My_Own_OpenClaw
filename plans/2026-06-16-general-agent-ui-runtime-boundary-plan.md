@@ -9,6 +9,27 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer Startup View Runtime
+
+- Finding: `main.jsx` and `AppConfigProvider` still parsed
+  `window.location.search` directly for the renderer `view` query even though
+  `DesktopStartupRuntimeClient` already owned VM-mode startup routing.
+- Change: widened `DesktopStartupRuntimeClient` to resolve the renderer
+  entrypoint view and initial wakeword suppression state, then routed the
+  root entrypoint and app config provider through it. The entrypoint keeps
+  component selection and the provider keeps wakeword state, while the runtime
+  owns browser startup query parsing.
+- Validation target: `DesktopStartupRuntimeClient.test.ts`,
+  `AppConfigProvider.models.test.tsx`,
+  `AppConfigProvider.storageAndIpc.test.tsx`,
+  `RendererAppRuntimeBoundary.test.ts`, and
+  `RendererChatRuntimeBoundary.test.ts` protect view parsing, wakeword
+  suppression seeding, and rejection of direct URL query parsing in the app
+  entrypoint/provider.
+- Compatibility/security: no IPC channel, SDK event payload, renderer URL
+  query contract, config shape, persisted storage, permission, credential,
+  local execution, trust-boundary, or migration change required.
+
 ### 2026-06-22 Chatbox Drag Window Position Runtime
 
 - Finding: `MinimalChatPill` already delegated drag-state math and native

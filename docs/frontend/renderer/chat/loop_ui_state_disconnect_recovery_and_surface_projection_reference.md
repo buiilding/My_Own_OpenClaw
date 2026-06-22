@@ -192,8 +192,9 @@ response-overlay view intent after entries and dismissal state are applied.
 It recognizes SDK presentation rows from non-empty `presentation.entries`
 rather than legacy SDK visibility booleans or overlay intent mode. Overlay
 intent remains guard/window metadata; its mode is derived from SDK phase and
-actual visible content/progress evidence instead of copied as lifecycle
-authority.
+actual entries, text, error, or tool-progress evidence instead of copied as
+lifecycle authority. SDK `presentation.hasVisibleContent` is also not lifecycle
+evidence by itself.
 `selectLiveTurnSurfaceState(...)` likewise omits raw `isSending`, and minimal
 surface trace payloads name the renderer-local path `useLocalPendingTurn`
 instead of a send-latch alias.
@@ -231,9 +232,9 @@ longer imports the overlay lifecycle adapter.
 - uses visible lifecycle `isBusy` as the stop-query affordance gate
 - resolves Stop targets from active SDK phases or renderer `pendingTurn`; SDK
   `presentation.isBusy` is rendering data and does not create a Stop target
-- accepts stopped SDK projections without preserving SDK `typingVisible` or
-  `overlayVisible`; visible lifecycle derives terminal busy/typing state from
-  phase and visible entries
+- accepts stopped SDK projections without preserving SDK `typingVisible`,
+  `overlayVisible`, or `hasVisibleContent`; visible lifecycle derives terminal
+  busy/typing state from phase and visible entries
 - disables assistant feedback/retry actions from visible lifecycle busy/Stop
   state instead of raw `isSending`
 - uses visible lifecycle awaiting anchor for `awaitingDotTargetMessageId`
@@ -265,6 +266,8 @@ longer imports the overlay lifecycle adapter.
   projections
 - same-turn SDK awaiting, visible progress/text, and terminal projections
   replace local pending
+- SDK presentation visibility flags do not replace local pending unless actual
+  entries, text, error, or tool-progress evidence is present
 - shared presentation adapters map renderer visible lifecycle into busy,
   awaiting-dot, chatbox, and response overlay presentation fields
 - bare `isSending=true` does not create local pending without `pendingTurn`

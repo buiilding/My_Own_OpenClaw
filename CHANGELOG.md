@@ -71,6 +71,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route renderer startup `view` query parsing and initial
+  wakeword suppression seeding through `DesktopStartupRuntimeClient` so
+  `main.jsx` and `AppConfigProvider` no longer read `window.location.search`
+  directly. No migration required.
+- frontend/renderer: stop treating SDK `presentation.hasVisibleContent` as
+  standalone visible lifecycle evidence; renderer typing, overlay mode, and
+  send-latch/stopped-turn side effects now require concrete entries, text,
+  errors, or tool progress. No migration required.
 - frontend/renderer: route chat pill drag-start window-position reads through
   `DesktopChatboxLayoutRuntime.startChatboxDragFromWindow(...)` so
   `MinimalChatPill` no longer reads `window.screenX` / `window.screenY`

@@ -19,6 +19,7 @@ title: "App Provider Coordinator and Save-Status Runtime Reference"
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient.js`
@@ -93,7 +94,9 @@ Callback API:
 Initialization/sync inputs:
 
 1. localStorage (`loadConfigFromStorage`) as initial state seed
-2. renderer view (`window.location.search`) for initial wakeword suppression seed
+2. renderer view via
+   `DesktopStartupRuntimeClient.shouldSuppressWakewordOnStartup()` for initial
+   wakeword suppression seed
 3. settings-event listener through `DesktopAppConfigRuntimeClient.onSettingsEvent(...)` for `models-listed`
 4. `DesktopClientSessionRuntimeClient.onIpcStatusValues(...)` for normalized connection, session/user, shortcut-status, and runtime HTTP URL snapshot values
 5. `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()` for startup snapshot

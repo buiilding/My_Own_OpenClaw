@@ -488,6 +488,45 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('does not use SDK hasVisibleContent flag as response lifecycle evidence', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'streaming',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        assistantText: '',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+        presentation: {
+          hasVisibleContent: true,
+          entries: [],
+          overlayIntent: {
+            visible: true,
+            mode: 'response',
+            turnRef: 'turn-2',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-2',
+          },
+        },
+      },
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'idle',
+      isBusy: false,
+      source: 'current-turn',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: false,
+      overlayIntent: expect.objectContaining({
+        mode: 'hidden',
+      }),
+    });
+  });
+
   test('ignores legacy stream phase inputs when SDK current turn is absent', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: null,

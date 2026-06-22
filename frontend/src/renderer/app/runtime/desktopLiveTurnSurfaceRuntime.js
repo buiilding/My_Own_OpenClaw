@@ -94,7 +94,6 @@ function hasProjectionVisibleOverlayContent(currentTurnProjection) {
       || normalizeString(currentTurnProjection?.assistantText)
       || normalizeString(currentTurnProjection?.reasoningText)
       || normalizeString(currentTurnProjection?.lastError)
-      || presentation?.hasVisibleContent === true
       || entries.length > 0
       || toolEvents.some((event) => (
         event?.kind === 'tool_call'
