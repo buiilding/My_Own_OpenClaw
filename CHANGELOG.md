@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route debug tool-ghost hide/restart timer scheduling
+  through `DesktopToolGhostRuntime`, keeping raw browser timeout scheduling out
+  of `ToolGhostDebugApp`. No migration required.
 - frontend/renderer: route the chat-loop disconnect recovery watchdog timer
   through `DesktopChatLoopUiRuntime`, keeping raw browser timeout scheduling
   out of `useChatLoopUiState`. No migration required.

@@ -10,7 +10,9 @@ import '../styles/ChatBoxResponseOverlay.css';
 
 const LOOP_GAP_MS = 700;
 const {
+  clearToolGhostTimer,
   getToolGhostClickSyncDelayMs,
+  scheduleToolGhostTimer,
 } = DesktopToolGhostRuntime;
 const toolGhostClickSyncDelayMs = getToolGhostClickSyncDelayMs();
 
@@ -32,27 +34,28 @@ function ToolGhostDebugApp() {
   const loopTimerRef = useRef(null);
 
   const clearTimers = useCallback(() => {
-    if (hideTimerRef.current) {
-      window.clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = null;
-    }
-    if (loopTimerRef.current) {
-      window.clearTimeout(loopTimerRef.current);
-      loopTimerRef.current = null;
-    }
+    clearToolGhostTimer({ timerRef: hideTimerRef });
+    clearToolGhostTimer({ timerRef: loopTimerRef });
   }, []);
 
   const runAnimationOnce = useCallback(() => {
     clearTimers();
     setRunToken((value) => value + 1);
     setIsVisible(true);
-    hideTimerRef.current = window.setTimeout(() => {
-      setIsVisible(false);
-      hideTimerRef.current = null;
-      loopTimerRef.current = window.setTimeout(() => {
-        runAnimationOnce();
-      }, LOOP_GAP_MS);
-    }, toolGhostClickSyncDelayMs);
+    scheduleToolGhostTimer({
+      timerRef: hideTimerRef,
+      delayMs: toolGhostClickSyncDelayMs,
+      callback: () => {
+        setIsVisible(false);
+        scheduleToolGhostTimer({
+          timerRef: loopTimerRef,
+          delayMs: LOOP_GAP_MS,
+          callback: () => {
+            runAnimationOnce();
+          },
+        });
+      },
+    });
   }, [clearTimers]);
 
   useEffect(() => {

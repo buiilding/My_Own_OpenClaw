@@ -194,10 +194,12 @@ grouping and search-row presentation policy to this app-runtime facade instead
 of a feature utility or modal-local prefix comparison.
 
 `DesktopToolGhostRuntime.getToolGhostClickSyncDelayMs(...)` owns the debug
-tool-ghost click animation timing used by `ToolGhostDebugApp`. The debug app
-keeps rendering and timer lifecycle state, while reusable timing helpers stay
-in the app-runtime facade instead of the chat feature constant tree or raw
-standalone helper exports.
+tool-ghost click animation timing used by `ToolGhostDebugApp`, and
+`DesktopToolGhostRuntime` owns the browser timer schedule/clear adapters for
+the debug hide/restart loop. The debug app keeps rendering, visibility, and
+run-token lifecycle state, while reusable timing and timer-adapter helpers stay
+in the app-runtime facade instead of the chat feature constant tree, raw browser
+calls, or standalone helper exports.
 
 `desktopRendererConfigFilterRuntime.js` and
 `desktopRendererConfigStorageRuntime.js` own renderer-managed settings

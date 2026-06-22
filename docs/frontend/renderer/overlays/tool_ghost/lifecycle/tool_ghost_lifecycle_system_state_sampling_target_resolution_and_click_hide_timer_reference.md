@@ -28,14 +28,15 @@ Cycle (`runAnimationOnce`):
 1. clear existing timers
 2. increment `runToken` (forces remount key)
 3. set visible true
-4. schedule hide at `DesktopToolGhostRuntime.getToolGhostClickSyncDelayMs(...)`
+4. schedule hide through `DesktopToolGhostRuntime.scheduleToolGhostTimer(...)`
+   using `DesktopToolGhostRuntime.getToolGhostClickSyncDelayMs(...)`
 5. after hide, schedule next run after `LOOP_GAP_MS`
 
 ## Timer and Cleanup Contract
 
 `clearTimers()`:
 
-- clears hide + loop timers when present
+- clears hide + loop timers through `DesktopToolGhostRuntime.clearToolGhostTimer(...)`
 - sets refs back to `null`
 
 `useEffect` lifecycle:
@@ -45,7 +46,9 @@ Cycle (`runAnimationOnce`):
 
 Guarantee:
 
-- no stale timer callbacks survive unmount.
+- no stale timer callbacks survive unmount
+- raw browser timeout calls stay in `DesktopToolGhostRuntime`, not
+  `ToolGhostDebugApp`
 
 ## Sync Delay Contract
 
@@ -53,6 +56,9 @@ The debug lifecycle intentionally uses the same runtime facade as tool-click syn
 
 - `DesktopToolGhostRuntime.getToolGhostClickSyncDelayMs(...)` from
   `desktopToolGhostRuntime.ts`
+- `DesktopToolGhostRuntime.scheduleToolGhostTimer(...)` and
+  `DesktopToolGhostRuntime.clearToolGhostTimer(...)` from the same app-runtime
+  facade
 
 This keeps debug cursor timing aligned with expected click timeline duration.
 

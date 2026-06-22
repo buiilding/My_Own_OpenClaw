@@ -37,6 +37,8 @@ This payload is intentionally deterministic for repeatable debug animation.
 
 - active animation duration: `DesktopToolGhostRuntime.getToolGhostClickSyncDelayMs(...)`
 - post-run gap before restart: `LOOP_GAP_MS = 700`
+- hide/restart timer schedule and cleanup: `DesktopToolGhostRuntime.scheduleToolGhostTimer(...)`
+  and `DesktopToolGhostRuntime.clearToolGhostTimer(...)`
 - lifecycle:
   1. show ghost
   2. hide at sync delay

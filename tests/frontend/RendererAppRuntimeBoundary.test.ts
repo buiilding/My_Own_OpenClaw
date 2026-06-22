@@ -557,7 +557,7 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).not.toContain('export function isVisibleResponseOverlayMessage');
     expect(currentTurnMessageSource).not.toContain('export function isResponseOverlayProgressMessage');
     expect(currentTurnMessageSource).not.toContain('export function isResponseOverlaySourceTaggedMessage');
-    expect(currentTurnMessageSource).not.toContain('export function normalizeThinkingText');
+    expect(currentTurnMessageSource).not.toContain('normalizeThinkingText');
     expect(currentTurnMessageSource).not.toContain('features/chat');
     expect(currentTurnMessageSource).not.toContain('features/minimalChatPill');
     expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -1550,11 +1550,22 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(runtimeSource).toContain('export const DesktopToolGhostRuntime = Object.freeze');
+    expect(runtimeSource).toContain('scheduleToolGhostTimer');
+    expect(runtimeSource).toContain('clearToolGhostTimer');
+    expect(runtimeSource).toContain('setTimeout');
+    expect(runtimeSource).toContain('clearTimeout');
     expect(runtimeSource).not.toContain('export function getToolGhostClickSyncDelayMs');
+    expect(runtimeSource).not.toContain('export function scheduleToolGhostTimer');
+    expect(runtimeSource).not.toContain('export function clearToolGhostTimer');
     expect(runtimeSource).not.toContain('export const TOOL_GHOST_CLICK_SYNC_DELAY_MS');
     expect(runtimeSource).not.toContain('features/chat');
     expect(debugAppSource).toContain('desktopToolGhostRuntime');
     expect(debugAppSource).toContain('DesktopToolGhostRuntime');
+    expect(debugAppSource).toContain('DesktopToolGhostRuntime');
+    expect(debugAppSource).toContain('scheduleToolGhostTimer');
+    expect(debugAppSource).toContain('clearToolGhostTimer');
+    expect(debugAppSource).not.toContain('window.setTimeout');
+    expect(debugAppSource).not.toContain('window.clearTimeout');
     expect(debugAppSource).not.toContain('import { TOOL_GHOST_CLICK_SYNC_DELAY_MS }');
     expect(debugAppSource).not.toContain('features/chat/constants/toolGhostRuntime');
     await expect(fs.stat(

@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: chat-loop disconnect recovery watchdog scheduling now
-  routes through `DesktopChatLoopUiRuntime`; `useChatLoopUiState` keeps
-  transport state inputs and timeout dispatch while the runtime owns browser
-  timer scheduling and cleanup.
+- Latest completed slice: debug tool-ghost hide/restart timer scheduling now
+  routes through `DesktopToolGhostRuntime`; `ToolGhostDebugApp` keeps
+  visibility/run-token state while the runtime owns browser timer scheduling
+  and cleanup.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -107,6 +107,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Chat-loop disconnect recovery watchdog scheduling now routes through
   `DesktopChatLoopUiRuntime` instead of raw browser timeout calls in
   `useChatLoopUiState`.
+  Debug tool-ghost hide/restart timer scheduling now routes through
+  `DesktopToolGhostRuntime` instead of raw browser timeout calls in
+  `ToolGhostDebugApp`.
   Conversation replay database tests describe edit/resend cutoff rewrites as
   local-runtime SQLite behavior while the renderer owns preparation error
   projection.

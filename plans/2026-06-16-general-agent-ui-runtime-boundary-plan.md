@@ -9,6 +9,21 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Tool Ghost Debug Timer Runtime
+
+- Finding: `ToolGhostDebugApp` already read click-sync timing from
+  `DesktopToolGhostRuntime`, but still owned raw browser timeout
+  scheduling/cleanup for the hide and restart loop timers.
+- Change: extended `DesktopToolGhostRuntime` with timer schedule/clear helpers
+  and routed the debug app through them. The app keeps visibility/run-token
+  state while the renderer app-runtime facade owns browser timer adapters.
+- Validation target: focused tool-ghost runtime and renderer app-boundary tests
+  protect click-sync delay, timer replacement, cleanup, missing-adapter
+  fallback, and rejection of raw timeout calls in the debug app.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-22 Chat Loop Recovery Watchdog Runtime
 
 - Finding: `useChatLoopUiState` already delegated disconnect/reconnect state to
