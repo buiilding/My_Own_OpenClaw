@@ -770,31 +770,54 @@ class Agent {
         const conversationStore = appendOptions.store ?? this.defaultConversationStore;
         await conversationStore.appendEvent(appendOptions.event);
     }
-    async rewriteConversation(options) {
-        const rewriteOptions = 'plan' in options ? options : { plan: options };
-        const conversationStore = rewriteOptions.store ?? this.defaultConversationStore;
-        await conversationStore.rewriteConversation(rewriteOptions.plan);
-    }
     async replaceCompactedReplay(options) {
         const replaceOptions = 'snapshot' in options ? options : { snapshot: options };
         const conversationStore = replaceOptions.store ?? this.defaultConversationStore;
         await conversationStore.replaceCompactedReplay(replaceOptions.snapshot);
     }
-    async prepareEditAndResend(options) {
-        const { conversationRef, revisionId, store, ...input } = options;
+    async loadDisplayTimeline(options) {
+        const { conversationRef, revisionId, store } = options;
         return this.conversation({
             conversationRef,
-            revisionId,
+            revisionId: revisionId ?? undefined,
             store: store ?? this.defaultConversationStore,
-        }).prepareEditAndResend(input);
+        }).loadDisplayTimeline({
+            revisionId: revisionId ?? null,
+        });
     }
-    async prepareRetryTurn(options) {
+    async loadModelHistory(options) {
+        const { conversationRef, revisionId, store } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId: revisionId ?? undefined,
+            store: store ?? this.defaultConversationStore,
+        }).loadModelHistory({
+            revisionId: revisionId ?? null,
+        });
+    }
+    async checkoutRevision(options) {
+        const { conversationRef, revisionId, store } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId,
+            store: store ?? this.defaultConversationStore,
+        }).checkoutRevision({ revisionId });
+    }
+    async replaceRows(options) {
         const { conversationRef, revisionId, store, ...input } = options;
         return this.conversation({
             conversationRef,
             revisionId,
             store: store ?? this.defaultConversationStore,
-        }).prepareRetryTurn(input);
+        }).replaceRows(input);
+    }
+    async forkConversation(options) {
+        const { conversationRef, revisionId, store, ...input } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId,
+            store: store ?? this.defaultConversationStore,
+        }).fork(input);
     }
     listAgents() {
         return this.owner.listAgents();

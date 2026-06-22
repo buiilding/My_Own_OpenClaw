@@ -7,10 +7,11 @@ import type {
   ConversationEvent,
   ConversationMetadata,
   ConversationRevision,
-  ConversationRewritePlan,
   ConversationStore,
+  DisplayTimelineCheckpoint,
   DisplayConversation,
   ListConversationOptions,
+  ModelHistoryCheckpoint,
   RehydrateSnapshot,
   SdkDisplayRow,
   SearchConversationOptions,
@@ -25,6 +26,11 @@ import {
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
+import { rehydrateSnapshotFromModelHistoryCheckpoint } from '../runtime/modelHistoryPayload.js';
+import {
+  displayConversationFromTimeline,
+  displayRowsFromTimeline,
+} from './displayTimelineStoreProjection.js';
 
 function lastTextEvent(events: ConversationEvent[]): ConversationEvent | undefined {
   return [...events].reverse().find(event => {
@@ -53,6 +59,8 @@ export class InMemoryConversationStore implements ConversationStore {
   private readonly eventIdsByConversation = new Map<string, Set<string>>();
   private readonly revisionsByConversation = new Map<string, ConversationRevision>();
   private readonly replayByConversation = new Map<string, CompactedReplaySnapshot>();
+  private readonly modelHistoryByConversation = new Map<string, ModelHistoryCheckpoint[]>();
+  private readonly displayTimelineByConversation = new Map<string, DisplayTimelineCheckpoint[]>();
 
   async appendEvent(event: ConversationEvent): Promise<void> {
     await this.appendEvents([event]);
@@ -77,20 +85,6 @@ export class InMemoryConversationStore implements ConversationStore {
     }
   }
 
-  async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    const rewritten = [...plan.preservedEvents];
-    this.eventsByConversation.set(plan.conversationRef, rewritten);
-    this.eventIdsByConversation.set(
-      plan.conversationRef,
-      new Set(rewritten.map(event => event.eventId)),
-    );
-    this.revisionsByConversation.set(plan.conversationRef, {
-      conversationRef: plan.conversationRef,
-      revisionId: plan.newRevisionId,
-      updatedAt: new Date().toISOString(),
-    });
-  }
-
   async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {
     if (!snapshot.complete || snapshot.entryCount !== snapshot.entries.length) {
       return;
@@ -106,14 +100,64 @@ export class InMemoryConversationStore implements ConversationStore {
   }
 
   async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
-    return buildDisplayConversation(await this.loadEvents(conversationRef));
+    const events = await this.loadEvents(conversationRef);
+    const timeline = await this.loadDisplayTimeline({ conversationRef });
+    if (!timeline) {
+      return buildDisplayConversation(events);
+    }
+    return displayConversationFromTimeline(timeline, events);
   }
 
   async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
-    return buildDisplayRows(await this.loadEvents(conversationRef));
+    const events = await this.loadEvents(conversationRef);
+    const timeline = await this.loadDisplayTimeline({ conversationRef });
+    if (!timeline) {
+      return buildDisplayRows(events);
+    }
+    return displayRowsFromTimeline(timeline, events);
+  }
+
+  async replaceDisplayTimeline(checkpoint: DisplayTimelineCheckpoint): Promise<void> {
+    const existing = this.displayTimelineByConversation.get(checkpoint.conversationRef) ?? [];
+    const next = [
+      ...existing.filter(entry => entry.revisionId !== checkpoint.revisionId),
+      {
+        ...checkpoint,
+        rows: [...checkpoint.rows],
+      },
+    ];
+    this.displayTimelineByConversation.set(checkpoint.conversationRef, next);
+    this.revisionsByConversation.set(checkpoint.conversationRef, {
+      conversationRef: checkpoint.conversationRef,
+      revisionId: checkpoint.revisionId,
+      updatedAt: checkpoint.createdAt,
+    });
+  }
+
+  async loadDisplayTimeline(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<DisplayTimelineCheckpoint | null> {
+    const checkpoints = this.displayTimelineByConversation.get(input.conversationRef) ?? [];
+    const candidates = input.revisionId
+      ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+      : checkpoints;
+    const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+    return latest ? { ...latest, rows: [...latest.rows] } : null;
   }
 
   async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
+    const activeRevisionId = this.revisionsByConversation.get(conversationRef)?.revisionId ?? null;
+    const modelHistoryCheckpoint = await this.loadModelHistory({
+      conversationRef,
+      revisionId: activeRevisionId,
+    });
+    const modelHistorySnapshot = modelHistoryCheckpoint
+      ? rehydrateSnapshotFromModelHistoryCheckpoint(modelHistoryCheckpoint)
+      : null;
+    if (modelHistorySnapshot) {
+      return modelHistorySnapshot;
+    }
     const compactedReplay = await this.loadCompactedReplay(conversationRef);
     if (
       compactedReplay?.complete
@@ -130,19 +174,88 @@ export class InMemoryConversationStore implements ConversationStore {
     return buildRehydrateSnapshot(await this.loadEvents(conversationRef));
   }
 
+  async replaceModelHistory(checkpoint: ModelHistoryCheckpoint): Promise<void> {
+    const existing = this.modelHistoryByConversation.get(checkpoint.conversationRef) ?? [];
+    const next = [
+      ...existing.filter(entry => !(
+        entry.revisionId === checkpoint.revisionId
+        && entry.checkpointId === checkpoint.checkpointId
+      )),
+      {
+        ...checkpoint,
+        rows: [...checkpoint.rows],
+      },
+    ];
+    this.modelHistoryByConversation.set(checkpoint.conversationRef, next);
+  }
+
+  async loadModelHistory(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<ModelHistoryCheckpoint | null> {
+    const checkpoints = this.modelHistoryByConversation.get(input.conversationRef) ?? [];
+    const candidates = input.revisionId
+      ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+      : checkpoints;
+    const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+    return latest ? { ...latest, rows: [...latest.rows] } : null;
+  }
+
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
-    const metadata = Array.from(this.eventsByConversation.entries()).map(([conversationRef, events]) => {
+    const metadataByConversation = new Map<string, ConversationMetadata>();
+    Array.from(this.eventsByConversation.entries()).forEach(([conversationRef, events]) => {
       const revision = this.revisionsByConversation.get(conversationRef);
       const lastEvent = [...events].sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))[0];
-      return {
+      const latestDisplayTimeline = [...(this.displayTimelineByConversation.get(conversationRef) ?? [])]
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0] ?? null;
+      const firstDisplayUserRow = latestDisplayTimeline?.rows.find(row => row.role === 'user') ?? null;
+      const lastDisplayTextRow = latestDisplayTimeline
+        ? [...latestDisplayTimeline.rows].reverse().find(row => typeof row.content === 'string') ?? null
+        : null;
+      const eventUpdatedAt = revision?.updatedAt ?? lastEvent?.timestamp ?? new Date(0).toISOString();
+      const displayIsCurrent = latestDisplayTimeline
+        ? Date.parse(latestDisplayTimeline.createdAt) >= Date.parse(eventUpdatedAt)
+        : false;
+      const eventLastMessage = eventText(lastTextEvent(events));
+      const displayLastMessage = typeof lastDisplayTextRow?.content === 'string'
+        ? lastDisplayTextRow.content
+        : null;
+      metadataByConversation.set(conversationRef, {
         conversationRef,
-        revisionId: revision?.revisionId ?? lastEvent?.revisionId ?? 'rev-missing',
-        title: eventText(events.find(event => event.type === 'user_message')) ?? conversationRef,
-        lastMessage: eventText(lastTextEvent(events)),
-        updatedAt: revision?.updatedAt ?? lastEvent?.timestamp ?? new Date(0).toISOString(),
+        revisionId: displayIsCurrent
+          ? latestDisplayTimeline?.revisionId ?? revision?.revisionId ?? lastEvent?.revisionId ?? 'rev-missing'
+          : revision?.revisionId ?? lastEvent?.revisionId ?? latestDisplayTimeline?.revisionId ?? 'rev-missing',
+        title: (typeof firstDisplayUserRow?.content === 'string' ? firstDisplayUserRow.content : null)
+          ?? eventText(events.find(event => event.type === 'user_message'))
+          ?? conversationRef,
+        lastMessage: displayIsCurrent
+          ? displayLastMessage ?? eventLastMessage
+          : eventLastMessage ?? displayLastMessage,
+        updatedAt: displayIsCurrent ? latestDisplayTimeline?.createdAt ?? eventUpdatedAt : eventUpdatedAt,
         eventCount: events.length,
-      };
-    }).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+      });
+    });
+    Array.from(this.displayTimelineByConversation.entries()).forEach(([conversationRef, checkpoints]) => {
+      if (metadataByConversation.has(conversationRef)) {
+        return;
+      }
+      const latest = [...checkpoints].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+      if (!latest) {
+        return;
+      }
+      const firstUserRow = latest.rows.find(row => row.role === 'user');
+      const lastTextRow = [...latest.rows].reverse().find(row => typeof row.content === 'string');
+      metadataByConversation.set(conversationRef, {
+        conversationRef,
+        revisionId: latest.revisionId,
+        title: typeof firstUserRow?.content === 'string' ? firstUserRow.content : conversationRef,
+        lastMessage: typeof lastTextRow?.content === 'string' ? lastTextRow.content : null,
+        updatedAt: latest.createdAt,
+        eventCount: 0,
+      });
+    });
+    const metadata = Array.from(metadataByConversation.values())
+      .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
     return applyConversationMetadataPagination(metadata, options);
   }
 
@@ -155,6 +268,8 @@ export class InMemoryConversationStore implements ConversationStore {
     this.eventIdsByConversation.delete(conversationRef);
     this.revisionsByConversation.delete(conversationRef);
     this.replayByConversation.delete(conversationRef);
+    this.modelHistoryByConversation.delete(conversationRef);
+    this.displayTimelineByConversation.delete(conversationRef);
   }
 
   async clearConversations(): Promise<void> {
@@ -162,6 +277,8 @@ export class InMemoryConversationStore implements ConversationStore {
     this.eventIdsByConversation.clear();
     this.revisionsByConversation.clear();
     this.replayByConversation.clear();
+    this.modelHistoryByConversation.clear();
+    this.displayTimelineByConversation.clear();
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {

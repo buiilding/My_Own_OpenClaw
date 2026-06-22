@@ -24,6 +24,7 @@ class QueryExecutionInputs:
     capture_meta: Optional[dict[str, Any]]
     message_content: str
     conversation_ref: Optional[str]
+    revision_id: Optional[str]
     workspace_path: Optional[str]
     repo_instruction_messages: Optional[list[dict[str, str]]]
     client_prompt_layers: Optional[list[dict[str, Any]]]
@@ -72,6 +73,7 @@ def resolve_query_execution_inputs(
         capture_meta=resolve_query_screenshot_metadata(message),
         message_content=message.payload.content,
         conversation_ref=getattr(message.payload, "conversation_ref", None),
+        revision_id=getattr(message.payload, "revision_id", None),
         workspace_path=getattr(message.payload, "workspace_path", None),
         repo_instruction_messages=repo_instruction_messages,
         client_prompt_layers=client_prompt_layers,

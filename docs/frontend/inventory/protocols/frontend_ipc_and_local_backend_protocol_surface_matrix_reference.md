@@ -193,13 +193,13 @@ builds the Python JSON-RPC method and params behind that boundary.
 | SDK local-runtime store | `clear_local_memory` | `userId -> user_id`; clears local memory records for the user scope |
 | SDK local-runtime store | `clear_chat_history` | `userId -> user_id`; clears chat-history records for the user scope |
 | SDK local-runtime store | `conversation.append_event` | transcript metadata (`messageType -> message_type`, etc.) |
-| SDK local-runtime store | `conversation.replace` | replacement event payload plus conversation/user/record-kind normalization |
-| SDK local-runtime store | `conversation.rewrite_after_event` | conversation/user/anchor-event normalization for replay truncation and rewrite |
 | SDK local-runtime store | `conversation.list` | `userId -> user_id`, `recordKind -> record_kind` |
 | SDK local-runtime store | `conversation.search` | `userId -> user_id` with query/limit passthrough |
 | SDK local-runtime store | `conversation.load_events` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
 | SDK local-runtime store | `conversation.get_revision` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
 | SDK local-runtime store | `conversation.delete` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
+| SDK local-runtime store | `conversation.display.replace/load` | active display timeline checkpoint storage and loading |
+| SDK local-runtime store | `conversation.model_history.replace/load` | bounded model-history checkpoint storage and loading |
 | readiness probe (internal) | `ping` | Startup readiness checks |
 | diagnostics (registered in sidecar) | `get_status` | Read through SDK local-runtime status helpers |
 
@@ -213,8 +213,10 @@ Registered callable surface:
   `delete_episodic_memory`, `delete_semantic_memory`, `clear_local_memory`
 - Conversation/history SDK methods: `conversation.append_event`,
   `conversation.list`, `conversation.search`, `conversation.load_events`,
-  `conversation.get_revision`, `conversation.delete`, `conversation.replace`,
-  `conversation.rewrite_after_event`, `clear_chat_history`,
+  `conversation.get_revision`, `conversation.delete`,
+  `conversation.display.replace`, `conversation.display.load`,
+  `conversation.model_history.replace`, `conversation.model_history.load`,
+  `clear_chat_history`,
   `update_conversation_title`, `get_conversation_title_state`
 - Retired direct chat-history method names are not registered.
 - Health/diagnostics/setup: `ping`, `get_status`, `install_browser_chromium`,

@@ -11,6 +11,9 @@ from backend.src.api.processing.formatters.context_compaction_failed import (
 from backend.src.api.processing.formatters.context_compaction_started import (
     ContextCompactionStartedEventFormatter,
 )
+from backend.src.api.processing.formatters.model_history_updated import (
+    ModelHistoryUpdatedEventFormatter,
+)
 from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
 from backend.src.api.processing.formatters.system_prompt import (
     SystemPromptEventFormatter,
@@ -21,6 +24,7 @@ from backend.src.api.schemas.outgoing import (
     ContextCompactionCompletedMessage,
     ContextCompactionFailedMessage,
     ContextCompactionStartedMessage,
+    ModelHistoryUpdatedMessage,
     ModelsListedMessage,
     QueryAcceptedMessage,
     QueryAcceptedPayload,
@@ -38,6 +42,7 @@ from backend.src.core.events.streaming_events import (
     ContextCompactionCompletedEvent,
     ContextCompactionFailedEvent,
     ContextCompactionStartedEvent,
+    ModelHistoryUpdatedEvent,
     SystemPromptEvent,
     TokenCountEvent,
     ToolSchemasEvent,
@@ -405,3 +410,43 @@ def test_context_compaction_failed_formatter_output_matches_schema() -> None:
         }
     )
     assert parsed.payload.error == "compaction failed"
+
+
+def test_model_history_updated_formatter_output_matches_schema() -> None:
+    formatter = ModelHistoryUpdatedEventFormatter()
+    payload = formatter.format(
+        ModelHistoryUpdatedEvent(
+            conversation_ref="conv-1",
+            revision_id="rev-1",
+            checkpoint_id="mh-1",
+            created_at="2026-06-22T12:00:00+00:00",
+            rows=[
+                {
+                    "id": "row-1",
+                    "conversation_ref": "conv-1",
+                    "revision_id": "rev-1",
+                    "role": "tool",
+                    "message_type": "tool_output",
+                    "content": "bounded output",
+                    "tool_call_id": "call-1",
+                    "tool_name": "read_file",
+                    "image_refs": ["artifact-1"],
+                    "source_display_row_ids": [],
+                }
+            ],
+        ),
+        "msg_model_history",
+    )
+
+    assert payload is not None
+    parsed = ModelHistoryUpdatedMessage.model_validate(
+        {
+            **payload,
+            "user_id": "user-1",
+            "conversation_ref": "conv-1",
+            "turn_ref": "turn-1",
+        }
+    )
+    assert parsed.type == "model-history-updated"
+    assert parsed.payload.revision_id == "rev-1"
+    assert parsed.payload.rows[0].message_type == "tool_output"

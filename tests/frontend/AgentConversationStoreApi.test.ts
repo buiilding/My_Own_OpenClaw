@@ -7,7 +7,6 @@ import {
   LocalRuntimeConversationStore,
   createConversationEvent,
   type ConversationEvent,
-  type ConversationRewritePlan,
   type CompactedReplaySnapshot,
 } from '../../packages/windie-sdk-js/src';
 
@@ -38,14 +37,6 @@ describe('Agent public conversation store APIs', () => {
       revisionId: 'rev-1',
       payload: { text: 'hello' },
     });
-    const plan: ConversationRewritePlan = {
-      conversationRef: 'conv-1',
-      baseRevisionId: 'rev-1',
-      newRevisionId: 'rev-2',
-      preservedEvents: [event],
-      removedEventIds: [],
-      reason: 'retry',
-    };
     const snapshot: CompactedReplaySnapshot = {
       generationId: 'gen-1',
       conversationRef: 'conv-1',
@@ -64,7 +55,6 @@ describe('Agent public conversation store APIs', () => {
         updatedAt: '2026-06-05T12:00:00.000Z',
       })),
       appendEvent: jest.fn(async () => undefined),
-      rewriteConversation: jest.fn(async () => undefined),
       replaceCompactedReplay: jest.fn(async () => undefined),
     };
     const agent = createAgentWithStore(store);
@@ -75,25 +65,22 @@ describe('Agent public conversation store APIs', () => {
       updatedAt: '2026-06-05T12:00:00.000Z',
     });
     await agent.appendConversationEvent(event);
-    await agent.rewriteConversation(plan);
     await agent.replaceCompactedReplay(snapshot);
 
     expect(store.getRevision).toHaveBeenCalledWith('conv-1');
     expect(store.appendEvent).toHaveBeenCalledWith(event);
-    expect(store.rewriteConversation).toHaveBeenCalledWith(plan);
     expect(store.replaceCompactedReplay).toHaveBeenCalledWith(snapshot);
+    expect((agent as unknown as Record<string, unknown>).rewriteConversation).toBeUndefined();
   });
 
   test('accepts explicit store overrides for conversation mutations', async () => {
     const defaultStore = {
       appendEvent: jest.fn(),
-      rewriteConversation: jest.fn(),
       replaceCompactedReplay: jest.fn(),
       getRevision: jest.fn(),
     };
     const overrideStore = {
       appendEvent: jest.fn(async () => undefined),
-      rewriteConversation: jest.fn(async () => undefined),
       replaceCompactedReplay: jest.fn(async () => undefined),
       getRevision: jest.fn(async () => ({
         conversationRef: 'conv-override',

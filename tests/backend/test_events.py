@@ -1,4 +1,5 @@
 """Tests for event system."""
+
 import json
 import time
 import pytest
@@ -11,6 +12,7 @@ from backend.src.core.events.streaming_events import (
     ContextCompactionCompletedEvent,
     ContextCompactionFailedEvent,
     ContextCompactionStartedEvent,
+    ModelHistoryUpdatedEvent,
     ThinkingEvent,
     ErrorEvent,
     StreamingCompleteEvent,
@@ -31,13 +33,13 @@ class TestEventBase:
         before = time.time()
         event = Event()
         after = time.time()
-        
+
         assert before <= event.timestamp <= after
 
     def test_init_with_custom_timestamp(self):
         custom_time = 1234567890.0
         event = Event(timestamp=custom_time)
-        
+
         assert event.timestamp == custom_time
 
 
@@ -49,9 +51,9 @@ class TestInteractionCompleted:
             session_id="session-123",
             user_id="user-456",
             user_message="Hello",
-            assistant_response="Hi there!"
+            assistant_response="Hi there!",
         )
-        
+
         assert event.session_id == "session-123"
         assert event.user_id == "user-456"
         assert event.user_message == "Hello"
@@ -63,9 +65,9 @@ class TestInteractionCompleted:
             session_id="session-123",
             user_id="user-456",
             user_message="Hello",
-            assistant_response="Hi there!"
+            assistant_response="Hi there!",
         )
-        
+
         assert isinstance(event, Event)
 
 
@@ -75,9 +77,9 @@ class TestConfigChanged:
     def test_init(self):
         old_config = AppConfig(model_provider="openai")
         new_config = AppConfig(model_provider="anthropic")
-        
+
         event = ConfigChanged(old_config=old_config, new_config=new_config)
-        
+
         assert event.old_config == old_config
         assert event.new_config == new_config
         assert event.timestamp is not None
@@ -85,9 +87,9 @@ class TestConfigChanged:
     def test_inherits_from_event(self):
         old_config = AppConfig()
         new_config = AppConfig()
-        
+
         event = ConfigChanged(old_config=old_config, new_config=new_config)
-        
+
         assert isinstance(event, Event)
 
 
@@ -96,14 +98,14 @@ class TestChunkEvent:
 
     def test_init(self):
         event = ChunkEvent(content="Hello world")
-        
+
         assert event.content == "Hello world"
         assert event.type.value == "streaming-response"
 
     def test_to_dict(self):
         event = ChunkEvent(content="Hello world")
         result = event.to_dict()
-        
+
         assert result == {"type": "streaming-response", "content": "Hello world"}
 
 
@@ -112,14 +114,14 @@ class TestThinkingEvent:
 
     def test_init(self):
         event = ThinkingEvent(content="Thinking...")
-        
+
         assert event.content == "Thinking..."
         assert event.type.value == "llm-thought"
 
     def test_to_dict(self):
         event = ThinkingEvent(content="Analyzing...")
         result = event.to_dict()
-        
+
         assert result == {"type": "llm-thought", "content": "Analyzing..."}
 
 
@@ -128,14 +130,14 @@ class TestErrorEvent:
 
     def test_init(self):
         event = ErrorEvent(content="Something went wrong")
-        
+
         assert event.content == "Something went wrong"
         assert event.type.value == "error"
 
     def test_to_dict(self):
         event = ErrorEvent(content="Error message")
         result = event.to_dict()
-        
+
         assert result == {"type": "error", "content": "Error message"}
 
 
@@ -144,25 +146,25 @@ class TestStreamingCompleteEvent:
 
     def test_init_with_default(self):
         event = StreamingCompleteEvent()
-        
+
         assert event.final_response is None
         assert event.type.value == "streaming-complete"
 
     def test_init_with_final_response(self):
         event = StreamingCompleteEvent(final_response="Final text")
-        
+
         assert event.final_response == "Final text"
 
     def test_to_dict_without_response(self):
         event = StreamingCompleteEvent()
         result = event.to_dict()
-        
+
         assert result == {"type": "streaming-complete"}
 
     def test_to_dict_with_response(self):
         event = StreamingCompleteEvent(final_response="Final text")
         result = event.to_dict()
-        
+
         assert result == {"type": "streaming-complete", "final_response": "Final text"}
 
 
@@ -174,7 +176,7 @@ class TestToolCallEvent:
             tool_name="read_file",
             parameters={"path": "/test.txt"},
         )
-        
+
         assert event.tool_name == "read_file"
         assert event.parameters == {"path": "/test.txt"}
         assert event.request_id is None
@@ -186,9 +188,9 @@ class TestToolCallEvent:
             tool_name="click",
             parameters={"x": 100, "y": 200},
             request_id="req-123",
-            metadata={"description": "Click button"}
+            metadata={"description": "Click button"},
         )
-        
+
         assert event.request_id == "req-123"
         assert event.metadata == {"description": "Click button"}
 
@@ -198,7 +200,7 @@ class TestToolCallEvent:
             parameters={"path": "/test.txt"},
         )
         result = event.to_dict()
-        
+
         assert result["type"] == "tool-call"
         assert result["tool_name"] == "read_file"
         assert result["parameters"] == {"path": "/test.txt"}
@@ -209,11 +211,9 @@ class TestToolOutputEvent:
 
     def test_init_required_fields(self):
         event = ToolOutputEvent(
-            tool_name="read_file",
-            success=True,
-            output="file contents"
+            tool_name="read_file", success=True, output="file contents"
         )
-        
+
         assert event.tool_name == "read_file"
         assert event.success is True
         assert event.output == "file contents"
@@ -230,22 +230,18 @@ class TestToolOutputEvent:
             execution_time=1.5,
             error="File not found",
             screenshot="base64data",
-            metadata={"size": 1024}
+            metadata={"size": 1024},
         )
-        
+
         assert event.execution_time == 1.5
         assert event.error == "File not found"
         assert event.screenshot == "base64data"
         assert event.metadata == {"size": 1024}
 
     def test_to_dict(self):
-        event = ToolOutputEvent(
-            tool_name="read_file",
-            success=True,
-            output="contents"
-        )
+        event = ToolOutputEvent(tool_name="read_file", success=True, output="contents")
         result = event.to_dict()
-        
+
         assert result["type"] == "tool-output"
         assert result["tool_name"] == "read_file"
         assert result["success"] is True
@@ -257,14 +253,14 @@ class TestAssistantMessageFullEvent:
 
     def test_init(self):
         event = AssistantMessageFullEvent(content="Full response")
-        
+
         assert event.content == "Full response"
         assert event.type.value == "assistant-message-full"
 
     def test_to_dict(self):
         event = AssistantMessageFullEvent(content="Full response")
         result = event.to_dict()
-        
+
         assert result == {"type": "assistant-message-full", "content": "Full response"}
 
 
@@ -284,7 +280,7 @@ class TestTokenCountEvent:
             cache_hit=True,
             cache_status="hit",
         )
-        
+
         assert event.prompt_tokens == 100
         assert event.visible_output_tokens == 38
         assert event.thinking_tokens == 12
@@ -311,7 +307,7 @@ class TestTokenCountEvent:
             cache_status="unknown",
         )
         result = event.to_dict()
-        
+
         assert result["type"] == "token-count"
         assert result["prompt_tokens"] == 100
         assert result["visible_output_tokens"] == 50
@@ -363,7 +359,10 @@ class TestContextCompactionEvents:
         result = event.to_dict()
         assert result["after_tokens"] == 900
         assert result["removed_messages"] == 9
-        assert result["replacement_history_preview"][0]["message_type"] == "context_compaction"
+        assert (
+            result["replacement_history_preview"][0]["message_type"]
+            == "context_compaction"
+        )
 
     def test_context_compaction_failed_event(self):
         event = ContextCompactionFailedEvent(
@@ -379,6 +378,33 @@ class TestContextCompactionEvents:
         assert result["before_tokens"] == 2000
 
 
+class TestModelHistoryUpdatedEvent:
+    """Tests for model-history checkpoint event."""
+
+    def test_model_history_updated_event(self):
+        event = ModelHistoryUpdatedEvent(
+            conversation_ref="conv-1",
+            revision_id="rev-1",
+            checkpoint_id="mh-1",
+            created_at="2026-06-22T12:00:00+00:00",
+            rows=[
+                {
+                    "id": "row-1",
+                    "conversation_ref": "conv-1",
+                    "revision_id": "rev-1",
+                    "role": "user",
+                    "message_type": "user_query",
+                    "content": "hello",
+                }
+            ],
+        )
+
+        assert event.type.value == "model-history-updated"
+        result = event.to_dict()
+        assert result["checkpoint_id"] == "mh-1"
+        assert result["rows"][0]["message_type"] == "user_query"
+
+
 class TestStreamingEventToDict:
     """Tests for StreamingEvent.to_dict base method."""
 
@@ -388,18 +414,15 @@ class TestStreamingEventToDict:
             parameters={"nested": {"key": "value"}},
         )
         result = event.to_dict()
-        
+
         assert result["parameters"] == {"nested": {"key": "value"}}
 
     def test_handles_list(self):
         event = ToolOutputEvent(
-            tool_name="test",
-            success=True,
-            output="test",
-            metadata={"items": [1, 2, 3]}
+            tool_name="test", success=True, output="test", metadata={"items": [1, 2, 3]}
         )
         result = event.to_dict()
-        
+
         assert result["metadata"]["items"] == [1, 2, 3]
 
     def test_schema_events_serialize_nested_schema_objects(self):

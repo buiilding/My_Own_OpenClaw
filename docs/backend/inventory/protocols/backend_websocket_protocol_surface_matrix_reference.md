@@ -8,12 +8,12 @@ title: "Backend WebSocket Protocol Surface Matrix Reference"
 
 # Backend WebSocket Protocol Surface Matrix Reference
 
-## Coverage Snapshot (2026-03-06)
+## Coverage Snapshot (2026-06-22)
 
 - Incoming message types: `10` (`INCOMING_MESSAGE_TYPES`)
-- Schema-validated outgoing message types: `19` (`OUTGOING_SCHEMA_MESSAGE_TYPES`)
+- Schema-validated outgoing message types: `20` (`OUTGOING_SCHEMA_MESSAGE_TYPES`)
 - Incoming routes: `10` (`INCOMING_ROUTES`)
-- Formatter specs: `16` (`get_formatter_specs()`)
+- Formatter specs: `17` (`get_formatter_specs()`)
 
 ## Scope and Sources
 
@@ -65,7 +65,7 @@ Runtime flow for each frame after handshake:
 |---|---|---|---|
 | `query` | `QueryMessage` | `text`, `conversation_ref`, required client-prepared `content`, optional screenshot artifact refs, `capture_meta`, `system_state_internal`, `workspace_path`, `repo_instruction_messages`, `client_prompt_layers`, `agent_definition` | `query_handler` |
 | `stop-query` | `StopQueryMessage` | Optional `conversation_ref` | `stop_query_handler` |
-| `rehydrate-conversation` | `RehydrateConversationMessage` | `conversation_ref`, `messages[]`, `rehydrate_mode="replace"`, optional `workspace_path`, `repo_instruction_messages` | `rehydrate_conversation_handler` |
+| `rehydrate-conversation` | `RehydrateConversationMessage` | `conversation_ref`, fallback `messages[]`, optional preferred `model_history`, `rehydrate_mode="replace"`, optional `workspace_path`, `repo_instruction_messages` | `rehydrate_conversation_handler` |
 | `load-settings` | `LoadSettingsMessage` | Optional `client_version` | `load_settings_handler` |
 | `list-models` | `ListModelsMessage` | Empty payload object | `list_models_handler` |
 | `wakeword-detected` | `WakewordDetectedMessage` | Empty payload object | `wakeword_handler` |

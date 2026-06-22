@@ -374,3 +374,40 @@ class TraceEventPayload(BaseModel):
 class TraceEventMessage(BaseMessage):
     type: Literal["trace-event"]
     payload: TraceEventPayload
+
+
+class ModelHistoryRowPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    conversation_ref: str
+    revision_id: str
+    role: Literal["system", "user", "assistant", "tool"]
+    message_type: Literal[
+        "user_query",
+        "assistant_response",
+        "tool_output",
+        "context_compaction",
+    ]
+    content: Any
+    tool_call_id: Optional[str] = None
+    tool_calls: Optional[List[Dict[str, Any]]] = None
+    tool_name: Optional[str] = None
+    image_refs: Optional[List[str]] = None
+    compaction_facts: Optional[Dict[str, Any]] = None
+    source_display_row_ids: Optional[List[str]] = None
+
+
+class ModelHistoryUpdatedPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    conversation_ref: str
+    revision_id: str
+    checkpoint_id: str
+    created_at: str
+    rows: List[ModelHistoryRowPayload]
+
+
+class ModelHistoryUpdatedMessage(BaseMessage):
+    type: Literal["model-history-updated"]
+    payload: ModelHistoryUpdatedPayload

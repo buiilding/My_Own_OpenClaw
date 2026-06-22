@@ -457,7 +457,12 @@ export function createAgentRuntimeTransport(
           ? payload.conversation_ref
           : conversationRef,
         messages: Array.isArray(payload.messages) ? payload.messages : [],
+        model_history: isJsonRecord(payload.model_history) ? payload.model_history : null,
         rehydrate_mode: 'replace',
+        workspace_path: typeof payload.workspace_path === 'string' ? payload.workspace_path : null,
+        repo_instruction_messages: Array.isArray(payload.repo_instruction_messages)
+          ? payload.repo_instruction_messages.filter(isJsonRecord)
+          : null,
       });
     },
     compactHistory: async payload => session.compactHistory(payload),

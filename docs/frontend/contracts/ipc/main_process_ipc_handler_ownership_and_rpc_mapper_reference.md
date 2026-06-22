@@ -75,7 +75,7 @@ Notable behavior:
   command allowlist keyed by the SDK `SDK_RUNTIME_COMMANDS` export. Current
   command names include `conversation.send`,
   `conversation.stop`, `conversation.rehydrate`, `conversation.compact`,
-  `conversation.prepareEditAndResend`, `conversation.prepareRetryTurn`,
+  `conversation.loadDisplayTimeline`, `conversation.replaceRows`,
   `settings.update`, `models.list`, `wakeword.detected`,
   `memories.clearAll`, and `conversations.clearAll`.
 - focused query helpers own payload preparation, settings gates, and stop

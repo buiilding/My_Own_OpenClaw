@@ -373,8 +373,8 @@ Primary modules:
   - Renderer-side conversation store implementation for transcript projection
     helpers.
   - Calls SDK-shaped commands such as `conversation.appendEvent`,
-    `conversation.rewrite`, `conversation.replaceCompactedReplay`,
-    `conversation.load`, and `conversations.list/search/delete`.
+    `conversation.replaceCompactedReplay`, `conversation.load`,
+    `conversation.replaceRows`, and `conversations.list/search/delete`.
   - Local-runtime storage RPC names stay inside SDK store/local-runtime
     implementation code and Electron main local-runtime bridge internals.
 - `renderer/app/runtime/desktopConversationSessionRuntime.ts`:

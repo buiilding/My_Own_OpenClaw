@@ -2,7 +2,7 @@
  * Covers conversation replay actions. behavior in the frontend test suite.
  */
 
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -24,23 +24,41 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
 }));
 
 let mockConversationRef = 'conv-existing';
+let mockDisplayTimelineRows = [];
+
+function timelineRowsFromMessages(messages, conversationRef = 'conv-existing', revisionId = 'rev-base') {
+  return messages.map((message, index) => ({
+    id: message.id,
+    conversationRef,
+    revisionId,
+    index,
+    role: message.sender === 'user' ? 'user' : 'assistant',
+    type: message.sender === 'user' ? 'user_message' : 'assistant_message',
+    content: message.text,
+    metadata: {
+      revisionId,
+      ...(Array.isArray(message.attachments) ? { attachments: message.attachments } : {}),
+    },
+  }));
+}
+
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
   DesktopConversationContinuityService: {
-    prepareEditAndResend: jest.fn(async (input) => ({
-      conversationRef: input.conversationRef,
-      text: input.text,
-      payload: input.payload,
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: null,
+    loadDisplayTimeline: jest.fn(async (userId, conversationRef) => ({
+      conversationRef,
+      revisionId: 'rev-base',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: null,
+      baseRevisionId: null,
+      rows: mockDisplayTimelineRows,
     })),
-    prepareRetryTurn: jest.fn(async (input) => ({
+    replaceRows: jest.fn(async (input) => ({
       conversationRef: input.conversationRef,
-      text: input.text,
-      payload: input.payload,
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: null,
+      revisionId: 'rev-child',
+      createdAt: '2026-06-22T12:01:00.000Z',
+      reason: input.reason,
+      baseRevisionId: input.baseRevisionId,
+      rows: input.rows,
     })),
   },
 }));
@@ -62,8 +80,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-const mockPrepareEditAndResend = DesktopConversationContinuityService.prepareEditAndResend;
-const mockPrepareRetryTurn = DesktopConversationContinuityService.prepareRetryTurn;
+const mockLoadDisplayTimeline = DesktopConversationContinuityService.loadDisplayTimeline;
+const mockReplaceRows = DesktopConversationContinuityService.replaceRows;
 const mockSendQuery = DesktopLiveTurnRuntimeClient.sendQuery;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
@@ -77,6 +95,7 @@ describe('useConversationReplayActions', () => {
       selected_model_id: 'claude-sonnet-4-5',
     };
     mockConversationRef = 'conv-existing';
+    mockDisplayTimelineRows = [];
     jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel) => {
       if (channel === INVOKE_CHANNELS.DELETE_CHAT_CONVERSATION) {
         return { success: true };
@@ -84,21 +103,21 @@ describe('useConversationReplayActions', () => {
       return null;
     });
     jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
-    mockPrepareEditAndResend.mockImplementation(async (input) => ({
-      conversationRef: input.conversationRef,
-      text: input.text,
-      payload: input.payload,
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: null,
+    mockLoadDisplayTimeline.mockImplementation(async (userId, conversationRef) => ({
+      conversationRef,
+      revisionId: 'rev-base',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: null,
+      baseRevisionId: null,
+      rows: mockDisplayTimelineRows,
     }));
-    mockPrepareRetryTurn.mockImplementation(async (input) => ({
+    mockReplaceRows.mockImplementation(async (input) => ({
       conversationRef: input.conversationRef,
-      text: input.text,
-      payload: input.payload,
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: null,
+      revisionId: 'rev-child',
+      createdAt: '2026-06-22T12:01:00.000Z',
+      reason: input.reason,
+      baseRevisionId: input.baseRevisionId,
+      rows: input.rows,
     }));
     mockSendQuery.mockResolvedValue(undefined);
     useChatStore.setState({ activeConversationRef: null });
@@ -108,7 +127,7 @@ describe('useConversationReplayActions', () => {
     jest.restoreAllMocks();
   });
 
-  test('prepares retry through continuity and dispatches through live-turn send', async () => {
+  test('replaces display rows for retry and dispatches through live-turn send', async () => {
     const messages = [
       {
         id: 'user-1',
@@ -123,6 +142,7 @@ describe('useConversationReplayActions', () => {
         text: 'first answer',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
     const setMessages = jest.fn();
     const setThinkingStatus = jest.fn();
     const setThinkingSourceEventType = jest.fn();
@@ -141,17 +161,14 @@ describe('useConversationReplayActions', () => {
     expect(mockGetActiveConversationRef).toHaveBeenCalled();
     expect(mockGetTranscriptSessionInfo).toHaveBeenCalled();
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-existing', 'user-1');
-    expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockLoadDisplayTimeline).toHaveBeenCalledWith('user-1', 'conv-existing');
+    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
       userId: 'user-1',
-      messageId: 'assistant-1',
-      text: 'first question',
-      model: {
-        modelProvider: 'anthropic',
-        modelId: 'claude-sonnet-4-5',
-      },
+      baseRevisionId: 'rev-base',
+      reason: 'retry',
+      rows: [],
     }));
-    expect(mockPrepareRetryTurn.mock.calls[0][0]).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
       text: 'first question',
@@ -162,19 +179,18 @@ describe('useConversationReplayActions', () => {
       },
     }));
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
-    expect(mockPrepareEditAndResend).not.toHaveBeenCalled();
   });
 
-  test('retry replay publishes pending turn before continuity preparation resolves', async () => {
-    let resolvePreparation;
-    mockPrepareRetryTurn.mockImplementation((input) => new Promise((resolve) => {
-      resolvePreparation = () => resolve({
+  test('retry replay waits for display replacement before publishing pending turn', async () => {
+    let resolveReplacement;
+    mockReplaceRows.mockImplementation((input) => new Promise((resolve) => {
+      resolveReplacement = () => resolve({
         conversationRef: input.conversationRef,
-        text: input.text ?? 'first question',
-        payload: input.payload,
-        model: input.model,
-        workspacePath: input.workspacePath,
-        turnRef: input.turnRef,
+        revisionId: 'rev-child',
+        createdAt: '2026-06-22T12:01:00.000Z',
+        reason: input.reason,
+        baseRevisionId: input.baseRevisionId,
+        rows: input.rows,
       });
     }));
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-replay-pending');
@@ -192,6 +208,7 @@ describe('useConversationReplayActions', () => {
         text: 'first answer',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
     useChatStore.getState().setActiveConversationRef('conv-existing');
     useChatStore.getState().clearMessages('conv-existing');
     useChatStore.getState().setMessages(messages, 'conv-existing');
@@ -208,16 +225,19 @@ describe('useConversationReplayActions', () => {
       replayPromise = result.current.handleTryAgainFromAssistant('assistant-1');
     });
 
-    await waitFor(() => {
-      expect(useChatStore.getState().pendingTurn).toEqual(expect.objectContaining({
-        conversationRef: 'conv-existing',
-        turnRef: 'turn-replay-pending',
-        userMessageId: 'user-1',
-        text: 'first question',
-      }));
+    expect(useChatStore.getState().pendingTurn).toBeNull();
+    expect(mockSendQuery).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveReplacement();
+      await replayPromise;
     });
-    expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+
+    expect(useChatStore.getState().pendingTurn).toEqual(expect.objectContaining({
+      conversationRef: 'conv-existing',
       turnRef: 'turn-replay-pending',
+      userMessageId: 'user-1',
+      text: 'first question',
     }));
     expect(IpcBridge.send).toHaveBeenCalledWith(expect.any(String), {
       type: 'pending',
@@ -226,13 +246,6 @@ describe('useConversationReplayActions', () => {
         userMessageId: 'user-1',
       }),
     });
-    expect(mockSendQuery).not.toHaveBeenCalled();
-
-    await act(async () => {
-      resolvePreparation();
-      await replayPromise;
-    });
-
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       turnRef: 'turn-replay-pending',
     }));
@@ -255,6 +268,7 @@ describe('useConversationReplayActions', () => {
         text: 'answer',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages, 'conv_replay-ref');
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
@@ -267,10 +281,10 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-inline');
     });
 
-    expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      payload: {},
+    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
+      reason: 'retry',
+      rows: [],
     }));
-    expect(mockPrepareRetryTurn.mock.calls[0][0]).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('screenshot');
   });
 
@@ -297,6 +311,7 @@ describe('useConversationReplayActions', () => {
         text: 'second answer',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
@@ -309,11 +324,14 @@ describe('useConversationReplayActions', () => {
       await result.current.handleEditFromUser('renderer-user-2', 'edited second question');
     });
 
-    expect(mockPrepareEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
-      messageId: 'renderer-user-2',
-      text: 'edited second question',
+    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
+      baseRevisionId: 'rev-base',
+      reason: 'user_edit',
+      rows: [
+        expect.objectContaining({ id: 'renderer-user-1' }),
+        expect.objectContaining({ id: 'assistant-1' }),
+      ],
     }));
-    expect(mockPrepareEditAndResend.mock.calls[0][0]).not.toHaveProperty('userMessageOrdinal');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       text: 'edited second question',
     }));
@@ -334,6 +352,7 @@ describe('useConversationReplayActions', () => {
         text: 'answer',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
@@ -346,37 +365,38 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-url');
     });
 
-    expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      payload: {
-        screenshot_ref: 'artifact-99',
-        screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
-      },
+    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
+      reason: 'retry',
+      rows: [],
     }));
-    expect(mockPrepareRetryTurn.mock.calls[0][0]).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       screenshotRef: 'artifact-99',
       screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
     }));
   });
 
-  test('retry replay dispatches prepared multi-image refs and attachment filenames', async () => {
-    mockPrepareRetryTurn.mockImplementation(async (input) => ({
-      conversationRef: input.conversationRef,
-      text: input.text,
-      payload: {
-        ...input.payload,
-        screenshot_refs: ['artifact-1', 'artifact-2'],
-        attachment_filenames: ['one.png', 'two.png'],
-      },
-      model: input.model,
-      workspacePath: input.workspacePath,
-      turnRef: null,
-    }));
+  test('retry replay dispatches display timeline multi-image refs and attachment filenames', async () => {
     const messages = [
       {
         id: 'user-multi-image',
         sender: 'user',
         text: 'question with two images',
+        attachments: [
+          {
+            id: 'artifact-1',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
+            filename: 'one.png',
+          },
+          {
+            id: 'artifact-2',
+            kind: 'image',
+            source: 'user_included',
+            status: 'ready',
+            filename: 'two.png',
+          },
+        ],
       },
       {
         id: 'assistant-multi-image',
@@ -384,6 +404,7 @@ describe('useConversationReplayActions', () => {
         text: 'answer',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
@@ -396,7 +417,6 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-multi-image');
     });
 
-    expect(mockPrepareRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('screenshot_refs');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       screenshotRefs: ['artifact-1', 'artifact-2'],
       attachmentFilenames: ['one.png', 'two.png'],
@@ -421,6 +441,7 @@ describe('useConversationReplayActions', () => {
         text: 'brand new answer',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages, 'conv_replay-ref');
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
@@ -435,7 +456,7 @@ describe('useConversationReplayActions', () => {
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', undefined);
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', 'user-1');
-    expect(mockPrepareRetryTurn.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
+    expect(mockReplaceRows.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
     expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
   });
 
@@ -457,6 +478,7 @@ describe('useConversationReplayActions', () => {
         text: 'answer',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages, 'conv-store-active');
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
@@ -470,13 +492,13 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-store-active', 'user-1');
-    expect(mockPrepareRetryTurn.mock.calls[0][0].conversationRef).toBe('conv-store-active');
+    expect(mockReplaceRows.mock.calls[0][0].conversationRef).toBe('conv-store-active');
     expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv-store-active');
   });
 
-  test('retry replay restores original messages when preparation rejects', async () => {
+  test('retry replay does not pre-mutate messages when display replacement rejects', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    mockPrepareRetryTurn.mockRejectedValue(new Error('retry rejected'));
+    mockReplaceRows.mockRejectedValue(new Error('retry rejected'));
     const messages = [
       {
         id: 'user-1',
@@ -496,6 +518,7 @@ describe('useConversationReplayActions', () => {
         text: 'later question',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
     const setMessages = jest.fn();
 
     const { result } = renderHook(() => useConversationReplayActions({
@@ -509,18 +532,13 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-1');
     });
 
-    expect(setMessages).toHaveBeenNthCalledWith(
-      1,
-      [expect.objectContaining({ id: 'user-1' })],
-      'conv-existing',
-    );
-    expect(setMessages).toHaveBeenLastCalledWith(messages, 'conv-existing');
+    expect(setMessages).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 
   test('retry replay appends a preparation error when continuity service rejects', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    mockPrepareRetryTurn.mockRejectedValue(new Error('retry rejected'));
+    mockReplaceRows.mockRejectedValue(new Error('retry rejected'));
     const messages = [
       {
         id: 'user-1',
@@ -535,6 +553,7 @@ describe('useConversationReplayActions', () => {
         text: 'first answer',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
     useChatStore.getState().setActiveConversationRef('conv-existing');
     useChatStore.getState().clearMessages('conv-existing');
     useChatStore.getState().setMessages(messages, 'conv-existing');
@@ -579,6 +598,7 @@ describe('useConversationReplayActions', () => {
         text: 'first answer',
       },
     ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
     useChatStore.getState().setActiveConversationRef('conv-existing');
     useChatStore.getState().clearMessages('conv-existing');
     useChatStore.getState().setMessages(messages, 'conv-existing');

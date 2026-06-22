@@ -30,6 +30,7 @@ export type ConversationEventType =
   | 'memory_retrieval_diagnostic'
   | 'memory_store_changed'
   | 'trace_event'
+  | 'model_history_updated'
   | 'compaction_started'
   | 'compaction_skipped'
   | 'compaction_applied'
@@ -132,15 +133,23 @@ export type ToolEventPayload = JsonRecord & {
   structuredPayload?: JsonRecord | null;
 };
 
-export type ConversationRewritePlan = {
+export type DisplayTimelineReplaceReason =
+  | 'user_edit'
+  | 'retry'
+  | 'fork'
+  | 'manual_rewrite';
+
+export type DisplayTimelineRow = SdkDisplayRow & {
+  revisionId: string;
+};
+
+export type DisplayTimelineCheckpoint = {
   conversationRef: string;
-  baseRevisionId: string;
-  newRevisionId: string;
-  cutAfterEventId?: string | null;
-  replacementUserMessage?: JsonRecord | null;
-  preservedEvents: ConversationEvent[];
-  removedEventIds: string[];
-  reason: 'edit_resend' | 'retry' | 'transcript_projection_rewrite';
+  revisionId: string;
+  rows: DisplayTimelineRow[];
+  createdAt: string;
+  reason?: DisplayTimelineReplaceReason | null;
+  baseRevisionId?: string | null;
 };
 
 export type CompactedReplaySnapshot = {
@@ -153,6 +162,37 @@ export type CompactedReplaySnapshot = {
   entryCount: number;
   complete: boolean;
   active?: boolean;
+};
+
+export type ModelHistoryRole = 'system' | 'user' | 'assistant' | 'tool';
+
+export type ModelHistoryMessageType =
+  | 'user_query'
+  | 'assistant_response'
+  | 'tool_output'
+  | 'context_compaction';
+
+export type ModelHistoryRow = {
+  id: string;
+  conversationRef: string;
+  revisionId: string;
+  role: ModelHistoryRole;
+  messageType: ModelHistoryMessageType;
+  content: unknown;
+  toolCallId?: string | null;
+  toolCalls?: unknown[] | null;
+  toolName?: string | null;
+  imageRefs?: string[] | null;
+  compactionFacts?: JsonRecord | null;
+  sourceDisplayRowIds?: string[];
+};
+
+export type ModelHistoryCheckpoint = {
+  checkpointId: string;
+  conversationRef: string;
+  revisionId: string;
+  rows: ModelHistoryRow[];
+  createdAt: string;
 };
 
 export type ConversationRevision = {
@@ -611,7 +651,8 @@ export type ToolBundleResultPayload = {
 
 export type RehydratePayload = {
   conversation_ref: string;
-  messages: JsonRecord[];
+  messages?: JsonRecord[];
+  model_history?: JsonRecord | null;
   rehydrate_mode: 'replace';
   workspace_path?: string | null;
   repo_instruction_messages?: JsonRecord[] | null;
@@ -700,12 +741,21 @@ export type ConversationRuntimeState = {
 export interface ConversationStore {
   appendEvent(event: ConversationEvent): Promise<void>;
   appendEvents(events: ConversationEvent[]): Promise<void>;
-  rewriteConversation(plan: ConversationRewritePlan): Promise<void>;
   replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void>;
   loadEvents(conversationRef: string): Promise<ConversationEvent[]>;
   loadForDisplay(conversationRef: string): Promise<DisplayConversation>;
   loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]>;
   loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot>;
+  replaceDisplayTimeline?(checkpoint: DisplayTimelineCheckpoint): Promise<void>;
+  loadDisplayTimeline?(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<DisplayTimelineCheckpoint | null>;
+  replaceModelHistory?(checkpoint: ModelHistoryCheckpoint): Promise<void>;
+  loadModelHistory?(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<ModelHistoryCheckpoint | null>;
   listMetadata(options?: ListConversationOptions): Promise<ConversationMetadata[]>;
   searchMetadata?(options: SearchConversationOptions): Promise<ConversationMetadata[]>;
   deleteConversation?(conversationRef: string): Promise<void>;

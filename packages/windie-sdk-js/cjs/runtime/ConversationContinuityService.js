@@ -6,27 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConversationContinuityService = void 0;
 exports.conversationMetadataInvalidationFromLocalRuntimeEvent = conversationMetadataInvalidationFromLocalRuntimeEvent;
 const metadata_js_1 = require("../conversation/metadata.js");
+const modelHistoryPayload_js_1 = require("./modelHistoryPayload.js");
 function optionalString(value) {
     return typeof value === 'string' && value.trim().length > 0 ? value : null;
-}
-function toProviderHistoryMessage(message) {
-    const role = message.role;
-    if (role !== 'user' && role !== 'assistant' && role !== 'tool') {
-        return null;
-    }
-    const content = typeof message.content === 'string'
-        ? message.content
-        : JSON.stringify(message.content ?? '');
-    return {
-        ...message,
-        role,
-        content,
-    };
-}
-function toProviderHistoryMessages(messages) {
-    return messages
-        .map(toProviderHistoryMessage)
-        .filter((message) => Boolean(message));
 }
 function conversationMetadataInvalidationFromLocalRuntimeEvent(event) {
     if (event.type !== 'conversation-title-updated') {
@@ -68,36 +50,49 @@ class ConversationContinuityService {
         return this.storeFor(input).loadForRehydrate(input.conversationRef);
     }
     async rehydrateFromStore(input) {
-        const snapshot = await this.loadRehydrateSnapshot(input);
-        const messages = toProviderHistoryMessages(snapshot.messages);
-        if (messages.length === 0) {
+        const store = this.storeFor(input);
+        const revision = await Promise.resolve(store.getRevision(input.conversationRef)).catch(() => null);
+        const revisionId = revision?.revisionId && revision.revisionId !== 'rev-empty'
+            ? revision.revisionId
+            : null;
+        const modelHistoryCheckpoint = store.loadModelHistory
+            ? await store.loadModelHistory.call(store, {
+                conversationRef: input.conversationRef,
+                revisionId,
+            })
+            : null;
+        if (modelHistoryCheckpoint && modelHistoryCheckpoint.rows.length > 0) {
+            const transport = this.options.transportFactory?.({
+                workspacePath: input.workspacePath ?? null,
+            });
+            if (!transport) {
+                throw new Error('Conversation continuity rehydrate requires an agent runtime transport');
+            }
+            await transport.rehydrateConversation({
+                conversation_ref: input.conversationRef,
+                messages: [],
+                model_history: (0, modelHistoryPayload_js_1.modelHistoryPayloadFromCheckpoint)(modelHistoryCheckpoint),
+                rehydrate_mode: 'replace',
+                workspace_path: optionalString(input.workspacePath),
+            });
             return {
                 conversationRef: input.conversationRef,
-                revisionId: snapshot.revisionId,
-                messageCount: 0,
-                hydrated: false,
-                replayGenerationId: snapshot.replayGenerationId ?? null,
+                revisionId: modelHistoryCheckpoint.revisionId,
+                messageCount: modelHistoryCheckpoint.rows.length,
+                hydrated: true,
+                replayGenerationId: null,
+                modelHistoryCheckpointId: modelHistoryCheckpoint.checkpointId,
+                source: 'model_history',
             };
         }
-        const transport = this.options.transportFactory?.({
-            workspacePath: input.workspacePath ?? null,
-        });
-        if (!transport) {
-            throw new Error('Conversation continuity rehydrate requires an agent runtime transport');
-        }
-        const payload = {
-            conversation_ref: input.conversationRef,
-            messages,
-            rehydrate_mode: 'replace',
-            workspace_path: optionalString(input.workspacePath),
-        };
-        await transport.rehydrateConversation(payload);
         return {
             conversationRef: input.conversationRef,
-            revisionId: snapshot.revisionId,
-            messageCount: messages.length,
-            hydrated: true,
-            replayGenerationId: snapshot.replayGenerationId ?? null,
+            revisionId: revisionId ?? 'rev-empty',
+            messageCount: 0,
+            hydrated: false,
+            replayGenerationId: null,
+            modelHistoryCheckpointId: null,
+            source: 'missing_model_history',
         };
     }
     async replaceCompactedReplay(input) {

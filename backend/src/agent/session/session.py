@@ -390,6 +390,7 @@ class AgentSession:
         *,
         turn_ref: str,
         conversation_ref: Optional[str],
+        revision_id: Optional[str] = None,
     ) -> None:
         """Record the authoritative stream context for tool-result echoes."""
         normalized_turn_ref = self._normalize_optional_runtime_ref(turn_ref)
@@ -399,6 +400,9 @@ class AgentSession:
             conversation_ref
         )
         self.runtime.active_turn_ref = normalized_turn_ref
+        self.runtime.active_revision_id = self._normalize_optional_runtime_ref(
+            revision_id
+        )
         if normalized_conversation_ref is not None:
             self.runtime.active_conversation_ref = normalized_conversation_ref
 
@@ -520,6 +524,22 @@ class AgentSession:
             self.runtime.active_conversation_ref = conversation_ref
             self.history.replace_with_entries(entries)
 
+    async def install_model_history(
+        self,
+        *,
+        conversation_ref: str,
+        revision_id: str,
+        entries: List[Dict[str, Any]],
+        system_prompt: Optional[str] = None,
+    ) -> None:
+        """Replace in-memory history with backend-normalized model-history rows."""
+        async with self._lock:
+            self.runtime.active_conversation_ref = conversation_ref
+            self.runtime.active_revision_id = revision_id
+            self.history.replace_with_entries(entries)
+            if system_prompt:
+                self.history.system_prompt = system_prompt
+
     async def run_history_compaction(
         self,
         *,
@@ -543,6 +563,7 @@ class AgentSession:
         capture_meta: Optional[Dict[str, Any]] = None,
         message_content: Optional[str] = None,
         conversation_ref: Optional[str] = None,
+        revision_id: Optional[str] = None,
         operating_system: Optional[str] = None,
         workspace_path: Optional[str] = None,
         repo_instruction_messages: Optional[List[Dict[str, str]]] = None,
@@ -564,6 +585,9 @@ class AgentSession:
         async with self._lock:
             if conversation_ref:
                 self._switch_conversation_ref(conversation_ref)
+            self.runtime.active_revision_id = self._normalize_optional_runtime_ref(
+                revision_id
+            )
             definition_runtime = getattr(agent_definition, "runtime", None)
             resolved_operating_system = (
                 getattr(definition_runtime, "operating_system", None)
@@ -676,9 +700,7 @@ class AgentSession:
                         "acceptedToolNameSample": _client_manifest_tool_name_sample(
                             accepted_tool_names
                         ),
-                        "sourceCounts": client_manifest_source_counts(
-                            manifest_result
-                        ),
+                        "sourceCounts": client_manifest_source_counts(manifest_result),
                     }
             if (
                 resolved_operating_system is not None
@@ -801,18 +823,14 @@ class AgentSession:
                     runtime="backend",
                     data={
                         "capabilityRevision": capability_revision,
-                        "policyInputCount": capability_trace_payload[
-                            "acceptedCount"
-                        ],
+                        "policyInputCount": capability_trace_payload["acceptedCount"],
                         "policyAllowedCount": capability_trace_payload[
                             "policyAllowedClientToolCount"
                         ],
                         "policyRejectedCount": max(
                             0,
                             capability_trace_payload["acceptedCount"]
-                            - capability_trace_payload[
-                                "policyAllowedClientToolCount"
-                            ],
+                            - capability_trace_payload["policyAllowedClientToolCount"],
                         ),
                         "rejectedByPolicySample": policy_rejected_client_tool_sample(
                             manifest_result,

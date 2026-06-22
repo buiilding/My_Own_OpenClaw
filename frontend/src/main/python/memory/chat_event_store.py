@@ -26,6 +26,8 @@ SIDEBAR_METADATA_EVENT_TYPES = (
 )
 
 CONVERSATION_EVENTS_TABLE = "conversation_events"
+CONVERSATION_DISPLAY_TIMELINE_TABLE = "conversation_display_timeline"
+CONVERSATION_MODEL_HISTORY_TABLE = "conversation_model_history"
 CONVERSATION_REVISIONS_TABLE = "conversation_revisions"
 CONVERSATIONS_TABLE = "conversations"
 CONVERSATION_TURNS_TABLE = "conversation_turns"
@@ -85,6 +87,24 @@ def _json_loads_list(value: Any) -> List[Any]:
     return parsed if isinstance(parsed, list) else []
 
 
+def _display_content_to_sidebar_text(value: Any) -> str:
+    if value is None:
+        return ""
+    parsed: Any = value
+    if isinstance(value, str):
+        if not value.strip():
+            return ""
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            return value.strip()
+    if parsed is None:
+        return ""
+    if isinstance(parsed, str):
+        return parsed.strip()
+    return json.dumps(parsed, separators=(",", ":"), ensure_ascii=False)
+
+
 def _conversation_clause(conversation_id: Optional[str]) -> Tuple[str, Tuple[Any, ...]]:
     if conversation_id is None:
         return "conversation_id IS NULL", ()
@@ -141,7 +161,8 @@ async def init_chat_event_schema(db_path: str) -> None:
 
     async with aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()
-        await cursor.execute("""
+        await cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS conversation_events (
                 id TEXT PRIMARY KEY,
                 user_id TEXT NOT NULL,
@@ -165,37 +186,114 @@ async def init_chat_event_schema(db_path: str) -> None:
                 event_payload TEXT NOT NULL,
                 compaction_checkpoint TEXT
             )
-            """)
-        await _ensure_event_column(cursor, CONVERSATION_EVENTS_TABLE, "attachments", "TEXT")
+            """
+        )
+        await _ensure_event_column(
+            cursor, CONVERSATION_EVENTS_TABLE, "attachments", "TEXT"
+        )
         await _ensure_event_column(
             cursor,
             CONVERSATION_EVENTS_TABLE,
             "producer",
             "TEXT NOT NULL DEFAULT 'sdk'",
         )
-        await _ensure_event_column(cursor, CONVERSATION_EVENTS_TABLE, "producer_event_id", "TEXT")
-        await _ensure_event_column(cursor, CONVERSATION_EVENTS_TABLE, "producer_sequence", "INTEGER")
-        await cursor.execute("""
+        await _ensure_event_column(
+            cursor, CONVERSATION_EVENTS_TABLE, "producer_event_id", "TEXT"
+        )
+        await _ensure_event_column(
+            cursor, CONVERSATION_EVENTS_TABLE, "producer_sequence", "INTEGER"
+        )
+        await cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_conversation_events_order
             ON conversation_events(user_id, conversation_id, message_index, timestamp)
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_conversation_events_timestamp
             ON conversation_events(user_id, timestamp)
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_conversation_events_type
             ON conversation_events(user_id, conversation_id, event_type, timestamp)
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_conversation_events_turn
             ON conversation_events(user_id, conversation_id, turn_ref, message_index)
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_conversation_events_producer_order
             ON conversation_events(user_id, conversation_id, turn_ref, producer, producer_sequence)
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS {CONVERSATION_DISPLAY_TIMELINE_TABLE} (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                revision_id TEXT NOT NULL,
+                row_index INTEGER NOT NULL,
+                row_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                row_type TEXT NOT NULL,
+                content TEXT,
+                turn_ref TEXT,
+                metadata TEXT,
+                reason TEXT,
+                base_revision_id TEXT,
+                created_at TEXT NOT NULL,
+                active INTEGER NOT NULL DEFAULT 1,
+                PRIMARY KEY (user_id, conversation_id, revision_id, row_index)
+            )
+            """
+        )
+        await cursor.execute(
+            f"""
+            CREATE INDEX IF NOT EXISTS idx_conversation_display_timeline_active
+            ON {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+            (user_id, conversation_id, revision_id, active, created_at)
+            """
+        )
+        await cursor.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS {CONVERSATION_MODEL_HISTORY_TABLE} (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                revision_id TEXT NOT NULL,
+                checkpoint_id TEXT NOT NULL,
+                row_index INTEGER NOT NULL,
+                row_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                message_type TEXT NOT NULL,
+                content TEXT,
+                tool_call_id TEXT,
+                tool_calls TEXT,
+                tool_name TEXT,
+                image_refs TEXT,
+                compaction_facts TEXT,
+                source_display_row_ids TEXT,
+                created_at TEXT NOT NULL,
+                active INTEGER NOT NULL DEFAULT 1,
+                PRIMARY KEY (user_id, conversation_id, checkpoint_id, row_index)
+            )
+            """
+        )
+        await cursor.execute(
+            f"""
+            CREATE INDEX IF NOT EXISTS idx_conversation_model_history_active
+            ON {CONVERSATION_MODEL_HISTORY_TABLE}
+            (user_id, conversation_id, revision_id, active, created_at)
+            """
+        )
+        await cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS conversation_revisions (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -203,12 +301,16 @@ async def init_chat_event_schema(db_path: str) -> None:
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (user_id, conversation_id)
             )
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_conversation_revisions_updated
             ON conversation_revisions(user_id, updated_at)
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS conversations (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -226,12 +328,16 @@ async def init_chat_event_schema(db_path: str) -> None:
                 deleted_at TEXT,
                 PRIMARY KEY (user_id, conversation_id)
             )
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_conversations_updated
             ON conversations(user_id, updated_at)
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS conversation_turns (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -248,12 +354,16 @@ async def init_chat_event_schema(db_path: str) -> None:
                 memory_retrieval_status TEXT,
                 PRIMARY KEY (user_id, conversation_id, turn_ref)
             )
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_conversation_turns_order
             ON conversation_turns(user_id, conversation_id, started_at)
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS conversation_titles (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -264,11 +374,14 @@ async def init_chat_event_schema(db_path: str) -> None:
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (user_id, conversation_id)
             )
-            """)
-        await cursor.execute("""
+            """
+        )
+        await cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_conversation_titles_updated_at
             ON conversation_titles(updated_at)
-            """)
+            """
+        )
         await _create_read_model_views(cursor)
         await conn.commit()
 
@@ -286,7 +399,8 @@ async def _ensure_event_column(
 
 
 async def _create_read_model_views(cursor: Any) -> None:
-    await cursor.execute(f"""
+    await cursor.execute(
+        f"""
         CREATE VIEW IF NOT EXISTS {CONVERSATION_DISPLAY_MESSAGES_VIEW} AS
         SELECT
             id AS event_id,
@@ -316,12 +430,15 @@ async def _create_read_model_views(cursor: Any) -> None:
           AND conversation_id IS NOT NULL
           AND content IS NOT NULL
           AND content != ''
-        """)
+        """
+    )
+
 
 async def _rebuild_materialized_conversation_indexes(cursor: Any) -> None:
     await cursor.execute(f"DELETE FROM {CONVERSATIONS_TABLE}")
     await cursor.execute(f"DELETE FROM {CONVERSATION_TURNS_TABLE}")
-    await cursor.execute(f"""
+    await cursor.execute(
+        f"""
         INSERT INTO {CONVERSATIONS_TABLE}
         (user_id, conversation_id, status, title, created_at, updated_at,
          last_message, event_count, turn_count, workspace_path, workspace_name,
@@ -396,8 +513,10 @@ async def _rebuild_materialized_conversation_indexes(cursor: Any) -> None:
         FROM {CONVERSATION_EVENTS_TABLE} e
         WHERE e.conversation_id IS NOT NULL
         GROUP BY e.user_id, e.conversation_id
-        """)
-    await cursor.execute(f"""
+        """
+    )
+    await cursor.execute(
+        f"""
         INSERT INTO {CONVERSATION_TURNS_TABLE}
         (user_id, conversation_id, turn_ref, status, started_at, completed_at,
          model_provider, model_id, user_event_id, assistant_event_id,
@@ -431,7 +550,8 @@ async def _rebuild_materialized_conversation_indexes(cursor: Any) -> None:
         WHERE e.conversation_id IS NOT NULL
           AND e.turn_ref IS NOT NULL
         GROUP BY e.user_id, e.conversation_id, e.turn_ref
-        """)
+        """
+    )
 
 
 async def _refresh_conversation_indexes(
@@ -451,7 +571,8 @@ async def _refresh_conversation_indexes(
         f"DELETE FROM {CONVERSATION_TURNS_TABLE} WHERE user_id = ? AND conversation_id = ?",
         (user_id, conversation_id),
     )
-    await cursor.execute(f"""
+    await cursor.execute(
+        f"""
         INSERT INTO {CONVERSATIONS_TABLE}
         (user_id, conversation_id, status, title, created_at, updated_at,
          last_message, event_count, turn_count, workspace_path, workspace_name,
@@ -527,8 +648,11 @@ async def _refresh_conversation_indexes(
         WHERE e.user_id = ?
           AND e.conversation_id = ?
         GROUP BY e.user_id, e.conversation_id
-        """, (user_id, conversation_id))
-    await cursor.execute(f"""
+        """,
+        (user_id, conversation_id),
+    )
+    await cursor.execute(
+        f"""
         INSERT INTO {CONVERSATION_TURNS_TABLE}
         (user_id, conversation_id, turn_ref, status, started_at, completed_at,
          model_provider, model_id, user_event_id, assistant_event_id,
@@ -563,7 +687,9 @@ async def _refresh_conversation_indexes(
           AND e.conversation_id = ?
           AND e.turn_ref IS NOT NULL
         GROUP BY e.user_id, e.conversation_id, e.turn_ref
-        """, (user_id, conversation_id))
+        """,
+        (user_id, conversation_id),
+    )
 
 
 async def get_next_chat_event_index(
@@ -765,9 +891,7 @@ async def list_conversations(
     user_id: str,
     limit: Optional[int],
 ) -> List[Dict[str, Any]]:
-    metadata_event_placeholders = ", ".join(
-        "?" for _ in SIDEBAR_METADATA_EVENT_TYPES
-    )
+    metadata_event_placeholders = ", ".join("?" for _ in SIDEBAR_METADATA_EVENT_TYPES)
     async with aiosqlite.connect(db_path) as conn:
         conn.row_factory = aiosqlite.Row
         cursor = await conn.cursor()
@@ -780,9 +904,19 @@ async def list_conversations(
                   AND conversation_id IS NOT NULL
                   AND event_type IN ({metadata_event_placeholders})
             ),
+            active_display_rows AS (
+                SELECT *
+                FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                WHERE user_id = ?
+                  AND conversation_id IS NOT NULL
+                  AND active = 1
+            ),
             conversation_ids AS (
                 SELECT DISTINCT conversation_id
                 FROM visible_events
+                UNION
+                SELECT DISTINCT conversation_id
+                FROM active_display_rows
             )
             SELECT c.conversation_id,
                    (
@@ -793,6 +927,14 @@ async def list_conversations(
                      SELECT MAX(timestamp) FROM visible_events e
                      WHERE e.conversation_id = c.conversation_id
                    ) as last_timestamp,
+                   (
+                     SELECT MIN(created_at) FROM active_display_rows d
+                     WHERE d.conversation_id = c.conversation_id
+                   ) as display_first_timestamp,
+                   (
+                     SELECT MAX(created_at) FROM active_display_rows d
+                     WHERE d.conversation_id = c.conversation_id
+                   ) as display_last_timestamp,
                    (
                      SELECT COUNT(*) FROM {CONVERSATION_EVENTS_TABLE} e
                      WHERE e.user_id = ? AND e.conversation_id = c.conversation_id
@@ -816,6 +958,15 @@ async def list_conversations(
                      LIMIT 1
                    ) as first_user_content,
                    (
+                     SELECT content FROM active_display_rows d
+                     WHERE d.conversation_id = c.conversation_id
+                       AND d.role = 'user'
+                       AND d.content IS NOT NULL
+                       AND d.content != ''
+                     ORDER BY d.row_index ASC
+                     LIMIT 1
+                   ) as display_first_user_content,
+                   (
                      SELECT content FROM visible_events e2
                      WHERE e2.conversation_id = c.conversation_id
                        AND e2.content IS NOT NULL
@@ -824,6 +975,14 @@ async def list_conversations(
                      ORDER BY e2.message_index DESC, e2.timestamp DESC
                      LIMIT 1
                    ) as last_content,
+                   (
+                     SELECT content FROM active_display_rows d
+                     WHERE d.conversation_id = c.conversation_id
+                       AND d.content IS NOT NULL
+                       AND d.content != ''
+                     ORDER BY d.row_index DESC
+                     LIMIT 1
+                   ) as display_last_content,
                    (
                      SELECT revision_id FROM {CONVERSATION_REVISIONS_TABLE} r
                      WHERE r.user_id = ?
@@ -860,12 +1019,18 @@ async def list_conversations(
                      LIMIT 1
                    ) as workspace_name
             FROM conversation_ids c
-            ORDER BY COALESCE(last_timestamp, revision_updated_at) DESC
+            ORDER BY CASE
+              WHEN display_last_timestamp IS NOT NULL
+                AND (last_timestamp IS NULL OR display_last_timestamp >= last_timestamp)
+              THEN display_last_timestamp
+              ELSE COALESCE(last_timestamp, revision_updated_at)
+            END DESC
             LIMIT ?
             """,
             (
                 user_id,
                 *SIDEBAR_METADATA_EVENT_TYPES,
+                user_id,
                 user_id,
                 user_id,
                 user_id,
@@ -881,23 +1046,47 @@ async def list_conversations(
         conversation_id = row["conversation_id"]
         if not isinstance(conversation_id, str) or not conversation_id.strip():
             continue
+        display_first_user_content = _display_content_to_sidebar_text(
+            row["display_first_user_content"]
+        )
+        display_last_content = _display_content_to_sidebar_text(
+            row["display_last_content"]
+        )
+        display_last_timestamp = row["display_last_timestamp"]
+        event_last_timestamp = row["last_timestamp"]
+        display_last_is_current = bool(display_last_timestamp) and (
+            not event_last_timestamp
+            or str(display_last_timestamp) >= str(event_last_timestamp)
+        )
         title = str(
             row["stored_title"]
+            or display_first_user_content
             or row["first_user_content"]
             or conversation_id
         ).strip()
         results.append(
             {
                 "conversation_id": conversation_id,
-                "first_timestamp": row["first_timestamp"] or row["revision_updated_at"],
-                "last_timestamp": row["last_timestamp"] or row["revision_updated_at"],
+                "first_timestamp": row["display_first_timestamp"]
+                or row["first_timestamp"]
+                or row["revision_updated_at"],
+                "last_timestamp": (
+                    display_last_timestamp
+                    if display_last_is_current
+                    else event_last_timestamp
+                )
+                or row["revision_updated_at"],
                 "entry_count": row["entry_count"],
                 "record_kind": "chat_event",
                 "revision_id": row["stored_revision_id"]
                 or row["event_revision_id"]
                 or f"rev-stored-{conversation_id}",
                 "title": title or conversation_id,
-                "last_message": row["last_content"] or "",
+                "last_message": (
+                    display_last_content
+                    if display_last_is_current and display_last_content
+                    else row["last_content"] or display_last_content or ""
+                ),
                 "workspace_path": row["workspace_path"] or "",
                 "workspace_name": row["workspace_name"] or "",
                 "is_resumable": True,
@@ -1037,6 +1226,20 @@ async def delete_conversation(
                     """,
                     (user_id, conversation_id),
                 )
+                await cursor.execute(
+                    f"""
+                    DELETE FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                    WHERE user_id = ? AND conversation_id = ?
+                    """,
+                    (user_id, conversation_id),
+                )
+                await cursor.execute(
+                    f"""
+                    DELETE FROM {CONVERSATION_MODEL_HISTORY_TABLE}
+                    WHERE user_id = ? AND conversation_id = ?
+                    """,
+                    (user_id, conversation_id),
+                )
             await conn.commit()
         except Exception:
             await conn.rollback()
@@ -1044,285 +1247,409 @@ async def delete_conversation(
     return int(deleted)
 
 
-async def replace_conversation(
+def _normalize_display_timeline_row(
+    row: Dict[str, Any],
+    *,
+    fallback_conversation_id: str,
+    fallback_revision_id: str,
+    fallback_index: int,
+) -> Dict[str, Any]:
+    row_id = row.get("id") or row.get("row_id") or row.get("rowId")
+    role = row.get("role")
+    row_type = row.get("type") or row.get("row_type") or row.get("rowType")
+    if not isinstance(row_id, str) or not row_id.strip():
+        raise ValueError("display timeline rows require id")
+    if role not in {"system", "user", "assistant", "tool"}:
+        raise ValueError("display timeline rows require role")
+    if row_type not in {
+        "user_message",
+        "assistant_message",
+        "tool_progress",
+        "tool_call",
+        "tool_bundle_call",
+        "tool_output",
+        "tool_bundle_output",
+        "reasoning",
+        "error",
+    }:
+        raise ValueError("display timeline rows require canonical type")
+    return {
+        "row_id": row_id.strip(),
+        "row_index": int(row.get("row_index") or row.get("rowIndex") or fallback_index),
+        "conversation_id": (
+            row.get("conversation_id")
+            or row.get("conversationRef")
+            or row.get("conversationId")
+            or fallback_conversation_id
+        ),
+        "revision_id": (
+            row.get("revision_id") or row.get("revisionId") or fallback_revision_id
+        ),
+        "role": role,
+        "row_type": row_type,
+        "content": row.get("content"),
+        "turn_ref": row.get("turn_ref") or row.get("turnRef"),
+        "metadata": (
+            row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+        ),
+    }
+
+
+async def replace_display_timeline(
     *,
     db_path: str,
     user_id: str,
-    conversation_id: Optional[str],
-    events: List[Dict[str, Any]],
-    revision_id: Optional[str] = None,
-    revision_updated_at: Optional[str] = None,
-) -> Dict[str, int]:
-    clause, params = _conversation_clause(conversation_id)
+    conversation_id: str,
+    revision_id: str,
+    rows: List[Dict[str, Any]],
+    created_at: Optional[str] = None,
+    reason: Optional[str] = None,
+    base_revision_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    if not conversation_id:
+        raise ValueError("conversation_id is required")
+    if not revision_id:
+        raise ValueError("revision_id is required")
+    if not isinstance(rows, list):
+        raise ValueError("rows must be a list")
+    normalized_created_at = _normalize_timestamp(created_at)
+    normalized_rows = [
+        _normalize_display_timeline_row(
+            row,
+            fallback_conversation_id=conversation_id,
+            fallback_revision_id=revision_id,
+            fallback_index=index,
+        )
+        for index, row in enumerate(rows)
+    ]
     async with aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()
         await conn.execute("BEGIN")
         try:
             await cursor.execute(
-                f"DELETE FROM {CONVERSATION_EVENTS_TABLE} WHERE user_id = ? AND {clause}",
-                (user_id, *params),
+                f"""
+                UPDATE {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                SET active = 0
+                WHERE user_id = ? AND conversation_id = ?
+                """,
+                (user_id, conversation_id),
             )
-            deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
-
-            inserted = 0
-            for index, event in enumerate(events):
-                event_payload = event.get("event_payload")
-                if not isinstance(event_payload, dict):
-                    raise ValueError("event_payload is required")
-                event_id = str(
-                    event_payload.get("eventId")
-                    or event_payload.get("event_id")
-                    or uuid.uuid4()
-                )
-                (
-                    producer,
-                    producer_event_id,
-                    producer_sequence,
-                ) = _resolve_producer_fields(event_id=event_id, event=event)
-                message_index = event.get("message_index")
-                normalized_index = (
-                    int(message_index)
-                    if isinstance(message_index, int) and message_index > 0
-                    else index + 1
-                )
+            await cursor.execute(
+                f"""
+                DELETE FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                WHERE user_id = ? AND conversation_id = ? AND revision_id = ?
+                """,
+                (user_id, conversation_id, revision_id),
+            )
+            for row in normalized_rows:
                 await conn.execute(
                     f"""
-                    INSERT OR REPLACE INTO {CONVERSATION_EVENTS_TABLE}
-                    (id, user_id, conversation_id, event_type, role, content, timestamp,
-                     message_index, revision_id, turn_ref, tool_name, correlation_id,
-                     workspace_path, workspace_name, producer, producer_event_id,
-                     producer_sequence, metadata, attachments, event_payload,
-                     compaction_checkpoint)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                    (user_id, conversation_id, revision_id, row_index, row_id,
+                     role, row_type, content, turn_ref, metadata, reason,
+                     base_revision_id, created_at, active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
                     """,
                     (
-                        event_id,
                         user_id,
                         conversation_id,
-                        event.get("event_type"),
-                        event.get("role"),
-                        event.get("content") or "",
-                        _normalize_timestamp(event.get("timestamp")),
-                        normalized_index,
-                        event.get("revision_id"),
-                        event.get("turn_ref"),
-                        event.get("tool_name"),
-                        event.get("correlation_id"),
-                        event.get("workspace_path"),
-                        event.get("workspace_name"),
-                        producer,
-                        producer_event_id,
-                        producer_sequence,
-                        _json_dumps(event.get("metadata")),
-                        _json_dumps_value(
-                            event.get("attachments")
-                            if isinstance(event.get("attachments"), list)
-                            else []
-                        ),
-                        _json_dumps(event_payload) or "{}",
-                        _json_dumps(event.get("compaction_checkpoint")),
+                        revision_id,
+                        row["row_index"],
+                        row["row_id"],
+                        row["role"],
+                        row["row_type"],
+                        _json_dumps_value(row["content"]),
+                        row["turn_ref"],
+                        _json_dumps(row["metadata"]),
+                        reason,
+                        base_revision_id,
+                        normalized_created_at,
                     ),
                 )
-                inserted += 1
-
-            if isinstance(conversation_id, str) and conversation_id.strip():
-                latest_event = events[-1] if events else {}
-                stored_revision_id = (
-                    revision_id
-                    if isinstance(revision_id, str) and revision_id.strip()
-                    else (
-                        latest_event.get("revision_id")
-                        if isinstance(latest_event.get("revision_id"), str)
-                        and latest_event.get("revision_id").strip()
-                        else None
-                    )
-                )
-                if stored_revision_id:
-                    stored_updated_at = _normalize_timestamp(
-                        revision_updated_at
-                        if isinstance(revision_updated_at, str)
-                        and revision_updated_at.strip()
-                        else (
-                            latest_event.get("timestamp")
-                            if isinstance(latest_event.get("timestamp"), str)
-                            else None
-                        )
-                    )
-                    await conn.execute(
-                        f"""
-                        INSERT INTO {CONVERSATION_REVISIONS_TABLE}
-                        (user_id, conversation_id, revision_id, updated_at)
-                        VALUES (?, ?, ?, ?)
-                        ON CONFLICT(user_id, conversation_id)
-                        DO UPDATE SET
-                            revision_id = excluded.revision_id,
-                            updated_at = excluded.updated_at
-                        """,
-                        (
-                            user_id,
-                            conversation_id,
-                            stored_revision_id,
-                            stored_updated_at,
-                        ),
-                    )
-                else:
-                    await conn.execute(
-                        f"""
-                        DELETE FROM {CONVERSATION_REVISIONS_TABLE}
-                        WHERE user_id = ? AND conversation_id = ?
-                        """,
-                        (user_id, conversation_id),
-                    )
-
-            await _refresh_conversation_indexes(
-                conn, user_id=user_id, conversation_id=conversation_id
+            await cursor.execute(
+                """
+                INSERT OR REPLACE INTO conversation_revisions
+                (user_id, conversation_id, revision_id, updated_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (user_id, conversation_id, revision_id, normalized_created_at),
             )
             await conn.commit()
         except Exception:
             await conn.rollback()
             raise
-    return {"deleted_count": int(deleted), "inserted_count": inserted}
+    return {
+        "revision_id": revision_id,
+        "row_count": len(normalized_rows),
+        "created_at": normalized_created_at,
+    }
 
 
-async def rewrite_conversation_after_event(
+async def load_display_timeline(
     *,
     db_path: str,
     user_id: str,
-    conversation_id: Optional[str],
-    cut_after_event_id: Optional[str],
-    event: Dict[str, Any],
+    conversation_id: str,
     revision_id: Optional[str] = None,
-    revision_updated_at: Optional[str] = None,
-) -> Dict[str, int]:
-    event_payload = event.get("event_payload")
-    if not isinstance(event_payload, dict):
-        raise ValueError("event_payload is required")
+) -> Optional[Dict[str, Any]]:
+    if not conversation_id:
+        raise ValueError("conversation_id is required")
+    if revision_id:
+        revision_clause = "AND revision_id = ?"
+        revision_params: Tuple[Any, ...] = (revision_id,)
+        active_clause = ""
+    else:
+        revision_clause = ""
+        revision_params = ()
+        active_clause = "AND active = 1"
+    async with aiosqlite.connect(db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        await cursor.execute(
+            f"""
+            SELECT revision_id, created_at, reason, base_revision_id
+            FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+            WHERE user_id = ? AND conversation_id = ?
+            {active_clause}
+            {revision_clause}
+            ORDER BY created_at DESC, revision_id DESC
+            LIMIT 1
+            """,
+            (user_id, conversation_id, *revision_params),
+        )
+        checkpoint = await cursor.fetchone()
+        if checkpoint is None:
+            return None
+        await cursor.execute(
+            f"""
+            SELECT row_id, row_index, role, row_type, content, turn_ref, metadata
+            FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+            WHERE user_id = ? AND conversation_id = ? AND revision_id = ?
+            ORDER BY row_index ASC
+            """,
+            (user_id, conversation_id, checkpoint["revision_id"]),
+        )
+        rows = await cursor.fetchall()
+    return {
+        "conversation_id": conversation_id,
+        "revision_id": checkpoint["revision_id"],
+        "created_at": checkpoint["created_at"],
+        "reason": checkpoint["reason"],
+        "base_revision_id": checkpoint["base_revision_id"],
+        "rows": [
+            {
+                "id": row["row_id"],
+                "conversation_id": conversation_id,
+                "revision_id": checkpoint["revision_id"],
+                "index": row["row_index"],
+                "role": row["role"],
+                "type": row["row_type"],
+                "content": json.loads(row["content"]) if row["content"] else None,
+                "turn_ref": row["turn_ref"],
+                "metadata": _json_loads(row["metadata"]),
+            }
+            for row in rows
+        ],
+    }
 
-    clause, params = _conversation_clause(conversation_id)
+
+def _normalize_model_history_row(
+    row: Dict[str, Any],
+    *,
+    fallback_conversation_id: str,
+    fallback_revision_id: str,
+    fallback_index: int,
+) -> Dict[str, Any]:
+    row_id = row.get("id") or row.get("row_id") or row.get("rowId")
+    role = row.get("role")
+    message_type = row.get("message_type") or row.get("messageType")
+    if not isinstance(row_id, str) or not row_id.strip():
+        raise ValueError("model history rows require id")
+    if role not in {"system", "user", "assistant", "tool"}:
+        raise ValueError("model history rows require provider-neutral role")
+    if message_type not in {
+        "user_query",
+        "assistant_response",
+        "tool_output",
+        "context_compaction",
+    }:
+        raise ValueError("model history rows require canonical message_type")
+    return {
+        "row_id": row_id.strip(),
+        "row_index": int(row.get("row_index") or row.get("rowIndex") or fallback_index),
+        "conversation_id": (
+            row.get("conversation_id")
+            or row.get("conversationRef")
+            or row.get("conversationId")
+            or fallback_conversation_id
+        ),
+        "revision_id": (
+            row.get("revision_id") or row.get("revisionId") or fallback_revision_id
+        ),
+        "role": role,
+        "message_type": message_type,
+        "content": row.get("content"),
+        "tool_call_id": row.get("tool_call_id") or row.get("toolCallId"),
+        "tool_calls": row.get("tool_calls") or row.get("toolCalls"),
+        "tool_name": row.get("tool_name") or row.get("toolName"),
+        "image_refs": row.get("image_refs") or row.get("imageRefs"),
+        "compaction_facts": row.get("compaction_facts") or row.get("compactionFacts"),
+        "source_display_row_ids": (
+            row.get("source_display_row_ids") or row.get("sourceDisplayRowIds") or []
+        ),
+    }
+
+
+async def replace_model_history_checkpoint(
+    *,
+    db_path: str,
+    user_id: str,
+    conversation_id: str,
+    revision_id: str,
+    checkpoint_id: str,
+    rows: List[Dict[str, Any]],
+    created_at: Optional[str] = None,
+) -> Dict[str, Any]:
+    if not conversation_id:
+        raise ValueError("conversation_id is required")
+    if not revision_id:
+        raise ValueError("revision_id is required")
+    if not checkpoint_id:
+        raise ValueError("checkpoint_id is required")
+    normalized_created_at = _normalize_timestamp(created_at)
+    normalized_rows = [
+        _normalize_model_history_row(
+            row,
+            fallback_conversation_id=conversation_id,
+            fallback_revision_id=revision_id,
+            fallback_index=index,
+        )
+        for index, row in enumerate(rows, start=1)
+    ]
     async with aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()
         await conn.execute("BEGIN")
         try:
-            cutoff_index = 0
-            if isinstance(cut_after_event_id, str) and cut_after_event_id.strip():
-                await cursor.execute(
-                    f"""
-                    SELECT message_index FROM {CONVERSATION_EVENTS_TABLE}
-                    WHERE user_id = ? AND {clause} AND id = ?
-                    """,
-                    (user_id, *params, cut_after_event_id),
-                )
-                row = await cursor.fetchone()
-                if row is None:
-                    raise ValueError("cut_after_event_id was not found")
-                cutoff_index = int(row[0] or 0)
-
             await cursor.execute(
                 f"""
-                DELETE FROM {CONVERSATION_EVENTS_TABLE}
-                WHERE user_id = ? AND {clause} AND message_index > ?
+                UPDATE {CONVERSATION_MODEL_HISTORY_TABLE}
+                SET active = 0
+                WHERE user_id = ? AND conversation_id = ? AND revision_id = ?
                 """,
-                (user_id, *params, cutoff_index),
+                (user_id, conversation_id, revision_id),
             )
-            deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
-
-            event_id = str(
-                event_payload.get("eventId")
-                or event_payload.get("event_id")
-                or uuid.uuid4()
-            )
-            producer, producer_event_id, producer_sequence = _resolve_producer_fields(
-                event_id=event_id,
-                event=event,
-            )
-            normalized_index = cutoff_index + 1
-            await conn.execute(
+            await cursor.execute(
                 f"""
-                INSERT OR REPLACE INTO {CONVERSATION_EVENTS_TABLE}
-                (id, user_id, conversation_id, event_type, role, content, timestamp,
-                 message_index, revision_id, turn_ref, tool_name, correlation_id,
-                 workspace_path, workspace_name, producer, producer_event_id,
-                 producer_sequence, metadata, attachments, event_payload,
-                 compaction_checkpoint)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                DELETE FROM {CONVERSATION_MODEL_HISTORY_TABLE}
+                WHERE user_id = ? AND conversation_id = ? AND checkpoint_id = ?
                 """,
-                (
-                    event_id,
-                    user_id,
-                    conversation_id,
-                    event.get("event_type"),
-                    event.get("role"),
-                    event.get("content") or "",
-                    _normalize_timestamp(event.get("timestamp")),
-                    normalized_index,
-                    event.get("revision_id"),
-                    event.get("turn_ref"),
-                    event.get("tool_name"),
-                    event.get("correlation_id"),
-                    event.get("workspace_path"),
-                    event.get("workspace_name"),
-                    producer,
-                    producer_event_id,
-                    producer_sequence,
-                    _json_dumps(event.get("metadata")),
-                    _json_dumps_value(
-                        event.get("attachments")
-                        if isinstance(event.get("attachments"), list)
-                        else []
+                (user_id, conversation_id, checkpoint_id),
+            )
+            for row in normalized_rows:
+                await conn.execute(
+                    f"""
+                    INSERT INTO {CONVERSATION_MODEL_HISTORY_TABLE}
+                    (user_id, conversation_id, revision_id, checkpoint_id,
+                     row_index, row_id, role, message_type, content, tool_call_id,
+                     tool_calls, tool_name, image_refs, compaction_facts,
+                     source_display_row_ids, created_at, active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+                    """,
+                    (
+                        user_id,
+                        conversation_id,
+                        revision_id,
+                        checkpoint_id,
+                        row["row_index"],
+                        row["row_id"],
+                        row["role"],
+                        row["message_type"],
+                        _json_dumps_value(row["content"]),
+                        row["tool_call_id"],
+                        _json_dumps_value(row["tool_calls"]),
+                        row["tool_name"],
+                        _json_dumps_value(row["image_refs"]),
+                        _json_dumps(row["compaction_facts"]),
+                        _json_dumps_value(row["source_display_row_ids"]),
+                        normalized_created_at,
                     ),
-                    _json_dumps(event_payload) or "{}",
-                    _json_dumps(event.get("compaction_checkpoint")),
-                ),
-            )
-
-            if isinstance(conversation_id, str) and conversation_id.strip():
-                stored_revision_id = (
-                    revision_id
-                    if isinstance(revision_id, str) and revision_id.strip()
-                    else (
-                        event.get("revision_id")
-                        if isinstance(event.get("revision_id"), str)
-                        and event.get("revision_id").strip()
-                        else None
-                    )
                 )
-                if stored_revision_id:
-                    stored_updated_at = _normalize_timestamp(
-                        revision_updated_at
-                        if isinstance(revision_updated_at, str)
-                        and revision_updated_at.strip()
-                        else (
-                            event.get("timestamp")
-                            if isinstance(event.get("timestamp"), str)
-                            else None
-                        )
-                    )
-                    await conn.execute(
-                        f"""
-                        INSERT INTO {CONVERSATION_REVISIONS_TABLE}
-                        (user_id, conversation_id, revision_id, updated_at)
-                        VALUES (?, ?, ?, ?)
-                        ON CONFLICT(user_id, conversation_id)
-                        DO UPDATE SET
-                            revision_id = excluded.revision_id,
-                            updated_at = excluded.updated_at
-                        """,
-                        (
-                            user_id,
-                            conversation_id,
-                            stored_revision_id,
-                            stored_updated_at,
-                        ),
-                    )
-
-            await _refresh_conversation_indexes(
-                conn, user_id=user_id, conversation_id=conversation_id
-            )
             await conn.commit()
         except Exception:
             await conn.rollback()
             raise
-    return {"deleted_count": int(deleted), "inserted_count": 1}
+    return {
+        "checkpoint_id": checkpoint_id,
+        "revision_id": revision_id,
+        "row_count": len(normalized_rows),
+        "created_at": normalized_created_at,
+    }
+
+
+async def load_model_history_checkpoint(
+    *,
+    db_path: str,
+    user_id: str,
+    conversation_id: str,
+    revision_id: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    if not conversation_id:
+        raise ValueError("conversation_id is required")
+    revision_clause = "AND revision_id = ?" if revision_id else ""
+    revision_params: Tuple[Any, ...] = (revision_id,) if revision_id else ()
+    async with aiosqlite.connect(db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        await cursor.execute(
+            f"""
+            SELECT checkpoint_id, revision_id, created_at
+            FROM {CONVERSATION_MODEL_HISTORY_TABLE}
+            WHERE user_id = ? AND conversation_id = ? AND active = 1
+            {revision_clause}
+            ORDER BY created_at DESC, checkpoint_id DESC
+            LIMIT 1
+            """,
+            (user_id, conversation_id, *revision_params),
+        )
+        checkpoint = await cursor.fetchone()
+        if checkpoint is None:
+            return None
+        await cursor.execute(
+            f"""
+            SELECT row_id, role, message_type, content, tool_call_id, tool_calls,
+                   tool_name, image_refs, compaction_facts, source_display_row_ids
+            FROM {CONVERSATION_MODEL_HISTORY_TABLE}
+            WHERE user_id = ? AND conversation_id = ? AND checkpoint_id = ?
+            ORDER BY row_index ASC
+            """,
+            (user_id, conversation_id, checkpoint["checkpoint_id"]),
+        )
+        rows = await cursor.fetchall()
+    return {
+        "checkpoint_id": checkpoint["checkpoint_id"],
+        "conversation_id": conversation_id,
+        "revision_id": checkpoint["revision_id"],
+        "created_at": checkpoint["created_at"],
+        "rows": [
+            {
+                "id": row["row_id"],
+                "conversation_id": conversation_id,
+                "revision_id": checkpoint["revision_id"],
+                "role": row["role"],
+                "message_type": row["message_type"],
+                "content": json.loads(row["content"]) if row["content"] else None,
+                "tool_call_id": row["tool_call_id"],
+                "tool_calls": _json_loads_list(row["tool_calls"]),
+                "tool_name": row["tool_name"],
+                "image_refs": _json_loads_list(row["image_refs"]),
+                "compaction_facts": _json_loads(row["compaction_facts"]),
+                "source_display_row_ids": _json_loads_list(
+                    row["source_display_row_ids"]
+                ),
+            }
+            for row in rows
+        ],
+    }
 
 
 async def clear_chat_events(*, db_path: str, user_id: str) -> int:
@@ -1336,6 +1663,10 @@ async def clear_chat_events(*, db_path: str, user_id: str) -> int:
             deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
             await cursor.execute(
                 f"DELETE FROM {CONVERSATION_REVISIONS_TABLE} WHERE user_id = ?",
+                (user_id,),
+            )
+            await cursor.execute(
+                f"DELETE FROM {CONVERSATION_MODEL_HISTORY_TABLE} WHERE user_id = ?",
                 (user_id,),
             )
             await cursor.execute(

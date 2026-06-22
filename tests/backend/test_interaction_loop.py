@@ -9,6 +9,7 @@ from backend.src.core.events.streaming_events import (
     AssistantMessageFullEvent,
     ErrorEvent,
     FullResponseEvent,
+    ModelHistoryUpdatedEvent,
     StreamingCompleteEvent,
     TraceEvent,
     ToolCallEvent,
@@ -23,6 +24,13 @@ from backend.src.core.types.enums import MessageRole, MessageType
 
 class _FakeConfig:
     pass
+
+
+class _FakeRuntime:
+    def __init__(self):
+        self.active_conversation_ref = None
+        self.active_revision_id = None
+        self.active_turn_ref = None
 
 
 class _FakeHistory:
@@ -51,6 +59,7 @@ class _FakeSession:
     def __init__(self, stored_messages):
         self.cfg = _FakeConfig()
         self.history = _FakeHistory(stored_messages)
+        self.runtime = _FakeRuntime()
         self.session_id = "session-test"
 
 
@@ -124,6 +133,70 @@ class _FakeEventPresenter:
 
     async def present_error(self, error_message):
         yield ErrorEvent(content=error_message)
+
+
+def test_interaction_loop_builds_model_history_update_from_runtime_context():
+    session = _FakeSession(
+        [
+            StoredMessage(
+                role=MessageRole.TOOL,
+                content="bounded tool output",
+                message_type=MessageType.TOOL_OUTPUT,
+                image_data="raw-image-payload",
+                image_refs=[" artifact-1 ", "", "artifact-2"],
+                tool_call_id="call-1",
+                tool_name="screenshot",
+            )
+        ]
+    )
+    session.runtime.active_conversation_ref = "conv-1"
+    session.runtime.active_revision_id = "rev-1"
+    session.runtime.active_turn_ref = "turn-1"
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=_FakeLLMHandler(),
+        tool_executor=_FakeToolExecutor(),
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    event = loop._build_model_history_updated_event()
+
+    assert isinstance(event, ModelHistoryUpdatedEvent)
+    assert event.conversation_ref == "conv-1"
+    assert event.revision_id == "rev-1"
+    assert event.checkpoint_id == "mh:rev-1:turn-1"
+    assert event.rows == [
+        {
+            "id": "mh:rev-1:turn-1:row:0001",
+            "conversation_ref": "conv-1",
+            "revision_id": "rev-1",
+            "role": "tool",
+            "message_type": "tool_output",
+            "content": "bounded tool output",
+            "tool_call_id": "call-1",
+            "tool_calls": None,
+            "tool_name": "screenshot",
+            "image_refs": ["artifact-1", "artifact-2"],
+            "compaction_facts": None,
+            "source_display_row_ids": [],
+        }
+    ]
+    assert "raw-image-payload" not in repr(event.rows)
+
+
+def test_interaction_loop_skips_model_history_update_without_revision_context():
+    session = _FakeSession([])
+    session.runtime.active_conversation_ref = "conv-1"
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=_FakeLLMHandler(),
+        tool_executor=_FakeToolExecutor(),
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    assert loop._build_model_history_updated_event() is None
 
 
 @pytest.mark.asyncio

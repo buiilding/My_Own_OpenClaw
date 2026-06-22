@@ -541,8 +541,8 @@ query runtime.
 `conversation_ref`; removed `conversationRef` and `turnRef` aliases fail fast.
 Electron main uses those snake_case fields only for the backend transport
 commands. SDK library commands such as `conversation.loadDisplay`,
-`conversation.prepareRetryTurn`, and `conversations.list` continue to require
-SDK-shaped camelCase fields.
+`conversation.loadDisplayTimeline`, `conversation.replaceRows`, and
+`conversations.list` continue to require SDK-shaped camelCase fields.
 
 ## Command Return and Error Contract
 

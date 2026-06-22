@@ -11,7 +11,6 @@ import {
 import type {
   CompactedReplaySnapshot,
   ConversationMetadata,
-  ConversationRewritePlan,
   ConversationEvent,
   ListConversationOptions,
   RehydrateSnapshot,
@@ -48,13 +47,6 @@ export function createDesktopConversationStore(
       for (const event of events) {
         await this.appendEvent(event);
       }
-    },
-    async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-      await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REWRITE, {
-        userId,
-        conversationRef: plan.conversationRef,
-        plan,
-      });
     },
     async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {
       await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_COMPACTED_REPLAY, {

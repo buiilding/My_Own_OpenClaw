@@ -39,12 +39,14 @@ from memory.chat_event_store import (
     clear_chat_events,
     delete_conversation,
     get_conversation_revision,
+    load_display_timeline,
+    load_model_history_checkpoint,
     load_conversation_events,
     get_next_chat_event_index,
     init_chat_event_schema,
     list_conversations,
-    replace_conversation,
-    rewrite_conversation_after_event,
+    replace_display_timeline,
+    replace_model_history_checkpoint,
     search_conversations,
 )
 from memory.conversation_semanticization_runtime import (
@@ -1385,46 +1387,6 @@ class LocalMemoryStore:
             limit=limit,
         )
 
-    async def replace_conversation(
-        self,
-        *,
-        user_id: str,
-        conversation_id: Optional[str],
-        events: List[Dict[str, Any]],
-        revision_id: Optional[str] = None,
-        revision_updated_at: Optional[str] = None,
-    ) -> Dict[str, int]:
-        result = await replace_conversation(
-            db_path=self.history_db_path,
-            user_id=user_id,
-            conversation_id=conversation_id,
-            events=events,
-            revision_id=revision_id,
-            revision_updated_at=revision_updated_at,
-        )
-        return result
-
-    async def rewrite_conversation_after_event(
-        self,
-        *,
-        user_id: str,
-        conversation_id: Optional[str],
-        cut_after_event_id: Optional[str],
-        event: Dict[str, Any],
-        revision_id: Optional[str] = None,
-        revision_updated_at: Optional[str] = None,
-    ) -> Dict[str, int]:
-        result = await rewrite_conversation_after_event(
-            db_path=self.history_db_path,
-            user_id=user_id,
-            conversation_id=conversation_id,
-            cut_after_event_id=cut_after_event_id,
-            event=event,
-            revision_id=revision_id,
-            revision_updated_at=revision_updated_at,
-        )
-        return result
-
     async def get_conversation_revision(
         self,
         user_id: str,
@@ -1434,6 +1396,76 @@ class LocalMemoryStore:
             db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
+        )
+
+    async def replace_display_timeline(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        revision_id: str,
+        rows: List[Dict[str, Any]],
+        created_at: Optional[str] = None,
+        reason: Optional[str] = None,
+        base_revision_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        return await replace_display_timeline(
+            db_path=self.history_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            revision_id=revision_id,
+            rows=rows,
+            created_at=created_at,
+            reason=reason,
+            base_revision_id=base_revision_id,
+        )
+
+    async def load_display_timeline(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        revision_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        return await load_display_timeline(
+            db_path=self.history_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            revision_id=revision_id,
+        )
+
+    async def replace_model_history_checkpoint(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        revision_id: str,
+        checkpoint_id: str,
+        rows: List[Dict[str, Any]],
+        created_at: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        return await replace_model_history_checkpoint(
+            db_path=self.history_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            revision_id=revision_id,
+            checkpoint_id=checkpoint_id,
+            rows=rows,
+            created_at=created_at,
+        )
+
+    async def load_model_history_checkpoint(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        revision_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        return await load_model_history_checkpoint(
+            db_path=self.history_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            revision_id=revision_id,
         )
 
     async def search_conversations(
@@ -1661,13 +1693,10 @@ class LocalMemoryStore:
             getattr(self, "_embedding_space_metadata", None)
             or self._load_embedding_space_metadata()
         )
-        embedding_dimension = (
-            self._index_dimension(index)
-            or (
-                metadata.embedding_dimension
-                if metadata is not None
-                else self._default_embedding_dimension
-            )
+        embedding_dimension = self._index_dimension(index) or (
+            metadata.embedding_dimension
+            if metadata is not None
+            else self._default_embedding_dimension
         )
         cleanup_result = await cleanup_index_artifacts_if_empty(
             memory_type=memory_type,

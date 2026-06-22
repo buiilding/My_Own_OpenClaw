@@ -15,10 +15,28 @@ from backend.src.api.services.rehydrate_tool_linkage import RehydrateToolLinkage
 class _FakeSession:
     def __init__(self):
         self.calls = []
+        self.model_history_calls = []
         self.history = SimpleNamespace(system_prompt=None)
 
     async def rehydrate_conversation(self, conversation_ref, entries):
         self.calls.append((conversation_ref, entries))
+
+    async def install_model_history(
+        self,
+        *,
+        conversation_ref,
+        revision_id,
+        entries,
+        system_prompt=None,
+    ):
+        self.model_history_calls.append(
+            {
+                "conversation_ref": conversation_ref,
+                "revision_id": revision_id,
+                "entries": entries,
+                "system_prompt": system_prompt,
+            }
+        )
 
 
 class _FakeSessionManager:
@@ -169,6 +187,97 @@ async def test_execute_forwards_workspace_repo_instructions_to_session_manager()
             [{"role": "user", "content": "Respect AGENTS.md"}],
         )
     ]
+
+
+@pytest.mark.asyncio
+async def test_execute_installs_model_history_checkpoint_without_transcript_rebuild():
+    manager = _FakeSessionManager()
+    service = RehydrateExecutionService(manager)
+    _TrackingArtifactStore.last_instance = None
+    message = _build_message(
+        [],
+        model_history={
+            "checkpoint_id": "mh-rev-1-turn-1",
+            "revision_id": "rev-1",
+            "created_at": "2026-06-22T12:00:00Z",
+            "rows": [
+                {
+                    "id": "row-system",
+                    "conversation_ref": "conv-1",
+                    "revision_id": "rev-1",
+                    "role": "system",
+                    "message_type": "context_compaction",
+                    "content": "system prompt",
+                },
+                {
+                    "id": "row-tool",
+                    "conversation_ref": "conv-1",
+                    "revision_id": "rev-1",
+                    "role": "tool",
+                    "message_type": "tool_output",
+                    "content": "bounded output",
+                    "tool_call_id": "call-1",
+                    "tool_name": "read_file",
+                    "image_refs": ["artifact-1"],
+                },
+            ],
+        },
+    )
+
+    await service.execute(message, "user-1", artifact_store_cls=_TrackingArtifactStore)
+
+    assert manager.session.calls == []
+    assert manager.session.model_history_calls == [
+        {
+            "conversation_ref": "conv-1",
+            "revision_id": "rev-1",
+            "system_prompt": "system prompt",
+            "entries": [
+                {
+                    "id": "row-tool",
+                    "conversation_ref": "conv-1",
+                    "revision_id": "rev-1",
+                    "role": "tool",
+                    "message_type": "tool_output",
+                    "content": "bounded output",
+                    "tool_call_id": "call-1",
+                    "tool_name": "read_file",
+                    "image_refs": ["artifact-1"],
+                },
+            ],
+        }
+    ]
+    assert _TrackingArtifactStore.last_instance is None
+
+
+@pytest.mark.asyncio
+async def test_execute_rejects_model_history_row_for_other_revision():
+    manager = _FakeSessionManager()
+    service = RehydrateExecutionService(manager)
+    message = _build_message(
+        [],
+        model_history={
+            "checkpoint_id": "mh-rev-1-turn-1",
+            "revision_id": "rev-1",
+            "rows": [
+                {
+                    "id": "row-user",
+                    "conversation_ref": "conv-1",
+                    "revision_id": "rev-other",
+                    "role": "user",
+                    "message_type": "user_query",
+                    "content": "hello",
+                },
+            ],
+        },
+    )
+
+    with pytest.raises(ValueError, match="revision_id does not match"):
+        await service.execute(
+            message, "user-1", artifact_store_cls=_TrackingArtifactStore
+        )
+
+    assert manager.session.model_history_calls == []
 
 
 @pytest.mark.asyncio
@@ -879,12 +988,16 @@ def test_normalize_stored_message_type_emits_canonical_history_values():
         )
         == "context_compaction"
     )
-    with pytest.raises(ValueError, match="unsupported message_type='assistant-message'"):
+    with pytest.raises(
+        ValueError, match="unsupported message_type='assistant-message'"
+    ):
         RehydrateEntryNormalizer.normalize_stored_message_type(
             role="assistant",
             message_type="assistant-message",
         )
-    with pytest.raises(ValueError, match="unsupported message_type='context-compaction'"):
+    with pytest.raises(
+        ValueError, match="unsupported message_type='context-compaction'"
+    ):
         RehydrateEntryNormalizer.normalize_stored_message_type(
             role="assistant",
             message_type="context-compaction",

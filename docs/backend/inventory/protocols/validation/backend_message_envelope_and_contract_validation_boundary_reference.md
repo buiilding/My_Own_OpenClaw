@@ -8,10 +8,10 @@ title: "Backend Message Envelope and Contract Validation Boundary Reference"
 
 # Backend Message Envelope and Contract Validation Boundary Reference
 
-## Coverage Snapshot (2026-03-06)
+## Coverage Snapshot (2026-06-22)
 
 - Incoming message-type literals: `10`
-- Schema-validated outgoing message types: `19`
+- Schema-validated outgoing message types: `20`
 - Allowed client settings patch keys: `10`
 
 ## Scope and Sources

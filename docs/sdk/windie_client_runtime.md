@@ -53,8 +53,9 @@ Query routing boundary:
 Ownership rules:
 
 - SDK runtime owns hosted backend HTTP/WebSocket connection, handshake, query,
-  stop, settings, event fan-out, normalized conversation events, display and
-  rehydrate projections, edit/retry revision semantics, and tool-result return.
+  stop, settings, event fan-out, normalized conversation events, display
+  projections, diagnostic rehydrate snapshots, model-history resume,
+  edit/retry revision semantics, and tool-result return.
 - the SDK transport module owns websocket session framing, backend event fan-out,
   and the conversation transport adapter used by `ConversationRuntime`. That
   adapter exposes query, rehydrate, stop, tool-result, settings-update, and
@@ -456,7 +457,8 @@ user-message ordinal fallbacks.
     not emit removed top-level handshake capability fields.
 11. Normalize backend events into SDK conversation events.
 12. Route backend events to callers and route local `tool-call` events to the local runtime.
-13. Project display transcript and rehydrate snapshots from normalized events.
+13. Project display transcript from normalized events and install persisted
+    model-history checkpoints for backend resume.
 
 SDK env fallback names are defined in `runtime/RuntimeEnv` as named key groups.
 The reusable `AgentClient` and local-runtime provider consume those key groups
@@ -551,8 +553,9 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
 - compacted replay replacement appends a new generation with entry count and
   completion metadata; loaders keep using the previous complete generation if a
   newer write is partial
-- desktop backend-session rehydrate uses the SDK store projection
-  instead of shaping messages directly from visible transcript rows
+- desktop backend-session rehydrate uses SDK model-history checkpoints instead
+  of shaping messages directly from visible transcript rows or event
+  projections
 - desktop recent-chat and open-chat loading use store metadata/display
   projections over canonical event rows only
 - desktop chat deletion goes through the SDK `LocalRuntimeConversationStore` and
@@ -565,16 +568,12 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
   id because same-timestamp turns, tool pairs, and assistant commits depend on
   append order.
 - desktop edit/resend and try-again visible transcript rewrites are routed
-  through `DesktopConversationContinuityService`, the desktop conversation
-  store factory, and the SDK
-  `LocalRuntimeConversationStore`. The factory owns local transcript projection
-  replacement, workspace metadata, rewritten row enrichment, and the rehydrate
-  projection used before the resend turn. Replacement is one local-runtime
-  `conversation.replace` call so local durable state is not deleted before
-  the rewritten projection is stored. The call carries the rewrite
-  `newRevisionId` as conversation revision metadata, so local-runtime metadata and
-  `getRevision()` report the replacement revision even if the preserved rows
-  still carry older event revisions or the rewrite removes every row.
+  through `DesktopConversationContinuityService`, active display timeline
+  loading, `conversation.replaceRows`, and a normal send. Raw
+  `conversation_events` remain append-only audit history; replacement state is
+  stored as display timeline checkpoints and bounded model-history checkpoints.
+  Local-runtime metadata and `getRevision()` follow the active display/model
+  revision instead of deleting and rewriting event rows.
 - desktop visible transcript state routes through SDK conversation events and
   the desktop conversation store factory, so renderer feature code no longer
   owns direct row IPC, replay append mutation, or retry queues.
@@ -609,8 +608,8 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
 - conversation-scoped model changes append a normalized `settings_updated`
   event after the backend accepts the settings update. Runtime snapshots expose
   the latest merged settings for debugging and custom UI state, while display
-  and rehydrate projections keep model changes out of visible chat rows and
-  provider history.
+  projections and diagnostic rehydrate snapshots keep model changes out of
+  visible chat rows and provider history.
 - backend `assistant-message-full` events normalize to canonical
   `assistant_message` conversation events. `streaming-complete` normalizes to
   `turn_completed` lifecycle state only; it must not create visible transcript

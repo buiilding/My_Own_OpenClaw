@@ -665,111 +665,6 @@ class LocalRuntimeMemoryHandlersMixin:
         }
 
     @requires_memory_store
-    async def _handle_conversation_replace(
-        self,
-        user_id: str = "default_user",
-        conversation_id: Optional[str] = None,
-        events: Optional[List[Dict[str, Any]]] = None,
-        revision_id: Optional[str] = None,
-        revision_updated_at: Optional[str] = None,
-        **kwargs,
-    ) -> Dict[str, Any]:
-        if not conversation_id:
-            return {"success": False, "error": "conversation_id is required"}
-        if not isinstance(events, list):
-            return {"success": False, "error": "events is required"}
-        normalized_events: List[Dict[str, Any]] = []
-        for event in events:
-            if not isinstance(event, dict):
-                return {"success": False, "error": "events must contain objects"}
-            normalized_event = self._normalize_chat_event_write(event)
-            if normalized_event is None or not normalized_event["event_type"]:
-                return {
-                    "success": False,
-                    "error": "each event requires event_type and event_payload",
-                }
-            normalized_events.append(normalized_event)
-
-        try:
-            result = await self.memory_store.replace_conversation(
-                user_id=sanitize_surrogates_in_text(user_id),
-                conversation_id=sanitize_surrogates_in_text(conversation_id),
-                events=normalized_events,
-                revision_id=(
-                    sanitize_surrogates_in_text(revision_id) if revision_id else None
-                ),
-                revision_updated_at=(
-                    sanitize_surrogates_in_text(revision_updated_at)
-                    if revision_updated_at
-                    else None
-                ),
-            )
-            return {
-                "success": True,
-                "data": {
-                    **result,
-                    "conversation_id": conversation_id,
-                    "record_kind": "chat_event",
-                },
-            }
-        except Exception as e:
-            logger.error(f"Chat conversation replace failed: {e}", exc_info=True)
-            return {"success": False, "error": str(e)}
-
-    @requires_memory_store
-    async def _handle_conversation_rewrite_after_event(
-        self,
-        user_id: str = "default_user",
-        conversation_id: Optional[str] = None,
-        cut_after_event_id: Optional[str] = None,
-        event: Optional[Dict[str, Any]] = None,
-        revision_id: Optional[str] = None,
-        revision_updated_at: Optional[str] = None,
-        **kwargs,
-    ) -> Dict[str, Any]:
-        if not conversation_id:
-            return {"success": False, "error": "conversation_id is required"}
-        if not isinstance(event, dict):
-            return {"success": False, "error": "event is required"}
-        normalized_event = self._normalize_chat_event_write(event)
-        if normalized_event is None or not normalized_event["event_type"]:
-            return {
-                "success": False,
-                "error": "event requires event_type and event_payload",
-            }
-
-        try:
-            result = await self.memory_store.rewrite_conversation_after_event(
-                user_id=sanitize_surrogates_in_text(user_id),
-                conversation_id=sanitize_surrogates_in_text(conversation_id),
-                cut_after_event_id=(
-                    sanitize_surrogates_in_text(cut_after_event_id)
-                    if cut_after_event_id
-                    else None
-                ),
-                event=normalized_event,
-                revision_id=(
-                    sanitize_surrogates_in_text(revision_id) if revision_id else None
-                ),
-                revision_updated_at=(
-                    sanitize_surrogates_in_text(revision_updated_at)
-                    if revision_updated_at
-                    else None
-                ),
-            )
-            return {
-                "success": True,
-                "data": {
-                    **result,
-                    "conversation_id": conversation_id,
-                    "record_kind": "chat_event",
-                },
-            }
-        except Exception as e:
-            logger.error(f"Chat conversation cutoff rewrite failed: {e}", exc_info=True)
-            return {"success": False, "error": str(e)}
-
-    @requires_memory_store
     async def _handle_conversation_get_revision(
         self,
         user_id: str = "default_user",
@@ -800,6 +695,138 @@ class LocalRuntimeMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
+    async def _handle_conversation_model_history_replace(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        revision_id: Optional[str] = None,
+        checkpoint_id: Optional[str] = None,
+        rows: Optional[List[Dict[str, Any]]] = None,
+        created_at: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        if not revision_id:
+            return {"success": False, "error": "revision_id is required"}
+        if not checkpoint_id:
+            return {"success": False, "error": "checkpoint_id is required"}
+        if not isinstance(rows, list):
+            return {"success": False, "error": "rows must be a list"}
+        try:
+            result = await self.memory_store.replace_model_history_checkpoint(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                revision_id=sanitize_surrogates_in_text(revision_id),
+                checkpoint_id=sanitize_surrogates_in_text(checkpoint_id),
+                rows=sanitize_surrogates(rows),
+                created_at=(
+                    sanitize_surrogates_in_text(created_at) if created_at else None
+                ),
+            )
+            return {"success": True, "data": result}
+        except Exception as e:
+            logger.error(
+                f"Conversation model-history checkpoint replace failed: {e}",
+                exc_info=True,
+            )
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_conversation_display_replace(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        revision_id: Optional[str] = None,
+        rows: Optional[List[Dict[str, Any]]] = None,
+        created_at: Optional[str] = None,
+        reason: Optional[str] = None,
+        base_revision_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        if not revision_id:
+            return {"success": False, "error": "revision_id is required"}
+        if not isinstance(rows, list):
+            return {"success": False, "error": "rows must be a list"}
+        try:
+            result = await self.memory_store.replace_display_timeline(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                revision_id=sanitize_surrogates_in_text(revision_id),
+                rows=sanitize_surrogates(rows),
+                created_at=(
+                    sanitize_surrogates_in_text(created_at) if created_at else None
+                ),
+                reason=sanitize_surrogates_in_text(reason) if reason else None,
+                base_revision_id=(
+                    sanitize_surrogates_in_text(base_revision_id)
+                    if base_revision_id
+                    else None
+                ),
+            )
+            return {"success": True, "data": result}
+        except Exception as e:
+            logger.error(
+                f"Conversation display timeline replace failed: {e}",
+                exc_info=True,
+            )
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_conversation_display_load(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        revision_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        try:
+            timeline = await self.memory_store.load_display_timeline(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                revision_id=(
+                    sanitize_surrogates_in_text(revision_id) if revision_id else None
+                ),
+            )
+            return {"success": True, "data": timeline or {}}
+        except Exception as e:
+            logger.error(
+                f"Conversation display timeline load failed: {e}",
+                exc_info=True,
+            )
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_conversation_model_history_load(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        revision_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        try:
+            checkpoint = await self.memory_store.load_model_history_checkpoint(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                revision_id=(
+                    sanitize_surrogates_in_text(revision_id) if revision_id else None
+                ),
+            )
+            return {"success": True, "data": checkpoint or {}}
+        except Exception as e:
+            logger.error(
+                f"Conversation model-history checkpoint load failed: {e}",
+                exc_info=True,
+            )
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
     async def _handle_conversation_list(
         self,
         user_id: str = "default_user",
@@ -813,7 +840,9 @@ class LocalRuntimeMemoryHandlersMixin:
         diagnostic_events.append(
             self._conversation_list_diagnostic_event(
                 stage="history_db_checked",
-                status="succeeded" if status_data["canonicalHistoryDbExists"] else "failed",
+                status=(
+                    "succeeded" if status_data["canonicalHistoryDbExists"] else "failed"
+                ),
                 started_at=checked_at,
                 data=status_data,
             )

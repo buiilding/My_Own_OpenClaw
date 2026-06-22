@@ -10,12 +10,12 @@ import type {
   DisplayConversation,
   JsonRecord,
   ListConversationOptions,
-  RehydratePayload,
   RehydrateSnapshot,
   SdkDisplayRow,
   SearchConversationOptions,
 } from '../conversation/types.js';
 import { searchConversationMetadata } from '../conversation/metadata.js';
+import { modelHistoryPayloadFromCheckpoint } from './modelHistoryPayload.js';
 
 type DeletableConversationStore = ConversationStore & {
   searchMetadata?: (options: SearchConversationOptions) => Promise<ConversationMetadata[]>;
@@ -71,6 +71,8 @@ export type RehydrateConversationFromStoreResult = {
   messageCount: number;
   hydrated: boolean;
   replayGenerationId?: string | null;
+  modelHistoryCheckpointId?: string | null;
+  source?: 'model_history' | 'missing_model_history';
 };
 
 export type ReplaceCompactedReplayInput = ConversationUserInput & {
@@ -79,27 +81,6 @@ export type ReplaceCompactedReplayInput = ConversationUserInput & {
 
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
-}
-
-function toProviderHistoryMessage(message: JsonRecord): JsonRecord | null {
-  const role = message.role;
-  if (role !== 'user' && role !== 'assistant' && role !== 'tool') {
-    return null;
-  }
-  const content = typeof message.content === 'string'
-    ? message.content
-    : JSON.stringify(message.content ?? '');
-  return {
-    ...message,
-    role,
-    content,
-  };
-}
-
-function toProviderHistoryMessages(messages: JsonRecord[]): JsonRecord[] {
-  return messages
-    .map(toProviderHistoryMessage)
-    .filter((message): message is JsonRecord => Boolean(message));
 }
 
 export function conversationMetadataInvalidationFromLocalRuntimeEvent(
@@ -157,39 +138,52 @@ export class ConversationContinuityService {
   async rehydrateFromStore(
     input: RehydrateConversationFromStoreInput,
   ): Promise<RehydrateConversationFromStoreResult> {
-    const snapshot = await this.loadRehydrateSnapshot(input);
-    const messages = toProviderHistoryMessages(snapshot.messages);
-    if (messages.length === 0) {
+    const store = this.storeFor(input);
+    const revision = await Promise.resolve(
+      store.getRevision(input.conversationRef),
+    ).catch(() => null);
+    const revisionId = revision?.revisionId && revision.revisionId !== 'rev-empty'
+      ? revision.revisionId
+      : null;
+    const modelHistoryCheckpoint = store.loadModelHistory
+      ? await store.loadModelHistory.call(store, {
+          conversationRef: input.conversationRef,
+          revisionId,
+        })
+      : null;
+    if (modelHistoryCheckpoint && modelHistoryCheckpoint.rows.length > 0) {
+      const transport = this.options.transportFactory?.({
+        workspacePath: input.workspacePath ?? null,
+      });
+      if (!transport) {
+        throw new Error('Conversation continuity rehydrate requires an agent runtime transport');
+      }
+      await transport.rehydrateConversation({
+        conversation_ref: input.conversationRef,
+        messages: [],
+        model_history: modelHistoryPayloadFromCheckpoint(modelHistoryCheckpoint),
+        rehydrate_mode: 'replace',
+        workspace_path: optionalString(input.workspacePath),
+      });
       return {
         conversationRef: input.conversationRef,
-        revisionId: snapshot.revisionId,
-        messageCount: 0,
-        hydrated: false,
-        replayGenerationId: snapshot.replayGenerationId ?? null,
+        revisionId: modelHistoryCheckpoint.revisionId,
+        messageCount: modelHistoryCheckpoint.rows.length,
+        hydrated: true,
+        replayGenerationId: null,
+        modelHistoryCheckpointId: modelHistoryCheckpoint.checkpointId,
+        source: 'model_history',
       };
     }
 
-    const transport = this.options.transportFactory?.({
-      workspacePath: input.workspacePath ?? null,
-    });
-    if (!transport) {
-      throw new Error('Conversation continuity rehydrate requires an agent runtime transport');
-    }
-
-    const payload: RehydratePayload = {
-      conversation_ref: input.conversationRef,
-      messages,
-      rehydrate_mode: 'replace',
-      workspace_path: optionalString(input.workspacePath),
-    };
-    await transport.rehydrateConversation(payload);
-
     return {
       conversationRef: input.conversationRef,
-      revisionId: snapshot.revisionId,
-      messageCount: messages.length,
-      hydrated: true,
-      replayGenerationId: snapshot.replayGenerationId ?? null,
+      revisionId: revisionId ?? 'rev-empty',
+      messageCount: 0,
+      hydrated: false,
+      replayGenerationId: null,
+      modelHistoryCheckpointId: null,
+      source: 'missing_model_history',
     };
   }
 

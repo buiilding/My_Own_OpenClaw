@@ -21,8 +21,8 @@ function createRuntime(overrides = {}) {
     stop: jest.fn(async () => true),
     rehydrateMessages: jest.fn(async () => ({ ok: true })),
     compactHistory: jest.fn(async () => ({ compacted: true })),
-    prepareEditAndResend: jest.fn(async () => ({ prepared: 'edit' })),
-    prepareRetryTurn: jest.fn(async () => ({ prepared: 'retry' })),
+    loadDisplayTimeline: jest.fn(async () => ({ rows: [] })),
+    replaceRows: jest.fn(async input => ({ ...input, revisionId: 'rev-child' })),
     close: jest.fn(),
     ...overrides,
   };
@@ -55,7 +55,6 @@ function createAgent(runtimeFactory = () => createRuntime()) {
     clearConversations: jest.fn(async () => ({ cleared: true })),
     getConversationRevision: jest.fn(async () => ({ revision: true })),
     appendConversationEvent: jest.fn(async () => ({ appended: true })),
-    rewriteConversation: jest.fn(async () => ({ rewritten: true })),
     replaceCompactedReplay: jest.fn(async () => ({ replaced: true })),
     wakewordDetected: jest.fn(async () => ({ detected: true })),
     ensureConnected: jest.fn(async () => true),
@@ -238,7 +237,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     });
   });
 
-  test('forwards replay/edit commands through the selected conversation handle and refreshes snapshots', async () => {
+  test('forwards display replacement commands through the selected conversation handle and refreshes snapshots', async () => {
     const runtime = createRuntime();
     const agent = createAgent(() => runtime);
     const adapter = createDirectWakeUpAgentAdapter({
@@ -249,9 +248,11 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     await adapter.appendConversationEvent({
       event: { conversationRef: 'conv-replay', type: 'message' },
     });
-    await adapter.prepareRetryTurn({
+    await adapter.replaceRows({
       conversationRef: 'conv-replay',
-      turnRef: 'turn-1',
+      baseRevisionId: 'rev-base',
+      reason: 'retry',
+      rows: [],
       revisionId: 'rev-1',
       store: { ignored: true },
     });
@@ -260,8 +261,10 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       event: { conversationRef: 'conv-replay', type: 'message' },
     });
     expect(runtime.load).toHaveBeenCalled();
-    expect(runtime.prepareRetryTurn).toHaveBeenCalledWith({
-      turnRef: 'turn-1',
+    expect(runtime.replaceRows).toHaveBeenCalledWith({
+      baseRevisionId: 'rev-base',
+      reason: 'retry',
+      rows: [],
     });
   });
 
@@ -285,7 +288,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     await expect(adapter.appendConversationEvent({
       event: { conversation_ref: 'conv-legacy', type: 'message' },
     })).rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
-    await expect(adapter.prepareRetryTurn({ conversation_ref: 'conv-legacy' }))
+    await expect(adapter.replaceRows({ conversation_ref: 'conv-legacy' }))
       .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
 
     expect(agent.deleteConversation).not.toHaveBeenCalled();

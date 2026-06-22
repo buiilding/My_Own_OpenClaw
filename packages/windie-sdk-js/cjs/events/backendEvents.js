@@ -29,6 +29,7 @@ const BACKEND_EVENT_TYPES = new Set([
     'token-count',
     'tool-schemas',
     'trace-event',
+    'model-history-updated',
     'error',
 ]);
 function isBackendEvent(value) {

@@ -143,8 +143,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Transcription paste caret restoration now routes through
   `DesktopTranscriptionRegionRuntime` instead of raw browser timeout calls in
   `useTranscription`.
-  Conversation replay database tests describe edit/resend cutoff rewrites as
-  local-runtime SQLite behavior while the renderer owns preparation error
+  Conversation replay database tests describe edit/resend display replacement
+  as local-runtime SQLite behavior while the renderer owns preparation error
   projection.
   Generic renderer chat-sender and main IPC query bridge tests use sample
   send-failure copy while real WindieOS renderer chat copy and main

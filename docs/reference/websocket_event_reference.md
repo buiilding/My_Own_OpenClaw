@@ -18,6 +18,7 @@ WindieOS uses one canonical streamed-event vocabulary for backend formatter outp
 | tool turns | `tool-call`, `tool-bundle`, `tool-output` | backend tool orchestration, formatter specs, outgoing schemas | `useChatStream.ts`, Agent SDK display projection, transcript tool persistence |
 | transparency | `system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas` | prompt metadata/event presenter and formatter specs | message transparency sections |
 | compaction | `context-compaction-started`, `context-compaction-completed`, `context-compaction-failed` | backend history compaction events and formatter specs | chat stream compaction/thinking state |
+| model-history | `model-history-updated` | backend `ConversationHistory` checkpoint projection and formatter specs | SDK hidden checkpoint persistence |
 | usage | `token-count` | backend token-count event formatter | token display |
 | model/settings status | `models-listed`, `settings-updated` | backend model/settings handlers | app config/status providers |
 | audio side-channel | `audio-chunk` | backend TTS/audio stream path | dedicated audio parser/player, outside typed chat-event union |
@@ -57,6 +58,22 @@ Renderer active-conversation filtering and stale-turn rejection depend on these 
 - Skipped compaction has a non-empty `skipped_reason`, `removed_messages: 0`, unchanged token counts, and no replacement history entries.
 
 SDK runtime adapters treat non-empty `replacement_history_entries` as the signal for an applied normalized compaction event. Skipped outcomes remain lifecycle/debug state and should not render as assistant transcript content.
+
+## Model History Updated Shape
+
+`model-history-updated` carries a provider-neutral model-history checkpoint:
+
+- `conversation_ref`
+- `revision_id`
+- `checkpoint_id`
+- `created_at`
+- `rows[]` with canonical stored `role`, `message_type`, bounded `content`,
+  optional tool linkage, optional artifact `image_refs`, and compaction facts
+
+The SDK normalizes it to hidden `model_history_updated`, persists it through
+`replaceModelHistory(...)`, and keeps it out of display and current rehydrate
+projections. It must not carry raw screenshots, full display-only tool output,
+or provider-specific prompt payloads.
 
 ## Debug Map
 

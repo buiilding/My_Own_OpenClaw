@@ -1393,7 +1393,6 @@ describe('Agent SDK client behavior', () => {
         messages: [],
       })),
       listMetadata: jest.fn(async () => []),
-      rewriteConversation: jest.fn(async () => undefined),
     };
     const client = new AgentClientClass({
       backendUrl: 'https://sdk.example.test',
@@ -3747,44 +3746,9 @@ describe('Agent SDK client behavior', () => {
         expect.objectContaining({ text: 'hello' }),
       ],
     });
-    await store.rewriteConversation({
-      conversationRef: 'conv-local-runtime',
-      baseRevisionId: 'rev-1',
-      newRevisionId: 'rev-2',
-      preservedEvents: [
-        {
-          eventId: 'evt-rewrite',
-          type: 'user_message',
-          conversationRef: 'conv-local-runtime',
-          revisionId: 'rev-2',
-          timestamp: '2026-05-22T00:01:00.000Z',
-          source: 'sdk',
-          payload: { text: 'edited' },
-        },
-      ],
-      removedEventIds: ['evt-1'],
-      reason: 'edit_resend',
-    });
     await store.deleteConversation('conv-local-runtime');
     await store.clearConversations();
 
-    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'conversation.replace',
-      params: expect.objectContaining({
-        conversation_id: 'conv-local-runtime',
-        revision_id: 'rev-2',
-        revision_updated_at: expect.any(String),
-        events: [
-          expect.objectContaining({
-            event_type: 'user_message',
-            message_index: 1,
-            event_payload: expect.objectContaining({
-              eventId: 'evt-rewrite',
-            }),
-          }),
-        ],
-      }),
-    }));
     expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
       method: 'conversation.delete',
     }));
@@ -3896,29 +3860,41 @@ describe('Agent SDK client behavior', () => {
     await expect(agent.listConversations()).resolves.toEqual([]);
   });
 
-  test('LocalRuntimeConversationStore keeps rewrite revision metadata for old or empty events', async () => {
-    const revisions = new Map<string, { revision_id: string; updated_at: string }>();
-    const eventsByConversation = new Map<string, unknown[]>();
+  test('LocalRuntimeConversationStore persists and loads model-history checkpoints', async () => {
     const rpc = jest.fn(async ({ method, params }) => {
-      if (method === 'conversation.replace') {
-        revisions.set(params.conversation_id, {
-          revision_id: params.revision_id,
-          updated_at: params.revision_updated_at,
-        });
-        eventsByConversation.set(params.conversation_id, params.events);
-        return { success: true, data: {} };
-      }
-      if (method === 'conversation.get_revision') {
-        return {
-          success: true,
-          data: revisions.get(params.conversation_id) ?? {},
-        };
-      }
-      if (method === 'conversation.load_events') {
+      if (method === 'conversation.model_history.replace') {
         return {
           success: true,
           data: {
-            events: eventsByConversation.get(params.conversation_id) ?? [],
+            checkpoint_id: params.checkpoint_id,
+            revision_id: params.revision_id,
+            row_count: params.rows.length,
+          },
+        };
+      }
+      if (method === 'conversation.model_history.load') {
+        return {
+          success: true,
+          data: {
+            checkpoint_id: 'mh-1',
+            revision_id: params.revision_id,
+            created_at: '2026-06-22T12:00:00.000Z',
+            rows: [
+              {
+                id: 'row-tool',
+                conversation_id: params.conversation_id,
+                revision_id: params.revision_id,
+                role: 'tool',
+                message_type: 'tool_output',
+                content: 'bounded output',
+                tool_call_id: 'call-1',
+                tool_calls: [{ id: 'call-1' }],
+                tool_name: 'read_file',
+                image_refs: ['artifact-1'],
+                compaction_facts: { bounded: true },
+                source_display_row_ids: ['display-tool'],
+              },
+            ],
           },
         };
       }
@@ -3929,41 +3905,307 @@ describe('Agent SDK client behavior', () => {
       runtime: { rpc },
     });
 
-    await store.rewriteConversation({
-      conversationRef: 'conv-preserved',
-      baseRevisionId: 'rev-old',
-      newRevisionId: 'rev-new',
-      preservedEvents: [
+    await store.replaceModelHistory({
+      checkpointId: 'mh-1',
+      conversationRef: 'conv-model-history',
+      revisionId: 'rev-1',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      rows: [
         {
-          eventId: 'evt-old',
-          type: 'user_message',
-          conversationRef: 'conv-preserved',
-          revisionId: 'rev-old',
-          timestamp: '2026-05-22T00:01:00.000Z',
-          source: 'sdk',
-          payload: { text: 'preserved' },
+          id: 'row-tool',
+          conversationRef: 'conv-model-history',
+          revisionId: 'rev-1',
+          role: 'tool',
+          messageType: 'tool_output',
+          content: 'bounded output',
+          toolCallId: 'call-1',
+          toolCalls: [{ id: 'call-1' }],
+          toolName: 'read_file',
+          imageRefs: ['artifact-1'],
+          compactionFacts: { bounded: true },
+          sourceDisplayRowIds: ['display-tool'],
         },
       ],
-      removedEventIds: [],
-      reason: 'retry',
-    });
-    await store.rewriteConversation({
-      conversationRef: 'conv-empty',
-      baseRevisionId: 'rev-empty-old',
-      newRevisionId: 'rev-empty-new',
-      preservedEvents: [],
-      removedEventIds: ['evt-removed'],
-      reason: 'edit_resend',
     });
 
-    await expect(store.getRevision('conv-preserved')).resolves.toMatchObject({
-      conversationRef: 'conv-preserved',
-      revisionId: 'rev-new',
+    await expect(store.loadModelHistory({
+      conversationRef: 'conv-model-history',
+      revisionId: 'rev-1',
+    })).resolves.toEqual({
+      checkpointId: 'mh-1',
+      conversationRef: 'conv-model-history',
+      revisionId: 'rev-1',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'row-tool',
+          conversationRef: 'conv-model-history',
+          revisionId: 'rev-1',
+          role: 'tool',
+          messageType: 'tool_output',
+          content: 'bounded output',
+          toolCallId: 'call-1',
+          toolCalls: [{ id: 'call-1' }],
+          toolName: 'read_file',
+          imageRefs: ['artifact-1'],
+          compactionFacts: { bounded: true },
+          sourceDisplayRowIds: ['display-tool'],
+        },
+      ],
     });
-    await expect(store.getRevision('conv-empty')).resolves.toMatchObject({
-      conversationRef: 'conv-empty',
-      revisionId: 'rev-empty-new',
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'conversation.model_history.replace',
+      params: expect.objectContaining({
+        user_id: 'user-1',
+        conversation_id: 'conv-model-history',
+        revision_id: 'rev-1',
+        checkpoint_id: 'mh-1',
+        rows: [
+          expect.objectContaining({
+            row_id: 'row-tool',
+            message_type: 'tool_output',
+            tool_call_id: 'call-1',
+          }),
+        ],
+      }),
+    }));
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'conversation.model_history.load',
+      params: {
+        user_id: 'user-1',
+        conversation_id: 'conv-model-history',
+        revision_id: 'rev-1',
+      },
+    }));
+  });
+
+  test('LocalRuntimeConversationStore persists and loads display timeline checkpoints', async () => {
+    const rpc = jest.fn(async ({ method, params }) => {
+      if (method === 'conversation.display.replace') {
+        return {
+          success: true,
+          data: {
+            revision_id: params.revision_id,
+            row_count: params.rows.length,
+          },
+        };
+      }
+      if (method === 'conversation.display.load') {
+        return {
+          success: true,
+          data: {
+            revision_id: params.revision_id,
+            created_at: '2026-06-22T12:00:00.000Z',
+            reason: 'user_edit',
+            base_revision_id: 'rev-base',
+            rows: [
+              {
+                id: 'display-user',
+                conversation_id: params.conversation_id,
+                revision_id: params.revision_id,
+                index: 0,
+                role: 'user',
+                type: 'user_message',
+                content: 'edited hello',
+                metadata: { revisionId: params.revision_id },
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
     });
+    const store = new LocalRuntimeConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+    });
+
+    await store.replaceDisplayTimeline?.({
+      conversationRef: 'conv-display',
+      revisionId: 'rev-display',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: 'user_edit',
+      baseRevisionId: 'rev-base',
+      rows: [
+        {
+          id: 'display-user',
+          conversationRef: 'conv-display',
+          revisionId: 'rev-display',
+          turnRef: null,
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'edited hello',
+          metadata: { revisionId: 'rev-display' },
+        },
+      ],
+    });
+
+    await expect(store.loadDisplayTimeline?.({
+      conversationRef: 'conv-display',
+      revisionId: 'rev-display',
+    })).resolves.toEqual({
+      conversationRef: 'conv-display',
+      revisionId: 'rev-display',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: 'user_edit',
+      baseRevisionId: 'rev-base',
+      rows: [
+        {
+          id: 'display-user',
+          conversationRef: 'conv-display',
+          revisionId: 'rev-display',
+          turnRef: null,
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'edited hello',
+          metadata: { revisionId: 'rev-display' },
+        },
+      ],
+    });
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'conversation.display.replace',
+      params: expect.objectContaining({
+        user_id: 'user-1',
+        conversation_id: 'conv-display',
+        revision_id: 'rev-display',
+        reason: 'user_edit',
+        base_revision_id: 'rev-base',
+        rows: [
+          expect.objectContaining({
+            row_id: 'display-user',
+            row_type: 'user_message',
+          }),
+        ],
+      }),
+    }));
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'conversation.display.load',
+      params: {
+        user_id: 'user-1',
+        conversation_id: 'conv-display',
+        revision_id: 'rev-display',
+      },
+    }));
+  });
+
+  test('Agent exposes model-history loading and revision checkout primitives', async () => {
+    const store = new InMemoryConversationStore();
+    await store.replaceDisplayTimeline?.({
+      conversationRef: 'conv-checkout',
+      revisionId: 'rev-parent',
+      createdAt: '2026-06-22T11:00:00.000Z',
+      reason: 'send',
+      baseRevisionId: null,
+      rows: [
+        {
+          id: 'row-parent-user',
+          conversationRef: 'conv-checkout',
+          revisionId: 'rev-parent',
+          turnRef: 'turn-parent',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'original question',
+          metadata: { revisionId: 'rev-parent' },
+        },
+      ],
+    });
+    await store.replaceDisplayTimeline?.({
+      conversationRef: 'conv-checkout',
+      revisionId: 'rev-child',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: 'user_edit',
+      baseRevisionId: 'rev-parent',
+      rows: [
+        {
+          id: 'row-child-user',
+          conversationRef: 'conv-checkout',
+          revisionId: 'rev-child',
+          turnRef: 'turn-child',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'edited question',
+          metadata: { revisionId: 'rev-child' },
+        },
+      ],
+    });
+    await store.replaceModelHistory?.({
+      checkpointId: 'mh-child',
+      conversationRef: 'conv-checkout',
+      revisionId: 'rev-child',
+      createdAt: '2026-06-22T12:01:00.000Z',
+      rows: [
+        {
+          id: 'mh-child-user',
+          conversationRef: 'conv-checkout',
+          revisionId: 'rev-child',
+          role: 'user',
+          messageType: 'user_query',
+          content: 'edited question',
+          sourceDisplayRowIds: ['row-child-user'],
+        },
+      ],
+    });
+    const agent = new Agent(
+      'revision-agent',
+      { on: jest.fn(() => () => undefined), close: jest.fn() } as any,
+      {},
+      {} as any,
+      { listAgents: jest.fn(() => []) },
+      undefined,
+      'user-1',
+      store,
+    );
+
+    await expect(agent.loadModelHistory({
+      conversationRef: 'conv-checkout',
+      revisionId: 'rev-child',
+    })).resolves.toMatchObject({
+      checkpointId: 'mh-child',
+      revisionId: 'rev-child',
+      rows: [
+        expect.objectContaining({
+          id: 'mh-child-user',
+          content: 'edited question',
+          sourceDisplayRowIds: ['row-child-user'],
+        }),
+      ],
+    });
+
+    await expect(agent.checkoutRevision({
+      conversationRef: 'conv-checkout',
+      revisionId: 'rev-child',
+    })).resolves.toMatchObject({
+      displayTimeline: {
+        revisionId: 'rev-child',
+        rows: [
+          expect.objectContaining({
+            id: 'row-child-user',
+            content: 'edited question',
+          }),
+        ],
+      },
+      modelHistoryCheckpoint: {
+        checkpointId: 'mh-child',
+        revisionId: 'rev-child',
+      },
+    });
+
+    const traceEvents = await store.loadEvents('conv-checkout');
+    expect(traceEvents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'trace_event',
+        revisionId: 'rev-child',
+        payload: expect.objectContaining({
+          path: 'conversation.revision',
+          stage: 'checkout',
+          status: 'succeeded',
+        }),
+      }),
+    ]));
   });
 
   test('LocalRuntimeConversationStore merges host write params before local runtime rpc', async () => {
@@ -4955,19 +5197,7 @@ describe('Agent SDK client behavior', () => {
         conversation_ref: 'conv-runtime-public',
       },
     });
-    expect(sentMessageOfType(socket, 'rehydrate-conversation')).toMatchObject({
-      type: 'rehydrate-conversation',
-      payload: {
-        conversation_ref: 'conv-runtime-public',
-        rehydrate_mode: 'replace',
-        messages: [
-          expect.objectContaining({
-            role: 'user',
-            content: 'hello runtime',
-          }),
-        ],
-      },
-    });
+    expect(sentMessageOfType(socket, 'rehydrate-conversation')).toBeUndefined();
     const loadedConversation = await conversation.load();
     expect(loadedConversation).toMatchObject({
       state: {
@@ -5019,26 +5249,21 @@ describe('Agent SDK client behavior', () => {
       }),
     ]);
     socket.clearSent();
-    await expect(agent.prepareEditAndResend({
-      conversationRef: 'conv-runtime-public',
+    await expect(conversation.editAndResend({
       messageId: originalUserMessageId as string,
       text: 'edited runtime',
       payload: {
         screenshot_ref: 'artifact-edit',
       },
-    })).resolves.toMatchObject({
-      text: 'edited runtime',
-      payload: expect.objectContaining({
-        text: 'edited runtime',
-        screenshot_ref: 'artifact-edit',
-      }),
-    });
-    expect(JSON.parse(socket.sent[0])).toMatchObject({
-      type: 'rehydrate-conversation',
+    })).resolves.toEqual(expect.objectContaining({
+      turnRef: expect.any(String),
+    }));
+    expect(sentMessageOfType(socket, 'query')).toMatchObject({
+      type: 'query',
       payload: {
+        text: 'edited runtime',
         conversation_ref: 'conv-runtime-public',
-        rehydrate_mode: 'replace',
-        messages: [],
+        screenshot_ref: 'artifact-edit',
       },
     });
     await agent.deleteConversation('conv-runtime-public');

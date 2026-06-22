@@ -19,21 +19,19 @@ describe('ipc.cjs replay command handling', () => {
         },
         currentTurn: null,
       })),
-      prepareEditAndResend: jest.fn(async input => ({
-        text: input.text,
-        turnRef: input.turnRef || null,
-        payload: {
-          prepared: true,
-          ...(input.payload || {}),
-        },
+      loadDisplayTimeline: jest.fn(async () => ({
+        conversationRef: 'conv-ipc-display',
+        revisionId: 'rev-display',
+        createdAt: '2026-06-22T12:00:00.000Z',
+        rows: [],
       })),
-      prepareRetryTurn: jest.fn(async input => ({
-        text: 'retry text',
-        turnRef: input.turnRef || null,
-        payload: {
-          retry: true,
-          ...(input.payload || {}),
-        },
+      replaceRows: jest.fn(async input => ({
+        conversationRef: 'conv-ipc-display',
+        revisionId: 'rev-child',
+        createdAt: '2026-06-22T12:01:00.000Z',
+        reason: input.reason,
+        baseRevisionId: input.baseRevisionId,
+        rows: input.rows,
       })),
       close: jest.fn(),
     };
@@ -78,148 +76,48 @@ describe('ipc.cjs replay command handling', () => {
     jest.dontMock('../../packages/windie-sdk-js/cjs/runtime/AgentClient.js');
   });
 
-  test('routes edit/resend preparation through the real windie:invoke command bridge', async () => {
-    const sdk = installMockAgentClient();
-    const bridge = initIpc();
-
-    const response = await invokeAgentSdkCommandHandler(
-      bridge.handlers,
-      'conversation.prepareEditAndResend',
-      {
-        userId: 'registered-user-1',
-        conversationRef: 'conv-ipc-replay',
-        workspace_path: '/tmp/project-alpha-workspace',
-        messageId: 'renderer-user-2',
-        text: 'edited second question',
-        turnRef: 'turn-edited',
-        payload: {
-          screenshot_ref: 'artifact-old',
-        },
-        model: {
-          provider: 'anthropic',
-          id: 'claude-sonnet-4-5',
-        },
-      },
-    );
-
-    expect(response).toEqual({
-      ok: true,
-      data: expect.objectContaining({
-        conversationRef: 'conv-ipc-replay',
-        workspacePath: '/tmp/project-alpha-workspace',
-        text: 'edited second question',
-        turnRef: 'turn-edited',
-        payload: expect.objectContaining({
-          prepared: true,
-          screenshot_ref: 'artifact-old',
-        }),
-      }),
-    });
-    expect(sdk.AgentClient).toHaveBeenCalledWith(expect.objectContaining({
-      autoStartLocalRuntime: false,
-    }));
-    expect(sdk.wakeUp).toHaveBeenCalledWith(expect.objectContaining({
-      builtins: [],
-      memory: false,
-      persistence: false,
-      workspacePath: '/tmp/project-alpha-workspace',
-    }));
-    expect(sdk.agent.conversation).toHaveBeenCalledWith(expect.objectContaining({
-      conversationRef: 'conv-agent-replay',
-    }));
-    expect(sdk.agent.conversation).toHaveBeenCalledWith(expect.objectContaining({
-      conversationRef: 'conv-ipc-replay',
-    }));
-    expect(sdk.runtime.prepareEditAndResend).toHaveBeenCalledWith({
-      messageId: 'renderer-user-2',
-      text: 'edited second question',
-      turnRef: 'turn-edited',
-      payload: {
-        screenshot_ref: 'artifact-old',
-      },
-      model: {
-        provider: 'anthropic',
-        id: 'claude-sonnet-4-5',
-      },
-    });
-    expect(sdk.runtime.load).toHaveBeenCalledTimes(1);
-  });
-
-  test('rejects stale transcript-session users before preparing edit/resend replay', async () => {
+  test('routes display timeline load and replacement through the Agent SDK runtime adapter', async () => {
     const sdk = installMockAgentClient();
     const bridge = initIpc();
 
     await expect(invokeAgentSdkCommandHandler(
       bridge.handlers,
-      'conversation.prepareEditAndResend',
+      'conversation.loadDisplayTimeline',
       {
         userId: 'registered-user-1',
-        conversationRef: 'conv-ipc-replay',
-        messageId: 'renderer-user-1',
-        text: 'edited first question',
+        conversationRef: 'conv-ipc-display',
       },
-    )).resolves.toEqual(expect.objectContaining({ ok: true }));
-
-    const staleResponse = await invokeAgentSdkCommandHandler(
-      bridge.handlers,
-      'conversation.prepareEditAndResend',
-      {
-        userId: 'user-stale',
-        conversationRef: 'conv-ipc-replay',
-        messageId: 'renderer-user-2',
-        text: 'edited stale question',
-      },
-    );
-
-    expect(staleResponse).toEqual({
-      ok: false,
-      error: 'Agent SDK command user id does not match the active user.',
-    });
-    expect(sdk.runtime.prepareEditAndResend).toHaveBeenCalledTimes(1);
-  });
-
-  test('routes retry preparation through the same Agent SDK runtime adapter', async () => {
-    const sdk = installMockAgentClient();
-    const bridge = initIpc();
-
-    const response = await invokeAgentSdkCommandHandler(
-      bridge.handlers,
-      'conversation.prepareRetryTurn',
-      {
-        userId: 'registered-user-1',
-        conversationRef: 'conv-ipc-retry',
-        workspacePath: '/tmp/project-alpha-retry-workspace',
-        messageId: 'assistant-retry',
-        turnRef: 'turn-retry',
-        payload: {
-          retry_reason: 'user-requested',
-        },
-      },
-    );
-
-    expect(response).toEqual({
+    )).resolves.toEqual({
       ok: true,
       data: expect.objectContaining({
-        conversationRef: 'conv-ipc-retry',
-        workspacePath: '/tmp/project-alpha-retry-workspace',
-        text: 'retry text',
-        turnRef: 'turn-retry',
-        payload: expect.objectContaining({
-          retry: true,
-          retry_reason: 'user-requested',
-        }),
+        revisionId: 'rev-display',
       }),
     });
-    expect(sdk.agent.conversation).toHaveBeenCalledWith(expect.objectContaining({
-      conversationRef: 'conv-ipc-retry',
-    }));
-    expect(sdk.runtime.prepareRetryTurn).toHaveBeenCalledWith({
-      messageId: 'assistant-retry',
-      turnRef: 'turn-retry',
-      payload: {
-        retry_reason: 'user-requested',
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.replaceRows',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        baseRevisionId: 'rev-display',
+        reason: 'retry',
+        rows: [],
       },
-      model: undefined,
+    )).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        revisionId: 'rev-child',
+      }),
+    });
+
+    expect(sdk.runtime.loadDisplayTimeline).toHaveBeenCalledWith({
+      revisionId: null,
+    });
+    expect(sdk.runtime.replaceRows).toHaveBeenCalledWith({
+      baseRevisionId: 'rev-display',
+      reason: 'retry',
+      rows: [],
     });
   });
 });

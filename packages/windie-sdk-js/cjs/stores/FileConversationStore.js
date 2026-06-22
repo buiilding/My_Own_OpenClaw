@@ -40,6 +40,8 @@ exports.FileConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
 const compactedReplayEvents_js_1 = require("./compactedReplayEvents.js");
+const modelHistoryPayload_js_1 = require("../runtime/modelHistoryPayload.js");
+const displayTimelineStoreProjection_js_1 = require("./displayTimelineStoreProjection.js");
 async function importNodeModule(specifier) {
     return Promise.resolve(`${specifier}`).then(s => __importStar(require(s)));
 }
@@ -113,6 +115,12 @@ function normalizeStoredFile(conversationRef, raw) {
             : conversationRef,
         events,
         replay: payload.replay ?? null,
+        modelHistory: Array.isArray(payload.modelHistory)
+            ? payload.modelHistory
+            : [],
+        displayTimeline: Array.isArray(payload.displayTimeline)
+            ? payload.displayTimeline
+            : [],
         revision: payload.revision ?? buildRevision(conversationRef, events),
     };
 }
@@ -155,22 +163,6 @@ class FileConversationStore {
             });
         }
     }
-    async rewriteConversation(plan) {
-        await this.runConversationMutation(plan.conversationRef, async () => {
-            const events = [...plan.preservedEvents];
-            const stored = await this.readConversation(plan.conversationRef);
-            await this.writeConversation({
-                ...stored,
-                conversationRef: plan.conversationRef,
-                events,
-                revision: {
-                    conversationRef: plan.conversationRef,
-                    revisionId: plan.newRevisionId,
-                    updatedAt: new Date().toISOString(),
-                },
-            });
-        });
-    }
     async replaceCompactedReplay(snapshot) {
         if (!snapshot.complete || snapshot.entryCount !== snapshot.entries.length) {
             return;
@@ -191,12 +183,65 @@ class FileConversationStore {
         return (await this.readConversation(conversationRef)).events;
     }
     async loadForDisplay(conversationRef) {
-        return (0, conversationProjections_js_1.buildDisplayConversation)(await this.loadEvents(conversationRef));
+        const stored = await this.readConversation(conversationRef);
+        const timeline = await this.loadDisplayTimeline({ conversationRef });
+        if (!timeline) {
+            return (0, conversationProjections_js_1.buildDisplayConversation)(stored.events);
+        }
+        return (0, displayTimelineStoreProjection_js_1.displayConversationFromTimeline)(timeline, stored.events);
     }
     async loadDisplayRows(conversationRef) {
-        return (0, conversationProjections_js_1.buildDisplayRows)(await this.loadEvents(conversationRef));
+        const stored = await this.readConversation(conversationRef);
+        const timeline = await this.loadDisplayTimeline({ conversationRef });
+        if (!timeline) {
+            return (0, conversationProjections_js_1.buildDisplayRows)(stored.events);
+        }
+        return (0, displayTimelineStoreProjection_js_1.displayRowsFromTimeline)(timeline, stored.events);
+    }
+    async replaceDisplayTimeline(checkpoint) {
+        await this.runConversationMutation(checkpoint.conversationRef, async () => {
+            const stored = await this.readConversation(checkpoint.conversationRef);
+            const existing = stored.displayTimeline ?? [];
+            await this.writeConversation({
+                ...stored,
+                conversationRef: checkpoint.conversationRef,
+                displayTimeline: [
+                    ...existing.filter(entry => entry.revisionId !== checkpoint.revisionId),
+                    {
+                        ...checkpoint,
+                        rows: [...checkpoint.rows],
+                    },
+                ],
+                revision: {
+                    conversationRef: checkpoint.conversationRef,
+                    revisionId: checkpoint.revisionId,
+                    updatedAt: checkpoint.createdAt,
+                },
+            });
+        });
+    }
+    async loadDisplayTimeline(input) {
+        const stored = await this.readConversation(input.conversationRef);
+        const checkpoints = stored.displayTimeline ?? [];
+        const candidates = input.revisionId
+            ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+            : checkpoints;
+        const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+        return latest ? { ...latest, rows: [...latest.rows] } : null;
     }
     async loadForRehydrate(conversationRef) {
+        const stored = await this.readConversation(conversationRef);
+        const activeRevisionId = stored.revision?.revisionId ?? null;
+        const modelHistoryCheckpoint = await this.loadModelHistory({
+            conversationRef,
+            revisionId: activeRevisionId,
+        });
+        const modelHistorySnapshot = modelHistoryCheckpoint
+            ? (0, modelHistoryPayload_js_1.rehydrateSnapshotFromModelHistoryCheckpoint)(modelHistoryCheckpoint)
+            : null;
+        if (modelHistorySnapshot) {
+            return modelHistorySnapshot;
+        }
         const compactedReplay = await this.loadCompactedReplay(conversationRef);
         if (compactedReplay?.complete
             && compactedReplay.active !== false
@@ -208,7 +253,34 @@ class FileConversationStore {
                 replayGenerationId: compactedReplay.generationId,
             };
         }
-        return (0, conversationProjections_js_1.buildRehydrateSnapshot)(await this.loadEvents(conversationRef));
+        return (0, conversationProjections_js_1.buildRehydrateSnapshot)(stored.events);
+    }
+    async replaceModelHistory(checkpoint) {
+        await this.runConversationMutation(checkpoint.conversationRef, async () => {
+            const stored = await this.readConversation(checkpoint.conversationRef);
+            const existing = stored.modelHistory ?? [];
+            await this.writeConversation({
+                ...stored,
+                conversationRef: checkpoint.conversationRef,
+                modelHistory: [
+                    ...existing.filter(entry => !(entry.revisionId === checkpoint.revisionId
+                        && entry.checkpointId === checkpoint.checkpointId)),
+                    {
+                        ...checkpoint,
+                        rows: [...checkpoint.rows],
+                    },
+                ],
+            });
+        });
+    }
+    async loadModelHistory(input) {
+        const stored = await this.readConversation(input.conversationRef);
+        const checkpoints = stored.modelHistory ?? [];
+        const candidates = input.revisionId
+            ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
+            : checkpoints;
+        const latest = [...candidates].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+        return latest ? { ...latest, rows: [...latest.rows] } : null;
     }
     async listMetadata(options = {}) {
         const { fs } = await this.modules();
@@ -222,12 +294,30 @@ class FileConversationStore {
             const conversationRef = decodeURIComponent(file.slice(0, -5));
             const stored = await this.readConversation(conversationRef);
             const revision = stored.revision ?? buildRevision(conversationRef, stored.events);
+            const latestDisplayTimeline = [...(stored.displayTimeline ?? [])]
+                .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0] ?? null;
+            const firstDisplayUserRow = latestDisplayTimeline?.rows.find(row => row.role === 'user') ?? null;
+            const lastDisplayTextRow = latestDisplayTimeline
+                ? [...latestDisplayTimeline.rows].reverse().find(row => typeof row.content === 'string') ?? null
+                : null;
+            const eventUpdatedAt = revision.updatedAt;
+            const displayIsCurrent = latestDisplayTimeline
+                ? Date.parse(latestDisplayTimeline.createdAt) >= Date.parse(eventUpdatedAt)
+                : false;
+            const eventLastMessage = eventText(lastTextEvent(stored.events));
+            const displayLastMessage = typeof lastDisplayTextRow?.content === 'string'
+                ? lastDisplayTextRow.content
+                : null;
             metadata.push({
                 conversationRef,
-                revisionId: revision.revisionId,
-                title: eventText(stored.events.find(event => event.type === 'user_message')) ?? conversationRef,
-                lastMessage: eventText(lastTextEvent(stored.events)),
-                updatedAt: revision.updatedAt,
+                revisionId: displayIsCurrent ? latestDisplayTimeline?.revisionId ?? revision.revisionId : revision.revisionId,
+                title: (typeof firstDisplayUserRow?.content === 'string' ? firstDisplayUserRow.content : null)
+                    ?? eventText(stored.events.find(event => event.type === 'user_message'))
+                    ?? conversationRef,
+                lastMessage: displayIsCurrent
+                    ? displayLastMessage ?? eventLastMessage
+                    : eventLastMessage ?? displayLastMessage,
+                updatedAt: displayIsCurrent ? latestDisplayTimeline?.createdAt ?? eventUpdatedAt : eventUpdatedAt,
                 eventCount: stored.events.length,
             });
         }

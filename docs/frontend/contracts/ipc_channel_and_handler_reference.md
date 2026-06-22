@@ -94,7 +94,7 @@ Behavior:
   `SDK_RUNTIME_COMMANDS` export for supported user-runtime commands such as
   `conversation.send`, `conversation.stop`, `settings.update`, `models.list`,
   `conversation.rehydrate`, `conversation.compact`,
-  `conversation.prepareEditAndResend`, `conversation.prepareRetryTurn`, and
+  `conversation.loadDisplayTimeline`, `conversation.replaceRows`, and
   `wakeword.detected`.
 - `load-frontend-config` -> loads persisted desktop UI config JSON from userData
   through `ipc_desktop_ui_config_handlers.cjs`

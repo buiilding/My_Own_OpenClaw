@@ -15,9 +15,9 @@ function isPlainObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function cloneJsonObject(value) {
-  if (!isPlainObject(value)) {
-    return {};
+function cloneJsonArray(value) {
+  if (!Array.isArray(value)) {
+    return [];
   }
   return JSON.parse(JSON.stringify(value));
 }
@@ -78,15 +78,6 @@ function optionalTransportConversationRef(payload = {}) {
 function rejectRemovedTransportTurnRef(payload = {}) {
   if (Object.prototype.hasOwnProperty.call(payload, 'turnRef')) {
     throw new Error('Agent runtime transport command requires turn_ref; turnRef is not supported.');
-  }
-}
-
-function rejectRemovedEditRetryAliases(payload = {}) {
-  const removed = ['turn_ref', 'message_id'].filter(key => (
-    Object.prototype.hasOwnProperty.call(payload, key)
-  ));
-  if (removed.length > 0) {
-    throw new Error(`Agent SDK edit/retry commands require camelCase fields; removed field(s): ${removed.join(', ')}.`);
   }
 }
 
@@ -299,6 +290,17 @@ function buildAgentSdkCommandHandlers({
         currentTurn: snapshot.currentTurn,
       };
     },
+    [SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY_TIMELINE]: async (payload = {}) => {
+      requireCommandUserId(payload, deps.getState().currentUserId);
+      const agent = await deps.ensureAgent({
+        reason: 'sdk-command:conversation.loadDisplayTimeline',
+        conversationRef: optionalCommandConversationRef(payload),
+      });
+      return agent.loadDisplayTimeline({
+        conversationRef: requireCommandConversationRef(payload),
+        revisionId: normalizeOptionalString(payload.revisionId),
+      });
+    },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_REHYDRATE]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
       const agent = await deps.ensureAgent({
@@ -336,18 +338,19 @@ function buildAgentSdkCommandHandlers({
       await runtimeRegistry.appendConversationEvent(conversationEvent);
       return { stored: true };
     },
-    [SDK_RUNTIME_COMMANDS.CONVERSATION_REWRITE]: async (payload = {}) => {
+    [SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_ROWS]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
-      const plan = isPlainObject(payload.plan) ? payload.plan : null;
-      if (!plan) {
-        throw new Error('conversation.rewrite requires a plan payload');
-      }
+      const conversationRef = requireCommandConversationRef(payload);
       const runtimeRegistry = await deps.ensureAgent({
-        reason: 'sdk-command:conversation.rewrite',
-        conversationRef: optionalCommandConversationRef(plan) || optionalCommandConversationRef(payload),
+        reason: 'sdk-command:conversation.replaceRows',
+        conversationRef,
       });
-      await runtimeRegistry.rewriteConversation(plan);
-      return { rewritten: true };
+      return runtimeRegistry.replaceRows({
+        conversationRef,
+        baseRevisionId: requireCommandString(payload, 'baseRevisionId', 'base revision id'),
+        reason: requireCommandString(payload, 'reason', 'display replacement reason'),
+        rows: cloneJsonArray(payload.rows),
+      });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_COMPACTED_REPLAY]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
@@ -366,54 +369,6 @@ function buildAgentSdkCommandHandlers({
       payload,
       deps,
     ),
-    [SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_EDIT_AND_RESEND]: async (payload = {}) => {
-      requireCommandUserId(payload, deps.getState().currentUserId);
-      const conversationRef = requireCommandConversationRef(payload);
-      rejectRemovedEditRetryAliases(payload);
-      const workspacePath = deps.resolveWorkspacePathForAgent(payload) || null;
-      const runtimeRegistry = await deps.ensureAgent({
-        reason: 'sdk-command:conversation.prepareEditAndResend',
-        conversationRef,
-        workspacePath,
-      });
-      const prepared = await runtimeRegistry.prepareEditAndResend({
-        conversationRef,
-        messageId: requireCommandString(payload, 'messageId', 'message id'),
-        text: requireCommandString(payload, 'text', 'replacement text'),
-        turnRef: normalizeOptionalString(payload.turnRef) || undefined,
-        payload: cloneJsonObject(payload.payload),
-        model: isPlainObject(payload.model) ? payload.model : undefined,
-      });
-      return {
-        ...prepared,
-        conversationRef,
-        workspacePath,
-      };
-    },
-    [SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_RETRY_TURN]: async (payload = {}) => {
-      requireCommandUserId(payload, deps.getState().currentUserId);
-      const conversationRef = requireCommandConversationRef(payload);
-      rejectRemovedEditRetryAliases(payload);
-      const workspacePath = deps.resolveWorkspacePathForAgent(payload) || null;
-      const runtimeRegistry = await deps.ensureAgent({
-        reason: 'sdk-command:conversation.prepareRetryTurn',
-        conversationRef,
-        workspacePath,
-      });
-      const messageId = normalizeOptionalString(payload.messageId);
-      const prepared = await runtimeRegistry.prepareRetryTurn({
-        conversationRef,
-        ...(messageId ? { messageId } : {}),
-        turnRef: normalizeOptionalString(payload.turnRef) || undefined,
-        payload: cloneJsonObject(payload.payload),
-        model: isPlainObject(payload.model) ? payload.model : undefined,
-      });
-      return {
-        ...prepared,
-        conversationRef,
-        workspacePath,
-      };
-    },
   };
 }
 

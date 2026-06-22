@@ -164,6 +164,51 @@ function normalizeBackendDisplayAttachments(payload, eventId) {
     return displayAttachmentsFromBackendField(payload)
         ?? displayAttachmentsFromScreenshotAliases(payload, eventId);
 }
+const MODEL_HISTORY_ROLES = new Set(['system', 'user', 'assistant', 'tool']);
+const MODEL_HISTORY_MESSAGE_TYPES = new Set([
+    'user_query',
+    'assistant_response',
+    'tool_output',
+    'context_compaction',
+]);
+function modelHistoryRoleOf(value) {
+    return typeof value === 'string' && MODEL_HISTORY_ROLES.has(value)
+        ? value
+        : null;
+}
+function modelHistoryMessageTypeOf(value) {
+    return typeof value === 'string' && MODEL_HISTORY_MESSAGE_TYPES.has(value)
+        ? value
+        : null;
+}
+function modelHistoryRowsFromPayload(payload) {
+    const rows = Array.isArray(payload.rows) ? payload.rows : [];
+    return rows.flatMap((entry) => {
+        const row = recordFromUnknown(entry);
+        const id = row ? stringField(row, 'id') : null;
+        const conversationRef = row ? stringField(row, 'conversation_ref', 'conversationRef') : null;
+        const revisionId = row ? stringField(row, 'revision_id', 'revisionId') : null;
+        const role = row ? modelHistoryRoleOf(row.role) : null;
+        const messageType = row ? modelHistoryMessageTypeOf(row.message_type ?? row.messageType) : null;
+        if (!row || !id || !conversationRef || !revisionId || !role || !messageType) {
+            return [];
+        }
+        return [{
+                id,
+                conversationRef,
+                revisionId,
+                role,
+                messageType,
+                content: row.content,
+                toolCallId: stringField(row, 'tool_call_id', 'toolCallId'),
+                toolCalls: Array.isArray(row.tool_calls) ? row.tool_calls : (Array.isArray(row.toolCalls) ? row.toolCalls : []),
+                toolName: stringField(row, 'tool_name', 'toolName'),
+                imageRefs: stringArrayField(row, 'image_refs', 'imageRefs') ?? [],
+                compactionFacts: recordFromUnknown(row.compaction_facts ?? row.compactionFacts),
+                sourceDisplayRowIds: stringArrayField(row, 'source_display_row_ids', 'sourceDisplayRowIds') ?? [],
+            }];
+    });
+}
 function toolCorrelationIdFromPayload(payload) {
     return stringField(payload, 'correlation_id', 'request_id');
 }
@@ -405,6 +450,39 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             type: 'trace_event',
             source: 'backend',
             payload: tracePayload,
+        });
+    }
+    if (event.type === 'model-history-updated') {
+        const checkpointId = stringField(payload, 'checkpoint_id', 'checkpointId');
+        const revisionId = stringField(payload, 'revision_id', 'revisionId');
+        const createdAt = stringField(payload, 'created_at', 'createdAt') ?? base.timestamp;
+        const rows = modelHistoryRowsFromPayload(payload);
+        if (!checkpointId || !revisionId) {
+            return (0, events_js_1.createConversationEvent)({
+                ...base,
+                type: 'runtime_error',
+                source: 'sdk',
+                payload: {
+                    error: 'Backend model-history event missing checkpoint_id or revision_id',
+                    reason: 'malformed_model_history_event',
+                    sourceEventType: event.type,
+                    ...backendMetadata,
+                },
+            });
+        }
+        return (0, events_js_1.createConversationEvent)({
+            ...base,
+            revisionId,
+            type: 'model_history_updated',
+            source: 'backend',
+            payload: {
+                conversationRef: base.conversationRef,
+                revisionId,
+                checkpointId,
+                createdAt,
+                rows,
+                ...backendMetadata,
+            },
         });
     }
     if (event.type === 'query-accepted') {

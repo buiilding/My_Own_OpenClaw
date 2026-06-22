@@ -1,7 +1,7 @@
 ---
-summary: "Workflow for changing SDK-backed transcript projections, conversation replay, dashboard resume, backend rehydrate payloads, tool-row reconstruction, and related validation."
+summary: "Workflow for changing SDK-backed transcript projections, conversation replay, dashboard resume, model-history rehydrate payloads, tool-row reconstruction, and related validation."
 read_when:
-  - When changing SDK display projections, local conversation snapshots, dashboard conversation replay, or backend rehydrate payload construction.
+  - When changing SDK display projections, local conversation snapshots, dashboard conversation replay, or model-history rehydrate payload construction.
   - When visible chat rows persist incorrectly, dashboard resume shows the wrong messages, replay loses tool rows, or backend context after resume does not match the stored transcript.
   - When deciding whether a transcript/replay bug belongs to renderer transcript state, Electron transcript-session sync, local-runtime transcript storage, dashboard replay actions, or backend rehydrate services.
 title: "Transcript Replay Change Workflow"
@@ -13,7 +13,15 @@ Use this workflow for the visible-chat projection path. Transcript replay is
 related to memory, but it is not the same thing as semantic memory or backend
 active model history.
 
-The core rule is: SDK local-runtime `conversation_events` rows are the canonical client-runtime state. Visible transcript rows are projections persisted for display/search, and backend active history is rebuilt from SDK rehydrate projections before resume. Fix display and replay at the SDK projection/store layer. Fix resumed model context at the rehydrate projection layer. Fix derived memory search/semantic facts in local-runtime memory and semanticization code.
+The core rule is: SDK local-runtime `conversation_events` rows are the canonical
+runtime/audit log, display timeline checkpoints are the editable user-visible
+document, and model-history checkpoints are the bounded inference ledger.
+Edit/resend and retry must replace display timeline rows and then send; they
+must not cut raw runtime events or pre-mutate visible rows before the SDK
+accepts the child display revision. Fix display and replay at the SDK
+projection/store layer. Fix resumed model context at the model-history
+rehydrate layer. Fix derived memory search/semantic facts in local-runtime
+memory and semanticization code.
 
 ## Runtime Path
 
@@ -23,22 +31,50 @@ flowchart LR
     B --> C["Electron main memory RPC mapper"]
     C --> D["local-runtime Python chat event handler"]
     D --> E["local-runtime conversation_events rows"]
+    D --> T["local-runtime conversation_display_timeline rows"]
+    D --> H["local-runtime conversation_model_history checkpoints"]
     E --> F["dashboard conversation list/search"]
-    E --> G["SDK display/rehydrate projections"]
-    G --> I["backend RehydrateExecutionService"]
-    I --> J["backend conversation-scoped history"]
+    E --> G["SDK display / diagnostic rehydrate snapshots"]
+    T --> F
+    H --> J["backend model-history install path"]
+    J --> I["backend conversation-scoped history"]
 ```
 
 ## Boundary Rules
 
-- SDK projection/runtime code owns visible chat projection, local replay snapshots, and the rehydrate payload assembled from stored conversation events.
+- SDK projection/runtime code owns visible chat projection, local replay
+  snapshots, and diagnostic/export rehydrate snapshots. Normal backend resume
+  installs model-history checkpoints instead of assembling provider history
+  from stored conversation events.
+- SDK store adapters expose `replaceDisplayTimeline(...)` and
+  `loadDisplayTimeline(...)` for first-class editable display timeline
+  checkpoints. This is the public user-visible document surface for child
+  revisions. It is distinct from raw runtime events and from bounded model
+  history. When no checkpoint exists, display still falls back to the current
+  event projection.
+- SDK store adapters expose `replaceModelHistory(...)` and
+  `loadModelHistory(...)` for provider-neutral, bounded model-history
+  checkpoints. This is a separate inference ledger, not a visible transcript
+  projection. Normal rehydrate installs this checkpoint when available and
+  skips backend hydration when no checkpoint exists.
+- Backend live turns now emit `model-history-updated` checkpoints after
+  assistant and tool-result history commits. The SDK persists those hidden
+  events through `replaceModelHistory(...)`; display projections ignore them.
 - Electron main owns IPC/RPC mapping and identity sync between windows. It should not interpret chat semantics beyond normalizing bridge payload keys and forwarding session updates.
 - The SDK local-runtime store owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs; local-runtime Python implements the current SQLite backing store.
-- Backend rehydrate owns conversion from stored transcript entries into
-  model-compatible backend history. It normalizes current transcript
-  projections and rejects missing or stale tool linkage instead of repairing or
-  synthesizing provider history.
+- Backend rehydrate owns installing persisted model-history checkpoints into
+  model-compatible backend history. Legacy event-projection rehydrate snapshots
+  are diagnostic/export surfaces only; normal resume, edit/resend, and retry
+  preparation must not invoke backend rehydrate from display/runtime events.
 - Backend active history is not the source of dashboard conversation list truth. Do not patch backend history to make a missing sidebar conversation appear.
+- Fork children are visible from their active display timeline checkpoint before
+  they have child events. Dashboard/list metadata should union visible event
+  conversations with active display timeline conversations, preserve the forked
+  display title, and use newer child events for the tail when the child
+  continues.
+- Model-history checkpoint rows are not dashboard/list truth and must not copy
+  full raw tool output, screenshots, or provider-specific payloads as durable
+  local truth.
 - Semantic memory is derived from transcript/interaction rows. Do not edit semantic memory as a shortcut for fixing replay or visible transcript bugs.
 - `conversationRef`/`conversation_id`, `userId`/`user_id`, role, message type, timestamp, message index, tool identifiers, and screenshot refs must survive any row that can be replayed or rehydrated later.
 
@@ -51,7 +87,7 @@ flowchart LR
 | Transcript writes happen under the wrong conversation | Transcript session runtime and Electron sync | `transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionSyncPayload.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) |
 | Dashboard conversation list is missing, stale, or ordered wrong | Local-runtime conversation storage plus dashboard loader | `frontend/src/main/python/memory/chat_event_store.py`, `local_store.py`, dashboard conversation hooks | `tests/sidecar/test_chat_event_store.py`, `tests/frontend/DashboardConversationLoad.test.js` |
 | Dashboard resume displays wrong rows | SDK display projection and conversation load command | `desktopConversationContinuityService.ts`, `desktopConversationStore.ts`, SDK conversation store/runtime | `DesktopConversationContinuityService.test.ts`, `DesktopConversationStore.test.ts` |
-| Resume displays rows but backend answers without old context | SDK rehydrate projection and backend rehydrate service | `packages/windie-sdk-js/src/projections/conversationProjections.ts`, `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `AgentSdkConversationRuntime.test.ts`, `ConversationContinuityService.test.ts`, backend rehydrate service/linkage tests |
+| Resume displays rows but backend answers without old context | SDK model-history persistence and backend rehydrate install | `packages/windie-sdk-js/src/runtime/modelHistoryPayload.ts`, `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `AgentSdkConversationRuntime.test.ts`, `ConversationContinuityService.test.ts`, backend rehydrate service/linkage tests |
 | Transparency/system-prompt rows replay incorrectly | SDK projections and backend rehydrate transparency resolution | `desktopChatStreamMessageUpdateRuntime.ts`, `packages/windie-sdk-js/src/projections/conversationProjections.ts`, `backend/src/api/services/rehydrate_transparency_resolution.py` | SDK rehydrate projection tests, `tests/backend/test_rehydrate_transparency_resolution.py` |
 | Conversation delete leaves rows, titles, or search results behind | Local-runtime memory delete/cleanup plus renderer active-chat reset | `local_store.py`, conversation delete helpers, dashboard delete actions | `tests/sidecar/test_local_store_delete_cleanup.py`, conversation title/list tests, dashboard delete tests |
 | Search returns rows from the wrong conversation | Local-runtime conversation search | `conversation_search_helpers.py`, `local_store.py` | `tests/sidecar/test_conversation_search*.py` |
@@ -62,7 +98,7 @@ flowchart LR
    - Store: row crosses renderer IPC, Electron main, local-runtime Python handler, and SQLite.
    - List/search: dashboard asks local-runtime transcript storage for conversations.
    - Replay: stored rows become visible chat messages.
-   - Rehydrate: stored rows become backend model history.
+   - Rehydrate: stored model-history checkpoints become backend model history.
 
 2. Check identity before changing storage shape.
    - If `conversationRef`, `userId`, or `turn_ref` is wrong, switch to [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md).
@@ -83,19 +119,24 @@ flowchart LR
      `legacyVisualAttachmentReplayAdapter`, the narrow old-row compatibility
      owner retained until a durable local-store migration rewrites those rows.
    - Local snapshots should not replace durable transcript storage unless the code explicitly uses them as a fallback.
-   - Edit/resend and try-again must cut by canonical SDK event or payload
-     message id. Renderer replay row-index selection is owned by
-     `desktopConversationReplayRuntime.js`; do not restore user-message ordinal
-     fallback or latest-user retry fallback for renderer-only transcript ids.
+   - Edit/resend and try-again must load the active display timeline, replace
+     the prefix before the target user row as a child display revision, and
+     send the replacement text only after `replaceRows` succeeds. Do not
+     restore event-log cutting through `conversation.rewrite_after_event`, SDK
+     `prepareEditAndResend`, SDK `prepareRetryTurn`, or visible-row rollback
+     caused by preemptive renderer mutation.
 
-5. Preserve rehydrate shape.
-   - SDK `buildRehydrateSnapshot(...)` should emit backend-compatible entries
-     from stored conversation events, including canonical stored
-     `message_type` values such as `user_query`, `assistant_response`, and
-     `tool_output`.
-   - Backend rehydrate should normalize message roles, structured tool
-     payloads, transparency rows, screenshot refs, and tool-call/tool-output
-     linkage, while rejecting stale message-type aliases at the API boundary.
+5. Preserve model-history resume shape.
+   - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit
+     backend-compatible entries from stored model-history checkpoints,
+     including canonical stored `message_type` values such as `user_query`,
+     `assistant_response`, and `tool_output`.
+   - Backend rehydrate should install model-history checkpoint rows, normalize
+     roles and tool-call/tool-output linkage, and reject stale message-type
+     aliases at the API boundary.
+   - SDK `buildRehydrateSnapshot(...)` remains a diagnostic/export snapshot
+     helper for legacy no-checkpoint conversations. It must not become the
+     normal backend resume payload source again.
    - Backend-safe `display_attachments` may cross rehydrate/tool-result
      websocket boundaries for display/replay parity, but model-visible image
      hydration remains `screenshot_ref`/artifact-ref owned until provider

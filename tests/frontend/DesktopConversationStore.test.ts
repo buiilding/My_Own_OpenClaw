@@ -184,35 +184,6 @@ describe('desktop conversation store factory', () => {
     });
   });
 
-  test('rewrites edit plans through the SDK command bridge', async () => {
-    const store = createDesktopConversationStore('user-1');
-    const preserved = createConversationEvent({
-      eventId: 'evt-rewrite',
-      type: 'conversation_rewritten',
-      conversationRef: 'conv-edit',
-      revisionId: 'rev-next',
-      payload: { reason: 'edit_resend' },
-    });
-    const plan = {
-      conversationRef: 'conv-edit',
-      baseRevisionId: 'rev-old',
-      newRevisionId: 'rev-next',
-      cutAfterEventId: 'evt-prior',
-      preservedEvents: [preserved],
-      removedEventIds: ['evt-old'],
-      reason: 'edit_resend' as const,
-      replacementUserMessage: { text: 'edited' },
-    };
-
-    await store.rewriteConversation(plan);
-
-    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('conversation.rewrite', {
-      userId: 'user-1',
-      conversationRef: 'conv-edit',
-      plan,
-    });
-  });
-
   test('deletes conversations through the SDK command bridge', async () => {
     const store = createDesktopConversationStore('user-1');
 

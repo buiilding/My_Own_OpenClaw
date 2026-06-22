@@ -35,16 +35,23 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
         ContextCompactionStartedEventFormatter,
     )
     from backend.src.api.processing.formatters.error import ErrorEventFormatter
+    from backend.src.api.processing.formatters.model_history_updated import (
+        ModelHistoryUpdatedEventFormatter,
+    )
     from backend.src.api.processing.formatters.system_prompt import (
         SystemPromptEventFormatter,
     )
     from backend.src.api.processing.formatters.thinking import ThinkingEventFormatter
-    from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
+    from backend.src.api.processing.formatters.token_count import (
+        TokenCountEventFormatter,
+    )
     from backend.src.api.processing.formatters.tool_bundle import (
         ToolBundleEventFormatter,
     )
     from backend.src.api.processing.formatters.tool_call import ToolCallEventFormatter
-    from backend.src.api.processing.formatters.tool_output import ToolOutputEventFormatter
+    from backend.src.api.processing.formatters.tool_output import (
+        ToolOutputEventFormatter,
+    )
     from backend.src.api.processing.formatters.tool_schemas import (
         ToolSchemasEventFormatter,
     )
@@ -62,6 +69,7 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
         ContextCompactionFailedEvent,
         ContextCompactionStartedEvent,
         ErrorEvent,
+        ModelHistoryUpdatedEvent,
         StreamingCompleteEvent,
         SystemPromptEvent,
         ThinkingEvent,
@@ -160,5 +168,10 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
             TraceEvent,
             StreamingEventType.TRACE_EVENT.value,
             TraceEventFormatter,
+        ),
+        (
+            ModelHistoryUpdatedEvent,
+            StreamingEventType.MODEL_HISTORY_UPDATED.value,
+            ModelHistoryUpdatedEventFormatter,
         ),
     )

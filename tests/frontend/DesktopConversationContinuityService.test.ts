@@ -16,27 +16,19 @@ describe('DesktopConversationContinuityService', () => {
     mockGetActiveConversationRef.mockReturnValue(null);
   });
 
-  test('prepareEditAndResend routes replay preparation through the SDK command bridge', async () => {
-    const send = jest.fn();
-    const invoke = jest.fn(async (channel, payload) => {
-      if (channel === 'windie:invoke') {
-        return {
-          ok: true,
-          data: {
-            conversationRef: payload.payload.conversationRef,
-            text: payload.payload.text,
-            payload: payload.payload.payload,
-            workspacePath: payload.payload.workspace_path,
-            turnRef: 'turn-edit',
-          },
-        };
-      }
-      return { success: true, data: { message_index: 1 } };
-    });
+  test('loadDisplayTimeline routes through the SDK command bridge', async () => {
     const originalIpc = window.ipc;
     window.ipc = {
-      send,
-      invoke,
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          conversationRef: 'conv-display',
+          revisionId: 'rev-display',
+          createdAt: '2026-06-22T12:00:00.000Z',
+          rows: [],
+        },
+      })),
       on: jest.fn(),
       once: jest.fn(),
     };
@@ -45,69 +37,38 @@ describe('DesktopConversationContinuityService', () => {
     );
 
     try {
-      const prepared = await DesktopConversationContinuityService.prepareEditAndResend({
-        conversationRef: 'conv-replay',
-        userId: 'user-1',
-        messageId: 'user-1',
-        text: 'edited question',
-        payload: {
-          screenshot_ref: 'artifact-1',
-        },
-        workspacePath: '/repo',
-      });
-
-      expect(invoke).toHaveBeenCalledWith('windie:invoke', {
-        command: 'conversation.prepareEditAndResend',
+      await expect(DesktopConversationContinuityService.loadDisplayTimeline(
+        'user-1',
+        'conv-display',
+      )).resolves.toEqual(expect.objectContaining({
+        revisionId: 'rev-display',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.loadDisplayTimeline',
         payload: {
           userId: 'user-1',
-          conversationRef: 'conv-replay',
-          messageId: 'user-1',
-          text: 'edited question',
-          payload: {
-            screenshot_ref: 'artifact-1',
-          },
-          model: undefined,
-          workspace_path: '/repo',
+          conversationRef: 'conv-display',
+          revisionId: undefined,
         },
       });
-      expect(invoke).not.toHaveBeenCalledWith('windie:invoke', expect.objectContaining({
-        command: 'conversation.send',
-      }));
-      expect(prepared).toEqual(expect.objectContaining({
-        conversationRef: 'conv-replay',
-        text: 'edited question',
-        payload: expect.objectContaining({
-          screenshot_ref: 'artifact-1',
-        }),
-        workspacePath: '/repo',
-        turnRef: 'turn-edit',
-      }));
     } finally {
       window.ipc = originalIpc;
     }
   });
 
-  test('prepareRetryTurn routes replay preparation through the SDK command bridge', async () => {
-    const send = jest.fn();
-    const invoke = jest.fn(async (channel, payload) => {
-      if (channel === 'windie:invoke') {
-        return {
-          ok: true,
-          data: {
-            conversationRef: payload.payload.conversationRef,
-            text: 'retry question',
-            payload: payload.payload.payload,
-            workspacePath: payload.payload.workspace_path,
-            turnRef: 'turn-retry',
-          },
-        };
-      }
-      return { success: true, data: { message_index: 1 } };
-    });
+  test('replaceRows routes display timeline replacement through the SDK command bridge', async () => {
     const originalIpc = window.ipc;
     window.ipc = {
-      send,
-      invoke,
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          conversationRef: 'conv-display',
+          revisionId: 'rev-child',
+          createdAt: '2026-06-22T12:01:00.000Z',
+          rows: [],
+        },
+      })),
       on: jest.fn(),
       once: jest.fn(),
     };
@@ -116,41 +77,25 @@ describe('DesktopConversationContinuityService', () => {
     );
 
     try {
-      const prepared = await DesktopConversationContinuityService.prepareRetryTurn({
-        conversationRef: 'conv-retry',
+      await expect(DesktopConversationContinuityService.replaceRows({
         userId: 'user-1',
-        messageId: 'assistant-1',
-        payload: {
-          screenshot_ref: null,
-        },
-        workspacePath: '/repo',
-      });
-
-      expect(invoke).toHaveBeenCalledWith('windie:invoke', {
-        command: 'conversation.prepareRetryTurn',
+        conversationRef: 'conv-display',
+        baseRevisionId: 'rev-base',
+        reason: 'retry',
+        rows: [],
+      })).resolves.toEqual(expect.objectContaining({
+        revisionId: 'rev-child',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.replaceRows',
         payload: {
           userId: 'user-1',
-          conversationRef: 'conv-retry',
-          messageId: 'assistant-1',
-          payload: {
-            screenshot_ref: null,
-          },
-          model: undefined,
-          workspace_path: '/repo',
+          conversationRef: 'conv-display',
+          baseRevisionId: 'rev-base',
+          reason: 'retry',
+          rows: [],
         },
       });
-      expect(invoke).not.toHaveBeenCalledWith('windie:invoke', expect.objectContaining({
-        command: 'conversation.send',
-      }));
-      expect(prepared).toEqual(expect.objectContaining({
-        conversationRef: 'conv-retry',
-        text: 'retry question',
-        payload: expect.objectContaining({
-          screenshot_ref: null,
-        }),
-        workspacePath: '/repo',
-        turnRef: 'turn-retry',
-      }));
     } finally {
       window.ipc = originalIpc;
     }

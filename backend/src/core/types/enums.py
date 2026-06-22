@@ -47,6 +47,7 @@ class StreamingEventType(str, Enum):
     TOOL_BUNDLE = "tool-bundle"
     WEB_SEARCH_PROGRESS = "web-search-progress"
     TRACE_EVENT = "trace-event"
+    MODEL_HISTORY_UPDATED = "model-history-updated"
 
 
 class ContentType(str, Enum):

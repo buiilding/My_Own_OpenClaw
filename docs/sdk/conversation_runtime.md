@@ -1,7 +1,7 @@
 ---
-summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display/rehydrate projections, toolPairKeys pairing after the removed toolPairKey helper, removed renderer ToolRunnerHook callback/turn-guard tests, removed renderer transcript/rehydrate helpers, tool output content fallback behavior, removed fallbackText top-level tool-output fallback helper behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
+summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display projections, diagnostic rehydrate snapshots, model-history resume, toolPairKeys pairing after the removed toolPairKey helper, removed renderer ToolRunnerHook callback/turn-guard tests, removed renderer transcript/rehydrate helpers, tool output content fallback behavior, removed fallbackText top-level tool-output fallback helper behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
 read_when:
-  - When changing SDK conversation state, store adapters, live turn projection, display/rehydrate projections, edit/resend, retry, compaction replay, or desktop chat migration.
+  - When changing SDK conversation state, store adapters, live turn projection, display projections, diagnostic rehydrate snapshots, model-history resume, edit/resend, retry, compaction replay, or desktop chat migration.
   - When resolving stale references to removed `ToolRunnerHook.callbacks.test.ts` or `ToolRunnerHook.turnGuards.test.ts`; local tool execution moved from renderer hooks into SDK runtime coordination.
   - When resolving stale references to the removed standalone `currentTurnProjection.ts` or `currentTurnProjection.js` files; current-turn projection is built in `conversationProjections.ts`.
   - When resolving stale references to removed renderer transcript helpers such as `transcriptMessagePayload.js`, `structuredToolPayload.js`, `rehydrateMessageState.js`, `rehydratePayload.js`, `transparencyNormalization.ts`, `storedTranscriptSdkProjection.ts`, `storedTranscriptMemoryState.js`, `storedTranscriptChatMessageState.js`, `desktopTranscriptProjectionRuntimeClient.ts`, `pendingTranscriptMessages.ts`, `pendingAssistantQueue.ts`, `pendingUserQueue.ts`, `transcriptPendingFlush.ts`, `TranscriptPendingFlush.test.ts`, or `transcriptRecordWrite.ts`.
@@ -33,9 +33,10 @@ SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`.
 | --- | --- | --- |
 | normalized conversation events | SDK runtime | source of truth for local client-side conversation state |
 | event store adapters | SDK-defined interface; adapter implementation owns persistence mechanics | stores append/load events and snapshots, but do not interpret display or rehydrate shape |
-| display transcript | SDK projection | React, CLI, and custom UIs render this projection |
+| display transcript | SDK projection + display timeline checkpoints | React, CLI, and custom UIs render the projection fallback or the editable display timeline document |
 | current-turn projection | SDK projection | active assistant text, reasoning text, tool rows, phase, error state, and live presentation state for UI surfaces |
-| backend rehydrate payload | SDK projection | generated from normalized events, not visible transcript rows |
+| backend rehydrate payload | SDK model-history install | normal resume sends backend-normalized model-history checkpoints, not display/runtime-event projections |
+| model-history checkpoints | backend-normalized contract + SDK store adapters | provider-neutral, bounded inference rows persisted separately from full display/runtime events; normal resume installs these checkpoints and skips backend hydration when no checkpoint exists |
 | tool execution coordination | SDK runtime | claimed local tools must return exactly one backend result or failure |
 | local tool execution | SDK local runtime | the local runtime runs local-runtime-backed tools; it does not own conversation replay semantics |
 | backend provider history | backend | provider-safe history remains backend-owned after result ingress |
@@ -81,6 +82,7 @@ The runtime records normalized events:
 - `compaction_applied`
 - `compaction_failed`
 - `settings_updated`
+- `model_history_updated`
 - `runtime_error`
 
 Every event carries `eventId`, `conversationRef`, `revisionId`, `timestamp`,
@@ -115,8 +117,18 @@ preserves that loop's existing turn-stream phase without extending it.
 changes such as model/provider selection. `conversation.setModel(...)` and
 per-turn `model` options write this event only after the backend settings update
 succeeds. Runtime snapshots expose the latest merged settings on
-`snapshot.state.settings`, but display and rehydrate projections do not render
-or replay those settings as chat/provider history.
+`snapshot.state.settings`, but display projections and diagnostic rehydrate
+snapshots do not render or replay those settings as chat/provider history.
+
+Backend `model-history-updated` packets normalize to hidden
+`model_history_updated` conversation events. They carry a provider-neutral
+checkpoint id, revision id, creation timestamp, and backend-normalized
+`ModelHistoryRow[]`; display projections and diagnostic rehydrate snapshots
+ignore them.
+`ConversationRuntime` persists the checkpoint through
+`store.replaceModelHistory(...)` when the store exposes that method. `send()`
+passes the active SDK `revision_id` to the backend query payload so emitted
+checkpoints can prove which display revision they belong to.
 
 Runtime snapshots expose `snapshot.currentTurn` alongside `state`, `display`,
 and `rehydrate`. The current-turn projection is the SDK-owned live-turn view for
@@ -197,7 +209,8 @@ here.
 Current ownership:
 
 - SDK conversation runtime owns normalized conversation events, display rows,
-  replay snapshots, and provider-safe backend rehydrate projections.
+  replay/diagnostic rehydrate snapshots, and model-history-backed resume
+  install.
 - Electron/renderer app-runtime facades call SDK continuity APIs; they do not
   rebuild transcript payload or backend rehydrate shape from renderer-local row
   helpers.
@@ -225,8 +238,8 @@ ledger entry, the SDK skips memory storage without emitting a memory-store
 invalidation.
 
 `trace_event` is the SDK-owned durable path trace row. It is stored in the same
-conversation event ledger as normal conversation events, but display and
-rehydrate projections must ignore it. A trace row records sanitized runtime
+conversation event ledger as normal conversation events, but display projections
+and diagnostic rehydrate snapshots must ignore it. A trace row records sanitized runtime
 timeline metadata such as `traceId`, `spanId`, `path`, `stage`, `status`,
 `runtime`, timestamps, duration, ids, counts, limits, and sanitized error
 summaries. It must not store user message text, retrieved memory text,
@@ -307,15 +320,98 @@ store.loadForDisplay(conversationRef)
   -> SDK display projection
 
 store.loadForRehydrate(conversationRef)
-  -> complete active replay snapshot, when present
-  -> otherwise store.loadEvents(conversationRef)
-  -> SDK rehydrate projection
+  -> active model-history checkpoint snapshot, when present
+  -> diagnostic/export fallback projection for legacy no-checkpoint conversations
+
+store.replaceDisplayTimeline(checkpoint)
+  -> persist an editable display timeline checkpoint for a child revision
+
+store.loadDisplayTimeline({ conversationRef, revisionId? })
+  -> load the active editable display timeline checkpoint for a revision
+
+store.replaceModelHistory(checkpoint)
+  -> persist provider-neutral bounded model-history rows for a revision
+
+store.loadModelHistory({ conversationRef, revisionId? })
+  -> load the active provider-neutral checkpoint for backend install during normal resume
+```
+
+SDK callers use the matching public revision primitives:
+
+```text
+conversation.loadDisplayTimeline({ revisionId? })
+conversation.loadModelHistory({ revisionId? })
+conversation.replaceRows({ rows, baseRevisionId, reason })
+conversation.fork({ sourceRevisionId, cutAfterRowId, newConversationRef })
+conversation.checkoutRevision({ revisionId })
 ```
 
 Do not implement separate role/message/tool interpretation inside each adapter.
 The adapter methods are API conveniences; they must delegate to shared SDK
 projection builders or to a complete active compacted replay snapshot. This
 keeps desktop, CLI, web, and tests on one interpretation path.
+
+Model-history checkpoint methods are the ADR 008 migration surface. They do not
+make display rows, runtime events, and backend active history interchangeable:
+checkpoints store bounded model-facing rows only, while full tool output and
+display attachments remain in display/runtime history.
+When backend `model-history-updated` rows omit `sourceDisplayRowIds`, the SDK
+enriches persisted checkpoint rows only when the current display projection can
+match role/message-type order unambiguously. Unmatched rows keep an empty source
+list and are not guessed into edit/fork child checkpoints. Inference stops after
+`context_compaction` rows unless a later model row carries explicit display
+provenance, so compacted model-history tails do not bind to old visible rows.
+Normal `ConversationRuntime.rehydrate()` and
+`ConversationContinuityService.rehydrateFromStore(...)` prefer
+`loadModelHistory(...)` and send `rehydrate-conversation.payload.model_history`
+with an empty `messages` array. The backend installs those rows directly into
+session history. If no checkpoint exists, normal resume skips backend
+hydration instead of rebuilding provider history from display/runtime events.
+No storage migration is required for the new checkpoint format; older
+no-checkpoint conversations remain inspectable through display and diagnostic
+snapshot loaders, but they need a model-history checkpoint before continuation
+can preserve prior model context.
+
+## Display Timeline Rule
+
+`ConversationRuntime.loadDisplayTimeline()` loads the first-class editable
+display document when a store has one, and otherwise falls back to
+`loadDisplayRows(...)` from the event projection. `replaceRows(...)` creates a
+child display revision, validates that submitted rows belong to the active
+conversation and base revision, normalizes row indexes and revision metadata,
+checks basic tool-output pairing, and persists the result through
+`store.replaceDisplayTimeline(...)`. When the base revision has a model-history
+checkpoint with `sourceDisplayRowIds`, `replaceRows(...)` also writes a child
+model-history checkpoint containing only rows whose source display ids are all
+still present in the retained display prefix. Rows without display provenance
+are not guessed into the child checkpoint; this avoids carrying stale inference
+context after an edit.
+
+This API is the foundation for edit/resend and retry replay. It does not
+rewrite raw runtime events. Raw events remain the audit/runtime log; display
+timeline checkpoints are the user-editable document. Runtime snapshots prefer
+the active display timeline checkpoint and append same-revision live send rows
+on top of it, so a replacement becomes visible state instead of a side table.
+The SDK records a sanitized trace event with row counts, revision ids, and
+reason only. No migration is required for adding the checkpoint table or store
+methods: conversations without display timeline checkpoints continue to
+project display rows from events until a replacement writes the first
+checkpoint.
+
+`checkoutRevision(...)` is an SDK runtime checkout primitive for existing
+display revisions. It requires a stored display timeline for the requested
+revision, moves the runtime head to that revision, returns the matching
+model-history checkpoint when one exists, and records only sanitized checkout
+trace metadata. It does not rebuild backend history from raw events.
+
+Fork uses the same display timeline boundary. `conversation.fork(...)` copies
+the selected display prefix into a new conversation revision with reason
+`fork`, copies only model-history rows whose `sourceDisplayRowIds` are wholly
+inside that prefix, and leaves the source branch unmodified aside from a
+sanitized runtime trace. Store metadata must list fork children from their
+active display checkpoint even before the child has raw events; after the child
+continues, the forked display prefix can still provide the title while newer
+child events provide the last-message tail.
 
 Metadata pagination and search helpers stay in the `conversation/metadata`
 owner module for SDK stores and runtime classes. Public package-root callers
@@ -371,9 +467,10 @@ normal feature-code surface.
 
 Desktop stored-conversation rehydrate is also SDK-continuity-owned.
 Feature/session helpers ask `DesktopConversationContinuityService.rehydrateFromStore(...)`
-to load the SDK rehydrate projection from the configured store and send the
-backend rehydrate command.
-They should not fetch projection rows and shape provider history themselves.
+to load the active model-history checkpoint from the configured store and send
+the backend rehydrate command.
+They should not fetch display/runtime projections and shape provider history
+themselves.
 
 Desktop compaction replay persistence follows the same rule. Chat stream
 handlers render visible lifecycle/debug state from SDK `compaction_*` events and
@@ -491,7 +588,10 @@ store.loadForDisplay(conversationRef)
   -> SDK display projection
 
 store.loadForRehydrate(conversationRef)
-  -> provider-safe backend rehydrate payload
+  -> diagnostic/export rehydrate snapshot
+
+store.loadModelHistory({ conversationRef, revisionId? })
+  -> provider-safe backend model-history payload
   -> agentRuntimeTransport.rehydrateConversation(...)
 ```
 
@@ -506,8 +606,8 @@ maps that SDK command to the backend `compact-history` control message.
 
 Responsibility split:
 
-- SDK owns conversation semantics, display projection, rehydrate projection, and
-  continuity orchestration.
+- SDK owns conversation semantics, display projection, diagnostic/export
+  rehydrate snapshots, model-history install, and continuity orchestration.
 - Electron owns local IPC, local-runtime-backed persistence, and renderer wiring.
 - Local runtime owns durable rows, ordering, list/search/title/delete queries,
   and SQLite/FAISS mechanics; the current desktop implementation remains behind
@@ -551,9 +651,10 @@ Only `compaction_applied` with actual replacement history should affect compacte
 replay snapshots. A store adapter must activate a compacted replay generation
 only after the generation is complete and its entry count matches.
 
-When a complete active compacted replay generation exists, `rehydrate()` uses
-that replay snapshot. Otherwise it derives rehydrate messages from normalized
-events. Rehydrate projection keeps only complete tool-call/tool-output pairs;
+Complete active compacted replay generations remain available through
+`store.loadForRehydrate(...)` for diagnostics/export and legacy inspection, but
+normal `rehydrate()` does not install compacted replay or event projections into
+backend session history. Rehydrate projection keeps only complete tool-call/tool-output pairs;
 dangling calls, orphan outputs, or incomplete bundle pairs stay available to
 display/debug projections but are not sent back to backend provider history.
 Generated rehydrate rows must carry canonical backend stored-history
@@ -564,56 +665,56 @@ rehydrate message types.
 
 ## Revision and Resource Preservation Rule
 
-Edit/resend and retry are revision operations:
+Edit/resend and retry are display revision operations:
 
 ```text
-load events
-  -> choose target user turn
-  -> preserve events before that user turn
-  -> commit conversation_rewritten with new revisionId
-  -> build and send the SDK rehydrate projection for the new revision
-  -> send replacement user message as a new turn
+load active display timeline
+  -> choose target display user row
+  -> replace display rows before that user row as a child revision
+  -> publish pending turn only after replaceRows succeeds
+  -> send replacement user message as a normal new turn
 ```
 
-The old revision remains valid until the rewrite commits. The SDK does not
-delete display rows and then reconstruct backend history through a separate
-lossy path.
+The old raw event log remains intact for audit and diagnostics. The active
+display child revision hides the edited/retried suffix from the user-facing
+document without deleting the original events. The renderer active path calls
+`conversation.loadDisplayTimeline`, `conversation.replaceRows`, then
+`conversation.send`; it does not call `prepareEditAndResend`,
+`prepareRetryTurn`, `conversation.rewrite_after_event`, or backend rehydrate as
+part of normal edit/retry preparation.
 
-Replay preparation reconstructs the target user turn from the normalized event
-ledger before cutting the revision. It merges the base `user_message` with
-same-turn `user_message_metadata`, so resolved resources such as
-`screenshot_refs` and `attachment_filenames` survive edit/resend and retry even
-when the visible row was produced by display projection metadata merging.
-Renderer replay payloads are preserve-by-default: absent or null attachment
-fields must not erase prior resolved resources without an explicit removal
-operation.
+Resource preservation comes from the target display row. Typed display
+attachments become `screenshot_refs` and `attachment_filenames` for the resend,
+while legacy single screenshot refs still flow through replay screenshot
+resolution. Renderer replay payloads are preserve-by-default: absent or null
+attachment fields must not erase prior resolved resources without an explicit
+removal operation.
 
-Edit/resend identifies the target user turn by canonical event or payload
-message id. Retry with an explicit `messageId` first resolves that canonical
-event, then walks backward to the preceding user turn. The SDK no longer accepts
-a user-message ordinal fallback and no longer silently retries the latest user
-turn when an explicit retry id is missing from the event ledger. Renderer-only
-transcript ids must be normalized to canonical SDK event ids before they reach
-`editAndResend` or `retryTurn`.
+The Electron renderer publishes the replay `pendingTurn` only after
+`replaceRows` succeeds. A rejected display replacement must not pre-mutate
+visible rows or pending-turn state. No migration is required for existing
+conversations; before their first display checkpoint, the active timeline loads
+from the event projection fallback.
 
-Desktop edit/resend and try-again seed the current visible projection into the
-desktop conversation store adapter, then call `SdkConversationRuntime.editAndResend`
-or `SdkConversationRuntime.retryTurn`. The renderer hook may identify which
-button was clicked, but revision cutting, rewritten persistence, rehydrate
-projection generation, model sync, and query send live behind the SDK runtime
-facade.
-The Electron renderer may publish a temporary replay `pendingTurn` with a
-preallocated `turnRef` before continuity preparation resolves so desktop
-surfaces stay in the same visible lifecycle handoff as normal sends. That
-pending state is UI projection only; the SDK continuity service still owns the
-rewrite/retry revision and the prepared replay turn.
+Fork is also a revision operation rather than a raw-event rewrite:
+
+```text
+load source display timeline
+  -> copy rows through cutAfterRowId into newConversationRef
+  -> copy matching bounded model-history rows into the child revision
+  -> continue the child conversation independently
+```
+
+The source conversation keeps its original branch. The fork child does not copy
+unbounded raw tool output into model history, and it appears in list/dashboard
+metadata from the active display checkpoint without flattening ancestor events.
 
 ## Stream Rule
 
 `SdkConversationRuntime.stream(input)` is the canonical custom-client loop
-surface. It sends the user turn, stores the same normalized events used by
-display and rehydrate projections, yields `conversation_event` updates as
-backend packets normalize, and exits when the conversation reaches
+surface. It sends the user turn, stores normalized events for display and
+diagnostic snapshots, persists model-history checkpoints for resume, yields
+`conversation_event` updates as backend packets normalize, and exits when the conversation reaches
 `completed`, `stopped`, or `error`.
 
 Prefer this over wiring `send()` and `subscribe()` separately in CLI or custom

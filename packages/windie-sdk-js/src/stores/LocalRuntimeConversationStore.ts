@@ -8,11 +8,16 @@ import type {
   ConversationEvent,
   ConversationMetadata,
   ConversationRevision,
-  ConversationRewritePlan,
   ConversationStore,
+  DisplayTimelineCheckpoint,
+  DisplayTimelineRow,
   DisplayConversation,
   JsonRecord,
   ListConversationOptions,
+  ModelHistoryCheckpoint,
+  ModelHistoryMessageType,
+  ModelHistoryRole,
+  ModelHistoryRow,
   RehydrateSnapshot,
   SdkDisplayRow,
   SearchConversationOptions,
@@ -27,8 +32,13 @@ import {
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import { isCompactionStdoutEnabled } from '../runtime/debugEnv.js';
+import { rehydrateSnapshotFromModelHistoryCheckpoint } from '../runtime/modelHistoryPayload.js';
 import type { AgentLocalRuntimeClient } from '../runtime/LocalRuntime.js';
 import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
+import {
+  displayConversationFromTimeline,
+  displayRowsFromTimeline,
+} from './displayTimelineStoreProjection.js';
 
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
 const LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE = 'local_runtime_rpc';
@@ -165,6 +175,16 @@ function normalizeJsonArray(value: unknown): JsonRecord[] {
     : [];
 }
 
+function normalizeUnknownArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? [...value] : [];
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === 'string')
+    : [];
+}
+
 function eventPayloadWriteParams(event: ConversationEvent): JsonRecord {
   const payload = normalizeRecord(event.payload) ?? {};
   const metadata = normalizeRecord(payload.metadata) ?? {};
@@ -253,6 +273,83 @@ function metadataFromRow(row: Record<string, unknown>): ConversationMetadata | n
   };
 }
 
+function normalizeModelHistoryRole(value: unknown): ModelHistoryRole | null {
+  return value === 'system'
+    || value === 'user'
+    || value === 'assistant'
+    || value === 'tool'
+    ? value
+    : null;
+}
+
+function normalizeModelHistoryMessageType(value: unknown): ModelHistoryMessageType | null {
+  return value === 'user_query'
+    || value === 'assistant_response'
+    || value === 'tool_output'
+    || value === 'context_compaction'
+    ? value
+    : null;
+}
+
+function modelHistoryRowFromRuntime(row: unknown): ModelHistoryRow | null {
+  const record = normalizeRecord(row);
+  if (!record) {
+    return null;
+  }
+  const id = normalizeString(record.id ?? record.row_id ?? record.rowId);
+  const conversationRef = normalizeString(record.conversationRef ?? record.conversation_id ?? record.conversationId);
+  const revisionId = normalizeString(record.revisionId ?? record.revision_id);
+  const role = normalizeModelHistoryRole(record.role);
+  const messageType = normalizeModelHistoryMessageType(record.messageType ?? record.message_type);
+  if (!id || !conversationRef || !revisionId || !role || !messageType) {
+    return null;
+  }
+  return {
+    id,
+    conversationRef,
+    revisionId,
+    role,
+    messageType,
+    content: record.content,
+    toolCallId: normalizeString(record.toolCallId ?? record.tool_call_id),
+    toolCalls: normalizeUnknownArray(record.toolCalls ?? record.tool_calls),
+    toolName: normalizeString(record.toolName ?? record.tool_name),
+    imageRefs: normalizeStringArray(record.imageRefs ?? record.image_refs),
+    compactionFacts: normalizeRecord(record.compactionFacts ?? record.compaction_facts),
+    sourceDisplayRowIds: normalizeStringArray(record.sourceDisplayRowIds ?? record.source_display_row_ids),
+  };
+}
+
+function displayTimelineRowFromRuntime(row: unknown): DisplayTimelineRow | null {
+  const record = normalizeRecord(row);
+  if (!record) {
+    return null;
+  }
+  const id = normalizeString(record.id ?? record.row_id ?? record.rowId);
+  const conversationRef = normalizeString(record.conversationRef ?? record.conversation_id ?? record.conversationId);
+  const revisionId = normalizeString(record.revisionId ?? record.revision_id);
+  const role = normalizeString(record.role);
+  const type = normalizeString(record.type ?? record.row_type ?? record.rowType);
+  const indexValue = record.index ?? record.row_index ?? record.rowIndex;
+  const index = typeof indexValue === 'number' && Number.isFinite(indexValue)
+    ? indexValue
+    : Number(indexValue);
+  if (!id || !conversationRef || !revisionId || !role || !type || !Number.isFinite(index)) {
+    return null;
+  }
+  return {
+    id,
+    conversationRef,
+    revisionId,
+    turnRef: normalizeString(record.turnRef ?? record.turn_ref),
+    index,
+    role,
+    type,
+    content: record.content,
+    metadata: normalizeRecord(record.metadata) ?? undefined,
+  } as DisplayTimelineRow;
+}
+
 export class LocalRuntimeConversationStore implements ConversationStore {
   private readonly pageSize: number;
   private readonly maxPages: number;
@@ -274,35 +371,6 @@ export class LocalRuntimeConversationStore implements ConversationStore {
         logStoredCompactionEvent(event, params, response);
       }
     }
-  }
-
-  async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    const rewriteEvent = plan.preservedEvents[plan.preservedEvents.length - 1] ?? null;
-    if (
-      (plan.reason === 'edit_resend' || plan.reason === 'retry')
-      && rewriteEvent?.type === 'conversation_rewritten'
-    ) {
-      await this.call('conversation.rewrite_after_event', {
-        user_id: this.options.userId,
-        conversation_id: plan.conversationRef,
-        record_kind: CHAT_EVENT_RECORD_KIND,
-        cut_after_event_id: plan.cutAfterEventId ?? null,
-        revision_id: plan.newRevisionId,
-        revision_updated_at: new Date().toISOString(),
-        event: this.buildEventWriteParams(rewriteEvent),
-      });
-      return;
-    }
-    await this.call('conversation.replace', {
-      user_id: this.options.userId,
-      conversation_id: plan.conversationRef,
-      record_kind: CHAT_EVENT_RECORD_KIND,
-      revision_id: plan.newRevisionId,
-      revision_updated_at: new Date().toISOString(),
-      events: plan.preservedEvents.map((event, index) => (
-        this.buildEventWriteParams(event, index + 1)
-      )),
-    });
   }
 
   async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {
@@ -355,14 +423,87 @@ export class LocalRuntimeConversationStore implements ConversationStore {
   }
 
   async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
-    return buildDisplayConversation(await this.loadEvents(conversationRef));
+    const events = await this.loadEvents(conversationRef);
+    const timeline = await this.loadDisplayTimeline({ conversationRef });
+    if (!timeline) {
+      return buildDisplayConversation(events);
+    }
+    return displayConversationFromTimeline(timeline, events);
   }
 
   async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
-    return buildDisplayRows(await this.loadEvents(conversationRef));
+    const events = await this.loadEvents(conversationRef);
+    const timeline = await this.loadDisplayTimeline({ conversationRef });
+    if (!timeline) {
+      return buildDisplayRows(events);
+    }
+    return displayRowsFromTimeline(timeline, events);
+  }
+
+  async replaceDisplayTimeline(checkpoint: DisplayTimelineCheckpoint): Promise<void> {
+    await this.call('conversation.display.replace', {
+      user_id: this.options.userId,
+      conversation_id: checkpoint.conversationRef,
+      revision_id: checkpoint.revisionId,
+      created_at: checkpoint.createdAt,
+      reason: checkpoint.reason ?? null,
+      base_revision_id: checkpoint.baseRevisionId ?? null,
+      rows: checkpoint.rows.map((row, index) => ({
+        id: row.id,
+        row_id: row.id,
+        conversation_id: row.conversationRef,
+        revision_id: row.revisionId,
+        row_index: index,
+        role: row.role,
+        type: row.type,
+        row_type: row.type,
+        content: row.content,
+        turn_ref: row.turnRef ?? null,
+        metadata: row.metadata ?? null,
+      })),
+    });
+  }
+
+  async loadDisplayTimeline(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<DisplayTimelineCheckpoint | null> {
+    const result = await this.call('conversation.display.load', {
+      user_id: this.options.userId,
+      conversation_id: input.conversationRef,
+      revision_id: input.revisionId ?? null,
+    });
+    const data = normalizeRecord(result.data) ?? {};
+    const revisionId = normalizeString(data.revision_id ?? data.revisionId);
+    const createdAt = normalizeString(data.created_at ?? data.createdAt);
+    const rows = Array.isArray(data.rows)
+      ? data.rows.map(displayTimelineRowFromRuntime).filter((row): row is DisplayTimelineRow => Boolean(row))
+      : [];
+    if (!revisionId || !createdAt) {
+      return null;
+    }
+    return {
+      conversationRef: input.conversationRef,
+      revisionId,
+      createdAt,
+      rows,
+      reason: normalizeString(data.reason) as DisplayTimelineCheckpoint['reason'],
+      baseRevisionId: normalizeString(data.base_revision_id ?? data.baseRevisionId),
+    };
   }
 
   async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
+    const revision = await this.getRevision(conversationRef).catch(() => null);
+    const modelHistoryCheckpoint = await this.loadModelHistory({
+      conversationRef,
+      revisionId: revision?.revisionId && revision.revisionId !== 'rev-empty' ? revision.revisionId : null,
+    });
+    const modelHistorySnapshot = modelHistoryCheckpoint
+      ? rehydrateSnapshotFromModelHistoryCheckpoint(modelHistoryCheckpoint)
+      : null;
+    if (modelHistorySnapshot) {
+      return modelHistorySnapshot;
+    }
     const events = await this.loadEvents(conversationRef);
     const replay = latestCompactedReplayFromEvents(events);
     if (replay?.complete && replay.active !== false && replay.entryCount === replay.entries.length) {
@@ -374,6 +515,60 @@ export class LocalRuntimeConversationStore implements ConversationStore {
       };
     }
     return buildRehydrateSnapshot(events);
+  }
+
+  async replaceModelHistory(checkpoint: ModelHistoryCheckpoint): Promise<void> {
+    await this.call('conversation.model_history.replace', {
+      user_id: this.options.userId,
+      conversation_id: checkpoint.conversationRef,
+      revision_id: checkpoint.revisionId,
+      checkpoint_id: checkpoint.checkpointId,
+      created_at: checkpoint.createdAt,
+      rows: checkpoint.rows.map((row, index) => ({
+        id: row.id,
+        row_id: row.id,
+        row_index: index + 1,
+        conversation_id: row.conversationRef,
+        revision_id: row.revisionId,
+        role: row.role,
+        message_type: row.messageType,
+        content: row.content,
+        tool_call_id: row.toolCallId ?? null,
+        tool_calls: row.toolCalls ?? null,
+        tool_name: row.toolName ?? null,
+        image_refs: row.imageRefs ?? null,
+        compaction_facts: row.compactionFacts ?? null,
+        source_display_row_ids: row.sourceDisplayRowIds ?? [],
+      })),
+    });
+  }
+
+  async loadModelHistory(input: {
+    conversationRef: string;
+    revisionId?: string | null;
+  }): Promise<ModelHistoryCheckpoint | null> {
+    const result = await this.call('conversation.model_history.load', {
+      user_id: this.options.userId,
+      conversation_id: input.conversationRef,
+      revision_id: input.revisionId ?? null,
+    });
+    const data = normalizeRecord(result.data) ?? {};
+    const checkpointId = normalizeString(data.checkpoint_id ?? data.checkpointId);
+    const revisionId = normalizeString(data.revision_id ?? data.revisionId);
+    const createdAt = normalizeString(data.created_at ?? data.createdAt);
+    const rows = Array.isArray(data.rows)
+      ? data.rows.map(modelHistoryRowFromRuntime).filter((row): row is ModelHistoryRow => Boolean(row))
+      : [];
+    if (!checkpointId || !revisionId || !createdAt) {
+      return null;
+    }
+    return {
+      checkpointId,
+      conversationRef: input.conversationRef,
+      revisionId,
+      createdAt,
+      rows,
+    };
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {

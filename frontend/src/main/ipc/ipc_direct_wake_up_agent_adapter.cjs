@@ -351,19 +351,6 @@ function createDirectWakeUpAgentAdapter({
         await reloadRuntimeSnapshot(handle);
       }
     },
-    rewriteConversation: async (options = {}) => {
-      const plan = options && typeof options === 'object' && 'plan' in options
-        ? options.plan
-        : options;
-      const rewriteConversationRef = resolveSdkCommandConversationRef(plan)
-        || resolveSdkCommandConversationRef(options);
-      await agent.rewriteConversation(options);
-      if (rewriteConversationRef) {
-        const handle = getConversationRuntimeHandle(rewriteConversationRef);
-        markInferenceContextStale(rewriteConversationRef);
-        await reloadRuntimeSnapshot(handle);
-      }
-    },
     replaceCompactedReplay: async (options = {}) => {
       const snapshot = options && typeof options === 'object' && 'snapshot' in options
         ? options.snapshot
@@ -377,33 +364,25 @@ function createDirectWakeUpAgentAdapter({
         await reloadRuntimeSnapshot(handle);
       }
     },
-    prepareEditAndResend: async (options = {}) => {
-      const editConversationRef = resolveSdkCommandConversationRef(options);
-      const handle = getConversationRuntimeHandle(editConversationRef);
-      const input = { ...options };
-      delete input.conversationRef;
-      delete input.revisionId;
-      delete input.revision_id;
-      delete input.store;
-      markInferenceContextStale(handle.conversationRef);
-      const prepared = await handle.runtime.prepareEditAndResend(input);
-      handle.inferenceContextReady = true;
-      await reloadRuntimeSnapshot(handle);
-      return prepared;
+    loadDisplayTimeline: async (options = {}) => {
+      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const handle = getConversationRuntimeHandle(displayConversationRef);
+      return handle.runtime.loadDisplayTimeline({
+        revisionId: normalizeOptionalString(options.revisionId),
+      });
     },
-    prepareRetryTurn: async (options = {}) => {
-      const retryConversationRef = resolveSdkCommandConversationRef(options);
-      const handle = getConversationRuntimeHandle(retryConversationRef);
+    replaceRows: async (options = {}) => {
+      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const handle = getConversationRuntimeHandle(displayConversationRef);
       const input = { ...options };
       delete input.conversationRef;
       delete input.revisionId;
       delete input.revision_id;
       delete input.store;
+      const checkpoint = await handle.runtime.replaceRows(input);
       markInferenceContextStale(handle.conversationRef);
-      const prepared = await handle.runtime.prepareRetryTurn(input);
-      handle.inferenceContextReady = true;
       await reloadRuntimeSnapshot(handle);
-      return prepared;
+      return checkpoint;
     },
     wakewordDetected: payload => agent.wakewordDetected(payload),
     ensureConnected: () => agent.ensureConnected(),

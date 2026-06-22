@@ -11,11 +11,13 @@ ensure_frontend_python_path()
 from memory.chat_event_store import (  # noqa: E402
     append_chat_event,
     get_conversation_revision,
+    load_display_timeline,
+    load_model_history_checkpoint,
     load_conversation_events,
     init_chat_event_schema,
     list_conversations,
-    replace_conversation,
-    rewrite_conversation_after_event,
+    replace_display_timeline,
+    replace_model_history_checkpoint,
 )
 from memory.sqlite_store import init_episodic_schema  # noqa: E402
 
@@ -33,6 +35,8 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
                 FROM sqlite_master
                 WHERE name IN (
                     'conversation_events',
+                    'conversation_display_timeline',
+                    'conversation_model_history',
                     'conversation_revisions',
                     'conversations',
                     'conversation_turns',
@@ -44,6 +48,8 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
         )
 
     assert objects["conversation_events"] == "table"
+    assert objects["conversation_display_timeline"] == "table"
+    assert objects["conversation_model_history"] == "table"
     assert objects["conversation_revisions"] == "table"
     assert objects["conversations"] == "table"
     assert objects["conversation_turns"] == "table"
@@ -52,7 +58,272 @@ async def test_chat_event_store_creates_conversation_centered_schema(tmp_path: P
 
 
 @pytest.mark.asyncio
-async def test_chat_event_store_display_messages_view_filters_visible_rows(tmp_path: Path):
+async def test_chat_event_store_round_trips_display_timeline(tmp_path: Path):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    result = await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+        created_at="2026-06-22T12:00:00+00:00",
+        reason="user_edit",
+        base_revision_id="rev-parent",
+        rows=[
+            {
+                "id": "display-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-child",
+                "index": 0,
+                "role": "user",
+                "type": "user_message",
+                "content": "edited hello",
+                "metadata": {"eventId": "evt-user"},
+            },
+            {
+                "id": "display-assistant",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-child",
+                "index": 1,
+                "role": "assistant",
+                "type": "assistant_message",
+                "content": "answer",
+            },
+        ],
+    )
+
+    loaded = await load_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+    )
+    revision = await get_conversation_revision(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert result == {
+        "revision_id": "rev-child",
+        "row_count": 2,
+        "created_at": "2026-06-22T12:00:00+00:00",
+    }
+    assert loaded == {
+        "conversation_id": "conv-1",
+        "revision_id": "rev-child",
+        "created_at": "2026-06-22T12:00:00+00:00",
+        "reason": "user_edit",
+        "base_revision_id": "rev-parent",
+        "rows": [
+            {
+                "id": "display-user",
+                "conversation_id": "conv-1",
+                "revision_id": "rev-child",
+                "index": 0,
+                "role": "user",
+                "type": "user_message",
+                "content": "edited hello",
+                "turn_ref": None,
+                "metadata": {"eventId": "evt-user"},
+            },
+            {
+                "id": "display-assistant",
+                "conversation_id": "conv-1",
+                "revision_id": "rev-child",
+                "index": 1,
+                "role": "assistant",
+                "type": "assistant_message",
+                "content": "answer",
+                "turn_ref": None,
+                "metadata": {},
+            },
+        ],
+    }
+    assert revision["revision_id"] == "rev-child"
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_loads_inactive_display_timeline_by_revision(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-parent",
+        created_at="2026-06-22T12:00:00+00:00",
+        reason=None,
+        base_revision_id=None,
+        rows=[
+            {
+                "id": "display-parent-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-parent",
+                "role": "user",
+                "type": "user_message",
+                "content": "original",
+            },
+        ],
+    )
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+        created_at="2026-06-22T12:01:00+00:00",
+        reason="user_edit",
+        base_revision_id="rev-parent",
+        rows=[
+            {
+                "id": "display-child-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-child",
+                "role": "user",
+                "type": "user_message",
+                "content": "edited",
+            },
+        ],
+    )
+
+    active = await load_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+    parent = await load_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-parent",
+    )
+
+    assert active is not None
+    assert active["revision_id"] == "rev-child"
+    assert parent is not None
+    assert parent["revision_id"] == "rev-parent"
+    assert parent["rows"][0]["content"] == "original"
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_round_trips_model_history_checkpoint(tmp_path: Path):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    result = await replace_model_history_checkpoint(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-1",
+        checkpoint_id="mh-1",
+        created_at="2026-06-22T12:00:00+00:00",
+        rows=[
+            {
+                "id": "mh-row-user",
+                "role": "user",
+                "message_type": "user_query",
+                "content": {"text": "hello"},
+                "source_display_row_ids": ["display-user"],
+            },
+            {
+                "id": "mh-row-tool",
+                "role": "tool",
+                "message_type": "tool_output",
+                "content": "bounded tool output",
+                "tool_call_id": "call-1",
+                "tool_name": "read_file",
+                "image_refs": ["artifact-1"],
+                "tool_calls": [{"id": "call-1", "type": "function"}],
+                "compaction_facts": {"bounded": True},
+                "source_display_row_ids": ["display-tool"],
+            },
+        ],
+    )
+
+    loaded = await load_model_history_checkpoint(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-1",
+    )
+
+    assert result == {
+        "checkpoint_id": "mh-1",
+        "revision_id": "rev-1",
+        "row_count": 2,
+        "created_at": "2026-06-22T12:00:00+00:00",
+    }
+    assert loaded == {
+        "checkpoint_id": "mh-1",
+        "conversation_id": "conv-1",
+        "revision_id": "rev-1",
+        "created_at": "2026-06-22T12:00:00+00:00",
+        "rows": [
+            {
+                "id": "mh-row-user",
+                "conversation_id": "conv-1",
+                "revision_id": "rev-1",
+                "role": "user",
+                "message_type": "user_query",
+                "content": {"text": "hello"},
+                "tool_call_id": None,
+                "tool_calls": [],
+                "tool_name": None,
+                "image_refs": [],
+                "compaction_facts": {},
+                "source_display_row_ids": ["display-user"],
+            },
+            {
+                "id": "mh-row-tool",
+                "conversation_id": "conv-1",
+                "revision_id": "rev-1",
+                "role": "tool",
+                "message_type": "tool_output",
+                "content": "bounded tool output",
+                "tool_call_id": "call-1",
+                "tool_calls": [{"id": "call-1", "type": "function"}],
+                "tool_name": "read_file",
+                "image_refs": ["artifact-1"],
+                "compaction_facts": {"bounded": True},
+                "source_display_row_ids": ["display-tool"],
+            },
+        ],
+    }
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_rejects_provider_specific_model_history_rows(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    with pytest.raises(ValueError, match="canonical message_type"):
+        await replace_model_history_checkpoint(
+            db_path=db_path,
+            user_id="user-1",
+            conversation_id="conv-1",
+            revision_id="rev-1",
+            checkpoint_id="mh-1",
+            rows=[
+                {
+                    "id": "mh-row-openai",
+                    "role": "assistant",
+                    "message_type": "openai_assistant_message",
+                    "content": "provider-shaped",
+                }
+            ],
+        )
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_display_messages_view_filters_visible_rows(
+    tmp_path: Path,
+):
     db_path = tmp_path / "history.db"
     await init_chat_event_schema(str(db_path))
 
@@ -474,7 +745,14 @@ async def test_list_conversations_uses_user_facing_metadata(
             {},
         ),
     ]
-    for index, (event_type, role, content, workspace_path, workspace_name, payload) in enumerate(
+    for index, (
+        event_type,
+        role,
+        content,
+        workspace_path,
+        workspace_name,
+        payload,
+    ) in enumerate(
         events,
         start=1,
     ):
@@ -520,6 +798,148 @@ async def test_list_conversations_uses_user_facing_metadata(
     assert conversations[0]["last_message"] == "You are in Project Alpha."
     assert conversations[0]["workspace_path"] == "/work/project-alpha"
     assert conversations[0]["workspace_name"] == "Project Alpha"
+
+
+@pytest.mark.asyncio
+async def test_list_conversations_includes_display_only_fork_metadata(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "memory.db")
+    await init_episodic_schema(db_path)
+    await init_chat_event_schema(db_path)
+
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-fork",
+        revision_id="rev-fork",
+        created_at="2026-06-22T12:30:00+00:00",
+        reason="fork",
+        base_revision_id="rev-parent",
+        rows=[
+            {
+                "id": "display-user-1",
+                "conversationRef": "conv-fork",
+                "revisionId": "rev-fork",
+                "index": 0,
+                "role": "user",
+                "type": "user_message",
+                "content": "where should this branch go?",
+                "metadata": {"revisionId": "rev-fork"},
+            },
+            {
+                "id": "display-assistant-1",
+                "conversationRef": "conv-fork",
+                "revisionId": "rev-fork",
+                "index": 1,
+                "role": "assistant",
+                "type": "assistant_message",
+                "content": "It can continue independently.",
+                "metadata": {"revisionId": "rev-fork"},
+            },
+        ],
+    )
+
+    conversations = await list_conversations(
+        db_path=db_path,
+        user_id="user-1",
+        limit=10,
+    )
+
+    assert conversations == [
+        {
+            "conversation_id": "conv-fork",
+            "first_timestamp": "2026-06-22T12:30:00+00:00",
+            "last_timestamp": "2026-06-22T12:30:00+00:00",
+            "entry_count": 0,
+            "record_kind": "chat_event",
+            "revision_id": "rev-fork",
+            "title": "where should this branch go?",
+            "last_message": "It can continue independently.",
+            "workspace_path": "",
+            "workspace_name": "",
+            "is_resumable": True,
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_list_conversations_keeps_fork_title_but_uses_newer_event_tail(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "memory.db")
+    await init_episodic_schema(db_path)
+    await init_chat_event_schema(db_path)
+
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-fork",
+        revision_id="rev-fork",
+        created_at="2026-06-22T12:30:00+00:00",
+        reason="fork",
+        base_revision_id="rev-parent",
+        rows=[
+            {
+                "id": "display-user-1",
+                "conversationRef": "conv-fork",
+                "revisionId": "rev-fork",
+                "index": 0,
+                "role": "user",
+                "type": "user_message",
+                "content": "original branch question",
+                "metadata": {"revisionId": "rev-fork"},
+            },
+            {
+                "id": "display-assistant-1",
+                "conversationRef": "conv-fork",
+                "revisionId": "rev-fork",
+                "index": 1,
+                "role": "assistant",
+                "type": "assistant_message",
+                "content": "original branch answer",
+                "metadata": {"revisionId": "rev-fork"},
+            },
+        ],
+    )
+    await append_chat_event(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-fork",
+        event_type="user_message",
+        role="user",
+        content="continue from here",
+        timestamp="2026-06-22T12:31:00+00:00",
+        message_index=None,
+        revision_id="rev-fork",
+        turn_ref="turn-child",
+        tool_name=None,
+        correlation_id=None,
+        workspace_path=None,
+        workspace_name=None,
+        metadata={},
+        attachments=[],
+        event_payload={
+            "eventId": "evt-child-user",
+            "type": "user_message",
+            "conversationRef": "conv-fork",
+            "revisionId": "rev-fork",
+            "timestamp": "2026-06-22T12:31:00+00:00",
+            "source": "sdk",
+            "payload": {"text": "continue from here"},
+        },
+    )
+
+    conversations = await list_conversations(
+        db_path=db_path,
+        user_id="user-1",
+        limit=10,
+    )
+
+    assert conversations[0]["title"] == "original branch question"
+    assert conversations[0]["last_message"] == "continue from here"
+    assert conversations[0]["last_timestamp"] == "2026-06-22T12:31:00+00:00"
+    assert conversations[0]["entry_count"] == 1
 
 
 @pytest.mark.asyncio
@@ -574,256 +994,8 @@ async def test_list_conversations_returns_one_row_per_conversation(
         limit=10,
     )
 
-    assert [conversation["conversation_id"] for conversation in conversations] == ["conv-1"]
+    assert [conversation["conversation_id"] for conversation in conversations] == [
+        "conv-1"
+    ]
     assert conversations[0]["entry_count"] == 5
     assert conversations[0]["title"] == "hello"
-
-
-@pytest.mark.asyncio
-async def test_replace_conversation_rolls_back_when_replacement_insert_fails(
-    tmp_path: Path,
-):
-    db_path = str(tmp_path / "memory.db")
-    await init_chat_event_schema(db_path)
-    await append_chat_event(
-        db_path=db_path,
-        user_id="user-1",
-        conversation_id="conv-1",
-        event_type="user_message",
-        role="user",
-        content="original",
-        timestamp="2026-05-17T12:00:00+00:00",
-        message_index=1,
-        revision_id="rev-old",
-        turn_ref=None,
-        tool_name=None,
-        correlation_id=None,
-        workspace_path=None,
-        workspace_name=None,
-        metadata={},
-        attachments=[],
-        event_payload={
-            "eventId": "evt-original",
-            "type": "user_message",
-            "conversationRef": "conv-1",
-            "revisionId": "rev-old",
-            "timestamp": "2026-05-17T12:00:00+00:00",
-            "source": "sdk",
-            "payload": {"text": "original"},
-        },
-    )
-
-    with pytest.raises(TypeError):
-        await replace_conversation(
-            db_path=db_path,
-            user_id="user-1",
-            conversation_id="conv-1",
-            events=[
-                {
-                    "event_type": "user_message",
-                    "role": "user",
-                    "content": "replacement",
-                    "timestamp": "2026-05-17T12:01:00+00:00",
-                    "message_index": 1,
-                    "revision_id": "rev-new",
-                    "metadata": {"invalid": object()},
-                    "attachments": [],
-                    "event_payload": {
-                        "eventId": "evt-replacement",
-                        "type": "user_message",
-                        "conversationRef": "conv-1",
-                        "revisionId": "rev-new",
-                        "timestamp": "2026-05-17T12:01:00+00:00",
-                        "source": "sdk",
-                        "payload": {"text": "replacement"},
-                    },
-                }
-            ],
-        )
-
-    rows = await load_conversation_events(
-        db_path=db_path,
-        user_id="user-1",
-        conversation_id="conv-1",
-        limit=10,
-    )
-
-    assert [row["content"] for row in rows] == ["original"]
-    assert rows[0]["revision_id"] == "rev-old"
-
-
-@pytest.mark.asyncio
-async def test_replace_conversation_persists_rewrite_revision_metadata(
-    tmp_path: Path,
-):
-    db_path = str(tmp_path / "memory.db")
-    await init_episodic_schema(db_path)
-    await init_chat_event_schema(db_path)
-
-    await replace_conversation(
-        db_path=db_path,
-        user_id="user-1",
-        conversation_id="conv-1",
-        revision_id="rev-new",
-        revision_updated_at="2026-05-17T12:02:00+00:00",
-        events=[
-            {
-                "event_type": "user_message",
-                "role": "user",
-                "content": "preserved",
-                "timestamp": "2026-05-17T12:00:00+00:00",
-                "message_index": 1,
-                "revision_id": "rev-old",
-                "metadata": {},
-                "attachments": [],
-                "event_payload": {
-                    "eventId": "evt-preserved",
-                    "type": "user_message",
-                    "conversationRef": "conv-1",
-                    "revisionId": "rev-old",
-                    "timestamp": "2026-05-17T12:00:00+00:00",
-                    "source": "sdk",
-                    "payload": {"text": "preserved"},
-                },
-            }
-        ],
-    )
-
-    revision = await get_conversation_revision(
-        db_path=db_path,
-        user_id="user-1",
-        conversation_id="conv-1",
-    )
-    conversations = await list_conversations(
-        db_path=db_path,
-        user_id="user-1",
-        limit=10,
-    )
-
-    assert revision == {
-        "conversation_id": "conv-1",
-        "revision_id": "rev-new",
-        "updated_at": "2026-05-17T12:02:00+00:00",
-        "record_kind": "chat_event",
-    }
-    assert conversations[0]["revision_id"] == "rev-new"
-
-
-@pytest.mark.asyncio
-async def test_replace_conversation_preserves_empty_rewrite_revision(
-    tmp_path: Path,
-):
-    db_path = str(tmp_path / "memory.db")
-    await init_episodic_schema(db_path)
-    await init_chat_event_schema(db_path)
-
-    await replace_conversation(
-        db_path=db_path,
-        user_id="user-1",
-        conversation_id="conv-empty",
-        revision_id="rev-empty",
-        revision_updated_at="2026-05-17T12:03:00+00:00",
-        events=[],
-    )
-
-    revision = await get_conversation_revision(
-        db_path=db_path,
-        user_id="user-1",
-        conversation_id="conv-empty",
-    )
-    conversations = await list_conversations(
-        db_path=db_path,
-        user_id="user-1",
-        limit=10,
-    )
-
-    assert revision == {
-        "conversation_id": "conv-empty",
-        "revision_id": "rev-empty",
-        "updated_at": "2026-05-17T12:03:00+00:00",
-        "record_kind": "chat_event",
-    }
-    assert conversations == []
-
-
-@pytest.mark.asyncio
-async def test_rewrite_conversation_after_event_deletes_tail_only(tmp_path: Path):
-    db_path = str(tmp_path / "memory.db")
-    await init_episodic_schema(db_path)
-    await init_chat_event_schema(db_path)
-
-    for index, (event_id, content) in enumerate(
-        [("evt-user", "hello"), ("evt-assistant", "old answer"), ("evt-tail", "tail")],
-        start=1,
-    ):
-        await append_chat_event(
-            db_path=db_path,
-            user_id="user-1",
-            conversation_id="conv-1",
-            event_type="user_message" if index == 1 else "assistant_message",
-            role="user" if index == 1 else "assistant",
-            content=content,
-            timestamp=f"2026-05-17T12:0{index}:00+00:00",
-            message_index=index,
-            revision_id="rev-old",
-            turn_ref=None,
-            tool_name=None,
-            correlation_id=None,
-            workspace_path=None,
-            workspace_name=None,
-            metadata={},
-            attachments=[],
-            event_payload={
-                "eventId": event_id,
-                "type": "user_message" if index == 1 else "assistant_message",
-                "conversationRef": "conv-1",
-                "revisionId": "rev-old",
-                "timestamp": f"2026-05-17T12:0{index}:00+00:00",
-                "source": "sdk",
-                "payload": {"text": content},
-            },
-        )
-
-    result = await rewrite_conversation_after_event(
-        db_path=db_path,
-        user_id="user-1",
-        conversation_id="conv-1",
-        cut_after_event_id="evt-user",
-        revision_id="rev-new",
-        revision_updated_at="2026-05-17T12:05:00+00:00",
-        event={
-            "event_type": "conversation_rewritten",
-            "role": "assistant",
-            "content": "[sdk event: conversation_rewritten]",
-            "timestamp": "2026-05-17T12:05:00+00:00",
-            "revision_id": "rev-new",
-            "metadata": {},
-            "attachments": [],
-            "event_payload": {
-                "eventId": "evt-rewrite",
-                "type": "conversation_rewritten",
-                "conversationRef": "conv-1",
-                "revisionId": "rev-new",
-                "timestamp": "2026-05-17T12:05:00+00:00",
-                "source": "sdk",
-                "payload": {"reason": "edit_resend"},
-            },
-        },
-    )
-
-    rows = await load_conversation_events(
-        db_path=db_path,
-        user_id="user-1",
-        conversation_id="conv-1",
-        limit=10,
-    )
-    revision = await get_conversation_revision(
-        db_path=db_path,
-        user_id="user-1",
-        conversation_id="conv-1",
-    )
-
-    assert result == {"deleted_count": 2, "inserted_count": 1}
-    assert [row["id"] for row in rows] == ["evt-user", "evt-rewrite"]
-    assert [row["message_index"] for row in rows] == [1, 2]
-    assert revision["revision_id"] == "rev-new"

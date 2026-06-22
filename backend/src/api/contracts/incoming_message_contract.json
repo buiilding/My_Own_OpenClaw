@@ -17,6 +17,7 @@
       "keys": [
         "text",
         "conversation_ref",
+        "revision_id",
         "content",
         "screenshot_ref",
         "screenshot_refs",
@@ -38,6 +39,7 @@
       "keys": [
         "conversation_ref",
         "messages",
+        "model_history",
         "rehydrate_mode",
         "workspace_path",
         "repo_instruction_messages"

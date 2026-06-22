@@ -23,6 +23,9 @@ from backend.src.agent.session.capability_application import (
     capability_revision_from_agent_definition,
     final_tool_schema_source_counts,
 )
+from backend.src.agent.session.model_history_ledger import (
+    build_model_history_checkpoint,
+)
 from backend.src.core.types.enums import MessageType
 from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
@@ -31,6 +34,7 @@ from backend.src.core.events.streaming_events import (
     ContextCompactionStartedEvent,
     ErrorEvent,
     FullResponseEvent,
+    ModelHistoryUpdatedEvent,
     TraceEvent,
     ToolCallEvent,
     ToolOutputEvent,
@@ -186,9 +190,7 @@ class InteractionLoop:
                     "promptMessageCount": len(prompt),
                     "toolSchemaCount": len(tool_schemas or []),
                     "hasPromptMetadata": prompt_metadata is not None,
-                    "capabilityRevision": _session_capability_revision(
-                        self.session
-                    ),
+                    "capabilityRevision": _session_capability_revision(self.session),
                     "finalToolSourceCounts": final_tool_schema_source_counts(
                         tool_schemas or [],
                         getattr(
@@ -432,6 +434,9 @@ class InteractionLoop:
                     ):
                         yield event
                 self.session.history.add_assistant_message(llm_response_text)
+                model_history_event = self._build_model_history_updated_event()
+                if model_history_event is not None:
+                    yield model_history_event
                 async for event in self.event_presenter.present_completion(
                     llm_response_text
                 ):
@@ -469,6 +474,9 @@ class InteractionLoop:
                         parsed_response, self.session
                     )
                     results_processed = True
+                    model_history_event = self._build_model_history_updated_event()
+                    if model_history_event is not None:
+                        yield model_history_event
                     logger.info(
                         "Bundle execution completed, continuing interaction loop"
                     )
@@ -495,6 +503,9 @@ class InteractionLoop:
                         await self.tool_executor.process_results(
                             parsed_response, self.session
                         )
+                        model_history_event = self._build_model_history_updated_event()
+                        if model_history_event is not None:
+                            yield model_history_event
                     except Exception as cleanup_error:
                         # Log but don't re-raise - we're in finally block and don't want to
                         # mask the original exception if one occurred
@@ -502,6 +513,25 @@ class InteractionLoop:
                             f"Error during tool result cleanup: {cleanup_error}",
                             exc_info=True,
                         )
+
+    def _build_model_history_updated_event(self) -> ModelHistoryUpdatedEvent | None:
+        checkpoint = build_model_history_checkpoint(
+            self.session.history,
+            conversation_ref=getattr(
+                self.session.runtime, "active_conversation_ref", None
+            ),
+            revision_id=getattr(self.session.runtime, "active_revision_id", None),
+            turn_ref=getattr(self.session.runtime, "active_turn_ref", None),
+        )
+        if checkpoint is None:
+            return None
+        return ModelHistoryUpdatedEvent(
+            conversation_ref=checkpoint["conversation_ref"],
+            revision_id=checkpoint["revision_id"],
+            checkpoint_id=checkpoint["checkpoint_id"],
+            created_at=checkpoint["created_at"],
+            rows=checkpoint["rows"],
+        )
 
     async def _attempt_compaction_recovery(
         self,
@@ -704,14 +734,14 @@ class InteractionLoop:
         structured_metadata = dict(metadata) if isinstance(metadata, dict) else {}
         tool_name = self._extract_tool_name_from_metadata(structured_metadata)
         tool_call_id = self._extract_tool_call_id_from_metadata(structured_metadata)
-        raw_tool_call_preview = (
-            self._extract_raw_tool_call_preview_from_metadata(structured_metadata)
+        raw_tool_call_preview = self._extract_raw_tool_call_preview_from_metadata(
+            structured_metadata
         )
-        raw_arguments_preview = (
-            self._extract_raw_arguments_preview_from_metadata(structured_metadata)
+        raw_arguments_preview = self._extract_raw_arguments_preview_from_metadata(
+            structured_metadata
         )
-        parse_error_summary = (
-            self._extract_tool_call_parse_error_from_metadata(structured_metadata)
+        parse_error_summary = self._extract_tool_call_parse_error_from_metadata(
+            structured_metadata
         )
         if not tool_call_id:
             tool_call_id = f"llm_tool_call_error_{uuid4().hex[:12]}"

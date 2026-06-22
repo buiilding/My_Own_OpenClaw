@@ -23,6 +23,7 @@ backend-wire websocket packets.
 | tool turns | `tool-call`, `tool-bundle`, `tool-output` | SDK tool coordinator, chat stream, transcript writer |
 | transparency | `system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas` | message transparency sections |
 | context management | `context-compaction-started`, `context-compaction-completed`, `context-compaction-failed` | chat stream and compaction UI state |
+| model-history | `model-history-updated` | SDK hidden checkpoint persistence |
 | usage/status | `token-count` | token display and usage diagnostics |
 | config/model status | `models-listed`, `settings-updated` | app config/status providers |
 | audio side-channel | `audio-chunk` | dedicated audio parser/player, not the typed chat event union |

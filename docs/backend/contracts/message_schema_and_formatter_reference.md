@@ -74,7 +74,9 @@ Model notes:
 Payload:
 
 - `conversation_ref: str`
-- `messages: List[RehydrateConversationEntry]`
+- `messages: List[RehydrateConversationEntry]` (fallback path; defaults empty
+  when `model_history` is supplied)
+- `model_history: Optional[RehydrateModelHistoryCheckpoint]`
 - `rehydrate_mode: Literal["replace"]`
 - `workspace_path: Optional[str]`
 - `repo_instruction_messages: Optional[List[RepoInstructionMessage]]`
@@ -83,6 +85,13 @@ Entry fields:
 
 - required: `role` (`user|assistant|tool`), `content`
 - optional: `message_type`, `tool_name`, `correlation_id`, `tool_call_id`, `tool_calls`, `timestamp`, `screenshot_ref`
+
+Model-history checkpoint fields:
+
+- `checkpoint_id`, `revision_id`, optional `created_at`
+- `rows[]` with backend-normalized `role`, canonical `message_type`,
+  bounded `content`, optional tool linkage, artifact `image_refs`, and
+  compaction facts
 
 ### `load-settings`
 

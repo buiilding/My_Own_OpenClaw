@@ -93,9 +93,10 @@ class DummyAgent:
         repo_instruction_messages=None,
         client_prompt_layers=None,
         agent_definition=None,
+        revision_id=None,
         runtime_system_state=None,
     ):
-        _ = (image_refs, client_prompt_layers, agent_definition)
+        _ = (image_refs, client_prompt_layers, agent_definition, revision_id)
         yield ChunkEvent(content="ok")
 
     async def update_config(self, new_cfg):
@@ -129,6 +130,7 @@ class DummyCaptureAgent:
         repo_instruction_messages=None,
         client_prompt_layers=None,
         agent_definition=None,
+        revision_id=None,
         runtime_system_state=None,
     ):
         self.calls.append(
@@ -145,6 +147,7 @@ class DummyCaptureAgent:
                 "repo_instruction_messages": repo_instruction_messages,
                 "client_prompt_layers": client_prompt_layers,
                 "agent_definition": agent_definition,
+                "revision_id": revision_id,
                 "runtime_system_state": runtime_system_state,
             }
         )
@@ -189,6 +192,7 @@ class DummySilentAgent:
         repo_instruction_messages=None,
         client_prompt_layers=None,
         agent_definition=None,
+        revision_id=None,
         runtime_system_state=None,
     ):
         if False:
@@ -197,6 +201,7 @@ class DummySilentAgent:
                 client_prompt_layers,
                 agent_definition,
                 runtime_system_state,
+                revision_id,
             )
             yield {
                 "type": "streaming-response",
@@ -227,9 +232,16 @@ class DummyAssistantFullThenCompleteAgent:
         repo_instruction_messages=None,
         client_prompt_layers=None,
         agent_definition=None,
+        revision_id=None,
         runtime_system_state=None,
     ):
-        _ = (image_refs, client_prompt_layers, agent_definition, runtime_system_state)
+        _ = (
+            image_refs,
+            client_prompt_layers,
+            agent_definition,
+            revision_id,
+            runtime_system_state,
+        )
         yield AssistantMessageFullEvent(content="Final answer from assistant full")
         yield StreamingCompleteEvent()
 
@@ -254,9 +266,16 @@ class DummyPostTerminalNoiseAgent:
         repo_instruction_messages=None,
         client_prompt_layers=None,
         agent_definition=None,
+        revision_id=None,
         runtime_system_state=None,
     ):
-        _ = (image_refs, client_prompt_layers, agent_definition, runtime_system_state)
+        _ = (
+            image_refs,
+            client_prompt_layers,
+            agent_definition,
+            revision_id,
+            runtime_system_state,
+        )
         yield ChunkEvent(content="first chunk")
         yield StreamingCompleteEvent(final_response="done")
         yield ChunkEvent(content="late chunk")
@@ -282,9 +301,16 @@ class DummyErrorThenChunkAgent:
         repo_instruction_messages=None,
         client_prompt_layers=None,
         agent_definition=None,
+        revision_id=None,
         runtime_system_state=None,
     ):
-        _ = (image_refs, client_prompt_layers, agent_definition, runtime_system_state)
+        _ = (
+            image_refs,
+            client_prompt_layers,
+            agent_definition,
+            revision_id,
+            runtime_system_state,
+        )
         yield ErrorEvent(content="failed")
         yield ChunkEvent(content="late chunk")
 
@@ -311,9 +337,16 @@ class DummyBlockingAgent:
         repo_instruction_messages=None,
         client_prompt_layers=None,
         agent_definition=None,
+        revision_id=None,
         runtime_system_state=None,
     ):
-        _ = (image_refs, client_prompt_layers, agent_definition, runtime_system_state)
+        _ = (
+            image_refs,
+            client_prompt_layers,
+            agent_definition,
+            revision_id,
+            runtime_system_state,
+        )
         self._started_event.set()
         await asyncio.sleep(3600)
         if False:
@@ -616,6 +649,22 @@ class DummyWakewordService:
         return {"greeting": greeting}
 
 
+def _visible_stream_events(pipeline):
+    return [
+        processed
+        for processed in pipeline.processed
+        if isinstance(
+            processed[0],
+            (
+                AssistantMessageFullEvent,
+                ChunkEvent,
+                ErrorEvent,
+                StreamingCompleteEvent,
+            ),
+        )
+    ]
+
+
 @pytest.mark.asyncio
 async def test_query_handler_success(monkeypatch):
     websocket = FakeWebSocket()
@@ -656,9 +705,10 @@ async def test_query_handler_success(monkeypatch):
     await handler.handle(message, websocket, "user_1")
 
     assert len(created_pipelines) == 1
-    assert len(created_pipelines[0].processed) == 2
-    first_event, first_msg_id, first_context = created_pipelines[0].processed[0]
-    second_event, second_msg_id, second_context = created_pipelines[0].processed[1]
+    visible_events = _visible_stream_events(created_pipelines[0])
+    assert len(visible_events) == 2
+    first_event, first_msg_id, first_context = visible_events[0]
+    second_event, second_msg_id, second_context = visible_events[1]
     assert isinstance(first_event, ChunkEvent)
     assert first_event.content == "ok"
     assert isinstance(second_event, StreamingCompleteEvent)
@@ -730,7 +780,9 @@ async def test_query_handler_uses_message_id_for_stream_context(monkeypatch):
     await handler.handle(message, websocket, "user_1")
 
     assert session_manager.register_calls[0]["turn_ref"] == "transport_1"
-    first_event, first_msg_id, first_context = created_pipelines[0].processed[0]
+    first_event, first_msg_id, first_context = _visible_stream_events(
+        created_pipelines[0]
+    )[0]
     assert isinstance(first_event, ChunkEvent)
     assert first_msg_id == "transport_1"
     assert first_context["turn_ref"] == "transport_1"
@@ -817,9 +869,10 @@ async def test_query_handler_emits_fallback_chunk_and_completion_when_agent_stre
     await handler.handle(message, websocket, "user_1")
 
     assert len(created_pipelines) == 1
-    assert len(created_pipelines[0].processed) == 2
-    first_event, first_msg_id, first_context = created_pipelines[0].processed[0]
-    second_event, second_msg_id, second_context = created_pipelines[0].processed[1]
+    visible_events = _visible_stream_events(created_pipelines[0])
+    assert len(visible_events) == 2
+    first_event, first_msg_id, first_context = visible_events[0]
+    second_event, second_msg_id, second_context = visible_events[1]
     assert isinstance(first_event, ChunkEvent)
     assert isinstance(second_event, StreamingCompleteEvent)
     assert "empty final response" in first_event.content
@@ -879,10 +932,11 @@ async def test_query_handler_backfills_chunk_from_assistant_full_before_completi
     await handler.handle(message, websocket, "user_1")
 
     assert len(created_pipelines) == 1
-    assert len(created_pipelines[0].processed) == 3
-    first_event, *_ = created_pipelines[0].processed[0]
-    second_event, *_ = created_pipelines[0].processed[1]
-    third_event, *_ = created_pipelines[0].processed[2]
+    visible_events = _visible_stream_events(created_pipelines[0])
+    assert len(visible_events) == 3
+    first_event, *_ = visible_events[0]
+    second_event, *_ = visible_events[1]
+    third_event, *_ = visible_events[2]
 
     assert isinstance(first_event, AssistantMessageFullEvent)
     assert first_event.content == "Final answer from assistant full"
@@ -934,9 +988,10 @@ async def test_query_handler_ignores_post_terminal_events_from_agent_stream(
     await handler.handle(message, websocket, "user_1")
 
     assert len(created_pipelines) == 1
-    assert len(created_pipelines[0].processed) == 2
-    first_event, *_ = created_pipelines[0].processed[0]
-    second_event, *_ = created_pipelines[0].processed[1]
+    visible_events = _visible_stream_events(created_pipelines[0])
+    assert len(visible_events) == 2
+    first_event, *_ = visible_events[0]
+    second_event, *_ = visible_events[1]
     assert isinstance(first_event, ChunkEvent)
     assert first_event.content == "first chunk"
     assert isinstance(second_event, StreamingCompleteEvent)
@@ -983,8 +1038,9 @@ async def test_query_handler_ignores_events_after_terminal_error(monkeypatch):
     await handler.handle(message, websocket, "user_1")
 
     assert len(created_pipelines) == 1
-    assert len(created_pipelines[0].processed) == 1
-    only_event, *_ = created_pipelines[0].processed[0]
+    visible_events = _visible_stream_events(created_pipelines[0])
+    assert len(visible_events) == 1
+    only_event, *_ = visible_events[0]
     assert isinstance(only_event, ErrorEvent)
     assert only_event.content == "failed"
 

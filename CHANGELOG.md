@@ -26,6 +26,44 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- sdk/local-runtime: add provider-neutral model-history checkpoint contracts,
+  `conversation.model_history.replace/load` storage commands, and SDK store
+  methods so future rehydrate/revision work can persist bounded inference
+  history separately from full display/runtime events. No migration required;
+  the local-runtime table is created lazily with the existing chat-history
+  schema.
+- backend/sdk: emit backend-normalized `model-history-updated` checkpoints
+  after assistant completion and tool-result history commits, pass SDK
+  revision ids through query payloads, and persist the hidden checkpoint event
+  through SDK stores without adding it to display or rehydrate projections. No
+  migration required for new checkpoint storage.
+- backend/sdk: make normal rehydrate prefer persisted model-history checkpoints
+  and install those backend-normalized rows directly into session history,
+  skipping backend hydration when no checkpoint exists instead of rebuilding
+  provider history from display/runtime events. No storage migration required;
+  older no-checkpoint conversations remain visible through display and
+  diagnostic/export snapshots but need a checkpoint to preserve prior model
+  context on continuation.
+- sdk/local-runtime: add the first display timeline revision API with SDK
+  `replaceRows(...)` / `loadDisplayTimeline(...)`, local-runtime
+  `conversation.display.replace/load` storage, and file/in-memory store
+  checkpoint support so editable display history can diverge from raw runtime
+  events. No migration required; existing display rows still project from the
+  event log until a timeline checkpoint is written.
+- frontend/sdk: route desktop edit/resend and try-again through
+  `conversation.loadDisplayTimeline`, `conversation.replaceRows`, and normal
+  send instead of replay preparation, raw event-log cutting, or backend
+  rehydrate. The renderer now waits for the display child revision before
+  publishing pending visible state, while raw runtime events remain available
+  for audit/diagnostics. No migration required; old conversations load their
+  first display timeline from the event projection fallback.
+- sdk/local-runtime: add `conversation.fork(...)` for copying a display prefix
+  and matching bounded model-history rows into a new child conversation without
+  copying ancestor raw events. Dashboard/list metadata now includes fork
+  children from active display timeline checkpoints before they have raw child
+  events, while later child events can update the metadata tail. No migration
+  required; existing conversations continue to list from event metadata until a
+  fork/display checkpoint exists.
 - docs/adr: add ADR 008 and the conversation history revision architecture
   plan for separating full display history, backend-normalized model history,
   runtime events, and revision graph ownership so edit/resend, compaction,
@@ -204,6 +242,36 @@ All notable changes to WindieOS will be documented in this file.
   typed `attachments[]` only. Old persisted screenshot rows remain covered by
   the SDK replay adapter before they reach renderer message components. No
   migration required.
+- docs/sdk/memory: update transcript replay and SDK runtime references so
+  normal resume is documented as model-history checkpoint install only, with
+  event-projection rehydrate snapshots kept as diagnostic/export surfaces. No
+  migration required.
+- sdk/frontend: remove the public edit/retry replay preparation commands,
+  public `conversation.rewrite` bridge, and main-process bridge handlers;
+  high-level edit/resend and retry now load the active display timeline, create
+  a child display revision with `replaceRows(...)`, and send a normal turn.
+  Runtime and SDK store snapshots now prefer active display timeline
+  checkpoints and backend-normalized model-history checkpoints over raw
+  event-log replay, with raw events retained only for audit/diagnostics and no
+  storage migration required.
+- sdk/sidecar: remove the remaining SDK store and local-runtime
+  `conversation.replace` / `conversation.rewrite_after_event` event-log
+  mutation commands. Display edits now persist through display timeline
+  checkpoints and normal sends, while `conversation_events` stays append-only
+  audit history. No storage migration required.
+- sdk: expose `loadModelHistory(...)` and `checkoutRevision(...)` on the
+  conversation runtime and Agent facade so SDK callers can inspect bounded
+  model-history checkpoints and move the runtime head to an existing display
+  revision without raw event-log reconstruction. No storage migration required.
+- sdk: make `replaceRows(...)` create a child model-history checkpoint from
+  retained base rows when those rows carry `sourceDisplayRowIds`, preventing
+  edit/retry revisions from reusing stale model context after the display
+  suffix changes. No storage migration required.
+- sdk: enrich persisted backend model-history checkpoints with SDK display row
+  provenance when role/message-type order can be matched unambiguously, allowing
+  later edit/retry/fork revisions to retain bounded model context without
+  copying raw runtime events. Compaction rows stop inferred binding unless later
+  rows carry explicit display provenance. No storage migration required.
 - backend/sdk: add backend-safe typed `display_attachments` support at
   tool-result, tool-bundle-result, rehydrate, and outgoing tool-output
   websocket boundaries while keeping `screenshot_ref`/artifact refs as the

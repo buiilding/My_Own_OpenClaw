@@ -9,13 +9,14 @@ import type {
   CompactedReplaySnapshot,
   AppDiagnosticEventDraft,
   ConversationEvent,
+  DisplayTimelineCheckpoint,
   ConversationMetadata,
   ConversationRevision,
-  ConversationRewritePlan,
   ConversationStore,
   JsonRecord,
   ListConversationOptions,
   LocalToolExecutionLifecycle,
+  ModelHistoryCheckpoint,
   SearchConversationOptions,
   TurnResourceResolverRegistry,
   TraceEventPayload,
@@ -50,9 +51,10 @@ import type {
 } from './LocalRuntime.js';
 import {
   SdkConversationRuntime,
-  type EditAndResendInput,
-  type PreparedReplayTurn,
-  type RetryTurnInput,
+  type CheckoutRevisionResult,
+  type ForkConversationInput,
+  type ForkConversationResult,
+  type ReplaceRowsInput,
   type SendInput,
 } from './ConversationRuntime.js';
 import { TraceRecorder, type TraceEventInput } from './TraceRecorder.js';
@@ -986,15 +988,6 @@ export class Agent {
     await conversationStore.appendEvent(appendOptions.event);
   }
 
-  async rewriteConversation(options: ConversationRewritePlan | {
-    plan: ConversationRewritePlan;
-    store?: ConversationStore;
-  }): Promise<void> {
-    const rewriteOptions = 'plan' in options ? options : { plan: options };
-    const conversationStore = rewriteOptions.store ?? this.defaultConversationStore;
-    await conversationStore.rewriteConversation(rewriteOptions.plan);
-  }
-
   async replaceCompactedReplay(options: CompactedReplaySnapshot | {
     snapshot: CompactedReplaySnapshot;
     store?: ConversationStore;
@@ -1004,34 +997,77 @@ export class Agent {
     await conversationStore.replaceCompactedReplay(replaceOptions.snapshot);
   }
 
-  async prepareEditAndResend(
-    options: EditAndResendInput & {
-      conversationRef: string;
-      revisionId?: string;
-      store?: ConversationStore;
-    },
-  ): Promise<PreparedReplayTurn> {
-    const { conversationRef, revisionId, store, ...input } = options;
+  async loadDisplayTimeline(options: {
+    conversationRef: string;
+    revisionId?: string | null;
+    store?: ConversationStore;
+  }): Promise<DisplayTimelineCheckpoint> {
+    const { conversationRef, revisionId, store } = options;
     return this.conversation({
       conversationRef,
-      revisionId,
+      revisionId: revisionId ?? undefined,
       store: store ?? this.defaultConversationStore,
-    }).prepareEditAndResend(input);
+    }).loadDisplayTimeline({
+      revisionId: revisionId ?? null,
+    });
   }
 
-  async prepareRetryTurn(
-    options: RetryTurnInput & {
+  async loadModelHistory(options: {
+    conversationRef: string;
+    revisionId?: string | null;
+    store?: ConversationStore;
+  }): Promise<ModelHistoryCheckpoint | null> {
+    const { conversationRef, revisionId, store } = options;
+    return this.conversation({
+      conversationRef,
+      revisionId: revisionId ?? undefined,
+      store: store ?? this.defaultConversationStore,
+    }).loadModelHistory({
+      revisionId: revisionId ?? null,
+    });
+  }
+
+  async checkoutRevision(options: {
+    conversationRef: string;
+    revisionId: string;
+    store?: ConversationStore;
+  }): Promise<CheckoutRevisionResult> {
+    const { conversationRef, revisionId, store } = options;
+    return this.conversation({
+      conversationRef,
+      revisionId,
+      store: store ?? this.defaultConversationStore,
+    }).checkoutRevision({ revisionId });
+  }
+
+  async replaceRows(
+    options: ReplaceRowsInput & {
       conversationRef: string;
       revisionId?: string;
       store?: ConversationStore;
     },
-  ): Promise<PreparedReplayTurn> {
+  ): Promise<DisplayTimelineCheckpoint> {
     const { conversationRef, revisionId, store, ...input } = options;
     return this.conversation({
       conversationRef,
       revisionId,
       store: store ?? this.defaultConversationStore,
-    }).prepareRetryTurn(input);
+    }).replaceRows(input);
+  }
+
+  async forkConversation(
+    options: ForkConversationInput & {
+      conversationRef: string;
+      revisionId?: string;
+      store?: ConversationStore;
+    },
+  ): Promise<ForkConversationResult> {
+    const { conversationRef, revisionId, store, ...input } = options;
+    return this.conversation({
+      conversationRef,
+      revisionId,
+      store: store ?? this.defaultConversationStore,
+    }).fork(input);
   }
 
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }> {
