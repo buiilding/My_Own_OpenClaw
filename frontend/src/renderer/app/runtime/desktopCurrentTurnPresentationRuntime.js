@@ -52,10 +52,6 @@ function hasVisibleChatboxResponse(activeResponse, dismissedResponseId) {
   return Boolean(activeResponse && activeResponse.id !== dismissedResponseId);
 }
 
-function shouldShowChatboxResponse(surfaceState) {
-  return surfaceState === CHATBOX_SURFACE_STATE.RESPONSE;
-}
-
 function resolveCurrentTurnPresentationState({
   messages,
   dismissedResponseId = null,
@@ -79,7 +75,6 @@ function resolveCurrentTurnPresentationState({
     awaitingDotTargetMessageId: null,
     visibleResponse,
     chatboxSurfaceState,
-    showChatboxResponse: shouldShowChatboxResponse(chatboxSurfaceState),
   };
 }
 
@@ -112,7 +107,6 @@ function resolveSdkResponseOverlayPresentationState({
     chatboxSurfaceState: responseVisible
       ? CHATBOX_SURFACE_STATE.RESPONSE
       : fallbackState?.chatboxSurfaceState,
-    showChatboxResponse: responseVisible,
   };
   if (includeOverlayIntent) {
     state.overlayIntent = overlayIntent;

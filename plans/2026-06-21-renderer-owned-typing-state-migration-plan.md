@@ -9,6 +9,22 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Chatbox Response Boolean Deletion
+
+- Finding: current-turn presentation still returned `showChatboxResponse`, a
+  duplicate boolean after response-overlay view intent moved to overlay entries
+  and chatbox presentation already carried the `chatboxSurfaceState` enum.
+- Change: removed `showChatboxResponse` from message-only presentation, SDK
+  response-overlay projection, and visible-lifecycle stamping. Tests now assert
+  `chatboxSurfaceState` and visible response data directly.
+- Validation target: `ChatboxSurfaceState.test.js`,
+  `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `ChatSurfaceController.test.jsx`, and `RendererAppRuntimeBoundary.test.ts`
+  protect the trimmed presentation contract.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Chatbox Awaiting Boolean Deletion
 
 - Finding: current-turn presentation still stamped

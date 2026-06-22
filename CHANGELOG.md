@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: delete the duplicate `showChatboxResponse`
+  presentation alias; chatbox response state now stays on
+  `chatboxSurfaceState` and response-overlay entries. No migration required.
 - frontend/renderer: delete the duplicate `showChatboxAwaitingReply`
   presentation alias; response overlay awaiting visibility now derives from
   `visibleTurnLifecycle.status` directly. No migration required.

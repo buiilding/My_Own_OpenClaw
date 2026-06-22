@@ -287,7 +287,6 @@ function applyVisibleTurnLifecycleToPresentationState(presentationState, visible
       ...nextState,
       awaitingDotTargetMessageId: visibleTurnLifecycle.awaitingAnchor?.rowId || null,
       chatboxSurfaceState: 'awaiting-reply',
-      showChatboxResponse: false,
     };
   }
   if (visibleTurnLifecycle?.status === 'active') {

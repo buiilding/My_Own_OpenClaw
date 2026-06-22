@@ -18,7 +18,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
     expect(state.isBusy).toBe(false);
     expect(state.chatboxSurfaceState).toBe('compact');
-    expect(state.showChatboxResponse).toBe(false);
   });
 
   test('shows response state after first visible chunk arrives', () => {
@@ -30,7 +29,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     });
 
     expect(state.chatboxSurfaceState).toBe('response');
-    expect(state.showChatboxResponse).toBe(true);
   });
 
   test('keeps visible response data independent from lifecycle state', () => {
@@ -42,7 +40,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     });
 
     expect(state.chatboxSurfaceState).toBe('response');
-    expect(state.showChatboxResponse).toBe(true);
   });
 
   test('keeps compact state when no response is visible and loop is terminal', () => {
@@ -51,7 +48,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     });
 
     expect(state.chatboxSurfaceState).toBe('compact');
-    expect(state.showChatboxResponse).toBe(false);
   });
 
   test('treats dismissed responses as hidden in presentation state', () => {
@@ -62,7 +58,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     });
 
     expect(state.visibleResponse).toBeNull();
-    expect(state.showChatboxResponse).toBe(false);
+    expect(state.chatboxSurfaceState).toBe('compact');
   });
 
   test('keeps tool rows from suppressing awaiting state after the latest user turn', () => {
@@ -78,7 +74,7 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
 
     expect(state.hasVisibleReply).toBe(false);
     expect(state.awaitingDotTargetMessageId).toBeNull();
-    expect(state.showChatboxResponse).toBe(false);
+    expect(state.chatboxSurfaceState).toBe('compact');
   });
 
   test('projects SDK response entries onto fallback lifecycle state', () => {
@@ -114,7 +110,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       activeResponse: { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
       visibleResponse: { id: 'assistant-1', sender: 'assistant', type: 'llm-text', text: 'done' },
       hasVisibleReply: true,
-      showChatboxResponse: true,
       chatboxSurfaceState: 'response',
       overlayIntent: expect.objectContaining({
         mode: 'response',
@@ -141,7 +136,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       responseOverlayEntries: [],
       fallbackState: {
         chatboxSurfaceState: 'compact',
-        showChatboxResponse: false,
       },
       includeOverlayIntent: true,
     });
@@ -149,7 +143,6 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
     expect(state).toMatchObject({
       activeResponse: null,
       visibleResponse: null,
-      showChatboxResponse: false,
       chatboxSurfaceState: 'compact',
       overlayIntent: expect.objectContaining({
         mode: 'response',
@@ -175,14 +168,12 @@ describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
       dismissedResponseId: 'assistant-1',
       fallbackState: {
         chatboxSurfaceState: 'compact',
-        showChatboxResponse: false,
       },
     });
 
     expect(state).toMatchObject({
       activeResponse: null,
       visibleResponse: null,
-      showChatboxResponse: false,
       chatboxSurfaceState: 'compact',
     });
   });

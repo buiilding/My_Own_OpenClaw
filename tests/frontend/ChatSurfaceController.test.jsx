@@ -180,7 +180,7 @@ describe('useChatSurfaceController', () => {
 
     expect(result.current.currentTurnPresentationState).toMatchObject({
       awaitingDotTargetMessageId: 'user-row-1',
-      showChatboxResponse: false,
+      chatboxSurfaceState: 'awaiting-reply',
       visibleTurnLifecycle: expect.objectContaining({
         status: 'awaiting',
         source: 'sdk',
@@ -309,7 +309,6 @@ describe('useChatSurfaceController', () => {
     });
     expect(result.current.currentTurnPresentationState).toMatchObject({
       awaitingDotTargetMessageId: 'user-local',
-      showChatboxResponse: false,
       chatboxSurfaceState: 'awaiting-reply',
     });
   });
