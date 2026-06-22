@@ -46,11 +46,11 @@ Output statuses:
 
 `DesktopVisibleTurnLifecycleRuntime.resolvePendingTurnForCurrentProjection(...)`
 owns pending-turn handoff for store updates, while
-`DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)` owns
-surface preflight suppression. Both use the same visible lifecycle authority so
+`DesktopVisibleTurnLifecycleRuntime.shouldUseLocalPendingTurn(...)` owns
+surface local-pending suppression. Both use the same visible lifecycle authority so
 SDK idle, wrong-turn terminal, stale, and visible-empty projections do not
 replace `local_pending`.
-Local send preflight requires a valid renderer `pendingTurn`; bare
+Local pending rendering requires a valid renderer `pendingTurn`; bare
 `isSending=true` is store/diagnostic compatibility state and does not create
 visible typing or busy lifecycle by itself.
 `DesktopVisibleTurnLifecycleRuntime.applyVisibleTurnLifecycleToPresentationState(...)`
@@ -178,8 +178,8 @@ conversation ref when present, so a lagging session ref does not hide the
 visible same-turn projection.
 
 `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)` delegates
-local send-preflight handoff to
-`DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)`. The live
+local pending-turn handoff to
+`DesktopVisibleTurnLifecycleRuntime.shouldUseLocalPendingTurn(...)`. The live
 surface still prepares overlay presentation input and SDK overlay intent
 metadata, but phase, busy, awaiting, and response flags now come from
 `DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`. The
@@ -265,7 +265,7 @@ longer imports the overlay lifecycle adapter.
   replace local pending
 - shared presentation adapters map renderer visible lifecycle into legacy busy,
   awaiting-dot, chatbox, and response overlay presentation fields
-- bare `isSending=true` does not create local preflight without `pendingTurn`
+- bare `isSending=true` does not create local pending without `pendingTurn`
 - the handoff predicate stays behind the visible lifecycle runtime facade
 
 `tests/frontend/ChatSurfaceController.test.jsx` validates:

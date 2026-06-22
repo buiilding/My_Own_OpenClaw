@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Live Surface Send-Preflight Predicate Deletion
+
+- Finding: the visible lifecycle owner still exported the local pending-turn
+  handoff predicate as `shouldUseLocalSendPreflight(...)`, and the live-surface
+  adapter kept a `shouldUseSendPreflight(...)` wrapper plus a `send-preflight`
+  source fallback even though renderer `pendingTurn` is now the required
+  evidence for local typing.
+- Change: renamed the owner predicate to `shouldUseLocalPendingTurn(...)`,
+  deleted the live-surface wrapper and source fallback, and kept live-surface
+  local awaiting output on the explicit `pending-turn` source.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `LiveTurnSurfaceState.test.js`, and `RendererAppRuntimeBoundary.test.ts`
+  protect the pending-turn handoff contract and reject the retired preflight
+  source path.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Live Surface Local Pending Alias Deletion
 
 - Finding: `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)`

@@ -9,6 +9,31 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Renderer Visible Lifecycle Local Pending Facade
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime` already deleted the retired
+  `overlayTurnLifecycle` presentation field and exposed `visibleTurnLifecycle`
+  as the renderer app-runtime owner, but its local adapter variable and active
+  overlay docs still described the output as legacy presentation/overlay
+  fields. The same facade still exported the local pending handoff as
+  `shouldUseLocalSendPreflight`, and `DesktopLiveTurnSurfaceRuntime` carried a
+  wrapper/source branch for the older send-preflight terminology after the
+  visible lifecycle became pending-turn owned.
+- Change: renamed the handoff facade to `shouldUseLocalPendingTurn`, routed the
+  live surface directly through it, removed the send-preflight wrapper/source
+  branch, renamed the adapter local to
+  `presentationStateWithoutRetiredOverlayLifecycle`, updated focused lifecycle
+  coverage to call the output overlay-compatible presentation fields, and
+  refreshed overlay runtime docs to avoid treating current phase/busy/awaiting
+  fields as legacy ownership.
+- Validation target: `RendererAppRuntimeBoundary.test.ts` now guards the
+  visible-lifecycle runtime, live-surface runtime, and overlay docs against the
+  stale send-preflight facade/wrapper/source and legacy wording.
+- Compatibility/security: no IPC channel, SDK event payload, response-overlay
+  phase value, renderer config shape, persisted transcript, permission,
+  credential, local execution, trust-boundary, storage, or migration change
+  required.
+
 ### 2026-06-22 Renderer Source Map Lifecycle Wording
 
 - Finding: `frontend/src/renderer/folder_structure.md` still described

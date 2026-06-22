@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for response overlay renderer behavior: SDK current-turn presentation, pending-turn preflight handoff, hidden SDK startup projection handoff, closeability rules, and deterministic fixed-frame sizing IPC updates."
+summary: "Deep reference for response overlay renderer behavior: SDK current-turn presentation, local pending-turn handoff, hidden SDK startup projection handoff, closeability rules, and deterministic fixed-frame sizing IPC updates."
 read_when:
   - When changing `MinimalResponseOverlay.jsx` rendering logic, overlay utility contracts, or response overlay UX states.
-  - When debugging missing response panes, stale awaiting indicators, hidden SDK presentation handoff, local pending-turn preflight flicker, removed `prime-response-overlay-awaiting`, or incorrect response overlay resize behavior.
+  - When debugging missing response panes, stale awaiting indicators, hidden SDK presentation handoff, local pending-turn flicker, removed `prime-response-overlay-awaiting`, or incorrect response overlay resize behavior.
 title: "Response Overlay Phase Runtime Reference"
 ---
 
@@ -130,7 +130,7 @@ Contract ownership:
 - renderer owns only presentation mapping from `currentTurn` into compact overlay
   rows; it must not execute tools, write transcripts, or reinterpret backend
   stream semantics for the overlay.
-- pending-turn preflight is presentation-only. It may keep the optimistic user
+- local pending-turn handoff is presentation-only. It may keep the optimistic user
   row and sending state visible through early SDK startup projections, but it
   must not create transcript rows, execute tools, or become a second completion
   path.
@@ -154,10 +154,10 @@ Contract ownership:
   merging a caller-supplied presentation fallback; response visibility requires
   an actual response entry, and lifecycle, awaiting, busy, and typing fields
   are stamped by `DesktopVisibleTurnLifecycleRuntime` after that data step.
-- `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight(...)` owns
+- `DesktopVisibleTurnLifecycleRuntime.shouldUseLocalPendingTurn(...)` owns
   hidden SDK startup and terminal handoff rules used by live-surface
   projection. `DesktopLiveTurnSurfaceRuntime` maps the resolved visible
-  lifecycle into legacy overlay phase, busy, awaiting, and response fields;
+  lifecycle into overlay-compatible phase, busy, awaiting, and response fields;
   SDK overlay intent remains metadata for turn refs, stale guards, dismissal,
   and trace context rather than lifecycle authority.
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`

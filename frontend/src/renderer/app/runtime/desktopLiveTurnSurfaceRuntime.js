@@ -17,7 +17,7 @@ const {
 } = DesktopResponseOverlayPhaseRuntime;
 const {
   resolveVisibleTurnLifecycle,
-  shouldUseLocalSendPreflight,
+  shouldUseLocalPendingTurn,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
@@ -52,17 +52,6 @@ function normalizeConversationRef(value) {
 
 function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
-function isPendingTurn(value) {
-  return Boolean(
-    value
-      && typeof value === 'object'
-      && normalizeConversationRef(value.conversationRef)
-      && normalizeTurnRef(value.turnRef)
-      && typeof value.userMessageId === 'string'
-      && typeof value.text === 'string',
-  );
 }
 
 function mapCurrentTurnProjectionPhase(phase) {
@@ -153,16 +142,6 @@ function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
   };
 }
 
-function shouldUseSendPreflight({
-  currentTurnProjection,
-  pendingTurn,
-}) {
-  return shouldUseLocalSendPreflight({
-    currentTurnProjection,
-    pendingTurn,
-  });
-}
-
 function resolveLiveTurnPresentationInput({
   currentTurnProjection = null,
   pendingTurn = null,
@@ -175,7 +154,7 @@ function resolveLiveTurnPresentationInput({
     currentTurnProjection,
     messages,
   });
-  const useLocalPendingTurn = shouldUseSendPreflight({
+  const useLocalPendingTurn = shouldUseLocalPendingTurn({
     currentTurnProjection,
     pendingTurn,
   });
@@ -190,7 +169,7 @@ function resolveLiveTurnPresentationInput({
     return {
       phase: getAwaitingFirstChunkResponseOverlayPhase(),
       isBusy: true,
-      source: isPendingTurn(pendingTurn) ? 'pending-turn' : 'send-preflight',
+      source: 'pending-turn',
       useLocalPendingTurn: true,
       useSdkLiveTurnPresentation,
       overlayIntent: {

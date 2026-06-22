@@ -356,7 +356,7 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
-  test('lets SDK awaiting presentation supersede send preflight', () => {
+  test('lets SDK awaiting presentation supersede local pending turn', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {
         phase: 'awaiting',

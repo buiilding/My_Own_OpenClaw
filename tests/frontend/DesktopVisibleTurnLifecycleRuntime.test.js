@@ -10,7 +10,7 @@ const {
   applyVisibleTurnLifecycleToPresentationState,
   resolvePendingTurnForCurrentProjection,
   resolveVisibleTurnLifecycle,
-  shouldUseLocalSendPreflight,
+  shouldUseLocalPendingTurn,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 function pendingTurn(overrides = {}) {
@@ -65,8 +65,10 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(visibleLifecycleModule.isCurrentTurnPresentationOverlayLifecycleBusy).toBeUndefined();
     expect(visibleLifecycleModule.resolveCurrentTurnPresentationOverlayLifecycle).toBeUndefined();
     expect(visibleLifecycleModule.shouldUseLocalSendPreflight).toBeUndefined();
+    expect(visibleLifecycleModule.shouldUseLocalPendingTurn).toBeUndefined();
     expect(DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSdkProjection).toBeUndefined();
     expect(DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSameTurnSdkReplacement).toBeUndefined();
+    expect(DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight).toBeUndefined();
   });
 
   test('keeps local pending through idle, empty, and wrong-turn SDK projections until same-turn authority arrives', () => {
@@ -282,7 +284,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
-  test('adapts visible lifecycle into legacy presentation fields for surface consumers', () => {
+  test('adapts visible lifecycle into overlay-compatible presentation fields for surface consumers', () => {
     const visibleLifecycle = resolveVisibleTurnLifecycle({
       activeConversationRef: 'conv-1',
       pendingTurn: pendingTurn({
@@ -373,7 +375,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(terminalPresentation.overlayTurnLifecycle).toBeUndefined();
   });
 
-  test('centralizes local send preflight handoff for live surface consumers', () => {
+  test('centralizes local pending-turn handoff for live surface consumers', () => {
     const pending = pendingTurn();
     const hiddenIdleProjection = projection({
       phase: 'idle',
@@ -394,20 +396,18 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       },
     });
 
-    expect(shouldUseLocalSendPreflight({
+    expect(shouldUseLocalPendingTurn({
       currentTurnProjection: hiddenIdleProjection,
-      isSending: true,
       pendingTurn: pending,
       messages: [],
     })).toBe(true);
 
-    expect(shouldUseLocalSendPreflight({
+    expect(shouldUseLocalPendingTurn({
       currentTurnProjection: hiddenIdleProjection,
-      isSending: true,
       messages: [],
     })).toBe(false);
 
-    expect(shouldUseLocalSendPreflight({
+    expect(shouldUseLocalPendingTurn({
       currentTurnProjection: projection({
         phase: 'awaiting',
         presentation: {
@@ -425,7 +425,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
           },
         },
       }),
-      isSending: true,
       pendingTurn: pending,
       messages: [{
         id: 'user-1',
@@ -435,14 +434,13 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       }],
     })).toBe(false);
 
-    expect(shouldUseLocalSendPreflight({
+    expect(shouldUseLocalPendingTurn({
       currentTurnProjection: projection({
         phase: 'complete',
         turnRef: 'turn-1',
         assistantText: 'previous complete response',
         presentation: undefined,
       }),
-      isSending: true,
       pendingTurn: pendingTurn({
         turnRef: 'turn-2',
         userMessageId: 'user-2',
@@ -454,7 +452,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       ],
     })).toBe(true);
 
-    expect(shouldUseLocalSendPreflight({
+    expect(shouldUseLocalPendingTurn({
       currentTurnProjection: projection({
         phase: 'complete',
         turnRef: 'turn-2',
@@ -474,7 +472,6 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
           },
         },
       }),
-      isSending: true,
       pendingTurn: pendingTurn({
         turnRef: 'turn-2',
         userMessageId: 'user-2',

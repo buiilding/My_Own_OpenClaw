@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: renderer source-map docs now describe config
-  persistence, `isSending`, and `thinkingStatus` through their current
-  app-runtime/compatibility owners instead of raw localStorage or visible
-  lifecycle authority.
+- Latest completed slice: renderer visible-lifecycle local pending handoff now
+  uses `shouldUseLocalPendingTurn` directly from the app-runtime facade, with
+  the live-surface send-preflight wrapper/source branch removed and current
+  presentation output described as overlay-compatible fields.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

@@ -480,8 +480,19 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopLiveTurnSurfaceRuntime.js'),
       'utf8',
     );
+    const visibleLifecycleSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopVisibleTurnLifecycleRuntime.js'),
+      'utf8',
+    );
     const chatSurfaceControllerSource = await fs.readFile(
       path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
+      'utf8',
+    );
+    const overlayRuntimeDoc = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../docs/frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md',
+      ),
       'utf8',
     );
 
@@ -515,6 +526,14 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).not.toContain('typingVisible');
     expect(liveSurfaceSource).not.toContain('overlayVisible');
     expect(liveSurfaceSource).not.toContain('useLocalSendLatch');
+    expect(liveSurfaceSource).not.toContain('shouldUseSendPreflight');
+    expect(liveSurfaceSource).not.toContain("'send-preflight'");
+    expect(visibleLifecycleSource).toContain('shouldUseLocalPendingTurn');
+    expect(visibleLifecycleSource).not.toContain('shouldUseLocalSendPreflight');
+    expect(visibleLifecycleSource).toContain('presentationStateWithoutRetiredOverlayLifecycle');
+    expect(visibleLifecycleSource).not.toContain('presentationStateWithoutLegacyLifecycle');
+    expect(overlayRuntimeDoc).toContain('overlay-compatible phase, busy, awaiting, and response fields');
+    expect(overlayRuntimeDoc).not.toContain('legacy overlay phase');
     expect(liveSurfaceSource).not.toContain('export function resolveSdkOverlayIntent');
     expect(liveSurfaceSource).not.toContain('export function resolveLiveTurnPresentationInput');
     expect(chatSurfaceControllerSource).toContain('desktopLiveTurnSurfaceRuntime');

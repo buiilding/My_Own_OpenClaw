@@ -71,6 +71,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: rename the visible-lifecycle local handoff facade from
+  `shouldUseLocalSendPreflight` to `shouldUseLocalPendingTurn`, delete the
+  live-surface send-preflight wrapper/source branch, and describe presentation
+  output as overlay-compatible fields while keeping retired
+  `overlayTurnLifecycle` cleanup explicit. No migration required.
 - frontend/renderer: refresh the renderer source map so it routes config
   persistence through `desktopRendererConfigStorageRuntime` and labels
   `isSending` / `thinkingStatus` as compatibility state instead of visible

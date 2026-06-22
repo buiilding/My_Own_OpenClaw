@@ -255,7 +255,7 @@ function resolveVisibleTurnLifecycle({
   };
 }
 
-function shouldUseLocalSendPreflight({
+function shouldUseLocalPendingTurn({
   currentTurnProjection = null,
   pendingTurn = null,
 } = {}) {
@@ -270,12 +270,12 @@ function shouldUseLocalSendPreflight({
 }
 
 function applyVisibleTurnLifecycleToPresentationState(presentationState, visibleTurnLifecycle) {
-  const presentationStateWithoutLegacyLifecycle = {
+  const presentationStateWithoutRetiredOverlayLifecycle = {
     ...(presentationState || {}),
   };
-  delete presentationStateWithoutLegacyLifecycle.overlayTurnLifecycle;
+  delete presentationStateWithoutRetiredOverlayLifecycle.overlayTurnLifecycle;
   const nextState = {
-    ...presentationStateWithoutLegacyLifecycle,
+    ...presentationStateWithoutRetiredOverlayLifecycle,
     visibleTurnLifecycle,
     isBusy: visibleTurnLifecycle?.isBusy === true,
   };
@@ -305,5 +305,5 @@ export const DesktopVisibleTurnLifecycleRuntime = Object.freeze({
   applyVisibleTurnLifecycleToPresentationState,
   resolvePendingTurnForCurrentProjection,
   resolveVisibleTurnLifecycle,
-  shouldUseLocalSendPreflight,
+  shouldUseLocalPendingTurn,
 });
