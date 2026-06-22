@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Chatbox Interaction Browser Adapter Runtime
+
+- Finding: `useMinimalChatPillBindings(...)` still owned raw browser drag
+  window subscriptions plus `ResizeObserver`, debounce timer, and
+  animation-frame scheduling for visual-anchor height reporting.
+- Change: added `DesktopChatboxInteractionRuntime` as the renderer app-runtime
+  interaction adapter for chatbox drag window events and visual-anchor browser
+  scheduling. The feature hook keeps React lifecycle and surface inputs while
+  delegating raw browser adapter mechanics to the runtime facade.
+- Validation target: focused chatbox interaction runtime, chatbox overlay
+  behavior, and renderer app-runtime boundary tests protect drag listener
+  cleanup, settled anchor reporting, compact-anchor reset, and rejection of raw
+  window listener/timer/RAF/ResizeObserver wiring in the feature hook.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Response Overlay View Legacy Lifecycle Import Removal
 
 - Finding: `DesktopResponseOverlayViewRuntime` still imported

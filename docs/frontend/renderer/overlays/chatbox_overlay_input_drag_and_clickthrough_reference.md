@@ -14,6 +14,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
 - `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopChatboxInteractionRuntime.js`
 - `frontend/src/renderer/features/minimalChatPill/components/PillIcons.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
@@ -54,8 +55,10 @@ This keeps overlay window lightweight:
 
 - explicit focus lifecycle through `DesktopWindowRuntimeClient` + mount focus
 - wakeword STT trigger handling through `DesktopWindowRuntimeClient`
-- global drag window listeners (`mousemove`/`mouseup`/`blur`)
-- visual-anchor sync through `DesktopWindowRuntimeClient` from measured shell
+- global drag window listeners through `DesktopChatboxInteractionRuntime`
+- visual-anchor sync through `DesktopChatboxInteractionRuntime`, which owns
+  `ResizeObserver`, debounce timer, animation-frame scheduling, and
+  `DesktopWindowRuntimeClient` anchor-height reporting from measured shell
   height plus compact-height cleanup on unmount
 - text-entry activation reason reporting through `DesktopWindowRuntimeClient`;
   the runtime client assembles the host-shaped `{ reason }` IPC payload
@@ -191,7 +194,7 @@ Movement path:
 3. once the threshold is crossed, mark the gesture as a real drag
 4. compute absolute target window coordinates
 5. call `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
-6. stop on mouseup/window blur
+6. stop on mouseup/window blur through `DesktopChatboxInteractionRuntime`
 
 ## Visual Loop Activity Signal
 

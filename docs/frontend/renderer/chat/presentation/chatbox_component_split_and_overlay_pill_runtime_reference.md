@@ -17,6 +17,7 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
 - `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopChatboxInteractionRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
@@ -113,11 +114,15 @@ compaction behind its loop lock.
 - preview lane state (`with-preview`) is driven only by image count
 - visual-anchor layout is resolved through
   `DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight(...)`
+- visual-anchor browser scheduling is owned by
+  `DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync(...)`
 - visual-anchor IPC payload assembly is owned by
   `DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(...)`; the pill
   reports measured height values and optional native-frame height values.
 - drag-state and absolute move targets are resolved through
   `DesktopChatboxLayoutRuntime` before dispatching native movement IPC
+- drag window listeners are installed through
+  `DesktopChatboxInteractionRuntime.subscribeToChatboxDragWindowEvents(...)`
 - visual-anchor IPC sync:
   - preview off -> `height: 64`
   - preview on -> `height: 116`

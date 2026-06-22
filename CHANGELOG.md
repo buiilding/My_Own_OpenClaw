@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route minimal chat pill drag window subscriptions and
+  visual-anchor ResizeObserver/timer/animation-frame scheduling through
+  `DesktopChatboxInteractionRuntime`, keeping raw browser adapters out of
+  `useMinimalChatPillBindings`. No migration required.
 - frontend/renderer: route dashboard search modal focus and Escape-key browser
   lifecycle wiring through `DesktopDashboardSearchModalRuntime`, keeping raw
   timer and `window` listener adapters out of `SearchChatsModal`. No migration

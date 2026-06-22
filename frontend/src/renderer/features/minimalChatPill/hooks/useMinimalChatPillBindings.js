@@ -4,9 +4,7 @@
 
 import { useEffect } from 'react';
 import { DesktopWindowRuntimeClient } from '../../../app/runtime/desktopWindowRuntimeClient';
-import { DesktopChatboxLayoutRuntime } from '../../../app/runtime/desktopChatboxLayoutRuntime';
-
-const CHATBOX_VISUAL_ANCHOR_RESIZE_SETTLE_MS = 120;
+import { DesktopChatboxInteractionRuntime } from '../../../app/runtime/desktopChatboxInteractionRuntime';
 
 export function useChatboxFocusBindings(focusInput) {
   useEffect(() => {
@@ -48,18 +46,10 @@ export function useChatboxWakewordSttTriggerBinding({
 
 export function useChatboxDragWindowBindings(handleDragMove, stopDragging) {
   useEffect(() => {
-    window.addEventListener('pointermove', handleDragMove);
-    window.addEventListener('pointerup', stopDragging);
-    window.addEventListener('mousemove', handleDragMove);
-    window.addEventListener('mouseup', stopDragging);
-    window.addEventListener('blur', stopDragging);
-    return () => {
-      window.removeEventListener('pointermove', handleDragMove);
-      window.removeEventListener('pointerup', stopDragging);
-      window.removeEventListener('mousemove', handleDragMove);
-      window.removeEventListener('mouseup', stopDragging);
-      window.removeEventListener('blur', stopDragging);
-    };
+    return DesktopChatboxInteractionRuntime.subscribeToChatboxDragWindowEvents({
+      onDragMove: handleDragMove,
+      onStopDragging: stopDragging,
+    });
   }, [handleDragMove, stopDragging]);
 }
 
@@ -70,115 +60,17 @@ export function useChatboxVisualAnchorBindings({
   anchorHeightOverride = null,
 }) {
   useEffect(() => {
-    let cancelled = false;
-    let lastReportedSignature = null;
-    let scheduledFrame = null;
-    let scheduledTimeout = null;
-    const shellElement = shellRef?.current || null;
-
-    const commitAnchorHeight = () => {
-      scheduledFrame = null;
-      const overrideAnchorHeight = Math.round(Number(anchorHeightOverride));
-      const nextAnchorHeight = Number.isFinite(overrideAnchorHeight) && overrideAnchorHeight > 0
-        ? overrideAnchorHeight
-        : DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight({
-          hasImagePreview,
-          shellHeight: shellElement?.offsetHeight ?? null,
-        });
-      const nextFrameHeight = Math.round(Number(frameHeight));
-      const normalizedFrameHeight = Number.isFinite(nextFrameHeight) && nextFrameHeight > 0
-        ? nextFrameHeight
-        : null;
-      const nextSignature = `${nextAnchorHeight}:${normalizedFrameHeight || ''}`;
-      if (nextSignature === lastReportedSignature) {
-        return;
-      }
-      lastReportedSignature = nextSignature;
-      DesktopWindowRuntimeClient
-        .setChatboxVisualAnchorHeightValue(nextAnchorHeight, normalizedFrameHeight)
-        .catch((error) => {
-          if (!cancelled) {
-            console.warn('[MinimalChatPill] Failed to sync visual anchor height:', error);
-          }
-        });
-    };
-
-    const scheduleAnchorHeightReport = () => {
-      if (cancelled) {
-        return;
-      }
-
-      const queueCommit = () => {
-        if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-          commitAnchorHeight();
-          return;
-        }
-        if (scheduledFrame !== null) {
-          window.cancelAnimationFrame?.(scheduledFrame);
-        }
-        scheduledFrame = window.requestAnimationFrame(() => {
-          if (!cancelled) {
-            commitAnchorHeight();
-          }
-        });
-      };
-
-      if (CHATBOX_VISUAL_ANCHOR_RESIZE_SETTLE_MS <= 0) {
-        queueCommit();
-        return;
-      }
-
-      if (scheduledTimeout !== null) {
-        window.clearTimeout?.(scheduledTimeout);
-      }
-      scheduledTimeout = window.setTimeout(() => {
-        scheduledTimeout = null;
-        queueCommit();
-      }, CHATBOX_VISUAL_ANCHOR_RESIZE_SETTLE_MS);
-    };
-
-    commitAnchorHeight();
-
-    if (!shellElement || typeof ResizeObserver !== 'function') {
-      return () => {
-        cancelled = true;
-        if (scheduledTimeout !== null) {
-          window.clearTimeout?.(scheduledTimeout);
-          scheduledTimeout = null;
-        }
-        if (scheduledFrame !== null) {
-          window.cancelAnimationFrame?.(scheduledFrame);
-          scheduledFrame = null;
-        }
-      };
-    }
-
-    const resizeObserver = new ResizeObserver(() => {
-      scheduleAnchorHeightReport();
+    return DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync({
+      anchorHeightOverride,
+      frameHeight,
+      hasImagePreview,
+      shellRef,
     });
-    resizeObserver.observe(shellElement);
-
-    return () => {
-      cancelled = true;
-      if (scheduledTimeout !== null) {
-        window.clearTimeout?.(scheduledTimeout);
-        scheduledTimeout = null;
-      }
-      if (scheduledFrame !== null) {
-        window.cancelAnimationFrame?.(scheduledFrame);
-        scheduledFrame = null;
-      }
-      resizeObserver.disconnect();
-    };
   }, [anchorHeightOverride, frameHeight, hasImagePreview, shellRef]);
 
   useEffect(() => {
     return () => {
-      DesktopWindowRuntimeClient
-        .setChatboxVisualAnchorHeightValue(
-          DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight(),
-        )
-        .catch(() => {});
+      DesktopChatboxInteractionRuntime.resetChatboxVisualAnchorHeight();
     };
   }, []);
 }

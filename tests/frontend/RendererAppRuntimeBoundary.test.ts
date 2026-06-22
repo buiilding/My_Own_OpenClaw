@@ -189,6 +189,10 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopChatboxLayoutRuntime.js'),
       'utf8',
     );
+    const interactionRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatboxInteractionRuntime.js'),
+      'utf8',
+    );
     const pillSource = await fs.readFile(
       path.join(rendererRoot, 'features/minimalChatPill/components/MinimalChatPill.jsx'),
       'utf8',
@@ -214,12 +218,28 @@ describe('renderer app runtime boundary', () => {
     expect(layoutRuntimeSource).toContain('getChatboxDragTarget');
     expect(layoutRuntimeSource).not.toContain('features/chat');
     expect(layoutRuntimeSource).not.toContain('features/minimalChatPill');
+    expect(interactionRuntimeSource).toContain('DesktopChatboxLayoutRuntime');
+    expect(interactionRuntimeSource).toContain('DesktopWindowRuntimeClient');
+    expect(interactionRuntimeSource).toContain('addEventListener');
+    expect(interactionRuntimeSource).toContain('removeEventListener');
+    expect(interactionRuntimeSource).toContain('setTimeout');
+    expect(interactionRuntimeSource).toContain('requestAnimationFrame');
+    expect(interactionRuntimeSource).toContain('ResizeObserver');
+    expect(interactionRuntimeSource).not.toContain('features/chat');
+    expect(interactionRuntimeSource).not.toContain('features/minimalChatPill');
     expect(pillSource).toContain('desktopChatboxLayoutRuntime');
-    expect(bindingsSource).toContain('desktopChatboxLayoutRuntime');
+    expect(bindingsSource).toContain('desktopChatboxInteractionRuntime');
     expect(pillSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxNativeFrameHeight');
-    expect(bindingsSource).toContain('DesktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight');
+    expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.startChatboxVisualAnchorSync');
+    expect(bindingsSource).toContain('DesktopChatboxInteractionRuntime.subscribeToChatboxDragWindowEvents');
     expect(pillSource).not.toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
     expect(bindingsSource).not.toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
+    expect(bindingsSource).not.toContain('window.addEventListener');
+    expect(bindingsSource).not.toContain('window.removeEventListener');
+    expect(bindingsSource).not.toContain('window.setTimeout');
+    expect(bindingsSource).not.toContain('window.clearTimeout');
+    expect(bindingsSource).not.toContain('requestAnimationFrame');
+    expect(bindingsSource).not.toContain('ResizeObserver');
     expect(pillSource).not.toContain('minimalChatPillLayout');
     expect(pillSource).not.toContain('chat/utils/state/chatBoxState');
     expect(bindingsSource).not.toContain('chat/utils/state/chatBoxState');

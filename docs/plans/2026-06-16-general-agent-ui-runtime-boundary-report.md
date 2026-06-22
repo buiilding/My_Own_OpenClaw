@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: response-overlay view intent no longer imports the
-  legacy overlay lifecycle adapter; stale visible-response suppression now
-  reads `visibleTurnLifecycle.status` directly from the renderer-owned
-  lifecycle projection.
+- Latest completed slice: minimal chat pill drag window subscriptions and
+  visual-anchor browser scheduling now route through
+  `DesktopChatboxInteractionRuntime`; `useMinimalChatPillBindings(...)` keeps
+  React lifecycle and surface inputs local without owning raw window
+  listener/timer/RAF/ResizeObserver adapters.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
