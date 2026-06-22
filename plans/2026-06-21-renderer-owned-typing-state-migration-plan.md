@@ -9,6 +9,22 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Current-Turn Projection Cursor Visibility Field Deletion
+
+- Finding: `DesktopCurrentTurnProjectionEffectsRuntime` still stored a
+  `typingVisible` field in its projection cursor even though the value was
+  only a restatement of `phase === 'awaiting'` and no consumer read it.
+- Change: the projection side-effect cursor now tracks only text lengths,
+  phase, terminal error text, and seen tool-event ids. Test fixtures preserve
+  SDK `presentation.typingVisible` only in the explicit negative case proving
+  that SDK visibility flags do not drive the send latch.
+- Validation target: `DesktopCurrentTurnProjectionEffectsRuntime.test.ts` and
+  `RendererChatRuntimeBoundary.test.ts` protect the trimmed cursor and reject
+  SDK presentation visibility fields in the side-effect runtime.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Chat Provider Context And Trace Latch Deletion
 
 - Finding: `ChatProvider` still wrapped children in an empty `ChatContext`

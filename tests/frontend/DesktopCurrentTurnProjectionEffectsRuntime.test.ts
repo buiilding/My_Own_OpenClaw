@@ -28,8 +28,6 @@ function projection(
       phase: 'awaiting',
       entries: [],
       hasVisibleContent: false,
-      typingVisible: true,
-      overlayVisible: false,
       isBusy: true,
       isTerminal: false,
       lastError: null,
@@ -71,7 +69,6 @@ describe('current turn projection side effects', () => {
           entries: [],
           hasVisibleContent: false,
           typingVisible: false,
-          overlayVisible: false,
           isBusy: false,
           isTerminal: false,
           lastError: null,
@@ -92,7 +89,7 @@ describe('current turn projection side effects', () => {
     expect(deps.setIsSending).toHaveBeenCalledWith(true, 'conv-1');
   });
 
-  test('does not clear sending for overlay-visible presentation without visible content', () => {
+  test('does not clear sending for overlay intent without visible content', () => {
     const deps = createDeps();
     const awaitingCursor = applyCurrentTurnProjectionSideEffects({
       conversationRef: 'conv-1',
@@ -111,8 +108,6 @@ describe('current turn projection side effects', () => {
           turnRef: 'turn-1',
           phase: 'streaming',
           entries: [],
-          typingVisible: false,
-          overlayVisible: true,
           isBusy: true,
           isTerminal: false,
           lastError: null,
@@ -156,8 +151,6 @@ describe('current turn projection side effects', () => {
             type: 'llm-text',
             text: 'Visible reply',
           }],
-          typingVisible: false,
-          overlayVisible: true,
           isBusy: true,
           isTerminal: false,
           lastError: null,
@@ -209,8 +202,6 @@ describe('current turn projection side effects', () => {
           phase: 'streaming',
           entries: [],
           hasVisibleContent: true,
-          typingVisible: false,
-          overlayVisible: true,
           isBusy: true,
           isTerminal: false,
           lastError: null,
@@ -248,8 +239,6 @@ describe('current turn projection side effects', () => {
           phase: 'streaming',
           entries: [],
           hasVisibleContent: true,
-          typingVisible: false,
-          overlayVisible: true,
           isBusy: true,
           isTerminal: false,
           lastError: null,

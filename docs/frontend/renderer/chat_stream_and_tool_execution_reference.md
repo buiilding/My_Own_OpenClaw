@@ -149,7 +149,8 @@ app-runtime facade or the public hook listener.
 The hook delegates current-turn UI side effects to
 `DesktopCurrentTurnProjectionEffectsRuntime`. That runtime reducer owns cursor-based delta
 tracking for `assistantText`, `reasoningText`, `phase`, `lastError`, and seen
-tool-event ids. It is the renderer-side owner for:
+tool-event ids; it does not store SDK presentation visibility fields in the
+cursor. It is the renderer-side owner for:
 
 - accepting an SDK `awaiting` turn before the local send latch has fully reset
 - clearing `isSending` when SDK presentation contains actual entries or an

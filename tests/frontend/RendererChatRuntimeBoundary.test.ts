@@ -774,6 +774,8 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSideEffectsSource).toContain('streaming-response');
     expect(projectionSideEffectsSource).toContain('desktopChatStreamThinkingRuntime');
     expect(projectionSideEffectsSource).toContain('DesktopChatStreamThinkingRuntime');
+    expect(projectionSideEffectsSource).not.toContain('typingVisible');
+    expect(projectionSideEffectsSource).not.toContain('overlayVisible');
     expect(projectionSideEffectsSource).not.toContain('import {\n  buildThinkingStatus');
     expect(projectionSideEffectsSource).not.toContain('export function createProjectionCursor');
     expect(projectionSideEffectsSource).not.toContain('export function buildProjectionCursorKey');

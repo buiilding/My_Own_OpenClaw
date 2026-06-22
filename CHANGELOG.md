@@ -68,6 +68,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove the dead `typingVisible` cursor field from
+  `DesktopCurrentTurnProjectionEffectsRuntime`; SDK current-turn side effects
+  now track only text lengths, phase, errors, and seen tool-event ids while
+  continuing to ignore SDK presentation visibility flags as send-latch
+  authority. No migration required.
 - frontend/renderer: delete the unused empty `ChatContext` compatibility
   wrapper from `ChatProvider` and trim provider-injected live-surface trace
   snapshots so they carry identity/message evidence instead of raw

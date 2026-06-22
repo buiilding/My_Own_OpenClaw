@@ -17,7 +17,6 @@ export type ProjectionCursor = {
   assistantLength: number;
   reasoningLength: number;
   phase: string | null;
-  typingVisible: boolean | null;
   lastError: string | null;
   toolEventIds: Set<string>;
 };
@@ -59,7 +58,6 @@ function createProjectionCursor(): ProjectionCursor {
     assistantLength: 0,
     reasoningLength: 0,
     phase: null,
-    typingVisible: null,
     lastError: null,
     toolEventIds: new Set<string>(),
   };
@@ -128,11 +126,10 @@ function applyCurrentTurnProjectionSideEffects({
     reasoningText,
     cursor.reasoningLength,
   );
-  const shouldShowTyping = currentTurn.phase === 'awaiting';
   const hasSdkVisibleContent = resolveSdkPresentationHasVisibleContent(currentTurn);
 
   if (currentTurn.phase === 'awaiting' && cursor.phase !== 'awaiting') {
-    deps.setIsSending(shouldShowTyping, conversationRef);
+    deps.setIsSending(true, conversationRef);
     deps.setThinkingStatus(null, conversationRef);
     deps.setThinkingSourceEventType(null, conversationRef);
     deps.recordTrackingEvent(
@@ -257,7 +254,6 @@ function applyCurrentTurnProjectionSideEffects({
     assistantLength: assistantText.length,
     reasoningLength: reasoningText.length,
     phase: currentTurn.phase,
-    typingVisible: shouldShowTyping,
     lastError: currentTurn.lastError ?? null,
     toolEventIds: nextToolEventIds,
   };
