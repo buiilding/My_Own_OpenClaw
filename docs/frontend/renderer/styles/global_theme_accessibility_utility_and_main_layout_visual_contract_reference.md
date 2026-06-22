@@ -53,6 +53,14 @@ Global interaction affordances:
   browser, workspace, search, and speech buttons, with a light-mode override
   that keeps those controls visibly framed against white dashboard surfaces
 
+Light-mode readability:
+
+- the default light foreground is `#4C4C4C`, matching the dark gray body text
+  tone used by native desktop content surfaces such as Notes
+- primary and secondary light-mode UI text resolve to the foreground token
+  instead of a transparent foreground mix, so labels do not wash out on white
+  or translucent desktop surfaces
+
 Motion baseline:
 
 - defines `fadeUp` and `floatSlow` keyframes used by layout/presentation modules

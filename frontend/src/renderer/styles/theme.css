@@ -131,8 +131,8 @@
   --surface-ink: var(--appearance-foreground);
 
   --text-primary: var(--appearance-foreground);
-  --text-muted: color-mix(in srgb, var(--appearance-foreground) 66%, transparent 34%);
-  --text-soft: color-mix(in srgb, var(--appearance-foreground) 48%, transparent 52%);
+  --text-muted: color-mix(in srgb, var(--appearance-foreground) 82%, var(--appearance-background) 18%);
+  --text-soft: color-mix(in srgb, var(--appearance-foreground) 66%, var(--appearance-background) 34%);
 
   --border: color-mix(in srgb, var(--appearance-foreground) 12%, transparent 88%);
   --border-strong: color-mix(in srgb, var(--appearance-foreground) 22%, transparent 78%);
@@ -143,7 +143,7 @@
   --pill-border-soft: color-mix(in srgb, var(--appearance-foreground) 12%, transparent 88%);
   --pill-border-subtle: color-mix(in srgb, var(--appearance-foreground) 8%, transparent 92%);
   --pill-text-primary: var(--appearance-foreground);
-  --pill-text-muted: color-mix(in srgb, var(--appearance-foreground) 58%, transparent 42%);
+  --pill-text-muted: color-mix(in srgb, var(--appearance-foreground) 72%, var(--appearance-background) 28%);
   --pill-hover-bg: color-mix(in srgb, var(--agent-accent) 8%, transparent 92%);
   --pill-hover-strong-bg: color-mix(in srgb, var(--agent-accent) 15%, transparent 85%);
   --pill-scrim: rgba(15, 23, 42, 0.18);
@@ -191,9 +191,9 @@
   --ui-hover-bg: var(--pill-hover-bg);
   --ui-hover-strong-bg: var(--pill-hover-strong-bg);
   --ui-text-primary: var(--appearance-foreground);
-  --ui-text-secondary: color-mix(in srgb, var(--appearance-foreground) 78%, transparent 22%);
-  --ui-text-muted: color-mix(in srgb, var(--appearance-foreground) 58%, transparent 42%);
-  --ui-text-dim: color-mix(in srgb, var(--appearance-foreground) 42%, transparent 58%);
+  --ui-text-secondary: var(--appearance-foreground);
+  --ui-text-muted: color-mix(in srgb, var(--appearance-foreground) 72%, var(--appearance-background) 28%);
+  --ui-text-dim: color-mix(in srgb, var(--appearance-foreground) 56%, var(--appearance-background) 44%);
   --ui-border: var(--pill-border);
   --ui-border-soft: var(--pill-border-soft);
   --ui-border-subtle: var(--pill-border-subtle);

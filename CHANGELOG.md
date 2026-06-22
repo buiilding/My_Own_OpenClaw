@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: darken light appearance text defaults to a native
+  Notes-like `#4C4C4C` foreground and keep secondary UI labels on that readable
+  foreground instead of transparent mixes. No migration required.
 - frontend/renderer: preserve renderer-visible user image metadata through
   repeated same-turn SDK text-only display projections and dashboard-open
   display loads so user-included screenshots do not briefly downgrade to a

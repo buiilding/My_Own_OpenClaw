@@ -79,6 +79,12 @@ describe('desktopAppearanceThemeRuntime', () => {
     });
   });
 
+  test('keeps the default light foreground aligned with readable desktop content text', () => {
+    const theme = normalizeAppearanceTheme();
+
+    expect(theme.light.foreground).toBe('#4C4C4C');
+  });
+
   test('resolves explicit and system appearance themes', () => {
     expect(resolveEffectiveAppearanceTheme('light', jest.fn())).toBe('light');
     expect(resolveEffectiveAppearanceTheme('dark', jest.fn())).toBe('dark');
