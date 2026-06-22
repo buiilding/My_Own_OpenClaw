@@ -13,6 +13,17 @@ const AGENT_LOOP_AUTO_SCROLL_MESSAGE_TYPES = new Set([
   'search-source',
 ]);
 
+function resolveElement(elementRef) {
+  if (elementRef && Object.prototype.hasOwnProperty.call(elementRef, 'current')) {
+    return elementRef.current;
+  }
+  return elementRef || null;
+}
+
+function resolveWindowApi(windowApi = globalThis.window) {
+  return windowApi || {};
+}
+
 function isNearBottom(element) {
   if (!element) {
     return true;
@@ -29,6 +40,18 @@ function isNearBottom(element) {
   return distanceFromBottom <= MESSAGE_LIST_BOTTOM_STICK_THRESHOLD_PX;
 }
 
+function scrollToBottom(element, behavior = 'smooth') {
+  if (!element) {
+    return;
+  }
+  const targetTop = Number(element.scrollHeight) || 0;
+  if (typeof element.scrollTo === 'function') {
+    element.scrollTo({ top: targetTop, behavior });
+    return;
+  }
+  element.scrollTop = targetTop;
+}
+
 function scrollToConversationSwitchTarget(element, behavior = 'auto') {
   if (!element) {
     return;
@@ -43,6 +66,120 @@ function scrollToConversationSwitchTarget(element, behavior = 'auto') {
     return;
   }
   element.scrollTop = targetTop;
+}
+
+function scheduleMessageListScrollToBottom({
+  elementRef,
+  frameRef,
+  behaviorRef,
+  behavior = 'smooth',
+  windowApi = globalThis.window,
+} = {}) {
+  if (!frameRef || !behaviorRef) {
+    return null;
+  }
+
+  behaviorRef.current = (
+    behaviorRef.current === 'auto' || behavior === 'auto'
+  )
+    ? 'auto'
+    : 'smooth';
+
+  if (frameRef.current !== null) {
+    return frameRef.current;
+  }
+
+  const browserApi = resolveWindowApi(windowApi);
+  const runScheduledScroll = () => {
+    frameRef.current = null;
+    const scheduledBehavior = behaviorRef.current || 'smooth';
+    behaviorRef.current = null;
+    scrollToBottom(resolveElement(elementRef), scheduledBehavior);
+  };
+
+  if (typeof browserApi.requestAnimationFrame === 'function') {
+    frameRef.current = browserApi.requestAnimationFrame(runScheduledScroll);
+    return frameRef.current;
+  }
+
+  frameRef.current = -1;
+  runScheduledScroll();
+  return null;
+}
+
+function clearScheduledMessageListScroll({
+  frameRef,
+  behaviorRef,
+  windowApi = globalThis.window,
+} = {}) {
+  if (!frameRef || !behaviorRef) {
+    return false;
+  }
+
+  const browserApi = resolveWindowApi(windowApi);
+  if (
+    frameRef.current !== null
+    && frameRef.current !== -1
+    && typeof browserApi.cancelAnimationFrame === 'function'
+  ) {
+    browserApi.cancelAnimationFrame(frameRef.current);
+  }
+  frameRef.current = null;
+  behaviorRef.current = null;
+  return true;
+}
+
+function scheduleActiveFindMatchScroll({
+  messageListRef,
+  activeFindMatchIndex,
+  windowApi = globalThis.window,
+} = {}) {
+  if (activeFindMatchIndex === null || activeFindMatchIndex < 0) {
+    return () => {};
+  }
+
+  const scrollActiveMatch = () => {
+    const messageListNode = resolveElement(messageListRef);
+    const activeMatchNode = messageListNode?.querySelector?.(
+      `[data-thread-find-match-index="${activeFindMatchIndex}"]`,
+    );
+    if (activeMatchNode && typeof activeMatchNode.scrollIntoView === 'function') {
+      activeMatchNode.scrollIntoView({
+        block: 'center',
+        inline: 'nearest',
+      });
+    }
+  };
+
+  const browserApi = resolveWindowApi(windowApi);
+  if (typeof browserApi.requestAnimationFrame !== 'function') {
+    scrollActiveMatch();
+    return () => {};
+  }
+
+  const frameId = browserApi.requestAnimationFrame(scrollActiveMatch);
+  return () => {
+    if (typeof browserApi.cancelAnimationFrame === 'function') {
+      browserApi.cancelAnimationFrame(frameId);
+    }
+  };
+}
+
+function observeMessageListResize({
+  elementRef,
+  onResize,
+  resizeObserverCtor = globalThis.ResizeObserver,
+} = {}) {
+  const element = resolveElement(elementRef);
+  if (!element || typeof resizeObserverCtor !== 'function' || typeof onResize !== 'function') {
+    return () => {};
+  }
+
+  const resizeObserver = new resizeObserverCtor(onResize);
+  resizeObserver.observe(element);
+  return () => {
+    resizeObserver.disconnect();
+  };
 }
 
 function isAgentLoopAutoScrollEligibleMessage(message) {
@@ -175,6 +312,11 @@ function resolveCompactionStatusText(thinkingStatus, thinkingSourceEventType) {
 
 export const DesktopMessageListRuntime = Object.freeze({
   isNearBottom,
+  clearScheduledMessageListScroll,
+  observeMessageListResize,
+  scheduleActiveFindMatchScroll,
+  scheduleMessageListScrollToBottom,
+  scrollToBottom,
   scrollToConversationSwitchTarget,
   shouldForceScrollForNewUserMessage,
   shouldAutoScrollForAgentLoopMessageUpdate,

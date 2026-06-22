@@ -105,28 +105,10 @@ function MessageList({
       return undefined;
     }
 
-    const requestScroll = () => {
-      const messageListNode = messageListRef.current;
-      const activeMatchNode = messageListNode?.querySelector(
-        `[data-thread-find-match-index="${activeFindMatchIndex}"]`,
-      );
-      if (activeMatchNode && typeof activeMatchNode.scrollIntoView === 'function') {
-        activeMatchNode.scrollIntoView({
-          block: 'center',
-          inline: 'nearest',
-        });
-      }
-    };
-
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      const frameId = window.requestAnimationFrame(requestScroll);
-      return () => {
-        window.cancelAnimationFrame(frameId);
-      };
-    }
-
-    requestScroll();
-    return undefined;
+    return DesktopMessageListRuntime.scheduleActiveFindMatchScroll({
+      messageListRef,
+      activeFindMatchIndex,
+    });
   }, [activeFindMatchIndex, messageListRef, messages]);
 
   const conversationToolSchemas = useMemo(

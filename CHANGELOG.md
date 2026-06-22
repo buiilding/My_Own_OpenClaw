@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route message-list active find-match scrolling,
+  auto-scroll RAF coalescing/cleanup, and resize observation through
+  `DesktopMessageListRuntime`, keeping browser scheduling adapters out of
+  `MessageList` and `useMessageListAutoScroll`. No migration required.
 - frontend/renderer: route minimal chat pill native-frame collapse timers and
   post-presize composer height animation-frame commits through
   `DesktopChatboxInteractionRuntime`, leaving `MinimalChatPill` with only

@@ -9,6 +9,25 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Message List Browser Scheduling Runtime
+
+- Finding: `MessageList` and `useMessageListAutoScroll` still owned raw
+  `window.requestAnimationFrame`, `window.cancelAnimationFrame`, and
+  `ResizeObserver` mechanics for active find-match scrolling, bottom-scroll
+  coalescing, cleanup, and late content-growth observation even after message
+  list scroll predicates moved behind `DesktopMessageListRuntime`.
+- Change: extended `DesktopMessageListRuntime` with active find-match scroll
+  scheduling, coalesced bottom-scroll RAF scheduling/cleanup, bottom-scroll DOM
+  execution, and resize observation helpers. The component/hook now supply refs
+  and policy callbacks while the runtime owns browser adapter mechanics.
+- Validation target: focused message-list runtime, scroll behavior, and
+  renderer chat-boundary tests protect coalescing, cleanup, missing-RAF
+  fallback, find-match scrolling, observer setup/cleanup, and rejection of raw
+  browser scheduling in the feature code.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-22 Chat Pill Native Frame Scheduling Runtime
 
 - Finding: `MinimalChatPill` still owned raw `window.setTimeout`,

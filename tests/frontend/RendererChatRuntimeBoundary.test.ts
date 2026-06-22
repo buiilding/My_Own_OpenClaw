@@ -1213,6 +1213,10 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(messageListRuntimeSource).toContain('DesktopMessageListRuntime');
     expect(messageListRuntimeSource).toContain('resolveCompactionStatusText');
+    expect(messageListRuntimeSource).toContain('scheduleActiveFindMatchScroll');
+    expect(messageListRuntimeSource).toContain('scheduleMessageListScrollToBottom');
+    expect(messageListRuntimeSource).toContain('clearScheduledMessageListScroll');
+    expect(messageListRuntimeSource).toContain('observeMessageListResize');
     expect(messageListRuntimeSource).toContain('shouldAutoScrollForAgentLoopMessageUpdate');
     expect(messageListRuntimeSource).toContain('shouldAutoScrollForThinkingTextUpdate');
     expect(messageListRuntimeSource).not.toContain('export function isNearBottom');
@@ -1224,6 +1228,16 @@ describe('renderer chat runtime boundary', () => {
     expect(messageListRuntimeSource).not.toContain('export function shouldRenderUserActions');
     expect(messageListRuntimeSource).not.toContain('export function resolveCompactionStatusText');
     expect(autoScrollSource).not.toContain("nextLastMessage.type === 'llm-text'");
+    expect(messageListSource).toContain('DesktopMessageListRuntime.scheduleActiveFindMatchScroll');
+    expect(messageListSource).not.toContain('window.requestAnimationFrame');
+    expect(messageListSource).not.toContain('window.cancelAnimationFrame');
+    expect(autoScrollSource).toContain('DesktopMessageListRuntime.scheduleMessageListScrollToBottom');
+    expect(autoScrollSource).toContain('DesktopMessageListRuntime.clearScheduledMessageListScroll');
+    expect(autoScrollSource).toContain('DesktopMessageListRuntime.observeMessageListResize');
+    expect(autoScrollSource).not.toContain('window.requestAnimationFrame');
+    expect(autoScrollSource).not.toContain('window.cancelAnimationFrame');
+    expect(autoScrollSource).not.toContain('new ResizeObserver');
+    expect(autoScrollSource).not.toContain('typeof ResizeObserver');
     expect(messageListRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageListState.js'),

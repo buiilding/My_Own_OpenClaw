@@ -67,6 +67,12 @@ Dev source badge:
 - routes same-row assistant thinking-text update detection through
   `DesktopMessageListRuntime.shouldAutoScrollForThinkingTextUpdate(...)`,
   keeping raw message-type classification out of `useMessageListAutoScroll`
+- routes active find-match scroll scheduling, auto-scroll animation-frame
+  coalescing/cleanup, and message-list resize observation through
+  `DesktopMessageListRuntime`; `MessageList` and
+  `useMessageListAutoScroll` supply refs and policy callbacks without owning
+  raw browser `requestAnimationFrame`, `cancelAnimationFrame`, or
+  `ResizeObserver` adapters
 
 Guarantee:
 
