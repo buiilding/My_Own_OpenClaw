@@ -528,8 +528,9 @@ describe('renderer app runtime boundary', () => {
     expect(liveSurfaceSource).not.toContain('overlayIntent.mode ===');
     expect(liveSurfaceSource).not.toContain('useLocalSendLatch');
     expect(liveSurfaceSource).not.toContain('shouldUseSendPreflight');
+    expect(liveSurfaceSource).not.toContain('shouldUseLocalPendingTurn');
     expect(liveSurfaceSource).not.toContain("'send-preflight'");
-    expect(visibleLifecycleSource).toContain('shouldUseLocalPendingTurn');
+    expect(visibleLifecycleSource).not.toContain('shouldUseLocalPendingTurn');
     expect(visibleLifecycleSource).not.toContain('shouldUseLocalSendPreflight');
     expect(visibleLifecycleSource).not.toContain('overlayTurnLifecycle');
     expect(visibleLifecycleSource).not.toContain('presentationStateWithoutLegacyLifecycle');

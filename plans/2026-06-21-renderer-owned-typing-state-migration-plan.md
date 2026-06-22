@@ -9,6 +9,24 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Local Pending Surface Predicate Deletion
+
+- Finding: `DesktopVisibleTurnLifecycleRuntime` still exported
+  `shouldUseLocalPendingTurn(...)` only for live-surface callers, preserving a
+  second public handoff facade after `resolveVisibleTurnLifecycle(...)` already
+  returned the authoritative `local_pending` status.
+- Change: removed the extra predicate export and made
+  `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)` derive
+  pending-turn overlay state directly from the resolved visible lifecycle
+  status.
+- Validation target: `DesktopVisibleTurnLifecycleRuntime.test.js`,
+  `LiveTurnSurfaceState.test.js`, and `RendererAppRuntimeBoundary.test.ts`
+  protect the single lifecycle-status handoff path and reject the retired
+  predicate in both visible lifecycle and live-surface runtimes.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Overlay Intent Mode Authority Deletion
 
 - Finding: `DesktopLiveTurnSurfaceRuntime.hasSdkLiveTurnPresentation(...)`

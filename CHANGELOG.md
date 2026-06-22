@@ -75,6 +75,9 @@ All notable changes to WindieOS will be documented in this file.
   AudioContext construction, device availability probing, and wakeword
   device-change recovery through `DesktopVoiceAudioInputDeviceRuntime` instead
   of raw browser adapters in feature hooks. No migration required.
+- frontend/renderer: delete the public `shouldUseLocalPendingTurn` live-surface
+  handoff predicate so overlay pending state reads the already-resolved visible
+  lifecycle `local_pending` status. No migration required.
 - frontend/renderer: stop treating SDK `presentation.overlayIntent.mode` as
   live-surface presentation evidence; overlay intent now stays metadata for
   turn and guard refs while mode is derived from renderer-visible lifecycle

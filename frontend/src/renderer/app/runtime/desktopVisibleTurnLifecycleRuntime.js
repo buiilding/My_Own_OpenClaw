@@ -255,20 +255,6 @@ function resolveVisibleTurnLifecycle({
   };
 }
 
-function shouldUseLocalPendingTurn({
-  currentTurnProjection = null,
-  pendingTurn = null,
-} = {}) {
-  const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
-  if (!normalizedPendingTurn) {
-    return false;
-  }
-  if (!currentTurnProjection) {
-    return true;
-  }
-  return !hasAuthoritativeSameTurnSdkReplacement(normalizedPendingTurn, currentTurnProjection);
-}
-
 function applyVisibleTurnLifecycleToPresentationState(presentationState, visibleTurnLifecycle) {
   const nextState = {
     ...(presentationState || {}),
@@ -301,5 +287,4 @@ export const DesktopVisibleTurnLifecycleRuntime = Object.freeze({
   applyVisibleTurnLifecycleToPresentationState,
   resolvePendingTurnForCurrentProjection,
   resolveVisibleTurnLifecycle,
-  shouldUseLocalPendingTurn,
 });

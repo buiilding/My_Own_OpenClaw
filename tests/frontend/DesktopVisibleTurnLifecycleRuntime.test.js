@@ -10,7 +10,6 @@ const {
   applyVisibleTurnLifecycleToPresentationState,
   resolvePendingTurnForCurrentProjection,
   resolveVisibleTurnLifecycle,
-  shouldUseLocalPendingTurn,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 function pendingTurn(overrides = {}) {
@@ -69,6 +68,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     expect(DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSdkProjection).toBeUndefined();
     expect(DesktopVisibleTurnLifecycleRuntime.hasAuthoritativeSameTurnSdkReplacement).toBeUndefined();
     expect(DesktopVisibleTurnLifecycleRuntime.shouldUseLocalSendPreflight).toBeUndefined();
+    expect(DesktopVisibleTurnLifecycleRuntime.shouldUseLocalPendingTurn).toBeUndefined();
   });
 
   test('keeps local pending through idle, empty, and wrong-turn SDK projections until same-turn authority arrives', () => {
@@ -371,7 +371,7 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
     });
   });
 
-  test('centralizes local pending-turn handoff for live surface consumers', () => {
+  test('centralizes local pending-turn handoff on visible lifecycle status', () => {
     const pending = pendingTurn();
     const hiddenIdleProjection = projection({
       phase: 'idle',
@@ -392,18 +392,28 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
       },
     });
 
-    expect(shouldUseLocalPendingTurn({
+    expect(resolveVisibleTurnLifecycle({
       currentTurnProjection: hiddenIdleProjection,
       pendingTurn: pending,
       messages: [],
-    })).toBe(true);
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      isBusy: true,
+      showTyping: true,
+    });
 
-    expect(shouldUseLocalPendingTurn({
+    expect(resolveVisibleTurnLifecycle({
       currentTurnProjection: hiddenIdleProjection,
       messages: [],
-    })).toBe(false);
+    })).toMatchObject({
+      status: 'idle',
+      source: 'sdk',
+      isBusy: false,
+      showTyping: false,
+    });
 
-    expect(shouldUseLocalPendingTurn({
+    expect(resolveVisibleTurnLifecycle({
       currentTurnProjection: projection({
         phase: 'awaiting',
         presentation: {
@@ -428,9 +438,14 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         text: 'hello',
         turnRef: 'turn-1',
       }],
-    })).toBe(false);
+    })).toMatchObject({
+      status: 'awaiting',
+      source: 'sdk',
+      isBusy: true,
+      showTyping: true,
+    });
 
-    expect(shouldUseLocalPendingTurn({
+    expect(resolveVisibleTurnLifecycle({
       currentTurnProjection: projection({
         phase: 'complete',
         turnRef: 'turn-1',
@@ -446,9 +461,15 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         { id: 'user-1', sender: 'user', text: 'first', turnRef: 'turn-1' },
         { id: 'assistant-1', sender: 'assistant', text: 'done', turnRef: 'turn-1' },
       ],
-    })).toBe(true);
+    })).toMatchObject({
+      status: 'local_pending',
+      source: 'local',
+      turnRef: 'turn-2',
+      isBusy: true,
+      showTyping: true,
+    });
 
-    expect(shouldUseLocalPendingTurn({
+    expect(resolveVisibleTurnLifecycle({
       currentTurnProjection: projection({
         phase: 'complete',
         turnRef: 'turn-2',
@@ -479,7 +500,13 @@ describe('DesktopVisibleTurnLifecycleRuntime', () => {
         text: 'second',
         turnRef: 'turn-2',
       }],
-    })).toBe(false);
+    })).toMatchObject({
+      status: 'terminal',
+      source: 'sdk',
+      turnRef: 'turn-2',
+      isBusy: false,
+      showTyping: false,
+    });
   });
 
 });

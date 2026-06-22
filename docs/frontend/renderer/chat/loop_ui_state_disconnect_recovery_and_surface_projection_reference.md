@@ -46,10 +46,10 @@ Output statuses:
 
 `DesktopVisibleTurnLifecycleRuntime.resolvePendingTurnForCurrentProjection(...)`
 owns pending-turn handoff for store updates, while
-`DesktopVisibleTurnLifecycleRuntime.shouldUseLocalPendingTurn(...)` owns
-surface local-pending suppression. Both use the same visible lifecycle authority so
-SDK idle, wrong-turn terminal, stale, and visible-empty projections do not
-replace `local_pending`.
+`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` owns the
+surface local-pending status consumed by dashboard, pill, and overlay surfaces.
+Both use the same visible lifecycle authority so SDK idle, wrong-turn terminal,
+stale, and visible-empty projections do not replace `local_pending`.
 Local pending rendering requires a valid renderer `pendingTurn`; bare
 `isSending=true` is store/diagnostic compatibility state and does not create
 visible typing or busy lifecycle by itself.
@@ -179,11 +179,11 @@ conversation ref when present, so a lagging session ref does not hide the
 visible same-turn projection.
 
 `DesktopLiveTurnSurfaceRuntime.resolveLiveTurnPresentationInput(...)` delegates
-local pending-turn handoff to
-`DesktopVisibleTurnLifecycleRuntime.shouldUseLocalPendingTurn(...)`. The live
-surface still prepares overlay presentation input and SDK overlay intent
-metadata, but phase, busy, awaiting, and response flags now come from
-`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)`. The
+local pending-turn handoff to the already-resolved
+`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` status.
+The live surface still prepares overlay presentation input and SDK overlay
+intent metadata, but phase, busy, awaiting, and response flags now come from
+that visible lifecycle projection. The
 live-surface adapter exposes `isBusy` rather than a legacy `isSending` alias,
 and no longer returns a separate `showAwaiting` typing alias; typing state
 stays on `visibleTurnLifecycle.showTyping`. It also omits the duplicate
@@ -268,7 +268,8 @@ longer imports the overlay lifecycle adapter.
 - shared presentation adapters map renderer visible lifecycle into busy,
   awaiting-dot, chatbox, and response overlay presentation fields
 - bare `isSending=true` does not create local pending without `pendingTurn`
-- the handoff predicate stays behind the visible lifecycle runtime facade
+- live surfaces read local pending from visible lifecycle status instead of a
+  second handoff predicate
 
 `tests/frontend/ChatSurfaceController.test.jsx` validates:
 

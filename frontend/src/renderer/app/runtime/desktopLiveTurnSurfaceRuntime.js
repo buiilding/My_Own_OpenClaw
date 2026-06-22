@@ -17,7 +17,6 @@ const {
 } = DesktopResponseOverlayPhaseRuntime;
 const {
   resolveVisibleTurnLifecycle,
-  shouldUseLocalPendingTurn,
 } = DesktopVisibleTurnLifecycleRuntime;
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
@@ -148,10 +147,7 @@ function resolveLiveTurnPresentationInput({
     currentTurnProjection,
     messages,
   });
-  const useLocalPendingTurn = shouldUseLocalPendingTurn({
-    currentTurnProjection,
-    pendingTurn,
-  });
+  const useLocalPendingTurn = resolvedVisibleTurnLifecycle?.status === 'local_pending';
   if (useLocalPendingTurn) {
     const turnRef = normalizeTurnRef(pendingTurn?.turnRef);
     const preflightGuardRef = getResponseOverlayPreflightGuardRef();
