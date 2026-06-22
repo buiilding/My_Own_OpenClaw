@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Main Overlay Phase Event Runtime Privacy
+
+- Finding: `ipc_overlay_phase_events.cjs` owned backend-event to response-overlay
+  phase transition mapping, but exported the transition resolver directly into
+  `ipc_runtime_helpers.cjs` even though correlation id precedence and recovery
+  metadata extraction were lower-level implementation details.
+- Change: added `createOverlayPhaseEventRuntime(...)` as the public overlay
+  event facade, routed `ipc_runtime_helpers.cjs` through it, and kept transition
+  resolution, correlation-id extraction, and recovery metadata shaping private
+  inside the module.
+- Validation target: `IpcOverlayPhaseEvents.test.cjs` protects backend event
+  mapping, metadata normalization, private helper export shape, and the runtime
+  helper facade import.
+- Compatibility/security: no backend event shape, overlay phase payload,
+  renderer fan-out, IPC channel, provider policy, credential, permission, local
+  execution, trust-boundary, or migration change required.
+
 ### 2026-06-22 Main Conversation Event Projection Runtime Privacy
 
 - Finding: `ipc_conversation_event_projection.cjs` owned backend-event to SDK

@@ -71,6 +71,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: route backend-event overlay phase mapping through
+  `createOverlayPhaseEventRuntime(...)` so `ipc_overlay_phase_events.cjs` keeps
+  transition resolution, correlation-id precedence, and recovery metadata
+  shaping private while `ipc_runtime_helpers.cjs` consumes a facade. No
+  migration required.
 - frontend/main: route replay conversation-event projection through
   `createConversationEventProjectionRuntime(...)` so
   `ipc_conversation_event_projection.cjs` keeps backend-event validation and

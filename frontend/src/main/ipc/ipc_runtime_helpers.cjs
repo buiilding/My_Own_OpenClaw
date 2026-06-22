@@ -3,7 +3,7 @@
  */
 
 const {
-  resolveBackendOverlayPhaseTransition,
+  createOverlayPhaseEventRuntime,
 } = require('./ipc_overlay_phase_events.cjs');
 const {
   broadcastTypedBackendEvent,
@@ -33,6 +33,8 @@ const SCRIPTED_PROVIDER_MODEL = Object.freeze({
   input_price: 'Free',
   output_price: 'Free',
 });
+
+const overlayPhaseEventRuntime = createOverlayPhaseEventRuntime();
 
 function isDebugStreamTraceEnabled() {
   return isDebugFlagEnabled('streamEvents');
@@ -255,7 +257,10 @@ function processBackendMessageData(data, {
   } else if (rendererData?.type === 'error' && rendererData.id) {
     resolveSettingsAck(rendererData.id, false);
   }
-  const overlayTransition = resolveBackendOverlayPhaseTransition(rendererData, getResponseOverlayPhase());
+  const overlayTransition = overlayPhaseEventRuntime.resolveBackendOverlayPhaseTransition(
+    rendererData,
+    getResponseOverlayPhase(),
+  );
   if (overlayTransition) {
     setResponseOverlayPhase(
       overlayTransition.phase,

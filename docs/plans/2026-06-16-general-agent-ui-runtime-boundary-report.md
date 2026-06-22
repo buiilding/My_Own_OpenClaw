@@ -9764,3 +9764,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   projection, storage, local-runtime execution, provider policy, permissions,
   backend behavior, and trust boundaries are unchanged; no migration is
   required.
+- Main overlay phase backend-event mapping now routes through
+  `createOverlayPhaseEventRuntime` instead of a standalone transition resolver
+  export. `ipc_runtime_helpers.cjs` consumes the facade object while the module
+  keeps transition mapping, correlation-id precedence, terminal fallback
+  handling, and recovery metadata extraction private. Backend event shapes,
+  overlay phase payloads, renderer fan-out, IPC channels, storage,
+  local-runtime execution, provider policy, permissions, backend behavior, and
+  trust boundaries are unchanged; no migration is required.

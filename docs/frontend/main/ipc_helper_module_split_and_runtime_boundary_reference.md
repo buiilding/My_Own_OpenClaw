@@ -669,9 +669,14 @@ Owns backend-event to SDK conversation-event projection for replay fan-out:
 
 Owns backend-event to response-overlay transition contract:
 
-- `resolveOverlayCorrelationId`: deterministic id precedence (`request_id` -> `correlation_id` -> `bundle_id` -> event `id`)
-- `resolveOverlayPhaseMetadata`: normalized recovery metadata extraction (`attempt`, `max_attempts`, `failure_reason`, `recovery_stage`)
-- `resolveBackendOverlayPhaseTransition`: canonical transition mapping for `streaming-response`, `tool-call`, `tool-bundle`, `tool-output`, `streaming-complete`, and phase-guarded `error`
+- `createOverlayPhaseEventRuntime`: exposes backend-event to overlay transition
+  resolution for `ipc_runtime_helpers.cjs`
+- keeps correlation-id precedence (`request_id` -> `correlation_id` ->
+  `bundle_id` -> event `id`) private behind the runtime facade
+- keeps recovery metadata extraction (`attempt`, `max_attempts`,
+  `failure_reason`, `recovery_stage`) private behind the runtime facade
+- maps `streaming-response`, `tool-call`, `tool-bundle`, `tool-output`,
+  `streaming-complete`, terminal fallback events, and phase-guarded `error`
 
 ### `ipc_overlay_phase_contract.cjs`
 

@@ -1,10 +1,37 @@
 /** @jest-environment node */
 
+const fs = require('fs/promises');
+const path = require('path');
+
 const {
-  resolveBackendOverlayPhaseTransition,
+  createOverlayPhaseEventRuntime,
 } = require('../../frontend/src/main/ipc/ipc_overlay_phase_events.cjs');
 
 describe('ipc_overlay_phase_events', () => {
+  const overlayPhaseEventRuntime = createOverlayPhaseEventRuntime();
+  const {
+    resolveBackendOverlayPhaseTransition,
+  } = overlayPhaseEventRuntime;
+
+  test('keeps lower-level overlay transition helper private', () => {
+    const overlayPhaseEventsModule = require('../../frontend/src/main/ipc/ipc_overlay_phase_events.cjs');
+
+    expect(overlayPhaseEventsModule.resolveBackendOverlayPhaseTransition).toBeUndefined();
+    expect(typeof overlayPhaseEventsModule.createOverlayPhaseEventRuntime).toBe('function');
+  });
+
+  test('runtime helpers consume overlay transitions through the facade', async () => {
+    const runtimeHelpersSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_runtime_helpers.cjs'),
+      'utf8',
+    );
+
+    expect(runtimeHelpersSource).toContain('createOverlayPhaseEventRuntime');
+    expect(runtimeHelpersSource).toContain('overlayPhaseEventRuntime.resolveBackendOverlayPhaseTransition');
+    expect(runtimeHelpersSource).not.toContain('const {\r\n  resolveBackendOverlayPhaseTransition,');
+    expect(runtimeHelpersSource).not.toContain('const {\n  resolveBackendOverlayPhaseTransition,');
+  });
+
   test('maps backend tool events using payload id precedence then event id fallback', () => {
     expect(resolveBackendOverlayPhaseTransition({
       type: 'tool-call',
