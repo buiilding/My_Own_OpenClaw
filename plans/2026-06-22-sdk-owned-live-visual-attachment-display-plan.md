@@ -104,10 +104,11 @@ The renderer should consume this list as rendering data:
   resolver
 - preserve list order from the SDK
 
-Long term, renderer components should not merge `screenshotRef`,
-`screenshotRefs`, `screenshotUrl`, `screenshot`, and `attachmentFilenames`
-aliases themselves. Those aliases can remain compatibility fields during the
-migration.
+Renderer components should not merge `screenshotRef`, `screenshotRefs`,
+`screenshotUrl`, `screenshot`, and `attachmentFilenames` aliases themselves in
+the completed implementation. Legacy aliases may exist only as a short-lived
+parity gate while SDK `attachments[]` coverage is being proven. They are not
+part of the target architecture.
 
 ## Persistence Contract
 
@@ -148,8 +149,11 @@ metadata.
 - Do not make the backend own live optimistic display state.
 - Do not collapse user-included images and camera screenshot requests into one
   ambiguous `screenshot` field.
-- Do not delete the current renderer monotonic guard until SDK-owned projection
-  coverage proves the SDK cannot emit a same-turn text-only downgrade.
+- Do not leave the current renderer monotonic guard, dashboard-open screenshot
+  merge, or screenshot alias rendering paths in place after SDK-owned projection
+  coverage proves the new ordered attachment contract.
+- Do not keep compatibility code without a named dependency, owner, and
+  deletion condition.
 
 ## Implementation Slices
 
@@ -223,17 +227,21 @@ Expected row behavior:
   same-turn visual attachment descriptors unless a terminal failure explicitly
   marks the resource failed
 
-### 5. Renderer Consumer Simplification
+### 5. Renderer Consumer Switch
 
-Teach renderer message projection and presentation to prefer SDK display
-`attachments[]`.
+Teach renderer message projection and presentation to consume SDK display
+`attachments[]` as the live visual display contract.
 
 Migration approach:
 
-1. Prefer `attachments[]` when present.
-2. Keep legacy `screenshots[]` and screenshot alias support as compatibility.
-3. Once SDK projection owns all live visual attachment cases and replay paths,
-   remove renderer-only same-turn screenshot merge compatibility.
+1. Add renderer support for `attachments[]` behind focused projection and UI
+   tests.
+2. Switch live user-message rendering to `attachments[]`.
+3. Keep legacy `screenshots[]` and screenshot alias support only for the
+   smallest parity window needed to compare old and new behavior.
+4. Delete renderer-only same-turn screenshot merge compatibility after the SDK
+   projection tests cover repeated text-only rebuilds, dashboard open, replay,
+   and mixed visual-resource sends.
 
 Owner candidates:
 
@@ -260,6 +268,37 @@ without storing image data:
 Do not log text, preview bytes, screenshot URLs, screenshot paths, or filenames
 unless a filename has already been sanitized elsewhere.
 
+### 7. Deletion Sweep
+
+After SDK-owned `attachments[]` projection is live and covered, remove old
+implementations instead of layering the new contract on top of them.
+
+Deletion targets:
+
+- renderer same-turn screenshot preservation/merge guard in
+  `frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts`
+- dashboard-open screenshot annotation merge path in
+  `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
+  once dashboard receives SDK display rows that are already monotonic
+- primary renderer projection from legacy `screenshotRef`, `screenshotRefs`,
+  `screenshotUrl`, `screenshot`, `screenshot_ref`, `screenshot_refs`, and
+  `screenshot_url` aliases when `attachments[]` covers the same cases
+- UI branches that treat user-included images and camera screenshots as one
+  ambiguous screenshot slot
+- compatibility tests whose only purpose was protecting the retired renderer
+  fallback, after equivalent SDK-owned tests exist
+- duplicate SDK display-row metadata alias writers once all consumers read the
+  ordered attachment list
+
+Allowed remaining compatibility must be narrow:
+
+- old persisted conversations may be adapted in one SDK/local-store replay
+  adapter that converts legacy screenshot metadata into `attachments[]`
+- backend/provider payload compatibility may keep artifact ref aliases where
+  external or persisted contracts still require them
+- any remaining alias path must name its dependency and deletion condition in
+  code comments or owner docs
+
 ## Regression Tests
 
 Add or extend tests in the owner-correct layer before simplifying frontend
@@ -283,7 +322,9 @@ Renderer tests:
 
 - message projection prefers SDK `attachments[]`
 - user message presentation renders multiple ordered display attachments
-- renderer compatibility guard remains until SDK contract coverage is complete
+- renderer compatibility guard remains only during the parity gate
+- renderer fallback deletion is covered by boundary tests that reject the old
+  merge/alias implementation after SDK contract coverage is complete
 
 Regression pack:
 
@@ -303,11 +344,15 @@ available.
 Compatibility should be temporary and explicit:
 
 - SDK display rows may emit both `attachments[]` and legacy screenshot alias
-  fields during migration
-- renderer should prefer `attachments[]`
-- remove legacy renderer merge and alias fallback only after local history,
-  replay, dashboard open, live stream, retry/edit-resend, and scripted-provider
-  image tests pass through `attachments[]`
+  fields only during the parity gate
+- renderer should switch from preferring `attachments[]` to requiring
+  `attachments[]` for live visual display before the migration is complete
+- remove legacy renderer merge and alias fallback after local history, replay,
+  dashboard open, live stream, retry/edit-resend, and scripted-provider image
+  tests pass through `attachments[]`
+- isolate old persisted-row adaptation in SDK/local-store replay code rather
+  than renderer UI code
+- document every remaining compatibility path with a deletion condition
 
 ## Security And Privacy Checks
 
@@ -329,8 +374,12 @@ Compatibility should be temporary and explicit:
 - Repeated SDK display projection rebuilds are monotonic for same-turn visual
   attachments.
 - Renderer surfaces render the SDK display attachment list without screenshot
-  alias merging for the primary path.
-- Legacy screenshot aliases and renderer merge compatibility have named
-  remaining dependencies or are deleted.
+  alias merging.
+- Renderer same-turn screenshot merge compatibility and dashboard-open
+  screenshot annotation merge are deleted after SDK projection owns monotonic
+  display rows.
+- Legacy screenshot aliases are not primary renderer display inputs. Any
+  remaining alias handling is isolated to SDK/local-store replay or
+  backend/provider compatibility with a named dependency and deletion condition.
 - Core-loop and focused SDK/frontend tests cover single image, multi-image,
   camera-only, mixed image plus camera, replay, and repeated projection cases.

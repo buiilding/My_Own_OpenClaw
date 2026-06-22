@@ -13,7 +13,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/plans: add the SDK-owned live visual attachment display plan for moving
   mixed user-included images, multi-image sends, camera screenshot requests,
   and combined image-plus-camera display continuity into SDK projection while
-  keeping renderer code a simple display-row consumer. No migration required.
+  keeping renderer code a simple display-row consumer, with explicit deletion
+  criteria for old renderer screenshot merge and alias compatibility paths. No
+  migration required.
 - docs/plans: add an implementation-ready SDK display-row metadata canonical
   image shape migration plan for replacing duplicate screenshot alias fields
   with one SDK display attachment contract consumed by the renderer. No
