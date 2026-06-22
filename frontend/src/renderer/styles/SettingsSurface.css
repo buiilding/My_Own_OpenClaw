@@ -486,7 +486,7 @@
   letter-spacing: 0.01em;
   min-width: 132px;
   padding: 7px 14px;
-  transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
 .settings-surface-secondary-button:hover:not(:disabled) {
@@ -496,7 +496,9 @@
 
 .settings-surface-secondary-button:disabled {
   cursor: default;
-  opacity: 0.55;
+  background: var(--ui-secondary-button-disabled-bg);
+  border-color: var(--ui-secondary-button-disabled-border);
+  color: var(--ui-secondary-button-disabled-fg);
 }
 
 .settings-surface-primary-button {
@@ -512,7 +514,7 @@
   min-width: 156px;
   padding: 7px 14px;
   box-shadow: 0 0 18px -10px var(--agent-accent-glow);
-  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease, opacity 140ms ease;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
 }
 
 .settings-surface-primary-button:hover:not(:disabled) {
@@ -523,7 +525,10 @@
 
 .settings-surface-primary-button:disabled {
   cursor: default;
-  opacity: 0.55;
+  background: var(--ui-primary-button-disabled-bg);
+  border-color: var(--ui-primary-button-disabled-border);
+  color: var(--ui-primary-button-disabled-fg);
+  box-shadow: none;
 }
 
 .settings-surface-action-status {

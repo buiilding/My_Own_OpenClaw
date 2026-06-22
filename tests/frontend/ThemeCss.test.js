@@ -39,9 +39,13 @@ describe('theme CSS', () => {
     expect(rootBody).toEqual(expect.stringContaining('--ui-toggle-track-off:'));
     expect(rootBody).toEqual(expect.stringContaining('--ui-toggle-track-on:'));
     expect(rootBody).toEqual(expect.stringContaining('--ui-toggle-track-disabled:'));
+    expect(rootBody).toEqual(expect.stringContaining('--ui-primary-button-disabled-bg:'));
+    expect(rootBody).toEqual(expect.stringContaining('--ui-secondary-button-disabled-bg:'));
     expect(rootBody).toEqual(expect.stringContaining('--ui-danger-bg:'));
     expect(rootBody).toEqual(expect.stringContaining('--ui-danger-disabled-fg:'));
     expect(lightThemeBody).toEqual(expect.stringContaining('--ui-toggle-thumb-off: var(--appearance-foreground);'));
+    expect(lightThemeBody).toEqual(expect.stringContaining('--ui-primary-button-disabled-fg: color-mix(in srgb, var(--appearance-foreground)'));
+    expect(lightThemeBody).toEqual(expect.stringContaining('--ui-secondary-button-disabled-fg: color-mix(in srgb, var(--appearance-foreground)'));
     expect(lightThemeBody).toEqual(expect.stringContaining('--ui-danger-fg: #9f2418;'));
   });
 });

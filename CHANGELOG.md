@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 
+- docs/adr: add ADR 008 and the conversation history revision architecture
+  plan for separating full display history, backend-normalized model history,
+  runtime events, and revision graph ownership so edit/resend, compaction,
+  rehydrate, and fork share one target architecture. No migration required.
 - frontend/renderer: add a dynamic one-section Appearance editor for the active
   light/dark theme, first-class user-message pill background/text colors, and
   high-contrast settings toggle/destructive-control state tokens, with the
@@ -85,6 +89,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: give disabled primary and secondary settings buttons
+  explicit readable disabled palettes instead of opacity-only styling, closing
+  the remaining light-mode settings-control contrast gap. No migration
+  required.
 - frontend/renderer: keep SDK visual attachment previews visible while ready
   artifact images resolve, and avoid repeated equivalent screenshot-source
   state writes that could trigger React maximum update depth warnings in

@@ -49,4 +49,19 @@ describe('settings surface CSS', () => {
     expect(dangerDisabledBody).toEqual(expect.stringContaining('color: var(--ui-danger-disabled-fg);'));
     expect(dangerDisabledBody).not.toEqual(expect.stringContaining('opacity:'));
   });
+
+  test('uses explicit disabled palettes for primary and secondary settings buttons', () => {
+    const css = readSettingsSurfaceCss();
+    const primaryDisabledBody = collectRuleBodies(css, String.raw`\.settings-surface-primary-button:disabled`);
+    const secondaryDisabledBody = collectRuleBodies(css, String.raw`\.settings-surface-secondary-button:disabled`);
+
+    expect(primaryDisabledBody).toEqual(expect.stringContaining('background: var(--ui-primary-button-disabled-bg);'));
+    expect(primaryDisabledBody).toEqual(expect.stringContaining('border-color: var(--ui-primary-button-disabled-border);'));
+    expect(primaryDisabledBody).toEqual(expect.stringContaining('color: var(--ui-primary-button-disabled-fg);'));
+    expect(primaryDisabledBody).not.toEqual(expect.stringContaining('opacity:'));
+    expect(secondaryDisabledBody).toEqual(expect.stringContaining('background: var(--ui-secondary-button-disabled-bg);'));
+    expect(secondaryDisabledBody).toEqual(expect.stringContaining('border-color: var(--ui-secondary-button-disabled-border);'));
+    expect(secondaryDisabledBody).toEqual(expect.stringContaining('color: var(--ui-secondary-button-disabled-fg);'));
+    expect(secondaryDisabledBody).not.toEqual(expect.stringContaining('opacity:'));
+  });
 });

@@ -125,6 +125,12 @@
   --ui-toggle-border-off: rgba(255, 255, 255, 0.18);
   --ui-toggle-border-on: color-mix(in srgb, var(--agent-accent) 80%, white 20%);
   --ui-toggle-border-disabled: rgba(255, 255, 255, 0.12);
+  --ui-primary-button-disabled-bg: rgba(52, 76, 106, 0.82);
+  --ui-primary-button-disabled-fg: rgba(233, 238, 246, 0.72);
+  --ui-primary-button-disabled-border: rgba(112, 131, 156, 0.46);
+  --ui-secondary-button-disabled-bg: rgba(255, 255, 255, 0.08);
+  --ui-secondary-button-disabled-fg: rgba(233, 238, 246, 0.62);
+  --ui-secondary-button-disabled-border: rgba(255, 255, 255, 0.12);
   --ui-danger-bg: rgba(200, 77, 60, 0.16);
   --ui-danger-bg-hover: rgba(200, 77, 60, 0.26);
   --ui-danger-fg: #ffd9d4;
@@ -233,6 +239,12 @@
   --ui-toggle-border-off: color-mix(in srgb, var(--appearance-foreground) 24%, transparent 76%);
   --ui-toggle-border-on: color-mix(in srgb, var(--agent-accent) 84%, var(--appearance-foreground) 16%);
   --ui-toggle-border-disabled: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);
+  --ui-primary-button-disabled-bg: color-mix(in srgb, var(--agent-accent) 18%, var(--appearance-background) 82%);
+  --ui-primary-button-disabled-fg: color-mix(in srgb, var(--appearance-foreground) 82%, var(--agent-accent) 18%);
+  --ui-primary-button-disabled-border: color-mix(in srgb, var(--agent-accent) 34%, var(--appearance-foreground) 18%, transparent 48%);
+  --ui-secondary-button-disabled-bg: color-mix(in srgb, var(--appearance-foreground) 7%, var(--appearance-background) 93%);
+  --ui-secondary-button-disabled-fg: color-mix(in srgb, var(--appearance-foreground) 76%, var(--appearance-background) 24%);
+  --ui-secondary-button-disabled-border: color-mix(in srgb, var(--appearance-foreground) 22%, transparent 78%);
   --ui-danger-bg: color-mix(in srgb, #c83324 16%, var(--appearance-background) 84%);
   --ui-danger-bg-hover: color-mix(in srgb, #c83324 24%, var(--appearance-background) 76%);
   --ui-danger-fg: #9f2418;

@@ -155,9 +155,10 @@ the app root asks the runtime facade to apply the effective theme to shared
 dashboard/settings tokens.
 
 Settings state controls use shared theme variables for toggle track/thumb/border
-states and destructive button enabled/hover/disabled states. Disabled toggles
-and destructive actions should remain muted but readable; they should not rely
-on opacity over a low-contrast light-mode palette.
+states, primary/secondary button disabled states, and destructive button
+enabled/hover/disabled states. Disabled toggles, primary/secondary actions, and
+destructive actions should remain muted but readable; they should not rely on
+opacity over a low-contrast light-mode palette.
 
 ## Agent Tab Ownership Model
 

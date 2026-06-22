@@ -68,9 +68,11 @@ Light-mode readability:
   `--user-message-foreground`, applied from the active appearance theme section,
   so message pill colors are independent from global accent and send-button
   colors
-- settings toggles and destructive buttons use shared state-control variables
-  (`--ui-toggle-*` and `--ui-danger-*`) so checked, unchecked, disabled,
-  hover, focus, and destructive states stay readable in light appearance
+- settings toggles, primary/secondary buttons, and destructive buttons use
+  shared state-control variables (`--ui-toggle-*`, `--ui-primary-button-*`,
+  `--ui-secondary-button-*`, and `--ui-danger-*`) so checked, unchecked,
+  disabled, hover, focus, and destructive states stay readable in light
+  appearance
 
 Motion baseline:
 
