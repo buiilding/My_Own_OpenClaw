@@ -11,6 +11,10 @@ All notable changes to WindieOS will be documented in this file.
   `agent_definition` tool policy, so current conversations pick up system
   prompt and tool visibility changes on the next user turn. The persisted
   `agent_custom_instructions` config key is unchanged; no migration required.
+- frontend/main: keep Agent settings disabled-tool list canonicalization
+  SDK-owned; Electron main now derives remote-tool enablement and forwards the
+  raw desktop config lists to the SDK builder before backend schema validation.
+  No migration required.
 - frontend/renderer: simplify Agent settings copy by renaming Custom
   instructions to System prompt and removing helper/pending status text from
   the prompt, extension, pending local-tool, and cloud-tool sections. No

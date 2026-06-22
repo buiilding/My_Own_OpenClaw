@@ -30,36 +30,25 @@ function cloneJsonObject(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function normalizeStringList(value) {
+function arrayValue(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function containsTrimmedString(value, expected) {
   if (!Array.isArray(value)) {
-    return [];
+    return false;
   }
-  const normalized = [];
-  const seen = new Set();
-  for (const item of value) {
-    if (typeof item !== 'string') {
-      continue;
-    }
-    const name = item.trim();
-    if (!name || seen.has(name)) {
-      continue;
-    }
-    seen.add(name);
-    normalized.push(name);
-  }
-  return normalized;
+  return value.some((item) => (
+    typeof item === 'string'
+    && item.trim() === expected
+  ));
 }
 
 function resolveAgentToolConfig(latestDesktopUiConfig) {
-  const disabledLocalTools = normalizeStringList(
-    latestDesktopUiConfig?.agent_disabled_local_tools,
-  );
-  const disabledRemoteTools = normalizeStringList(
-    latestDesktopUiConfig?.agent_disabled_remote_tools,
-  );
-  const disabledRemoteToolSet = new Set(disabledRemoteTools);
+  const disabledLocalTools = arrayValue(latestDesktopUiConfig?.agent_disabled_local_tools);
+  const disabledRemoteTools = arrayValue(latestDesktopUiConfig?.agent_disabled_remote_tools);
   const enabledRemoteTools = REMOTE_AGENT_TOOL_NAMES.filter(
-    (toolName) => !disabledRemoteToolSet.has(toolName),
+    (toolName) => !containsTrimmedString(disabledRemoteTools, toolName),
   );
   return {
     availableTools: enabledRemoteTools,

@@ -18,6 +18,10 @@ const agentDefinitionContextModule = require('../../frontend/src/main/ipc/ipc_ag
 const {
   createAgentDefinitionContextRuntime,
 } = agentDefinitionContextModule;
+const {
+  buildAgentDefinition,
+  isDefaultAgentDefinition,
+} = require('../../packages/windie-sdk-js/cjs/runtime/AgentDefinition.js');
 
 function createGeneratedDefinition(overrides = {}) {
   return {
@@ -208,6 +212,29 @@ describe('ipc_agent_definition_context', () => {
     });
   });
 
+  test('delegates disabled tool list canonicalization to the SDK builder', () => {
+    const runtime = createAgentDefinitionContextRuntime({
+      getLatestDesktopUiConfig: () => ({
+        agent_disabled_local_tools: [' browser ', '', 'browser', null],
+        agent_disabled_remote_tools: [' web_search ', ' ', 'web_search'],
+      }),
+      buildAgentDefinition,
+      isDefaultAgentDefinition,
+    });
+
+    const result = runtime.attach({ text: 'hello' });
+
+    expect(result.agent_definition).toMatchObject({
+      mode: 'default_plus_overrides',
+      tools: {
+        mode: 'default_plus_client',
+        enabled_remote_tools: [],
+        disabled_tools: ['browser', 'web_search'],
+      },
+    });
+    expect(result.agent_definition.tools).not.toHaveProperty('available_tools');
+  });
+
   test('ipc.cjs composes agent definition context through the runtime wrapper', async () => {
     const mainSource = await fs.promises.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -222,6 +249,7 @@ describe('ipc_agent_definition_context', () => {
     expect(mainSource).toContain('agentDefinitionContextRuntime.attach(payload)');
     expect(mainSource).not.toContain('attachAgentDefinitionContextRuntime(payload');
     expect(helperSource).toContain('function createAgentDefinitionContextRuntime');
+    expect(helperSource).not.toContain('function normalizeStringList');
     expect(agentDefinitionContextModule.attachAgentDefinitionContext).toBeUndefined();
     expect(agentDefinitionContextModule.mergeAgentDefinitionContext).toBeUndefined();
   });

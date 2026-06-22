@@ -534,7 +534,8 @@ Owns Electron-main query-level agent-definition context attachment:
 - keeps lower-level context attachment and merge helpers private behind the
   runtime facade
 - reads the Agent settings system prompt and disabled/enabled tool policy from
-  cached desktop UI config
+  cached desktop UI config, deriving remote-tool enablement while leaving
+  generic tool-list canonicalization to the SDK agent-definition builder
 - resolves workspace `AGENTS.md` prompt layers for the query workspace
 - loads extension prompt layers once before calling
   `buildElectronAgentDefinitionInputs(...)`
