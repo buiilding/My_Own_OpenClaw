@@ -373,6 +373,40 @@ async def test_chat_event_store_round_trips_model_history_checkpoint(tmp_path: P
 
 
 @pytest.mark.asyncio
+async def test_chat_event_store_marks_compaction_model_history_revision(tmp_path: Path):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    await replace_model_history_checkpoint(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-compact",
+        checkpoint_id="mh-compact",
+        created_at="2026-06-22T12:00:00+00:00",
+        rows=[
+            {
+                "id": "mh-row-compact",
+                "role": "assistant",
+                "message_type": "context_compaction",
+                "content": "bounded summary",
+            },
+        ],
+    )
+
+    revision = await get_conversation_revision(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert revision is not None
+    assert revision["revision_id"] == "rev-compact"
+    assert revision["operation"] == "compact"
+    assert revision["model_history_checkpoint_id"] == "mh-compact"
+
+
+@pytest.mark.asyncio
 async def test_chat_event_store_rejects_provider_specific_model_history_rows(
     tmp_path: Path,
 ):

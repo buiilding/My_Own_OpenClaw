@@ -192,6 +192,10 @@ After assistant completion and after tool-result commits, `InteractionLoop`
 builds a provider-neutral model-history checkpoint from
 `ConversationHistory.get_stored_messages()` and emits `model-history-updated`
 when the active stream context has both `conversation_ref` and `revision_id`.
+Applied manual compaction follows the same checkpoint contract after
+`context-compaction-completed`, using the compacted backend
+`ConversationHistory` as the source so SDK normal resume installs the summary
+ledger instead of an old pre-compaction model history.
 The query websocket payload accepts optional `revision_id`; the query execution
 service records it on `SessionRuntimeState.active_revision_id` alongside the
 active turn and conversation refs. Checkpoint rows include backend stored roles,

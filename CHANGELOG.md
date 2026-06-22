@@ -17,6 +17,12 @@ All notable changes to WindieOS will be documented in this file.
   revision ids through query payloads, and persist the hidden checkpoint event
   through SDK stores without adding it to display or rehydrate projections. No
   migration required for new checkpoint storage.
+- backend/sdk: emit a provider-neutral `model-history-updated` checkpoint after
+  applied manual compaction so normal resume installs the compacted inference
+  ledger. SDK file/in-memory stores and local-runtime revision storage classify
+  checkpoints containing `context_compaction` rows as `compact` revision nodes.
+  No migration required; existing compacted display replay remains available
+  for diagnostics/export.
 - backend/sdk: make normal rehydrate prefer persisted model-history checkpoints
   and install those backend-normalized rows directly into session history,
   skipping backend hydration when no checkpoint exists instead of rebuilding

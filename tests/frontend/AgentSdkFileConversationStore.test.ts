@@ -102,6 +102,34 @@ describe('FileConversationStore', () => {
     ]);
   });
 
+  test('persists compaction model-history checkpoints as compact revisions', async () => {
+    const store = new FileConversationStore({ directory: tempDir });
+
+    await store.replaceModelHistory?.({
+      checkpointId: 'mh-compact-file',
+      conversationRef: 'conv-file-store',
+      revisionId: 'rev-compact-file',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'mh-row-compaction',
+          conversationRef: 'conv-file-store',
+          revisionId: 'rev-compact-file',
+          role: 'assistant',
+          messageType: 'context_compaction',
+          content: 'bounded summary',
+        },
+      ],
+    });
+
+    const reopened = new FileConversationStore({ directory: tempDir });
+    await expect(reopened.getRevision('conv-file-store')).resolves.toMatchObject({
+      revisionId: 'rev-compact-file',
+      operation: 'compact',
+      modelHistoryCheckpointId: 'mh-compact-file',
+    });
+  });
+
   test('lists fork-only display timelines and preserves their title after continuation events', async () => {
     const store = new FileConversationStore({ directory: tempDir });
     await store.replaceDisplayTimeline?.({

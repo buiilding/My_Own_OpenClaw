@@ -648,6 +648,13 @@ payloads also expose replay fields (`entries`, `entryCount`, `complete`,
 adapters can use the persisted `compaction_applied` event itself as the compacted
 rehydrate base.
 
+After applied manual compaction, backend also emits a `model-history-updated`
+checkpoint for the active revision. That checkpoint is the normal resume source:
+SDK store adapters persist it through `replaceModelHistory(...)`, and revision
+metadata marks checkpoints containing `context_compaction` rows as `compact`
+revision nodes. The `compaction_applied` event remains replay/debug state; the
+model-history checkpoint is the bounded inference ledger installed on resume.
+
 Manual compaction may use a backend operation id that differs from the current
 active chat turn. The SDK preserves that id as `operationRef`/`compactionRef`
 metadata and the event's `turnRef`, but compaction events are

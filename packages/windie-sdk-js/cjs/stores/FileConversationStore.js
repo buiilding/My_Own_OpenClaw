@@ -97,6 +97,11 @@ function buildRevision(conversationRef, events) {
         active: true,
     };
 }
+function revisionOperationFromModelHistory(checkpoint) {
+    return checkpoint.rows.some(row => row.messageType === 'context_compaction')
+        ? 'compact'
+        : 'send';
+}
 function normalizeStoredFile(conversationRef, raw) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
         return {
@@ -267,6 +272,8 @@ class FileConversationStore {
         await this.runConversationMutation(checkpoint.conversationRef, async () => {
             const stored = await this.readConversation(checkpoint.conversationRef);
             const existing = stored.modelHistory ?? [];
+            const existingRevision = stored.revision ?? buildRevision(checkpoint.conversationRef, stored.events);
+            const modelHistoryOperation = revisionOperationFromModelHistory(checkpoint);
             await this.writeConversation({
                 ...stored,
                 conversationRef: checkpoint.conversationRef,
@@ -279,9 +286,14 @@ class FileConversationStore {
                     },
                 ],
                 revision: {
-                    ...(stored.revision ?? buildRevision(checkpoint.conversationRef, stored.events)),
+                    ...existingRevision,
                     conversationRef: checkpoint.conversationRef,
                     revisionId: checkpoint.revisionId,
+                    operation: modelHistoryOperation === 'send'
+                        && existingRevision.operation
+                        && existingRevision.operation !== 'send'
+                        ? existingRevision.operation
+                        : modelHistoryOperation,
                     modelHistoryCheckpointId: checkpoint.checkpointId,
                     updatedAt: checkpoint.createdAt,
                     active: true,

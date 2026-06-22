@@ -54,6 +54,12 @@ function eventText(event: ConversationEvent | undefined): string | null {
   return null;
 }
 
+function revisionOperationFromModelHistory(checkpoint: ModelHistoryCheckpoint): ConversationRevision['operation'] {
+  return checkpoint.rows.some(row => row.messageType === 'context_compaction')
+    ? 'compact'
+    : 'send';
+}
+
 export class InMemoryConversationStore implements ConversationStore {
   private readonly eventsByConversation = new Map<string, ConversationEvent[]>();
   private readonly eventIdsByConversation = new Map<string, Set<string>>();
@@ -197,11 +203,16 @@ export class InMemoryConversationStore implements ConversationStore {
     ];
     this.modelHistoryByConversation.set(checkpoint.conversationRef, next);
     const existingRevision = this.revisionsByConversation.get(checkpoint.conversationRef);
+    const modelHistoryOperation = revisionOperationFromModelHistory(checkpoint);
     this.revisionsByConversation.set(checkpoint.conversationRef, {
       ...existingRevision,
       conversationRef: checkpoint.conversationRef,
       revisionId: checkpoint.revisionId,
-      operation: existingRevision?.operation ?? 'send',
+      operation: modelHistoryOperation === 'send'
+        && existingRevision?.operation
+        && existingRevision.operation !== 'send'
+        ? existingRevision.operation
+        : modelHistoryOperation,
       modelHistoryCheckpointId: checkpoint.checkpointId,
       createdAt: existingRevision?.createdAt ?? checkpoint.createdAt,
       updatedAt: checkpoint.createdAt,

@@ -11,6 +11,8 @@ from backend.src.agent.compaction.models import (
 )
 from backend.src.api.handlers.compact_history import CompactHistoryHandler
 from backend.src.api.schemas.incoming import CompactHistoryMessage
+from backend.src.core.messages.structures import StoredMessage
+from backend.src.core.types.enums import MessageRole, MessageType
 
 
 class _FakeWebSocket:
@@ -24,12 +26,25 @@ class _FakeWebSocket:
 
 class _FakeRuntime:
     active_conversation_ref = "conv_test"
+    active_revision_id = "rev_test"
+
+
+class _FakeHistory:
+    def get_stored_messages(self):
+        return [
+            StoredMessage(
+                role=MessageRole.ASSISTANT,
+                message_type=MessageType.CONTEXT_COMPACTION,
+                content="[[CONTEXT COMPACTION SUMMARY]]\nsummary content",
+            )
+        ]
 
 
 class _FakeSession:
     def __init__(self, decision: CompactionDecision, result: CompactionResult):
         self.session_id = "session_test"
         self.runtime = _FakeRuntime()
+        self.history = _FakeHistory()
         self._decision = decision
         self._result = result
 
@@ -165,16 +180,19 @@ async def test_compact_history_handler_emits_started_and_completed_when_applied(
     assert [item["type"] for item in websocket.sent] == [
         "context-compaction-started",
         "context-compaction-completed",
+        "model-history-updated",
     ]
     assert [item["turn_ref"] for item in websocket.sent] == [
+        "msg_compact_2",
         "msg_compact_2",
         "msg_compact_2",
     ]
     assert [item["event_id"] for item in websocket.sent] == [
         "msg_compact_2-evt-000001-context-compaction-started",
         "msg_compact_2-evt-000002-context-compaction-completed",
+        "msg_compact_2-evt-000003-model-history-updated",
     ]
-    assert [item["sequence"] for item in websocket.sent] == [1, 2]
+    assert [item["sequence"] for item in websocket.sent] == [1, 2, 3]
     assert websocket.sent[0]["payload"]["before_tokens"] == 2200
     assert websocket.sent[1]["payload"]["after_tokens"] == 900
     assert websocket.sent[1]["payload"]["removed_messages"] == 7
@@ -185,6 +203,13 @@ async def test_compact_history_handler_emits_started_and_completed_when_applied(
     )
     assert (
         websocket.sent[1]["payload"]["replacement_history_entries"][0]["message_type"]
+        == "context_compaction"
+    )
+    assert websocket.sent[2]["payload"]["conversation_ref"] == "conv_test"
+    assert websocket.sent[2]["payload"]["revision_id"] == "rev_test"
+    assert websocket.sent[2]["payload"]["checkpoint_id"] == "mh:rev_test:msg_compact_2"
+    assert (
+        websocket.sent[2]["payload"]["rows"][0]["message_type"]
         == "context_compaction"
     )
 

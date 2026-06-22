@@ -51,6 +51,13 @@ def _revision_operation_from_display_reason(reason: Optional[str]) -> str:
     return "send"
 
 
+def _revision_operation_from_model_history_rows(rows: list[dict[str, Any]]) -> str:
+    for row in rows:
+        if row.get("message_type") == "context_compaction":
+            return "compact"
+    return "send"
+
+
 def _normalize_timestamp(timestamp: Optional[str]) -> str:
     if not isinstance(timestamp, str) or not timestamp.strip():
         return datetime.now(timezone.utc).isoformat()
@@ -1730,7 +1737,7 @@ async def replace_model_history_checkpoint(
                 conversation_id=conversation_id,
                 revision_id=revision_id,
                 updated_at=normalized_created_at,
-                operation="send",
+                operation=_revision_operation_from_model_history_rows(normalized_rows),
                 model_history_checkpoint_id=checkpoint_id,
                 active=True,
             )
