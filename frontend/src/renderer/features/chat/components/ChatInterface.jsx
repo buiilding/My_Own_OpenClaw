@@ -31,6 +31,7 @@ import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 import { useChatSurfaceController } from '../hooks/useChatSurfaceController';
 import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartupRuntimeClient';
+import { DesktopChatInterfaceBindingsRuntime } from '../../../app/runtime/desktopChatInterfaceBindingsRuntime';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
   DesktopThreadPresentationRuntime,
@@ -186,15 +187,16 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
       },
     );
 
-    const handleWindowFocus = () => {
-      void refreshActiveWorkspace();
-    };
-    window.addEventListener('focus', handleWindowFocus);
+    const removeWindowFocus = DesktopChatInterfaceBindingsRuntime.subscribeToWindowFocus({
+      onFocus: () => {
+        void refreshActiveWorkspace();
+      },
+    });
 
     return () => {
       cancelled = true;
       removeWorkspaceAccessUpdated?.();
-      window.removeEventListener('focus', handleWindowFocus);
+      removeWindowFocus?.();
     };
   }, [sessionInfo.conversationRef, startWorkspaceBoundNewChat]);
 
@@ -333,15 +335,9 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
       findInputRef.current?.select();
     };
 
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      const frameId = window.requestAnimationFrame(focusInput);
-      return () => {
-        window.cancelAnimationFrame(frameId);
-      };
-    }
-
-    focusInput();
-    return undefined;
+    return DesktopChatInterfaceBindingsRuntime.scheduleDeferredFocus({
+      focus: focusInput,
+    });
   }, [findBarOpen, findFocusToken]);
 
   useEffect(() => {

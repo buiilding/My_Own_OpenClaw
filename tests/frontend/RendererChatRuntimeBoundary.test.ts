@@ -2161,6 +2161,10 @@ describe('renderer chat runtime boundary', () => {
     expect(bindingsSource).not.toContain('infrastructure/shortcuts/agentStopShortcut');
     expect(bindingsSource).not.toContain('window.addEventListener');
     expect(bindingsSource).not.toContain('window.removeEventListener');
+    expect(chatInterfaceSource).not.toContain('window.addEventListener');
+    expect(chatInterfaceSource).not.toContain('window.removeEventListener');
+    expect(chatInterfaceSource).not.toContain('window.requestAnimationFrame');
+    expect(chatInterfaceSource).not.toContain('window.cancelAnimationFrame');
     expect(bindingsSource).not.toContain('isAgentStopShortcutEvent');
     expect(chatInterfaceSource).toContain('DesktopNewChatSessionRuntime');
     expect(chatInterfaceSource).not.toContain('import { startNewChatSession');
@@ -2168,9 +2172,12 @@ describe('renderer chat runtime boundary', () => {
     expect(bindingsSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToMenuDismiss');
     expect(bindingsSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToStopShortcut');
     expect(bindingsSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToFindShortcut');
+    expect(chatInterfaceSource).toContain('DesktopChatInterfaceBindingsRuntime.subscribeToWindowFocus');
+    expect(chatInterfaceSource).toContain('DesktopChatInterfaceBindingsRuntime.scheduleDeferredFocus');
     expect(chatInterfaceBindingsRuntimeSource).toContain('DesktopShortcutRuntimeClient.isAgentStopShortcutEvent');
     expect(chatInterfaceBindingsRuntimeSource).toContain('addEventListener');
     expect(chatInterfaceBindingsRuntimeSource).toContain('removeEventListener');
+    expect(chatInterfaceBindingsRuntimeSource).toContain('requestAnimationFrame');
     expect(chatInterfaceBindingsRuntimeSource).not.toContain('features/chat');
     expect(audioClientSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
     expect(audioClientSource).toContain('PlayerService');

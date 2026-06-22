@@ -149,4 +149,56 @@ describe('desktopChatInterfaceBindingsRuntime', () => {
 
     expect(onOpenFind).not.toHaveBeenCalled();
   });
+
+  test('subscribes and cleans up window focus events', () => {
+    const eventTarget = createEventTarget();
+    const onFocus = jest.fn();
+
+    const cleanup = DesktopChatInterfaceBindingsRuntime.subscribeToWindowFocus({
+      eventTarget,
+      onFocus,
+    });
+
+    eventTarget.dispatch('focus');
+    expect(onFocus).toHaveBeenCalledTimes(1);
+
+    cleanup();
+    expect(eventTarget.listeners.size).toBe(0);
+  });
+
+  test('schedules deferred focus with animation frame cleanup', () => {
+    const focus = jest.fn();
+    const callbacks = new Map();
+    const animationFrameApi = {
+      requestAnimationFrame: jest.fn((callback) => {
+        callbacks.set(100, callback);
+        return 100;
+      }),
+      cancelAnimationFrame: jest.fn((frameId) => {
+        callbacks.delete(frameId);
+      }),
+    };
+
+    const cleanup = DesktopChatInterfaceBindingsRuntime.scheduleDeferredFocus({
+      animationFrameApi,
+      focus,
+    });
+
+    expect(animationFrameApi.requestAnimationFrame).toHaveBeenCalledWith(focus);
+    cleanup();
+    expect(animationFrameApi.cancelAnimationFrame).toHaveBeenCalledWith(100);
+    expect(callbacks.size).toBe(0);
+  });
+
+  test('focuses immediately when animation frame scheduling is unavailable', () => {
+    const focus = jest.fn();
+
+    const cleanup = DesktopChatInterfaceBindingsRuntime.scheduleDeferredFocus({
+      animationFrameApi: {},
+      focus,
+    });
+
+    expect(focus).toHaveBeenCalledTimes(1);
+    expect(cleanup()).toBeUndefined();
+  });
 });

@@ -80,6 +80,38 @@ function subscribeToStopShortcut({
   });
 }
 
+function subscribeToWindowFocus({
+  onFocus,
+  eventTarget = globalThis.window,
+} = {}) {
+  if (typeof onFocus !== 'function') {
+    return () => {};
+  }
+
+  return subscribeToEvent(eventTarget, 'focus', onFocus);
+}
+
+function scheduleDeferredFocus({
+  focus,
+  animationFrameApi = globalThis.window,
+} = {}) {
+  if (typeof focus !== 'function') {
+    return () => {};
+  }
+
+  if (typeof animationFrameApi?.requestAnimationFrame !== 'function') {
+    focus();
+    return () => {};
+  }
+
+  const frameId = animationFrameApi.requestAnimationFrame(focus);
+  return () => {
+    if (typeof animationFrameApi.cancelAnimationFrame === 'function') {
+      animationFrameApi.cancelAnimationFrame(frameId);
+    }
+  };
+}
+
 function isOpenFindShortcutEvent(event) {
   if (event?.defaultPrevented) {
     return false;
@@ -113,7 +145,9 @@ function subscribeToFindShortcut({
 }
 
 export const DesktopChatInterfaceBindingsRuntime = Object.freeze({
+  scheduleDeferredFocus,
   subscribeToFindShortcut,
   subscribeToMenuDismiss,
   subscribeToStopShortcut,
+  subscribeToWindowFocus,
 });

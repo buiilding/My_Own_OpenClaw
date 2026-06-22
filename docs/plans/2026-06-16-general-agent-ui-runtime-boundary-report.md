@@ -12,12 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: current-turn applied live-surface traces no longer
-  copy SDK `presentation.typingVisible` or `presentation.overlayVisible`;
-  `DesktopRendererTraceRuntime` now keeps visible-content evidence, entry
-  counts, text lengths, tool event counts, phase, overlay intent metadata, and
-  stale-side-effect suppression without preserving legacy lifecycle visibility
-  flags.
+- Latest completed slice: chat interface window-focus active-workspace refresh
+  subscriptions and thread-find deferred focus RAF scheduling now route through
+  `DesktopChatInterfaceBindingsRuntime`; `ChatInterface` supplies callbacks and
+  refs without owning raw focus listener or animation-frame browser adapters.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product

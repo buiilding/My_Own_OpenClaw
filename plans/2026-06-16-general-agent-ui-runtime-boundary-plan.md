@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-21 Chat Interface Focus Browser Adapter Runtime
+
+- Finding: `ChatInterface` still owned raw `window.addEventListener('focus',
+  ...)` / `removeEventListener(...)` active-workspace refresh wiring and
+  `window.requestAnimationFrame(...)` / `cancelAnimationFrame(...)` scheduling
+  for thread-find input focus.
+- Change: extended `DesktopChatInterfaceBindingsRuntime` with window-focus
+  subscription and deferred-focus scheduling helpers. `ChatInterface` now
+  supplies value-level callbacks and refs while the app-runtime facade owns the
+  browser listener and RAF adapters.
+- Validation target: focused chat-interface binding runtime and renderer chat
+  boundary tests protect focus event cleanup, deferred focus cleanup/fallback,
+  and rejection of raw focus/RAF browser wiring in `ChatInterface`.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-21 Current-Turn Trace SDK Visibility Flag Removal
 
 - Finding: `DesktopRendererTraceRuntime.buildRendererCurrentTurnAppliedTracePayload(...)`

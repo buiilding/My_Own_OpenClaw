@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route chat interface window-focus refresh subscriptions
+  and thread-find deferred focus animation-frame scheduling through
+  `DesktopChatInterfaceBindingsRuntime`, keeping raw focus/RAF browser
+  adapters out of `ChatInterface`. No migration required.
 - frontend/renderer: route response overlay hit-test window subscriptions and
   pointer bounds checks through `DesktopResponseOverlayInteractionRuntime`,
   keeping raw browser listeners out of `MinimalResponseOverlay`. No migration
