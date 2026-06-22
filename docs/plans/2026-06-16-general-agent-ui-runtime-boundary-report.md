@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c164ac7b6` (`docs(renderer): route provider credential runtime inventory`)
-- Latest completed slice: the thin `useCurrentTurnPresentationState` hook shim
-  was deleted; `useChatSurfaceController` and `useResponseOverlayViewModel`
-  call `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState(...)`
-  directly with React `useMemo(...)`.
+- Latest completed slice: chat message action copy-reset and assistant-action
+  reveal timers now route through `DesktopMessageActionRuntime`; message action
+  feature code supplies refs, callbacks, and delay policy while the runtime owns
+  browser timeout scheduling and cleanup.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -97,6 +97,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Current-turn presentation state no longer passes through the deleted
   `useCurrentTurnPresentationState` hook shim; chat surface and response
   overlay hooks now call the renderer app-runtime facade directly.
+  Message action copy-reset and assistant-action reveal timers now route
+  through `DesktopMessageActionRuntime` instead of raw browser timeout calls in
+  `useCopyMessageAction` or `AssistantMessageActions`.
   Conversation replay database tests describe edit/resend cutoff rewrites as
   local-runtime SQLite behavior while the renderer owns preparation error
   projection.

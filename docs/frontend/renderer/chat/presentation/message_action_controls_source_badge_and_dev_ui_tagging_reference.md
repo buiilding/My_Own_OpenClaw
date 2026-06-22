@@ -16,11 +16,13 @@ title: "Message Action Controls, Source Badge, and Dev-UI Tagging Reference"
 - `frontend/src/renderer/features/chat/components/message/MessageSourceBadge.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
 - `frontend/src/renderer/app/runtime/desktopClipboardRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopMessageActionRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopPresentationSourceChannels.js`
 - `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDevUiRuntime.js`
 - `tests/frontend/DesktopMessageSourceTagRuntime.test.js`
+- `tests/frontend/DesktopMessageActionRuntime.test.js`
 - `tests/frontend/DesktopDevUiRuntime.test.js`
 - `tests/frontend/MessageListAssistantActions.test.jsx`
 - `tests/frontend/MessageSourceBadge.test.jsx`
@@ -91,8 +93,11 @@ Runtime behavior:
 - logs warning with prefix on clipboard failure
 
 `DesktopClipboardRuntime.writeText(...)` is the renderer app-runtime browser
-adapter for clipboard writes. Message action feature code owns button state and
-timers, but it does not call `navigator.clipboard` directly.
+adapter for clipboard writes. `DesktopMessageActionRuntime` owns message action
+timer scheduling and cleanup for copy-success reset and delayed assistant
+action reveal. Message action feature code owns button state and delay policy,
+but it does not call `navigator.clipboard`, `window.setTimeout`, or
+`window.clearTimeout` directly.
 
 ## Source Badge and Dev-UI Gate
 

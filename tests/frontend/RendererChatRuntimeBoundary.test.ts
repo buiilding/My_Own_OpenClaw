@@ -1357,12 +1357,20 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useCopyMessageAction.js'),
       'utf8',
     );
+    const assistantActionsSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/AssistantMessageActions.jsx'),
+      'utf8',
+    );
     const transparencySectionSource = await fs.readFile(
       path.join(chatRoot, 'components/message/TransparencySection.jsx'),
       'utf8',
     );
     const clipboardRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopClipboardRuntime.js'),
+      'utf8',
+    );
+    const messageActionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageActionRuntime.js'),
       'utf8',
     );
 
@@ -1376,9 +1384,20 @@ describe('renderer chat runtime boundary', () => {
 
     expect(offenders).toEqual([]);
     expect(copyHookSource).toContain('DesktopClipboardRuntime.writeText');
+    expect(copyHookSource).toContain('DesktopMessageActionRuntime.scheduleMessageActionTimer');
+    expect(copyHookSource).toContain('DesktopMessageActionRuntime.clearMessageActionTimer');
+    expect(copyHookSource).not.toContain('window.setTimeout');
+    expect(copyHookSource).not.toContain('window.clearTimeout');
+    expect(assistantActionsSource).toContain('DesktopMessageActionRuntime.scheduleMessageActionTimer');
+    expect(assistantActionsSource).toContain('DesktopMessageActionRuntime.clearMessageActionTimer');
+    expect(assistantActionsSource).not.toContain('window.setTimeout');
+    expect(assistantActionsSource).not.toContain('window.clearTimeout');
     expect(transparencySectionSource).toContain('DesktopClipboardRuntime.writeText');
     expect(clipboardRuntimeSource).toContain('navigator?.clipboard');
     expect(clipboardRuntimeSource).not.toContain('features/chat');
+    expect(messageActionRuntimeSource).toContain('setTimeout');
+    expect(messageActionRuntimeSource).toContain('clearTimeout');
+    expect(messageActionRuntimeSource).not.toContain('features/chat');
   });
 
   test('renderer feature hooks read latest-ref helper through app runtime facade', async () => {

@@ -9,6 +9,23 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Message Action Timer Runtime
+
+- Finding: `useCopyMessageAction` and `AssistantMessageActions` still owned raw
+  `window.setTimeout` and `window.clearTimeout` calls for copy-success reset and
+  delayed assistant action reveal, even after clipboard writes moved behind the
+  renderer app-runtime facade.
+- Change: added `DesktopMessageActionRuntime` for message action timer
+  scheduling/cleanup. Message action feature code now supplies timer refs,
+  callbacks, and delay values while the runtime owns browser timeout adapters.
+- Validation target: focused message action runtime, assistant action, message
+  list assistant-action, and renderer chat-boundary tests protect timer
+  replacement, cleanup, missing-adapter fallback, and rejection of raw timeout
+  calls in action feature code.
+- Compatibility/security: no IPC channel, SDK event payload, conversation
+  storage, renderer config, permission, credential, local execution, storage,
+  or trust-boundary migration required.
+
 ### 2026-06-22 Current-Turn Presentation Hook Shim Deletion
 
 - Finding: `useCurrentTurnPresentationState(...)` had become a thin React hook

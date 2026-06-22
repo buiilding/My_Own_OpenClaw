@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route chat message action copy-reset and assistant-action
+  reveal timers through `DesktopMessageActionRuntime`, keeping raw browser
+  timeout scheduling out of message action feature code. No migration required.
 - frontend/renderer: delete the thin `useCurrentTurnPresentationState` hook
   shim and have chat surface/response overlay hooks call
   `DesktopCurrentTurnPresentationRuntime.resolveCurrentTurnPresentationState`

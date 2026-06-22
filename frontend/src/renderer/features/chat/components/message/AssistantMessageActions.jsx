@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Check, Copy, RotateCcw, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useCopyMessageAction } from '../../hooks/useCopyMessageAction';
+import { DesktopMessageActionRuntime } from '../../../../app/runtime/desktopMessageActionRuntime';
 
 const ACTION_REVEAL_DELAY_MS = 2000;
 
@@ -26,10 +27,9 @@ function AssistantMessageActions({
   const [isRevealed, setIsRevealed] = useState(false);
 
   useEffect(() => {
-    if (revealTimerRef.current) {
-      window.clearTimeout(revealTimerRef.current);
-      revealTimerRef.current = null;
-    }
+    DesktopMessageActionRuntime.clearMessageActionTimer({
+      timerRef: revealTimerRef,
+    });
 
     if (!visible) {
       setIsRevealed(false);
@@ -37,16 +37,18 @@ function AssistantMessageActions({
     }
 
     setIsRevealed(false);
-    revealTimerRef.current = window.setTimeout(() => {
-      setIsRevealed(true);
-      revealTimerRef.current = null;
-    }, ACTION_REVEAL_DELAY_MS);
+    DesktopMessageActionRuntime.scheduleMessageActionTimer({
+      timerRef: revealTimerRef,
+      delayMs: ACTION_REVEAL_DELAY_MS,
+      callback: () => {
+        setIsRevealed(true);
+      },
+    });
 
     return () => {
-      if (revealTimerRef.current) {
-        window.clearTimeout(revealTimerRef.current);
-        revealTimerRef.current = null;
-      }
+      DesktopMessageActionRuntime.clearMessageActionTimer({
+        timerRef: revealTimerRef,
+      });
     };
   }, [messageId, visible]);
 
