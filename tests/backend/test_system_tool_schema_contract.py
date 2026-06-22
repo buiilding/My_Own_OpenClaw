@@ -38,6 +38,15 @@ def test_run_shell_command_schema_is_direct_and_requires_explanation():
         in parameters["properties"]["command"]["description"]
     )
     assert (
+        "generated dependency, build-artifact, packaged-runtime, and VCS directories"
+        in parameters["properties"]["command"]["description"]
+    )
+    assert "frontend/release" not in parameters["properties"]["command"]["description"]
+    assert (
+        "frontend/python-runtime"
+        not in parameters["properties"]["command"]["description"]
+    )
+    assert (
         "relative paths resolve from the user-selected workspace folder"
         in parameters["properties"]["directory"]["description"]
     )

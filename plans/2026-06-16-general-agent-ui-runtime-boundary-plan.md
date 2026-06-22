@@ -9,6 +9,22 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Backend Shell Schema Boundary Wording
+
+- Finding: the backend model-visible `run_shell_command` schema still named
+  WindieOS repository build-output paths while giving general repository/log
+  search guidance. That leaked host repo layout into hosted orchestration
+  prompt contracts.
+- Change: replaced the repo-specific generated-directory examples with generic
+  dependency/build-artifact/packaged-runtime/VCS guidance, mirrored the wording
+  in shell/tool docs, and added backend schema-contract assertions rejecting
+  the retired path examples.
+- Validation target: `test_system_tool_schema_contract.py` protects the
+  model-visible shell command description.
+- Compatibility/security: no tool name, argument shape, provider projection,
+  SDK event payload, IPC channel, local execution behavior, permission,
+  credential, storage, trust-boundary, or migration change required.
+
 ### 2026-06-22 Backend Transcription Gateway Boundary Wording
 
 - Finding: backend transcription provider protocol docstrings still described

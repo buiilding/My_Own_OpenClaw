@@ -24,8 +24,8 @@ class RunShellCommandArgs(BaseModel):
         description=(
             "Exact command to execute. For repository or log search, prefer fast targeted "
             "commands such as rg instead of broad recursive grep, and exclude generated "
-            "directories like node_modules, frontend/release, frontend/python-runtime, and "
-            ".git unless the user explicitly needs them."
+            "dependency, build-artifact, packaged-runtime, and VCS directories unless the "
+            "user explicitly needs them."
         ),
     )
     directory: Optional[str] = Field(

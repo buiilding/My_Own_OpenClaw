@@ -40,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
   runtime display-row loading so chat-pill camera query rows render as
   dashboard screenshots after `user_message_metadata` replay. No migration
   required.
+- backend/tools: remove WindieOS repository build-output paths from the
+  model-visible `run_shell_command` schema while preserving generic
+  generated-directory search guidance. No migration required.
 - backend/provider: stop the dev-only scripted model from replaying the same
   scripted tool command after matching tool outputs are already present in
   rebuilt model history, so `@script tool` and `@script batch` finish the turn
