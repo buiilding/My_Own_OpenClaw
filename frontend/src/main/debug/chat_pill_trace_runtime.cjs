@@ -76,8 +76,8 @@ function buildBasePayload(event = {}, deps = {}) {
         : normalizeOptionalBoolean(safeCall(deps.getResponseOverlayVisible))
     ),
     response_layout_mode: normalizeOptionalString(event.responseLayoutMode),
-    show_response: normalizeOptionalBoolean(event.showResponse),
-    show_awaiting_reply: normalizeOptionalBoolean(event.showAwaitingReply),
+    response_visible: normalizeOptionalBoolean(event.responseVisible),
+    awaiting_visible: normalizeOptionalBoolean(event.awaitingVisible),
   };
 }
 

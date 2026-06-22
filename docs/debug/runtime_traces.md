@@ -426,7 +426,9 @@ Rows include the show/hide reason, phase, mode, whether persisted `user_hidden`
 intent was active, response-window visibility, guard refs, and whether a generic
 restore was suppressed.
 `[ChatPillTrace][main]` and `[ChatPillTrace][renderer]` require the debug flag
-above and include deeper phase/window snapshots.
+above and include deeper phase/window snapshots. Response-overlay visibility
+fields use explicit `response_visible` and `awaiting_visible` names on both
+main and renderer trace payloads.
 
 Renderer trace platform labels are diagnostic metadata only. The renderer trace
 helper no longer reads deprecated `navigator.platform`; it prefers

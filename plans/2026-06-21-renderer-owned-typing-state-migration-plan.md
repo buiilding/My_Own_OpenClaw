@@ -9,6 +9,23 @@ Date: 2026-06-21
 
 ## Progress Notes
 
+### 2026-06-22 Minimal Pill Stop Test Send Latch Deletion
+
+- Finding: `ChatBoxOverlayMouseIgnore.test.jsx` still described the
+  pre-first-stream Stop affordance as `isSending=true`, preserving a test-only
+  raw send-latch authority after `MinimalChatPill` production code had moved
+  Stop rendering to `pendingTurn` plus renderer-owned visible lifecycle.
+- Change: removed the raw `isSending` fixture and renamed the replay around
+  pending-turn Stop before the first stream event. Renderer boundary coverage
+  now rejects reintroducing `mockChatState.isSending` in that minimal-pill
+  integration test.
+- Validation target: `ChatBoxOverlayMouseIgnore.test.jsx` and
+  `RendererAppRuntimeBoundary.test.ts` protect the pending-turn Stop path
+  without preserving raw send-latch test authority.
+- Compatibility/security: no persisted transcript, SDK event payload, IPC
+  payload, renderer config storage, permission, credential, local execution,
+  trust-boundary, or storage migration required.
+
 ### 2026-06-22 Response Overlay View Intent Alias Deletion
 
 - Finding: `DesktopResponseOverlayViewRuntime.resolveResponseOverlayViewContract(...)`,

@@ -71,6 +71,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tests: delete the minimal chat pill pending-stop `isSending`
+  fixture; the pre-first-stream Stop replay now uses renderer `pendingTurn`
+  plus visible lifecycle instead of a raw send latch. No migration required.
 - frontend/renderer: delete the response-overlay view-intent `showResponse`
   and `showAwaitingReply` aliases; overlay view, layout, component, and trace
   inputs now use explicit `responseVisible` and `awaitingVisible` fields. No

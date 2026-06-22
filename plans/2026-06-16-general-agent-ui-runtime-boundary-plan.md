@@ -9,6 +9,20 @@ Date: 2026-06-16
 
 ## Progress Notes
 
+### 2026-06-22 Main Chat Pill Trace Visibility Fields
+
+- Finding: the main-process chat-pill debug trace normalizer still emitted
+  `show_response` and `show_awaiting_reply` payload fields after the renderer
+  response-overlay contract moved to explicit visibility names.
+- Change: renamed the main trace payload fields to `response_visible` and
+  `awaiting_visible`, added focused trace-runtime coverage rejecting the legacy
+  fields, and updated debug trace docs.
+- Validation target: `ChatPillMainTraceRuntime.test.cjs` protects the
+  main-process trace payload contract.
+- Compatibility/security: no IPC channel, SDK event payload, renderer config,
+  persisted transcript, permission, credential, local execution,
+  trust-boundary, storage, or migration change required.
+
 ### 2026-06-22 Backend Shell Schema Boundary Wording
 
 - Finding: the backend model-visible `run_shell_command` schema still named

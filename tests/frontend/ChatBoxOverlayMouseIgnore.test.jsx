@@ -133,7 +133,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 const mockChatState = {
   messages: [],
-  isSending: false,
   activeConversationRef: 'conv-overlay',
   thinkingStatus: null,
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
@@ -237,7 +236,6 @@ describe('ChatBox overlay mouse ignore', () => {
       include_query_screenshot: true,
     };
     mockChatState.activeConversationRef = 'conv-overlay';
-    mockChatState.isSending = false;
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.currentTurnProjection = null;
@@ -888,9 +886,8 @@ describe('ChatBox overlay mouse ignore', () => {
     });
   });
 
-  test('renders stop button when isSending is true before first stream event', async () => {
+  test('renders stop button from pending turn before first stream event', async () => {
     mockChatState.streamTracking.phase = 'idle';
-    mockChatState.isSending = true;
     mockChatState.pendingTurn = {
       conversationRef: 'conv-overlay',
       turnRef: 'turn-pending',

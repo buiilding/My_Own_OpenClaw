@@ -1713,6 +1713,10 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
       'utf8',
     );
+    const chatboxOverlayMouseIgnoreTestSource = await fs.readFile(
+      path.join(testRoot, 'ChatBoxOverlayMouseIgnore.test.jsx'),
+      'utf8',
+    );
     const normalizedChatInterfaceSource = chatInterfaceSource.replace(/\r\n/g, '\n');
     const normalizedMinimalPillSource = minimalPillSource.replace(/\r\n/g, '\n');
     const normalizedResponseOverlaySource = responseOverlaySource.replace(/\r\n/g, '\n');
@@ -1746,6 +1750,8 @@ describe('renderer app runtime boundary', () => {
     );
     expect(chatSurfaceControllerSource).not.toContain('isSending');
     expect(responseOverlayViewModelSource).not.toContain('isSending');
+    expect(chatboxOverlayMouseIgnoreTestSource).not.toContain('mockChatState.isSending');
+    expect(chatboxOverlayMouseIgnoreTestSource).not.toContain('isSending is true');
     expect(chatInterfaceSource).not.toContain('utils/chatSelectors');
     expect(responseOverlaySource).not.toContain('chat/utils/chatSelectors');
     await expect(fs.stat(
