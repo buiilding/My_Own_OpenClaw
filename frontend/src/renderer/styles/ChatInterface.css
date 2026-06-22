@@ -43,10 +43,10 @@
   --chat-utility-surface-shadow:
     0 12px 28px rgba(15, 23, 42, 0.08),
     0 0 22px -18px var(--agent-accent-glow);
-  --chat-utility-text-primary: rgba(15, 23, 42, 0.92);
-  --chat-utility-text-secondary: rgba(51, 65, 85, 0.78);
-  --chat-utility-text-muted: rgba(71, 85, 105, 0.78);
-  --chat-utility-label-color: color-mix(in srgb, var(--agent-accent) 74%, #0f172a 26%);
+  --chat-utility-text-primary: var(--appearance-foreground);
+  --chat-utility-text-secondary: var(--appearance-foreground);
+  --chat-utility-text-muted: color-mix(in srgb, var(--appearance-foreground) 72%, var(--appearance-background) 28%);
+  --chat-utility-label-color: var(--appearance-foreground);
 }
 
 .chat-header {
@@ -171,6 +171,12 @@
 
 .chat-reasoning-mode-selector svg {
   color: var(--agent-accent-pale);
+}
+
+:root[data-agent-theme='light'] .chat-provider-selector svg,
+:root[data-agent-theme='light'] .chat-model-selector svg,
+:root[data-agent-theme='light'] .chat-reasoning-mode-selector svg {
+  color: var(--appearance-foreground);
 }
 
 .chat-model-menu {

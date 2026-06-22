@@ -60,6 +60,8 @@ Light-mode readability:
 - primary and secondary light-mode UI text resolve to the foreground token
   instead of a transparent foreground mix, so labels do not wash out on white
   or translucent desktop surfaces
+- chat header utility controls also route their light-mode text and labels
+  through the same foreground token
 
 Motion baseline:
 

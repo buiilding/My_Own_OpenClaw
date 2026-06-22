@@ -68,6 +68,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: route light-mode chat header utility text, workspace
+  labels, icon controls, and selector chevrons through the readable appearance
+  foreground so the top bar matches native desktop body text. No migration
+  required.
 - frontend/renderer: darken light appearance text defaults to a native
   Notes-like `#4C4C4C` foreground and keep secondary UI labels on that readable
   foreground instead of transparent mixes. No migration required.

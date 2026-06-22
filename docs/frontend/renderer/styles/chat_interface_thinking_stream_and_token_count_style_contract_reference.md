@@ -38,6 +38,9 @@ Control placement:
 - stop/new chat actions are composer/sidebar-driven, not header chips.
 - speech toggle uses `.chat-top-icon-btn` style contract.
 - `electron:dev` (`dev_ui=1`) adds a header `Run auto compaction` icon control using the same `.chat-top-icon-btn` styling and dispatching backend `compact-history`.
+- light appearance routes browser, workspace, selector chevrons, search, and
+  speech header controls through the active appearance foreground so the top bar
+  matches native desktop body text rather than pale slate or accent-blue labels.
 
 ## Message Stream and Bubble Contract
 
