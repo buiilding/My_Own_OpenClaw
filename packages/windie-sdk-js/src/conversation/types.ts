@@ -10,6 +10,7 @@ export type ConversationEventType =
   | 'conversation_created'
   | 'conversation_loaded'
   | 'conversation_rewritten'
+  | 'turn_superseded'
   | 'turn_started'
   | 'turn_completed'
   | 'turn_stopped'
@@ -54,7 +55,12 @@ export type TraceRuntime =
   | 'backend'
   | 'provider';
 
-export type TraceStatus = 'started' | 'succeeded' | 'failed' | 'skipped';
+export type TraceStatus =
+  | 'started'
+  | 'succeeded'
+  | 'failed'
+  | 'skipped'
+  | 'ignored_for_live_authority';
 
 export type TraceError = JsonRecord & {
   code: string;
@@ -138,6 +144,20 @@ export type DisplayTimelineReplaceReason =
   | 'retry'
   | 'fork'
   | 'manual_rewrite';
+
+export type SupersededTurnReason =
+  | 'user_edit'
+  | 'retry'
+  | 'manual_rewrite';
+
+export type SupersededTurnRecord = JsonRecord & {
+  conversationRef: string;
+  supersededTurnRef: string;
+  replacementTurnRef: string;
+  revisionId: string;
+  reason: SupersededTurnReason;
+  createdAt: string;
+};
 
 export type DisplayTimelineRow = SdkDisplayRow & {
   revisionId: string;
@@ -742,6 +762,7 @@ export type ConversationRuntimeState = {
     requested: boolean;
     turnRef?: string | null;
   };
+  supersededTurns: Record<string, SupersededTurnRecord>;
   lastError?: string | null;
 };
 

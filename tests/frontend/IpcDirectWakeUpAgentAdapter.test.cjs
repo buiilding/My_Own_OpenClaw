@@ -1,5 +1,8 @@
 /** @jest-environment node */
 
+const fs = require('fs');
+const path = require('path');
+
 const {
   DESKTOP_RUNTIME_ON_CHANNELS,
 } = require('../../frontend/src/main/ipc/ipc_desktop_runtime_channels.cjs');
@@ -101,6 +104,27 @@ function createDeps(overrides = {}) {
 }
 
 describe('ipc_direct_wake_up_agent_adapter', () => {
+  test('main process does not rebuild edit resend supersession from renderer state', () => {
+    const mainIpcRoot = path.resolve(__dirname, '../../frontend/src/main/ipc');
+    const directAdapterSource = fs.readFileSync(
+      path.join(mainIpcRoot, 'ipc_direct_wake_up_agent_adapter.cjs'),
+      'utf8',
+    );
+    const liveTurnStateSource = fs.readFileSync(
+      path.join(mainIpcRoot, 'ipc_live_turn_state.cjs'),
+      'utf8',
+    );
+    const pendingTurnSource = fs.readFileSync(
+      path.join(mainIpcRoot, 'ipc_pending_turn_handlers.cjs'),
+      'utf8',
+    );
+
+    expect(`${directAdapterSource}\n${liveTurnStateSource}\n${pendingTurnSource}`)
+      .not.toContain('supersededTurnRef');
+    expect(liveTurnStateSource).not.toContain('supersededTurnRefs');
+    expect(liveTurnStateSource).not.toContain('isSupersededTurnRef');
+  });
+
   test('creates a default conversation runtime and forwards SDK snapshots to renderer channels', () => {
     const runtime = createRuntime();
     const agent = createAgent(() => runtime);

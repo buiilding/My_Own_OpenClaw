@@ -1179,6 +1179,121 @@ function loadRawEventState(conversationRef) {
   };
 }
 
+function parseEventPayload(value) {
+  if (!value || typeof value !== 'string') {
+    return {};
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function eventPayloadObject(row) {
+  const envelope = parseEventPayload(row.eventPayload);
+  const payload = envelope.payload && typeof envelope.payload === 'object' && !Array.isArray(envelope.payload)
+    ? envelope.payload
+    : envelope;
+  return payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {};
+}
+
+function normalizedTurnRef(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function loadSupersededLiveState(conversationRef) {
+  const tables = historyTableNames();
+  const rows = queryHistoryDatabase(`
+    SELECT event_type AS eventType,
+           revision_id AS revisionId,
+           turn_ref AS turnRef,
+           timestamp,
+           message_index AS messageIndex,
+           event_payload AS eventPayload
+    FROM ${tables.events}
+    WHERE conversation_id = ${sqlString(conversationRef)}
+    ORDER BY message_index ASC, timestamp ASC, id ASC
+  `);
+  const supersededTurns = new Map();
+  const terminalTurns = new Set();
+  let activeTurnRef = null;
+  let activePhase = 'idle';
+  for (const row of rows) {
+    const turnRef = normalizedTurnRef(row.turnRef);
+    if (row.eventType === 'turn_superseded') {
+      const payload = eventPayloadObject(row);
+      const supersededTurnRef = turnRef;
+      const replacementTurnRef = normalizedTurnRef(payload.replacementTurnRef);
+      if (supersededTurnRef) {
+        supersededTurns.set(supersededTurnRef, {
+          supersededTurnRef,
+          replacementTurnRef,
+          revisionId: row.revisionId || null,
+          reason: typeof payload.reason === 'string' ? payload.reason : null,
+          createdAt: typeof payload.createdAt === 'string' ? payload.createdAt : row.timestamp,
+        });
+        if (activeTurnRef === supersededTurnRef) {
+          activeTurnRef = null;
+          activePhase = 'complete';
+        }
+      }
+      continue;
+    }
+    if (turnRef && supersededTurns.has(turnRef)) {
+      if (['turn_completed', 'turn_stopped', 'turn_error', 'runtime_error'].includes(row.eventType)) {
+        terminalTurns.add(turnRef);
+      }
+      continue;
+    }
+    if (row.eventType === 'turn_started' || row.eventType === 'user_message') {
+      activeTurnRef = turnRef;
+      activePhase = turnRef ? 'awaiting' : activePhase;
+      continue;
+    }
+    if (!turnRef || (activeTurnRef && activeTurnRef !== turnRef)) {
+      continue;
+    }
+    if (!activeTurnRef) {
+      activeTurnRef = turnRef;
+    }
+    if (row.eventType === 'assistant_delta') {
+      activePhase = 'streaming';
+    } else if (row.eventType === 'tool_call' || row.eventType === 'tool_bundle_call') {
+      activePhase = 'tool_call';
+    } else if (row.eventType === 'tool_output' || row.eventType === 'tool_bundle_output') {
+      activePhase = 'tool_output';
+    } else if (row.eventType === 'turn_completed' || row.eventType === 'turn_stopped') {
+      activePhase = 'complete';
+      terminalTurns.add(turnRef);
+    } else if (row.eventType === 'turn_error' || row.eventType === 'runtime_error') {
+      activePhase = 'error';
+      terminalTurns.add(turnRef);
+    }
+  }
+  const records = Array.from(supersededTurns.values());
+  const latest = records[records.length - 1] || null;
+  const supersededWithoutTerminalCompletion = records
+    .filter(record => !terminalTurns.has(record.supersededTurnRef))
+    .map(record => record.supersededTurnRef);
+  return {
+    activeTurnRef,
+    activePhase,
+    supersededTurnCount: records.length,
+    latestSupersededTurnPair: latest ? {
+      supersededTurnRef: latest.supersededTurnRef,
+      replacementTurnRef: latest.replacementTurnRef,
+      revisionId: latest.revisionId,
+      reason: latest.reason,
+      createdAt: latest.createdAt,
+    } : null,
+    visibleTypingTurnSuperseded: Boolean(activeTurnRef && activePhase === 'awaiting' && supersededTurns.has(activeTurnRef)),
+    supersededWithoutTerminalCompletion,
+    supersededWithoutTerminalCompletionCount: supersededWithoutTerminalCompletion.length,
+  };
+}
+
 function loadConversationState(conversationRef) {
   const selectedRevision = loadSelectedConversationRevision(conversationRef);
   const selectedDisplayRevision = selectedRevision?.displayTimelineId
@@ -1198,6 +1313,7 @@ function loadConversationState(conversationRef) {
   );
   const modelHistory = loadModelHistoryState(conversationRef, selectedRevision);
   const rawEvents = loadRawEventState(conversationRef);
+  const supersededLive = loadSupersededLiveState(conversationRef);
   return {
     ok: true,
     database: historyDatabasePath(),
@@ -1222,11 +1338,14 @@ function loadConversationState(conversationRef) {
     displayTimeline,
     modelHistory,
     rawEvents,
+    supersededLive,
     diagnostics: {
       staleParentActive,
       displayTimelineMissing: !displayTimeline.revisionId,
       modelHistoryMissing: !modelHistory.checkpointId,
       rawEventFallbackRequired: !displayTimeline.revisionId,
+      visibleTypingTurnSuperseded: supersededLive.visibleTypingTurnSuperseded,
+      supersededWithoutTerminalCompletion: supersededLive.supersededWithoutTerminalCompletionCount > 0,
     },
   };
 }
@@ -1355,11 +1474,23 @@ function printConversationState(payload) {
     `assistant messages: ${payload.rawEvents.assistantMessageCount}`,
     `tool outputs: ${payload.rawEvents.toolOutputCount}`,
   ]);
+  printSection('Superseded Live Turns', [
+    `active turn: ${payload.supersededLive.activeTurnRef || 'none'}`,
+    `active phase: ${payload.supersededLive.activePhase}`,
+    `superseded turns: ${payload.supersededLive.supersededTurnCount}`,
+    `latest pair: ${payload.supersededLive.latestSupersededTurnPair
+      ? `${payload.supersededLive.latestSupersededTurnPair.supersededTurnRef}->${payload.supersededLive.latestSupersededTurnPair.replacementTurnRef || 'none'}`
+      : 'none'}`,
+    `visible typing turn superseded: ${payload.supersededLive.visibleTypingTurnSuperseded}`,
+    `superseded without terminal completion: ${payload.supersededLive.supersededWithoutTerminalCompletionCount}`,
+  ]);
   printSection('Diagnostics', [
     `stale parent active: ${payload.diagnostics.staleParentActive}`,
     `display timeline missing: ${payload.diagnostics.displayTimelineMissing}`,
     `model history missing: ${payload.diagnostics.modelHistoryMissing}`,
     `raw event fallback required: ${payload.diagnostics.rawEventFallbackRequired}`,
+    `visible typing turn superseded: ${payload.diagnostics.visibleTypingTurnSuperseded}`,
+    `superseded without terminal completion: ${payload.diagnostics.supersededWithoutTerminalCompletion}`,
   ]);
   if (payload.activeRevisions.length > 0) {
     printSection(

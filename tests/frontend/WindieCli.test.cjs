@@ -513,8 +513,11 @@ describe('windie CLI', () => {
        '2026-06-22T12:00:00+00:00', 1, 'rev-parent', 'turn-parent', '{}', '[]', '{}'),
       ('evt-assistant-parent', 'user-1', 'conv-state', 'assistant_message', 'assistant', 'stale',
        '2026-06-22T12:00:01+00:00', 2, 'rev-parent', 'turn-parent', '{}', '[]', '{}'),
+      ('evt-superseded-parent', 'user-1', 'conv-state', 'turn_superseded', 'system', '',
+       '2026-06-22T12:00:30+00:00', 3, 'rev-child', 'turn-parent', '{}', '[]',
+       '{"payload":{"supersededTurnRef":"turn-parent","replacementTurnRef":"turn-child","revisionId":"rev-child","reason":"user_edit","createdAt":"2026-06-22T12:00:30+00:00"}}'),
       ('evt-user-child', 'user-1', 'conv-state', 'user_message', 'user', 'new',
-       '2026-06-22T12:01:00+00:00', 3, 'rev-child', 'turn-child', '{}', '[]', '{}');
+       '2026-06-22T12:01:00+00:00', 4, 'rev-child', 'turn-child', '{}', '[]', '{}');
       INSERT INTO conversation_revisions
       (user_id, conversation_id, revision_id, parent_revision_id, operation,
        display_timeline_id, model_history_checkpoint_id, created_at, updated_at, active)
@@ -558,13 +561,29 @@ describe('windie CLI', () => {
       source: 'row_storage',
     });
     expect(parsed.rawEvents).toMatchObject({
-      eventCount: 3,
+      eventCount: 4,
       userMessageCount: 2,
       assistantMessageCount: 1,
+    });
+    expect(parsed.supersededLive).toMatchObject({
+      activeTurnRef: 'turn-child',
+      activePhase: 'awaiting',
+      supersededTurnCount: 1,
+      latestSupersededTurnPair: expect.objectContaining({
+        supersededTurnRef: 'turn-parent',
+        replacementTurnRef: 'turn-child',
+        revisionId: 'rev-child',
+        reason: 'user_edit',
+      }),
+      visibleTypingTurnSuperseded: false,
+      supersededWithoutTerminalCompletion: ['turn-parent'],
+      supersededWithoutTerminalCompletionCount: 1,
     });
     expect(parsed.diagnostics).toMatchObject({
       staleParentActive: true,
       rawEventFallbackRequired: false,
+      visibleTypingTurnSuperseded: false,
+      supersededWithoutTerminalCompletion: true,
     });
   });
 

@@ -25,8 +25,46 @@ function createInitialConversationRuntimeState(conversationRef, revisionId = 're
             requested: false,
             turnRef: null,
         },
+        supersededTurns: {},
         lastError: null,
     };
+}
+function supersededTurnRecordFromEvent(event) {
+    if (event.type !== 'turn_superseded') {
+        return null;
+    }
+    const supersededTurnRef = typeof event.turnRef === 'string' && event.turnRef.trim()
+        ? event.turnRef.trim()
+        : null;
+    const replacementTurnRef = typeof event.payload.replacementTurnRef === 'string' && event.payload.replacementTurnRef.trim()
+        ? event.payload.replacementTurnRef.trim()
+        : null;
+    const reason = event.payload.reason;
+    if (!supersededTurnRef
+        || !replacementTurnRef
+        || (reason !== 'user_edit' && reason !== 'retry' && reason !== 'manual_rewrite')) {
+        return null;
+    }
+    const createdAt = typeof event.payload.createdAt === 'string' && event.payload.createdAt.trim()
+        ? event.payload.createdAt.trim()
+        : event.timestamp;
+    return {
+        conversationRef: event.conversationRef,
+        supersededTurnRef,
+        replacementTurnRef,
+        revisionId: event.revisionId,
+        reason,
+        createdAt,
+    };
+}
+function eventTurnRef(event) {
+    return typeof event.turnRef === 'string' && event.turnRef.trim()
+        ? event.turnRef.trim()
+        : null;
+}
+function isEventTurnSuperseded(state, event) {
+    const turnRef = eventTurnRef(event);
+    return Boolean(turnRef && state.supersededTurns[turnRef]);
 }
 function removeTool(pendingTools, payload) {
     const key = (0, toolCorrelationIds_js_1.resolveToolWaitId)(payload);
@@ -41,12 +79,43 @@ function reduceConversationRuntimeState(state, event) {
     if (event.conversationRef !== state.conversationRef) {
         return state;
     }
+    const supersededRecord = supersededTurnRecordFromEvent(event);
+    if (supersededRecord) {
+        const nextSupersededTurns = {
+            ...state.supersededTurns,
+            [supersededRecord.supersededTurnRef]: supersededRecord,
+        };
+        const supersededActiveTurn = state.activeTurnRef === supersededRecord.supersededTurnRef;
+        return {
+            ...state,
+            revisionId: event.revisionId,
+            activeTurnRef: supersededActiveTurn ? null : state.activeTurnRef,
+            phase: supersededActiveTurn ? 'completed' : state.phase,
+            pendingTools: supersededActiveTurn ? {} : state.pendingTools,
+            activeBundle: supersededActiveTurn ? null : state.activeBundle,
+            stream: {
+                ...state.stream,
+                lastEventId: event.eventId,
+            },
+            stopState: supersededActiveTurn
+                ? { requested: true, turnRef: supersededRecord.supersededTurnRef }
+                : state.stopState,
+            supersededTurns: nextSupersededTurns,
+        };
+    }
+    if (isEventTurnSuperseded(state, event)) {
+        return {
+            ...state,
+            stream: {
+                ...state.stream,
+                lastEventId: event.eventId,
+            },
+        };
+    }
     const base = {
         ...state,
         revisionId: event.revisionId,
-        activeTurnRef: (0, conversationEventScope_js_1.shouldEventUpdateActiveTurnRef)(event)
-            ? event.turnRef
-            : state.activeTurnRef,
+        activeTurnRef: (0, conversationEventScope_js_1.resolveActiveTurnRef)(state.activeTurnRef, event),
         stream: {
             ...state.stream,
             lastEventId: event.eventId,
@@ -172,6 +241,13 @@ function reduceConversationRuntimeState(state, event) {
         };
     }
     if (event.type === 'turn_stopped') {
+        if (event.turnRef && state.activeTurnRef && event.turnRef !== state.activeTurnRef) {
+            return {
+                ...base,
+                phase: state.phase,
+                stopState: state.stopState,
+            };
+        }
         return {
             ...base,
             phase: 'stopped',

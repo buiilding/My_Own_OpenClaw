@@ -7,7 +7,7 @@ title: "Superseded Turn Live Lane Plan"
 
 Date: 2026-06-23
 
-Status: planned.
+Status: implemented in the SDK runtime.
 
 Related architecture:
 

@@ -6614,6 +6614,234 @@ describe('Agent SDK conversation runtime core', () => {
     });
   });
 
+  test('edit resend supersedes the old live turn as an inert audit lane', async () => {
+    const notifiedSnapshots: Array<{
+      eventType: ConversationEvent['type'];
+      eventTurnRef: string | null;
+      currentTurnRef: string | null;
+      phase: string;
+      assistantText: string;
+    }> = [];
+    const transport = createControllableAgentRuntimeTransport();
+    const store = new InMemoryConversationStore();
+    const replaceModelHistory = jest.spyOn(store, 'replaceModelHistory');
+    const embeddingsCreate = jest.fn(async () => ({
+      embedding: [0.1],
+      embedding_space_version: 'embed-v1',
+    }));
+    const rpc = jest.fn(async () => ({
+      success: true,
+      data: { memory_id: 'mem-superseded' },
+    }));
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      sdkClient: {
+        embeddings: {
+          create: embeddingsCreate,
+        },
+      } as any,
+      localRuntime: { rpc },
+      userId: 'user-sdk-runtime',
+    });
+    runtime.subscribeEvents((event, snapshot) => {
+      notifiedSnapshots.push({
+        eventType: event.type,
+        eventTurnRef: event.turnRef ?? null,
+        currentTurnRef: snapshot.currentTurn.turnRef ?? null,
+        phase: snapshot.currentTurn.phase,
+        assistantText: snapshot.currentTurn.assistantText,
+      });
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'old prompt', turnRef: 'turn-old-live' });
+    transport.emit(backendEvent(
+      'streaming-response',
+      { text: 'old partial' },
+      {
+        eventId: 'turn-old-live-evt-000001-streaming-response',
+        turnRef: 'turn-old-live',
+        sequence: 1,
+      },
+    ));
+    await waitForExpect(() => {
+      expect(notifiedSnapshots).toContainEqual(expect.objectContaining({
+        eventType: 'assistant_delta',
+        currentTurnRef: 'turn-old-live',
+        phase: 'streaming',
+        assistantText: 'old partial',
+      }));
+    });
+
+    await runtime.editAndResend({
+      messageId: 'turn-old-live-sdk-evt-000002-user_message',
+      text: 'replacement prompt',
+      turnRef: 'turn-new-live',
+    });
+    await waitForExpect(() => {
+      expect(transport.stop).toHaveBeenCalledWith({
+        conversation_ref: 'conv-sdk-runtime',
+        turn_ref: 'turn-old-live',
+      });
+    });
+
+    transport.emit(backendEvent(
+      'system-prompt',
+      { text: 'old hidden system prompt' },
+      {
+        eventId: 'turn-old-live-evt-000002-system-prompt',
+        turnRef: 'turn-old-live',
+        sequence: 2,
+      },
+    ));
+    transport.emit(backendEvent(
+      'tool-schemas',
+      { tools: [{ name: 'old_tool' }] },
+      {
+        eventId: 'turn-old-live-evt-000003-tool-schemas',
+        turnRef: 'turn-old-live',
+        sequence: 3,
+      },
+    ));
+    transport.emit(backendEvent(
+      'streaming-response',
+      { text: ' old late content' },
+      {
+        eventId: 'turn-old-live-evt-000004-streaming-response',
+        turnRef: 'turn-old-live',
+        sequence: 4,
+      },
+    ));
+    transport.emit(backendEvent('model-history-updated', {
+      revision_id: 'rev-old-live',
+      checkpoint_id: 'mh-old-live',
+      rows: [{
+        id: 'mh-old-user',
+        role: 'user',
+        message_type: 'user_query',
+        content: 'old prompt',
+        revision_id: 'rev-old-live',
+      }],
+    }, {
+      eventId: 'turn-old-live-evt-000005-model-history-updated',
+      turnRef: 'turn-old-live',
+      sequence: 5,
+    }));
+    transport.emit(backendEvent(
+      'streaming-complete',
+      { final_response: 'old final should stay audit only' },
+      {
+        eventId: 'turn-old-live-evt-000006-streaming-complete',
+        turnRef: 'turn-old-live',
+        sequence: 6,
+      },
+    ));
+
+    await waitForExpect(async () => {
+      const events = await store.loadEvents('conv-sdk-runtime');
+      expect(events).toEqual(expect.arrayContaining([
+        expect.objectContaining({ type: 'turn_superseded', turnRef: 'turn-old-live' }),
+        expect.objectContaining({ type: 'system_prompt', turnRef: 'turn-old-live' }),
+        expect.objectContaining({ type: 'tool_schemas_metadata', turnRef: 'turn-old-live' }),
+        expect.objectContaining({ type: 'assistant_delta', turnRef: 'turn-old-live' }),
+        expect.objectContaining({ type: 'model_history_updated', turnRef: 'turn-old-live' }),
+        expect.objectContaining({ type: 'turn_completed', turnRef: 'turn-old-live' }),
+      ]));
+    });
+    expect(runtime.isTurnSuperseded('turn-old-live')).toBe(true);
+    expect(replaceModelHistory).not.toHaveBeenCalledWith(expect.objectContaining({
+      checkpointId: 'mh-old-live',
+    }));
+    expect(rpc).not.toHaveBeenCalled();
+
+    transport.emit(backendEvent(
+      'query-accepted',
+      { status: 'accepted' },
+      {
+        eventId: 'turn-new-live-evt-000001-query-accepted',
+        turnRef: 'turn-new-live',
+        sequence: 1,
+      },
+    ));
+    transport.emit(backendEvent(
+      'streaming-response',
+      { text: 'new answer' },
+      {
+        eventId: 'turn-new-live-evt-000002-streaming-response',
+        turnRef: 'turn-new-live',
+        sequence: 2,
+      },
+    ));
+    await runtime.stop('turn-old-live');
+    expect(buildCurrentTurnProjection(await store.loadEvents('conv-sdk-runtime'))).toMatchObject({
+      turnRef: 'turn-new-live',
+      phase: 'streaming',
+      assistantText: 'new answer',
+    });
+    transport.emit(backendEvent('model-history-updated', {
+      revision_id: 'rev-new-live',
+      checkpoint_id: 'mh-new-live',
+      rows: [{
+        id: 'mh-new-user',
+        role: 'user',
+        message_type: 'user_query',
+        content: 'replacement prompt',
+        revision_id: 'rev-new-live',
+      }],
+    }, {
+      eventId: 'turn-new-live-evt-000003-model-history-updated',
+      turnRef: 'turn-new-live',
+      sequence: 3,
+    }));
+    transport.emit(backendEvent(
+      'streaming-complete',
+      { final_response: 'new final' },
+      {
+        eventId: 'turn-new-live-evt-000004-streaming-complete',
+        turnRef: 'turn-new-live',
+        sequence: 4,
+      },
+    ));
+
+    await waitForExpect(() => {
+      expect(rpc).toHaveBeenCalledTimes(1);
+    });
+    expect(embeddingsCreate).toHaveBeenCalledWith({
+      text: 'User: replacement prompt\nAssistant: new final',
+    });
+    expect(replaceModelHistory).toHaveBeenCalledWith(expect.objectContaining({
+      checkpointId: 'mh-new-live',
+      revisionId: 'rev-new-live',
+    }));
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    const currentTurn = buildCurrentTurnProjection(events);
+    expect(currentTurn).toMatchObject({
+      turnRef: 'turn-new-live',
+      phase: 'complete',
+      assistantText: 'new answer',
+    });
+    expect(currentTurn.assistantText).not.toContain('old late content');
+    const rows = await store.loadDisplayRows('conv-sdk-runtime');
+    expect(rows.map(row => row.content)).toEqual(['replacement prompt', 'new answer']);
+    expect(JSON.stringify(rows)).not.toContain('old late content');
+    const supersessionTrace = buildTraceTimeline(events, {
+      turnRef: 'turn-old-live',
+      path: 'turn.supersession',
+    });
+    expect(supersessionTrace.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
+      'late_event:ignored_for_live_authority',
+      'late_event:ignored_for_live_authority',
+      'late_event:ignored_for_live_authority',
+      'late_event:ignored_for_live_authority',
+      'late_event:ignored_for_live_authority',
+    ]);
+    expect(JSON.stringify(supersessionTrace)).not.toContain('old hidden system prompt');
+    expect(JSON.stringify(supersessionTrace)).not.toContain('old final should stay audit only');
+  });
+
   test('conversation runtime stores completed-turn memory from the pending turn ledger', async () => {
     const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
