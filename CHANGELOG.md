@@ -28,6 +28,11 @@ All notable changes to WindieOS will be documented in this file.
   edited pending turn as one replay frame, so the stale assistant suffix is
   removed locally without a prefix-only flash or duplicate replacement SDK row.
   Pending edited turns keep ready image attachments. No migration required.
+- frontend/replay: preserve typed image attachments through edit/resend pending
+  turns, pending-turn IPC fan-out, and same-turn SDK display-row echoes so the
+  edited user message bubble does not repaint or lose included screenshots.
+  Legacy display-row `screenshot_refs` are also replayed into the replacement
+  send payload. No migration required.
 - frontend/local-runtime: load SDK display timeline checkpoints from the
   revision graph before row storage, so edit/resend revisions with an empty
   retained prefix stay authoritative instead of falling back to raw event replay.

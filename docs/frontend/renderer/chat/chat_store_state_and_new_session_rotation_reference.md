@@ -75,11 +75,13 @@ Message attachment fields used by current send/runtime paths include:
   conversation/turn arrives
 - `acceptPendingTurn` stores the renderer-local pending turn before the SDK
   current-turn projection opens, so dashboard/pill surfaces can show awaiting
-  state and stop can target the real outgoing `turnRef`
+  state and stop can target the real outgoing `turnRef`; an echoed pending-turn
+  broadcast for the same conversation/user/turn/text is a no-op so renderer
+  IPC fan-out cannot repaint or strip attachments from the existing user bubble
 - `acceptReplayPendingTurn` stores the accepted replay prefix and renderer-local
   pending turn in one workspace mutation after `replaceRows` succeeds, so
   edit/resend never publishes a prefix-only frame before the edited user row
-  appears
+  appears, and the pending user row keeps display-row `attachments[]`
 - `clearPendingTurn` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn
 - `acceptStoppedTurn` immediately clears local busy/thinking state, clears a

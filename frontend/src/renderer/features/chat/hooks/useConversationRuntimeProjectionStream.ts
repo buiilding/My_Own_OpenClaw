@@ -125,7 +125,11 @@ export function useConversationRuntimeProjectionStream(): void {
       }
       const sdkMessages = buildChatMessagesFromSdkDisplayRows(rows);
       const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-      const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(sdkMessages, workspace.messages);
+      const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
+        sdkMessages,
+        workspace.messages,
+        { pendingTurn: workspace.pendingTurn },
+      );
       logRendererDisplayRowsProjectionTrace({
         source: 'sdk-display-rows-stream',
         conversationRef,

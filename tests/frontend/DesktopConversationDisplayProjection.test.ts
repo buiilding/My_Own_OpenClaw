@@ -153,6 +153,46 @@ describe('desktopConversationDisplayProjection', () => {
     )).toEqual([sdkUserSameTurn]);
   });
 
+  test('keeps the optimistic user bubble when SDK echoes the pending user turn', () => {
+    const optimisticUser = message({
+      id: 'renderer-user-edit',
+      sender: 'user',
+      text: 'edited prompt',
+      turnRef: 'turn-edit',
+      sourceEventType: 'renderer-compose',
+      sourceChannel: 'renderer-local',
+      attachments: [{
+        id: 'artifact-one',
+        kind: 'image',
+        source: 'user_included',
+        status: 'ready',
+        filename: 'one.png',
+      }],
+      isComplete: true,
+    });
+    const sdkUserSameTurn = message({
+      id: 'sdk-user-edit',
+      sender: 'user',
+      text: 'edited prompt',
+      turnRef: 'turn-edit',
+      sourceEventType: 'user_message',
+      sourceChannel: 'sdk:display-rows',
+      isComplete: true,
+    });
+
+    expect(mergeRendererAnnotationsIntoSdkMessages(
+      [sdkUserSameTurn],
+      [optimisticUser],
+      {
+        pendingTurn: {
+          turnRef: 'turn-edit',
+          userMessageId: 'renderer-user-edit',
+          text: 'edited prompt',
+        },
+      },
+    )).toEqual([optimisticUser]);
+  });
+
   test('does not copy renderer screenshot metadata into text-only SDK user projections', () => {
     const sdkTextOnlyUser = message({
       id: 'turn-1-sdk-evt-000002-user_message',

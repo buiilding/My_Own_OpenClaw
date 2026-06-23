@@ -354,6 +354,48 @@ describe('chatStore', () => {
     ]);
   });
 
+  test('applyPendingTurnBroadcast is a no-op for an echoed pending turn with attachments', () => {
+    const pendingTurn = {
+      conversationRef: 'conv-echo',
+      turnRef: 'turn-echo',
+      userMessageId: 'user-echo',
+      text: 'keep this bubble stable',
+      timestamp: '2026-06-16T00:00:00.000Z',
+      attachmentFilenames: ['image.png'],
+      attachments: [{
+        id: 'turn-echo:attachment:000',
+        kind: 'image' as const,
+        source: 'user_included' as const,
+        status: 'ready' as const,
+        filename: 'image.png',
+        screenshotRef: 'artifact-image',
+      }],
+    };
+
+    useChatStore.getState().acceptReplayPendingTurn({
+      conversationRef: 'conv-echo',
+      messages: [],
+      pendingTurn,
+    });
+    const beforeState = useChatStore.getState();
+    const beforeMessages = beforeState.messages;
+
+    useChatStore.getState().applyPendingTurnBroadcast({
+      kind: 'pending',
+      pendingTurn: JSON.parse(JSON.stringify(pendingTurn)),
+    });
+
+    const afterState = useChatStore.getState();
+    expect(afterState).toBe(beforeState);
+    expect(afterState.messages).toBe(beforeMessages);
+    expect(afterState.messages).toEqual([
+      expect.objectContaining({
+        id: 'user-echo',
+        attachments: pendingTurn.attachments,
+      }),
+    ]);
+  });
+
   test('setCurrentTurnProjection replaces matching pending turn without clearing busy state first', () => {
     useChatStore.getState().acceptPendingTurn({
       conversationRef: 'conv-sdk',

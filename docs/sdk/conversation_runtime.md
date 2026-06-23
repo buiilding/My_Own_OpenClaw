@@ -736,21 +736,25 @@ document without deleting the original events. The renderer active path calls
 part of normal edit/retry preparation.
 
 Resource preservation comes from the target display row. Typed display
-attachments become `screenshot_refs` and `attachment_filenames` for the resend,
-while legacy single screenshot refs still flow through replay screenshot
-resolution. Renderer replay payloads are preserve-by-default: absent or null
-attachment fields must not erase prior resolved resources without an explicit
-removal operation.
+attachments become the edited pending user row's visible `attachments[]` and
+the replacement send payload's `screenshot_refs`/`attachment_filenames`.
+Legacy display-row `screenshot_refs` and single screenshot refs still flow
+through replay screenshot resolution. Renderer replay payloads are
+preserve-by-default: absent or null attachment fields must not erase prior
+resolved resources without an explicit removal operation.
 
 The Electron renderer publishes the retained replay prefix and `pendingTurn`
 as one visible frame only after `replaceRows` succeeds. A rejected display
-replacement must not pre-mutate visible rows or pending-turn state. If the
-later normal send fails after the child display revision is accepted, the
-renderer keeps the accepted child timeline visible, clears only the pending
-turn, and appends a send-failure error row instead of rolling back to the
-parent transcript. No migration is required for existing conversations; before
-their first display checkpoint, the active timeline loads from the event
-projection fallback.
+replacement must not pre-mutate visible rows or pending-turn state. Pending
+turn IPC preserves typed `attachments[]`; echoed pending-turn broadcasts from
+Electron main must no-op in a renderer that already owns the same pending user
+row, and SDK display-row echoes for that pending turn must keep the existing
+optimistic bubble until the turn is no longer pending. If the later normal send
+fails after the child display revision is accepted, the renderer keeps the
+accepted child timeline visible, clears only the pending turn, and appends a
+send-failure error row instead of rolling back to the parent transcript. No
+migration is required for existing conversations; before their first display
+checkpoint, the active timeline loads from the event projection fallback.
 
 Fork is also a revision operation rather than a raw-event rewrite:
 

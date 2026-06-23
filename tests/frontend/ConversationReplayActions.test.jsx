@@ -401,6 +401,93 @@ describe('useConversationReplayActions', () => {
     );
   });
 
+  test('edit replay preserves display-row image attachments when renderer message lacks them', async () => {
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-display-attachments');
+    const displayAttachment = {
+      id: 'artifact-display-one',
+      kind: 'image',
+      source: 'user_included',
+      status: 'ready',
+      filename: 'display-one.png',
+    };
+    const messages = [
+      {
+        id: 'renderer-user-1',
+        sender: 'user',
+        text: 'first question',
+        sourceEventType: 'user_message',
+        sourceChannel: 'sdk:display-rows',
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'first answer',
+        sourceEventType: 'assistant_message',
+        sourceChannel: 'sdk:display-rows',
+      },
+    ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
+    mockDisplayTimelineRows[0].metadata.attachments = [displayAttachment];
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    useChatStore.getState().clearMessages('conv-existing');
+    useChatStore.getState().setMessages(messages, 'conv-existing');
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: useChatStore.getState().setMessages,
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleEditFromUser('renderer-user-1', 'edited first question');
+    });
+
+    expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([
+      expect.objectContaining({
+        id: 'renderer-user-1',
+        text: 'edited first question',
+        attachments: [displayAttachment],
+      }),
+    ]);
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      screenshotRefs: ['artifact-display-one'],
+      attachmentFilenames: ['display-one.png'],
+    }));
+  });
+
+  test('edit replay dispatches legacy display-row screenshot refs', async () => {
+    const messages = [
+      {
+        id: 'renderer-user-legacy',
+        sender: 'user',
+        text: 'question with legacy screenshot refs',
+      },
+      {
+        id: 'assistant-legacy',
+        sender: 'assistant',
+        text: 'answer',
+      },
+    ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
+    mockDisplayTimelineRows[0].metadata.screenshot_refs = ['artifact-legacy-one', 'artifact-legacy-two'];
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleEditFromUser('renderer-user-legacy', 'edited legacy question');
+    });
+
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      screenshotRefs: ['artifact-legacy-one', 'artifact-legacy-two'],
+    }));
+  });
+
   test('edit replay publishes the retained prefix and edited pending turn atomically', async () => {
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-atomic-edit');
     const messages = [

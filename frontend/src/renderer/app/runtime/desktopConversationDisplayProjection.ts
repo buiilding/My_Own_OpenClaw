@@ -14,6 +14,16 @@ type DisplayProjectionTraceInput = {
   sdkMessages?: ChatMessage[];
 };
 
+type PendingTurnLike = {
+  turnRef?: string | null;
+  userMessageId?: string | null;
+  text?: string | null;
+} | null | undefined;
+
+type MergeRendererAnnotationsOptions = {
+  pendingTurn?: PendingTurnLike;
+};
+
 function recordFromUnknown(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -62,6 +72,32 @@ function pendingOptimisticUserMessages(
   });
 }
 
+function findPendingOptimisticUserMessage(
+  message: ChatMessage,
+  currentMessages: ChatMessage[],
+  pendingTurn: PendingTurnLike,
+): ChatMessage | null {
+  const pendingTurnRef = normalizeTurnRef(pendingTurn?.turnRef);
+  const messageTurnRef = normalizeTurnRef(message.turnRef);
+  if (
+    message.sender !== 'user'
+    || !pendingTurnRef
+    || !messageTurnRef
+    || messageTurnRef !== pendingTurnRef
+  ) {
+    return null;
+  }
+  return currentMessages.find((currentMessage) => (
+    isOptimisticUserMessage(currentMessage)
+    && normalizeTurnRef(currentMessage.turnRef) === pendingTurnRef
+    && (
+      currentMessage.id === message.id
+      || currentMessage.id === pendingTurn?.userMessageId
+      || currentMessage.text === pendingTurn?.text
+    )
+  )) ?? null;
+}
+
 function mergePendingOptimisticUserMessages(
   sdkMessages: ChatMessage[],
   optimisticMessages: ChatMessage[],
@@ -87,12 +123,21 @@ function mergePendingOptimisticUserMessages(
 function mergeRendererAnnotationsIntoSdkMessages(
   sdkMessages: ChatMessage[],
   currentMessages: ChatMessage[],
+  options: MergeRendererAnnotationsOptions = {},
 ): ChatMessage[] {
   if (currentMessages.length === 0) {
     return sdkMessages;
   }
   const currentById = new Map(currentMessages.map((message) => [message.id, message]));
   const mergedSdkMessages = sdkMessages.map((message) => {
+    const pendingOptimisticUser = findPendingOptimisticUserMessage(
+      message,
+      currentMessages,
+      options.pendingTurn,
+    );
+    if (pendingOptimisticUser) {
+      return pendingOptimisticUser;
+    }
     const current = currentById.get(message.id);
     return {
       ...message,

@@ -78,21 +78,76 @@ function readyImageAttachmentsFromRow(row) {
   ));
 }
 
+function displayAttachmentsFromRow(row) {
+  const attachments = row?.metadata?.attachments;
+  if (!Array.isArray(attachments) || attachments.length === 0) {
+    return null;
+  }
+  const normalized = attachments.filter((attachment) => (
+    attachment
+    && typeof attachment === 'object'
+    && !Array.isArray(attachment)
+  ));
+  return normalized.length > 0 ? normalized : null;
+}
+
+function stringArrayMetadataField(metadata, ...keys) {
+  if (!metadata || typeof metadata !== 'object') {
+    return null;
+  }
+  for (const key of keys) {
+    const value = metadata[key];
+    if (!Array.isArray(value)) {
+      continue;
+    }
+    const normalized = value
+      .filter((entry) => typeof entry === 'string' && entry.trim())
+      .map((entry) => entry.trim());
+    if (normalized.length > 0) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
 function buildReplayAttachmentPayload(row) {
+  const payload = {};
+  const metadata = row?.metadata;
+  const screenshotRefs = stringArrayMetadataField(metadata, 'screenshotRefs', 'screenshot_refs');
+  if (screenshotRefs) {
+    payload.screenshot_refs = screenshotRefs;
+  }
+  const screenshotRef = metadata?.screenshotRef
+    ?? metadata?.screenshot_ref
+    ?? metadata?.screenshot;
+  if (!payload.screenshot_refs && typeof screenshotRef === 'string' && screenshotRef.trim()) {
+    payload.screenshot_ref = screenshotRef.trim();
+  }
+  const screenshotUrl = metadata?.screenshotUrl ?? metadata?.screenshot_url;
+  if (typeof screenshotUrl === 'string' && screenshotUrl.trim()) {
+    payload.screenshot_url = screenshotUrl.trim();
+  }
+
   const attachments = readyImageAttachmentsFromRow(row);
   if (attachments.length === 0) {
-    return {};
+    return payload;
   }
-  return {
-    screenshot_refs: attachments.map((attachment) => attachment.id.trim()),
-    attachment_filenames: attachments
-      .map((attachment) => (
-        typeof attachment.filename === 'string' && attachment.filename.trim()
-          ? attachment.filename.trim()
-          : null
-      ))
-      .filter(Boolean),
-  };
+  payload.screenshot_refs = attachments.map((attachment) => attachment.id.trim());
+  const attachmentFilenames = attachments
+    .map((attachment) => (
+      typeof attachment.filename === 'string' && attachment.filename.trim()
+        ? attachment.filename.trim()
+        : null
+    ))
+    .filter(Boolean);
+  if (attachmentFilenames.length > 0) {
+    payload.attachment_filenames = attachmentFilenames;
+  }
+  return payload;
+}
+
+function resolveReplayPendingAttachments(row, fallbackAttachments) {
+  return displayAttachmentsFromRow(row) ?? fallbackAttachments ?? null;
 }
 
 function findTimelineRowIndex(rows, messageId, predicate = () => true) {
@@ -147,15 +202,6 @@ async function executeReplayAction({
     updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
   });
   const replayTurnRef = crypto.randomUUID();
-  const replayStartedAt = new Date().toISOString();
-  const pendingTurn = buildReplayPendingTurn({
-    attachments: pendingAttachments,
-    conversationRef,
-    turnRef: replayTurnRef,
-    userMessageId: pendingUserMessageId,
-    text: queryText,
-    timestamp: replayStartedAt,
-  });
   try {
     const displayTimeline = await DesktopConversationContinuityService.loadDisplayTimeline(
       sessionInfo.userId,
@@ -176,6 +222,15 @@ async function executeReplayAction({
       ...buildReplayAttachmentPayload(rows[userRowIndex]),
       ...buildReplayPreparationPayload({ screenshotRef, screenshotUrl }),
     };
+    const replayStartedAt = new Date().toISOString();
+    const pendingTurn = buildReplayPendingTurn({
+      attachments: resolveReplayPendingAttachments(rows[userRowIndex], pendingAttachments),
+      conversationRef,
+      turnRef: replayTurnRef,
+      userMessageId: pendingUserMessageId,
+      text: queryText,
+      timestamp: replayStartedAt,
+    });
     await DesktopConversationContinuityService.replaceRows({
       userId: sessionInfo.userId,
       conversationRef,

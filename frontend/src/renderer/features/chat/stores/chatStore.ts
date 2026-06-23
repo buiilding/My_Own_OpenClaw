@@ -597,7 +597,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
         workspaceRef,
         workspace: currentWorkspace,
       } = resolveWorkspaceMutationTarget(state, conversationRef);
-      if (currentWorkspace.messages === messages) {
+      if (
+        currentWorkspace.messages === messages
+        || (
+          currentWorkspace.messages.length === messages.length
+          && currentWorkspace.messages.every((message, index) => message === messages[index])
+        )
+      ) {
         return state;
       }
       const nextWorkspace = { ...currentWorkspace, messages };
@@ -745,6 +751,22 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const existingMessageIndex = currentWorkspace.messages.findIndex(
         (message) => message.id === optimisticMessage.id,
       );
+      if (
+        existingMessageIndex >= 0
+        && currentWorkspace.isSending === true
+        && currentWorkspace.thinkingStatus === null
+        && currentWorkspace.thinkingSourceEventType === null
+        && currentWorkspace.currentTurnProjection === null
+        && currentWorkspace.pendingTurn?.conversationRef === normalizedPendingTurn.conversationRef
+        && currentWorkspace.pendingTurn?.turnRef === normalizedPendingTurn.turnRef
+        && currentWorkspace.pendingTurn?.userMessageId === normalizedPendingTurn.userMessageId
+        && currentWorkspace.pendingTurn?.text === normalizedPendingTurn.text
+        && currentWorkspace.messages[existingMessageIndex]?.id === optimisticMessage.id
+        && currentWorkspace.messages[existingMessageIndex]?.text === optimisticMessage.text
+        && currentWorkspace.messages[existingMessageIndex]?.turnRef === optimisticMessage.turnRef
+      ) {
+        return state;
+      }
       const nextMessages = existingMessageIndex === -1
         ? [...currentWorkspace.messages, optimisticMessage]
         : currentWorkspace.messages.map((message, index) => (
@@ -860,6 +882,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
       const workspaceRef = resolveChatWorkspaceRef(normalizedPendingTurn.conversationRef);
       const currentWorkspace = readWorkspaceState(state, workspaceRef);
+      const echoedPendingMessage = currentWorkspace.messages.find((message) => (
+        message.id === normalizedPendingTurn.userMessageId
+        && message.sender === 'user'
+        && message.text === normalizedPendingTurn.text
+        && message.turnRef === normalizedPendingTurn.turnRef
+      ));
+      if (
+        echoedPendingMessage
+        && currentWorkspace.pendingTurn?.conversationRef === normalizedPendingTurn.conversationRef
+        && currentWorkspace.pendingTurn?.turnRef === normalizedPendingTurn.turnRef
+        && currentWorkspace.pendingTurn?.userMessageId === normalizedPendingTurn.userMessageId
+        && currentWorkspace.pendingTurn?.text === normalizedPendingTurn.text
+      ) {
+        return state;
+      }
       const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn);
       const existingMessageIndex = currentWorkspace.messages.findIndex(
         (message) => message.id === optimisticMessage.id,

@@ -29,6 +29,49 @@ function normalizePendingTurnScreenshots(value) {
   return screenshots.length > 0 ? screenshots : null;
 }
 
+function normalizePendingTurnAttachments(value) {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const attachments = value
+    .filter((entry) => entry && typeof entry === 'object' && !Array.isArray(entry))
+    .map((entry) => {
+      const id = normalizeOptionalString(entry.id);
+      const kind = entry.kind === 'image' || entry.kind === 'screenshot_request'
+        ? entry.kind
+        : null;
+      const source = (
+        entry.source === 'user_included'
+        || entry.source === 'camera_button'
+        || entry.source === 'tool_result'
+        || entry.source === 'replay'
+      ) ? entry.source : null;
+      const status = (
+        entry.status === 'materializing'
+        || entry.status === 'pending_capture'
+        || entry.status === 'ready'
+        || entry.status === 'failed'
+      ) ? entry.status : null;
+      if (!id || !kind || !source || !status) {
+        return null;
+      }
+      return {
+        id,
+        kind,
+        source,
+        status,
+        ...(normalizeOptionalString(entry.filename) ? { filename: normalizeOptionalString(entry.filename) } : {}),
+        ...(normalizeOptionalString(entry.contentType) ? { contentType: normalizeOptionalString(entry.contentType) } : {}),
+        ...(normalizeOptionalString(entry.previewSrc) ? { previewSrc: normalizeOptionalString(entry.previewSrc) } : {}),
+        ...(normalizeOptionalString(entry.screenshotRef) ? { screenshotRef: normalizeOptionalString(entry.screenshotRef) } : {}),
+        ...(normalizeOptionalString(entry.screenshotUrl) ? { screenshotUrl: normalizeOptionalString(entry.screenshotUrl) } : {}),
+        ...(normalizeOptionalString(entry.errorCode) ? { errorCode: normalizeOptionalString(entry.errorCode) } : {}),
+      };
+    })
+    .filter(Boolean);
+  return attachments.length > 0 ? attachments : null;
+}
+
 function normalizePendingTurnPayload(value) {
   const source = value && typeof value === 'object' && !Array.isArray(value)
     ? value
@@ -51,6 +94,7 @@ function normalizePendingTurnPayload(value) {
       typeof entry === 'string' && entry.trim()
     ))
     : null;
+  const attachments = normalizePendingTurnAttachments(pendingTurn.attachments);
   const screenshots = normalizePendingTurnScreenshots(pendingTurn.screenshots);
   return {
     conversationRef,
@@ -61,6 +105,7 @@ function normalizePendingTurnPayload(value) {
     attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
       ? attachmentFilenames
       : null,
+    attachments,
     screenshots,
   };
 }

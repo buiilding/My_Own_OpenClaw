@@ -607,7 +607,8 @@ Owns pending renderer turn IPC handler registration and payload acceptance:
 - keeps lower-level pending-turn clear execution private behind the
   `createPendingTurnRuntime(...).clear()` facade
 - keeps pending-turn payload normalization and required identity checks private
-  behind handler registration
+  behind handler registration, preserving typed `attachments[]` alongside
+  attachment filenames and legacy screenshot descriptors
 - removed snake_case clear alias rejection
 - SDK-current-turn matching is supplied through
   `createPendingTurnRuntime(...).matchesCurrentTurn()` for SDK current-turn
@@ -957,11 +958,12 @@ registration helper stay private to the runtime helper:
   turn second, active conversation fallback last
 - pending-turn relay: renderer sends `windie:pending-turn` with
   `{ type: "pending", pendingTurn }`; main stores the latest normalized
-  pending turn, broadcasts it to sibling renderers, replays it to late windows,
-  and clears it on explicit `{ type: "clear" }`, matching SDK current-turn
-  projection, or stop of the matching pending turn. Explicit clear filters use
-  `conversationRef` and `turnRef`; removed snake_case filter fields are ignored
-  instead of being treated as aliases.
+  pending turn, including typed `attachments[]`, broadcasts it to sibling
+  renderers, replays it to late windows, and clears it on explicit
+  `{ type: "clear" }`, matching SDK current-turn projection, or stop of the
+  matching pending turn. Explicit clear filters use `conversationRef` and
+  `turnRef`; removed snake_case filter fields are ignored instead of being
+  treated as aliases.
 - conversation metadata-list diagnostic context and event envelopes are built
   through `createConversationMetadataDiagnosticsRuntime(...)`; command handlers
   choose lifecycle stages and call the runtime facade rather than constructing
