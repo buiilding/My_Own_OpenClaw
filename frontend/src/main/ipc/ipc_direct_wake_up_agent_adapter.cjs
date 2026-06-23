@@ -225,22 +225,15 @@ function createDirectWakeUpAgentAdapter({
       return;
     }
     handle.inferenceContextPromise = (async () => {
-      const snapshot = handle.latestSnapshot || await handle.runtime.load();
+      const resolvedWorkspacePath = (
+        typeof resolveWorkspacePathForAgent === 'function'
+          ? resolveWorkspacePathForAgent(sendInput?.payload || sendInput)
+          : null
+      ) || workspacePath || null;
+      const snapshot = await handle.runtime.rehydrate({
+        workspace_path: resolvedWorkspacePath,
+      });
       handle.latestSnapshot = snapshot;
-      const rehydrate = snapshot?.rehydrate;
-      const messages = Array.isArray(rehydrate?.messages) ? rehydrate.messages : [];
-      if (messages.length > 0) {
-        await handle.runtime.rehydrateMessages({
-          conversation_ref: handle.conversationRef,
-          messages,
-          rehydrate_mode: 'replace',
-          workspace_path: (
-            typeof resolveWorkspacePathForAgent === 'function'
-              ? resolveWorkspacePathForAgent(sendInput?.payload || sendInput)
-              : null
-          ) || workspacePath || null,
-        });
-      }
       handle.inferenceContextReady = true;
     })();
     try {

@@ -80,6 +80,14 @@ function optionalRequestId(value: string | void | null | undefined): string | nu
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
 
+function optionalPayloadString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function optionalPayloadRecords(value: unknown): JsonRecord[] | null {
+  return Array.isArray(value) ? value.filter(isJsonRecord) : null;
+}
+
 const USER_MESSAGE_DISPLAY_PAYLOAD_KEYS = [
   'screenshotRef',
   'screenshot_ref',
@@ -1876,7 +1884,7 @@ export class SdkConversationRuntime {
     }
   }
 
-  async rehydrate(): Promise<RehydrateSnapshot> {
+  async rehydrate(input: JsonRecord = {}): Promise<RehydrateSnapshot> {
     const startedAtMs = nowMs();
     const modelHistoryCheckpoint = await this.loadModelHistoryCheckpointForRehydrate();
     const modelHistoryPayload = modelHistoryCheckpoint && modelHistoryCheckpoint.rows.length > 0
@@ -1917,6 +1925,8 @@ export class SdkConversationRuntime {
       messages: [],
       model_history: modelHistoryPayload,
       rehydrate_mode: 'replace',
+      workspace_path: optionalPayloadString(input.workspace_path),
+      repo_instruction_messages: optionalPayloadRecords(input.repo_instruction_messages),
     };
     if (!this.options.transport) {
       await this.recordRuntimeTrace({

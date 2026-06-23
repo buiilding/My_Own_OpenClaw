@@ -31,6 +31,12 @@ const LOCAL_RUNTIME_RPC_TRACE_PATH = 'local_runtime.rpc';
 function optionalRequestId(value) {
     return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
+function optionalPayloadString(value) {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+function optionalPayloadRecords(value) {
+    return Array.isArray(value) ? value.filter(isJsonRecord) : null;
+}
 const USER_MESSAGE_DISPLAY_PAYLOAD_KEYS = [
     'screenshotRef',
     'screenshot_ref',
@@ -1535,7 +1541,7 @@ class SdkConversationRuntime {
             }
         }
     }
-    async rehydrate() {
+    async rehydrate(input = {}) {
         const startedAtMs = nowMs();
         const modelHistoryCheckpoint = await this.loadModelHistoryCheckpointForRehydrate();
         const modelHistoryPayload = modelHistoryCheckpoint && modelHistoryCheckpoint.rows.length > 0
@@ -1576,6 +1582,8 @@ class SdkConversationRuntime {
             messages: [],
             model_history: modelHistoryPayload,
             rehydrate_mode: 'replace',
+            workspace_path: optionalPayloadString(input.workspace_path),
+            repo_instruction_messages: optionalPayloadRecords(input.repo_instruction_messages),
         };
         if (!this.options.transport) {
             await this.recordRuntimeTrace({

@@ -48,6 +48,7 @@ export function modelHistoryPayloadFromCheckpoint(checkpoint: ModelHistoryCheckp
 }
 
 function rehydrateMessageFromModelHistoryRow(row: ModelHistoryRow): JsonRecord {
+  const imageRefs = safeImageRefs(row.imageRefs);
   return {
     role: row.role,
     message_type: row.messageType,
@@ -55,9 +56,7 @@ function rehydrateMessageFromModelHistoryRow(row: ModelHistoryRow): JsonRecord {
     ...(row.toolCallId ? { tool_call_id: row.toolCallId } : {}),
     ...(Array.isArray(row.toolCalls) ? { tool_calls: row.toolCalls.filter(isJsonRecord) } : {}),
     ...(row.toolName ? { tool_name: row.toolName } : {}),
-    ...(Array.isArray(row.imageRefs) ? { image_refs: safeImageRefs(row.imageRefs) } : {}),
-    ...(isJsonRecord(row.compactionFacts) ? { compaction_facts: row.compactionFacts } : {}),
-    ...(Array.isArray(row.sourceDisplayRowIds) ? { source_display_row_ids: [...row.sourceDisplayRowIds] } : {}),
+    ...(imageRefs.length > 0 ? { screenshot_ref: imageRefs[0] } : {}),
   };
 }
 

@@ -66,8 +66,8 @@ class AgentChatSession {
     async stop(turnRef) {
         await this.runtime.stop(turnRef ?? null);
     }
-    async rehydrate() {
-        return this.runtime.rehydrate();
+    async rehydrate(input = {}) {
+        return this.runtime.rehydrate(input);
     }
     close() {
         this.runtime.close();

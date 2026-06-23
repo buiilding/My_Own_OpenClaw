@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/main: route direct send inference-context resume through the SDK
+  `rehydrate()` contract and keep `RehydrateSnapshot.messages` limited to
+  backend fallback entry fields, so rapid edit/resend cannot send
+  model-history-only `image_refs` or `source_display_row_ids` through
+  `rehydrate-conversation.payload.messages`. No migration required.
 - sdk/runtime: emit completed turns before running completed-turn memory
   persistence, so slow old-turn embedding or local-memory failures cannot block
   the serialized backend stream queue and leave edit/resend replacement turns

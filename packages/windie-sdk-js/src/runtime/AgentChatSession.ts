@@ -5,6 +5,7 @@
 import type {
   DisplayTimelineCheckpoint,
   DisplayConversation,
+  JsonRecord,
   RehydrateSnapshot,
 } from '../conversation/types.js';
 import {
@@ -98,8 +99,8 @@ export class AgentChatSession {
     await this.runtime.stop(turnRef ?? null);
   }
 
-  async rehydrate(): Promise<RehydrateSnapshot> {
-    return this.runtime.rehydrate();
+  async rehydrate(input: JsonRecord = {}): Promise<RehydrateSnapshot> {
+    return this.runtime.rehydrate(input);
   }
 
   close(): void {

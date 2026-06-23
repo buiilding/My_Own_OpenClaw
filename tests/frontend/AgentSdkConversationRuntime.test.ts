@@ -5262,7 +5262,7 @@ describe('Agent SDK conversation runtime core', () => {
       transport,
     });
 
-    const rehydrate = await runtime.rehydrate();
+    const rehydrate = await runtime.rehydrate({ workspace_path: '/tmp/workspace' });
 
     expect(rehydrate.messages).toEqual([
       expect.objectContaining({
@@ -5270,14 +5270,17 @@ describe('Agent SDK conversation runtime core', () => {
         message_type: 'tool_output',
         content: 'bounded tool output',
         tool_call_id: 'call-1',
-        image_refs: ['artifact-1'],
+        screenshot_ref: 'artifact-1',
       }),
     ]);
+    expect(rehydrate.messages[0]).not.toHaveProperty('image_refs');
+    expect(rehydrate.messages[0]).not.toHaveProperty('source_display_row_ids');
     expect(sentRehydrates).toEqual([
       expect.objectContaining({
         conversation_ref: 'conv-sdk-runtime',
         rehydrate_mode: 'replace',
         messages: [],
+        workspace_path: '/tmp/workspace',
         model_history: expect.objectContaining({
           checkpoint_id: 'mh-rev-model-history-turn-1',
           revision_id: 'rev-model-history',
