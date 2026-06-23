@@ -62,6 +62,7 @@ describe('chat box appearance CSS', () => {
     expect(chatBoxCss).toContain('.chatbox-pill::after');
     expect(chatBoxCss).toContain('width: var(--chatbox-close-bump-width);');
     expect(chatBoxCss).toContain('z-index: 0;\n  border-radius: 999px 999px 18px 18px;');
+    expect(chatBoxCss).toContain('clip-path: inset(0 0 calc(100% - var(--chatbox-bump-height)) 0);');
   });
 
   test('anchors the response overlay close button outside the scrollable transcript', () => {

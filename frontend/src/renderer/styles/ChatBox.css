@@ -192,6 +192,7 @@ body {
   height: var(--chatbox-close-bump-height);
   z-index: 0;
   border-radius: 999px 999px 18px 18px;
+  clip-path: inset(0 0 calc(100% - var(--chatbox-bump-height)) 0);
   transform: translateX(-50%);
 }
 
