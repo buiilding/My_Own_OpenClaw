@@ -737,11 +737,14 @@ part of normal edit/retry preparation.
 
 Resource preservation comes from the target display row. Typed display
 attachments become the edited pending user row's visible `attachments[]` and
-the replacement send payload's `screenshot_refs`/`attachment_filenames`.
-Legacy display-row `screenshot_refs` and single screenshot refs still flow
-through replay screenshot resolution. Renderer replay payloads are
-preserve-by-default: absent or null attachment fields must not erase prior
-resolved resources without an explicit removal operation.
+the replacement send payload's `screenshot_refs`/`attachment_filenames`. When a
+typed image attachment has a display-local id and a separate `screenshotRef`,
+replay uses the real screenshot/artifact ref for the backend payload and carries
+the typed attachment as SDK display metadata. Legacy display-row
+`screenshot_refs` and single screenshot refs still flow through replay
+screenshot resolution. Renderer replay payloads are preserve-by-default: absent
+or null attachment fields must not erase prior resolved resources without an
+explicit removal operation.
 
 The Electron renderer publishes the retained replay prefix and `pendingTurn`
 as one visible frame only after `replaceRows` succeeds. A rejected display
@@ -749,9 +752,12 @@ replacement must not pre-mutate visible rows or pending-turn state. Pending
 turn IPC preserves typed `attachments[]`; echoed pending-turn broadcasts from
 Electron main must no-op in a renderer that already owns the same pending user
 row, and SDK display-row echoes for that pending turn must keep the existing
-optimistic bubble until the turn is no longer pending. If the later normal send
-fails after the child display revision is accepted, the renderer keeps the
-accepted child timeline visible, clears only the pending turn, and appends a
+optimistic bubble until the turn is no longer pending. Replay pending user rows
+use the SDK replacement event id (`<turnRef>-sdk-evt-000002-user_message`) so
+the final `sdk:display-rows` projection updates the existing user bubble instead
+of remounting it. If the later normal send fails after the child display
+revision is accepted, the renderer keeps the accepted child timeline visible,
+removes the optimistic replay row, clears only the pending turn, and appends a
 send-failure error row instead of rolling back to the parent transcript. No
 migration is required for existing conversations; before their first display
 checkpoint, the active timeline loads from the event projection fallback.

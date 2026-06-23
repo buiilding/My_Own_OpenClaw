@@ -213,6 +213,11 @@ function buildPreparedReplayDesktopChatTurn({
 }) {
   const replayTurnRef = preparedReplayTurn.turnRef || createTurnRef();
   const payload = preparedReplayTurn.payload || {};
+  const metadata = (
+    preparedReplayTurn.metadata
+    && typeof preparedReplayTurn.metadata === 'object'
+    && !Array.isArray(preparedReplayTurn.metadata)
+  ) ? preparedReplayTurn.metadata : null;
   return {
     attachmentFilenames: stringArrayPayloadField(
       payload,
@@ -221,7 +226,7 @@ function buildPreparedReplayDesktopChatTurn({
     ),
     conversationRef: preparedReplayTurn.conversationRef || conversationRef,
     deferredQueryModelSelection: null,
-    metadata: null,
+    metadata,
     model: preparedReplayTurn.model ?? deferredQueryModelSelection ?? null,
     resources: [],
     screenshotRef: payload.screenshot_ref ?? screenshotRef ?? null,

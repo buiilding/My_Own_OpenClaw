@@ -236,14 +236,14 @@ describe('useConversationReplayActions', () => {
     expect(useChatStore.getState().pendingTurn).toEqual(expect.objectContaining({
       conversationRef: 'conv-existing',
       turnRef: 'turn-replay-pending',
-      userMessageId: 'user-1',
+      userMessageId: 'turn-replay-pending-sdk-evt-000002-user_message',
       text: 'first question',
     }));
     expect(IpcBridge.send).toHaveBeenCalledWith(expect.any(String), {
       type: 'pending',
       pendingTurn: expect.objectContaining({
         turnRef: 'turn-replay-pending',
-        userMessageId: 'user-1',
+        userMessageId: 'turn-replay-pending-sdk-evt-000002-user_message',
       }),
     });
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
@@ -385,7 +385,7 @@ describe('useConversationReplayActions', () => {
     }));
     expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([
       expect.objectContaining({
-        id: 'renderer-user-1',
+        id: 'turn-edited-user-sdk-evt-000002-user_message',
         sender: 'user',
         text: 'edited first question',
         turnRef: 'turn-edited-user',
@@ -399,6 +399,13 @@ describe('useConversationReplayActions', () => {
         expect.objectContaining({ id: 'assistant-1' }),
       ]),
     );
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      screenshotRefs: ['artifact-shot-ready'],
+      metadata: expect.objectContaining({
+        attachments: [screenshotAttachment],
+        screenshot_refs: ['artifact-shot-ready'],
+      }),
+    }));
   });
 
   test('edit replay preserves display-row image attachments when renderer message lacks them', async () => {
@@ -445,7 +452,7 @@ describe('useConversationReplayActions', () => {
 
     expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([
       expect.objectContaining({
-        id: 'renderer-user-1',
+        id: 'turn-display-attachments-sdk-evt-000002-user_message',
         text: 'edited first question',
         attachments: [displayAttachment],
       }),
@@ -453,6 +460,10 @@ describe('useConversationReplayActions', () => {
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       screenshotRefs: ['artifact-display-one'],
       attachmentFilenames: ['display-one.png'],
+      metadata: expect.objectContaining({
+        attachments: [displayAttachment],
+        screenshot_refs: ['artifact-display-one'],
+      }),
     }));
   });
 
@@ -542,7 +553,7 @@ describe('useConversationReplayActions', () => {
     expect(visibleFrames).toHaveLength(1);
     expect(visibleFrames[0]).toEqual([
       expect.objectContaining({
-        id: 'renderer-user-1',
+        id: 'turn-atomic-edit-sdk-evt-000002-user_message',
         sender: 'user',
         text: 'edited first question',
         turnRef: 'turn-atomic-edit',
@@ -836,11 +847,6 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(useChatStore.getState().messages).toEqual([
-      expect.objectContaining({
-        id: 'user-1',
-        sender: 'user',
-        text: 'first question',
-      }),
       expect.objectContaining({
         sender: 'assistant',
         type: 'error',

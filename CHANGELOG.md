@@ -33,6 +33,12 @@ All notable changes to WindieOS will be documented in this file.
   edited user message bubble does not repaint or lose included screenshots.
   Legacy display-row `screenshot_refs` are also replayed into the replacement
   send payload. No migration required.
+- frontend/sdk: keep edit/resend pending user rows on the SDK replacement
+  display-row id, replay real image artifact refs instead of local attachment
+  ids, and persist typed visual metadata through normal `conversation.send`
+  so screenshot-bearing edited messages do not remount or reload as text-only.
+  Send failures now remove the optimistic replay row before appending the
+  error. No migration required.
 - frontend/local-runtime: load SDK display timeline checkpoints from the
   revision graph before row storage, so edit/resend revisions with an empty
   retained prefix stay authoritative instead of falling back to raw event replay.

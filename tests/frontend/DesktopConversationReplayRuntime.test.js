@@ -205,6 +205,9 @@ describe('desktopConversationReplayRuntime', () => {
         screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-primary',
         attachment_filenames: [' one.png ', '', 'two.png'],
       },
+      metadata: {
+        attachments: [{ id: 'artifact-primary', kind: 'image', status: 'ready' }],
+      },
       text: 'retry this',
       turnRef: null,
       workspacePath: null,
@@ -224,7 +227,9 @@ describe('desktopConversationReplayRuntime', () => {
       attachmentFilenames: ['one.png', 'two.png'],
       conversationRef: 'conv-prepared',
       deferredQueryModelSelection: null,
-      metadata: null,
+      metadata: {
+        attachments: [{ id: 'artifact-primary', kind: 'image', status: 'ready' }],
+      },
       model: { modelProvider: 'openai', modelId: 'gpt-5' },
       resources: [],
       screenshotRef: 'artifact-primary',
@@ -254,6 +259,7 @@ describe('desktopConversationReplayRuntime', () => {
       timestamp: '2026-06-21T00:00:00.000Z',
     })).toEqual({
       attachmentFilenames: ['one.png'],
+      attachments: null,
       conversationRef: 'conv-replay',
       turnRef: 'turn-replay',
       userMessageId: 'renderer-user-1',

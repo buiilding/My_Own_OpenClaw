@@ -81,7 +81,9 @@ Message attachment fields used by current send/runtime paths include:
 - `acceptReplayPendingTurn` stores the accepted replay prefix and renderer-local
   pending turn in one workspace mutation after `replaceRows` succeeds, so
   edit/resend never publishes a prefix-only frame before the edited user row
-  appears, and the pending user row keeps display-row `attachments[]`
+  appears. Replay pending rows use the SDK replacement display-row id and keep
+  display-row `attachments[]`, so the later `sdk:display-rows` projection can
+  update the same user bubble instead of remounting it.
 - `clearPendingTurn` clears only a pending turn matching the provided
   `conversationRef`/`turnRef`; missing filters clear the active pending turn
 - `acceptStoppedTurn` immediately clears local busy/thinking state, clears a

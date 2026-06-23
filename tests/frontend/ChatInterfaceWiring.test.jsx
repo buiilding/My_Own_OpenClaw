@@ -1753,6 +1753,7 @@ describe('ChatInterface wiring', () => {
   });
 
   test('try again rewinds tool loop and re-queries from triggering user message', async () => {
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-wiring-retry');
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'create a dashboard for this', type: 'user' },
       { id: 'tool-call-1', sender: 'assistant', text: '{"name":"tool"}', type: 'tool-call', toolName: 'tool' },
@@ -1774,7 +1775,7 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_existing',
       messages: [
         expect.objectContaining({
-          id: 'user-1',
+          id: 'turn-wiring-retry-sdk-evt-000002-user_message',
           sender: 'user',
           text: 'create a dashboard for this',
           sourceEventType: 'renderer-compose',
@@ -1783,7 +1784,7 @@ describe('ChatInterface wiring', () => {
       ],
       pendingTurn: expect.objectContaining({
         conversationRef: 'conv_existing',
-        userMessageId: 'user-1',
+        userMessageId: 'turn-wiring-retry-sdk-evt-000002-user_message',
         text: 'create a dashboard for this',
       }),
     }));
@@ -1804,6 +1805,7 @@ describe('ChatInterface wiring', () => {
   });
 
   test('user edit rewinds assistant output and re-queries with edited text', async () => {
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-wiring-edit');
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'old prompt', type: 'user' },
       { id: 'assistant-1', sender: 'assistant', text: 'old response', type: 'llm-text' },
@@ -1823,7 +1825,7 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_existing',
       messages: [
         expect.objectContaining({
-          id: 'user-1',
+          id: 'turn-wiring-edit-sdk-evt-000002-user_message',
           sender: 'user',
           text: 'new prompt',
           sourceEventType: 'renderer-compose',
@@ -1832,7 +1834,7 @@ describe('ChatInterface wiring', () => {
       ],
       pendingTurn: expect.objectContaining({
         conversationRef: 'conv_existing',
-        userMessageId: 'user-1',
+        userMessageId: 'turn-wiring-edit-sdk-evt-000002-user_message',
         text: 'new prompt',
       }),
     }));

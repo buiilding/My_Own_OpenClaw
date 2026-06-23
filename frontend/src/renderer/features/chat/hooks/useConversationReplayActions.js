@@ -73,8 +73,7 @@ function readyImageAttachmentsFromRow(row) {
     && typeof attachment === 'object'
     && attachment.kind === 'image'
     && attachment.status === 'ready'
-    && typeof attachment.id === 'string'
-    && attachment.id.trim()
+    && imageAttachmentArtifactRef(attachment)
   ));
 }
 
@@ -89,6 +88,18 @@ function displayAttachmentsFromRow(row) {
     && !Array.isArray(attachment)
   ));
   return normalized.length > 0 ? normalized : null;
+}
+
+function imageAttachmentArtifactRef(attachment) {
+  if (!attachment || typeof attachment !== 'object') {
+    return null;
+  }
+  const ref = attachment.screenshotRef
+    ?? attachment.screenshot_ref
+    ?? attachment.artifactRef
+    ?? attachment.artifact_ref
+    ?? attachment.id;
+  return typeof ref === 'string' && ref.trim() ? ref.trim() : null;
 }
 
 function stringArrayMetadataField(metadata, ...keys) {
@@ -132,7 +143,9 @@ function buildReplayAttachmentPayload(row) {
   if (attachments.length === 0) {
     return payload;
   }
-  payload.screenshot_refs = attachments.map((attachment) => attachment.id.trim());
+  payload.screenshot_refs = attachments
+    .map(imageAttachmentArtifactRef)
+    .filter(Boolean);
   const attachmentFilenames = attachments
     .map((attachment) => (
       typeof attachment.filename === 'string' && attachment.filename.trim()
@@ -144,6 +157,33 @@ function buildReplayAttachmentPayload(row) {
     payload.attachment_filenames = attachmentFilenames;
   }
   return payload;
+}
+
+function buildReplayDisplayMetadataPayload(row) {
+  const metadata = {};
+  const rowMetadata = row?.metadata;
+  const attachments = displayAttachmentsFromRow(row);
+  if (attachments) {
+    metadata.attachments = attachments;
+  }
+  const screenshotRefs = stringArrayMetadataField(rowMetadata, 'screenshotRefs', 'screenshot_refs')
+    ?? (attachments
+      ? attachments.map(imageAttachmentArtifactRef).filter(Boolean)
+      : null);
+  if (screenshotRefs && screenshotRefs.length > 0) {
+    metadata.screenshot_refs = screenshotRefs;
+  }
+  const screenshotRef = rowMetadata?.screenshotRef
+    ?? rowMetadata?.screenshot_ref
+    ?? rowMetadata?.screenshot;
+  if (!metadata.screenshot_refs && typeof screenshotRef === 'string' && screenshotRef.trim()) {
+    metadata.screenshot_ref = screenshotRef.trim();
+  }
+  const screenshotUrl = rowMetadata?.screenshotUrl ?? rowMetadata?.screenshot_url;
+  if (typeof screenshotUrl === 'string' && screenshotUrl.trim()) {
+    metadata.screenshot_url = screenshotUrl.trim();
+  }
+  return Object.keys(metadata).length > 0 ? metadata : null;
 }
 
 function resolveReplayPendingAttachments(row, fallbackAttachments) {
@@ -188,7 +228,6 @@ async function executeReplayAction({
   action,
   messageId,
   targetUserMessageId,
-  pendingUserMessageId,
   addMessage,
 }) {
   const conversationRef = ensureConversationRef(
@@ -202,6 +241,7 @@ async function executeReplayAction({
     updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
   });
   const replayTurnRef = crypto.randomUUID();
+  let pendingTurnPublished = false;
   try {
     const displayTimeline = await DesktopConversationContinuityService.loadDisplayTimeline(
       sessionInfo.userId,
@@ -222,12 +262,12 @@ async function executeReplayAction({
       ...buildReplayAttachmentPayload(rows[userRowIndex]),
       ...buildReplayPreparationPayload({ screenshotRef, screenshotUrl }),
     };
+    const replayMetadata = buildReplayDisplayMetadataPayload(rows[userRowIndex]);
     const replayStartedAt = new Date().toISOString();
     const pendingTurn = buildReplayPendingTurn({
       attachments: resolveReplayPendingAttachments(rows[userRowIndex], pendingAttachments),
       conversationRef,
       turnRef: replayTurnRef,
-      userMessageId: pendingUserMessageId,
       text: queryText,
       timestamp: replayStartedAt,
     });
@@ -244,12 +284,14 @@ async function executeReplayAction({
       pendingTurn,
     });
     DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
+    pendingTurnPublished = true;
     try {
       await dispatchPreparedDesktopChatTurn(buildPreparedReplayDesktopChatTurn({
         preparedReplayTurn: {
           conversationRef,
           text: queryText,
           payload: replayPayload,
+          metadata: replayMetadata,
           model: deferredQueryModelSelection || null,
           workspacePath: workspaceBinding.workspacePath || null,
           turnRef: replayTurnRef,
@@ -278,6 +320,12 @@ async function executeReplayAction({
       conversationRef,
       turnRef: replayTurnRef,
     });
+    if (pendingTurnPublished) {
+      useChatStore.getState().setMessages(
+        Array.isArray(replayMessages) ? replayMessages : [],
+        conversationRef,
+      );
+    }
     if (typeof addMessage === 'function') {
       const replayStep = error?.__desktopRuntimeReplayStep === 'send' ? 'send' : 'prepare';
       addMessage({
@@ -343,7 +391,6 @@ export function useConversationReplayActions({
       action: 'edit_resend',
       messageId: userMessageId,
       targetUserMessageId: userMessageId,
-      pendingUserMessageId: editUserMessage.id,
       addMessage,
     });
   }, [
@@ -360,7 +407,7 @@ export function useConversationReplayActions({
     }
 
     const retryUserMessage = messages[userIndex];
-    const preservedMessages = messages.slice(0, userIndex + 1);
+    const preservedMessages = messages.slice(0, userIndex);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
     const replayScreenshot = DesktopArtifactRuntimeClient.resolveReplayScreenshotState({
@@ -380,7 +427,6 @@ export function useConversationReplayActions({
       action: 'retry',
       messageId: assistantMessageId,
       targetUserMessageId: retryUserMessage.id,
-      pendingUserMessageId: retryUserMessage.id,
       addMessage,
     });
   }, [

@@ -80,6 +80,36 @@ function optionalRequestId(value: string | void | null | undefined): string | nu
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
 
+const USER_MESSAGE_DISPLAY_PAYLOAD_KEYS = [
+  'screenshotRef',
+  'screenshot_ref',
+  'screenshotRefs',
+  'screenshot_refs',
+  'screenshotUrl',
+  'screenshot_url',
+  'screenshot',
+  'image',
+  'screenshotContentType',
+  'screenshot_content_type',
+  'attachment_filenames',
+  'attachmentFilenames',
+  'attachments',
+  'display_attachments',
+] as const;
+
+function userMessageDisplayPayloadFrom(value: unknown): JsonRecord {
+  if (!isJsonRecord(value)) {
+    return {};
+  }
+  const payload: JsonRecord = {};
+  for (const key of USER_MESSAGE_DISPLAY_PAYLOAD_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(value, key) && value[key] !== undefined) {
+      payload[key] = value[key];
+    }
+  }
+  return payload;
+}
+
 export type ConversationListener = (snapshot: ConversationSnapshot) => void;
 export type ConversationEventListener = (event: ConversationEvent, snapshot: ConversationSnapshot) => void;
 
@@ -1277,9 +1307,10 @@ export class SdkConversationRuntime {
         turnRef,
         this.initialLiveDisplayAttachments(resources),
       );
-      const baseUserPayload = isJsonRecord(input.metadata)
-        ? input.metadata
-        : (isJsonRecord(input.payload) ? input.payload : {});
+      const baseUserPayload = {
+        ...userMessageDisplayPayloadFrom(input.payload),
+        ...userMessageDisplayPayloadFrom(input.metadata),
+      };
       await this.applyEvent(createConversationEvent({
         eventId: this.nextLocalEventId(turnRef, 'user_message'),
         type: 'user_message',
