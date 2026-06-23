@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: restrict active-turn ownership to authoritative lifecycle events
+  so late old-turn diagnostics, memory side effects, and stop acknowledgements
+  cannot make edit/resend drop the replacement turn's backend stream. Rejected
+  backend events now emit a hidden `backend.event.reject` trace. No migration
+  required.
 - cli/startup: route `<windie> start customer` through the frontend Python
   environment wrapper before launching Electron customer mode, so local-runtime
   auto-start inherits `frontend_jarvis`/`WINDIE_PYTHON_PATH` just like

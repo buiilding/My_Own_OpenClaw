@@ -8,7 +8,7 @@ import type {
   ToolEventPayload,
 } from '../conversation/types.js';
 import { resolveToolWaitId } from '../tools/toolCorrelationIds.js';
-import { shouldEventUpdateActiveTurnRef } from './conversationEventScope.js';
+import { resolveActiveTurnRef } from './conversationEventScope.js';
 
 export function createInitialConversationRuntimeState(
   conversationRef: string,
@@ -58,9 +58,7 @@ export function reduceConversationRuntimeState(
   const base = {
     ...state,
     revisionId: event.revisionId,
-    activeTurnRef: shouldEventUpdateActiveTurnRef(event)
-      ? event.turnRef
-      : state.activeTurnRef,
+    activeTurnRef: resolveActiveTurnRef(state.activeTurnRef, event),
     stream: {
       ...state.stream,
       lastEventId: event.eventId,
@@ -186,6 +184,13 @@ export function reduceConversationRuntimeState(
     };
   }
   if (event.type === 'turn_stopped') {
+    if (event.turnRef && state.activeTurnRef && event.turnRef !== state.activeTurnRef) {
+      return {
+        ...base,
+        phase: state.phase,
+        stopState: state.stopState,
+      };
+    }
     return {
       ...base,
       phase: 'stopped',

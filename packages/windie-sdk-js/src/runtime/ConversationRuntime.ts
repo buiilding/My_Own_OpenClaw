@@ -2786,7 +2786,9 @@ export class SdkConversationRuntime {
       await this.applyEvent(event);
       return;
     }
-    if (!this.shouldAcceptBackendEvent(event)) {
+    const rejectionReason = this.backendEventRejectionReason(event);
+    if (rejectionReason) {
+      await this.recordRejectedBackendEvent(event, rejectionReason);
       return;
     }
     const sequence = typeof event.payload.backendSequence === 'number'
@@ -2887,13 +2889,13 @@ export class SdkConversationRuntime {
     }));
   }
 
-  private shouldAcceptBackendEvent(event: ConversationEvent): boolean {
+  private backendEventRejectionReason(event: ConversationEvent): string | null {
     if (event.source !== 'backend') {
-      return true;
+      return null;
     }
     if (event.conversationRef !== this.options.conversationRef) {
       this.logRejectedBackendEvent(event, 'conversation_ref_mismatch');
-      return false;
+      return 'conversation_ref_mismatch';
     }
     if (
       !isConversationControlEvent(event)
@@ -2904,7 +2906,7 @@ export class SdkConversationRuntime {
       && event.type !== 'turn_error'
       && event.type !== 'runtime_error'
     ) {
-      return false;
+      return 'stopped_turn_stream';
     }
     if (
       !isConversationControlEvent(event)
@@ -2913,9 +2915,34 @@ export class SdkConversationRuntime {
       && event.turnRef !== this.state.activeTurnRef
     ) {
       this.logRejectedBackendEvent(event, 'active_turn_ref_mismatch');
-      return false;
+      return 'active_turn_ref_mismatch';
     }
-    return true;
+    return null;
+  }
+
+  private async recordRejectedBackendEvent(
+    event: ConversationEvent,
+    reason: string,
+  ): Promise<void> {
+    await this.recordRuntimeTrace({
+      path: 'backend.event.reject',
+      stage: 'active_turn_gate',
+      status: 'failed',
+      data: {
+        reason,
+        sourceEventType: event.type,
+        sourceEventId: event.eventId,
+        eventTurnRef: event.turnRef ?? null,
+        activeTurnRef: this.state.activeTurnRef ?? null,
+        phase: this.state.phase,
+        backendSequence: typeof event.payload.backendSequence === 'number'
+          ? event.payload.backendSequence
+          : null,
+      },
+    }, {
+      turnRef: event.turnRef ?? null,
+      revisionId: event.revisionId,
+    });
   }
 
   private logRejectedBackendEvent(event: ConversationEvent, reason: string): void {

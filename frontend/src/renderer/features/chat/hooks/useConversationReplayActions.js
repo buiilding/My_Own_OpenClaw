@@ -274,7 +274,9 @@ function traceErrorKind(error) {
 
 function replayTraceSnapshot(conversationRef, newTurnRef = null, oldTurnRef = null) {
   const state = useChatStore.getState();
-  const workspace = state.getWorkspaceState(conversationRef);
+  const workspace = typeof state.getWorkspaceState === 'function'
+    ? state.getWorkspaceState(conversationRef)
+    : state;
   const currentTurnProjection = workspace.currentTurnProjection ?? null;
   const latestCurrentTurnProjection = state.latestCurrentTurnProjection ?? null;
   const pendingTurn = workspace.pendingTurn ?? null;

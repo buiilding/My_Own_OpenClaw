@@ -125,8 +125,9 @@ Backend-origin events must use backend `event_id` as `eventId` and copy backend
 `sequence` into `payload.backendSequence`. Backend `id` remains turn
 correlation, not event identity. The SDK rejects backend stream events missing
 `event_id` or `sequence` into `runtime_error`, ignores duplicate `event_id`
-values, and records `runtime_error` when a turn's backend `sequence` regresses
-or jumps forward.
+values, records `runtime_error` when a turn's backend `sequence` regresses
+or jumps forward, and records a hidden `backend.event.reject` trace when the
+active-turn gate rejects a backend event.
 
 Backend-origin events are scoped before the runtime applies active-turn
 filtering:
@@ -139,7 +140,13 @@ filtering:
   accepted by `conversationRef` plus backend sequence/deduping. Their backend
   `turnRef` is a compaction operation id, not the active chat/model turn.
 
-The reducer updates `state.activeTurnRef` only from turn-stream events.
+The reducer updates `state.activeTurnRef` only from authoritative turn lifecycle
+events. `turn_started` and `user_message` may claim a new active turn.
+Continuation and terminal events may keep ownership only when there is no active
+turn yet or when they match the current active turn. Diagnostic and persistence
+side-effect events such as `trace_event`, `memory_store_changed`, and
+`model_history_updated` never claim active turn ownership, and stale old-turn
+`turn_stopped` events do not replace a newer active resend turn.
 Conversation-control compaction events update `state.compaction` and replay
 checkpoint state without replacing the active turn identity or changing the
 active turn phase. Manual compaction after a completed turn preserves the
