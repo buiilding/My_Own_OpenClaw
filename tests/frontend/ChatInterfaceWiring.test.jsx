@@ -1795,7 +1795,19 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
       baseRevisionId: 'rev-base',
       reason: 'retry',
-      rows: [],
+      rows: [
+        expect.objectContaining({
+          id: 'turn-wiring-retry-sdk-evt-000002-user_message',
+          type: 'user_message',
+          role: 'user',
+          content: 'create a dashboard for this',
+          turnRef: 'turn-wiring-retry',
+          metadata: expect.objectContaining({
+            replacedDisplayRowId: 'user-1',
+            sourceEventType: 'renderer-compose',
+          }),
+        }),
+      ],
     }));
     expect(retryPayload).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
@@ -1845,7 +1857,19 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
       baseRevisionId: 'rev-base',
       reason: 'user_edit',
-      rows: [],
+      rows: [
+        expect.objectContaining({
+          id: 'turn-wiring-edit-sdk-evt-000002-user_message',
+          type: 'user_message',
+          role: 'user',
+          content: 'new prompt',
+          turnRef: 'turn-wiring-edit',
+          metadata: expect.objectContaining({
+            replacedDisplayRowId: 'user-1',
+            sourceEventType: 'renderer-compose',
+          }),
+        }),
+      ],
     }));
     expect(editPayload).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({

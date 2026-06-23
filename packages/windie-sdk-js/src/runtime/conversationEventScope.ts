@@ -38,5 +38,47 @@ export function isConversationControlEvent(event: ConversationEvent): boolean {
 }
 
 export function shouldEventUpdateActiveTurnRef(event: ConversationEvent): boolean {
-  return Boolean(event.turnRef) && getConversationEventScope(event) === 'turn_stream';
+  return resolveActiveTurnRef(null, event) !== null;
+}
+
+const ACTIVE_TURN_CLAIM_EVENT_TYPES = new Set<ConversationEvent['type']>([
+  'turn_started',
+  'user_message',
+]);
+
+const ACTIVE_TURN_CONTINUATION_EVENT_TYPES = new Set<ConversationEvent['type']>([
+  'assistant_delta',
+  'reasoning_delta',
+  'assistant_message',
+  'system_prompt',
+  'user_message_metadata',
+  'tool_schemas_metadata',
+  'usage_updated',
+  'tool_call',
+  'tool_progress',
+  'tool_output',
+  'tool_bundle_call',
+  'tool_bundle_output',
+  'turn_completed',
+  'turn_error',
+  'turn_stopped',
+]);
+
+export function resolveActiveTurnRef(
+  activeTurnRef: string | null,
+  event: ConversationEvent,
+): string | null {
+  const turnRef = typeof event.turnRef === 'string' && event.turnRef.trim()
+    ? event.turnRef.trim()
+    : null;
+  if (!turnRef || getConversationEventScope(event) !== 'turn_stream') {
+    return activeTurnRef;
+  }
+  if (ACTIVE_TURN_CLAIM_EVENT_TYPES.has(event.type)) {
+    return turnRef;
+  }
+  if (ACTIVE_TURN_CONTINUATION_EVENT_TYPES.has(event.type)) {
+    return !activeTurnRef || activeTurnRef === turnRef ? turnRef : activeTurnRef;
+  }
+  return activeTurnRef;
 }

@@ -1047,6 +1047,57 @@ describe('Agent SDK conversation runtime core', () => {
     expect(afterCompaction.compaction.status).toBe('applied');
   });
 
+  test('runtime reducer does not let stale old-turn diagnostics or stops replace active resend ownership', () => {
+    const initial = createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1');
+    const afterOldTurn = reduceConversationRuntimeState(
+      initial,
+      eventForTurn('turn-old', 'turn_started', {}),
+    );
+    const afterNewTurn = reduceConversationRuntimeState(
+      afterOldTurn,
+      eventForTurn('turn-new', 'user_message', { text: 'edited resend' }),
+    );
+    const afterOldTrace = reduceConversationRuntimeState(
+      afterNewTurn,
+      eventForTurn('turn-old', 'trace_event', {
+        path: 'memory.persistence',
+        stage: 'completed_turn',
+        status: 'failed',
+      }),
+    );
+    const afterOldMemory = reduceConversationRuntimeState(
+      afterOldTrace,
+      eventForTurn('turn-old', 'memory_store_changed', {
+        userId: 'user-sdk-runtime',
+        memoryTypes: ['episodic'],
+        reason: 'completed_turn',
+      }),
+    );
+    const afterOldStop = reduceConversationRuntimeState(
+      afterOldMemory,
+      eventForTurn('turn-old', 'turn_stopped', {}),
+    );
+
+    expect(afterNewTurn).toMatchObject({
+      activeTurnRef: 'turn-new',
+      phase: 'sending',
+      stopState: { requested: false, turnRef: null },
+    });
+    expect(afterOldTrace).toMatchObject({
+      activeTurnRef: 'turn-new',
+      phase: 'sending',
+    });
+    expect(afterOldMemory).toMatchObject({
+      activeTurnRef: 'turn-new',
+      phase: 'sending',
+    });
+    expect(afterOldStop).toMatchObject({
+      activeTurnRef: 'turn-new',
+      phase: 'sending',
+      stopState: { requested: false, turnRef: null },
+    });
+  });
+
   test('manual compaction preserves a completed turn as non-busy', () => {
     const initial = createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1');
     const completedTurn = [
@@ -3592,6 +3643,63 @@ describe('Agent SDK conversation runtime core', () => {
       'stale-turn-evt-000001-assistant-message-full',
     );
     expect((await runtime.load()).state.activeTurnRef).toBe('turn-live');
+  });
+
+  test('late old-turn stop cannot make edit resend drop new backend events', async () => {
+    const transport = createControllableAgentRuntimeTransport();
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+    });
+    runtime.attachTransport();
+
+    await runtime.send({
+      text: 'original turn',
+      turnRef: 'turn-old',
+    });
+    await runtime.send({
+      text: 'edited resend',
+      turnRef: 'turn-new',
+    });
+    await runtime.stop('turn-old');
+
+    transport.emit(backendEvent('assistant-message-full', {
+      content: 'new turn assistant text',
+    }, {
+      eventId: 'turn-new-evt-000001-assistant-message-full',
+      turnRef: 'turn-new',
+      sequence: 1,
+    }));
+
+    await waitForExpect(async () => {
+      const events = await store.loadEvents('conv-sdk-runtime');
+      expect(events.map(storedEvent => storedEvent.eventId)).toContain(
+        'turn-new-evt-000001-assistant-message-full',
+      );
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect((await runtime.load()).state.activeTurnRef).toBe('turn-new');
+    expect(events).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        eventId: 'turn-new-evt-000001-assistant-message-full',
+        type: 'assistant_message',
+        turnRef: 'turn-new',
+      }),
+    ]));
+    expect(events).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'trace_event',
+        payload: expect.objectContaining({
+          path: 'backend.event.reject',
+          data: expect.objectContaining({
+            sourceEventId: 'turn-new-evt-000001-assistant-message-full',
+          }),
+        }),
+      }),
+    ]));
   });
 
   test('tool coordinator returns explicit failed result for claimed tool execution failure', async () => {
