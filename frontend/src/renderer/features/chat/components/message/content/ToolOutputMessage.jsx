@@ -56,7 +56,7 @@ export default function ToolOutputMessage({
       {attachments.length > 0 ? (
         <div className="tool-screenshot-container">
           <div className="tool-screenshot-header">📸 Screenshot After Action</div>
-          <AttachmentList attachments={attachments} />
+          <AttachmentList attachments={attachments} surface="tool-output" />
         </div>
       ) : null}
       {showDetails ? (

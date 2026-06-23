@@ -1767,12 +1767,23 @@
   align-items: flex-end;
 }
 
+.message-attachment-gallery--tool-output {
+  align-items: stretch;
+  width: 100%;
+  margin-top: 8px;
+}
+
 .user-screenshot-container {
   width: min(380px, 42vw);
   max-width: min(380px, 100%);
   border-radius: 10px;
   overflow: hidden;
   background: transparent;
+}
+
+.message-attachment-image-container--tool-output {
+  width: 100%;
+  max-width: 100%;
 }
 
 .message-input-container {
@@ -1800,6 +1811,11 @@
   border-radius: 10px;
   border: 1px solid var(--ui-border-soft);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+}
+
+.message-attachment-image-container--tool-output .user-screenshot-image {
+  max-height: 360px;
+  border-color: var(--tool-card-border);
 }
 
 @media (max-width: 980px) {

@@ -9,12 +9,19 @@ import {
   DesktopResolvedMessageScreenshotsRuntime,
 } from '../../../../../app/runtime/desktopResolvedMessageScreenshotsRuntime';
 
-function ImageAttachment({ attachment }) {
+function normalizeSurfaceClass(surface) {
+  return typeof surface === 'string' && /^[a-z0-9_-]+$/i.test(surface)
+    ? surface
+    : 'dashboard';
+}
+
+function ImageAttachment({ attachment, surface = 'dashboard' }) {
   const resolvedArtifactSrc = DesktopResolvedMessageScreenshotsRuntime.useResolvedArtifactImageSrc(attachment);
   const [lastVisibleSrc, setLastVisibleSrc] = useState(null);
   const src = attachment.status === 'materializing'
     ? attachment.previewSrc
     : resolvedArtifactSrc ?? lastVisibleSrc;
+  const surfaceClass = normalizeSurfaceClass(surface);
 
   useEffect(() => {
     if (typeof src === 'string' && src.trim().length > 0) {
@@ -35,7 +42,7 @@ function ImageAttachment({ attachment }) {
   }
 
   return (
-    <div className="user-screenshot-container">
+    <div className={`user-screenshot-container message-attachment-image-container message-attachment-image-container--${surfaceClass}`}>
       <div className="user-screenshot-frame">
         <img
           src={src}
@@ -82,7 +89,7 @@ export default function AttachmentRendererRegistry({ attachment, surface = 'dash
     return <PendingScreenshotAttachment surface={surface} />;
   }
   if (attachment.kind === 'image') {
-    return <ImageAttachment attachment={attachment} />;
+    return <ImageAttachment attachment={attachment} surface={surface} />;
   }
   return null;
 }
@@ -102,6 +109,7 @@ const attachmentShape = PropTypes.shape({
 
 ImageAttachment.propTypes = {
   attachment: attachmentShape.isRequired,
+  surface: PropTypes.string,
 };
 
 PendingScreenshotAttachment.propTypes = {

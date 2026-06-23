@@ -97,6 +97,27 @@ describe('AttachmentList', () => {
     expect(screen.queryByText('Screenshot pending')).not.toBeInTheDocument();
     expect(screen.queryByText('Attachment unavailable')).not.toBeInTheDocument();
   });
+
+  test('marks tool output attachments with the full-card surface classes', () => {
+    const { container } = render(
+      <AttachmentList
+        surface="tool-output"
+        attachments={[
+          {
+            id: 'attachment-tool-output',
+            kind: 'image',
+            source: 'tool_result',
+            status: 'ready',
+            screenshotRef: 'artifact-tool-output',
+          },
+        ]}
+      />,
+    );
+
+    expect(container.querySelector('.message-attachment-gallery--tool-output')).toBeTruthy();
+    expect(screen.getByRole('img').closest('.message-attachment-image-container--tool-output')).toBeTruthy();
+  });
+
   test('keeps preview visible while ready artifact source resolves', () => {
     mockUseResolvedArtifactImageSrc.mockReturnValue(null);
 

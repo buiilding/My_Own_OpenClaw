@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: render tool-output screenshot attachments with
+  tool-card-sized layout again while keeping user message attachments compact
+  and right-aligned. No migration required.
 - frontend/main: keep SDK current-turn handoff from broadcasting a renderer
   pending-turn clear before the current-turn projection, preventing a one-frame
   typing overlay hide/remount during pending-to-awaiting transitions. No

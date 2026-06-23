@@ -5,6 +5,12 @@
 import PropTypes from 'prop-types';
 import AttachmentRendererRegistry from './AttachmentRendererRegistry';
 
+function normalizeSurfaceClass(surface) {
+  return typeof surface === 'string' && /^[a-z0-9_-]+$/i.test(surface)
+    ? surface
+    : 'dashboard';
+}
+
 export default function AttachmentList({ attachments = [], surface = 'dashboard' }) {
   const visibleAttachments = attachments.filter((attachment) => (
     attachment
@@ -14,9 +20,10 @@ export default function AttachmentList({ attachments = [], surface = 'dashboard'
   if (visibleAttachments.length === 0) {
     return null;
   }
+  const surfaceClass = normalizeSurfaceClass(surface);
 
   return (
-    <div className="user-screenshot-gallery">
+    <div className={`user-screenshot-gallery message-attachment-gallery message-attachment-gallery--${surfaceClass}`}>
       {visibleAttachments.map((attachment) => (
         <AttachmentRendererRegistry
           attachment={attachment}
@@ -37,4 +44,3 @@ AttachmentList.propTypes = {
   })),
   surface: PropTypes.string,
 };
-
