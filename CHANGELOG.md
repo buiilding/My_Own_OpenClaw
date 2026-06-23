@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: coalesce dashboard recent-chat event refreshes after a
+  list has rendered and keep the existing list visible during background
+  metadata reloads, preventing edit/resend from flashing the dashboard loading
+  state. No migration required.
 - frontend/renderer: remove the merge-regressed `[LiveSurfaceTrace]` DevTools
   console sink again so renderer live-surface diagnostics only use the
   structured IPC forwarding path. No migration required.

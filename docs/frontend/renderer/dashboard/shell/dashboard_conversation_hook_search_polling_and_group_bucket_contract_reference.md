@@ -68,6 +68,9 @@ Hook-owned concerns:
 - ignores stale completion paths when a newer `userId`-scoped load has already started
 - when `userId` is missing or cleared, invalidates outstanding loads and clears
   recent conversations plus pinned ids so the previous user's list is not shown
+- after at least one recent row has rendered, event-driven refreshes run as
+  background metadata reloads and do not set the blocking recent-list loading
+  state, so edit/resend does not flash or blank already-visible chats
 
 Failure behavior:
 
@@ -187,7 +190,7 @@ Poll trigger condition:
 Metadata invalidation trigger condition:
 
 - invalidation reason is emitted by the SDK conversation continuity service
-- any invalidation reloads recent conversations through `loadRecentConversations()`
+- any invalidation requests a background recent-conversation refresh
 
 Poll behavior:
 
@@ -195,6 +198,9 @@ Poll behavior:
 - interval `1250ms`
 - each attempt calls `loadRecentConversations()`
 - stops when conversation id becomes visible or attempt budget exhausted
+- conversation-event reloads and metadata invalidations are coalesced briefly
+  after the list is already visible; empty-list first-chat refresh still loads
+  immediately
 - browser timer scheduling/cleanup routes through
   `DesktopDashboardConversationLoadRuntime` helpers instead of direct hook
   `window.setTimeout`/`window.clearTimeout` calls

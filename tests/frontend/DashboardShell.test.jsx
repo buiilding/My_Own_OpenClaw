@@ -999,7 +999,9 @@ describe('DashboardShell', () => {
     });
     await flushMicrotasks();
 
-    expect(screen.getByRole('button', { name: 'CUA Driver Overview' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'CUA Driver Overview' })).toBeInTheDocument();
+    });
   });
 
   test('settings chat-clear callback resets active chat state and reloads recent chats', async () => {

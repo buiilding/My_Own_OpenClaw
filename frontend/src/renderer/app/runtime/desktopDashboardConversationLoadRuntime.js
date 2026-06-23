@@ -8,6 +8,7 @@ const RECENT_CHAT_RETRY_MAX_DELAY_MS = 2000;
 const TITLE_VISIBILITY_POLL_MAX_ATTEMPTS = 240;
 const TITLE_VISIBILITY_POLL_DELAY_MS = 1250;
 const CONVERSATION_SEARCH_DEBOUNCE_DELAY_MS = 180;
+const RECENT_CONVERSATION_REFRESH_DEBOUNCE_DELAY_MS = 200;
 
 const RECENT_CONVERSATION_EVENT_ACTION = Object.freeze({
   NONE: 'none',
@@ -355,9 +356,26 @@ function clearConversationSearchDebounce(timerId, { timerApi } = {}) {
   clearTimer(timerId, timerApi);
 }
 
+function scheduleRecentConversationsRefreshTimer({
+  callback,
+  delayMs = RECENT_CONVERSATION_REFRESH_DEBOUNCE_DELAY_MS,
+  timerApi,
+} = {}) {
+  return scheduleTimer({
+    timerApi,
+    callback,
+    delayMs,
+  });
+}
+
+function clearRecentConversationsRefreshTimer(timerId, { timerApi } = {}) {
+  clearTimer(timerId, timerApi);
+}
+
 export const DesktopDashboardConversationLoadRuntime = Object.freeze({
   clearAllTitleVisibilityPollTimers,
   clearConversationSearchDebounce,
+  clearRecentConversationsRefreshTimer,
   clearRecentConversationsRetryTimer,
   clearTitleVisibilityPollTimer,
   getDashboardConversationRef,
@@ -375,6 +393,7 @@ export const DesktopDashboardConversationLoadRuntime = Object.freeze({
   resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
   scheduleConversationSearchDebounce,
+  scheduleRecentConversationsRefreshTimer,
   scheduleRecentConversationsRetryTimer,
   scheduleTitleVisibilityPollTimer,
   shouldContinueTitleVisibilityPoll,

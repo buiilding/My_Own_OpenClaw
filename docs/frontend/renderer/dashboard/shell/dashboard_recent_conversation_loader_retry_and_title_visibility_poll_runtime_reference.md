@@ -78,6 +78,13 @@ fields from the shared status store.
 
 This prevents older async results from overwriting newer user/session state.
 
+Blocking loading state is only for the initial empty-list load. Once recent
+conversations have rendered, event-driven refreshes keep the current list on
+screen, run as background metadata reloads, and swap in the fresh list only
+after the SDK command returns. This prevents edit/resend, retry, and title
+generation bursts from blanking the dashboard or showing a loading flash while
+the user already has chat rows visible.
+
 ## Startup Retry Policy for Transient Local-Runtime Errors
 
 Transient errors are currently recognized by normalized message substring match:
@@ -123,7 +130,10 @@ Trigger condition:
 
 Behavior:
 
-- `windie:conversation-metadata-invalidated` with `reason = conversation-title-updated` -> immediate `loadRecentConversations()`
+- `windie:conversation-metadata-invalidated` with `reason = conversation-title-updated` -> background recent-list refresh
+- conversation-event reload actions after a list has rendered are debounced
+  briefly before loading so close `replaceRows`/`send`/title events coalesce
+  into one visible metadata update
 
 Poll contract:
 
@@ -196,6 +206,11 @@ Pin behavior:
 - stale/default-user list load cannot overwrite active user list
 - assistant transcript-store event reloads recent chats
 - startup transient backend-not-ready errors trigger retry + eventual recovery
+
+`tests/frontend/UseDashboardConversations.test.jsx` verifies:
+
+- resend-shaped SDK conversation events keep already-rendered recent chats
+  visible while the background refresh is pending
 
 ## Drift Hotspots
 

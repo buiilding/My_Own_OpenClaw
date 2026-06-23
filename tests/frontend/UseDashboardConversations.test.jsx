@@ -243,6 +243,93 @@ describe('useDashboardConversations', () => {
     expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(2);
   });
 
+  test('keeps rendered recent chats visible during resend-shaped background refresh', async () => {
+    let sdkConversationEventListener = null;
+    let resolveRefresh;
+    DesktopConversationRuntimeEventClient.onConversationEvent.mockImplementation((listener) => {
+      sdkConversationEventListener = listener;
+      return jest.fn();
+    });
+    DesktopConversationLibraryClient.listMetadata
+      .mockResolvedValueOnce([
+        {
+          conversationRef: 'conv-resend',
+          title: 'Rendered chat before resend',
+          updatedAt: '2026-05-16T20:00:00.000Z',
+          eventCount: 2,
+        },
+      ])
+      .mockImplementationOnce(() => new Promise((resolve) => {
+        resolveRefresh = resolve;
+      }));
+
+    const { result } = renderDashboardConversations();
+
+    await waitFor(() => {
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-resend',
+          title: 'Rendered chat before resend',
+        }),
+      ]);
+    });
+
+    jest.useFakeTimers();
+    try {
+      await act(async () => {
+        sdkConversationEventListener?.({
+          type: 'user_message',
+          conversationRef: 'conv-resend',
+        });
+      });
+
+      expect(result.current.isLoadingRecentConversations).toBe(false);
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-resend',
+          title: 'Rendered chat before resend',
+        }),
+      ]);
+
+      await act(async () => {
+        jest.advanceTimersByTime(200);
+        await Promise.resolve();
+      });
+
+      expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(2);
+      expect(result.current.isLoadingRecentConversations).toBe(false);
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-resend',
+          title: 'Rendered chat before resend',
+        }),
+      ]);
+
+      await act(async () => {
+        resolveRefresh([
+          {
+            conversationRef: 'conv-resend',
+            title: 'Rendered chat after resend',
+            updatedAt: '2026-05-16T20:01:00.000Z',
+            eventCount: 3,
+          },
+        ]);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-resend',
+          title: 'Rendered chat after resend',
+        }),
+      ]);
+      expect(result.current.isLoadingRecentConversations).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('clears recent conversations and ignores stale loads when user id clears', async () => {
     let resolveStaleLoad;
     DesktopConversationLibraryClient.listMetadata

@@ -21,6 +21,7 @@ import {
 const {
   clearAllTitleVisibilityPollTimers,
   clearConversationSearchDebounce,
+  clearRecentConversationsRefreshTimer,
   clearRecentConversationsRetryTimer,
   clearTitleVisibilityPollTimer,
   getDashboardConversationRef,
@@ -35,6 +36,7 @@ const {
   resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
   scheduleConversationSearchDebounce,
+  scheduleRecentConversationsRefreshTimer,
   scheduleRecentConversationsRetryTimer,
   scheduleTitleVisibilityPollTimer,
   shouldContinueTitleVisibilityPoll,
@@ -91,14 +93,27 @@ export function useDashboardConversations({
   const recentConversationsRetryAttemptRef = useRef(0);
   const recentConversationLoadRequestIdRef = useRef(0);
   const recentConversationLoadInFlightRef = useRef(null);
+  const recentConversationsSnapshotRef = useRef([]);
+  const pendingRecentRefreshTimerRef = useRef(null);
   const openConversationRequestIdRef = useRef(0);
 
-  const loadRecentConversations = useCallback(async () => {
+  const updateRecentConversations = useCallback((nextConversations) => {
+    setRecentConversations((current) => {
+      const next = typeof nextConversations === 'function'
+        ? nextConversations(current)
+        : nextConversations;
+      const normalized = Array.isArray(next) ? next : [];
+      recentConversationsSnapshotRef.current = normalized;
+      return normalized;
+    });
+  }, []);
+
+  const loadRecentConversations = useCallback(async (options = {}) => {
     if (typeof resolvedUserId !== 'string' || resolvedUserId.trim().length === 0) {
       recentConversationLoadRequestIdRef.current += 1;
       recentConversationLoadInFlightRef.current = null;
       recentConversationsRetryAttemptRef.current = 0;
-      setRecentConversations([]);
+      updateRecentConversations([]);
       setPinnedConversationRefs([]);
       setIsLoadingRecentConversations(false);
       setRecentConversationsError('');
@@ -112,7 +127,11 @@ export function useDashboardConversations({
 
     const requestId = recentConversationLoadRequestIdRef.current + 1;
     recentConversationLoadRequestIdRef.current = requestId;
-    setIsLoadingRecentConversations(true);
+    const shouldShowBlockingLoading = options.showLoading !== false
+      && recentConversationsSnapshotRef.current.length === 0;
+    if (shouldShowBlockingLoading) {
+      setIsLoadingRecentConversations(true);
+    }
     setRecentConversationsError('');
 
     const loadMarker = {};
@@ -133,7 +152,7 @@ export function useDashboardConversations({
         }
 
         recentConversationsRetryAttemptRef.current = 0;
-        setRecentConversations(list);
+        updateRecentConversations(list);
         setPinnedConversationRefs((current) => prunePinnedConversationRefs(current, list));
         DesktopConversationLibraryClient.emitConversationMetadataListRendered?.(diagnosticsContext, {
           status: 'succeeded',
@@ -170,7 +189,27 @@ export function useDashboardConversations({
     };
 
     return requestPromise;
-  }, [resolvedUserId]);
+  }, [resolvedUserId, updateRecentConversations]);
+
+  const requestRecentConversationsRefresh = useCallback((options = {}) => {
+    if (recentConversationsSnapshotRef.current.length === 0) {
+      clearRecentConversationsRefreshTimer(pendingRecentRefreshTimerRef.current);
+      pendingRecentRefreshTimerRef.current = null;
+      void loadRecentConversations({
+        showLoading: options.showLoading === true,
+      });
+      return;
+    }
+    clearRecentConversationsRefreshTimer(pendingRecentRefreshTimerRef.current);
+    pendingRecentRefreshTimerRef.current = scheduleRecentConversationsRefreshTimer({
+      callback: () => {
+        pendingRecentRefreshTimerRef.current = null;
+        void loadRecentConversations({
+          showLoading: options.showLoading === true,
+        });
+      },
+    });
+  }, [loadRecentConversations]);
 
   const clearPendingTitlePoll = useCallback((conversationRef) => {
     clearTitleVisibilityPollTimer({
@@ -317,7 +356,7 @@ export function useDashboardConversations({
     if (!nextTitle) {
       return;
     }
-    setRecentConversations((current) => renameDashboardConversationInList(
+    updateRecentConversations((current) => renameDashboardConversationInList(
       current,
       conversationRef,
       nextTitle,
@@ -327,7 +366,7 @@ export function useDashboardConversations({
       conversationRef,
       nextTitle,
     ));
-  }, []);
+  }, [updateRecentConversations]);
 
   const handleTogglePinConversation = useCallback((conversation) => {
     const conversationRef = getDashboardConversationRef(conversation);
@@ -349,7 +388,7 @@ export function useDashboardConversations({
     try {
       await DesktopConversationLibraryClient.deleteConversation(resolvedUserId, conversationRef);
 
-      setRecentConversations((current) => removeDashboardConversationFromList(current, conversationRef));
+      updateRecentConversations((current) => removeDashboardConversationFromList(current, conversationRef));
       setSearchedConversations((current) => removeDashboardConversationFromList(current, conversationRef));
       setPinnedConversationRefs((current) => removePinnedConversationRef(current, conversationRef));
       DesktopWorkspaceRuntimeClient.clearConversationWorkspaceBinding(conversationRef);
@@ -373,6 +412,7 @@ export function useDashboardConversations({
     setChatActiveConversationRef,
     setChatThinkingStatus,
     setChatTokenCounts,
+    updateRecentConversations,
   ]);
 
   const recentConversationGroups = useMemo(() => (
@@ -448,7 +488,7 @@ export function useDashboardConversations({
     const removeListener = DesktopConversationRuntimeEventClient.onConversationEvent((event) => {
       const action = resolveRecentConversationEventAction(event);
       if (shouldReloadRecentConversationsForEventAction(action)) {
-        void loadRecentConversations();
+        requestRecentConversationsRefresh({ showLoading: false });
         return;
       }
       const conversationRef = getTitleVisibilityPollConversationRef(action);
@@ -461,21 +501,23 @@ export function useDashboardConversations({
     return () => {
       removeListener?.();
     };
-  }, [loadRecentConversations, scheduleTitleVisibilityPoll]);
+  }, [requestRecentConversationsRefresh, scheduleTitleVisibilityPoll]);
 
   useEffect(() => {
     const unsubscribe = DesktopConversationLibraryClient.subscribeMetadataInvalidations(() => {
-      void loadRecentConversations();
+      requestRecentConversationsRefresh({ showLoading: false });
     });
     return () => {
       unsubscribe?.();
     };
-  }, [loadRecentConversations]);
+  }, [requestRecentConversationsRefresh]);
 
   useEffect(() => {
     const pendingTimers = pendingTitlePollTimersRef.current;
     return () => {
       clearAllTitleVisibilityPollTimers({ pendingTimers });
+      clearRecentConversationsRefreshTimer(pendingRecentRefreshTimerRef.current);
+      pendingRecentRefreshTimerRef.current = null;
     };
   }, []);
 
