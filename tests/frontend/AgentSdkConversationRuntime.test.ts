@@ -3269,6 +3269,45 @@ describe('Agent SDK conversation runtime core', () => {
     expect(buildDisplayConversation(await store.loadEvents('conv-sdk-runtime')).messages).toEqual([]);
   });
 
+  test('conversation runtime marks compaction model-history checkpoints as compact revisions', async () => {
+    const transport = createControllableAgentRuntimeTransport();
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-compact-history',
+      store,
+      transport,
+    });
+    runtime.attachTransport();
+
+    transport.emit(backendEvent('model-history-updated', {
+      revision_id: 'rev-compact-history',
+      checkpoint_id: 'mh-rev-compact-history',
+      created_at: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'mh-row-compaction',
+          conversation_ref: 'conv-sdk-runtime',
+          revision_id: 'rev-compact-history',
+          role: 'assistant',
+          message_type: 'context_compaction',
+          content: 'bounded summary',
+        },
+      ],
+    }, {
+      eventId: 'compact-evt-000003-model-history-updated',
+      turnRef: 'compact-op',
+    }));
+
+    await waitForExpect(async () => {
+      await expect(store.getRevision('conv-sdk-runtime')).resolves.toMatchObject({
+        revisionId: 'rev-compact-history',
+        operation: 'compact',
+        modelHistoryCheckpointId: 'mh-rev-compact-history',
+      });
+    });
+  });
+
   test('conversation runtime records overlay phase projection traces for backend turn events', async () => {
     const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();

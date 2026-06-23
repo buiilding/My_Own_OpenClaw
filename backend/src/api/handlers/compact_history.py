@@ -5,6 +5,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from backend.src.agent.session.model_history_ledger import (
+    build_model_history_checkpoint,
+)
 from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.handlers.context import build_user_session_context
 from backend.src.api.infrastructure.errors import send_success_response
@@ -169,6 +172,27 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
                 },
                 context=context,
             )
+            checkpoint = build_model_history_checkpoint(
+                session.history,
+                conversation_ref=conversation_ref
+                or getattr(session.runtime, "active_conversation_ref", None),
+                revision_id=getattr(session.runtime, "active_revision_id", None),
+                turn_ref=message.id,
+            )
+            if checkpoint is not None:
+                await send_success_response(
+                    websocket,
+                    message.id,
+                    OutgoingMessageType.MODEL_HISTORY_UPDATED,
+                    {
+                        "conversation_ref": checkpoint["conversation_ref"],
+                        "revision_id": checkpoint["revision_id"],
+                        "checkpoint_id": checkpoint["checkpoint_id"],
+                        "created_at": checkpoint["created_at"],
+                        "rows": checkpoint["rows"],
+                    },
+                    context=context,
+                )
             return
 
         await send_success_response(

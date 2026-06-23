@@ -335,8 +335,14 @@ def _ensure_history_schema(conn: sqlite3.Connection) -> None:
             user_id TEXT NOT NULL,
             conversation_id TEXT NOT NULL,
             revision_id TEXT NOT NULL,
+            parent_revision_id TEXT,
+            operation TEXT NOT NULL DEFAULT 'send',
+            display_timeline_id TEXT,
+            model_history_checkpoint_id TEXT,
+            created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
-            PRIMARY KEY (user_id, conversation_id)
+            active INTEGER NOT NULL DEFAULT 1,
+            PRIMARY KEY (user_id, conversation_id, revision_id)
         )
         """
     )
@@ -628,10 +634,27 @@ def _insert_chat_event_rows(conn: sqlite3.Connection, user_id: str) -> int:
                     user_id,
                     conversation_id,
                     revision_id,
-                    updated_at
-                ) VALUES (?, ?, ?, ?)
+                    parent_revision_id,
+                    operation,
+                    display_timeline_id,
+                    model_history_checkpoint_id,
+                    created_at,
+                    updated_at,
+                    active
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (user_id, conversation_id, revision_id, last_timestamp),
+                (
+                    user_id,
+                    conversation_id,
+                    revision_id,
+                    None,
+                    "send",
+                    revision_id,
+                    None,
+                    first_timestamp,
+                    last_timestamp,
+                    1,
+                ),
             )
             cursor.execute(
                 """

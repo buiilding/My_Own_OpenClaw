@@ -198,7 +198,13 @@ export type ModelHistoryCheckpoint = {
 export type ConversationRevision = {
   conversationRef: string;
   revisionId: string;
+  parentRevisionId?: string | null;
+  operation?: 'send' | 'edit' | 'retry' | 'fork' | 'compact' | 'manual_rewrite' | null;
+  displayTimelineId?: string | null;
+  modelHistoryCheckpointId?: string | null;
+  createdAt?: string | null;
   updatedAt: string;
+  active?: boolean;
 };
 
 export type ConversationMetadata = {

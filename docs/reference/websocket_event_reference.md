@@ -59,6 +59,11 @@ Renderer active-conversation filtering and stale-turn rejection depend on these 
 
 SDK runtime adapters treat non-empty `replacement_history_entries` as the signal for an applied normalized compaction event. Skipped outcomes remain lifecycle/debug state and should not render as assistant transcript content.
 
+When manual compaction applies, backend sends a following
+`model-history-updated` packet for the same active conversation/revision. The
+compaction event carries replay/debug metadata; the model-history event carries
+the bounded provider-neutral inference checkpoint used by normal resume.
+
 ## Model History Updated Shape
 
 `model-history-updated` carries a provider-neutral model-history checkpoint:

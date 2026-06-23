@@ -10,8 +10,11 @@ title: "ADR 008: Conversation History Revision Architecture"
 
 ## Status
 
-Accepted target as of 2026-06-22. Implementation should proceed through the
-conversation history revision architecture plan:
+Implemented as of 2026-06-22.
+
+The implementation keeps the ADR split between display timelines,
+model-history checkpoints, runtime events, and revision nodes. The original
+implementation plan remains historical context:
 `plans/2026-06-22-conversation-history-revision-architecture-plan.md`.
 
 ## Context
@@ -100,6 +103,12 @@ revision and row cut point.
 The UI may present active child revisions as normal edits, but storage must
 retain ancestry enough to inspect previous paths and support future branch/fork
 workflows.
+
+The local-runtime revision ledger stores one durable node per revision with
+parent revision id, operation, display timeline id, model-history checkpoint
+id, timestamps, and active state. Existing callers that only need the active
+head still use `conversation.get_revision`, while revision-specific display
+timeline/model-history loaders preserve inactive ancestors.
 
 ### Rehydrate
 

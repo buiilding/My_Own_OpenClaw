@@ -615,7 +615,11 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(useChatStore.getState().messages).toEqual([
-      ...messages,
+      expect.objectContaining({
+        id: 'user-1',
+        sender: 'user',
+        text: 'first question',
+      }),
       expect.objectContaining({
         sender: 'assistant',
         type: 'error',
@@ -623,6 +627,11 @@ describe('useConversationReplayActions', () => {
         text: expect.stringContaining("Your message wasn't sent"),
       }),
     ]);
+    expect(useChatStore.getState().messages).toEqual(
+      expect.not.arrayContaining([
+        expect.objectContaining({ id: 'assistant-1' }),
+      ]),
+    );
     errorSpy.mockRestore();
   });
 });

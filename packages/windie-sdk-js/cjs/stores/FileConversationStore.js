@@ -91,8 +91,16 @@ function buildRevision(conversationRef, events) {
     return {
         conversationRef,
         revisionId: lastEvent?.revisionId ?? 'rev-empty',
+        operation: 'send',
+        createdAt: events[0]?.timestamp ?? new Date(0).toISOString(),
         updatedAt: lastEvent?.timestamp ?? new Date(0).toISOString(),
+        active: true,
     };
+}
+function revisionOperationFromModelHistory(checkpoint) {
+    return checkpoint.rows.some(row => row.messageType === 'context_compaction')
+        ? 'compact'
+        : 'send';
 }
 function normalizeStoredFile(conversationRef, raw) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -215,7 +223,12 @@ class FileConversationStore {
                 revision: {
                     conversationRef: checkpoint.conversationRef,
                     revisionId: checkpoint.revisionId,
+                    parentRevisionId: checkpoint.baseRevisionId ?? null,
+                    operation: checkpoint.reason === 'user_edit' ? 'edit' : checkpoint.reason ?? 'send',
+                    displayTimelineId: checkpoint.revisionId,
+                    createdAt: checkpoint.createdAt,
                     updatedAt: checkpoint.createdAt,
+                    active: true,
                 },
             });
         });
@@ -259,6 +272,8 @@ class FileConversationStore {
         await this.runConversationMutation(checkpoint.conversationRef, async () => {
             const stored = await this.readConversation(checkpoint.conversationRef);
             const existing = stored.modelHistory ?? [];
+            const existingRevision = stored.revision ?? buildRevision(checkpoint.conversationRef, stored.events);
+            const modelHistoryOperation = revisionOperationFromModelHistory(checkpoint);
             await this.writeConversation({
                 ...stored,
                 conversationRef: checkpoint.conversationRef,
@@ -270,6 +285,19 @@ class FileConversationStore {
                         rows: [...checkpoint.rows],
                     },
                 ],
+                revision: {
+                    ...existingRevision,
+                    conversationRef: checkpoint.conversationRef,
+                    revisionId: checkpoint.revisionId,
+                    operation: modelHistoryOperation === 'send'
+                        && existingRevision.operation
+                        && existingRevision.operation !== 'send'
+                        ? existingRevision.operation
+                        : modelHistoryOperation,
+                    modelHistoryCheckpointId: checkpoint.checkpointId,
+                    updatedAt: checkpoint.createdAt,
+                    active: true,
+                },
             });
         });
     }

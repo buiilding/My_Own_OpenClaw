@@ -122,7 +122,6 @@ function findTimelineRetryUserIndex(rows, assistantMessageId) {
 async function executeReplayAction({
   sessionInfo,
   activeConversationRef,
-  sourceMessages,
   replayMessages,
   queryText,
   screenshotRef,
@@ -157,8 +156,6 @@ async function executeReplayAction({
     text: queryText,
     timestamp: replayStartedAt,
   });
-  let visibleRowsApplied = false;
-
   try {
     const displayTimeline = await DesktopConversationContinuityService.loadDisplayTimeline(
       sessionInfo.userId,
@@ -187,7 +184,6 @@ async function executeReplayAction({
       rows: rows.slice(0, userRowIndex),
     });
     setMessages(replayMessages, conversationRef);
-    visibleRowsApplied = true;
     setThinkingStatus(null, conversationRef);
     if (typeof setThinkingSourceEventType === 'function') {
       setThinkingSourceEventType(null, conversationRef);
@@ -220,9 +216,6 @@ async function executeReplayAction({
     return true;
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
-    if (visibleRowsApplied) {
-      setMessages(sourceMessages, conversationRef);
-    }
     useChatStore.getState().clearPendingTurn({
       conversationRef,
       turnRef: replayTurnRef,
@@ -290,7 +283,6 @@ export function useConversationReplayActions({
     return executeReplayAction({
       sessionInfo,
       activeConversationRef,
-      sourceMessages: messages,
       replayMessages: replayConversation,
       queryText: normalizedEditedText,
       screenshotRef: replayScreenshot.screenshotRef,
@@ -334,7 +326,6 @@ export function useConversationReplayActions({
     return executeReplayAction({
       sessionInfo,
       activeConversationRef,
-      sourceMessages: messages,
       replayMessages: replayContextMessages,
       queryText: retryUserMessage.text,
       screenshotRef: replayScreenshot.screenshotRef,

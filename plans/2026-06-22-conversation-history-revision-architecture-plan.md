@@ -7,6 +7,11 @@ title: "Conversation History Revision Architecture Plan"
 
 Date: 2026-06-22
 
+Implementation status: completed as of 2026-06-22. This document remains the
+historical implementation plan; the current durable contract is summarized in
+`docs/adr/008-conversation-history-revision-architecture.md` and
+`docs/sdk/conversation_runtime.md`.
+
 ## Goal
 
 Replace the current edit/resend and retry replay path with a foundational
@@ -22,7 +27,8 @@ runtime events preserve what actually happened
 edits and forks create new revisions instead of mutating one fragile transcript
 ```
 
-This plan intentionally does not implement runtime changes.
+This plan was originally written before the runtime changes landed. It now
+records the implementation sequence that delivered the ADR 008 architecture.
 
 ## Product Invariant
 
