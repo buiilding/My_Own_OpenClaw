@@ -149,7 +149,8 @@ body {
   --chatbox-close-bump-seam-height: 3px;
   --chatbox-close-bump-seam-width: calc(var(--chatbox-close-bump-width) - 2px);
   --chatbox-pill-body-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  border-radius: 999px;
+  --chatbox-pill-body-radius: 56px;
+  border-radius: var(--chatbox-pill-body-radius);
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -186,7 +187,7 @@ body {
   inset: var(--chatbox-bump-height) 0 0;
   z-index: 1;
   border: 1px solid var(--ui-border);
-  border-radius: 999px;
+  border-radius: var(--chatbox-pill-body-radius);
   box-shadow: var(--chatbox-pill-body-shadow);
 }
 
