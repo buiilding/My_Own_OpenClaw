@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: add the superseded-turn live-lane plan for making edit/resend
+  mark old active turns inert as a class while preserving raw audit history.
+  No migration required.
 - sdk/main: route direct send inference-context resume through the SDK
   `rehydrate()` contract and keep `RehydrateSnapshot.messages` limited to
   backend fallback entry fields, so rapid edit/resend cannot send
