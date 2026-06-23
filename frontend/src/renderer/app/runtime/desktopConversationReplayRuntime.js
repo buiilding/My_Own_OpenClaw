@@ -243,6 +243,7 @@ function buildPreparedReplayDesktopChatTurn({
 
 function buildReplayPendingTurn({
   attachmentFilenames = null,
+  attachments = null,
   conversationRef,
   text,
   timestamp,
@@ -260,6 +261,9 @@ function buildReplayPendingTurn({
     timestamp,
     attachmentFilenames: Array.isArray(attachmentFilenames) && attachmentFilenames.length > 0
       ? attachmentFilenames
+      : null,
+    attachments: Array.isArray(attachments) && attachments.length > 0
+      ? attachments
       : null,
   };
 }

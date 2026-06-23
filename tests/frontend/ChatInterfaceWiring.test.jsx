@@ -1797,9 +1797,7 @@ describe('ChatInterface wiring', () => {
       await lastMessageListProps.onUserEdit('user-1', 'new prompt');
     });
 
-    expect(mockSetMessages).toHaveBeenCalledWith([
-      { id: 'user-1', sender: 'user', text: 'new prompt', type: 'user' },
-    ], 'conv_existing');
+    expect(mockSetMessages).toHaveBeenCalledWith([], 'conv_existing');
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
     expect(mockAcceptPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv_existing',

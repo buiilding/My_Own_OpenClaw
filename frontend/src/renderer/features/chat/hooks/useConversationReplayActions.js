@@ -123,6 +123,7 @@ async function executeReplayAction({
   sessionInfo,
   activeConversationRef,
   replayMessages,
+  pendingAttachments,
   queryText,
   screenshotRef,
   screenshotUrl,
@@ -150,6 +151,7 @@ async function executeReplayAction({
   const replayTurnRef = crypto.randomUUID();
   const replayStartedAt = new Date().toISOString();
   const pendingTurn = buildReplayPendingTurn({
+    attachments: pendingAttachments,
     conversationRef,
     turnRef: replayTurnRef,
     userMessageId: pendingUserMessageId,
@@ -273,7 +275,6 @@ export function useConversationReplayActions({
     };
     const preservedMessages = messages.slice(0, userIndex);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
-    const replayConversation = [...replayContextMessages, editUserMessage];
     const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
     const replayScreenshot = DesktopArtifactRuntimeClient.resolveReplayScreenshotState({
       screenshotRef: editUserMessage.screenshotRef || null,
@@ -283,7 +284,8 @@ export function useConversationReplayActions({
     return executeReplayAction({
       sessionInfo,
       activeConversationRef,
-      replayMessages: replayConversation,
+      replayMessages: replayContextMessages,
+      pendingAttachments: editUserMessage.attachments,
       queryText: normalizedEditedText,
       screenshotRef: replayScreenshot.screenshotRef,
       screenshotUrl: replayScreenshot.screenshotUrl,

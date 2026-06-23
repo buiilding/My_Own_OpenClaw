@@ -337,6 +337,70 @@ describe('useConversationReplayActions', () => {
     }));
   });
 
+  test('edit replay clears the stale assistant suffix before publishing the edited pending turn', async () => {
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-edited-user');
+    const screenshotAttachment = {
+      id: 'shot-ready',
+      kind: 'image',
+      source: 'user_included',
+      status: 'ready',
+      screenshotRef: 'artifact-shot-ready',
+    };
+    const messages = [
+      {
+        id: 'renderer-user-1',
+        sender: 'user',
+        text: 'first question',
+        sourceEventType: 'user_message',
+        sourceChannel: 'sdk:display-rows',
+        attachments: [screenshotAttachment],
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'first answer',
+        sourceEventType: 'assistant_message',
+        sourceChannel: 'sdk:display-rows',
+      },
+    ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    useChatStore.getState().clearMessages('conv-existing');
+    useChatStore.getState().setMessages(messages, 'conv-existing');
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: useChatStore.getState().setMessages,
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleEditFromUser('renderer-user-1', 'edited first question');
+    });
+
+    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
+      reason: 'user_edit',
+      rows: [],
+    }));
+    expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([
+      expect.objectContaining({
+        id: 'renderer-user-1',
+        sender: 'user',
+        text: 'edited first question',
+        turnRef: 'turn-edited-user',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+        attachments: [screenshotAttachment],
+      }),
+    ]);
+    expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual(
+      expect.not.arrayContaining([
+        expect.objectContaining({ id: 'assistant-1' }),
+      ]),
+    );
+  });
+
   test('retry replay infers artifact refs from screenshot urls', async () => {
     const messages = [
       {
