@@ -52,7 +52,7 @@ describe('chat box appearance CSS', () => {
     const pillBlock = readMinimalPillCssBlock();
 
     expect(pillBlock).toContain('--chatbox-close-bump-width: 44px;');
-    expect(pillBlock).toContain('--chatbox-close-bump-height: calc(var(--chatbox-bump-height) + 16px);');
+    expect(pillBlock).toContain('--chatbox-close-bump-height: var(--chatbox-bump-height);');
     expect(pillBlock).toContain('border-radius: 999px;');
     expect(pillBlock).toContain('background: transparent;');
     expect(pillBlock).toContain('overflow: visible;');
@@ -62,8 +62,9 @@ describe('chat box appearance CSS', () => {
     expect(chatBoxCss).toContain('z-index: 1;\n  border: 1px solid var(--ui-border);');
     expect(chatBoxCss).toContain('.chatbox-pill::after');
     expect(chatBoxCss).toContain('width: var(--chatbox-close-bump-width);');
-    expect(chatBoxCss).toContain('z-index: 0;\n  border-radius: 999px 999px 18px 18px;');
-    expect(chatBoxCss).toContain('clip-path: inset(0 0 calc(100% - var(--chatbox-bump-height)) 0);');
+    expect(chatBoxCss).toContain('z-index: 0;\n  border-radius: 0;');
+    expect(chatBoxCss).toContain('clip-path: polygon(');
+    expect(chatBoxCss).toContain('50% 0,');
   });
 
   test('anchors the response overlay close button outside the scrollable transcript', () => {
