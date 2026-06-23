@@ -3,6 +3,9 @@
  */
 
 .settings-surface-panel {
+  --settings-schema-viewer-bg: color-mix(in srgb, var(--ui-neutral-black) 82%, transparent 18%);
+  --settings-schema-viewer-border: rgba(255, 255, 255, 0.08);
+  --settings-schema-viewer-fg: rgba(248, 250, 252, 0.92);
   display: flex;
   min-width: 0;
   height: 100%;
@@ -222,8 +225,9 @@
   margin: 8px 0 0;
   padding: 10px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--ui-neutral-black) 80%, transparent 20%);
-  color: var(--ui-text-primary);
+  border: 1px solid var(--settings-schema-viewer-border);
+  background: var(--settings-schema-viewer-bg);
+  color: var(--settings-schema-viewer-fg);
   font-size: 11px;
   line-height: 1.4;
 }

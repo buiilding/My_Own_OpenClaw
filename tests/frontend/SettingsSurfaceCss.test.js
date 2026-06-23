@@ -64,4 +64,17 @@ describe('settings surface CSS', () => {
     expect(secondaryDisabledBody).toEqual(expect.stringContaining('color: var(--ui-secondary-button-disabled-fg);'));
     expect(secondaryDisabledBody).not.toEqual(expect.stringContaining('opacity:'));
   });
+
+  test('keeps schema viewer JSON readable on dark debug panels in light appearance', () => {
+    const css = readSettingsSurfaceCss();
+    const panelBody = collectRuleBodies(css, String.raw`\.settings-surface-panel`);
+    const schemaPreBody = collectRuleBodies(css, String.raw`\.settings-surface-schema-viewer pre`);
+
+    expect(panelBody).toEqual(expect.stringContaining('--settings-schema-viewer-bg:'));
+    expect(panelBody).toEqual(expect.stringContaining('--settings-schema-viewer-border:'));
+    expect(panelBody).toEqual(expect.stringContaining('--settings-schema-viewer-fg: rgba(248, 250, 252, 0.92);'));
+    expect(schemaPreBody).toEqual(expect.stringContaining('background: var(--settings-schema-viewer-bg);'));
+    expect(schemaPreBody).toEqual(expect.stringContaining('color: var(--settings-schema-viewer-fg);'));
+    expect(schemaPreBody).not.toEqual(expect.stringContaining('color: var(--ui-text-primary);'));
+  });
 });

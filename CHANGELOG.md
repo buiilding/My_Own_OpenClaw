@@ -158,6 +158,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: keep settings schema/debug JSON text light on dark
+  diagnostic panels so MCP server details remain readable in light appearance.
+  No migration required.
 - frontend/renderer: route dashboard awaiting dots and response-overlay typing
   dots through light appearance foreground tokens so typing states stay visible
   on light surfaces. No migration required.

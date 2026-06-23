@@ -79,6 +79,9 @@ Light-mode readability:
   `--ui-secondary-button-*`, and `--ui-danger-*`) so checked, unchecked,
   disabled, hover, focus, and destructive states stay readable in light
   appearance
+- settings schema/debug JSON blocks keep an explicit light foreground on their
+  dark diagnostic panels, so MCP server and accepted-tool details remain
+  readable in light appearance
 
 Motion baseline:
 

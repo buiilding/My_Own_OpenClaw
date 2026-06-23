@@ -159,6 +159,9 @@ states, primary/secondary button disabled states, and destructive button
 enabled/hover/disabled states. Disabled toggles, primary/secondary actions, and
 destructive actions should remain muted but readable; they should not rely on
 opacity over a low-contrast light-mode palette.
+Agent extension diagnostics render schema/debug JSON in dark debug panels with
+an explicit light foreground, so MCP server and accepted-tool details do not
+inherit dark light-mode page text on dark panels.
 
 ## Agent Tab Ownership Model
 
