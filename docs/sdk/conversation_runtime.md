@@ -722,14 +722,20 @@ Edit/resend and retry are display revision operations:
 ```text
 load active display timeline
   -> choose target display user row
-  -> replace display rows before that user row as a child revision
+  -> replace retained prefix plus the replacement user row as a child revision
   -> publish retained prefix plus pending turn only after replaceRows succeeds
   -> send replacement user message as a normal new turn
 ```
 
 The old raw event log remains intact for audit and diagnostics. The active
 display child revision hides the edited/retried suffix from the user-facing
-document without deleting the original events. The renderer active path calls
+document without deleting the original events. The replacement user row is
+persisted in that child display checkpoint with the normal SDK user row id
+(`<turnRef>-sdk-evt-000002-user_message`) and a `replacedDisplayRowId`
+metadata pointer back to the original target. This means a repeated resend can
+still resolve the original row id while the later SDK send event dedupes into
+the already-persisted display row instead of appending a second user bubble.
+The renderer active path calls
 `conversation.loadDisplayTimeline`, `conversation.replaceRows`, then
 `conversation.send`; it does not call `prepareEditAndResend`,
 `prepareRetryTurn`, `conversation.rewrite_after_event`, or backend rehydrate as
@@ -755,7 +761,19 @@ row, and SDK display-row echoes for that pending turn must keep the existing
 optimistic bubble until the turn is no longer pending. Replay pending user rows
 use the SDK replacement event id (`<turnRef>-sdk-evt-000002-user_message`) so
 the final `sdk:display-rows` projection updates the existing user bubble instead
-of remounting it. If the later normal send fails after the child display
+of remounting it.
+
+Edit/resend can target a turn that is still awaiting or streaming. In that
+case the renderer treats the replacement as an active-turn handoff: it derives
+the source row from the persisted display timeline when available, falls back to
+the renderer-local user row before the SDK `user_message` display row exists,
+marks the old `turnRef` as superseded, and sends a best-effort stop for that
+old turn. Renderer SDK projection consumers must ignore late current-turn and
+display-row projections from superseded turn refs, and stale stop
+acknowledgements for a superseded turn must not clear the replacement pending
+turn. This keeps the edit Send button usable under repeated clicks while the
+editable display document remains the visible authority. If the later normal
+send fails after the child display
 revision is accepted, the renderer keeps the accepted child timeline visible,
 removes the optimistic replay row, clears only the pending turn, and appends a
 send-failure error row instead of rolling back to the parent transcript. No

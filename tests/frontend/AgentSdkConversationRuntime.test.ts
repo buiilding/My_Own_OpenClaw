@@ -8300,7 +8300,17 @@ describe('Agent SDK conversation runtime core', () => {
       reason: 'user_edit',
       baseRevisionId: 'rev-old',
     }));
-    expect(displayTimeline?.rows.map(row => row.content)).toEqual(['keep this']);
+    expect(displayTimeline?.rows.map(row => row.content)).toEqual(['keep this', 'new text']);
+    expect(displayTimeline?.rows[1]).toEqual(expect.objectContaining({
+      id: 'turn-edited-sdk-evt-000002-user_message',
+      revisionId: displayTimeline?.revisionId,
+      turnRef: 'turn-edited',
+      metadata: expect.objectContaining({
+        replacedDisplayRowId: 'user-edit',
+        revisionId: displayTimeline?.revisionId,
+        sourceEventType: 'sdk-replay',
+      }),
+    }));
     expect((await runtime.load()).display.messages.map(message => message.text)).toEqual([
       'keep this',
       'new text',
@@ -8359,6 +8369,60 @@ describe('Agent SDK conversation runtime core', () => {
     expect(displayTimeline.rows[1]).toEqual(expect.objectContaining({
       revisionId: checkpoint.revisionId,
       turnRef: 'turn-edited',
+    }));
+  });
+
+  test('editAndResend can target the original user id after a replacement row is persisted', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-edit',
+        payload: { text: 'old text' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'assistant-stale',
+        payload: { text: 'stale answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport({
+        sendQuery: jest.fn(async payload => {
+          sentQueries.push(payload);
+          return 'query-edited';
+        }),
+      }),
+    });
+
+    await runtime.load();
+    await runtime.editAndResend({
+      messageId: 'user-edit',
+      text: 'first edit',
+      turnRef: 'turn-edit-one',
+    });
+    await runtime.editAndResend({
+      messageId: 'user-edit',
+      text: 'second edit',
+      turnRef: 'turn-edit-two',
+    });
+
+    const displayTimeline = await runtime.loadDisplayTimeline();
+    expect(sentQueries.map(query => query.text)).toEqual(['first edit', 'second edit']);
+    expect(displayTimeline.rows.map(row => row.content)).toEqual(['second edit']);
+    expect(displayTimeline.rows[0]).toEqual(expect.objectContaining({
+      id: 'turn-edit-two-sdk-evt-000002-user_message',
+      turnRef: 'turn-edit-two',
+      metadata: expect.objectContaining({
+        replacedDisplayRowId: 'user-edit',
+      }),
     }));
   });
 
@@ -8422,7 +8486,19 @@ describe('Agent SDK conversation runtime core', () => {
       reason: 'retry',
       baseRevisionId: 'rev-old',
     }));
-    expect(displayTimeline?.rows).toEqual([]);
+    expect(displayTimeline?.rows).toEqual([
+      expect.objectContaining({
+        id: 'turn-retry-sdk-evt-000002-user_message',
+        content: 'try this again',
+        revisionId: displayTimeline?.revisionId,
+        turnRef: 'turn-retry',
+        metadata: expect.objectContaining({
+          replacedDisplayRowId: 'user-retry',
+          revisionId: displayTimeline?.revisionId,
+          sourceEventType: 'sdk-replay',
+        }),
+      }),
+    ]);
   });
 
   test('editAndResend preserves ready display image attachments', async () => {

@@ -66,6 +66,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
   DesktopLiveTurnRuntimeClient: {
     sendQuery: jest.fn(async () => undefined),
+    stop: jest.fn(async () => undefined),
   },
 }));
 
@@ -83,6 +84,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
 const mockLoadDisplayTimeline = DesktopConversationContinuityService.loadDisplayTimeline;
 const mockReplaceRows = DesktopConversationContinuityService.replaceRows;
 const mockSendQuery = DesktopLiveTurnRuntimeClient.sendQuery;
+const mockStopTurn = DesktopLiveTurnRuntimeClient.stop;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession;
@@ -120,6 +122,7 @@ describe('useConversationReplayActions', () => {
       rows: input.rows,
     }));
     mockSendQuery.mockResolvedValue(undefined);
+    mockStopTurn.mockResolvedValue(undefined);
     useChatStore.setState({ activeConversationRef: null });
   });
 
@@ -167,7 +170,19 @@ describe('useConversationReplayActions', () => {
       userId: 'user-1',
       baseRevisionId: 'rev-base',
       reason: 'retry',
-      rows: [],
+      rows: [
+        expect.objectContaining({
+          content: 'first question',
+          role: 'user',
+          type: 'user_message',
+          turnRef: expect.any(String),
+          metadata: expect.objectContaining({
+            replacedDisplayRowId: 'user-1',
+            revisionId: 'rev-base',
+            sourceEventType: 'renderer-compose',
+          }),
+        }),
+      ],
     }));
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
@@ -283,7 +298,14 @@ describe('useConversationReplayActions', () => {
 
     expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
       reason: 'retry',
-      rows: [],
+      rows: [
+        expect.objectContaining({
+          content: 'question with inline screenshot',
+          metadata: expect.objectContaining({
+            replacedDisplayRowId: 'user-inline',
+          }),
+        }),
+      ],
     }));
     expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('screenshot');
   });
@@ -330,6 +352,17 @@ describe('useConversationReplayActions', () => {
       rows: [
         expect.objectContaining({ id: 'renderer-user-1' }),
         expect.objectContaining({ id: 'assistant-1' }),
+        expect.objectContaining({
+          content: 'edited second question',
+          role: 'user',
+          type: 'user_message',
+          turnRef: expect.any(String),
+          metadata: expect.objectContaining({
+            replacedDisplayRowId: 'renderer-user-2',
+            revisionId: 'rev-base',
+            sourceEventType: 'renderer-compose',
+          }),
+        }),
       ],
     }));
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
@@ -381,7 +414,19 @@ describe('useConversationReplayActions', () => {
 
     expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
       reason: 'user_edit',
-      rows: [],
+      rows: [
+        expect.objectContaining({
+          id: 'turn-edited-user-sdk-evt-000002-user_message',
+          content: 'edited first question',
+          turnRef: 'turn-edited-user',
+          metadata: expect.objectContaining({
+            attachments: [screenshotAttachment],
+            replacedDisplayRowId: 'renderer-user-1',
+            revisionId: 'rev-base',
+            sourceEventType: 'renderer-compose',
+          }),
+        }),
+      ],
     }));
     expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([
       expect.objectContaining({
@@ -406,6 +451,72 @@ describe('useConversationReplayActions', () => {
         screenshot_refs: ['artifact-shot-ready'],
       }),
     }));
+  });
+
+  test('edit replay supersedes an active renderer-local user turn before sdk display rows exist', async () => {
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-edited-active');
+    const messages = [
+      {
+        id: 'turn-active-sdk-evt-000002-user_message',
+        sender: 'user',
+        text: 'first question',
+        turnRef: 'turn-active',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+      },
+    ];
+    mockDisplayTimelineRows = [];
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    useChatStore.getState().clearMessages('conv-existing');
+    useChatStore.getState().setMessages(messages, 'conv-existing');
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: useChatStore.getState().setMessages,
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleEditFromUser(
+        'turn-active-sdk-evt-000002-user_message',
+        'edited first question',
+      );
+    });
+
+    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
+      reason: 'user_edit',
+      rows: [
+        expect.objectContaining({
+          id: 'turn-edited-active-sdk-evt-000002-user_message',
+          content: 'edited first question',
+          turnRef: 'turn-edited-active',
+          metadata: expect.objectContaining({
+            replacedDisplayRowId: 'turn-active-sdk-evt-000002-user_message',
+            revisionId: 'rev-base',
+            sourceEventType: 'renderer-compose',
+          }),
+        }),
+      ],
+    }));
+    expect(mockStopTurn).toHaveBeenCalledWith('conv-existing', 'turn-active');
+    expect(useChatStore.getState().getWorkspaceState('conv-existing')).toEqual(expect.objectContaining({
+      pendingTurn: expect.objectContaining({
+        turnRef: 'turn-edited-active',
+      }),
+      supersededTurnRefs: {
+        'turn-active': true,
+      },
+    }));
+    expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([
+      expect.objectContaining({
+        id: 'turn-edited-active-sdk-evt-000002-user_message',
+        text: 'edited first question',
+        turnRef: 'turn-edited-active',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+      }),
+    ]);
   });
 
   test('edit replay preserves display-row image attachments when renderer message lacks them', async () => {
@@ -569,6 +680,99 @@ describe('useConversationReplayActions', () => {
     );
   });
 
+  test('edit replay can prepare again from the persisted replacement user row', async () => {
+    jest.spyOn(globalThis.crypto, 'randomUUID')
+      .mockReturnValueOnce('turn-overlap-one')
+      .mockReturnValueOnce('turn-overlap-two');
+    let childRevisionIndex = 0;
+    let currentRevisionId = 'rev-base';
+    mockLoadDisplayTimeline.mockImplementation(async (userId, conversationRef) => ({
+      conversationRef,
+      revisionId: currentRevisionId,
+      createdAt: '2026-06-22T12:00:00.000Z',
+      reason: null,
+      baseRevisionId: null,
+      rows: mockDisplayTimelineRows,
+    }));
+    mockReplaceRows.mockImplementation(async (input) => {
+      childRevisionIndex += 1;
+      const revisionId = `rev-child-${childRevisionIndex}`;
+      currentRevisionId = revisionId;
+      const rows = input.rows.map((row, index) => ({
+        ...row,
+        index,
+        revisionId,
+        metadata: {
+          ...(row.metadata ?? {}),
+          revisionId,
+        },
+      }));
+      mockDisplayTimelineRows = rows;
+      return {
+        conversationRef: input.conversationRef,
+        revisionId,
+        createdAt: `2026-06-22T12:0${childRevisionIndex}:00.000Z`,
+        reason: input.reason,
+        baseRevisionId: input.baseRevisionId,
+        rows,
+      };
+    });
+    const messages = [
+      {
+        id: 'renderer-user-1',
+        sender: 'user',
+        text: 'first question',
+        sourceEventType: 'user_message',
+        sourceChannel: 'sdk:display-rows',
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'first answer',
+        sourceEventType: 'assistant_message',
+        sourceChannel: 'sdk:display-rows',
+      },
+    ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleEditFromUser('renderer-user-1', 'edited first question');
+      await result.current.handleEditFromUser('renderer-user-1', 'edited first question');
+    });
+
+    expect(mockReplaceRows).toHaveBeenCalledTimes(2);
+    expect(mockReplaceRows.mock.calls[0][0]).toEqual(expect.objectContaining({
+      baseRevisionId: 'rev-base',
+      rows: [
+        expect.objectContaining({
+          id: 'turn-overlap-one-sdk-evt-000002-user_message',
+          metadata: expect.objectContaining({
+            replacedDisplayRowId: 'renderer-user-1',
+          }),
+        }),
+      ],
+    }));
+    expect(mockReplaceRows.mock.calls[1][0]).toEqual(expect.objectContaining({
+      baseRevisionId: 'rev-child-1',
+      rows: [
+        expect.objectContaining({
+          id: 'turn-overlap-two-sdk-evt-000002-user_message',
+          metadata: expect.objectContaining({
+            replacedDisplayRowId: 'renderer-user-1',
+          }),
+        }),
+      ],
+    }));
+    expect(mockSendQuery).toHaveBeenCalledTimes(2);
+  });
+
   test('retry replay infers artifact refs from screenshot urls', async () => {
     const messages = [
       {
@@ -599,7 +803,14 @@ describe('useConversationReplayActions', () => {
 
     expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
       reason: 'retry',
-      rows: [],
+      rows: [
+        expect.objectContaining({
+          content: 'question with url screenshot',
+          metadata: expect.objectContaining({
+            replacedDisplayRowId: 'user-url',
+          }),
+        }),
+      ],
     }));
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       screenshotRef: 'artifact-99',

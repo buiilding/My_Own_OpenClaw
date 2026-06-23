@@ -55,6 +55,7 @@ export function resetChatStoreForTests(
         streamTracking,
         currentTurnProjection: null,
         pendingTurn: null,
+        supersededTurnRefs: {},
       },
     },
     messages,
@@ -65,6 +66,7 @@ export function resetChatStoreForTests(
     streamTracking,
     currentTurnProjection: null,
     pendingTurn: null,
+    supersededTurnRefs: {},
     latestCurrentTurnProjection: null,
   });
 }

@@ -20,6 +20,7 @@ import {
 } from '../../../app/runtime/desktopConversationReplayRuntime';
 import { DesktopChatSendPreparationRuntime } from '../../../app/runtime/desktopChatSendPreparationRuntime';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
+import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 const {
@@ -190,11 +191,86 @@ function resolveReplayPendingAttachments(row, fallbackAttachments) {
   return displayAttachmentsFromRow(row) ?? fallbackAttachments ?? null;
 }
 
+function buildReplayReplacementUserRow({
+  attachments,
+  baseRevisionId,
+  content,
+  replacedRowId,
+  pendingTurn,
+  sourceRow,
+  timestamp,
+}) {
+  return {
+    ...sourceRow,
+    id: pendingTurn.userMessageId,
+    conversationRef: pendingTurn.conversationRef,
+    revisionId: baseRevisionId,
+    index: 0,
+    role: 'user',
+    type: 'user_message',
+    turnRef: pendingTurn.turnRef,
+    content,
+    metadata: {
+      ...(sourceRow?.metadata ?? {}),
+      eventId: pendingTurn.userMessageId,
+      replacedDisplayRowId: replacedRowId,
+      revisionId: baseRevisionId,
+      source: 'ui',
+      sourceEventType: 'renderer-compose',
+      timestamp,
+      ...(Array.isArray(attachments) && attachments.length > 0
+        ? { attachments }
+        : {}),
+    },
+  };
+}
+
+function buildReplaySourceUserRowFromMessage({
+  baseRevisionId,
+  conversationRef,
+  message,
+}) {
+  if (!message || message.sender !== 'user' || typeof message.id !== 'string') {
+    return null;
+  }
+  const attachments = Array.isArray(message.attachments) && message.attachments.length > 0
+    ? message.attachments
+    : null;
+  return {
+    id: message.id,
+    conversationRef,
+    revisionId: baseRevisionId,
+    index: 0,
+    role: 'user',
+    type: 'user_message',
+    turnRef: typeof message.turnRef === 'string' && message.turnRef.trim()
+      ? message.turnRef.trim()
+      : null,
+    content: typeof message.text === 'string' ? message.text : '',
+    metadata: {
+      eventId: message.id,
+      revisionId: baseRevisionId,
+      source: 'ui',
+      sourceEventType: message.sourceEventType ?? 'renderer-compose',
+      timestamp: typeof message.timestamp === 'string' ? message.timestamp : null,
+      ...(attachments ? { attachments } : {}),
+    },
+  };
+}
+
+function timelineRowMatchesMessageId(row, messageId) {
+  if (!row || typeof messageId !== 'string' || !messageId) {
+    return false;
+  }
+  return row.id === messageId
+    || row.metadata?.replacedDisplayRowId === messageId;
+}
+
 function findTimelineRowIndex(rows, messageId, predicate = () => true) {
   if (!Array.isArray(rows) || typeof messageId !== 'string' || !messageId) {
     return -1;
   }
-  return rows.findIndex((row) => row?.id === messageId && predicate(row));
+  return rows.findIndex((row) => timelineRowMatchesMessageId(row, messageId) && predicate(row));
 }
 
 function findTimelineRetryUserIndex(rows, assistantMessageId) {
@@ -228,6 +304,7 @@ async function executeReplayAction({
   action,
   messageId,
   targetUserMessageId,
+  sourceUserMessage,
   addMessage,
 }) {
   const conversationRef = ensureConversationRef(
@@ -248,41 +325,77 @@ async function executeReplayAction({
       conversationRef,
     );
     const rows = Array.isArray(displayTimeline?.rows) ? displayTimeline.rows : [];
-    const userRowIndex = action === 'edit_resend'
+    let userRowIndex = action === 'edit_resend'
       ? findTimelineRowIndex(
         rows,
         targetUserMessageId,
         (row) => row.role === 'user' && row.type === 'user_message',
       )
       : findTimelineRetryUserIndex(rows, messageId);
-    if (userRowIndex < 0) {
+    let sourceUserRow = userRowIndex >= 0 ? rows[userRowIndex] : null;
+    if (userRowIndex < 0 && action === 'edit_resend') {
+      sourceUserRow = buildReplaySourceUserRowFromMessage({
+        baseRevisionId: displayTimeline.revisionId,
+        conversationRef,
+        message: sourceUserMessage,
+      });
+      if (sourceUserRow) {
+        userRowIndex = rows.length;
+      }
+    }
+    if (userRowIndex < 0 || !sourceUserRow) {
       throw new Error(`Cannot ${action === 'edit_resend' ? 'edit' : 'retry'} missing display user row`);
     }
     const replayPayload = {
-      ...buildReplayAttachmentPayload(rows[userRowIndex]),
+      ...buildReplayAttachmentPayload(sourceUserRow),
       ...buildReplayPreparationPayload({ screenshotRef, screenshotUrl }),
     };
-    const replayMetadata = buildReplayDisplayMetadataPayload(rows[userRowIndex]);
+    const replayMetadata = buildReplayDisplayMetadataPayload(sourceUserRow);
     const replayStartedAt = new Date().toISOString();
+    const replayAttachments = resolveReplayPendingAttachments(sourceUserRow, pendingAttachments);
+    const supersededTurnRef = (
+      typeof sourceUserRow.turnRef === 'string'
+      && sourceUserRow.turnRef.trim()
+      && sourceUserRow.turnRef.trim() !== replayTurnRef
+    ) ? sourceUserRow.turnRef.trim() : null;
     const pendingTurn = buildReplayPendingTurn({
-      attachments: resolveReplayPendingAttachments(rows[userRowIndex], pendingAttachments),
+      attachments: replayAttachments,
       conversationRef,
       turnRef: replayTurnRef,
       text: queryText,
       timestamp: replayStartedAt,
     });
+    const replacementRows = [
+      ...rows.slice(0, userRowIndex),
+      buildReplayReplacementUserRow({
+        attachments: replayAttachments,
+        baseRevisionId: displayTimeline.revisionId,
+        content: queryText,
+        pendingTurn,
+        replacedRowId: sourceUserRow.metadata?.replacedDisplayRowId ?? sourceUserRow.id,
+        sourceRow: sourceUserRow,
+        timestamp: replayStartedAt,
+      }),
+    ];
     await DesktopConversationContinuityService.replaceRows({
       userId: sessionInfo.userId,
       conversationRef,
       baseRevisionId: displayTimeline.revisionId,
       reason: action === 'edit_resend' ? 'user_edit' : 'retry',
-      rows: rows.slice(0, userRowIndex),
+      rows: replacementRows,
     });
     useChatStore.getState().acceptReplayPendingTurn({
       conversationRef,
       messages: buildReplayMessagesWithPendingTurn(replayMessages, pendingTurn),
       pendingTurn,
+      supersededTurnRef,
     });
+    if (supersededTurnRef) {
+      void DesktopLiveTurnRuntimeClient.stop(conversationRef, supersededTurnRef)
+        .catch((stopError) => {
+          console.warn('[ChatInterface] Failed to stop superseded replay turn:', stopError);
+        });
+    }
     DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
     pendingTurnPublished = true;
     try {
@@ -391,6 +504,7 @@ export function useConversationReplayActions({
       action: 'edit_resend',
       messageId: userMessageId,
       targetUserMessageId: userMessageId,
+      sourceUserMessage: editUserMessage,
       addMessage,
     });
   }, [

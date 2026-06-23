@@ -193,4 +193,79 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
       }),
     );
   });
+
+  test('ignores superseded current-turn and display-row projections during edit resend handoff', () => {
+    const replacementUser = message({
+      id: 'turn-new-sdk-evt-000002-user_message',
+      sender: 'user',
+      text: 'edited first question',
+      turnRef: 'turn-new',
+      sourceEventType: 'renderer-compose',
+      sourceChannel: 'renderer-local',
+      isComplete: true,
+    });
+    useChatStore.getState().acceptReplayPendingTurn({
+      conversationRef: 'conv-1',
+      messages: [],
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-new',
+        userMessageId: 'turn-new-sdk-evt-000002-user_message',
+        text: 'edited first question',
+        timestamp: '2026-06-23T00:00:00.000Z',
+        attachmentFilenames: null,
+      },
+      supersededTurnRef: 'turn-old',
+    });
+    const { emitConversationRuntimeUpdated, emitDisplayRows } = registerBackendAndProjectionListeners();
+
+    act(() => {
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-1',
+        currentTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-old',
+          phase: 'streaming',
+          assistantText: 'old partial answer',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+      emitDisplayRows([
+        {
+          id: 'turn-old-sdk-evt-000002-user_message',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-old',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'first question',
+        },
+        {
+          id: 'turn-old-sdk-evt-000003-assistant_delta',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-old',
+          index: 1,
+          role: 'assistant',
+          type: 'assistant_message',
+          content: 'old partial answer',
+        },
+      ]);
+    });
+
+    const state = useChatStore.getState().getWorkspaceState('conv-1');
+    expect(state.currentTurnProjection).toBeNull();
+    expect(state.pendingTurn).toEqual(expect.objectContaining({
+      turnRef: 'turn-new',
+    }));
+    expect(state.messages).toEqual([
+      expect.objectContaining(replacementUser),
+    ]);
+    expect(state.messages).toEqual(
+      expect.not.arrayContaining([
+        expect.objectContaining({ turnRef: 'turn-old' }),
+      ]),
+    );
+  });
 });

@@ -119,6 +119,17 @@ class InMemoryConversationStore {
     }
     async loadDisplayTimeline(input) {
         const checkpoints = this.displayTimelineByConversation.get(input.conversationRef) ?? [];
+        if (!input.revisionId) {
+            const activeRevisionId = this.revisionsByConversation.get(input.conversationRef)?.displayTimelineId
+                ?? this.revisionsByConversation.get(input.conversationRef)?.revisionId
+                ?? null;
+            const active = activeRevisionId
+                ? checkpoints.find(checkpoint => checkpoint.revisionId === activeRevisionId)
+                : null;
+            if (active) {
+                return { ...active, rows: [...active.rows] };
+            }
+        }
         const candidates = input.revisionId
             ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
             : checkpoints;

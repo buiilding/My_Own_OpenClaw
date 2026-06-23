@@ -276,9 +276,38 @@ function mergeReplayPayload(
 function displayRowMatchesId(row: DisplayTimelineRow, messageId: string): boolean {
   return row.id === messageId
     || row.metadata?.eventId === messageId
+    || row.metadata?.replacedDisplayRowId === messageId
     || row.metadata?.raw?.id === messageId
     || row.metadata?.raw?.messageId === messageId
     || row.metadata?.raw?.message_id === messageId;
+}
+
+function replacementUserDisplayRow(
+  sourceRow: Extract<DisplayTimelineRow, { type: 'user_message' }>,
+  options: {
+    baseRevisionId: string;
+    text: string;
+    timestamp: string;
+    turnRef: string;
+  },
+): DisplayTimelineRow {
+  const rowId = `${options.turnRef}-sdk-evt-000002-user_message`;
+  return {
+    ...sourceRow,
+    id: rowId,
+    revisionId: options.baseRevisionId,
+    turnRef: options.turnRef,
+    content: options.text,
+    metadata: {
+      ...(sourceRow.metadata ?? {}),
+      eventId: rowId,
+      replacedDisplayRowId: sourceRow.metadata?.replacedDisplayRowId ?? sourceRow.id,
+      revisionId: options.baseRevisionId,
+      source: 'ui',
+      sourceEventType: 'sdk-replay',
+      timestamp: options.timestamp,
+    },
+  };
 }
 
 function readyImageAttachmentsFromDisplayRow(row: DisplayTimelineRow): SdkDisplayAttachment[] {
@@ -1707,14 +1736,24 @@ export class SdkConversationRuntime {
       input.payload,
     );
     replayPayload.text = normalizedText;
+    const turnRef = input.turnRef ?? createRuntimeId('turn');
+    const timestamp = new Date().toISOString();
     await this.replaceRows({
-      rows: displayTimeline.rows.slice(0, userIndex),
+      rows: [
+        ...displayTimeline.rows.slice(0, userIndex),
+        replacementUserDisplayRow(displayTimeline.rows[userIndex] as Extract<DisplayTimelineRow, { type: 'user_message' }>, {
+          baseRevisionId: displayTimeline.revisionId,
+          text: normalizedText,
+          timestamp,
+          turnRef,
+        }),
+      ],
       baseRevisionId: displayTimeline.revisionId,
       reason: 'user_edit',
     });
     return this.send({
       text: normalizedText,
-      turnRef: input.turnRef,
+      turnRef,
       model: input.model,
       payload: replayPayload,
     });
@@ -1750,14 +1789,24 @@ export class SdkConversationRuntime {
       input.payload,
     );
     replayPayload.text = retryText;
+    const turnRef = input.turnRef ?? createRuntimeId('turn');
+    const timestamp = new Date().toISOString();
     await this.replaceRows({
-      rows: displayTimeline.rows.slice(0, userIndex),
+      rows: [
+        ...displayTimeline.rows.slice(0, userIndex),
+        replacementUserDisplayRow(userRow as Extract<DisplayTimelineRow, { type: 'user_message' }>, {
+          baseRevisionId: displayTimeline.revisionId,
+          text: retryText,
+          timestamp,
+          turnRef,
+        }),
+      ],
       baseRevisionId: displayTimeline.revisionId,
       reason: 'retry',
     });
     return this.send({
       text: retryText,
-      turnRef: input.turnRef,
+      turnRef,
       model: input.model,
       payload: replayPayload,
     });

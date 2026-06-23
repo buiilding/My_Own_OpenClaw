@@ -280,6 +280,17 @@ export class FileConversationStore implements ConversationStore {
   }): Promise<DisplayTimelineCheckpoint | null> {
     const stored = await this.readConversation(input.conversationRef);
     const checkpoints = stored.displayTimeline ?? [];
+    if (!input.revisionId) {
+      const activeRevisionId = stored.revision?.displayTimelineId
+        ?? stored.revision?.revisionId
+        ?? null;
+      const active = activeRevisionId
+        ? checkpoints.find(checkpoint => checkpoint.revisionId === activeRevisionId)
+        : null;
+      if (active) {
+        return { ...active, rows: [...active.rows] };
+      }
+    }
     const candidates = input.revisionId
       ? checkpoints.filter(checkpoint => checkpoint.revisionId === input.revisionId)
       : checkpoints;

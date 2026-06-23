@@ -6,6 +6,17 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: make edit/resend supersede the replaced active turn
+  without disabling the edit Send button. Renderer replay now falls back to the
+  renderer-local user row before SDK display rows exist, stops the old turn
+  best-effort, ignores late old-turn current/display projections, and keeps
+  stale stop acknowledgements from clearing the replacement pending turn. No
+  migration required.
+- frontend/sdk: persist the replay replacement user row in edit/resend display
+  checkpoints and resolve repeated replay targets through the original row id,
+  preventing first-message spam resends from preparing against an empty display
+  timeline. SDK stores now prefer active revision metadata over timestamp
+  sorting when loading the current display checkpoint. No migration required.
 - frontend/renderer: coalesce dashboard recent-chat event refreshes after a
   list has rendered and keep the existing list visible during background
   metadata reloads, preventing edit/resend from flashing the dashboard loading

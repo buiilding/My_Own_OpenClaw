@@ -396,6 +396,33 @@ describe('chatStore', () => {
     ]);
   });
 
+  test('acceptReplayPendingTurn records the superseded turn without marking the replacement superseded', () => {
+    useChatStore.getState().acceptReplayPendingTurn({
+      conversationRef: 'conv-replay-active',
+      messages: [],
+      pendingTurn: {
+        conversationRef: 'conv-replay-active',
+        turnRef: 'turn-new',
+        userMessageId: 'user-new',
+        text: 'edited question',
+        timestamp: '2026-06-16T00:00:00.000Z',
+        attachmentFilenames: null,
+      },
+      supersededTurnRef: 'turn-old',
+    });
+
+    expect(useChatStore.getState().getWorkspaceState('conv-replay-active')).toEqual(
+      expect.objectContaining({
+        pendingTurn: expect.objectContaining({
+          turnRef: 'turn-new',
+        }),
+        supersededTurnRefs: {
+          'turn-old': true,
+        },
+      }),
+    );
+  });
+
   test('setCurrentTurnProjection replaces matching pending turn without clearing busy state first', () => {
     useChatStore.getState().acceptPendingTurn({
       conversationRef: 'conv-sdk',
@@ -518,6 +545,36 @@ describe('chatStore', () => {
       completedAt: '2026-06-16T00:00:01.000Z',
       lastEventType: 'stop-query',
     }));
+  });
+
+  test('acceptStoppedTurn ignores stale superseded turns while a replacement is pending', () => {
+    useChatStore.getState().acceptReplayPendingTurn({
+      conversationRef: 'conv-stale-stop',
+      messages: [],
+      pendingTurn: {
+        conversationRef: 'conv-stale-stop',
+        turnRef: 'turn-new',
+        userMessageId: 'user-new',
+        text: 'edited question',
+        timestamp: '2026-06-16T00:00:00.000Z',
+        attachmentFilenames: null,
+      },
+      supersededTurnRef: 'turn-old',
+    });
+    const beforeState = useChatStore.getState();
+
+    useChatStore.getState().acceptStoppedTurn({
+      conversationRef: 'conv-stale-stop',
+      turnRef: 'turn-old',
+      stoppedAt: '2026-06-16T00:00:01.000Z',
+    });
+
+    const state = useChatStore.getState();
+    expect(state).toBe(beforeState);
+    expect(state.pendingTurn).toEqual(expect.objectContaining({
+      turnRef: 'turn-new',
+    }));
+    expect(state.isSending).toBe(true);
   });
 
   test('acceptStoppedTurn terminalizes SDK current-turn and preserves visible partial content', () => {

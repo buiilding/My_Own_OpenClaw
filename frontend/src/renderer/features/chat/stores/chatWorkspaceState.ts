@@ -36,6 +36,7 @@ export interface ChatWorkspaceState {
   streamTracking: StreamTracking;
   currentTurnProjection: CurrentTurnProjection | null;
   pendingTurn: PendingTurn | null;
+  supersededTurnRefs: Record<string, true>;
 }
 
 interface ChatWorkspaceStoreSnapshot {
@@ -50,6 +51,7 @@ interface ChatWorkspaceStoreSnapshot {
   streamTracking?: StreamTracking;
   currentTurnProjection?: CurrentTurnProjection | null;
   pendingTurn?: PendingTurn | null;
+  supersededTurnRefs?: Record<string, true>;
 }
 
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
@@ -111,6 +113,7 @@ export function createInitialWorkspaceState(): ChatWorkspaceState {
     streamTracking: createInitialStreamTracking(),
     currentTurnProjection: null,
     pendingTurn: null,
+    supersededTurnRefs: {},
   };
 }
 
@@ -131,6 +134,7 @@ function buildActiveWorkspaceSnapshot(state: ChatWorkspaceStoreSnapshot): ChatWo
     streamTracking: state.streamTracking ?? createInitialStreamTracking(),
     currentTurnProjection: state.currentTurnProjection ?? null,
     pendingTurn: state.pendingTurn ?? null,
+    supersededTurnRefs: state.supersededTurnRefs ?? {},
   };
 }
 
@@ -148,6 +152,7 @@ function doesWorkspaceMatch(
     && workspace.streamTracking === activeWorkspace.streamTracking
     && workspace.currentTurnProjection === activeWorkspace.currentTurnProjection
     && workspace.pendingTurn === activeWorkspace.pendingTurn
+    && workspace.supersededTurnRefs === activeWorkspace.supersededTurnRefs
   );
 }
 

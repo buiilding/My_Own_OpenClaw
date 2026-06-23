@@ -85,9 +85,29 @@ function mergeReplayPayload(resolvedPayload, overridePayload) {
 function displayRowMatchesId(row, messageId) {
     return row.id === messageId
         || row.metadata?.eventId === messageId
+        || row.metadata?.replacedDisplayRowId === messageId
         || row.metadata?.raw?.id === messageId
         || row.metadata?.raw?.messageId === messageId
         || row.metadata?.raw?.message_id === messageId;
+}
+function replacementUserDisplayRow(sourceRow, options) {
+    const rowId = `${options.turnRef}-sdk-evt-000002-user_message`;
+    return {
+        ...sourceRow,
+        id: rowId,
+        revisionId: options.baseRevisionId,
+        turnRef: options.turnRef,
+        content: options.text,
+        metadata: {
+            ...(sourceRow.metadata ?? {}),
+            eventId: rowId,
+            replacedDisplayRowId: sourceRow.metadata?.replacedDisplayRowId ?? sourceRow.id,
+            revisionId: options.baseRevisionId,
+            source: 'ui',
+            sourceEventType: 'sdk-replay',
+            timestamp: options.timestamp,
+        },
+    };
 }
 function readyImageAttachmentsFromDisplayRow(row) {
     const attachments = row.metadata?.attachments;
@@ -1379,14 +1399,24 @@ class SdkConversationRuntime {
         }
         const replayPayload = mergeReplayPayload(replayPayloadFromDisplayRow(displayTimeline.rows[userIndex]), input.payload);
         replayPayload.text = normalizedText;
+        const turnRef = input.turnRef ?? (0, events_js_1.createRuntimeId)('turn');
+        const timestamp = new Date().toISOString();
         await this.replaceRows({
-            rows: displayTimeline.rows.slice(0, userIndex),
+            rows: [
+                ...displayTimeline.rows.slice(0, userIndex),
+                replacementUserDisplayRow(displayTimeline.rows[userIndex], {
+                    baseRevisionId: displayTimeline.revisionId,
+                    text: normalizedText,
+                    timestamp,
+                    turnRef,
+                }),
+            ],
             baseRevisionId: displayTimeline.revisionId,
             reason: 'user_edit',
         });
         return this.send({
             text: normalizedText,
-            turnRef: input.turnRef,
+            turnRef,
             model: input.model,
             payload: replayPayload,
         });
@@ -1418,14 +1448,24 @@ class SdkConversationRuntime {
         }
         const replayPayload = mergeReplayPayload(replayPayloadFromDisplayRow(userRow), input.payload);
         replayPayload.text = retryText;
+        const turnRef = input.turnRef ?? (0, events_js_1.createRuntimeId)('turn');
+        const timestamp = new Date().toISOString();
         await this.replaceRows({
-            rows: displayTimeline.rows.slice(0, userIndex),
+            rows: [
+                ...displayTimeline.rows.slice(0, userIndex),
+                replacementUserDisplayRow(userRow, {
+                    baseRevisionId: displayTimeline.revisionId,
+                    text: retryText,
+                    timestamp,
+                    turnRef,
+                }),
+            ],
             baseRevisionId: displayTimeline.revisionId,
             reason: 'retry',
         });
         return this.send({
             text: retryText,
-            turnRef: input.turnRef,
+            turnRef,
             model: input.model,
             payload: replayPayload,
         });

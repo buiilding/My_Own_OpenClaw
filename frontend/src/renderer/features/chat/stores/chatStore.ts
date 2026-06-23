@@ -123,6 +123,7 @@ interface ChatState {
   streamTracking: StreamTracking;
   currentTurnProjection: CurrentTurnProjection | null;
   pendingTurn: PendingTurn | null;
+  supersededTurnRefs: Record<string, true>;
   latestCurrentTurnProjection: CurrentTurnProjection | null;
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
@@ -158,6 +159,7 @@ interface ChatState {
     conversationRef?: string | null;
     messages: ChatMessage[];
     pendingTurn: PendingTurn;
+    supersededTurnRef?: string | null;
   }) => void;
   acceptPendingTurn: (pendingTurn: PendingTurn) => void;
   clearPendingTurn: (
@@ -193,6 +195,7 @@ ChatState,
 | 'streamTracking'
 | 'currentTurnProjection'
 | 'pendingTurn'
+| 'supersededTurnRefs'
 >;
 
 function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWorkspaceFields {
@@ -206,6 +209,7 @@ function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWo
     streamTracking: workspace.streamTracking,
     currentTurnProjection: workspace.currentTurnProjection,
     pendingTurn: workspace.pendingTurn,
+    supersededTurnRefs: workspace.supersededTurnRefs,
   };
 }
 
@@ -235,6 +239,32 @@ function normalizeTurnRef(turnRef?: string | null): string | null {
   }
   const normalizedTurnRef = turnRef.trim();
   return normalizedTurnRef.length > 0 ? normalizedTurnRef : null;
+}
+
+function addSupersededTurnRef(
+  current: Record<string, true>,
+  turnRef?: string | null,
+): Record<string, true> {
+  const normalizedTurnRef = normalizeTurnRef(turnRef);
+  if (!normalizedTurnRef || current[normalizedTurnRef]) {
+    return current;
+  }
+  return {
+    ...current,
+    [normalizedTurnRef]: true,
+  };
+}
+
+function removeSupersededTurnRef(
+  current: Record<string, true>,
+  turnRef?: string | null,
+): Record<string, true> {
+  const normalizedTurnRef = normalizeTurnRef(turnRef);
+  if (!normalizedTurnRef || !current[normalizedTurnRef]) {
+    return current;
+  }
+  const { [normalizedTurnRef]: _removed, ...next } = current;
+  return next;
 }
 
 function mergeTurnConversationRefs(
@@ -446,6 +476,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   streamTracking: createInitialStreamTracking(),
   currentTurnProjection: null,
   pendingTurn: null,
+  supersededTurnRefs: {},
   latestCurrentTurnProjection: null,
   getWorkspaceState: (conversationRef) => {
     const state = get();
@@ -471,6 +502,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         && state.streamTracking === nextWorkspace.streamTracking
         && state.currentTurnProjection === nextWorkspace.currentTurnProjection
         && state.pendingTurn === nextWorkspace.pendingTurn
+        && state.supersededTurnRefs === nextWorkspace.supersededTurnRefs
       ) {
         return state;
       }
@@ -697,7 +729,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace, latestUpdate);
     }),
 
-  acceptReplayPendingTurn: ({ messages, pendingTurn }) =>
+  acceptReplayPendingTurn: ({ messages, pendingTurn, supersededTurnRef = null }) =>
     set((state) => {
       const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
       if (!normalizedPendingTurn) {
@@ -723,6 +755,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
         thinkingSourceEventType: null,
         currentTurnProjection: null,
         pendingTurn: normalizedPendingTurn,
+        supersededTurnRefs: removeSupersededTurnRef(
+          addSupersededTurnRef(currentWorkspace.supersededTurnRefs, supersededTurnRef),
+          normalizedPendingTurn.turnRef,
+        ),
       };
       const nextTurnConversationRefs = mergeTurnConversationRefs(
         state.turnConversationRefs,
@@ -780,6 +816,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
         thinkingSourceEventType: null,
         currentTurnProjection: null,
         pendingTurn: normalizedPendingTurn,
+        supersededTurnRefs: removeSupersededTurnRef(
+          currentWorkspace.supersededTurnRefs,
+          normalizedPendingTurn.turnRef,
+        ),
       };
       const nextTurnConversationRefs = mergeTurnConversationRefs(
         state.turnConversationRefs,
@@ -828,13 +868,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
         : new Date().toISOString();
       const target = { conversationRef, turnRef };
       const workspaceProjection = currentWorkspace.currentTurnProjection;
-      const projectionToStop = doesCurrentTurnProjectionMatch(workspaceProjection, target)
+      const isWorkspaceProjectionTarget = doesCurrentTurnProjectionMatch(workspaceProjection, target);
+      const isPendingTurnTarget = doesPendingTurnMatch(currentWorkspace.pendingTurn, target);
+      if (!isWorkspaceProjectionTarget && !isPendingTurnTarget) {
+        return state;
+      }
+      const projectionToStop = isWorkspaceProjectionTarget
         ? workspaceProjection
         : inputProjection;
       const nextCurrentTurnProjection = projectionToStop
         ? buildStoppedCurrentTurnProjection(projectionToStop)
         : workspaceProjection;
-      const nextPendingTurn = doesPendingTurnMatch(currentWorkspace.pendingTurn, target)
+      const nextPendingTurn = isPendingTurnTarget
         ? null
         : currentWorkspace.pendingTurn;
       const nextStreamTracking: StreamTracking = {
@@ -844,7 +889,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       };
       const nextWorkspace = {
         ...currentWorkspace,
-        isSending: false,
+        isSending: nextPendingTurn ? currentWorkspace.isSending : false,
         thinkingStatus: null,
         thinkingSourceEventType: null,
         pendingTurn: nextPendingTurn,
@@ -914,6 +959,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
         thinkingSourceEventType: null,
         currentTurnProjection: null,
         pendingTurn: normalizedPendingTurn,
+        supersededTurnRefs: removeSupersededTurnRef(
+          currentWorkspace.supersededTurnRefs,
+          normalizedPendingTurn.turnRef,
+        ),
       };
       const nextTurnConversationRefs = mergeTurnConversationRefs(
         state.turnConversationRefs,
@@ -966,6 +1015,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         streamTracking: createInitialStreamTracking(),
         currentTurnProjection: null,
         pendingTurn: null,
+        supersededTurnRefs: {},
       };
       return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),

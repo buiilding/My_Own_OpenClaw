@@ -17,6 +17,7 @@ import {
   DesktopCurrentTurnProjectionEffectsRuntime,
   type ProjectionCursor,
 } from '../../../app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
+import type { ChatWorkspaceState } from '../stores/chatWorkspaceState';
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
 const {
@@ -38,6 +39,30 @@ const {
   logRendererCurrentTurnAppliedTrace,
   logRendererDisplayRowsProjectionTrace,
 } = DesktopRendererTraceRuntime;
+
+function normalizeTurnRef(turnRef: string | null | undefined): string | null {
+  return typeof turnRef === 'string' && turnRef.trim()
+    ? turnRef.trim()
+    : null;
+}
+
+function isSupersededTurn(workspace: ChatWorkspaceState, turnRef: string | null | undefined): boolean {
+  const normalizedTurnRef = normalizeTurnRef(turnRef);
+  return Boolean(normalizedTurnRef && workspace.supersededTurnRefs?.[normalizedTurnRef]);
+}
+
+function rowTurnRef(row: unknown): string | null {
+  return row && typeof row === 'object' && !Array.isArray(row)
+    ? normalizeTurnRef((row as { turnRef?: string | null }).turnRef)
+    : null;
+}
+
+function withoutSupersededRows<TRow>(rows: TRow[], workspace: ChatWorkspaceState): TRow[] {
+  if (!workspace.supersededTurnRefs || Object.keys(workspace.supersededTurnRefs).length === 0) {
+    return rows;
+  }
+  return rows.filter((row) => !isSupersededTurn(workspace, rowTurnRef(row)));
+}
 
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());
@@ -66,9 +91,13 @@ export function useConversationRuntimeProjectionStream(): void {
         return;
       }
 
+      const preProjectionWorkspace = useChatStore.getState().getWorkspaceState(conversationRef);
+      if (isSupersededTurn(preProjectionWorkspace, currentTurn.turnRef)) {
+        return;
+      }
+
       setLatestCurrentTurnProjection(currentTurn);
       // Check stale-turn status before current-turn storage can resolve pendingTurn.
-      const preProjectionWorkspace = useChatStore.getState().getWorkspaceState(conversationRef);
       setCurrentTurnProjection(currentTurn, conversationRef);
 
       const shouldSkipDerivedSideEffects = (
@@ -123,8 +152,9 @@ export function useConversationRuntimeProjectionStream(): void {
       if (!conversationRef) {
         return;
       }
-      const sdkMessages = buildChatMessagesFromSdkDisplayRows(rows);
       const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+      const filteredRows = withoutSupersededRows(rows, workspace);
+      const sdkMessages = buildChatMessagesFromSdkDisplayRows(filteredRows);
       const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
         sdkMessages,
         workspace.messages,
@@ -134,7 +164,7 @@ export function useConversationRuntimeProjectionStream(): void {
         source: 'sdk-display-rows-stream',
         conversationRef,
         ...buildDisplayProjectionTraceSummary({
-          rows,
+          rows: filteredRows,
           sdkMessages,
           currentMessages: workspace.messages,
           mergedMessages,
