@@ -37,7 +37,7 @@ surface. The command tables below use `<windie>` for the active platform shim.
 | `<windie> start frontend` | Start Vite dev server. |
 | `<windie> start desktop` | Start Electron dev app. |
 | `<windie> start dev` | Start Vite dev server and Electron dev app together. |
-| `<windie> start customer` | Start Vite dev server and Electron customer app together. |
+| `<windie> start customer` | Start Vite dev server and Electron customer app together through the frontend/local-runtime Python environment wrapper. |
 | `<windie> start all` | Start backend, frontend, and desktop dev processes together. |
 | `<windie> stop` | Stop tracked Windie dev processes when process tracking exists. |
 | `<windie> logs frontend` | Tail the captured Electron main/frontend desktop log stream. |

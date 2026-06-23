@@ -80,6 +80,7 @@ describe('windie CLI', () => {
       'python-in-env',
       'run-backend',
       'run-frontend-dev',
+      'run-frontend-customer',
       'run-frontend-electron',
       'test',
       'test-backend',
@@ -229,8 +230,8 @@ describe('windie CLI', () => {
         { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev.sh'), cwd: repoRoot, logLayer: 'vite' },
         {
           label: 'customer',
-          command: 'npm',
-          args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'electron'],
+          command: path.join(repoRoot, 'scripts/run-frontend-customer.sh'),
+          args: [],
           cwd: repoRoot,
           waitFor: { type: 'http', url: frontendDevUrl, timeoutMs: 90000 },
         },
@@ -246,6 +247,20 @@ describe('windie CLI', () => {
     expect(devPlan.concurrent[1].env.WINDIE_ENABLE_SCRIPTED_PROVIDER).toBe('1');
     expect(customerPlan.concurrent[0].env).toBeUndefined();
     expect(customerPlan.concurrent[1].env).toBeUndefined();
+  });
+
+  test('routes customer Electron launches through the frontend Python environment', () => {
+    const customerPlan = getSpawnPlan(['start', 'customer']);
+    const customerProcess = customerPlan.concurrent.find((processPlan) => processPlan.label === 'customer');
+
+    expect(customerProcess).toMatchObject({
+      command: path.join(repoRoot, 'scripts/run-frontend-customer.sh'),
+      args: [],
+      cwd: repoRoot,
+    });
+    expect(fs.readFileSync(customerProcess.command, 'utf8')).toContain(
+      'scripts/python-in-env.sh" frontend npm --prefix "$ROOT/frontend" run electron',
+    );
   });
 
   test('allows frontend readiness timeout override for cold dev startup', () => {
@@ -310,7 +325,7 @@ describe('windie CLI', () => {
       '--listTests',
     ]));
     const userFacingPlan = getSpawnPlan(['test', 'user-facing']);
-    expect(userFacingPlan.concurrent).toHaveLength(3);
+    expect(userFacingPlan.concurrent).toHaveLength(4);
     expect(userFacingPlan.concurrent[0]).toMatchObject({
       label: 'core-loop',
       command: 'npm',
@@ -321,18 +336,31 @@ describe('windie CLI', () => {
       'PendingTurnLiveSurfaceIntegration.test.js',
     ]));
     expect(userFacingPlan.concurrent[1]).toMatchObject({
+      label: 'startup-cli',
+      command: 'npm',
+      cwd: repoRoot,
+    });
+    expect(userFacingPlan.concurrent[1].args).toEqual([
+      '--prefix',
+      path.join(repoRoot, 'frontend'),
+      'run',
+      'test:ci',
+      '--',
+      'WindieCli.test.cjs',
+    ]);
+    expect(userFacingPlan.concurrent[2]).toMatchObject({
       label: 'renderer-light-appearance',
       command: 'npm',
       cwd: repoRoot,
     });
-    expect(userFacingPlan.concurrent[1].args).toEqual(expect.arrayContaining([
+    expect(userFacingPlan.concurrent[2].args).toEqual(expect.arrayContaining([
       'DesktopAppearanceThemeRuntime.test.js',
       'SettingsSection.test.jsx',
       'ChatBoxAppearanceCss.test.cjs',
       'ChatBoxResponseAppearanceCss.test.cjs',
       'SettingsSurfaceCss.test.js',
     ]));
-    expect(userFacingPlan.concurrent[2]).toMatchObject({
+    expect(userFacingPlan.concurrent[3]).toMatchObject({
       label: 'scripted-provider',
       command: path.join(repoRoot, 'scripts/test-backend.sh'),
       args: ['tests/backend/test_scripted_provider.py', '-q'],

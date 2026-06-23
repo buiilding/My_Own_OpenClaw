@@ -204,6 +204,12 @@ function userFacingRegressionPackProcesses() {
   return [
     { label: 'core-loop', ...coreLoopRegressionPackCommand() },
     {
+      label: 'startup-cli',
+      command: 'npm',
+      args: ['--prefix', FRONTEND_DIR, 'run', 'test:ci', '--', 'WindieCli.test.cjs'],
+      cwd: REPO_ROOT,
+    },
+    {
       label: 'renderer-light-appearance',
       command: 'npm',
       args: [
@@ -1634,8 +1640,7 @@ function runStart(target) {
       { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
       afterFrontendReady({
         label: 'customer',
-        command: 'npm',
-        args: ['--prefix', FRONTEND_DIR, 'run', 'electron'],
+        command: script('scripts/run-frontend-customer.sh'),
         cwd: REPO_ROOT,
       }),
     ]).then((code) => process.exit(code));
@@ -2171,8 +2176,8 @@ function getSpawnPlan(argv) {
         { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
         {
           label: 'customer',
-          command: 'npm',
-          args: ['--prefix', FRONTEND_DIR, 'run', 'electron'],
+          command: script('scripts/run-frontend-customer.sh'),
+          args: [],
           cwd: REPO_ROOT,
           waitFor: frontendReadyPlan(),
         },

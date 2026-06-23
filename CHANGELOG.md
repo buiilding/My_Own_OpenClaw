@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/startup: route `<windie> start customer` through the frontend Python
+  environment wrapper before launching Electron customer mode, so local-runtime
+  auto-start inherits `frontend_jarvis`/`WINDIE_PYTHON_PATH` just like
+  `<windie> start dev`. No migration required.
 - frontend/main: wait for initial settings sync before attaching renderer chat
   query `agent_definition` context, so persisted Agent settings system prompt
   and tool toggles apply to the first new conversation after restarting
