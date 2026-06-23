@@ -14,10 +14,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: draw the minimal chat pill body as a real rounded layer
   above the separate close bump, so the pill side caps no longer depend on a
   whole-shell polygon approximation and the small close bump uses a lower
-  rounded bell-curve tab profile with its own tinted fill and stronger outline
-  instead of disappearing on light backgrounds. The pill body shadow is also
-  reduced so it does not form a gray halo on white backgrounds. No migration
-  required.
+  rounded bell-curve tab profile with the same panel background and border
+  tokens as the pill body. The pill body shadow is also reduced so it does not
+  form a gray halo on white backgrounds. No migration required.
 - frontend/renderer: make edit/resend supersede the replaced active turn
   without disabling the edit Send button. Renderer replay now falls back to the
   renderer-local user row before SDK display rows exist, stops the old turn

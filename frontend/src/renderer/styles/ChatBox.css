@@ -144,8 +144,8 @@ body {
   --chatbox-close-button-x: calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x));
   --chatbox-close-bump-width: 44px;
   --chatbox-close-bump-height: var(--chatbox-bump-height);
-  --chatbox-close-bump-bg: color-mix(in srgb, var(--ui-panel-bg) 92%, var(--ui-text-primary) 8%);
-  --chatbox-close-bump-outline: color-mix(in srgb, var(--ui-text-primary) 22%, transparent 78%);
+  --chatbox-close-bump-bg: var(--ui-panel-bg);
+  --chatbox-close-bump-outline: var(--ui-border);
   --chatbox-pill-body-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   border-radius: 999px;
   border: 0;

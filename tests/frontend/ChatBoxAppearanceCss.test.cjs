@@ -53,12 +53,8 @@ describe('chat box appearance CSS', () => {
 
     expect(pillBlock).toContain('--chatbox-close-bump-width: 44px;');
     expect(pillBlock).toContain('--chatbox-close-bump-height: var(--chatbox-bump-height);');
-    expect(pillBlock).toContain(
-      '--chatbox-close-bump-bg: color-mix(in srgb, var(--ui-panel-bg) 92%, var(--ui-text-primary) 8%);',
-    );
-    expect(pillBlock).toContain(
-      '--chatbox-close-bump-outline: color-mix(in srgb, var(--ui-text-primary) 22%, transparent 78%);',
-    );
+    expect(pillBlock).toContain('--chatbox-close-bump-bg: var(--ui-panel-bg);');
+    expect(pillBlock).toContain('--chatbox-close-bump-outline: var(--ui-border);');
     expect(pillBlock).toContain('--chatbox-pill-body-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);');
     expect(pillBlock).toContain('border-radius: 999px;');
     expect(pillBlock).toContain('background: transparent;');
