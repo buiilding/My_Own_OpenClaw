@@ -6468,10 +6468,10 @@ describe('Agent SDK conversation runtime core', () => {
     await waitForExpect(() => {
       expect(notifiedTypes).toContain('memory_store_changed');
     });
-    expect(notifiedTypes.filter(type => type !== 'trace_event').slice(-2)).toEqual([
-      'memory_store_changed',
-      'turn_completed',
-    ]);
+    const visibleTypes = notifiedTypes.filter(type => type !== 'trace_event');
+    expect(visibleTypes).toContain('turn_completed');
+    expect(visibleTypes).toContain('memory_store_changed');
+    expect(visibleTypes.indexOf('turn_completed')).toBeLessThan(visibleTypes.indexOf('memory_store_changed'));
     const events = await store.loadEvents('conv-sdk-runtime');
     expect(events.map(storedEvent => storedEvent.type)).not.toContain('memory_persistence_diagnostic' as any);
     const memoryTimeline = buildTraceTimeline(events, {
@@ -6503,6 +6503,111 @@ describe('Agent SDK conversation runtime core', () => {
         reason: 'completed_turn',
         memoryId: 'mem-1',
       }),
+    });
+  });
+
+  test('completed-turn memory persistence does not block a later resend turn stream', async () => {
+    let resolveEmbedding!: () => void;
+    const embeddingPending = new Promise<{ embedding: number[]; embedding_space_version: string }>(resolve => {
+      resolveEmbedding = () => resolve({
+        embedding: [0.1],
+        embedding_space_version: 'embed-v1',
+      });
+    });
+    const notifiedEvents: Array<{ type: ConversationEvent['type']; turnRef: string | null }> = [];
+    const transport = createControllableAgentRuntimeTransport();
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      sdkClient: {
+        embeddings: {
+          create: jest.fn(async () => embeddingPending),
+        },
+      } as any,
+      localRuntime: {
+        rpc: jest.fn(async () => ({
+          success: true,
+          data: { memory_id: 'mem-delayed' },
+        })),
+      },
+      userId: 'user-sdk-runtime',
+    });
+    runtime.subscribeEvents(event => {
+      notifiedEvents.push({ type: event.type, turnRef: event.turnRef ?? null });
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'old turn', turnRef: 'turn-old-memory' });
+    transport.emit(backendEvent(
+      'streaming-complete',
+      { final_response: 'old response' },
+      {
+        eventId: 'turn-old-memory-evt-000001-streaming-complete',
+        turnRef: 'turn-old-memory',
+        sequence: 1,
+      },
+    ));
+
+    await waitForExpect(() => {
+      expect(notifiedEvents).toContainEqual({
+        type: 'turn_completed',
+        turnRef: 'turn-old-memory',
+      });
+    });
+
+    await runtime.send({ text: 'edited resend', turnRef: 'turn-new-resend' });
+    transport.emit(backendEvent(
+      'query-accepted',
+      { status: 'accepted' },
+      {
+        eventId: 'turn-new-resend-evt-000001-query-accepted',
+        turnRef: 'turn-new-resend',
+        sequence: 1,
+      },
+    ));
+    transport.emit(backendEvent(
+      'system-prompt',
+      { text: 'system prompt' },
+      {
+        eventId: 'turn-new-resend-evt-000002-system-prompt',
+        turnRef: 'turn-new-resend',
+        sequence: 2,
+      },
+    ));
+    transport.emit(backendEvent(
+      'tool-schemas',
+      { tools: [] },
+      {
+        eventId: 'turn-new-resend-evt-000003-tool-schemas',
+        turnRef: 'turn-new-resend',
+        sequence: 3,
+      },
+    ));
+
+    await waitForExpect(() => {
+      expect(notifiedEvents).toContainEqual({
+        type: 'system_prompt',
+        turnRef: 'turn-new-resend',
+      });
+      expect(notifiedEvents).toContainEqual({
+        type: 'tool_schemas_metadata',
+        turnRef: 'turn-new-resend',
+      });
+    });
+    const eventsBeforeMemoryResolves = await store.loadEvents('conv-sdk-runtime');
+    expect(eventsBeforeMemoryResolves).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'system_prompt', turnRef: 'turn-new-resend' }),
+      expect.objectContaining({ type: 'tool_schemas_metadata', turnRef: 'turn-new-resend' }),
+    ]));
+
+    resolveEmbedding();
+    await waitForExpect(() => {
+      expect(notifiedEvents).toContainEqual({
+        type: 'memory_store_changed',
+        turnRef: 'turn-old-memory',
+      });
     });
   });
 
