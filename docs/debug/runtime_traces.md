@@ -43,6 +43,19 @@ state such as `ipc.bridge` or `surface.visibility`; use durable `trace_event`
 rows for turn-scoped SDK/backend/local-runtime timelines that must survive
 restart.
 
+For edit/resend typing-state races, enable live-surface renderer tracing and
+filter `[LiveSurfaceTrace]` for `renderer.replay.timeline`. The payload is
+sanitized and includes only conversation/turn ids, action names, projection
+phases, row/message counts, pending/current turn refs, stream-tracking phase,
+and match booleans. It intentionally omits message text, screenshots, paths,
+tool arguments, and tool output. Useful milestones include `replay_start`,
+`display_timeline_loaded`, `replace_rows_start`, `replace_rows_done`,
+`pending_published`, `stop_old_sent`, `stop_old_done`, `stop_old_failed`,
+`send_new_sent`, `send_new_done`, `send_new_failed`,
+`sdk_current_turn_applied`, `sdk_current_turn_superseded_ignored`,
+`sdk_current_turn_stale_side_effects_skipped`, and
+`sdk_display_rows_projected`.
+
 Keep this playbook sanitized. Do not add prompt text, raw user/assistant
 messages, provider payloads, credentials, file contents, shell output,
 screenshots, URLs, browser page text, or tool output bodies to trace rows.

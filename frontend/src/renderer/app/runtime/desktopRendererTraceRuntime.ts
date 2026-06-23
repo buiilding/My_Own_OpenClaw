@@ -95,6 +95,35 @@ export type RendererChatSendLifecycleTraceValues = {
   reason?: unknown;
 };
 
+export type RendererReplayTraceValues = {
+  source?: string;
+  action: string;
+  conversationRef?: unknown;
+  oldTurnRef?: unknown;
+  newTurnRef?: unknown;
+  pendingTurnRef?: unknown;
+  currentTurnRef?: unknown;
+  currentTurnPhase?: unknown;
+  latestCurrentTurnRef?: unknown;
+  latestCurrentTurnPhase?: unknown;
+  streamActiveTurnRef?: unknown;
+  streamPhase?: unknown;
+  supersededTurnRef?: unknown;
+  targetUserMessageId?: unknown;
+  replacementRowCount?: unknown;
+  sourceRowCount?: unknown;
+  messageCount?: unknown;
+  displayRowCount?: unknown;
+  pendingMatchesNewTurn?: boolean;
+  currentMatchesNewTurn?: boolean;
+  currentMatchesOldTurn?: boolean;
+  pendingPresent?: boolean;
+  stopAttempted?: boolean;
+  stopSucceeded?: boolean;
+  sendSucceeded?: boolean;
+  errorKind?: unknown;
+};
+
 export type RendererChatPillResetTraceValues = {
   source?: string;
   conversationRef?: unknown;
@@ -607,6 +636,49 @@ function logRendererChatSendLifecycleTrace(
   );
 }
 
+function buildRendererReplayTracePayload(
+  values: RendererReplayTraceValues,
+): Record<string, unknown> {
+  return {
+    source: traceString(values.source) || 'renderer-replay',
+    action: traceString(values.action) || 'unknown',
+    conversationRef: traceString(values.conversationRef) || null,
+    oldTurnRef: traceString(values.oldTurnRef) || null,
+    newTurnRef: traceString(values.newTurnRef) || null,
+    pendingTurnRef: traceString(values.pendingTurnRef) || null,
+    currentTurnRef: traceString(values.currentTurnRef) || null,
+    currentTurnPhase: traceString(values.currentTurnPhase) || null,
+    latestCurrentTurnRef: traceString(values.latestCurrentTurnRef) || null,
+    latestCurrentTurnPhase: traceString(values.latestCurrentTurnPhase) || null,
+    streamActiveTurnRef: traceString(values.streamActiveTurnRef) || null,
+    streamPhase: traceString(values.streamPhase) || null,
+    supersededTurnRef: traceString(values.supersededTurnRef) || null,
+    targetUserMessageId: traceString(values.targetUserMessageId) || null,
+    replacementRowCount: traceNumberOrZero(values.replacementRowCount),
+    sourceRowCount: traceNumberOrZero(values.sourceRowCount),
+    messageCount: traceNumberOrZero(values.messageCount),
+    displayRowCount: traceNumberOrZero(values.displayRowCount),
+    pendingMatchesNewTurn: values.pendingMatchesNewTurn === true,
+    currentMatchesNewTurn: values.currentMatchesNewTurn === true,
+    currentMatchesOldTurn: values.currentMatchesOldTurn === true,
+    pendingPresent: values.pendingPresent === true,
+    stopAttempted: values.stopAttempted === true,
+    stopSucceeded: values.stopSucceeded === true,
+    sendSucceeded: values.sendSucceeded === true,
+    errorKind: traceString(values.errorKind) || null,
+  };
+}
+
+function logRendererReplayTrace(
+  values: RendererReplayTraceValues,
+): void {
+  logRendererLiveSurfaceTrace(
+    'renderer.replay.timeline',
+    buildRendererReplayTracePayload(values),
+    traceString(values.conversationRef) || null,
+  );
+}
+
 function buildRendererChatPillResetTracePayload(
   values: RendererChatPillResetTraceValues,
 ): Record<string, unknown> {
@@ -900,6 +972,7 @@ export const DesktopRendererTraceRuntime = Object.freeze({
   buildRendererChatSendLifecycleTracePayload,
   buildRendererCurrentTurnAppliedTracePayload,
   buildRendererDisplayRowsProjectionTracePayload,
+  buildRendererReplayTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
   buildRendererOverlayViewModelTracePayload,
@@ -919,6 +992,7 @@ export const DesktopRendererTraceRuntime = Object.freeze({
   logRendererChatSendLifecycleTrace,
   logRendererCurrentTurnAppliedTrace,
   logRendererDisplayRowsProjectionTrace,
+  logRendererReplayTrace,
   logRendererLiveSurfaceTrace,
   logRendererOverlayViewModelResolvedTrace,
   logRendererOverlayViewModelTrace,
