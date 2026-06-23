@@ -38,6 +38,7 @@ const {
 const {
   logRendererCurrentTurnAppliedTrace,
   logRendererDisplayRowsProjectionTrace,
+  logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
 
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
@@ -62,6 +63,38 @@ function withoutSupersededRows<TRow>(rows: TRow[], workspace: ChatWorkspaceState
     return rows;
   }
   return rows.filter((row) => !isSupersededTurn(workspace, rowTurnRef(row)));
+}
+
+function logReplayProjectionTrace(
+  action: string,
+  conversationRef: string,
+  workspace: ChatWorkspaceState,
+  values: Record<string, unknown> = {},
+): void {
+  const pendingTurnRef = normalizeTurnRef(workspace.pendingTurn?.turnRef);
+  const currentTurnRef = normalizeTurnRef(workspace.currentTurnProjection?.turnRef);
+  logRendererReplayTrace({
+    action,
+    conversationRef,
+    pendingTurnRef,
+    currentTurnRef,
+    currentTurnPhase: workspace.currentTurnProjection?.phase ?? null,
+    streamActiveTurnRef: workspace.streamTracking?.activeTurnRef ?? null,
+    streamPhase: workspace.streamTracking?.phase ?? null,
+    messageCount: Array.isArray(workspace.messages) ? workspace.messages.length : 0,
+    pendingPresent: Boolean(pendingTurnRef),
+    pendingMatchesNewTurn: Boolean(
+      pendingTurnRef
+        && typeof values.newTurnRef === 'string'
+        && pendingTurnRef === values.newTurnRef,
+    ),
+    currentMatchesNewTurn: Boolean(
+      currentTurnRef
+        && typeof values.newTurnRef === 'string'
+        && currentTurnRef === values.newTurnRef,
+    ),
+    ...values,
+  });
 }
 
 export function useConversationRuntimeProjectionStream(): void {
@@ -93,6 +126,11 @@ export function useConversationRuntimeProjectionStream(): void {
 
       const preProjectionWorkspace = useChatStore.getState().getWorkspaceState(conversationRef);
       if (isSupersededTurn(preProjectionWorkspace, currentTurn.turnRef)) {
+        logReplayProjectionTrace('sdk_current_turn_superseded_ignored', conversationRef, preProjectionWorkspace, {
+          oldTurnRef: currentTurn.turnRef ?? null,
+          currentTurnRef: currentTurn.turnRef ?? null,
+          currentTurnPhase: currentTurn.phase ?? null,
+        });
         return;
       }
 
@@ -115,6 +153,11 @@ export function useConversationRuntimeProjectionStream(): void {
         skipDerivedSideEffects: shouldSkipDerivedSideEffects,
       });
       if (shouldSkipDerivedSideEffects) {
+        logReplayProjectionTrace('sdk_current_turn_stale_side_effects_skipped', conversationRef, useChatStore.getState().getWorkspaceState(conversationRef), {
+          newTurnRef: currentTurn.turnRef ?? null,
+          currentTurnRef: currentTurn.turnRef ?? null,
+          currentTurnPhase: currentTurn.phase ?? null,
+        });
         return;
       }
 
@@ -133,6 +176,11 @@ export function useConversationRuntimeProjectionStream(): void {
           recordTrackingEvent: recordTrackingEventRuntime,
         },
       }));
+      logReplayProjectionTrace('sdk_current_turn_applied', conversationRef, useChatStore.getState().getWorkspaceState(conversationRef), {
+        newTurnRef: currentTurn.turnRef ?? null,
+        currentTurnRef: currentTurn.turnRef ?? null,
+        currentTurnPhase: currentTurn.phase ?? null,
+      });
     });
     return () => {
       removeListener?.();
@@ -169,6 +217,10 @@ export function useConversationRuntimeProjectionStream(): void {
           currentMessages: workspace.messages,
           mergedMessages,
         }),
+      });
+      logReplayProjectionTrace('sdk_display_rows_projected', conversationRef, workspace, {
+        displayRowCount: rows.length,
+        replacementRowCount: filteredRows.length,
       });
       setMessages(
         mergedMessages,

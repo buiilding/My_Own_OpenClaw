@@ -21,6 +21,7 @@ import {
 import { DesktopChatSendPreparationRuntime } from '../../../app/runtime/desktopChatSendPreparationRuntime';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
+import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 const {
@@ -35,6 +36,9 @@ const {
 const {
   dispatchPreparedDesktopChatTurn,
 } = DesktopChatSendPreparationRuntime;
+const {
+  logRendererReplayTrace,
+} = DesktopRendererTraceRuntime;
 const {
   applyRendererConversationSelection,
   createConversationRef,
@@ -258,6 +262,54 @@ function buildReplaySourceUserRowFromMessage({
   };
 }
 
+function traceErrorKind(error) {
+  if (!error) {
+    return null;
+  }
+  if (typeof error.name === 'string' && error.name.trim()) {
+    return error.name.trim();
+  }
+  return error instanceof Error ? 'Error' : typeof error;
+}
+
+function replayTraceSnapshot(conversationRef, newTurnRef = null, oldTurnRef = null) {
+  const state = useChatStore.getState();
+  const workspace = state.getWorkspaceState(conversationRef);
+  const currentTurnProjection = workspace.currentTurnProjection ?? null;
+  const latestCurrentTurnProjection = state.latestCurrentTurnProjection ?? null;
+  const pendingTurn = workspace.pendingTurn ?? null;
+  return {
+    pendingTurnRef: pendingTurn?.turnRef ?? null,
+    currentTurnRef: currentTurnProjection?.turnRef ?? null,
+    currentTurnPhase: currentTurnProjection?.phase ?? null,
+    latestCurrentTurnRef: latestCurrentTurnProjection?.turnRef ?? null,
+    latestCurrentTurnPhase: latestCurrentTurnProjection?.phase ?? null,
+    streamActiveTurnRef: workspace.streamTracking?.activeTurnRef ?? null,
+    streamPhase: workspace.streamTracking?.phase ?? null,
+    messageCount: Array.isArray(workspace.messages) ? workspace.messages.length : 0,
+    pendingPresent: Boolean(pendingTurn),
+    pendingMatchesNewTurn: Boolean(newTurnRef && pendingTurn?.turnRef === newTurnRef),
+    currentMatchesNewTurn: Boolean(newTurnRef && currentTurnProjection?.turnRef === newTurnRef),
+    currentMatchesOldTurn: Boolean(oldTurnRef && currentTurnProjection?.turnRef === oldTurnRef),
+  };
+}
+
+function logReplayTimeline(action, {
+  conversationRef,
+  newTurnRef = null,
+  oldTurnRef = null,
+  ...values
+}) {
+  logRendererReplayTrace({
+    action,
+    conversationRef,
+    oldTurnRef,
+    newTurnRef,
+    ...replayTraceSnapshot(conversationRef, newTurnRef, oldTurnRef),
+    ...values,
+  });
+}
+
 function timelineRowMatchesMessageId(row, messageId) {
   if (!row || typeof messageId !== 'string' || !messageId) {
     return false;
@@ -319,12 +371,24 @@ async function executeReplayAction({
   });
   const replayTurnRef = crypto.randomUUID();
   let pendingTurnPublished = false;
+  let supersededTurnRef = null;
+  logReplayTimeline('replay_start', {
+    conversationRef,
+    newTurnRef: replayTurnRef,
+    targetUserMessageId,
+  });
   try {
     const displayTimeline = await DesktopConversationContinuityService.loadDisplayTimeline(
       sessionInfo.userId,
       conversationRef,
     );
     const rows = Array.isArray(displayTimeline?.rows) ? displayTimeline.rows : [];
+    logReplayTimeline('display_timeline_loaded', {
+      conversationRef,
+      newTurnRef: replayTurnRef,
+      sourceRowCount: rows.length,
+      targetUserMessageId,
+    });
     let userRowIndex = action === 'edit_resend'
       ? findTimelineRowIndex(
         rows,
@@ -353,7 +417,7 @@ async function executeReplayAction({
     const replayMetadata = buildReplayDisplayMetadataPayload(sourceUserRow);
     const replayStartedAt = new Date().toISOString();
     const replayAttachments = resolveReplayPendingAttachments(sourceUserRow, pendingAttachments);
-    const supersededTurnRef = (
+    supersededTurnRef = (
       typeof sourceUserRow.turnRef === 'string'
       && sourceUserRow.turnRef.trim()
       && sourceUserRow.turnRef.trim() !== replayTurnRef
@@ -377,12 +441,28 @@ async function executeReplayAction({
         timestamp: replayStartedAt,
       }),
     ];
+    logReplayTimeline('replace_rows_start', {
+      conversationRef,
+      oldTurnRef: supersededTurnRef,
+      newTurnRef: replayTurnRef,
+      replacementRowCount: replacementRows.length,
+      sourceRowCount: rows.length,
+      targetUserMessageId,
+    });
     await DesktopConversationContinuityService.replaceRows({
       userId: sessionInfo.userId,
       conversationRef,
       baseRevisionId: displayTimeline.revisionId,
       reason: action === 'edit_resend' ? 'user_edit' : 'retry',
       rows: replacementRows,
+    });
+    logReplayTimeline('replace_rows_done', {
+      conversationRef,
+      oldTurnRef: supersededTurnRef,
+      newTurnRef: replayTurnRef,
+      replacementRowCount: replacementRows.length,
+      sourceRowCount: rows.length,
+      targetUserMessageId,
     });
     useChatStore.getState().acceptReplayPendingTurn({
       conversationRef,
@@ -391,14 +471,49 @@ async function executeReplayAction({
       supersededTurnRef,
     });
     if (supersededTurnRef) {
+      logReplayTimeline('stop_old_sent', {
+        conversationRef,
+        oldTurnRef: supersededTurnRef,
+        newTurnRef: replayTurnRef,
+        stopAttempted: true,
+      });
       void DesktopLiveTurnRuntimeClient.stop(conversationRef, supersededTurnRef)
+        .then(() => {
+          logReplayTimeline('stop_old_done', {
+            conversationRef,
+            oldTurnRef: supersededTurnRef,
+            newTurnRef: replayTurnRef,
+            stopAttempted: true,
+            stopSucceeded: true,
+          });
+        })
         .catch((stopError) => {
+          logReplayTimeline('stop_old_failed', {
+            conversationRef,
+            oldTurnRef: supersededTurnRef,
+            newTurnRef: replayTurnRef,
+            stopAttempted: true,
+            stopSucceeded: false,
+            errorKind: traceErrorKind(stopError),
+          });
           console.warn('[ChatInterface] Failed to stop superseded replay turn:', stopError);
         });
     }
     DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
     pendingTurnPublished = true;
+    logReplayTimeline('pending_published', {
+      conversationRef,
+      oldTurnRef: supersededTurnRef,
+      newTurnRef: replayTurnRef,
+      targetUserMessageId,
+    });
     try {
+      logReplayTimeline('send_new_sent', {
+        conversationRef,
+        oldTurnRef: supersededTurnRef,
+        newTurnRef: replayTurnRef,
+        targetUserMessageId,
+      });
       await dispatchPreparedDesktopChatTurn(buildPreparedReplayDesktopChatTurn({
         preparedReplayTurn: {
           conversationRef,
@@ -416,7 +531,22 @@ async function executeReplayAction({
         sessionInfo,
         workspacePath: workspaceBinding.workspacePath ?? null,
       }));
+      logReplayTimeline('send_new_done', {
+        conversationRef,
+        oldTurnRef: supersededTurnRef,
+        newTurnRef: replayTurnRef,
+        sendSucceeded: true,
+        targetUserMessageId,
+      });
     } catch (sendError) {
+      logReplayTimeline('send_new_failed', {
+        conversationRef,
+        oldTurnRef: supersededTurnRef,
+        newTurnRef: replayTurnRef,
+        sendSucceeded: false,
+        errorKind: traceErrorKind(sendError),
+        targetUserMessageId,
+      });
       if (sendError && typeof sendError === 'object') {
         sendError.__desktopRuntimeReplayStep = 'send';
       }
@@ -439,6 +569,13 @@ async function executeReplayAction({
         conversationRef,
       );
     }
+    logReplayTimeline('replay_failed_cleanup', {
+      conversationRef,
+      oldTurnRef: supersededTurnRef,
+      newTurnRef: replayTurnRef,
+      errorKind: traceErrorKind(error),
+      targetUserMessageId,
+    });
     if (typeof addMessage === 'function') {
       const replayStep = error?.__desktopRuntimeReplayStep === 'send' ? 'send' : 'prepare';
       addMessage({

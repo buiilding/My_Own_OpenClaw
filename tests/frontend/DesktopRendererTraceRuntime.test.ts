@@ -19,6 +19,7 @@ const {
   buildRendererChatPillResetTracePayload,
   buildRendererCurrentTurnAppliedTracePayload,
   buildRendererDisplayRowsProjectionTracePayload,
+  buildRendererReplayTracePayload,
   buildRendererOverlayIntentTraceEvent,
   buildRendererOverlayTypingTraceEvent,
   buildRendererOverlayViewModelTracePayload,
@@ -34,6 +35,7 @@ const {
   logRendererChatPillResetTrace,
   logRendererCurrentTurnAppliedTrace,
   logRendererDisplayRowsProjectionTrace,
+  logRendererReplayTrace,
   logRendererOverlayViewModelTrace,
   logRendererOverlayViewModelResolvedTrace,
   logRendererChatPillTrace,
@@ -170,6 +172,75 @@ describe('desktopRendererTraceRuntime', () => {
       include_query_screenshot: true,
       reason: 'overlay-chatbox',
     });
+  });
+
+  test('builds and emits sanitized replay timeline traces', () => {
+    setSearch('?debug_live_surface=1&view=main');
+
+    expect(buildRendererReplayTracePayload({
+      action: 'pending_published',
+      conversationRef: ' conv-replay ',
+      oldTurnRef: ' turn-old ',
+      newTurnRef: ' turn-new ',
+      pendingTurnRef: ' turn-new ',
+      currentTurnRef: ' turn-old ',
+      currentTurnPhase: ' streaming ',
+      streamActiveTurnRef: ' turn-old ',
+      streamPhase: ' awaiting-first-chunk ',
+      targetUserMessageId: ' user-row-1 ',
+      replacementRowCount: '2',
+      sourceRowCount: '4',
+      messageCount: '2',
+      pendingMatchesNewTurn: true,
+      currentMatchesOldTurn: true,
+    })).toEqual({
+      source: 'renderer-replay',
+      action: 'pending_published',
+      conversationRef: 'conv-replay',
+      oldTurnRef: 'turn-old',
+      newTurnRef: 'turn-new',
+      pendingTurnRef: 'turn-new',
+      currentTurnRef: 'turn-old',
+      currentTurnPhase: 'streaming',
+      latestCurrentTurnRef: null,
+      latestCurrentTurnPhase: null,
+      streamActiveTurnRef: 'turn-old',
+      streamPhase: 'awaiting-first-chunk',
+      supersededTurnRef: null,
+      targetUserMessageId: 'user-row-1',
+      replacementRowCount: 2,
+      sourceRowCount: 4,
+      messageCount: 2,
+      displayRowCount: 0,
+      pendingMatchesNewTurn: true,
+      currentMatchesNewTurn: false,
+      currentMatchesOldTurn: true,
+      pendingPresent: false,
+      stopAttempted: false,
+      stopSucceeded: false,
+      sendSucceeded: false,
+      errorKind: null,
+    });
+
+    logRendererReplayTrace({
+      action: 'send_new_sent',
+      conversationRef: 'conv-replay',
+      newTurnRef: 'turn-new',
+      pendingTurnRef: 'turn-new',
+      pendingMatchesNewTurn: true,
+      pendingPresent: true,
+    });
+
+    expect(mockSendLiveSurfaceTrace).toHaveBeenCalledWith(expect.objectContaining({
+      event: 'renderer.replay.timeline',
+      source: 'renderer-replay',
+      action: 'send_new_sent',
+      conversationRef: 'conv-replay',
+      newTurnRef: 'turn-new',
+      pendingTurnRef: 'turn-new',
+      pendingMatchesNewTurn: true,
+      pendingPresent: true,
+    }));
   });
 
   test('logs chat send lifecycle traces through chat-pill trace channel', () => {
