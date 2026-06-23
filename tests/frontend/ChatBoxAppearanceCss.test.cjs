@@ -53,6 +53,8 @@ describe('chat box appearance CSS', () => {
     expect(pillBlock).toContain('--chatbox-pill-end-radius: 28px;');
     expect(pillBlock).toContain('border-radius: 999px;');
     expect(pillBlock).toContain('0 calc(var(--chatbox-bump-height) + var(--chatbox-pill-end-radius))');
+    expect(pillBlock).toContain('0.25px calc(var(--chatbox-bump-height) + 24.25px)');
+    expect(pillBlock).toContain('calc(100% - 0.25px) calc(var(--chatbox-bump-height) + 24.25px)');
     expect(pillBlock).toContain('100% calc(100% - var(--chatbox-pill-end-radius))');
     expect(pillBlock).not.toContain('calc(var(--chatbox-bump-height) + 32px)');
     expect(pillBlock).not.toContain('calc(100% - 32px)');

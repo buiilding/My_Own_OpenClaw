@@ -6,9 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- frontend/renderer: round the minimal chat pill side caps by matching the
-  clipped contour radius to the compact body height under the close bump, so
-  the pill ends no longer look faceted or pointy. No migration required.
+- frontend/renderer: round and smooth the minimal chat pill side caps by
+  matching the clipped contour radius to the compact body height under the
+  close bump and adding denser cap samples, so the pill ends no longer look
+  faceted or pointy. No migration required.
 - frontend/renderer: make edit/resend supersede the replaced active turn
   without disabling the edit Send button. Renderer replay now falls back to the
   renderer-local user row before SDK display rows exist, stops the old turn
