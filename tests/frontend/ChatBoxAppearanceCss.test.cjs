@@ -53,7 +53,12 @@ describe('chat box appearance CSS', () => {
 
     expect(pillBlock).toContain('--chatbox-close-bump-width: 44px;');
     expect(pillBlock).toContain('--chatbox-close-bump-height: var(--chatbox-bump-height);');
-    expect(pillBlock).toContain('--chatbox-close-bump-outline: var(--ui-border);');
+    expect(pillBlock).toContain(
+      '--chatbox-close-bump-bg: color-mix(in srgb, var(--ui-panel-bg) 92%, var(--ui-text-primary) 8%);',
+    );
+    expect(pillBlock).toContain(
+      '--chatbox-close-bump-outline: color-mix(in srgb, var(--ui-text-primary) 22%, transparent 78%);',
+    );
     expect(pillBlock).toContain('border-radius: 999px;');
     expect(pillBlock).toContain('background: transparent;');
     expect(pillBlock).toContain('overflow: visible;');
@@ -63,7 +68,9 @@ describe('chat box appearance CSS', () => {
     expect(chatBoxCss).toContain('z-index: 1;\n  border: 1px solid var(--ui-border);');
     expect(chatBoxCss).toContain('.chatbox-pill::after');
     expect(chatBoxCss).toContain('width: var(--chatbox-close-bump-width);');
-    expect(chatBoxCss).toContain('z-index: 0;\n  border-radius: 0;');
+    expect(chatBoxCss).toContain('z-index: 0;');
+    expect(chatBoxCss).toContain('background: var(--chatbox-close-bump-bg);');
+    expect(chatBoxCss).toContain('border-radius: 0;');
     expect(chatBoxCss).toContain('clip-path: polygon(');
     expect(chatBoxCss).toContain('44% 6%,');
     expect(chatBoxCss).toContain('50% 4%,');
