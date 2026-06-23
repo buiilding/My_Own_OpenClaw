@@ -52,8 +52,8 @@ The chat pill is the small always-available desktop command surface. It is rende
   bump layer must use a small lower rounded bell-curve tab profile so it cannot
   brighten or paint over the pill body or read as a dome or peaked tent. The
   tab surface and outline must use the same panel background and border tokens
-  as the pill body, with a small same-surface seam cover under the close badge
-  so the tab visually joins the body without covering the full pill top edge.
+  as the pill body, and the close badge must not draw a rectangular seam cover
+  that creates a flat shelf under the tab.
   The pill body shadow should stay subtle enough that it does not create a
   visible gray halo on white backgrounds. The compact state keeps true pill
   caps, while measured multiline composer growth switches to a smaller finite

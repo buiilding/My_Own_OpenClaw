@@ -146,8 +146,6 @@ body {
   --chatbox-close-bump-height: var(--chatbox-bump-height);
   --chatbox-close-bump-bg: var(--ui-panel-bg);
   --chatbox-close-bump-outline: var(--ui-border);
-  --chatbox-close-bump-seam-height: 3px;
-  --chatbox-close-bump-seam-width: calc(var(--chatbox-close-bump-width) - 2px);
   --chatbox-pill-body-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   --chatbox-pill-body-top-radius: 999px;
   --chatbox-pill-body-bottom-radius: 999px;
@@ -579,19 +577,6 @@ body {
   z-index: 3;
   transform: translateX(-50%);
   transition: color 140ms ease, background 140ms ease;
-}
-
-.chatbox-close-badge::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: calc(var(--chatbox-bump-height) - 1px);
-  width: var(--chatbox-close-bump-seam-width);
-  height: var(--chatbox-close-bump-seam-height);
-  background: var(--ui-panel-bg);
-  pointer-events: none;
-  transform: translateX(-50%);
-  z-index: -1;
 }
 
 .chatbox-close-badge svg {
