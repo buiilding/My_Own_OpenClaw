@@ -64,11 +64,19 @@ export function useChatStreamTerminalHandlers({
       return;
     }
     const errorText = resolveErrorText(errorPayload);
+    const eventConversationRef = conversationRef ?? resolveConversationStreamEventConversationRef(event);
+    const eventTurnRef = resolveConversationStreamEventTurnRef(event);
+    useChatStore.getState().clearPendingTurn({
+      conversationRef: eventConversationRef,
+      turnRef: eventTurnRef,
+    });
+    useChatStore.getState().setThinkingStatus('', eventConversationRef);
+    useChatStore.getState().setThinkingSourceEventType(null, eventConversationRef);
     recordTrackingEvent(
       'error',
-      resolveConversationStreamEventTurnRef(event),
+      eventTurnRef,
       { errorText },
-      conversationRef ?? resolveConversationStreamEventConversationRef(event),
+      eventConversationRef,
     );
   }, [recordTrackingEvent]);
 
