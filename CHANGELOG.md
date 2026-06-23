@@ -8,8 +8,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - frontend/renderer: draw the minimal chat pill body as a real rounded layer
   above the separate close bump, so the pill side caps no longer depend on a
-  whole-shell polygon approximation and the bump is clipped to its protruding
-  tab instead of washing over the body. No migration required.
+  whole-shell polygon approximation and the smaller bump is clipped to its
+  protruding tab instead of washing over the body. No migration required.
 - frontend/renderer: make edit/resend supersede the replaced active turn
   without disabling the edit Send button. Renderer replay now falls back to the
   renderer-local user row before SDK display rows exist, stops the old turn
