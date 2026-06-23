@@ -277,6 +277,14 @@ conversation events or store rows. If a terminal backend event has no pending
 ledger entry, the SDK skips memory storage without emitting a memory-store
 invalidation.
 
+Completed-turn memory persistence is a side effect after the terminal event has
+already been stored, reduced, and emitted to subscribers. It must not block the
+serialized backend event queue, active-turn updates, or later edit/resend
+replacement turn streams. Slow embedding calls, local-runtime memory failures,
+or memory trace rows from an old turn are allowed to complete after a newer turn
+has started, but they must not delay system prompt, tool schema, assistant
+delta, or terminal events for that newer turn.
+
 `trace_event` is the SDK-owned durable path trace row. It is stored in the same
 conversation event ledger as normal conversation events, but display projections
 and diagnostic rehydrate snapshots must ignore it. A trace row records sanitized runtime

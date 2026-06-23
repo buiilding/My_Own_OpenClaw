@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: emit completed turns before running completed-turn memory
+  persistence, so slow old-turn embedding or local-memory failures cannot block
+  the serialized backend stream queue and leave edit/resend replacement turns
+  stuck at typing after only the local "full message sent" row. No migration
+  required.
 - sdk/runtime: restrict active-turn ownership to authoritative lifecycle events
   so late old-turn diagnostics, memory side effects, and stop acknowledgements
   cannot make edit/resend drop the replacement turn's backend stream. Rejected

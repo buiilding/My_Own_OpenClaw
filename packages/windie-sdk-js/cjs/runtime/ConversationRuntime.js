@@ -2034,17 +2034,15 @@ class SdkConversationRuntime {
         this.events = [...this.events, event];
         this.state = (0, conversationReducer_js_1.reduceConversationRuntimeState)(this.state, event);
         await this.options.store.appendEvent(event);
-        try {
-            await this.persistCompletedTurnMemory(event, pendingTurn, assistantResponse);
-        }
-        finally {
-            if (pendingTurn) {
-                this.pendingTurns.delete(pendingTurn.turnRef);
-            }
+        if (pendingTurn) {
+            this.pendingTurns.delete(pendingTurn.turnRef);
         }
         const snapshot = this.snapshot(this.events);
         this.notify(snapshot, event);
         this.scheduleCompletedTurnTitleGeneration(event, pendingTurn, assistantResponse);
+        void this.persistCompletedTurnMemory(event, pendingTurn, assistantResponse).catch(error => {
+            console.warn('[Agent SDK] Memory persistence scheduling failed:', error instanceof Error ? error.message : String(error));
+        });
     }
     async persistCompletedTurnMemory(event, pendingTurn, assistantResponse) {
         if (!pendingTurn) {
