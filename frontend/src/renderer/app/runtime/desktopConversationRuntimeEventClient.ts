@@ -102,15 +102,17 @@ function normalizeCurrentTurnProjectionEvent(
 function normalizeDisplayRowsProjectionEvent(
   payload: unknown,
 ): DesktopDisplayRowsProjectionEvent {
-  if (!isSdkDisplayRows(payload)) {
+  const source = recordOrEmpty(payload);
+  const rows = Array.isArray(source.rows) ? source.rows : payload;
+  if (!isSdkDisplayRows(rows)) {
     return {
       rows: [],
       conversationRef: null,
     };
   }
   return {
-    rows: payload,
-    conversationRef: resolveRowsConversationRef(payload),
+    rows,
+    conversationRef: normalizeOptionalString(source.conversationRef) ?? resolveRowsConversationRef(rows),
   };
 }
 

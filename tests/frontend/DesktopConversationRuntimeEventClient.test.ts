@@ -106,6 +106,10 @@ describe('DesktopConversationRuntimeEventClient', () => {
     });
 
     mockChannelListeners.get('windie:rows')?.([displayRow]);
+    mockChannelListeners.get('windie:rows')?.({
+      conversationRef: ' conv-empty ',
+      rows: [],
+    });
     mockChannelListeners.get('windie:rows')?.([{ id: 'row-1' }]);
 
     expect(mockOn).toHaveBeenCalledWith('windie:rows', expect.any(Function));
@@ -113,6 +117,10 @@ describe('DesktopConversationRuntimeEventClient', () => {
       {
         rows: [displayRow],
         conversationRef: 'conv-1',
+      },
+      {
+        rows: [],
+        conversationRef: 'conv-empty',
       },
       {
         rows: [],

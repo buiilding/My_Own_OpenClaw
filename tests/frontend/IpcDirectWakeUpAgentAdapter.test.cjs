@@ -140,7 +140,10 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     );
     expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
       DESKTOP_RUNTIME_ON_CHANNELS.ROWS,
-      [{ id: 'row-1' }],
+      {
+        conversationRef: 'conv-agent-1',
+        rows: [{ id: 'row-1' }],
+      },
     );
     expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
       DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN,

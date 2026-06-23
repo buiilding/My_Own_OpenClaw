@@ -104,7 +104,10 @@ function createDirectWakeUpAgentAdapter({
       if (event && event.type === 'memory_store_changed') {
         broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.MEMORY_STORE_CHANGED, event);
       }
-      broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.ROWS, snapshot.displayRows);
+      broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.ROWS, {
+        conversationRef: handle.conversationRef,
+        rows: Array.isArray(snapshot.displayRows) ? snapshot.displayRows : [],
+      });
       if (typeof setLatestCurrentTurnProjection === 'function') {
         setLatestCurrentTurnProjection(snapshot.currentTurn || null);
       }

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: broadcast SDK display rows with an explicit conversation
+  reference so empty edit/resend display revisions clear stale transcript rows
+  instead of being ignored by the renderer. No migration required.
 - frontend/renderer: render tool-output screenshot attachments with
   tool-card-sized layout again while keeping user message attachments compact
   and right-aligned. No migration required.
