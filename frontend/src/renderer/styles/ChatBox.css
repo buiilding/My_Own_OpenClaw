@@ -144,6 +144,7 @@ body {
   --chatbox-close-button-x: calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x));
   --chatbox-close-bump-width: 44px;
   --chatbox-close-bump-height: var(--chatbox-bump-height);
+  --chatbox-close-bump-outline: var(--ui-border);
   border-radius: 999px;
   border: 0;
   background: transparent;
@@ -211,6 +212,10 @@ body {
     92% 100%,
     100% 100%
   );
+  filter:
+    drop-shadow(0 -1px 0 var(--chatbox-close-bump-outline))
+    drop-shadow(1px 0 0 var(--chatbox-close-bump-outline))
+    drop-shadow(-1px 0 0 var(--chatbox-close-bump-outline));
   transform: translateX(-50%);
 }
 

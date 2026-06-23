@@ -50,7 +50,9 @@ The chat pill is the small always-available desktop command surface. It is rende
   close bump drawn as a separate decorative layer behind it. The main left and
   right ends should not depend on a whole-shell polygon approximation, and the
   bump layer must use a small lower rounded bell-curve tab profile so it cannot
-  brighten or paint over the pill body or read as a dome or peaked tent.
+  brighten or paint over the pill body or read as a dome or peaked tent. The
+  tab profile must carry its own subtle outline so it remains legible on light
+  desktop backgrounds.
 - Press-and-hold dragging is a shell interaction, not text entry. The first
   unfocused press on the textarea may request native text-entry activation for
   click-to-type, but if the pointer moves past the drag threshold that same

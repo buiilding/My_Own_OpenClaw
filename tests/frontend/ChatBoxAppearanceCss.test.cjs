@@ -53,6 +53,7 @@ describe('chat box appearance CSS', () => {
 
     expect(pillBlock).toContain('--chatbox-close-bump-width: 44px;');
     expect(pillBlock).toContain('--chatbox-close-bump-height: var(--chatbox-bump-height);');
+    expect(pillBlock).toContain('--chatbox-close-bump-outline: var(--ui-border);');
     expect(pillBlock).toContain('border-radius: 999px;');
     expect(pillBlock).toContain('background: transparent;');
     expect(pillBlock).toContain('overflow: visible;');
@@ -67,6 +68,7 @@ describe('chat box appearance CSS', () => {
     expect(chatBoxCss).toContain('44% 6%,');
     expect(chatBoxCss).toContain('50% 4%,');
     expect(chatBoxCss).toContain('56% 6%,');
+    expect(chatBoxCss).toContain('drop-shadow(0 -1px 0 var(--chatbox-close-bump-outline))');
   });
 
   test('anchors the response overlay close button outside the scrollable transcript', () => {
