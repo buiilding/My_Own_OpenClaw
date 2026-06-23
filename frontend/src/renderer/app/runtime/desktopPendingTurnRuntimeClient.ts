@@ -9,7 +9,6 @@ import type { ChatMessage } from './desktopChatMessageTypes';
 export type DesktopPendingTurn = {
   conversationRef: string | null;
   turnRef: string | null;
-  supersededTurnRef?: string | null;
   userMessageId?: string | null;
   text?: string | null;
   timestamp?: string | null;

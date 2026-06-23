@@ -576,7 +576,6 @@ const directWakeUpAgentAdapterDepsRuntime = createDirectWakeUpAgentAdapterDepsRu
   setLatestCurrentTurnProjection: (currentTurnProjection) => liveTurnState.setLatestCurrentTurn(
     currentTurnProjection,
   ),
-  isSupersededTurnRef: (turnRef) => liveTurnState.isSupersededTurnRef(turnRef),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
   pendingTurnMatchesCurrentTurn: pendingTurnRuntime.matchesCurrentTurn,
   clearLatestPendingTurn,

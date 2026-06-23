@@ -40,7 +40,6 @@ function createDirectWakeUpAgentAdapter({
     broadcastToRenderers,
     resolveRuntimeConversationRef,
     setLatestCurrentTurnProjection,
-    isSupersededTurnRef,
     getLatestPendingTurn,
     pendingTurnMatchesCurrentTurn,
     clearLatestPendingTurn,
@@ -90,26 +89,16 @@ function createDirectWakeUpAgentAdapter({
       inferenceContextPromise: null,
     };
     handle.detachRuntimeEvents = runtime.subscribeEvents((event, snapshot = {}) => {
-      const currentTurn = snapshot?.currentTurn || null;
-      const currentTurnSuperseded = Boolean(
-        currentTurn?.turnRef
-          && typeof isSupersededTurnRef === 'function'
-          && isSupersededTurnRef(currentTurn.turnRef),
-      );
-      handle.latestSnapshot = currentTurnSuperseded
-        ? { ...snapshot, currentTurn: null }
-        : snapshot;
-      if (!currentTurnSuperseded) {
-        if (currentTurn?.turnRef) {
-          handle.activeTurnRef = currentTurn.turnRef;
-        }
-        const phase = currentTurn?.phase;
-        if (phase === 'complete' || phase === 'error' || phase === 'idle') {
-          handle.sendInFlight = false;
-          handle.terminal = true;
-        } else if (phase) {
-          handle.terminal = false;
-        }
+      handle.latestSnapshot = snapshot;
+      if (snapshot?.currentTurn?.turnRef) {
+        handle.activeTurnRef = snapshot.currentTurn.turnRef;
+      }
+      const phase = snapshot?.currentTurn?.phase;
+      if (phase === 'complete' || phase === 'error' || phase === 'idle') {
+        handle.sendInFlight = false;
+        handle.terminal = true;
+      } else if (phase) {
+        handle.terminal = false;
       }
       broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT, event);
       if (event && event.type === 'memory_store_changed') {
@@ -119,20 +108,8 @@ function createDirectWakeUpAgentAdapter({
         conversationRef: handle.conversationRef,
         rows: Array.isArray(snapshot.displayRows) ? snapshot.displayRows : [],
       });
-      if (currentTurnSuperseded) {
-        if (typeof logLiveSurfaceTrace === 'function') {
-          logLiveSurfaceTrace('sdk.current_turn.superseded_ignored', {
-            ...(typeof summarizeCurrentTurn === 'function'
-              ? summarizeCurrentTurn(currentTurn)
-              : {}),
-            source: 'conversation-runtime',
-            displayRowCount: Array.isArray(snapshot.displayRows) ? snapshot.displayRows.length : 0,
-          });
-        }
-        return;
-      }
       if (typeof setLatestCurrentTurnProjection === 'function') {
-        setLatestCurrentTurnProjection(currentTurn || null);
+        setLatestCurrentTurnProjection(snapshot.currentTurn || null);
       }
       const latestPendingTurn = typeof getLatestPendingTurn === 'function'
         ? getLatestPendingTurn()
