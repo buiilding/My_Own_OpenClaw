@@ -771,9 +771,13 @@ marks the old `turnRef` as superseded, and sends a best-effort stop for that
 old turn. Renderer SDK projection consumers must ignore late current-turn and
 display-row projections from superseded turn refs, and stale stop
 acknowledgements for a superseded turn must not clear the replacement pending
-turn. This keeps the edit Send button usable under repeated clicks while the
-editable display document remains the visible authority. If the later normal
-send fails after the child display
+turn. The renderer also sends the superseded turn ref through pending-turn IPC
+so Electron main can keep its live-turn surface ledger aligned with the
+renderer branch: stale SDK current-turn snapshots for superseded turns must not
+update main's latest current turn, broadcast live current-turn state, or sync
+typing/overlay intent. This keeps the edit Send button usable under repeated
+clicks while the editable display document remains the visible authority. If
+the later normal send fails after the child display
 revision is accepted, the renderer keeps the accepted child timeline visible,
 removes the optimistic replay row, clears only the pending turn, and appends a
 send-failure error row instead of rolling back to the parent transcript. No

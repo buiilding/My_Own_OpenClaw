@@ -86,6 +86,7 @@ function normalizePendingTurnPayload(value) {
   const timestamp = typeof pendingTurn.timestamp === 'string' && pendingTurn.timestamp.trim()
     ? pendingTurn.timestamp
     : null;
+  const supersededTurnRef = normalizeOptionalString(pendingTurn.supersededTurnRef);
   if (!conversationRef || !turnRef || !userMessageId || text === null || !timestamp) {
     return null;
   }
@@ -107,6 +108,7 @@ function normalizePendingTurnPayload(value) {
       : null,
     attachments,
     screenshots,
+    supersededTurnRef,
   };
 }
 

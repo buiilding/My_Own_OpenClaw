@@ -79,6 +79,7 @@ function createDeps(overrides = {}) {
     getLatestPendingTurn: jest.fn(() => null),
     pendingTurnMatchesCurrentTurn: jest.fn(() => false),
     clearLatestPendingTurn: jest.fn(),
+    isSupersededTurnRef: jest.fn(() => false),
     logLiveSurfaceTrace: jest.fn(),
     summarizeCurrentTurn: jest.fn(currentTurn => ({ turnRef: currentTurn?.turnRef || null })),
     isDebugFlagEnabled: jest.fn(() => false),
@@ -200,6 +201,59 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
       DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN,
       expect.objectContaining({ turnRef: 'turn-1', phase: 'awaiting' }),
+    );
+  });
+
+  test('ignores superseded current-turn snapshots before syncing live typing surfaces', () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const syncSdkLiveTurnSurfaceIntent = jest.fn();
+    const deps = createDeps({
+      getSyncSdkLiveTurnSurfaceIntent: jest.fn(() => syncSdkLiveTurnSurfaceIntent),
+      isSupersededTurnRef: jest.fn(turnRef => turnRef === 'turn-old'),
+    });
+
+    createDirectWakeUpAgentAdapter({
+      agent,
+      workspacePath: 'C:/repo',
+      deps,
+    });
+    runtime.eventHandler(
+      { type: 'assistant_delta' },
+      {
+        displayRows: [{ id: 'row-new', turnRef: 'turn-new' }],
+        currentTurn: {
+          conversationRef: 'conv-agent-1',
+          turnRef: 'turn-old',
+          phase: 'awaiting',
+        },
+      },
+    );
+
+    expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
+      DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT,
+      { type: 'assistant_delta' },
+    );
+    expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
+      DESKTOP_RUNTIME_ON_CHANNELS.ROWS,
+      {
+        conversationRef: 'conv-agent-1',
+        rows: [{ id: 'row-new', turnRef: 'turn-new' }],
+      },
+    );
+    expect(deps.broadcastToRenderers).not.toHaveBeenCalledWith(
+      DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN,
+      expect.objectContaining({ turnRef: 'turn-old' }),
+    );
+    expect(deps.setLatestCurrentTurnProjection).not.toHaveBeenCalled();
+    expect(syncSdkLiveTurnSurfaceIntent).not.toHaveBeenCalled();
+    expect(deps.logLiveSurfaceTrace).toHaveBeenCalledWith(
+      'sdk.current_turn.superseded_ignored',
+      expect.objectContaining({
+        turnRef: 'turn-old',
+        source: 'conversation-runtime',
+        displayRowCount: 1,
+      }),
     );
   });
 

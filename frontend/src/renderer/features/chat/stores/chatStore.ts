@@ -74,6 +74,7 @@ export interface StreamTracking {
 export interface PendingTurn {
   conversationRef: string;
   turnRef: string;
+  supersededTurnRef?: string | null;
   userMessageId: string;
   text: string;
   timestamp: string;
@@ -337,6 +338,7 @@ function normalizePendingTurn(value: unknown): PendingTurn | null {
   const timestamp = typeof source.timestamp === 'string' && source.timestamp.trim()
     ? source.timestamp
     : null;
+  const supersededTurnRef = normalizeTurnRef(source.supersededTurnRef as string | null | undefined);
   if (!conversationRef || !turnRef || !userMessageId || text === null || !timestamp) {
     return null;
   }
@@ -352,6 +354,7 @@ function normalizePendingTurn(value: unknown): PendingTurn | null {
     userMessageId,
     text,
     timestamp,
+    supersededTurnRef,
     attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
       ? attachmentFilenames
       : null,

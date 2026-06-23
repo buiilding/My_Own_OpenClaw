@@ -54,6 +54,7 @@ describe('pending turn IPC handlers', () => {
         userMessageId: ' user-1 ',
         text: '',
         timestamp: ' 2026-06-19T00:00:00.000Z ',
+        supersededTurnRef: ' old-turn-1 ',
         attachmentFilenames: [' one.png ', '', 42, 'two.png'],
         attachments: [
           {
@@ -90,6 +91,7 @@ describe('pending turn IPC handlers', () => {
       userMessageId: 'user-1',
       text: '',
       timestamp: ' 2026-06-19T00:00:00.000Z ',
+      supersededTurnRef: 'old-turn-1',
       attachmentFilenames: [' one.png ', 'two.png'],
       attachments: [
         {
@@ -150,6 +152,7 @@ describe('pending turn IPC handlers', () => {
       attachmentFilenames: null,
       attachments: null,
       screenshots: null,
+      supersededTurnRef: null,
     });
     expect(broadcastToRenderers).toHaveBeenCalledWith('windie:pending-turn', {
       type: 'pending',
@@ -315,6 +318,7 @@ describe('pending turn IPC handlers', () => {
       attachmentFilenames: null,
       attachments: null,
       screenshots: null,
+      supersededTurnRef: null,
     });
   });
 
