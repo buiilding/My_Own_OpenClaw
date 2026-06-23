@@ -59,6 +59,7 @@ describe('chat box appearance CSS', () => {
     expect(pillBlock).toContain(
       '--chatbox-close-bump-outline: color-mix(in srgb, var(--ui-text-primary) 22%, transparent 78%);',
     );
+    expect(pillBlock).toContain('--chatbox-pill-body-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);');
     expect(pillBlock).toContain('border-radius: 999px;');
     expect(pillBlock).toContain('background: transparent;');
     expect(pillBlock).toContain('overflow: visible;');
@@ -66,6 +67,7 @@ describe('chat box appearance CSS', () => {
     expect(chatBoxCss).toContain('.chatbox-pill::before');
     expect(chatBoxCss).toContain('inset: var(--chatbox-bump-height) 0 0;');
     expect(chatBoxCss).toContain('z-index: 1;\n  border: 1px solid var(--ui-border);');
+    expect(chatBoxCss).toContain('box-shadow: var(--chatbox-pill-body-shadow);');
     expect(chatBoxCss).toContain('.chatbox-pill::after');
     expect(chatBoxCss).toContain('width: var(--chatbox-close-bump-width);');
     expect(chatBoxCss).toContain('z-index: 0;');

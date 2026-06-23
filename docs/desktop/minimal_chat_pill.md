@@ -52,7 +52,9 @@ The chat pill is the small always-available desktop command surface. It is rende
   bump layer must use a small lower rounded bell-curve tab profile so it cannot
   brighten or paint over the pill body or read as a dome or peaked tent. The
   tab profile must carry its own slightly tinted fill and stronger outline so
-  it remains legible on light desktop backgrounds.
+  it remains legible on light desktop backgrounds. The pill body shadow should
+  stay subtle enough that it does not create a visible gray halo on white
+  backgrounds.
 - Press-and-hold dragging is a shell interaction, not text entry. The first
   unfocused press on the textarea may request native text-entry activation for
   click-to-type, but if the pointer moves past the drag threshold that same

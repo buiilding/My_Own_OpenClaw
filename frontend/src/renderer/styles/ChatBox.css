@@ -146,6 +146,7 @@ body {
   --chatbox-close-bump-height: var(--chatbox-bump-height);
   --chatbox-close-bump-bg: color-mix(in srgb, var(--ui-panel-bg) 92%, var(--ui-text-primary) 8%);
   --chatbox-close-bump-outline: color-mix(in srgb, var(--ui-text-primary) 22%, transparent 78%);
+  --chatbox-pill-body-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   border-radius: 999px;
   border: 0;
   background: transparent;
@@ -184,7 +185,7 @@ body {
   z-index: 1;
   border: 1px solid var(--ui-border);
   border-radius: 999px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--chatbox-pill-body-shadow);
 }
 
 .chatbox-pill::after {
