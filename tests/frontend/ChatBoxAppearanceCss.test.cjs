@@ -52,7 +52,10 @@ describe('chat box appearance CSS', () => {
     const pillBlock = readMinimalPillCssBlock();
 
     expect(pillBlock).toContain('--chatbox-close-bump-width: 44px;');
-    expect(pillBlock).toContain('--chatbox-close-bump-height: var(--chatbox-bump-height);');
+    expect(pillBlock).toContain('--chatbox-close-bump-join-overlap: 2px;');
+    expect(pillBlock).toContain(
+      '--chatbox-close-bump-height: calc(var(--chatbox-bump-height) + var(--chatbox-close-bump-join-overlap));',
+    );
     expect(pillBlock).toContain('border-radius: 999px;');
     expect(pillBlock).toContain('background: transparent;');
     expect(pillBlock).toContain('overflow: visible;');
@@ -62,7 +65,7 @@ describe('chat box appearance CSS', () => {
     expect(chatBoxCss).toContain('z-index: 1;\n  border: 1px solid var(--ui-border);');
     expect(chatBoxCss).toContain('.chatbox-pill::after');
     expect(chatBoxCss).toContain('width: var(--chatbox-close-bump-width);');
-    expect(chatBoxCss).toContain('z-index: 0;\n  border-radius: 0;');
+    expect(chatBoxCss).toContain('z-index: 2;\n  border-radius: 0;');
     expect(chatBoxCss).toContain('clip-path: polygon(');
     expect(chatBoxCss).toContain('44% 6%,');
     expect(chatBoxCss).toContain('50% 4%,');
