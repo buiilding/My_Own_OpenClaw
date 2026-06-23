@@ -44,6 +44,26 @@ describe('ipc_live_turn_state', () => {
     expect(state.getLatestPendingTurn()).toBeNull();
   });
 
+  test('tracks superseded turn refs from replacement pending turns', () => {
+    const state = createIpcLiveTurnState();
+
+    state.setLatestPendingTurn({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-new',
+      supersededTurnRef: ' turn-old ',
+    });
+
+    expect(state.isSupersededTurnRef('turn-old')).toBe(true);
+    expect(state.isSupersededTurnRef('turn-new')).toBe(false);
+
+    expect(state.removeSupersededTurnRef('turn-old')).toBe(true);
+    expect(state.isSupersededTurnRef('turn-old')).toBe(false);
+
+    expect(state.addSupersededTurnRef('turn-stale')).toBe(true);
+    state.reset();
+    expect(state.isSupersededTurnRef('turn-stale')).toBe(false);
+  });
+
   test('ipc.cjs delegates live-turn cache storage to the helper', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -61,6 +81,7 @@ describe('ipc_live_turn_state', () => {
     expect(mainSource).toContain('createIpcLiveTurnState()');
     expect(mainSource).toContain('liveTurnState.getLatestCurrentTurn()');
     expect(mainSource).toContain('liveTurnState.setLatestCurrentTurn(');
+    expect(mainSource).toContain('liveTurnState.isSupersededTurnRef(turnRef)');
     expect(mainSource).toContain('liveTurnState.getLatestPendingTurn()');
     expect(mainSource).toContain('createPendingTurnRuntime({');
     expect(mainSource).not.toContain('liveTurnState.setLatestPendingTurn(');

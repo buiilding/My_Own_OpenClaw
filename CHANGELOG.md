@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: carry edit/resend `supersededTurnRef` through pending-turn
+  IPC into Electron main and ignore stale SDK current-turn snapshots for
+  superseded turns before syncing live typing surfaces. This keeps immediate
+  edit/resend from leaving the pill or overlay indefinitely awaiting an old
+  turn after the replacement send has become the active branch. No migration
+  required.
 - frontend/renderer: add gated `renderer.replay.timeline` diagnostics for
   edit/resend, recording sanitized turn ids, projection phases, row/message
   counts, and pending/current-turn match booleans from replay action and SDK
