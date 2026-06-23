@@ -18,7 +18,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: make `conversation.loadDisplayTimeline(...)` return same-revision send
   rows appended after a display replacement, so repeated edit/resend actions
   target the actual editable display document instead of a stale checkpoint
-  prefix. No migration required.
+  prefix. The tracked CJS runtime used by Electron is regenerated and covered
+  by the core-loop pack. No migration required.
 - frontend/renderer: render tool-output screenshot attachments with
   tool-card-sized layout again while keeping user message attachments compact
   and right-aligned. No migration required.

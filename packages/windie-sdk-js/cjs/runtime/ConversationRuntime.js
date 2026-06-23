@@ -650,7 +650,11 @@ class SdkConversationRuntime {
             : null;
         const checkpoint = await this.loadStoredDisplayTimeline(requestedRevisionId);
         if (checkpoint) {
-            return checkpoint;
+            const events = await this.options.store.loadEvents(this.options.conversationRef);
+            return {
+                ...checkpoint,
+                rows: this.displayRowsForTimeline(checkpoint, events),
+            };
         }
         const rows = await this.options.store.loadDisplayRows(this.options.conversationRef);
         const fallbackRevisionId = requestedRevisionId ?? this.state.revisionId;
@@ -2646,14 +2650,21 @@ class SdkConversationRuntime {
         if (!this.activeDisplayTimeline) {
             return eventRows;
         }
-        const rowIds = new Set(this.activeDisplayTimeline.rows.map(row => row.id));
-        const timelineRevisionId = this.activeDisplayTimeline.revisionId;
+        return this.displayRowsForTimeline(this.activeDisplayTimeline, events);
+    }
+    displayRowsForTimeline(timeline, events) {
+        const eventRows = (0, conversationProjections_js_1.buildDisplayRows)(events, {
+            liveAttachments: this.liveDisplayAttachmentsRecord(),
+        });
+        const rowIds = new Set(timeline.rows.map(row => row.id));
+        const timelineRevisionId = timeline.revisionId;
         const appendedRows = eventRows.filter(row => (rowMetadataRevision(row) === timelineRevisionId && !rowIds.has(row.id)));
         return withoutDuplicateDisplayToolOutputs([
-            ...this.activeDisplayTimeline.rows,
+            ...timeline.rows,
             ...appendedRows.map((row, offset) => ({
                 ...row,
-                index: this.activeDisplayTimeline.rows.length + offset,
+                index: timeline.rows.length + offset,
+                revisionId: timelineRevisionId,
             })),
         ]);
     }
