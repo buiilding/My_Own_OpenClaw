@@ -51,6 +51,32 @@ def _revision_operation_from_display_reason(reason: Optional[str]) -> str:
     return "send"
 
 
+def _display_reason_from_revision_operation(operation: Optional[str]) -> Optional[str]:
+    if operation == "edit":
+        return "user_edit"
+    if operation in {"retry", "fork", "manual_rewrite"}:
+        return operation
+    return None
+
+
+def _revision_branch_order_expression(alias: str = "r") -> str:
+    return f"""
+        CASE
+          WHEN {alias}.parent_revision_id IN (
+            SELECT r_active.revision_id
+            FROM {CONVERSATION_REVISIONS_TABLE} r_active
+            WHERE r_active.user_id = {alias}.user_id
+              AND r_active.conversation_id = {alias}.conversation_id
+              AND r_active.active = 1
+          ) THEN 2
+          WHEN {alias}.active = 1 THEN 1
+          ELSE 0
+        END DESC,
+        {alias}.updated_at DESC,
+        {alias}.revision_id DESC
+    """
+
+
 def _revision_operation_from_model_history_rows(rows: list[dict[str, Any]]) -> str:
     for row in rows:
         if row.get("message_type") == "context_compaction":
@@ -249,6 +275,24 @@ async def _upsert_revision_node(
     if not conversation_id or not revision_id:
         return
     normalized_operation = operation if operation in REVISION_OPERATIONS else "send"
+    requested_active = active
+    if requested_active:
+        cursor = await conn.execute(
+            f"""
+            SELECT 1
+            FROM {CONVERSATION_REVISIONS_TABLE}
+            WHERE user_id = ?
+              AND conversation_id = ?
+              AND parent_revision_id = ?
+              AND revision_id != ?
+              AND active = 1
+            LIMIT 1
+            """,
+            (user_id, conversation_id, revision_id, revision_id),
+        )
+        active_child = await cursor.fetchone()
+        if active_child is not None:
+            active = False
     if active:
         await conn.execute(
             f"""
@@ -642,7 +686,7 @@ async def _rebuild_materialized_conversation_indexes(cursor: Any) -> None:
                    FROM {CONVERSATION_REVISIONS_TABLE} r
                    WHERE r.user_id = e.user_id
                      AND r.conversation_id = e.conversation_id
-                   ORDER BY r.active DESC, r.updated_at DESC, r.revision_id DESC
+                   ORDER BY {_revision_branch_order_expression("r")}
                    LIMIT 1
                  ),
                  (
@@ -777,6 +821,7 @@ async def _refresh_conversation_indexes(
                    FROM {CONVERSATION_REVISIONS_TABLE} r
                    WHERE r.user_id = e.user_id
                      AND r.conversation_id = e.conversation_id
+                   ORDER BY {_revision_branch_order_expression("r")}
                    LIMIT 1
                  ),
                  (
@@ -1253,12 +1298,12 @@ async def get_conversation_revision(
         cursor = await conn.cursor()
         await cursor.execute(
             f"""
-            SELECT revision_id, parent_revision_id, operation,
-                   display_timeline_id, model_history_checkpoint_id,
-                   created_at, updated_at, active
-            FROM {CONVERSATION_REVISIONS_TABLE}
-            WHERE user_id = ? AND conversation_id = ?
-            ORDER BY active DESC, updated_at DESC, revision_id DESC
+            SELECT r.revision_id, r.parent_revision_id, r.operation,
+                   r.display_timeline_id, r.model_history_checkpoint_id,
+                   r.created_at, r.updated_at, r.active
+            FROM {CONVERSATION_REVISIONS_TABLE} r
+            WHERE r.user_id = ? AND r.conversation_id = ?
+            ORDER BY {_revision_branch_order_expression("r")}
             LIMIT 1
             """,
             (user_id, conversation_id),
@@ -1551,53 +1596,102 @@ async def load_display_timeline(
 ) -> Optional[Dict[str, Any]]:
     if not conversation_id:
         raise ValueError("conversation_id is required")
-    if revision_id:
-        revision_clause = "AND revision_id = ?"
-        revision_params: Tuple[Any, ...] = (revision_id,)
-        active_clause = ""
-    else:
-        revision_clause = ""
-        revision_params = ()
-        active_clause = "AND active = 1"
     async with aiosqlite.connect(db_path) as conn:
         conn.row_factory = aiosqlite.Row
         cursor = await conn.cursor()
+        if revision_id:
+            await cursor.execute(
+                f"""
+                SELECT revision_id, parent_revision_id, operation,
+                       display_timeline_id, created_at, updated_at
+                FROM {CONVERSATION_REVISIONS_TABLE}
+                WHERE user_id = ?
+                  AND conversation_id = ?
+                  AND display_timeline_id = ?
+                ORDER BY active DESC, updated_at DESC, revision_id DESC
+                LIMIT 1
+                """,
+                (user_id, conversation_id, revision_id),
+            )
+        else:
+            await cursor.execute(
+                f"""
+                SELECT r.revision_id, r.parent_revision_id, r.operation,
+                       r.display_timeline_id, r.created_at, r.updated_at
+                FROM {CONVERSATION_REVISIONS_TABLE} r
+                WHERE r.user_id = ?
+                  AND r.conversation_id = ?
+                  AND r.display_timeline_id IS NOT NULL
+                ORDER BY {_revision_branch_order_expression("r")}
+                LIMIT 1
+                """,
+                (user_id, conversation_id),
+            )
+        revision_checkpoint = await cursor.fetchone()
+        if revision_checkpoint is not None:
+            checkpoint_revision_id = (
+                revision_checkpoint["display_timeline_id"]
+                or revision_checkpoint["revision_id"]
+            )
+            checkpoint_created_at = revision_checkpoint["created_at"]
+            checkpoint_reason = _display_reason_from_revision_operation(
+                revision_checkpoint["operation"]
+            )
+            checkpoint_base_revision_id = revision_checkpoint["parent_revision_id"]
+        else:
+            if revision_id:
+                revision_clause = "AND revision_id = ?"
+                revision_params: Tuple[Any, ...] = (revision_id,)
+                active_clause = ""
+            else:
+                revision_clause = ""
+                revision_params = ()
+                active_clause = "AND active = 1"
+            await cursor.execute(
+                f"""
+                SELECT revision_id, created_at, reason, base_revision_id
+                FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
+                WHERE user_id = ? AND conversation_id = ?
+                {active_clause}
+                {revision_clause}
+                ORDER BY created_at DESC, revision_id DESC
+                LIMIT 1
+                """,
+                (user_id, conversation_id, *revision_params),
+            )
+            checkpoint = await cursor.fetchone()
+            if checkpoint is None:
+                return None
+            checkpoint_revision_id = checkpoint["revision_id"]
+            checkpoint_created_at = checkpoint["created_at"]
+            checkpoint_reason = checkpoint["reason"]
+            checkpoint_base_revision_id = checkpoint["base_revision_id"]
         await cursor.execute(
             f"""
-            SELECT revision_id, created_at, reason, base_revision_id
-            FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
-            WHERE user_id = ? AND conversation_id = ?
-            {active_clause}
-            {revision_clause}
-            ORDER BY created_at DESC, revision_id DESC
-            LIMIT 1
-            """,
-            (user_id, conversation_id, *revision_params),
-        )
-        checkpoint = await cursor.fetchone()
-        if checkpoint is None:
-            return None
-        await cursor.execute(
-            f"""
-            SELECT row_id, row_index, role, row_type, content, turn_ref, metadata
+            SELECT row_id, row_index, role, row_type, content, turn_ref, metadata,
+                   reason, base_revision_id, created_at
             FROM {CONVERSATION_DISPLAY_TIMELINE_TABLE}
             WHERE user_id = ? AND conversation_id = ? AND revision_id = ?
             ORDER BY row_index ASC
             """,
-            (user_id, conversation_id, checkpoint["revision_id"]),
+            (user_id, conversation_id, checkpoint_revision_id),
         )
         rows = await cursor.fetchall()
+    if rows:
+        checkpoint_created_at = checkpoint_created_at or rows[0]["created_at"]
+        checkpoint_reason = rows[0]["reason"]
+        checkpoint_base_revision_id = rows[0]["base_revision_id"]
     return {
         "conversation_id": conversation_id,
-        "revision_id": checkpoint["revision_id"],
-        "created_at": checkpoint["created_at"],
-        "reason": checkpoint["reason"],
-        "base_revision_id": checkpoint["base_revision_id"],
+        "revision_id": checkpoint_revision_id,
+        "created_at": checkpoint_created_at,
+        "reason": checkpoint_reason,
+        "base_revision_id": checkpoint_base_revision_id,
         "rows": [
             {
                 "id": row["row_id"],
                 "conversation_id": conversation_id,
-                "revision_id": checkpoint["revision_id"],
+                "revision_id": checkpoint_revision_id,
                 "index": row["row_index"],
                 "role": row["role"],
                 "type": row["row_type"],

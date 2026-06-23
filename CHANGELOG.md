@@ -24,6 +24,11 @@ All notable changes to WindieOS will be documented in this file.
   before accepting the edited pending turn, so the stale assistant suffix is
   removed locally instead of reappearing beside the replacement SDK row. Pending
   edited turns keep ready image attachments. No migration required.
+- frontend/local-runtime: load SDK display timeline checkpoints from the
+  revision graph before row storage, so edit/resend revisions with an empty
+  retained prefix stay authoritative instead of falling back to raw event replay.
+  Late parent model-history checkpoints no longer reactivate over the edited
+  child revision. No migration required.
 - frontend/renderer: render tool-output screenshot attachments with
   tool-card-sized layout again while keeping user message attachments compact
   and right-aligned. No migration required.

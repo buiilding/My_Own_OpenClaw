@@ -278,6 +278,218 @@ async def test_chat_event_store_loads_inactive_display_timeline_by_revision(
 
 
 @pytest.mark.asyncio
+async def test_chat_event_store_round_trips_empty_active_display_timeline(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-parent",
+        created_at="2026-06-22T12:00:00+00:00",
+        reason=None,
+        base_revision_id=None,
+        rows=[
+            {
+                "id": "display-parent-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-parent",
+                "role": "user",
+                "type": "user_message",
+                "content": "original",
+            },
+        ],
+    )
+    result = await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+        created_at="2026-06-22T12:01:00+00:00",
+        reason="user_edit",
+        base_revision_id="rev-parent",
+        rows=[],
+    )
+
+    active = await load_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+    child = await load_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+    )
+    revision = await get_conversation_revision(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert result["row_count"] == 0
+    assert active == {
+        "conversation_id": "conv-1",
+        "revision_id": "rev-child",
+        "created_at": "2026-06-22T12:01:00+00:00",
+        "reason": "user_edit",
+        "base_revision_id": "rev-parent",
+        "rows": [],
+    }
+    assert child == active
+    assert revision is not None
+    assert revision["revision_id"] == "rev-child"
+    assert revision["active"] is True
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_keeps_child_revision_active_after_parent_checkpoint(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-parent",
+        created_at="2026-06-22T12:00:00+00:00",
+        reason=None,
+        base_revision_id=None,
+        rows=[
+            {
+                "id": "display-parent-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-parent",
+                "role": "user",
+                "type": "user_message",
+                "content": "original",
+            },
+        ],
+    )
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+        created_at="2026-06-22T12:01:00+00:00",
+        reason="user_edit",
+        base_revision_id="rev-parent",
+        rows=[],
+    )
+    await replace_model_history_checkpoint(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-parent",
+        checkpoint_id="mh-parent-late",
+        created_at="2026-06-22T12:02:00+00:00",
+        rows=[
+            {
+                "id": "mh-parent-user",
+                "role": "user",
+                "message_type": "user_query",
+                "content": {"text": "original"},
+            },
+        ],
+    )
+
+    active = await load_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+    revision = await get_conversation_revision(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert active is not None
+    assert active["revision_id"] == "rev-child"
+    assert active["rows"] == []
+    assert revision is not None
+    assert revision["revision_id"] == "rev-child"
+    assert revision["active"] is True
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_recovers_stale_parent_active_display_revision(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-parent",
+        created_at="2026-06-22T12:00:00+00:00",
+        reason=None,
+        base_revision_id=None,
+        rows=[
+            {
+                "id": "display-parent-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-parent",
+                "role": "user",
+                "type": "user_message",
+                "content": "original",
+            },
+        ],
+    )
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+        created_at="2026-06-22T12:01:00+00:00",
+        reason="user_edit",
+        base_revision_id="rev-parent",
+        rows=[],
+    )
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            UPDATE conversation_revisions
+            SET active = CASE revision_id
+                WHEN 'rev-parent' THEN 1
+                ELSE 0
+            END,
+            updated_at = CASE revision_id
+                WHEN 'rev-parent' THEN '2026-06-22T12:02:00+00:00'
+                ELSE updated_at
+            END
+            WHERE user_id = 'user-1' AND conversation_id = 'conv-1'
+            """
+        )
+
+    active = await load_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+    revision = await get_conversation_revision(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert active is not None
+    assert active["revision_id"] == "rev-child"
+    assert active["rows"] == []
+    assert revision is not None
+    assert revision["revision_id"] == "rev-child"
+    assert revision["active"] is False
+
+
+@pytest.mark.asyncio
 async def test_chat_event_store_round_trips_model_history_checkpoint(tmp_path: Path):
     db_path = str(tmp_path / "history.db")
     await init_chat_event_schema(db_path)
