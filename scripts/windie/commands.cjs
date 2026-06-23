@@ -63,6 +63,7 @@ Status and diagnostics:
   <windie> capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]
   <windie> conversation list [--limit <n>] [--json]
   <windie> conversation inspect <conversation-ref> [--json]
+  <windie> conversation state <conversation-ref> [--json]
   <windie> conversation messages <conversation-ref> [--limit <n>] [--json]
   <windie> conversation events <conversation-ref> [--turn <turn-ref>] [--type <event-type>] [--limit <n>] [--json]
   <windie> conversation turns <conversation-ref> [--json]
@@ -284,6 +285,8 @@ function historyTableNames() {
   return {
     events: usingCanonicalHistory ? 'conversation_events' : 'chat_events',
     revisions: usingCanonicalHistory ? 'conversation_revisions' : 'chat_conversation_revisions',
+    displayTimeline: 'conversation_display_timeline',
+    modelHistory: 'conversation_model_history',
     titles: 'conversation_titles',
   };
 }
@@ -350,6 +353,24 @@ function historyObjectExists(name) {
 
 function historyObjectColumns(name) {
   return new Set(queryHistoryDatabase(`PRAGMA table_info(${name})`).map((row) => row.name));
+}
+
+function revisionBranchOrderExpression(alias = 'r') {
+  return `
+    CASE
+      WHEN ${alias}.parent_revision_id IN (
+        SELECT r_active.revision_id
+        FROM conversation_revisions r_active
+        WHERE r_active.user_id = ${alias}.user_id
+          AND r_active.conversation_id = ${alias}.conversation_id
+          AND r_active.active = 1
+      ) THEN 2
+      WHEN ${alias}.active = 1 THEN 1
+      ELSE 0
+    END DESC,
+    ${alias}.updated_at DESC,
+    ${alias}.revision_id DESC
+  `;
 }
 
 function parseTraceRow(row, pathFilter = '') {
@@ -941,6 +962,269 @@ function loadConversationInspect(conversationRef) {
   };
 }
 
+function loadSelectedConversationRevision(conversationRef, { requireDisplayTimeline = false } = {}) {
+  const tables = historyTableNames();
+  if (!historyObjectExists(tables.revisions)) {
+    return null;
+  }
+  const columns = historyObjectColumns(tables.revisions);
+  const hasRevisionGraph = [
+    'user_id',
+    'parent_revision_id',
+    'operation',
+    'display_timeline_id',
+    'model_history_checkpoint_id',
+    'created_at',
+    'active',
+  ].every((column) => columns.has(column));
+  if (!hasRevisionGraph || tables.revisions !== 'conversation_revisions') {
+    const rows = queryHistoryDatabase(`
+      SELECT revision_id AS revisionId,
+             NULL AS parentRevisionId,
+             NULL AS operation,
+             revision_id AS displayTimelineId,
+             NULL AS modelHistoryCheckpointId,
+             updated_at AS createdAt,
+             updated_at AS updatedAt,
+             1 AS active,
+             NULL AS userId
+      FROM ${tables.revisions}
+      WHERE conversation_id = ${sqlString(conversationRef)}
+      ORDER BY updated_at DESC, revision_id DESC
+      LIMIT 1
+    `);
+    return rows[0] || null;
+  }
+  const displayClause = requireDisplayTimeline ? 'AND r.display_timeline_id IS NOT NULL' : '';
+  const rows = queryHistoryDatabase(`
+    SELECT r.user_id AS userId,
+           r.revision_id AS revisionId,
+           r.parent_revision_id AS parentRevisionId,
+           r.operation,
+           r.display_timeline_id AS displayTimelineId,
+           r.model_history_checkpoint_id AS modelHistoryCheckpointId,
+           r.created_at AS createdAt,
+           r.updated_at AS updatedAt,
+           r.active AS active
+    FROM ${tables.revisions} r
+    WHERE r.conversation_id = ${sqlString(conversationRef)}
+      ${displayClause}
+    ORDER BY ${revisionBranchOrderExpression('r')}
+    LIMIT 1
+  `);
+  return rows[0] || null;
+}
+
+function loadActiveRevisionRows(conversationRef) {
+  const tables = historyTableNames();
+  if (!historyObjectExists(tables.revisions)) {
+    return [];
+  }
+  const columns = historyObjectColumns(tables.revisions);
+  const hasRevisionGraph = [
+    'user_id',
+    'parent_revision_id',
+    'operation',
+    'display_timeline_id',
+    'model_history_checkpoint_id',
+    'created_at',
+    'active',
+  ].every((column) => columns.has(column));
+  if (!hasRevisionGraph) {
+    return [];
+  }
+  return queryHistoryDatabase(`
+    SELECT user_id AS userId,
+           revision_id AS revisionId,
+           parent_revision_id AS parentRevisionId,
+           operation,
+           display_timeline_id AS displayTimelineId,
+           model_history_checkpoint_id AS modelHistoryCheckpointId,
+           created_at AS createdAt,
+           updated_at AS updatedAt,
+           active AS active
+    FROM ${tables.revisions}
+    WHERE conversation_id = ${sqlString(conversationRef)}
+      AND active = 1
+    ORDER BY updated_at DESC, revision_id DESC
+  `);
+}
+
+function displayReasonFromRevisionOperation(operation) {
+  if (operation === 'edit') {
+    return 'user_edit';
+  }
+  if (['retry', 'fork', 'manual_rewrite'].includes(operation)) {
+    return operation;
+  }
+  return null;
+}
+
+function loadDisplayTimelineState(conversationRef, selectedRevision) {
+  const tables = historyTableNames();
+  const displayRevision = selectedRevision?.displayTimelineId || null;
+  if (!displayRevision) {
+    return {
+      revisionId: null,
+      rowCount: 0,
+      reason: null,
+      baseRevisionId: null,
+      createdAt: null,
+      source: 'missing',
+    };
+  }
+  if (!historyObjectExists(tables.displayTimeline)) {
+    return {
+      revisionId: displayRevision,
+      rowCount: 0,
+      reason: displayReasonFromRevisionOperation(selectedRevision?.operation),
+      baseRevisionId: selectedRevision?.parentRevisionId || null,
+      createdAt: selectedRevision?.createdAt || null,
+      source: 'revision_graph',
+    };
+  }
+  const rows = queryHistoryDatabase(`
+    SELECT revision_id AS revisionId,
+           COUNT(*) AS rowCount,
+           MIN(created_at) AS createdAt,
+           MAX(reason) AS reason,
+           MAX(base_revision_id) AS baseRevisionId
+    FROM ${tables.displayTimeline}
+    WHERE conversation_id = ${sqlString(conversationRef)}
+      AND revision_id = ${sqlString(displayRevision)}
+    GROUP BY revision_id
+  `);
+  const row = rows[0] || null;
+  return {
+    revisionId: displayRevision,
+    rowCount: Number(row?.rowCount || 0),
+    reason: row?.reason || displayReasonFromRevisionOperation(selectedRevision?.operation),
+    baseRevisionId: row?.baseRevisionId || selectedRevision?.parentRevisionId || null,
+    createdAt: row?.createdAt || selectedRevision?.createdAt || null,
+    source: row ? 'row_storage' : 'revision_graph',
+  };
+}
+
+function loadModelHistoryState(conversationRef, selectedRevision) {
+  const tables = historyTableNames();
+  const checkpointId = selectedRevision?.modelHistoryCheckpointId || null;
+  if (!checkpointId) {
+    return {
+      checkpointId: null,
+      revisionId: selectedRevision?.revisionId || null,
+      rowCount: 0,
+      createdAt: null,
+      source: 'missing',
+    };
+  }
+  if (!historyObjectExists(tables.modelHistory)) {
+    return {
+      checkpointId,
+      revisionId: selectedRevision?.revisionId || null,
+      rowCount: 0,
+      createdAt: null,
+      source: 'revision_graph',
+    };
+  }
+  const rows = queryHistoryDatabase(`
+    SELECT checkpoint_id AS checkpointId,
+           revision_id AS revisionId,
+           COUNT(*) AS rowCount,
+           MIN(created_at) AS createdAt
+    FROM ${tables.modelHistory}
+    WHERE conversation_id = ${sqlString(conversationRef)}
+      AND checkpoint_id = ${sqlString(checkpointId)}
+    GROUP BY checkpoint_id, revision_id
+  `);
+  const row = rows[0] || null;
+  return {
+    checkpointId,
+    revisionId: row?.revisionId || selectedRevision?.revisionId || null,
+    rowCount: Number(row?.rowCount || 0),
+    createdAt: row?.createdAt || null,
+    source: row ? 'row_storage' : 'revision_graph',
+  };
+}
+
+function loadRawEventState(conversationRef) {
+  const tables = historyTableNames();
+  const rows = queryHistoryDatabase(`
+    SELECT COUNT(*) AS eventCount,
+           COUNT(DISTINCT turn_ref) AS turnCount,
+           SUM(CASE WHEN event_type = 'trace_event' THEN 1 ELSE 0 END) AS traceCount,
+           SUM(CASE WHEN event_type = 'user_message' THEN 1 ELSE 0 END) AS userMessageCount,
+           SUM(CASE WHEN event_type = 'assistant_message' THEN 1 ELSE 0 END) AS assistantMessageCount,
+           SUM(CASE WHEN event_type IN ('tool_output', 'tool_bundle_output') THEN 1 ELSE 0 END) AS toolOutputCount,
+           MIN(timestamp) AS createdAt,
+           MAX(timestamp) AS updatedAt
+    FROM ${tables.events}
+    WHERE conversation_id = ${sqlString(conversationRef)}
+  `);
+  const row = rows[0] || {};
+  return {
+    eventCount: Number(row.eventCount || 0),
+    turnCount: Number(row.turnCount || 0),
+    traceCount: Number(row.traceCount || 0),
+    userMessageCount: Number(row.userMessageCount || 0),
+    assistantMessageCount: Number(row.assistantMessageCount || 0),
+    toolOutputCount: Number(row.toolOutputCount || 0),
+    createdAt: row.createdAt || null,
+    updatedAt: row.updatedAt || null,
+  };
+}
+
+function loadConversationState(conversationRef) {
+  const selectedRevision = loadSelectedConversationRevision(conversationRef);
+  const selectedDisplayRevision = selectedRevision?.displayTimelineId
+    ? selectedRevision
+    : loadSelectedConversationRevision(conversationRef, { requireDisplayTimeline: true });
+  const activeRevisions = loadActiveRevisionRows(conversationRef);
+  const activeRevisionIds = new Set(activeRevisions.map((row) => row.revisionId));
+  const staleParentActive = Boolean(
+    selectedRevision
+    && !Boolean(Number(selectedRevision.active))
+    && selectedRevision.parentRevisionId
+    && activeRevisionIds.has(selectedRevision.parentRevisionId),
+  );
+  const displayTimeline = loadDisplayTimelineState(
+    conversationRef,
+    selectedDisplayRevision || selectedRevision,
+  );
+  const modelHistory = loadModelHistoryState(conversationRef, selectedRevision);
+  const rawEvents = loadRawEventState(conversationRef);
+  return {
+    ok: true,
+    database: historyDatabasePath(),
+    conversationRef,
+    selectedRevision: selectedRevision ? {
+      revisionId: selectedRevision.revisionId,
+      parentRevisionId: selectedRevision.parentRevisionId || null,
+      operation: selectedRevision.operation || null,
+      displayTimelineId: selectedRevision.displayTimelineId || null,
+      modelHistoryCheckpointId: selectedRevision.modelHistoryCheckpointId || null,
+      active: Boolean(Number(selectedRevision.active)),
+      createdAt: selectedRevision.createdAt || null,
+      updatedAt: selectedRevision.updatedAt || null,
+      userId: selectedRevision.userId || null,
+    } : null,
+    activeRevisions: activeRevisions.map((row) => ({
+      revisionId: row.revisionId,
+      parentRevisionId: row.parentRevisionId || null,
+      operation: row.operation || null,
+      updatedAt: row.updatedAt || null,
+    })),
+    displayTimeline,
+    modelHistory,
+    rawEvents,
+    diagnostics: {
+      staleParentActive,
+      displayTimelineMissing: !displayTimeline.revisionId,
+      modelHistoryMissing: !modelHistory.checkpointId,
+      rawEventFallbackRequired: !displayTimeline.revisionId,
+    },
+  };
+}
+
 function printConversationRows(rows) {
   if (rows.length === 0) {
     console.log('No conversations found.');
@@ -1031,6 +1315,52 @@ function printConversationInspect(payload) {
     printSection(
       'Trace Paths',
       payload.tracePathCounts.map((row) => `${row.path} ${row.status}: ${row.count}`),
+    );
+  }
+}
+
+function printConversationState(payload) {
+  console.log(`database: ${payload.database}`);
+  printSection('Conversation State', [
+    `id: ${payload.conversationRef}`,
+    `selected revision: ${payload.selectedRevision?.revisionId || 'none'}`,
+    `parent revision: ${payload.selectedRevision?.parentRevisionId || 'none'}`,
+    `operation: ${payload.selectedRevision?.operation || 'none'}`,
+    `selected active flag: ${payload.selectedRevision ? payload.selectedRevision.active : false}`,
+  ]);
+  printSection('Display Timeline', [
+    `revision: ${payload.displayTimeline.revisionId || 'none'}`,
+    `rows: ${payload.displayTimeline.rowCount}`,
+    `reason: ${payload.displayTimeline.reason || 'none'}`,
+    `base revision: ${payload.displayTimeline.baseRevisionId || 'none'}`,
+    `source: ${payload.displayTimeline.source}`,
+  ]);
+  printSection('Model History', [
+    `checkpoint: ${payload.modelHistory.checkpointId || 'none'}`,
+    `revision: ${payload.modelHistory.revisionId || 'none'}`,
+    `rows: ${payload.modelHistory.rowCount}`,
+    `source: ${payload.modelHistory.source}`,
+  ]);
+  printSection('Raw Events', [
+    `events: ${payload.rawEvents.eventCount}`,
+    `turns: ${payload.rawEvents.turnCount}`,
+    `traces: ${payload.rawEvents.traceCount}`,
+    `user messages: ${payload.rawEvents.userMessageCount}`,
+    `assistant messages: ${payload.rawEvents.assistantMessageCount}`,
+    `tool outputs: ${payload.rawEvents.toolOutputCount}`,
+  ]);
+  printSection('Diagnostics', [
+    `stale parent active: ${payload.diagnostics.staleParentActive}`,
+    `display timeline missing: ${payload.diagnostics.displayTimelineMissing}`,
+    `model history missing: ${payload.diagnostics.modelHistoryMissing}`,
+    `raw event fallback required: ${payload.diagnostics.rawEventFallbackRequired}`,
+  ]);
+  if (payload.activeRevisions.length > 0) {
+    printSection(
+      'Active Revision Rows',
+      payload.activeRevisions.map((row) => (
+        `${row.revisionId} parent=${row.parentRevisionId || 'none'} operation=${row.operation || 'none'} updated=${row.updatedAt || 'unknown'}`
+      )),
     );
   }
 }
@@ -1134,7 +1464,7 @@ function runConversation(args) {
 
   const [conversationRef] = positionalArgs(rest, ['--turn', '--type', '--path', '--limit']);
   if (!conversationRef) {
-    throw new Error('Usage: <windie> conversation list|inspect|messages|events|turns|traces <conversation-ref>');
+    throw new Error('Usage: <windie> conversation list|inspect|state|messages|events|turns|traces <conversation-ref>');
   }
 
   if (subcommand === 'inspect') {
@@ -1144,6 +1474,16 @@ function runConversation(args) {
       return;
     }
     printConversationInspect(payload);
+    return;
+  }
+
+  if (subcommand === 'state') {
+    const payload = loadConversationState(conversationRef);
+    if (json) {
+      printJson(payload);
+      return;
+    }
+    printConversationState(payload);
     return;
   }
 
@@ -1190,7 +1530,7 @@ function runConversation(args) {
     return;
   }
 
-  throw new Error('Usage: <windie> conversation list|inspect|messages|events|turns|traces <conversation-ref>');
+  throw new Error('Usage: <windie> conversation list|inspect|state|messages|events|turns|traces <conversation-ref>');
 }
 
 function portOpen(host, port, timeoutMs = 750) {

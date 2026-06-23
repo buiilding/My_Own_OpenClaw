@@ -77,6 +77,31 @@ def _revision_branch_order_expression(alias: str = "r") -> str:
     """
 
 
+async def _select_current_revision_node(
+    cursor: Any,
+    *,
+    user_id: str,
+    conversation_id: str,
+    require_display_timeline: bool = False,
+) -> Optional[Any]:
+    display_clause = "AND r.display_timeline_id IS NOT NULL" if require_display_timeline else ""
+    await cursor.execute(
+        f"""
+        SELECT r.revision_id, r.parent_revision_id, r.operation,
+               r.display_timeline_id, r.model_history_checkpoint_id,
+               r.created_at, r.updated_at, r.active
+        FROM {CONVERSATION_REVISIONS_TABLE} r
+        WHERE r.user_id = ?
+          AND r.conversation_id = ?
+          {display_clause}
+        ORDER BY {_revision_branch_order_expression("r")}
+        LIMIT 1
+        """,
+        (user_id, conversation_id),
+    )
+    return await cursor.fetchone()
+
+
 def _revision_operation_from_model_history_rows(rows: list[dict[str, Any]]) -> str:
     for row in rows:
         if row.get("message_type") == "context_compaction":
@@ -1296,19 +1321,11 @@ async def get_conversation_revision(
     async with aiosqlite.connect(db_path) as conn:
         conn.row_factory = aiosqlite.Row
         cursor = await conn.cursor()
-        await cursor.execute(
-            f"""
-            SELECT r.revision_id, r.parent_revision_id, r.operation,
-                   r.display_timeline_id, r.model_history_checkpoint_id,
-                   r.created_at, r.updated_at, r.active
-            FROM {CONVERSATION_REVISIONS_TABLE} r
-            WHERE r.user_id = ? AND r.conversation_id = ?
-            ORDER BY {_revision_branch_order_expression("r")}
-            LIMIT 1
-            """,
-            (user_id, conversation_id),
+        row = await _select_current_revision_node(
+            cursor,
+            user_id=user_id,
+            conversation_id=conversation_id,
         )
-        row = await cursor.fetchone()
         if row:
             return {
                 "conversation_id": conversation_id,
@@ -1613,21 +1630,14 @@ async def load_display_timeline(
                 """,
                 (user_id, conversation_id, revision_id),
             )
+            revision_checkpoint = await cursor.fetchone()
         else:
-            await cursor.execute(
-                f"""
-                SELECT r.revision_id, r.parent_revision_id, r.operation,
-                       r.display_timeline_id, r.created_at, r.updated_at
-                FROM {CONVERSATION_REVISIONS_TABLE} r
-                WHERE r.user_id = ?
-                  AND r.conversation_id = ?
-                  AND r.display_timeline_id IS NOT NULL
-                ORDER BY {_revision_branch_order_expression("r")}
-                LIMIT 1
-                """,
-                (user_id, conversation_id),
+            revision_checkpoint = await _select_current_revision_node(
+                cursor,
+                user_id=user_id,
+                conversation_id=conversation_id,
+                require_display_timeline=True,
             )
-        revision_checkpoint = await cursor.fetchone()
         if revision_checkpoint is not None:
             checkpoint_revision_id = (
                 revision_checkpoint["display_timeline_id"]

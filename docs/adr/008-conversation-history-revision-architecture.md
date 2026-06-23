@@ -71,6 +71,26 @@ RevisionGraph
 Current-turn projection remains live streaming state only. It is not durable
 history truth.
 
+### Authority Rules
+
+Each document has one owner and one consumer class:
+
+- `ConversationEventLog` is immutable audit/runtime history. It can seed
+  legacy display projection only when no display timeline checkpoint exists.
+- `DisplayTimeline` is the editable user-visible document. UI edit, retry, and
+  fork operations must mutate this document through SDK revision APIs rather
+  than rewriting raw events.
+- `ModelHistoryLedger` is the LLM-facing document. Normal resume installs the
+  selected revision's model-history checkpoint instead of rebuilding inference
+  context from display rows or raw events.
+- `RevisionGraph` is the current-branch authority. Storage and diagnostics must
+  select the active/current branch from revision nodes first, then load display
+  and model-history contents by the selected ids.
+
+An empty display timeline is a valid document. `rows: []` means the selected
+revision intentionally retained no prior visible rows; it must not be treated
+as an absent checkpoint or converted into raw event replay.
+
 ### Display Timeline
 
 The display timeline is the public editable conversation document for SDK host
@@ -109,6 +129,11 @@ parent revision id, operation, display timeline id, model-history checkpoint
 id, timestamps, and active state. Existing callers that only need the active
 head still use `conversation.get_revision`, while revision-specific display
 timeline/model-history loaders preserve inactive ancestors.
+
+Local-runtime branch selection must use one current-branch selector. Late
+parent checkpoint writes must not reactivate a parent over an edited child, and
+read paths must recover stale parent-active rows by preferring an edited child
+of the active parent.
 
 ### Rehydrate
 
@@ -195,3 +220,8 @@ model-facing output, not raw full output.
 
 Diagnostics should log ids, counts, statuses, and revision metadata, not full
 tool output, screenshot bytes, or provider prompt payloads.
+
+Use `<windie> conversation state <conversation-ref> [--json]` to inspect the
+selected revision, display timeline row count, model-history checkpoint row
+count, raw event count, and stale parent/child mismatches without dumping
+message bodies or tool outputs.

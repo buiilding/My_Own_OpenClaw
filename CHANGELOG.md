@@ -29,6 +29,11 @@ All notable changes to WindieOS will be documented in this file.
   retained prefix stay authoritative instead of falling back to raw event replay.
   Late parent model-history checkpoints no longer reactivate over the edited
   child revision. No migration required.
+- cli/local-runtime: add `<windie> conversation state <conversation-ref>` and
+  centralize current-branch selection in local-runtime conversation storage, so
+  edit/resend debugging shows selected revision, display/model row counts, raw
+  event counts, and stale parent/child mismatches without dumping message bodies
+  or tool output. No migration required.
 - frontend/renderer: render tool-output screenshot attachments with
   tool-card-sized layout again while keeping user message attachments compact
   and right-aligned. No migration required.

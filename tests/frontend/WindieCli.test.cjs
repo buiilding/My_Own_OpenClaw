@@ -112,6 +112,7 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('bin/windie.sh on macOS/Linux');
     expect(result.stdout).toContain('<windie> status --all --json');
     expect(result.stdout).toContain('<windie> conversation messages <conversation-ref> [--limit <n>] [--json]');
+    expect(result.stdout).toContain('<windie> conversation state <conversation-ref> [--json]');
     expect(result.stdout).toContain('<windie> start frontend');
     expect(result.stdout).toContain('<windie> start dev');
     expect(result.stdout).toContain('<windie> start customer');
@@ -395,6 +396,148 @@ describe('windie CLI', () => {
       paths: expect.any(Array),
       score: expect.any(Number),
     }));
+  });
+
+  test('conversation state reports display/model/revision ownership diagnostics', () => {
+    const userDataDir = path.join(os.tmpdir(), `windie-cli-state-${process.pid}-${Date.now()}`);
+    const historyDir = path.join(userDataDir, 'history');
+    const dbPath = path.join(historyDir, 'history.db');
+    fs.mkdirSync(historyDir, { recursive: true });
+    createSqliteDatabase(dbPath, `
+      CREATE TABLE conversation_events (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        conversation_id TEXT,
+        event_type TEXT NOT NULL,
+        role TEXT,
+        content TEXT,
+        timestamp TEXT NOT NULL,
+        message_index INTEGER NOT NULL,
+        revision_id TEXT,
+        turn_ref TEXT,
+        tool_name TEXT,
+        correlation_id TEXT,
+        workspace_path TEXT,
+        workspace_name TEXT,
+        producer TEXT,
+        producer_event_id TEXT,
+        producer_sequence INTEGER,
+        metadata TEXT,
+        attachments TEXT,
+        event_payload TEXT NOT NULL,
+        compaction_checkpoint TEXT
+      );
+      CREATE TABLE conversation_revisions (
+        user_id TEXT NOT NULL,
+        conversation_id TEXT NOT NULL,
+        revision_id TEXT NOT NULL,
+        parent_revision_id TEXT,
+        operation TEXT NOT NULL DEFAULT 'send',
+        display_timeline_id TEXT,
+        model_history_checkpoint_id TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        PRIMARY KEY (user_id, conversation_id, revision_id)
+      );
+      CREATE TABLE conversation_display_timeline (
+        user_id TEXT NOT NULL,
+        conversation_id TEXT NOT NULL,
+        revision_id TEXT NOT NULL,
+        row_index INTEGER NOT NULL,
+        row_id TEXT NOT NULL,
+        role TEXT NOT NULL,
+        row_type TEXT NOT NULL,
+        content TEXT,
+        turn_ref TEXT,
+        metadata TEXT,
+        reason TEXT,
+        base_revision_id TEXT,
+        created_at TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        PRIMARY KEY (user_id, conversation_id, revision_id, row_index)
+      );
+      CREATE TABLE conversation_model_history (
+        user_id TEXT NOT NULL,
+        conversation_id TEXT NOT NULL,
+        revision_id TEXT NOT NULL,
+        checkpoint_id TEXT NOT NULL,
+        row_index INTEGER NOT NULL,
+        row_id TEXT NOT NULL,
+        role TEXT NOT NULL,
+        message_type TEXT NOT NULL,
+        content TEXT,
+        tool_call_id TEXT,
+        tool_calls TEXT,
+        tool_name TEXT,
+        image_refs TEXT,
+        compaction_facts TEXT,
+        source_display_row_ids TEXT,
+        created_at TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        PRIMARY KEY (user_id, conversation_id, checkpoint_id, row_index)
+      );
+      INSERT INTO conversation_events
+      (id, user_id, conversation_id, event_type, role, content, timestamp, message_index,
+       revision_id, turn_ref, metadata, attachments, event_payload)
+      VALUES
+      ('evt-user-parent', 'user-1', 'conv-state', 'user_message', 'user', 'old',
+       '2026-06-22T12:00:00+00:00', 1, 'rev-parent', 'turn-parent', '{}', '[]', '{}'),
+      ('evt-assistant-parent', 'user-1', 'conv-state', 'assistant_message', 'assistant', 'stale',
+       '2026-06-22T12:00:01+00:00', 2, 'rev-parent', 'turn-parent', '{}', '[]', '{}'),
+      ('evt-user-child', 'user-1', 'conv-state', 'user_message', 'user', 'new',
+       '2026-06-22T12:01:00+00:00', 3, 'rev-child', 'turn-child', '{}', '[]', '{}');
+      INSERT INTO conversation_revisions
+      (user_id, conversation_id, revision_id, parent_revision_id, operation,
+       display_timeline_id, model_history_checkpoint_id, created_at, updated_at, active)
+      VALUES
+      ('user-1', 'conv-state', 'rev-parent', NULL, 'send', NULL, 'mh-parent',
+       '2026-06-22T12:00:00+00:00', '2026-06-22T12:02:00+00:00', 1),
+      ('user-1', 'conv-state', 'rev-child', 'rev-parent', 'edit', 'rev-child', 'mh-child',
+       '2026-06-22T12:01:00+00:00', '2026-06-22T12:01:30+00:00', 0);
+      INSERT INTO conversation_model_history
+      (user_id, conversation_id, revision_id, checkpoint_id, row_index, row_id,
+       role, message_type, content, created_at, active)
+      VALUES
+      ('user-1', 'conv-state', 'rev-child', 'mh-child', 1, 'mh-user',
+       'user', 'user_query', '"new"', '2026-06-22T12:01:30+00:00', 1),
+      ('user-1', 'conv-state', 'rev-child', 'mh-child', 2, 'mh-assistant',
+       'assistant', 'assistant_response', '"answer"', '2026-06-22T12:01:30+00:00', 1);
+    `);
+
+    const result = runCli(['conversation', 'state', 'conv-state', '--json'], {
+      AGENT_USER_DATA_DIR: userDataDir,
+    });
+
+    expect(result.status).toBe(0);
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed.selectedRevision).toMatchObject({
+      revisionId: 'rev-child',
+      parentRevisionId: 'rev-parent',
+      operation: 'edit',
+      active: false,
+    });
+    expect(parsed.displayTimeline).toMatchObject({
+      revisionId: 'rev-child',
+      rowCount: 0,
+      reason: 'user_edit',
+      source: 'revision_graph',
+    });
+    expect(parsed.modelHistory).toMatchObject({
+      checkpointId: 'mh-child',
+      revisionId: 'rev-child',
+      rowCount: 2,
+      source: 'row_storage',
+    });
+    expect(parsed.rawEvents).toMatchObject({
+      eventCount: 3,
+      userMessageCount: 2,
+      assistantMessageCount: 1,
+    });
+    expect(parsed.diagnostics).toMatchObject({
+      staleParentActive: true,
+      rawEventFallbackRequired: false,
+    });
   });
 
   test('rejects commit search limit without a value', () => {

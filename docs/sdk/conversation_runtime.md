@@ -31,7 +31,7 @@ SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`.
 
 | Surface | Owner | Notes |
 | --- | --- | --- |
-| normalized conversation events | SDK runtime | source of truth for local client-side conversation state |
+| normalized conversation events | SDK runtime | immutable audit/runtime stream and legacy display seed when no display timeline exists; not the editable display document and not normal resume context |
 | event store adapters | SDK-defined interface; adapter implementation owns persistence mechanics | stores append/load events and snapshots, but do not interpret display or rehydrate shape |
 | display transcript | SDK projection + display timeline checkpoints | React, CLI, and custom UIs render the projection fallback or the editable display timeline document |
 | current-turn projection | SDK projection | active assistant text, reasoning text, tool rows, phase, error state, and live presentation state for UI surfaces |
@@ -52,6 +52,39 @@ construction follow the same rule: they stay in their owner modules
 (`runtime/TraceRecorder`, `runtime/TurnInputPipeline`, and
 `runtime/DefaultTurnResourceResolvers`) and are consumed by SDK runtime classes
 instead of being published as package-root API.
+
+### Conversation Document Authority
+
+The conversation runtime intentionally keeps four durable documents separate:
+
+- `ConversationEvent[]` is append-only audit/runtime history. It keeps traces,
+  lifecycle events, raw tool facts, attachment refs, and legacy fallback
+  material.
+- `DisplayTimelineCheckpoint` is the editable user-visible conversation
+  document. `replaceRows(...)`, retry, edit/resend, and future fork flows write
+  this document through revision APIs.
+- `ModelHistoryCheckpoint` is the backend-normalized LLM-facing document.
+  Resume/rehydrate installs this bounded provider-neutral history instead of
+  rebuilding from visible rows.
+- `ConversationRevision` is branch authority. Store adapters choose the current
+  branch from revision metadata, then load display/model contents by the ids on
+  that revision.
+
+Host UIs must not rewrite raw events for edit/resend. Store adapters may build
+display rows from events only when no display timeline checkpoint exists. A
+checkpoint with zero rows is still authoritative and must clear prior visible
+history for that branch.
+
+For debugging, use:
+
+```bash
+<windie> conversation state <conversation-ref> --json
+```
+
+The diagnostic prints selected revision, parent revision, display timeline row
+count, model-history row count, raw event count, and stale parent/child branch
+mismatches without dumping prompt text, tool output, screenshot bytes, or
+provider payloads.
 
 ## Event Model
 

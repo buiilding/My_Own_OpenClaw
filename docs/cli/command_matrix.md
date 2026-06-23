@@ -33,6 +33,7 @@ tables below use `<windie>` for the active platform shim.
 | `<windie> capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]` | Inspect capability-level conversation trace summaries. |
 | `<windie> conversation list [--limit <n>] [--json]` | List stored conversations. |
 | `<windie> conversation inspect <conversation-ref> [--json]` | Inspect conversation metadata. |
+| `<windie> conversation state <conversation-ref> [--json]` | Inspect selected revision, display timeline row count, model-history row count, raw event count, and stale branch diagnostics without dumping message bodies or tool output. |
 | `<windie> conversation messages <conversation-ref> [--limit <n>] [--json]` | Print stored visible conversation messages from the local-runtime `desktop-runtime/history/history.db` root unless `AGENT_USER_DATA_DIR` or `WINDIE_USER_DATA_DIR` overrides it. |
 | `<windie> conversation events <conversation-ref> [--turn <turn-ref>] [--type <event-type>] [--limit <n>] [--json]` | Inspect persisted conversation events. |
 | `<windie> conversation turns <conversation-ref> [--json]` | List turns for a conversation. |
