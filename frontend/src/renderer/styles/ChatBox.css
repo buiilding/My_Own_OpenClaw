@@ -142,8 +142,8 @@ body {
   --chatbox-close-contour-x: calc(var(--chatbox-close-center-x) - var(--chatbox-close-contour-offset-x));
   --chatbox-bump-shift-x: 24px;
   --chatbox-close-button-x: calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x));
-  --chatbox-close-bump-width: 58px;
-  --chatbox-close-bump-height: calc(var(--chatbox-bump-height) + 20px);
+  --chatbox-close-bump-width: 44px;
+  --chatbox-close-bump-height: calc(var(--chatbox-bump-height) + 16px);
   border-radius: 999px;
   border: 0;
   background: transparent;

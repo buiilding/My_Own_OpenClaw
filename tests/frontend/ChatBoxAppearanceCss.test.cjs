@@ -51,8 +51,8 @@ describe('chat box appearance CSS', () => {
     const chatBoxCss = readRepoFile('frontend/src/renderer/styles/ChatBox.css');
     const pillBlock = readMinimalPillCssBlock();
 
-    expect(pillBlock).toContain('--chatbox-close-bump-width: 58px;');
-    expect(pillBlock).toContain('--chatbox-close-bump-height: calc(var(--chatbox-bump-height) + 20px);');
+    expect(pillBlock).toContain('--chatbox-close-bump-width: 44px;');
+    expect(pillBlock).toContain('--chatbox-close-bump-height: calc(var(--chatbox-bump-height) + 16px);');
     expect(pillBlock).toContain('border-radius: 999px;');
     expect(pillBlock).toContain('background: transparent;');
     expect(pillBlock).toContain('overflow: visible;');
