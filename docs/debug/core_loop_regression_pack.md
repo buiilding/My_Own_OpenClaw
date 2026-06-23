@@ -30,7 +30,7 @@ selection matrix.
 | Behavior | Initial owner tests |
 | --- | --- |
 | Sending from the pill immediately latches pending/Stop state. | `PendingTurnLiveSurfaceIntegration.test.js`, `ChatPillSessionFlow.test.ts` |
-| Renderer-local pending typing does not flash because of SDK idle, visible-empty, wrong-turn projections, or SDK presentation visibility flags before authoritative same-turn handoff. Matching raw terminal events clear pending typing even when no terminal SDK current-turn projection follows, while stale old-turn terminal events leave newer pending typing intact. | `DesktopVisibleTurnLifecycleRuntime.test.js`, `DesktopCurrentTurnProjectionEffectsRuntime.test.ts`, `PendingTurnLiveSurfaceIntegration.test.js`, `ChatStreamThinkingStatus.state.test.tsx` |
+| Renderer-local pending typing does not flash because of SDK idle, visible-empty, wrong-turn projections, or SDK presentation visibility flags before authoritative same-turn handoff. | `DesktopVisibleTurnLifecycleRuntime.test.js`, `DesktopCurrentTurnProjectionEffectsRuntime.test.ts`, `PendingTurnLiveSurfaceIntegration.test.js` |
 | Live-surface awaiting/response flags follow visible lifecycle instead of SDK presentation flags or hidden overlay intent. | `LiveTurnSurfaceState.test.js`, `ChatBoxResponse.state.test.jsx` |
 | Dashboard awaiting-dot routing follows renderer visible lifecycle instead of durable live-progress row shape or stale session refs. | `ChatInterfaceWiring.test.jsx`, `ChatSurfaceController.test.jsx` |
 | Dashboard assistant feedback/retry actions follow visible lifecycle busy/Stop state instead of stale raw send latches. | `ChatInterfaceWiring.test.jsx` |

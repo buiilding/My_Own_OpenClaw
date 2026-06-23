@@ -49,10 +49,6 @@ export const useChatStreamCompletionHandler = ({
     setIsSending(false, resolvedConversationRef);
     setThinkingStatus(null, resolvedConversationRef);
     setThinkingSourceEventType(null, resolvedConversationRef);
-    useChatStore.getState().clearPendingTurn({
-      conversationRef: resolvedConversationRef,
-      turnRef: eventTurnRef,
-    });
     if (shouldRecordTerminalTracking) {
       recordTrackingEvent('streaming-complete', eventTurnRef, {
         phase: 'complete',
