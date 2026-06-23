@@ -640,7 +640,20 @@ function buildDisplayRows(events, options = {}) {
     const streamingAssistants = new Map();
     const userRowsByTurn = new Map();
     const assistantRowsByTurn = new Map();
+    const supersededTurnRefs = new Set();
     for (const event of events) {
+        if (event.type === 'turn_superseded') {
+            const turnRef = normalizedTurnRef(event.turnRef);
+            if (turnRef) {
+                supersededTurnRefs.add(turnRef);
+                streamingAssistants.delete(`${event.conversationRef}:${turnRef}`);
+            }
+            continue;
+        }
+        const eventTurnRef = normalizedTurnRef(event.turnRef);
+        if (eventTurnRef && supersededTurnRefs.has(eventTurnRef)) {
+            continue;
+        }
         if (event.type === 'user_message_metadata') {
             const key = userMetadataKey(event);
             const rowIndex = key ? userRowsByTurn.get(key) : undefined;
@@ -902,6 +915,9 @@ function emptyCurrentTurnProjection(conversationRef, turnRef = null) {
     };
     return withLiveTurnPresentation(projection);
 }
+function normalizedTurnRef(value) {
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
 function resetCurrentTurnIfNeeded(current, event) {
     if (isConversationControlProjectionEvent(event)) {
         return current;
@@ -1082,7 +1098,26 @@ function withLiveTurnPresentation(projection) {
 }
 function buildCurrentTurnProjection(events) {
     let projection = emptyCurrentTurnProjection(events[0]?.conversationRef ?? '');
+    const supersededTurnRefs = new Set();
     for (const event of events) {
+        if (event.type === 'turn_superseded') {
+            const supersededTurnRef = normalizedTurnRef(event.turnRef);
+            if (supersededTurnRef) {
+                supersededTurnRefs.add(supersededTurnRef);
+            }
+            if (supersededTurnRef && projection.turnRef === supersededTurnRef) {
+                projection = {
+                    ...projection,
+                    phase: 'complete',
+                    lastError: null,
+                };
+            }
+            continue;
+        }
+        const turnRef = normalizedTurnRef(event.turnRef);
+        if (turnRef && supersededTurnRefs.has(turnRef)) {
+            continue;
+        }
         projection = resetCurrentTurnIfNeeded(projection, event);
         if (!projection.conversationRef) {
             projection = { ...projection, conversationRef: event.conversationRef };
@@ -1379,6 +1414,26 @@ function withoutAssistantMessagesForErroredTurns(events) {
     return events.filter(event => (event.type !== 'assistant_message'
         || !erroredTurnKeys.has(streamingAssistantKey(event))));
 }
+function withoutSupersededTurnLiveEvents(events) {
+    const supersededTurnRefs = new Set();
+    const filtered = [];
+    for (const event of events) {
+        if (event.type === 'turn_superseded') {
+            const turnRef = normalizedTurnRef(event.turnRef);
+            if (turnRef) {
+                supersededTurnRefs.add(turnRef);
+            }
+            filtered.push(event);
+            continue;
+        }
+        const turnRef = normalizedTurnRef(event.turnRef);
+        if (turnRef && supersededTurnRefs.has(turnRef)) {
+            continue;
+        }
+        filtered.push(event);
+    }
+    return filtered;
+}
 function isWebSearchToolName(toolName) {
     return (toolName ?? '').trim() === 'web_search';
 }
@@ -1608,7 +1663,8 @@ function toDisplayMessage(event) {
     if (event.type === 'memory_retrieval_diagnostic'
         || event.type === 'memory_store_changed'
         || event.type === 'trace_event'
-        || event.type === 'model_history_updated') {
+        || event.type === 'model_history_updated'
+        || event.type === 'turn_superseded') {
         return null;
     }
     if (event.type === 'turn_completed') {
@@ -1695,7 +1751,7 @@ function buildCompactionState(events) {
 function buildDisplayConversation(events) {
     const first = events[0];
     const last = events[events.length - 1];
-    const displayEvents = withoutAssistantMessagesForErroredTurns(withoutOrphanEmptyChatGreeting(withoutDuplicateToolOutputs(events)));
+    const displayEvents = withoutAssistantMessagesForErroredTurns(withoutOrphanEmptyChatGreeting(withoutDuplicateToolOutputs(withoutSupersededTurnLiveEvents(events))));
     return {
         conversationRef: first?.conversationRef ?? '',
         revisionId: last?.revisionId ?? first?.revisionId ?? '',
@@ -1802,7 +1858,7 @@ function toRehydrateMessages(event) {
 }
 function buildRehydrateSnapshot(events) {
     const display = buildDisplayConversation(events);
-    const rehydrateEvents = withoutOrphanEmptyChatGreeting(withoutDanglingToolPairs(withoutDuplicateToolOutputs(withSyntheticNativeWebSearchToolPairs(events))));
+    const rehydrateEvents = withoutOrphanEmptyChatGreeting(withoutDanglingToolPairs(withoutDuplicateToolOutputs(withSyntheticNativeWebSearchToolPairs(withoutSupersededTurnLiveEvents(events)))));
     return {
         conversationRef: display.conversationRef,
         revisionId: display.revisionId,

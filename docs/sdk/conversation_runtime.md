@@ -93,6 +93,7 @@ The runtime records normalized events:
 - `conversation_created`
 - `conversation_loaded`
 - `conversation_rewritten`
+- `turn_superseded`
 - `turn_started`
 - `turn_completed`
 - `turn_stopped`
@@ -147,6 +148,17 @@ turn yet or when they match the current active turn. Diagnostic and persistence
 side-effect events such as `trace_event`, `memory_store_changed`, and
 `model_history_updated` never claim active turn ownership, and stale old-turn
 `turn_stopped` events do not replace a newer active resend turn.
+`turn_superseded` is a hidden SDK control event for edit/resend and retry. It
+records the superseded turn, replacement turn, revision id, reason, and
+timestamp, immediately removes old-turn live authority, and lets replacement
+turns continue through the normal `send()` path. After a turn is superseded,
+late events for that turn may remain in raw audit history, but reducer state,
+current-turn projection, display/replay projection, model-history checkpoint
+installation, local tool execution, completed-turn memory persistence, title
+generation, and pending-turn handoff must treat those events as inert. The SDK
+records sanitized `turn.supersession` traces with
+`status: ignored_for_live_authority` when late backend events are stored for
+audit but ignored for live authority.
 Conversation-control compaction events update `state.compaction` and replay
 checkpoint state without replacing the active turn identity or changing the
 active turn phase. Manual compaction after a completed turn preserves the
@@ -788,16 +800,16 @@ the final `sdk:display-rows` projection updates the existing user bubble instead
 of remounting it.
 
 Edit/resend can target a turn that is still awaiting or streaming. In that
-case the renderer treats the replacement as an active-turn handoff: it derives
-the source row from the persisted display timeline when available, falls back to
-the renderer-local user row before the SDK `user_message` display row exists,
-marks the old `turnRef` as superseded, and sends a best-effort stop for that
-old turn. Renderer SDK projection consumers must ignore late current-turn and
-display-row projections from superseded turn refs, and stale stop
-acknowledgements for a superseded turn must not clear the replacement pending
-turn. This keeps the edit Send button usable under repeated clicks while the
-editable display document remains the visible authority. If the later normal
-send fails after the child display
+case the SDK treats the replacement as an active-turn handoff: once
+`replaceRows(...)` accepts the child display/model revision, it emits
+`turn_superseded` for the old turn, deletes the old live authority locally,
+sends a best-effort stop for active old work, and then sends the replacement
+turn through the normal `send()` path. Main and renderer adapters consume the
+SDK current-turn and display projections; they must not rebuild supersession by
+diffing local rows, pending-turn state, or visible transcript shape. This keeps
+the edit Send button usable under repeated clicks while the editable display
+document remains the visible authority. If the later normal send fails after
+the child display
 revision is accepted, the renderer keeps the accepted child timeline visible,
 removes the optimistic replay row, clears only the pending turn, and appends a
 send-failure error row instead of rolling back to the parent transcript. No

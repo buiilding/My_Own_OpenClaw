@@ -768,7 +768,20 @@ export function buildDisplayRows(
   const streamingAssistants = new Map<string, StreamingAssistantState>();
   const userRowsByTurn = new Map<string, number>();
   const assistantRowsByTurn = new Map<string, number>();
+  const supersededTurnRefs = new Set<string>();
   for (const event of events) {
+    if (event.type === 'turn_superseded') {
+      const turnRef = normalizedTurnRef(event.turnRef);
+      if (turnRef) {
+        supersededTurnRefs.add(turnRef);
+        streamingAssistants.delete(`${event.conversationRef}:${turnRef}`);
+      }
+      continue;
+    }
+    const eventTurnRef = normalizedTurnRef(event.turnRef);
+    if (eventTurnRef && supersededTurnRefs.has(eventTurnRef)) {
+      continue;
+    }
     if (event.type === 'user_message_metadata') {
       const key = userMetadataKey(event);
       const rowIndex = key ? userRowsByTurn.get(key) : undefined;
@@ -1065,6 +1078,10 @@ function emptyCurrentTurnProjection(
   return withLiveTurnPresentation(projection);
 }
 
+function normalizedTurnRef(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
 function resetCurrentTurnIfNeeded(
   current: CurrentTurnProjection,
   event: ConversationEvent,
@@ -1264,7 +1281,26 @@ function withLiveTurnPresentation(
 
 export function buildCurrentTurnProjection(events: ConversationEvent[]): CurrentTurnProjection {
   let projection = emptyCurrentTurnProjection(events[0]?.conversationRef ?? '');
+  const supersededTurnRefs = new Set<string>();
   for (const event of events) {
+    if (event.type === 'turn_superseded') {
+      const supersededTurnRef = normalizedTurnRef(event.turnRef);
+      if (supersededTurnRef) {
+        supersededTurnRefs.add(supersededTurnRef);
+      }
+      if (supersededTurnRef && projection.turnRef === supersededTurnRef) {
+        projection = {
+          ...projection,
+          phase: 'complete',
+          lastError: null,
+        };
+      }
+      continue;
+    }
+    const turnRef = normalizedTurnRef(event.turnRef);
+    if (turnRef && supersededTurnRefs.has(turnRef)) {
+      continue;
+    }
     projection = resetCurrentTurnIfNeeded(projection, event);
     if (!projection.conversationRef) {
       projection = { ...projection, conversationRef: event.conversationRef };
@@ -1582,6 +1618,27 @@ function withoutAssistantMessagesForErroredTurns(events: ConversationEvent[]): C
   ));
 }
 
+function withoutSupersededTurnLiveEvents(events: ConversationEvent[]): ConversationEvent[] {
+  const supersededTurnRefs = new Set<string>();
+  const filtered: ConversationEvent[] = [];
+  for (const event of events) {
+    if (event.type === 'turn_superseded') {
+      const turnRef = normalizedTurnRef(event.turnRef);
+      if (turnRef) {
+        supersededTurnRefs.add(turnRef);
+      }
+      filtered.push(event);
+      continue;
+    }
+    const turnRef = normalizedTurnRef(event.turnRef);
+    if (turnRef && supersededTurnRefs.has(turnRef)) {
+      continue;
+    }
+    filtered.push(event);
+  }
+  return filtered;
+}
+
 type NativeWebSearchProgressEntry = {
   eventId: string;
   text: string;
@@ -1848,6 +1905,7 @@ function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
     || event.type === 'memory_store_changed'
     || event.type === 'trace_event'
     || event.type === 'model_history_updated'
+    || event.type === 'turn_superseded'
   ) {
     return null;
   }
@@ -1941,7 +1999,7 @@ export function buildDisplayConversation(events: ConversationEvent[]): DisplayCo
   const first = events[0];
   const last = events[events.length - 1];
   const displayEvents = withoutAssistantMessagesForErroredTurns(
-    withoutOrphanEmptyChatGreeting(withoutDuplicateToolOutputs(events)),
+    withoutOrphanEmptyChatGreeting(withoutDuplicateToolOutputs(withoutSupersededTurnLiveEvents(events))),
   );
   return {
     conversationRef: first?.conversationRef ?? '',
@@ -2065,7 +2123,7 @@ export function buildRehydrateSnapshot(events: ConversationEvent[]): RehydrateSn
   const display = buildDisplayConversation(events);
   const rehydrateEvents = withoutOrphanEmptyChatGreeting(
     withoutDanglingToolPairs(withoutDuplicateToolOutputs(
-      withSyntheticNativeWebSearchToolPairs(events),
+      withSyntheticNativeWebSearchToolPairs(withoutSupersededTurnLiveEvents(events)),
     )),
   );
   return {

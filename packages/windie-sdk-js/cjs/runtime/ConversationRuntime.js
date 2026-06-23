@@ -737,6 +737,12 @@ class SdkConversationRuntime {
                 : null,
         });
     }
+    isTurnSuperseded(turnRef) {
+        const normalizedTurnRef = typeof turnRef === 'string' && turnRef.trim()
+            ? turnRef.trim()
+            : null;
+        return Boolean(normalizedTurnRef && this.state.supersededTurns[normalizedTurnRef]);
+    }
     async loadStoredDisplayTimeline(revisionId = null) {
         const loader = this.options.store.loadDisplayTimeline;
         if (!loader) {
@@ -1407,7 +1413,7 @@ class SdkConversationRuntime {
         replayPayload.text = normalizedText;
         const turnRef = input.turnRef ?? (0, events_js_1.createRuntimeId)('turn');
         const timestamp = new Date().toISOString();
-        await this.replaceRows({
+        const checkpoint = await this.replaceRows({
             rows: [
                 ...displayTimeline.rows.slice(0, userIndex),
                 replacementUserDisplayRow(displayTimeline.rows[userIndex], {
@@ -1420,6 +1426,15 @@ class SdkConversationRuntime {
             baseRevisionId: displayTimeline.revisionId,
             reason: 'user_edit',
         });
+        const supersededTurnRef = displayTimeline.rows[userIndex].turnRef;
+        const shouldStopSupersededTurn = this.shouldStopSupersededTurn(supersededTurnRef);
+        await this.supersedeTurn({
+            supersededTurnRef,
+            replacementTurnRef: turnRef,
+            revisionId: checkpoint.revisionId,
+            reason: 'user_edit',
+        });
+        this.requestBestEffortSupersededTurnStop(supersededTurnRef, shouldStopSupersededTurn);
         return this.send({
             text: normalizedText,
             turnRef,
@@ -1456,7 +1471,7 @@ class SdkConversationRuntime {
         replayPayload.text = retryText;
         const turnRef = input.turnRef ?? (0, events_js_1.createRuntimeId)('turn');
         const timestamp = new Date().toISOString();
-        await this.replaceRows({
+        const checkpoint = await this.replaceRows({
             rows: [
                 ...displayTimeline.rows.slice(0, userIndex),
                 replacementUserDisplayRow(userRow, {
@@ -1469,11 +1484,64 @@ class SdkConversationRuntime {
             baseRevisionId: displayTimeline.revisionId,
             reason: 'retry',
         });
+        const supersededTurnRef = userRow.turnRef;
+        const shouldStopSupersededTurn = this.shouldStopSupersededTurn(supersededTurnRef);
+        await this.supersedeTurn({
+            supersededTurnRef,
+            replacementTurnRef: turnRef,
+            revisionId: checkpoint.revisionId,
+            reason: 'retry',
+        });
+        this.requestBestEffortSupersededTurnStop(supersededTurnRef, shouldStopSupersededTurn);
         return this.send({
             text: retryText,
             turnRef,
             model: input.model,
             payload: replayPayload,
+        });
+    }
+    shouldStopSupersededTurn(turnRef) {
+        const normalizedTurnRef = this.normalizeTurnRef(turnRef);
+        if (!normalizedTurnRef || normalizedTurnRef !== this.state.activeTurnRef) {
+            return false;
+        }
+        return this.state.phase !== 'idle'
+            && this.state.phase !== 'completed'
+            && this.state.phase !== 'stopped'
+            && this.state.phase !== 'error';
+    }
+    async supersedeTurn(input) {
+        const supersededTurnRef = this.normalizeTurnRef(input.supersededTurnRef);
+        const replacementTurnRef = this.normalizeTurnRef(input.replacementTurnRef);
+        if (!supersededTurnRef || !replacementTurnRef || supersededTurnRef === replacementTurnRef) {
+            return;
+        }
+        const createdAt = new Date().toISOString();
+        this.pendingTurns.delete(supersededTurnRef);
+        this.liveDisplayAttachmentsByTurn.delete(`${this.options.conversationRef}:${supersededTurnRef}`);
+        await this.applyEvent((0, events_js_1.createConversationEvent)({
+            eventId: this.nextLocalEventId(supersededTurnRef, 'turn_superseded'),
+            type: 'turn_superseded',
+            conversationRef: this.options.conversationRef,
+            revisionId: input.revisionId,
+            turnRef: supersededTurnRef,
+            source: 'sdk',
+            payload: {
+                supersededTurnRef,
+                replacementTurnRef,
+                revisionId: input.revisionId,
+                reason: input.reason,
+                createdAt,
+            },
+        }));
+    }
+    requestBestEffortSupersededTurnStop(turnRef, shouldStop) {
+        const supersededTurnRef = this.normalizeTurnRef(turnRef);
+        if (!supersededTurnRef || !shouldStop) {
+            return;
+        }
+        void this.stop(supersededTurnRef).catch(error => {
+            console.warn('[Agent SDK] Superseded turn stop failed:', error instanceof Error ? error.message : String(error));
         });
     }
     async stop(turnRef = this.state.activeTurnRef ?? null) {
@@ -1956,17 +2024,31 @@ class SdkConversationRuntime {
         this.listeners.clear();
         this.eventListeners.clear();
     }
+    normalizeTurnRef(turnRef) {
+        return typeof turnRef === 'string' && turnRef.trim() ? turnRef.trim() : null;
+    }
+    isEventSupersededForLive(event) {
+        if (event.type === 'turn_superseded') {
+            return false;
+        }
+        return this.isTurnSuperseded(event.turnRef);
+    }
     async applyEvent(event) {
+        const supersededForLive = this.isEventSupersededForLive(event);
         this.events = [...this.events, event];
-        this.state = (0, conversationReducer_js_1.reduceConversationRuntimeState)(this.state, event);
+        if (!supersededForLive || event.type === 'turn_superseded') {
+            this.state = (0, conversationReducer_js_1.reduceConversationRuntimeState)(this.state, event);
+        }
         if ((event.type === 'turn_stopped' || event.type === 'turn_error') && event.turnRef) {
             this.pendingTurns.delete(event.turnRef);
         }
         const snapshot = this.snapshot(this.events);
         this.notify(snapshot, event);
         await this.options.store.appendEvent(event);
-        await this.persistModelHistoryCheckpoint(event);
-        await this.maybeExecuteTool(event);
+        if (!supersededForLive) {
+            await this.persistModelHistoryCheckpoint(event);
+            await this.maybeExecuteTool(event);
+        }
     }
     async persistModelHistoryCheckpoint(event) {
         if (event.type !== 'model_history_updated' || !this.options.store.replaceModelHistory) {
@@ -2037,6 +2119,10 @@ class SdkConversationRuntime {
         return traceRecorder.record(input);
     }
     async applyBackendTurnCompleted(event) {
+        if (this.isEventSupersededForLive(event)) {
+            await this.applyEvent(event);
+            return;
+        }
         const assistantResponse = completedAssistantResponse(event);
         const pendingTurn = event.turnRef ? this.pendingTurns.get(event.turnRef) : undefined;
         this.events = [...this.events, event];
@@ -2407,7 +2493,9 @@ class SdkConversationRuntime {
             await this.applyEvent(event);
             return;
         }
-        if (!this.shouldAcceptBackendEvent(event)) {
+        const rejectionReason = this.backendEventRejectionReason(event);
+        if (rejectionReason) {
+            await this.recordRejectedBackendEvent(event, rejectionReason);
             return;
         }
         const sequence = typeof event.payload.backendSequence === 'number'
@@ -2455,6 +2543,9 @@ class SdkConversationRuntime {
         state.lastSequence = sequence;
         this.backendTurnSequences.set(key, state);
         const phaseBefore = this.state.phase;
+        if (this.isEventSupersededForLive(event)) {
+            await this.recordSupersededLateEvent(event);
+        }
         if (event.type === 'turn_completed') {
             await this.applyBackendTurnCompleted(event);
         }
@@ -2499,13 +2590,18 @@ class SdkConversationRuntime {
             },
         }));
     }
-    shouldAcceptBackendEvent(event) {
+    backendEventRejectionReason(event) {
         if (event.source !== 'backend') {
-            return true;
+            return null;
         }
         if (event.conversationRef !== this.options.conversationRef) {
             this.logRejectedBackendEvent(event, 'conversation_ref_mismatch');
-            return false;
+            return 'conversation_ref_mismatch';
+        }
+        if (!(0, conversationEventScope_js_1.isConversationControlEvent)(event)
+            && event.turnRef
+            && this.isTurnSuperseded(event.turnRef)) {
+            return null;
         }
         if (!(0, conversationEventScope_js_1.isConversationControlEvent)(event)
             && this.state.stopState.requested
@@ -2514,16 +2610,63 @@ class SdkConversationRuntime {
             && event.type !== 'turn_completed'
             && event.type !== 'turn_error'
             && event.type !== 'runtime_error') {
-            return false;
+            return 'stopped_turn_stream';
         }
         if (!(0, conversationEventScope_js_1.isConversationControlEvent)(event)
             && event.turnRef
             && this.state.activeTurnRef
             && event.turnRef !== this.state.activeTurnRef) {
             this.logRejectedBackendEvent(event, 'active_turn_ref_mismatch');
-            return false;
+            return 'active_turn_ref_mismatch';
         }
-        return true;
+        return null;
+    }
+    async recordRejectedBackendEvent(event, reason) {
+        await this.recordRuntimeTrace({
+            path: 'backend.event.reject',
+            stage: 'active_turn_gate',
+            status: 'failed',
+            data: {
+                reason,
+                sourceEventType: event.type,
+                sourceEventId: event.eventId,
+                eventTurnRef: event.turnRef ?? null,
+                activeTurnRef: this.state.activeTurnRef ?? null,
+                phase: this.state.phase,
+                backendSequence: typeof event.payload.backendSequence === 'number'
+                    ? event.payload.backendSequence
+                    : null,
+            },
+        }, {
+            turnRef: event.turnRef ?? null,
+            revisionId: event.revisionId,
+        });
+    }
+    async recordSupersededLateEvent(event) {
+        if (event.type === 'trace_event') {
+            return;
+        }
+        const supersededTurn = event.turnRef
+            ? this.state.supersededTurns[event.turnRef]
+            : null;
+        await this.recordRuntimeTrace({
+            path: 'turn.supersession',
+            stage: 'late_event',
+            status: 'ignored_for_live_authority',
+            data: {
+                sourceEventType: event.type,
+                sourceEventId: event.eventId,
+                eventTurnRef: event.turnRef ?? null,
+                replacementTurnRef: supersededTurn?.replacementTurnRef ?? null,
+                supersessionReason: supersededTurn?.reason ?? null,
+                backendSequence: typeof event.payload.backendSequence === 'number'
+                    ? event.payload.backendSequence
+                    : null,
+            },
+        }, {
+            turnRef: event.turnRef ?? null,
+            revisionId: event.revisionId,
+        });
     }
     logRejectedBackendEvent(event, reason) {
         if (!(0, conversationEventScope_js_1.isConversationControlEvent)(event)) {

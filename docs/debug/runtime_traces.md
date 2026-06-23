@@ -131,6 +131,13 @@ Current durable traced paths:
   runtime/client booleans, user/assistant text lengths, memory types, memory-id
   presence, and duration without memory text, embeddings, user text, or
   assistant text.
+- `turn.supersession`: SDK edit/resend and retry supersession records late
+  old-turn backend events that were stored as raw audit history but ignored for
+  live authority. Rows use `stage: late_event` and
+  `status: ignored_for_live_authority`, with sanitized event type/id, turn ids,
+  replacement turn id, supersession reason, and backend sequence only. They do
+  not include message text, system prompts, tool output, screenshots, provider
+  payloads, local paths, credentials, or embeddings.
 - `title.generation`: SDK completed-turn title workflow records model/provider
   presence, input text lengths, generated title length, success state, and
   duration without generated title text, user text, or assistant text.

@@ -6,6 +6,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: make edit/resend and retry emit SDK-owned `turn_superseded`
+  events so the old live turn becomes one inert audit lane before the
+  replacement goes through the normal `send()` path. Late old-turn backend
+  events, model-history checkpoints, local tool execution, memory persistence,
+  stop acknowledgements, display rows, and current-turn projection are ignored
+  for live authority while raw events and sanitized `turn.supersession` traces
+  remain available. `<windie> conversation state` now reports superseded-turn
+  diagnostics. No migration required.
 - docs/plans: add the superseded-turn live-lane plan for making edit/resend
   mark old active turns inert as a class while preserving raw audit history.
   No migration required.
