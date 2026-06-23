@@ -149,8 +149,13 @@ body {
   --chatbox-close-bump-seam-height: 3px;
   --chatbox-close-bump-seam-width: calc(var(--chatbox-close-bump-width) - 2px);
   --chatbox-pill-body-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --chatbox-pill-body-radius: 32px;
-  border-radius: var(--chatbox-pill-body-radius);
+  --chatbox-pill-body-top-radius: 999px;
+  --chatbox-pill-body-bottom-radius: 999px;
+  border-radius:
+    var(--chatbox-pill-body-top-radius)
+    var(--chatbox-pill-body-top-radius)
+    var(--chatbox-pill-body-bottom-radius)
+    var(--chatbox-pill-body-bottom-radius);
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -173,6 +178,11 @@ body {
     sans-serif;
 }
 
+.chatbox-pill.is-composer-expanded {
+  --chatbox-pill-body-top-radius: 32px;
+  --chatbox-pill-body-bottom-radius: 28px;
+}
+
 .chatbox-pill::before,
 .chatbox-pill::after {
   content: '';
@@ -187,7 +197,11 @@ body {
   inset: var(--chatbox-bump-height) 0 0;
   z-index: 1;
   border: 1px solid var(--ui-border);
-  border-radius: var(--chatbox-pill-body-radius);
+  border-radius:
+    var(--chatbox-pill-body-top-radius)
+    var(--chatbox-pill-body-top-radius)
+    var(--chatbox-pill-body-bottom-radius)
+    var(--chatbox-pill-body-bottom-radius);
   box-shadow: var(--chatbox-pill-body-shadow);
 }
 

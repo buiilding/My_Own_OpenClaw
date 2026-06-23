@@ -55,10 +55,11 @@ The chat pill is the small always-available desktop command surface. It is rende
   as the pill body, with a small same-surface seam cover under the close badge
   so the tab visually joins the body without covering the full pill top edge.
   The pill body shadow should stay subtle enough that it does not create a
-  visible gray halo on white backgrounds. The body radius is small and finite
-  rather than infinite so the compact state still clamps to a pill, while
-  multiline composer growth keeps rounded-rectangle corners with vertical sides
-  instead of turning the whole surface into an oval.
+  visible gray halo on white backgrounds. The compact state keeps true pill
+  caps, while measured multiline composer growth switches to a smaller finite
+  top radius and compact-matching bottom radius so the surface keeps
+  rounded-rectangle corners with vertical sides instead of turning into an
+  oval or changing the lower corner contour.
 - Press-and-hold dragging is a shell interaction, not text entry. The first
   unfocused press on the textarea may request native text-entry activation for
   click-to-type, but if the pointer moves past the drag threshold that same
