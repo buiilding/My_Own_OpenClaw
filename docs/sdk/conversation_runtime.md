@@ -257,6 +257,15 @@ Current ownership:
 - Renderer transcript modules are adapters for session identity, SDK-backed
   stores, and display projection consumption.
 
+Normal inference-context resume must call `ConversationRuntime.rehydrate()` so
+the SDK can choose the backend `model_history` payload when a checkpoint exists.
+Electron/main or renderer code must not convert `snapshot.rehydrate.messages`
+back into a backend `rehydrate-conversation.payload.messages` request for the
+send path. `RehydrateSnapshot.messages` is a fallback/debug projection and only
+uses backend fallback entry fields; model-history-only fields such as
+`image_refs`, `source_display_row_ids`, and `compaction_facts` stay inside the
+`model_history.rows[]` transport payload.
+
 Live current-turn projection is emitted from the runtime's in-memory event
 sequence before durable store append completes. Local-runtime-backed persistence is
 allowed to lag behind a streamed chunk, but it must not block the active

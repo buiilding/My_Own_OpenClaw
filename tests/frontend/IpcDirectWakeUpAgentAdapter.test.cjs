@@ -17,6 +17,11 @@ function createRuntime(overrides = {}) {
     }),
     detachRuntimeEvents: jest.fn(),
     load: jest.fn(async () => ({ displayRows: [], currentTurn: null })),
+    rehydrate: jest.fn(async () => ({
+      displayRows: [],
+      currentTurn: null,
+      rehydrate: { messages: [] },
+    })),
     send: jest.fn(async () => ({ turnRef: 'turn-sent' })),
     stop: jest.fn(async () => true),
     rehydrateMessages: jest.fn(async () => ({ ok: true })),
@@ -203,13 +208,20 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     );
   });
 
-  test('rehydrates stored context before sending a query through the conversation runtime', async () => {
+  test('rehydrates stored context through the SDK runtime before sending a query', async () => {
     const runtime = createRuntime({
-      load: jest.fn(async () => ({
+      rehydrate: jest.fn(async () => ({
         displayRows: [],
         currentTurn: null,
         rehydrate: {
-          messages: [{ role: 'user', content: 'previous' }],
+          messages: [
+            {
+              role: 'user',
+              content: 'previous',
+              image_refs: ['display-only-artifact'],
+              source_display_row_ids: ['display-user'],
+            },
+          ],
         },
       })),
     });
@@ -228,12 +240,10 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       text: 'hello',
     })).resolves.toEqual({ turnRef: 'turn-sent' });
 
-    expect(runtime.rehydrateMessages).toHaveBeenCalledWith({
-      conversation_ref: 'conv-2',
-      messages: [{ role: 'user', content: 'previous' }],
-      rehydrate_mode: 'replace',
+    expect(runtime.rehydrate).toHaveBeenCalledWith({
       workspace_path: 'C:/workspace',
     });
+    expect(runtime.rehydrateMessages).not.toHaveBeenCalled();
     expect(runtime.send).toHaveBeenCalledWith({
       conversation_ref: 'conv-2',
       text: 'hello',
