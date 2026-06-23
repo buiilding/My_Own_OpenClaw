@@ -58,7 +58,7 @@ describe('chat box appearance CSS', () => {
     expect(pillBlock).toContain('--chatbox-close-bump-seam-height: 3px;');
     expect(pillBlock).toContain('--chatbox-close-bump-seam-width: calc(var(--chatbox-close-bump-width) - 2px);');
     expect(pillBlock).toContain('--chatbox-pill-body-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);');
-    expect(pillBlock).toContain('--chatbox-pill-body-radius: 56px;');
+    expect(pillBlock).toContain('--chatbox-pill-body-radius: 32px;');
     expect(pillBlock).toContain('border-radius: var(--chatbox-pill-body-radius);');
     expect(pillBlock).toContain('background: transparent;');
     expect(pillBlock).toContain('overflow: visible;');

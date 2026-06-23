@@ -149,7 +149,7 @@ body {
   --chatbox-close-bump-seam-height: 3px;
   --chatbox-close-bump-seam-width: calc(var(--chatbox-close-bump-width) - 2px);
   --chatbox-pill-body-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --chatbox-pill-body-radius: 56px;
+  --chatbox-pill-body-radius: 32px;
   border-radius: var(--chatbox-pill-body-radius);
   border: 0;
   background: transparent;

@@ -19,8 +19,8 @@ All notable changes to WindieOS will be documented in this file.
   tokens as the pill body. A small same-surface seam cover joins the tab to the
   pill body without covering the full top edge, and the pill body shadow is
   reduced so it does not form a gray halo on white backgrounds. The pill body
-  now uses a finite radius so multiline composer growth keeps vertical sides
-  instead of becoming an oval. No migration required.
+  now uses a small finite radius so multiline composer growth keeps vertical
+  sides instead of becoming an oval. No migration required.
 - frontend/renderer: make edit/resend supersede the replaced active turn
   without disabling the edit Send button. Renderer replay now falls back to the
   renderer-local user row before SDK display rows exist, stops the old turn
