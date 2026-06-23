@@ -64,7 +64,9 @@ describe('chat box appearance CSS', () => {
     expect(chatBoxCss).toContain('width: var(--chatbox-close-bump-width);');
     expect(chatBoxCss).toContain('z-index: 0;\n  border-radius: 0;');
     expect(chatBoxCss).toContain('clip-path: polygon(');
+    expect(chatBoxCss).toContain('44% 2%,');
     expect(chatBoxCss).toContain('50% 0,');
+    expect(chatBoxCss).toContain('56% 2%,');
   });
 
   test('anchors the response overlay close button outside the scrollable transcript', () => {
