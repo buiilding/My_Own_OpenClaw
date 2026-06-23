@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: wait for initial settings sync before attaching renderer chat
+  query `agent_definition` context, so persisted Agent settings system prompt
+  and tool toggles apply to the first new conversation after restarting
+  `<windie> start dev`. No migration required.
 - frontend/renderer: add gated `renderer.replay.timeline` diagnostics for
   edit/resend, recording sanitized turn ids, projection phases, row/message
   counts, and pending/current-turn match booleans from replay action and SDK

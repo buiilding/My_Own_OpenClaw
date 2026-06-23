@@ -130,6 +130,9 @@ Owns renderer chat query and stop handler construction:
   from `initializeIpc(...)`
 - keeps renderer chat send/stop orchestration behind the SDK-shaped
   `windie:invoke` command handler
+- waits for initial settings sync and any pending settings ACK before attaching
+  query-level agent-definition context, so restart-hydrated Agent settings are
+  visible to the first renderer chat turn sent through Electron main
 
 ### `ipc_conversation_status_runtime.cjs`
 

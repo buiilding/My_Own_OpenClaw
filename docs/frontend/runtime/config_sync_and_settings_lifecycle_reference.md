@@ -180,6 +180,10 @@ Before forwarding `query` or `wakeword-detected`, main ensures one-time per-conn
 Purpose:
 
 - reduce race where first query reaches backend before renderer-managed settings are applied
+- ensure query-level `agent_definition` context is attached to renderer chat
+  sends after cached desktop UI config has hydrated, so persisted Agent
+  settings system prompt and tool toggles survive app restart before the first
+  new turn
 
 ## Connection/Status Propagation
 

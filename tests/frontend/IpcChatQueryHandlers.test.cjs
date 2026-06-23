@@ -8,7 +8,13 @@ const {
   createChatQueryHandlerRuntime,
 } = chatQueryHandlersModule;
 
-function createRuntimeHarness() {
+async function waitForMockCall(mockFn) {
+  while (mockFn.mock.calls.length === 0) {
+    await Promise.resolve();
+  }
+}
+
+function createRuntimeHarness(overrides = {}) {
   const state = {
     currentConversationRef: null,
     currentSessionId: 'session-1',
@@ -65,20 +71,24 @@ function createRuntimeHarness() {
     traceRendererQuery: jest.fn(),
   };
   const sendQueryThroughAgentSdkRuntime = jest.fn(async () => 'message-1');
+  const attachAgentDefinitionContextToPayload = overrides.attachAgentDefinitionContextToPayload
+    || jest.fn((payload) => ({
+      ...payload,
+      agent_definition: { mode: 'default' },
+    }));
+  const ensureInitialSettingsSync = overrides.ensureInitialSettingsSync || jest.fn();
+  const getPendingSettingsSyncPromise = overrides.getPendingSettingsSyncPromise || jest.fn(() => null);
   const runtime = createChatQueryHandlerRuntime({
     getState: () => ({ ...state }),
     setCurrentConversationRef,
     setActiveQueryContext,
     setFirstQuery,
-    attachAgentDefinitionContextToPayload: jest.fn((payload) => ({
-      ...payload,
-      agent_definition: { mode: 'default' },
-    })),
+    attachAgentDefinitionContextToPayload,
     ensureInstallAuthState: jest.fn(),
-    isBackendRuntimeConnected: jest.fn(() => true),
-    ensureBackendConnection: jest.fn(),
-    ensureInitialSettingsSync: jest.fn(),
-    getPendingSettingsSyncPromise: jest.fn(() => null),
+    isBackendRuntimeConnected: overrides.isBackendRuntimeConnected || jest.fn(() => true),
+    ensureBackendConnection: overrides.ensureBackendConnection || jest.fn(),
+    ensureInitialSettingsSync,
+    getPendingSettingsSyncPromise,
     sendQueryThroughAgentSdkRuntime,
     stopQueryThroughAgentSdkRuntime: jest.fn(async () => true),
     setResponseOverlayPhase: deps.setResponseOverlayPhase,
@@ -87,7 +97,10 @@ function createRuntimeHarness() {
   });
 
   return {
+    attachAgentDefinitionContextToPayload,
     deps,
+    ensureInitialSettingsSync,
+    getPendingSettingsSyncPromise,
     getWindows,
     onBeforeOverlayQueryCapture,
     runtime,
@@ -135,9 +148,63 @@ describe('ipc_chat_query_handlers runtime', () => {
       messageId: 'turn-1',
     });
     expect(harness.deps.traceRendererQuery).toHaveBeenCalledWith(expect.objectContaining({
+      payload: expect.objectContaining({
+        agent_definition: { mode: 'default' },
+      }),
       conversationRef: 'conv-1',
       queryMessageId: 'turn-1',
     }));
+  });
+
+  test('waits for initial settings sync before attaching agent definition context', async () => {
+    const order = [];
+    let resolvePendingSettingsSync;
+    const pendingSettingsSync = new Promise((resolve) => {
+      resolvePendingSettingsSync = resolve;
+    });
+    const harness = createRuntimeHarness({
+      ensureInitialSettingsSync: jest.fn(async () => {
+        order.push('settings-sync');
+      }),
+      getPendingSettingsSyncPromise: jest.fn(() => {
+        order.push('pending-settings-sync');
+        return pendingSettingsSync;
+      }),
+      attachAgentDefinitionContextToPayload: jest.fn((payload) => {
+        order.push('attach-agent-definition');
+        return {
+          ...payload,
+          agent_definition: { mode: 'hydrated-settings' },
+        };
+      }),
+    });
+    const { handleRendererChatQuery } = harness.runtime.createHandlers({
+      getWindows: harness.getWindows,
+      onBeforeOverlayQueryCapture: harness.onBeforeOverlayQueryCapture,
+    });
+
+    const resultPromise = handleRendererChatQuery({ sender: { id: 'sender' } }, {
+      text: 'hello',
+      conversation_ref: 'conv-1',
+    });
+    await waitForMockCall(harness.getPendingSettingsSyncPromise);
+
+    expect(harness.attachAgentDefinitionContextToPayload).not.toHaveBeenCalled();
+
+    resolvePendingSettingsSync();
+
+    await expect(resultPromise).resolves.toMatchObject({ ok: true });
+    expect(order).toEqual([
+      'settings-sync',
+      'pending-settings-sync',
+      'attach-agent-definition',
+    ]);
+    expect(harness.sendQueryThroughAgentSdkRuntime).toHaveBeenCalledWith({
+      payload: expect.objectContaining({
+        agent_definition: { mode: 'hydrated-settings' },
+      }),
+      messageId: 'turn-1',
+    });
   });
 
   test('ipc.cjs composes chat query handlers through the runtime wrapper', async () => {

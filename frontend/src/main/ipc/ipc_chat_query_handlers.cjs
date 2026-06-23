@@ -66,7 +66,6 @@ function createChatQueryHandlers({
       return { ok: false, error: error?.message || 'Rejected renderer query' };
     }
 
-    payload = attachAgentDefinitionContextToPayload(preparedQuery.payload);
     setCurrentConversationRef(preparedQuery.conversationRef);
     queryMessageId = preparedQuery.queryMessageId;
     queryUsedInitialContext = preparedQuery.queryUsedInitialContext;
@@ -74,11 +73,6 @@ function createChatQueryHandlers({
       queryMessageId,
       conversationRef: preparedQuery.conversationRef,
       accepted: false,
-    });
-    deps.traceRendererQuery?.({
-      payload,
-      conversationRef: preparedQuery.conversationRef,
-      queryMessageId,
     });
     deps.log('Received query from renderer');
     deps.log('Complete user message built successfully');
@@ -103,6 +97,12 @@ function createChatQueryHandlers({
 
     let messageId = null;
     if (agentRuntimeConnectionReady) {
+      payload = attachAgentDefinitionContextToPayload(preparedQuery.payload);
+      deps.traceRendererQuery?.({
+        payload,
+        conversationRef: preparedQuery.conversationRef,
+        queryMessageId,
+      });
       messageId = await sendQueryThroughAgentSdkRuntime({
         payload,
         messageId: queryMessageId,
