@@ -143,8 +143,7 @@ body {
   --chatbox-bump-shift-x: 24px;
   --chatbox-close-button-x: calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x));
   --chatbox-close-bump-width: 44px;
-  --chatbox-close-bump-join-overlap: 2px;
-  --chatbox-close-bump-height: calc(var(--chatbox-bump-height) + var(--chatbox-close-bump-join-overlap));
+  --chatbox-close-bump-height: var(--chatbox-bump-height);
   border-radius: 999px;
   border: 0;
   background: transparent;
@@ -191,7 +190,7 @@ body {
   left: var(--chatbox-close-button-x);
   width: var(--chatbox-close-bump-width);
   height: var(--chatbox-close-bump-height);
-  z-index: 2;
+  z-index: 0;
   border-radius: 0;
   clip-path: polygon(
     0 100%,
