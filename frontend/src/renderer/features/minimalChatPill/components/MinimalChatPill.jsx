@@ -34,6 +34,7 @@ import {
 import AttachmentPreviewRow from './AttachmentPreviewRow';
 import { useStopTurnHandler } from '../../chat/hooks/useStopTurnHandler';
 
+const CHATBOX_COMPOSER_COMPACT_HEIGHT = 34;
 const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
@@ -59,6 +60,7 @@ function MinimalChatPill() {
   });
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const [reservedChatboxFrameHeight, setReservedChatboxFrameHeight] = useState(null);
+  const [composerExpanded, setComposerExpanded] = useState(false);
   const inputRef = useRef(null);
   const pillRef = useRef(null);
   const shellRef = useRef(null);
@@ -289,6 +291,9 @@ function MinimalChatPill() {
     inputElement.style.height = 'auto';
     const nextHeight = Math.min(inputElement.scrollHeight, CHATBOX_COMPOSER_MAX_HEIGHT);
     inputElement.style.height = previousHeightStyle;
+    setComposerExpanded(
+      inputValue.includes('\n') || nextHeight > CHATBOX_COMPOSER_COMPACT_HEIGHT,
+    );
     if (!Number.isFinite(nextHeight) || nextHeight <= 0) {
       return;
     }
@@ -504,13 +509,13 @@ function MinimalChatPill() {
 
   return (
     <div
-      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasAttachmentPreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
+      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasAttachmentPreview ? ' with-preview' : ''}${composerExpanded ? ' is-composer-expanded' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
       style={{ '--chatbox-bump-height': `${closeBumpHeight}px` }}
     >
       <div className="chatbox-shell" ref={shellRef}>
         <form
           ref={pillRef}
-          className={`chatbox-pill${hasAttachmentPreview ? ' with-preview' : ''}`}
+          className={`chatbox-pill${hasAttachmentPreview ? ' with-preview' : ''}${composerExpanded ? ' is-composer-expanded' : ''}`}
           onSubmit={handleSubmit}
           onPointerDownCapture={beginPillDragTracking}
           onMouseDown={beginPillDragTracking}

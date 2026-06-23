@@ -788,6 +788,42 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(input).toHaveValue('');
   });
 
+  test('marks the pill expanded only while the composer is taller than compact height', async () => {
+    const { container } = render(<MinimalChatPill />);
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
+    const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
+    const pill = container.querySelector('.chatbox-pill');
+
+    expect(shellWrap?.classList.contains('is-composer-expanded')).toBe(false);
+    expect(pill?.classList.contains('is-composer-expanded')).toBe(false);
+
+    Object.defineProperty(input, 'scrollHeight', {
+      configurable: true,
+      value: 72,
+    });
+
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'line one\nline two' } });
+      await Promise.resolve();
+    });
+
+    expect(shellWrap?.classList.contains('is-composer-expanded')).toBe(true);
+    expect(pill?.classList.contains('is-composer-expanded')).toBe(true);
+
+    Object.defineProperty(input, 'scrollHeight', {
+      configurable: true,
+      value: 34,
+    });
+
+    await act(async () => {
+      fireEvent.change(input, { target: { value: '' } });
+      await Promise.resolve();
+    });
+
+    expect(shellWrap?.classList.contains('is-composer-expanded')).toBe(false);
+    expect(pill?.classList.contains('is-composer-expanded')).toBe(false);
+  });
+
   test('accepts pasted images and sends them through the shared outgoing payload contract', async () => {
     render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');

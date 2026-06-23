@@ -11,6 +11,17 @@ function readRepoFile(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
 
+function readMinimalPillCssBlock() {
+  const chatBoxCss = readRepoFile('frontend/src/renderer/styles/ChatBox.css');
+  const blockStart = chatBoxCss.indexOf('.chatbox-pill {\n  --chatbox-close-button-size');
+  const blockEnd = chatBoxCss.indexOf('\n}', blockStart);
+
+  expect(blockStart).toBeGreaterThanOrEqual(0);
+  expect(blockEnd).toBeGreaterThan(blockStart);
+
+  return chatBoxCss.slice(blockStart, blockEnd);
+}
+
 describe('chat box appearance CSS', () => {
   test('routes the minimal pill close badge through theme tokens', () => {
     const chatBoxCss = readRepoFile('frontend/src/renderer/styles/ChatBox.css');
@@ -34,6 +45,43 @@ describe('chat box appearance CSS', () => {
     expect(lightThemeBlock).toContain(
       '--chatbox-close-badge-hover-bg: color-mix(in srgb, var(--appearance-foreground) 10%, transparent 90%);',
     );
+  });
+
+  test('keeps pill caps rounded without ovalizing multiline growth', () => {
+    const chatBoxCss = readRepoFile('frontend/src/renderer/styles/ChatBox.css');
+    const pillBlock = readMinimalPillCssBlock();
+
+    expect(pillBlock).toContain('--chatbox-close-bump-width: 44px;');
+    expect(pillBlock).toContain('--chatbox-close-bump-height: var(--chatbox-bump-height);');
+    expect(pillBlock).toContain('--chatbox-close-bump-bg: var(--ui-panel-bg);');
+    expect(pillBlock).toContain('--chatbox-close-bump-outline: var(--ui-border);');
+    expect(pillBlock).toContain('--chatbox-pill-body-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);');
+    expect(pillBlock).toContain('--chatbox-pill-body-top-radius: 999px;');
+    expect(pillBlock).toContain('--chatbox-pill-body-bottom-radius: 999px;');
+    expect(pillBlock).toContain('var(--chatbox-pill-body-top-radius)');
+    expect(pillBlock).toContain('var(--chatbox-pill-body-bottom-radius)');
+    expect(pillBlock).toContain('background: transparent;');
+    expect(pillBlock).toContain('overflow: visible;');
+    expect(pillBlock).not.toContain('clip-path: polygon(');
+    expect(chatBoxCss).toContain('.chatbox-pill.is-composer-expanded');
+    expect(chatBoxCss).toContain('--chatbox-pill-body-top-radius: 32px;');
+    expect(chatBoxCss).toContain('--chatbox-pill-body-bottom-radius: 28px;');
+    expect(chatBoxCss).toContain('.chatbox-pill::before');
+    expect(chatBoxCss).toContain('inset: var(--chatbox-bump-height) 0 0;');
+    expect(chatBoxCss).toContain('z-index: 1;\n  border: 1px solid var(--ui-border);');
+    expect(chatBoxCss).toContain('box-shadow: var(--chatbox-pill-body-shadow);');
+    expect(chatBoxCss).toContain('.chatbox-pill::after');
+    expect(chatBoxCss).toContain('width: var(--chatbox-close-bump-width);');
+    expect(chatBoxCss).toContain('z-index: 0;');
+    expect(chatBoxCss).toContain('background: var(--chatbox-close-bump-bg);');
+    expect(chatBoxCss).toContain('border-radius: 0;');
+    expect(chatBoxCss).toContain('clip-path: polygon(');
+    expect(chatBoxCss).toContain('44% 6%,');
+    expect(chatBoxCss).toContain('50% 4%,');
+    expect(chatBoxCss).toContain('56% 6%,');
+    expect(chatBoxCss).toContain('drop-shadow(0 -1px 0 var(--chatbox-close-bump-outline))');
+    expect(chatBoxCss).not.toContain('.chatbox-close-badge::before');
+    expect(chatBoxCss).not.toContain('--chatbox-close-bump-seam-');
   });
 
   test('anchors the response overlay close button outside the scrollable transcript', () => {
