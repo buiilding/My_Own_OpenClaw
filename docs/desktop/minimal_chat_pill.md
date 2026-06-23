@@ -47,9 +47,9 @@ The chat pill is the small always-available desktop command surface. It is rende
   active appearance foreground token so the close affordance stays readable on
   the pill's light close bump.
 - The compact pill side caps are drawn by a real rounded body layer, with the
-  close bump drawn as a separate decorative layer. The main left and right ends
-  should not depend on a whole-shell polygon approximation, which can make the
-  caps read as faceted or pointed.
+  close bump drawn as a separate decorative layer behind it. The main left and
+  right ends should not depend on a whole-shell polygon approximation, and the
+  bump layer must not paint over the pill body.
 - Press-and-hold dragging is a shell interaction, not text entry. The first
   unfocused press on the textarea may request native text-entry activation for
   click-to-type, but if the pointer moves past the drag threshold that same
