@@ -78,6 +78,9 @@ describe('sdkDisplayChatMessageProjection', () => {
         id: 'msg-user',
         sender: 'user',
         text: 'open package json',
+        turnRef: null,
+        sourceEventType: 'user_message',
+        sourceChannel: 'sdk:display-rows',
         timestamp: '2026-05-15T12:00:00.000Z',
       }),
       expect.objectContaining({
@@ -102,6 +105,33 @@ describe('sdkDisplayChatMessageProjection', () => {
         sender: 'assistant',
         type: 'llm-text',
         text: 'package json is loaded',
+      }),
+    ]);
+  });
+
+  test('preserves user row turn refs so replay pending rows dedupe after SDK projection', () => {
+    expect(buildChatMessagesFromSdkDisplayRows([
+      {
+        id: 'turn-replay-sdk-evt-000002-user_message',
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-replay',
+        index: 0,
+        role: 'user',
+        type: 'user_message',
+        content: 'edited prompt',
+        metadata: {
+          revisionId: 'rev-child',
+          timestamp: '2026-05-15T12:00:00.000Z',
+        },
+      },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'turn-replay-sdk-evt-000002-user_message',
+        sender: 'user',
+        text: 'edited prompt',
+        turnRef: 'turn-replay',
+        sourceEventType: 'user_message',
+        sourceChannel: 'sdk:display-rows',
       }),
     ]);
   });
