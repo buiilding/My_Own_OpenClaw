@@ -429,9 +429,6 @@ async function executeReplayAction({
       text: queryText,
       timestamp: replayStartedAt,
     });
-    if (supersededTurnRef) {
-      pendingTurn.supersededTurnRef = supersededTurnRef;
-    }
     const replacementRows = [
       ...rows.slice(0, userRowIndex),
       buildReplayReplacementUserRow({
