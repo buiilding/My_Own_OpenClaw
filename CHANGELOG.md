@@ -161,6 +161,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: keep the response overlay close button anchored outside
+  the scrollable transcript so long responses can be dismissed without
+  scrolling back to the top. No migration required.
 - frontend/renderer: keep settings schema/debug JSON text light on dark
   diagnostic panels so MCP server details remain readable in light appearance.
   No migration required.

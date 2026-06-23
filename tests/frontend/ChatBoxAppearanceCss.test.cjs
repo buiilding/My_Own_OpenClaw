@@ -35,4 +35,28 @@ describe('chat box appearance CSS', () => {
       '--chatbox-close-badge-hover-bg: color-mix(in srgb, var(--appearance-foreground) 10%, transparent 90%);',
     );
   });
+
+  test('anchors the response overlay close button outside the scrollable transcript', () => {
+    const chatBoxCss = readRepoFile('frontend/src/renderer/styles/ChatBox.css');
+    const overlaySource = readRepoFile(
+      'frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx',
+    );
+    const frameBody = chatBoxCss.slice(
+      chatBoxCss.indexOf('.chatbox-response-frame'),
+      chatBoxCss.indexOf('.chatbox-response-pill', chatBoxCss.indexOf('.chatbox-response-frame')),
+    );
+    const closeBody = chatBoxCss.slice(
+      chatBoxCss.indexOf('.chatbox-response-close'),
+      chatBoxCss.indexOf('.chatbox-response-close:disabled'),
+    );
+    const frameIndex = overlaySource.indexOf('className="chatbox-response-frame"');
+    const closeIndex = overlaySource.indexOf('className="chatbox-response-close"');
+    const pillIndex = overlaySource.indexOf('className={`chatbox-response-pill');
+
+    expect(frameBody).toContain('position: relative;');
+    expect(closeBody).toContain('position: absolute;');
+    expect(frameIndex).toBeGreaterThanOrEqual(0);
+    expect(closeIndex).toBeGreaterThan(frameIndex);
+    expect(pillIndex).toBeGreaterThan(closeIndex);
+  });
 });

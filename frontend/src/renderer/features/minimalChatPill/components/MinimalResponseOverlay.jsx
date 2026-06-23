@@ -217,12 +217,7 @@ function MinimalResponseOverlay() {
     >
       <div className="chatbox-shell" ref={shellRef}>
         {responseVisible ? (
-          <div
-            className={`chatbox-response-pill${hasOverflowAbove ? ' has-overflow-above' : ''}`}
-            ref={responsePillRef}
-            style={{ height: `${RESPONSE_FIXED_HEIGHT}px` }}
-            onScroll={handleResponseScroll}
-          >
+          <div className="chatbox-response-frame">
             <button
               type="button"
               className="chatbox-response-close"
@@ -232,18 +227,25 @@ function MinimalResponseOverlay() {
             >
               ×
             </button>
-            <div className="chatbox-response-body">
-              <div className="chatbox-response-transcript">
-                {responseOverlayEntries.map((message) => (
-                  <MessageItem
-                    key={message.id}
-                    message={message}
-                    conversationToolSchemas={conversationToolSchemas}
-                    enableAssistantActions={false}
-                    enableUserActions={false}
-                    disableAssistantActions
-                  />
-                ))}
+            <div
+              className={`chatbox-response-pill${hasOverflowAbove ? ' has-overflow-above' : ''}`}
+              ref={responsePillRef}
+              style={{ height: `${RESPONSE_FIXED_HEIGHT}px` }}
+              onScroll={handleResponseScroll}
+            >
+              <div className="chatbox-response-body">
+                <div className="chatbox-response-transcript">
+                  {responseOverlayEntries.map((message) => (
+                    <MessageItem
+                      key={message.id}
+                      message={message}
+                      conversationToolSchemas={conversationToolSchemas}
+                      enableAssistantActions={false}
+                      enableUserActions={false}
+                      disableAssistantActions
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>

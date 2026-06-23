@@ -568,6 +568,11 @@ body {
   pointer-events: none;
 }
 
+.chatbox-response-frame {
+  position: relative;
+  width: 100%;
+}
+
 .chatbox-response-pill {
   border-radius: 18px;
   clip-path: inset(0 round 18px);

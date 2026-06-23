@@ -49,6 +49,9 @@ Closeability:
 
 - error row: closeable immediately
 - non-error row: closeable only when complete (`isComplete === true`)
+- close control is anchored to the response frame outside the scrollable
+  response pill, so users can dismiss a closeable long response without
+  scrolling back to the top
 
 ## Overlay Size IPC Contract
 
@@ -99,6 +102,8 @@ When active response updates:
 
 - if user remained near bottom, component auto-scrolls to newest content
 - if user scrolled upward, manual position is preserved
+- close-button availability is independent from `responsePillRef` scroll
+  position because the close button is a sibling of the scroll container
 
 ## Markdown/Error Rendering Contract
 
