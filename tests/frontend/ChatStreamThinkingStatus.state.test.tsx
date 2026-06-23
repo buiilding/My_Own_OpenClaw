@@ -940,6 +940,14 @@ describe('useChatStream state + stream handling', () => {
           toolEvents: [],
           lastError: null,
         },
+        pendingTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-complete',
+          userMessageId: 'user-turn-complete',
+          text: 'hello',
+          timestamp: '2026-03-05T00:00:00.000Z',
+          attachmentFilenames: null,
+        },
       });
 
       emitBackendEvent({
@@ -954,6 +962,7 @@ describe('useChatStream state + stream handling', () => {
 
     const state = useChatStore.getState();
     expect(state.isSending).toBe(false);
+    expect(state.pendingTurn).toBeNull();
     expect(state.thinkingStatus).toBeNull();
     expect(state.thinkingSourceEventType).toBeNull();
     expect(state.streamTracking).toEqual(expect.objectContaining({
@@ -984,6 +993,14 @@ describe('useChatStream state + stream handling', () => {
         ],
         isSending: true,
         thinkingStatus: 'thinking',
+        pendingTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-new',
+          userMessageId: 'user-new-turn',
+          text: 'new turn',
+          timestamp: '2026-03-05T00:00:02.000Z',
+          attachmentFilenames: null,
+        },
         streamTracking: {
           activeTurnRef: 'turn-new',
           phase: 'streaming',
@@ -1010,6 +1027,9 @@ describe('useChatStream state + stream handling', () => {
 
     const state = useChatStore.getState();
     expect(state.isSending).toBe(true);
+    expect(state.pendingTurn).toEqual(expect.objectContaining({
+      turnRef: 'turn-new',
+    }));
     expect(state.thinkingStatus).toBe('thinking');
     expect(state.streamTracking).toEqual(
       expect.objectContaining({
@@ -1024,6 +1044,66 @@ describe('useChatStream state + stream handling', () => {
         isComplete: false,
       }),
     );
+  });
+
+  test('turn_error clears matching pending typing without terminal current-turn projection', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [{
+          id: 'user-turn-error',
+          text: 'hello',
+          sender: 'user',
+          turnRef: 'turn-error',
+        }],
+        isSending: true,
+        thinkingStatus: 'thinking',
+        thinkingSourceEventType: 'llm-thought',
+        pendingTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-error',
+          userMessageId: 'user-turn-error',
+          text: 'hello',
+          timestamp: '2026-03-05T00:00:00.000Z',
+          attachmentFilenames: null,
+        },
+        streamTracking: {
+          activeTurnRef: 'turn-error',
+          phase: 'awaiting-first-chunk',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: null,
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:00.000Z',
+          lastEventType: 'query-accepted',
+          eventCount: 1,
+          chunkCount: 0,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 0,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'error',
+        turn_ref: 'turn-error',
+        payload: {
+          message: 'backend rejected turn',
+        },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.pendingTurn).toBeNull();
+    expect(state.isSending).toBe(false);
+    expect(state.thinkingStatus).toBe('');
+    expect(state.thinkingSourceEventType).toBeNull();
+    expect(state.streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-error',
+      phase: 'error',
+      lastEventType: 'error',
+    }));
   });
 
   test('clears streamed thinking on SDK projected completion without mutating raw assistant rows', () => {
