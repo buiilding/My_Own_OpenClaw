@@ -80,4 +80,53 @@ describe('Agent SDK CJS conversation runtime', () => {
       turnRef: 'turn-edited',
     }));
   });
+
+  test('send persists display-safe visual metadata on the initial user display row', async () => {
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-cjs-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport({
+        sendQuery: jest.fn(async () => 'query-replay-visual'),
+      }),
+    });
+    const displayAttachment = {
+      id: 'legacy-ui-attachment',
+      kind: 'image',
+      source: 'user_included',
+      status: 'ready',
+      screenshotRef: 'artifact-replay-one',
+      filename: 'one.png',
+    };
+
+    await runtime.send({
+      text: 'review the included image',
+      turnRef: 'turn-replay-visual',
+      payload: {
+        screenshot_refs: ['artifact-replay-one'],
+        attachment_filenames: ['one.png'],
+      },
+      metadata: {
+        attachments: [displayAttachment],
+      },
+    });
+
+    await expect(store.loadDisplayRows('conv-sdk-cjs-runtime')).resolves.toEqual([
+      expect.objectContaining({
+        id: 'turn-replay-visual-sdk-evt-000002-user_message',
+        role: 'user',
+        type: 'user_message',
+        content: 'review the included image',
+        metadata: expect.objectContaining({
+          screenshot_refs: ['artifact-replay-one'],
+          attachments: [displayAttachment],
+          raw: expect.objectContaining({
+            screenshot_refs: ['artifact-replay-one'],
+            attachment_filenames: ['one.png'],
+            attachments: [displayAttachment],
+          }),
+        }),
+      }),
+    ]);
+  });
 });
