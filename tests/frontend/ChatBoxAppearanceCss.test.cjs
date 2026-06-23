@@ -48,16 +48,18 @@ describe('chat box appearance CSS', () => {
   });
 
   test('keeps the compact pill side caps rounded instead of over-clipped', () => {
+    const chatBoxCss = readRepoFile('frontend/src/renderer/styles/ChatBox.css');
     const pillBlock = readMinimalPillCssBlock();
 
-    expect(pillBlock).toContain('--chatbox-pill-end-radius: 28px;');
+    expect(pillBlock).toContain('--chatbox-close-bump-width: 78px;');
     expect(pillBlock).toContain('border-radius: 999px;');
-    expect(pillBlock).toContain('0 calc(var(--chatbox-bump-height) + var(--chatbox-pill-end-radius))');
-    expect(pillBlock).toContain('0.25px calc(var(--chatbox-bump-height) + 24.25px)');
-    expect(pillBlock).toContain('calc(100% - 0.25px) calc(var(--chatbox-bump-height) + 24.25px)');
-    expect(pillBlock).toContain('100% calc(100% - var(--chatbox-pill-end-radius))');
-    expect(pillBlock).not.toContain('calc(var(--chatbox-bump-height) + 32px)');
-    expect(pillBlock).not.toContain('calc(100% - 32px)');
+    expect(pillBlock).toContain('background: transparent;');
+    expect(pillBlock).toContain('overflow: visible;');
+    expect(pillBlock).not.toContain('clip-path: polygon(');
+    expect(chatBoxCss).toContain('.chatbox-pill::before');
+    expect(chatBoxCss).toContain('inset: var(--chatbox-bump-height) 0 0;');
+    expect(chatBoxCss).toContain('.chatbox-pill::after');
+    expect(chatBoxCss).toContain('width: var(--chatbox-close-bump-width);');
   });
 
   test('anchors the response overlay close button outside the scrollable transcript', () => {

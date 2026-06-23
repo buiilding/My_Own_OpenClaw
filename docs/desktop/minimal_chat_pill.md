@@ -46,11 +46,10 @@ The chat pill is the small always-available desktop command surface. It is rende
 - In light appearance, the close badge foreground must resolve through the
   active appearance foreground token so the close affordance stays readable on
   the pill's light close bump.
-- The compact pill side caps are clipped with a radius that matches half the
-  visible compact body height below the close bump, so the left and right ends
-  remain pill-shaped instead of faceted or pointed. The contour uses dense cap
-  samples near the horizontal extremes so the side endpoints do not read as
-  single sharp vertices.
+- The compact pill side caps are drawn by a real rounded body layer, with the
+  close bump drawn as a separate decorative layer. The main left and right ends
+  should not depend on a whole-shell polygon approximation, which can make the
+  caps read as faceted or pointed.
 - Press-and-hold dragging is a shell interaction, not text entry. The first
   unfocused press on the textarea may request native text-entry activation for
   click-to-type, but if the pointer moves past the drag threshold that same

@@ -142,16 +142,14 @@ body {
   --chatbox-close-contour-x: calc(var(--chatbox-close-center-x) - var(--chatbox-close-contour-offset-x));
   --chatbox-bump-shift-x: 24px;
   --chatbox-close-button-x: calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x));
-  --chatbox-bump-shoulder-width: 20px;
-  --chatbox-bump-curve-width: 15px;
-  --chatbox-bump-half-width: 9px;
-  --chatbox-pill-end-radius: 28px;
+  --chatbox-close-bump-width: 78px;
+  --chatbox-close-bump-height: calc(var(--chatbox-bump-height) + 28px);
   border-radius: 999px;
-  border: 1px solid var(--ui-border);
-  background: var(--ui-panel-bg);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(var(--ui-backdrop-blur));
-  -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -160,70 +158,41 @@ body {
   min-height: 52px;
   margin: 0;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
   cursor: default;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-  clip-path: polygon(
-    0 calc(var(--chatbox-bump-height) + var(--chatbox-pill-end-radius)),
-    0.25px calc(var(--chatbox-bump-height) + 24.25px),
-    1px calc(var(--chatbox-bump-height) + 20.5px),
-    2.25px calc(var(--chatbox-bump-height) + 17px),
-    4px calc(var(--chatbox-bump-height) + 13.5px),
-    6.25px calc(var(--chatbox-bump-height) + 10.5px),
-    9px calc(var(--chatbox-bump-height) + 7.5px),
-    12.25px calc(var(--chatbox-bump-height) + 5px),
-    16px calc(var(--chatbox-bump-height) + 2.75px),
-    20.25px calc(var(--chatbox-bump-height) + 1px),
-    25px calc(var(--chatbox-bump-height) + 0.25px),
-    var(--chatbox-pill-end-radius) var(--chatbox-bump-height),
-    calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
-    calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-curve-width) - var(--chatbox-bump-shift-x)) 5px,
-    calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 1px,
-    calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x)) 0,
-    calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 1px,
-    calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-curve-width) - var(--chatbox-bump-shift-x)) 5px,
-    calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
-    calc(100% - var(--chatbox-pill-end-radius)) var(--chatbox-bump-height),
-    calc(100% - 25px) calc(var(--chatbox-bump-height) + 0.25px),
-    calc(100% - 20.25px) calc(var(--chatbox-bump-height) + 1px),
-    calc(100% - 16px) calc(var(--chatbox-bump-height) + 2.75px),
-    calc(100% - 12.25px) calc(var(--chatbox-bump-height) + 5px),
-    calc(100% - 9px) calc(var(--chatbox-bump-height) + 7.5px),
-    calc(100% - 6.25px) calc(var(--chatbox-bump-height) + 10.5px),
-    calc(100% - 4px) calc(var(--chatbox-bump-height) + 13.5px),
-    calc(100% - 2.25px) calc(var(--chatbox-bump-height) + 17px),
-    calc(100% - 1px) calc(var(--chatbox-bump-height) + 20.5px),
-    calc(100% - 0.25px) calc(var(--chatbox-bump-height) + 24.25px),
-    100% calc(var(--chatbox-bump-height) + var(--chatbox-pill-end-radius)),
-    100% calc(100% - var(--chatbox-pill-end-radius)),
-    calc(100% - 0.25px) calc(100% - 24.25px),
-    calc(100% - 1px) calc(100% - 20.5px),
-    calc(100% - 2.25px) calc(100% - 17px),
-    calc(100% - 4px) calc(100% - 13.5px),
-    calc(100% - 6.25px) calc(100% - 10.5px),
-    calc(100% - 9px) calc(100% - 7.5px),
-    calc(100% - 12.25px) calc(100% - 5px),
-    calc(100% - 16px) calc(100% - 2.75px),
-    calc(100% - 20.25px) calc(100% - 1px),
-    calc(100% - 25px) calc(100% - 0.25px),
-    calc(100% - var(--chatbox-pill-end-radius)) 100%,
-    var(--chatbox-pill-end-radius) 100%,
-    25px calc(100% - 0.25px),
-    20.25px calc(100% - 1px),
-    16px calc(100% - 2.75px),
-    12.25px calc(100% - 5px),
-    9px calc(100% - 7.5px),
-    6.25px calc(100% - 10.5px),
-    4px calc(100% - 13.5px),
-    2.25px calc(100% - 17px),
-    1px calc(100% - 20.5px),
-    0.25px calc(100% - 24.25px),
-    0 calc(100% - var(--chatbox-pill-end-radius))
-  );
+}
+
+.chatbox-pill::before,
+.chatbox-pill::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  background: var(--ui-panel-bg);
+  backdrop-filter: blur(var(--ui-backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
+}
+
+.chatbox-pill::before {
+  inset: var(--chatbox-bump-height) 0 0;
+  z-index: 0;
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.chatbox-pill::after {
+  top: 0;
+  left: var(--chatbox-close-button-x);
+  width: var(--chatbox-close-bump-width);
+  height: var(--chatbox-close-bump-height);
+  z-index: 1;
+  border-radius: 999px 999px 18px 18px;
+  transform: translateX(-50%);
 }
 
 .chatbox-main-row {
@@ -233,7 +202,7 @@ body {
   min-height: 36px;
   margin-top: auto;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .chatbox-controls-group {
@@ -366,7 +335,7 @@ body {
   scrollbar-color: rgba(255, 255, 255, 0.24) transparent;
   padding: 2px 2px 0;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .chatbox-image-preview-row::-webkit-scrollbar {
@@ -563,7 +532,7 @@ body {
   justify-content: center;
   padding: 0;
   cursor: pointer;
-  z-index: 2;
+  z-index: 3;
   transform: translateX(-50%);
   transition: color 140ms ease, background 140ms ease;
 }
