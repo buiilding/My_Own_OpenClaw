@@ -24,6 +24,7 @@ import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPen
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 const {
   buildPreparedReplayDesktopChatTurn,
+  buildReplayMessagesWithPendingTurn,
   buildReplayPendingTurn,
   buildReplayContextMessages,
   buildReplayPreparationPayload,
@@ -127,9 +128,6 @@ async function executeReplayAction({
   queryText,
   screenshotRef,
   screenshotUrl,
-  setMessages,
-  setThinkingStatus,
-  setThinkingSourceEventType,
   errorPrefix,
   deferredQueryModelSelection,
   action,
@@ -185,12 +183,11 @@ async function executeReplayAction({
       reason: action === 'edit_resend' ? 'user_edit' : 'retry',
       rows: rows.slice(0, userRowIndex),
     });
-    setMessages(replayMessages, conversationRef);
-    setThinkingStatus(null, conversationRef);
-    if (typeof setThinkingSourceEventType === 'function') {
-      setThinkingSourceEventType(null, conversationRef);
-    }
-    useChatStore.getState().acceptPendingTurn(pendingTurn);
+    useChatStore.getState().acceptReplayPendingTurn({
+      conversationRef,
+      messages: buildReplayMessagesWithPendingTurn(replayMessages, pendingTurn),
+      pendingTurn,
+    });
     DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
     try {
       await dispatchPreparedDesktopChatTurn(buildPreparedReplayDesktopChatTurn({
@@ -246,9 +243,6 @@ async function executeReplayAction({
 
 export function useConversationReplayActions({
   messages,
-  setMessages,
-  setThinkingStatus,
-  setThinkingSourceEventType,
 }) {
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const addMessage = useChatStore((state) => state.addMessage);
@@ -289,9 +283,6 @@ export function useConversationReplayActions({
       queryText: normalizedEditedText,
       screenshotRef: replayScreenshot.screenshotRef,
       screenshotUrl: replayScreenshot.screenshotUrl,
-      setMessages,
-      setThinkingStatus,
-      setThinkingSourceEventType,
       errorPrefix: 'Failed to edit user message',
       deferredQueryModelSelection,
       action: 'edit_resend',
@@ -305,9 +296,6 @@ export function useConversationReplayActions({
     addMessage,
     deferredQueryModelSelection,
     messages,
-    setMessages,
-    setThinkingSourceEventType,
-    setThinkingStatus,
   ]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
@@ -332,9 +320,6 @@ export function useConversationReplayActions({
       queryText: retryUserMessage.text,
       screenshotRef: replayScreenshot.screenshotRef,
       screenshotUrl: replayScreenshot.screenshotUrl,
-      setMessages,
-      setThinkingStatus,
-      setThinkingSourceEventType,
       errorPrefix: 'Failed to retry assistant message',
       deferredQueryModelSelection,
       action: 'retry',
@@ -348,9 +333,6 @@ export function useConversationReplayActions({
     addMessage,
     deferredQueryModelSelection,
     messages,
-    setMessages,
-    setThinkingSourceEventType,
-    setThinkingStatus,
   ]);
 
   return {

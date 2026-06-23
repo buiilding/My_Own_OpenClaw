@@ -401,6 +401,76 @@ describe('useConversationReplayActions', () => {
     );
   });
 
+  test('edit replay publishes the retained prefix and edited pending turn atomically', async () => {
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-atomic-edit');
+    const messages = [
+      {
+        id: 'renderer-user-1',
+        sender: 'user',
+        text: 'first question',
+        sourceEventType: 'user_message',
+        sourceChannel: 'sdk:display-rows',
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'first answer',
+        sourceEventType: 'assistant_message',
+        sourceChannel: 'sdk:display-rows',
+      },
+    ];
+    mockDisplayTimelineRows = timelineRowsFromMessages(messages);
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    useChatStore.getState().clearMessages('conv-existing');
+    useChatStore.getState().setMessages(messages, 'conv-existing');
+    const visibleFrames = [];
+    const unsubscribe = useChatStore.subscribe((state) => {
+      visibleFrames.push(
+        state.getWorkspaceState('conv-existing').messages.map((message) => ({
+          id: message.id,
+          sender: message.sender,
+          text: message.text,
+          sourceEventType: message.sourceEventType,
+          sourceChannel: message.sourceChannel,
+          turnRef: message.turnRef,
+        })),
+      );
+    });
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+    }));
+
+    try {
+      await act(async () => {
+        await result.current.handleEditFromUser('renderer-user-1', 'edited first question');
+      });
+    } finally {
+      unsubscribe();
+    }
+
+    expect(visibleFrames).toHaveLength(1);
+    expect(visibleFrames[0]).toEqual([
+      expect.objectContaining({
+        id: 'renderer-user-1',
+        sender: 'user',
+        text: 'edited first question',
+        turnRef: 'turn-atomic-edit',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+      }),
+    ]);
+    expect(visibleFrames).toEqual(
+      expect.not.arrayContaining([
+        [],
+        [expect.objectContaining({ id: 'assistant-1' })],
+      ]),
+    );
+  });
+
   test('retry replay infers artifact refs from screenshot urls', async () => {
     const messages = [
       {

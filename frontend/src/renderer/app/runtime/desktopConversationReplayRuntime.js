@@ -268,8 +268,46 @@ function buildReplayPendingTurn({
   };
 }
 
+function buildReplayPendingUserMessage(pendingTurn) {
+  if (!pendingTurn || typeof pendingTurn !== 'object') {
+    return null;
+  }
+  return {
+    id: pendingTurn.userMessageId,
+    text: pendingTurn.text,
+    sender: 'user',
+    turnRef: pendingTurn.turnRef,
+    sourceEventType: 'renderer-compose',
+    sourceChannel: 'renderer-local',
+    isComplete: true,
+    timestamp: pendingTurn.timestamp,
+    attachmentFilenames: pendingTurn.attachmentFilenames,
+    attachments: pendingTurn.attachments ?? null,
+  };
+}
+
+function buildReplayMessagesWithPendingTurn(messages, pendingTurn) {
+  const replayMessages = Array.isArray(messages) ? messages : [];
+  const pendingUserMessage = buildReplayPendingUserMessage(pendingTurn);
+  if (!pendingUserMessage?.id) {
+    return replayMessages;
+  }
+  const existingMessageIndex = replayMessages.findIndex(
+    (message) => message?.id === pendingUserMessage.id,
+  );
+  if (existingMessageIndex < 0) {
+    return [...replayMessages, pendingUserMessage];
+  }
+  return replayMessages.map((message, index) => (
+    index === existingMessageIndex
+      ? { ...message, ...pendingUserMessage }
+      : message
+  ));
+}
+
 export const DesktopConversationReplayRuntime = Object.freeze({
   buildPreparedReplayDesktopChatTurn,
+  buildReplayMessagesWithPendingTurn,
   buildReplayPendingTurn,
   buildReplayContextMessages,
   buildReplayPreparationPayload,

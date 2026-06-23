@@ -154,6 +154,11 @@ interface ChatState {
     currentTurnProjection: CurrentTurnProjection | null,
     conversationRef?: string | null,
   ) => void;
+  acceptReplayPendingTurn: (input: {
+    conversationRef?: string | null;
+    messages: ChatMessage[];
+    pendingTurn: PendingTurn;
+  }) => void;
   acceptPendingTurn: (pendingTurn: PendingTurn) => void;
   clearPendingTurn: (
     input?: { conversationRef?: string | null; turnRef?: string | null } | null,
@@ -684,6 +689,46 @@ export const useChatStore = create<ChatState>((set, get) => ({
         pendingTurn: nextPendingTurn,
       };
       return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace, latestUpdate);
+    }),
+
+  acceptReplayPendingTurn: ({ messages, pendingTurn }) =>
+    set((state) => {
+      const normalizedPendingTurn = normalizePendingTurn(pendingTurn);
+      if (!normalizedPendingTurn) {
+        return state;
+      }
+      const workspaceRef = resolveChatWorkspaceRef(normalizedPendingTurn.conversationRef);
+      const currentWorkspace = readWorkspaceState(state, workspaceRef);
+      const optimisticMessage = buildPendingTurnUserMessage(normalizedPendingTurn);
+      const replayMessages = Array.isArray(messages) ? messages : [];
+      const existingMessageIndex = replayMessages.findIndex(
+        (message) => message?.id === optimisticMessage.id,
+      );
+      const nextMessages = existingMessageIndex === -1
+        ? [...replayMessages, optimisticMessage]
+        : replayMessages.map((message, index) => (
+          index === existingMessageIndex ? { ...message, ...optimisticMessage } : message
+        ));
+      const nextWorkspace = {
+        ...currentWorkspace,
+        messages: nextMessages,
+        isSending: true,
+        thinkingStatus: null,
+        thinkingSourceEventType: null,
+        currentTurnProjection: null,
+        pendingTurn: normalizedPendingTurn,
+      };
+      const nextTurnConversationRefs = mergeTurnConversationRefs(
+        state.turnConversationRefs,
+        nextMessages,
+        normalizedPendingTurn.conversationRef,
+      );
+      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
+        activeConversationRef: normalizedPendingTurn.conversationRef,
+        latestCurrentTurnProjection: null,
+        turnConversationRefs: nextTurnConversationRefs,
+        ...getProjectedWorkspaceFields(nextWorkspace),
+      });
     }),
 
   acceptPendingTurn: (pendingTurn) =>

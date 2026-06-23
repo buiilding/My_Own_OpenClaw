@@ -24,10 +24,10 @@ All notable changes to WindieOS will be documented in this file.
   target the actual editable display document instead of a stale checkpoint
   prefix. The tracked CJS runtime used by Electron is regenerated and covered
   by the core-loop pack. No migration required.
-- frontend/renderer: make edit/resend publish only the retained display prefix
-  before accepting the edited pending turn, so the stale assistant suffix is
-  removed locally instead of reappearing beside the replacement SDK row. Pending
-  edited turns keep ready image attachments. No migration required.
+- frontend/renderer: make edit/resend publish the retained display prefix and
+  edited pending turn as one replay frame, so the stale assistant suffix is
+  removed locally without a prefix-only flash or duplicate replacement SDK row.
+  Pending edited turns keep ready image attachments. No migration required.
 - frontend/local-runtime: load SDK display timeline checkpoints from the
   revision graph before row storage, so edit/resend revisions with an empty
   retained prefix stay authoritative instead of falling back to raw event replay.

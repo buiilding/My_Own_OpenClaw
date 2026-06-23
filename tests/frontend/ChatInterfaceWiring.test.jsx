@@ -59,6 +59,7 @@ const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
 const mockSetTokenCounts = jest.fn();
 const mockAcceptStoppedTurn = jest.fn();
+const mockAcceptReplayPendingTurn = jest.fn();
 const mockAcceptPendingTurn = jest.fn();
 const mockClearPendingTurn = jest.fn();
 const mockSetChatActiveConversationRef = jest.fn();
@@ -93,6 +94,12 @@ const mockChatState = {
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   setTokenCounts: (...args) => mockSetTokenCounts(...args),
   acceptStoppedTurn: (...args) => mockAcceptStoppedTurn(...args),
+  acceptReplayPendingTurn: (input) => {
+    mockChatState.messages = input.messages;
+    mockChatState.pendingTurn = input.pendingTurn;
+    mockChatState.isSending = true;
+    mockAcceptReplayPendingTurn(input);
+  },
   acceptPendingTurn: (pendingTurn) => {
     mockChatState.pendingTurn = pendingTurn;
     mockChatState.isSending = true;
@@ -319,6 +326,7 @@ describe('ChatInterface wiring', () => {
     mockSetThinkingSourceEventType.mockClear();
     mockSetTokenCounts.mockClear();
     mockAcceptStoppedTurn.mockClear();
+    mockAcceptReplayPendingTurn.mockClear();
     mockAcceptPendingTurn.mockClear();
     mockClearPendingTurn.mockClear();
     mockSetChatActiveConversationRef.mockClear();
@@ -1759,14 +1767,25 @@ describe('ChatInterface wiring', () => {
       await lastMessageListProps.onAssistantTryAgain('assistant-final');
     });
 
-    expect(mockSetMessages).toHaveBeenCalledWith([
-      { id: 'user-1', sender: 'user', text: 'create a dashboard for this', type: 'user' },
-    ], 'conv_existing');
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
-    expect(mockAcceptPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockSetMessages).not.toHaveBeenCalled();
+    expect(mockSetThinkingStatus).not.toHaveBeenCalled();
+    expect(mockAcceptPendingTurn).not.toHaveBeenCalled();
+    expect(mockAcceptReplayPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv_existing',
-      userMessageId: 'user-1',
-      text: 'create a dashboard for this',
+      messages: [
+        expect.objectContaining({
+          id: 'user-1',
+          sender: 'user',
+          text: 'create a dashboard for this',
+          sourceEventType: 'renderer-compose',
+          sourceChannel: 'renderer-local',
+        }),
+      ],
+      pendingTurn: expect.objectContaining({
+        conversationRef: 'conv_existing',
+        userMessageId: 'user-1',
+        text: 'create a dashboard for this',
+      }),
     }));
 
     const retryPayload = mockReplaceRows.mock.calls[0]?.[0];
@@ -1797,12 +1816,25 @@ describe('ChatInterface wiring', () => {
       await lastMessageListProps.onUserEdit('user-1', 'new prompt');
     });
 
-    expect(mockSetMessages).toHaveBeenCalledWith([], 'conv_existing');
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
-    expect(mockAcceptPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockSetMessages).not.toHaveBeenCalled();
+    expect(mockSetThinkingStatus).not.toHaveBeenCalled();
+    expect(mockAcceptPendingTurn).not.toHaveBeenCalled();
+    expect(mockAcceptReplayPendingTurn).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv_existing',
-      userMessageId: 'user-1',
-      text: 'new prompt',
+      messages: [
+        expect.objectContaining({
+          id: 'user-1',
+          sender: 'user',
+          text: 'new prompt',
+          sourceEventType: 'renderer-compose',
+          sourceChannel: 'renderer-local',
+        }),
+      ],
+      pendingTurn: expect.objectContaining({
+        conversationRef: 'conv_existing',
+        userMessageId: 'user-1',
+        text: 'new prompt',
+      }),
     }));
 
     const editPayload = mockReplaceRows.mock.calls[0]?.[0];

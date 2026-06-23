@@ -723,7 +723,7 @@ Edit/resend and retry are display revision operations:
 load active display timeline
   -> choose target display user row
   -> replace display rows before that user row as a child revision
-  -> publish pending turn only after replaceRows succeeds
+  -> publish retained prefix plus pending turn only after replaceRows succeeds
   -> send replacement user message as a normal new turn
 ```
 
@@ -742,14 +742,15 @@ resolution. Renderer replay payloads are preserve-by-default: absent or null
 attachment fields must not erase prior resolved resources without an explicit
 removal operation.
 
-The Electron renderer publishes the replay `pendingTurn` only after
-`replaceRows` succeeds. A rejected display replacement must not pre-mutate
-visible rows or pending-turn state. If the later normal send fails after the
-child display revision is accepted, the renderer keeps the accepted child
-timeline visible, clears only the pending turn, and appends a send-failure
-error row instead of rolling back to the parent transcript. No migration is
-required for existing conversations; before their first display checkpoint,
-the active timeline loads from the event projection fallback.
+The Electron renderer publishes the retained replay prefix and `pendingTurn`
+as one visible frame only after `replaceRows` succeeds. A rejected display
+replacement must not pre-mutate visible rows or pending-turn state. If the
+later normal send fails after the child display revision is accepted, the
+renderer keeps the accepted child timeline visible, clears only the pending
+turn, and appends a send-failure error row instead of rolling back to the
+parent transcript. No migration is required for existing conversations; before
+their first display checkpoint, the active timeline loads from the event
+projection fallback.
 
 Fork is also a revision operation rather than a raw-event rewrite:
 
