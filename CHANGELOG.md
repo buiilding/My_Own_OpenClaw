@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove the merge-regressed `[LiveSurfaceTrace]` DevTools
+  console sink again so renderer live-surface diagnostics only use the
+  structured IPC forwarding path. No migration required.
 - frontend/main: broadcast SDK display rows with an explicit conversation
   reference so empty edit/resend display revisions clear stale transcript rows
   instead of being ignored by the renderer. No migration required.

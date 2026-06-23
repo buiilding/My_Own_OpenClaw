@@ -885,7 +885,6 @@ function logRendererLiveSurfaceTrace(
     ...summarizeWorkspaceForTrace(conversationRef),
     ...data,
   };
-  console.log('[LiveSurfaceTrace]', payload);
   try {
     DesktopLiveSurfaceTraceRuntimeClient.send(payload);
   } catch (_error) {
