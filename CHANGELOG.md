@@ -6,11 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- frontend/renderer: clear matching renderer-local pending turns when raw
-  `turn_completed` or `turn_error` events arrive, so edit/resend cannot leave
-  the dashboard or pill indefinitely in typing state if no terminal SDK
-  current-turn projection follows. Stale old-turn terminal events still no-op.
-  No migration required.
+- frontend/renderer: sequence edit/resend replacement sends after the
+  superseded active turn stop handoff resolves or fails, so immediate resends
+  do not race the direct SDK adapter's active-turn guard and leave the
+  replacement turn stuck in renderer-local typing state. The edit Send button
+  remains enabled; only the replacement dispatch waits for the old turn stop
+  boundary. No migration required.
 - frontend/renderer: draw the minimal chat pill body as a real rounded layer
   above the separate close bump, so the pill side caps no longer depend on a
   whole-shell polygon approximation and the small close bump uses a lower

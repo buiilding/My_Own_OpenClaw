@@ -2,7 +2,7 @@
  * Covers conversation replay actions. behavior in the frontend test suite.
  */
 
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -517,6 +517,60 @@ describe('useConversationReplayActions', () => {
         sourceChannel: 'renderer-local',
       }),
     ]);
+  });
+
+  test('edit replay waits for superseded active turn stop before dispatching replacement send', async () => {
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-edited-after-stop');
+    let resolveStop;
+    const stopPromise = new Promise((resolve) => {
+      resolveStop = resolve;
+    });
+    mockStopTurn.mockImplementation(() => stopPromise);
+    const messages = [
+      {
+        id: 'turn-active-sdk-evt-000002-user_message',
+        sender: 'user',
+        text: 'first question',
+        turnRef: 'turn-active',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+      },
+    ];
+    mockDisplayTimelineRows = [];
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    useChatStore.getState().clearMessages('conv-existing');
+    useChatStore.getState().setMessages(messages, 'conv-existing');
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: useChatStore.getState().setMessages,
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+    }));
+
+    let replayPromise;
+    await act(async () => {
+      replayPromise = result.current.handleEditFromUser(
+        'turn-active-sdk-evt-000002-user_message',
+        'edited first question',
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockStopTurn).toHaveBeenCalledWith('conv-existing', 'turn-active');
+    });
+    expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn)
+      .toEqual(expect.objectContaining({ turnRef: 'turn-edited-after-stop' }));
+    expect(mockSendQuery).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveStop();
+      await replayPromise;
+    });
+
+    expect(mockSendQuery).toHaveBeenCalledTimes(1);
+    expect(mockStopTurn.mock.invocationCallOrder[0])
+      .toBeLessThan(mockSendQuery.mock.invocationCallOrder[0]);
   });
 
   test('edit replay preserves display-row image attachments when renderer message lacks them', async () => {
