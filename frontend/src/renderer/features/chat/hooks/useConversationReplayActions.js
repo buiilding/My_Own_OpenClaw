@@ -390,14 +390,15 @@ async function executeReplayAction({
       pendingTurn,
       supersededTurnRef,
     });
-    if (supersededTurnRef) {
-      void DesktopLiveTurnRuntimeClient.stop(conversationRef, supersededTurnRef)
-        .catch((stopError) => {
-          console.warn('[ChatInterface] Failed to stop superseded replay turn:', stopError);
-        });
-    }
     DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
     pendingTurnPublished = true;
+    if (supersededTurnRef) {
+      try {
+        await DesktopLiveTurnRuntimeClient.stop(conversationRef, supersededTurnRef);
+      } catch (stopError) {
+        console.warn('[ChatInterface] Failed to stop superseded replay turn:', stopError);
+      }
+    }
     try {
       await dispatchPreparedDesktopChatTurn(buildPreparedReplayDesktopChatTurn({
         preparedReplayTurn: {
