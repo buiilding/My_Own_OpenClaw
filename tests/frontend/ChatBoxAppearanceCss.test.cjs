@@ -11,6 +11,17 @@ function readRepoFile(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
 
+function readMinimalPillCssBlock() {
+  const chatBoxCss = readRepoFile('frontend/src/renderer/styles/ChatBox.css');
+  const blockStart = chatBoxCss.indexOf('.chatbox-pill {\n  --chatbox-close-button-size');
+  const blockEnd = chatBoxCss.indexOf('\n}', blockStart);
+
+  expect(blockStart).toBeGreaterThanOrEqual(0);
+  expect(blockEnd).toBeGreaterThan(blockStart);
+
+  return chatBoxCss.slice(blockStart, blockEnd);
+}
+
 describe('chat box appearance CSS', () => {
   test('routes the minimal pill close badge through theme tokens', () => {
     const chatBoxCss = readRepoFile('frontend/src/renderer/styles/ChatBox.css');
@@ -34,6 +45,17 @@ describe('chat box appearance CSS', () => {
     expect(lightThemeBlock).toContain(
       '--chatbox-close-badge-hover-bg: color-mix(in srgb, var(--appearance-foreground) 10%, transparent 90%);',
     );
+  });
+
+  test('keeps the compact pill side caps rounded instead of over-clipped', () => {
+    const pillBlock = readMinimalPillCssBlock();
+
+    expect(pillBlock).toContain('--chatbox-pill-end-radius: 28px;');
+    expect(pillBlock).toContain('border-radius: 999px;');
+    expect(pillBlock).toContain('0 calc(var(--chatbox-bump-height) + var(--chatbox-pill-end-radius))');
+    expect(pillBlock).toContain('100% calc(100% - var(--chatbox-pill-end-radius))');
+    expect(pillBlock).not.toContain('calc(var(--chatbox-bump-height) + 32px)');
+    expect(pillBlock).not.toContain('calc(100% - 32px)');
   });
 
   test('anchors the response overlay close button outside the scrollable transcript', () => {
