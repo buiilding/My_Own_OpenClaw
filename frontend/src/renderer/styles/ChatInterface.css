@@ -23,6 +23,13 @@
   --chat-awaiting-dot-surface-bg: rgba(255, 255, 255, 0.04);
   --chat-awaiting-dot-border: var(--ui-border-soft);
   --chat-awaiting-dot-bg: var(--ui-text-primary);
+  --user-message-editor-bg: rgba(62, 64, 70, 0.95);
+  --user-message-editor-border: var(--ui-border-soft);
+  --user-message-editor-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+  --user-message-editor-text: var(--ui-text-primary);
+  --user-message-editor-btn-bg: rgba(18, 20, 24, 0.9);
+  --user-message-editor-btn-hover-bg: var(--ui-hover-strong-bg);
+  --user-message-editor-btn-text: var(--ui-text-primary);
   --chat-utility-panel-bg:
     linear-gradient(180deg, rgba(17, 18, 20, 0.98), rgba(10, 11, 13, 0.96));
   display: flex;
@@ -53,6 +60,13 @@
   --chat-awaiting-dot-surface-bg: color-mix(in srgb, var(--appearance-foreground) 7%, var(--appearance-background) 93%);
   --chat-awaiting-dot-border: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);
   --chat-awaiting-dot-bg: var(--appearance-foreground);
+  --user-message-editor-bg: color-mix(in srgb, var(--appearance-background) 94%, var(--appearance-foreground) 6%);
+  --user-message-editor-border: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);
+  --user-message-editor-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  --user-message-editor-text: var(--appearance-foreground);
+  --user-message-editor-btn-bg: color-mix(in srgb, var(--appearance-background) 86%, var(--appearance-foreground) 14%);
+  --user-message-editor-btn-hover-bg: color-mix(in srgb, var(--appearance-background) 78%, var(--appearance-foreground) 22%);
+  --user-message-editor-btn-text: var(--appearance-foreground);
 }
 
 .chat-header {
@@ -1231,10 +1245,10 @@
 .user-message-editor {
   width: min(540px, calc(100vw - 72px));
   border-radius: 18px;
-  border: 1px solid var(--ui-border-soft);
-  background: rgba(62, 64, 70, 0.95);
+  border: 1px solid var(--user-message-editor-border);
+  background: var(--user-message-editor-bg);
   padding: 12px 14px 10px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+  box-shadow: var(--user-message-editor-shadow);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1247,7 +1261,7 @@
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--ui-text-primary);
+  color: var(--user-message-editor-text);
   font-size: 15px;
   line-height: 1.5;
   font-family: inherit;
@@ -1265,8 +1279,8 @@
   height: 30px;
   border: 0;
   border-radius: 999px;
-  background: rgba(18, 20, 24, 0.9);
-  color: var(--ui-text-primary);
+  background: var(--user-message-editor-btn-bg);
+  color: var(--user-message-editor-btn-text);
   padding: 0 12px;
   font-size: 13px;
   font-weight: 600;
@@ -1274,7 +1288,7 @@
 }
 
 .user-message-editor-btn:hover {
-  background: var(--ui-hover-strong-bg);
+  background: var(--user-message-editor-btn-hover-bg);
 }
 
 .user-message-editor-btn.primary {

@@ -47,6 +47,30 @@ describe('chat header appearance CSS', () => {
     expect(chatCss).not.toContain('background: linear-gradient(180deg, var(--agent-accent) 0%, var(--agent-accent-hover) 100%)');
   });
 
+  test('routes the inline user edit composer through readable light appearance tokens', () => {
+    const chatCss = readRepoFile('frontend/src/renderer/styles/ChatInterface.css');
+    const lightUtilityBlockStart = chatCss.indexOf(":root[data-agent-theme='light'] .chat-container");
+    const lightUtilityBlockEnd = chatCss.indexOf('.chat-header', lightUtilityBlockStart);
+    const lightUtilityBlock = chatCss.slice(lightUtilityBlockStart, lightUtilityBlockEnd);
+
+    expect(lightUtilityBlockStart).toBeGreaterThanOrEqual(0);
+    expect(lightUtilityBlock).toContain(
+      '--user-message-editor-bg: color-mix(in srgb, var(--appearance-background) 94%, var(--appearance-foreground) 6%);',
+    );
+    expect(lightUtilityBlock).toContain(
+      '--user-message-editor-border: color-mix(in srgb, var(--appearance-foreground) 18%, transparent 82%);',
+    );
+    expect(lightUtilityBlock).toContain('--user-message-editor-text: var(--appearance-foreground);');
+    expect(lightUtilityBlock).toContain(
+      '--user-message-editor-btn-bg: color-mix(in srgb, var(--appearance-background) 86%, var(--appearance-foreground) 14%);',
+    );
+    expect(lightUtilityBlock).toContain('--user-message-editor-btn-text: var(--appearance-foreground);');
+    expect(chatCss).toContain('background: var(--user-message-editor-bg);');
+    expect(chatCss).toContain('color: var(--user-message-editor-text);');
+    expect(chatCss).toContain('background: var(--user-message-editor-btn-bg);');
+    expect(chatCss).toContain('color: var(--user-message-editor-btn-text);');
+  });
+
   test('routes message-list awaiting dots through readable light appearance tokens', () => {
     const chatCss = readRepoFile('frontend/src/renderer/styles/ChatInterface.css');
     const lightUtilityBlockStart = chatCss.indexOf(":root[data-agent-theme='light'] .chat-container");

@@ -74,6 +74,9 @@ Light-mode readability:
   `--user-message-foreground`, applied from the active appearance theme section,
   so message pill colors are independent from global accent and send-button
   colors
+- inline user edit/resend composers use light appearance foreground/background
+  tokens for the editor panel, draft text, border, and secondary action button
+  so edited text and Cancel remain readable on white dashboard surfaces
 - settings toggles, primary/secondary buttons, and destructive buttons use
   shared state-control variables (`--ui-toggle-*`, `--ui-primary-button-*`,
   `--ui-secondary-button-*`, and `--ui-danger-*`) so checked, unchecked,

@@ -58,6 +58,10 @@ Role-based surface:
   `--user-message-foreground` from `DesktopAppearanceThemeRuntime`, keeping the
   user pill background/text pair first-class and independent from the global
   accent/send-button tokens.
+- `.user-message-editor` uses chat-local editor variables, with light
+  appearance overriding the editor surface, border, text, and secondary action
+  button to foreground/background appearance tokens so inline edit/resend stays
+  readable against white dashboard surfaces.
 - `.message-assistant` full-width transparent lane for nested tool/transparency sections.
 
 Markdown surface:

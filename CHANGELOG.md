@@ -161,6 +161,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend/renderer: route the inline user edit/resend composer through
+  appearance-aware surface, text, border, and secondary-button tokens so draft
+  text and Cancel remain readable in light appearance. No migration required.
 - frontend/renderer: keep the response overlay close button anchored outside
   the scrollable transcript so long responses can be dismissed without
   scrolling back to the top. No migration required.

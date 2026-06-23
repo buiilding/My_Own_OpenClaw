@@ -47,6 +47,9 @@ Inline user editor behavior:
 - opens from `UserMessageActions` edit button
 - submit path trims draft and no-ops on empty
 - cancel path closes editor without callback dispatch
+- light appearance routes the editor surface, draft text, and secondary action
+  button through appearance foreground/background tokens so edit/resend visuals
+  remain readable on white dashboard surfaces
 
 ## Assistant Action Contract
 
