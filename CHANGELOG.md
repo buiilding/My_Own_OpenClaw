@@ -15,6 +15,10 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: preserve SDK user display-row turn refs while projecting
   chat messages so edit/resend replacement rows dedupe the pending optimistic
   user row instead of showing the edited message twice. No migration required.
+- sdk: make `conversation.loadDisplayTimeline(...)` return same-revision send
+  rows appended after a display replacement, so repeated edit/resend actions
+  target the actual editable display document instead of a stale checkpoint
+  prefix. No migration required.
 - frontend/renderer: render tool-output screenshot attachments with
   tool-card-sized layout again while keeping user message attachments compact
   and right-aligned. No migration required.

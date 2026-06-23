@@ -392,6 +392,9 @@ rewrite raw runtime events. Raw events remain the audit/runtime log; display
 timeline checkpoints are the user-editable document. Runtime snapshots prefer
 the active display timeline checkpoint and append same-revision live send rows
 on top of it, so a replacement becomes visible state instead of a side table.
+`conversation.loadDisplayTimeline(...)` returns that same merged editable
+document when a checkpoint exists; callers must not receive a stale checkpoint
+prefix that excludes later same-revision replacement send rows.
 The SDK records a sanitized trace event with row counts, revision ids, and
 reason only. No migration is required for adding the checkpoint table or store
 methods: conversations without display timeline checkpoints continue to

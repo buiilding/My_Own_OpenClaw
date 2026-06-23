@@ -8257,6 +8257,61 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
+  test('loadDisplayTimeline includes same-revision send rows after an edit replacement', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-keep',
+        payload: { text: 'keep this' },
+      }),
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-edit',
+        payload: { text: 'old text' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'assistant-stale',
+        payload: { text: 'stale answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockAgentRuntimeTransport(),
+    });
+
+    await runtime.load();
+    const baseTimeline = await runtime.loadDisplayTimeline();
+    const checkpoint = await runtime.replaceRows({
+      rows: baseTimeline.rows.slice(0, 1),
+      reason: 'user_edit',
+      baseRevisionId: baseTimeline.revisionId,
+    });
+    await runtime.send({
+      text: 'new text',
+      turnRef: 'turn-edited',
+    });
+
+    const displayTimeline = await runtime.loadDisplayTimeline();
+    expect(displayTimeline.revisionId).toBe(checkpoint.revisionId);
+    expect(displayTimeline.rows.map(row => row.content)).toEqual([
+      'keep this',
+      'new text',
+    ]);
+    expect(displayTimeline.rows[1]).toEqual(expect.objectContaining({
+      revisionId: checkpoint.revisionId,
+      turnRef: 'turn-edited',
+    }));
+  });
+
   test('retryTurn replaces display rows before the retried user and sends normally', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const store = new InMemoryConversationStore();
