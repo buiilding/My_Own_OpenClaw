@@ -65,6 +65,52 @@ function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
   return payload;
 }
 
+function actionsPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> | null {
+  const actions = row.actions;
+  if (!actions || typeof actions !== 'object') {
+    return null;
+  }
+  const payload: Record<string, unknown> = {};
+  if (typeof actions.canEdit === 'boolean') {
+    payload.canEdit = actions.canEdit;
+  }
+  if (typeof actions.editTargetRowId === 'string' || actions.editTargetRowId === null) {
+    payload.editTargetRowId = actions.editTargetRowId;
+  }
+  if (typeof actions.canRetry === 'boolean') {
+    payload.canRetry = actions.canRetry;
+  }
+  if (typeof actions.retryTargetRowId === 'string' || actions.retryTargetRowId === null) {
+    payload.retryTargetRowId = actions.retryTargetRowId;
+  }
+  return Object.keys(payload).length > 0 ? payload : null;
+}
+
+function chatMessageActionsFromPayload(payload: Record<string, unknown>): ChatMessage['actions'] {
+  const actions = recordFromPayloadValue(recordField(payload, 'actions'));
+  if (!actions) {
+    return null;
+  }
+  const normalized: NonNullable<ChatMessage['actions']> = {};
+  const canEdit = recordField(actions, 'canEdit');
+  const editTargetRowId = recordField(actions, 'editTargetRowId');
+  const canRetry = recordField(actions, 'canRetry');
+  const retryTargetRowId = recordField(actions, 'retryTargetRowId');
+  if (typeof canEdit === 'boolean') {
+    normalized.canEdit = canEdit;
+  }
+  if (typeof editTargetRowId === 'string' || editTargetRowId === null) {
+    normalized.editTargetRowId = editTargetRowId;
+  }
+  if (typeof canRetry === 'boolean') {
+    normalized.canRetry = canRetry;
+  }
+  if (typeof retryTargetRowId === 'string' || retryTargetRowId === null) {
+    normalized.retryTargetRowId = retryTargetRowId;
+  }
+  return Object.keys(normalized).length > 0 ? normalized : null;
+}
+
 function displayTextFromRowContent(content: unknown): string {
   return typeof content === 'string' ? content : JSON.stringify(content, null, 2);
 }
@@ -105,6 +151,7 @@ function recordFromPayloadValue(value: unknown): Record<string, unknown> | null 
 function buildUserChatMessage(message: DisplayMessage): ChatMessage {
   const payload = recordPayload(message);
   const attachments = displayAttachmentsFromPayload(payload);
+  const actions = chatMessageActionsFromPayload(payload);
   return {
     id: message.id,
     text: message.text,
@@ -115,12 +162,14 @@ function buildUserChatMessage(message: DisplayMessage): ChatMessage {
     timestamp: message.timestamp,
     isComplete: true,
     ...(attachments.length > 0 ? { attachments } : {}),
+    ...(actions ? { actions } : {}),
   };
 }
 
 function buildAssistantChatMessage(message: DisplayMessage): ChatMessage {
   const payload = recordPayload(message);
   const thinkingText = stringField(payload, 'reasoningText', 'reasoning_text');
+  const actions = chatMessageActionsFromPayload(payload);
   const base = buildAssistantTextChatMessageState({
     id: message.id,
     text: message.text,
@@ -133,6 +182,7 @@ function buildAssistantChatMessage(message: DisplayMessage): ChatMessage {
   return {
     ...base,
     timestamp: message.timestamp,
+    ...(actions ? { actions } : {}),
   };
 }
 
@@ -233,6 +283,10 @@ function buildChatMessagesFromDisplayMessage(message: DisplayMessage): ChatMessa
 
 function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | null {
   const payload = recordPayloadFromRow(row);
+  const actions = actionsPayloadFromRow(row);
+  if (actions) {
+    payload.actions = actions;
+  }
   const revisionId = typeof row.metadata?.revisionId === 'string' ? row.metadata.revisionId : '';
   const timestamp = typeof row.metadata?.timestamp === 'string' ? row.metadata.timestamp : '';
   if (row.type === 'reasoning') {

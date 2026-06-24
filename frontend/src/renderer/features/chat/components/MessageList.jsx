@@ -41,6 +41,7 @@ function MessageList({
 }) {
   const showDevCompactionDebug = isDevUiEnabled();
   const [editingUserMessageId, setEditingUserMessageId] = useState(null);
+  const [editingUserReplayTargetMessageId, setEditingUserReplayTargetMessageId] = useState(null);
   const [editingUserDraft, setEditingUserDraft] = useState('');
   const [submittingUserEdit, setSubmittingUserEdit] = useState(false);
   const messagesEndRef = useRef(null);
@@ -54,11 +55,12 @@ function MessageList({
     enableAgentLoopAutoScroll,
   });
 
-  const handleStartUserEdit = useCallback((messageId, messageText) => {
+  const handleStartUserEdit = useCallback((messageId, messageText, editTargetMessageId = null) => {
     if (!canEditMessages || submittingUserEdit) {
       return;
     }
     setEditingUserMessageId(messageId);
+    setEditingUserReplayTargetMessageId(editTargetMessageId || messageId);
     setEditingUserDraft(messageText || '');
   }, [canEditMessages, submittingUserEdit]);
 
@@ -67,6 +69,7 @@ function MessageList({
       return;
     }
     setEditingUserMessageId(null);
+    setEditingUserReplayTargetMessageId(null);
     setEditingUserDraft('');
   }, [submittingUserEdit]);
 
@@ -80,15 +83,19 @@ function MessageList({
     }
     setSubmittingUserEdit(true);
     try {
-      const result = await onUserEdit(editingUserMessageId, normalizedText);
+      const result = await onUserEdit(
+        editingUserReplayTargetMessageId || editingUserMessageId,
+        normalizedText,
+      );
       if (result !== false) {
         setEditingUserMessageId(null);
+        setEditingUserReplayTargetMessageId(null);
         setEditingUserDraft('');
       }
     } finally {
       setSubmittingUserEdit(false);
     }
-  }, [editingUserDraft, editingUserMessageId, onUserEdit, submittingUserEdit]);
+  }, [editingUserDraft, editingUserMessageId, editingUserReplayTargetMessageId, onUserEdit, submittingUserEdit]);
 
   useEffect(() => {
     if (!editingUserMessageId) {
@@ -97,6 +104,7 @@ function MessageList({
     const stillExists = messages.some((message) => message.id === editingUserMessageId);
     if (!stillExists) {
       setEditingUserMessageId(null);
+      setEditingUserReplayTargetMessageId(null);
       setEditingUserDraft('');
       setSubmittingUserEdit(false);
     }
@@ -118,8 +126,15 @@ function MessageList({
     [messages],
   );
 
+  const messageActionFlag = useCallback((message, key, fallback) => {
+    const value = message?.actions?.[key];
+    return typeof value === 'boolean' ? value : fallback;
+  }, []);
+
   const renderedMessages = useMemo(
     () => messages.flatMap((msg) => {
+      const canRetryMessage = canRetryMessages && messageActionFlag(msg, 'canRetry', true);
+      const canEditMessage = canEditMessages && messageActionFlag(msg, 'canEdit', true);
       const nodes = [
         (
           <MessageItem
@@ -132,8 +147,8 @@ function MessageList({
             enableAssistantActions={enableAssistantActions}
             enableUserActions={enableUserActions}
             disableAssistantActions={disableAssistantActions}
-            canRetryMessage={canRetryMessages}
-            canEditMessage={canEditMessages}
+            canRetryMessage={canRetryMessage}
+            canEditMessage={canEditMessage}
             onAssistantFeedbackChange={onAssistantFeedbackChange}
             onAssistantTryAgain={onAssistantTryAgain}
             isUserEditing={editingUserMessageId === msg.id}
@@ -179,6 +194,7 @@ function MessageList({
       disableAssistantActions,
       canRetryMessages,
       canEditMessages,
+      messageActionFlag,
       onAssistantFeedbackChange,
       onAssistantTryAgain,
       editingUserMessageId,

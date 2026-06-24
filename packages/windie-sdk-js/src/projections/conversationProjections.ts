@@ -1401,6 +1401,47 @@ function rowRevisionId(row: SdkDisplayRow): string | null {
   return typeof revisionId === 'string' && revisionId.trim() ? revisionId.trim() : null;
 }
 
+function stableEditTargetRowId(row: SdkDisplayRow): string {
+  const replacedDisplayRowId = row.metadata?.replacedDisplayRowId;
+  return typeof replacedDisplayRowId === 'string' && replacedDisplayRowId.trim()
+    ? replacedDisplayRowId.trim()
+    : row.id;
+}
+
+function withConversationViewRowActions(row: SdkDisplayRow): SdkDisplayRow {
+  if (row.type === 'user_message') {
+    return {
+      ...row,
+      actions: {
+        ...(row.actions ?? {}),
+        canEdit: true,
+        editTargetRowId: stableEditTargetRowId(row),
+      },
+    };
+  }
+  if (row.type === 'assistant_message') {
+    return {
+      ...row,
+      actions: {
+        ...(row.actions ?? {}),
+        canRetry: row.isStreaming !== true,
+        retryTargetRowId: row.id,
+      },
+    };
+  }
+  if (row.type === 'error') {
+    return {
+      ...row,
+      actions: {
+        ...(row.actions ?? {}),
+        canRetry: true,
+        retryTargetRowId: row.id,
+      },
+    };
+  }
+  return row;
+}
+
 function resolveConversationViewConversationRef(input: ConversationViewBuildInput): string {
   const candidates = [
     input.conversationRef,
@@ -1496,7 +1537,7 @@ export function buildConversationView(input: ConversationViewBuildInput): Conver
   const displayRows = (input.displayRows ?? []).filter(row => (
     row.conversationRef === conversationRef
     && !isInternalConversationLane(row.conversationRef)
-  ));
+  )).map(withConversationViewRowActions);
   const revisionId = resolveConversationViewRevisionId(input, displayRows);
   const currentTurn = currentTurnForView(input, conversationRef);
   const livePhase = conversationViewLiveTurnPhase(currentTurn.phase);
@@ -1532,8 +1573,8 @@ export function buildConversationView(input: ConversationViewBuildInput): Conver
       },
     },
     actions: {
-      canEdit: displayRows.some(row => row.type === 'user_message'),
-      canRetry: presentation.isTerminal && displayRows.some(row => row.type === 'assistant_message' || row.type === 'error'),
+      canEdit: displayRows.some(row => row.actions?.canEdit === true),
+      canRetry: presentation.isTerminal && displayRows.some(row => row.actions?.canRetry === true),
       canFork: displayRows.length > 0,
     },
   };

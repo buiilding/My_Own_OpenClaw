@@ -49,6 +49,14 @@ const MessageItem = memo(function MessageItem({
     message,
     enableUserActions,
   ) && !showUserEditComposer;
+  const retryTargetMessageId = typeof message.actions?.retryTargetRowId === 'string'
+    && message.actions.retryTargetRowId.trim()
+    ? message.actions.retryTargetRowId.trim()
+    : null;
+  const editTargetMessageId = typeof message.actions?.editTargetRowId === 'string'
+    && message.actions.editTargetRowId.trim()
+    ? message.actions.editTargetRowId.trim()
+    : null;
 
   return (
     <div className={messageClass}>
@@ -73,6 +81,7 @@ const MessageItem = memo(function MessageItem({
         <AssistantMessageActions
           messageId={message.id}
           messageText={message.text}
+          tryAgainMessageId={retryTargetMessageId}
           feedback={message.feedback ?? null}
           disabled={disableAssistantActions}
           visible={!disableAssistantActions}
@@ -85,6 +94,7 @@ const MessageItem = memo(function MessageItem({
         <UserMessageActions
           messageId={message.id}
           messageText={message.text}
+          editTargetMessageId={editTargetMessageId}
           canEdit={canEditMessage}
           onEdit={onStartUserEdit}
         />

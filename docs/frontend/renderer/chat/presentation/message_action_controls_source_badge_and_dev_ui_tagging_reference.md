@@ -37,8 +37,11 @@ Assistant action row render conditions:
 - `message.type` is not `tool-call` and not `tool-output`
 - Try again command rendering also requires `canRetryMessages === true`, which
   `ChatInterface` derives from `ConversationView.actions.canRetry` once a SDK
-  view exists. Copy and feedback controls remain renderer-local affordances and
-  stay visible when retry is disabled.
+  view exists, plus per-row `message.actions.canRetry !== false`. When
+  `message.actions.retryTargetRowId` is present, Try again dispatches that
+  stable SDK row id instead of the visible message id. Copy and feedback
+  controls remain renderer-local affordances and stay visible when retry is
+  disabled.
 
 User action row render conditions:
 
@@ -47,8 +50,10 @@ User action row render conditions:
 - row is not currently in inline-edit composer mode
 - edit/resend command rendering also requires `canEditMessages === true`, which
   `ChatInterface` derives from `ConversationView.actions.canEdit` once a SDK
-  view exists. Copy remains renderer-local and stays visible when edit is
-  disabled.
+  view exists, plus per-row `message.actions.canEdit !== false`. When
+  `message.actions.editTargetRowId` is present, inline editing stays anchored to
+  the visible row while submit dispatches that stable SDK row id to replay. Copy
+  remains renderer-local and stays visible when edit is disabled.
 
 Inline user editor behavior:
 
@@ -167,10 +172,13 @@ Per-message token telemetry tag:
 - try-again callback receives assistant message id
 - disabled `ConversationView.actions.canRetry` hides Try again while preserving
   copy/feedback controls
+- SDK row `retryTargetRowId` is used for Try again dispatch when present
 - copy success icon/title reverts after 4-second timer
 - user edit flow opens inline composer and dispatches edited message
 - disabled `ConversationView.actions.canEdit` hides edit/resend while preserving
   user copy controls
+- SDK row `editTargetRowId` is used for edit/resend submit while the visible row
+  remains in editor mode
 - user cancel closes editor without callback
 
 Coverage note:

@@ -272,6 +272,40 @@ describe('MessageList assistant actions', () => {
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
   });
 
+  test('try-again dispatches the SDK row retry target when present', () => {
+    jest.useFakeTimers();
+    const onAssistantTryAgain = jest.fn();
+
+    render(
+      <MessageList
+        messages={[
+          {
+            id: 'assistant-visible',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            actions: {
+              canRetry: true,
+              retryTargetRowId: 'assistant-stable-target',
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+        onAssistantTryAgain={onAssistantTryAgain}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+
+    expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-stable-target');
+  });
+
   test('submits user message edits and keeps the editor busy until replay dispatch resolves', async () => {
     let resolveEdit;
     const onUserEdit = jest.fn(() => new Promise((resolve) => {
@@ -324,6 +358,41 @@ describe('MessageList assistant actions', () => {
 
     expect(screen.getByRole('button', { name: 'Copy user message' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Edit and resend' })).not.toBeInTheDocument();
+  });
+
+  test('submits user edits against the SDK row edit target while editing the visible row', async () => {
+    const onUserEdit = jest.fn(async () => true);
+
+    render(
+      <MessageList
+        messages={[
+          {
+            id: 'user-visible-replacement',
+            text: 'replacement text',
+            sender: 'user',
+            type: 'user',
+            actions: {
+              canEdit: true,
+              editTargetRowId: 'user-original-target',
+            },
+          },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={onUserEdit}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit and resend' }));
+    expect(screen.getByDisplayValue('replacement text')).toBeInTheDocument();
+    fireEvent.change(screen.getByDisplayValue('replacement text'), {
+      target: { value: 'second edit' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await waitFor(() => {
+      expect(onUserEdit).toHaveBeenCalledWith('user-original-target', 'second edit');
+    });
   });
 
   test('keeps user message editor open when replay dispatch reports failure', async () => {

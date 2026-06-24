@@ -13,6 +13,7 @@ const ACTION_REVEAL_DELAY_MS = 2000;
 function AssistantMessageActions({
   messageId,
   messageText,
+  tryAgainMessageId = null,
   feedback = null,
   disabled = false,
   visible = true,
@@ -64,7 +65,7 @@ function AssistantMessageActions({
     if (!canTryAgain || disabled || typeof onTryAgain !== 'function') {
       return;
     }
-    onTryAgain(messageId);
+    onTryAgain(tryAgainMessageId || messageId);
   };
 
   return (
@@ -125,6 +126,7 @@ function AssistantMessageActions({
 AssistantMessageActions.propTypes = {
   messageId: PropTypes.string.isRequired,
   messageText: PropTypes.string,
+  tryAgainMessageId: PropTypes.string,
   feedback: PropTypes.oneOf(['like', 'dislike', null]),
   disabled: PropTypes.bool,
   visible: PropTypes.bool,

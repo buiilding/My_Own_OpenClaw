@@ -247,9 +247,14 @@ fallback while non-view hosts and later dashboard loaders migrate.
 For the first Phase 4 action migration, renderer chat surfaces read
 `snapshot.view.actions.canEdit` and `snapshot.view.actions.canRetry` when a
 view exists before rendering edit/resend or Try again commands. Message row type
-still provides row-level capability gating, copy/feedback actions remain
-renderer-local affordances, and replay execution still uses the existing
-display-timeline path until the later SDK-owned revision operation replaces it.
+still provides row-level capability gating, and `snapshot.view.displayRows[]`
+now carries row `actions` metadata with `canEdit`/`editTargetRowId` for user
+rows and `canRetry`/`retryTargetRowId` for terminal assistant rows. The renderer
+projects those row targets into chat messages so a replacement row can remain
+the visible edit surface while replay targets the SDK-provided original row
+identity. Copy/feedback actions remain renderer-local affordances, and replay
+execution still uses the existing display-timeline path until the later
+SDK-owned revision operation replaces it.
 
 For debugging, use:
 

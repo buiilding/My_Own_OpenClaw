@@ -11,6 +11,11 @@ All notable changes to WindieOS will be documented in this file.
   remain renderer-local, row type still constrains which rows can show commands,
   and replay execution remains on the existing display-timeline path while the
   later Phase 4 SDK revision operation lands. No migration required.
+- sdk/frontend: add row-level `ConversationView.displayRows[].actions`
+  metadata for edit and retry command capability plus stable target row ids.
+  Renderer display-row projection now carries those targets into chat messages,
+  so replacement rows can open the visible inline editor while replay submits
+  against the SDK-provided original row identity. No migration required.
 - frontend/main, frontend/renderer: persist renderer-managed provider API keys
   through an Electron `safeStorage` encrypted `provider-credentials.json` side
   file while keeping renderer localStorage, `frontend-config.json`, and the
