@@ -28,3 +28,4 @@ provider payloads, credentials, or local filesystem paths.
 | 10 | Electron main app diagnostics | `agent_definition.flow` | `sdk_builder.input` | Records sanitized builder input counts before SDK Agent definition construction. |
 | 11 | Electron main app diagnostics | `agent_definition.flow` | `generated_definition.build` | Records generated definition counts for prompts, tools, skills, plugins, MCP, and repo layers. |
 | 12 | Electron main app diagnostics | `agent_definition.flow` | `supplied_definition.detect` | Records whether the renderer or caller supplied additional Agent definition context. |
+| 13 | Electron main app diagnostics | `agent_definition.flow` | `definition_merge.apply` | Records final merged definition counts after generated and supplied context are combined. |
