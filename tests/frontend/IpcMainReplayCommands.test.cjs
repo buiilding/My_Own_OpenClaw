@@ -239,7 +239,6 @@ describe('ipc.cjs replay command handling', () => {
         userId: 'registered-user-1',
         conversationRef: 'conv-ipc-display',
         sourceRevisionId: 'rev-display',
-        cutAfterRowId: 'row-assistant',
         newConversationRef: 'conv-forked',
       },
     )).resolves.toEqual({
@@ -255,7 +254,7 @@ describe('ipc.cjs replay command handling', () => {
     });
     expect(sdk.runtime.fork).toHaveBeenCalledWith({
       sourceRevisionId: 'rev-display',
-      cutAfterRowId: 'row-assistant',
+      cutAfterRowId: undefined,
       newConversationRef: 'conv-forked',
     });
   });

@@ -663,21 +663,6 @@ describe('ChatInterface wiring', () => {
   });
 
   test('revision menu forks a branch and switches to the forked SDK view', async () => {
-    mockLoadDisplayTimeline.mockResolvedValueOnce({
-      conversationRef: 'conv_existing',
-      revisionId: 'rev-base',
-      createdAt: '2026-06-22T12:00:00.000Z',
-      rows: [
-        {
-          id: 'row-base',
-          conversationRef: 'conv_existing',
-          revisionId: 'rev-base',
-          role: 'user',
-          type: 'user_message',
-          content: 'base branch',
-        },
-      ],
-    });
     render(<ChatInterface />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Conversation revisions' }));
@@ -692,9 +677,10 @@ describe('ChatInterface wiring', () => {
         userId: 'default_user',
         conversationRef: 'conv_existing',
         sourceRevisionId: 'rev-base',
-        cutAfterRowId: 'row-base',
       }));
     });
+    expect(mockForkConversation.mock.calls[0][0]).not.toHaveProperty('cutAfterRowId');
+    expect(mockLoadDisplayTimeline).not.toHaveBeenCalled();
     const forkInput = mockForkConversation.mock.calls[0][0];
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(
       forkInput.newConversationRef,

@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: let `conversation.fork` omit `cutAfterRowId` to fork the whole
+  selected revision. The dashboard revision menu now calls the SDK fork command
+  directly with `sourceRevisionId` and no renderer display-timeline prefetch,
+  so SDK owns the selected revision's display prefix and returned view. No
+  migration required.
 - frontend/main: hydrate newly tracked renderer windows with the cached
   `ConversationView` on the `windie:current-turn` envelope. Fresh renderer
   loads now enter the same view-owned live surface path as normal SDK runtime

@@ -5890,6 +5890,33 @@ describe('Agent SDK conversation runtime core', () => {
       }),
     ]));
 
+    const fullFork = await runtime.fork({
+      sourceRevisionId: 'rev-base',
+      newConversationRef: 'conv-forked-full',
+    });
+    const fullDisplay = await store.loadDisplayTimeline?.({
+      conversationRef: 'conv-forked-full',
+      revisionId: fullFork.revisionId,
+    });
+    const fullModelHistory = await store.loadModelHistory?.({
+      conversationRef: 'conv-forked-full',
+      revisionId: fullFork.revisionId,
+    });
+
+    expect(fullFork.cutAfterRowId).toBe('display-user-2');
+    expect(fullFork.displayRowCount).toBe(3);
+    expect(fullFork.modelHistoryRowCount).toBe(3);
+    expect(fullDisplay?.rows.map(row => row.id)).toEqual([
+      'display-user-1',
+      'display-assistant-1',
+      'display-user-2',
+    ]);
+    expect(fullModelHistory?.rows.map(row => row.content)).toEqual([
+      'first question',
+      'first answer',
+      'second question',
+    ]);
+
     await store.appendEvent(createConversationEvent({
       type: 'user_message',
       conversationRef: 'conv-forked',

@@ -423,7 +423,7 @@ function buildAgentSdkCommandHandlers({
       return runtimeRegistry.forkConversation({
         conversationRef,
         sourceRevisionId: normalizeOptionalString(payload.sourceRevisionId) ?? undefined,
-        cutAfterRowId: requireCommandString(payload, 'cutAfterRowId', 'fork cut row id'),
+        cutAfterRowId: normalizeOptionalString(payload.cutAfterRowId) ?? undefined,
         newConversationRef: requireCommandString(payload, 'newConversationRef', 'new conversation reference'),
       });
     },

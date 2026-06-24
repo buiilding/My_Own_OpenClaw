@@ -498,7 +498,7 @@ conversation.loadDisplayTimeline({ revisionId? })
 conversation.loadModelHistory({ revisionId? })
 conversation.listRevisions({ limit? })
 conversation.replaceRows({ rows, baseRevisionId, reason })
-conversation.fork({ sourceRevisionId, cutAfterRowId, newConversationRef })
+conversation.fork({ sourceRevisionId, cutAfterRowId?, newConversationRef })
 conversation.checkoutRevision({ revisionId })
 ```
 
@@ -509,8 +509,11 @@ navigation calls that command/service boundary instead of reconstructing
 display prefixes or model-history rows in renderer code. The dashboard
 revision menu lists sanitized revision metadata, checks out selected revisions
 from the returned SDK `ConversationView`, and forks selected revisions by
-cutting at the selected revision's display timeline row before applying the
-forked SDK view to the newly active conversation. Diagnostics can inspect a
+calling the SDK fork command with the selected `sourceRevisionId`. When
+`cutAfterRowId` is omitted, the SDK resolves the selected revision's last
+display row and returns the forked SDK view to the newly active conversation,
+so renderer code does not load display timelines just to reconstruct a branch
+prefix. Diagnostics can inspect a
 selected branch view with
 `<windie> conversation view <conversation-ref> --revision <revision-id>` and
 can inspect the matching storage ownership state with
@@ -596,13 +599,15 @@ Fork uses the same display timeline boundary. `conversation.fork(...)` copies
 the selected display prefix into a new conversation revision with reason
 `fork`, copies only model-history rows whose `sourceDisplayRowIds` are wholly
 inside that prefix, and leaves the source branch unmodified aside from a
-sanitized runtime trace. Store metadata must list fork children from their
-active display checkpoint even before the child has raw events; after the child
-continues, the forked display prefix can still provide the title while newer
-child events provide the last-message tail. Forked `ConversationView` loads
-from the child display checkpoint and starts idle until that child branch has
-its own runtime events; source-branch display rows and model-history checkpoints
-remain inspectable by revision id.
+sanitized runtime trace. If callers omit `cutAfterRowId`, the SDK uses the last
+display row in the selected source revision so whole-revision fork UI does not
+need to load display rows first. Store metadata must list fork children from
+their active display checkpoint even before the child has raw events; after the
+child continues, the forked display prefix can still provide the title while
+newer child events provide the last-message tail. Forked `ConversationView`
+loads from the child display checkpoint and starts idle until that child branch
+has its own runtime events; source-branch display rows and model-history
+checkpoints remain inspectable by revision id.
 
 When a display timeline row already represents a raw event under a stable row
 id or `metadata.eventId`, runtime snapshots must not append a second visible
@@ -944,7 +949,7 @@ Fork is also a revision operation rather than a raw-event rewrite:
 
 ```text
 load source display timeline
-  -> copy rows through cutAfterRowId into newConversationRef
+  -> copy rows through cutAfterRowId, or the whole source revision when omitted
   -> copy matching bounded model-history rows into the child revision
   -> continue the child conversation independently
 ```

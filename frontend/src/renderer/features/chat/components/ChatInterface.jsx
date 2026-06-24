@@ -528,21 +528,10 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     setRevisionActionId(`fork:${revisionId}`);
     setRevisionError(null);
     try {
-      const timeline = await DesktopConversationContinuityService.loadDisplayTimeline(
-        sessionInfo.userId || 'default_user',
-        activeConversationRef,
-        revisionId,
-      );
-      const rows = Array.isArray(timeline?.rows) ? timeline.rows : [];
-      const cutAfterRowId = rows[rows.length - 1]?.id;
-      if (!cutAfterRowId) {
-        throw new Error('Cannot fork a revision without display rows');
-      }
       const result = await DesktopConversationContinuityService.forkConversation({
         userId: sessionInfo.userId || 'default_user',
         conversationRef: activeConversationRef,
         sourceRevisionId: revisionId,
-        cutAfterRowId,
         newConversationRef: buildForkConversationRef(activeConversationRef, revisionId),
       });
       const nextConversationRef = result?.conversationRef;

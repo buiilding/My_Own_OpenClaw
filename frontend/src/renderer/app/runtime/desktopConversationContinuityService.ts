@@ -230,7 +230,7 @@ export const DesktopConversationContinuityService = {
         userId: input.userId,
         conversationRef: input.conversationRef,
         sourceRevisionId: input.sourceRevisionId,
-        cutAfterRowId: input.cutAfterRowId,
+        cutAfterRowId: input.cutAfterRowId ?? null,
         newConversationRef: input.newConversationRef,
       },
     );

@@ -882,19 +882,22 @@ class SdkConversationRuntime {
         if (newConversationRef === this.options.conversationRef) {
             throw new Error('fork requires a distinct newConversationRef');
         }
-        if (!input.cutAfterRowId || !input.cutAfterRowId.trim()) {
-            throw new Error('fork requires cutAfterRowId');
-        }
         if (!this.options.store.replaceDisplayTimeline) {
             throw new Error('fork requires a display timeline capable conversation store');
         }
         const sourceTimeline = await this.loadDisplayTimeline({
             revisionId: input.sourceRevisionId ?? null,
         });
+        const cutAfterRowId = typeof input.cutAfterRowId === 'string' && input.cutAfterRowId.trim()
+            ? input.cutAfterRowId.trim()
+            : sourceTimeline.rows[sourceTimeline.rows.length - 1]?.id ?? '';
+        if (!cutAfterRowId) {
+            throw new Error('fork requires at least one source display row');
+        }
         const newRevisionId = (0, events_js_1.createRuntimeId)('rev');
         const createdAt = new Date().toISOString();
         const displayRows = rowsForFork(sourceTimeline.rows, {
-            cutAfterRowId: input.cutAfterRowId.trim(),
+            cutAfterRowId,
             newConversationRef,
             newRevisionId,
         });
@@ -942,7 +945,7 @@ class SdkConversationRuntime {
                 sourceRevisionId: sourceTimeline.revisionId,
                 conversationRef: newConversationRef,
                 revisionId: newRevisionId,
-                cutAfterRowId: input.cutAfterRowId,
+                cutAfterRowId,
                 displayRowCount: displayRows.length,
                 modelHistoryRowCount,
             },
@@ -952,7 +955,7 @@ class SdkConversationRuntime {
             revisionId: newRevisionId,
             sourceConversationRef: this.options.conversationRef,
             sourceRevisionId: sourceTimeline.revisionId,
-            cutAfterRowId: input.cutAfterRowId,
+            cutAfterRowId,
             displayTimeline: displayCheckpoint,
             displayRowCount: displayRows.length,
             modelHistoryRowCount,
