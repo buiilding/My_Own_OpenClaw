@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: add the SDK-owned conversation view contract plan for narrowing
+  normal renderer/main UI state to one active SDK projection while keeping raw
+  events, internal lanes, model history, and diagnostics behind explicit
+  boundaries. No migration required.
 - frontend/main, frontend/renderer: scope floating response-overlay ownership to
   the active user conversation. Internal `conv-agent-*` SDK current-turn
   projections are ignored by the native responsebox controller, and inactive
