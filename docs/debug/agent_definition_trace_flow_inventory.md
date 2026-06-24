@@ -32,3 +32,4 @@ provider payloads, credentials, or local filesystem paths.
 | 14 | Electron main app diagnostics | `agent_definition.flow` | `payload_attachment.prepare` | Records that the query payload is ready to receive sanitized Agent definition context. |
 | 15 | Electron main app diagnostics | `agent_definition.flow` | `payload_attachment.complete` | Records final Agent definition attachment before the payload leaves Electron main. |
 | 16 | SDK durable turn trace | `agent_definition.sdk_flow` | `source_payload.snapshot` | Records source payload key count before resource and Agent definition enrichment. |
+| 17 | SDK durable turn trace | `agent_definition.sdk_flow` | `resources.resolve` | Records resource payload and metadata key counts after turn resource resolution. |
