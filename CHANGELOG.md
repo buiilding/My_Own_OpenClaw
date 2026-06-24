@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: add the Desktop UI Config Store Authority plan for replacing the
+  duplicate Electron-main desktop UI config cache with a single main-owned
+  config store runtime, keeping disk as persistence only while query-time Agent
+  settings read from the live store. No migration required.
 - frontend/main, frontend/renderer: persist renderer-managed provider API keys
   through an Electron `safeStorage` encrypted `provider-credentials.json` side
   file while keeping renderer localStorage, `frontend-config.json`, and the
