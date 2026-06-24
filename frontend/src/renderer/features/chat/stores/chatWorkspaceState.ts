@@ -2,7 +2,10 @@
  * Provides the chat workspace state module for the renderer UI.
  */
 
-import type { CurrentTurnProjection } from '../../../app/runtime/desktopConversationRuntimeContracts';
+import type {
+  ConversationView,
+  CurrentTurnProjection,
+} from '../../../app/runtime/desktopConversationRuntimeContracts';
 import type {
   ChatMessage,
   PendingTurn,
@@ -35,6 +38,7 @@ export interface ChatWorkspaceState {
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
   currentTurnProjection: CurrentTurnProjection | null;
+  conversationView: ConversationView | null;
   pendingTurn: PendingTurn | null;
   supersededTurnRefs: Record<string, true>;
 }
@@ -50,6 +54,7 @@ interface ChatWorkspaceStoreSnapshot {
   tokenCounts?: TokenCounts | null;
   streamTracking?: StreamTracking;
   currentTurnProjection?: CurrentTurnProjection | null;
+  conversationView?: ConversationView | null;
   pendingTurn?: PendingTurn | null;
   supersededTurnRefs?: Record<string, true>;
 }
@@ -112,6 +117,7 @@ export function createInitialWorkspaceState(): ChatWorkspaceState {
     tokenCounts: null,
     streamTracking: createInitialStreamTracking(),
     currentTurnProjection: null,
+    conversationView: null,
     pendingTurn: null,
     supersededTurnRefs: {},
   };
@@ -133,6 +139,7 @@ function buildActiveWorkspaceSnapshot(state: ChatWorkspaceStoreSnapshot): ChatWo
     tokenCounts: state.tokenCounts ?? null,
     streamTracking: state.streamTracking ?? createInitialStreamTracking(),
     currentTurnProjection: state.currentTurnProjection ?? null,
+    conversationView: state.conversationView ?? null,
     pendingTurn: state.pendingTurn ?? null,
     supersededTurnRefs: state.supersededTurnRefs ?? {},
   };
@@ -151,6 +158,7 @@ function doesWorkspaceMatch(
     && workspace.tokenCounts === activeWorkspace.tokenCounts
     && workspace.streamTracking === activeWorkspace.streamTracking
     && workspace.currentTurnProjection === activeWorkspace.currentTurnProjection
+    && workspace.conversationView === activeWorkspace.conversationView
     && workspace.pendingTurn === activeWorkspace.pendingTurn
     && workspace.supersededTurnRefs === activeWorkspace.supersededTurnRefs
   );

@@ -6,6 +6,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main, frontend/renderer: migrate the response overlay to the SDK
+  `ConversationView` authority. Direct SDK snapshots now carry
+  `view`/`viewDiagnostics` through the current-turn IPC payload, renderer
+  workspace state stores the latest conversation view, `MinimalResponseOverlay`
+  renders `view.liveTurn.entries`, and Electron main applies
+  `view.surfaces.responseOverlay` before falling back to raw current-turn
+  overlay intent. This keeps stale awaiting snapshots and internal lanes from
+  shrinking or re-owning the native responsebox after visible response content
+  exists. No migration required for persisted data.
 - sdk/runtime: add the Phase 0 SDK `ConversationView` projection alongside
   existing snapshots, with `getView()`/`subscribeView()` APIs, normal UI
   filtering for internal `conv-agent-*` lanes, and separated build diagnostics

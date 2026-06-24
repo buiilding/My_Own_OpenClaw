@@ -35,6 +35,7 @@ describe('chatSelectors', () => {
       compactionDebugInfo: activeWorkspace.compactionDebugInfo,
       tokenCounts: activeWorkspace.tokenCounts,
       currentTurnProjection: activeWorkspace.currentTurnProjection,
+      conversationView: null,
       pendingTurn: activeWorkspace.pendingTurn,
     });
     expect(projectDesktopChatInterfaceState(activeWorkspace)).not.toHaveProperty('streamTracking');
@@ -76,6 +77,7 @@ describe('chatSelectors', () => {
       compactionDebugInfo: null,
       tokenCounts: { total_tokens: 42 },
       currentTurnProjection: null,
+      conversationView: null,
       pendingTurn: null,
     });
     expect(selectChatInterfaceState(state)).not.toHaveProperty('streamTracking');

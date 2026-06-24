@@ -5,6 +5,8 @@
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 import type {
+  ConversationView,
+  ConversationViewBuildDiagnostics,
   CurrentTurnProjection,
   SdkDisplayRow,
 } from './desktopConversationRuntimeContracts';
@@ -17,6 +19,8 @@ export type DesktopRuntimeEventListener = (payload: unknown) => void;
 
 export type DesktopCurrentTurnProjectionEvent = {
   currentTurn: CurrentTurnProjection | null;
+  view: ConversationView | null;
+  viewDiagnostics: ConversationViewBuildDiagnostics | null;
   conversationRef: string | null;
 };
 
@@ -70,6 +74,27 @@ function isSdkDisplayRows(value: unknown): value is SdkDisplayRow[] {
   return Array.isArray(value) && value.every(isSdkDisplayRow);
 }
 
+function isConversationView(value: unknown): value is ConversationView {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const view = value as Partial<ConversationView>;
+  return typeof view.conversationRef === 'string'
+    && Boolean(view.liveTurn && typeof view.liveTurn === 'object')
+    && Array.isArray(view.liveTurn.entries)
+    && Boolean(view.surfaces && typeof view.surfaces === 'object')
+    && Boolean(view.surfaces.responseOverlay && typeof view.surfaces.responseOverlay === 'object');
+}
+
+function isConversationViewBuildDiagnostics(value: unknown): value is ConversationViewBuildDiagnostics {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const diagnostics = value as Partial<ConversationViewBuildDiagnostics>;
+  return typeof diagnostics.liveTurnPhase === 'string'
+    && typeof diagnostics.responseOverlayMode === 'string';
+}
+
 function resolveRowsConversationRef(rows: SdkDisplayRow[]): string | null {
   for (const row of rows) {
     const conversationRef = normalizeOptionalString(row.conversationRef);
@@ -87,15 +112,28 @@ function normalizeCurrentTurnProjectionEvent(
   const currentTurn = isCurrentTurnProjection(payload)
     ? payload
     : source.currentTurn;
-  if (!isCurrentTurnProjection(currentTurn)) {
+  const view = isConversationView(source.view) ? source.view : null;
+  const viewDiagnostics = isConversationViewBuildDiagnostics(source.viewDiagnostics)
+    ? source.viewDiagnostics
+    : null;
+  if (!isCurrentTurnProjection(currentTurn) && !view) {
     return {
       currentTurn: null,
+      view: null,
+      viewDiagnostics: null,
       conversationRef: null,
     };
   }
   return {
-    currentTurn,
-    conversationRef: normalizeOptionalString(source.conversationRef) ?? currentTurn.conversationRef,
+    currentTurn: isCurrentTurnProjection(currentTurn) ? currentTurn : null,
+    view,
+    viewDiagnostics,
+    conversationRef: (
+      normalizeOptionalString(source.conversationRef)
+      ?? (isCurrentTurnProjection(currentTurn) ? currentTurn.conversationRef : null)
+      ?? view?.conversationRef
+      ?? null
+    ),
   };
 }
 

@@ -60,6 +60,8 @@ useChatStore.setState = (partial, replace) => {
       ...partial,
       currentTurnProjection,
       latestCurrentTurnProjection: currentTurnProjection,
+      conversationView: null,
+      latestConversationView: null,
     }, replace);
   }
   if (
@@ -198,6 +200,8 @@ export function setChatState(messages) {
     pendingTurn: null,
     currentTurnProjection,
     latestCurrentTurnProjection: currentTurnProjection,
+    conversationView: null,
+    latestConversationView: null,
   });
 }
 
@@ -208,6 +212,8 @@ export function emitOverlayPhase(phase) {
     useChatStore.setState({
       currentTurnProjection,
       latestCurrentTurnProjection: currentTurnProjection,
+      conversationView: null,
+      latestConversationView: null,
     });
   });
 }

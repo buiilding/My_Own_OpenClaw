@@ -224,6 +224,66 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('uses conversation view response overlay surface over stale awaiting projection', () => {
+    const state = resolveLiveTurnPresentationInput({
+      conversationView: {
+        conversationRef: 'conv-1',
+        liveTurn: {
+          turnRef: 'turn-2',
+          phase: 'streaming',
+          isBusy: true,
+          entries: [{
+            id: 'entry-view-response',
+            sender: 'assistant',
+            type: 'llm-text',
+            text: 'view response',
+            turnRef: 'turn-2',
+          }],
+        },
+        surfaces: {
+          responseOverlay: {
+            visible: true,
+            mode: 'response',
+            guardRef: 'turn-2',
+            ownerConversationRef: 'conv-1',
+            turnRef: 'turn-2',
+          },
+        },
+      },
+      currentTurnProjection: {
+        phase: 'awaiting',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        assistantText: '',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'streaming',
+      source: 'conversation-view',
+      useConversationViewPresentation: true,
+      overlayIntent: {
+        visible: true,
+        mode: 'response',
+        turnRef: 'turn-2',
+        conversationRef: 'conv-1',
+        staleGuardRef: 'turn-2',
+      },
+      entries: [
+        expect.objectContaining({
+          id: 'entry-view-response',
+          text: 'view response',
+        }),
+      ],
+    });
+  });
+
   test('keeps visible SDK content in response mode while phase is still awaiting', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {

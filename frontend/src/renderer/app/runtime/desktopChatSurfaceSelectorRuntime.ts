@@ -9,6 +9,7 @@ type DesktopChatWorkspaceProjection = {
   compactionDebugInfo?: unknown | null;
   tokenCounts?: unknown | null;
   currentTurnProjection?: unknown | null;
+  conversationView?: unknown | null;
   pendingTurn?: unknown | null;
 };
 
@@ -22,6 +23,7 @@ function projectDesktopChatInterfaceState(
     compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,
     tokenCounts: activeWorkspace.tokenCounts ?? null,
     currentTurnProjection: activeWorkspace.currentTurnProjection ?? null,
+    conversationView: activeWorkspace.conversationView ?? null,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };
 }
@@ -29,13 +31,16 @@ function projectDesktopChatInterfaceState(
 function projectDesktopLiveTurnSurfaceState({
   activeWorkspace,
   latestCurrentTurnProjection,
+  latestConversationView,
 }: {
   activeWorkspace: DesktopChatWorkspaceProjection;
   latestCurrentTurnProjection?: unknown | null;
+  latestConversationView?: unknown | null;
 }) {
   return {
     messages: activeWorkspace.messages,
     currentTurnProjection: latestCurrentTurnProjection || activeWorkspace.currentTurnProjection || null,
+    conversationView: latestConversationView || activeWorkspace.conversationView || null,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };
 }

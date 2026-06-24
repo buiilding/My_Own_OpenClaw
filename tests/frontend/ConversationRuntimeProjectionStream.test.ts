@@ -335,4 +335,65 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     }));
     expect(workspace.pendingTurn).toBeNull();
   });
+
+  test('stores conversation view from SDK current-turn payload', () => {
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+    useChatStore.getState().setActiveConversationRef('conv-1');
+    const view = {
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      displayRows: [],
+      liveTurn: {
+        turnRef: 'turn-view',
+        phase: 'streaming',
+        entries: [{
+          id: 'entry-view',
+          sender: 'assistant',
+          type: 'llm-text',
+          text: 'visible from view',
+          turnRef: 'turn-view',
+        }],
+        isBusy: true,
+        isTerminal: false,
+        canStop: true,
+      },
+      surfaces: {
+        pill: { mode: 'busy' },
+        dashboard: { mode: 'busy' },
+        responseOverlay: {
+          mode: 'response',
+          visible: true,
+          guardRef: 'turn-view',
+          ownerConversationRef: 'conv-1',
+          turnRef: 'turn-view',
+        },
+      },
+      actions: {
+        canEdit: false,
+        canRetry: false,
+        canFork: false,
+      },
+    };
+
+    act(() => {
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-1',
+        currentTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-view',
+          phase: 'streaming',
+          assistantText: 'visible from projection',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+        view,
+      });
+    });
+
+    const state = useChatStore.getState();
+    const workspace = state.getWorkspaceState('conv-1');
+    expect(workspace.conversationView).toBe(view);
+    expect(state.latestConversationView).toBe(view);
+  });
 });

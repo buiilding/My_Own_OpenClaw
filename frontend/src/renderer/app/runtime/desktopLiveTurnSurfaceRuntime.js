@@ -29,6 +29,15 @@ const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
   idle: getIdleResponseOverlayPhase(),
 });
 
+const CONVERSATION_VIEW_PHASE_TO_SURFACE_PHASE = Object.freeze({
+  awaiting: getAwaitingFirstChunkResponseOverlayPhase(),
+  streaming: getStreamingResponseOverlayPhase(),
+  tool: getToolCallResponseOverlayPhase(),
+  complete: getCompleteResponseOverlayPhase(),
+  error: getErrorResponseOverlayPhase(),
+  idle: getIdleResponseOverlayPhase(),
+});
+
 const VISIBLE_LIFECYCLE_STATUS_TO_SURFACE_PHASE = Object.freeze({
   local_pending: getAwaitingFirstChunkResponseOverlayPhase(),
   awaiting: getAwaitingFirstChunkResponseOverlayPhase(),
@@ -90,6 +99,49 @@ function hasSdkLiveTurnPresentation(currentTurnProjection) {
   );
 }
 
+function hasConversationViewLiveTurnPresentation(conversationView) {
+  return Boolean(
+    conversationView
+      && typeof conversationView === 'object'
+      && conversationView.liveTurn
+      && typeof conversationView.liveTurn === 'object'
+      && Array.isArray(conversationView.liveTurn.entries),
+  );
+}
+
+function mapConversationViewPhase(phase) {
+  return CONVERSATION_VIEW_PHASE_TO_SURFACE_PHASE[normalizePhase(phase)] ?? null;
+}
+
+function resolveConversationViewOverlayIntent(conversationView) {
+  const responseOverlay = conversationView?.surfaces?.responseOverlay;
+  const rawMode = normalizePhase(responseOverlay?.mode);
+  const mode = rawMode === 'typing'
+    ? 'awaiting'
+    : rawMode === 'response' || rawMode === 'hidden'
+      ? rawMode
+      : 'hidden';
+  const turnRef = (
+    normalizeTurnRef(responseOverlay?.turnRef)
+    || normalizeTurnRef(conversationView?.liveTurn?.turnRef)
+  );
+  const conversationRef = (
+    normalizeConversationRef(responseOverlay?.ownerConversationRef)
+    || normalizeConversationRef(conversationView?.conversationRef)
+  );
+  const staleGuardRef = (
+    normalizeTurnRef(responseOverlay?.guardRef)
+    || turnRef
+  );
+  return {
+    visible: responseOverlay?.visible === true && mode !== 'hidden',
+    mode,
+    turnRef,
+    conversationRef,
+    staleGuardRef,
+  };
+}
+
 function hasProjectionVisibleOverlayContent(currentTurnProjection) {
   const presentation = currentTurnProjection?.presentation;
   const entries = Array.isArray(presentation?.entries) ? presentation.entries : [];
@@ -146,14 +198,17 @@ function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
 
 function resolveLiveTurnPresentationInput({
   currentTurnProjection = null,
+  conversationView = null,
   pendingTurn = null,
   messages = [],
   visibleTurnLifecycle = null,
 } = {}) {
   const useSdkLiveTurnPresentation = hasSdkLiveTurnPresentation(currentTurnProjection);
+  const useConversationViewPresentation = hasConversationViewLiveTurnPresentation(conversationView);
   const resolvedVisibleTurnLifecycle = visibleTurnLifecycle ?? resolveVisibleTurnLifecycle({
     pendingTurn,
     currentTurnProjection,
+    conversationView,
     messages,
   });
   const useLocalPendingTurn = resolvedVisibleTurnLifecycle?.status === 'local_pending';
@@ -171,6 +226,7 @@ function resolveLiveTurnPresentationInput({
       source: 'pending-turn',
       useLocalPendingTurn: true,
       useSdkLiveTurnPresentation,
+      useConversationViewPresentation: false,
       overlayIntent: {
         visible: true,
         mode: 'awaiting',
@@ -191,6 +247,27 @@ function resolveLiveTurnPresentationInput({
   );
   const lifecycleIsBusy = resolvedVisibleTurnLifecycle?.isBusy === true;
 
+  if (useConversationViewPresentation) {
+    const overlayIntent = resolveConversationViewOverlayIntent(conversationView);
+    const phase = (
+      mapConversationViewPhase(conversationView.liveTurn?.phase)
+      || visibleLifecyclePhase
+    );
+    return {
+      phase,
+      isBusy: conversationView.liveTurn?.isBusy === true,
+      source: 'conversation-view',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation,
+      useConversationViewPresentation: true,
+      overlayIntent,
+      entries: conversationView.liveTurn.entries,
+      turnRef: overlayIntent.turnRef || conversationView.liveTurn?.turnRef || null,
+      conversationRef: overlayIntent.conversationRef || conversationView.conversationRef || null,
+      guardRef: overlayIntent.staleGuardRef || overlayIntent.turnRef || conversationView.liveTurn?.turnRef || null,
+    };
+  }
+
   if (useSdkLiveTurnPresentation) {
     const presentation = currentTurnProjection.presentation;
     const overlayIntent = resolveSdkOverlayIntent(presentation, currentTurnProjection);
@@ -200,6 +277,7 @@ function resolveLiveTurnPresentationInput({
       source: 'sdk-current-turn',
       useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: true,
+      useConversationViewPresentation: false,
       overlayIntent,
       entries: Array.isArray(presentation.entries) ? presentation.entries : [],
       turnRef: overlayIntent.turnRef || currentTurnProjection?.turnRef || null,
@@ -220,6 +298,7 @@ function resolveLiveTurnPresentationInput({
       source: 'current-turn',
       useLocalPendingTurn: false,
       useSdkLiveTurnPresentation: false,
+      useConversationViewPresentation: false,
       overlayIntent,
       entries: [],
       turnRef: overlayIntent.turnRef || currentTurnProjection?.turnRef || null,
@@ -234,6 +313,7 @@ function resolveLiveTurnPresentationInput({
     source: 'idle',
     useLocalPendingTurn: false,
     useSdkLiveTurnPresentation: false,
+    useConversationViewPresentation: false,
     overlayIntent: null,
     entries: [],
     turnRef: null,
@@ -243,6 +323,7 @@ function resolveLiveTurnPresentationInput({
 }
 
 export const DesktopLiveTurnSurfaceRuntime = Object.freeze({
+  resolveConversationViewOverlayIntent,
   resolveLiveTurnPresentationInput,
   resolveSdkOverlayIntent,
 });

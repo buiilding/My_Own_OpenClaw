@@ -36,8 +36,9 @@ rather than the React component that happens to render the symptom.
 - Renderer code must not directly own loop-wide interactivity toggles. It may
   report normal drag/hit-test intent for the pill and response shell; Electron
   main applies native policy.
-- Minimal chat pill awaiting state comes from SDK
-  `currentTurnProjection.presentation`;
+- Minimal chat pill awaiting state comes from SDK `ConversationView`
+  live-turn/surface projection, with `currentTurnProjection.presentation` only
+  as migration fallback;
   overlay phase must not decide typing, busy, stop, or response content state.
 - Native response overlay show paths must pass the Electron main
   surface-ownership gate. The floating response overlay and typing shell may
@@ -77,7 +78,7 @@ sequenceDiagram
     Producer->>SDKLifecycle: before local pointer/screenshot tool
     SDKLifecycle->>Windows: lease-scoped click-through/protection
     MainHandler->>Windows: response overlay visibility mode
-    Renderer->>Renderer: render from SDK currentTurnProjection.presentation
+    Renderer->>Renderer: render from SDK ConversationView liveTurn/surfaces
 ```
 
 ## Change Sequence
@@ -184,11 +185,13 @@ Read these files before changing what the user sees:
 
 Renderer rules:
 
-- Derive visible layout from SDK `currentTurnProjection.presentation`. Do not
-  add timers or renderer phase listeners that compete with SDK current-turn
+- Derive visible layout from SDK `ConversationView` live-turn entries and
+  response-overlay surface mode, falling back to
+  `currentTurnProjection.presentation` only for non-migrated hosts. Do not add
+  timers or renderer phase listeners that compete with SDK view/current-turn
   state.
-- Project SDK current-turn presentation entries into the shared chat message
-  model and render them with the same message components used by the dashboard.
+- Project SDK view/current-turn presentation entries into the shared chat
+  message model and render them with the same message components used by the dashboard.
   The minimal response overlay may apply compact shell styling, scrolling, hit
   testing, and size reporting, but it must not keep a separate markdown,
   thinking, tool-call, tool-output, or source-badge content renderer.

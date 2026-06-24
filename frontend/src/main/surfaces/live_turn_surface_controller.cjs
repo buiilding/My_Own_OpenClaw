@@ -48,6 +48,49 @@ function isInternalAgentConversationRef(value) {
   return Boolean(normalized && normalized.startsWith('conv-agent-'));
 }
 
+function resolveCurrentTurnFromInput(input) {
+  if (!input || typeof input !== 'object') {
+    return null;
+  }
+  if (input.currentTurn && typeof input.currentTurn === 'object') {
+    return input.currentTurn;
+  }
+  return input;
+}
+
+function resolveConversationViewFromInput(input) {
+  if (!input || typeof input !== 'object' || !input.view || typeof input.view !== 'object') {
+    return null;
+  }
+  return input.view;
+}
+
+function resolveOverlayIntentFromConversationView(conversationView) {
+  const responseOverlay = conversationView?.surfaces?.responseOverlay;
+  if (!responseOverlay || typeof responseOverlay !== 'object') {
+    return null;
+  }
+  const rawMode = normalizeString(responseOverlay.mode);
+  const mode = rawMode === 'typing'
+    ? 'awaiting'
+    : rawMode === 'response' || rawMode === 'hidden'
+      ? rawMode
+      : null;
+  if (!mode) {
+    return null;
+  }
+  const turnRef = normalizeString(responseOverlay.turnRef)
+    || normalizeString(conversationView?.liveTurn?.turnRef);
+  return {
+    visible: responseOverlay.visible === true && mode !== 'hidden',
+    mode,
+    turnRef,
+    staleGuardRef: normalizeString(responseOverlay.guardRef) || turnRef,
+    conversationRef: normalizeString(responseOverlay.ownerConversationRef)
+      || normalizeString(conversationView?.conversationRef),
+  };
+}
+
 function resolveOverlayIntent(currentTurn) {
   const presentation = currentTurn?.presentation;
   const intent = presentation?.overlayIntent;
@@ -224,6 +267,8 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
   } = deps;
 
   const sdkSurfaceState = surfaceState || createSdkLiveTurnSurfaceState();
+  const conversationView = resolveConversationViewFromInput(currentTurn);
+  const resolvedCurrentTurn = resolveCurrentTurnFromInput(currentTurn);
 
   if (!responseWindow || responseWindow.isDestroyed?.()) {
     return { success: false, reason: 'response-window-unavailable' };
@@ -232,10 +277,11 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     return { success: false, reason: 'response-bounds-unavailable' };
   }
 
-  const intent = resolveOverlayIntent(currentTurn);
+  const intent = resolveOverlayIntentFromConversationView(conversationView)
+    || resolveOverlayIntent(resolvedCurrentTurn);
   if (!intent) {
     logLiveSurfaceTrace('response_overlay.intent.ignored', {
-      ...summarizeCurrentTurn(currentTurn),
+      ...summarizeCurrentTurn(resolvedCurrentTurn),
       source: 'sdk-live-turn-surface',
       reason: 'missing-sdk-overlay-intent',
       responseWindow: summarizeWindow(responseWindow, 'response overlay'),
@@ -300,7 +346,7 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     };
   }
 
-  logSdkTypingTransition(currentTurn, intent, sdkSurfaceState);
+  logSdkTypingTransition(resolvedCurrentTurn, intent, sdkSurfaceState);
 
   const activeGuardRef = normalizeString(getActiveResponseOverlayGuardRef());
   if (!intent.visible || intent.mode === 'hidden') {

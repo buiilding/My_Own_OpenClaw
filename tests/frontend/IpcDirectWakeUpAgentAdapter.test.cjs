@@ -129,11 +129,12 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     const runtime = createRuntime();
     const agent = createAgent(() => runtime);
     const pendingTurn = { conversationRef: 'conv-agent-1', turnRef: 'turn-1' };
+    const syncSdkLiveTurnSurfaceIntent = jest.fn();
     const deps = createDeps({
       getLatestPendingTurn: jest.fn(() => pendingTurn),
       pendingTurnMatchesCurrentTurn: jest.fn(() => true),
       buildConversationTerminalStatus: jest.fn(() => ({ phase: 'complete' })),
-      getSyncSdkLiveTurnSurfaceIntent: jest.fn(() => jest.fn()),
+      getSyncSdkLiveTurnSurfaceIntent: jest.fn(() => syncSdkLiveTurnSurfaceIntent),
       isDebugFlagEnabled: jest.fn(() => true),
     });
 
@@ -150,6 +151,24 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
           conversationRef: 'conv-agent-1',
           turnRef: 'turn-1',
           phase: 'streaming',
+        },
+        view: {
+          conversationRef: 'conv-agent-1',
+          liveTurn: {
+            turnRef: 'turn-1',
+            phase: 'streaming',
+            entries: [],
+            isBusy: true,
+          },
+          surfaces: {
+            responseOverlay: {
+              mode: 'response',
+              visible: true,
+              guardRef: 'turn-1',
+              ownerConversationRef: 'conv-agent-1',
+              turnRef: 'turn-1',
+            },
+          },
         },
       },
     );
@@ -176,8 +195,18 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     );
     expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
       DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN,
-      expect.objectContaining({ turnRef: 'turn-1' }),
+      expect.objectContaining({
+        conversationRef: 'conv-agent-1',
+        currentTurn: expect.objectContaining({ turnRef: 'turn-1' }),
+        view: expect.objectContaining({
+          conversationRef: 'conv-agent-1',
+        }),
+      }),
     );
+    expect(syncSdkLiveTurnSurfaceIntent).toHaveBeenCalledWith(expect.objectContaining({
+      currentTurn: expect.objectContaining({ turnRef: 'turn-1' }),
+      view: expect.objectContaining({ conversationRef: 'conv-agent-1' }),
+    }));
     expect(deps.setLatestCurrentTurnProjection).toHaveBeenCalledWith(expect.objectContaining({
       turnRef: 'turn-1',
     }));
@@ -228,7 +257,9 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     );
     expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
       DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN,
-      expect.objectContaining({ turnRef: 'turn-1', phase: 'awaiting' }),
+      expect.objectContaining({
+        currentTurn: expect.objectContaining({ turnRef: 'turn-1', phase: 'awaiting' }),
+      }),
     );
   });
 

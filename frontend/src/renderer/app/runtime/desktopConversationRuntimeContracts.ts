@@ -23,6 +23,8 @@ export type {
   CompactedReplaySnapshot,
   ConversationEvent,
   ConversationMetadata,
+  ConversationView,
+  ConversationViewBuildDiagnostics,
   CurrentTurnProjection,
   CurrentTurnToolEvent,
   DisplayConversation,
