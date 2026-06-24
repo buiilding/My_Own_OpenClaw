@@ -53,3 +53,4 @@ provider payloads, credentials, or local filesystem paths.
 | 35 | SDK durable turn trace | `agent_definition.sdk_flow` | `backend_dispatch.handoff` | Records the sanitized handoff boundary immediately before backend send. |
 | 36 | Backend durable stream trace | `agent_definition.backend_flow` | `query.receive` | Records that backend session processing received context-bearing query data. |
 | 37 | Backend durable stream trace | `agent_definition.backend_flow` | `agent_definition.receive` | Records whether an Agent definition reached hosted session processing. |
+| 38 | Backend durable stream trace | `agent_definition.backend_flow` | `runtime_context.resolve` | Records OS/workspace runtime context presence without local paths. |
