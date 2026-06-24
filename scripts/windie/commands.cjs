@@ -151,6 +151,7 @@ const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'DesktopConversationStore.test.ts',
   'DesktopConversationContinuityService.test.ts',
   'AgentConversationStoreApi.test.ts',
+  'AgentSdkClient.test.ts',
   'AgentSdkConversationRuntime.test.ts',
   'AgentSdkCjsConversationRuntime.test.cjs',
   'ConversationRuntimeProjectionStream.test.ts',

@@ -475,6 +475,14 @@ conversation.fork({ sourceRevisionId, cutAfterRowId, newConversationRef })
 conversation.checkoutRevision({ revisionId })
 ```
 
+Electron main and renderer hosts expose those same revision primitives through
+SDK-shaped commands: `conversation.checkoutRevision` and `conversation.fork`.
+Normal UI branch navigation should call that command/service boundary instead
+of reconstructing display prefixes or model-history rows in renderer code.
+This command exposure starts the Phase 5 migration; a branch browser or
+revision checkout UI still has to consume the resulting SDK view rather than
+raw event timelines.
+
 Do not implement separate role/message/tool interpretation inside each adapter.
 The adapter methods are API conveniences; they must delegate to shared SDK
 projection builders or to a complete active compacted replay snapshot. This

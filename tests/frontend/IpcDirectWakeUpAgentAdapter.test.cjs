@@ -39,6 +39,23 @@ function createRuntime(overrides = {}) {
       turnRef: input.turnRef,
       queryMessageId: 'msg-retry',
     })),
+    checkoutRevision: jest.fn(async input => ({
+      displayTimeline: {
+        conversationRef: 'conv-replay',
+        revisionId: input.revisionId,
+        rows: [],
+      },
+      modelHistoryCheckpoint: null,
+    })),
+    fork: jest.fn(async input => ({
+      conversationRef: input.newConversationRef,
+      revisionId: 'rev-forked',
+      sourceConversationRef: 'conv-replay',
+      sourceRevisionId: input.sourceRevisionId,
+      cutAfterRowId: input.cutAfterRowId,
+      displayRowCount: 2,
+      modelHistoryRowCount: 2,
+    })),
     close: jest.fn(),
     ...overrides,
   };
@@ -391,6 +408,49 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     expect(runtime.load).toHaveBeenCalledTimes(2);
   });
 
+  test('forwards revision checkout and fork commands through the selected conversation handle', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps: createDeps(),
+    });
+
+    await expect(adapter.checkoutRevision({
+      conversationRef: 'conv-replay',
+      revisionId: 'rev-child',
+    })).resolves.toEqual({
+      displayTimeline: {
+        conversationRef: 'conv-replay',
+        revisionId: 'rev-child',
+        rows: [],
+      },
+      modelHistoryCheckpoint: null,
+    });
+
+    await expect(adapter.forkConversation({
+      conversationRef: 'conv-replay',
+      sourceRevisionId: 'rev-child',
+      cutAfterRowId: 'row-assistant',
+      newConversationRef: 'conv-forked',
+      revisionId: 'ignored-active-revision',
+      store: { ignored: true },
+    })).resolves.toEqual(expect.objectContaining({
+      conversationRef: 'conv-forked',
+      revisionId: 'rev-forked',
+    }));
+
+    expect(runtime.checkoutRevision).toHaveBeenCalledWith({
+      revisionId: 'rev-child',
+    });
+    expect(runtime.fork).toHaveBeenCalledWith({
+      sourceRevisionId: 'rev-child',
+      cutAfterRowId: 'row-assistant',
+      newConversationRef: 'conv-forked',
+    });
+    expect(runtime.load).toHaveBeenCalledTimes(2);
+  });
+
   test('SDK library conversation methods reject removed snake_case conversation aliases', async () => {
     const runtime = createRuntime();
     const agent = createAgent(() => runtime);
@@ -416,6 +476,10 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     await expect(adapter.editAndResend({ conversation_ref: 'conv-legacy' }))
       .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
     await expect(adapter.retryTurn({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.checkoutRevision({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.forkConversation({ conversation_ref: 'conv-legacy' }))
       .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
 
     expect(agent.deleteConversation).not.toHaveBeenCalled();

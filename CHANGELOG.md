@@ -6,6 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: expose revision checkout and fork through SDK-shaped
+  `conversation.checkoutRevision` and `conversation.fork` commands across the
+  Electron main bridge, direct wake-up adapter, renderer continuity service,
+  and `AgentChatSession`. The runtime already owned the display/model-history
+  revision mutations; this makes normal host/UI callers use that same boundary
+  instead of future branch navigation inventing a renderer-side path. No
+  migration required.
 - sdk/frontend: route renderer edit/resend and Try again execution through
   SDK `conversation.editAndResend` and `conversation.retryTurn` commands. The
   renderer still publishes the temporary retained-prefix pending row for

@@ -411,6 +411,28 @@ function createDirectWakeUpAgentAdapter({
       await reloadRuntimeSnapshot(handle);
       return result;
     },
+    checkoutRevision: async (options = {}) => {
+      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const handle = getConversationRuntimeHandle(displayConversationRef);
+      const result = await handle.runtime.checkoutRevision({
+        revisionId: normalizeOptionalString(options.revisionId),
+      });
+      await reloadRuntimeSnapshot(handle);
+      return result;
+    },
+    forkConversation: async (options = {}) => {
+      const displayConversationRef = resolveSdkCommandConversationRef(options);
+      const handle = getConversationRuntimeHandle(displayConversationRef);
+      const input = { ...options };
+      delete input.conversationRef;
+      delete input.revisionId;
+      delete input.revision_id;
+      delete input.store;
+      const result = await handle.runtime.fork(input);
+      markInferenceContextStale(displayConversationRef);
+      await reloadRuntimeSnapshot(handle);
+      return result;
+    },
     wakewordDetected: payload => agent.wakewordDetected(payload),
     ensureConnected: () => agent.ensureConnected(),
     isConnected: () => agent.isConnected(),

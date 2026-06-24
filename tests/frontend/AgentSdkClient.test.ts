@@ -5266,7 +5266,24 @@ describe('Agent SDK client behavior', () => {
         screenshot_ref: 'artifact-edit',
       },
     });
+    const editedTimeline = await conversation.loadDisplayTimeline();
+    await expect(conversation.checkoutRevision({
+      revisionId: editedTimeline.revisionId,
+    })).resolves.toEqual(expect.objectContaining({
+      displayTimeline: expect.objectContaining({
+        revisionId: editedTimeline.revisionId,
+      }),
+    }));
+    await expect(conversation.fork({
+      sourceRevisionId: editedTimeline.revisionId,
+      cutAfterRowId: editedTimeline.rows[0]?.id as string,
+      newConversationRef: 'conv-runtime-fork',
+    })).resolves.toEqual(expect.objectContaining({
+      conversationRef: 'conv-runtime-fork',
+      sourceConversationRef: 'conv-runtime-public',
+    }));
     await agent.deleteConversation('conv-runtime-public');
+    await agent.deleteConversation('conv-runtime-fork');
     await expect(agent.listConversations()).resolves.toEqual([]);
   });
 

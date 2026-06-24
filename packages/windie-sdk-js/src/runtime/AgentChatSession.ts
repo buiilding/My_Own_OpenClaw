@@ -16,6 +16,8 @@ import type {
   ConversationEventListener,
   ConversationListener,
   ConversationSnapshot,
+  CheckoutRevisionInput,
+  CheckoutRevisionResult,
   EditAndResendInput,
   ForkConversationInput,
   ForkConversationResult,
@@ -89,6 +91,10 @@ export class AgentChatSession {
 
   async replaceRows(input: ReplaceRowsInput): Promise<DisplayTimelineCheckpoint> {
     return this.runtime.replaceRows(input);
+  }
+
+  async checkoutRevision(input: CheckoutRevisionInput): Promise<CheckoutRevisionResult> {
+    return this.runtime.checkoutRevision(input);
   }
 
   async fork(input: ForkConversationInput): Promise<ForkConversationResult> {

@@ -391,6 +391,32 @@ function buildAgentSdkCommandHandlers({
         model: cloneJsonObject(payload.model),
       });
     },
+    [SDK_RUNTIME_COMMANDS.CONVERSATION_CHECKOUT_REVISION]: async (payload = {}) => {
+      requireCommandUserId(payload, deps.getState().currentUserId);
+      const conversationRef = requireCommandConversationRef(payload);
+      const runtimeRegistry = await deps.ensureAgent({
+        reason: 'sdk-command:conversation.checkoutRevision',
+        conversationRef,
+      });
+      return runtimeRegistry.checkoutRevision({
+        conversationRef,
+        revisionId: requireCommandString(payload, 'revisionId', 'revision id'),
+      });
+    },
+    [SDK_RUNTIME_COMMANDS.CONVERSATION_FORK]: async (payload = {}) => {
+      requireCommandUserId(payload, deps.getState().currentUserId);
+      const conversationRef = requireCommandConversationRef(payload);
+      const runtimeRegistry = await deps.ensureAgent({
+        reason: 'sdk-command:conversation.fork',
+        conversationRef,
+      });
+      return runtimeRegistry.forkConversation({
+        conversationRef,
+        sourceRevisionId: normalizeOptionalString(payload.sourceRevisionId) ?? undefined,
+        cutAfterRowId: requireCommandString(payload, 'cutAfterRowId', 'fork cut row id'),
+        newConversationRef: requireCommandString(payload, 'newConversationRef', 'new conversation reference'),
+      });
+    },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_COMPACTED_REPLAY]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
       const snapshot = isPlainObject(payload.snapshot) ? payload.snapshot : null;

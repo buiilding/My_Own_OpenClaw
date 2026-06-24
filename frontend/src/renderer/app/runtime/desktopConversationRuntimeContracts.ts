@@ -41,7 +41,11 @@ export type {
   ConversationMetadataInvalidationListener,
 } from '../../../../../packages/windie-sdk-js/src/runtime/ConversationContinuityService.js';
 export type {
+  CheckoutRevisionInput,
+  CheckoutRevisionResult,
   EditAndResendInput,
+  ForkConversationInput,
+  ForkConversationResult,
   RetryTurnInput,
   TurnResult,
 } from '../../../../../packages/windie-sdk-js/src/runtime/ConversationRuntime.js';

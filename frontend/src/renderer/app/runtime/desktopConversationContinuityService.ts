@@ -9,7 +9,11 @@ import {
   type DisplayTimelineCheckpoint,
   type DisplayTimelineReplaceReason,
   type DisplayTimelineRow,
+  type CheckoutRevisionInput,
+  type CheckoutRevisionResult,
   type EditAndResendInput,
+  type ForkConversationInput,
+  type ForkConversationResult,
   type RetryTurnInput,
   type SdkDisplayRow,
   type ConversationView,
@@ -59,6 +63,16 @@ type EditAndResendCommandInput = EditAndResendInput & {
 };
 
 type RetryTurnCommandInput = RetryTurnInput & {
+  userId: string;
+  conversationRef: string;
+};
+
+type CheckoutRevisionCommandInput = CheckoutRevisionInput & {
+  userId: string;
+  conversationRef: string;
+};
+
+type ForkConversationCommandInput = ForkConversationInput & {
   userId: string;
   conversationRef: string;
 };
@@ -178,6 +192,30 @@ export const DesktopConversationContinuityService = {
         turnRef: input.turnRef,
         payload: input.payload,
         model: input.model,
+      },
+    );
+  },
+
+  async checkoutRevision(input: CheckoutRevisionCommandInput): Promise<CheckoutRevisionResult> {
+    return invokeAgentSdkCommand<CheckoutRevisionResult>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_CHECKOUT_REVISION,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        revisionId: input.revisionId,
+      },
+    );
+  },
+
+  async forkConversation(input: ForkConversationCommandInput): Promise<ForkConversationResult> {
+    return invokeAgentSdkCommand<ForkConversationResult>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_FORK,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        sourceRevisionId: input.sourceRevisionId,
+        cutAfterRowId: input.cutAfterRowId,
+        newConversationRef: input.newConversationRef,
       },
     );
   },

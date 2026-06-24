@@ -266,6 +266,100 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
+  test('checkoutRevision routes revision selection through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          displayTimeline: {
+            conversationRef: 'conv-display',
+            revisionId: 'rev-child',
+            rows: [],
+          },
+          modelHistoryCheckpoint: null,
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.checkoutRevision({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        revisionId: 'rev-child',
+      })).resolves.toEqual(expect.objectContaining({
+        displayTimeline: expect.objectContaining({
+          revisionId: 'rev-child',
+        }),
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.checkoutRevision',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          revisionId: 'rev-child',
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('forkConversation routes revision forks through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          conversationRef: 'conv-forked',
+          revisionId: 'rev-forked',
+          sourceConversationRef: 'conv-display',
+          sourceRevisionId: 'rev-base',
+          cutAfterRowId: 'row-assistant',
+          displayRowCount: 2,
+          modelHistoryRowCount: 2,
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.forkConversation({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        sourceRevisionId: 'rev-base',
+        cutAfterRowId: 'row-assistant',
+        newConversationRef: 'conv-forked',
+      })).resolves.toEqual(expect.objectContaining({
+        conversationRef: 'conv-forked',
+        revisionId: 'rev-forked',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.fork',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          sourceRevisionId: 'rev-base',
+          cutAfterRowId: 'row-assistant',
+          newConversationRef: 'conv-forked',
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
   test('compactHistory routes through the SDK runtime transport', async () => {
     const send = jest.fn();
     const originalIpc = window.ipc;

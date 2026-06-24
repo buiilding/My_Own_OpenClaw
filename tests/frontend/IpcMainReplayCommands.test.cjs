@@ -41,6 +41,23 @@ describe('ipc.cjs replay command handling', () => {
         turnRef: input.turnRef,
         queryMessageId: 'msg-retry',
       })),
+      checkoutRevision: jest.fn(async input => ({
+        displayTimeline: {
+          conversationRef: 'conv-ipc-display',
+          revisionId: input.revisionId,
+          rows: [],
+        },
+        modelHistoryCheckpoint: null,
+      })),
+      fork: jest.fn(async input => ({
+        conversationRef: input.newConversationRef,
+        revisionId: 'rev-forked',
+        sourceConversationRef: 'conv-ipc-display',
+        sourceRevisionId: input.sourceRevisionId || 'rev-display',
+        cutAfterRowId: input.cutAfterRowId,
+        displayRowCount: 2,
+        modelHistoryRowCount: 2,
+      })),
       close: jest.fn(),
     };
     const agent = {
@@ -184,6 +201,55 @@ describe('ipc.cjs replay command handling', () => {
       turnRef: 'turn-retry',
       payload: { screenshot_ref: 'artifact-one' },
       model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
+    });
+  });
+
+  test('routes revision checkout and fork through the Agent SDK runtime adapter', async () => {
+    const sdk = installMockAgentClient();
+    const bridge = initIpc();
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.checkoutRevision',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        revisionId: 'rev-child',
+      },
+    )).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        displayTimeline: expect.objectContaining({
+          revisionId: 'rev-child',
+        }),
+      }),
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.fork',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        sourceRevisionId: 'rev-display',
+        cutAfterRowId: 'row-assistant',
+        newConversationRef: 'conv-forked',
+      },
+    )).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        conversationRef: 'conv-forked',
+        revisionId: 'rev-forked',
+      }),
+    });
+
+    expect(sdk.runtime.checkoutRevision).toHaveBeenCalledWith({
+      revisionId: 'rev-child',
+    });
+    expect(sdk.runtime.fork).toHaveBeenCalledWith({
+      sourceRevisionId: 'rev-display',
+      cutAfterRowId: 'row-assistant',
+      newConversationRef: 'conv-forked',
     });
   });
 });
