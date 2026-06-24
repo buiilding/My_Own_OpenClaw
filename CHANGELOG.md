@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- skills: add a runtime tracing skill that documents when to use durable
+  conversation traces, persistent app diagnostics, or gated live-surface traces
+  for repeatable long-running agent loop evidence. No migration required.
 - frontend/main: replace the duplicate desktop UI config cache and persistence
   helper with a single Electron-main desktop UI config store. Query-time Agent
   definition assembly, settings sync, MCP registry reads, shortcut fallback
