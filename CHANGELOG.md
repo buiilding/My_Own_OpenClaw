@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/main: keep internal `conv-agent-*` lanes hidden in `ConversationView`
+  projection and remove Electron main's ad hoc responsebox conversation-name
+  filter. Main now applies only the SDK view surface intent and generic
+  owner/guard checks; internal-lane visibility policy belongs to the SDK view.
+  No migration required.
 - frontend/renderer: suppress raw `currentTurnProjection` in dashboard chat
   selectors whenever a `ConversationView` exists. The dashboard now enters its
   live-row, busy, Stop, and action wiring with the SDK view as the only normal

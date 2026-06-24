@@ -9595,4 +9595,47 @@ describe('Agent SDK conversation runtime core', () => {
     expect(view.surfaces.responseOverlay.ownerConversationRef).toBe('conv-sdk-runtime');
     expect(diagnostics.filteredInternalLaneCount).toBe(1);
   });
+
+  test('conversation view keeps internal-only lanes hidden from normal surfaces', () => {
+    const internalEvent = createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-agent-worker',
+      revisionId: 'rev-internal',
+      turnRef: 'turn-internal',
+      source: 'sdk',
+      payload: { text: 'internal bookkeeping' },
+    });
+    const events = [internalEvent];
+    const currentTurn = buildCurrentTurnProjection(events);
+    const view = buildConversationView({
+      conversationRef: 'conv-agent-worker',
+      revisionId: 'rev-internal',
+      events,
+      displayRows: buildDisplayRows(events),
+      currentTurn,
+    });
+
+    expect(currentTurn.conversationRef).toBe('conv-agent-worker');
+    expect(view).toMatchObject({
+      conversationRef: 'conv-agent-worker',
+      displayRows: [],
+      liveTurn: {
+        turnRef: null,
+        phase: 'idle',
+        entries: [],
+        isBusy: false,
+        canStop: false,
+      },
+      surfaces: {
+        pill: { mode: 'idle' },
+        dashboard: { mode: 'idle' },
+        responseOverlay: {
+          mode: 'hidden',
+          visible: false,
+          ownerConversationRef: 'conv-agent-worker',
+          turnRef: null,
+        },
+      },
+    });
+  });
 });

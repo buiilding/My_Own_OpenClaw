@@ -43,11 +43,6 @@ function normalizeString(value) {
   return normalized || null;
 }
 
-function isInternalAgentConversationRef(value) {
-  const normalized = normalizeString(value);
-  return Boolean(normalized && normalized.startsWith('conv-agent-'));
-}
-
 function resolveCurrentTurnFromInput(input) {
   if (!input || typeof input !== 'object') {
     return null;
@@ -264,39 +259,6 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       responseWindow: summarizeWindow(responseWindow, 'response overlay'),
     });
     return { success: true, applied: false, reason: 'missing-conversation-view-overlay-intent' };
-  }
-
-  if (isInternalAgentConversationRef(intent.conversationRef)) {
-    appendSurfaceVisibilityDiagnostic({
-      action: 'ignore-sdk-overlay-intent-for-internal-conversation',
-      phase: getResponseOverlayPhase(),
-      mode: intent.mode,
-      turnRef: intent.turnRef,
-      conversationRef: intent.conversationRef,
-      staleGuardRef: intent.staleGuardRef,
-      responseWindowVisible: safeWindowVisible(responseWindow),
-      responseOverlayVisibleFlag: getResponseOverlayVisible(),
-    });
-    logLiveSurfaceTrace('response_overlay.intent.ignored', {
-      source: 'sdk-live-turn-surface',
-      reason: 'internal-agent-conversation',
-      turnRef: intent.turnRef,
-      conversationRef: intent.conversationRef,
-      phase: getResponseOverlayPhase(),
-      overlayMode: intent.mode,
-      guardRef: intent.staleGuardRef,
-      responseWindow: summarizeWindow(responseWindow, 'response overlay'),
-    });
-    return {
-      success: true,
-      applied: false,
-      ignored: true,
-      reason: 'internal-agent-conversation',
-      visible: intent.visible,
-      mode: intent.mode,
-      turnRef: intent.turnRef,
-      staleGuardRef: intent.staleGuardRef,
-    };
   }
 
   if (

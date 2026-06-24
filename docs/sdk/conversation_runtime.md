@@ -222,8 +222,11 @@ ConversationView = displayRows + liveTurn + surfaces + actions
 The view filters internal `conv-agent-*` lanes out of normal UI authority. Those
 lanes remain available to diagnostics as counts and raw event/trace inspection,
 but they must not replace the active display rows, live turn, response overlay
-owner, busy state, or action metadata for the user-facing conversation. During
-the migration, existing `snapshot.currentTurn` remains available so
+owner, busy state, or action metadata for the user-facing conversation. If an
+internal lane is the only build input, the SDK view is idle with a hidden
+response overlay; Electron main does not carry a separate `conv-agent-*`
+responsebox-name filter as normal surface policy. During the migration,
+existing `snapshot.currentTurn` remains available so
 renderer/main surfaces can move one at a time; desktop renderer display-row
 facades no longer consume `snapshot.displayRows` as normal UI input.
 The response overlay is migrated first: renderer adapters render

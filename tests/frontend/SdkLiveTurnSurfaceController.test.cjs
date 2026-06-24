@@ -209,34 +209,7 @@ describe('sdk_live_turn_surface_controller', () => {
     }, false);
   });
 
-  test('ignores internal agent conversation intents before they can own the response overlay', () => {
-    const surfaceState = createSdkLiveTurnSurfaceState();
-    const deps = createDeps({ surfaceState });
-
-    const result = handleSdkLiveTurnSurfaceIntent(
-      createSnapshotWithView({
-        viewMode: 'typing',
-        conversationRef: 'conv-agent-internal',
-        turnRef: 'turn-shared',
-      }),
-      deps,
-    );
-
-    expect(result).toMatchObject({
-      success: true,
-      applied: false,
-      ignored: true,
-      reason: 'internal-agent-conversation',
-      mode: 'awaiting',
-      staleGuardRef: 'turn-shared',
-    });
-    expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
-    expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
-    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
-    expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
-  });
-
-  test('keeps a user response overlay when a same-turn internal agent awaiting intent arrives', () => {
+  test('keeps a user response overlay when a same-turn other conversation awaiting intent arrives', () => {
     const surfaceState = createSdkLiveTurnSurfaceState();
     const deps = createDeps({ surfaceState });
 
@@ -251,7 +224,7 @@ describe('sdk_live_turn_surface_controller', () => {
     const internalResult = handleSdkLiveTurnSurfaceIntent(
       createSnapshotWithView({
         viewMode: 'typing',
-        conversationRef: 'conv-agent-internal',
+        conversationRef: 'conv-other',
         turnRef: 'turn-shared',
       }),
       deps,
@@ -265,7 +238,7 @@ describe('sdk_live_turn_surface_controller', () => {
     expect(internalResult).toMatchObject({
       applied: false,
       ignored: true,
-      reason: 'internal-agent-conversation',
+      reason: 'conversation-owner-mismatch',
       mode: 'awaiting',
     });
     expect(deps.responseWindow.setBounds).toHaveBeenCalledTimes(1);
