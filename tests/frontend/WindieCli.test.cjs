@@ -367,6 +367,7 @@ describe('windie CLI', () => {
       cwd: repoRoot,
     });
     expect(userFacingPlan.concurrent[3].args).toEqual(expect.arrayContaining([
+      'AppConfigProvider.storageAndIpc.test.tsx',
       'IpcChatQueryHandlers.test.cjs',
       'IpcSettingsSyncRuntime.test.cjs',
       'IpcAgentDefinitionContext.test.cjs',
