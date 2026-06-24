@@ -27,3 +27,4 @@ provider payloads, credentials, or local filesystem paths.
 | 9 | Electron main app diagnostics | `agent_definition.flow` | `host_os.resolve` | Records platform and host OS labels used for Agent definition runtime context. |
 | 10 | Electron main app diagnostics | `agent_definition.flow` | `sdk_builder.input` | Records sanitized builder input counts before SDK Agent definition construction. |
 | 11 | Electron main app diagnostics | `agent_definition.flow` | `generated_definition.build` | Records generated definition counts for prompts, tools, skills, plugins, MCP, and repo layers. |
+| 12 | Electron main app diagnostics | `agent_definition.flow` | `supplied_definition.detect` | Records whether the renderer or caller supplied additional Agent definition context. |
