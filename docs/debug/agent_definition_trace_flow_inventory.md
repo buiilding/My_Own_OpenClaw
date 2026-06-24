@@ -18,3 +18,4 @@ provider payloads, credentials, or local filesystem paths.
 | --- | --- | --- | --- | --- |
 | 1 | Electron main app diagnostics | `agent_definition.flow` | `desktop_config.snapshot` | Captures whether the live desktop UI config existed before query-time Agent definition assembly. |
 | 2 | Electron main app diagnostics | `agent_definition.flow` | `custom_instructions.collect` | Records custom instruction presence and length without storing the prompt text. |
+| 3 | Electron main app diagnostics | `agent_definition.flow` | `local_tool_policy.collect` | Records disabled local tool count from the live desktop UI config. |
