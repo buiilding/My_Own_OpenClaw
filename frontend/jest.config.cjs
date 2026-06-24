@@ -5,16 +5,17 @@
 const path = require('path');
 
 const babelConfig = path.join(__dirname, 'babel.config.cjs');
+const rootDir = path.resolve(__dirname, '..').replace(/\\/g, '/');
 
 module.exports = {
-  rootDir: '..',
+  rootDir,
   testEnvironment: 'jsdom',
   testMatch: [
-    '<rootDir>/tests/frontend/**/*.test.js',
-    '<rootDir>/tests/frontend/**/*.test.jsx',
-    '<rootDir>/tests/frontend/**/*.test.ts',
-    '<rootDir>/tests/frontend/**/*.test.tsx',
-    '<rootDir>/tests/frontend/**/*.test.cjs',
+    '**/tests/frontend/**/*.test.js',
+    '**/tests/frontend/**/*.test.jsx',
+    '**/tests/frontend/**/*.test.ts',
+    '**/tests/frontend/**/*.test.tsx',
+    '**/tests/frontend/**/*.test.cjs',
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: babelConfig }],

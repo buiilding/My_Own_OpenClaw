@@ -5,10 +5,8 @@
 function initializeIpcStartupState({
   loadInstallAuthStateFromDisk,
   applyInstallAuthState,
-  loadCachedDesktopUiConfigFromDisk,
+  hydrateDesktopUiConfigStore,
   isValidConfigPayload,
-  applyShortcutStatusFallbackToConfig,
-  setLatestDesktopUiConfig,
   setGlobalAgentStopShortcutAccelerator,
   setAgentLoopStopShortcutEnabled,
   getResponseOverlayPhase,
@@ -22,18 +20,16 @@ function initializeIpcStartupState({
     })
     .catch(() => {});
 
-  loadCachedDesktopUiConfigFromDisk()
+  hydrateDesktopUiConfigStore()
     .then((config) => {
       if (!isValidConfigPayload(config)) {
         return;
       }
-      const nextConfig = applyShortcutStatusFallbackToConfig({ ...config });
-      setLatestDesktopUiConfig(nextConfig);
       if (typeof setGlobalAgentStopShortcutAccelerator === 'function') {
-        setGlobalAgentStopShortcutAccelerator(nextConfig.global_agent_stop_shortcut);
+        setGlobalAgentStopShortcutAccelerator(config.global_agent_stop_shortcut);
       }
       if (typeof onDesktopUiConfigLoaded === 'function') {
-        onDesktopUiConfigLoaded(nextConfig);
+        onDesktopUiConfigLoaded(config);
       }
     })
     .catch((error) => {
@@ -52,10 +48,8 @@ function initializeIpcStartupState({
 function createIpcStartupStateRuntime({
   loadInstallAuthStateFromDisk,
   applyInstallAuthState,
-  loadCachedDesktopUiConfigFromDisk,
+  hydrateDesktopUiConfigStore,
   isValidConfigPayload,
-  applyShortcutStatusFallbackToConfig,
-  setLatestDesktopUiConfig,
   setGlobalAgentStopShortcutAccelerator,
   getGlobalAgentStopShortcutAcceleratorSetter,
   setAgentLoopStopShortcutEnabled,
@@ -77,10 +71,8 @@ function createIpcStartupStateRuntime({
     return initializeIpcStartupState({
       loadInstallAuthStateFromDisk,
       applyInstallAuthState,
-      loadCachedDesktopUiConfigFromDisk,
+      hydrateDesktopUiConfigStore,
       isValidConfigPayload,
-      applyShortcutStatusFallbackToConfig,
-      setLatestDesktopUiConfig,
       setGlobalAgentStopShortcutAccelerator: resolvedSetGlobalAgentStopShortcutAccelerator,
       setAgentLoopStopShortcutEnabled: resolvedSetAgentLoopStopShortcutEnabled,
       getResponseOverlayPhase,

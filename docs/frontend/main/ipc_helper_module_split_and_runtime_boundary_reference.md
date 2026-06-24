@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_direct_wake_up_agent_adapter_deps.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_conversation_event_projection.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_response_overlay_phase_runtime.cjs`, `ipc_host_runtime_config.cjs`, `ipc_host_copy_runtime.cjs`, `ipc_host_option_state.cjs`, `ipc_initialization_runtime.cjs`, `ipc_app_diagnostics_runtime.cjs`, `ipc_renderer_windows.cjs`, `ipc_image_interaction_handlers.cjs`, `ipc_process_reset_runtime.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_cache.cjs`, `ipc_live_turn_state.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_agent_backend_event_runtime.cjs`, `ipc_active_query_context.cjs`, `ipc_backend_session_state.cjs`, `ipc_backend_connection_gate_state.cjs`, `ipc_runtime_conversation_ref.cjs`, `ipc_agent_client_lifecycle.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, `ipc_agent_runtime_lifecycle.cjs`, `ipc_agent_sdk_runtime_commands.cjs`, `ipc_backend_message_observers.cjs`, `ipc_status_payloads.cjs`, `ipc_session_context_runtime.cjs`, `ipc_install_auth_context_runtime.cjs`, or `ipc_install_auth_identity_runtime.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_direct_wake_up_agent_adapter_deps.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_conversation_event_projection.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_response_overlay_phase_runtime.cjs`, `ipc_host_runtime_config.cjs`, `ipc_host_copy_runtime.cjs`, `ipc_host_option_state.cjs`, `ipc_initialization_runtime.cjs`, `ipc_app_diagnostics_runtime.cjs`, `ipc_renderer_windows.cjs`, `ipc_image_interaction_handlers.cjs`, `ipc_process_reset_runtime.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_store.cjs`, `ipc_live_turn_state.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_agent_backend_event_runtime.cjs`, `ipc_active_query_context.cjs`, `ipc_backend_session_state.cjs`, `ipc_backend_connection_gate_state.cjs`, `ipc_runtime_conversation_ref.cjs`, `ipc_agent_client_lifecycle.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, `ipc_agent_runtime_lifecycle.cjs`, `ipc_agent_sdk_runtime_commands.cjs`, `ipc_backend_message_observers.cjs`, `ipc_status_payloads.cjs`, `ipc_session_context_runtime.cjs`, `ipc_install_auth_context_runtime.cjs`, or `ipc_install_auth_identity_runtime.cjs`.
   - When changing `ipc_desktop_host_os_runtime.cjs`, the shared host OS resolver consumed by install registration and agent-definition runtime metadata.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
@@ -52,10 +52,9 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
-- `frontend/src/main/ipc/ipc_desktop_ui_config_cache.cjs`
 - `frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
-- `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config_store.cjs`
 - `frontend/src/main/ipc/ipc_global_stop_shortcut_config_runtime.cjs`
 - `frontend/src/main/ipc/ipc_main_process_trace_runtime.cjs`
 - `frontend/src/main/ipc/ipc_mcp_refresh_runtime.cjs`
@@ -821,30 +820,25 @@ Owns persisted desktop UI config disk I/O:
 - `saveDesktopUiConfigToDisk` with tmp-write + rename replacement
 - the persisted filename remains `frontend-config.json` for compatibility
 
-### `ipc_desktop_ui_config_cache.cjs`
+### `ipc_desktop_ui_config_store.cjs`
 
-Owns the Electron-main cached desktop UI config value:
+Owns the Electron-main desktop UI config store around the disk I/O helper:
 
-- stores raw config for settings sync, startup hydration, MCP registry, global
-  shortcut fallback, workspace resolution, and agent-definition context
-- returns cloned validated snapshots for exported main-process callers
-- resets cached config during test shutdown/reset
-- keeps mutable desktop UI config storage out of the `ipc.cjs` relay root
-
-### `ipc_desktop_ui_config_persistence_runtime.cjs`
-
-Owns Electron-main desktop UI config persistence semantics around the disk I/O helper:
-
+- hydrates the live redacted snapshot from disk and keeps disk as persistence
+  rather than query-time authority
+- returns cloned validated snapshots for settings sync, MCP registry, global
+  shortcut fallback, workspace resolution, browser automation checks, and
+  agent-definition context
 - preserves main-owned MCP enablement across renderer saves unless an explicit
   MCP toggle disables preservation
-- falls back to the disk config allowlist when the latest in-memory config does
-  not yet contain the MCP allowlist
-- redacts provider secrets before saving and advances the latest config cache
-  only after successful persistence
+- falls back to the disk config allowlist when the store has not yet hydrated
+  the MCP allowlist
+- redacts provider secrets before saving and advances the live store before
+  awaiting persistence
 - records MCP enablement diagnostics for save success/failure, preservation
   source, and enabled-server counts
-- keeps diagnostic trace-id generation private behind the runtime-owned
-  diagnostic recorder
+- resets stored config during test shutdown/reset and keeps mutable desktop UI
+  config storage out of the `ipc.cjs` relay root
 
 ### `ipc_desktop_ui_config_handlers.cjs`
 
@@ -852,14 +846,14 @@ Owns desktop UI config IPC handler registration while preserving the legacy
 renderer wire channel names:
 
 - exposes `createDesktopUiConfigHandlersRuntime(...)` so `ipc.cjs` composes
-  config load/save, validation, persistence, latest-cache, shortcut fallback,
-  and initialize-time shortcut setter dependencies once
+  config load/save, validation, store persistence, and initialize-time shortcut
+  setter dependencies once
 - keeps lower-level desktop UI config handler registration private behind the
   runtime facade
 - `load-frontend-config`
 - `save-frontend-config`
-- shortcut fallback application while keeping the latest config cache in
-  `ipc_desktop_ui_config_cache.cjs` through injected getters/setters
+- store hydration for load and store persistence for save while preserving the
+  legacy renderer wire channel names
 
 ### `ipc_global_stop_shortcut_config_runtime.cjs`
 
@@ -1071,11 +1065,10 @@ generic `to-backend` router or direct chat query IPC handlers.
 20. IPC-facing app diagnostic append failure handling, including append
     forwarding, diagnostic path logging, and stable failure results, delegates
     to `ipc_app_diagnostics_runtime.cjs`.
-21. desktop UI config disk I/O delegates to `ipc_desktop_ui_config.cjs`, cached
-    config state delegates to `ipc_desktop_ui_config_cache.cjs`, and MCP
-    allowlist preservation, save redaction, latest-cache updates, and
-    enablement diagnostics delegate to
-    `ipc_desktop_ui_config_persistence_runtime.cjs`.
+21. desktop UI config disk I/O delegates to `ipc_desktop_ui_config.cjs`, while
+    live store state, MCP allowlist preservation, save redaction,
+    query-visible store updates, and enablement diagnostics delegate to
+    `ipc_desktop_ui_config_store.cjs`.
 22. SDK-shaped renderer command handler registration delegates to
    `ipc_agent_sdk_command_handlers.cjs`, which owns the `windie:invoke`
    allowlist and dispatches to explicit Agent SDK runtime/conversation methods.

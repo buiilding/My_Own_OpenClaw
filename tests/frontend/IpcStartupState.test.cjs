@@ -21,16 +21,12 @@ function createDeps(overrides = {}) {
       userId: 'user-1',
     })),
     applyInstallAuthState: jest.fn(),
-    loadCachedDesktopUiConfigFromDisk: jest.fn(async () => ({
+    hydrateDesktopUiConfigStore: jest.fn(async () => ({
       speech_mode_enabled: true,
       global_agent_stop_shortcut: 'CommandOrControl+.',
-    })),
-    isValidConfigPayload: jest.fn((config) => Boolean(config && typeof config === 'object')),
-    applyShortcutStatusFallbackToConfig: jest.fn((config) => ({
-      ...config,
       shortcutFallbackApplied: true,
     })),
-    setLatestDesktopUiConfig: jest.fn(),
+    isValidConfigPayload: jest.fn((config) => Boolean(config && typeof config === 'object')),
     setGlobalAgentStopShortcutAccelerator: jest.fn(),
     setAgentLoopStopShortcutEnabled: jest.fn(),
     getResponseOverlayPhase: jest.fn(() => 'active-loop'),
@@ -58,15 +54,7 @@ describe('ipc_startup_state', () => {
       installId: 'install-1',
       userId: 'user-1',
     });
-    expect(deps.applyShortcutStatusFallbackToConfig).toHaveBeenCalledWith({
-      speech_mode_enabled: true,
-      global_agent_stop_shortcut: 'CommandOrControl+.',
-    });
-    expect(deps.setLatestDesktopUiConfig).toHaveBeenCalledWith({
-      speech_mode_enabled: true,
-      global_agent_stop_shortcut: 'CommandOrControl+.',
-      shortcutFallbackApplied: true,
-    });
+    expect(deps.hydrateDesktopUiConfigStore).toHaveBeenCalledTimes(1);
     expect(deps.setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith('CommandOrControl+.');
     expect(deps.onDesktopUiConfigLoaded).toHaveBeenCalledWith({
       speech_mode_enabled: true,
@@ -77,8 +65,9 @@ describe('ipc_startup_state', () => {
 
   test('notifies startup consumers with persisted MCP enablement', async () => {
     const deps = createDeps({
-      loadCachedDesktopUiConfigFromDisk: jest.fn(async () => ({
+      hydrateDesktopUiConfigStore: jest.fn(async () => ({
         agent_enabled_mcp_servers: ['mcp:cua-driver'],
+        shortcutFallbackApplied: true,
       })),
     });
 
@@ -107,7 +96,6 @@ describe('ipc_startup_state', () => {
     initializeWithRuntime(deps);
     await flushPromises();
 
-    expect(deps.setLatestDesktopUiConfig).not.toHaveBeenCalled();
     expect(deps.setGlobalAgentStopShortcutAccelerator).not.toHaveBeenCalled();
     expect(deps.onDesktopUiConfigLoaded).not.toHaveBeenCalled();
   });
@@ -117,7 +105,7 @@ describe('ipc_startup_state', () => {
       loadInstallAuthStateFromDisk: jest.fn(async () => {
         throw new Error('auth read failed');
       }),
-      loadCachedDesktopUiConfigFromDisk: jest.fn(async () => {
+      hydrateDesktopUiConfigStore: jest.fn(async () => {
         throw new Error('config read failed');
       }),
     });
@@ -126,7 +114,6 @@ describe('ipc_startup_state', () => {
     await expect(flushPromises()).resolves.toBeUndefined();
 
     expect(deps.applyInstallAuthState).not.toHaveBeenCalled();
-    expect(deps.setLatestDesktopUiConfig).not.toHaveBeenCalled();
   });
 
   test('runtime resolves initialize-time shortcut callbacks before hydration', async () => {

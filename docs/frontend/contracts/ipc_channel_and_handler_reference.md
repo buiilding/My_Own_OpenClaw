@@ -97,10 +97,10 @@ Behavior:
   `conversation.loadDisplayTimeline`, `conversation.replaceRows`, and
   `wakeword.detected`.
 - `load-frontend-config` -> loads persisted desktop UI config JSON from userData
-  through `ipc_desktop_ui_config_handlers.cjs`
-- `save-frontend-config` -> persists redacted desktop UI config through
-  `ipc_desktop_ui_config_persistence_runtime.cjs`, which preserves the
-  main-owned MCP allowlist unless an explicit MCP toggle disables preservation
+  through the Electron-main desktop UI config store
+- `save-frontend-config` -> persists redacted desktop UI config through the
+  Electron-main desktop UI config store, which preserves the main-owned MCP
+  allowlist unless an explicit MCP toggle disables preservation
 - `get-client-user-id` -> returns websocket user/session endpoint metadata via
   `ipc_client_session_handlers.cjs`
 - `upload-artifact` -> multipart upload to backend HTTP `/api/artifacts/`
