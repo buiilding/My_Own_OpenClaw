@@ -41,7 +41,7 @@ function ChatInterfaceHeaderControls({
   findBarOpen,
   activeWorkspaceName,
   activeWorkspacePath,
-  handleOpenFind,
+  handleToggleFind,
   handleChangeWorkspace,
   devUiEnabled,
   handleProviderSelect,
@@ -203,7 +203,7 @@ function ChatInterfaceHeaderControls({
             className={`chat-top-icon-btn${findBarOpen ? ' is-enabled' : ''}`}
             aria-label="Find in conversation"
             title="Find in conversation"
-            onClick={handleOpenFind}
+            onClick={handleToggleFind}
           >
             <Search size={18} />
           </button>

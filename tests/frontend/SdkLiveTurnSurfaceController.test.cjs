@@ -147,6 +147,75 @@ describe('sdk_live_turn_surface_controller', () => {
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
   });
 
+  test('ignores internal agent conversation intents before they can own the response overlay', () => {
+    const surfaceState = createSdkLiveTurnSurfaceState();
+    const deps = createDeps({ surfaceState });
+
+    const result = handleSdkLiveTurnSurfaceIntent(
+      createCurrentTurn({
+        mode: 'awaiting',
+        conversationRef: 'conv-agent-internal',
+        turnRef: 'turn-shared',
+      }),
+      deps,
+    );
+
+    expect(result).toMatchObject({
+      success: true,
+      applied: false,
+      ignored: true,
+      reason: 'internal-agent-conversation',
+      mode: 'awaiting',
+      staleGuardRef: 'turn-shared',
+    });
+    expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
+    expect(deps.setActiveResponseOverlayGuardRef).not.toHaveBeenCalled();
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
+  });
+
+  test('keeps a user response overlay when a same-turn internal agent awaiting intent arrives', () => {
+    const surfaceState = createSdkLiveTurnSurfaceState();
+    const deps = createDeps({ surfaceState });
+
+    const userResult = handleSdkLiveTurnSurfaceIntent(
+      createCurrentTurn({
+        mode: 'response',
+        conversationRef: 'conv-user',
+        turnRef: 'turn-shared',
+      }),
+      deps,
+    );
+    const internalResult = handleSdkLiveTurnSurfaceIntent(
+      createCurrentTurn({
+        mode: 'awaiting',
+        conversationRef: 'conv-agent-internal',
+        turnRef: 'turn-shared',
+      }),
+      deps,
+    );
+
+    expect(userResult).toMatchObject({
+      applied: true,
+      mode: 'response',
+      staleGuardRef: 'turn-shared',
+    });
+    expect(internalResult).toMatchObject({
+      applied: false,
+      ignored: true,
+      reason: 'internal-agent-conversation',
+      mode: 'awaiting',
+    });
+    expect(deps.responseWindow.setBounds).toHaveBeenCalledTimes(1);
+    expect(deps.responseWindow.setBounds).toHaveBeenCalledWith({
+      x: 10,
+      y: 20,
+      width: 520,
+      height: 236,
+    }, false);
+    expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
+  });
+
   test('falls back from malformed layout contract heights before bounds resolution', () => {
     jest.isolateModules(() => {
       jest.doMock(

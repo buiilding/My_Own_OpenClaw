@@ -24,6 +24,9 @@ describe('chat header appearance CSS', () => {
     expect(lightUtilityBlock).toContain('--chat-utility-text-primary: var(--appearance-foreground);');
     expect(lightUtilityBlock).toContain('--chat-utility-text-secondary: var(--appearance-foreground);');
     expect(lightUtilityBlock).toContain('--chat-utility-label-color: var(--appearance-foreground);');
+    expect(lightUtilityBlock).toContain('--chat-top-icon-active-bg: color-mix(in srgb, var(--appearance-background) 88%, var(--appearance-foreground) 12%);');
+    expect(lightUtilityBlock).toContain('--chat-top-icon-active-border: color-mix(in srgb, var(--appearance-foreground) 24%, transparent 76%);');
+    expect(lightUtilityBlock).toContain('--chat-utility-panel-bg:');
   });
 
   test('routes browser, workspace, selector chevrons, and icon controls through readable light tokens', () => {
@@ -35,6 +38,9 @@ describe('chat header appearance CSS', () => {
     expect(chatCss).toContain('color: var(--chat-utility-text-secondary);');
     expect(chatCss).toContain(":root[data-agent-theme='light'] .chat-provider-selector svg");
     expect(chatCss).toContain('color: var(--appearance-foreground);');
+    expect(chatCss).toContain('background: var(--chat-top-icon-active-bg);');
+    expect(chatCss).toContain('border-color: var(--chat-top-icon-active-border);');
+    expect(chatCss).toContain('box-shadow: var(--chat-top-icon-active-shadow);');
   });
 
   test('routes user message pills through message-specific appearance tokens', () => {

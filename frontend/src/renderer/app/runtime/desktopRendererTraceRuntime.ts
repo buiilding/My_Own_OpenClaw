@@ -235,6 +235,30 @@ export type RendererOverlayViewModelTraceValues = {
     conversationRef?: unknown;
     phase?: unknown;
   } | null;
+  pendingTurn?: {
+    turnRef?: unknown;
+    conversationRef?: unknown;
+    userMessageId?: unknown;
+  } | null;
+  streamTracking?: {
+    activeTurnRef?: unknown;
+    phase?: unknown;
+    lastEventType?: unknown;
+    eventCount?: unknown;
+    chunkCount?: unknown;
+  } | null;
+  visibleTurnLifecycle?: {
+    status?: unknown;
+    source?: unknown;
+    turnRef?: unknown;
+    conversationRef?: unknown;
+    showTyping?: unknown;
+    isBusy?: unknown;
+    terminalReason?: unknown;
+    awaitingAnchor?: {
+      rowId?: unknown;
+    } | null;
+  } | null;
   currentTurnPhase?: unknown;
   overlayIntent?: {
     mode?: unknown;
@@ -845,6 +869,9 @@ function buildRendererOverlayViewModelTracePayload(
   values: RendererOverlayViewModelTraceValues,
 ): Record<string, unknown> {
   const currentTurnProjection = values.currentTurnProjection;
+  const pendingTurn = values.pendingTurn;
+  const streamTracking = values.streamTracking;
+  const visibleTurnLifecycle = values.visibleTurnLifecycle;
   const overlayIntent = values.overlayIntent;
   const currentTurnPresentationState = values.currentTurnPresentationState;
   const responseOverlayEntries = Array.isArray(values.responseOverlayEntries)
@@ -856,10 +883,26 @@ function buildRendererOverlayViewModelTracePayload(
     turnRef: traceString(currentTurnProjection?.turnRef) || null,
     conversationRef: (
       traceString(currentTurnProjection?.conversationRef)
+      || traceString(pendingTurn?.conversationRef)
       || traceString(overlayIntent?.conversationRef)
+      || traceString(visibleTurnLifecycle?.conversationRef)
       || null
     ),
     phase: traceString(currentTurnProjection?.phase) || traceString(values.currentTurnPhase) || null,
+    pendingTurnRef: traceString(pendingTurn?.turnRef) || null,
+    pendingUserMessageId: traceString(pendingTurn?.userMessageId) || null,
+    streamActiveTurnRef: traceString(streamTracking?.activeTurnRef) || null,
+    streamPhase: traceString(streamTracking?.phase) || null,
+    streamLastEventType: traceString(streamTracking?.lastEventType) || null,
+    streamEventCount: traceNumberOrZero(streamTracking?.eventCount),
+    streamChunkCount: traceNumberOrZero(streamTracking?.chunkCount),
+    visibleLifecycleStatus: traceString(visibleTurnLifecycle?.status) || null,
+    visibleLifecycleSource: traceString(visibleTurnLifecycle?.source) || null,
+    visibleLifecycleTurnRef: traceString(visibleTurnLifecycle?.turnRef) || null,
+    visibleLifecycleShowTyping: visibleTurnLifecycle?.showTyping === true,
+    visibleLifecycleBusy: visibleTurnLifecycle?.isBusy === true,
+    visibleLifecycleTerminalReason: traceString(visibleTurnLifecycle?.terminalReason) || null,
+    visibleLifecycleAwaitingRowId: traceString(visibleTurnLifecycle?.awaitingAnchor?.rowId) || null,
     overlayMode: traceString(overlayIntent?.mode) || null,
     guardRef: (
       traceString(overlayIntent?.staleGuardRef)

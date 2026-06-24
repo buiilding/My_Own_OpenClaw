@@ -6,6 +6,37 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: merge the SDK-owned ConversationView contract and SDK View
+  Authority migration direction into one SDK View Authority plan, so one
+  coordinated implementation path defines the SDK-owned UI projection,
+  response overlay, pill, dashboard, edit/resend, fork migration order, and
+  renderer/main deletion targets. No migration required.
+- frontend/renderer: enrich gated response-overlay view-model diagnostics with
+  pending-turn, stream-tracking, and visible-lifecycle identifiers/counts so
+  resend and streaming surface races can be inspected without logging message
+  text, screenshots, file paths, or tool output. No migration required.
+- frontend/main, frontend/renderer: scope floating response-overlay ownership to
+  the active user conversation. Internal `conv-agent-*` SDK current-turn
+  projections are ignored by the native responsebox controller, and inactive
+  workspace projections no longer replace the renderer's global latest
+  current-turn projection. Visible current-turn content resolves to response
+  mode even if a stale awaiting snapshot is still in flight, and same-turn SDK
+  handoff updates the workspace current turn, pending turn, and latest turn in
+  one store mutation, so streamed response content cannot flicker back to the
+  typing shell. No migration required.
+- frontend/renderer: make the dashboard conversation-find header button toggle
+  the find bar closed when it is clicked again, clearing the active query and
+  match state while leaving `Command/Ctrl+F` as an open/refocus shortcut. No
+  migration required.
+- frontend/renderer: keep the light-theme conversation-find button and find bar
+  on appearance-derived light utility surfaces, so opening search no longer
+  shows an accent-heavy square icon state or dark search panel on the light
+  dashboard. No migration required.
+- frontend/main: pin Electron to 41.2.0, the first fixed release for the
+  macOS native-menu `representedObject is not a WeakPtrToElectronMenuModelAsNSObject`
+  warning that appeared when opening conversation find. The package spec is
+  exact so installs do not float to newer 41.x packages with a stricter Node
+  engine than WindieOS's baseline. No migration required.
 - sdk/runtime: make edit/resend and retry emit SDK-owned `turn_superseded`
   events so the old live turn becomes one inert audit lane before the
   replacement goes through the normal `send()` path. Late old-turn backend

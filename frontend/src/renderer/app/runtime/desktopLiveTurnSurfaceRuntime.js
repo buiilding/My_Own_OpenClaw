@@ -59,7 +59,14 @@ function mapCurrentTurnProjectionPhase(phase) {
 
 function resolveVisibleLifecycleSurfacePhase(visibleTurnLifecycle, currentTurnProjection) {
   const status = normalizePhase(visibleTurnLifecycle?.status);
-  if (status === 'active' || status === 'terminal') {
+  if (status === 'active') {
+    const mappedPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase);
+    if (mappedPhase && mappedPhase !== getAwaitingFirstChunkResponseOverlayPhase()) {
+      return mappedPhase;
+    }
+    return getStreamingResponseOverlayPhase();
+  }
+  if (status === 'terminal') {
     return (
       mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
       || VISIBLE_LIFECYCLE_STATUS_TO_SURFACE_PHASE[status]
@@ -104,10 +111,13 @@ function hasProjectionVisibleOverlayContent(currentTurnProjection) {
 }
 
 function resolveSdkOverlayIntentMode(currentTurnProjection) {
+  if (hasProjectionVisibleOverlayContent(currentTurnProjection)) {
+    return 'response';
+  }
   if (normalizePhase(currentTurnProjection?.phase) === 'awaiting') {
     return 'awaiting';
   }
-  return hasProjectionVisibleOverlayContent(currentTurnProjection) ? 'response' : 'hidden';
+  return 'hidden';
 }
 
 function resolveSdkOverlayIntent(presentation, currentTurnProjection) {
