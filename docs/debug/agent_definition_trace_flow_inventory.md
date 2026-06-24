@@ -46,3 +46,4 @@ provider payloads, credentials, or local filesystem paths.
 | 28 | SDK durable turn trace | `agent_definition.sdk_flow` | `agents_md.detect` | Records AGENTS.md layer counts without instruction contents or paths. |
 | 29 | SDK durable turn trace | `agent_definition.sdk_flow` | `plugin_contributions.detect` | Records plugin contribution count from merged Agent definition context. |
 | 30 | SDK durable turn trace | `agent_definition.sdk_flow` | `skill_contributions.detect` | Records skill contribution count from merged Agent definition context. |
+| 31 | SDK durable turn trace | `agent_definition.sdk_flow` | `mcp_contributions.detect` | Records MCP server and manifest tool counts without MCP payloads or schemas. |
