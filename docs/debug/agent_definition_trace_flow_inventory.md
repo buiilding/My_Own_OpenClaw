@@ -20,3 +20,4 @@ provider payloads, credentials, or local filesystem paths.
 | 2 | Electron main app diagnostics | `agent_definition.flow` | `custom_instructions.collect` | Records custom instruction presence and length without storing the prompt text. |
 | 3 | Electron main app diagnostics | `agent_definition.flow` | `local_tool_policy.collect` | Records disabled local tool count from the live desktop UI config. |
 | 4 | Electron main app diagnostics | `agent_definition.flow` | `remote_tool_policy.collect` | Records disabled remote tool count before remote tool availability is resolved. |
+| 5 | Electron main app diagnostics | `agent_definition.flow` | `enabled_remote_tools.resolve` | Records the resulting enabled remote tool count after disabled remote policy is applied. |
