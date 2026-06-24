@@ -91,28 +91,6 @@ function resolveOverlayIntentFromConversationView(conversationView) {
   };
 }
 
-function resolveOverlayIntent(currentTurn) {
-  const presentation = currentTurn?.presentation;
-  const intent = presentation?.overlayIntent;
-  if (!intent || typeof intent !== 'object') {
-    return null;
-  }
-  const mode = normalizeString(intent.mode);
-  if (mode !== 'awaiting' && mode !== 'response' && mode !== 'hidden') {
-    return null;
-  }
-  const turnRef = normalizeString(intent.turnRef) || normalizeString(currentTurn?.turnRef);
-  return {
-    visible: intent.visible === true,
-    mode,
-    turnRef,
-    staleGuardRef: normalizeString(intent.staleGuardRef) || turnRef,
-    conversationRef: normalizeString(intent.conversationRef)
-      || normalizeString(presentation?.conversationRef)
-      || normalizeString(currentTurn?.conversationRef),
-  };
-}
-
 function responseBoundsForIntent(intent, getResponseWindowBounds) {
   const compactHover = intent.mode === 'awaiting';
   const height = compactHover
@@ -277,16 +255,15 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     return { success: false, reason: 'response-bounds-unavailable' };
   }
 
-  const intent = resolveOverlayIntentFromConversationView(conversationView)
-    || resolveOverlayIntent(resolvedCurrentTurn);
+  const intent = resolveOverlayIntentFromConversationView(conversationView);
   if (!intent) {
     logLiveSurfaceTrace('response_overlay.intent.ignored', {
       ...summarizeCurrentTurn(resolvedCurrentTurn),
       source: 'sdk-live-turn-surface',
-      reason: 'missing-sdk-overlay-intent',
+      reason: 'missing-conversation-view-overlay-intent',
       responseWindow: summarizeWindow(responseWindow, 'response overlay'),
     });
-    return { success: true, applied: false, reason: 'missing-sdk-overlay-intent' };
+    return { success: true, applied: false, reason: 'missing-conversation-view-overlay-intent' };
   }
 
   if (isInternalAgentConversationRef(intent.conversationRef)) {

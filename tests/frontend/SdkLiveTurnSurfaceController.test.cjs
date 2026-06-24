@@ -8,7 +8,6 @@ const {
   createSdkLiveTurnSurfaceState,
   handleSdkLiveTurnSurfaceIntent,
 } = require('../../frontend/src/main/surfaces/live_turn_surface_controller.cjs');
-const liveTurnSurfaceControllerModule = require('../../frontend/src/main/surfaces/live_turn_surface_controller.cjs');
 const {
   configureDebugEnvRuntime,
 } = require('../../frontend/src/main/app/debug_env.cjs');
@@ -125,24 +124,24 @@ function createDeps(overrides = {}) {
 }
 
 describe('sdk_live_turn_surface_controller', () => {
-  test('normalizes SDK overlay intent from current turn presentation', () => {
+  test('ignores raw current-turn overlay intent without a ConversationView', () => {
     const deps = createDeps();
 
     expect(handleSdkLiveTurnSurfaceIntent(createCurrentTurn(), deps)).toMatchObject({
       success: true,
-      applied: true,
-      mode: 'response',
-      turnRef: 'turn-1',
-      staleGuardRef: 'turn-1',
+      applied: false,
+      reason: 'missing-conversation-view-overlay-intent',
     });
-    expect(liveTurnSurfaceControllerModule.resolveOverlayIntent).toBeUndefined();
+    expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
   });
 
-  test('shows awaiting overlay directly from SDK current-turn intent', () => {
+  test('shows awaiting overlay from ConversationView surface intent', () => {
     const deps = createDeps();
 
     const result = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({ mode: 'awaiting' }),
+      createSnapshotWithView({ viewMode: 'typing' }),
       deps,
     );
 
@@ -167,10 +166,10 @@ describe('sdk_live_turn_surface_controller', () => {
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
   });
 
-  test('shows response overlay directly from SDK current-turn intent', () => {
+  test('shows response overlay from ConversationView surface intent', () => {
     const deps = createDeps();
 
-    handleSdkLiveTurnSurfaceIntent(createCurrentTurn({ mode: 'response' }), deps);
+    handleSdkLiveTurnSurfaceIntent(createSnapshotWithView({ viewMode: 'response' }), deps);
 
     expect(deps.getResponseWindowBounds).toHaveBeenCalledWith(520, 236, {
       compactHover: false,
@@ -215,8 +214,8 @@ describe('sdk_live_turn_surface_controller', () => {
     const deps = createDeps({ surfaceState });
 
     const result = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({
-        mode: 'awaiting',
+      createSnapshotWithView({
+        viewMode: 'typing',
         conversationRef: 'conv-agent-internal',
         turnRef: 'turn-shared',
       }),
@@ -242,16 +241,16 @@ describe('sdk_live_turn_surface_controller', () => {
     const deps = createDeps({ surfaceState });
 
     const userResult = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({
-        mode: 'response',
+      createSnapshotWithView({
+        viewMode: 'response',
         conversationRef: 'conv-user',
         turnRef: 'turn-shared',
       }),
       deps,
     );
     const internalResult = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({
-        mode: 'awaiting',
+      createSnapshotWithView({
+        viewMode: 'typing',
         conversationRef: 'conv-agent-internal',
         turnRef: 'turn-shared',
       }),
@@ -294,8 +293,8 @@ describe('sdk_live_turn_surface_controller', () => {
       const awaitingDeps = createDeps();
       const responseDeps = createDeps();
 
-      handleWithMalformedLayout(createCurrentTurn({ mode: 'awaiting' }), awaitingDeps);
-      handleWithMalformedLayout(createCurrentTurn({ mode: 'response' }), responseDeps);
+      handleWithMalformedLayout(createSnapshotWithView({ viewMode: 'typing' }), awaitingDeps);
+      handleWithMalformedLayout(createSnapshotWithView({ viewMode: 'response' }), responseDeps);
 
       expect(awaitingDeps.getResponseWindowBounds).toHaveBeenCalledWith(520, 24, {
         compactHover: true,
@@ -317,7 +316,7 @@ describe('sdk_live_turn_surface_controller', () => {
     });
 
     const result = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({ mode: 'response' }),
+      createSnapshotWithView({ viewMode: 'response' }),
       deps,
     );
 
@@ -346,7 +345,7 @@ describe('sdk_live_turn_surface_controller', () => {
     });
 
     const result = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({ mode: 'response' }),
+      createSnapshotWithView({ viewMode: 'response' }),
       deps,
     );
 
@@ -373,7 +372,7 @@ describe('sdk_live_turn_surface_controller', () => {
     });
 
     const result = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({ mode: 'response' }),
+      createSnapshotWithView({ viewMode: 'response' }),
       deps,
     );
 
@@ -400,7 +399,7 @@ describe('sdk_live_turn_surface_controller', () => {
     });
 
     const result = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({ mode: 'response' }),
+      createSnapshotWithView({ viewMode: 'response' }),
       deps,
     );
 
@@ -421,7 +420,7 @@ describe('sdk_live_turn_surface_controller', () => {
   test('skips repeated identical awaiting intent after the native window is already visible', () => {
     const surfaceState = createSdkLiveTurnSurfaceState();
     const deps = createDeps({ surfaceState });
-    const currentTurn = createCurrentTurn({ mode: 'awaiting' });
+    const currentTurn = createSnapshotWithView({ viewMode: 'typing' });
 
     const firstResult = handleSdkLiveTurnSurfaceIntent(currentTurn, deps);
     const secondResult = handleSdkLiveTurnSurfaceIntent(currentTurn, deps);
@@ -440,14 +439,17 @@ describe('sdk_live_turn_surface_controller', () => {
   test('applies response intent once and skips repeated token snapshots with the same window signature', () => {
     const surfaceState = createSdkLiveTurnSurfaceState();
     const deps = createDeps({ surfaceState });
-    const firstTurn = createCurrentTurn({ mode: 'response' });
+    const firstTurn = createSnapshotWithView({ viewMode: 'response' });
     const repeatedTokenSnapshot = {
-      ...createCurrentTurn({ mode: 'response' }),
+      ...createSnapshotWithView({ viewMode: 'response' }),
       assistantText: 'longer text that should not alter native window signature',
-      presentation: {
-        ...firstTurn.presentation,
-        entries: [{ id: 'assistant-1', text: 'longer text' }],
-        hasVisibleContent: true,
+      currentTurn: {
+        ...firstTurn.currentTurn,
+        presentation: {
+          ...firstTurn.currentTurn.presentation,
+          entries: [{ id: 'assistant-1', text: 'longer text' }],
+          hasVisibleContent: true,
+        },
       },
     };
 
@@ -471,7 +473,7 @@ describe('sdk_live_turn_surface_controller', () => {
     });
 
     const result = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({ mode: 'hidden', visible: false, turnRef: 'turn-1' }),
+      createSnapshotWithView({ viewMode: 'hidden', visible: false, turnRef: 'turn-1' }),
       deps,
     );
 
@@ -494,7 +496,7 @@ describe('sdk_live_turn_surface_controller', () => {
     });
 
     const result = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({ mode: 'hidden', visible: false, turnRef: 'turn-1' }),
+      createSnapshotWithView({ viewMode: 'hidden', visible: false, turnRef: 'turn-1' }),
       deps,
     );
 
@@ -515,7 +517,7 @@ describe('sdk_live_turn_surface_controller', () => {
     });
 
     const result = handleSdkLiveTurnSurfaceIntent(
-      createCurrentTurn({ mode: 'hidden', visible: false, turnRef: 'turn-1' }),
+      createSnapshotWithView({ viewMode: 'hidden', visible: false, turnRef: 'turn-1' }),
       deps,
     );
 
@@ -536,26 +538,32 @@ describe('sdk_live_turn_surface_controller', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     const surfaceState = createSdkLiveTurnSurfaceState();
     const awaitingTurn = {
-      ...createCurrentTurn({ mode: 'awaiting' }),
-      phase: 'awaiting',
-      presentation: {
-        ...createCurrentTurn({ mode: 'awaiting' }).presentation,
-        typingVisible: true,
-        overlayVisible: true,
-        hasVisibleContent: false,
-        entries: [],
+      ...createSnapshotWithView({ viewMode: 'typing' }),
+      currentTurn: {
+        ...createCurrentTurn({ mode: 'awaiting' }),
+        phase: 'awaiting',
+        presentation: {
+          ...createCurrentTurn({ mode: 'awaiting' }).presentation,
+          typingVisible: true,
+          overlayVisible: true,
+          hasVisibleContent: false,
+          entries: [],
+        },
       },
     };
     const responseTurn = {
-      ...createCurrentTurn({ mode: 'response' }),
-      phase: 'streaming',
-      assistantText: 'hey',
-      presentation: {
-        ...createCurrentTurn({ mode: 'response' }).presentation,
-        typingVisible: false,
-        overlayVisible: true,
-        hasVisibleContent: true,
-        entries: [{ id: 'assistant-1', text: 'hey' }],
+      ...createSnapshotWithView({ viewMode: 'response' }),
+      currentTurn: {
+        ...createCurrentTurn({ mode: 'response' }),
+        phase: 'streaming',
+        assistantText: 'hey',
+        presentation: {
+          ...createCurrentTurn({ mode: 'response' }).presentation,
+          typingVisible: false,
+          overlayVisible: true,
+          hasVisibleContent: true,
+          entries: [{ id: 'assistant-1', text: 'hey' }],
+        },
       },
     };
 

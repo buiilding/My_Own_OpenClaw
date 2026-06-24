@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: remove raw SDK current-turn overlay intent as normal native
+  responsebox authority. Electron main now applies responsebox show, hide, and
+  resize from `ConversationView.surfaces.responseOverlay` only; raw current-turn
+  presentation remains diagnostic input and pre-view payload context, not a
+  fallback surface owner. No migration required.
 - frontend/renderer: remove the global raw `latestCurrentTurnProjection` from
   normal minimal live-surface selection. The pill and response overlay now use
   `latestConversationView` for cross-surface SDK authority and keep only the
@@ -129,10 +134,10 @@ All notable changes to WindieOS will be documented in this file.
   `view`/`viewDiagnostics` through the current-turn IPC payload, renderer
   workspace state stores the latest conversation view, `MinimalResponseOverlay`
   renders `view.liveTurn.entries`, and Electron main applies
-  `view.surfaces.responseOverlay` before falling back to raw current-turn
-  overlay intent. This keeps stale awaiting snapshots and internal lanes from
-  shrinking or re-owning the native responsebox after visible response content
-  exists. No migration required for persisted data.
+  `view.surfaces.responseOverlay` as the native responsebox authority. This
+  keeps stale awaiting snapshots and internal lanes from shrinking or re-owning
+  the native responsebox after visible response content exists. No migration
+  required for persisted data.
 - sdk/runtime: add the Phase 0 SDK `ConversationView` projection alongside
   existing snapshots, with `getView()`/`subscribeView()` APIs, normal UI
   filtering for internal `conv-agent-*` lanes, and separated build diagnostics
