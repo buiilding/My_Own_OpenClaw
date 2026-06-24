@@ -121,10 +121,10 @@ flowchart LR
    - Local snapshots should not replace durable transcript storage unless the code explicitly uses them as a fallback.
    - Edit/resend and try-again must route execution through SDK
      `conversation.editAndResend` and `conversation.retryTurn`. Renderer may
-     load the active display timeline only to resolve the temporary retained
-     prefix/pending bridge; it must not construct durable replacement rows,
-     call `conversation.replaceRows`, or dispatch a separate normal send for
-     replay execution.
+     build only the temporary retained visible prefix/pending bridge from
+     already projected messages; it must not load the active display timeline,
+     construct durable replacement rows, call `conversation.replaceRows`, or
+     dispatch a separate normal send for replay execution.
    - If the SDK replay command fails after the renderer publishes the pending
      bridge, restore the retained prefix, clear only the pending turn, and
      append a send-failure row. Do not restore event-log cutting through

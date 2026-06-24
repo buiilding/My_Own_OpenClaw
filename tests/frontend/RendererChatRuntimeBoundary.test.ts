@@ -1574,7 +1574,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('DesktopConversationReplayRuntime');
     expect(source).not.toContain('DesktopChatSendPreparationRuntime');
     expect(source).not.toContain('utils/conversationReplayToolMessages');
-    expect(source).toContain('DesktopConversationContinuityService.loadDisplayTimeline');
+    expect(source).not.toContain('DesktopConversationContinuityService.loadDisplayTimeline');
     expect(source).toContain('DesktopConversationContinuityService.editAndResend');
     expect(source).toContain('DesktopConversationContinuityService.retryTurn');
     expect(source).not.toContain('DesktopConversationContinuityService.replaceRows');
@@ -1590,9 +1590,10 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain("message.sender === 'user'");
     expect(source).not.toContain("message.sender === 'assistant'");
     expect(source).not.toContain("messages[index]?.sender === 'user'");
-    expect(source).toContain('buildReplayAttachmentPayload');
-    expect(source).toContain('screenshot_refs');
-    expect(source).toContain('attachment_filenames');
+    expect(source).not.toContain('buildReplayAttachmentPayload');
+    expect(source).not.toContain('findTimelineRowIndex');
+    expect(source).not.toContain('findTimelineRetryUserIndex');
+    expect(source).not.toContain('display_timeline_loaded');
     expect(source).not.toContain('recordTranscriptUserMessage');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.sendQuery');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');

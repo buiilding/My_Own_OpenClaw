@@ -631,10 +631,10 @@ describe('conversation replay database integration', () => {
       'conv-replay-db',
       'user-replay-db',
     );
-    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.loadDisplayTimeline', expect.objectContaining({
-      conversationRef: 'conv-replay-db',
-      userId: 'user-replay-db',
-    }));
+    expect(invokeAgentSdkCommand).not.toHaveBeenCalledWith(
+      'conversation.loadDisplayTimeline',
+      expect.anything(),
+    );
     expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.editAndResend', expect.objectContaining({
       conversationRef: 'conv-replay-db',
       userId: 'user-replay-db',
@@ -788,7 +788,7 @@ describe('conversation replay database integration', () => {
       userId: 'user-stale',
       error: 'Agent SDK command user id does not match the active user.',
     },
-  ])('reports preparation failure when transcript session user binding is $label', async ({ userId, error }) => {
+  ])('reports send failure when transcript session user binding is $label', async ({ userId, error }) => {
     mockSessionUserId = userId;
     const { result } = renderReplayHook(BASE_MESSAGES);
 
@@ -811,7 +811,7 @@ describe('conversation replay database integration', () => {
       'stored-user-2',
       'stored-assistant-2',
     ]);
-    expectReplayPreparationErrorMessage();
+    expectReplaySendErrorMessage(BASE_MESSAGES.slice(0, 2));
   });
 
   test('reports send failure when the SDK revision command display replacement fails', async () => {

@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove replay-hook display timeline reload and local row
+  matching from edit/resend and Try again execution. React now builds only the
+  retained-prefix optimistic pending bridge from the visible messages and
+  submits the stable SDK target id to `conversation.editAndResend` or
+  `conversation.retryTurn`; the SDK command resolves the stored display row and
+  preserves display attachments/legacy screenshot refs. No migration required.
 - sdk/frontend: expose revision checkout and fork through SDK-shaped
   `conversation.checkoutRevision` and `conversation.fork` commands across the
   Electron main bridge, direct wake-up adapter, renderer continuity service,

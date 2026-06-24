@@ -170,7 +170,7 @@ describe('useConversationReplayActions', () => {
     expect(mockGetActiveConversationRef).toHaveBeenCalled();
     expect(mockGetTranscriptSessionInfo).toHaveBeenCalled();
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-existing', 'user-1');
-    expect(mockLoadDisplayTimeline).toHaveBeenCalledWith('user-1', 'conv-existing');
+    expect(mockLoadDisplayTimeline).not.toHaveBeenCalled();
     expect(mockReplaceRows).not.toHaveBeenCalled();
     expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
@@ -379,9 +379,6 @@ describe('useConversationReplayActions', () => {
       messageId: 'renderer-user-1',
       text: 'edited first question',
       turnRef: 'turn-edited-user',
-      payload: expect.objectContaining({
-        screenshot_refs: ['artifact-shot-ready'],
-      }),
     }));
     expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([
       expect.objectContaining({
@@ -458,7 +455,7 @@ describe('useConversationReplayActions', () => {
     ]);
   });
 
-  test('edit replay preserves display-row image attachments when renderer message lacks them', async () => {
+  test('edit replay leaves stored display-row image preservation to the SDK target row', async () => {
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-display-attachments');
     const displayAttachment = {
       id: 'artifact-display-one',
@@ -504,18 +501,17 @@ describe('useConversationReplayActions', () => {
       expect.objectContaining({
         id: 'turn-display-attachments-sdk-evt-000002-user_message',
         text: 'edited first question',
-        attachments: [displayAttachment],
       }),
     ]);
     expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
-      payload: expect.objectContaining({
-        screenshot_refs: ['artifact-display-one'],
-        attachment_filenames: ['display-one.png'],
-      }),
+      messageId: 'renderer-user-1',
+      text: 'edited first question',
     }));
+    expect(mockEditAndResend.mock.calls[0][0].payload).not.toHaveProperty('screenshot_refs');
+    expect(mockEditAndResend.mock.calls[0][0].payload).not.toHaveProperty('attachment_filenames');
   });
 
-  test('edit replay sends legacy display-row screenshot refs through SDK replay payload', async () => {
+  test('edit replay leaves legacy display-row screenshot refs to SDK target resolution', async () => {
     const messages = [
       {
         id: 'renderer-user-legacy',
@@ -543,10 +539,10 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
-      payload: expect.objectContaining({
-        screenshot_refs: ['artifact-legacy-one', 'artifact-legacy-two'],
-      }),
+      messageId: 'renderer-user-legacy',
+      text: 'edited legacy question',
     }));
+    expect(mockEditAndResend.mock.calls[0][0].payload).not.toHaveProperty('screenshot_refs');
   });
 
   test('edit replay publishes the retained prefix and edited pending turn atomically', async () => {
@@ -755,7 +751,7 @@ describe('useConversationReplayActions', () => {
     }));
   });
 
-  test('retry replay sends display timeline multi-image refs and attachment filenames through SDK', async () => {
+  test('retry replay keeps visible multi-image attachments on the pending bridge and lets SDK preserve stored refs', async () => {
     const messages = [
       {
         id: 'user-multi-image',
@@ -798,10 +794,12 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      payload: expect.objectContaining({
-        screenshot_refs: ['artifact-1', 'artifact-2'],
-        attachment_filenames: ['one.png', 'two.png'],
-      }),
+      messageId: 'assistant-multi-image',
+    }));
+    expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('screenshot_refs');
+    expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('attachment_filenames');
+    expect(useChatStore.getState().pendingTurn).toEqual(expect.objectContaining({
+      attachments: messages[0].attachments,
     }));
   });
 
@@ -924,9 +922,9 @@ describe('useConversationReplayActions', () => {
     errorSpy.mockRestore();
   });
 
-  test('retry replay appends a preparation error when display timeline load rejects', async () => {
+  test('retry replay treats SDK target resolution failures as send failures after pending publish', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    mockLoadDisplayTimeline.mockRejectedValue(new Error('display load rejected'));
+    mockRetryTurn.mockRejectedValue(new Error('missing target row'));
     const messages = [
       {
         id: 'user-1',
@@ -958,12 +956,11 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(useChatStore.getState().messages).toEqual([
-      ...messages,
       expect.objectContaining({
         sender: 'assistant',
         type: 'error',
         sourceEventType: 'renderer-replay',
-        text: expect.stringContaining('could not prepare the conversation replay'),
+        text: expect.stringContaining("Your message wasn't sent"),
       }),
     ]);
     errorSpy.mockRestore();

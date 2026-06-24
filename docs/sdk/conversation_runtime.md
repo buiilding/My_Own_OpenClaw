@@ -824,10 +824,10 @@ rehydrate message types.
 Edit/resend and retry are display revision operations:
 
 ```text
-load active display timeline
-  -> choose target display user row
-  -> publish retained prefix plus pending turn as a temporary renderer bridge
-  -> SDK editAndResend/retryTurn replaces the retained prefix plus replacement user row
+visible row action/message id selects the SDK target
+  -> renderer publishes retained visible prefix plus pending turn as a temporary bridge
+  -> SDK editAndResend/retryTurn resolves the stored display row
+  -> SDK replaces the retained prefix plus replacement user row
   -> SDK send() sends the replacement user message as the same new turn
 ```
 
@@ -839,15 +839,15 @@ persisted in that child display checkpoint with the normal SDK user row id
 metadata pointer back to the original target. This means a repeated resend can
 still resolve the original row id while the later SDK send event dedupes into
 the already-persisted display row instead of appending a second user bubble.
-The renderer active path calls `conversation.loadDisplayTimeline` only to
-resolve the current target/pending bridge, then calls
-`conversation.editAndResend` or `conversation.retryTurn`; it does not call
-`conversation.replaceRows`, a separate `conversation.send`,
-`prepareEditAndResend`, `prepareRetryTurn`, `conversation.rewrite_after_event`,
-or backend rehydrate as part of normal edit/retry execution. The SDK commands
-write the child display/model revision, emit supersession for old live work,
-apply model overrides, and dispatch the replacement through the normal
-`send()` path.
+The renderer active path calls `conversation.editAndResend` or
+`conversation.retryTurn` with the stable SDK target id; it does not call
+`conversation.loadDisplayTimeline`, `conversation.replaceRows`, a separate
+`conversation.send`, `prepareEditAndResend`, `prepareRetryTurn`,
+`conversation.rewrite_after_event`, or backend rehydrate as part of normal
+edit/retry execution. The SDK commands resolve the stored target display row,
+preserve display attachments and legacy screenshot refs from that row, write
+the child display/model revision, emit supersession for old live work, apply
+model overrides, and dispatch the replacement through the normal `send()` path.
 
 Resource preservation comes from the target display row. Typed display
 attachments become the edited pending user row's visible `attachments[]` and
@@ -862,10 +862,9 @@ explicit removal operation.
 
 The Electron renderer publishes the retained replay prefix and `pendingTurn`
 as one visible optimistic frame before awaiting the SDK revision command. If
-target resolution fails before the SDK command, the renderer keeps the parent
-transcript and appends a preparation error. If the SDK command fails after the
-pending bridge is visible, the renderer restores the retained prefix, clears
-only that pending turn, and appends a send-failure row. Pending turn IPC
+the SDK command cannot resolve the stored target row or fails after the pending
+bridge is visible, the renderer restores the retained prefix, clears only that
+pending turn, and appends a send-failure row. Pending turn IPC
 preserves typed `attachments[]`; echoed pending-turn broadcasts from Electron
 main must no-op in a renderer that already owns the same pending user row, and
 SDK display-row echoes for that pending turn must keep the existing optimistic
