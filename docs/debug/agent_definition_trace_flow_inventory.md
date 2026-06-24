@@ -40,3 +40,4 @@ provider payloads, credentials, or local filesystem paths.
 | 22 | SDK durable turn trace | `agent_definition.sdk_flow` | `workspace_context.detect` | Records workspace context presence without storing workspace paths. |
 | 23 | SDK durable turn trace | `agent_definition.sdk_flow` | `system_prompt.detect` | Records system-prompt override/default presence and prompt length only. |
 | 24 | SDK durable turn trace | `agent_definition.sdk_flow` | `tools_manifest.detect` | Records merged client tool manifest counts without tool schema bodies. |
+| 25 | SDK durable turn trace | `agent_definition.sdk_flow` | `disabled_tools.detect` | Records disabled tool counts from SDK, query, and merged Agent definition context. |
