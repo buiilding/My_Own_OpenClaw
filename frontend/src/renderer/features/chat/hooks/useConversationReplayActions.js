@@ -78,14 +78,11 @@ function replayTraceSnapshot(conversationRef, newTurnRef = null, oldTurnRef = nu
     ? state.getWorkspaceState(conversationRef)
     : state;
   const currentTurnProjection = workspace.currentTurnProjection ?? null;
-  const latestCurrentTurnProjection = state.latestCurrentTurnProjection ?? null;
   const pendingTurn = workspace.pendingTurn ?? null;
   return {
     pendingTurnRef: pendingTurn?.turnRef ?? null,
     currentTurnRef: currentTurnProjection?.turnRef ?? null,
     currentTurnPhase: currentTurnProjection?.phase ?? null,
-    latestCurrentTurnRef: latestCurrentTurnProjection?.turnRef ?? null,
-    latestCurrentTurnPhase: latestCurrentTurnProjection?.phase ?? null,
     streamActiveTurnRef: workspace.streamTracking?.activeTurnRef ?? null,
     streamPhase: workspace.streamTracking?.phase ?? null,
     messageCount: Array.isArray(workspace.messages) ? workspace.messages.length : 0,

@@ -285,14 +285,12 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     });
     const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
     const observedSnapshots: Array<{
-      latestTurnRef: string | null;
       workspaceTurnRef: string | null;
       pendingTurnRef: string | null;
     }> = [];
     const unsubscribe = useChatStore.subscribe((state) => {
       const workspace = state.getWorkspaceState('conv-1');
       observedSnapshots.push({
-        latestTurnRef: state.latestCurrentTurnProjection?.turnRef ?? null,
         workspaceTurnRef: workspace.currentTurnProjection?.turnRef ?? null,
         pendingTurnRef: workspace.pendingTurn?.turnRef ?? null,
       });
@@ -320,16 +318,14 @@ describe('useConversationRuntimeProjectionStream display row merging', () => {
     expect(observedSnapshots).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          latestTurnRef: 'turn-new',
+          workspaceTurnRef: 'turn-new',
           pendingTurnRef: 'turn-new',
         }),
       ]),
     );
     const state = useChatStore.getState();
     const workspace = state.getWorkspaceState('conv-1');
-    expect(state.latestCurrentTurnProjection).toEqual(expect.objectContaining({
-      turnRef: 'turn-new',
-    }));
+    expect(state).not.toHaveProperty('latestCurrentTurnProjection');
     expect(workspace.currentTurnProjection).toEqual(expect.objectContaining({
       turnRef: 'turn-new',
     }));

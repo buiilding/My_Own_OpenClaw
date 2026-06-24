@@ -1823,6 +1823,7 @@ describe('renderer app runtime boundary', () => {
     expect(selectorRuntimeSource).not.toContain('latestCurrentTurnProjection');
     expect(chatStoreSource).toContain('desktopChatSurfaceSelectorRuntime');
     expect(chatStoreSource).toContain('DesktopChatSurfaceSelectorRuntime');
+    expect(chatStoreSource).not.toContain('latestCurrentTurnProjection');
     expect(chatStoreSource).toContain('selectActiveWorkspaceState');
     expect(chatInterfaceSource).toContain('selectChatInterfaceState');
     expect(minimalPillSource).toContain('selectLiveTurnSurfaceState');

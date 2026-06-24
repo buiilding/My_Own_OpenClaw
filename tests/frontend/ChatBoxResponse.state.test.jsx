@@ -134,7 +134,6 @@ describe('ChatBoxResponse state behavior', () => {
     useChatStore.setState({
       isSending: true,
       currentTurnProjection: null,
-      latestCurrentTurnProjection: null,
     });
 
     render(<ChatBoxResponse />);
@@ -220,11 +219,6 @@ describe('ChatBoxResponse state behavior', () => {
           phase: 'idle',
           turnRef: 'startup-hidden',
         }),
-        latestCurrentTurnProjection: sdkPresentationProjection({
-          mode: 'hidden',
-          phase: 'idle',
-          turnRef: 'startup-hidden',
-        }),
       });
     });
 
@@ -233,10 +227,6 @@ describe('ChatBoxResponse state behavior', () => {
     act(() => {
       useChatStore.setState({
         currentTurnProjection: sdkPresentationProjection({
-          mode: 'awaiting',
-          turnRef: 'turn-live',
-        }),
-        latestCurrentTurnProjection: sdkPresentationProjection({
           mode: 'awaiting',
           turnRef: 'turn-live',
         }),
@@ -349,7 +339,6 @@ describe('ChatBoxResponse state behavior', () => {
       isSending: true,
       thinkingStatus: null,
       currentTurnProjection: sdkPresentationProjection({ mode: 'awaiting' }),
-      latestCurrentTurnProjection: sdkPresentationProjection({ mode: 'awaiting' }),
     });
 
     render(<ChatBoxResponse />);
@@ -391,7 +380,6 @@ describe('ChatBoxResponse state behavior', () => {
         ],
         isSending: false,
         currentTurnProjection: responseProjection,
-        latestCurrentTurnProjection: responseProjection,
       });
     });
 
@@ -1003,7 +991,6 @@ describe('ChatBoxResponse state behavior', () => {
       ],
       isSending: false,
       currentTurnProjection: awaitingProjection,
-      latestCurrentTurnProjection: awaitingProjection,
     });
 
     render(<ChatBoxResponse />);
@@ -1038,7 +1025,6 @@ describe('ChatBoxResponse state behavior', () => {
     act(() => {
       useChatStore.setState({
         currentTurnProjection: responseProjection,
-        latestCurrentTurnProjection: responseProjection,
       });
     });
 
@@ -1155,7 +1141,6 @@ describe('ChatBoxResponse state behavior', () => {
       ],
       isSending: false,
       currentTurnProjection: previousProjection,
-      latestCurrentTurnProjection: previousProjection,
     });
 
     render(<ChatBoxResponse />);
@@ -1263,7 +1248,6 @@ describe('ChatBoxResponse state behavior', () => {
       ],
       isSending: false,
       currentTurnProjection: awaitingProjection,
-      latestCurrentTurnProjection: awaitingProjection,
       conversationView: view,
       latestConversationView: view,
     });

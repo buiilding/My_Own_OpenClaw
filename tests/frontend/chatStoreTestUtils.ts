@@ -69,7 +69,6 @@ export function resetChatStoreForTests(
     conversationView: null,
     pendingTurn: null,
     supersededTurnRefs: {},
-    latestCurrentTurnProjection: null,
     latestConversationView: null,
   });
 }

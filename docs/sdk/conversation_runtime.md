@@ -246,10 +246,11 @@ local pending bridge. Minimal live surfaces receive a null raw current-turn
 projection whenever a `ConversationView` exists, so the pill and response
 overlay do not run a separate "latest current turn wins" decision beside the
 SDK view.
-Renderer live-surface selectors also no longer consume the global raw
-`latestCurrentTurnProjection` as a normal UI authority; cross-surface live
-state comes from `latestConversationView`, while `activeWorkspace.currentTurn`
-remains only the temporary no-view bridge for unmigrated/pre-view snapshots.
+Renderer no longer retains a global raw `latestCurrentTurnProjection` in the
+chat store or consumes it as a normal UI authority; cross-surface live state
+comes from `latestConversationView`, while per-workspace current-turn
+projections remain only the temporary no-view bridge for unmigrated/pre-view
+snapshots and diagnostics.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.

@@ -102,7 +102,6 @@ function resetStore() {
   useChatStore.setState({
     activeConversationRef: null,
     currentTurnProjection: null,
-    latestCurrentTurnProjection: null,
     pendingTurn: null,
   });
 }

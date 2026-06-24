@@ -154,10 +154,7 @@ describe('useChatStream state + stream handling', () => {
     });
 
     const state = useChatStore.getState();
-    expect(state.latestCurrentTurnProjection).toEqual(expect.objectContaining({
-      turnRef: 'turn-old',
-      assistantText: 'stale answer',
-    }));
+    expect(state).not.toHaveProperty('latestCurrentTurnProjection');
     expect(state.thinkingStatus).toBe('current step');
     expect(state.streamTracking).toEqual(expect.objectContaining({
       activeTurnRef: 'turn-new',

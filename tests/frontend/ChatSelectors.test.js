@@ -182,7 +182,7 @@ describe('chatSelectors', () => {
     expect(selected.messages).toBe(messages);
   });
 
-  test('ignores global latest raw current turn for minimal surfaces', () => {
+  test('uses only active workspace raw current turn for no-view minimal surfaces', () => {
     const workspaceProjection = {
       conversationRef: 'conv-dashboard',
       turnRef: 'turn-dashboard',
@@ -192,21 +192,11 @@ describe('chatSelectors', () => {
       toolEvents: [],
       lastError: null,
     };
-    const liveProjection = {
-      conversationRef: 'conv-live',
-      turnRef: 'turn-live',
-      phase: 'streaming',
-      assistantText: 'live answer',
-      reasoningText: null,
-      toolEvents: [],
-      lastError: null,
-    };
     const selected = selectLiveTurnSurfaceState({
       messages: [],
       isSending: true,
       thinkingStatus: null,
       currentTurnProjection: workspaceProjection,
-      latestCurrentTurnProjection: liveProjection,
       tokenCounts: null,
       streamTracking: { phase: 'awaiting-first-chunk' },
     });
@@ -221,11 +211,6 @@ describe('chatSelectors', () => {
     const workspaceProjection = {
       conversationRef: 'conv-dashboard',
       turnRef: 'turn-dashboard',
-      phase: 'streaming',
-    };
-    const liveProjection = {
-      conversationRef: 'conv-stale',
-      turnRef: 'turn-stale',
       phase: 'streaming',
     };
     const view = {
@@ -254,7 +239,6 @@ describe('chatSelectors', () => {
     const selected = selectLiveTurnSurfaceState({
       messages: [],
       currentTurnProjection: workspaceProjection,
-      latestCurrentTurnProjection: liveProjection,
       conversationView: null,
       latestConversationView: view,
       pendingTurn: null,
