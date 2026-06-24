@@ -23,3 +23,4 @@ provider payloads, credentials, or local filesystem paths.
 | 5 | Electron main app diagnostics | `agent_definition.flow` | `enabled_remote_tools.resolve` | Records the resulting enabled remote tool count after disabled remote policy is applied. |
 | 6 | Electron main app diagnostics | `agent_definition.flow` | `workspace_path.collect` | Records workspace-path presence without persisting the local path. |
 | 7 | Electron main app diagnostics | `agent_definition.flow` | `repo_instructions.resolve` | Records AGENTS.md layer count without storing repo instruction contents or paths. |
+| 8 | Electron main app diagnostics | `agent_definition.flow` | `extension_prompt_layers.resolve` | Records extension prompt-layer count without prompt-layer content. |
