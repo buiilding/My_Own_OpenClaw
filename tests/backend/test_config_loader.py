@@ -84,6 +84,18 @@ def test_load_api_key_falls_back_to_env_when_user_override_disabled(monkeypatch)
     assert result.api_key == "env-openai-key"
 
 
+def test_load_api_key_falls_back_to_env_for_redacted_enabled_override(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "env-openai-key")
+    cfg = AppConfig(
+        model_provider="openai",
+        provider_api_keys={
+            "openai": {"enabled": True, "api_key": ""},
+        },
+    )
+    result = load_api_key_for_provider(cfg)
+    assert result.api_key == "env-openai-key"
+
+
 def test_load_api_key_google_override_applies_to_gemini_provider(monkeypatch):
     monkeypatch.setenv("GOOGLE_API_KEY", "env-google-key")
     cfg = AppConfig(

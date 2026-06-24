@@ -77,11 +77,10 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
                 provider_name,
             )
             return cfg.model_copy(update={"api_key": user_api_key})
-        logger.warning(
-            "[API Key Load] User API key override is enabled for provider '%s' but no key is set.",
+        logger.info(
+            "[API Key Load] User API key override is enabled for provider '%s' but no key is set; falling back to configured environment variable.",
             provider_name,
         )
-        return cfg.model_copy(update={"api_key": None})
 
     try:
         provider_config = cfg.llm_providers.get_provider_config(provider_name)
