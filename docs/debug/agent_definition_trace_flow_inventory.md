@@ -49,3 +49,4 @@ provider payloads, credentials, or local filesystem paths.
 | 31 | SDK durable turn trace | `agent_definition.sdk_flow` | `mcp_contributions.detect` | Records MCP server and manifest tool counts without MCP payloads or schemas. |
 | 32 | SDK durable turn trace | `agent_definition.sdk_flow` | `capability_revision.detect` | Records capability revision ids for merged, SDK, and query definitions. |
 | 33 | SDK durable turn trace | `agent_definition.sdk_flow` | `local_runtime.detect` | Records whether the SDK local runtime was available for the turn. |
+| 34 | SDK durable turn trace | `agent_definition.sdk_flow` | `transport_payload.ready` | Records transport payload key count before backend dispatch. |
