@@ -65,7 +65,7 @@ Persistent main-process bridge state composed by `ipc.cjs`:
 - Connection/session: backend connection gate state, `currentUserId`, and
   backend session identity state
 - Query mode: backend connection gate first-query state
-- Settings gate: `latestDesktopUiConfig`, `hasAttemptedInitialSettingsSync`, `pendingSettingsSyncPromise`, `pendingSettingsSyncs`
+- Settings gate: desktop UI config store snapshot, `hasAttemptedInitialSettingsSync`, `pendingSettingsSyncPromise`, `pendingSettingsSyncs`
 - Overlay phase: `responseOverlayPhase` with allowed literals:
   - `idle`
   - `awaiting-first-chunk`

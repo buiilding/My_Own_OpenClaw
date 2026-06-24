@@ -16,22 +16,22 @@ function createHarness(overrides = {}) {
       handlers[channel] = handler;
     }),
   };
-  const latest = { current: overrides.initialLatest || null };
+  let latest = overrides.initialLatest || null;
   const setGlobalAgentStopShortcutAccelerator = jest.fn();
+  const desktopUiConfigStore = {
+    getSnapshot: jest.fn(() => latest),
+    hydrate: jest.fn(async () => {
+      latest = overrides.loadResult || null;
+      return latest;
+    }),
+    ...overrides.desktopUiConfigStore,
+  };
   const runtime = createDesktopUiConfigHandlersRuntime({
-    loadCachedDesktopUiConfigFromDisk: jest.fn(async () => overrides.loadResult),
+    desktopUiConfigStore,
     persistDesktopUiConfigToDisk: jest.fn(async (config) => ({ success: true, config })),
     isValidConfigPayload: (config) => (
       Boolean(config) && typeof config === 'object' && !Array.isArray(config)
     ),
-    applyShortcutStatusFallbackToConfig: (config) => ({
-      ...config,
-      global_agent_stop_shortcut: config.global_agent_stop_shortcut || 'CommandOrControl+Shift+Escape',
-    }),
-    getLatestDesktopUiConfig: () => latest.current,
-    setLatestDesktopUiConfig: (config) => {
-      latest.current = config;
-    },
     setGlobalAgentStopShortcutAccelerator,
     ...overrides.runtime,
   });
@@ -42,15 +42,19 @@ function createHarness(overrides = {}) {
     handlers,
     ipcMain,
     runtime,
+    desktopUiConfigStore,
     latest,
     setGlobalAgentStopShortcutAccelerator,
   };
 }
 
 describe('desktop UI config IPC handlers', () => {
-  test('load handler applies shortcut fallback and updates latest config', async () => {
-    const { handlers, latest, setGlobalAgentStopShortcutAccelerator } = createHarness({
-      loadResult: { model_mode: 'offline' },
+  test('load handler hydrates the store and updates shortcut runtime', async () => {
+    const { handlers, desktopUiConfigStore, setGlobalAgentStopShortcutAccelerator } = createHarness({
+      loadResult: {
+        model_mode: 'offline',
+        global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
+      },
     });
 
     const result = await handlers['load-frontend-config']();
@@ -59,7 +63,8 @@ describe('desktop UI config IPC handlers', () => {
       model_mode: 'offline',
       global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
     });
-    expect(latest.current).toBe(result);
+    expect(desktopUiConfigStore.hydrate).toHaveBeenCalledTimes(1);
+    expect(desktopUiConfigStore.getSnapshot).toHaveBeenCalledTimes(1);
     expect(setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith(
       'CommandOrControl+Shift+Escape',
     );
@@ -92,23 +97,25 @@ describe('desktop UI config IPC handlers', () => {
         handlers[channel] = handler;
       }),
     };
-    const latest = { current: null };
     const setGlobalAgentStopShortcutAccelerator = jest.fn();
     const getGlobalAgentStopShortcutAcceleratorSetter = jest.fn(
       () => setGlobalAgentStopShortcutAccelerator,
     );
+    let latest = null;
+    const desktopUiConfigStore = {
+      hydrate: jest.fn(async () => {
+        latest = {
+          model_mode: 'runtime',
+          global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
+        };
+        return latest;
+      }),
+      getSnapshot: jest.fn(() => latest),
+    };
     const runtime = createDesktopUiConfigHandlersRuntime({
-      loadCachedDesktopUiConfigFromDisk: jest.fn(async () => ({ model_mode: 'runtime' })),
+      desktopUiConfigStore,
       persistDesktopUiConfigToDisk: jest.fn(async (config) => ({ success: true, config })),
       isValidConfigPayload: (config) => Boolean(config) && typeof config === 'object',
-      applyShortcutStatusFallbackToConfig: (config) => ({
-        ...config,
-        global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
-      }),
-      getLatestDesktopUiConfig: () => latest.current,
-      setLatestDesktopUiConfig: (config) => {
-        latest.current = config;
-      },
       getGlobalAgentStopShortcutAcceleratorSetter,
     });
 

@@ -19,6 +19,9 @@ collects host-local inputs such as extension prompt layers, AGENTS.md content,
 workspace path, and operating-system facts before calling the SDK builder.
 For query-level payloads, Electron routes that collection and generated/supplied
 definition merge through `frontend/src/main/ipc/ipc_agent_definition_context.cjs`.
+Electron main reads renderer-managed Agent prompt and tool-policy inputs from
+the redacted desktop UI config store immediately before attaching query-level
+context, so just-edited settings do not depend on disk write timing.
 SDK and Electron builder inputs use the public camelCase `agentsMd` option;
 the snake_case `agents_md` spelling is only the generated backend wire field
 inside the final `agent_definition` object.

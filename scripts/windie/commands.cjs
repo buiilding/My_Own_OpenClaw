@@ -198,7 +198,7 @@ const SETTINGS_STARTUP_USER_FACING_REGRESSION_TESTS = Object.freeze([
   'IpcChatQueryHandlers.test.cjs',
   'IpcSettingsSyncRuntime.test.cjs',
   'IpcAgentDefinitionContext.test.cjs',
-  'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+  'IpcDesktopUiConfigStore.test.cjs',
   'IpcAgentSdkRuntimeCommands.test.cjs',
 ]);
 
@@ -211,7 +211,7 @@ const MODEL_SEND_SELECTION_USER_FACING_REGRESSION_TESTS = Object.freeze([
 
 const PROVIDER_CREDENTIAL_PERSISTENCE_USER_FACING_REGRESSION_TESTS = Object.freeze([
   'AppConfigPersistence.test.js',
-  'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+  'IpcDesktopUiConfigStore.test.cjs',
   'IpcProviderCredentialPersistence.test.cjs',
 ]);
 

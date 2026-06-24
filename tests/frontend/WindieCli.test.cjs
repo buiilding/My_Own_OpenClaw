@@ -371,7 +371,7 @@ describe('windie CLI', () => {
       'IpcChatQueryHandlers.test.cjs',
       'IpcSettingsSyncRuntime.test.cjs',
       'IpcAgentDefinitionContext.test.cjs',
-      'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+      'IpcDesktopUiConfigStore.test.cjs',
       'IpcAgentSdkRuntimeCommands.test.cjs',
     ]));
     expect(userFacingPlan.concurrent[4]).toMatchObject({
@@ -392,7 +392,7 @@ describe('windie CLI', () => {
     });
     expect(userFacingPlan.concurrent[5].args).toEqual(expect.arrayContaining([
       'AppConfigPersistence.test.js',
-      'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+      'IpcDesktopUiConfigStore.test.cjs',
       'IpcProviderCredentialPersistence.test.cjs',
     ]));
     expect(userFacingPlan.concurrent[6]).toMatchObject({

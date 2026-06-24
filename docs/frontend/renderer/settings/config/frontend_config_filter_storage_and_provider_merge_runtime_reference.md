@@ -159,9 +159,9 @@ provider key entries to Electron main during an explicit config save. Electron
 main writes `frontend-config.json` with provider `api_key` values redacted,
 stores raw provider keys only in the `provider-credentials.json` encrypted
 `safeStorage` side file, and hydrates enabled redacted provider entries from
-that encrypted store on `load-frontend-config`. The main-process latest config
-cache remains redacted so query assembly and MCP registry reads do not hold raw
-provider secrets.
+that encrypted store on `load-frontend-config`. The main-process desktop UI
+config store remains redacted so query assembly and MCP registry reads do not
+hold raw provider secrets.
 
 Live provider credential edits still flow to backend settings through
 `DesktopSettingsRuntimeClient.updateSettings(...)`. Renderer localStorage and
@@ -205,7 +205,7 @@ This is the central dedupe guard preventing redundant writes and settings runtim
 2. call `DesktopAppConfigRuntimeClient.loadRendererConfig()`, merge filtered disk
    config over the localStorage seed, and save the merged snapshot back through
    Electron main so localStorage-only fields such as Agent system prompt/tool
-   policy hydrate the main config cache before queries
+   policy hydrate the main config store before queries
 3. call `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()`
 4. subscribe through `DesktopClientSessionRuntimeClient.onIpcStatus(...)` and `DesktopAppConfigRuntimeClient.onSettingsEvent(...)`
 

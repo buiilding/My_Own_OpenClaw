@@ -49,6 +49,17 @@ All notable changes to WindieOS will be documented in this file.
   separate `conversation.send`, or best-effort stops old turns from React; the
   SDK revision operation now owns replacement persistence, supersession, model
   selection, and resend dispatch. No migration required.
+- frontend/main: replace the duplicate desktop UI config cache and persistence
+  helper with a single Electron-main desktop UI config store. Query-time Agent
+  definition assembly, settings sync, MCP registry reads, shortcut fallback
+  persistence, workspace fallback, and browser automation checks now read the
+  live redacted store snapshot while disk remains persistence only. Provider
+  API keys still persist only through the encrypted `safeStorage` side file,
+  and `frontend-config.json` plus the live store stay redacted. No migration
+  required.
+- frontend/test: use repo-relative Jest `testMatch` globs so documented
+  `<windie> test frontend -- ...` commands discover tests from Windows
+  `.codex` worktree paths. No migration required.
 - frontend/renderer: gate edit/resend and try-again command rendering from SDK
   `ConversationView.actions` when a view exists. Copy and feedback actions
   remain renderer-local, row type still constrains which rows can show commands,
@@ -66,7 +77,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main, frontend/renderer: persist renderer-managed provider API keys
   through an Electron `safeStorage` encrypted `provider-credentials.json` side
   file while keeping renderer localStorage, `frontend-config.json`, and the
-  latest main config cache redacted. Electron main now maps renderer query
+  live main config store redacted. Electron main now maps renderer query
   payloads into SDK `backendPayload` and `agentDefinition` fields, so custom
   Agent system prompts and disabled tool policy reach backend inference instead
   of falling back to default prompt/tool schemas. Renderer startup now also

@@ -23,8 +23,7 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
 - `frontend/src/main/ipc/ipc_agent_sdk_runtime_commands.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
-- `frontend/src/main/ipc/ipc_desktop_ui_config_cache.cjs`
-- `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config_store.cjs`
 - `frontend/src/main/ipc/ipc_global_stop_shortcut_config_runtime.cjs`
 
 ## Config Ownership Boundary
@@ -121,18 +120,18 @@ Behavior:
 - load redacts provider API keys and OAuth access/refresh tokens before returning
 - atomic write (`.tmp` then rename)
 
-### Main-process persistence semantics (`ipc_desktop_ui_config_persistence_runtime.cjs`)
+### Main-process store semantics (`ipc_desktop_ui_config_store.cjs`)
 
 Behavior:
 
 - renderer saves preserve the main-owned `agent_enabled_mcp_servers` allowlist
-  from the latest in-memory config held by `ipc_desktop_ui_config_cache.cjs`,
-  or from disk when the latest cache has not hydrated that key yet
+  from the Electron-main desktop UI config store, or from disk when the store
+  has not hydrated that key yet
 - explicit MCP enablement toggles disable that preservation so the toggle result
   is the persisted source of truth
 - provider secrets are redacted before the disk save helper is called
-- the latest main-process config cache advances with the redacted, persistable
-  config before awaiting disk save, so query-local agent-definition context sees
+- the main-process config store advances with the redacted, persistable config
+  before awaiting disk save, so query-local agent-definition context sees
   just-edited Agent settings on the next send even when the renderer fires the
   save asynchronously
 - disk save failures still report save-status errors, but the live Electron
@@ -152,7 +151,7 @@ settings ACK gate state lives in `ipc_settings_sync_runtime.cjs`.
 
 Key runtime state:
 
-- `latestDesktopUiConfig`
+- Electron-main desktop UI config store snapshot
 - `hasAttemptedInitialSettingsSync`
 - `pendingSettingsSyncPromise`
 - `pendingSettingsSyncs` map keyed by outbound message ID
@@ -192,8 +191,8 @@ Purpose:
   sends after cached desktop UI config has hydrated, so persisted Agent
   settings system prompt and tool toggles survive app restart before the first
   new turn
-- ensure just-edited Agent settings are read from the live main-process desktop
-  UI config cache, not only from a completed disk save, before attaching
+- ensure just-edited Agent settings are read from the live Electron-main desktop
+  UI config store, not only from a completed disk save, before attaching
   query-level `agent_definition`
 
 ## Connection/Status Propagation
@@ -260,7 +259,7 @@ If first query ignores latest settings:
 
 1. verify `ensureInitialSettingsSync()` runs before query send
 2. verify `update-settings` ACK (`settings-updated`) arrives with matching message `id`
-3. verify `latestDesktopUiConfig` is populated (memory or disk load path)
+3. verify the desktop UI config store is populated (memory or disk hydrate path)
 
 If UI save indicator sticks on `saving`:
 

@@ -34,8 +34,8 @@ const {
   saveDesktopUiConfigToDisk,
 } = require('./ipc/ipc_desktop_ui_config.cjs');
 const {
-  createDesktopUiConfigPersistenceRuntime,
-} = require('./ipc/ipc_desktop_ui_config_persistence_runtime.cjs');
+  createDesktopUiConfigStoreRuntime,
+} = require('./ipc/ipc_desktop_ui_config_store.cjs');
 const {
   createGlobalStopShortcutConfigRuntime,
 } = require('./ipc/ipc_global_stop_shortcut_config_runtime.cjs');
@@ -102,9 +102,6 @@ const {
 const {
   createIpcHostOptionState,
 } = require('./ipc/ipc_host_option_state.cjs');
-const {
-  createDesktopUiConfigCache,
-} = require('./ipc/ipc_desktop_ui_config_cache.cjs');
 const {
   createDesktopUiConfigHandlersRuntime,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
@@ -305,11 +302,19 @@ const runtimeConversationRefRuntime = createRuntimeConversationRefRuntime({
 });
 const backendConnectionGateState = createBackendConnectionGateState();
 const hostOptionState = createIpcHostOptionState();
-const desktopUiConfigCache = createDesktopUiConfigCache({
+const desktopUiConfigStore = createDesktopUiConfigStoreRuntime({
+  loadDesktopUiConfigFromDisk,
+  loadDesktopUiConfigFromDiskSync,
+  redactDesktopUiConfigProviderSecrets,
+  saveDesktopUiConfigToDisk,
   isValidConfigPayload,
+  applyShortcutStatusFallbackToConfig,
+  appendDiagnosticEvent,
+  mcpEnablementDiagnosticsPath: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+  log,
 });
 const workspacePathRuntime = createWorkspacePathRuntime({
-  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
+  getLatestDesktopUiConfig: () => desktopUiConfigStore.getSnapshot(),
 });
 const liveTurnState = createIpcLiveTurnState();
 const pendingTurnRuntime = createPendingTurnRuntime({
@@ -422,9 +427,9 @@ const {
   log,
 });
 const settingsSyncRuntime = createIpcSettingsSyncRuntime({
-  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
-  setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
-  loadCachedDesktopUiConfig: () => loadCachedDesktopUiConfigFromDisk(),
+  getLatestDesktopUiConfig: () => desktopUiConfigStore.getSnapshot(),
+  replaceDesktopUiConfigFromRenderer: (config) => desktopUiConfigStore.replaceFromRenderer(config),
+  loadCachedDesktopUiConfig: () => hydrateDesktopUiConfigStore(),
   isConnected: () => backendConnectionGateState.getConnected(),
   isBackendRuntimeConnected,
   ensureBackendConnection,
@@ -437,24 +442,9 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   log,
   timeoutMs: SETTINGS_SYNC_TIMEOUT_MS,
 });
-const {
-  countMcpEnabledServersInConfig,
-  getDesktopUiConfigForMcpRegistry,
-  persistDesktopUiConfigToDisk,
-} = createDesktopUiConfigPersistenceRuntime({
-  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
-  setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
-  loadDesktopUiConfigFromDiskSync,
-  redactDesktopUiConfigProviderSecrets,
-  saveDesktopUiConfigToDisk,
-  isValidConfigPayload,
-  appendDiagnosticEvent,
-  mcpEnablementDiagnosticsPath: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
-  log,
-});
 const globalStopShortcutConfigRuntime = createGlobalStopShortcutConfigRuntime({
   isValidConfigPayload,
-  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
+  getLatestDesktopUiConfig: () => desktopUiConfigStore.getSnapshot(),
   persistDesktopUiConfigToDisk,
   broadcastConnectionStatus: (connected) => ipcStatusPayloads.broadcastConnectionStatus(connected),
   isConnected: () => backendConnectionGateState.getConnected(),
@@ -562,7 +552,7 @@ const ipcProcessResetRuntime = createIpcProcessResetRuntime({
   backendConnectionGateState,
   installAuthContextRuntime,
   activeQueryContextState,
-  desktopUiConfigCache,
+  desktopUiConfigStore,
   globalStopShortcutConfigRuntime,
   mcpRefreshRuntime,
   hostOptionState,
@@ -611,7 +601,7 @@ const agentWakeupRuntime = createAgentWakeupRuntime({
   log,
 });
 const agentDefinitionContextRuntime = createAgentDefinitionContextRuntime({
-  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
+  getLatestDesktopUiConfig: () => desktopUiConfigStore.getSnapshot(),
   platformName: process.platform,
   buildAgentDefinition,
   isDefaultAgentDefinition,
@@ -735,22 +725,17 @@ const extensionMcpHandlersRuntime = createExtensionMcpHandlersRuntime({
   mcpClientInfo: () => ipcHostCopyRuntime.getMcpClientInfo(),
 });
 const desktopUiConfigHandlersRuntime = createDesktopUiConfigHandlersRuntime({
-  loadCachedDesktopUiConfigFromDisk,
+  desktopUiConfigStore,
   persistDesktopUiConfigToDisk,
   isValidConfigPayload,
-  applyShortcutStatusFallbackToConfig,
-  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
-  setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
   getGlobalAgentStopShortcutAcceleratorSetter:
     () => hostOptionState.getSetGlobalAgentStopShortcutAccelerator(),
 });
 const ipcStartupStateRuntime = createIpcStartupStateRuntime({
   loadInstallAuthStateFromDisk,
   applyInstallAuthState: (state) => installAuthContextRuntime.applyInstallAuthState(state),
-  loadCachedDesktopUiConfigFromDisk,
+  hydrateDesktopUiConfigStore,
   isValidConfigPayload,
-  applyShortcutStatusFallbackToConfig,
-  setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
   getGlobalAgentStopShortcutAcceleratorSetter:
     () => hostOptionState.getSetGlobalAgentStopShortcutAccelerator(),
   getAgentLoopStopShortcutEnabledSetter:
@@ -804,8 +789,20 @@ function logMainRuntime(message) {
   console.log(message);
 }
 
-async function loadCachedDesktopUiConfigFromDisk() {
-  return loadDesktopUiConfigFromDisk(log);
+async function hydrateDesktopUiConfigStore() {
+  return desktopUiConfigStore.hydrate();
+}
+
+function persistDesktopUiConfigToDisk(config, options = {}) {
+  return desktopUiConfigStore.persist(config, options);
+}
+
+function getDesktopUiConfigForMcpRegistry() {
+  return desktopUiConfigStore.getDesktopUiConfigForMcpRegistry();
+}
+
+function countMcpEnabledServersInConfig(config) {
+  return desktopUiConfigStore.countMcpEnabledServersInConfig(config);
 }
 
 function updateGlobalAgentStopShortcutStatus(status) {
@@ -947,7 +944,7 @@ function registerRendererWindow(win) {
 }
 
 function getLatestDesktopUiConfig() {
-  return desktopUiConfigCache.getSnapshot();
+  return desktopUiConfigStore.getSnapshot();
 }
 
 function registerBackendMessageObserver(observer) {

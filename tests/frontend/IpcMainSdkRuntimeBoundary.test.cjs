@@ -216,8 +216,8 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_conversation_event_projection.cjs'),
       'utf8',
     );
-    const desktopUiConfigCacheSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_ui_config_cache.cjs'),
+    const desktopUiConfigStoreSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_ui_config_store.cjs'),
       'utf8',
     );
     const liveTurnStateSource = await fs.readFile(
@@ -335,7 +335,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(directWakeUpAdapterSource).toContain('pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)');
     expect(source).toContain('createWorkspacePathRuntime({');
     expect(source).toContain('workspacePathRuntime.resolve(payload)');
-    expect(source).not.toContain('resolveWorkspacePathForAgentPayload(payload, desktopUiConfigCache.getRaw())');
+    expect(source).not.toContain('resolveWorkspacePathForAgentPayload(payload, desktopUiConfigStore.getRawForInternalUse())');
     expect(workspacePathRuntimeSource).toContain('function createWorkspacePathRuntime');
     expect(source).not.toContain('event.payload?.error');
     expect(source).not.toContain('payload?.workspace_path');
@@ -651,12 +651,15 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('let activeQueryContext = null');
     expect(source).not.toContain('activeQueryContext =');
     expect(activeQueryContextSource).toContain('let activeQueryContext = initialContext;');
-    expect(source).toContain('createDesktopUiConfigCache({');
-    expect(source).toContain('desktopUiConfigCache.getRaw()');
-    expect(source).toContain('desktopUiConfigCache.getSnapshot()');
+    expect(source).toContain('createDesktopUiConfigStoreRuntime({');
+    expect(source).toContain('desktopUiConfigStore.getSnapshot()');
+    expect(source).toContain('desktopUiConfigStore.persist(config, options)');
+    expect(source).not.toContain('createDesktopUiConfigCache');
+    expect(source).not.toContain('createDesktopUiConfigPersistenceRuntime');
     expect(source).not.toContain('let latestDesktopUiConfig = null');
     expect(source).not.toContain('latestDesktopUiConfig = config');
-    expect(desktopUiConfigCacheSource).toContain('let latestDesktopUiConfig = initialConfig;');
+    expect(desktopUiConfigStoreSource).toContain('let currentConfig = null;');
+    expect(desktopUiConfigStoreSource).toContain('function createDesktopUiConfigStoreRuntime');
     expect(source).toContain('createIpcLiveTurnState()');
     expect(source).toContain('liveTurnState.getLatestCurrentTurn()');
     expect(source).toContain('liveTurnState.setLatestCurrentTurn(');

@@ -31,7 +31,7 @@ this page.
 ## Settings And Model Selection
 
 - Agent settings edited in the renderer must update Electron main's redacted
-  desktop UI config cache before the next query attaches `agent_definition`;
+  desktop UI config store before the next query attaches `agent_definition`;
   disk persistence is not allowed to be the live-turn gate.
 - Selected chat models must be applied before inference starts: normal sends and
   manual compaction await the SDK settings ACK, while retry/edit replay carries

@@ -62,7 +62,7 @@ function copyStringArray(value) {
 
 function createIpcSettingsSyncRuntime({
   getLatestDesktopUiConfig,
-  setLatestDesktopUiConfig,
+  replaceDesktopUiConfigFromRenderer,
   loadCachedDesktopUiConfig,
   isConnected,
   isBackendRuntimeConnected,
@@ -135,7 +135,7 @@ function createIpcSettingsSyncRuntime({
     if (!backendConfig) {
       return Promise.resolve(false);
     }
-    setLatestDesktopUiConfig?.(await preserveLocalOnlyConfigFields(config));
+    replaceDesktopUiConfigFromRenderer?.(await preserveLocalOnlyConfigFields(config));
 
     if (!isBackendRuntimeConnected?.()) {
       try {
@@ -186,7 +186,7 @@ function createIpcSettingsSyncRuntime({
       try {
         config = await loadCachedDesktopUiConfig?.();
         if (config) {
-          setLatestDesktopUiConfig?.({ ...config });
+          replaceDesktopUiConfigFromRenderer?.({ ...config });
         }
       } catch (error) {
         log(`Failed to load cached desktop UI config for initial settings sync: ${error?.message || error}`);

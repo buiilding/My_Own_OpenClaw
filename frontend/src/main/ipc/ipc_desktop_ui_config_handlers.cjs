@@ -4,24 +4,19 @@
 
 function registerDesktopUiConfigHandlers({
   ipcMain,
-  loadCachedDesktopUiConfigFromDisk,
+  desktopUiConfigStore,
   persistDesktopUiConfigToDisk,
   isValidConfigPayload,
-  applyShortcutStatusFallbackToConfig,
-  getLatestDesktopUiConfig,
-  setLatestDesktopUiConfig,
   setGlobalAgentStopShortcutAccelerator,
 }) {
   ipcMain.handle('load-frontend-config', async () => {
-    const config = await loadCachedDesktopUiConfigFromDisk();
+    const config = await desktopUiConfigStore.hydrate();
     if (isValidConfigPayload(config)) {
-      const nextConfig = applyShortcutStatusFallbackToConfig({ ...config });
-      setLatestDesktopUiConfig(nextConfig);
       if (typeof setGlobalAgentStopShortcutAccelerator === 'function') {
-        setGlobalAgentStopShortcutAccelerator(nextConfig.global_agent_stop_shortcut);
+        setGlobalAgentStopShortcutAccelerator(config.global_agent_stop_shortcut);
       }
     }
-    return getLatestDesktopUiConfig();
+    return desktopUiConfigStore.getSnapshot();
   });
 
   ipcMain.handle('save-frontend-config', async (_event, config) => {
@@ -36,12 +31,9 @@ function registerDesktopUiConfigHandlers({
 }
 
 function createDesktopUiConfigHandlersRuntime({
-  loadCachedDesktopUiConfigFromDisk,
+  desktopUiConfigStore,
   persistDesktopUiConfigToDisk,
   isValidConfigPayload,
-  applyShortcutStatusFallbackToConfig,
-  getLatestDesktopUiConfig,
-  setLatestDesktopUiConfig,
   setGlobalAgentStopShortcutAccelerator,
   getGlobalAgentStopShortcutAcceleratorSetter,
 } = {}) {
@@ -52,12 +44,9 @@ function createDesktopUiConfigHandlersRuntime({
         : setGlobalAgentStopShortcutAccelerator;
     return registerDesktopUiConfigHandlers({
       ipcMain,
-      loadCachedDesktopUiConfigFromDisk,
+      desktopUiConfigStore,
       persistDesktopUiConfigToDisk,
       isValidConfigPayload,
-      applyShortcutStatusFallbackToConfig,
-      getLatestDesktopUiConfig,
-      setLatestDesktopUiConfig,
       setGlobalAgentStopShortcutAccelerator: resolvedSetGlobalAgentStopShortcutAccelerator,
     });
   }

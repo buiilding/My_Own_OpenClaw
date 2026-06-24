@@ -95,8 +95,8 @@ Responsibilities:
   state in `ipc_backend_connection_gate_state.cjs`, keeps host initialization
   option state in `ipc_host_option_state.cjs`, projects replayed backend
   events through
-  `ipc_conversation_event_projection.cjs`, keeps cached desktop UI config in
-  `ipc_desktop_ui_config_cache.cjs`, keeps live-turn cache state in
+  `ipc_conversation_event_projection.cjs`, keeps desktop UI config authority in
+  `ipc_desktop_ui_config_store.cjs`, keeps live-turn cache state in
   `ipc_live_turn_state.cjs`, keeps cached AgentClient lifecycle in
   `ipc_agent_client_lifecycle.cjs`, composes Electron AgentClient construction
   through `ipc_electron_agent_client_factory.cjs`, and delegates backend

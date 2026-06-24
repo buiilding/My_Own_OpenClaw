@@ -18,7 +18,7 @@ function createIpcProcessResetRuntime({
   backendConnectionGateState,
   installAuthContextRuntime,
   activeQueryContextState,
-  desktopUiConfigCache,
+  desktopUiConfigStore,
   globalStopShortcutConfigRuntime,
   mcpRefreshRuntime,
   hostOptionState,
@@ -43,7 +43,7 @@ function createIpcProcessResetRuntime({
     call(installAuthContextRuntime, 'reset');
     call(backendSessionState, 'reset');
     call(activeQueryContextState, 'reset');
-    call(desktopUiConfigCache, 'reset');
+    call(desktopUiConfigStore, 'reset');
     call(globalStopShortcutConfigRuntime, 'reset');
     call(mcpRefreshRuntime, 'reset');
     call(liveTurnState, 'reset');
