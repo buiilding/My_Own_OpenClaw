@@ -6,6 +6,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: add the Phase 0 SDK `ConversationView` projection alongside
+  existing snapshots, with `getView()`/`subscribeView()` APIs, normal UI
+  filtering for internal `conv-agent-*` lanes, and separated build diagnostics
+  for pending turn, superseded turn count, filtered internal lane count,
+  model-history checkpoint id, and last SDK/backend event refs. `<windie>
+  conversation view` now prints the persisted view diagnostic without dumping
+  message text, raw tool output, local paths, screenshots, provider payloads,
+  credentials, or internal lane details. No migration required; renderer/main
+  consumers still migrate surface-by-surface.
 - docs/plans: merge the SDK-owned ConversationView contract and SDK View
   Authority migration direction into one SDK View Authority plan, so one
   coordinated implementation path defines the SDK-owned UI projection,

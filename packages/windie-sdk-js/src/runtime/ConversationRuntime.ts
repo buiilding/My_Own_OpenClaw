@@ -10,6 +10,8 @@ import type {
   ConversationEvent,
   ConversationRuntimeState,
   ConversationStore,
+  ConversationView,
+  ConversationViewBuildDiagnostics,
   CurrentTurnProjection,
   DisplayMessage,
   DisplayTimelineCheckpoint,
@@ -35,6 +37,8 @@ import type {
 } from '../conversation/types.js';
 import {
   buildCurrentTurnProjection,
+  buildConversationView,
+  buildConversationViewBuildDiagnostics,
   buildCompactionState,
   buildDisplayConversation,
   buildDisplayRows,
@@ -121,6 +125,7 @@ function userMessageDisplayPayloadFrom(value: unknown): JsonRecord {
 
 export type ConversationListener = (snapshot: ConversationSnapshot) => void;
 export type ConversationEventListener = (event: ConversationEvent, snapshot: ConversationSnapshot) => void;
+export type ConversationViewListener = (view: ConversationView) => void;
 
 export type ConversationSnapshot = {
   state: ConversationRuntimeState;
@@ -128,6 +133,8 @@ export type ConversationSnapshot = {
   displayRows: SdkDisplayRow[];
   rehydrate: RehydrateSnapshot;
   currentTurn: CurrentTurnProjection;
+  view: ConversationView;
+  viewDiagnostics: ConversationViewBuildDiagnostics;
 };
 
 export type SendInput = {
@@ -1272,6 +1279,15 @@ export class SdkConversationRuntime {
     return () => {
       this.listeners.delete(listener);
     };
+  }
+
+  async getView(): Promise<ConversationView> {
+    const snapshot = await this.load();
+    return snapshot.view;
+  }
+
+  subscribeView(listener: ConversationViewListener): () => void {
+    return this.subscribe(snapshot => listener(snapshot.view));
   }
 
   subscribeEvents(listener: ConversationEventListener): () => void {
@@ -3252,6 +3268,14 @@ export class SdkConversationRuntime {
     return Object.fromEntries(this.liveDisplayAttachmentsByTurn.entries());
   }
 
+  private pendingTurnRefForView(): string | null {
+    const activeTurnRef = this.state.activeTurnRef ?? null;
+    if (activeTurnRef && this.pendingTurns.has(activeTurnRef)) {
+      return activeTurnRef;
+    }
+    return this.pendingTurns.keys().next().value ?? null;
+  }
+
   private async maybeExecuteTool(event: ConversationEvent): Promise<void> {
     if (
       event.source !== 'backend'
@@ -3372,17 +3396,33 @@ export class SdkConversationRuntime {
   private snapshot(events: ConversationEvent[]): ConversationSnapshot {
     const currentTurn = buildCurrentTurnProjection(events);
     const displayRows = this.displayRowsForSnapshot(events);
+    const rehydrate = rehydrateSnapshotFromModelHistory(
+      events,
+      this.options.conversationRef,
+      this.state.revisionId,
+      displayRows,
+    ) ?? buildRehydrateSnapshot(events);
+    const viewInput = {
+      conversationRef: this.options.conversationRef,
+      revisionId: this.state.revisionId,
+      state: this.state,
+      displayRows,
+      currentTurn,
+      events,
+      pendingTurnRef: this.pendingTurnRefForView(),
+    };
+    const view = buildConversationView(viewInput);
     return {
       state: this.state,
       display: this.displayConversationForSnapshot(events, displayRows),
       displayRows,
-      rehydrate: rehydrateSnapshotFromModelHistory(
-        events,
-        this.options.conversationRef,
-        this.state.revisionId,
-        displayRows,
-      ) ?? buildRehydrateSnapshot(events),
+      rehydrate,
       currentTurn,
+      view,
+      viewDiagnostics: buildConversationViewBuildDiagnostics({
+        ...viewInput,
+        view,
+      }),
     };
   }
 }

@@ -30,6 +30,7 @@ surface. The command tables below use `<windie>` for the active platform shim.
 | `<windie> capability trace <conversation-ref>` | Inspect capability-level conversation trace summaries. |
 | `<windie> conversation list` | List stored conversations. |
 | `<windie> conversation state <conversation-ref>` | Inspect selected revision, display timeline row count, model-history row count, raw event count, and stale branch diagnostics without dumping message bodies or tool output. |
+| `<windie> conversation view <conversation-ref>` | Inspect the SDK ConversationView diagnostic: active revision, display row count, live turn ref/phase, response overlay mode/guard, pending turn, superseded count, filtered internal-lane count, model-history checkpoint id, and last SDK/backend event refs without dumping message text or raw payloads. |
 | `<windie> conversation messages <conversation-ref>` | Print stored visible conversation messages from the local-runtime `desktop-runtime/history/history.db` root unless `AGENT_USER_DATA_DIR` or `WINDIE_USER_DATA_DIR` overrides it. |
 | `<windie> conversation events <conversation-ref>` | Inspect persisted conversation events, optionally by turn/type. |
 | `<windie> conversation traces <conversation-ref>` | Inspect persisted trace events for a conversation. |

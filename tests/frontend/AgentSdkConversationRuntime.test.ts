@@ -4,6 +4,8 @@
 
 import {
   type BackendEvent,
+  buildConversationView,
+  buildConversationViewBuildDiagnostics,
   buildCurrentTurnProjection,
   buildDisplayConversation,
   buildDisplayRows,
@@ -9091,5 +9093,191 @@ describe('Agent SDK conversation runtime core', () => {
       messages: [{ role: 'assistant', content: 'summary' }],
     });
     expect(sentRehydrates).toEqual([]);
+  });
+
+  test('conversation view projects a normal send as one SDK-owned UI view', () => {
+    const events = [
+      event('user_message', { text: 'hello' }),
+      event('assistant_delta', { text: 'hi there' }),
+    ];
+    const state = events.reduce(
+      (current, next) => reduceConversationRuntimeState(current, next),
+      createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1'),
+    );
+    const currentTurn = buildCurrentTurnProjection(events);
+    const view = buildConversationView({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: state.revisionId,
+      state,
+      events,
+      displayRows: buildDisplayRows(events),
+      currentTurn,
+      pendingTurnRef: 'turn-1',
+    });
+
+    expect(view).toMatchObject({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      liveTurn: {
+        turnRef: 'turn-1',
+        phase: 'streaming',
+        isBusy: true,
+        canStop: true,
+      },
+      surfaces: {
+        pill: { mode: 'busy' },
+        dashboard: { mode: 'busy' },
+        responseOverlay: {
+          mode: 'response',
+          visible: true,
+          ownerConversationRef: 'conv-sdk-runtime',
+          turnRef: 'turn-1',
+        },
+      },
+      actions: {
+        canEdit: true,
+        canRetry: false,
+        canFork: true,
+      },
+    });
+    expect(view.displayRows).toEqual([
+      expect.objectContaining({
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+      }),
+      expect.objectContaining({
+        role: 'assistant',
+        type: 'assistant_message',
+        content: 'hi there',
+        isStreaming: true,
+      }),
+    ]);
+    expect(view.liveTurn.entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'llm-text',
+        text: 'hi there',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]));
+  });
+
+  test('conversation view keeps edit resend replacement as the live lane', () => {
+    const events = [
+      eventForTurn('turn-old', 'user_message', { text: 'old' }),
+      eventForTurn('turn-old', 'assistant_delta', { text: 'old answer' }),
+      eventForTurn('turn-old', 'turn_superseded', {
+        replacementTurnRef: 'turn-new',
+        reason: 'user_edit',
+        createdAt: '2026-06-24T12:00:00.000Z',
+      }),
+      eventForTurn('turn-new', 'user_message', { text: 'new' }),
+    ];
+    const state = events.reduce(
+      (current, next) => reduceConversationRuntimeState(current, next),
+      createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1'),
+    );
+    const displayRows = [{
+      id: 'turn-new-sdk-evt-000002-user_message',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-new',
+      index: 0,
+      role: 'user' as const,
+      type: 'user_message' as const,
+      content: 'new',
+      metadata: {
+        eventId: 'turn-new-sdk-evt-000002-user_message',
+        source: 'ui',
+        revisionId: 'rev-1',
+        timestamp: '2026-06-24T12:00:00.000Z',
+      },
+    }];
+    const currentTurn = buildCurrentTurnProjection(events);
+    const view = buildConversationView({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: state.revisionId,
+      state,
+      events,
+      displayRows,
+      currentTurn,
+      pendingTurnRef: 'turn-new',
+    });
+    const diagnostics = buildConversationViewBuildDiagnostics({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: state.revisionId,
+      state,
+      events,
+      displayRows,
+      currentTurn,
+      pendingTurnRef: 'turn-new',
+      view,
+    });
+
+    expect(view.displayRows).toEqual(displayRows);
+    expect(view.liveTurn).toMatchObject({
+      turnRef: 'turn-new',
+      phase: 'awaiting',
+      isBusy: true,
+      canStop: true,
+    });
+    expect(view.surfaces.responseOverlay).toMatchObject({
+      mode: 'typing',
+      guardRef: 'turn-new',
+    });
+    expect(diagnostics).toMatchObject({
+      pendingTurnRef: 'turn-new',
+      supersededTurnCount: 1,
+      filteredInternalLaneCount: 0,
+    });
+  });
+
+  test('conversation view filters internal lanes from normal UI authority', () => {
+    const userEvent = eventForTurn('turn-user', 'user_message', { text: 'visible user' });
+    const internalEvent = createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-agent-worker',
+      revisionId: 'rev-internal',
+      turnRef: 'turn-internal',
+      source: 'sdk',
+      payload: { text: 'internal bookkeeping' },
+    });
+    const events = [
+      userEvent,
+      internalEvent,
+    ];
+    const currentTurn = buildCurrentTurnProjection(events);
+    expect(currentTurn.conversationRef).toBe('conv-agent-worker');
+
+    const view = buildConversationView({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      events,
+      displayRows: buildDisplayRows(events),
+      currentTurn,
+    });
+    const diagnostics = buildConversationViewBuildDiagnostics({
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      events,
+      displayRows: buildDisplayRows(events),
+      currentTurn,
+      view,
+    });
+
+    expect(view.conversationRef).toBe('conv-sdk-runtime');
+    expect(view.displayRows).toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-user',
+        content: 'visible user',
+      }),
+    ]);
+    expect(view.liveTurn).toMatchObject({
+      turnRef: 'turn-user',
+      phase: 'awaiting',
+      isBusy: true,
+    });
+    expect(view.surfaces.responseOverlay.ownerConversationRef).toBe('conv-sdk-runtime');
+    expect(diagnostics.filteredInternalLaneCount).toBe(1);
   });
 });

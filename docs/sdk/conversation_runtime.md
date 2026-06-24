@@ -1,7 +1,7 @@
 ---
 summary: "SDK conversation runtime contract for normalized conversation events, dumb stores, live turn projection, conversationProjections ownership, display projections, diagnostic rehydrate snapshots, model-history resume, toolPairKeys pairing after the removed toolPairKey helper, removed renderer ToolRunnerHook callback/turn-guard tests, removed renderer transcript/rehydrate helpers, tool output content fallback behavior, removed fallbackText top-level tool-output fallback helper behavior, assistant-shaped content rejection, final_response fallback tool output rejection, compaction lifecycle handling, edit/resend resource preservation, retry revisions, and UI adapter boundaries."
 read_when:
-  - When changing SDK conversation state, store adapters, live turn projection, display projections, diagnostic rehydrate snapshots, model-history resume, edit/resend, retry, compaction replay, or desktop chat migration.
+  - When changing SDK conversation state, store adapters, ConversationView, live turn projection, display projections, diagnostic rehydrate snapshots, model-history resume, edit/resend, retry, compaction replay, or desktop chat migration.
   - When resolving stale references to removed `ToolRunnerHook.callbacks.test.ts` or `ToolRunnerHook.turnGuards.test.ts`; local tool execution moved from renderer hooks into SDK runtime coordination.
   - When resolving stale references to the removed standalone `currentTurnProjection.ts` or `currentTurnProjection.js` files; current-turn projection is built in `conversationProjections.ts`.
   - When resolving stale references to removed renderer transcript helpers such as `transcriptMessagePayload.js`, `structuredToolPayload.js`, `rehydrateMessageState.js`, `rehydratePayload.js`, `transparencyNormalization.ts`, `storedTranscriptSdkProjection.ts`, `storedTranscriptMemoryState.js`, `storedTranscriptChatMessageState.js`, `desktopTranscriptProjectionRuntimeClient.ts`, `pendingTranscriptMessages.ts`, `pendingAssistantQueue.ts`, `pendingUserQueue.ts`, `transcriptPendingFlush.ts`, `TranscriptPendingFlush.test.ts`, or `transcriptRecordWrite.ts`.
@@ -208,6 +208,35 @@ UI adapters:
   screenshots from typed attachments rather than decoding backend-wire event
   payloads or whole-message screenshot aliases; screenshot aliases remain
   compatibility metadata for replay/provider boundaries.
+
+Runtime snapshots also expose `snapshot.view`, and callers may use
+`conversation.getView()` or `conversation.subscribeView(...)` for the Phase 0
+SDK-owned `ConversationView` projection. The view is the normal UI contract that
+collapses display rows, live turn entries, surface modes, and action
+capabilities into one conversation-scoped object:
+
+```text
+ConversationView = displayRows + liveTurn + surfaces + actions
+```
+
+The view filters internal `conv-agent-*` lanes out of normal UI authority. Those
+lanes remain available to diagnostics as counts and raw event/trace inspection,
+but they must not replace the active display rows, live turn, response overlay
+owner, busy state, or action metadata for the user-facing conversation. During
+the migration, existing `snapshot.currentTurn` and `snapshot.displayRows`
+fields remain available so renderer/main surfaces can move one at a time.
+
+For debugging, use:
+
+```bash
+<windie> conversation view <conversation-ref> --json
+```
+
+The diagnostic prints active revision id, display row count, live turn ref and
+phase, response overlay mode and guard ref, pending turn ref, superseded turn
+count, filtered internal lane count, model-history checkpoint id, and last
+SDK/backend event refs. It does not print message text, raw tool output, local
+paths, screenshots, provider payloads, credentials, or internal lane details.
 
 ### Removed Standalone Current Turn Projector
 
