@@ -45,6 +45,7 @@ from memory.chat_event_store import (
     get_next_chat_event_index,
     init_chat_event_schema,
     list_conversations,
+    list_conversation_revisions,
     replace_display_timeline,
     replace_model_history_checkpoint,
     search_conversations,
@@ -1396,6 +1397,19 @@ class LocalMemoryStore:
             db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
+        )
+
+    async def list_conversation_revisions(
+        self,
+        user_id: str,
+        conversation_id: Optional[str],
+        limit: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        return await list_conversation_revisions(
+            db_path=self.history_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            limit=limit,
         )
 
     async def replace_display_timeline(

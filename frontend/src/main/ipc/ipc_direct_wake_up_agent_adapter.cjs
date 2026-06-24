@@ -343,6 +343,7 @@ function createDirectWakeUpAgentAdapter({
       return reloadRuntimeSnapshot(handle);
     },
     getConversationRevision: options => agent.getConversationRevision(options),
+    listConversationRevisions: options => agent.listConversationRevisions(options),
     appendConversationEvent: async (options = {}) => {
       const event = options && typeof options === 'object' && 'event' in options
         ? options.event
@@ -435,7 +436,12 @@ function createDirectWakeUpAgentAdapter({
       const result = await handle.runtime.fork(input);
       markInferenceContextStale(displayConversationRef);
       await reloadRuntimeSnapshot(handle);
-      return result;
+      const forkedHandle = getConversationRuntimeHandle(result.conversationRef);
+      const forkedSnapshot = await reloadRuntimeSnapshot(forkedHandle);
+      return {
+        ...result,
+        view: forkedSnapshot?.view ?? result.view ?? null,
+      };
     },
     wakewordDetected: payload => agent.wakewordDetected(payload),
     ensureConnected: () => agent.ensureConnected(),

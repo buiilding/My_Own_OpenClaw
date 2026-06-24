@@ -2,7 +2,7 @@
  * Provides the chat interface header controls module for the renderer UI.
  */
 
-import { Brain, ChevronDown, Search, Volume2, Workflow } from 'lucide-react';
+import { Brain, ChevronDown, GitBranch, GitFork, Search, Volume2, Workflow } from 'lucide-react';
 import MainWindowControls from '../../../components/MainWindowControls';
 import ChatBrowserSessionControl from './ChatBrowserSessionControl';
 import { DesktopChatModelOptionsRuntime } from '../../../app/runtime/desktopChatModelOptionsRuntime';
@@ -16,6 +16,19 @@ function renderModelLabel(label, supportsThinking) {
       {supportsThinking ? <Brain size={13} strokeWidth={2} aria-hidden="true" /> : null}
     </span>
   );
+}
+
+function shortRevisionId(revisionId) {
+  return typeof revisionId === 'string' && revisionId.length > 10
+    ? `${revisionId.slice(0, 10)}...`
+    : revisionId || 'revision';
+}
+
+function revisionOperationLabel(operation) {
+  if (operation === 'user_edit' || operation === 'edit') {
+    return 'edit';
+  }
+  return operation || 'revision';
 }
 
 function ChatInterfaceHeaderControls({
@@ -37,12 +50,23 @@ function ChatInterfaceHeaderControls({
   showReasoningModeSelector,
   selectedReasoningModeLabel,
   reasoningModeOptions,
+  revisionMenuRef = null,
+  revisionMenuOpen = false,
+  revisionOptions = [],
+  revisionLoading = false,
+  revisionError = null,
+  revisionActionId = null,
+  activeRevisionId = null,
+  activeConversationRef = null,
+  setRevisionMenuOpen = () => {},
   speechModeEnabled,
   findBarOpen,
   activeWorkspaceName,
   activeWorkspacePath,
   handleToggleFind,
   handleChangeWorkspace,
+  handleRevisionCheckout = () => {},
+  handleRevisionFork = () => {},
   devUiEnabled,
   handleProviderSelect,
   handleModelSelect,
@@ -67,6 +91,7 @@ function ChatInterfaceHeaderControls({
                 setProviderMenuOpen((current) => !current);
                 setModelMenuOpen(false);
                 setReasoningModeMenuOpen(false);
+                setRevisionMenuOpen(false);
               }}
             >
               <span>{providerLabel}</span>
@@ -106,6 +131,7 @@ function ChatInterfaceHeaderControls({
                 setModelMenuOpen((current) => !current);
                 setProviderMenuOpen(false);
                 setReasoningModeMenuOpen(false);
+                setRevisionMenuOpen(false);
               }}
             >
               {renderModelLabel(modelLabelBase, selectedModelOption?.supportsThinking)}
@@ -146,6 +172,7 @@ function ChatInterfaceHeaderControls({
                   setReasoningModeMenuOpen((current) => !current);
                   setProviderMenuOpen(false);
                   setModelMenuOpen(false);
+                  setRevisionMenuOpen(false);
                 }}
               >
                 <span>{selectedReasoningModeLabel || 'Reasoning'}</span>
@@ -182,6 +209,74 @@ function ChatInterfaceHeaderControls({
         ) : null}
         <div className="chat-utility-controls">
           <ChatBrowserSessionControl />
+          <div className="chat-revision-control" ref={revisionMenuRef}>
+            <button
+              type="button"
+              className={`chat-top-icon-btn${revisionMenuOpen ? ' is-enabled' : ''}`}
+              aria-label="Conversation revisions"
+              aria-expanded={revisionMenuOpen}
+              title="Conversation revisions"
+              disabled={!activeConversationRef}
+              onClick={() => {
+                setRevisionMenuOpen((current) => !current);
+                setProviderMenuOpen(false);
+                setModelMenuOpen(false);
+                setReasoningModeMenuOpen(false);
+              }}
+            >
+              <GitBranch size={18} />
+            </button>
+            {revisionMenuOpen ? (
+              <div className="chat-revision-menu" role="menu">
+                {revisionLoading ? (
+                  <div className="chat-revision-menu-state">Loading revisions</div>
+                ) : null}
+                {!revisionLoading && revisionError ? (
+                  <div className="chat-revision-menu-state is-error">{revisionError}</div>
+                ) : null}
+                {!revisionLoading && !revisionError && revisionOptions.length === 0 ? (
+                  <div className="chat-revision-menu-state">No revisions</div>
+                ) : null}
+                {!revisionLoading && !revisionError ? revisionOptions.map((revision) => {
+                  const revisionId = revision?.revisionId || '';
+                  const isActive = revisionId && revisionId === activeRevisionId;
+                  const checkoutActionId = `checkout:${revisionId}`;
+                  const forkActionId = `fork:${revisionId}`;
+                  return (
+                    <div
+                      key={revisionId}
+                      className={`chat-revision-menu-row${isActive ? ' is-active' : ''}`}
+                    >
+                      <button
+                        type="button"
+                        className="chat-revision-menu-item"
+                        role="menuitem"
+                        disabled={!revisionId || revisionActionId === checkoutActionId}
+                        onClick={() => handleRevisionCheckout(revisionId)}
+                      >
+                        <span className="chat-revision-menu-id">
+                          {shortRevisionId(revisionId)}
+                        </span>
+                        <span className="chat-revision-menu-meta">
+                          {isActive ? 'active' : revisionOperationLabel(revision?.operation)}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        className="chat-revision-fork-btn"
+                        aria-label={`Fork revision ${shortRevisionId(revisionId)}`}
+                        title="Fork revision"
+                        disabled={!revisionId || revisionActionId === forkActionId}
+                        onClick={() => handleRevisionFork(revision)}
+                      >
+                        <GitFork size={15} />
+                      </button>
+                    </div>
+                  );
+                }) : null}
+              </div>
+            ) : null}
+          </div>
           <button
             type="button"
             className={`chat-active-workspace-chip chat-active-workspace-button${

@@ -797,9 +797,11 @@ class SdkConversationRuntime {
                 modelHistoryCheckpointId: modelHistoryCheckpoint?.checkpointId ?? null,
             },
         }, { revisionId });
+        const snapshot = await this.load();
         return {
             displayTimeline,
             modelHistoryCheckpoint,
+            view: snapshot.view,
         };
     }
     async replaceRows(input) {
@@ -951,6 +953,7 @@ class SdkConversationRuntime {
             sourceConversationRef: this.options.conversationRef,
             sourceRevisionId: sourceTimeline.revisionId,
             cutAfterRowId: input.cutAfterRowId,
+            displayTimeline: displayCheckpoint,
             displayRowCount: displayRows.length,
             modelHistoryRowCount,
             modelHistoryCheckpointId,

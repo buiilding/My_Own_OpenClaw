@@ -37,6 +37,9 @@ import {
   DesktopThreadPresentationRuntime,
 } from '../../../app/runtime/desktopThreadPresentationRuntime';
 import { DesktopThreadFindRuntime } from '../../../app/runtime/desktopThreadFindRuntime';
+import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
+import { DesktopConversationDisplayProjection } from '../../../app/runtime/desktopConversationDisplayProjection';
+import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import '../../../styles/ChatInterface.css';
 
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
@@ -56,6 +59,20 @@ const {
 const { buildThreadFindState } = DesktopThreadFindRuntime;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
 const { startNewChatSession } = DesktopNewChatSessionRuntime;
+const {
+  buildChatMessagesFromSdkDisplayRows,
+  mergeRendererAnnotationsIntoSdkMessages,
+} = DesktopConversationDisplayProjection;
+
+function normalizeRevisionId(revisionId) {
+  return typeof revisionId === 'string' && revisionId.trim() ? revisionId.trim() : null;
+}
+
+function buildForkConversationRef(conversationRef, revisionId) {
+  const source = String(conversationRef || 'conversation').replace(/[^a-zA-Z0-9_-]+/g, '-');
+  const revision = String(revisionId || 'revision').replace(/[^a-zA-Z0-9_-]+/g, '-');
+  return `${source}-fork-${revision}-${Date.now().toString(36)}`;
+}
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (
@@ -81,6 +98,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const clearMessages = useChatStore((state) => state.clearMessages);
   const setMessages = useChatStore((state) => state.setMessages);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
+  const setConversationView = useChatStore((state) => state.setConversationView);
   const updateMessage = useChatStore((state) => state.updateMessage);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
@@ -274,9 +292,15 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const [findQuery, setFindQuery] = useState('');
   const [activeFindMatchIndex, setActiveFindMatchIndex] = useState(0);
   const [findFocusToken, setFindFocusToken] = useState(0);
+  const [revisionMenuOpen, setRevisionMenuOpen] = useState(false);
+  const [revisionOptions, setRevisionOptions] = useState([]);
+  const [revisionLoading, setRevisionLoading] = useState(false);
+  const [revisionError, setRevisionError] = useState(null);
+  const [revisionActionId, setRevisionActionId] = useState(null);
   const providerMenuRef = useRef(null);
   const modelMenuRef = useRef(null);
   const reasoningModeMenuRef = useRef(null);
+  const revisionMenuRef = useRef(null);
   const findInputRef = useRef(null);
   const previousFindQueryRef = useRef('');
   const {
@@ -289,9 +313,11 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     providerMenuRef,
     modelMenuRef,
     reasoningModeMenuRef,
+    revisionMenuRef,
     setProviderMenuOpen,
     setModelMenuOpen,
     setReasoningModeMenuOpen,
+    setRevisionMenuOpen,
   });
 
   const normalizedFindQuery = useMemo(() => findQuery.trim(), [findQuery]);
@@ -403,9 +429,148 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     await chatSurface.runManualCompaction();
   }, [chatSurface]);
 
+  const applyConversationView = useCallback((view, targetConversationRef = null) => {
+    if (!view || typeof view !== 'object') {
+      return;
+    }
+    const conversationRef = targetConversationRef || view.conversationRef || activeConversationRef;
+    if (!conversationRef) {
+      return;
+    }
+    const preservesCurrentConversationAnnotations = conversationRef === activeConversationRef;
+    const displayRows = Array.isArray(view.displayRows) ? view.displayRows : [];
+    const sdkMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
+    const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
+      sdkMessages,
+      preservesCurrentConversationAnnotations ? messages : [],
+      { pendingTurn: preservesCurrentConversationAnnotations ? pendingTurn : null },
+    );
+    setConversationView(view, conversationRef);
+    setMessages(mergedMessages, conversationRef);
+  }, [
+    activeConversationRef,
+    messages,
+    pendingTurn,
+    setConversationView,
+    setMessages,
+  ]);
+
+  useEffect(() => {
+    if (!revisionMenuOpen || !activeConversationRef) {
+      return undefined;
+    }
+    let cancelled = false;
+    setRevisionLoading(true);
+    setRevisionError(null);
+    DesktopConversationContinuityService.listRevisions(
+      sessionInfo.userId || 'default_user',
+      activeConversationRef,
+      50,
+    ).then((revisions) => {
+      if (cancelled) {
+        return;
+      }
+      setRevisionOptions(Array.isArray(revisions) ? revisions : []);
+    }).catch((error) => {
+      if (cancelled) {
+        return;
+      }
+      console.warn('[ChatInterface] Failed to load conversation revisions:', error);
+      setRevisionOptions([]);
+      setRevisionError('Unable to load revisions');
+    }).finally(() => {
+      if (!cancelled) {
+        setRevisionLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeConversationRef, revisionMenuOpen, sessionInfo.userId]);
+
+  const handleRevisionCheckout = useCallback(async (revisionId) => {
+    const normalizedRevisionId = normalizeRevisionId(revisionId);
+    if (!activeConversationRef || !normalizedRevisionId) {
+      return;
+    }
+    setRevisionActionId(`checkout:${normalizedRevisionId}`);
+    setRevisionError(null);
+    try {
+      const result = await DesktopConversationContinuityService.checkoutRevision({
+        userId: sessionInfo.userId || 'default_user',
+        conversationRef: activeConversationRef,
+        revisionId: normalizedRevisionId,
+      });
+      applyConversationView(result?.view, activeConversationRef);
+      setRevisionOptions((current) => current.map((revision) => ({
+        ...revision,
+        active: revision.revisionId === normalizedRevisionId,
+      })));
+      setRevisionMenuOpen(false);
+    } catch (error) {
+      console.warn('[ChatInterface] Failed to checkout conversation revision:', error);
+      setRevisionError('Unable to checkout revision');
+    } finally {
+      setRevisionActionId(null);
+    }
+  }, [
+    activeConversationRef,
+    applyConversationView,
+    sessionInfo.userId,
+  ]);
+
+  const handleRevisionFork = useCallback(async (revision) => {
+    const revisionId = normalizeRevisionId(revision?.revisionId);
+    if (!activeConversationRef || !revisionId) {
+      return;
+    }
+    setRevisionActionId(`fork:${revisionId}`);
+    setRevisionError(null);
+    try {
+      const timeline = await DesktopConversationContinuityService.loadDisplayTimeline(
+        sessionInfo.userId || 'default_user',
+        activeConversationRef,
+        revisionId,
+      );
+      const rows = Array.isArray(timeline?.rows) ? timeline.rows : [];
+      const cutAfterRowId = rows[rows.length - 1]?.id;
+      if (!cutAfterRowId) {
+        throw new Error('Cannot fork a revision without display rows');
+      }
+      const result = await DesktopConversationContinuityService.forkConversation({
+        userId: sessionInfo.userId || 'default_user',
+        conversationRef: activeConversationRef,
+        sourceRevisionId: revisionId,
+        cutAfterRowId,
+        newConversationRef: buildForkConversationRef(activeConversationRef, revisionId),
+      });
+      const nextConversationRef = result?.conversationRef;
+      if (nextConversationRef) {
+        DesktopTranscriptSessionRuntimeClient.updateTranscriptSession(
+          nextConversationRef,
+          sessionInfo.userId || undefined,
+        );
+        setChatActiveConversationRef(nextConversationRef);
+      }
+      applyConversationView(result?.view, nextConversationRef);
+      setRevisionMenuOpen(false);
+    } catch (error) {
+      console.warn('[ChatInterface] Failed to fork conversation revision:', error);
+      setRevisionError('Unable to fork revision');
+    } finally {
+      setRevisionActionId(null);
+    }
+  }, [
+    activeConversationRef,
+    applyConversationView,
+    sessionInfo.userId,
+    setChatActiveConversationRef,
+  ]);
+
   const handleProviderSelect = useCallback((provider) => {
     setProviderMenuOpen(false);
     setReasoningModeMenuOpen(false);
+    setRevisionMenuOpen(false);
     if (!provider || typeof updateConfig !== 'function') {
       return;
     }
@@ -434,6 +599,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const handleModelSelect = useCallback((option) => {
     setModelMenuOpen(false);
     setReasoningModeMenuOpen(false);
+    setRevisionMenuOpen(false);
     if (!option || typeof updateConfig !== 'function') {
       return;
     }
@@ -449,6 +615,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
 
   const handleReasoningModeSelect = useCallback((mode) => {
     setReasoningModeMenuOpen(false);
+    setRevisionMenuOpen(false);
     if (
       !selectedModelOption
       || !mode
@@ -508,12 +675,23 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
         setReasoningModeMenuOpen={setReasoningModeMenuOpen}
         selectedReasoningModeLabel={selectedReasoningModeLabel}
         reasoningModeOptions={reasoningModeOptions}
+        revisionMenuRef={revisionMenuRef}
+        revisionMenuOpen={revisionMenuOpen}
+        revisionOptions={revisionOptions}
+        revisionLoading={revisionLoading}
+        revisionError={revisionError}
+        revisionActionId={revisionActionId}
+        activeRevisionId={conversationView?.revisionId || null}
+        activeConversationRef={activeConversationRef}
+        setRevisionMenuOpen={setRevisionMenuOpen}
         speechModeEnabled={speechModeEnabled}
         findBarOpen={findBarOpen}
         activeWorkspaceName={activeWorkspace.activeWorkspaceName}
         activeWorkspacePath={activeWorkspace.activeWorkspacePath}
         handleToggleFind={handleToggleFind}
         handleChangeWorkspace={handleChangeWorkspace}
+        handleRevisionCheckout={handleRevisionCheckout}
+        handleRevisionFork={handleRevisionFork}
         devUiEnabled={devUiEnabled}
         handleProviderSelect={handleProviderSelect}
         handleModelSelect={handleModelSelect}

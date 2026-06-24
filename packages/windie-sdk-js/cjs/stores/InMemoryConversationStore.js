@@ -284,6 +284,52 @@ class InMemoryConversationStore {
             updatedAt: new Date(0).toISOString(),
         };
     }
+    async listRevisions(options) {
+        const revisions = new Map();
+        const activeRevision = this.revisionsByConversation.get(options.conversationRef) ?? null;
+        if (activeRevision) {
+            revisions.set(activeRevision.revisionId, activeRevision);
+        }
+        for (const checkpoint of this.displayTimelineByConversation.get(options.conversationRef) ?? []) {
+            revisions.set(checkpoint.revisionId, {
+                ...revisions.get(checkpoint.revisionId),
+                conversationRef: options.conversationRef,
+                revisionId: checkpoint.revisionId,
+                parentRevisionId: checkpoint.baseRevisionId ?? revisions.get(checkpoint.revisionId)?.parentRevisionId ?? null,
+                operation: checkpoint.reason === 'user_edit' ? 'edit' : checkpoint.reason ?? revisions.get(checkpoint.revisionId)?.operation ?? 'send',
+                displayTimelineId: checkpoint.revisionId,
+                createdAt: revisions.get(checkpoint.revisionId)?.createdAt ?? checkpoint.createdAt,
+                updatedAt: revisions.get(checkpoint.revisionId)?.updatedAt ?? checkpoint.createdAt,
+                active: activeRevision?.revisionId === checkpoint.revisionId,
+            });
+        }
+        for (const checkpoint of this.modelHistoryByConversation.get(options.conversationRef) ?? []) {
+            revisions.set(checkpoint.revisionId, {
+                ...revisions.get(checkpoint.revisionId),
+                conversationRef: options.conversationRef,
+                revisionId: checkpoint.revisionId,
+                operation: revisions.get(checkpoint.revisionId)?.operation ?? revisionOperationFromModelHistory(checkpoint),
+                modelHistoryCheckpointId: checkpoint.checkpointId,
+                createdAt: revisions.get(checkpoint.revisionId)?.createdAt ?? checkpoint.createdAt,
+                updatedAt: checkpoint.createdAt,
+                active: activeRevision?.revisionId === checkpoint.revisionId,
+            });
+        }
+        const sorted = Array.from(revisions.values())
+            .sort((a, b) => {
+            if (a.active && !b.active) {
+                return -1;
+            }
+            if (!a.active && b.active) {
+                return 1;
+            }
+            return Date.parse(b.updatedAt) - Date.parse(a.updatedAt)
+                || b.revisionId.localeCompare(a.revisionId);
+        });
+        return typeof options.limit === 'number' && options.limit > 0
+            ? sorted.slice(0, options.limit)
+            : sorted;
+    }
     async loadCompactedReplay(conversationRef) {
         return this.replayByConversation.get(conversationRef)
             ?? (0, compactedReplayEvents_js_1.latestCompactedReplayFromEvents)(await this.loadEvents(conversationRef));

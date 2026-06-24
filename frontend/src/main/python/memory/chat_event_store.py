@@ -1361,6 +1361,56 @@ async def get_conversation_revision(
     }
 
 
+async def list_conversation_revisions(
+    *,
+    db_path: str,
+    user_id: str,
+    conversation_id: Optional[str],
+    limit: Optional[int] = None,
+) -> List[Dict[str, Any]]:
+    if not isinstance(conversation_id, str) or not conversation_id.strip():
+        return []
+    bounded_limit = limit if isinstance(limit, int) and limit > 0 else 50
+    async with aiosqlite.connect(db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        await cursor.execute(
+            f"""
+            SELECT revision_id, parent_revision_id, operation,
+                   display_timeline_id, model_history_checkpoint_id,
+                   created_at, updated_at, active
+            FROM {CONVERSATION_REVISIONS_TABLE}
+            WHERE user_id = ? AND conversation_id = ?
+            ORDER BY active DESC, updated_at DESC, revision_id DESC
+            LIMIT ?
+            """,
+            (user_id, conversation_id, bounded_limit),
+        )
+        rows = await cursor.fetchall()
+    if rows:
+        return [
+            {
+                "conversation_id": conversation_id,
+                "revision_id": row["revision_id"],
+                "parent_revision_id": row["parent_revision_id"],
+                "operation": row["operation"],
+                "display_timeline_id": row["display_timeline_id"],
+                "model_history_checkpoint_id": row["model_history_checkpoint_id"],
+                "created_at": row["created_at"],
+                "updated_at": row["updated_at"],
+                "active": bool(row["active"]),
+                "record_kind": "chat_event",
+            }
+            for row in rows
+        ]
+    revision = await get_conversation_revision(
+        db_path=db_path,
+        user_id=user_id,
+        conversation_id=conversation_id,
+    )
+    return [revision] if revision else []
+
+
 async def search_conversations(
     *,
     db_path: str,

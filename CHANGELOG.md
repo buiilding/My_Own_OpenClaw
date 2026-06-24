@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend/local-runtime: add SDK-owned revision listing and dashboard
+  revision navigation. The local runtime now exposes sanitized revision graph
+  metadata through `conversation.revisions.list`, SDK stores and Electron main
+  route it as `conversation.listRevisions`, checkout/fork results carry the
+  resulting `ConversationView`, and the dashboard branch menu applies those
+  views instead of reconstructing branch state in React. No migration required.
 - frontend/renderer: route the minimal chat pill through the shared live-surface
   selector and suppress raw `latestCurrentTurnProjection` output for pill and
   response-overlay surfaces whenever an SDK `ConversationView` is available.

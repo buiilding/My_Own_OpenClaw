@@ -19,7 +19,15 @@ function createRuntime(overrides = {}) {
       return runtime.detachRuntimeEvents;
     }),
     detachRuntimeEvents: jest.fn(),
-    load: jest.fn(async () => ({ displayRows: [], currentTurn: null })),
+    load: jest.fn(async () => ({
+      displayRows: [],
+      currentTurn: null,
+      view: {
+        conversationRef: 'conv-replay',
+        revisionId: 'rev-loaded',
+        displayRows: [],
+      },
+    })),
     rehydrate: jest.fn(async () => ({
       displayRows: [],
       currentTurn: null,
@@ -46,6 +54,11 @@ function createRuntime(overrides = {}) {
         rows: [],
       },
       modelHistoryCheckpoint: null,
+      view: {
+        conversationRef: 'conv-replay',
+        revisionId: input.revisionId,
+        displayRows: [],
+      },
     })),
     fork: jest.fn(async input => ({
       conversationRef: input.newConversationRef,
@@ -423,14 +436,17 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     await expect(adapter.checkoutRevision({
       conversationRef: 'conv-replay',
       revisionId: 'rev-child',
-    })).resolves.toEqual({
+    })).resolves.toEqual(expect.objectContaining({
       displayTimeline: {
         conversationRef: 'conv-replay',
         revisionId: 'rev-child',
         rows: [],
       },
       modelHistoryCheckpoint: null,
-    });
+      view: expect.objectContaining({
+        revisionId: 'rev-child',
+      }),
+    }));
 
     await expect(adapter.forkConversation({
       conversationRef: 'conv-replay',
@@ -442,6 +458,9 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     })).resolves.toEqual(expect.objectContaining({
       conversationRef: 'conv-forked',
       revisionId: 'rev-forked',
+      view: expect.objectContaining({
+        revisionId: 'rev-loaded',
+      }),
     }));
 
     expect(runtime.checkoutRevision).toHaveBeenCalledWith({
@@ -452,7 +471,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       cutAfterRowId: 'row-assistant',
       newConversationRef: 'conv-forked',
     });
-    expect(runtime.load).toHaveBeenCalledTimes(2);
+    expect(runtime.load).toHaveBeenCalledTimes(3);
   });
 
   test('SDK library conversation methods reject removed snake_case conversation aliases', async () => {

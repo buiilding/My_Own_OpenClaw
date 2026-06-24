@@ -18,6 +18,7 @@ import {
   type SdkDisplayRow,
   type ConversationView,
   type ConversationMetadata,
+  type ConversationRevision,
   type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
   type TraceTimelineEntry,
@@ -205,6 +206,22 @@ export const DesktopConversationContinuityService = {
         revisionId: input.revisionId,
       },
     );
+  },
+
+  async listRevisions(
+    userId: string,
+    conversationRef: string,
+    limit: number = 50,
+  ): Promise<ConversationRevision[]> {
+    const revisions = await invokeAgentSdkCommand<ConversationRevision[]>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_LIST_REVISIONS,
+      {
+        userId,
+        conversationRef,
+        limit,
+      },
+    );
+    return Array.isArray(revisions) ? revisions : [];
   },
 
   async forkConversation(input: ForkConversationCommandInput): Promise<ForkConversationResult> {

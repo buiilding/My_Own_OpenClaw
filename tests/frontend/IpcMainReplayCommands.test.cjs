@@ -66,6 +66,13 @@ describe('ipc.cjs replay command handling', () => {
       subscribeRawBackendEvents: jest.fn(() => jest.fn()),
       ensureConnected: jest.fn(async () => undefined),
       isConnected: jest.fn(() => true),
+      listConversationRevisions: jest.fn(async () => [
+        {
+          conversationRef: 'conv-ipc-display',
+          revisionId: 'rev-display',
+          active: true,
+        },
+      ]),
       noteBackendTraffic: jest.fn(),
       syncBackendIdleTimer: jest.fn(),
       status: jest.fn(() => ({ phase: 'ready' })),
@@ -250,6 +257,34 @@ describe('ipc.cjs replay command handling', () => {
       sourceRevisionId: 'rev-display',
       cutAfterRowId: 'row-assistant',
       newConversationRef: 'conv-forked',
+    });
+  });
+
+  test('routes revision list lookup through the Agent SDK', async () => {
+    const sdk = installMockAgentClient();
+    const bridge = initIpc();
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.listRevisions',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        limit: 25,
+      },
+    )).resolves.toEqual({
+      ok: true,
+      data: [
+        expect.objectContaining({
+          revisionId: 'rev-display',
+          active: true,
+        }),
+      ],
+    });
+
+    expect(sdk.agent.listConversationRevisions).toHaveBeenCalledWith({
+      conversationRef: 'conv-ipc-display',
+      limit: 25,
     });
   });
 });

@@ -452,6 +452,54 @@ export class FileConversationStore implements ConversationStore {
     return stored.revision ?? buildRevision(conversationRef, stored.events);
   }
 
+  async listRevisions(options: { conversationRef: string; limit?: number }): Promise<ConversationRevision[]> {
+    const stored = await this.readConversation(options.conversationRef);
+    const activeRevision = stored.revision ?? buildRevision(options.conversationRef, stored.events);
+    const revisions = new Map<string, ConversationRevision>();
+    if (activeRevision.revisionId) {
+      revisions.set(activeRevision.revisionId, activeRevision);
+    }
+    for (const checkpoint of stored.displayTimeline ?? []) {
+      revisions.set(checkpoint.revisionId, {
+        ...revisions.get(checkpoint.revisionId),
+        conversationRef: options.conversationRef,
+        revisionId: checkpoint.revisionId,
+        parentRevisionId: checkpoint.baseRevisionId ?? revisions.get(checkpoint.revisionId)?.parentRevisionId ?? null,
+        operation: checkpoint.reason === 'user_edit' ? 'edit' : checkpoint.reason ?? revisions.get(checkpoint.revisionId)?.operation ?? 'send',
+        displayTimelineId: checkpoint.revisionId,
+        createdAt: revisions.get(checkpoint.revisionId)?.createdAt ?? checkpoint.createdAt,
+        updatedAt: revisions.get(checkpoint.revisionId)?.updatedAt ?? checkpoint.createdAt,
+        active: activeRevision.revisionId === checkpoint.revisionId,
+      });
+    }
+    for (const checkpoint of stored.modelHistory ?? []) {
+      revisions.set(checkpoint.revisionId, {
+        ...revisions.get(checkpoint.revisionId),
+        conversationRef: options.conversationRef,
+        revisionId: checkpoint.revisionId,
+        operation: revisions.get(checkpoint.revisionId)?.operation ?? revisionOperationFromModelHistory(checkpoint),
+        modelHistoryCheckpointId: checkpoint.checkpointId,
+        createdAt: revisions.get(checkpoint.revisionId)?.createdAt ?? checkpoint.createdAt,
+        updatedAt: checkpoint.createdAt,
+        active: activeRevision.revisionId === checkpoint.revisionId,
+      });
+    }
+    const sorted = Array.from(revisions.values())
+      .sort((a, b) => {
+        if (a.active && !b.active) {
+          return -1;
+        }
+        if (!a.active && b.active) {
+          return 1;
+        }
+        return Date.parse(b.updatedAt) - Date.parse(a.updatedAt)
+          || b.revisionId.localeCompare(a.revisionId);
+      });
+    return typeof options.limit === 'number' && options.limit > 0
+      ? sorted.slice(0, options.limit)
+      : sorted;
+  }
+
   async loadCompactedReplay(conversationRef: string): Promise<CompactedReplaySnapshot | null> {
     const stored = await this.readConversation(conversationRef);
     return stored.replay ?? latestCompactedReplayFromEvents(stored.events);

@@ -189,6 +189,8 @@ export type ForkConversationResult = {
   sourceConversationRef: string;
   sourceRevisionId: string;
   cutAfterRowId: string;
+  displayTimeline?: DisplayTimelineCheckpoint;
+  view?: ConversationView;
   displayRowCount: number;
   modelHistoryRowCount: number;
   modelHistoryCheckpointId?: string | null;
@@ -201,6 +203,7 @@ export type CheckoutRevisionInput = {
 export type CheckoutRevisionResult = {
   displayTimeline: DisplayTimelineCheckpoint;
   modelHistoryCheckpoint: ModelHistoryCheckpoint | null;
+  view: ConversationView;
 };
 
 export type AgentRuntimeEvent =
@@ -1125,9 +1128,11 @@ export class SdkConversationRuntime {
         modelHistoryCheckpointId: modelHistoryCheckpoint?.checkpointId ?? null,
       },
     }, { revisionId });
+    const snapshot = await this.load();
     return {
       displayTimeline,
       modelHistoryCheckpoint,
+      view: snapshot.view,
     };
   }
 
@@ -1284,6 +1289,7 @@ export class SdkConversationRuntime {
       sourceConversationRef: this.options.conversationRef,
       sourceRevisionId: sourceTimeline.revisionId,
       cutAfterRowId: input.cutAfterRowId,
+      displayTimeline: displayCheckpoint,
       displayRowCount: displayRows.length,
       modelHistoryRowCount,
       modelHistoryCheckpointId,

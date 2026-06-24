@@ -474,18 +474,22 @@ SDK callers use the matching public revision primitives:
 ```text
 conversation.loadDisplayTimeline({ revisionId? })
 conversation.loadModelHistory({ revisionId? })
+conversation.listRevisions({ limit? })
 conversation.replaceRows({ rows, baseRevisionId, reason })
 conversation.fork({ sourceRevisionId, cutAfterRowId, newConversationRef })
 conversation.checkoutRevision({ revisionId })
 ```
 
 Electron main and renderer hosts expose those same revision primitives through
-SDK-shaped commands: `conversation.checkoutRevision` and `conversation.fork`.
-Normal UI branch navigation should call that command/service boundary instead
-of reconstructing display prefixes or model-history rows in renderer code.
-This command exposure starts the Phase 5 migration; a branch browser or
-revision checkout UI still has to consume the resulting SDK view rather than
-raw event timelines. Diagnostics can inspect a selected branch view with
+SDK-shaped commands: `conversation.listRevisions`,
+`conversation.checkoutRevision`, and `conversation.fork`. Normal UI branch
+navigation calls that command/service boundary instead of reconstructing
+display prefixes or model-history rows in renderer code. The dashboard
+revision menu lists sanitized revision metadata, checks out selected revisions
+from the returned SDK `ConversationView`, and forks selected revisions by
+cutting at the selected revision's display timeline row before applying the
+forked SDK view to the newly active conversation. Diagnostics can inspect a
+selected branch view with
 `<windie> conversation view <conversation-ref> --revision <revision-id>` and
 can inspect the matching storage ownership state with
 `<windie> conversation state <conversation-ref> --revision <revision-id>`;

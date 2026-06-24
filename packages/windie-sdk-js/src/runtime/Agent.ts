@@ -982,6 +982,23 @@ export class Agent {
     return conversationStore.getRevision(revisionOptions.conversationRef);
   }
 
+  async listConversationRevisions(options: {
+    conversationRef: string;
+    limit?: number;
+    store?: ConversationStore;
+  }): Promise<ConversationRevision[]> {
+    const conversationStore = options.store ?? this.defaultConversationStore;
+    if (conversationStore.listRevisions) {
+      return conversationStore.listRevisions({
+        conversationRef: options.conversationRef,
+        limit: options.limit,
+      });
+    }
+    return [
+      await conversationStore.getRevision(options.conversationRef),
+    ];
+  }
+
   async appendConversationEvent(options: ConversationEvent | {
     event: ConversationEvent;
     store?: ConversationStore;
@@ -1096,11 +1113,21 @@ export class Agent {
     },
   ): Promise<ForkConversationResult> {
     const { conversationRef, revisionId, store, ...input } = options;
-    return this.conversation({
+    const conversationStore = store ?? this.defaultConversationStore;
+    const result = await this.conversation({
       conversationRef,
       revisionId,
-      store: store ?? this.defaultConversationStore,
+      store: conversationStore,
     }).fork(input);
+    const view = await this.conversation({
+      conversationRef: result.conversationRef,
+      revisionId: result.revisionId,
+      store: conversationStore,
+    }).getView();
+    return {
+      ...result,
+      view,
+    };
   }
 
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }> {

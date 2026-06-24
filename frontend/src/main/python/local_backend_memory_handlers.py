@@ -695,6 +695,35 @@ class LocalRuntimeMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
+    async def _handle_conversation_revisions_list(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        limit: Optional[int] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        try:
+            revisions = await self.memory_store.list_conversation_revisions(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                limit=limit if isinstance(limit, int) else None,
+            )
+            return {
+                "success": True,
+                "data": {
+                    "conversation_id": conversation_id,
+                    "revisions": revisions,
+                },
+            }
+        except Exception as e:
+            logger.error(
+                f"Chat conversation revisions list failed: {e}", exc_info=True
+            )
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
     async def _handle_conversation_model_history_replace(
         self,
         user_id: str = "default_user",

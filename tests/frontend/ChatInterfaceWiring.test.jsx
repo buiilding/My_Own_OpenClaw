@@ -52,9 +52,13 @@ const mockLoadDisplayTimeline = jest.fn();
 const mockReplaceRows = jest.fn();
 const mockEditAndResend = jest.fn();
 const mockRetryTurn = jest.fn();
+const mockListRevisions = jest.fn();
+const mockCheckoutRevision = jest.fn();
+const mockForkConversation = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockClearMessages = jest.fn();
 const mockSetMessages = jest.fn();
+const mockSetConversationView = jest.fn();
 const mockUpdateMessage = jest.fn();
 const mockSetIsSending = jest.fn();
 const mockSetThinkingStatus = jest.fn();
@@ -91,6 +95,10 @@ const mockChatState = {
   pendingTurn: null,
   clearMessages: (...args) => mockClearMessages(...args),
   setMessages: (...args) => mockSetMessages(...args),
+  setConversationView: (...args) => {
+    mockChatState.conversationView = args[0] ?? null;
+    mockSetConversationView(...args);
+  },
   updateMessage: (...args) => mockUpdateMessage(...args),
   setIsSending: (...args) => mockSetIsSending(...args),
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
@@ -230,6 +238,9 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
     replaceRows: (...args) => mockReplaceRows(...args),
     editAndResend: (...args) => mockEditAndResend(...args),
     retryTurn: (...args) => mockRetryTurn(...args),
+    listRevisions: (...args) => mockListRevisions(...args),
+    checkoutRevision: (...args) => mockCheckoutRevision(...args),
+    forkConversation: (...args) => mockForkConversation(...args),
   },
 }));
 
@@ -334,8 +345,128 @@ describe('ChatInterface wiring', () => {
       turnRef: input.turnRef,
       queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
     }));
+    mockListRevisions.mockClear();
+    mockListRevisions.mockResolvedValue([
+      {
+        conversationRef: 'conv_existing',
+        revisionId: 'rev-child',
+        parentRevisionId: 'rev-base',
+        operation: 'edit',
+        active: true,
+        updatedAt: '2026-06-22T12:01:00.000Z',
+      },
+      {
+        conversationRef: 'conv_existing',
+        revisionId: 'rev-base',
+        parentRevisionId: null,
+        operation: 'send',
+        active: false,
+        updatedAt: '2026-06-22T12:00:00.000Z',
+      },
+    ]);
+    mockCheckoutRevision.mockClear();
+    mockCheckoutRevision.mockImplementation(async (input) => ({
+      displayTimeline: {
+        conversationRef: input.conversationRef,
+        revisionId: input.revisionId,
+        createdAt: '2026-06-22T12:01:00.000Z',
+        rows: [],
+      },
+      modelHistoryCheckpoint: null,
+      view: {
+        conversationRef: input.conversationRef,
+        revisionId: input.revisionId,
+        displayRows: [
+          {
+            id: 'row-checked-out',
+            conversationRef: input.conversationRef,
+            revisionId: input.revisionId,
+            role: 'user',
+            type: 'user_message',
+            content: 'checked out branch',
+            metadata: { revisionId: input.revisionId },
+          },
+        ],
+        liveTurn: {
+          turnRef: null,
+          phase: 'idle',
+          entries: [],
+          isBusy: false,
+          isTerminal: true,
+          canStop: false,
+          lastError: null,
+        },
+        surfaces: {
+          pill: { mode: 'idle' },
+          dashboard: { mode: 'idle' },
+          responseOverlay: {
+            mode: 'hidden',
+            visible: false,
+            guardRef: null,
+            ownerConversationRef: input.conversationRef,
+            turnRef: null,
+          },
+        },
+        actions: {
+          canEdit: true,
+          canRetry: true,
+          canFork: true,
+        },
+      },
+    }));
+    mockForkConversation.mockClear();
+    mockForkConversation.mockImplementation(async (input) => ({
+      conversationRef: input.newConversationRef,
+      revisionId: 'rev-forked',
+      sourceConversationRef: input.conversationRef,
+      sourceRevisionId: input.sourceRevisionId,
+      cutAfterRowId: input.cutAfterRowId,
+      displayRowCount: 1,
+      modelHistoryRowCount: 1,
+      view: {
+        conversationRef: input.newConversationRef,
+        revisionId: 'rev-forked',
+        displayRows: [
+          {
+            id: 'row-forked',
+            conversationRef: input.newConversationRef,
+            revisionId: 'rev-forked',
+            role: 'user',
+            type: 'user_message',
+            content: 'forked branch',
+            metadata: { revisionId: 'rev-forked' },
+          },
+        ],
+        liveTurn: {
+          turnRef: null,
+          phase: 'idle',
+          entries: [],
+          isBusy: false,
+          isTerminal: true,
+          canStop: false,
+          lastError: null,
+        },
+        surfaces: {
+          pill: { mode: 'idle' },
+          dashboard: { mode: 'idle' },
+          responseOverlay: {
+            mode: 'hidden',
+            visible: false,
+            guardRef: null,
+            ownerConversationRef: input.newConversationRef,
+            turnRef: null,
+          },
+        },
+        actions: {
+          canEdit: true,
+          canRetry: true,
+          canFork: true,
+        },
+      },
+    }));
     mockClearMessages.mockClear();
     mockSetMessages.mockClear();
+    mockSetConversationView.mockClear();
     mockUpdateMessage.mockClear();
     mockSetIsSending.mockClear();
     mockSetThinkingStatus.mockClear();
@@ -452,6 +583,86 @@ describe('ChatInterface wiring', () => {
       'tool-output',
       'llm-text',
     ]);
+  });
+
+  test('revision menu checks out a branch through the SDK view result', async () => {
+    render(<ChatInterface />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Conversation revisions' }));
+
+    await waitFor(() => {
+      expect(mockListRevisions).toHaveBeenCalledWith('default_user', 'conv_existing', 50);
+    });
+    fireEvent.click(screen.getByText('rev-base'));
+
+    await waitFor(() => {
+      expect(mockCheckoutRevision).toHaveBeenCalledWith({
+        userId: 'default_user',
+        conversationRef: 'conv_existing',
+        revisionId: 'rev-base',
+      });
+    });
+    expect(mockSetConversationView).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationRef: 'conv_existing',
+        revisionId: 'rev-base',
+      }),
+      'conv_existing',
+    );
+    expect(mockSetMessages).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: 'row-checked-out',
+        text: 'checked out branch',
+      }),
+    ], 'conv_existing');
+  });
+
+  test('revision menu forks a branch and switches to the forked SDK view', async () => {
+    mockLoadDisplayTimeline.mockResolvedValueOnce({
+      conversationRef: 'conv_existing',
+      revisionId: 'rev-base',
+      createdAt: '2026-06-22T12:00:00.000Z',
+      rows: [
+        {
+          id: 'row-base',
+          conversationRef: 'conv_existing',
+          revisionId: 'rev-base',
+          role: 'user',
+          type: 'user_message',
+          content: 'base branch',
+        },
+      ],
+    });
+    render(<ChatInterface />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Conversation revisions' }));
+
+    await waitFor(() => {
+      expect(mockListRevisions).toHaveBeenCalled();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Fork revision rev-base' }));
+
+    await waitFor(() => {
+      expect(mockForkConversation).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 'default_user',
+        conversationRef: 'conv_existing',
+        sourceRevisionId: 'rev-base',
+        cutAfterRowId: 'row-base',
+      }));
+    });
+    const forkInput = mockForkConversation.mock.calls[0][0];
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(
+      forkInput.newConversationRef,
+      'default_user',
+    );
+    expect(mockSetChatActiveConversationRef).toHaveBeenCalledWith(forkInput.newConversationRef);
+    expect(mockSetConversationView).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationRef: forkInput.newConversationRef,
+        revisionId: 'rev-forked',
+      }),
+      forkInput.newConversationRef,
+    );
   });
 
   test('shows raw tool-call rows while the active loop is still running', () => {

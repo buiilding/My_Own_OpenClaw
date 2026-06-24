@@ -332,6 +332,17 @@ function buildAgentSdkCommandHandlers({
         conversationRef: requireCommandConversationRef(payload),
       });
     },
+    [SDK_RUNTIME_COMMANDS.CONVERSATION_LIST_REVISIONS]: async (payload = {}) => {
+      requireCommandUserId(payload, deps.getState().currentUserId);
+      const agent = await deps.ensureAgent({
+        reason: 'sdk-command:conversation.listRevisions',
+        conversationRef: optionalCommandConversationRef(payload),
+      });
+      return agent.listConversationRevisions({
+        conversationRef: requireCommandConversationRef(payload),
+        limit: Number.isFinite(payload.limit) ? payload.limit : undefined,
+      });
+    },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_APPEND_EVENT]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
       const conversationEvent = isPlainObject(payload.event) ? payload.event : null;

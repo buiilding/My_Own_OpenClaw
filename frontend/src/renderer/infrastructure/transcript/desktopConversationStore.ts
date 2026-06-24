@@ -15,6 +15,7 @@ import type {
   ListConversationOptions,
   RehydrateSnapshot,
   SearchConversationOptions,
+  ConversationRevision,
   ConversationStore,
   ConversationView,
   DisplayConversation,
@@ -142,6 +143,17 @@ export function createDesktopConversationStore(
         userId,
         conversationRef,
       });
+    },
+    async listRevisions(options: { conversationRef: string; limit?: number }): Promise<ConversationRevision[]> {
+      const revisions = await invokeAgentSdkCommand<ConversationRevision[]>(
+        SDK_RUNTIME_COMMANDS.CONVERSATION_LIST_REVISIONS,
+        {
+          userId,
+          conversationRef: options.conversationRef,
+          limit: options.limit,
+        },
+      );
+      return Array.isArray(revisions) ? revisions : [];
     },
   };
 }

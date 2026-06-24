@@ -279,6 +279,11 @@ describe('DesktopConversationContinuityService', () => {
             rows: [],
           },
           modelHistoryCheckpoint: null,
+          view: {
+            conversationRef: 'conv-display',
+            revisionId: 'rev-child',
+            displayRows: [],
+          },
         },
       })),
       on: jest.fn(),
@@ -297,6 +302,9 @@ describe('DesktopConversationContinuityService', () => {
         displayTimeline: expect.objectContaining({
           revisionId: 'rev-child',
         }),
+        view: expect.objectContaining({
+          revisionId: 'rev-child',
+        }),
       }));
       expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
         command: 'conversation.checkoutRevision',
@@ -304,6 +312,54 @@ describe('DesktopConversationContinuityService', () => {
           userId: 'user-1',
           conversationRef: 'conv-display',
           revisionId: 'rev-child',
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('listRevisions routes revision metadata lookup through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: [
+          {
+            conversationRef: 'conv-display',
+            revisionId: 'rev-child',
+            parentRevisionId: 'rev-base',
+            operation: 'edit',
+            active: true,
+            updatedAt: '2026-06-22T12:00:00.000Z',
+          },
+        ],
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.listRevisions(
+        'user-1',
+        'conv-display',
+        25,
+      )).resolves.toEqual([
+        expect.objectContaining({
+          revisionId: 'rev-child',
+          active: true,
+        }),
+      ]);
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.listRevisions',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          limit: 25,
         },
       });
     } finally {

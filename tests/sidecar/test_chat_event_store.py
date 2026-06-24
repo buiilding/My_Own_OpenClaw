@@ -11,6 +11,7 @@ ensure_frontend_python_path()
 from memory.chat_event_store import (  # noqa: E402
     append_chat_event,
     get_conversation_revision,
+    list_conversation_revisions,
     load_display_timeline,
     load_model_history_checkpoint,
     load_conversation_events,
@@ -275,6 +276,86 @@ async def test_chat_event_store_loads_inactive_display_timeline_by_revision(
     assert parent is not None
     assert parent["revision_id"] == "rev-parent"
     assert parent["rows"][0]["content"] == "original"
+
+
+@pytest.mark.asyncio
+async def test_chat_event_store_lists_revision_graph_for_branch_navigation(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "history.db")
+    await init_chat_event_schema(db_path)
+
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-parent",
+        created_at="2026-06-22T12:00:00+00:00",
+        reason=None,
+        base_revision_id=None,
+        rows=[
+            {
+                "id": "display-parent-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-parent",
+                "role": "user",
+                "type": "user_message",
+                "content": "original",
+            },
+        ],
+    )
+    await replace_display_timeline(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        revision_id="rev-child",
+        created_at="2026-06-22T12:01:00+00:00",
+        reason="user_edit",
+        base_revision_id="rev-parent",
+        rows=[
+            {
+                "id": "display-child-user",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-child",
+                "role": "user",
+                "type": "user_message",
+                "content": "edited",
+            },
+        ],
+    )
+
+    revisions = await list_conversation_revisions(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert revisions == [
+        {
+            "conversation_id": "conv-1",
+            "revision_id": "rev-child",
+            "parent_revision_id": "rev-parent",
+            "operation": "edit",
+            "display_timeline_id": "rev-child",
+            "model_history_checkpoint_id": None,
+            "created_at": "2026-06-22T12:01:00+00:00",
+            "updated_at": "2026-06-22T12:01:00+00:00",
+            "active": True,
+            "record_kind": "chat_event",
+        },
+        {
+            "conversation_id": "conv-1",
+            "revision_id": "rev-parent",
+            "parent_revision_id": None,
+            "operation": "send",
+            "display_timeline_id": "rev-parent",
+            "model_history_checkpoint_id": None,
+            "created_at": "2026-06-22T12:00:00+00:00",
+            "updated_at": "2026-06-22T12:00:00+00:00",
+            "active": False,
+            "record_kind": "chat_event",
+        },
+    ]
 
 
 @pytest.mark.asyncio
