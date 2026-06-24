@@ -110,6 +110,7 @@ describe('ipc_agent_definition_context', () => {
     }));
 
     try {
+      const appendFlowDiagnostic = jest.fn();
       const runtime = createAgentDefinitionContextRuntime({
         getLatestDesktopUiConfig: () => ({
           agent_custom_instructions: ' Be concise. ',
@@ -119,6 +120,7 @@ describe('ipc_agent_definition_context', () => {
         platformName: 'win32',
         buildAgentDefinition,
         isDefaultAgentDefinition: () => false,
+        appendFlowDiagnostic,
       });
       const result = runtime.attach({
         text: 'hello',
@@ -160,6 +162,37 @@ describe('ipc_agent_definition_context', () => {
         mode: 'replace',
         content: 'Be concise.',
       });
+      expect(appendFlowDiagnostic).toHaveBeenCalledTimes(15);
+      expect(appendFlowDiagnostic.mock.calls.map(([entry]) => entry.stage)).toEqual([
+        'desktop_config.snapshot',
+        'custom_instructions.collect',
+        'local_tool_policy.collect',
+        'remote_tool_policy.collect',
+        'enabled_remote_tools.resolve',
+        'workspace_path.collect',
+        'repo_instructions.resolve',
+        'extension_prompt_layers.resolve',
+        'host_os.resolve',
+        'sdk_builder.input',
+        'generated_definition.build',
+        'supplied_definition.detect',
+        'definition_merge.apply',
+        'payload_attachment.prepare',
+        'payload_attachment.complete',
+      ]);
+      expect(appendFlowDiagnostic.mock.calls[0][0]).toEqual(expect.objectContaining({
+        hasCustomInstructions: true,
+        customInstructionLength: 'Be concise.'.length,
+        disabledLocalToolCount: 2,
+        disabledRemoteToolCount: 1,
+        enabledRemoteToolCount: 0,
+        repoInstructionLayerCount: 1,
+        extensionPromptLayerCount: 1,
+        hostOperatingSystem: 'Windows',
+        hasFinalAgentDefinition: true,
+      }));
+      expect(JSON.stringify(appendFlowDiagnostic.mock.calls)).not.toContain('Be concise.');
+      expect(JSON.stringify(appendFlowDiagnostic.mock.calls)).not.toContain('Use the repo rules.');
     } finally {
       await fs.promises.rm(repoRoot, { recursive: true, force: true });
     }

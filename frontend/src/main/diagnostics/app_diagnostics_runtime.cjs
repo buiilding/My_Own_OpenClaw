@@ -3,6 +3,7 @@
  */
 
 const {
+  AGENT_DEFINITION_FLOW_DIAGNOSTICS_PATH,
   DESKTOP_STARTUP_DIAGNOSTICS_PATH,
   IPC_BRIDGE_DIAGNOSTICS_PATH,
   LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
@@ -174,6 +175,57 @@ function appendIpcBridgeDiagnostic(input = {}, options = {}) {
   }, options);
 }
 
+function appendAgentDefinitionFlowDiagnostic(input = {}, options = {}) {
+  return appendAppRuntimeDiagnostic({
+    ...input,
+    path: AGENT_DEFINITION_FLOW_DIAGNOSTICS_PATH,
+    runtime: 'electron-main',
+    data: {
+      action: normalizeString(input.action),
+      phase: normalizeString(input.phase),
+      source: normalizeString(input.source),
+      hasDesktopUiConfig: booleanOrNull(input.hasDesktopUiConfig),
+      hasCustomInstructions: booleanOrNull(input.hasCustomInstructions),
+      customInstructionLength: finiteNumberOrNull(input.customInstructionLength),
+      disabledLocalToolCount: finiteNumberOrNull(input.disabledLocalToolCount),
+      disabledRemoteToolCount: finiteNumberOrNull(input.disabledRemoteToolCount),
+      enabledRemoteToolCount: finiteNumberOrNull(input.enabledRemoteToolCount),
+      availableToolCount: finiteNumberOrNull(input.availableToolCount),
+      disabledToolCount: finiteNumberOrNull(input.disabledToolCount),
+      extensionPromptLayerCount: finiteNumberOrNull(input.extensionPromptLayerCount),
+      repoInstructionLayerCount: finiteNumberOrNull(input.repoInstructionLayerCount),
+      generatedPromptLayerCount: finiteNumberOrNull(input.generatedPromptLayerCount),
+      generatedAgentsMdCount: finiteNumberOrNull(input.generatedAgentsMdCount),
+      generatedSkillCount: finiteNumberOrNull(input.generatedSkillCount),
+      generatedPluginCount: finiteNumberOrNull(input.generatedPluginCount),
+      generatedMcpCount: finiteNumberOrNull(input.generatedMcpCount),
+      generatedToolCount: finiteNumberOrNull(input.generatedToolCount),
+      suppliedPromptLayerCount: finiteNumberOrNull(input.suppliedPromptLayerCount),
+      suppliedAgentsMdCount: finiteNumberOrNull(input.suppliedAgentsMdCount),
+      suppliedSkillCount: finiteNumberOrNull(input.suppliedSkillCount),
+      suppliedPluginCount: finiteNumberOrNull(input.suppliedPluginCount),
+      suppliedMcpCount: finiteNumberOrNull(input.suppliedMcpCount),
+      suppliedToolCount: finiteNumberOrNull(input.suppliedToolCount),
+      finalPromptLayerCount: finiteNumberOrNull(input.finalPromptLayerCount),
+      finalAgentsMdCount: finiteNumberOrNull(input.finalAgentsMdCount),
+      finalSkillCount: finiteNumberOrNull(input.finalSkillCount),
+      finalPluginCount: finiteNumberOrNull(input.finalPluginCount),
+      finalMcpCount: finiteNumberOrNull(input.finalMcpCount),
+      finalToolCount: finiteNumberOrNull(input.finalToolCount),
+      hasGeneratedAgentDefinition: booleanOrNull(input.hasGeneratedAgentDefinition),
+      hasSuppliedAgentDefinition: booleanOrNull(input.hasSuppliedAgentDefinition),
+      hasFinalAgentDefinition: booleanOrNull(input.hasFinalAgentDefinition),
+      hasSystemPromptOverride: booleanOrNull(input.hasSystemPromptOverride),
+      hasDefaultSystemPrompt: booleanOrNull(input.hasDefaultSystemPrompt),
+      hasOperatingSystem: booleanOrNull(input.hasOperatingSystem),
+      hasWorkspacePath: booleanOrNull(input.hasWorkspacePath),
+      platformName: normalizeString(input.platformName),
+      hostOperatingSystem: normalizeString(input.hostOperatingSystem),
+      turnRef: normalizeString(input.turnRef),
+    },
+  }, options);
+}
+
 function appendLocalRuntimeLifecycleDiagnostic(input = {}, options = {}) {
   return appendAppRuntimeDiagnostic({
     ...input,
@@ -261,6 +313,7 @@ function appendWakewordLifecycleDiagnostic(input = {}, options = {}) {
 }
 
 module.exports = {
+  appendAgentDefinitionFlowDiagnostic,
   appendDesktopStartupDiagnostic,
   appendIpcBridgeDiagnostic,
   appendLocalRuntimeLifecycleDiagnostic,

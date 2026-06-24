@@ -198,6 +198,25 @@ Current durable traced paths:
   merged tool/plugin/MCP/skill counts, SDK-vs-query agent-definition presence,
   SDK-vs-query client-manifest tool counts, key count, workspace-path presence,
   and local runtime availability without definition payload text or schemas.
+- `agent_definition.sdk_flow`: SDK conversation send records 20 sanitized
+  turn-scoped milestones for the merged Agent definition handoff from source
+  payload through resource resolution, query enrichment, SDK/query definition
+  detection, merge, workspace context, system-prompt override presence, disabled
+  and enabled tool policy counts, prompt-layer/repo-instruction counts, MCP,
+  plugin, skill, capability revision, local-runtime availability, transport
+  payload readiness, and backend dispatch handoff. Rows store only counts,
+  booleans, key counts, and revision ids; they do not persist prompt text,
+  AGENTS.md contents, tool schemas, tool descriptions, workspace paths, or
+  provider payloads.
+- `agent_definition.backend_flow`: backend session processing records 15
+  sanitized milestones for applying the incoming Agent definition after the
+  hosted runtime receives a turn: query receive, runtime context resolution,
+  system-prompt override presence, raw client manifest read, client manifest
+  validation, tool-policy application, prompt-layer read/validation, prompt
+  context application, prompt-builder update, capability aggregate, runtime
+  system-state merge, selected-model check, and executor dispatch. Rows store
+  accepted/rejected counts and policy booleans without query text, prompt text,
+  tool schemas, provider payloads, or tool arguments.
 
 Renderer diagnostics should read the same rows through
 `DesktopConversationContinuityService.loadTraceTimeline(...)`, which loads
@@ -210,6 +229,9 @@ Some producer-owned feature traces live on their existing non-conversation
 timeline because that runtime has no conversation writer. `voice.transcription`
 is emitted on `/ws/transcription`; `run.control` is appended to the VM run
 event timeline, which has the same lifetime as the run-control service.
+
+For the complete 50-row Agent definition prompt/tool-policy data-flow map, see
+[Agent Definition Trace Flow Inventory](agent_definition_trace_flow_inventory.md).
 
 ## Persistent App Diagnostics
 
@@ -224,6 +246,14 @@ database and registered path surface with:
 
 App diagnostic paths:
 
+- `agent_definition.flow`: Electron main pre-turn Agent definition context
+  assembly, including desktop UI config snapshot, custom-instruction presence
+  and length, disabled local/remote tool counts, enabled remote tool counts,
+  workspace-path presence, repo instruction layer count, extension prompt layer
+  count, host OS, SDK builder input, generated/supplied/final definition counts,
+  merge, and payload attachment. This path exists before a durable turn trace
+  may be available and never stores prompt text, AGENTS.md contents, tool
+  schemas, raw config, credentials, provider payloads, or local paths.
 - `conversation.metadata.list`: dashboard/sidebar chat-list load.
 - `browser.session_control`: chat header browser readiness and browser action
   request lifecycle before a conversation turn exists.

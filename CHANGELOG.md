@@ -6,6 +6,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- runtime-tracing: add a 50-trace Agent definition data-flow chain for system
+  prompt and disabled-tool settings. Electron main now records 15 sanitized
+  `agent_definition.flow` app diagnostics before a turn exists, the SDK records
+  20 durable `agent_definition.sdk_flow` turn traces before backend dispatch,
+  and the backend records 15 `agent_definition.backend_flow` stream traces while
+  applying prompt context, client manifests, prompt layers, tool policy, model
+  readiness, and executor dispatch. The traces store counts, booleans, key
+  counts, and revision ids only. No migration required.
 - skills: add a runtime tracing skill that documents when to use durable
   conversation traces, persistent app diagnostics, or gated live-surface traces
   for repeatable long-running agent loop evidence. No migration required.

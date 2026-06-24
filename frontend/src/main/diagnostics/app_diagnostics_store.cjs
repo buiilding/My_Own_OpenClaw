@@ -22,6 +22,7 @@ const WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH = 'wakeword.lifecycle';
 const SURFACE_VISIBILITY_DIAGNOSTICS_PATH = 'surface.visibility';
 const RENDERER_INTERACTION_DIAGNOSTICS_PATH = 'renderer.interaction';
 const RENDERER_DISPLAY_PROJECTION_DIAGNOSTICS_PATH = 'renderer.display_projection';
+const AGENT_DEFINITION_FLOW_DIAGNOSTICS_PATH = 'agent_definition.flow';
 const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
 const DEFAULT_APP_DATA_DIR_NAME = 'desktop-runtime';
 const DEFAULT_DATA_PATH_ENV = Object.freeze({
@@ -55,6 +56,10 @@ const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
   [RENDERER_DISPLAY_PROJECTION_DIAGNOSTICS_PATH]: {
     owner: 'Renderer display-row projection runtime through Electron main',
     purpose: 'Sanitized SDK display-row projection image-count summaries without chat text, screenshot URLs, or image bytes.',
+  },
+  [AGENT_DEFINITION_FLOW_DIAGNOSTICS_PATH]: {
+    owner: 'Electron main agent-definition context runtime',
+    purpose: 'Pre-turn prompt, tool-policy, repo-instruction, extension, runtime, and payload-attachment milestones before SDK durable turn traces exist.',
   },
   [IPC_BRIDGE_DIAGNOSTICS_PATH]: {
     owner: 'Electron main IPC bridge',
@@ -124,6 +129,42 @@ const ALLOWED_DATA_KEYS = new Set([
   'imageCount',
   'readableFileCount',
   'senderSurface',
+  'hasDesktopUiConfig',
+  'hasCustomInstructions',
+  'customInstructionLength',
+  'disabledLocalToolCount',
+  'disabledRemoteToolCount',
+  'enabledRemoteToolCount',
+  'availableToolCount',
+  'disabledToolCount',
+  'extensionPromptLayerCount',
+  'repoInstructionLayerCount',
+  'generatedPromptLayerCount',
+  'generatedAgentsMdCount',
+  'generatedSkillCount',
+  'generatedPluginCount',
+  'generatedMcpCount',
+  'generatedToolCount',
+  'suppliedPromptLayerCount',
+  'suppliedAgentsMdCount',
+  'suppliedSkillCount',
+  'suppliedPluginCount',
+  'suppliedMcpCount',
+  'suppliedToolCount',
+  'finalPromptLayerCount',
+  'finalAgentsMdCount',
+  'finalSkillCount',
+  'finalPluginCount',
+  'finalMcpCount',
+  'finalToolCount',
+  'hasGeneratedAgentDefinition',
+  'hasSuppliedAgentDefinition',
+  'hasFinalAgentDefinition',
+  'hasSystemPromptOverride',
+  'hasDefaultSystemPrompt',
+  'hasOperatingSystem',
+  'platformName',
+  'hostOperatingSystem',
   'eventType',
   'updatedKeys',
   'provider',
@@ -655,6 +696,7 @@ function listDiagnosticPathDefinitions() {
 }
 
 module.exports = {
+  AGENT_DEFINITION_FLOW_DIAGNOSTICS_PATH,
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   DESKTOP_STARTUP_DIAGNOSTICS_PATH,

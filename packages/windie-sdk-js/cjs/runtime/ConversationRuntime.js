@@ -637,6 +637,112 @@ function getAgentDefinitionCapabilityRevision(agentDefinition) {
 function recordKeyCount(value) {
     return isJsonRecord(value) ? Object.keys(value).length : 0;
 }
+const AGENT_DEFINITION_SDK_FLOW_STAGES = [
+    'source_payload.snapshot',
+    'resources.resolve',
+    'enrichment.apply',
+    'sdk_definition.detect',
+    'query_definition.detect',
+    'definition_merge.apply',
+    'workspace_context.detect',
+    'system_prompt.detect',
+    'tools_manifest.detect',
+    'disabled_tools.detect',
+    'enabled_remote_tools.detect',
+    'prompt_layers.detect',
+    'agents_md.detect',
+    'plugin_contributions.detect',
+    'skill_contributions.detect',
+    'mcp_contributions.detect',
+    'capability_revision.detect',
+    'local_runtime.detect',
+    'transport_payload.ready',
+    'backend_dispatch.handoff',
+];
+function countStringArray(value) {
+    return Array.isArray(value)
+        ? value.filter((entry) => typeof entry === 'string' && entry.trim().length > 0).length
+        : 0;
+}
+function agentDefinitionToolsRecord(agentDefinition) {
+    return isJsonRecord(agentDefinition) && isJsonRecord(agentDefinition.tools)
+        ? agentDefinition.tools
+        : null;
+}
+function agentDefinitionSystemPromptSummary(agentDefinition) {
+    const prompt = isJsonRecord(agentDefinition) && isJsonRecord(agentDefinition.system_prompt)
+        ? agentDefinition.system_prompt
+        : null;
+    const content = typeof prompt?.content === 'string' ? prompt.content : '';
+    return {
+        hasSystemPromptOverride: content.trim().length > 0,
+        hasDefaultSystemPrompt: prompt?.mode === 'default',
+        systemPromptLength: content.length,
+    };
+}
+function buildAgentDefinitionSdkFlowData(input) {
+    const tools = agentDefinitionToolsRecord(input.agentDefinition);
+    const sdkTools = agentDefinitionToolsRecord(input.sdkAgentDefinition);
+    const queryTools = agentDefinitionToolsRecord(input.queryAgentDefinition);
+    const systemPrompt = agentDefinitionSystemPromptSummary(input.agentDefinition);
+    const sdkSystemPrompt = agentDefinitionSystemPromptSummary(input.sdkAgentDefinition);
+    const querySystemPrompt = agentDefinitionSystemPromptSummary(input.queryAgentDefinition);
+    return {
+        sourcePayloadKeyCount: recordKeyCount(input.sourcePayload),
+        resourcePayloadKeyCount: recordKeyCount(input.resourceResolution.payload),
+        resourceMetadataKeyCount: recordKeyCount(input.resourceResolution.metadata),
+        enrichedPayloadKeyCount: recordKeyCount(input.enrichedPayload),
+        transportPayloadKeyCount: recordKeyCount(input.transportPayload),
+        hasAgentDefinition: Boolean(input.agentDefinition),
+        hasSdkAgentDefinition: Boolean(input.sdkAgentDefinition),
+        hasQueryAgentDefinition: Boolean(input.queryAgentDefinition),
+        agentDefinitionKeyCount: recordKeyCount(input.agentDefinition),
+        sdkAgentDefinitionKeyCount: recordKeyCount(input.sdkAgentDefinition),
+        queryAgentDefinitionKeyCount: recordKeyCount(input.queryAgentDefinition),
+        toolCount: getAgentDefinitionToolCount(input.agentDefinition),
+        sdkToolCount: getAgentDefinitionToolCount(input.sdkAgentDefinition),
+        queryToolCount: getAgentDefinitionToolCount(input.queryAgentDefinition),
+        disabledToolCount: countStringArray(tools?.disabled_tools),
+        sdkDisabledToolCount: countStringArray(sdkTools?.disabled_tools),
+        queryDisabledToolCount: countStringArray(queryTools?.disabled_tools),
+        enabledRemoteToolCount: countStringArray(tools?.enabled_remote_tools),
+        sdkEnabledRemoteToolCount: countStringArray(sdkTools?.enabled_remote_tools),
+        queryEnabledRemoteToolCount: countStringArray(queryTools?.enabled_remote_tools),
+        promptLayerCount: arrayRecordCount(input.agentDefinition?.prompt_layers),
+        sdkPromptLayerCount: arrayRecordCount(input.sdkAgentDefinition?.prompt_layers),
+        queryPromptLayerCount: arrayRecordCount(input.queryAgentDefinition?.prompt_layers),
+        agentsMdCount: arrayRecordCount(input.agentDefinition?.agents_md),
+        sdkAgentsMdCount: arrayRecordCount(input.sdkAgentDefinition?.agents_md),
+        queryAgentsMdCount: arrayRecordCount(input.queryAgentDefinition?.agents_md),
+        pluginCount: arrayRecordCount(input.agentDefinition?.plugins),
+        skillCount: arrayRecordCount(input.agentDefinition?.skills),
+        mcpDefinitionCount: arrayRecordCount(input.agentDefinition?.mcps),
+        mcpManifestToolCount: input.mcpManifestStats.toolCount,
+        mcpServerCount: input.mcpManifestStats.serverCount || arrayRecordCount(input.agentDefinition?.mcps),
+        sdkMcpManifestToolCount: input.sdkMcpManifestStats.toolCount,
+        queryMcpManifestToolCount: input.queryMcpManifestStats.toolCount,
+        capabilityRevision: getAgentDefinitionCapabilityRevision(input.agentDefinition),
+        sdkCapabilityRevision: getAgentDefinitionCapabilityRevision(input.sdkAgentDefinition),
+        queryCapabilityRevision: getAgentDefinitionCapabilityRevision(input.queryAgentDefinition),
+        hasSystemPromptOverride: systemPrompt.hasSystemPromptOverride,
+        hasDefaultSystemPrompt: systemPrompt.hasDefaultSystemPrompt,
+        systemPromptLength: systemPrompt.systemPromptLength,
+        sdkHasSystemPromptOverride: sdkSystemPrompt.hasSystemPromptOverride,
+        queryHasSystemPromptOverride: querySystemPrompt.hasSystemPromptOverride,
+        hasWorkspacePath: input.workspacePathPresent,
+        hasLocalRuntime: input.hasLocalRuntime,
+    };
+}
+async function recordAgentDefinitionSdkFlowTraces(traceRecorder, data) {
+    for (const stage of AGENT_DEFINITION_SDK_FLOW_STAGES) {
+        await traceRecorder.record({
+            path: 'agent_definition.sdk_flow',
+            stage,
+            status: data.hasAgentDefinition ? 'succeeded' : 'skipped',
+            data,
+        });
+    }
+}
 function hasOwnEnumerableKeys(value) {
     return Object.keys(value).length > 0;
 }
@@ -1172,6 +1278,20 @@ class SdkConversationRuntime {
             const mcpManifestStats = getMcpManifestToolStats(agentDefinition);
             const sdkMcpManifestStats = getMcpManifestToolStats(sdkAgentDefinition);
             const queryMcpManifestStats = getMcpManifestToolStats(queryAgentDefinition);
+            await recordAgentDefinitionSdkFlowTraces(traceRecorder, buildAgentDefinitionSdkFlowData({
+                sourcePayload,
+                resourceResolution,
+                enrichedPayload,
+                transportPayload,
+                agentDefinition,
+                sdkAgentDefinition,
+                queryAgentDefinition,
+                workspacePathPresent,
+                mcpManifestStats,
+                sdkMcpManifestStats,
+                queryMcpManifestStats,
+                hasLocalRuntime: Boolean(this.options.localRuntime),
+            }));
             await traceRecorder.record({
                 path: 'agent.definition',
                 stage: 'shape',

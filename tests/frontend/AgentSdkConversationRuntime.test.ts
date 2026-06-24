@@ -5965,6 +5965,43 @@ describe('Agent SDK conversation runtime core', () => {
       turnRef: 'turn-feature-paths',
       path: 'agent.definition',
     });
+    const sdkFlowTimeline = buildTraceTimeline(events, {
+      turnRef: 'turn-feature-paths',
+      path: 'agent_definition.sdk_flow',
+    });
+    expect(sdkFlowTimeline.map(entry => entry.stage)).toEqual([
+      'source_payload.snapshot',
+      'resources.resolve',
+      'enrichment.apply',
+      'sdk_definition.detect',
+      'query_definition.detect',
+      'definition_merge.apply',
+      'workspace_context.detect',
+      'system_prompt.detect',
+      'tools_manifest.detect',
+      'disabled_tools.detect',
+      'enabled_remote_tools.detect',
+      'prompt_layers.detect',
+      'agents_md.detect',
+      'plugin_contributions.detect',
+      'skill_contributions.detect',
+      'mcp_contributions.detect',
+      'capability_revision.detect',
+      'local_runtime.detect',
+      'transport_payload.ready',
+      'backend_dispatch.handoff',
+    ]);
+    expect(sdkFlowTimeline).toHaveLength(20);
+    expect(sdkFlowTimeline[0].data).toEqual(expect.objectContaining({
+      hasAgentDefinition: true,
+      hasSdkAgentDefinition: true,
+      hasQueryAgentDefinition: false,
+      toolCount: 1,
+      pluginCount: 1,
+      skillCount: 1,
+      hasWorkspacePath: true,
+      hasLocalRuntime: false,
+    }));
     expect(agentTimeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
       'shape:succeeded',
     ]);
@@ -6022,6 +6059,7 @@ describe('Agent SDK conversation runtime core', () => {
     expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('inspect this workspace');
     expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('plugin-secret-payload');
     expect(JSON.stringify(buildTraceTimeline(events))).not.toContain('mcp-secret-payload');
+    expect(JSON.stringify(sdkFlowTimeline)).not.toContain('do not persist tool payload text');
   });
 
   test('conversation runtime records skipped query dispatch when no backend transport is attached', async () => {

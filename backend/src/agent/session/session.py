@@ -72,6 +72,23 @@ logger = logging.getLogger(__name__)
 
 _CLIENT_TOOL_TRACE_SAMPLE_LIMIT = 8
 _CLIENT_TOOL_TRACE_REASON_LIMIT = 240
+_AGENT_DEFINITION_BACKEND_FLOW_STAGES = (
+    "query.receive",
+    "agent_definition.receive",
+    "runtime_context.resolve",
+    "system_prompt_override.resolve",
+    "raw_client_manifest.read",
+    "client_tool_manifest.validate",
+    "tool_policy.apply",
+    "prompt_layers.read",
+    "prompt_layers.validate",
+    "prompt_context.apply",
+    "prompt_builder.update",
+    "capability_manifest.aggregate",
+    "runtime_system_state.merge",
+    "model_selection.check",
+    "executor.dispatch",
+)
 
 
 def _count_raw_client_manifest_tools(raw_manifest: Any) -> int:
@@ -102,6 +119,91 @@ def _client_manifest_rejected_reason_sample(
 
 def _agent_definition_capability_revision(agent_definition: Any) -> Optional[str]:
     return capability_revision_from_agent_definition(agent_definition)
+
+
+def _agent_definition_backend_flow_events(
+    *,
+    has_agent_definition: bool,
+    has_runtime_context: bool,
+    has_system_prompt_override: bool,
+    raw_tool_count: int,
+    raw_prompt_layer_count: int,
+    manifest_result: Any,
+    prompt_layer_validation: Any,
+    capability_revision: Optional[str],
+    capability_trace_payload: Optional[Dict[str, Any]],
+    prompt_layer_trace_payload: Optional[Dict[str, Any]],
+    has_runtime_system_state: bool,
+    has_selected_model: bool,
+    has_workspace_path: bool,
+    has_operating_system: bool,
+) -> list[TraceEvent]:
+    accepted_tool_count = (
+        len(getattr(manifest_result, "accepted", []) or [])
+        if manifest_result is not None
+        else 0
+    )
+    rejected_tool_count = (
+        len(getattr(manifest_result, "rejected", []) or [])
+        if manifest_result is not None
+        else 0
+    )
+    accepted_prompt_layer_count = (
+        len(getattr(prompt_layer_validation, "accepted", []) or [])
+        if prompt_layer_validation is not None
+        else 0
+    )
+    rejected_prompt_layer_count = (
+        len(getattr(prompt_layer_validation, "rejected", []) or [])
+        if prompt_layer_validation is not None
+        else 0
+    )
+    data = {
+        "hasAgentDefinition": has_agent_definition,
+        "hasRuntimeContext": has_runtime_context,
+        "hasOperatingSystem": has_operating_system,
+        "hasWorkspacePath": has_workspace_path,
+        "hasSystemPromptOverride": has_system_prompt_override,
+        "hasClientManifest": manifest_result is not None,
+        "rawToolCount": raw_tool_count,
+        "acceptedToolCount": accepted_tool_count,
+        "rejectedToolCount": rejected_tool_count,
+        "rawPromptLayerCount": raw_prompt_layer_count,
+        "acceptedPromptLayerCount": accepted_prompt_layer_count,
+        "rejectedPromptLayerCount": rejected_prompt_layer_count,
+        "capabilityRevision": capability_revision,
+        "toolPolicyRebuilt": capability_trace_payload is not None,
+        "promptContextApplied": (
+            has_runtime_context
+            or has_system_prompt_override
+            or raw_prompt_layer_count > 0
+        ),
+        "promptBuilderClientToolCount": (
+            capability_trace_payload or {}
+        ).get("promptBuilderClientToolCount", 0),
+        "promptBuilderPromptLayerCount": (
+            prompt_layer_trace_payload or {}
+        ).get("promptBuilderPromptLayerCount", 0),
+        "policyAllowedClientToolCount": (
+            capability_trace_payload or {}
+        ).get("policyAllowedClientToolCount", 0),
+        "effectiveAvailableToolCount": (
+            capability_trace_payload or {}
+        ).get("effectiveAvailableToolCount", 0),
+        "hasRuntimeSystemState": has_runtime_system_state,
+        "hasSelectedModel": has_selected_model,
+    }
+    status = "succeeded" if has_agent_definition else "skipped"
+    return [
+        TraceEvent(
+            path="agent_definition.backend_flow",
+            stage=stage,
+            status=status,
+            runtime="backend",
+            data=data,
+        )
+        for stage in _AGENT_DEFINITION_BACKEND_FLOW_STAGES
+    ]
 
 
 class AgentSession:
@@ -868,6 +970,37 @@ class AgentSession:
                         ).get("promptBuilderPromptLayerCount", 0),
                     },
                 )
+            should_emit_agent_definition_flow = (
+                agent_definition is not None
+                or resolved_operating_system is not None
+                or resolved_workspace_path is not None
+                or raw_prompt_layer_count > 0
+                or runtime_system_state is not None
+            )
+            if should_emit_agent_definition_flow:
+                for flow_event in _agent_definition_backend_flow_events(
+                    has_agent_definition=agent_definition is not None,
+                    has_runtime_context=(
+                        resolved_operating_system is not None
+                        or resolved_workspace_path is not None
+                    ),
+                    has_system_prompt_override=(
+                        isinstance(resolved_system_prompt_override, str)
+                        and bool(resolved_system_prompt_override.strip())
+                    ),
+                    raw_tool_count=raw_tool_count,
+                    raw_prompt_layer_count=raw_prompt_layer_count,
+                    manifest_result=manifest_result,
+                    prompt_layer_validation=prompt_layer_validation,
+                    capability_revision=capability_revision,
+                    capability_trace_payload=capability_trace_payload,
+                    prompt_layer_trace_payload=prompt_layer_trace_payload,
+                    has_runtime_system_state=runtime_system_state is not None,
+                    has_selected_model=bool(self.cfg.selected_model_id),
+                    has_workspace_path=resolved_workspace_path is not None,
+                    has_operating_system=resolved_operating_system is not None,
+                ):
+                    yield flow_event
             self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:
                 yield ThinkingEvent(

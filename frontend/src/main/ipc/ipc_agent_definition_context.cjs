@@ -14,9 +14,30 @@ const {
 const {
   resolveDesktopHostOperatingSystem,
 } = require('./ipc_desktop_host_os_runtime.cjs');
+const {
+  appendAgentDefinitionFlowDiagnostic,
+} = require('../diagnostics/app_diagnostics_runtime.cjs');
 
 const REMOTE_AGENT_TOOL_NAMES = Object.freeze([
   'web_search',
+]);
+
+const AGENT_DEFINITION_FLOW_STAGES = Object.freeze([
+  'desktop_config.snapshot',
+  'custom_instructions.collect',
+  'local_tool_policy.collect',
+  'remote_tool_policy.collect',
+  'enabled_remote_tools.resolve',
+  'workspace_path.collect',
+  'repo_instructions.resolve',
+  'extension_prompt_layers.resolve',
+  'host_os.resolve',
+  'sdk_builder.input',
+  'generated_definition.build',
+  'supplied_definition.detect',
+  'definition_merge.apply',
+  'payload_attachment.prepare',
+  'payload_attachment.complete',
 ]);
 
 function isPlainObject(value) {
@@ -32,6 +53,120 @@ function cloneJsonObject(value) {
 
 function arrayValue(value) {
   return Array.isArray(value) ? value : [];
+}
+
+function arrayRecordCount(value) {
+  return Array.isArray(value)
+    ? value.filter((item) => isPlainObject(item)).length
+    : 0;
+}
+
+function agentToolCount(definition) {
+  if (!isPlainObject(definition)) {
+    return 0;
+  }
+  if (Array.isArray(definition.tools)) {
+    return definition.tools.filter((tool) => isPlainObject(tool)).length;
+  }
+  if (isPlainObject(definition.tools)) {
+    const manifest = isPlainObject(definition.tools.client_manifest)
+      ? definition.tools.client_manifest
+      : null;
+    if (Array.isArray(manifest?.tools)) {
+      return manifest.tools.filter((tool) => isPlainObject(tool)).length;
+    }
+    if (Array.isArray(definition.tools.available_tools)) {
+      return definition.tools.available_tools.filter((tool) => (
+        typeof tool === 'string' && tool.trim()
+      )).length;
+    }
+  }
+  return 0;
+}
+
+function systemPromptSummary(definition) {
+  const prompt = isPlainObject(definition?.system_prompt) ? definition.system_prompt : null;
+  return {
+    hasSystemPromptOverride: typeof prompt?.content === 'string' && prompt.content.trim().length > 0,
+    hasDefaultSystemPrompt: prompt?.mode === 'default',
+  };
+}
+
+function buildAgentDefinitionFlowSummary({
+  latestDesktopUiConfig,
+  customInstructions,
+  toolConfig,
+  workspacePath,
+  agentsMd,
+  extensionPromptLayers,
+  platformName,
+  hostOperatingSystem,
+  generatedAgentDefinition,
+  suppliedAgentDefinition,
+  finalAgentDefinition,
+}) {
+  const generatedPrompt = systemPromptSummary(generatedAgentDefinition);
+  const finalPrompt = systemPromptSummary(finalAgentDefinition);
+  return {
+    hasDesktopUiConfig: isPlainObject(latestDesktopUiConfig),
+    hasCustomInstructions: Boolean(customInstructions),
+    customInstructionLength: customInstructions.length,
+    disabledLocalToolCount: arrayValue(latestDesktopUiConfig?.agent_disabled_local_tools).length,
+    disabledRemoteToolCount: arrayValue(latestDesktopUiConfig?.agent_disabled_remote_tools).length,
+    enabledRemoteToolCount: toolConfig.enabledRemoteTools.length,
+    availableToolCount: toolConfig.availableTools.length,
+    disabledToolCount: toolConfig.disabledTools.length,
+    extensionPromptLayerCount: arrayRecordCount(extensionPromptLayers),
+    repoInstructionLayerCount: arrayRecordCount(agentsMd),
+    generatedPromptLayerCount: arrayRecordCount(generatedAgentDefinition?.prompt_layers),
+    generatedAgentsMdCount: arrayRecordCount(generatedAgentDefinition?.agents_md),
+    generatedSkillCount: arrayRecordCount(generatedAgentDefinition?.skills),
+    generatedPluginCount: arrayRecordCount(generatedAgentDefinition?.plugins),
+    generatedMcpCount: arrayRecordCount(generatedAgentDefinition?.mcps),
+    generatedToolCount: agentToolCount(generatedAgentDefinition),
+    suppliedPromptLayerCount: arrayRecordCount(suppliedAgentDefinition?.prompt_layers),
+    suppliedAgentsMdCount: arrayRecordCount(suppliedAgentDefinition?.agents_md),
+    suppliedSkillCount: arrayRecordCount(suppliedAgentDefinition?.skills),
+    suppliedPluginCount: arrayRecordCount(suppliedAgentDefinition?.plugins),
+    suppliedMcpCount: arrayRecordCount(suppliedAgentDefinition?.mcps),
+    suppliedToolCount: agentToolCount(suppliedAgentDefinition),
+    finalPromptLayerCount: arrayRecordCount(finalAgentDefinition?.prompt_layers),
+    finalAgentsMdCount: arrayRecordCount(finalAgentDefinition?.agents_md),
+    finalSkillCount: arrayRecordCount(finalAgentDefinition?.skills),
+    finalPluginCount: arrayRecordCount(finalAgentDefinition?.plugins),
+    finalMcpCount: arrayRecordCount(finalAgentDefinition?.mcps),
+    finalToolCount: agentToolCount(finalAgentDefinition),
+    hasGeneratedAgentDefinition: isPlainObject(generatedAgentDefinition),
+    hasSuppliedAgentDefinition: isPlainObject(suppliedAgentDefinition),
+    hasFinalAgentDefinition: isPlainObject(finalAgentDefinition),
+    hasSystemPromptOverride: generatedPrompt.hasSystemPromptOverride || finalPrompt.hasSystemPromptOverride,
+    hasDefaultSystemPrompt: generatedPrompt.hasDefaultSystemPrompt || finalPrompt.hasDefaultSystemPrompt,
+    hasWorkspacePath: Boolean(workspacePath),
+    hasOperatingSystem: Boolean(hostOperatingSystem),
+    platformName,
+    hostOperatingSystem,
+  };
+}
+
+function emitAgentDefinitionFlow(summary, {
+  append = appendAgentDefinitionFlowDiagnostic,
+  traceId = `agent-definition-flow-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
+  turnRef = null,
+} = {}) {
+  if (typeof append !== 'function') {
+    return;
+  }
+  for (const stage of AGENT_DEFINITION_FLOW_STAGES) {
+    append({
+      traceId,
+      action: stage,
+      stage,
+      status: summary.hasFinalAgentDefinition ? 'succeeded' : 'skipped',
+      source: 'ipc_agent_definition_context',
+      turnRef,
+      ...summary,
+    });
+  }
 }
 
 function containsTrimmedString(value, expected) {
@@ -104,6 +239,7 @@ function attachAgentDefinitionContext(payload, {
   platformName = process.platform,
   buildAgentDefinition,
   isDefaultAgentDefinition,
+  appendFlowDiagnostic = appendAgentDefinitionFlowDiagnostic,
 } = {}) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return payload;
@@ -124,6 +260,8 @@ function attachAgentDefinitionContext(payload, {
   const agentsMd = workspacePath
     ? resolveWorkspaceRepoInstructionPromptLayers(workspacePath)
     : [];
+  const extensionPromptLayers = loadExtensionSkillPromptLayers();
+  const hostOperatingSystem = resolveDesktopHostOperatingSystem(platformName);
   const generatedAgentDefinition = buildAgentDefinition(buildElectronAgentDefinitionInputs({
     includeToolManifest: false,
     includeExtensionPromptLayers: false,
@@ -131,24 +269,57 @@ function attachAgentDefinitionContext(payload, {
     availableTools: toolConfig.availableTools,
     disabledTools: toolConfig.disabledTools,
     enabledRemoteTools: toolConfig.enabledRemoteTools,
-    promptLayers: loadExtensionSkillPromptLayers(),
+    promptLayers: extensionPromptLayers,
     agentsMd,
     workspacePath,
-    operatingSystem: resolveDesktopHostOperatingSystem(platformName),
+    operatingSystem: hostOperatingSystem,
   }));
   const suppliedAgentDefinition = isPlainObject(payload.agent_definition)
     ? payload.agent_definition
     : null;
   if (isDefaultAgentDefinition(generatedAgentDefinition) && !suppliedAgentDefinition) {
+    emitAgentDefinitionFlow(buildAgentDefinitionFlowSummary({
+      latestDesktopUiConfig,
+      customInstructions,
+      toolConfig,
+      workspacePath,
+      agentsMd,
+      extensionPromptLayers,
+      platformName,
+      hostOperatingSystem,
+      generatedAgentDefinition,
+      suppliedAgentDefinition,
+      finalAgentDefinition: null,
+    }), {
+      append: appendFlowDiagnostic,
+      turnRef: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
+    });
     return payload;
   }
 
+  const finalAgentDefinition = mergeAgentDefinitionContext(
+    generatedAgentDefinition,
+    suppliedAgentDefinition,
+  );
+  emitAgentDefinitionFlow(buildAgentDefinitionFlowSummary({
+    latestDesktopUiConfig,
+    customInstructions,
+    toolConfig,
+    workspacePath,
+    agentsMd,
+    extensionPromptLayers,
+    platformName,
+    hostOperatingSystem,
+    generatedAgentDefinition,
+    suppliedAgentDefinition,
+    finalAgentDefinition,
+  }), {
+    append: appendFlowDiagnostic,
+    turnRef: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
+  });
   return {
     ...payload,
-    agent_definition: mergeAgentDefinitionContext(
-      generatedAgentDefinition,
-      suppliedAgentDefinition,
-    ),
+    agent_definition: finalAgentDefinition,
   };
 }
 
@@ -157,6 +328,7 @@ function createAgentDefinitionContextRuntime({
   platformName = process.platform,
   buildAgentDefinition,
   isDefaultAgentDefinition,
+  appendFlowDiagnostic,
 } = {}) {
   function attach(payload) {
     return attachAgentDefinitionContext(payload, {
@@ -164,6 +336,7 @@ function createAgentDefinitionContextRuntime({
       platformName,
       buildAgentDefinition,
       isDefaultAgentDefinition,
+      appendFlowDiagnostic,
     });
   }
 

@@ -179,6 +179,11 @@ async def test_process_query_traces_client_manifest_validation_and_application()
         for event in trace_events
         if event.path == "client_capability_manifest.policy"
     )
+    backend_flow_events = [
+        event
+        for event in trace_events
+        if event.path == "agent_definition.backend_flow"
+    ]
 
     assert validate_event.stage == "validate"
     assert validate_event.status == "succeeded"
@@ -245,6 +250,48 @@ async def test_process_query_traces_client_manifest_validation_and_application()
         "policyRejectedCount": 0,
         "rejectedByPolicySample": [],
     }
+    assert [event.stage for event in backend_flow_events] == [
+        "query.receive",
+        "agent_definition.receive",
+        "runtime_context.resolve",
+        "system_prompt_override.resolve",
+        "raw_client_manifest.read",
+        "client_tool_manifest.validate",
+        "tool_policy.apply",
+        "prompt_layers.read",
+        "prompt_layers.validate",
+        "prompt_context.apply",
+        "prompt_builder.update",
+        "capability_manifest.aggregate",
+        "runtime_system_state.merge",
+        "model_selection.check",
+        "executor.dispatch",
+    ]
+    assert len(backend_flow_events) == 15
+    assert backend_flow_events[0].data == {
+        "hasAgentDefinition": True,
+        "hasRuntimeContext": False,
+        "hasOperatingSystem": False,
+        "hasWorkspacePath": False,
+        "hasSystemPromptOverride": False,
+        "hasClientManifest": True,
+        "rawToolCount": 2,
+        "acceptedToolCount": 1,
+        "rejectedToolCount": 1,
+        "rawPromptLayerCount": 0,
+        "acceptedPromptLayerCount": 0,
+        "rejectedPromptLayerCount": 0,
+        "capabilityRevision": None,
+        "toolPolicyRebuilt": True,
+        "promptContextApplied": False,
+        "promptBuilderClientToolCount": 1,
+        "promptBuilderPromptLayerCount": 0,
+        "policyAllowedClientToolCount": 1,
+        "effectiveAvailableToolCount": 1,
+        "hasRuntimeSystemState": False,
+        "hasSelectedModel": True,
+    }
+    assert "check tools" not in repr([event.data for event in backend_flow_events])
     assert [
         schema.get("name") for schema in session.prompt_builder.client_tool_schemas
     ] == ["cua_driver__screenshot"]
