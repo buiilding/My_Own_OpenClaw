@@ -1470,29 +1470,36 @@ function resolveConversationViewRevisionId(
   return candidates.find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim() ?? null;
 }
 
-function userFacingEventsForView(events: ConversationEvent[], conversationRef: string): ConversationEvent[] {
+function userFacingEventsForView(
+  events: ConversationEvent[],
+  conversationRef: string,
+  revisionId: string | null = null,
+): ConversationEvent[] {
   return events.filter(event => (
     event.conversationRef === conversationRef
     && !isInternalConversationLane(event.conversationRef)
+    && (!revisionId || event.revisionId === revisionId)
   ));
 }
 
 function currentTurnForView(
   input: ConversationViewBuildInput,
   conversationRef: string,
+  revisionId: string | null,
 ): CurrentTurnProjection {
   const events = input.events ?? [];
   const currentTurn = input.currentTurn ?? null;
+  const userFacingEvents = userFacingEventsForView(events, conversationRef, revisionId);
+  if (userFacingEvents.length > 0) {
+    return buildCurrentTurnProjection(userFacingEvents);
+  }
   if (
-    currentTurn
+    !revisionId
+    && currentTurn
     && currentTurn.conversationRef === conversationRef
     && !isInternalConversationLane(currentTurn.conversationRef)
   ) {
     return currentTurn;
-  }
-  const userFacingEvents = userFacingEventsForView(events, conversationRef);
-  if (userFacingEvents.length > 0) {
-    return buildCurrentTurnProjection(userFacingEvents);
   }
   return emptyCurrentTurnProjection(conversationRef);
 }
@@ -1539,7 +1546,7 @@ export function buildConversationView(input: ConversationViewBuildInput): Conver
     && !isInternalConversationLane(row.conversationRef)
   )).map(withConversationViewRowActions);
   const revisionId = resolveConversationViewRevisionId(input, displayRows);
-  const currentTurn = currentTurnForView(input, conversationRef);
+  const currentTurn = currentTurnForView(input, conversationRef, revisionId);
   const livePhase = conversationViewLiveTurnPhase(currentTurn.phase);
   const presentation = currentTurn.presentation;
   const responseOverlayMode = responseOverlayModeFromPresentation(presentation);

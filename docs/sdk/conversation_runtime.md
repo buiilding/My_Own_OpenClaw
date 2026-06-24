@@ -551,7 +551,11 @@ can inspect inactive ancestors.
 display revisions. It requires a stored display timeline for the requested
 revision, moves the runtime head to that revision, returns the matching
 model-history checkpoint when one exists, and records only sanitized checkout
-trace metadata. It does not rebuild backend history from raw events.
+trace metadata. A later runtime reload must preserve that explicit checkout
+selection rather than drifting back to the store active head; the resulting
+`ConversationView` scopes live-turn, busy/Stop, and response-overlay authority
+to events from the selected revision only. It does not rebuild backend history
+from raw events.
 
 Fork uses the same display timeline boundary. `conversation.fork(...)` copies
 the selected display prefix into a new conversation revision with reason
@@ -560,7 +564,17 @@ inside that prefix, and leaves the source branch unmodified aside from a
 sanitized runtime trace. Store metadata must list fork children from their
 active display checkpoint even before the child has raw events; after the child
 continues, the forked display prefix can still provide the title while newer
-child events provide the last-message tail.
+child events provide the last-message tail. Forked `ConversationView` loads
+from the child display checkpoint and starts idle until that child branch has
+its own runtime events; source-branch display rows and model-history checkpoints
+remain inspectable by revision id.
+
+When a display timeline row already represents a raw event under a stable row
+id or `metadata.eventId`, runtime snapshots must not append a second visible
+row for that event. The same applies to same-revision event rows with the same
+visible turn/type/content key, which prevents checkout and fork views from
+duplicating rows when stored display rows use user-facing row ids rather than
+raw event ids.
 
 Metadata pagination and search helpers stay in the `conversation/metadata`
 owner module for SDK stores and runtime classes. Public package-root callers

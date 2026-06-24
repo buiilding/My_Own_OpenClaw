@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: keep `ConversationView` live-turn and response-overlay projection
+  scoped to the selected display revision during `checkoutRevision` and forked
+  branch loads. Runtime reloads now preserve an explicit checkout instead of
+  drifting back to the store active head, and display timeline snapshots dedupe
+  raw event rows already represented by stable display row/event identity. No
+  migration required.
 - frontend/renderer: remove replay-hook display timeline reload and local row
   matching from edit/resend and Try again execution. React now builds only the
   retained-prefix optimistic pending bridge from the visible messages and
