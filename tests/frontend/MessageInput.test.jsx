@@ -106,6 +106,23 @@ describe('MessageInput', () => {
     expect(screen.getByRole('button', { name: 'Stop response' })).toBeInTheDocument();
   });
 
+  test('disables stop button when active loop cannot be stopped', () => {
+    const onStopResponse = jest.fn();
+    render(
+      <MessageInput
+        onSendMessage={jest.fn()}
+        isLoopActive
+        canStopResponse={false}
+        onStopResponse={onStopResponse}
+      />,
+    );
+
+    const stopButton = screen.getByRole('button', { name: 'Stop response' });
+    expect(stopButton).toBeDisabled();
+    fireEvent.click(stopButton);
+    expect(onStopResponse).not.toHaveBeenCalled();
+  });
+
   test('disables side controls while loop is active', () => {
     render(<MessageInput onSendMessage={jest.fn()} isLoopActive />);
 

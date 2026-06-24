@@ -57,6 +57,52 @@ function renderController({
   };
 }
 
+function conversationView({
+  conversationRef = 'conv-1',
+  turnRef = 'turn-view',
+  phase = 'streaming',
+  entries = [{ id: 'entry-view', text: 'view response' }],
+  isBusy = true,
+  isTerminal = false,
+  canStop = true,
+  pillMode = 'busy',
+} = {}) {
+  return {
+    conversationRef,
+    revisionId: 'rev-view',
+    displayRows: [],
+    liveTurn: {
+      turnRef,
+      phase,
+      entries,
+      isBusy,
+      isTerminal,
+      canStop,
+      lastError: null,
+    },
+    surfaces: {
+      pill: {
+        mode: pillMode,
+      },
+      dashboard: {
+        mode: pillMode,
+      },
+      responseOverlay: {
+        mode: entries.length > 0 ? 'response' : 'hidden',
+        visible: entries.length > 0,
+        guardRef: turnRef,
+        ownerConversationRef: conversationRef,
+        turnRef,
+      },
+    },
+    actions: {
+      canEdit: true,
+      canRetry: true,
+      canFork: true,
+    },
+  };
+}
+
 describe('useChatSurfaceController', () => {
   beforeEach(() => {
     mockRunManualCompaction.mockReset();
@@ -310,6 +356,179 @@ describe('useChatSurfaceController', () => {
     expect(result.current.currentTurnPresentationState).toMatchObject({
       awaitingDotTargetMessageId: 'user-local',
       chatboxSurfaceState: 'awaiting-reply',
+    });
+  });
+
+  test('uses ConversationView pill mode and stop capability over stale current-turn state', () => {
+    const { result } = renderController({
+      props: {
+        conversationView: conversationView({
+          turnRef: 'turn-replacement',
+          phase: 'complete',
+          entries: [{ id: 'entry-done', text: 'replacement done' }],
+          isBusy: false,
+          isTerminal: true,
+          canStop: false,
+          pillMode: 'idle',
+        }),
+        currentTurnProjection: {
+          phase: 'streaming',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-old',
+          assistantText: 'stale stream',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      },
+    });
+
+    expect(result.current).toMatchObject({
+      isBusy: false,
+      canStop: false,
+      visibleTurnLifecycle: expect.objectContaining({
+        source: 'conversation-view',
+        status: 'terminal',
+        turnRef: 'turn-replacement',
+      }),
+    });
+  });
+
+  test('keeps view-owned busy separate from view-owned Stop availability', () => {
+    const { result } = renderController({
+      props: {
+        conversationView: conversationView({
+          turnRef: 'turn-busy-not-stoppable',
+          phase: 'tool',
+          isBusy: true,
+          isTerminal: false,
+          canStop: false,
+          pillMode: 'busy',
+        }),
+        currentTurnProjection: {
+          phase: 'streaming',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-stale-stoppable',
+          assistantText: 'stale stream',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      },
+    });
+
+    expect(result.current).toMatchObject({
+      isBusy: true,
+      canStop: false,
+      visibleTurnLifecycle: expect.objectContaining({
+        source: 'conversation-view',
+        status: 'active',
+        turnRef: 'turn-busy-not-stoppable',
+      }),
+    });
+  });
+
+  test('does not let a same-turn idle ConversationView clear local pending busy', () => {
+    const { result } = renderController({
+      props: {
+        pendingTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-local',
+          userMessageId: 'user-local',
+          text: 'local send',
+          timestamp: '2026-06-21T00:00:00.000Z',
+          attachmentFilenames: null,
+        },
+        messages: [
+          {
+            id: 'user-local',
+            type: 'user',
+            sender: 'user',
+            text: 'local send',
+            turnRef: 'turn-local',
+          },
+        ],
+        conversationView: conversationView({
+          turnRef: 'turn-local',
+          phase: 'idle',
+          entries: [],
+          isBusy: false,
+          isTerminal: false,
+          canStop: false,
+          pillMode: 'idle',
+        }),
+        currentTurnProjection: null,
+      },
+    });
+
+    expect(result.current).toMatchObject({
+      isBusy: true,
+      canStop: true,
+      liveTurnSource: 'pending-turn',
+      visibleTurnLifecycle: expect.objectContaining({
+        status: 'local_pending',
+        source: 'local',
+        turnRef: 'turn-local',
+      }),
+    });
+  });
+
+  test('completed replacement ConversationView clears local pending busy once', () => {
+    const { result } = renderController({
+      props: {
+        pendingTurn: {
+          conversationRef: 'conv-1',
+          turnRef: 'turn-replacement',
+          userMessageId: 'user-replacement',
+          text: 'replacement',
+          timestamp: '2026-06-21T00:00:00.000Z',
+          attachmentFilenames: null,
+        },
+        messages: [
+          {
+            id: 'user-replacement',
+            type: 'user',
+            sender: 'user',
+            text: 'replacement',
+            turnRef: 'turn-replacement',
+          },
+          {
+            id: 'assistant-replacement',
+            type: 'llm-text',
+            sender: 'assistant',
+            text: 'done',
+            turnRef: 'turn-replacement',
+          },
+        ],
+        conversationView: conversationView({
+          turnRef: 'turn-replacement',
+          phase: 'complete',
+          entries: [{ id: 'entry-replacement', text: 'done' }],
+          isBusy: false,
+          isTerminal: true,
+          canStop: false,
+          pillMode: 'idle',
+        }),
+        currentTurnProjection: {
+          phase: 'streaming',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-old',
+          assistantText: 'old stream',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      },
+    });
+
+    expect(result.current).toMatchObject({
+      isBusy: false,
+      canStop: false,
+      visibleTurnLifecycle: expect.objectContaining({
+        source: 'conversation-view',
+        status: 'terminal',
+        turnRef: 'turn-replacement',
+      }),
     });
   });
 

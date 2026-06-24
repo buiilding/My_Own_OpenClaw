@@ -6,6 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: migrate minimal pill and dashboard busy/Stop controls to
+  SDK `ConversationView` authority. `view.surfaces.pill.mode` now drives the
+  shared loop lock, `view.liveTurn.canStop` drives Stop availability and target
+  selection, and the local pending-turn latch remains only as the pre-view send
+  bridge so idle SDK/view startup projections cannot clear a just-accepted
+  send. Stale raw current-turn snapshots can no longer re-enable Stop after
+  the view says the visible turn is not stoppable. No migration required.
 - frontend/main, frontend/renderer: migrate the response overlay to the SDK
   `ConversationView` authority. Direct SDK snapshots now carry
   `view`/`viewDiagnostics` through the current-turn IPC payload, renderer

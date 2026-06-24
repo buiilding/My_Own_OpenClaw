@@ -163,6 +163,7 @@ Contract ownership:
   live-surface projection. `DesktopLiveTurnSurfaceRuntime` maps the resolved
   visible lifecycle into overlay-compatible phase, busy, awaiting, and response
   fields.
+- Boundary tests pin this as overlay-compatible phase, busy, awaiting, and response fields.
 - `DesktopCurrentTurnPresentationRuntime.resolveResponseOverlayDismissalTarget(...)`
   owns the dismissal target projection from SDK overlay intent, current-turn
   refs, latest response entry id, and stale guard ref.
