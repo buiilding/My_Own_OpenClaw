@@ -28,6 +28,17 @@ this page.
 | Security-sensitive behavior | [Security Boundary Matrix](../security/security_boundary_matrix.md) | Owner-specific security and boundary tests |
 | Runtime ownership decisions | [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) | Owner-runtime tests for the enforcing boundary |
 
+## Settings And Model Selection
+
+- Agent settings edited in the renderer must update Electron main's redacted
+  desktop UI config cache before the next query attaches `agent_definition`;
+  disk persistence is not allowed to be the live-turn gate.
+- Selected chat models must be applied before inference starts: normal sends and
+  manual compaction await the SDK settings ACK, while retry/edit replay carries
+  the model through Electron main into SDK `agent.run(..., { model })` options.
+  See the Settings startup and Model send selection rows in the
+  [User-Facing Regression Pack](user_facing_regression_pack.md).
+
 ## Adding An Invariant
 
 For every new invariant, record:

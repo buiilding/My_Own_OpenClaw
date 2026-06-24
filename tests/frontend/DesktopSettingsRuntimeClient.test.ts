@@ -69,8 +69,8 @@ describe('DesktopSettingsRuntimeClient', () => {
     warnSpy.mockRestore();
   });
 
-  test('sends settings patches through the SDK desktop transport adapter', () => {
-    DesktopSettingsRuntimeClient.updateSettings({
+  test('sends settings patches through the SDK desktop transport adapter', async () => {
+    await DesktopSettingsRuntimeClient.updateSettings({
       speech_mode_enabled: true,
     });
 
@@ -79,8 +79,8 @@ describe('DesktopSettingsRuntimeClient', () => {
     });
   });
 
-  test('sends model changes through the SDK model settings contract', () => {
-    DesktopSettingsRuntimeClient.setModel({
+  test('sends model changes through the SDK model settings contract', async () => {
+    await DesktopSettingsRuntimeClient.setModel({
       modelId: ' gpt-5.4@@gpt-5-4-high-thinking ',
       modelProvider: ' openai ',
     });

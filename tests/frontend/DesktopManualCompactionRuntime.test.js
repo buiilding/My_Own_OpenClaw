@@ -97,4 +97,42 @@ describe('runManualCompaction', () => {
     expect(setThinkingStatus).toHaveBeenLastCalledWith(getCompactionFailedThinkingStatus());
     expect(setThinkingSourceEventType).toHaveBeenLastCalledWith('context-compaction-failed');
   });
+
+  test('waits for selected model sync before compacting history', async () => {
+    const setThinkingStatus = jest.fn();
+    const setThinkingSourceEventType = jest.fn();
+    let resolveModelSync;
+    jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      callback();
+      return 1;
+    });
+    DesktopRendererConfigRuntimeClient.buildDeferredQueryModelSelection
+      .mockReturnValue({ modelProvider: 'scripted', modelId: 'scripted-runtime' });
+    DesktopSettingsRuntimeClient.setModel.mockImplementation(() => new Promise((resolve) => {
+      resolveModelSync = resolve;
+    }));
+
+    const compactPromise = runManualCompaction({
+      config: {},
+      conversationRef: 'conversation-1',
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      warningContext: 'test',
+    });
+    await Promise.resolve();
+
+    expect(DesktopSettingsRuntimeClient.setModel).toHaveBeenCalledWith({
+      modelProvider: 'scripted',
+      modelId: 'scripted-runtime',
+    });
+    expect(DesktopConversationContinuityService.compactHistory).not.toHaveBeenCalled();
+
+    resolveModelSync();
+    await compactPromise;
+
+    expect(DesktopConversationContinuityService.compactHistory).toHaveBeenCalledWith(
+      true,
+      'conversation-1',
+    );
+  });
 });

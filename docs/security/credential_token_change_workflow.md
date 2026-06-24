@@ -25,7 +25,7 @@ Core rule: install auth identifies a desktop install to the hosted backend, runs
 | Local-runtime remote-client auth headers | local-runtime Python remote client base | `frontend/src/main/python/windie/_auth.py`, `frontend/src/main/python/windie/_remote_api_client_base.py`, `frontend/src/main/python/core/remote_*_client.py` | local-runtime Python remote client tests | [Local-Runtime Python Implementation Change Workflow](../frontend/sidecar/local_runtime_python_change_workflow.md) |
 | Runs API key | Runs route dependency and VM worker runtime | `backend/src/api/routes/runs/support.py`, `backend/src/api/routes/runs/router.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | `tests/backend/test_run_control_routes.py`, `tests/backend/test_run_control_route_helpers.py`, `tests/frontend/VmWorkerRuntime.test.cjs` | [Runs API Runbook](../automation/runs_api_runbook.md) |
 | Provider env keys | Backend config and provider constructors | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py`, `backend/src/llm/providers/**` | `tests/backend/test_config_models.py`, `tests/backend/test_config_loader.py`, provider tests | [Provider Credentials](../providers/credentials.md) |
-| Renderer-managed provider key overrides | Renderer settings, app-runtime provider credential facade, and backend client-settings patch guard | `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`, `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `backend/src/core/validation/**`, `backend/src/core/config/models.py` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/AppConfigPersistence.test.js`, `tests/backend/test_validation_utils.py`, `tests/backend/test_api_handlers.py` | [Provider Change Workflow](../providers/provider_change_workflow.md) |
+| Renderer-managed provider key overrides | Renderer settings, app-runtime provider credential facade, Electron main encrypted credential store, and backend client-settings patch guard | `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`, `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `frontend/src/main/ipc/ipc_provider_credentials_store.cjs`, `backend/src/core/validation/**`, `backend/src/core/config/models.py` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/AppConfigPersistence.test.js`, `tests/frontend/IpcProviderCredentialPersistence.test.cjs`, `tests/backend/test_validation_utils.py`, `tests/backend/test_api_handlers.py` | [Provider Change Workflow](../providers/provider_change_workflow.md) |
 | Secret logging, redaction, and fixtures | Producing runtime and test fixture owner | logging call sites in backend, Electron, renderer, sidecar, and tests | focused tests for the changed boundary plus fixture scans | [Observability Change Workflow](../debug/observability_change_workflow.md) |
 
 ## Credential Classes
@@ -66,7 +66,7 @@ If no expected key is configured, `verify_runs_api_key()` allows the route depen
 
 ### Provider credentials
 
-Provider credentials are backend config inputs and provider-specific auth material. The baseline environment-variable surface lives in `AppConfig` and config models. Renderer-managed overrides are intentionally narrow and pass through the settings/config path, not arbitrary backend config patching.
+Provider credentials are backend config inputs and provider-specific auth material. The baseline environment-variable surface lives in `AppConfig` and config models. Renderer-managed overrides are intentionally narrow and pass through the settings/config path, not arbitrary backend config patching. When the desktop UI saves a renderer-managed provider key, Electron main writes the normal `frontend-config.json` with `api_key` fields redacted and stores the raw key only in the encrypted `provider-credentials.json` side file backed by Electron `safeStorage`. Startup config loads hydrate enabled redacted entries from that encrypted store before syncing settings to the backend.
 
 Do not add provider keys directly to route payloads, websocket handshakes, tool payloads, or logs. Resolve them through config loading and provider constructors so unavailable-provider behavior, health, and model catalog gates stay consistent.
 
@@ -258,12 +258,13 @@ Edit:
 - `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx` for visible controls.
 - `frontend/src/renderer/app/runtime/desktopProviderCredentialRuntime.js` for skin-configured provider entries/default normalization and renderer persistence shaping.
 - `frontend/src/renderer/app/providers/appConfigPersistence.js` and config storage/filter helpers for local persistence.
+- `frontend/src/main/ipc/ipc_provider_credentials_store.cjs` and desktop UI config persistence helpers for restart-safe encrypted provider-key storage.
 - backend config and validation code only for explicit client settings patch fields.
 
 Validate:
 
 - UI saves enabled/key state without dropping unrelated provider entries.
-- local storage and disk persistence normalize expected defaults.
+- renderer localStorage and `frontend-config.json` keep provider keys redacted while Electron main encrypted credential storage hydrates enabled keys after restart.
 - backend settings patch accepts only allowed provider credential fields.
 - no frontend setting becomes a generic backend config write channel.
 

@@ -267,15 +267,34 @@ describe('useChatMessageSender', () => {
       model_provider: 'anthropic',
       selected_model_id: 'claude-sonnet-4-5',
     };
+    let resolveModelSync: (() => void) | null = null;
+    const modelSyncPromise = new Promise<void>((resolve) => {
+      resolveModelSync = resolve;
+    });
+    mockSetModel.mockReturnValueOnce(modelSyncPromise);
     const { result } = renderSender();
 
-    await sendText(result, 'use anthropic');
+    let sendPromise: Promise<void> = Promise.resolve();
+    act(() => {
+      sendPromise = result.current.sendMessage('use anthropic');
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
 
     expect(mockSetModel.mock.calls.length).toBe(1);
     expect(mockSetModel.mock.calls[0][0]).toEqual({
       modelProvider: 'anthropic',
       modelId: 'claude-sonnet-4-5',
     });
+    expect(mockSendQuery).not.toHaveBeenCalled();
+
+    resolveModelSync?.();
+    await act(async () => {
+      await sendPromise;
+    });
+
     expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
       mockSendQuery.mock.invocationCallOrder[0],
     );

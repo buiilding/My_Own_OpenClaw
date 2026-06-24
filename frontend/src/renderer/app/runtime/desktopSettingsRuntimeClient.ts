@@ -62,14 +62,14 @@ export const DesktopSettingsRuntimeClient = {
     return true;
   },
 
-  updateSettings(config: RuntimeSettingsPatch): void {
-    void createDesktopRuntimeTransport(null).updateSettings(config);
+  updateSettings(config: RuntimeSettingsPatch): Promise<void> {
+    return createDesktopRuntimeTransport(null).updateSettings(config).then(() => undefined);
   },
 
-  setModel(selection: AgentModelSelection): void {
-    void createDesktopRuntimeTransport(null).updateSettings(
+  setModel(selection: AgentModelSelection): Promise<void> {
+    return createDesktopRuntimeTransport(null).updateSettings(
       buildModelSettingsPatch(selection, 'DesktopSettingsRuntimeClient.setModel'),
-    );
+    ).then(() => undefined);
   },
 
   resetDashboardStartupModelListForTests(): void {

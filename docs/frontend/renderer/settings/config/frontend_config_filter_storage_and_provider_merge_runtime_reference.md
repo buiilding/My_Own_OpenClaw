@@ -109,7 +109,7 @@ Storage, `AppProvider`, and the dashboard Appearance tab consume that
 app-runtime facade instead of reading the raw skin palette table, browser
 document/matchMedia adapters, or tab-local editor descriptor tables directly.
 
-Provider key entry normalization and renderer-persistence secret stripping live
+Provider key entry normalization and renderer localStorage secret stripping live
 in `desktopProviderCredentialRuntime.js`, which consumes those skin defaults
 for both dashboard API-key controls and local config persistence.
 
@@ -153,16 +153,22 @@ Save semantics (`DesktopRendererConfigStorageRuntime.saveConfigToStorage`):
 - strips provider `api_key` before serializing to localStorage
 - returns boolean success/failure
 
-Disk persistence uses the same provider credential runtime redaction rule.
-`AppConfigProvider` builds a redacted persistence payload through
-`DesktopProviderCredentialRuntime.stripProviderApiKeySecrets(...)` before calling
-`DesktopAppConfigRuntimeClient.saveRendererConfig(...)`, and Electron main
-defensively redacts provider secrets again on both `save-frontend-config` and
-disk `load-frontend-config` legacy-named routes.
+Disk persistence is split by owner. `AppConfigProvider` sanitizes the payload
+through the renderer allowlist, then `DesktopAppConfigRuntimeClient` sends the
+provider key entries to Electron main during an explicit config save. Electron
+main writes `frontend-config.json` with provider `api_key` values redacted,
+stores raw provider keys only in the `provider-credentials.json` encrypted
+`safeStorage` side file, and hydrates enabled redacted provider entries from
+that encrypted store on `load-frontend-config`. The main-process latest config
+cache remains redacted so query assembly and MCP registry reads do not hold raw
+provider secrets.
 
 Live provider credential edits still flow to backend settings through
-`DesktopSettingsRuntimeClient.updateSettings(...)`; only renderer-local and
-Electron desktop UI config persistence are scrubbed.
+`DesktopSettingsRuntimeClient.updateSettings(...)`. Renderer localStorage and
+`frontend-config.json` remain scrubbed; only Electron main's encrypted provider
+credential store can persist raw renderer-managed provider API-key overrides.
+Existing redacted configs without a matching encrypted provider credential entry
+cannot recover the original key and must be re-entered once.
 
 ## Provider Merge/Apply Guards (`appConfigPersistence`)
 
@@ -215,7 +221,7 @@ module surface.
 2. `applyConfigIfChanged` gate
 3. optional save-status callback fire
 4. persist localStorage (`DesktopRendererConfigStorageRuntime.saveConfigToStorage`)
-5. async disk save through `DesktopAppConfigRuntimeClient.saveRendererConfig(...)` with redacted provider credential fields
+5. async disk save through `DesktopAppConfigRuntimeClient.saveRendererConfig(...)`; Electron main redacts `frontend-config.json` and persists provider API keys in the encrypted provider credential store
 6. runtime sync (`DesktopSettingsRuntimeClient.updateSettings`) for non-model settings only
 
 Deferred runtime fields:

@@ -129,7 +129,13 @@ Behavior:
 - explicit MCP enablement toggles disable that preservation so the toggle result
   is the persisted source of truth
 - provider secrets are redacted before the disk save helper is called
-- the latest main-process config cache advances only after a successful save
+- the latest main-process config cache advances with the redacted, persistable
+  config before awaiting disk save, so query-local agent-definition context sees
+  just-edited Agent settings on the next send even when the renderer fires the
+  save asynchronously
+- disk save failures still report save-status errors, but the live Electron
+  session keeps using the latest redacted renderer config until the user changes
+  or reloads settings
 - save diagnostics record the MCP preservation source and enabled-server counts
 
 Renderer invokes:
@@ -184,6 +190,9 @@ Purpose:
   sends after cached desktop UI config has hydrated, so persisted Agent
   settings system prompt and tool toggles survive app restart before the first
   new turn
+- ensure just-edited Agent settings are read from the live main-process desktop
+  UI config cache, not only from a completed disk save, before attaching
+  query-level `agent_definition`
 
 ## Connection/Status Propagation
 

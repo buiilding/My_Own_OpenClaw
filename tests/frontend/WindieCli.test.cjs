@@ -326,7 +326,7 @@ describe('windie CLI', () => {
       '--listTests',
     ]));
     const userFacingPlan = getSpawnPlan(['test', 'user-facing']);
-    expect(userFacingPlan.concurrent).toHaveLength(4);
+    expect(userFacingPlan.concurrent).toHaveLength(7);
     expect(userFacingPlan.concurrent[0]).toMatchObject({
       label: 'core-loop',
       command: 'npm',
@@ -362,6 +362,39 @@ describe('windie CLI', () => {
       'SettingsSurfaceCss.test.js',
     ]));
     expect(userFacingPlan.concurrent[3]).toMatchObject({
+      label: 'settings-startup',
+      command: 'npm',
+      cwd: repoRoot,
+    });
+    expect(userFacingPlan.concurrent[3].args).toEqual(expect.arrayContaining([
+      'IpcChatQueryHandlers.test.cjs',
+      'IpcSettingsSyncRuntime.test.cjs',
+      'IpcAgentDefinitionContext.test.cjs',
+      'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+      'IpcAgentSdkRuntimeCommands.test.cjs',
+    ]));
+    expect(userFacingPlan.concurrent[4]).toMatchObject({
+      label: 'model-send-selection',
+      command: 'npm',
+      cwd: repoRoot,
+    });
+    expect(userFacingPlan.concurrent[4].args).toEqual(expect.arrayContaining([
+      'DesktopSettingsRuntimeClient.test.ts',
+      'ChatMessageSender.test.tsx',
+      'DesktopManualCompactionRuntime.test.js',
+      'IpcAgentSdkRuntimeCommands.test.cjs',
+    ]));
+    expect(userFacingPlan.concurrent[5]).toMatchObject({
+      label: 'provider-credential-persistence',
+      command: 'npm',
+      cwd: repoRoot,
+    });
+    expect(userFacingPlan.concurrent[5].args).toEqual(expect.arrayContaining([
+      'AppConfigPersistence.test.js',
+      'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+      'IpcProviderCredentialPersistence.test.cjs',
+    ]));
+    expect(userFacingPlan.concurrent[6]).toMatchObject({
       label: 'scripted-provider',
       command: path.join(repoRoot, 'scripts/test-backend.sh'),
       args: ['tests/backend/test_scripted_provider.py', '-q'],

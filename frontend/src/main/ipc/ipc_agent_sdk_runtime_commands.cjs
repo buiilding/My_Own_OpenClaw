@@ -6,6 +6,10 @@ function isPlainObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
+function optionalString(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
 function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
   const {
     ensureAgent,
@@ -21,9 +25,11 @@ function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
       const sourcePayload = isPlainObject(payload) ? payload : {};
       const resources = Array.isArray(sourcePayload.resources) ? sourcePayload.resources : undefined;
       const metadata = isPlainObject(sourcePayload.metadata) ? sourcePayload.metadata : undefined;
+      const model = isPlainObject(sourcePayload.model) ? { ...sourcePayload.model } : undefined;
       const runtimeCommandPayload = { ...sourcePayload };
       delete runtimeCommandPayload.resources;
       delete runtimeCommandPayload.metadata;
+      delete runtimeCommandPayload.model;
       const agent = await ensureAgent({
         reason: 'query',
         conversationRef: resolveConversationRefFromPayload(runtimeCommandPayload),
@@ -32,13 +38,33 @@ function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
       const text = typeof runtimeCommandPayload.text === 'string'
         ? runtimeCommandPayload.text
         : '';
-      const result = await agent.run({
+      const queryInput = {
         text,
+        conversationRef: optionalString(runtimeCommandPayload.conversation_ref) || undefined,
         turnRef: messageId || undefined,
-        payload: runtimeCommandPayload,
+        backendPayload: runtimeCommandPayload,
+        agentDefinition: isPlainObject(runtimeCommandPayload.agent_definition)
+          ? runtimeCommandPayload.agent_definition
+          : undefined,
+        content: optionalString(runtimeCommandPayload.content) || undefined,
+        screenshotRef: optionalString(runtimeCommandPayload.screenshot_ref) || undefined,
+        screenshotRefs: Array.isArray(runtimeCommandPayload.screenshot_refs)
+          ? runtimeCommandPayload.screenshot_refs
+          : undefined,
+        attachmentContext: optionalString(runtimeCommandPayload.attachment_context) || undefined,
+        attachmentFilenames: Array.isArray(runtimeCommandPayload.attachment_filenames)
+          ? runtimeCommandPayload.attachment_filenames
+          : undefined,
+        systemStateInternal: isPlainObject(runtimeCommandPayload.system_state_internal)
+          ? runtimeCommandPayload.system_state_internal
+          : undefined,
+        workspacePath: optionalString(runtimeCommandPayload.workspace_path) || undefined,
         resources,
         metadata,
-      });
+      };
+      const result = model
+        ? await agent.run(queryInput, { model })
+        : await agent.run(queryInput);
       return result?.queryMessageId || result?.turnRef || null;
     } catch (error) {
       log(`Failed to send query through Agent SDK runtime: ${error?.message || error}`);

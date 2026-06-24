@@ -103,10 +103,16 @@ function createDesktopUiConfigPersistenceRuntime({
   async function persistDesktopUiConfigToDisk(config, options = {}) {
     const preserveSource = resolveMcpEnablementPreserveSource(config, options);
     const payloadHasEnabledKey = Array.isArray(config?.[mcpEnabledConfigKey]);
-    const persistableConfig = redactDesktopUiConfigProviderSecrets(
-      preserveMainOwnedDesktopUiConfigFields(config, options),
-    );
-    const result = await saveDesktopUiConfigToDisk(persistableConfig, log);
+    const saveConfig = preserveMainOwnedDesktopUiConfigFields(config, options);
+    const persistableConfig = redactDesktopUiConfigProviderSecrets(saveConfig);
+    if (
+      persistableConfig
+      && typeof persistableConfig === 'object'
+      && !Array.isArray(persistableConfig)
+    ) {
+      setLatestDesktopUiConfig({ ...persistableConfig });
+    }
+    const result = await saveDesktopUiConfigToDisk(saveConfig, log);
     recordMcpEnablementDiagnostic({
       stage: result?.success === false ? 'config_save_failed' : 'config_saved',
       status: result?.success === false ? 'failed' : 'succeeded',
@@ -121,14 +127,6 @@ function createDesktopUiConfigPersistenceRuntime({
       },
       error: result?.success === false ? result.error : null,
     });
-    if (
-      result?.success
-      && persistableConfig
-      && typeof persistableConfig === 'object'
-      && !Array.isArray(persistableConfig)
-    ) {
-      setLatestDesktopUiConfig({ ...persistableConfig });
-    }
     return result;
   }
 

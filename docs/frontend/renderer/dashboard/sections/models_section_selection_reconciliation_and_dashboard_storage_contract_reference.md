@@ -130,7 +130,11 @@ fixed provider key set:
 
 - `onConfigChange({ provider_api_keys: normalizedKeys })`
 
-Persistence/sync remains owned by AppConfig provider pipeline.
+Persistence/sync remains owned by the AppConfig provider pipeline and Electron
+main config persistence. Renderer localStorage and `frontend-config.json` keep
+provider `api_key` fields redacted, while Electron main persists raw
+renderer-managed provider keys only in the encrypted provider credential store
+and hydrates enabled entries on restart.
 
 ## Test-Backed Signals
 

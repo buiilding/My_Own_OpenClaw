@@ -44,7 +44,7 @@ header controls, and persisted selected model config.
 | Chat header provider/model/reasoning selector changes | `frontend/src/renderer/features/chat/components/ChatInterface.jsx`, `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`, `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts` | `tests/frontend/ChatInterfaceWiring.test.jsx`, `tests/frontend/DesktopChatModelOptionsRuntime.test.js`, `tests/frontend/ModelThinkingCapabilities.test.ts` |
 | Selected model resets after reload or across windows | `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`, `desktopRendererConfigFilterRuntime.js`, `app/providers/AppConfigProvider.jsx`, `app/providers/appConfigPersistence.js` | `tests/frontend/configStorage.test.js`, `tests/frontend/configFilter.test.js`, `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` |
 | Model list is stale or missing in renderer | `frontend/src/renderer/app/providers/AppConfigProvider.jsx`, `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`, `frontend/src/main/ipc.cjs`, `backend/src/api/handlers/settings.py` | `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts`, `tests/backend/test_api_handlers.py` |
-| Backend ignores selected provider/model after save | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `backend/src/api/handlers/settings.py`, `backend/src/core/validation/validators.py`, `backend/src/agent/session/session_config_service.py` | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/backend/test_settings_update_rules.py`, `tests/backend/test_session_config_service.py` |
+| Backend ignores selected provider/model after save | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_agent_sdk_runtime_commands.cjs`, `frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts`, `backend/src/api/handlers/settings.py`, `backend/src/core/validation/validators.py`, `backend/src/agent/session/session_config_service.py` | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/IpcAgentSdkRuntimeCommands.test.cjs`, `tests/frontend/DesktopSettingsRuntimeClient.test.ts`, `tests/frontend/ChatMessageSender.test.tsx`, `tests/backend/test_settings_update_rules.py`, `tests/backend/test_session_config_service.py` |
 | Provider key toggle saves but provider cannot call model | `desktopProviderCredentialRuntime.js`, `desktopRendererConfigStorageRuntime.js`, `backend/src/core/config/loader.py`, provider config/factory modules | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/DesktopProviderCredentialRuntime.test.js`, `tests/frontend/configStorage.test.js`, backend provider key/config tests |
 
 ## Runtime Flow
@@ -65,7 +65,7 @@ sequenceDiagram
     Provider->>Chat: availableModels + config
     Dashboard->>Provider: updateConfig(selected_model_id/model_provider/provider_api_keys)
     Chat->>Provider: updateConfig(selected_model_id/model_provider)
-    Provider->>Main: setModel using SDK model-selection patch
+    Provider->>Main: awaited setModel using SDK model-selection patch
     Main->>Backend: settings patch with ACK id
 ```
 

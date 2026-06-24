@@ -7,6 +7,7 @@ const path = require('path');
 describe('IPC persistence concurrency', () => {
   let userDataPath;
   let app;
+  let safeStorage;
   let loadDesktopUiConfigFromDisk;
   let saveDesktopUiConfigToDisk;
   let getInstallAuthStatePath;
@@ -20,8 +21,13 @@ describe('IPC persistence concurrency', () => {
       app: {
         getPath: jest.fn(() => userDataPath),
       },
+      safeStorage: {
+        isEncryptionAvailable: jest.fn(() => true),
+        encryptString: jest.fn((value) => Buffer.from(`encrypted:${value}`, 'utf8')),
+        decryptString: jest.fn((value) => value.toString('utf8').replace(/^encrypted:/, '')),
+      },
     }), { virtual: true });
-    ({ app } = require('electron'));
+    ({ app, safeStorage } = require('electron'));
     ({
       loadDesktopUiConfigFromDisk,
       saveDesktopUiConfigToDisk,
@@ -36,6 +42,9 @@ describe('IPC persistence concurrency', () => {
   afterEach(async () => {
     await fs.promises.rm(userDataPath, { recursive: true, force: true });
     app.getPath.mockReset();
+    safeStorage.isEncryptionAvailable.mockReset();
+    safeStorage.encryptString.mockReset();
+    safeStorage.decryptString.mockReset();
     jest.dontMock('electron');
   });
 

@@ -68,7 +68,7 @@ describe('ipc_desktop_ui_config_persistence_runtime', () => {
 
     expect(saveDesktopUiConfigToDisk).toHaveBeenCalledWith({
       model_provider: 'openai',
-      provider_api_keys: { redacted: true },
+      provider_api_keys: { openai: { api_key: 'secret' } },
       agent_enabled_mcp_servers: ['mcp:memory', 'mcp:fs'],
     }, deps.log);
     expect(getLatest()).toEqual({
@@ -92,6 +92,31 @@ describe('ipc_desktop_ui_config_persistence_runtime', () => {
         payloadEnabledServerCount: 0,
       }),
     }));
+  });
+
+  test('advances latest config cache before disk save resolves for query agent settings', async () => {
+    let resolveSave;
+    const savePromise = new Promise((resolve) => {
+      resolveSave = resolve;
+    });
+    const { getLatest, runtime } = createHarness({
+      deps: {
+        saveDesktopUiConfigToDisk: jest.fn(() => savePromise),
+      },
+    });
+
+    const persistPromise = runtime.persistDesktopUiConfigToDisk({
+      agent_custom_instructions: 'Use the saved agent prompt.',
+      agent_disabled_remote_tools: ['web_search'],
+    });
+
+    expect(getLatest()).toEqual({
+      agent_custom_instructions: 'Use the saved agent prompt.',
+      agent_disabled_remote_tools: ['web_search'],
+    });
+
+    resolveSave({ success: true });
+    await expect(persistPromise).resolves.toEqual({ success: true });
   });
 
   test('falls back to disk MCP enablement when latest config has no allowlist', async () => {
@@ -144,7 +169,7 @@ describe('ipc_desktop_ui_config_persistence_runtime', () => {
     }));
   });
 
-  test('reports failed saves without advancing latest config', async () => {
+  test('reports failed saves after advancing the live latest config cache', async () => {
     const { deps, getLatest, runtime } = createHarness({
       latest: { agent_enabled_mcp_servers: ['mcp:old'] },
       deps: {
@@ -162,7 +187,10 @@ describe('ipc_desktop_ui_config_persistence_runtime', () => {
       error: 'disk full',
     });
 
-    expect(getLatest()).toEqual({ agent_enabled_mcp_servers: ['mcp:old'] });
+    expect(getLatest()).toEqual({
+      model_mode: 'online',
+      agent_enabled_mcp_servers: ['mcp:old'],
+    });
     expect(deps.appendDiagnosticEvent).toHaveBeenCalledWith(expect.objectContaining({
       stage: 'config_save_failed',
       status: 'failed',

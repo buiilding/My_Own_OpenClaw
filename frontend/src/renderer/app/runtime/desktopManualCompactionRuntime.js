@@ -39,7 +39,7 @@ async function runManualCompaction({
     const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
       .buildDeferredQueryModelSelection(config);
     if (deferredQueryModelSelection) {
-      DesktopSettingsRuntimeClient.setModel(deferredQueryModelSelection);
+      await DesktopSettingsRuntimeClient.setModel(deferredQueryModelSelection);
     }
 
     const normalizedConversationRef = conversationRef || null;
