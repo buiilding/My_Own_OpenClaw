@@ -317,6 +317,7 @@ const pendingTurnRuntime = createPendingTurnRuntime({
   broadcastToRenderers,
 });
 const mainStopTargetRuntime = createMainStopTargetRuntime({
+  getLatestConversationView: () => liveTurnState.getLatestConversationView(),
   getLatestCurrentTurnProjection: () => liveTurnState.getLatestCurrentTurn(),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
   getCurrentConversationRef: () => backendSessionState.getConversationRef(),
@@ -575,6 +576,9 @@ const directWakeUpAgentAdapterDepsRuntime = createDirectWakeUpAgentAdapterDepsRu
   resolveRuntimeConversationRef,
   setLatestCurrentTurnProjection: (currentTurnProjection) => liveTurnState.setLatestCurrentTurn(
     currentTurnProjection,
+  ),
+  setLatestConversationView: (conversationView) => liveTurnState.setLatestConversationView(
+    conversationView,
   ),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
   pendingTurnMatchesCurrentTurn: pendingTurnRuntime.matchesCurrentTurn,

@@ -40,6 +40,7 @@ function createDirectWakeUpAgentAdapter({
     broadcastToRenderers,
     resolveRuntimeConversationRef,
     setLatestCurrentTurnProjection,
+    setLatestConversationView,
     getLatestPendingTurn,
     pendingTurnMatchesCurrentTurn,
     clearLatestPendingTurn,
@@ -110,6 +111,9 @@ function createDirectWakeUpAgentAdapter({
       });
       if (typeof setLatestCurrentTurnProjection === 'function') {
         setLatestCurrentTurnProjection(snapshot.currentTurn || null);
+      }
+      if (typeof setLatestConversationView === 'function') {
+        setLatestConversationView(snapshot.view || null);
       }
       const latestPendingTurn = typeof getLatestPendingTurn === 'function'
         ? getLatestPendingTurn()

@@ -18,17 +18,61 @@ function isStoppableCurrentTurnProjection(currentTurnProjection) {
     return false;
   }
   const phase = normalizeOptionalString(currentTurnProjection.phase);
-  return (
-    STOPPABLE_CURRENT_TURN_PHASES.has(phase)
-    || currentTurnProjection.presentation?.isBusy === true
+  return STOPPABLE_CURRENT_TURN_PHASES.has(phase);
+}
+
+function isPendingTurn(value) {
+  return Boolean(
+    value
+      && typeof value === 'object'
+      && normalizeOptionalString(value.conversationRef)
+      && normalizeOptionalString(value.turnRef)
+  );
+}
+
+function isStoppableConversationView(conversationView) {
+  return Boolean(
+    conversationView
+      && typeof conversationView === 'object'
+      && conversationView.liveTurn?.canStop === true
+      && normalizeOptionalString(conversationView.conversationRef)
+      && normalizeOptionalString(conversationView.liveTurn?.turnRef)
   );
 }
 
 function resolveMainStopTarget({
+  latestConversationView = null,
   latestCurrentTurnProjection = null,
   latestPendingTurn = null,
   currentConversationRef = null,
 } = {}) {
+  if (isStoppableConversationView(latestConversationView)) {
+    return {
+      source: 'conversation-view',
+      conversationRef: normalizeOptionalString(latestConversationView.conversationRef),
+      turnRef: normalizeOptionalString(latestConversationView.liveTurn?.turnRef),
+      canStop: true,
+    };
+  }
+
+  if (latestConversationView && typeof latestConversationView === 'object') {
+    if (isPendingTurn(latestPendingTurn)) {
+      return {
+        source: 'pending-turn',
+        conversationRef: normalizeOptionalString(latestPendingTurn.conversationRef),
+        turnRef: normalizeOptionalString(latestPendingTurn.turnRef),
+        canStop: true,
+      };
+    }
+    return {
+      source: 'idle',
+      conversationRef: normalizeOptionalString(latestConversationView.conversationRef)
+        || normalizeOptionalString(currentConversationRef),
+      turnRef: normalizeOptionalString(latestConversationView.liveTurn?.turnRef),
+      canStop: false,
+    };
+  }
+
   if (isStoppableCurrentTurnProjection(latestCurrentTurnProjection)) {
     const conversationRef = normalizeOptionalString(latestCurrentTurnProjection.conversationRef)
       || normalizeOptionalString(currentConversationRef);
@@ -39,11 +83,11 @@ function resolveMainStopTarget({
       canStop: Boolean(conversationRef),
     };
   }
-  if (latestPendingTurn) {
+  if (isPendingTurn(latestPendingTurn)) {
     return {
       source: 'pending-turn',
-      conversationRef: latestPendingTurn.conversationRef,
-      turnRef: latestPendingTurn.turnRef,
+      conversationRef: normalizeOptionalString(latestPendingTurn.conversationRef),
+      turnRef: normalizeOptionalString(latestPendingTurn.turnRef),
       canStop: true,
     };
   }
@@ -81,6 +125,7 @@ async function triggerMainStopTarget({
 }
 
 function createMainStopTargetRuntime({
+  getLatestConversationView,
   getLatestCurrentTurnProjection,
   getLatestPendingTurn,
   getCurrentConversationRef,
@@ -89,9 +134,18 @@ function createMainStopTargetRuntime({
 } = {}) {
   function resolve() {
     return resolveMainStopTarget({
-      latestCurrentTurnProjection: getLatestCurrentTurnProjection(),
-      latestPendingTurn: getLatestPendingTurn(),
-      currentConversationRef: getCurrentConversationRef(),
+      latestConversationView: typeof getLatestConversationView === 'function'
+        ? getLatestConversationView()
+        : null,
+      latestCurrentTurnProjection: typeof getLatestCurrentTurnProjection === 'function'
+        ? getLatestCurrentTurnProjection()
+        : null,
+      latestPendingTurn: typeof getLatestPendingTurn === 'function'
+        ? getLatestPendingTurn()
+        : null,
+      currentConversationRef: typeof getCurrentConversationRef === 'function'
+        ? getCurrentConversationRef()
+        : null,
     });
   }
 

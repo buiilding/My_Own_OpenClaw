@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: cache SDK `ConversationView` snapshots in Electron main and
+  resolve Stop shortcut targets from `view.liveTurn.canStop` before falling
+  back to raw current-turn projections. Once a view is present, stale raw
+  current-turn snapshots can no longer re-enable main-process Stop; the pending
+  turn bridge remains only for the pre-view handoff, and the main Stop target
+  runtime now runs in the core-loop regression preset. No migration required.
 - cli: let `conversation state` and `conversation view` accept
   `--revision <revision-id>` so branch diagnostics can inspect inactive display
   revisions, model-history checkpoints, raw event counts, live-turn phase, and

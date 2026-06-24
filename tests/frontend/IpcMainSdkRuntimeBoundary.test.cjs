@@ -329,6 +329,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(directWakeUpAdapterSource).toContain('agent.conversation({');
     expect(directWakeUpAdapterSource).toContain('buildConversationTerminalStatus(event, workspacePath)');
     expect(directWakeUpAdapterSource).toContain('setLatestCurrentTurnProjection(snapshot.currentTurn || null)');
+    expect(directWakeUpAdapterSource).toContain('setLatestConversationView(snapshot.view || null)');
     expect(directWakeUpAdapterSource).toContain('syncSdkLiveTurnSurfaceIntent(snapshot || null)');
     expect(directWakeUpAdapterSource).toContain('view: snapshot.view || null');
     expect(directWakeUpAdapterSource).toContain('pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)');
@@ -659,6 +660,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('createIpcLiveTurnState()');
     expect(source).toContain('liveTurnState.getLatestCurrentTurn()');
     expect(source).toContain('liveTurnState.setLatestCurrentTurn(');
+    expect(source).toContain('liveTurnState.getLatestConversationView()');
+    expect(source).toContain('liveTurnState.setLatestConversationView(');
     expect(source).toContain('liveTurnState.getLatestPendingTurn()');
     expect(source).toContain('createPendingTurnRuntime({');
     expect(source).toContain('pendingTurnMatchesCurrentTurn: pendingTurnRuntime.matchesCurrentTurn');
@@ -676,6 +679,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('latestCurrentTurnProjection = currentTurnProjection');
     expect(source).not.toContain('latestPendingTurn = pendingTurn');
     expect(liveTurnStateSource).toContain('let latestCurrentTurnProjection = initialCurrentTurn;');
+    expect(liveTurnStateSource).toContain('let latestConversationView = initialConversationView;');
     expect(liveTurnStateSource).toContain('let latestPendingTurn = initialPendingTurn;');
     expect(source).toContain('createConversationEventProjectionRuntime({');
     expect(source).toContain('conversationEventProjectionRuntime.build(event)');

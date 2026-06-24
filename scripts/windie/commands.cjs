@@ -162,6 +162,7 @@ const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'ChatPillSessionFlow.test.ts',
   'PendingStopLiveSurfaceIntegration.test.jsx',
   'DesktopStopTurnRuntime.test.js',
+  'IpcStopTargetRuntime.test.cjs',
   'DesktopLiveTurnRuntimeClient.test.ts',
   'IpcConversationEventProjection.test.cjs',
   'IpcLiveTurnState.test.cjs',

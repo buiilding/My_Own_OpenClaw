@@ -8,11 +8,18 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_live_turn_state.cjs');
 
 describe('ipc_live_turn_state', () => {
-  test('stores current-turn and pending-turn caches independently', () => {
+  test('stores ConversationView, current-turn, and pending-turn caches independently', () => {
     const currentTurn = {
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
       phase: 'streaming',
+    };
+    const conversationView = {
+      conversationRef: 'conv-1',
+      liveTurn: {
+        turnRef: 'turn-1',
+        canStop: true,
+      },
     };
     const pendingTurn = {
       conversationRef: 'conv-1',
@@ -20,27 +27,40 @@ describe('ipc_live_turn_state', () => {
     };
     const state = createIpcLiveTurnState({
       initialCurrentTurn: currentTurn,
+      initialConversationView: conversationView,
       initialPendingTurn: pendingTurn,
     });
 
     expect(state.getLatestCurrentTurn()).toBe(currentTurn);
+    expect(state.getLatestConversationView()).toBe(conversationView);
     expect(state.getLatestPendingTurn()).toBe(pendingTurn);
 
     const nextCurrentTurn = { ...currentTurn, turnRef: 'turn-3' };
+    const nextConversationView = {
+      ...conversationView,
+      liveTurn: {
+        turnRef: 'turn-3',
+        canStop: false,
+      },
+    };
     const nextPendingTurn = { ...pendingTurn, turnRef: 'turn-4' };
     state.setLatestCurrentTurn(nextCurrentTurn);
+    state.setLatestConversationView(nextConversationView);
     state.setLatestPendingTurn(nextPendingTurn);
 
     expect(state.getLatestCurrentTurn()).toBe(nextCurrentTurn);
+    expect(state.getLatestConversationView()).toBe(nextConversationView);
     expect(state.getLatestPendingTurn()).toBe(nextPendingTurn);
 
     state.resetPendingTurn();
     expect(state.getLatestCurrentTurn()).toBe(nextCurrentTurn);
+    expect(state.getLatestConversationView()).toBe(nextConversationView);
     expect(state.getLatestPendingTurn()).toBeNull();
 
     state.setLatestPendingTurn(nextPendingTurn);
     state.reset();
     expect(state.getLatestCurrentTurn()).toBeNull();
+    expect(state.getLatestConversationView()).toBeNull();
     expect(state.getLatestPendingTurn()).toBeNull();
   });
 
@@ -61,6 +81,8 @@ describe('ipc_live_turn_state', () => {
     expect(mainSource).toContain('createIpcLiveTurnState()');
     expect(mainSource).toContain('liveTurnState.getLatestCurrentTurn()');
     expect(mainSource).toContain('liveTurnState.setLatestCurrentTurn(');
+    expect(mainSource).toContain('liveTurnState.getLatestConversationView()');
+    expect(mainSource).toContain('liveTurnState.setLatestConversationView(');
     expect(mainSource).toContain('liveTurnState.getLatestPendingTurn()');
     expect(mainSource).toContain('createPendingTurnRuntime({');
     expect(mainSource).not.toContain('liveTurnState.setLatestPendingTurn(');
@@ -70,6 +92,7 @@ describe('ipc_live_turn_state', () => {
     expect(mainSource).not.toContain('latestCurrentTurnProjection = currentTurnProjection');
     expect(mainSource).not.toContain('latestPendingTurn = pendingTurn');
     expect(helperSource).toContain('let latestCurrentTurnProjection = initialCurrentTurn;');
+    expect(helperSource).toContain('let latestConversationView = initialConversationView;');
     expect(helperSource).toContain('let latestPendingTurn = initialPendingTurn;');
   });
 });
