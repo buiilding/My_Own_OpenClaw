@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route the minimal chat pill through the shared live-surface
+  selector and suppress raw `latestCurrentTurnProjection` output for pill and
+  response-overlay surfaces whenever an SDK `ConversationView` is available.
+  Raw current-turn projections remain only as the no-view migration fallback,
+  so live surfaces no longer decide which current turn wins beside the view. No
+  migration required.
 - frontend/main: cache SDK `ConversationView` snapshots in Electron main and
   resolve Stop shortcut targets from `view.liveTurn.canStop` before falling
   back to raw current-turn projections. Once a view is present, stale raw

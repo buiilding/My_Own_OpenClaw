@@ -37,10 +37,13 @@ function projectDesktopLiveTurnSurfaceState({
   latestCurrentTurnProjection?: unknown | null;
   latestConversationView?: unknown | null;
 }) {
+  const conversationView = latestConversationView || activeWorkspace.conversationView || null;
   return {
     messages: activeWorkspace.messages,
-    currentTurnProjection: latestCurrentTurnProjection || activeWorkspace.currentTurnProjection || null,
-    conversationView: latestConversationView || activeWorkspace.conversationView || null,
+    currentTurnProjection: conversationView
+      ? null
+      : latestCurrentTurnProjection || activeWorkspace.currentTurnProjection || null,
+    conversationView,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };
 }

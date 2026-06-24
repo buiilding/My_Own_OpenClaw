@@ -237,7 +237,9 @@ renderer and Electron-main Stop shortcut resolution.
 Renderer pending-turn state remains a short pre-view bridge immediately after
 send acceptance; after a view is present, stale raw current-turn snapshots must
 not re-enable Stop, keep the pill/dashboard busy, or become the main-process
-stop target.
+stop target. Minimal live surfaces receive a null raw current-turn projection
+whenever a `ConversationView` exists, so the pill and response overlay do not
+run a separate "latest current turn wins" decision beside the SDK view.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.

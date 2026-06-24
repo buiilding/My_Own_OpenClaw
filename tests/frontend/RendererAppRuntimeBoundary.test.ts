@@ -1824,7 +1824,13 @@ describe('renderer app runtime boundary', () => {
     expect(chatStoreSource).toContain('DesktopChatSurfaceSelectorRuntime');
     expect(chatStoreSource).toContain('selectActiveWorkspaceState');
     expect(chatInterfaceSource).toContain('selectChatInterfaceState');
+    expect(minimalPillSource).toContain('selectLiveTurnSurfaceState');
+    expect(normalizedMinimalPillSource).not.toContain(
+      'state.latestCurrentTurnProjection || state.currentTurnProjection',
+    );
     expect(responseOverlaySource).toContain('selectLiveTurnSurfaceState');
+    expect(selectorRuntimeSource).toContain('currentTurnProjection: conversationView');
+    expect(selectorRuntimeSource).toContain('? null');
     expect(normalizedChatInterfaceSource).toContain('useChatSurfaceController({\n    messages,');
     expect(normalizedMinimalPillSource).toContain('useChatSurfaceController({\n    messages,');
     expect(normalizedResponseOverlaySource).toContain(

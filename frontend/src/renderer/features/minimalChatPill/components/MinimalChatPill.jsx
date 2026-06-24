@@ -3,7 +3,8 @@
  */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useChatStore } from '../../chat/stores/chatStore';
+import { useShallow } from 'zustand/react/shallow';
+import { selectLiveTurnSurfaceState, useChatStore } from '../../chat/stores/chatStore';
 import { useChatMessageSender } from '../../chat/hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../../chat/hooks/useChatComposerDraft';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
@@ -47,14 +48,12 @@ const {
 
 function MinimalChatPill() {
   const closeBumpHeight = DesktopChatboxLayoutRuntime.getChatboxCloseBumpHeight();
-  const messages = useChatStore((state) => state.messages);
-  const currentTurnProjection = useChatStore((state) => (
-    state.latestCurrentTurnProjection || state.currentTurnProjection
-  ));
-  const conversationView = useChatStore((state) => (
-    state.latestConversationView || state.conversationView
-  ));
-  const pendingTurn = useChatStore((state) => state.pendingTurn);
+  const {
+    messages,
+    currentTurnProjection,
+    conversationView,
+    pendingTurn,
+  } = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const sessionInfo = useRendererConversationSessionInfo();
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);

@@ -222,6 +222,53 @@ describe('chatSelectors', () => {
     expect(selected).not.toHaveProperty('thinkingSourceEventType');
   });
 
+  test('ConversationView suppresses raw current-turn authority for minimal surfaces', () => {
+    const workspaceProjection = {
+      conversationRef: 'conv-dashboard',
+      turnRef: 'turn-dashboard',
+      phase: 'streaming',
+    };
+    const liveProjection = {
+      conversationRef: 'conv-stale',
+      turnRef: 'turn-stale',
+      phase: 'streaming',
+    };
+    const view = {
+      conversationRef: 'conv-view',
+      liveTurn: {
+        turnRef: 'turn-view',
+        phase: 'complete',
+        entries: [{ id: 'entry-view' }],
+        isBusy: false,
+        isTerminal: true,
+        canStop: false,
+      },
+      surfaces: {
+        pill: { mode: 'idle' },
+        dashboard: { mode: 'idle' },
+        responseOverlay: {
+          mode: 'response',
+          visible: true,
+          guardRef: 'turn-view',
+          ownerConversationRef: 'conv-view',
+          turnRef: 'turn-view',
+        },
+      },
+    };
+
+    const selected = selectLiveTurnSurfaceState({
+      messages: [],
+      currentTurnProjection: workspaceProjection,
+      latestCurrentTurnProjection: liveProjection,
+      conversationView: null,
+      latestConversationView: view,
+      pendingTurn: null,
+    });
+
+    expect(selected.conversationView).toBe(view);
+    expect(selected.currentTurnProjection).toBeNull();
+  });
+
   test('defaults optional active-workspace fields when not present', () => {
     const selected = selectChatInterfaceState({
       messages: [],
