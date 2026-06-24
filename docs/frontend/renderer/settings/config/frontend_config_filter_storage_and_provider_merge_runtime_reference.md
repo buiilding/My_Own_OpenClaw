@@ -202,7 +202,10 @@ This is the central dedupe guard preventing redundant writes and settings runtim
 ### Startup sources
 
 1. seed state from `DesktopRendererConfigStorageRuntime.loadConfigFromStorage()`
-2. call `DesktopAppConfigRuntimeClient.loadRendererConfig()` and merge filtered disk config
+2. call `DesktopAppConfigRuntimeClient.loadRendererConfig()`, merge filtered disk
+   config over the localStorage seed, and save the merged snapshot back through
+   Electron main so localStorage-only fields such as Agent system prompt/tool
+   policy hydrate the main config cache before queries
 3. call `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()`
 4. subscribe through `DesktopClientSessionRuntimeClient.onIpcStatus(...)` and `DesktopAppConfigRuntimeClient.onSettingsEvent(...)`
 

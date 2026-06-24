@@ -58,6 +58,63 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalled();
   });
 
+  test('persists merged local Agent settings to main config after disk load', async () => {
+    mockLoadConfigFromStorage.mockReturnValue({
+      speech_mode_enabled: false,
+      agent_custom_instructions: 'Use the local Agent prompt.',
+      agent_disabled_local_tools: ['mouse_control', 'keyboard_control'],
+      agent_disabled_remote_tools: ['web_search'],
+    });
+    setLoadDesktopUiConfigResponse({
+      speech_mode_enabled: false,
+      provider_api_keys: {
+        anthropic: { enabled: true, api_key: '' },
+      },
+    });
+
+    renderAppConfigContext();
+    await flushAsyncEffects();
+
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
+      expect.objectContaining({
+        provider_api_keys: {
+          anthropic: { enabled: true, api_key: '' },
+        },
+        agent_custom_instructions: 'Use the local Agent prompt.',
+        agent_disabled_local_tools: ['mouse_control', 'keyboard_control'],
+        agent_disabled_remote_tools: ['web_search'],
+      }),
+    );
+    expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent_custom_instructions: expect.any(String),
+      }),
+    );
+  });
+
+  test('persists local Agent settings to main config when no disk config exists', async () => {
+    mockLoadConfigFromStorage.mockReturnValue({
+      speech_mode_enabled: false,
+      agent_custom_instructions: 'Use the renderer-only Agent prompt.',
+      agent_disabled_local_tools: ['mouse_control'],
+      agent_disabled_remote_tools: ['web_search'],
+    });
+    setLoadDesktopUiConfigResponse(null);
+
+    renderAppConfigContext();
+    await flushAsyncEffects();
+
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
+      expect.objectContaining({
+        agent_custom_instructions: 'Use the renderer-only Agent prompt.',
+        agent_disabled_local_tools: ['mouse_control'],
+        agent_disabled_remote_tools: ['web_search'],
+      }),
+    );
+  });
+
   test('syncs loaded disk config when runtime is already connected', async () => {
     setClientUserIdResponse({ isConnected: true });
     setLoadDesktopUiConfigResponse({
@@ -507,7 +564,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     warnSpy.mockRestore();
   });
 
-  test('persists redacted provider credential status to local storage and disk', async () => {
+  test('persists redacted provider credential status to local storage and raw keys to main', async () => {
     const { result } = renderAppConfigContext();
 
     act(() => {
@@ -541,13 +598,13 @@ describe('AppConfigProvider storage + IPC status handling', () => {
         provider_api_keys: expect.objectContaining({
           openai: expect.objectContaining({
             enabled: true,
-            api_key: '',
+            api_key: 'sk-persist-openai',
           }),
         }),
       }),
     );
     expect(JSON.stringify(mockSaveConfigToStorage.mock.calls)).not.toContain('sk-persist-openai');
-    expect(JSON.stringify((IpcBridge.invoke as jest.Mock).mock.calls)).not.toContain('google-persist');
+    expect(JSON.stringify((IpcBridge.invoke as jest.Mock).mock.calls)).toContain('google-persist');
     expect(DesktopSettingsRuntimeClient.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         provider_api_keys: expect.objectContaining({

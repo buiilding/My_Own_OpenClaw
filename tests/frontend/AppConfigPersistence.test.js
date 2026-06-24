@@ -6,6 +6,7 @@ import {
   applyConfigIfChanged,
   buildMergedRendererConfig,
   buildRendererConfigPersistencePayload,
+  buildRendererConfigStoragePayload,
   mergeRendererProviderConfig,
   sanitizeRendererProviderConfig,
 } from '../../frontend/src/renderer/app/providers/appConfigPersistence';
@@ -195,6 +196,28 @@ describe('appConfigPersistence', () => {
     ).toEqual({
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-openai' },
+      },
+    });
+  });
+
+  test('buildRendererConfigStoragePayload redacts provider secrets for localStorage', () => {
+    expect(
+      buildRendererConfigStoragePayload({
+        provider_api_keys: {
+          openai: { enabled: true, api_key: 'sk-openai' },
+        },
+        backend_only_state: {
+          access_token: 'access-token',
+        },
+      }),
+    ).toEqual({
+      provider_api_keys: {
+        openai: { enabled: true, api_key: '' },
+        anthropic: { enabled: false, api_key: '' },
+        google: { enabled: false, api_key: '' },
+        openrouter: { enabled: false, api_key: '' },
+        mistral: { enabled: false, api_key: '' },
+        kimi_coding: { enabled: false, api_key: '' },
       },
     });
   });
