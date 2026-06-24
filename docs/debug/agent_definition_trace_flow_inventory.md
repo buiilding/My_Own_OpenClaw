@@ -38,3 +38,4 @@ provider payloads, credentials, or local filesystem paths.
 | 20 | SDK durable turn trace | `agent_definition.sdk_flow` | `query_definition.detect` | Records whether query payload Agent definition context contributed to the turn. |
 | 21 | SDK durable turn trace | `agent_definition.sdk_flow` | `definition_merge.apply` | Records merged Agent definition key and source counts before transport payload creation. |
 | 22 | SDK durable turn trace | `agent_definition.sdk_flow` | `workspace_context.detect` | Records workspace context presence without storing workspace paths. |
+| 23 | SDK durable turn trace | `agent_definition.sdk_flow` | `system_prompt.detect` | Records system-prompt override/default presence and prompt length only. |
