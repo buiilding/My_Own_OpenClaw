@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const packageJsonPath = path.resolve(__dirname, '../../frontend/package.json');
+const packageLockPath = path.resolve(__dirname, '../../frontend/package-lock.json');
 const bundledPythonBuilderPath = path.resolve(
   __dirname,
   '../../frontend/electron-builder.bundled-python.yml',
@@ -21,12 +22,22 @@ describe('frontend package boundary', () => {
     expect(packageJson.dependencies || {}).not.toHaveProperty('electron');
   });
 
+  test('keeps Electron pinned to the macOS native menu warning fix', () => {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    const packageLock = JSON.parse(fs.readFileSync(packageLockPath, 'utf8'));
+
+    expect(packageJson.devDependencies.electron).toBe('41.2.0');
+    expect(packageLock.packages[''].devDependencies.electron).toBe('41.2.0');
+    expect(packageLock.packages['node_modules/electron'].version).toBe('41.2.0');
+    expect(packageLock.packages['node_modules/electron'].engines.node).toBe('>= 12.20.55');
+  });
+
   test('bundled package includes Electron main SDK runtime resources', () => {
     const builderConfig = fs.readFileSync(bundledPythonBuilderPath, 'utf8');
 
     expect(builderConfig).toContain('from: ../packages/windie-sdk-js/cjs');
     expect(builderConfig).toContain('to: packages/windie-sdk-js/cjs');
-    expect(builderConfig).toContain('from: node_modules/ws');
+    expect(builderConfig).toContain('from: ../packages/windie-sdk-js/node_modules/ws');
     expect(builderConfig).toContain('to: node_modules/ws');
   });
 });

@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: pin Electron to 41.2.0, the first fixed release for the
+  macOS native-menu `representedObject is not a WeakPtrToElectronMenuModelAsNSObject`
+  warning that appeared when opening conversation find. The package spec is
+  exact so installs do not float to newer 41.x packages with a stricter Node
+  engine than WindieOS's baseline. No migration required.
 - sdk/runtime: make edit/resend and retry emit SDK-owned `turn_superseded`
   events so the old live turn becomes one inert audit lane before the
   replacement goes through the normal `send()` path. Late old-turn backend
