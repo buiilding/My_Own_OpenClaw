@@ -65,6 +65,38 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     });
   });
 
+  test('passes renderer model override through SDK run options instead of backend payload', async () => {
+    const { commands, deps } = createCommands();
+
+    await expect(commands.sendQueryThroughAgentSdkRuntime({
+      messageId: 'turn-model',
+      payload: {
+        text: 'use selected model',
+        conversation_ref: 'conversation-1',
+        model: {
+          modelProvider: 'scripted',
+          modelId: 'scripted-runtime',
+        },
+      },
+    })).resolves.toBe('query-1');
+
+    expect(deps.agent.run).toHaveBeenCalledWith({
+      text: 'use selected model',
+      turnRef: 'turn-model',
+      payload: {
+        text: 'use selected model',
+        conversation_ref: 'conversation-1',
+      },
+      resources: undefined,
+      metadata: undefined,
+    }, {
+      model: {
+        modelProvider: 'scripted',
+        modelId: 'scripted-runtime',
+      },
+    });
+  });
+
   test('logs and returns null when query dispatch fails', async () => {
     const { commands, deps } = createCommands({
       ensureAgent: jest.fn(async () => {
@@ -139,7 +171,7 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(mainSource).not.toContain('agent.updateSettings(payload)');
     expect(mainSource).not.toContain('agent.requestModelList()');
     expect(mainSource).not.toContain('agent.wakewordDetected(payload)');
-    expect(helperSource).toContain('agent.run({');
+    expect(helperSource).toContain('agent.run(queryInput');
     expect(helperSource).toContain('function createAgentSdkRuntimeCommandsRuntime');
     expect(helperSource).not.toContain(retiredFactorySignature);
     expect(helperSource).toContain('runtimeCommandPayload');

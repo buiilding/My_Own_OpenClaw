@@ -395,7 +395,7 @@ async function dispatchPreparedDesktopChatTurn(
   preparedTurn: PreparedDesktopChatTurn,
 ): Promise<void> {
   if (preparedTurn.deferredQueryModelSelection) {
-    DesktopSettingsRuntimeClient.setModel(preparedTurn.deferredQueryModelSelection);
+    await DesktopSettingsRuntimeClient.setModel(preparedTurn.deferredQueryModelSelection);
   }
   await DesktopLiveTurnRuntimeClient.sendQuery({
     text: preparedTurn.text,

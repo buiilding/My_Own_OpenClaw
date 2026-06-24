@@ -21,9 +21,11 @@ function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
       const sourcePayload = isPlainObject(payload) ? payload : {};
       const resources = Array.isArray(sourcePayload.resources) ? sourcePayload.resources : undefined;
       const metadata = isPlainObject(sourcePayload.metadata) ? sourcePayload.metadata : undefined;
+      const model = isPlainObject(sourcePayload.model) ? { ...sourcePayload.model } : undefined;
       const runtimeCommandPayload = { ...sourcePayload };
       delete runtimeCommandPayload.resources;
       delete runtimeCommandPayload.metadata;
+      delete runtimeCommandPayload.model;
       const agent = await ensureAgent({
         reason: 'query',
         conversationRef: resolveConversationRefFromPayload(runtimeCommandPayload),
@@ -32,13 +34,16 @@ function createAgentSdkRuntimeCommandsRuntime(deps = {}) {
       const text = typeof runtimeCommandPayload.text === 'string'
         ? runtimeCommandPayload.text
         : '';
-      const result = await agent.run({
+      const queryInput = {
         text,
         turnRef: messageId || undefined,
         payload: runtimeCommandPayload,
         resources,
         metadata,
-      });
+      };
+      const result = model
+        ? await agent.run(queryInput, { model })
+        : await agent.run(queryInput);
       return result?.queryMessageId || result?.turnRef || null;
     } catch (error) {
       log(`Failed to send query through Agent SDK runtime: ${error?.message || error}`);

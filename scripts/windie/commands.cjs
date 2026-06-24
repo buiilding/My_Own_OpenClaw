@@ -185,6 +185,20 @@ const RENDERER_LIGHT_APPEARANCE_USER_FACING_REGRESSION_TESTS = Object.freeze([
   'SettingsSurfaceCss.test.js',
 ]);
 
+const SETTINGS_STARTUP_USER_FACING_REGRESSION_TESTS = Object.freeze([
+  'IpcChatQueryHandlers.test.cjs',
+  'IpcSettingsSyncRuntime.test.cjs',
+  'IpcAgentDefinitionContext.test.cjs',
+  'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+]);
+
+const MODEL_SEND_SELECTION_USER_FACING_REGRESSION_TESTS = Object.freeze([
+  'DesktopSettingsRuntimeClient.test.ts',
+  'ChatMessageSender.test.tsx',
+  'DesktopManualCompactionRuntime.test.js',
+  'IpcAgentSdkRuntimeCommands.test.cjs',
+]);
+
 function coreLoopRegressionPackCommand(extraArgs = []) {
   return {
     command: 'npm',
@@ -220,6 +234,32 @@ function userFacingRegressionPackProcesses() {
         'test:ci',
         '--',
         ...RENDERER_LIGHT_APPEARANCE_USER_FACING_REGRESSION_TESTS,
+      ],
+      cwd: REPO_ROOT,
+    },
+    {
+      label: 'settings-startup',
+      command: 'npm',
+      args: [
+        '--prefix',
+        FRONTEND_DIR,
+        'run',
+        'test:ci',
+        '--',
+        ...SETTINGS_STARTUP_USER_FACING_REGRESSION_TESTS,
+      ],
+      cwd: REPO_ROOT,
+    },
+    {
+      label: 'model-send-selection',
+      command: 'npm',
+      args: [
+        '--prefix',
+        FRONTEND_DIR,
+        'run',
+        'test:ci',
+        '--',
+        ...MODEL_SEND_SELECTION_USER_FACING_REGRESSION_TESTS,
       ],
       cwd: REPO_ROOT,
     },

@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main, frontend/renderer: advance the redacted desktop UI config cache
+  before asynchronous disk persistence completes, await selected-model sync
+  before chat sends and manual compaction, and forward retry/edit replay model
+  overrides through SDK `agent.run(..., { model })` options. Just-edited Agent
+  settings now affect the next query's system prompt/tool policy, and model
+  retries no longer race against the previous provider. No migration required.
 - backend/config: treat enabled provider API-key overrides with empty redacted
   keys as incomplete override state and fall back to the configured provider
   environment variable, so persisted redacted renderer settings cannot disable
