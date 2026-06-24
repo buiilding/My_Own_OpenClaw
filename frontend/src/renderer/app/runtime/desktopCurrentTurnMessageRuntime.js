@@ -13,6 +13,8 @@ const {
 } = DesktopChatMessageRuntimeClient;
 
 const sdkCurrentTurnSourceChannel = DesktopPresentationSourceChannels.getSdkCurrentTurnSourceChannel();
+const sdkConversationViewSourceChannel = DesktopPresentationSourceChannels
+  .getSdkConversationViewSourceChannel();
 
 function asObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
@@ -490,6 +492,25 @@ function buildCurrentTurnMessagesFromPresentation(currentTurnProjection = null) 
     .filter(Boolean);
 }
 
+function buildConversationViewLiveTurnMessages(conversationView = null) {
+  const entries = Array.isArray(conversationView?.liveTurn?.entries)
+    ? conversationView.liveTurn.entries
+    : [];
+  if (entries.length === 0) {
+    return [];
+  }
+  const liveTurnContext = {
+    conversationRef: conversationView?.conversationRef || null,
+    turnRef: conversationView?.liveTurn?.turnRef || null,
+  };
+  return entries
+    .map((entry) => buildChatMessageFromLiveTurnEntry({
+      ...entry,
+      sourceChannel: sdkConversationViewSourceChannel,
+    }, liveTurnContext))
+    .filter(Boolean);
+}
+
 function isResponseCloseable(response) {
   if (!response) {
     return false;
@@ -546,6 +567,7 @@ function isResponseOverlaySourceTaggedMessage(message) {
 }
 
 export const DesktopCurrentTurnMessageRuntime = Object.freeze({
+  buildConversationViewLiveTurnMessages,
   buildCurrentTurnMessagesFromPresentation,
   buildCurrentTurnMessagesFromProjection,
   isResponseCloseable,

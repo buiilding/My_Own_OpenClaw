@@ -253,6 +253,10 @@ remains only the temporary no-view bridge for unmigrated/pre-view snapshots.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.
+Dashboard thread live rows also render from `snapshot.view.liveTurn.entries`
+whenever a view exists; raw `snapshot.currentTurn.presentation.entries` and
+phase-derived current-turn rows remain only as the no-view bridge and must not
+append visible rows beside the SDK view.
 The `conversation.loadDisplay` command also carries `snapshot.view`, and
 desktop renderer display-row facades consume `snapshot.view.displayRows`
 without falling back to legacy `snapshot.displayRows`. SDK snapshots may still

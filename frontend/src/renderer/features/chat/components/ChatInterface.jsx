@@ -237,9 +237,10 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     speechModeEnabled,
   } = chatSurface;
   const renderedMessages = useMemo(() => buildThreadPresentationMessages(messages, {
+    conversationView,
     currentTurnProjection,
     activeConversationRef: sessionInfo.conversationRef || null,
-  }), [currentTurnProjection, messages, sessionInfo.conversationRef]);
+  }), [conversationView, currentTurnProjection, messages, sessionInfo.conversationRef]);
   const activeConversationRef = sessionInfo.conversationRef || null;
   const isLoadingSelectedConversation = (
     typeof loadingConversationRef === 'string'

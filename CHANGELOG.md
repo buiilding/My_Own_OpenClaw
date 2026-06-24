@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: route dashboard thread live rows through
+  `ConversationView.liveTurn.entries` whenever a view is present. The
+  dashboard transcript still renders `view.displayRows`, but stale raw
+  current-turn presentation can no longer append visible thread rows beside the
+  SDK view; raw current-turn rows remain only as the no-view bridge. No
+  migration required.
 - frontend/main, frontend/renderer: remove raw SDK current-turn and idle
   conversation Stop target fallbacks. Stop targets now come from
   `ConversationView.liveTurn.canStop` or the local pending-turn pre-view bridge

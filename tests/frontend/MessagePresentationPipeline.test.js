@@ -217,6 +217,57 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages uses ConversationView live entries over stale current-turn rows', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-view' },
+    ];
+    const conversationView = {
+      conversationRef: 'conv-1',
+      liveTurn: {
+        turnRef: 'turn-view',
+        entries: [{
+          id: 'view-entry-1',
+          type: 'llm-text',
+          text: 'View-owned live answer',
+          sourceEventType: 'assistant_delta',
+          turnRef: 'turn-view',
+        }],
+      },
+    };
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-stale',
+      phase: 'streaming',
+      assistantText: 'Stale raw answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        entries: [{
+          id: 'raw-entry-1',
+          type: 'llm-text',
+          text: 'Stale raw answer',
+          turnRef: 'turn-stale',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      conversationView,
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'view-entry-1',
+        sender: 'assistant',
+        text: 'View-owned live answer',
+        sourceChannel: 'sdk:conversation-view',
+        turnRef: 'turn-view',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages uses SDK live-entry fields for tool identity', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

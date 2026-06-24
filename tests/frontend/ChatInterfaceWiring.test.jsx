@@ -2016,6 +2016,54 @@ describe('ChatInterface wiring', () => {
     expect(mockUpdateMessage).not.toHaveBeenCalled();
   });
 
+  test('renders ConversationView live rows instead of stale current-turn rows', () => {
+    mockChatState.streamTracking.phase = 'streaming';
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'build a dashboard', type: 'user', turnRef: 'turn-view' },
+    ];
+    setMockCurrentTurnProjection('streaming', {
+      conversationRef: 'conv_existing',
+      turnRef: 'turn-stale',
+      assistantText: 'stale raw answer',
+      presentation: {
+        entries: [{
+          id: 'raw-entry-1',
+          type: 'llm-text',
+          text: 'stale raw answer',
+          turnRef: 'turn-stale',
+        }],
+      },
+    });
+    setMockConversationView({
+      turnRef: 'turn-view',
+      entries: [{
+        id: 'view-entry-1',
+        type: 'llm-text',
+        text: 'view live answer',
+        turnRef: 'turn-view',
+      }],
+    });
+
+    render(<ChatInterface />);
+
+    const renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
+    expect(renderedMessages).toEqual([
+      expect.objectContaining({
+        id: 'user-1',
+        sender: 'user',
+      }),
+      expect.objectContaining({
+        id: 'view-entry-1',
+        sender: 'assistant',
+        text: 'view live answer',
+        sourceChannel: 'sdk:conversation-view',
+      }),
+    ]);
+    expect(renderedMessages).toEqual(expect.not.arrayContaining([
+      expect.objectContaining({ id: 'raw-entry-1' }),
+    ]));
+  });
+
   test('shows awaiting dot until the first assistant row is visible', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
