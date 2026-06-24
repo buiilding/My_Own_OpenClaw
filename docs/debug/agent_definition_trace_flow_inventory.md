@@ -30,3 +30,4 @@ provider payloads, credentials, or local filesystem paths.
 | 12 | Electron main app diagnostics | `agent_definition.flow` | `supplied_definition.detect` | Records whether the renderer or caller supplied additional Agent definition context. |
 | 13 | Electron main app diagnostics | `agent_definition.flow` | `definition_merge.apply` | Records final merged definition counts after generated and supplied context are combined. |
 | 14 | Electron main app diagnostics | `agent_definition.flow` | `payload_attachment.prepare` | Records that the query payload is ready to receive sanitized Agent definition context. |
+| 15 | Electron main app diagnostics | `agent_definition.flow` | `payload_attachment.complete` | Records final Agent definition attachment before the payload leaves Electron main. |
