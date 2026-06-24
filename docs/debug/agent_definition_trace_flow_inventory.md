@@ -57,3 +57,4 @@ provider payloads, credentials, or local filesystem paths.
 | 39 | Backend durable stream trace | `agent_definition.backend_flow` | `system_prompt_override.resolve` | Records system-prompt override presence without prompt text. |
 | 40 | Backend durable stream trace | `agent_definition.backend_flow` | `raw_client_manifest.read` | Records raw client manifest tool count before backend validation. |
 | 41 | Backend durable stream trace | `agent_definition.backend_flow` | `client_tool_manifest.validate` | Records accepted and rejected client tool counts after validation. |
+| 42 | Backend durable stream trace | `agent_definition.backend_flow` | `tool_policy.apply` | Records policy rebuild and allowed client tool counts after ToolPolicy filtering. |
