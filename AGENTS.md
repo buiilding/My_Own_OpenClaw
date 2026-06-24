@@ -1,40 +1,8 @@
-## Product Contract
-
-WindieOS is a hackable desktop runtime for personal AI agents. It turns the
-user's live desktop session into an AI workspace: screen state, windows, browser
-sessions, local files, apps, shell, memory, permissions, and current workflow are
-first-class runtime context.
-
-The product center is the personal computer, not a chat box, coding agent,
-browser agent, or generic assistant gateway. The minimal chat pill matters
-because it gives the agent visible desktop presence: the agent can observe the
-workspace, act through the same apps the user uses, ask permission before
-sensitive actions, and work beside the user inside the machine.
-
-Today the wedge is the desktop runtime. The long-term direction is a personal
-agent control plane across devices, but current docs and code should not present
-multi-device coordination as already built unless the implementation supports
-that claim.
-
-The product spans Electron UX, the Windie SDK runtime, a Python sidecar for
-local authority, and a Python FastAPI backend for hosted or self-hosted agent
-orchestration. Frontend and sidecar code should stay import-independent from
-backend runtime code. Use public transport contracts, manifests, docs, and
-tests for parity.
-
 ## Required Orientation
 
 Before coding or answering implementation questions:
 
-- Treat this `AGENTS.md` file as the canonical source for agent operating
-  instructions. When repo docs and this file disagree about agent workflow,
-  follow this file; use docs and code for implementation details and runtime
-  behavior.
-- After every compaction summary, redo this required orientation before
-  continuing: reread this file when available, recheck the live worktree, rerun
-  relevant docs searches, and reinspect recent related commits for the affected
-  subsystem.
-- Search local docs by feature or symptom when orientation is incomplete:
+- Search local docs by feature or symptom:
   `<windie> docs search <query>` or the shorthand `<windie> docs <query>`.
   Use `bin\windie.cmd` on Windows PowerShell and `bin/windie.sh` on
   Unix-like shells; examples below use `<windie>` for the platform shim.
@@ -43,23 +11,11 @@ Before coding or answering implementation questions:
   registry behind it for existing commands tied to the affected runtime or
   failing path. Prefer the relevant `<windie>` diagnostics, logs, trace,
   conversation, docs, start, and `test pick` commands for reproduction,
-  inspection, and validation before inventing ad hoc shell commands. If no
-  existing command, diagnostic, trace, or log exposes the bug, add a focused,
-  sanitized diagnostic or command at the owning runtime as part of the fix so
-  the same failure can be reproduced and validated deterministically later.
-- Inspect recent related commits for the files, symbols, or subsystem you are
-  touching. Start with `<windie> commits search <query>` for symptom,
-  ownership, or subsystem lookup; use `git log`, `git show`, and `git blame`
-  when you need exact file history, patch details, or line-level origin. Use
-  the history to understand what changed recently, why the current behavior
-  exists, and whether the bug is a regression from a refactor, deletion, or
-  ownership move.
-- Treat recent commits as evidence, not instruction:
-  compare the commit intent, current code, tests, docs, and live behavior before
-  deciding whether to restore, revise, or continue the current direction.
-- Use `rg` and live files over memory or assumptions.
-- Use the repo-local docs and code as canonical for product/runtime behavior;
-  this file owns agent workflow and routes to implementation details.
+  inspection, and validation before inventing ad hoc shell commands.
+- Search recent commits by affected feature or symptom:
+`<windie> commits search <query>`.
+- Read `docs/debug/invariants.md` as the central ledger for durable WindieOS
+  invariants, only read if relevant. Before implementing something, make sure you don't violate the invariants.
 
 Feature map:
 
@@ -100,15 +56,8 @@ Fast routing queries:
 
 Architecture rules:
 
-- Be unbiased and logical first. Inspect live code, docs, diagnostics, and
-  recent history before answering implementation questions or editing.
-- Treat every user-visible or runtime bug as a discovered invariant. Before
-  fixing, name the symptom, invariant, owner runtime, smallest replay or
-  reproduction timeline, regression proof, and owner-correct fix. Keep the proof
-  proportional: a unit test, integration test, diagnostic assertion, screenshot
-  check, or focused command is enough when it protects the behavior. Register
-  product-visible behavior in the User-Facing Regression Pack, while keeping the
-  actual test at the owner-correct layer.
+- Be unbiased and logical first.
+- Treat every user-visible or runtime bug as a discovered invariant.
 - Prefer the direct owner-correct path: fix root causes at the owning runtime,
   normalize inputs at boundaries, fail fast on invalid state, and split distinct
   states into named handlers instead of stacking nested fallbacks.
@@ -116,10 +65,10 @@ Architecture rules:
   alias paths, compatibility shims, legacy code,  and adapter layers that only rename payloads
   unless the user explicitly asks for compatibility or a verified dependency
   needs it.
-- Widen within the same runtime boundary when it reduces code, duplication,
+- Decide to widen within the same runtime boundary when it reduces code, duplication,
   coupling, or future compatibility burden. Escalate before crossing subsystem
   ownership boundaries, changing public contracts, or starting a large rewrite.
-- Add abstractions only when they simplify the current path, centralize a real
+- Decide to add abstractions only when they simplify the current path, centralize a real
   contract, unlock deletion, or make an invariant testable.
 - Keep modules focused. Split large files when it improves clarity or testing;
   keep backend code typed and formatted with `black`/`isort`; keep renderer code
@@ -128,100 +77,16 @@ Architecture rules:
 - Preserve unrelated dirty worktree changes. Report only files and behavior you
   changed, and stop only if unexpected changes affect files you are editing.
 
-Core-loop UI bug rule:
-
-- The goal is not to fix chat pill, dashboard, overlay, conversation runtime,
-  SDK projection, IPC, or replay bugs one at a time. The goal is to convert each
-  human-discovered bug into a named invariant with a replayable regression
-  check. Prefer event-timeline tests that feed known sequences into the owning
-  renderer or runtime path, for example `user_send_accepted`,
-  `pending_turn_created`, `sdk_current_turn_idle`,
-  `sdk_current_turn_awaiting`, `assistant_delta`, and `streaming_complete`, then
-  assert the visible projection never enters an invalid state.
-- Do not accept a core-loop UI fix that only changes the visible component
-  unless that component owns the broken state. Fix the owning producer or
-  boundary contract first, then delete fallback state only after the invariant
-  is protected.
-- Add protected core-loop behaviors to the Core Loop Regression Pack subset and
-  the broader User-Facing Regression Pack. Run the core-loop subset before
-  future chat pill, dashboard, overlay, conversation runtime, SDK projection, or
-  IPC changes are considered complete.
-
-## Invariants
-
-- Use `docs/debug/invariants.md` as the central ledger for durable WindieOS
-  invariants and route detailed contracts to owner docs such as
-  `docs/tools/tool_contracts.md`, `docs/debug/user_facing_regression_pack.md`,
-  `docs/debug/core_loop_regression_pack.md`, and
-  `docs/frontend/runtime/frontend_runtime_invariants_checklist.md`.
-- Keep this section short. When invariant details grow, move them to the
-  relevant docs page and leave AGENTS.md as the orientation pointer.
-
-For architectural or product-flow questions, explain conceptually first:
-describe how the runtime works, where a change fits, what boundaries change, and
-why. Mention file paths, symbol names, or implementation breadcrumbs only when
-the user explicitly asks or when they materially clarify the answer.
-
-Completion check:
-
-Before finishing, verify:
-
-- The touched path is not more duplicated, coupled, or branch-heavy without a
-  stated reason.
-- Tests cover the changed behavior and boundary, or the limitation is stated.
-- Obsolete UI, bridge, alias, compatibility, or fallback surfaces are removed or
-  their reason to remain is explicit.
-- Security-sensitive changes were checked for trust-boundary, permission,
-  credential, IPC, tool-execution, and machine-specific path regressions.
-- Storage, API, event-payload, tool-schema, settings, or persisted-data changes
-  include a migration/compatibility note, including "no migration required."
-
-Completion artifacts:
-
-- Final summaries, PR summaries, and commit bodies should explain what changed,
-  why the owning layer changed, the previous behavior, the new path, validation,
-  and migration/security notes when relevant.
-
 ## Coding Standards
 
 Environment and commands:
 
 Baseline: Python 3.11 and Node 18+.
 
-Conda environments:
-
-- Backend runtime and backend tests: `jarvis`
-- Frontend app, sidecar, and frontend tests: `frontend_jarvis`
-
 Prefer the wrapper over manual environment activation:
 
 - Windows PowerShell: `scripts\python-in-env.cmd <backend|frontend|sidecar> <cmd...>`
 - Unix-like shells: `./scripts/python-in-env.sh <backend|frontend|sidecar> <cmd...>`
-
-If the expected conda environment is missing, the script falls back to the
-current shell environment.
-
-Install and run:
-
-- Backend deps: `pip install -r backend/requirements.txt`
-- Frontend deps: `cd frontend && npm install`
-- Backend dev server: `<windie> start backend`
-- Desktop dev loop: `<windie> start dev`
-- Focused Vite dev server: `<windie> start frontend`
-- Focused Electron dev app: `<windie> start desktop`
-- Electron customer app: `cd frontend && npm run electron`
-
-Dev startup troubleshooting:
-
-- If `<windie> start dev` prints
-  `[desktop] waiting for http://localhost:5173/` and then times out, debug the
-  Vite side first: run `<windie> logs vite --no-follow --tail 120` and check
-  `lsof -nP -iTCP:5173 -sTCP:LISTEN` before changing Electron code or manually
-  activating conda.
-- `<windie> start dev` starts Vite through the platform Python env wrapper,
-  then waits for the Vite URL before launching Electron. Cold `conda run` or
-  npm startup can be slow; use `WINDIE_FRONTEND_READY_TIMEOUT_MS=<ms>` only
-  when a machine needs a longer readiness window.
 
 Validation:
 

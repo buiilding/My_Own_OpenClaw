@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: tighten agent workflow orientation around local docs search,
+  read_when guidance, command diagnostics, recent commit lookup, and invariant
+  checks. No migration required.
 - docs/readme: add the explicit WindieOS product contract, clarifying the
   personal-computer center, current desktop-runtime wedge, future multi-device
   control-plane boundary, and Electron/SDK/local-runtime/backend ownership
