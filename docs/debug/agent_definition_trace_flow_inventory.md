@@ -47,3 +47,4 @@ provider payloads, credentials, or local filesystem paths.
 | 29 | SDK durable turn trace | `agent_definition.sdk_flow` | `plugin_contributions.detect` | Records plugin contribution count from merged Agent definition context. |
 | 30 | SDK durable turn trace | `agent_definition.sdk_flow` | `skill_contributions.detect` | Records skill contribution count from merged Agent definition context. |
 | 31 | SDK durable turn trace | `agent_definition.sdk_flow` | `mcp_contributions.detect` | Records MCP server and manifest tool counts without MCP payloads or schemas. |
+| 32 | SDK durable turn trace | `agent_definition.sdk_flow` | `capability_revision.detect` | Records capability revision ids for merged, SDK, and query definitions. |
