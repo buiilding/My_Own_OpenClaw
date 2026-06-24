@@ -19,7 +19,6 @@ Use ADRs for durable technical decisions that should outlive one implementation 
 | [ADR 006: Renderer-Owned Typing State](006-renderer-owned-typing-state.md) | accepted target | Use one renderer app-runtime visible turn lifecycle projection for dashboard, pill, overlay, typing, and busy state while keeping SDK backend projection separate from renderer-local pending sends. |
 | [ADR 007: SDK-Owned Live Visual Attachment Display](007-sdk-owned-live-visual-attachment-display.md) | accepted target | Use SDK-owned ordered `attachments[]` display projection for user images, camera screenshot requests, mixed visual sends, and pluggable renderer attachment components. |
 | [ADR 008: Conversation History Revision Architecture](008-conversation-history-revision-architecture.md) | implemented | Split full display history, backend-normalized model history, runtime events, and revision graph ownership so edit/resend, compaction, rehydrate, and fork share one architecture. |
-| [ADR 009: SDK View Authority](009-sdk-view-authority.md) | accepted target | Make SDK-owned `ConversationView` the normal renderer/main UI authority, keeping raw events, model history, internal lanes, and diagnostics behind explicit APIs. |
 
 ## When To Add An ADR
 

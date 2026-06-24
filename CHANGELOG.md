@@ -6,24 +6,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- docs/adr: add ADR 009 for SDK View Authority, merging the SDK-owned
-  ConversationView contract and migration plans into one accepted target so
-  renderer/main consume one SDK-owned UI projection while raw events, model
-  history, internal lanes, and diagnostics stay behind explicit APIs. No
-  migration required.
-- docs/plans: add the SDK View Authority migration plan for introducing
-  `ConversationView` beside current UI state, migrating response overlay, pill,
-  dashboard, edit/resend, and fork surfaces one at a time, and deleting
-  renderer/main reconciliation paths as each surface becomes SDK-owned. No
-  migration required.
+- docs/plans: merge the SDK-owned ConversationView contract and SDK View
+  Authority migration direction into one SDK View Authority plan, so one
+  coordinated implementation path defines the SDK-owned UI projection,
+  response overlay, pill, dashboard, edit/resend, fork migration order, and
+  renderer/main deletion targets. No migration required.
 - frontend/renderer: enrich gated response-overlay view-model diagnostics with
   pending-turn, stream-tracking, and visible-lifecycle identifiers/counts so
   resend and streaming surface races can be inspected without logging message
   text, screenshots, file paths, or tool output. No migration required.
-- docs/plans: add the SDK-owned conversation view contract plan for narrowing
-  normal renderer/main UI state to one active SDK projection while keeping raw
-  events, internal lanes, model history, and diagnostics behind explicit
-  boundaries. No migration required.
 - frontend/main, frontend/renderer: scope floating response-overlay ownership to
   the active user conversation. Internal `conv-agent-*` SDK current-turn
   projections are ignored by the native responsebox controller, and inactive
