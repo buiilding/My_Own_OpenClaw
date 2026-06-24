@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli: let `conversation state` and `conversation view` accept
+  `--revision <revision-id>` so branch diagnostics can inspect inactive display
+  revisions, model-history checkpoints, raw event counts, live-turn phase, and
+  response-overlay intent without borrowing the active branch. No migration
+  required.
 - sdk: keep `ConversationView` live-turn and response-overlay projection
   scoped to the selected display revision during `checkoutRevision` and forked
   branch loads. Runtime reloads now preserve an explicit checkout instead of

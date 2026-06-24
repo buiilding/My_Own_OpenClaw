@@ -481,7 +481,12 @@ Normal UI branch navigation should call that command/service boundary instead
 of reconstructing display prefixes or model-history rows in renderer code.
 This command exposure starts the Phase 5 migration; a branch browser or
 revision checkout UI still has to consume the resulting SDK view rather than
-raw event timelines.
+raw event timelines. Diagnostics can inspect a selected branch view with
+`<windie> conversation view <conversation-ref> --revision <revision-id>` and
+can inspect the matching storage ownership state with
+`<windie> conversation state <conversation-ref> --revision <revision-id>`;
+those revision-scoped diagnostics must not borrow live-turn or overlay state
+from the active branch.
 
 Do not implement separate role/message/tool interpretation inside each adapter.
 The adapter methods are API conveniences; they must delegate to shared SDK

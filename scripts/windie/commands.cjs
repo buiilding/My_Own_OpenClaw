@@ -63,8 +63,8 @@ Status and diagnostics:
   <windie> capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]
   <windie> conversation list [--limit <n>] [--json]
   <windie> conversation inspect <conversation-ref> [--json]
-  <windie> conversation state <conversation-ref> [--json]
-  <windie> conversation view <conversation-ref> [--json]
+  <windie> conversation state <conversation-ref> [--revision <revision-id>] [--json]
+  <windie> conversation view <conversation-ref> [--revision <revision-id>] [--json]
   <windie> conversation messages <conversation-ref> [--limit <n>] [--json]
   <windie> conversation events <conversation-ref> [--turn <turn-ref>] [--type <event-type>] [--limit <n>] [--json]
   <windie> conversation turns <conversation-ref> [--json]
@@ -1037,11 +1037,15 @@ function loadConversationInspect(conversationRef) {
   };
 }
 
-function loadSelectedConversationRevision(conversationRef, { requireDisplayTimeline = false } = {}) {
+function loadSelectedConversationRevision(conversationRef, {
+  requireDisplayTimeline = false,
+  revisionId = null,
+} = {}) {
   const tables = historyTableNames();
   if (!historyObjectExists(tables.revisions)) {
     return null;
   }
+  const revisionClause = revisionId ? `AND revision_id = ${sqlString(revisionId)}` : '';
   const columns = historyObjectColumns(tables.revisions);
   const hasRevisionGraph = [
     'user_id',
@@ -1065,12 +1069,14 @@ function loadSelectedConversationRevision(conversationRef, { requireDisplayTimel
              NULL AS userId
       FROM ${tables.revisions}
       WHERE conversation_id = ${sqlString(conversationRef)}
+        ${revisionClause}
       ORDER BY updated_at DESC, revision_id DESC
       LIMIT 1
     `);
     return rows[0] || null;
   }
   const displayClause = requireDisplayTimeline ? 'AND r.display_timeline_id IS NOT NULL' : '';
+  const graphRevisionClause = revisionId ? `AND r.revision_id = ${sqlString(revisionId)}` : '';
   const rows = queryHistoryDatabase(`
     SELECT r.user_id AS userId,
            r.revision_id AS revisionId,
@@ -1084,6 +1090,7 @@ function loadSelectedConversationRevision(conversationRef, { requireDisplayTimel
     FROM ${tables.revisions} r
     WHERE r.conversation_id = ${sqlString(conversationRef)}
       ${displayClause}
+      ${graphRevisionClause}
     ORDER BY ${revisionBranchOrderExpression('r')}
     LIMIT 1
   `);
@@ -1221,8 +1228,9 @@ function loadModelHistoryState(conversationRef, selectedRevision) {
   };
 }
 
-function loadRawEventState(conversationRef) {
+function loadRawEventState(conversationRef, { revisionId = null } = {}) {
   const tables = historyTableNames();
+  const revisionClause = revisionId ? `AND revision_id = ${sqlString(revisionId)}` : '';
   const rows = queryHistoryDatabase(`
     SELECT COUNT(*) AS eventCount,
            COUNT(DISTINCT turn_ref) AS turnCount,
@@ -1234,6 +1242,7 @@ function loadRawEventState(conversationRef) {
            MAX(timestamp) AS updatedAt
     FROM ${tables.events}
     WHERE conversation_id = ${sqlString(conversationRef)}
+      ${revisionClause}
   `);
   const row = rows[0] || {};
   return {
@@ -1272,8 +1281,9 @@ function normalizedTurnRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function loadSupersededLiveState(conversationRef) {
+function loadSupersededLiveState(conversationRef, { revisionId = null } = {}) {
   const tables = historyTableNames();
+  const revisionClause = revisionId ? `AND revision_id = ${sqlString(revisionId)}` : '';
   const rows = queryHistoryDatabase(`
     SELECT event_type AS eventType,
            revision_id AS revisionId,
@@ -1283,6 +1293,7 @@ function loadSupersededLiveState(conversationRef) {
            event_payload AS eventPayload
     FROM ${tables.events}
     WHERE conversation_id = ${sqlString(conversationRef)}
+      ${revisionClause}
     ORDER BY message_index ASC, timestamp ASC, id ASC
   `);
   const supersededTurns = new Map();
@@ -1363,11 +1374,16 @@ function loadSupersededLiveState(conversationRef) {
   };
 }
 
-function loadConversationState(conversationRef) {
-  const selectedRevision = loadSelectedConversationRevision(conversationRef);
+function loadConversationState(conversationRef, {
+  revisionId = null,
+  scopeEventsToSelectedRevision = false,
+} = {}) {
+  const selectedRevision = loadSelectedConversationRevision(conversationRef, { revisionId });
   const selectedDisplayRevision = selectedRevision?.displayTimelineId
     ? selectedRevision
-    : loadSelectedConversationRevision(conversationRef, { requireDisplayTimeline: true });
+    : loadSelectedConversationRevision(conversationRef, { requireDisplayTimeline: true, revisionId });
+  const selectedRevisionId = selectedRevision?.revisionId || revisionId || null;
+  const eventRevisionId = revisionId || (scopeEventsToSelectedRevision ? selectedRevisionId : null);
   const activeRevisions = loadActiveRevisionRows(conversationRef);
   const activeRevisionIds = new Set(activeRevisions.map((row) => row.revisionId));
   const staleParentActive = Boolean(
@@ -1381,8 +1397,8 @@ function loadConversationState(conversationRef) {
     selectedDisplayRevision || selectedRevision,
   );
   const modelHistory = loadModelHistoryState(conversationRef, selectedRevision);
-  const rawEvents = loadRawEventState(conversationRef);
-  const supersededLive = loadSupersededLiveState(conversationRef);
+  const rawEvents = loadRawEventState(conversationRef, { revisionId: eventRevisionId });
+  const supersededLive = loadSupersededLiveState(conversationRef, { revisionId: eventRevisionId });
   return {
     ok: true,
     database: historyDatabasePath(),
@@ -1460,8 +1476,9 @@ function eventSourceFromRow(row) {
   );
 }
 
-function loadConversationViewEventRefs(conversationRef) {
+function loadConversationViewEventRefs(conversationRef, { revisionId = null } = {}) {
   const tables = historyTableNames();
+  const revisionClause = revisionId ? `AND revision_id = ${sqlString(revisionId)}` : '';
   const rows = queryHistoryDatabase(`
     SELECT id,
            event_type AS eventType,
@@ -1471,6 +1488,7 @@ function loadConversationViewEventRefs(conversationRef) {
            timestamp
     FROM ${tables.events}
     WHERE conversation_id = ${sqlString(conversationRef)}
+      ${revisionClause}
     ORDER BY message_index DESC, timestamp DESC, id DESC
     LIMIT 1000
   `);
@@ -1497,18 +1515,22 @@ function loadFilteredInternalLaneCount() {
   return Number(rows[0]?.count || 0);
 }
 
-function loadConversationView(conversationRef) {
-  const state = loadConversationState(conversationRef);
+function loadConversationView(conversationRef, { revisionId = null } = {}) {
+  const state = loadConversationState(conversationRef, {
+    revisionId,
+    scopeEventsToSelectedRevision: true,
+  });
+  const activeRevisionId = state.selectedRevision?.revisionId || state.displayTimeline.revisionId || revisionId || null;
   const activePhase = state.supersededLive.activePhase || 'idle';
   const liveTurnPhase = conversationViewLivePhase(activePhase);
   const responseOverlayMode = conversationViewOverlayMode(activePhase);
   const isBusy = ['awaiting', 'streaming', 'tool'].includes(liveTurnPhase);
-  const eventRefs = loadConversationViewEventRefs(conversationRef);
+  const eventRefs = loadConversationViewEventRefs(conversationRef, { revisionId: activeRevisionId });
   return {
     ok: true,
     database: state.database,
     conversationRef,
-    activeRevisionId: state.selectedRevision?.revisionId || state.displayTimeline.revisionId || null,
+    activeRevisionId,
     displayRowCount: state.displayTimeline.rowCount,
     liveTurnRef: state.supersededLive.activeTurnRef || null,
     liveTurnPhase,
@@ -1793,7 +1815,8 @@ function runConversation(args) {
     return;
   }
 
-  const [conversationRef] = positionalArgs(rest, ['--turn', '--type', '--path', '--limit']);
+  const [conversationRef] = positionalArgs(rest, ['--turn', '--type', '--path', '--limit', '--revision']);
+  const revisionId = optionValue(rest, '--revision', null);
   if (!conversationRef) {
     throw new Error('Usage: <windie> conversation list|inspect|state|view|messages|events|turns|traces <conversation-ref>');
   }
@@ -1809,7 +1832,7 @@ function runConversation(args) {
   }
 
   if (subcommand === 'state') {
-    const payload = loadConversationState(conversationRef);
+    const payload = loadConversationState(conversationRef, { revisionId });
     if (json) {
       printJson(payload);
       return;
@@ -1819,7 +1842,7 @@ function runConversation(args) {
   }
 
   if (subcommand === 'view') {
-    const payload = loadConversationView(conversationRef);
+    const payload = loadConversationView(conversationRef, { revisionId });
     if (json) {
       printJson(payload);
       return;

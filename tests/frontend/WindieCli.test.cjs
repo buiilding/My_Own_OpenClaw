@@ -113,8 +113,8 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('bin/windie.sh on macOS/Linux');
     expect(result.stdout).toContain('<windie> status --all --json');
     expect(result.stdout).toContain('<windie> conversation messages <conversation-ref> [--limit <n>] [--json]');
-    expect(result.stdout).toContain('<windie> conversation state <conversation-ref> [--json]');
-    expect(result.stdout).toContain('<windie> conversation view <conversation-ref> [--json]');
+    expect(result.stdout).toContain('<windie> conversation state <conversation-ref> [--revision <revision-id>] [--json]');
+    expect(result.stdout).toContain('<windie> conversation view <conversation-ref> [--revision <revision-id>] [--json]');
     expect(result.stdout).toContain('<windie> start frontend');
     expect(result.stdout).toContain('<windie> start dev');
     expect(result.stdout).toContain('<windie> start customer');
@@ -641,6 +641,27 @@ describe('windie CLI', () => {
       filteredInternalLaneCount: 1,
       modelHistoryCheckpointId: 'mh-child',
       lastEventRef: 'evt-user-child',
+      lastSdkEventRef: null,
+      lastBackendEventRef: null,
+    });
+
+    const parentViewResult = runCli(['conversation', 'view', 'conv-state', '--revision', 'rev-parent', '--json'], {
+      AGENT_USER_DATA_DIR: userDataDir,
+    });
+    expect(parentViewResult.status).toBe(0);
+    const parentView = JSON.parse(parentViewResult.stdout);
+    expect(parentView).toMatchObject({
+      conversationRef: 'conv-state',
+      activeRevisionId: 'rev-parent',
+      displayRowCount: 0,
+      liveTurnRef: 'turn-parent',
+      liveTurnPhase: 'awaiting',
+      responseOverlayMode: 'typing',
+      responseOverlayGuardRef: 'turn-parent',
+      pendingTurnRef: 'turn-parent',
+      supersededTurnCount: 0,
+      modelHistoryCheckpointId: 'mh-parent',
+      lastEventRef: 'evt-assistant-parent',
       lastSdkEventRef: null,
       lastBackendEventRef: null,
     });
