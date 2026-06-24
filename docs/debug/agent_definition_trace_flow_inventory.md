@@ -61,3 +61,4 @@ provider payloads, credentials, or local filesystem paths.
 | 43 | Backend durable stream trace | `agent_definition.backend_flow` | `prompt_layers.read` | Records raw prompt-layer count from the incoming Agent definition. |
 | 44 | Backend durable stream trace | `agent_definition.backend_flow` | `prompt_layers.validate` | Records accepted and rejected prompt-layer counts after backend validation. |
 | 45 | Backend durable stream trace | `agent_definition.backend_flow` | `prompt_context.apply` | Records whether prompt context was applied to the session. |
+| 46 | Backend durable stream trace | `agent_definition.backend_flow` | `prompt_builder.update` | Records prompt-builder client tool and prompt-layer counts after update. |
