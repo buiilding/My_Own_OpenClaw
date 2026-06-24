@@ -34,6 +34,26 @@ Latest releases: [Releases](https://github.com/buiilding/WindieOS/releases)
 
 ---
 
+## Product Contract
+
+WindieOS is centered on the personal computer, not a chat box, coding agent,
+browser agent, or generic assistant gateway. The current wedge is the desktop
+runtime: the agent has visible desktop presence, observes the live workspace,
+acts through the same apps the user uses, asks permission before sensitive
+actions, and works beside the user inside the machine.
+
+The long-term direction is a personal agent control plane across devices, but
+current docs and code should describe multi-device coordination only when the
+implementation supports that claim.
+
+WindieOS spans Electron UX, the Windie SDK runtime, a Python local-runtime
+implementation for local authority, and a Python FastAPI backend for hosted or
+self-hosted agent orchestration. Frontend and local-runtime code stay
+import-independent from backend runtime code; parity flows through public
+transport contracts, manifests, docs, and tests.
+
+---
+
 ## Why Windie
 
 <table>

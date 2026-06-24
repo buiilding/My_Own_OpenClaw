@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/readme: add the explicit WindieOS product contract, clarifying the
+  personal-computer center, current desktop-runtime wedge, future multi-device
+  control-plane boundary, and Electron/SDK/local-runtime/backend ownership
+  split. No migration required.
 - backend/embeddings: make the standalone embedding service load backend
   `AppConfig` instead of bare model defaults, so remote-http deployments can
   run a configured local SentenceTransformer model without falling back to the
