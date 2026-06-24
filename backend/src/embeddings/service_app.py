@@ -18,6 +18,7 @@ from backend.src.api.routes.memory.embeddings.service import (
 )
 from backend.src.api.routes.memory.health import healthy_payload
 from backend.src.core.bootstrap.entrypoint import initialize_entrypoint_logger
+from backend.src.core.config.loader import load_settings_from_file
 from backend.src.core.config.models import AppConfig
 from backend.src.core.container.factories import (
     _create_local_sentence_transformer_provider,
@@ -78,7 +79,7 @@ def _build_provider(config: AppConfig):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    config = AppConfig()
+    config = load_settings_from_file()
     provider = _build_provider(config)
     app.state.config = config
     app.state.embedding_provider = provider

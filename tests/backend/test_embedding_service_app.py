@@ -1,7 +1,9 @@
 """Covers embedding service app behavior in the backend test suite."""
 
 from fastapi.testclient import TestClient
+import pytest
 
+from backend.src.core.config.models import AppConfig
 from backend.src.embeddings import service_app
 
 
@@ -25,8 +27,48 @@ class BrokenHealthEmbeddingProvider(FakeEmbeddingProvider):
         raise RuntimeError("model metadata unavailable")
 
 
+class LifecycleEmbeddingProvider(FakeEmbeddingProvider):
+    def __init__(self) -> None:
+        super().__init__()
+        self.initialized = False
+        self.closed = False
+
+    async def initialize(self) -> None:
+        self.initialized = True
+
+    async def close(self) -> None:
+        self.closed = True
+
+
 def _auth_headers(token: str = "test-embedding-key") -> dict[str, str]:
     return {service_app.EMBEDDING_SERVICE_API_KEY_HEADER: token}
+
+
+@pytest.mark.asyncio
+async def test_lifespan_uses_backend_app_config(monkeypatch) -> None:
+    configured = AppConfig(
+        embedding_model="sentence-transformers/all-MiniLM-L6-v2",
+        embedding_max_concurrent_requests=2,
+        embedding_queue_timeout_seconds=10.0,
+    )
+    provider = LifecycleEmbeddingProvider()
+    built_configs: list[AppConfig] = []
+
+    monkeypatch.setattr(service_app, "load_settings_from_file", lambda: configured)
+
+    def build_provider(config: AppConfig):
+        built_configs.append(config)
+        return provider
+
+    monkeypatch.setattr(service_app, "_build_provider", build_provider)
+
+    async with service_app.lifespan(service_app.app):
+        assert service_app.app.state.config is configured
+        assert service_app.app.state.embedding_provider is provider
+        assert provider.initialized is True
+
+    assert built_configs == [configured]
+    assert provider.closed is True
 
 
 def test_health_returns_provider_metadata() -> None:

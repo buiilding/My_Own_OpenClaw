@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/embeddings: make the standalone embedding service load backend
+  `AppConfig` instead of bare model defaults, so remote-http deployments can
+  run a configured local SentenceTransformer model without falling back to the
+  vendor embedding id. No migration required.
 - sdk/frontend: query-level Agent definitions now carry the filtered client
   tool manifest from live Agent settings, and SDK query merges honor an empty
   replacement manifest when explicit tool policy is present. Just-edited or
