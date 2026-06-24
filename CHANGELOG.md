@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/adr: add ADR 009 for SDK View Authority, merging the SDK-owned
+  ConversationView contract and migration plans into one accepted target so
+  renderer/main consume one SDK-owned UI projection while raw events, model
+  history, internal lanes, and diagnostics stay behind explicit APIs. No
+  migration required.
 - docs/plans: add the SDK View Authority migration plan for introducing
   `ConversationView` beside current UI state, migrating response overlay, pill,
   dashboard, edit/resend, and fork surfaces one at a time, and deleting

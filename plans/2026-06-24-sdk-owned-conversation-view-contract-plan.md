@@ -7,7 +7,12 @@ title: "SDK-Owned Conversation View Contract Plan"
 
 Date: 2026-06-24
 
-Status: proposed.
+Status: superseded by `docs/adr/009-sdk-view-authority.md`.
+
+This document is historical context. The durable merged decision and migration
+plan now live in `docs/adr/009-sdk-view-authority.md`. Do not implement this
+plan independently from `plans/2026-06-24-sdk-view-authority-migration-plan.md`;
+both were merged into ADR 009.
 
 Related architecture:
 
