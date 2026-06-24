@@ -9,12 +9,15 @@ import {
   type DisplayTimelineCheckpoint,
   type DisplayTimelineReplaceReason,
   type DisplayTimelineRow,
+  type EditAndResendInput,
+  type RetryTurnInput,
   type SdkDisplayRow,
   type ConversationView,
   type ConversationMetadata,
   type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
   type TraceTimelineEntry,
+  type TurnResult,
 } from './desktopConversationRuntimeContracts';
 import {
   createDesktopConversationStore,
@@ -48,6 +51,16 @@ type ReplaceDisplayRowsInput = {
   baseRevisionId: string;
   reason: DisplayTimelineReplaceReason;
   rows: DisplayTimelineRow[];
+};
+
+type EditAndResendCommandInput = EditAndResendInput & {
+  userId: string;
+  conversationRef: string;
+};
+
+type RetryTurnCommandInput = RetryTurnInput & {
+  userId: string;
+  conversationRef: string;
 };
 
 type SearchConversationsInput = {
@@ -136,6 +149,35 @@ export const DesktopConversationContinuityService = {
         baseRevisionId: input.baseRevisionId,
         reason: input.reason,
         rows: input.rows,
+      },
+    );
+  },
+
+  async editAndResend(input: EditAndResendCommandInput): Promise<TurnResult> {
+    return invokeAgentSdkCommand<TurnResult>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_EDIT_AND_RESEND,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        messageId: input.messageId,
+        text: input.text,
+        turnRef: input.turnRef,
+        payload: input.payload,
+        model: input.model,
+      },
+    );
+  },
+
+  async retryTurn(input: RetryTurnCommandInput): Promise<TurnResult> {
+    return invokeAgentSdkCommand<TurnResult>(
+      SDK_RUNTIME_COMMANDS.CONVERSATION_RETRY_TURN,
+      {
+        userId: input.userId,
+        conversationRef: input.conversationRef,
+        messageId: input.messageId,
+        turnRef: input.turnRef,
+        payload: input.payload,
+        model: input.model,
       },
     );
   },

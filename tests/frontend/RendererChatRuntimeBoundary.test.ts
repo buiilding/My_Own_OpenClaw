@@ -1559,7 +1559,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_output'");
   });
 
-  test('conversation replay prepares with continuity and dispatches with live-turn send', async () => {
+  test('conversation replay prepares locally and dispatches with SDK revision commands', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
       'utf8',
@@ -1572,16 +1572,18 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).toContain('desktopConversationReplayRuntime');
     expect(source).toContain('DesktopConversationReplayRuntime');
-    expect(source).toContain('DesktopChatSendPreparationRuntime');
+    expect(source).not.toContain('DesktopChatSendPreparationRuntime');
     expect(source).not.toContain('utils/conversationReplayToolMessages');
     expect(source).toContain('DesktopConversationContinuityService.loadDisplayTimeline');
-    expect(source).toContain('DesktopConversationContinuityService.replaceRows');
+    expect(source).toContain('DesktopConversationContinuityService.editAndResend');
+    expect(source).toContain('DesktopConversationContinuityService.retryTurn');
+    expect(source).not.toContain('DesktopConversationContinuityService.replaceRows');
     expect(source).not.toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).not.toContain('DesktopConversationContinuityService.prepareRetryTurn');
-    expect(source).toContain('dispatchPreparedDesktopChatTurn');
+    expect(source).not.toContain('dispatchPreparedDesktopChatTurn');
     expect(source).toContain('buildReplayPreparationPayload');
     expect(source).toContain('buildReplayPendingTurn');
-    expect(source).toContain('buildPreparedReplayDesktopChatTurn');
+    expect(source).not.toContain('buildPreparedReplayDesktopChatTurn');
     expect(source).toContain('DesktopPendingTurnRuntimeClient.setPending');
     expect(source).toContain('findReplayEditableUserMessageIndex');
     expect(source).toContain('resolveReplayRetryMessageIndexes');

@@ -31,6 +31,14 @@ function createRuntime(overrides = {}) {
     compactHistory: jest.fn(async () => ({ compacted: true })),
     loadDisplayTimeline: jest.fn(async () => ({ rows: [] })),
     replaceRows: jest.fn(async input => ({ ...input, revisionId: 'rev-child' })),
+    editAndResend: jest.fn(async input => ({
+      turnRef: input.turnRef,
+      queryMessageId: 'msg-edit',
+    })),
+    retryTurn: jest.fn(async input => ({
+      turnRef: input.turnRef,
+      queryMessageId: 'msg-retry',
+    })),
     close: jest.fn(),
     ...overrides,
   };
@@ -336,6 +344,53 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
     });
   });
 
+  test('forwards SDK replay edit and retry commands through the selected conversation handle', async () => {
+    const runtime = createRuntime();
+    const agent = createAgent(() => runtime);
+    const adapter = createDirectWakeUpAgentAdapter({
+      agent,
+      deps: createDeps(),
+    });
+
+    await expect(adapter.editAndResend({
+      conversationRef: 'conv-replay',
+      messageId: 'row-user',
+      text: 'edited text',
+      turnRef: 'turn-edit',
+      payload: { screenshot_refs: ['artifact-one'] },
+      revisionId: 'rev-1',
+      store: { ignored: true },
+    })).resolves.toEqual({
+      turnRef: 'turn-edit',
+      queryMessageId: 'msg-edit',
+    });
+
+    await expect(adapter.retryTurn({
+      conversationRef: 'conv-replay',
+      messageId: 'row-assistant',
+      turnRef: 'turn-retry',
+      payload: { screenshot_ref: 'artifact-one' },
+      revisionId: 'rev-1',
+      store: { ignored: true },
+    })).resolves.toEqual({
+      turnRef: 'turn-retry',
+      queryMessageId: 'msg-retry',
+    });
+
+    expect(runtime.editAndResend).toHaveBeenCalledWith({
+      messageId: 'row-user',
+      text: 'edited text',
+      turnRef: 'turn-edit',
+      payload: { screenshot_refs: ['artifact-one'] },
+    });
+    expect(runtime.retryTurn).toHaveBeenCalledWith({
+      messageId: 'row-assistant',
+      turnRef: 'turn-retry',
+      payload: { screenshot_ref: 'artifact-one' },
+    });
+    expect(runtime.load).toHaveBeenCalledTimes(2);
+  });
+
   test('SDK library conversation methods reject removed snake_case conversation aliases', async () => {
     const runtime = createRuntime();
     const agent = createAgent(() => runtime);
@@ -357,6 +412,10 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       event: { conversation_ref: 'conv-legacy', type: 'message' },
     })).rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
     await expect(adapter.replaceRows({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.editAndResend({ conversation_ref: 'conv-legacy' }))
+      .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
+    await expect(adapter.retryTurn({ conversation_ref: 'conv-legacy' }))
       .rejects.toThrow('Agent SDK conversation commands require conversationRef; conversation_ref is not supported.');
 
     expect(agent.deleteConversation).not.toHaveBeenCalled();

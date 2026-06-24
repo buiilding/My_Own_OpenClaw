@@ -13,6 +13,8 @@ export const SDK_RUNTIME_COMMANDS = {
   CONVERSATION_LOAD_REHYDRATE: 'conversation.loadRehydrate',
   CONVERSATION_APPEND_EVENT: 'conversation.appendEvent',
   CONVERSATION_REPLACE_ROWS: 'conversation.replaceRows',
+  CONVERSATION_EDIT_AND_RESEND: 'conversation.editAndResend',
+  CONVERSATION_RETRY_TURN: 'conversation.retryTurn',
   CONVERSATION_REPLACE_COMPACTED_REPLAY: 'conversation.replaceCompactedReplay',
   CONVERSATION_GET_REVISION: 'conversation.getRevision',
   CONVERSATIONS_LIST: 'conversations.list',

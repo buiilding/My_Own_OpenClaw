@@ -6,6 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: route renderer edit/resend and Try again execution through
+  SDK `conversation.editAndResend` and `conversation.retryTurn` commands. The
+  renderer still publishes the temporary retained-prefix pending row for
+  responsiveness, but no longer constructs durable replacement rows, sends a
+  separate `conversation.send`, or best-effort stops old turns from React; the
+  SDK revision operation now owns replacement persistence, supersession, model
+  selection, and resend dispatch. No migration required.
 - frontend/renderer: gate edit/resend and try-again command rendering from SDK
   `ConversationView.actions` when a view exists. Copy and feedback actions
   remain renderer-local, row type still constrains which rows can show commands,

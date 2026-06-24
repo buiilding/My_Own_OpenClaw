@@ -41,6 +41,11 @@ export type {
   ConversationMetadataInvalidationListener,
 } from '../../../../../packages/windie-sdk-js/src/runtime/ConversationContinuityService.js';
 export type {
+  EditAndResendInput,
+  RetryTurnInput,
+  TurnResult,
+} from '../../../../../packages/windie-sdk-js/src/runtime/ConversationRuntime.js';
+export type {
   AgentModelSelection,
 } from '../../../../../packages/windie-sdk-js/src/settings/modelSelection.js';
 

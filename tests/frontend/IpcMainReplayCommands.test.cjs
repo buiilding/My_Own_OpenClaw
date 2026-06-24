@@ -33,6 +33,14 @@ describe('ipc.cjs replay command handling', () => {
         baseRevisionId: input.baseRevisionId,
         rows: input.rows,
       })),
+      editAndResend: jest.fn(async input => ({
+        turnRef: input.turnRef,
+        queryMessageId: 'msg-edit',
+      })),
+      retryTurn: jest.fn(async input => ({
+        turnRef: input.turnRef,
+        queryMessageId: 'msg-retry',
+      })),
       close: jest.fn(),
     };
     const agent = {
@@ -118,6 +126,64 @@ describe('ipc.cjs replay command handling', () => {
       baseRevisionId: 'rev-display',
       reason: 'retry',
       rows: [],
+    });
+  });
+
+  test('routes edit/resend and retry through the Agent SDK runtime adapter', async () => {
+    const sdk = installMockAgentClient();
+    const bridge = initIpc();
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.editAndResend',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        messageId: 'row-user',
+        text: 'edited text',
+        turnRef: 'turn-edit',
+        payload: { screenshot_refs: ['artifact-one'] },
+        model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
+      },
+    )).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        turnRef: 'turn-edit',
+        queryMessageId: 'msg-edit',
+      }),
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.retryTurn',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        messageId: 'row-assistant',
+        turnRef: 'turn-retry',
+        payload: { screenshot_ref: 'artifact-one' },
+        model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
+      },
+    )).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        turnRef: 'turn-retry',
+        queryMessageId: 'msg-retry',
+      }),
+    });
+
+    expect(sdk.runtime.editAndResend).toHaveBeenCalledWith({
+      messageId: 'row-user',
+      text: 'edited text',
+      turnRef: 'turn-edit',
+      payload: { screenshot_refs: ['artifact-one'] },
+      model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
+    });
+    expect(sdk.runtime.retryTurn).toHaveBeenCalledWith({
+      messageId: 'row-assistant',
+      turnRef: 'turn-retry',
+      payload: { screenshot_ref: 'artifact-one' },
+      model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
     });
   });
 });

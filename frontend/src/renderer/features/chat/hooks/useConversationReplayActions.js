@@ -18,14 +18,11 @@ import {
 import {
   DesktopConversationReplayRuntime,
 } from '../../../app/runtime/desktopConversationReplayRuntime';
-import { DesktopChatSendPreparationRuntime } from '../../../app/runtime/desktopChatSendPreparationRuntime';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
-import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 const {
-  buildPreparedReplayDesktopChatTurn,
   buildReplayMessagesWithPendingTurn,
   buildReplayPendingTurn,
   buildReplayContextMessages,
@@ -33,9 +30,6 @@ const {
   findReplayEditableUserMessageIndex,
   resolveReplayRetryMessageIndexes,
 } = DesktopConversationReplayRuntime;
-const {
-  dispatchPreparedDesktopChatTurn,
-} = DesktopChatSendPreparationRuntime;
 const {
   logRendererReplayTrace,
 } = DesktopRendererTraceRuntime;
@@ -164,69 +158,8 @@ function buildReplayAttachmentPayload(row) {
   return payload;
 }
 
-function buildReplayDisplayMetadataPayload(row) {
-  const metadata = {};
-  const rowMetadata = row?.metadata;
-  const attachments = displayAttachmentsFromRow(row);
-  if (attachments) {
-    metadata.attachments = attachments;
-  }
-  const screenshotRefs = stringArrayMetadataField(rowMetadata, 'screenshotRefs', 'screenshot_refs')
-    ?? (attachments
-      ? attachments.map(imageAttachmentArtifactRef).filter(Boolean)
-      : null);
-  if (screenshotRefs && screenshotRefs.length > 0) {
-    metadata.screenshot_refs = screenshotRefs;
-  }
-  const screenshotRef = rowMetadata?.screenshotRef
-    ?? rowMetadata?.screenshot_ref
-    ?? rowMetadata?.screenshot;
-  if (!metadata.screenshot_refs && typeof screenshotRef === 'string' && screenshotRef.trim()) {
-    metadata.screenshot_ref = screenshotRef.trim();
-  }
-  const screenshotUrl = rowMetadata?.screenshotUrl ?? rowMetadata?.screenshot_url;
-  if (typeof screenshotUrl === 'string' && screenshotUrl.trim()) {
-    metadata.screenshot_url = screenshotUrl.trim();
-  }
-  return Object.keys(metadata).length > 0 ? metadata : null;
-}
-
 function resolveReplayPendingAttachments(row, fallbackAttachments) {
   return displayAttachmentsFromRow(row) ?? fallbackAttachments ?? null;
-}
-
-function buildReplayReplacementUserRow({
-  attachments,
-  baseRevisionId,
-  content,
-  replacedRowId,
-  pendingTurn,
-  sourceRow,
-  timestamp,
-}) {
-  return {
-    ...sourceRow,
-    id: pendingTurn.userMessageId,
-    conversationRef: pendingTurn.conversationRef,
-    revisionId: baseRevisionId,
-    index: 0,
-    role: 'user',
-    type: 'user_message',
-    turnRef: pendingTurn.turnRef,
-    content,
-    metadata: {
-      ...(sourceRow?.metadata ?? {}),
-      eventId: pendingTurn.userMessageId,
-      replacedDisplayRowId: replacedRowId,
-      revisionId: baseRevisionId,
-      source: 'ui',
-      sourceEventType: 'renderer-compose',
-      timestamp,
-      ...(Array.isArray(attachments) && attachments.length > 0
-        ? { attachments }
-        : {}),
-    },
-  };
 }
 
 function buildReplaySourceUserRowFromMessage({
@@ -416,7 +349,10 @@ async function executeReplayAction({
       ...buildReplayAttachmentPayload(sourceUserRow),
       ...buildReplayPreparationPayload({ screenshotRef, screenshotUrl }),
     };
-    const replayMetadata = buildReplayDisplayMetadataPayload(sourceUserRow);
+    const sdkReplayPayload = {
+      ...replayPayload,
+      ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
+    };
     const replayStartedAt = new Date().toISOString();
     const replayAttachments = resolveReplayPendingAttachments(sourceUserRow, pendingAttachments);
     supersededTurnRef = (
@@ -431,76 +367,12 @@ async function executeReplayAction({
       text: queryText,
       timestamp: replayStartedAt,
     });
-    const replacementRows = [
-      ...rows.slice(0, userRowIndex),
-      buildReplayReplacementUserRow({
-        attachments: replayAttachments,
-        baseRevisionId: displayTimeline.revisionId,
-        content: queryText,
-        pendingTurn,
-        replacedRowId: sourceUserRow.metadata?.replacedDisplayRowId ?? sourceUserRow.id,
-        sourceRow: sourceUserRow,
-        timestamp: replayStartedAt,
-      }),
-    ];
-    logReplayTimeline('replace_rows_start', {
-      conversationRef,
-      oldTurnRef: supersededTurnRef,
-      newTurnRef: replayTurnRef,
-      replacementRowCount: replacementRows.length,
-      sourceRowCount: rows.length,
-      targetUserMessageId,
-    });
-    await DesktopConversationContinuityService.replaceRows({
-      userId: sessionInfo.userId,
-      conversationRef,
-      baseRevisionId: displayTimeline.revisionId,
-      reason: action === 'edit_resend' ? 'user_edit' : 'retry',
-      rows: replacementRows,
-    });
-    logReplayTimeline('replace_rows_done', {
-      conversationRef,
-      oldTurnRef: supersededTurnRef,
-      newTurnRef: replayTurnRef,
-      replacementRowCount: replacementRows.length,
-      sourceRowCount: rows.length,
-      targetUserMessageId,
-    });
     useChatStore.getState().acceptReplayPendingTurn({
       conversationRef,
       messages: buildReplayMessagesWithPendingTurn(replayMessages, pendingTurn),
       pendingTurn,
       supersededTurnRef,
     });
-    if (supersededTurnRef) {
-      logReplayTimeline('stop_old_sent', {
-        conversationRef,
-        oldTurnRef: supersededTurnRef,
-        newTurnRef: replayTurnRef,
-        stopAttempted: true,
-      });
-      void DesktopLiveTurnRuntimeClient.stop(conversationRef, supersededTurnRef)
-        .then(() => {
-          logReplayTimeline('stop_old_done', {
-            conversationRef,
-            oldTurnRef: supersededTurnRef,
-            newTurnRef: replayTurnRef,
-            stopAttempted: true,
-            stopSucceeded: true,
-          });
-        })
-        .catch((stopError) => {
-          logReplayTimeline('stop_old_failed', {
-            conversationRef,
-            oldTurnRef: supersededTurnRef,
-            newTurnRef: replayTurnRef,
-            stopAttempted: true,
-            stopSucceeded: false,
-            errorKind: traceErrorKind(stopError),
-          });
-          console.warn('[ChatInterface] Failed to stop superseded replay turn:', stopError);
-        });
-    }
     DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
     pendingTurnPublished = true;
     logReplayTimeline('pending_published', {
@@ -510,49 +382,55 @@ async function executeReplayAction({
       targetUserMessageId,
     });
     try {
-      logReplayTimeline('send_new_sent', {
+      logReplayTimeline('sdk_replay_sent', {
         conversationRef,
         oldTurnRef: supersededTurnRef,
         newTurnRef: replayTurnRef,
+        action,
         targetUserMessageId,
       });
-      await dispatchPreparedDesktopChatTurn(buildPreparedReplayDesktopChatTurn({
-        preparedReplayTurn: {
+      if (action === 'edit_resend') {
+        await DesktopConversationContinuityService.editAndResend({
+          userId: sessionInfo.userId,
           conversationRef,
+          messageId: targetUserMessageId,
           text: queryText,
-          payload: replayPayload,
-          metadata: replayMetadata,
-          model: deferredQueryModelSelection || null,
-          workspacePath: workspaceBinding.workspacePath || null,
           turnRef: replayTurnRef,
-        },
-        conversationRef,
-        deferredQueryModelSelection,
-        screenshotRef,
-        screenshotUrl,
-        sessionInfo,
-        workspacePath: workspaceBinding.workspacePath ?? null,
-      }));
-      logReplayTimeline('send_new_done', {
-        conversationRef,
-        oldTurnRef: supersededTurnRef,
-        newTurnRef: replayTurnRef,
-        sendSucceeded: true,
-        targetUserMessageId,
-      });
-    } catch (sendError) {
-      logReplayTimeline('send_new_failed', {
-        conversationRef,
-        oldTurnRef: supersededTurnRef,
-        newTurnRef: replayTurnRef,
-        sendSucceeded: false,
-        errorKind: traceErrorKind(sendError),
-        targetUserMessageId,
-      });
-      if (sendError && typeof sendError === 'object') {
-        sendError.__desktopRuntimeReplayStep = 'send';
+          payload: sdkReplayPayload,
+          model: deferredQueryModelSelection || undefined,
+        });
+      } else {
+        await DesktopConversationContinuityService.retryTurn({
+          userId: sessionInfo.userId,
+          conversationRef,
+          messageId,
+          turnRef: replayTurnRef,
+          payload: sdkReplayPayload,
+          model: deferredQueryModelSelection || undefined,
+        });
       }
-      throw sendError;
+      logReplayTimeline('sdk_replay_done', {
+        conversationRef,
+        oldTurnRef: supersededTurnRef,
+        newTurnRef: replayTurnRef,
+        action,
+        replaySucceeded: true,
+        targetUserMessageId,
+      });
+    } catch (sdkReplayError) {
+      logReplayTimeline('sdk_replay_failed', {
+        conversationRef,
+        oldTurnRef: supersededTurnRef,
+        newTurnRef: replayTurnRef,
+        action,
+        replaySucceeded: false,
+        errorKind: traceErrorKind(sdkReplayError),
+        targetUserMessageId,
+      });
+      if (sdkReplayError && typeof sdkReplayError === 'object') {
+        sdkReplayError.__desktopRuntimeReplayStep = 'send';
+      }
+      throw sdkReplayError;
     }
     return true;
   } catch (error) {

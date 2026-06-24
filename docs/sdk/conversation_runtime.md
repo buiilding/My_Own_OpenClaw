@@ -818,9 +818,9 @@ Edit/resend and retry are display revision operations:
 ```text
 load active display timeline
   -> choose target display user row
-  -> replace retained prefix plus the replacement user row as a child revision
-  -> publish retained prefix plus pending turn only after replaceRows succeeds
-  -> send replacement user message as a normal new turn
+  -> publish retained prefix plus pending turn as a temporary renderer bridge
+  -> SDK editAndResend/retryTurn replaces the retained prefix plus replacement user row
+  -> SDK send() sends the replacement user message as the same new turn
 ```
 
 The old raw event log remains intact for audit and diagnostics. The active
@@ -831,11 +831,15 @@ persisted in that child display checkpoint with the normal SDK user row id
 metadata pointer back to the original target. This means a repeated resend can
 still resolve the original row id while the later SDK send event dedupes into
 the already-persisted display row instead of appending a second user bubble.
-The renderer active path calls
-`conversation.loadDisplayTimeline`, `conversation.replaceRows`, then
-`conversation.send`; it does not call `prepareEditAndResend`,
-`prepareRetryTurn`, `conversation.rewrite_after_event`, or backend rehydrate as
-part of normal edit/retry preparation.
+The renderer active path calls `conversation.loadDisplayTimeline` only to
+resolve the current target/pending bridge, then calls
+`conversation.editAndResend` or `conversation.retryTurn`; it does not call
+`conversation.replaceRows`, a separate `conversation.send`,
+`prepareEditAndResend`, `prepareRetryTurn`, `conversation.rewrite_after_event`,
+or backend rehydrate as part of normal edit/retry execution. The SDK commands
+write the child display/model revision, emit supersession for old live work,
+apply model overrides, and dispatch the replacement through the normal
+`send()` path.
 
 Resource preservation comes from the target display row. Typed display
 attachments become the edited pending user row's visible `attachments[]` and
@@ -849,19 +853,23 @@ or null attachment fields must not erase prior resolved resources without an
 explicit removal operation.
 
 The Electron renderer publishes the retained replay prefix and `pendingTurn`
-as one visible frame only after `replaceRows` succeeds. A rejected display
-replacement must not pre-mutate visible rows or pending-turn state. Pending
-turn IPC preserves typed `attachments[]`; echoed pending-turn broadcasts from
-Electron main must no-op in a renderer that already owns the same pending user
-row, and SDK display-row echoes for that pending turn must keep the existing
-optimistic bubble until the turn is no longer pending. Replay pending user rows
-use the SDK replacement event id (`<turnRef>-sdk-evt-000002-user_message`) so
-the final `sdk:display-rows` projection updates the existing user bubble instead
-of remounting it.
+as one visible optimistic frame before awaiting the SDK revision command. If
+target resolution fails before the SDK command, the renderer keeps the parent
+transcript and appends a preparation error. If the SDK command fails after the
+pending bridge is visible, the renderer restores the retained prefix, clears
+only that pending turn, and appends a send-failure row. Pending turn IPC
+preserves typed `attachments[]`; echoed pending-turn broadcasts from Electron
+main must no-op in a renderer that already owns the same pending user row, and
+SDK display-row echoes for that pending turn must keep the existing optimistic
+bubble until the turn is no longer pending. Replay pending user rows use the SDK
+replacement event id (`<turnRef>-sdk-evt-000002-user_message`) so the final
+`sdk:display-rows` projection updates the existing user bubble instead of
+remounting it.
 
 Edit/resend can target a turn that is still awaiting or streaming. In that
 case the SDK treats the replacement as an active-turn handoff: once
-`replaceRows(...)` accepts the child display/model revision, it emits
+`editAndResend(...)` or `retryTurn(...)` accepts the child display/model
+revision, it emits
 `turn_superseded` for the old turn, deletes the old live authority locally,
 sends a best-effort stop for active old work, and then sends the replacement
 turn through the normal `send()` path. Main and renderer adapters consume the

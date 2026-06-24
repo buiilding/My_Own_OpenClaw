@@ -119,16 +119,17 @@ flowchart LR
      `legacyVisualAttachmentReplayAdapter`, the narrow old-row compatibility
      owner retained until a durable local-store migration rewrites those rows.
    - Local snapshots should not replace durable transcript storage unless the code explicitly uses them as a fallback.
-   - Edit/resend and try-again must load the active display timeline, replace
-     the prefix before the target user row as a child display revision, and
-     send the replacement text only after `replaceRows` succeeds. Do not
-     restore event-log cutting through `conversation.rewrite_after_event`, SDK
-     `prepareEditAndResend`, SDK `prepareRetryTurn`, or visible-row rollback
-     caused by preemptive renderer mutation.
-   - If send fails after `replaceRows` accepts the child revision, keep the
-     accepted child display timeline visible, clear only the pending turn, and
-     append a send-failure row. Do not restore the parent transcript after the
-     durable display revision has changed.
+   - Edit/resend and try-again must route execution through SDK
+     `conversation.editAndResend` and `conversation.retryTurn`. Renderer may
+     load the active display timeline only to resolve the temporary retained
+     prefix/pending bridge; it must not construct durable replacement rows,
+     call `conversation.replaceRows`, or dispatch a separate normal send for
+     replay execution.
+   - If the SDK replay command fails after the renderer publishes the pending
+     bridge, restore the retained prefix, clear only the pending turn, and
+     append a send-failure row. Do not restore event-log cutting through
+     `conversation.rewrite_after_event`, SDK `prepareEditAndResend`, SDK
+     `prepareRetryTurn`, or durable row replacement from React.
 
 5. Preserve model-history resume shape.
    - SDK `modelHistoryPayloadFromCheckpoint(...)` should emit

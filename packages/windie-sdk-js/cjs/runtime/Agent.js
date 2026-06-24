@@ -811,6 +811,22 @@ class Agent {
             store: store ?? this.defaultConversationStore,
         }).replaceRows(input);
     }
+    async editAndResend(options) {
+        const { conversationRef, revisionId, store, ...input } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId,
+            store: store ?? this.defaultConversationStore,
+        }).editAndResend(input);
+    }
+    async retryTurn(options) {
+        const { conversationRef, revisionId, store, ...input } = options;
+        return this.conversation({
+            conversationRef,
+            revisionId,
+            store: store ?? this.defaultConversationStore,
+        }).retry(input);
+    }
     async forkConversation(options) {
         const { conversationRef, revisionId, store, ...input } = options;
         return this.conversation({

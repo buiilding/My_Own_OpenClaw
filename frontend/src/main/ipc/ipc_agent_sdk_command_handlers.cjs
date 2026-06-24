@@ -22,6 +22,13 @@ function cloneJsonArray(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function cloneJsonObject(value) {
+  if (!isPlainObject(value)) {
+    return undefined;
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
@@ -351,6 +358,37 @@ function buildAgentSdkCommandHandlers({
         baseRevisionId: requireCommandString(payload, 'baseRevisionId', 'base revision id'),
         reason: requireCommandString(payload, 'reason', 'display replacement reason'),
         rows: cloneJsonArray(payload.rows),
+      });
+    },
+    [SDK_RUNTIME_COMMANDS.CONVERSATION_EDIT_AND_RESEND]: async (payload = {}) => {
+      requireCommandUserId(payload, deps.getState().currentUserId);
+      const conversationRef = requireCommandConversationRef(payload);
+      const runtimeRegistry = await deps.ensureAgent({
+        reason: 'sdk-command:conversation.editAndResend',
+        conversationRef,
+      });
+      return runtimeRegistry.editAndResend({
+        conversationRef,
+        messageId: requireCommandString(payload, 'messageId', 'message id'),
+        text: requireCommandString(payload, 'text', 'edited text'),
+        turnRef: normalizeOptionalString(payload.turnRef) ?? undefined,
+        payload: cloneJsonObject(payload.payload),
+        model: cloneJsonObject(payload.model),
+      });
+    },
+    [SDK_RUNTIME_COMMANDS.CONVERSATION_RETRY_TURN]: async (payload = {}) => {
+      requireCommandUserId(payload, deps.getState().currentUserId);
+      const conversationRef = requireCommandConversationRef(payload);
+      const runtimeRegistry = await deps.ensureAgent({
+        reason: 'sdk-command:conversation.retryTurn',
+        conversationRef,
+      });
+      return runtimeRegistry.retryTurn({
+        conversationRef,
+        messageId: normalizeOptionalString(payload.messageId) ?? undefined,
+        turnRef: normalizeOptionalString(payload.turnRef) ?? undefined,
+        payload: cloneJsonObject(payload.payload),
+        model: cloneJsonObject(payload.model),
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_COMPACTED_REPLAY]: async (payload = {}) => {

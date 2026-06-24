@@ -9,7 +9,6 @@ import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/c
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
-import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
 let mockRendererConfig = {
@@ -60,13 +59,14 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
       baseRevisionId: input.baseRevisionId,
       rows: input.rows,
     })),
-  },
-}));
-
-jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
-  DesktopLiveTurnRuntimeClient: {
-    sendQuery: jest.fn(async () => undefined),
-    stop: jest.fn(async () => undefined),
+    editAndResend: jest.fn(async (input) => ({
+      turnRef: input.turnRef,
+      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+    })),
+    retryTurn: jest.fn(async (input) => ({
+      turnRef: input.turnRef,
+      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+    })),
   },
 }));
 
@@ -83,8 +83,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
 
 const mockLoadDisplayTimeline = DesktopConversationContinuityService.loadDisplayTimeline;
 const mockReplaceRows = DesktopConversationContinuityService.replaceRows;
-const mockSendQuery = DesktopLiveTurnRuntimeClient.sendQuery;
-const mockStopTurn = DesktopLiveTurnRuntimeClient.stop;
+const mockEditAndResend = DesktopConversationContinuityService.editAndResend;
+const mockRetryTurn = DesktopConversationContinuityService.retryTurn;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession;
@@ -121,8 +121,14 @@ describe('useConversationReplayActions', () => {
       baseRevisionId: input.baseRevisionId,
       rows: input.rows,
     }));
-    mockSendQuery.mockResolvedValue(undefined);
-    mockStopTurn.mockResolvedValue(undefined);
+    mockEditAndResend.mockImplementation(async (input) => ({
+      turnRef: input.turnRef,
+      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+    }));
+    mockRetryTurn.mockImplementation(async (input) => ({
+      turnRef: input.turnRef,
+      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+    }));
     useChatStore.setState({ activeConversationRef: null });
   });
 
@@ -130,7 +136,7 @@ describe('useConversationReplayActions', () => {
     jest.restoreAllMocks();
   });
 
-  test('replaces display rows for retry and dispatches through live-turn send', async () => {
+  test('routes retry through the SDK retry command', async () => {
     const messages = [
       {
         id: 'user-1',
@@ -165,47 +171,26 @@ describe('useConversationReplayActions', () => {
     expect(mockGetTranscriptSessionInfo).toHaveBeenCalled();
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-existing', 'user-1');
     expect(mockLoadDisplayTimeline).toHaveBeenCalledWith('user-1', 'conv-existing');
-    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockReplaceRows).not.toHaveBeenCalled();
+    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
       userId: 'user-1',
-      baseRevisionId: 'rev-base',
-      reason: 'retry',
-      rows: [
-        expect.objectContaining({
-          content: 'first question',
-          role: 'user',
-          type: 'user_message',
-          turnRef: expect.any(String),
-          metadata: expect.objectContaining({
-            replacedDisplayRowId: 'user-1',
-            revisionId: 'rev-base',
-            sourceEventType: 'renderer-compose',
-          }),
-        }),
-      ],
-    }));
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
-      conversationRef: 'conv-existing',
-      text: 'first question',
+      messageId: 'assistant-1',
       turnRef: expect.any(String),
       model: {
         modelProvider: 'anthropic',
         modelId: 'claude-sonnet-4-5',
       },
     }));
-    expect(mockSendQuery).toHaveBeenCalledTimes(1);
+    expect(mockRetryTurn).toHaveBeenCalledTimes(1);
   });
 
-  test('retry replay waits for display replacement before publishing pending turn', async () => {
-    let resolveReplacement;
-    mockReplaceRows.mockImplementation((input) => new Promise((resolve) => {
-      resolveReplacement = () => resolve({
-        conversationRef: input.conversationRef,
-        revisionId: 'rev-child',
-        createdAt: '2026-06-22T12:01:00.000Z',
-        reason: input.reason,
-        baseRevisionId: input.baseRevisionId,
-        rows: input.rows,
+  test('retry replay publishes pending turn before the SDK command resolves', async () => {
+    let resolveRetry;
+    mockRetryTurn.mockImplementation((input) => new Promise((resolve) => {
+      resolveRetry = () => resolve({
+        turnRef: input.turnRef,
+        queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
       });
     }));
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('turn-replay-pending');
@@ -240,20 +225,21 @@ describe('useConversationReplayActions', () => {
       replayPromise = result.current.handleTryAgainFromAssistant('assistant-1');
     });
 
-    expect(useChatStore.getState().pendingTurn).toBeNull();
-    expect(mockSendQuery).not.toHaveBeenCalled();
-
-    await act(async () => {
-      resolveReplacement();
-      await replayPromise;
-    });
-
     expect(useChatStore.getState().pendingTurn).toEqual(expect.objectContaining({
       conversationRef: 'conv-existing',
       turnRef: 'turn-replay-pending',
       userMessageId: 'turn-replay-pending-sdk-evt-000002-user_message',
       text: 'first question',
     }));
+    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      turnRef: 'turn-replay-pending',
+    }));
+
+    await act(async () => {
+      resolveRetry();
+      await replayPromise;
+    });
+
     expect(IpcBridge.send).toHaveBeenCalledWith(expect.any(String), {
       type: 'pending',
       pendingTurn: expect.objectContaining({
@@ -261,9 +247,6 @@ describe('useConversationReplayActions', () => {
         userMessageId: 'turn-replay-pending-sdk-evt-000002-user_message',
       }),
     });
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
-      turnRef: 'turn-replay-pending',
-    }));
   });
 
   test('retry replay drops inline screenshots from query payloads', async () => {
@@ -296,18 +279,12 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-inline');
     });
 
-    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
-      reason: 'retry',
-      rows: [
-        expect.objectContaining({
-          content: 'question with inline screenshot',
-          metadata: expect.objectContaining({
-            replacedDisplayRowId: 'user-inline',
-          }),
-        }),
-      ],
+    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: 'assistant-inline',
+      payload: expect.not.objectContaining({
+        screenshot: expect.any(String),
+      }),
     }));
-    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('screenshot');
   });
 
   test('edit replay sends the selected user message id', async () => {
@@ -346,27 +323,12 @@ describe('useConversationReplayActions', () => {
       await result.current.handleEditFromUser('renderer-user-2', 'edited second question');
     });
 
-    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
-      baseRevisionId: 'rev-base',
-      reason: 'user_edit',
-      rows: [
-        expect.objectContaining({ id: 'renderer-user-1' }),
-        expect.objectContaining({ id: 'assistant-1' }),
-        expect.objectContaining({
-          content: 'edited second question',
-          role: 'user',
-          type: 'user_message',
-          turnRef: expect.any(String),
-          metadata: expect.objectContaining({
-            replacedDisplayRowId: 'renderer-user-2',
-            revisionId: 'rev-base',
-            sourceEventType: 'renderer-compose',
-          }),
-        }),
-      ],
-    }));
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-existing',
+      userId: 'user-1',
+      messageId: 'renderer-user-2',
       text: 'edited second question',
+      turnRef: expect.any(String),
     }));
   });
 
@@ -412,21 +374,14 @@ describe('useConversationReplayActions', () => {
       await result.current.handleEditFromUser('renderer-user-1', 'edited first question');
     });
 
-    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
-      reason: 'user_edit',
-      rows: [
-        expect.objectContaining({
-          id: 'turn-edited-user-sdk-evt-000002-user_message',
-          content: 'edited first question',
-          turnRef: 'turn-edited-user',
-          metadata: expect.objectContaining({
-            attachments: [screenshotAttachment],
-            replacedDisplayRowId: 'renderer-user-1',
-            revisionId: 'rev-base',
-            sourceEventType: 'renderer-compose',
-          }),
-        }),
-      ],
+    expect(mockReplaceRows).not.toHaveBeenCalled();
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: 'renderer-user-1',
+      text: 'edited first question',
+      turnRef: 'turn-edited-user',
+      payload: expect.objectContaining({
+        screenshot_refs: ['artifact-shot-ready'],
+      }),
     }));
     expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([
       expect.objectContaining({
@@ -444,13 +399,7 @@ describe('useConversationReplayActions', () => {
         expect.objectContaining({ id: 'assistant-1' }),
       ]),
     );
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
-      screenshotRefs: ['artifact-shot-ready'],
-      metadata: expect.objectContaining({
-        attachments: [screenshotAttachment],
-        screenshot_refs: ['artifact-shot-ready'],
-      }),
-    }));
+    expect(mockRetryTurn).not.toHaveBeenCalled();
   });
 
   test('edit replay supersedes an active renderer-local user turn before sdk display rows exist', async () => {
@@ -484,22 +433,12 @@ describe('useConversationReplayActions', () => {
       );
     });
 
-    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
-      reason: 'user_edit',
-      rows: [
-        expect.objectContaining({
-          id: 'turn-edited-active-sdk-evt-000002-user_message',
-          content: 'edited first question',
-          turnRef: 'turn-edited-active',
-          metadata: expect.objectContaining({
-            replacedDisplayRowId: 'turn-active-sdk-evt-000002-user_message',
-            revisionId: 'rev-base',
-            sourceEventType: 'renderer-compose',
-          }),
-        }),
-      ],
+    expect(mockReplaceRows).not.toHaveBeenCalled();
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: 'turn-active-sdk-evt-000002-user_message',
+      text: 'edited first question',
+      turnRef: 'turn-edited-active',
     }));
-    expect(mockStopTurn).toHaveBeenCalledWith('conv-existing', 'turn-active');
     expect(useChatStore.getState().getWorkspaceState('conv-existing')).toEqual(expect.objectContaining({
       pendingTurn: expect.objectContaining({
         turnRef: 'turn-edited-active',
@@ -568,17 +507,15 @@ describe('useConversationReplayActions', () => {
         attachments: [displayAttachment],
       }),
     ]);
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
-      screenshotRefs: ['artifact-display-one'],
-      attachmentFilenames: ['display-one.png'],
-      metadata: expect.objectContaining({
-        attachments: [displayAttachment],
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      payload: expect.objectContaining({
         screenshot_refs: ['artifact-display-one'],
+        attachment_filenames: ['display-one.png'],
       }),
     }));
   });
 
-  test('edit replay dispatches legacy display-row screenshot refs', async () => {
+  test('edit replay sends legacy display-row screenshot refs through SDK replay payload', async () => {
     const messages = [
       {
         id: 'renderer-user-legacy',
@@ -605,8 +542,10 @@ describe('useConversationReplayActions', () => {
       await result.current.handleEditFromUser('renderer-user-legacy', 'edited legacy question');
     });
 
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
-      screenshotRefs: ['artifact-legacy-one', 'artifact-legacy-two'],
+    expect(mockEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      payload: expect.objectContaining({
+        screenshot_refs: ['artifact-legacy-one', 'artifact-legacy-two'],
+      }),
     }));
   });
 
@@ -694,27 +633,48 @@ describe('useConversationReplayActions', () => {
       baseRevisionId: null,
       rows: mockDisplayTimelineRows,
     }));
-    mockReplaceRows.mockImplementation(async (input) => {
+    mockEditAndResend.mockImplementation(async (input) => {
       childRevisionIndex += 1;
       const revisionId = `rev-child-${childRevisionIndex}`;
       currentRevisionId = revisionId;
-      const rows = input.rows.map((row, index) => ({
+      const rows = [
+        {
+          id: `${input.turnRef}-sdk-evt-000002-user_message`,
+          conversationRef: input.conversationRef,
+          revisionId,
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          turnRef: input.turnRef,
+          content: input.text,
+          metadata: {
+            replacedDisplayRowId: input.messageId,
+            revisionId,
+            sourceEventType: 'renderer-compose',
+          },
+        },
+      ];
+      mockDisplayTimelineRows = rows;
+      return {
+        turnRef: input.turnRef,
+        queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+      };
+    });
+    mockRetryTurn.mockImplementation(async (input) => {
+      childRevisionIndex += 1;
+      const revisionId = `rev-child-${childRevisionIndex}`;
+      currentRevisionId = revisionId;
+      mockDisplayTimelineRows = mockDisplayTimelineRows.map((row, index) => ({
         ...row,
-        index,
         revisionId,
         metadata: {
           ...(row.metadata ?? {}),
           revisionId,
         },
       }));
-      mockDisplayTimelineRows = rows;
       return {
-        conversationRef: input.conversationRef,
-        revisionId,
-        createdAt: `2026-06-22T12:0${childRevisionIndex}:00.000Z`,
-        reason: input.reason,
-        baseRevisionId: input.baseRevisionId,
-        rows,
+        turnRef: input.turnRef,
+        queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
       };
     });
     const messages = [
@@ -747,30 +707,15 @@ describe('useConversationReplayActions', () => {
       await result.current.handleEditFromUser('renderer-user-1', 'edited first question');
     });
 
-    expect(mockReplaceRows).toHaveBeenCalledTimes(2);
-    expect(mockReplaceRows.mock.calls[0][0]).toEqual(expect.objectContaining({
-      baseRevisionId: 'rev-base',
-      rows: [
-        expect.objectContaining({
-          id: 'turn-overlap-one-sdk-evt-000002-user_message',
-          metadata: expect.objectContaining({
-            replacedDisplayRowId: 'renderer-user-1',
-          }),
-        }),
-      ],
+    expect(mockEditAndResend).toHaveBeenCalledTimes(2);
+    expect(mockEditAndResend.mock.calls[0][0]).toEqual(expect.objectContaining({
+      messageId: 'renderer-user-1',
+      turnRef: 'turn-overlap-one',
     }));
-    expect(mockReplaceRows.mock.calls[1][0]).toEqual(expect.objectContaining({
-      baseRevisionId: 'rev-child-1',
-      rows: [
-        expect.objectContaining({
-          id: 'turn-overlap-two-sdk-evt-000002-user_message',
-          metadata: expect.objectContaining({
-            replacedDisplayRowId: 'renderer-user-1',
-          }),
-        }),
-      ],
+    expect(mockEditAndResend.mock.calls[1][0]).toEqual(expect.objectContaining({
+      messageId: 'renderer-user-1',
+      turnRef: 'turn-overlap-two',
     }));
-    expect(mockSendQuery).toHaveBeenCalledTimes(2);
   });
 
   test('retry replay infers artifact refs from screenshot urls', async () => {
@@ -801,24 +746,16 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-url');
     });
 
-    expect(mockReplaceRows).toHaveBeenCalledWith(expect.objectContaining({
-      reason: 'retry',
-      rows: [
-        expect.objectContaining({
-          content: 'question with url screenshot',
-          metadata: expect.objectContaining({
-            replacedDisplayRowId: 'user-url',
-          }),
-        }),
-      ],
-    }));
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
-      screenshotRef: 'artifact-99',
-      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
+    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: 'assistant-url',
+      payload: expect.objectContaining({
+        screenshot_ref: 'artifact-99',
+        screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
+      }),
     }));
   });
 
-  test('retry replay dispatches display timeline multi-image refs and attachment filenames', async () => {
+  test('retry replay sends display timeline multi-image refs and attachment filenames through SDK', async () => {
     const messages = [
       {
         id: 'user-multi-image',
@@ -860,9 +797,11 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-multi-image');
     });
 
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
-      screenshotRefs: ['artifact-1', 'artifact-2'],
-      attachmentFilenames: ['one.png', 'two.png'],
+    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      payload: expect.objectContaining({
+        screenshot_refs: ['artifact-1', 'artifact-2'],
+        attachment_filenames: ['one.png', 'two.png'],
+      }),
     }));
   });
 
@@ -899,8 +838,7 @@ describe('useConversationReplayActions', () => {
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', undefined);
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', 'user-1');
-    expect(mockReplaceRows.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
-    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
+    expect(mockRetryTurn.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
   });
 
   test('retry replay reuses projected chat-store conversation ref when transcript session is empty', async () => {
@@ -935,13 +873,12 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-store-active', 'user-1');
-    expect(mockReplaceRows.mock.calls[0][0].conversationRef).toBe('conv-store-active');
-    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv-store-active');
+    expect(mockRetryTurn.mock.calls[0][0].conversationRef).toBe('conv-store-active');
   });
 
-  test('retry replay does not pre-mutate messages when display replacement rejects', async () => {
+  test('retry replay reverts pending messages when the SDK retry command rejects', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    mockReplaceRows.mockRejectedValue(new Error('retry rejected'));
+    mockRetryTurn.mockRejectedValue(new Error('retry rejected'));
     const messages = [
       {
         id: 'user-1',
@@ -962,11 +899,13 @@ describe('useConversationReplayActions', () => {
       },
     ];
     mockDisplayTimelineRows = timelineRowsFromMessages(messages);
-    const setMessages = jest.fn();
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    useChatStore.getState().clearMessages('conv-existing');
+    useChatStore.getState().setMessages(messages, 'conv-existing');
 
     const { result } = renderHook(() => useConversationReplayActions({
       messages,
-      setMessages,
+      setMessages: useChatStore.getState().setMessages,
       setThinkingStatus: jest.fn(),
       setThinkingSourceEventType: jest.fn(),
     }));
@@ -975,13 +914,19 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-1');
     });
 
-    expect(setMessages).not.toHaveBeenCalled();
+    expect(useChatStore.getState().getWorkspaceState('conv-existing').messages).toEqual([
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'error',
+        text: expect.stringContaining("Your message wasn't sent"),
+      }),
+    ]);
     errorSpy.mockRestore();
   });
 
-  test('retry replay appends a preparation error when continuity service rejects', async () => {
+  test('retry replay appends a preparation error when display timeline load rejects', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    mockReplaceRows.mockRejectedValue(new Error('retry rejected'));
+    mockLoadDisplayTimeline.mockRejectedValue(new Error('display load rejected'));
     const messages = [
       {
         id: 'user-1',
@@ -1024,9 +969,9 @@ describe('useConversationReplayActions', () => {
     errorSpy.mockRestore();
   });
 
-  test('retry replay appends the send failure error when live-turn dispatch rejects', async () => {
+  test('retry replay appends the send failure error when SDK retry rejects', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    mockSendQuery.mockRejectedValue(new Error('send rejected'));
+    mockRetryTurn.mockRejectedValue(new Error('send rejected'));
     const messages = [
       {
         id: 'user-1',

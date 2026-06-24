@@ -50,6 +50,8 @@ const mockUpdateSettings = jest.fn();
 const mockRewriteTranscriptProjection = jest.fn(async () => ({ entries: [], messages: [] }));
 const mockLoadDisplayTimeline = jest.fn();
 const mockReplaceRows = jest.fn();
+const mockEditAndResend = jest.fn();
+const mockRetryTurn = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockClearMessages = jest.fn();
 const mockSetMessages = jest.fn();
@@ -226,6 +228,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
     compactHistory: (...args) => mockCompactHistory(...args),
     loadDisplayTimeline: (...args) => mockLoadDisplayTimeline(...args),
     replaceRows: (...args) => mockReplaceRows(...args),
+    editAndResend: (...args) => mockEditAndResend(...args),
+    retryTurn: (...args) => mockRetryTurn(...args),
   },
 }));
 
@@ -319,6 +323,16 @@ describe('ChatInterface wiring', () => {
       reason: input.reason,
       baseRevisionId: input.baseRevisionId,
       rows: input.rows,
+    }));
+    mockEditAndResend.mockClear();
+    mockEditAndResend.mockImplementation(async (input) => ({
+      turnRef: input.turnRef,
+      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
+    }));
+    mockRetryTurn.mockClear();
+    mockRetryTurn.mockImplementation(async (input) => ({
+      turnRef: input.turnRef,
+      queryMessageId: `${input.turnRef}-sdk-evt-000002-user_message`,
     }));
     mockClearMessages.mockClear();
     mockSetMessages.mockClear();
@@ -2069,31 +2083,16 @@ describe('ChatInterface wiring', () => {
       }),
     }));
 
-    const retryPayload = mockReplaceRows.mock.calls[0]?.[0];
+    expect(mockReplaceRows).not.toHaveBeenCalled();
+    const retryPayload = mockRetryTurn.mock.calls[0]?.[0];
     expect(retryPayload).toEqual(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
-      baseRevisionId: 'rev-base',
-      reason: 'retry',
-      rows: [
-        expect.objectContaining({
-          id: 'turn-wiring-retry-sdk-evt-000002-user_message',
-          type: 'user_message',
-          role: 'user',
-          content: 'create a dashboard for this',
-          turnRef: 'turn-wiring-retry',
-          metadata: expect.objectContaining({
-            replacedDisplayRowId: 'user-1',
-            sourceEventType: 'renderer-compose',
-          }),
-        }),
-      ],
+      messageId: 'assistant-final',
+      turnRef: 'turn-wiring-retry',
     }));
     expect(retryPayload).not.toHaveProperty('projectionEntries');
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
-      conversationRef: 'conv_existing',
-      text: 'create a dashboard for this',
-    }));
+    expect(mockSendQuery).not.toHaveBeenCalled();
   });
 
   test('user edit rewinds assistant output and re-queries with edited text', async () => {
@@ -2131,31 +2130,17 @@ describe('ChatInterface wiring', () => {
       }),
     }));
 
-    const editPayload = mockReplaceRows.mock.calls[0]?.[0];
+    expect(mockReplaceRows).not.toHaveBeenCalled();
+    const editPayload = mockEditAndResend.mock.calls[0]?.[0];
     expect(editPayload).toEqual(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
-      baseRevisionId: 'rev-base',
-      reason: 'user_edit',
-      rows: [
-        expect.objectContaining({
-          id: 'turn-wiring-edit-sdk-evt-000002-user_message',
-          type: 'user_message',
-          role: 'user',
-          content: 'new prompt',
-          turnRef: 'turn-wiring-edit',
-          metadata: expect.objectContaining({
-            replacedDisplayRowId: 'user-1',
-            sourceEventType: 'renderer-compose',
-          }),
-        }),
-      ],
+      messageId: 'user-1',
+      text: 'new prompt',
+      turnRef: 'turn-wiring-edit',
     }));
     expect(editPayload).not.toHaveProperty('projectionEntries');
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
-      conversationRef: 'conv_existing',
-      text: 'new prompt',
-    }));
+    expect(mockSendQuery).not.toHaveBeenCalled();
   });
 
   test('command+f opens the find bar and focuses the search input', async () => {

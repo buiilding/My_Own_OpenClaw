@@ -162,6 +162,110 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
+  test('editAndResend routes replay edits through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          turnRef: 'turn-edit',
+          queryMessageId: 'msg-edit',
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.editAndResend({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        messageId: 'row-user',
+        text: 'edited text',
+        turnRef: 'turn-edit',
+        payload: { screenshot_refs: ['artifact-one'] },
+        model: {
+          modelProvider: 'anthropic',
+          modelId: 'claude-sonnet-4-5',
+        },
+      })).resolves.toEqual(expect.objectContaining({
+        turnRef: 'turn-edit',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.editAndResend',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          messageId: 'row-user',
+          text: 'edited text',
+          turnRef: 'turn-edit',
+          payload: { screenshot_refs: ['artifact-one'] },
+          model: {
+            modelProvider: 'anthropic',
+            modelId: 'claude-sonnet-4-5',
+          },
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('retryTurn routes replay retries through the SDK command bridge', async () => {
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(async () => ({
+        ok: true,
+        data: {
+          turnRef: 'turn-retry',
+          queryMessageId: 'msg-retry',
+        },
+      })),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await expect(DesktopConversationContinuityService.retryTurn({
+        userId: 'user-1',
+        conversationRef: 'conv-display',
+        messageId: 'row-assistant',
+        turnRef: 'turn-retry',
+        payload: { screenshot_ref: 'artifact-one' },
+        model: {
+          modelProvider: 'anthropic',
+          modelId: 'claude-sonnet-4-5',
+        },
+      })).resolves.toEqual(expect.objectContaining({
+        turnRef: 'turn-retry',
+      }));
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.retryTurn',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-display',
+          messageId: 'row-assistant',
+          turnRef: 'turn-retry',
+          payload: { screenshot_ref: 'artifact-one' },
+          model: {
+            modelProvider: 'anthropic',
+            modelId: 'claude-sonnet-4-5',
+          },
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
   test('compactHistory routes through the SDK runtime transport', async () => {
     const send = jest.fn();
     const originalIpc = window.ipc;
