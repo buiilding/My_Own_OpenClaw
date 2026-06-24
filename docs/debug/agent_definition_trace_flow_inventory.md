@@ -34,3 +34,4 @@ provider payloads, credentials, or local filesystem paths.
 | 16 | SDK durable turn trace | `agent_definition.sdk_flow` | `source_payload.snapshot` | Records source payload key count before resource and Agent definition enrichment. |
 | 17 | SDK durable turn trace | `agent_definition.sdk_flow` | `resources.resolve` | Records resource payload and metadata key counts after turn resource resolution. |
 | 18 | SDK durable turn trace | `agent_definition.sdk_flow` | `enrichment.apply` | Records enriched payload key count after memory/resource query enrichment. |
+| 19 | SDK durable turn trace | `agent_definition.sdk_flow` | `sdk_definition.detect` | Records whether the SDK-level Agent definition contributed to the turn. |
