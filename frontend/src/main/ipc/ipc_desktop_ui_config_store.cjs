@@ -3,6 +3,11 @@
  */
 
 const DEFAULT_MCP_ENABLED_CONFIG_KEY = 'agent_enabled_mcp_servers';
+const DEFAULT_PRESERVED_ABSENT_RENDERER_CONFIG_KEYS = Object.freeze([
+  'agent_custom_instructions',
+  'agent_disabled_local_tools',
+  'agent_disabled_remote_tools',
+]);
 
 function defaultIsValidConfigPayload(config) {
   return Boolean(config) && typeof config === 'object' && !Array.isArray(config);
@@ -21,6 +26,29 @@ function copyStringArray(value) {
     : null;
 }
 
+function hasOwnConfigKey(config, key) {
+  return Boolean(
+    config
+    && typeof config === 'object'
+    && !Array.isArray(config)
+    && Object.prototype.hasOwnProperty.call(config, key),
+  );
+}
+
+function copyPreservedConfigValue(config, key) {
+  if (!hasOwnConfigKey(config, key)) {
+    return undefined;
+  }
+  const value = config[key];
+  if (Array.isArray(value)) {
+    return value.filter((item) => typeof item === 'string');
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+}
+
 function createMcpEnablementTraceId({
   now = Date.now,
   random = Math.random,
@@ -30,6 +58,7 @@ function createMcpEnablementTraceId({
 
 function createDesktopUiConfigStoreRuntime({
   mcpEnabledConfigKey = DEFAULT_MCP_ENABLED_CONFIG_KEY,
+  preservedAbsentRendererConfigKeys = DEFAULT_PRESERVED_ABSENT_RENDERER_CONFIG_KEYS,
   loadDesktopUiConfigFromDisk = async () => null,
   loadDesktopUiConfigFromDiskSync = () => null,
   saveDesktopUiConfigToDisk = async () => ({ success: false, error: 'Missing save helper' }),
@@ -100,18 +129,52 @@ function createDesktopUiConfigStoreRuntime({
     return 'none';
   }
 
-  function preserveMainOwnedFields(config, options = {}) {
-    if (!isValidConfigPayload(config) || options.preserveMcpEnablement === false) {
+  function preserveAbsentRendererConfigFields(config, sourceConfig) {
+    if (!isValidConfigPayload(config) || !isValidConfigPayload(sourceConfig)) {
       return config;
     }
+    const nextConfig = cloneConfig(config);
+    preservedAbsentRendererConfigKeys.forEach((key) => {
+      if (hasOwnConfigKey(nextConfig, key)) {
+        return;
+      }
+      const sourceValue = copyPreservedConfigValue(sourceConfig, key);
+      if (sourceValue !== undefined) {
+        nextConfig[key] = sourceValue;
+      }
+    });
+    return nextConfig;
+  }
+
+  function preserveMainOwnedFields(config, options = {}) {
+    if (!isValidConfigPayload(config)) {
+      return config;
+    }
+    let nextConfig = cloneConfig(config);
+    if (options.preserveAbsentRendererConfig !== false) {
+      nextConfig = preserveAbsentRendererConfigFields(nextConfig, currentConfig);
+    }
+
+    const needsDiskPreserve = (
+      options.preserveAbsentRendererConfig !== false
+      && !currentConfig
+      && preservedAbsentRendererConfigKeys.some((key) => !hasOwnConfigKey(nextConfig, key))
+    );
     const latestEnabled = copyStringArray(currentConfig?.[mcpEnabledConfigKey]);
-    const diskConfig = latestEnabled ? null : loadDiskConfigSync();
+    const diskConfig = (latestEnabled && !needsDiskPreserve) ? null : loadDiskConfigSync();
+    if (options.preserveAbsentRendererConfig !== false && diskConfig) {
+      nextConfig = preserveAbsentRendererConfigFields(nextConfig, diskConfig);
+    }
+
+    if (options.preserveMcpEnablement === false) {
+      return nextConfig;
+    }
     const enabledMcpServers = latestEnabled || copyStringArray(diskConfig?.[mcpEnabledConfigKey]);
     if (!enabledMcpServers) {
-      return cloneConfig(config);
+      return nextConfig;
     }
     return {
-      ...cloneConfig(config),
+      ...nextConfig,
       [mcpEnabledConfigKey]: enabledMcpServers,
     };
   }

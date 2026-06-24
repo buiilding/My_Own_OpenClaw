@@ -12,6 +12,13 @@ All notable changes to WindieOS will be documented in this file.
   persisted Agent prompt/tool settings now override startup defaults on the
   next turn instead of restoring the handshake local-tool schemas. No migration
   required.
+- frontend/main, frontend/renderer: preserve absent Agent prompt/tool-policy
+  fields when stale partial renderer config payloads refresh the Electron-main
+  desktop UI config store, while still allowing explicit empty values to clear
+  those settings. Dashboard workspace grouping now accepts both SDK camelCase
+  and local-runtime snake_case workspace metadata, so chats with a selected
+  workspace no longer appear under the no-workspace bucket. No migration
+  required.
 - skills: add a runtime tracing skill that documents when to use durable
   conversation traces, persistent app diagnostics, or gated live-surface traces
   for repeatable long-running agent loop evidence. No migration required.

@@ -129,6 +129,11 @@ Behavior:
   has not hydrated that key yet
 - explicit MCP enablement toggles disable that preservation so the toggle result
   is the persisted source of truth
+- renderer saves and settings-sync updates preserve absent Agent prompt and
+  tool-policy fields (`agent_custom_instructions`,
+  `agent_disabled_local_tools`, and `agent_disabled_remote_tools`) from the live
+  store, or from disk only before the store has hydrated. Explicit empty strings
+  or arrays still clear those fields.
 - provider secrets are redacted before the disk save helper is called
 - the main-process config store advances with the redacted, persistable config
   before awaiting disk save, so query-local agent-definition context sees

@@ -81,23 +81,41 @@ function getDashboardSearchSnippetDisplayText(item) {
   return `${prefix}${snippetText}`;
 }
 
-function normalizeWorkspaceGroupKey(conversation) {
+function normalizeConversationWorkspacePath(conversation) {
   const workspacePath = typeof conversation?.workspace_path === 'string'
     ? conversation.workspace_path.trim()
     : '';
-  return workspacePath || '__no_workspace__';
+  if (workspacePath) {
+    return workspacePath;
+  }
+  return typeof conversation?.workspacePath === 'string'
+    ? conversation.workspacePath.trim()
+    : '';
 }
 
-function normalizeWorkspaceGroupTitle(conversation) {
+function normalizeConversationWorkspaceName(conversation) {
   const workspaceName = typeof conversation?.workspace_name === 'string'
     ? conversation.workspace_name.trim()
     : '';
   if (workspaceName) {
     return workspaceName;
   }
-  const workspacePath = typeof conversation?.workspace_path === 'string'
-    ? conversation.workspace_path.trim()
+  return typeof conversation?.workspaceName === 'string'
+    ? conversation.workspaceName.trim()
     : '';
+}
+
+function normalizeWorkspaceGroupKey(conversation) {
+  const workspacePath = normalizeConversationWorkspacePath(conversation);
+  return workspacePath || '__no_workspace__';
+}
+
+function normalizeWorkspaceGroupTitle(conversation) {
+  const workspaceName = normalizeConversationWorkspaceName(conversation);
+  if (workspaceName) {
+    return workspaceName;
+  }
+  const workspacePath = normalizeConversationWorkspacePath(conversation);
   if (!workspacePath) {
     return 'No workspace';
   }
@@ -173,12 +191,11 @@ function buildWorkspaceConversationGroups(conversations, options = {}) {
     };
 
     if (!groupsByKey.has(groupKey)) {
+      const workspacePath = normalizeConversationWorkspacePath(conversation);
       groupsByKey.set(groupKey, {
         key: groupKey,
         title: normalizeWorkspaceGroupTitle(conversation),
-        workspacePath: typeof conversation?.workspace_path === 'string'
-          ? conversation.workspace_path.trim()
-          : '',
+        workspacePath,
         items: [],
         hasPinnedConversation: false,
         latestTimestampValue: item.timestampValue,

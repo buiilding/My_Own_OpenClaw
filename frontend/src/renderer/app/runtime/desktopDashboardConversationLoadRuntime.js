@@ -24,16 +24,16 @@ function normalizeOptionalString(value) {
 
 function metadataToDashboardConversation(metadata) {
   return {
-    conversation_id: metadata?.conversationRef,
+    conversation_id: metadata?.conversationRef || metadata?.conversation_id,
     record_kind: 'chat_event',
-    title: metadata?.title || metadata?.conversationRef || '',
-    last_message: metadata?.lastMessage || '',
-    last_timestamp: metadata?.updatedAt || '',
-    entry_count: metadata?.eventCount || 0,
-    workspace_path: metadata?.workspacePath || '',
-    workspace_name: metadata?.workspaceName || '',
+    title: metadata?.title || metadata?.conversationRef || metadata?.conversation_id || '',
+    last_message: metadata?.lastMessage || metadata?.last_message || '',
+    last_timestamp: metadata?.updatedAt || metadata?.last_timestamp || '',
+    entry_count: metadata?.eventCount || metadata?.entry_count || 0,
+    workspace_path: metadata?.workspacePath || metadata?.workspace_path || '',
+    workspace_name: metadata?.workspaceName || metadata?.workspace_name || '',
     snippet: metadata?.snippet || '',
-    matched_role: metadata?.matchedRole || '',
+    matched_role: metadata?.matchedRole || metadata?.matched_role || '',
   };
 }
 

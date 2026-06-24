@@ -32,7 +32,9 @@ this page.
 
 - Agent settings edited in the renderer must update Electron main's redacted
   desktop UI config store before the next query attaches `agent_definition`;
-  disk persistence is not allowed to be the live-turn gate.
+  disk persistence is not allowed to be the live-turn gate, and partial renderer
+  config payloads must not erase absent Agent prompt/tool-policy fields from
+  the live store.
 - Selected chat models must be applied before inference starts: normal sends and
   manual compaction await the SDK settings ACK, while retry/edit replay carries
   the model through Electron main into SDK `agent.run(..., { model })` options.

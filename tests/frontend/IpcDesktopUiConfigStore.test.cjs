@@ -164,6 +164,82 @@ describe('ipc_desktop_ui_config_store', () => {
     }));
   });
 
+  test('preserves absent agent query settings from the live store while saving partial renderer config', async () => {
+    const { runtime, saveDesktopUiConfigToDisk } = createHarness({
+      initial: {
+        agent_custom_instructions: 'Use the saved agent prompt.',
+        agent_disabled_local_tools: ['mouse_control', 'keyboard_control'],
+        agent_disabled_remote_tools: ['web_search'],
+      },
+    });
+
+    await expect(runtime.persist({
+      model_provider: 'scripted',
+    })).resolves.toEqual({ success: true });
+
+    expect(saveDesktopUiConfigToDisk).toHaveBeenCalledWith({
+      model_provider: 'scripted',
+      agent_custom_instructions: 'Use the saved agent prompt.',
+      agent_disabled_local_tools: ['mouse_control', 'keyboard_control'],
+      agent_disabled_remote_tools: ['web_search'],
+    }, expect.any(Function));
+    expect(runtime.getSnapshot()).toEqual(expect.objectContaining({
+      model_provider: 'scripted',
+      agent_custom_instructions: 'Use the saved agent prompt.',
+      agent_disabled_local_tools: ['mouse_control', 'keyboard_control'],
+      agent_disabled_remote_tools: ['web_search'],
+    }));
+  });
+
+  test('preserves absent agent query settings from disk when renderer config arrives before hydration', async () => {
+    const { deps, runtime, saveDesktopUiConfigToDisk } = createHarness({
+      disk: {
+        agent_custom_instructions: 'Persisted prompt.',
+        agent_disabled_local_tools: ['screenshot'],
+        agent_disabled_remote_tools: ['web_search'],
+      },
+    });
+
+    await expect(runtime.persist({
+      selected_model_id: 'scripted-runtime',
+    })).resolves.toEqual({ success: true });
+
+    expect(deps.loadDesktopUiConfigFromDiskSync).toHaveBeenCalled();
+    expect(saveDesktopUiConfigToDisk).toHaveBeenCalledWith({
+      selected_model_id: 'scripted-runtime',
+      agent_custom_instructions: 'Persisted prompt.',
+      agent_disabled_local_tools: ['screenshot'],
+      agent_disabled_remote_tools: ['web_search'],
+    }, expect.any(Function));
+  });
+
+  test('allows renderer config to explicitly clear agent query settings', async () => {
+    const { runtime, saveDesktopUiConfigToDisk } = createHarness({
+      initial: {
+        agent_custom_instructions: 'Use the saved agent prompt.',
+        agent_disabled_local_tools: ['mouse_control'],
+        agent_disabled_remote_tools: ['web_search'],
+      },
+    });
+
+    await expect(runtime.persist({
+      agent_custom_instructions: '',
+      agent_disabled_local_tools: [],
+      agent_disabled_remote_tools: [],
+    })).resolves.toEqual({ success: true });
+
+    expect(saveDesktopUiConfigToDisk).toHaveBeenCalledWith({
+      agent_custom_instructions: '',
+      agent_disabled_local_tools: [],
+      agent_disabled_remote_tools: [],
+    }, expect.any(Function));
+    expect(runtime.getSnapshot()).toEqual(expect.objectContaining({
+      agent_custom_instructions: '',
+      agent_disabled_local_tools: [],
+      agent_disabled_remote_tools: [],
+    }));
+  });
+
   test('does not preserve MCP enablement for explicit MCP toggle persistence', async () => {
     const { deps, runtime, saveDesktopUiConfigToDisk } = createHarness({
       initial: {

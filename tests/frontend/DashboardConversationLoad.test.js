@@ -63,6 +63,28 @@ describe('desktopDashboardConversationLoadRuntime', () => {
     expect(metadataListToDashboardConversations(null)).toEqual([]);
   });
 
+  test('metadataToDashboardConversation accepts local-runtime snake_case workspace rows', () => {
+    expect(metadataToDashboardConversation({
+      conversation_id: 'conv-2',
+      title: '',
+      last_message: 'stored reply',
+      last_timestamp: '2026-06-19T13:00:00.000Z',
+      entry_count: 3,
+      workspace_path: '/work/project-beta',
+      workspace_name: '',
+      matched_role: 'user',
+    })).toEqual(expect.objectContaining({
+      conversation_id: 'conv-2',
+      title: 'conv-2',
+      last_message: 'stored reply',
+      last_timestamp: '2026-06-19T13:00:00.000Z',
+      entry_count: 3,
+      workspace_path: '/work/project-beta',
+      workspace_name: '',
+      matched_role: 'user',
+    }));
+  });
+
   test('normalizeRecentConversations filters missing ids and sorts newest first', () => {
     const list = normalizeRecentConversations([
       { conversation_id: 'c-old', last_timestamp: '2024-01-01T00:00:00Z' },

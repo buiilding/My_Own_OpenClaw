@@ -137,6 +137,26 @@ describe('conversationGroups', () => {
     }));
   });
 
+  test('groups SDK camelCase workspace metadata under the selected workspace', () => {
+    const groups = buildWorkspaceConversationGroups([
+      {
+        conversation_id: 'project-alpha-1',
+        title: 'Project Alpha issue',
+        workspacePath: '/work/project-alpha',
+        workspaceName: '',
+        last_timestamp: isoDaysAgo(0),
+      },
+    ]);
+
+    expect(groups).toEqual([
+      expect.objectContaining({
+        key: '/work/project-alpha',
+        title: 'project-alpha',
+        workspacePath: '/work/project-alpha',
+      }),
+    ]);
+  });
+
   test('sorts workspace groups with pinned conversations before newer unpinned groups', () => {
     const groups = buildWorkspaceConversationGroups([
       {
