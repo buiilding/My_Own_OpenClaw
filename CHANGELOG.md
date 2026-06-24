@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: add the SDK View Authority migration plan for introducing
+  `ConversationView` beside current UI state, migrating response overlay, pill,
+  dashboard, edit/resend, and fork surfaces one at a time, and deleting
+  renderer/main reconciliation paths as each surface becomes SDK-owned. No
+  migration required.
 - frontend/renderer: enrich gated response-overlay view-model diagnostics with
   pending-turn, stream-tracking, and visible-lifecycle identifiers/counts so
   resend and streaming surface races can be inspected without logging message
