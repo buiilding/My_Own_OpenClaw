@@ -41,6 +41,9 @@ Control placement:
 - light appearance routes browser, workspace, selector chevrons, search, and
   speech header controls through the active appearance foreground so the top bar
   matches native desktop body text rather than pale slate or accent-blue labels.
+- light appearance keeps the conversation-find active icon and find panel on
+  appearance-derived light utility surfaces instead of the accent-heavy active
+  fill or dark panel gradient used by the dark theme.
 
 ## Message Stream and Bubble Contract
 

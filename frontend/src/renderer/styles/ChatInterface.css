@@ -16,6 +16,9 @@
   --chat-utility-surface-shadow:
     0 18px 46px rgba(0, 0, 0, 0.34),
     0 0 24px -16px rgba(0, 122, 255, 0.46);
+  --chat-top-icon-active-bg: var(--chat-utility-surface-bg-active);
+  --chat-top-icon-active-border: var(--chat-utility-surface-border-strong);
+  --chat-top-icon-active-shadow: var(--chat-utility-surface-shadow);
   --chat-utility-text-primary: rgba(248, 250, 252, 0.94);
   --chat-utility-text-secondary: rgba(226, 232, 240, 0.7);
   --chat-utility-text-muted: rgba(226, 232, 240, 0.52);
@@ -53,6 +56,11 @@
   --chat-utility-surface-shadow:
     0 12px 28px rgba(15, 23, 42, 0.08),
     0 0 22px -18px var(--agent-accent-glow);
+  --chat-top-icon-active-bg: color-mix(in srgb, var(--appearance-background) 88%, var(--appearance-foreground) 12%);
+  --chat-top-icon-active-border: color-mix(in srgb, var(--appearance-foreground) 24%, transparent 76%);
+  --chat-top-icon-active-shadow:
+    0 10px 22px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
   --chat-utility-text-primary: var(--appearance-foreground);
   --chat-utility-text-secondary: var(--appearance-foreground);
   --chat-utility-text-muted: color-mix(in srgb, var(--appearance-foreground) 72%, var(--appearance-background) 28%);
@@ -67,6 +75,12 @@
   --user-message-editor-btn-bg: color-mix(in srgb, var(--appearance-background) 86%, var(--appearance-foreground) 14%);
   --user-message-editor-btn-hover-bg: color-mix(in srgb, var(--appearance-background) 78%, var(--appearance-foreground) 22%);
   --user-message-editor-btn-text: var(--appearance-foreground);
+  --chat-utility-panel-bg:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--appearance-background) 96%, var(--appearance-foreground) 4%) 0%,
+      color-mix(in srgb, var(--appearance-background) 92%, var(--appearance-foreground) 8%) 100%
+    );
 }
 
 .chat-header {
@@ -656,13 +670,14 @@
 }
 
 .chat-top-icon-btn.is-enabled {
-  background: var(--chat-utility-surface-bg-active);
-  border-color: var(--chat-utility-surface-border-strong);
+  background: var(--chat-top-icon-active-bg);
+  border-color: var(--chat-top-icon-active-border);
   color: var(--chat-utility-text-primary);
+  box-shadow: var(--chat-top-icon-active-shadow);
 }
 
 .chat-top-icon-btn.is-enabled:hover {
-  background: var(--chat-utility-surface-bg-active);
+  background: var(--chat-top-icon-active-bg);
   color: var(--chat-utility-text-primary);
 }
 

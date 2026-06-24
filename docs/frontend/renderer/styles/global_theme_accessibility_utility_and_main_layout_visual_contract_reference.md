@@ -62,6 +62,9 @@ Light-mode readability:
   or translucent desktop surfaces
 - chat header utility controls also route their light-mode text and labels
   through the same foreground token
+- chat header conversation-find active icon and find panel use light
+  appearance-derived surfaces, so opening search does not introduce a dark panel
+  or an accent-heavy square button on the light dashboard
 - the minimal chat pill close badge routes through the same foreground token in
   light appearance so the close affordance remains readable on the light close
   bump
