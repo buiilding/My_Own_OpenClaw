@@ -81,6 +81,7 @@ describe('ipc_live_turn_state', () => {
     expect(mainSource).toContain('createIpcLiveTurnState()');
     expect(mainSource).toContain('liveTurnState.getLatestCurrentTurn()');
     expect(mainSource).toContain('liveTurnState.setLatestCurrentTurn(');
+    expect(mainSource).toContain('getLatestConversationView: () => liveTurnState.getLatestConversationView()');
     expect(mainSource).toContain('liveTurnState.getLatestConversationView()');
     expect(mainSource).toContain('liveTurnState.setLatestConversationView(');
     expect(mainSource).toContain('liveTurnState.getLatestPendingTurn()');

@@ -155,6 +155,7 @@ const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'AgentSdkConversationRuntime.test.ts',
   'AgentSdkCjsConversationRuntime.test.cjs',
   'ConversationRuntimeProjectionStream.test.ts',
+  'IpcRendererWindows.test.cjs',
   'IpcMainSdkRuntimeBoundary.test.cjs',
   'IpcDirectWakeUpAgentAdapter.test.cjs',
   'IpcPendingTurnHandlers.test.cjs',

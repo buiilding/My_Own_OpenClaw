@@ -251,6 +251,10 @@ chat store or consumes it as a normal UI authority; cross-surface live state
 comes from `latestConversationView`, while per-workspace current-turn
 projections remain only the temporary no-view bridge for unmigrated/pre-view
 snapshots and diagnostics.
+Electron main also hydrates newly tracked renderer windows with the cached
+`ConversationView` on the `windie:current-turn` envelope, so renderer reloads
+enter the same view-owned path as live runtime updates instead of starting from
+a raw current-turn-only sync.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.

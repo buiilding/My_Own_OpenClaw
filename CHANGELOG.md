@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: hydrate newly tracked renderer windows with the cached
+  `ConversationView` on the `windie:current-turn` envelope. Fresh renderer
+  loads now enter the same view-owned live surface path as normal SDK runtime
+  updates, with raw current-turn included only as payload context. No migration
+  required.
 - frontend/renderer: route dashboard thread live rows through
   `ConversationView.liveTurn.entries` whenever a view is present. The
   dashboard transcript still renders `view.displayRows`, but stale raw

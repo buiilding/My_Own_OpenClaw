@@ -663,6 +663,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('createIpcLiveTurnState()');
     expect(source).toContain('liveTurnState.getLatestCurrentTurn()');
     expect(source).toContain('liveTurnState.setLatestCurrentTurn(');
+    expect(source).toContain('getLatestConversationView: () => liveTurnState.getLatestConversationView()');
     expect(source).toContain('liveTurnState.getLatestConversationView()');
     expect(source).toContain('liveTurnState.setLatestConversationView(');
     expect(source).toContain('liveTurnState.getLatestPendingTurn()');

@@ -343,6 +343,7 @@ const ipcEventReplayState = createIpcEventReplayState();
 const rendererWindowRuntime = createRendererWindowRuntime({
   getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
   getLatestCurrentTurn: () => liveTurnState.getLatestCurrentTurn(),
+  getLatestConversationView: () => liveTurnState.getLatestConversationView(),
   getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
   getReplayEvents: () => ipcEventReplayState.snapshot(),
   buildConversationEvent: (event) => conversationEventProjectionRuntime.build(event),
