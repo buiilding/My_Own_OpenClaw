@@ -32,7 +32,6 @@ function createCommands(overrides = {}) {
 }
 
 describe('ipc_agent_sdk_runtime_commands', () => {
-  const retiredBackendPayloadName = ['backend', 'Payload'].join('');
   const retiredFactorySignature = `function ${['createAgentSdkRuntime', 'Commands'].join('')}(`;
 
   test('sends query payloads through Agent SDK runtime with resources and metadata separated', async () => {
@@ -53,16 +52,27 @@ describe('ipc_agent_sdk_runtime_commands', () => {
       conversationRef: 'conversation-1',
       workspacePath: '/repo/workspace',
     });
-    expect(deps.agent.run).toHaveBeenCalledWith({
+    const queryInput = deps.agent.run.mock.calls[0][0];
+    expect(queryInput).toEqual({
       text: 'hello',
+      conversationRef: 'conversation-1',
       turnRef: 'turn-1',
-      payload: {
+      backendPayload: {
         text: 'hello',
         conversation_ref: 'conversation-1',
       },
+      agentDefinition: undefined,
+      content: undefined,
+      screenshotRef: undefined,
+      screenshotRefs: undefined,
+      attachmentContext: undefined,
+      attachmentFilenames: undefined,
+      systemStateInternal: undefined,
+      workspacePath: undefined,
       resources: [{ type: 'file', id: 'file-1' }],
       metadata: { source: 'renderer' },
     });
+    expect(queryInput).not.toHaveProperty('payload');
   });
 
   test('passes renderer model override through SDK run options instead of backend payload', async () => {
@@ -82,11 +92,20 @@ describe('ipc_agent_sdk_runtime_commands', () => {
 
     expect(deps.agent.run).toHaveBeenCalledWith({
       text: 'use selected model',
+      conversationRef: 'conversation-1',
       turnRef: 'turn-model',
-      payload: {
+      backendPayload: {
         text: 'use selected model',
         conversation_ref: 'conversation-1',
       },
+      agentDefinition: undefined,
+      content: undefined,
+      screenshotRef: undefined,
+      screenshotRefs: undefined,
+      attachmentContext: undefined,
+      attachmentFilenames: undefined,
+      systemStateInternal: undefined,
+      workspacePath: undefined,
       resources: undefined,
       metadata: undefined,
     }, {
@@ -95,6 +114,42 @@ describe('ipc_agent_sdk_runtime_commands', () => {
         modelId: 'scripted-runtime',
       },
     });
+  });
+
+  test('maps renderer agent settings onto SDK query input fields consumed by backend dispatch', async () => {
+    const { commands, deps } = createCommands();
+    const agentDefinition = {
+      system_prompt: 'Use the saved prompt.',
+      tools: [{ name: 'web_search', enabled: false }],
+    };
+
+    await expect(commands.sendQueryThroughAgentSdkRuntime({
+      messageId: 'turn-agent-settings',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conversation-1',
+        agent_definition: agentDefinition,
+        content: 'hello',
+        screenshot_ref: 'screenshot-1',
+        screenshot_refs: ['screenshot-1'],
+        attachment_context: 'attachment summary',
+        attachment_filenames: ['notes.txt'],
+        system_state_internal: { platform: 'darwin' },
+        workspace_path: '/repo/workspace',
+      },
+    })).resolves.toBe('query-1');
+
+    const queryInput = deps.agent.run.mock.calls[0][0];
+    expect(queryInput.agentDefinition).toEqual(agentDefinition);
+    expect(queryInput.backendPayload.agent_definition).toEqual(agentDefinition);
+    expect(queryInput.content).toBe('hello');
+    expect(queryInput.screenshotRef).toBe('screenshot-1');
+    expect(queryInput.screenshotRefs).toEqual(['screenshot-1']);
+    expect(queryInput.attachmentContext).toBe('attachment summary');
+    expect(queryInput.attachmentFilenames).toEqual(['notes.txt']);
+    expect(queryInput.systemStateInternal).toEqual({ platform: 'darwin' });
+    expect(queryInput.workspacePath).toBe('/repo/workspace');
+    expect(queryInput).not.toHaveProperty('payload');
   });
 
   test('logs and returns null when query dispatch fails', async () => {
@@ -175,7 +230,8 @@ describe('ipc_agent_sdk_runtime_commands', () => {
     expect(helperSource).toContain('function createAgentSdkRuntimeCommandsRuntime');
     expect(helperSource).not.toContain(retiredFactorySignature);
     expect(helperSource).toContain('runtimeCommandPayload');
-    expect(helperSource).not.toContain(retiredBackendPayloadName);
+    expect(helperSource).toContain('backendPayload: runtimeCommandPayload');
+    expect(helperSource).not.toContain('payload: runtimeCommandPayload');
     expect(helperSource).toContain('agent.stop({');
     expect(helperSource).toContain('agent.updateSettings(payload)');
     expect(helperSource).toContain('agent.requestModelList()');

@@ -190,6 +190,7 @@ const SETTINGS_STARTUP_USER_FACING_REGRESSION_TESTS = Object.freeze([
   'IpcSettingsSyncRuntime.test.cjs',
   'IpcAgentDefinitionContext.test.cjs',
   'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+  'IpcAgentSdkRuntimeCommands.test.cjs',
 ]);
 
 const MODEL_SEND_SELECTION_USER_FACING_REGRESSION_TESTS = Object.freeze([
@@ -197,6 +198,12 @@ const MODEL_SEND_SELECTION_USER_FACING_REGRESSION_TESTS = Object.freeze([
   'ChatMessageSender.test.tsx',
   'DesktopManualCompactionRuntime.test.js',
   'IpcAgentSdkRuntimeCommands.test.cjs',
+]);
+
+const PROVIDER_CREDENTIAL_PERSISTENCE_USER_FACING_REGRESSION_TESTS = Object.freeze([
+  'AppConfigPersistence.test.js',
+  'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+  'IpcProviderCredentialPersistence.test.cjs',
 ]);
 
 function coreLoopRegressionPackCommand(extraArgs = []) {
@@ -260,6 +267,19 @@ function userFacingRegressionPackProcesses() {
         'test:ci',
         '--',
         ...MODEL_SEND_SELECTION_USER_FACING_REGRESSION_TESTS,
+      ],
+      cwd: REPO_ROOT,
+    },
+    {
+      label: 'provider-credential-persistence',
+      command: 'npm',
+      args: [
+        '--prefix',
+        FRONTEND_DIR,
+        'run',
+        'test:ci',
+        '--',
+        ...PROVIDER_CREDENTIAL_PERSISTENCE_USER_FACING_REGRESSION_TESTS,
       ],
       cwd: REPO_ROOT,
     },

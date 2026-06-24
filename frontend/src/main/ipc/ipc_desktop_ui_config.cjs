@@ -6,6 +6,10 @@ const fs = require('fs');
 const path = require('path');
 const { enqueueAtomicWrite } = require('./queued_atomic_write.cjs');
 const { app } = require('electron');
+const {
+  hydrateProviderApiKeySecrets,
+  persistProviderApiKeySecrets,
+} = require('./ipc_provider_credentials_store.cjs');
 
 const DESKTOP_UI_CONFIG_FILENAME = 'frontend-config.json';
 
@@ -50,7 +54,7 @@ async function loadDesktopUiConfigFromDisk(log) {
       log('Desktop UI config on disk is invalid; ignoring');
       return null;
     }
-    return redactProviderSecretsFromDesktopUiConfig(parsed);
+    return hydrateProviderApiKeySecrets(redactProviderSecretsFromDesktopUiConfig(parsed), log);
   } catch (error) {
     log(`Failed to load desktop UI config from disk: ${error.message}`);
     return null;
@@ -69,7 +73,7 @@ function loadDesktopUiConfigFromDiskSync(log) {
       log('Desktop UI config on disk is invalid; ignoring');
       return null;
     }
-    return redactProviderSecretsFromDesktopUiConfig(parsed);
+    return hydrateProviderApiKeySecrets(redactProviderSecretsFromDesktopUiConfig(parsed), log);
   } catch (error) {
     log(`Failed to synchronously load desktop UI config from disk: ${error.message}`);
     return null;
@@ -80,6 +84,10 @@ async function saveDesktopUiConfigToDisk(config, log) {
   try {
     if (!config || typeof config !== 'object' || Array.isArray(config)) {
       return { success: false, error: 'Invalid config payload' };
+    }
+    const credentialsResult = await persistProviderApiKeySecrets(config, log);
+    if (credentialsResult?.success === false) {
+      return credentialsResult;
     }
     const redactedConfig = redactProviderSecretsFromDesktopUiConfig(config);
     const filePath = getDesktopUiConfigPath();

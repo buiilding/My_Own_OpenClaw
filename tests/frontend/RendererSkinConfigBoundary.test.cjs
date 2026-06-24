@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
+const mainRoot = path.resolve(__dirname, '../../frontend/src/main');
 const appPath = path.join(rendererRoot, 'app/App.jsx');
 const skinPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.js');
 const skinFacadePath = path.join(rendererRoot, 'app/skin/desktopRuntimeSkin.js');
@@ -67,6 +68,7 @@ const providerCredentialRuntimePath = path.join(rendererRoot, 'app/runtime/deskt
 const configFilterPath = path.join(rendererRoot, 'app/runtime/desktopRendererConfigFilterRuntime.js');
 const configStoragePath = path.join(rendererRoot, 'app/runtime/desktopRendererConfigStorageRuntime.js');
 const appConfigPersistencePath = path.join(rendererRoot, 'app/providers/appConfigPersistence.js');
+const providerCredentialStorePath = path.join(mainRoot, 'ipc/ipc_provider_credentials_store.cjs');
 const appearanceThemeRuntimePath = path.join(rendererRoot, 'app/runtime/desktopAppearanceThemeRuntime.js');
 const memoryPreferencePath = path.join(rendererRoot, 'app/runtime/desktopMemoryRetrievalPreferenceRuntime.js');
 const permissionStoragePath = path.join(rendererRoot, 'app/runtime/desktopPermissionOnboardingStorageRuntime.js');
@@ -306,6 +308,7 @@ describe('renderer skin/config boundary', () => {
     const providerPropTypesSource = fs.readFileSync(providerApiKeysPropTypesPath, 'utf8');
     const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
     const appConfigPersistenceSource = fs.readFileSync(appConfigPersistencePath, 'utf8');
+    const providerCredentialStoreSource = fs.readFileSync(providerCredentialStorePath, 'utf8');
     const providerCredentialRuntimeSource = fs.readFileSync(providerCredentialRuntimePath, 'utf8');
     const credentialWorkflowSource = fs.readFileSync(credentialWorkflowPath, 'utf8');
 
@@ -324,9 +327,11 @@ describe('renderer skin/config boundary', () => {
     expect(configStorageSource).toContain('desktopRuntimeConfig');
     expect(configStorageSource).not.toContain('providerCredentialSettings');
     expect(configStorageSource).toContain('desktopProviderCredentialRuntime');
-    expect(appConfigPersistenceSource).toContain('DesktopProviderCredentialRuntime');
-    expect(appConfigPersistenceSource).toContain('stripProviderApiKeySecrets');
+    expect(appConfigPersistenceSource).not.toContain('DesktopProviderCredentialRuntime');
+    expect(appConfigPersistenceSource).not.toContain('stripProviderApiKeySecrets');
     expect(appConfigPersistenceSource).not.toContain("api_key: ''");
+    expect(providerCredentialStoreSource).toContain('provider-credentials.json');
+    expect(providerCredentialStoreSource).toContain('safeStorage');
     expect(providerCredentialRuntimeSource).toContain('desktopRuntimeConfig');
     expect(providerCredentialRuntimeSource).not.toContain('providerCredentialSettings');
     expect(providerCredentialRuntimeSource).toContain('DesktopProviderCredentialRuntime');

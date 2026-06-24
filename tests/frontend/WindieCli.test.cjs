@@ -325,7 +325,7 @@ describe('windie CLI', () => {
       '--listTests',
     ]));
     const userFacingPlan = getSpawnPlan(['test', 'user-facing']);
-    expect(userFacingPlan.concurrent).toHaveLength(6);
+    expect(userFacingPlan.concurrent).toHaveLength(7);
     expect(userFacingPlan.concurrent[0]).toMatchObject({
       label: 'core-loop',
       command: 'npm',
@@ -370,6 +370,7 @@ describe('windie CLI', () => {
       'IpcSettingsSyncRuntime.test.cjs',
       'IpcAgentDefinitionContext.test.cjs',
       'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+      'IpcAgentSdkRuntimeCommands.test.cjs',
     ]));
     expect(userFacingPlan.concurrent[4]).toMatchObject({
       label: 'model-send-selection',
@@ -383,6 +384,16 @@ describe('windie CLI', () => {
       'IpcAgentSdkRuntimeCommands.test.cjs',
     ]));
     expect(userFacingPlan.concurrent[5]).toMatchObject({
+      label: 'provider-credential-persistence',
+      command: 'npm',
+      cwd: repoRoot,
+    });
+    expect(userFacingPlan.concurrent[5].args).toEqual(expect.arrayContaining([
+      'AppConfigPersistence.test.js',
+      'IpcDesktopUiConfigPersistenceRuntime.test.cjs',
+      'IpcProviderCredentialPersistence.test.cjs',
+    ]));
+    expect(userFacingPlan.concurrent[6]).toMatchObject({
       label: 'scripted-provider',
       command: path.join(repoRoot, 'scripts/test-backend.sh'),
       args: ['tests/backend/test_scripted_provider.py', '-q'],

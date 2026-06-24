@@ -20,7 +20,7 @@ For implementation steps, owner code paths, debug routing, and validation comman
 | Install token | Backend install auth service plus Electron main token persistence | Registered by `POST /api/install/register`, persisted by `ipc_install_auth_state.cjs` as owner-only `install-auth.json` on POSIX platforms | Hosted `/api/*` middleware and `/ws` handshake | Provider API calls, runs worker auth, local tool authorization |
 | Install user/install ids | Backend install auth service | Returned with install token and cached by Electron main | Stable hosted identity and websocket user binding | Renderer-claimed identity override |
 | Runs API key | Environment variables `WINDIE_RUNS_API_KEY`, worker `WINDIE_VM_RUNS_API_KEY` | Env only | `/api/runs/*` route dependency and VM worker | General hosted REST auth |
-| Provider API keys | Backend config/env or explicit provider settings | `backend/src/core/config/*`, provider settings UI where supported | LLM, OCR, vision, embedding, STT, TTS providers | Install identity or local machine permission |
+| Provider API keys | Backend config/env or explicit provider settings | `backend/src/core/config/*`, provider settings UI where supported, and Electron main `provider-credentials.json` encrypted with `safeStorage` for renderer-managed overrides | LLM, OCR, vision, embedding, STT, TTS providers | Install identity or local machine permission |
 | Local-runtime remote client auth | Electron/main loaded install token passed to local-runtime remote clients | Main/local-runtime config and remote client headers | Remote embeddings/semantic/title clients when hosted backend auth is enabled | Local memory DB authorization |
 
 ## Handling Rules
@@ -42,7 +42,7 @@ For implementation steps, owner code paths, debug routing, and validation comman
 | Electron install token persistence | `frontend/src/main/ipc/ipc_install_auth_state.cjs`, `frontend/src/main/ipc.cjs` | frontend install/auth or IPC tests around backend connection |
 | Runs key behavior | `backend/src/api/routes/runs/support.py`, VM worker runtime | `tests/backend/test_run_control_routes.py`, route helper tests |
 | Provider credential loading | `backend/src/core/config/loader.py`, config models, provider constructors | config loader/model tests and provider-specific tests |
-| Provider credential UI | Renderer settings/app config providers | AppConfigProvider, SettingsSection, ModelsSection tests |
+| Provider credential UI | Renderer settings/app config providers plus Electron main encrypted provider credential store | AppConfigProvider, SettingsSection, ModelsSection, IPC persistence tests |
 | Local-runtime remote clients | `frontend/src/main/python/core/remote_*_client.py` | sidecar remote client tests |
 
 ## Failure Routing

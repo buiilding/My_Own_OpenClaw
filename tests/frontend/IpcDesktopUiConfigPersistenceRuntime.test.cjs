@@ -68,7 +68,7 @@ describe('ipc_desktop_ui_config_persistence_runtime', () => {
 
     expect(saveDesktopUiConfigToDisk).toHaveBeenCalledWith({
       model_provider: 'openai',
-      provider_api_keys: { redacted: true },
+      provider_api_keys: { openai: { api_key: 'secret' } },
       agent_enabled_mcp_servers: ['mcp:memory', 'mcp:fs'],
     }, deps.log);
     expect(getLatest()).toEqual({

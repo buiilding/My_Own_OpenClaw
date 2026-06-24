@@ -182,7 +182,7 @@ describe('appConfigPersistence', () => {
     });
   });
 
-  test('buildRendererConfigPersistencePayload redacts provider secrets and drops unknown fields', () => {
+  test('buildRendererConfigPersistencePayload keeps provider secrets for main encrypted persistence and drops unknown fields', () => {
     expect(
       buildRendererConfigPersistencePayload({
         provider_api_keys: {
@@ -194,12 +194,7 @@ describe('appConfigPersistence', () => {
       }),
     ).toEqual({
       provider_api_keys: {
-        openai: { enabled: true, api_key: '' },
-        anthropic: { enabled: false, api_key: '' },
-        google: { enabled: false, api_key: '' },
-        openrouter: { enabled: false, api_key: '' },
-        mistral: { enabled: false, api_key: '' },
-        kimi_coding: { enabled: false, api_key: '' },
+        openai: { enabled: true, api_key: 'sk-openai' },
       },
     });
   });
