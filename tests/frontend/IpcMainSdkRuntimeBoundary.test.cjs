@@ -472,7 +472,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('agent.updateSettings(payload)');
     expect(source).not.toContain('agent.requestModelList()');
     expect(source).not.toContain('agent.wakewordDetected(payload)');
-    expect(agentSdkRuntimeCommandsSource).toContain('agent.run({');
+    expect(agentSdkRuntimeCommandsSource).toContain('const queryInput = {');
+    expect(agentSdkRuntimeCommandsSource).toContain('await agent.run(queryInput, { model })');
+    expect(agentSdkRuntimeCommandsSource).toContain('await agent.run(queryInput)');
     expect(agentSdkRuntimeCommandsSource).toContain(
       'function createAgentSdkRuntimeCommandsRuntime',
     );

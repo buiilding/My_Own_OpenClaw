@@ -35,12 +35,20 @@ Assistant action row render conditions:
 - `enableAssistantActions === true`
 - `message.sender === "assistant"`
 - `message.type` is not `tool-call` and not `tool-output`
+- Try again command rendering also requires `canRetryMessages === true`, which
+  `ChatInterface` derives from `ConversationView.actions.canRetry` once a SDK
+  view exists. Copy and feedback controls remain renderer-local affordances and
+  stay visible when retry is disabled.
 
 User action row render conditions:
 
 - `enableUserActions === true`
 - `message.sender === "user"`
 - row is not currently in inline-edit composer mode
+- edit/resend command rendering also requires `canEditMessages === true`, which
+  `ChatInterface` derives from `ConversationView.actions.canEdit` once a SDK
+  view exists. Copy remains renderer-local and stays visible when edit is
+  disabled.
 
 Inline user editor behavior:
 
@@ -157,8 +165,12 @@ Per-message token telemetry tag:
 - assistant copy/like/dislike/try-again controls appear for assistant `llm-text` rows
 - assistant controls do not appear for `tool-call` / `tool-output` rows
 - try-again callback receives assistant message id
+- disabled `ConversationView.actions.canRetry` hides Try again while preserving
+  copy/feedback controls
 - copy success icon/title reverts after 4-second timer
 - user edit flow opens inline composer and dispatches edited message
+- disabled `ConversationView.actions.canEdit` hides edit/resend while preserving
+  user copy controls
 - user cancel closes editor without callback
 
 Coverage note:

@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: gate edit/resend and try-again command rendering from SDK
+  `ConversationView.actions` when a view exists. Copy and feedback actions
+  remain renderer-local, row type still constrains which rows can show commands,
+  and replay execution remains on the existing display-timeline path while the
+  later Phase 4 SDK revision operation lands. No migration required.
 - frontend/main, frontend/renderer: persist renderer-managed provider API keys
   through an Electron `safeStorage` encrypted `provider-credentials.json` side
   file while keeping renderer localStorage, `frontend-config.json`, and the

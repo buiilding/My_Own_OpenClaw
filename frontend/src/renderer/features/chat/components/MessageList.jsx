@@ -33,6 +33,8 @@ function MessageList({
   enableAssistantActions = false,
   enableUserActions = false,
   disableAssistantActions = false,
+  canRetryMessages = true,
+  canEditMessages = true,
   onAssistantFeedbackChange,
   onAssistantTryAgain,
   onUserEdit,
@@ -53,12 +55,12 @@ function MessageList({
   });
 
   const handleStartUserEdit = useCallback((messageId, messageText) => {
-    if (submittingUserEdit) {
+    if (!canEditMessages || submittingUserEdit) {
       return;
     }
     setEditingUserMessageId(messageId);
     setEditingUserDraft(messageText || '');
-  }, [submittingUserEdit]);
+  }, [canEditMessages, submittingUserEdit]);
 
   const handleCancelUserEdit = useCallback(() => {
     if (submittingUserEdit) {
@@ -130,6 +132,8 @@ function MessageList({
             enableAssistantActions={enableAssistantActions}
             enableUserActions={enableUserActions}
             disableAssistantActions={disableAssistantActions}
+            canRetryMessage={canRetryMessages}
+            canEditMessage={canEditMessages}
             onAssistantFeedbackChange={onAssistantFeedbackChange}
             onAssistantTryAgain={onAssistantTryAgain}
             isUserEditing={editingUserMessageId === msg.id}
@@ -173,6 +177,8 @@ function MessageList({
       enableAssistantActions,
       enableUserActions,
       disableAssistantActions,
+      canRetryMessages,
+      canEditMessages,
       onAssistantFeedbackChange,
       onAssistantTryAgain,
       editingUserMessageId,
@@ -295,6 +301,8 @@ MessageList.propTypes = {
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,
+  canRetryMessages: PropTypes.bool,
+  canEditMessages: PropTypes.bool,
   onAssistantFeedbackChange: PropTypes.func,
   onAssistantTryAgain: PropTypes.func,
   onUserEdit: PropTypes.func,
