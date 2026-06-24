@@ -65,3 +65,4 @@ provider payloads, credentials, or local filesystem paths.
 | 47 | Backend durable stream trace | `agent_definition.backend_flow` | `capability_manifest.aggregate` | Records effective capability counts after tool and prompt-layer aggregation. |
 | 48 | Backend durable stream trace | `agent_definition.backend_flow` | `runtime_system_state.merge` | Records whether runtime system state was merged into session state. |
 | 49 | Backend durable stream trace | `agent_definition.backend_flow` | `model_selection.check` | Records selected-model presence before executor dispatch. |
+| 50 | Backend durable stream trace | `agent_definition.backend_flow` | `executor.dispatch` | Records the final sanitized boundary before backend executor processing. |
