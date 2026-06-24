@@ -66,6 +66,7 @@ function conversationView({
   isTerminal = false,
   canStop = true,
   pillMode = 'busy',
+  dashboardMode = pillMode,
 } = {}) {
   return {
     conversationRef,
@@ -85,7 +86,7 @@ function conversationView({
         mode: pillMode,
       },
       dashboard: {
-        mode: pillMode,
+        mode: dashboardMode,
       },
       responseOverlay: {
         mode: entries.length > 0 ? 'response' : 'hidden',
@@ -425,6 +426,63 @@ describe('useChatSurfaceController', () => {
         status: 'active',
         turnRef: 'turn-busy-not-stoppable',
       }),
+    });
+  });
+
+  test('uses the requested ConversationView surface mode for busy state', () => {
+    const pillController = renderController({
+      props: {
+        conversationView: conversationView({
+          turnRef: 'turn-split-surface',
+          phase: 'streaming',
+          isBusy: true,
+          isTerminal: false,
+          canStop: false,
+          pillMode: 'busy',
+          dashboardMode: 'idle',
+        }),
+        currentTurnProjection: {
+          phase: 'streaming',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-stale-current',
+          assistantText: 'stale stream',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      },
+    });
+    const dashboardController = renderController({
+      props: {
+        conversationViewSurface: 'dashboard',
+        conversationView: conversationView({
+          turnRef: 'turn-split-surface',
+          phase: 'streaming',
+          isBusy: true,
+          isTerminal: false,
+          canStop: false,
+          pillMode: 'busy',
+          dashboardMode: 'idle',
+        }),
+        currentTurnProjection: {
+          phase: 'streaming',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-stale-current',
+          assistantText: 'stale stream',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      },
+    });
+
+    expect(pillController.result.current).toMatchObject({
+      isBusy: true,
+      canStop: false,
+    });
+    expect(dashboardController.result.current).toMatchObject({
+      isBusy: false,
+      canStop: false,
     });
   });
 

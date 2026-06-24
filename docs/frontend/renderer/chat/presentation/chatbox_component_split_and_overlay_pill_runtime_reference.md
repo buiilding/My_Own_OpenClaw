@@ -50,10 +50,11 @@ Current-turn presentation ownership moved to shared chat hooks/state:
 for SDK `ConversationView` busy state, stop availability, speech mode toggles,
 query-screenshot toggles, wakeword-STT enablement, and manual compaction
 dispatch. Once a `ConversationView` is present, `view.surfaces.pill.mode`
-drives the shared loop lock and `view.liveTurn.canStop` drives Stop
-availability. The local pending-turn latch is the only pre-view bridge; raw
-SDK `currentTurnProjection` remains a fallback for hosts or moments that have
-not emitted a view yet.
+drives the pill loop lock, `view.surfaces.dashboard.mode` drives the dashboard
+composer loop lock, and `view.liveTurn.canStop` drives Stop availability. The
+local pending-turn latch is the only pre-view bridge; raw SDK
+`currentTurnProjection` remains a fallback for hosts or moments that have not
+emitted a view yet.
 `response-overlay-phase` is a window/layout hint and must not be used as chat
 runtime truth.
 `MinimalChatPill.jsx` and `ChatInterface.jsx` should keep layout, focus, window,

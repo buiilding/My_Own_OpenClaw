@@ -13,7 +13,8 @@ All notable changes to WindieOS will be documented in this file.
   dashboard transcript in one renderer boundary step. No migration required.
 - frontend/renderer: migrate minimal pill and dashboard busy/Stop controls to
   SDK `ConversationView` authority. `view.surfaces.pill.mode` now drives the
-  shared loop lock, `view.liveTurn.canStop` drives Stop availability and target
+  pill loop lock, `view.surfaces.dashboard.mode` drives the dashboard composer
+  loop lock, `view.liveTurn.canStop` drives Stop availability and target
   selection, and the local pending-turn latch remains only as the pre-view send
   bridge so idle SDK/view startup projections cannot clear a just-accepted
   send. Stale raw current-turn snapshots can no longer re-enable Stop after
