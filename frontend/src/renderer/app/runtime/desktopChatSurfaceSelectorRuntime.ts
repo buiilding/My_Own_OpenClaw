@@ -16,14 +16,17 @@ type DesktopChatWorkspaceProjection = {
 function projectDesktopChatInterfaceState(
   activeWorkspace: DesktopChatWorkspaceProjection,
 ) {
+  const conversationView = activeWorkspace.conversationView ?? null;
   return {
     messages: activeWorkspace.messages,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType ?? null,
     compactionDebugInfo: activeWorkspace.compactionDebugInfo ?? null,
     tokenCounts: activeWorkspace.tokenCounts ?? null,
-    currentTurnProjection: activeWorkspace.currentTurnProjection ?? null,
-    conversationView: activeWorkspace.conversationView ?? null,
+    currentTurnProjection: conversationView
+      ? null
+      : activeWorkspace.currentTurnProjection ?? null,
+    conversationView,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };
 }

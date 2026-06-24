@@ -245,7 +245,10 @@ handoff and diagnostics, while normal Stop authority is only the view or the
 local pending bridge. Minimal live surfaces receive a null raw current-turn
 projection whenever a `ConversationView` exists, so the pill and response
 overlay do not run a separate "latest current turn wins" decision beside the
-SDK view.
+SDK view. Dashboard chat selectors apply the same rule for the active
+conversation: once `conversationView` is present, dashboard live rows, busy/Stop
+state, and action wiring receive `currentTurnProjection: null` and use the SDK
+view as the only normal UI authority.
 Renderer no longer retains a global raw `latestCurrentTurnProjection` in the
 chat store or consumes it as a normal UI authority; cross-surface live state
 comes from `latestConversationView`, while per-workspace current-turn

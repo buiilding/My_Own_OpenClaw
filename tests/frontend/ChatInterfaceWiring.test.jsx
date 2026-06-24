@@ -213,7 +213,7 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
     thinkingStatus: state.thinkingStatus,
     thinkingSourceEventType: state.thinkingSourceEventType,
     compactionDebugInfo: state.compactionDebugInfo,
-    currentTurnProjection: state.currentTurnProjection,
+    currentTurnProjection: state.conversationView ? null : state.currentTurnProjection,
     conversationView: state.conversationView,
     pendingTurn: state.pendingTurn,
   }),
@@ -1555,7 +1555,7 @@ describe('ChatInterface wiring', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv_existing',
       turnRef: 'turn_test',
-      currentTurnProjection: mockChatState.currentTurnProjection,
+      currentTurnProjection: null,
     });
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
   });
@@ -1587,7 +1587,7 @@ describe('ChatInterface wiring', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv_visible_turn',
       turnRef: 'turn_visible',
-      currentTurnProjection: mockChatState.currentTurnProjection,
+      currentTurnProjection: null,
     });
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
   });
@@ -1847,7 +1847,7 @@ describe('ChatInterface wiring', () => {
     expect(mockAcceptStoppedTurn).toHaveBeenCalledWith({
       conversationRef: 'conv_existing',
       turnRef: 'turn_test',
-      currentTurnProjection: mockChatState.currentTurnProjection,
+      currentTurnProjection: null,
     });
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
   });

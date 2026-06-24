@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: suppress raw `currentTurnProjection` in dashboard chat
+  selectors whenever a `ConversationView` exists. The dashboard now enters its
+  live-row, busy, Stop, and action wiring with the SDK view as the only normal
+  UI authority; raw current-turn remains only the no-view bridge. No migration
+  required.
 - sdk/frontend: let `conversation.fork` omit `cutAfterRowId` to fork the whole
   selected revision. The dashboard revision menu now calls the SDK fork command
   directly with `sourceRevisionId` and no renderer display-timeline prefetch,
