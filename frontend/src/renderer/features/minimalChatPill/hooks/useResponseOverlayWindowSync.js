@@ -90,7 +90,6 @@ export function useResponseOverlayWindowSync({
           visible: false,
           width: 0,
           height: 0,
-          layoutMode,
           turnRef,
           staleGuardRef,
         });
@@ -151,7 +150,6 @@ export function useResponseOverlayWindowSync({
         width,
         height,
         compactHover: Boolean(compactHover),
-        layoutMode,
         turnRef,
         staleGuardRef,
       });

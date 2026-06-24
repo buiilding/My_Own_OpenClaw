@@ -193,7 +193,6 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     getActiveResponseOverlayGuardRef = () => null,
     setActiveResponseOverlayGuardRef = () => {},
     setResponseOverlayVisibilityState = () => {},
-    setResponseOverlayLayoutMode = () => {},
     showResponseWindowInactive = () => {},
     canShowFloatingResponseOverlay = () => true,
     isResponseOverlayGuardDismissed = () => false,
@@ -473,10 +472,6 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
     };
   }
   responseWindow.setBounds(normalizedBounds, false);
-  setResponseOverlayLayoutMode(
-    intent.staleGuardRef,
-    intent.mode === 'awaiting' ? 'awaiting-typing' : 'response',
-  );
   logLiveSurfaceTrace('response_overlay.window.resize', {
     source: 'sdk-live-turn-surface',
     reason: 'sdk-overlay-intent',

@@ -148,44 +148,6 @@ function shouldIgnoreStaleHide({
   return staleGuardRef !== activeGuardRef;
 }
 
-function normalizeResponseboxLayoutMode(value, {
-  shouldShow,
-  compactHover,
-  fullScreen,
-} = {}) {
-  if (value === 'hidden' || value === 'awaiting-typing' || value === 'response') {
-    return value;
-  }
-  if (!shouldShow) {
-    return 'hidden';
-  }
-  if (fullScreen === true) {
-    return 'response';
-  }
-  return compactHover === true ? 'awaiting-typing' : 'response';
-}
-
-function responseboxLayoutModeRank(layoutMode) {
-  if (layoutMode === 'response') {
-    return 2;
-  }
-  if (layoutMode === 'awaiting-typing') {
-    return 1;
-  }
-  return 0;
-}
-
-function shouldIgnoreRegressiveLayoutMode({
-  incomingLayoutMode,
-  currentLayoutMode,
-  staleGuardRef,
-}) {
-  if (!staleGuardRef || !currentLayoutMode) {
-    return false;
-  }
-  return responseboxLayoutModeRank(incomingLayoutMode) < responseboxLayoutModeRank(currentLayoutMode);
-}
-
 async function handleSetResponseboxSize(
   {
     width,
@@ -194,7 +156,6 @@ async function handleSetResponseboxSize(
     dismissed = false,
     full_screen: fullScreen = false,
     compact_hover: compactHover = false,
-    layout_mode: layoutMode = null,
     turn_ref: turnRef = null,
     stale_guard_ref: staleGuardRef = null,
   } = {},
@@ -215,9 +176,6 @@ async function handleSetResponseboxSize(
     getResponseOverlayPhase = () => null,
     getActiveResponseOverlayGuardRef = () => null,
     setActiveResponseOverlayGuardRef = () => {},
-    getResponseOverlayLayoutMode = () => null,
-    setResponseOverlayLayoutMode = () => {},
-    clearResponseOverlayLayoutMode = () => false,
     dismissResponseOverlayGuardRef = () => false,
     canShowFloatingResponseOverlay = () => true,
   } = deps;
@@ -230,11 +188,6 @@ async function handleSetResponseboxSize(
   const normalizedTurnRef = normalizeResponseOverlayGuardRef(turnRef);
   const normalizedStaleGuardRef = normalizeResponseOverlayGuardRef(staleGuardRef)
     || normalizedTurnRef;
-  const incomingLayoutMode = normalizeResponseboxLayoutMode(layoutMode, {
-    shouldShow,
-    compactHover,
-    fullScreen,
-  });
   logLiveSurfaceTrace('response_overlay.renderer.size_report', {
     source: 'responsebox-size',
     turnRef: normalizedTurnRef,
@@ -244,7 +197,6 @@ async function handleSetResponseboxSize(
     dismissed: dismissed === true,
     fullScreen,
     compactHover,
-    responseLayoutMode: incomingLayoutMode,
     width: typeof width === 'number' ? width : Number(width) || null,
     height: typeof height === 'number' ? height : Number(height) || null,
     responseWindow: summarizeWindow(responseWindow, 'response overlay'),
@@ -305,7 +257,6 @@ async function handleSetResponseboxSize(
       };
     }
     setResponseOverlayVisibilityState(false);
-    clearResponseOverlayLayoutMode(normalizedStaleGuardRef);
     if (!normalizedStaleGuardRef || normalizedStaleGuardRef === activeGuardRef) {
       setActiveResponseOverlayGuardRef(null);
       logLiveSurfaceTrace('stale_guard.changed', {
@@ -371,7 +322,6 @@ async function handleSetResponseboxSize(
   if (!canShowFloatingResponseOverlay()) {
     const activeGuardRef = normalizeResponseOverlayGuardRef(getActiveResponseOverlayGuardRef());
     setResponseOverlayVisibilityState(false);
-    clearResponseOverlayLayoutMode(activeGuardRef);
     if (activeGuardRef) {
       setActiveResponseOverlayGuardRef(null);
       logLiveSurfaceTrace('stale_guard.changed', {
@@ -450,7 +400,6 @@ async function handleSetResponseboxSize(
           turnRef: normalizedTurnRef,
         });
       }
-      setResponseOverlayLayoutMode(normalizedStaleGuardRef, 'response');
       setResponseOverlayVisibilityState(true);
       showResponseWindowForLiveTurnIntent();
       logLiveSurfaceTrace('response_overlay.window.show', {
@@ -502,55 +451,6 @@ async function handleSetResponseboxSize(
     }
   }
 
-  const currentLayoutMode = normalizedStaleGuardRef
-    ? normalizeResponseboxLayoutMode(getResponseOverlayLayoutMode(normalizedStaleGuardRef))
-    : null;
-  if (shouldIgnoreRegressiveLayoutMode({
-    incomingLayoutMode,
-    currentLayoutMode,
-    staleGuardRef: normalizedStaleGuardRef,
-  })) {
-    appendSurfaceVisibilityDiagnostic({
-      action: 'ignore-regressive-response-layout-from-size',
-      phase: getResponseOverlayPhase(),
-      requestedVisible: true,
-      responseLayoutMode: incomingLayoutMode,
-      activeResponseLayoutMode: currentLayoutMode,
-      turnRef: normalizedTurnRef,
-      staleGuardRef: normalizedStaleGuardRef,
-      responseWindowVisible: safeWindowVisible(responseWindow),
-      responseOverlayVisibleFlag: getResponseOverlayVisible(),
-    });
-    logChatPillMainTrace({
-      source: 'responsebox-size',
-      action: 'ignore-regressive-layout',
-      phase: getResponseOverlayPhase(),
-      responseWindow,
-      responseOverlayVisibleFlag: getResponseOverlayVisible(),
-      responseLayoutMode: incomingLayoutMode,
-      activeResponseLayoutMode: currentLayoutMode,
-      turnRef: normalizedTurnRef,
-      staleGuardRef: normalizedStaleGuardRef,
-    }, deps);
-    logLiveSurfaceTrace('response_overlay.window.resize_ignored', {
-      source: 'responsebox-size',
-      reason: 'regressive-layout-mode',
-      turnRef: normalizedTurnRef,
-      guardRef: normalizedStaleGuardRef,
-      phase: getResponseOverlayPhase(),
-      responseLayoutMode: incomingLayoutMode,
-      activeResponseLayoutMode: currentLayoutMode,
-      responseWindow: summarizeWindow(responseWindow, 'response overlay'),
-      responseOverlayVisible: getResponseOverlayVisible(),
-    });
-    return {
-      success: true,
-      visible: true,
-      ignored: true,
-      reason: 'regressive-layout-mode',
-    };
-  }
-
   const nextWidth = Math.max(1, Math.min(900, Math.round(Number(width) || 0)));
   const nextHeight = Math.max(1, Math.min(750, Math.round(Number(height) || 0)));
   try {
@@ -558,7 +458,6 @@ async function handleSetResponseboxSize(
       ? getResponseWindowBounds(nextWidth, nextHeight, { compactHover: true })
       : getResponseWindowBounds(nextWidth, nextHeight);
     responseWindow.setBounds(bounds, false);
-    setResponseOverlayLayoutMode(normalizedStaleGuardRef, incomingLayoutMode);
     if (normalizedStaleGuardRef) {
       setActiveResponseOverlayGuardRef(normalizedStaleGuardRef);
       logLiveSurfaceTrace('stale_guard.changed', {

@@ -10,7 +10,6 @@ export type ResponseboxSizePayload = {
   width: number;
   height: number;
   compact_hover?: boolean;
-  layout_mode?: string | null;
   turn_ref?: string | null;
   stale_guard_ref?: string | null;
   dismissed?: boolean;
@@ -21,7 +20,6 @@ export type ResponseboxSizeValues = {
   width: unknown;
   height: unknown;
   compactHover?: boolean;
-  layoutMode?: string | null;
   turnRef?: string | null;
   staleGuardRef?: string | null;
   dismissed?: boolean;
@@ -79,9 +77,6 @@ function buildResponseboxSizePayload(values: ResponseboxSizeValues): Responsebox
   if (typeof values.compactHover === 'boolean') {
     payload.compact_hover = values.compactHover;
   }
-  if (values.layoutMode !== undefined) {
-    payload.layout_mode = optionalStringOrNull(values.layoutMode);
-  }
   if (typeof values.dismissed === 'boolean') {
     payload.dismissed = values.dismissed;
   }
@@ -111,7 +106,6 @@ export const DesktopResponseOverlayRuntimeClient = {
       visible: false,
       width: 0,
       height: 0,
-      layoutMode: 'hidden',
       turnRef,
       staleGuardRef: optionalStringOrNull(values.guardRef) || turnRef,
       dismissed: true,
