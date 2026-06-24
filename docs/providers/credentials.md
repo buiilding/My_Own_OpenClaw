@@ -41,7 +41,7 @@ supported and ignores unsupported provider entries. Provider aliases normalize
 
 Use these overrides only through the config/settings path. Do not bypass the backend config service.
 
-`update-settings` may carry raw provider API keys into backend session config. `load-settings` must not echo those secrets back to clients; it returns the provider entries with `api_key` redacted to an empty string while preserving non-secret state such as `enabled`.
+`update-settings` may carry raw provider API keys into backend session config. `load-settings` must not echo those secrets back to clients; it returns the provider entries with `api_key` redacted to an empty string while preserving non-secret state such as `enabled`. Backend credential resolution treats an enabled override with an empty key as redacted or incomplete state and falls back to the provider's configured environment variable instead of using it as an explicit empty credential.
 
 ## Hosted Install Auth
 

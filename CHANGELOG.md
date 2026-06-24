@@ -24,6 +24,10 @@ All notable changes to WindieOS will be documented in this file.
   message text, raw tool output, local paths, screenshots, provider payloads,
   credentials, or internal lane details. No migration required; renderer/main
   consumers still migrate surface-by-surface.
+- backend/config: treat enabled provider API-key overrides with empty redacted
+  keys as incomplete override state and fall back to the configured provider
+  environment variable, so persisted redacted renderer settings cannot disable
+  otherwise available credentials. No migration required.
 - docs/plans: merge the SDK-owned ConversationView contract and SDK View
   Authority migration direction into one SDK View Authority plan, so one
   coordinated implementation path defines the SDK-owned UI projection,
