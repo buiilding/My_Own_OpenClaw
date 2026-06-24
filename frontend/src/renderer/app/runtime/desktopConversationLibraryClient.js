@@ -97,9 +97,7 @@ function emitConversationListDiagnostic(context, event) {
 function readSnapshotDisplayRows(snapshot, conversationRef) {
   const rows = Array.isArray(snapshot?.view?.displayRows)
     ? snapshot.view.displayRows
-    : Array.isArray(snapshot?.displayRows)
-      ? snapshot.displayRows
-      : [];
+    : [];
   return rows.filter((row) => row?.conversationRef === conversationRef);
 }
 

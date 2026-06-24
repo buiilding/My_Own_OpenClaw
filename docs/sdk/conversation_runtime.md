@@ -223,8 +223,9 @@ The view filters internal `conv-agent-*` lanes out of normal UI authority. Those
 lanes remain available to diagnostics as counts and raw event/trace inspection,
 but they must not replace the active display rows, live turn, response overlay
 owner, busy state, or action metadata for the user-facing conversation. During
-the migration, existing `snapshot.currentTurn` and `snapshot.displayRows`
-fields remain available so renderer/main surfaces can move one at a time.
+the migration, existing `snapshot.currentTurn` remains available so
+renderer/main surfaces can move one at a time; desktop renderer display-row
+facades no longer consume `snapshot.displayRows` as normal UI input.
 The response overlay is migrated first: renderer adapters render
 `snapshot.view.liveTurn.entries` and Electron main applies
 `snapshot.view.surfaces.responseOverlay`. Raw
@@ -250,10 +251,11 @@ For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
 the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.
 The `conversation.loadDisplay` command also carries `snapshot.view`, and
-renderer display-row facades prefer `snapshot.view.displayRows` before the
-legacy `snapshot.displayRows` fallback.
-The separate `snapshot.displayRows`/display-rows stream remains a temporary
-fallback while non-view hosts and later dashboard loaders migrate.
+desktop renderer display-row facades consume `snapshot.view.displayRows`
+without falling back to legacy `snapshot.displayRows`. SDK snapshots may still
+carry `snapshot.displayRows` for SDK/custom callers and diagnostics, but the
+Electron command payload and renderer transcript loaders no longer use it as a
+normal UI authority.
 For the first Phase 4 action migration, renderer chat surfaces read
 `snapshot.view.actions.canEdit` and `snapshot.view.actions.canRetry` when a
 view exists before rendering edit/resend or Try again commands. Message row type
@@ -433,10 +435,12 @@ reserve a visible assistant display row. The first assistant-visible delta
 creates the stable streaming assistant row at the current transcript position
 and carries any prior reasoning metadata. When the final `assistant_message`
 event arrives, that same row identity becomes the completed assistant row.
-Dashboard and custom UIs render `snapshot.displayRows`; they must not
-reconstruct transcript rows from `snapshot.currentTurn`. `snapshot.currentTurn`
-remains the SDK-owned phase/status/overlay projection for busy state, stop
-eligibility, active turn identity, and overlay-specific progressive state.
+Desktop dashboard and renderer transcript facades render
+`snapshot.view.displayRows`; SDK/custom no-view callers may render
+`snapshot.displayRows`. Normal UI consumers must not reconstruct transcript
+rows from `snapshot.currentTurn`. `snapshot.currentTurn` remains the SDK-owned
+phase/status/overlay projection for busy state, stop eligibility, active turn
+identity, and overlay-specific progressive state.
 Desktop may render a temporary, textless thinking disclosure from
 `snapshot.currentTurn.reasoningText` while a turn is active, but that disclosure
 is not a transcript assistant row and must disappear once the SDK display row

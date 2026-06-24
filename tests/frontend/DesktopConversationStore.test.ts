@@ -105,7 +105,7 @@ describe('desktop conversation store factory', () => {
     });
   });
 
-  test('loads display rows from ConversationView before legacy display rows', async () => {
+  test('loads display rows from ConversationView only', async () => {
     const store = createDesktopConversationStore('user-1');
     mockInvokeAgentSdkCommand.mockResolvedValueOnce({
       view: {
@@ -119,15 +119,6 @@ describe('desktop conversation store factory', () => {
           },
         ],
       },
-      displayRows: [
-        {
-          id: 'row-legacy',
-          conversationRef: 'conv-1',
-          role: 'assistant',
-          type: 'assistant_message',
-          content: 'legacy',
-        },
-      ],
     } as never);
 
     await expect(store.loadDisplayRows('conv-1')).resolves.toEqual([

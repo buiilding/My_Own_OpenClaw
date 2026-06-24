@@ -74,15 +74,6 @@ describe('DesktopConversationContinuityService', () => {
               },
             ],
           },
-          displayRows: [
-            {
-              id: 'row-legacy',
-              conversationRef: 'conv-display',
-              role: 'assistant',
-              type: 'assistant_message',
-              content: 'legacy',
-            },
-          ],
         },
       })),
       on: jest.fn(),

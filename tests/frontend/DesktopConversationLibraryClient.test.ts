@@ -73,7 +73,6 @@ describe('DesktopConversationLibraryClient', () => {
             },
           ],
         },
-        displayRows: [{ id: 'row-legacy', conversationRef: 'conv-1', role: 'assistant', type: 'assistant', content: 'hello' }],
         };
       }
       return null;
@@ -219,11 +218,6 @@ describe('DesktopConversationLibraryClient', () => {
           { id: 'row-view-old', conversationRef: 'conv-old', role: 'assistant', type: 'assistant_message', content: 'old view' },
         ],
       },
-      displayRows: [
-        { id: 'row-1', conversationRef: 'conv-1', role: 'user', type: 'user_message', content: 'yo' },
-        { id: 'row-old', conversationRef: 'conv-old', role: 'assistant', type: 'assistant_message', content: 'old' },
-        { id: 'row-missing', role: 'assistant', type: 'assistant_message', content: 'missing scope' },
-      ],
     });
 
     await expect(DesktopConversationLibraryClient.loadDisplayRows('user-1', 'conv-1')).resolves.toEqual([
@@ -231,7 +225,7 @@ describe('DesktopConversationLibraryClient', () => {
     ]);
   });
 
-  test('falls back to legacy display rows when loadDisplay omits ConversationView', async () => {
+  test('ignores legacy display rows when loadDisplay omits ConversationView', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValueOnce({
       displayRows: [
         { id: 'row-1', conversationRef: 'conv-1', role: 'user', type: 'user_message', content: 'yo' },
@@ -239,8 +233,6 @@ describe('DesktopConversationLibraryClient', () => {
       ],
     });
 
-    await expect(DesktopConversationLibraryClient.loadDisplayRows('user-1', 'conv-1')).resolves.toEqual([
-      { id: 'row-1', conversationRef: 'conv-1', role: 'user', type: 'user_message', content: 'yo' },
-    ]);
+    await expect(DesktopConversationLibraryClient.loadDisplayRows('user-1', 'conv-1')).resolves.toEqual([]);
   });
 });

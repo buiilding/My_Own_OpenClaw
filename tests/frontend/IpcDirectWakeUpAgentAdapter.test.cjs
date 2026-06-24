@@ -193,6 +193,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
         },
         view: {
           conversationRef: 'conv-agent-1',
+          displayRows: [{ id: 'row-view' }],
           liveTurn: {
             turnRef: 'turn-1',
             phase: 'streaming',
@@ -229,7 +230,7 @@ describe('ipc_direct_wake_up_agent_adapter', () => {
       DESKTOP_RUNTIME_ON_CHANNELS.ROWS,
       {
         conversationRef: 'conv-agent-1',
-        rows: [{ id: 'row-1' }],
+        rows: [{ id: 'row-view' }],
       },
     );
     expect(deps.broadcastToRenderers).toHaveBeenCalledWith(

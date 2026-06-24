@@ -29,12 +29,12 @@ const {
 } = AgentSdkCommandInvokeClient;
 
 function readSnapshotDisplayRows(
-  snapshot: { view?: ConversationView | null; displayRows?: SdkDisplayRow[] } | null | undefined,
+  snapshot: { view?: ConversationView | null } | null | undefined,
 ): SdkDisplayRow[] {
   if (Array.isArray(snapshot?.view?.displayRows)) {
     return snapshot.view.displayRows;
   }
-  return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
+  return [];
 }
 
 export type DesktopTraceTimelineOptions = {
@@ -92,7 +92,6 @@ export function createDesktopConversationStore(
     async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
       const snapshot = await invokeAgentSdkCommand<{
         view?: ConversationView | null;
-        displayRows?: SdkDisplayRow[];
       }>(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
         userId,
         conversationRef,

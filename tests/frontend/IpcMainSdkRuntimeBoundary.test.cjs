@@ -939,7 +939,7 @@ describe('main ipc sdk runtime boundary', () => {
     }));
   });
 
-  test('electron main includes ConversationView in loadDisplay payloads', async () => {
+  test('electron main returns ConversationView instead of legacy displayRows in loadDisplay payloads', async () => {
     const loadConversation = jest.fn(async () => ({
       display: { messages: [] },
       view: {
@@ -1026,14 +1026,10 @@ describe('main ipc sdk runtime boundary', () => {
             }),
           ],
         }),
-        displayRows: [
-          expect.objectContaining({
-            id: 'row-legacy',
-          }),
-        ],
         currentTurn: null,
       }),
     });
+    expect(result.data).not.toHaveProperty('displayRows');
     expect(loadConversation).toHaveBeenCalledWith({
       conversationRef: 'conv-1',
     });

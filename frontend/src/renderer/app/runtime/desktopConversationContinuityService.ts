@@ -89,12 +89,12 @@ function optionalString(value: unknown): string | null {
 }
 
 function readSnapshotDisplayRows(
-  snapshot: { view?: ConversationView | null; displayRows?: SdkDisplayRow[] } | null | undefined,
+  snapshot: { view?: ConversationView | null } | null | undefined,
 ): SdkDisplayRow[] {
   if (Array.isArray(snapshot?.view?.displayRows)) {
     return snapshot.view.displayRows;
   }
-  return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
+  return [];
 }
 
 const desktopConversationContinuityService = new ConversationContinuityService({
@@ -129,7 +129,6 @@ export const DesktopConversationContinuityService = {
   async loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
     const snapshot = await invokeAgentSdkCommand<{
       view?: ConversationView | null;
-      displayRows?: SdkDisplayRow[];
     }>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
       {

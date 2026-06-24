@@ -107,7 +107,7 @@ function createDirectWakeUpAgentAdapter({
       }
       broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.ROWS, {
         conversationRef: handle.conversationRef,
-        rows: Array.isArray(snapshot.displayRows) ? snapshot.displayRows : [],
+        rows: Array.isArray(snapshot.view?.displayRows) ? snapshot.view.displayRows : [],
       });
       if (typeof setLatestCurrentTurnProjection === 'function') {
         setLatestCurrentTurnProjection(snapshot.currentTurn || null);
@@ -136,7 +136,7 @@ function createDirectWakeUpAgentAdapter({
             ? summarizeCurrentTurn(snapshot.currentTurn)
             : {}),
           source: 'conversation-runtime',
-          displayRowCount: Array.isArray(snapshot.displayRows) ? snapshot.displayRows.length : 0,
+          displayRowCount: Array.isArray(snapshot.view?.displayRows) ? snapshot.view.displayRows.length : 0,
         });
       }
       if (

@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main, frontend/renderer: remove legacy `snapshot.displayRows` as a
+  normal desktop display-row fallback. `conversation.loadDisplay` now returns
+  `ConversationView` as the renderer display authority, direct wake-up row
+  broadcasts use `view.displayRows`, and renderer display facades return rows
+  only from the view. No migration required.
 - frontend/main: remove raw SDK current-turn overlay intent as normal native
   responsebox authority. Electron main now applies responsebox show, hide, and
   resize from `ConversationView.surfaces.responseOverlay` only; raw current-turn
