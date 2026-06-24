@@ -238,6 +238,67 @@ describe('chatStore', () => {
     ]);
   });
 
+  test('inactive current-turn projections do not replace the active latest projection', () => {
+    const userProjection = {
+      conversationRef: 'conv-user',
+      turnRef: 'turn-user',
+      phase: 'streaming',
+      assistantText: 'visible user response',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        phase: 'streaming',
+        typingVisible: false,
+        overlayVisible: true,
+        hasVisibleContent: true,
+        entries: [{ id: 'assistant-user', text: 'visible user response' }],
+        overlayIntent: {
+          visible: true,
+          mode: 'response',
+          turnRef: 'turn-user',
+          conversationRef: 'conv-user',
+        },
+      },
+    };
+    const internalProjection = {
+      conversationRef: 'conv-agent-internal',
+      turnRef: 'turn-user',
+      phase: 'awaiting',
+      assistantText: '',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        phase: 'awaiting',
+        typingVisible: true,
+        overlayVisible: true,
+        hasVisibleContent: false,
+        entries: [],
+        overlayIntent: {
+          visible: true,
+          mode: 'awaiting',
+          turnRef: 'turn-user',
+          conversationRef: 'conv-agent-internal',
+        },
+      },
+    };
+
+    useChatStore.getState().setActiveConversationRef('conv-user');
+    useChatStore.getState().setCurrentTurnProjection(userProjection, 'conv-user');
+    useChatStore.getState().setCurrentTurnProjection(
+      internalProjection,
+      'conv-agent-internal',
+    );
+
+    const state = useChatStore.getState();
+    expect(state.latestCurrentTurnProjection).toBe(userProjection);
+    expect(state.currentTurnProjection).toBe(userProjection);
+    expect(
+      state.getWorkspaceState('conv-agent-internal').currentTurnProjection,
+    ).toBe(internalProjection);
+  });
+
   test('switching active conversation projects that workspace state into the top-level fields', () => {
     useChatStore.getState().setIsSending(true, 'conv-other');
     useChatStore.getState().setThinkingStatus('thinking elsewhere', 'conv-other');

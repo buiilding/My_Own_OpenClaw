@@ -6,6 +6,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main, frontend/renderer: scope floating response-overlay ownership to
+  the active user conversation. Internal `conv-agent-*` SDK current-turn
+  projections are ignored by the native responsebox controller, and inactive
+  workspace projections no longer replace the renderer's global latest
+  current-turn projection. Visible current-turn content resolves to response
+  mode even if a stale awaiting snapshot is still in flight, and same-turn SDK
+  handoff updates the workspace current turn, pending turn, and latest turn in
+  one store mutation, so streamed response content cannot flicker back to the
+  typing shell. No migration required.
 - frontend/renderer: make the dashboard conversation-find header button toggle
   the find bar closed when it is clicked again, clearing the active query and
   match state while leaving `Command/Ctrl+F` as an open/refocus shortcut. No

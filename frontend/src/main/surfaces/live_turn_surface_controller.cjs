@@ -43,6 +43,11 @@ function normalizeString(value) {
   return normalized || null;
 }
 
+function isInternalAgentConversationRef(value) {
+  const normalized = normalizeString(value);
+  return Boolean(normalized && normalized.startsWith('conv-agent-'));
+}
+
 function resolveOverlayIntent(currentTurn) {
   const presentation = currentTurn?.presentation;
   const intent = presentation?.overlayIntent;
@@ -102,6 +107,8 @@ function normalizeFiniteBounds(bounds) {
 
 function createSdkLiveTurnSurfaceState() {
   return {
+    activeOverlayConversationRef: null,
+    activeOverlayGuardRef: null,
     lastAppliedOverlayIntentSignature: null,
     lastTypingTrace: null,
   };
@@ -137,6 +144,23 @@ function shouldIgnoreSdkHide({ activeGuardRef, staleGuardRef }) {
     return true;
   }
   return staleGuardRef !== activeGuardRef;
+}
+
+function shouldIgnoreVisibleIntentForConversation({
+  activeConversationRef,
+  activeGuardRef,
+  intent,
+}) {
+  if (!activeConversationRef || !intent?.conversationRef) {
+    return false;
+  }
+  if (activeConversationRef === intent.conversationRef) {
+    return false;
+  }
+  if (!activeGuardRef || !intent.staleGuardRef) {
+    return true;
+  }
+  return activeGuardRef === intent.staleGuardRef;
 }
 
 function logSdkTypingTransition(currentTurn, intent, state = null) {
@@ -217,6 +241,39 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       responseWindow: summarizeWindow(responseWindow, 'response overlay'),
     });
     return { success: true, applied: false, reason: 'missing-sdk-overlay-intent' };
+  }
+
+  if (isInternalAgentConversationRef(intent.conversationRef)) {
+    appendSurfaceVisibilityDiagnostic({
+      action: 'ignore-sdk-overlay-intent-for-internal-conversation',
+      phase: getResponseOverlayPhase(),
+      mode: intent.mode,
+      turnRef: intent.turnRef,
+      conversationRef: intent.conversationRef,
+      staleGuardRef: intent.staleGuardRef,
+      responseWindowVisible: safeWindowVisible(responseWindow),
+      responseOverlayVisibleFlag: getResponseOverlayVisible(),
+    });
+    logLiveSurfaceTrace('response_overlay.intent.ignored', {
+      source: 'sdk-live-turn-surface',
+      reason: 'internal-agent-conversation',
+      turnRef: intent.turnRef,
+      conversationRef: intent.conversationRef,
+      phase: getResponseOverlayPhase(),
+      overlayMode: intent.mode,
+      guardRef: intent.staleGuardRef,
+      responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+    });
+    return {
+      success: true,
+      applied: false,
+      ignored: true,
+      reason: 'internal-agent-conversation',
+      visible: intent.visible,
+      mode: intent.mode,
+      turnRef: intent.turnRef,
+      staleGuardRef: intent.staleGuardRef,
+    };
   }
 
   if (
@@ -345,7 +402,53 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
       responseOverlayVisible: getResponseOverlayVisible(),
     });
     sdkSurfaceState.lastAppliedOverlayIntentSignature = hiddenSignature;
+    if (!intent.staleGuardRef || intent.staleGuardRef === activeGuardRef) {
+      sdkSurfaceState.activeOverlayConversationRef = null;
+      sdkSurfaceState.activeOverlayGuardRef = null;
+    }
     return { success: true, applied: true, visible: false };
+  }
+
+  const activeOverlayConversationRef = normalizeString(sdkSurfaceState.activeOverlayConversationRef);
+  const activeOverlayGuardRef = normalizeString(sdkSurfaceState.activeOverlayGuardRef);
+  if (shouldIgnoreVisibleIntentForConversation({
+    activeConversationRef: activeOverlayConversationRef,
+    activeGuardRef: activeOverlayGuardRef || activeGuardRef,
+    intent,
+  })) {
+    appendSurfaceVisibilityDiagnostic({
+      action: 'ignore-sdk-overlay-intent-for-conversation-owner',
+      phase: getResponseOverlayPhase(),
+      mode: intent.mode,
+      turnRef: intent.turnRef,
+      conversationRef: intent.conversationRef,
+      staleGuardRef: intent.staleGuardRef,
+      activeGuardRef: activeOverlayGuardRef || activeGuardRef,
+      responseWindowVisible: safeWindowVisible(responseWindow),
+      responseOverlayVisibleFlag: getResponseOverlayVisible(),
+    });
+    logLiveSurfaceTrace('response_overlay.intent.ignored', {
+      source: 'sdk-live-turn-surface',
+      reason: 'conversation-owner-mismatch',
+      turnRef: intent.turnRef,
+      conversationRef: intent.conversationRef,
+      activeConversationRef: activeOverlayConversationRef,
+      phase: getResponseOverlayPhase(),
+      overlayMode: intent.mode,
+      guardRef: intent.staleGuardRef,
+      activeGuardRef: activeOverlayGuardRef || activeGuardRef,
+      responseWindow: summarizeWindow(responseWindow, 'response overlay'),
+    });
+    return {
+      success: true,
+      applied: false,
+      ignored: true,
+      reason: 'conversation-owner-mismatch',
+      visible: true,
+      mode: intent.mode,
+      turnRef: intent.turnRef,
+      staleGuardRef: intent.staleGuardRef,
+    };
   }
 
   if (!canShowFloatingResponseOverlay()) {
@@ -486,6 +589,8 @@ function handleSdkLiveTurnSurfaceIntent(currentTurn, deps = {}) {
   });
   if (intent.staleGuardRef) {
     setActiveResponseOverlayGuardRef(intent.staleGuardRef);
+    sdkSurfaceState.activeOverlayGuardRef = intent.staleGuardRef;
+    sdkSurfaceState.activeOverlayConversationRef = intent.conversationRef || null;
     if (intent.staleGuardRef !== activeGuardRef) {
       logLiveSurfaceTrace('stale_guard.changed', {
         source: 'sdk-live-turn-surface',

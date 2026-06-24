@@ -515,6 +515,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             ...state.workspaces,
             [nextWorkspaceRef]: nextWorkspace,
           },
+        latestCurrentTurnProjection: nextWorkspace.currentTurnProjection,
         ...getProjectedWorkspaceFields(nextWorkspace),
       };
     }),
@@ -712,7 +713,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
         pendingTurn: currentWorkspace.pendingTurn,
         currentTurnProjection,
       });
-      const latestUpdate = state.latestCurrentTurnProjection === currentTurnProjection
+      const shouldUpdateLatestProjection = isActiveWorkspaceRef(state, targetWorkspaceRef);
+      const latestUpdate = !shouldUpdateLatestProjection
+        ? {}
+        : state.latestCurrentTurnProjection === currentTurnProjection
         ? {}
         : { latestCurrentTurnProjection: currentTurnProjection };
       if (

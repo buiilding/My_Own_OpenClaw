@@ -101,7 +101,6 @@ export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());
   const setMessages = useChatStore((state) => state.setMessages);
   const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
-  const setLatestCurrentTurnProjection = useChatStore((state) => state.setLatestCurrentTurnProjection);
   const applyPendingTurnBroadcast = useChatStore((state) => state.applyPendingTurnBroadcast);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
@@ -134,7 +133,6 @@ export function useConversationRuntimeProjectionStream(): void {
         return;
       }
 
-      setLatestCurrentTurnProjection(currentTurn);
       // Check stale-turn status before current-turn storage can resolve pendingTurn.
       setCurrentTurnProjection(currentTurn, conversationRef);
 
@@ -187,7 +185,6 @@ export function useConversationRuntimeProjectionStream(): void {
     };
   }, [
     setCurrentTurnProjection,
-    setLatestCurrentTurnProjection,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,

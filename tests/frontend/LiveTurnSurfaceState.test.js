@@ -224,6 +224,53 @@ describe('desktopLiveTurnSurfaceRuntime', () => {
     });
   });
 
+  test('keeps visible SDK content in response mode while phase is still awaiting', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: {
+        phase: 'awaiting',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-2',
+        assistantText: 'Visible response',
+        presentation: {
+          hasVisibleContent: true,
+          entries: [
+            {
+              id: 'assistant-entry',
+              sender: 'assistant',
+              text: 'Visible response',
+              type: 'llm-text',
+            },
+          ],
+          overlayIntent: {
+            visible: true,
+            mode: 'awaiting',
+            turnRef: 'turn-2',
+            conversationRef: 'conv-1',
+            staleGuardRef: 'turn-2',
+          },
+        },
+      },
+      messages: [
+        { id: 'user-2', sender: 'user', text: 'second', turnRef: 'turn-2' },
+      ],
+    });
+
+    expect(state).toMatchObject({
+      phase: 'streaming',
+      isBusy: true,
+      source: 'sdk-current-turn',
+      useLocalPendingTurn: false,
+      useSdkLiveTurnPresentation: true,
+      overlayIntent: {
+        visible: true,
+        mode: 'response',
+        turnRef: 'turn-2',
+        conversationRef: 'conv-1',
+        staleGuardRef: 'turn-2',
+      },
+    });
+  });
+
   test('uses SDK awaiting lifecycle when SDK presentation is hidden during handoff', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {
