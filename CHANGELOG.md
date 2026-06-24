@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: enrich gated response-overlay view-model diagnostics with
+  pending-turn, stream-tracking, and visible-lifecycle identifiers/counts so
+  resend and streaming surface races can be inspected without logging message
+  text, screenshots, file paths, or tool output. No migration required.
 - docs/plans: add the SDK-owned conversation view contract plan for narrowing
   normal renderer/main UI state to one active SDK projection while keeping raw
   events, internal lanes, model history, and diagnostics behind explicit
