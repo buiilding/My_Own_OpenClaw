@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: project dashboard transcript messages from SDK
+  `ConversationView.displayRows` when the current-turn payload carries a view.
+  The existing display-rows stream remains a migration fallback, but the
+  current-turn/view handoff can now update the workspace conversation view and
+  dashboard transcript in one renderer boundary step. No migration required.
 - frontend/renderer: migrate minimal pill and dashboard busy/Stop controls to
   SDK `ConversationView` authority. `view.surfaces.pill.mode` now drives the
   shared loop lock, `view.liveTurn.canStop` drives Stop availability and target
