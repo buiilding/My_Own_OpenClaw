@@ -134,6 +134,12 @@ Behavior:
   `agent_disabled_local_tools`, and `agent_disabled_remote_tools`) from the live
   store, or from disk only before the store has hydrated. Explicit empty strings
   or arrays still clear those fields.
+- query-local agent-definition assembly uses an Agent-safe config snapshot that
+  repairs stale empty live Agent fields from persisted non-empty Agent settings
+  before building `agent_definition`, so a restarted app cannot display a saved
+  custom prompt in Settings while sending the default prompt on the next turn;
+  explicit empty values saved through `save-frontend-config` remain authoritative
+  while disk persistence is in flight
 - provider secrets are redacted before the disk save helper is called
 - the main-process config store advances with the redacted, persistable config
   before awaiting disk save, so query-local agent-definition context sees

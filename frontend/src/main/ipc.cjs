@@ -597,7 +597,7 @@ const agentWakeupRuntime = createAgentWakeupRuntime({
   log,
 });
 const agentDefinitionContextRuntime = createAgentDefinitionContextRuntime({
-  getLatestDesktopUiConfig: () => desktopUiConfigStore.getSnapshot(),
+  getLatestDesktopUiConfig: () => desktopUiConfigStore.getDesktopUiConfigForAgentDefinition(),
   platformName: process.platform,
   buildAgentDefinition,
   isDefaultAgentDefinition,

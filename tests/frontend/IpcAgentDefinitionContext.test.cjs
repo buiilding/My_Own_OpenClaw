@@ -306,6 +306,7 @@ describe('ipc_agent_definition_context', () => {
     );
 
     expect(mainSource).toContain('createAgentDefinitionContextRuntime({');
+    expect(mainSource).toContain('getLatestDesktopUiConfig: () => desktopUiConfigStore.getDesktopUiConfigForAgentDefinition()');
     expect(mainSource).toContain('agentDefinitionContextRuntime.attach(payload)');
     expect(mainSource).not.toContain('attachAgentDefinitionContextRuntime(payload');
     expect(helperSource).toContain('function createAgentDefinitionContextRuntime');

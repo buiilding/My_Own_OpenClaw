@@ -49,6 +49,20 @@ function copyPreservedConfigValue(config, key) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 }
 
+function hasMeaningfulPreservedConfigValue(config, key) {
+  if (!hasOwnConfigKey(config, key)) {
+    return false;
+  }
+  const value = config[key];
+  if (typeof value === 'string') {
+    return value.trim().length > 0;
+  }
+  if (Array.isArray(value)) {
+    return value.some((item) => typeof item === 'string' && item.trim().length > 0);
+  }
+  return value !== undefined && value !== null;
+}
+
 function createMcpEnablementTraceId({
   now = Date.now,
   random = Math.random,
@@ -72,6 +86,7 @@ function createDesktopUiConfigStoreRuntime({
   random = Math.random,
 } = {}) {
   let currentConfig = null;
+  const trustedLiveEmptyPreservedConfigKeys = new Set();
 
   function normalizeSnapshot(config) {
     if (!isValidConfigPayload(config)) {
@@ -87,6 +102,26 @@ function createDesktopUiConfigStoreRuntime({
   function setSnapshot(config) {
     currentConfig = normalizeSnapshot(config);
     return getSnapshot();
+  }
+
+  function updateTrustedLiveEmptyPreservedConfigKeys(config, options = {}) {
+    if (!isValidConfigPayload(config)) {
+      return;
+    }
+    preservedAbsentRendererConfigKeys.forEach((key) => {
+      if (!hasOwnConfigKey(config, key)) {
+        return;
+      }
+      if (hasMeaningfulPreservedConfigValue(config, key)) {
+        trustedLiveEmptyPreservedConfigKeys.delete(key);
+        return;
+      }
+      if (options.trustExplicitEmptyPreservedConfig === true) {
+        trustedLiveEmptyPreservedConfigKeys.add(key);
+        return;
+      }
+      trustedLiveEmptyPreservedConfigKeys.delete(key);
+    });
   }
 
   function getSnapshot() {
@@ -108,6 +143,7 @@ function createDesktopUiConfigStoreRuntime({
   }
 
   function replaceFromDisk(config) {
+    trustedLiveEmptyPreservedConfigKeys.clear();
     return setSnapshot(config);
   }
 
@@ -183,6 +219,7 @@ function createDesktopUiConfigStoreRuntime({
     const nextConfig = preserveMainOwnedFields(config, options);
     if (isValidConfigPayload(nextConfig)) {
       setSnapshot(nextConfig);
+      updateTrustedLiveEmptyPreservedConfigKeys(nextConfig, options);
     }
     return getSnapshot();
   }
@@ -199,6 +236,33 @@ function createDesktopUiConfigStoreRuntime({
 
   function getDesktopUiConfigForMcpRegistry() {
     return preserveMainOwnedFields(getSnapshot() || {});
+  }
+
+  function getDesktopUiConfigForAgentDefinition() {
+    const snapshot = getSnapshot() || {};
+    const diskConfig = loadDiskConfigSync();
+    if (!isValidConfigPayload(diskConfig)) {
+      return Object.keys(snapshot).length > 0 ? snapshot : null;
+    }
+
+    let nextConfig = preserveAbsentRendererConfigFields(snapshot, diskConfig);
+    preservedAbsentRendererConfigKeys.forEach((key) => {
+      if (
+        trustedLiveEmptyPreservedConfigKeys.has(key)
+        || hasMeaningfulPreservedConfigValue(nextConfig, key)
+        || !hasMeaningfulPreservedConfigValue(diskConfig, key)
+      ) {
+        return;
+      }
+      const diskValue = copyPreservedConfigValue(diskConfig, key);
+      if (diskValue !== undefined) {
+        nextConfig = {
+          ...nextConfig,
+          [key]: diskValue,
+        };
+      }
+    });
+    return normalizeSnapshot(nextConfig);
   }
 
   function countMcpEnabledServersInConfig(config) {
@@ -228,6 +292,7 @@ function createDesktopUiConfigStoreRuntime({
     const snapshot = replaceFromRenderer(saveConfig, {
       ...options,
       preserveMcpEnablement: false,
+      trustExplicitEmptyPreservedConfig: true,
     });
     const result = await saveDesktopUiConfigToDisk(saveConfig, log);
     recordMcpEnablementDiagnostic({
@@ -249,10 +314,12 @@ function createDesktopUiConfigStoreRuntime({
 
   function reset() {
     currentConfig = null;
+    trustedLiveEmptyPreservedConfigKeys.clear();
   }
 
   return {
     countMcpEnabledServersInConfig,
+    getDesktopUiConfigForAgentDefinition,
     getDesktopUiConfigForMcpRegistry,
     getRawForInternalUse,
     getSnapshot,

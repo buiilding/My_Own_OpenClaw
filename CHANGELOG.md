@@ -11339,6 +11339,7 @@ Includes the last 300 commits on `main`.
 - feat(frontend-settings): add an Onboarding settings tab with a button that returns the user to the first-run onboarding flow
 # Unreleased
 
+- Fixed query-time Agent config assembly so a stale empty Electron-main config snapshot is repaired from persisted Agent settings before building `agent_definition`, preventing restarted chats from sending the default system prompt when Settings still shows a saved custom prompt.
 - Removed unused renderer response-overlay scanner helpers after overlay rendering moved to direct SDK/current-turn presentation messages.
 - Removed unused renderer stream-phase predicates so `streamPhaseState` only exposes the awaiting-reply predicate still used by loop UI state.
 - Removed unused renderer default exports from named-export-only hook and prop-type modules.

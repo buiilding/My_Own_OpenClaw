@@ -213,6 +213,55 @@ describe('ipc_desktop_ui_config_store', () => {
     }, expect.any(Function));
   });
 
+  test('repairs stale empty live agent query settings from disk for query assembly', () => {
+    const { runtime } = createHarness({
+      disk: {
+        model_provider: 'scripted',
+        selected_model_id: 'scripted-runtime',
+        agent_custom_instructions: 'Persisted prompt.',
+        agent_disabled_local_tools: ['mouse_control'],
+        agent_disabled_remote_tools: ['web_search'],
+      },
+    });
+    runtime.replaceFromRenderer({
+      model_provider: 'scripted',
+      selected_model_id: 'scripted-runtime',
+      agent_custom_instructions: '',
+      agent_disabled_local_tools: [],
+      agent_disabled_remote_tools: [],
+    });
+
+    expect(runtime.getDesktopUiConfigForAgentDefinition()).toEqual(expect.objectContaining({
+      model_provider: 'scripted',
+      selected_model_id: 'scripted-runtime',
+      agent_custom_instructions: 'Persisted prompt.',
+      agent_disabled_local_tools: ['mouse_control'],
+      agent_disabled_remote_tools: ['web_search'],
+    }));
+  });
+
+  test('does not repair explicit empty agent query settings while save races old disk config', async () => {
+    const { runtime } = createHarness({
+      disk: {
+        agent_custom_instructions: 'Persisted prompt.',
+        agent_disabled_local_tools: ['mouse_control'],
+        agent_disabled_remote_tools: ['web_search'],
+      },
+    });
+
+    await expect(runtime.persist({
+      agent_custom_instructions: '',
+      agent_disabled_local_tools: [],
+      agent_disabled_remote_tools: [],
+    })).resolves.toEqual({ success: true });
+
+    expect(runtime.getDesktopUiConfigForAgentDefinition()).toEqual(expect.objectContaining({
+      agent_custom_instructions: '',
+      agent_disabled_local_tools: [],
+      agent_disabled_remote_tools: [],
+    }));
+  });
+
   test('allows renderer config to explicitly clear agent query settings', async () => {
     const { runtime, saveDesktopUiConfigToDisk } = createHarness({
       initial: {
