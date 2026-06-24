@@ -56,6 +56,9 @@ describe('overlay_responsebox_handler', () => {
       showResponseWindowForLiveTurnIntent: jest.fn(),
       getActiveResponseOverlayGuardRef: jest.fn(() => null),
       setActiveResponseOverlayGuardRef: jest.fn(),
+      getResponseOverlayLayoutMode: jest.fn(() => null),
+      setResponseOverlayLayoutMode: jest.fn(),
+      clearResponseOverlayLayoutMode: jest.fn(),
       dismissResponseOverlayGuardRef: jest.fn(),
       ...overrides,
     };
@@ -343,6 +346,52 @@ describe('overlay_responsebox_handler', () => {
     expect(result).toEqual({ success: true, visible: true, width: 300, height: 140 });
     expect(deps.getResponseWindowBounds).toHaveBeenCalledWith(300, 140, { compactHover: true });
     expect(deps.responseWindow.setBounds).toHaveBeenCalledWith({ x: 1, y: 2, width: 300, height: 140 }, false);
+  });
+
+  test('ignores late awaiting layout reports after response layout is active for the same guard', async () => {
+    const deps = createDeps({
+      getResponseOverlayLayoutMode: jest.fn((guardRef) => (
+        guardRef === 'turn-streaming' ? 'response' : null
+      )),
+    });
+
+    const result = await handleSetResponseboxSize({
+      visible: true,
+      width: 520,
+      height: 24,
+      compact_hover: true,
+      layout_mode: 'awaiting-typing',
+      turn_ref: 'turn-streaming',
+      stale_guard_ref: 'turn-streaming',
+    }, deps);
+
+    expect(result).toEqual({
+      success: true,
+      visible: true,
+      ignored: true,
+      reason: 'regressive-layout-mode',
+    });
+    expect(deps.responseWindow.setBounds).not.toHaveBeenCalled();
+    expect(deps.setResponseOverlayVisibilityState).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowForLiveTurnIntent).not.toHaveBeenCalled();
+    expect(deps.setResponseOverlayLayoutMode).not.toHaveBeenCalled();
+  });
+
+  test('records response layout mode after a successful visible resize', async () => {
+    const deps = createDeps();
+
+    const result = await handleSetResponseboxSize({
+      visible: true,
+      width: 520,
+      height: 236,
+      layout_mode: 'response',
+      turn_ref: 'turn-streaming',
+      stale_guard_ref: 'turn-streaming',
+    }, deps);
+
+    expect(result).toEqual({ success: true, visible: true, width: 520, height: 236 });
+    expect(deps.setResponseOverlayLayoutMode).toHaveBeenCalledWith('turn-streaming', 'response');
+    expect(deps.responseWindow.setBounds).toHaveBeenCalledWith({ x: 1, y: 2, width: 520, height: 236 }, false);
   });
 
   test('records active turn guard after a successful visible resize', async () => {

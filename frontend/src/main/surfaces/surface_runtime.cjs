@@ -119,6 +119,8 @@ function createSurfaceRuntime({
     mainProcessIpcHandlersInitialized: false,
     responseOverlayVisible: false,
     responseOverlayPhase: 'idle',
+    responseOverlayLayoutMode: 'hidden',
+    responseOverlayLayoutModeGuardRef: null,
     activeResponseOverlayCorrelationId: null,
     activeResponseOverlayGuardRef: null,
     pointerControlLeaseCount: 0,
@@ -146,6 +148,8 @@ function createSurfaceRuntime({
       vmWorkerRuntime: state.vmWorkerRuntime,
       responseOverlayVisible: state.responseOverlayVisible,
       responseOverlayPhase: state.responseOverlayPhase,
+      responseOverlayLayoutMode: state.responseOverlayLayoutMode,
+      responseOverlayLayoutModeGuardRef: state.responseOverlayLayoutModeGuardRef,
       activeResponseOverlayGuardRef: state.activeResponseOverlayGuardRef,
       chatPillUserHidden: state.chatPillUserHidden,
       primarySurface: state.primarySurface,
@@ -601,6 +605,39 @@ function createSurfaceRuntime({
     return true;
   }
 
+  function setResponseOverlayLayoutMode(guardRef, layoutMode) {
+    const normalizedGuardRef = normalizeResponseOverlayGuardRef(guardRef);
+    const normalizedLayoutMode = normalizeResponseOverlayLayoutMode(layoutMode);
+    state.responseOverlayLayoutMode = normalizedLayoutMode;
+    state.responseOverlayLayoutModeGuardRef = normalizedGuardRef;
+  }
+
+  function getResponseOverlayLayoutMode(guardRef = null) {
+    const normalizedGuardRef = normalizeResponseOverlayGuardRef(guardRef);
+    if (
+      normalizedGuardRef
+      && state.responseOverlayLayoutModeGuardRef
+      && normalizedGuardRef !== state.responseOverlayLayoutModeGuardRef
+    ) {
+      return null;
+    }
+    return state.responseOverlayLayoutMode;
+  }
+
+  function clearResponseOverlayLayoutMode(guardRef = null) {
+    const normalizedGuardRef = normalizeResponseOverlayGuardRef(guardRef);
+    if (
+      normalizedGuardRef
+      && state.responseOverlayLayoutModeGuardRef
+      && normalizedGuardRef !== state.responseOverlayLayoutModeGuardRef
+    ) {
+      return false;
+    }
+    state.responseOverlayLayoutMode = 'hidden';
+    state.responseOverlayLayoutModeGuardRef = null;
+    return true;
+  }
+
   function isResponseOverlayGuardDismissed(guardRef) {
     const normalizedGuardRef = normalizeResponseOverlayGuardRef(guardRef);
     return Boolean(
@@ -881,8 +918,10 @@ function createSurfaceRuntime({
     getPrimarySurface,
     getResponseWindow: () => state.responseWindow,
     canShowFloatingResponseOverlay,
+    clearResponseOverlayLayoutMode,
     dismissResponseOverlayGuardRef,
     getActiveResponseOverlayGuardRef: () => state.activeResponseOverlayGuardRef,
+    getResponseOverlayLayoutMode,
     getState,
     getWindows,
     hideChatWindow,
@@ -901,6 +940,7 @@ function createSurfaceRuntime({
       state.mainWindow = nextWindow;
     },
     setResponseOverlayVisibilityState,
+    setResponseOverlayLayoutMode,
     setResponseboxHitTestActive,
     isResponseOverlayGuardDismissed,
     setActiveResponseOverlayGuardRef: (nextGuardRef) => {
@@ -930,6 +970,12 @@ function safeWindowVisible(win) {
     return null;
   }
   return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
+}
+
+function normalizeResponseOverlayLayoutMode(value) {
+  return value === 'awaiting-typing' || value === 'response' || value === 'hidden'
+    ? value
+    : 'hidden';
 }
 
 function formatChatPillVisibilityDecision(payload = {}) {

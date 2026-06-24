@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: tag response overlay size reports with renderer layout mode and
+  ignore late same-turn awaiting-typing reports once the native overlay has
+  entered response mode, preventing the typing frame from racing streamed
+  response content. No migration required.
 - frontend/main: pin Electron to 41.2.0, the first fixed release for the
   macOS native-menu `representedObject is not a WeakPtrToElectronMenuModelAsNSObject`
   warning that appeared when opening conversation find. The package spec is

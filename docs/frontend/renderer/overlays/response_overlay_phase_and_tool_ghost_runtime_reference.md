@@ -266,6 +266,10 @@ Layout-specific sizing:
 - `response` mode reports measured shell width + fixed response frame height
 - `awaiting-typing` mode forces `height=24` and reports `compact_hover=true`
 - `hidden` mode reports zero size and `visible=false`
+- size payloads include `layout_mode`; Electron main treats the native response
+  layout as monotonic per `stale_guard_ref`, so a late `awaiting-typing` size
+  report from the same guarded turn cannot shrink a response-mode streaming
+  overlay back to the typing frame.
 
 Dedupe behavior:
 

@@ -159,6 +159,7 @@ const CORE_LOOP_REGRESSION_PACK_TESTS = Object.freeze([
   'IpcConversationEventProjection.test.cjs',
   'IpcLiveTurnState.test.cjs',
   'ChatBoxResponse.state.test.jsx',
+  'OverlayResponseboxHandler.test.cjs',
   'ResponseOverlayPhaseHandler.test.cjs',
   'ResponseOverlayVisibilityPolicy.test.cjs',
   'ToolCallMessageState.test.js',
