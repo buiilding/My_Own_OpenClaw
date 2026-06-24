@@ -4,6 +4,7 @@
 
 import { hasShallowConfigChanges } from './configComparison';
 import { DesktopRendererConfigFilterRuntime } from '../runtime/desktopRendererConfigFilterRuntime';
+import { DesktopProviderCredentialRuntime } from '../runtime/desktopProviderCredentialRuntime';
 
 const {
   filterRendererConfig,
@@ -76,6 +77,16 @@ export function sanitizeRendererProviderConfig(config) {
 
 export function buildRendererConfigPersistencePayload(config) {
   return sanitizeRendererProviderConfig(config);
+}
+
+export function buildRendererConfigStoragePayload(config) {
+  const sanitized = sanitizeRendererProviderConfig(config);
+  if (isPlainObject(sanitized.provider_api_keys)) {
+    sanitized.provider_api_keys = DesktopProviderCredentialRuntime.stripProviderApiKeySecrets(
+      sanitized.provider_api_keys,
+    );
+  }
+  return sanitized;
 }
 
 export function mergeRendererProviderConfig(baseConfig, patchConfig) {

@@ -192,6 +192,7 @@ const RENDERER_LIGHT_APPEARANCE_USER_FACING_REGRESSION_TESTS = Object.freeze([
 ]);
 
 const SETTINGS_STARTUP_USER_FACING_REGRESSION_TESTS = Object.freeze([
+  'AppConfigProvider.storageAndIpc.test.tsx',
   'IpcChatQueryHandlers.test.cjs',
   'IpcSettingsSyncRuntime.test.cjs',
   'IpcAgentDefinitionContext.test.cjs',

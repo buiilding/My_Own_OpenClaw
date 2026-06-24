@@ -11,6 +11,7 @@ import {
   applyConfigIfChanged,
   buildMergedRendererConfig,
   buildRendererConfigPersistencePayload,
+  buildRendererConfigStoragePayload,
 } from './appConfigPersistence';
 import {
   buildImmediateRuntimeConfig,
@@ -108,10 +109,11 @@ export function AppConfigProvider({ children }) {
       saveStatusCallbackRef.current();
     }
 
+    const storageConfig = buildRendererConfigStoragePayload(nextConfig);
     const persistenceConfig = buildRendererConfigPersistencePayload(nextConfig);
 
     if (persistToStorage) {
-      saveConfigToStorage(persistenceConfig);
+      saveConfigToStorage(storageConfig);
     }
     if (persistToDisk) {
       DesktopAppConfigRuntimeClient.saveRendererConfig(persistenceConfig).catch((error) => {
@@ -232,12 +234,22 @@ export function AppConfigProvider({ children }) {
     let isMounted = true;
 
     DesktopAppConfigRuntimeClient.loadRendererConfig().then((diskConfig) => {
-      if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
+      if (!isMounted) {
+        return;
+      }
+      if (!diskConfig || typeof diskConfig !== 'object') {
+        if (configRef.current && typeof configRef.current === 'object') {
+          commitRendererConfig(configRef.current, configRef.current, {
+            persistToStorage: false,
+            persistToDisk: true,
+            syncRuntime: runtimeConnectedRef.current,
+          });
+        }
         return;
       }
       const filteredConfig = resolveMergedRendererConfig(diskConfig);
       applyResolvedConfig(filteredConfig, {
-        persistToDisk: false,
+        persistToDisk: true,
         syncRuntime: runtimeConnectedRef.current,
       });
     }).catch((error) => {
@@ -247,7 +259,7 @@ export function AppConfigProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [applyResolvedConfig, resolveMergedRendererConfig]);
+  }, [applyResolvedConfig, commitRendererConfig, configRef, resolveMergedRendererConfig]);
 
   useEffect(() => {
     const handleStorage = (event) => {

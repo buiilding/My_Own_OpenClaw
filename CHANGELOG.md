@@ -16,15 +16,22 @@ All notable changes to WindieOS will be documented in this file.
   Renderer display-row projection now carries those targets into chat messages,
   so replacement rows can open the visible inline editor while replay submits
   against the SDK-provided original row identity. No migration required.
+- docs/plans: add the Desktop UI Config Store Authority plan for replacing the
+  duplicate Electron-main desktop UI config cache with a single main-owned
+  config store runtime, keeping disk as persistence only while query-time Agent
+  settings read from the live store. No migration required.
 - frontend/main, frontend/renderer: persist renderer-managed provider API keys
   through an Electron `safeStorage` encrypted `provider-credentials.json` side
   file while keeping renderer localStorage, `frontend-config.json`, and the
   latest main config cache redacted. Electron main now maps renderer query
   payloads into SDK `backendPayload` and `agentDefinition` fields, so custom
   Agent system prompts and disabled tool policy reach backend inference instead
-  of falling back to default prompt/tool schemas. Migration note: existing
-  redacted configs without an encrypted provider credential entry cannot recover
-  the previous raw key and must be re-entered once.
+  of falling back to default prompt/tool schemas. Renderer startup now also
+  saves the merged localStorage/disk config back through Electron main, so
+  Agent settings that previously existed only in renderer localStorage hydrate
+  the main config cache before the next query. Migration note: existing redacted
+  configs without an encrypted provider credential entry cannot recover the
+  previous raw key and must be re-entered once.
 - frontend/main, frontend/renderer: advance the redacted desktop UI config cache
   before asynchronous disk persistence completes, await selected-model sync
   before chat sends and manual compaction, and forward retry/edit replay model

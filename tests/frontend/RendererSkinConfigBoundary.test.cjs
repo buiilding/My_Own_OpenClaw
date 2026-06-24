@@ -327,8 +327,8 @@ describe('renderer skin/config boundary', () => {
     expect(configStorageSource).toContain('desktopRuntimeConfig');
     expect(configStorageSource).not.toContain('providerCredentialSettings');
     expect(configStorageSource).toContain('desktopProviderCredentialRuntime');
-    expect(appConfigPersistenceSource).not.toContain('DesktopProviderCredentialRuntime');
-    expect(appConfigPersistenceSource).not.toContain('stripProviderApiKeySecrets');
+    expect(appConfigPersistenceSource).toContain('DesktopProviderCredentialRuntime');
+    expect(appConfigPersistenceSource).toContain('stripProviderApiKeySecrets');
     expect(appConfigPersistenceSource).not.toContain("api_key: ''");
     expect(providerCredentialStoreSource).toContain('provider-credentials.json');
     expect(providerCredentialStoreSource).toContain('safeStorage');

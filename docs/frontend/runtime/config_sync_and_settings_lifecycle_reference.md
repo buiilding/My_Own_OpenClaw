@@ -70,7 +70,9 @@ Responsibilities:
 - source config state from localStorage on startup
 - request model list once for the main dashboard through `DesktopSettingsRuntimeClient.listModels()` after registering the settings event listener, even when the initial runtime connection snapshot is disconnected; this is the startup signal that makes Electron main open the backend websocket for model metadata
 - sync non-model config to the settings runtime on connection availability
-- merge disk/local updates with current in-memory config
+- merge disk/local updates with current in-memory config and save the merged
+  startup snapshot back through Electron main so renderer-local Agent settings
+  are available to query-time agent-definition assembly
 - persist updates to localStorage and disk
 - publish `update-settings` through `DesktopSettingsRuntimeClient.updateSettings(...)`
 - leave deferred model/provider selection to `DesktopSettingsRuntimeClient.setModel(...)` on send/manual-compaction paths; replay sends its model selection with the retry/edit command payload
