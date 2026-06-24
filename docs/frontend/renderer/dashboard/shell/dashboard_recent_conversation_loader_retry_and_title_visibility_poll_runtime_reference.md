@@ -154,8 +154,9 @@ visibility.
 
 `handleOpenConversation(conversation)`:
 
-1. loads the SDK conversation snapshot through `conversation.load`
-2. loads SDK `displayRows` and converts them to visible chat messages
+1. loads the SDK display payload through `conversation.loadDisplay`
+2. prefers `ConversationView.displayRows`, falling back to legacy SDK
+   `displayRows`, and converts them to visible chat messages
 3. resolves workspace binding from SDK snapshot metadata
 4. updates transcript session + active conversation refs
 5. writes projected rows into chat workspace and resets `isSending` /

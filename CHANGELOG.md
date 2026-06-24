@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main, frontend/renderer: carry SDK `ConversationView` through the
+  `conversation.loadDisplay` command and prefer `view.displayRows` in renderer
+  display-row facades. Legacy `displayRows` remain as a temporary fallback for
+  non-view payloads while dashboard transcript migration continues. No
+  migration required.
 - frontend/renderer: project dashboard transcript messages from SDK
   `ConversationView.displayRows` when the current-turn payload carries a view.
   The existing display-rows stream remains a migration fallback, but the
