@@ -42,3 +42,4 @@ provider payloads, credentials, or local filesystem paths.
 | 24 | SDK durable turn trace | `agent_definition.sdk_flow` | `tools_manifest.detect` | Records merged client tool manifest counts without tool schema bodies. |
 | 25 | SDK durable turn trace | `agent_definition.sdk_flow` | `disabled_tools.detect` | Records disabled tool counts from SDK, query, and merged Agent definition context. |
 | 26 | SDK durable turn trace | `agent_definition.sdk_flow` | `enabled_remote_tools.detect` | Records enabled remote tool counts from SDK, query, and merged Agent definition context. |
+| 27 | SDK durable turn trace | `agent_definition.sdk_flow` | `prompt_layers.detect` | Records prompt layer counts without prompt-layer contents. |
