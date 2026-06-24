@@ -513,6 +513,21 @@ function hasNonEmptyManifestTools(manifest: JsonRecord): boolean {
   return Array.isArray(manifest.tools) && manifest.tools.length > 0;
 }
 
+function hasToolPolicyOverride(tools: unknown): boolean {
+  if (!tools || typeof tools !== 'object' || Array.isArray(tools)) {
+    return false;
+  }
+  const record = tools as JsonRecord;
+  return (
+    Array.isArray(record.available_tools)
+    || Array.isArray(record.enabled_remote_tools)
+    || Array.isArray(record.disabled_tools)
+    || Array.isArray(record.disabled_capabilities)
+    || record.mode === 'client_only'
+    || record.mode === 'explicit'
+  );
+}
+
 function mergeAgentDefinitionTools(baseTools: unknown, overrideTools: unknown): JsonRecord | undefined {
   const mergedTools = mergeJsonRecord(baseTools, overrideTools);
   if (!mergedTools) {
@@ -521,6 +536,8 @@ function mergeAgentDefinitionTools(baseTools: unknown, overrideTools: unknown): 
   const baseClientManifest = cloneJsonRecord((baseTools as JsonRecord | undefined)?.client_manifest);
   const overrideClientManifest = cloneJsonRecord((overrideTools as JsonRecord | undefined)?.client_manifest);
   if (hasNonEmptyManifestTools(overrideClientManifest)) {
+    mergedTools.client_manifest = overrideClientManifest;
+  } else if (Object.keys(overrideClientManifest).length > 0 && hasToolPolicyOverride(overrideTools)) {
     mergedTools.client_manifest = overrideClientManifest;
   } else if (Object.keys(baseClientManifest).length > 0) {
     mergedTools.client_manifest = baseClientManifest;

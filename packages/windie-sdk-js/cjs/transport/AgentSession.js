@@ -367,6 +367,18 @@ function mergeArrayValues(base, override) {
 function hasNonEmptyManifestTools(manifest) {
     return Array.isArray(manifest.tools) && manifest.tools.length > 0;
 }
+function hasToolPolicyOverride(tools) {
+    if (!tools || typeof tools !== 'object' || Array.isArray(tools)) {
+        return false;
+    }
+    const record = tools;
+    return (Array.isArray(record.available_tools)
+        || Array.isArray(record.enabled_remote_tools)
+        || Array.isArray(record.disabled_tools)
+        || Array.isArray(record.disabled_capabilities)
+        || record.mode === 'client_only'
+        || record.mode === 'explicit');
+}
 function mergeAgentDefinitionTools(baseTools, overrideTools) {
     const mergedTools = mergeJsonRecord(baseTools, overrideTools);
     if (!mergedTools) {
@@ -375,6 +387,9 @@ function mergeAgentDefinitionTools(baseTools, overrideTools) {
     const baseClientManifest = cloneJsonRecord(baseTools?.client_manifest);
     const overrideClientManifest = cloneJsonRecord(overrideTools?.client_manifest);
     if (hasNonEmptyManifestTools(overrideClientManifest)) {
+        mergedTools.client_manifest = overrideClientManifest;
+    }
+    else if (Object.keys(overrideClientManifest).length > 0 && hasToolPolicyOverride(overrideTools)) {
         mergedTools.client_manifest = overrideClientManifest;
     }
     else if (Object.keys(baseClientManifest).length > 0) {

@@ -81,7 +81,11 @@ Send `agent_definition` in the first `/ws` message:
 The same object may also be included on a `query` payload for clients that need
 to update agent context for a specific turn. Query-level updates may omit
 `tools.client_manifest`; when omitted, the backend preserves the tool manifest
-accepted during handshake.
+accepted during handshake. Clients that need query-local tool policy to replace
+or clear local tools must send `tools.client_manifest` on the query. An empty
+manifest such as `{ "version": 1, "tools": [] }` is a real replacement when the
+query also carries explicit tool policy, for example `tools.mode`,
+`available_tools`, `enabled_remote_tools`, or `disabled_tools`.
 
 ## No Post-Handshake Tool Schema Sync
 

@@ -134,6 +134,10 @@ Behavior:
   before awaiting disk save, so query-local agent-definition context sees
   just-edited Agent settings on the next send even when the renderer fires the
   save asynchronously
+- query-local agent-definition context builds a filtered replacement client
+  tool manifest from the same live store, including an empty manifest when all
+  local Agent tools are disabled, so the SDK websocket query cannot resurrect
+  startup handshake tool schemas
 - disk save failures still report save-status errors, but the live Electron
   session keeps using the latest redacted renderer config until the user changes
   or reloads settings

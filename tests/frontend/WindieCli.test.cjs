@@ -373,6 +373,7 @@ describe('windie CLI', () => {
       'IpcAgentDefinitionContext.test.cjs',
       'IpcDesktopUiConfigStore.test.cjs',
       'IpcAgentSdkRuntimeCommands.test.cjs',
+      'AgentSdkAgentDefinitionMerge.test.cjs',
     ]));
     expect(userFacingPlan.concurrent[4]).toMatchObject({
       label: 'model-send-selection',

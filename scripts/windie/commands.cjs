@@ -198,6 +198,7 @@ const SETTINGS_STARTUP_USER_FACING_REGRESSION_TESTS = Object.freeze([
   'IpcAgentDefinitionContext.test.cjs',
   'IpcDesktopUiConfigStore.test.cjs',
   'IpcAgentSdkRuntimeCommands.test.cjs',
+  'AgentSdkAgentDefinitionMerge.test.cjs',
 ]);
 
 const MODEL_SEND_SELECTION_USER_FACING_REGRESSION_TESTS = Object.freeze([

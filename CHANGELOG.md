@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: query-level Agent definitions now carry the filtered client
+  tool manifest from live Agent settings, and SDK query merges honor an empty
+  replacement manifest when explicit tool policy is present. Just-edited or
+  persisted Agent prompt/tool settings now override startup defaults on the
+  next turn instead of restoring the handshake local-tool schemas. No migration
+  required.
 - skills: add a runtime tracing skill that documents when to use durable
   conversation traces, persistent app diagnostics, or gated live-surface traces
   for repeatable long-running agent loop evidence. No migration required.

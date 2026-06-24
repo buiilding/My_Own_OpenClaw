@@ -8,6 +8,7 @@ jest.mock('../../frontend/src/main/extensions/extension_manifest.cjs', () => ({
   loadExtensionSkillPromptLayers: jest.fn(() => [
     { id: 'extension-layer', content: 'extension instructions' },
   ]),
+  loadExtensionPluginTools: jest.fn(() => []),
 }));
 
 const {
@@ -130,7 +131,13 @@ describe('ipc_agent_definition_context', () => {
       });
 
       expect(buildAgentDefinition).toHaveBeenCalledWith(expect.objectContaining({
-        includeToolManifest: false,
+        includeToolManifest: true,
+        clientToolManifest: expect.objectContaining({
+          tools: expect.not.arrayContaining([
+            expect.objectContaining({ name: 'browser' }),
+            expect.objectContaining({ name: 'read_file' }),
+          ]),
+        }),
         systemPrompt: 'Be concise.',
         availableTools: [],
         disabledTools: ['browser', 'read_file', 'web_search'],
@@ -228,11 +235,64 @@ describe('ipc_agent_definition_context', () => {
       mode: 'default_plus_overrides',
       tools: {
         mode: 'default_plus_client',
+        client_manifest: expect.objectContaining({
+          tools: expect.not.arrayContaining([
+            expect.objectContaining({ name: 'browser' }),
+          ]),
+        }),
         enabled_remote_tools: [],
         disabled_tools: ['browser', 'web_search'],
       },
     });
     expect(result.agent_definition.tools).not.toHaveProperty('available_tools');
+  });
+
+  test('sends an empty replacement client manifest when every local tool is disabled', () => {
+    const runtime = createAgentDefinitionContextRuntime({
+      getLatestDesktopUiConfig: () => ({
+        agent_disabled_local_tools: [
+          'mouse_control',
+          'keyboard_control',
+          'screenshot',
+          'scroll_control',
+          'switch_window',
+          'wait',
+          'get_open_windows',
+          'get_system_stats',
+          'open_app',
+          'run_shell_command',
+          'process',
+          'read_file',
+          'replace',
+          'browser',
+        ],
+      }),
+      buildAgentDefinition,
+      isDefaultAgentDefinition,
+    });
+
+    const result = runtime.attach({ text: 'hello' });
+
+    expect(result.agent_definition.tools.client_manifest).toEqual({
+      version: 1,
+      tools: [],
+    });
+    expect(result.agent_definition.tools.disabled_tools).toEqual([
+      'mouse_control',
+      'keyboard_control',
+      'screenshot',
+      'scroll_control',
+      'switch_window',
+      'wait',
+      'get_open_windows',
+      'get_system_stats',
+      'open_app',
+      'run_shell_command',
+      'process',
+      'read_file',
+      'replace',
+      'browser',
+    ]);
   });
 
   test('ipc.cjs composes agent definition context through the runtime wrapper', async () => {

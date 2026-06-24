@@ -1905,6 +1905,30 @@ describe('Agent SDK client behavior', () => {
     FakeWebSocket.instances[0].clearSent();
 
     await transport.sendQuery({
+      text: 'empty manifest with tool policy should erase sdk tools',
+      conversation_ref: 'conv-agent-context',
+      agent_definition: {
+        tools: {
+          mode: 'explicit',
+          available_tools: [],
+          disabled_tools: ['cua_driver__get_open_windows'],
+          client_manifest: {
+            version: 1,
+            tools: [],
+          },
+        },
+      },
+    });
+
+    const disabledToolsQuery = JSON.parse(FakeWebSocket.instances[0].sent[0]);
+    expect(disabledToolsQuery.payload.agent_definition.tools.client_manifest.tools).toEqual([]);
+    expect(disabledToolsQuery.payload.agent_definition.tools.disabled_tools).toEqual([
+      'cua_driver__get_open_windows',
+    ]);
+
+    FakeWebSocket.instances[0].clearSent();
+
+    await transport.sendQuery({
       text: 'non-empty manifest replaces sdk tools',
       conversation_ref: 'conv-agent-context',
       agent_definition: {

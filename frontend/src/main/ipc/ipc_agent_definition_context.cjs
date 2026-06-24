@@ -12,6 +12,9 @@ const {
   loadExtensionSkillPromptLayers,
 } = require('../extensions/extension_manifest.cjs');
 const {
+  buildClientToolManifest,
+} = require('../extensions/tool_manifest.cjs');
+const {
   resolveDesktopHostOperatingSystem,
 } = require('./ipc_desktop_host_os_runtime.cjs');
 
@@ -47,11 +50,15 @@ function containsTrimmedString(value, expected) {
 function resolveAgentToolConfig(latestDesktopUiConfig) {
   const disabledLocalTools = arrayValue(latestDesktopUiConfig?.agent_disabled_local_tools);
   const disabledRemoteTools = arrayValue(latestDesktopUiConfig?.agent_disabled_remote_tools);
+  const clientToolManifest = buildClientToolManifest({
+    disabledTools: disabledLocalTools,
+  });
   const enabledRemoteTools = REMOTE_AGENT_TOOL_NAMES.filter(
     (toolName) => !containsTrimmedString(disabledRemoteTools, toolName),
   );
   return {
     availableTools: enabledRemoteTools,
+    clientToolManifest,
     disabledTools: [
       ...disabledLocalTools,
       ...disabledRemoteTools,
@@ -125,7 +132,8 @@ function attachAgentDefinitionContext(payload, {
     ? resolveWorkspaceRepoInstructionPromptLayers(workspacePath)
     : [];
   const generatedAgentDefinition = buildAgentDefinition(buildElectronAgentDefinitionInputs({
-    includeToolManifest: false,
+    includeToolManifest: true,
+    clientToolManifest: toolConfig.clientToolManifest,
     includeExtensionPromptLayers: false,
     systemPrompt: customInstructions,
     availableTools: toolConfig.availableTools,
