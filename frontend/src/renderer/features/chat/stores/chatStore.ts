@@ -467,7 +467,6 @@ export function selectChatInterfaceState(state: ChatState) {
 export function selectLiveTurnSurfaceState(state: ChatState) {
   return projectDesktopLiveTurnSurfaceState({
     activeWorkspace: selectActiveWorkspaceState(state),
-    latestCurrentTurnProjection: state.latestCurrentTurnProjection,
     latestConversationView: state.latestConversationView,
   });
 }

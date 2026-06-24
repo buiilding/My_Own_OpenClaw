@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove the global raw `latestCurrentTurnProjection` from
+  normal minimal live-surface selection. The pill and response overlay now use
+  `latestConversationView` for cross-surface SDK authority and keep only the
+  active workspace current-turn projection as the temporary no-view bridge. No
+  migration required.
 - sdk/frontend/local-runtime: add SDK-owned revision listing and dashboard
   revision navigation. The local runtime now exposes sanitized revision graph
   metadata through `conversation.revisions.list`, SDK stores and Electron main

@@ -26,7 +26,6 @@ describe('chatSelectors', () => {
       currentTurnProjection: { turnRef: 'workspace-turn' },
       pendingTurn: { turnRef: 'pending-turn' },
     };
-    const liveProjection = { turnRef: 'live-turn' };
 
     expect(projectDesktopChatInterfaceState(activeWorkspace)).toEqual({
       messages: activeWorkspace.messages,
@@ -41,21 +40,17 @@ describe('chatSelectors', () => {
     expect(projectDesktopChatInterfaceState(activeWorkspace)).not.toHaveProperty('streamTracking');
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
-      latestCurrentTurnProjection: liveProjection,
     })).toEqual(expect.objectContaining({
-      currentTurnProjection: liveProjection,
+      currentTurnProjection: activeWorkspace.currentTurnProjection,
     }));
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
-      latestCurrentTurnProjection: liveProjection,
     })).not.toHaveProperty('isSending');
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
-      latestCurrentTurnProjection: liveProjection,
     })).not.toHaveProperty('thinkingStatus');
     expect(projectDesktopLiveTurnSurfaceState({
       activeWorkspace,
-      latestCurrentTurnProjection: liveProjection,
     })).not.toHaveProperty('thinkingSourceEventType');
   });
 
@@ -187,7 +182,7 @@ describe('chatSelectors', () => {
     expect(selected.messages).toBe(messages);
   });
 
-  test('selects latest SDK live turn for minimal surfaces over active workspace projection', () => {
+  test('ignores global latest raw current turn for minimal surfaces', () => {
     const workspaceProjection = {
       conversationRef: 'conv-dashboard',
       turnRef: 'turn-dashboard',
@@ -216,7 +211,7 @@ describe('chatSelectors', () => {
       streamTracking: { phase: 'awaiting-first-chunk' },
     });
 
-    expect(selected.currentTurnProjection).toBe(liveProjection);
+    expect(selected.currentTurnProjection).toBe(workspaceProjection);
     expect(selected).not.toHaveProperty('isSending');
     expect(selected).not.toHaveProperty('thinkingStatus');
     expect(selected).not.toHaveProperty('thinkingSourceEventType');

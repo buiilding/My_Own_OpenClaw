@@ -30,11 +30,9 @@ function projectDesktopChatInterfaceState(
 
 function projectDesktopLiveTurnSurfaceState({
   activeWorkspace,
-  latestCurrentTurnProjection,
   latestConversationView,
 }: {
   activeWorkspace: DesktopChatWorkspaceProjection;
-  latestCurrentTurnProjection?: unknown | null;
   latestConversationView?: unknown | null;
 }) {
   const conversationView = latestConversationView || activeWorkspace.conversationView || null;
@@ -42,7 +40,7 @@ function projectDesktopLiveTurnSurfaceState({
     messages: activeWorkspace.messages,
     currentTurnProjection: conversationView
       ? null
-      : latestCurrentTurnProjection || activeWorkspace.currentTurnProjection || null,
+      : activeWorkspace.currentTurnProjection || null,
     conversationView,
     pendingTurn: activeWorkspace.pendingTurn ?? null,
   };
