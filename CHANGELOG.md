@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: make the dashboard conversation-find header button toggle
+  the find bar closed when it is clicked again, clearing the active query and
+  match state while leaving `Command/Ctrl+F` as an open/refocus shortcut. No
+  migration required.
 - frontend/renderer: keep the light-theme conversation-find button and find bar
   on appearance-derived light utility surfaces, so opening search no longer
   shows an accent-heavy square icon state or dark search panel on the light

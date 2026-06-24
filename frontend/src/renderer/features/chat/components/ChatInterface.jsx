@@ -305,6 +305,14 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     setActiveFindMatchIndex(0);
   }, []);
 
+  const handleToggleFind = useCallback(() => {
+    if (findBarOpen) {
+      handleCloseFind();
+      return;
+    }
+    handleOpenFind();
+  }, [findBarOpen, handleCloseFind, handleOpenFind]);
+
   const handleNextFindMatch = useCallback(() => {
     if (totalFindMatches <= 0) {
       return;
@@ -493,7 +501,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
         findBarOpen={findBarOpen}
         activeWorkspaceName={activeWorkspace.activeWorkspaceName}
         activeWorkspacePath={activeWorkspace.activeWorkspacePath}
-        handleOpenFind={handleOpenFind}
+        handleToggleFind={handleToggleFind}
         handleChangeWorkspace={handleChangeWorkspace}
         devUiEnabled={devUiEnabled}
         handleProviderSelect={handleProviderSelect}

@@ -1962,4 +1962,28 @@ describe('ChatInterface wiring', () => {
     expect(lastMessageListProps.messageFindMatchIndexesById).toEqual({});
     expect(lastMessageListProps.activeFindMatchIndex).toBeNull();
   });
+
+  test('clicking the active find button closes and clears the find bar', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'Alpha beta alpha' },
+    ];
+
+    render(<ChatInterface />);
+
+    const findButton = screen.getByRole('button', { name: 'Find in conversation' });
+    fireEvent.click(findButton);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Find in conversation input' }), {
+      target: { value: 'alpha' },
+    });
+
+    expect(screen.getByText('1/2')).toBeInTheDocument();
+
+    fireEvent.click(findButton);
+
+    expect(screen.queryByRole('search', { name: 'Find in conversation' })).not.toBeInTheDocument();
+    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.findQuery).toBe('');
+    expect(lastMessageListProps.messageFindMatchIndexesById).toEqual({});
+    expect(lastMessageListProps.activeFindMatchIndex).toBeNull();
+  });
 });

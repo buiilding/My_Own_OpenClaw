@@ -132,6 +132,9 @@ Window controls:
 
 Utility controls:
 
+- search button toggles the thread-find bar open and closed; keyboard
+  `Command/Ctrl+F` remains an open/refocus shortcut, while Escape and the find
+  bar close button close and clear find state
 - speech toggle flips `speech_mode_enabled` in config
 - dev-only compaction button appears when
   `DesktopDevUiRuntime.isDevUiEnabled()` is true
