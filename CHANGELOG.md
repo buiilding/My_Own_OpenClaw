@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main, frontend/renderer: remove raw SDK current-turn and idle
+  conversation Stop target fallbacks. Stop targets now come from
+  `ConversationView.liveTurn.canStop` or the local pending-turn pre-view bridge
+  only; raw current-turn phase remains diagnostic/live context but no longer
+  enables Stop. No migration required.
 - frontend/main, frontend/renderer: remove legacy `snapshot.displayRows` as a
   normal desktop display-row fallback. `conversation.loadDisplay` now returns
   `ConversationView` as the renderer display authority, direct wake-up row
@@ -34,11 +39,11 @@ All notable changes to WindieOS will be documented in this file.
   so live surfaces no longer decide which current turn wins beside the view. No
   migration required.
 - frontend/main: cache SDK `ConversationView` snapshots in Electron main and
-  resolve Stop shortcut targets from `view.liveTurn.canStop` before falling
-  back to raw current-turn projections. Once a view is present, stale raw
-  current-turn snapshots can no longer re-enable main-process Stop; the pending
-  turn bridge remains only for the pre-view handoff, and the main Stop target
-  runtime now runs in the core-loop regression preset. No migration required.
+  resolve Stop shortcut targets from `view.liveTurn.canStop` before the local
+  pending-turn bridge. Once a view is present, stale raw current-turn snapshots
+  can no longer re-enable main-process Stop; the pending turn bridge remains
+  only for the pre-view handoff, and the main Stop target runtime now runs in
+  the core-loop regression preset. No migration required.
 - cli: let `conversation state` and `conversation view` accept
   `--revision <revision-id>` so branch diagnostics can inspect inactive display
   revisions, model-history checkpoints, raw event counts, live-turn phase, and
@@ -132,8 +137,9 @@ All notable changes to WindieOS will be documented in this file.
   loop lock, `view.liveTurn.canStop` drives Stop availability and target
   selection, and the local pending-turn latch remains only as the pre-view send
   bridge so idle SDK/view startup projections cannot clear a just-accepted
-  send. Stale raw current-turn snapshots can no longer re-enable Stop after
-  the view says the visible turn is not stoppable. No migration required.
+  send. Stale raw current-turn snapshots remain diagnostic/live context and no
+  longer re-enable Stop beside the view or pending bridge. No migration
+  required.
 - frontend/main, frontend/renderer: migrate the response overlay to the SDK
   `ConversationView` authority. Direct SDK snapshots now carry
   `view`/`viewDiagnostics` through the current-turn IPC payload, renderer

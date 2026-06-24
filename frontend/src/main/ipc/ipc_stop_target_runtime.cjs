@@ -2,23 +2,8 @@
  * Resolves main-process stop targets for SDK conversation turns.
  */
 
-const STOPPABLE_CURRENT_TURN_PHASES = new Set([
-  'awaiting',
-  'streaming',
-  'tool_call',
-  'tool_output',
-]);
-
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
-function isStoppableCurrentTurnProjection(currentTurnProjection) {
-  if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
-    return false;
-  }
-  const phase = normalizeOptionalString(currentTurnProjection.phase);
-  return STOPPABLE_CURRENT_TURN_PHASES.has(phase);
 }
 
 function isPendingTurn(value) {
@@ -42,7 +27,6 @@ function isStoppableConversationView(conversationView) {
 
 function resolveMainStopTarget({
   latestConversationView = null,
-  latestCurrentTurnProjection = null,
   latestPendingTurn = null,
   currentConversationRef = null,
 } = {}) {
@@ -73,16 +57,6 @@ function resolveMainStopTarget({
     };
   }
 
-  if (isStoppableCurrentTurnProjection(latestCurrentTurnProjection)) {
-    const conversationRef = normalizeOptionalString(latestCurrentTurnProjection.conversationRef)
-      || normalizeOptionalString(currentConversationRef);
-    return {
-      source: 'sdk-current-turn',
-      conversationRef,
-      turnRef: normalizeOptionalString(latestCurrentTurnProjection.turnRef),
-      canStop: Boolean(conversationRef),
-    };
-  }
   if (isPendingTurn(latestPendingTurn)) {
     return {
       source: 'pending-turn',
@@ -96,7 +70,7 @@ function resolveMainStopTarget({
     source: 'idle',
     conversationRef,
     turnRef: null,
-    canStop: Boolean(conversationRef),
+    canStop: false,
   };
 }
 
@@ -126,7 +100,6 @@ async function triggerMainStopTarget({
 
 function createMainStopTargetRuntime({
   getLatestConversationView,
-  getLatestCurrentTurnProjection,
   getLatestPendingTurn,
   getCurrentConversationRef,
   stopQueryThroughAgentSdkRuntime,
@@ -136,9 +109,6 @@ function createMainStopTargetRuntime({
     return resolveMainStopTarget({
       latestConversationView: typeof getLatestConversationView === 'function'
         ? getLatestConversationView()
-        : null,
-      latestCurrentTurnProjection: typeof getLatestCurrentTurnProjection === 'function'
-        ? getLatestCurrentTurnProjection()
         : null,
       latestPendingTurn: typeof getLatestPendingTurn === 'function'
         ? getLatestPendingTurn()

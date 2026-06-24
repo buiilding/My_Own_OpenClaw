@@ -154,6 +154,51 @@ function setMockCurrentTurnProjection(phase, overrides = {}) {
   };
 }
 
+function setMockConversationView(overrides = {}) {
+  const conversationRef = overrides.conversationRef ?? 'conv_existing';
+  const turnRef = overrides.turnRef ?? 'turn_test';
+  const phase = overrides.phase ?? 'streaming';
+  const isBusy = overrides.isBusy ?? true;
+  const canStop = overrides.canStop ?? true;
+  mockChatState.conversationView = {
+    conversationRef,
+    revisionId: overrides.revisionId ?? 'rev-test',
+    displayRows: overrides.displayRows ?? [],
+    liveTurn: {
+      turnRef,
+      phase,
+      entries: overrides.entries ?? [{ id: 'entry-test', text: 'streaming response' }],
+      isBusy,
+      isTerminal: overrides.isTerminal ?? !isBusy,
+      canStop,
+      lastError: null,
+      ...(overrides.liveTurn ?? {}),
+    },
+    surfaces: {
+      pill: {
+        mode: overrides.pillMode ?? (isBusy ? 'busy' : 'idle'),
+      },
+      dashboard: {
+        mode: overrides.dashboardMode ?? (isBusy ? 'busy' : 'idle'),
+      },
+      responseOverlay: {
+        mode: overrides.responseOverlayMode ?? (isBusy ? 'response' : 'hidden'),
+        visible: overrides.responseOverlayVisible ?? isBusy,
+        guardRef: overrides.guardRef ?? turnRef,
+        ownerConversationRef: overrides.ownerConversationRef ?? conversationRef,
+        turnRef,
+        ...(overrides.responseOverlay ?? {}),
+      },
+    },
+    actions: {
+      canEdit: true,
+      canRetry: true,
+      canFork: true,
+      ...(overrides.actions ?? {}),
+    },
+  };
+}
+
 jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender', () => ({
   useChatMessageSender: (...args) => mockUseChatMessageSender(...args),
 }));
@@ -1505,10 +1550,13 @@ describe('ChatInterface wiring', () => {
     expect(screen.queryByTestId('message-input')).not.toBeInTheDocument();
   });
 
-  test('stop response handler sends stop-query while stream is active', () => {
+  test('stop response handler sends stop-query while ConversationView stream is active', () => {
     mockChatState.streamTracking.phase = 'streaming';
     setMockCurrentTurnProjection('streaming', {
       assistantText: 'streaming response',
+    });
+    setMockConversationView({
+      entries: [{ id: 'entry-test', text: 'streaming response' }],
     });
 
     render(<ChatInterface />);
@@ -1526,7 +1574,7 @@ describe('ChatInterface wiring', () => {
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
   });
 
-  test('stop response handler targets the current-turn conversation when session ref is stale', () => {
+  test('stop response handler targets the ConversationView conversation when session ref is stale', () => {
     mockTranscriptSessionSnapshot = {
       conversationRef: 'conv_stale_session',
       userId: 'default_user',
@@ -1536,6 +1584,11 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_visible_turn',
       turnRef: 'turn_visible',
       assistantText: 'streaming response',
+    });
+    setMockConversationView({
+      conversationRef: 'conv_visible_turn',
+      turnRef: 'turn_visible',
+      entries: [{ id: 'entry-visible', text: 'streaming response' }],
     });
 
     render(<ChatInterface />);
@@ -1788,6 +1841,9 @@ describe('ChatInterface wiring', () => {
     setMockCurrentTurnProjection('streaming', {
       assistantText: 'streaming response',
     });
+    setMockConversationView({
+      entries: [{ id: 'entry-test', text: 'streaming response' }],
+    });
 
     render(<ChatInterface />);
 
@@ -1808,6 +1864,34 @@ describe('ChatInterface wiring', () => {
       currentTurnProjection: mockChatState.currentTurnProjection,
     });
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
+  });
+
+  test('raw current-turn stream alone does not enable Stop', () => {
+    mockChatState.streamTracking.phase = 'streaming';
+    setMockCurrentTurnProjection('streaming', {
+      assistantText: 'streaming response',
+    });
+
+    render(<ChatInterface />);
+
+    const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
+    expect(lastInputProps.isLoopActive).toBe(true);
+    expect(lastInputProps.canStopResponse).toBe(false);
+    lastInputProps.onStopResponse();
+    expect(mockStopQuery).not.toHaveBeenCalled();
+    expect(mockAcceptStoppedTurn).not.toHaveBeenCalled();
+
+    const shortcutEvent = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      code: 'Escape',
+      cancelable: true,
+      bubbles: true,
+    });
+    window.dispatchEvent(shortcutEvent);
+
+    expect(shortcutEvent.defaultPrevented).toBe(false);
+    expect(mockStopQuery).not.toHaveBeenCalled();
+    expect(mockAcceptStoppedTurn).not.toHaveBeenCalled();
   });
 
   test('stop shortcut ignores key presses when loop is idle', () => {

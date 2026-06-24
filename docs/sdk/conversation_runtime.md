@@ -238,11 +238,14 @@ lock, `snapshot.view.surfaces.dashboard.mode` drives the dashboard composer
 loop lock, and `snapshot.view.liveTurn.canStop` drives Stop availability in
 renderer and Electron-main Stop shortcut resolution.
 Renderer pending-turn state remains a short pre-view bridge immediately after
-send acceptance; after a view is present, stale raw current-turn snapshots must
-not re-enable Stop, keep the pill/dashboard busy, or become the main-process
-stop target. Minimal live surfaces receive a null raw current-turn projection
-whenever a `ConversationView` exists, so the pill and response overlay do not
-run a separate "latest current turn wins" decision beside the SDK view.
+send acceptance; raw current-turn snapshots and idle conversation refs must not
+enable Stop or become the main-process stop target, even before a view arrives.
+Raw current-turn snapshots remain live context for migrated display/surface
+handoff and diagnostics, while normal Stop authority is only the view or the
+local pending bridge. Minimal live surfaces receive a null raw current-turn
+projection whenever a `ConversationView` exists, so the pill and response
+overlay do not run a separate "latest current turn wins" decision beside the
+SDK view.
 Renderer live-surface selectors also no longer consume the global raw
 `latestCurrentTurnProjection` as a normal UI authority; cross-surface live
 state comes from `latestConversationView`, while `activeWorkspace.currentTurn`

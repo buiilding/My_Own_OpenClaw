@@ -87,7 +87,7 @@ export function useChatSurfaceController({
     ? true
     : hasConversationView
       ? conversationView?.liveTurn?.canStop === true
-      : isBusy;
+      : false;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;

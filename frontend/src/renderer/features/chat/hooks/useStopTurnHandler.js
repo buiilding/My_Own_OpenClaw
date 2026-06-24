@@ -12,7 +12,6 @@ import {
 
 const {
   isStopTurnTargetFromConversationView,
-  isStopTurnTargetFromCurrentTurn,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
@@ -30,12 +29,10 @@ export function useStopTurnHandler({
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const stopTarget = useMemo(() => resolveStopTurnTarget({
     conversationView,
-    currentTurnProjection,
     pendingTurn,
     conversationRef: sessionConversationRef,
   }), [
     conversationView,
-    currentTurnProjection,
     pendingTurn,
     sessionConversationRef,
   ]);
@@ -51,11 +48,8 @@ export function useStopTurnHandler({
       conversationRef: stopTarget.conversationRef,
       turnRef: stopTarget.turnRef,
       currentTurnProjection: (
-        isStopTurnTargetFromCurrentTurn(stopTarget)
-        || (
-          isStopTurnTargetFromConversationView(stopTarget)
-          && currentTurnProjection?.turnRef === stopTarget.turnRef
-        )
+        isStopTurnTargetFromConversationView(stopTarget)
+        && currentTurnProjection?.turnRef === stopTarget.turnRef
       )
         ? currentTurnProjection
         : null,

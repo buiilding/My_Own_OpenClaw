@@ -2,13 +2,6 @@
  * Provides stop-turn target and terminal projection helpers for renderer app-runtime consumers.
  */
 
-const STOPPABLE_CURRENT_TURN_PHASES = new Set([
-  'awaiting',
-  'streaming',
-  'tool_call',
-  'tool_output',
-]);
-
 function normalizeRef(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
@@ -62,24 +55,12 @@ function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   };
 }
 
-function isStopTurnTargetFromCurrentTurn(stopTarget) {
-  return stopTarget?.source === 'sdk-current-turn';
-}
-
 function isStopTurnTargetFromConversationView(stopTarget) {
   return stopTarget?.source === 'conversation-view';
 }
 
 function isStopTurnTargetFromPendingTurn(stopTarget) {
   return stopTarget?.source === 'pending-turn';
-}
-
-function isStoppableCurrentTurnProjection(currentTurnProjection) {
-  if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
-    return false;
-  }
-  const phase = normalizeRef(currentTurnProjection.phase);
-  return STOPPABLE_CURRENT_TURN_PHASES.has(phase);
 }
 
 function isPendingTurn(value) {
@@ -103,7 +84,6 @@ function isStoppableConversationView(conversationView) {
 
 function resolveStopTurnTarget({
   conversationView = null,
-  currentTurnProjection = null,
   pendingTurn = null,
   conversationRef = null,
 } = {}) {
@@ -133,17 +113,6 @@ function resolveStopTurnTarget({
     };
   }
 
-  if (isStoppableCurrentTurnProjection(currentTurnProjection)) {
-    const resolvedConversationRef = normalizeRef(currentTurnProjection.conversationRef) || normalizeRef(conversationRef);
-    const resolvedTurnRef = normalizeRef(currentTurnProjection.turnRef);
-    return {
-      source: 'sdk-current-turn',
-      conversationRef: resolvedConversationRef,
-      turnRef: resolvedTurnRef,
-      canStop: Boolean(resolvedConversationRef),
-    };
-  }
-
   if (isPendingTurn(pendingTurn)) {
     return {
       source: 'pending-turn',
@@ -166,7 +135,6 @@ export const DesktopStopTurnRuntime = Object.freeze({
   buildStopQueryTrackingPatch,
   buildStoppedCurrentTurnProjection,
   isStopTurnTargetFromConversationView,
-  isStopTurnTargetFromCurrentTurn,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 });

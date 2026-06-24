@@ -9,7 +9,6 @@ import {
 const {
   buildStoppedCurrentTurnProjection,
   isStopTurnTargetFromConversationView,
-  isStopTurnTargetFromCurrentTurn,
   isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
@@ -65,7 +64,7 @@ describe('desktopStopTurnRuntime', () => {
     });
   });
 
-  test('resolveStopTurnTarget prioritizes active SDK current-turn before pending turn', () => {
+  test('resolveStopTurnTarget ignores active SDK current-turn and keeps pending bridge', () => {
     expect(resolveStopTurnTarget({
       currentTurnProjection: {
         conversationRef: 'conv-sdk',
@@ -78,9 +77,9 @@ describe('desktopStopTurnRuntime', () => {
       },
       conversationRef: 'conv-session',
     })).toEqual({
-      source: 'sdk-current-turn',
-      conversationRef: 'conv-sdk',
-      turnRef: 'turn-sdk',
+      source: 'pending-turn',
+      conversationRef: 'conv-pending',
+      turnRef: 'turn-pending',
       canStop: true,
     });
   });
@@ -204,13 +203,10 @@ describe('desktopStopTurnRuntime', () => {
       conversationRef: 'conv-idle',
     });
 
-    expect(isStopTurnTargetFromCurrentTurn(currentTurnTarget)).toBe(true);
     expect(isStopTurnTargetFromConversationView(currentTurnTarget)).toBe(false);
     expect(isStopTurnTargetFromPendingTurn(currentTurnTarget)).toBe(false);
-    expect(isStopTurnTargetFromCurrentTurn(pendingTarget)).toBe(false);
     expect(isStopTurnTargetFromConversationView(pendingTarget)).toBe(false);
     expect(isStopTurnTargetFromPendingTurn(pendingTarget)).toBe(true);
-    expect(isStopTurnTargetFromCurrentTurn(idleTarget)).toBe(false);
     expect(isStopTurnTargetFromConversationView(idleTarget)).toBe(false);
     expect(isStopTurnTargetFromPendingTurn(idleTarget)).toBe(false);
 
@@ -218,7 +214,6 @@ describe('desktopStopTurnRuntime', () => {
       conversationView: conversationView(),
     });
     expect(isStopTurnTargetFromConversationView(viewTarget)).toBe(true);
-    expect(isStopTurnTargetFromCurrentTurn(viewTarget)).toBe(false);
     expect(isStopTurnTargetFromPendingTurn(viewTarget)).toBe(false);
   });
 
