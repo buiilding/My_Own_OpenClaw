@@ -1700,6 +1700,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).not.toContain('dispatchPreparedDesktopChatTurn');
     expect(source).toContain('executeReplayAction');
+    expect(source).toContain('conversationView');
     expect(source).not.toContain('executeReplayIntent');
     expect(source).not.toContain('buildReplayPendingPublication');
     expect(source).not.toContain('buildReplayPendingTurn');
@@ -1724,6 +1725,8 @@ describe('renderer chat runtime boundary', () => {
     expect(continuityServiceSource).not.toContain('loadForDisplay');
     expect(continuityServiceSource).not.toContain('loadDisplayRows');
     expect(replayRuntimeSource).toContain('buildReplayPendingTurn');
+    expect(replayRuntimeSource).toContain('resolveReplayReadModel');
+    expect(replayRuntimeSource).toContain('buildConversationViewChatMessages');
     expect(replayRuntimeSource).toContain('buildReplayPendingPublication');
     expect(replayRuntimeSource).toContain('executeReplayAction');
     expect(replayRuntimeSource).toContain('executeReplayIntent');

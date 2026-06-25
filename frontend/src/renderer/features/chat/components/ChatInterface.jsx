@@ -610,6 +610,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     updateMessage(messageId, { feedback });
   }, [updateMessage]);
   const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions({
+    conversationView,
     messages,
     setMessages,
     setThinkingStatus,

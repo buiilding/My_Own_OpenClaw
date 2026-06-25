@@ -293,9 +293,10 @@ now carries row `actions` metadata with `canEdit`/`editTargetRowId` for user
 rows and `canRetry`/`retryTargetRowId` for terminal assistant rows. The renderer
 projects those row targets into chat messages so a replacement row can remain
 the visible edit surface while replay targets the SDK-provided original row
-identity. Copy/feedback actions remain renderer-local affordances, and replay
-execution still uses the existing display-timeline path until the later
-SDK-owned revision operation replaces it.
+identity. Copy/feedback actions remain renderer-local affordances. Renderer
+replay execution calls the SDK edit/resend and retry commands directly; when a
+`ConversationView` exists, replay target preparation derives its row model from
+`ConversationView.displayRows` instead of raw `chatStore.messages`.
 
 For debugging, use:
 

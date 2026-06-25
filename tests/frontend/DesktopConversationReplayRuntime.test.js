@@ -10,6 +10,7 @@ const {
   buildReplayPendingPublication,
   prepareReplayEditIntent,
   prepareReplayRetryIntent,
+  resolveReplayReadModel,
 } = DesktopConversationReplayRuntime;
 
 function intentMessageIds(messages) {
@@ -25,7 +26,56 @@ function intentMessageIds(messages) {
   return intent.replayMessages.map((message) => message.id);
 }
 
+function displayRowsFromMessages(messages, conversationRef = 'conv-view', revisionId = 'rev-view') {
+  return messages.map((message, index) => ({
+    id: message.id,
+    conversationRef,
+    revisionId,
+    index,
+    role: message.sender === 'user' ? 'user' : 'assistant',
+    type: message.sender === 'user' ? 'user_message' : 'assistant_message',
+    content: message.text,
+    ...(message.turnRef ? { turnRef: message.turnRef } : {}),
+    metadata: {
+      revisionId,
+      ...(Array.isArray(message.attachments) ? { attachments: message.attachments } : {}),
+    },
+  }));
+}
+
 describe('desktopConversationReplayRuntime', () => {
+  test('resolves replay read model from ConversationView before renderer messages', () => {
+    const staleMessages = [
+      { id: 'stale-user', sender: 'user', text: 'stale prompt' },
+      { id: 'stale-assistant', sender: 'assistant', text: 'stale answer' },
+    ];
+    const viewMessages = [
+      { id: 'view-user', sender: 'user', text: 'view prompt', turnRef: 'turn-view' },
+      { id: 'view-assistant', sender: 'assistant', text: 'view answer', turnRef: 'turn-view' },
+    ];
+
+    expect(resolveReplayReadModel({
+      conversationView: {
+        conversationRef: 'conv-view',
+        displayRows: displayRowsFromMessages(viewMessages),
+      },
+      messages: staleMessages,
+    })).toEqual([
+      expect.objectContaining({
+        id: 'view-user',
+        sender: 'user',
+        text: 'view prompt',
+        turnRef: 'turn-view',
+      }),
+      expect.objectContaining({
+        id: 'view-assistant',
+        sender: 'assistant',
+        text: 'view answer',
+        turnRef: 'turn-view',
+      }),
+    ]);
+  });
+
   test('keeps non-tool rows and matched tool call/output pairs', () => {
     const messages = [
       { id: 'm-1', type: 'llm-text', text: 'assistant intro' },

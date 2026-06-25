@@ -11,6 +11,9 @@ import {
 import {
   DesktopConversationProjectionStreamRuntime,
 } from './desktopConversationProjectionStreamRuntime';
+import {
+  DesktopConversationDisplayProjection,
+} from './desktopConversationDisplayProjection';
 import { DesktopPendingTurnRuntimeClient } from './desktopPendingTurnRuntimeClient';
 import { DesktopRendererTraceRuntime } from './desktopRendererTraceRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
@@ -37,6 +40,9 @@ const {
 const {
   buildReplayProjectionTracePayload,
 } = DesktopConversationProjectionStreamRuntime;
+const {
+  buildConversationViewChatMessages,
+} = DesktopConversationDisplayProjection;
 
 const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
@@ -525,17 +531,35 @@ async function executeReplayIntent({
 function prepareReplayActionIntent({
   action,
   assistantMessageId,
+  conversationView = null,
   editedText,
   messages,
   userMessageId,
 }) {
+  const replayMessages = resolveReplayReadModel({
+    conversationView,
+    messages,
+  });
   if (action === 'edit_resend') {
-    return prepareReplayEditIntent({ messages, userMessageId, editedText });
+    return prepareReplayEditIntent({ messages: replayMessages, userMessageId, editedText });
   }
   if (action === 'retry') {
-    return prepareReplayRetryIntent({ messages, assistantMessageId });
+    return prepareReplayRetryIntent({ messages: replayMessages, assistantMessageId });
   }
   return null;
+}
+
+function resolveReplayReadModel({
+  conversationView = null,
+  messages = [],
+} = {}) {
+  if (conversationView && typeof conversationView === 'object') {
+    return buildConversationViewChatMessages({
+      conversationView,
+      preserveRendererAnnotations: false,
+    });
+  }
+  return Array.isArray(messages) ? messages : [];
 }
 
 async function executeReplayAction({
@@ -544,6 +568,7 @@ async function executeReplayAction({
   addMessage,
   assistantMessageId = null,
   chatStore,
+  conversationView = null,
   deferredQueryModelSelection,
   editedText = null,
   failureMessages = {},
@@ -554,6 +579,7 @@ async function executeReplayAction({
   const intent = prepareReplayActionIntent({
     action,
     assistantMessageId,
+    conversationView,
     editedText,
     messages,
     userMessageId,
@@ -580,4 +606,5 @@ export const DesktopConversationReplayRuntime = Object.freeze({
   executeReplayIntent,
   prepareReplayEditIntent,
   prepareReplayRetryIntent,
+  resolveReplayReadModel,
 });

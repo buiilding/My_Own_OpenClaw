@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: prefer SDK `ConversationView.displayRows` for edit/retry
+  target preparation so replay actions no longer depend on raw renderer
+  `chatStore.messages` when a view exists. No migration required.
 - frontend/chat-store: move pending-turn accept, replay, clear, and broadcast
   update decisions into the pending-turn state runtime so `chatStore.ts`
   applies runtime-owned updates instead of branching over pending/replay IPC

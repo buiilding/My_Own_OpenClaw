@@ -18,6 +18,7 @@ const {
 const chatSkin = DesktopRuntimeSkin.desktopRuntimeSkin.chat;
 
 export function useConversationReplayActions({
+  conversationView = null,
   messages,
 }) {
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
@@ -31,6 +32,7 @@ export function useConversationReplayActions({
       action: 'edit_resend',
       activeConversationRef,
       deferredQueryModelSelection,
+      conversationView,
       messages,
       userMessageId,
       editedText,
@@ -44,6 +46,7 @@ export function useConversationReplayActions({
   }, [
     activeConversationRef,
     addMessage,
+    conversationView,
     deferredQueryModelSelection,
     messages,
   ]);
@@ -53,6 +56,7 @@ export function useConversationReplayActions({
       action: 'retry',
       activeConversationRef,
       deferredQueryModelSelection,
+      conversationView,
       messages,
       assistantMessageId,
       failureMessages: {
@@ -65,6 +69,7 @@ export function useConversationReplayActions({
   }, [
     activeConversationRef,
     addMessage,
+    conversationView,
     deferredQueryModelSelection,
     messages,
   ]);

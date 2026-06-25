@@ -34,6 +34,7 @@ function timelineRowsFromMessages(messages, conversationRef = 'conv-existing', r
     role: message.sender === 'user' ? 'user' : 'assistant',
     type: message.sender === 'user' ? 'user_message' : 'assistant_message',
     content: message.text,
+    ...(message.turnRef ? { turnRef: message.turnRef } : {}),
     metadata: {
       revisionId,
       ...(Array.isArray(message.attachments) ? { attachments: message.attachments } : {}),
@@ -183,6 +184,64 @@ describe('useConversationReplayActions', () => {
       },
     }));
     expect(mockRetryTurn).toHaveBeenCalledTimes(1);
+  });
+
+  test('routes retry from ConversationView display rows before stale renderer messages', async () => {
+    const staleMessages = [
+      {
+        id: 'stale-user',
+        sender: 'user',
+        text: 'stale question',
+      },
+      {
+        id: 'stale-assistant',
+        sender: 'assistant',
+        text: 'stale answer',
+      },
+    ];
+    const viewMessages = [
+      {
+        id: 'view-user',
+        sender: 'user',
+        text: 'view question',
+        turnRef: 'turn-view',
+      },
+      {
+        id: 'view-assistant',
+        sender: 'assistant',
+        text: 'view answer',
+        turnRef: 'turn-view',
+      },
+    ];
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      conversationView: {
+        conversationRef: 'conv-existing',
+        revisionId: 'rev-view',
+        displayRows: timelineRowsFromMessages(viewMessages, 'conv-existing', 'rev-view'),
+        actions: {
+          canRetry: true,
+          canEdit: true,
+        },
+      },
+      messages: staleMessages,
+    }));
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant('view-assistant');
+    });
+
+    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-existing',
+      messageId: 'view-assistant',
+      userId: 'user-1',
+      turnRef: expect.any(String),
+    }));
+    expect(useChatStore.getState().getWorkspaceState('conv-existing').pendingTurn).toEqual(
+      expect.objectContaining({
+        text: 'view question',
+      }),
+    );
   });
 
   test('retry replay publishes pending turn before the SDK command resolves', async () => {
