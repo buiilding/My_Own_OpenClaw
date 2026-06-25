@@ -111,6 +111,9 @@ compaction behind its loop lock.
   `logRendererChatPillHitTestTrace(...)` instead of assembling
   `turn_surface.reset`, `renderer.chat_pill.*`, `chat_pill.hit_test.set`, or
   `ignoreMouseEvents` fields locally.
+- `DesktopChatPillSessionRuntime` owns the current-turn and `ConversationView`
+  snapshot projection passed into those trace calls, so the component does not
+  branch over SDK surface fields just to log pill lifecycle/state diagnostics.
 
 ### Screenshot Preview Lane and Visual Anchor
 

@@ -392,6 +392,9 @@ describe('renderer app runtime boundary', () => {
     expect(traceRuntimeSource).toContain('conversation_ref');
     expect(traceRuntimeSource).toContain('current_turn_phase');
     expect(traceRuntimeSource).not.toContain('is_sending');
+    expect(minimalPillSource).toContain('DesktopChatPillSessionRuntime');
+    expect(minimalPillSource).toContain('buildChatPillLifecycleTraceSnapshot');
+    expect(minimalPillSource).toContain('buildChatPillStateTraceSnapshot');
     expect(minimalPillSource).toContain('DesktopRendererTraceRuntime');
     expect(minimalPillSource).toContain('logRendererChatPillResetTrace');
     expect(minimalPillSource).toContain('logRendererChatPillLifecycleTrace');
@@ -408,6 +411,10 @@ describe('renderer app runtime boundary', () => {
     expect(minimalPillSource).not.toContain('current_turn_phase');
     expect(minimalPillSource).not.toContain('live_turn_phase');
     expect(minimalPillSource).not.toContain('message_count');
+    expect(minimalPillSource).not.toContain('currentTurnProjection?.turnRef');
+    expect(minimalPillSource).not.toContain('currentTurnProjection?.phase');
+    expect(minimalPillSource).not.toContain('conversationView?.liveTurn');
+    expect(minimalPillSource).not.toContain('conversationView?.surfaces');
     expect(minimalPillSource).not.toContain('state.isSending');
   });
 

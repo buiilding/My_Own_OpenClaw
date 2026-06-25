@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/pill: move minimal chat-pill current-turn and `ConversationView`
+  trace snapshot projection behind `DesktopChatPillSessionRuntime` so the
+  component logs prepared trace values instead of reading SDK surface fields
+  inline. No migration required.
 - frontend/projection: stop building legacy renderer chat messages from
   display-row stream packets once `ConversationView` exists; view-owned rows
   now emit row-count trace metadata only. No migration required.

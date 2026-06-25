@@ -21,6 +21,29 @@ type TurnRefMessage = {
   turnRef?: string | null;
 };
 
+type ChatPillCurrentTurnProjection = {
+  phase?: string | null;
+  turnRef?: string | null;
+} | null | undefined;
+
+type ChatPillConversationView = {
+  liveTurn?: {
+    canStop?: boolean | null;
+    turnRef?: string | null;
+  } | null;
+  surfaces?: {
+    pill?: {
+      mode?: string | null;
+    } | null;
+  } | null;
+} | null | undefined;
+
+type ChatPillSurfaceState = {
+  conversationView?: ChatPillConversationView;
+  currentTurnProjection?: ChatPillCurrentTurnProjection;
+  messages?: unknown[] | null;
+} | null | undefined;
+
 const CHAT_PILL_SURFACE_REASON = Object.freeze({
   QUERY_SEND_WITH_CAPTURE: 'query_send_with_capture',
   QUERY_SEND_WITHOUT_CAPTURE: 'query_send_without_capture',
@@ -29,6 +52,14 @@ const CHAT_PILL_SURFACE_REASON = Object.freeze({
 });
 
 function normalizeOptionalTurnRef(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeOptionalString(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;
   }
@@ -109,7 +140,72 @@ function resolveChatPillViewIntent({
   };
 }
 
+function buildChatPillLifecycleTraceSnapshot({
+  chatSurfaceState = null,
+  sessionConversationRef = null,
+}: {
+  chatSurfaceState?: ChatPillSurfaceState;
+  sessionConversationRef?: string | null;
+}) {
+  const currentTurnProjection = chatSurfaceState?.currentTurnProjection ?? null;
+  return {
+    conversationRef: normalizeOptionalString(sessionConversationRef),
+    turnRef: normalizeOptionalTurnRef(currentTurnProjection?.turnRef),
+    phase: normalizeOptionalString(currentTurnProjection?.phase),
+  };
+}
+
+function buildChatPillStateTraceSnapshot({
+  busy,
+  chatSurfaceState = null,
+  liveTurnPhase = null,
+  liveTurnSource = null,
+  sessionConversationRef = null,
+  stopAvailable,
+}: {
+  busy: boolean;
+  chatSurfaceState?: ChatPillSurfaceState;
+  liveTurnPhase?: string | null;
+  liveTurnSource?: string | null;
+  sessionConversationRef?: string | null;
+  stopAvailable: boolean;
+}) {
+  const currentTurnProjection = chatSurfaceState?.currentTurnProjection ?? null;
+  const conversationView = chatSurfaceState?.conversationView ?? null;
+  const currentTurnPhase = normalizeOptionalString(currentTurnProjection?.phase);
+  const currentTurnRef = normalizeOptionalTurnRef(currentTurnProjection?.turnRef);
+  const viewTurnRef = normalizeOptionalTurnRef(conversationView?.liveTurn?.turnRef);
+  const viewPillMode = normalizeOptionalString(conversationView?.surfaces?.pill?.mode);
+  const viewCanStop = conversationView?.liveTurn?.canStop === true;
+  return {
+    signature: JSON.stringify({
+      busy,
+      currentTurnPhase,
+      currentTurnRef,
+      liveTurnPhase: normalizeOptionalString(liveTurnPhase),
+      liveTurnSource: normalizeOptionalString(liveTurnSource),
+      viewCanStop,
+      viewPillMode,
+      viewTurnRef,
+    }),
+    trace: {
+      conversationRef: normalizeOptionalString(sessionConversationRef),
+      turnRef: currentTurnRef,
+      currentTurnPhase,
+      liveTurnPhase: normalizeOptionalString(liveTurnPhase),
+      liveTurnSource: normalizeOptionalString(liveTurnSource),
+      busy,
+      stopAvailable,
+      messageCount: Array.isArray(chatSurfaceState?.messages)
+        ? chatSurfaceState.messages.length
+        : 0,
+    },
+  };
+}
+
 export const DesktopChatPillSessionRuntime = Object.freeze({
+  buildChatPillLifecycleTraceSnapshot,
+  buildChatPillStateTraceSnapshot,
   resolveChatPillSendLifecycle,
   resolveChatPillViewIntent,
 });

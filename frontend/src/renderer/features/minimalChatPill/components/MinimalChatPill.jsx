@@ -20,6 +20,7 @@ import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { DesktopDevUiRuntime } from '../../../app/runtime/desktopDevUiRuntime';
 import { DesktopChatboxLayoutRuntime } from '../../../app/runtime/desktopChatboxLayoutRuntime';
 import { DesktopChatboxInteractionRuntime } from '../../../app/runtime/desktopChatboxInteractionRuntime';
+import { DesktopChatPillSessionRuntime } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import { DesktopRendererTraceRuntime } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { useChatSurfaceController } from '../../chat/hooks/useChatSurfaceController';
 import {
@@ -40,6 +41,10 @@ const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 const { isDevUiEnabled } = DesktopDevUiRuntime;
 const {
+  buildChatPillLifecycleTraceSnapshot,
+  buildChatPillStateTraceSnapshot,
+} = DesktopChatPillSessionRuntime;
+const {
   logRendererChatPillHitTestTrace,
   logRendererChatPillLifecycleTrace,
   logRendererChatPillResetTrace,
@@ -50,8 +55,6 @@ function MinimalChatPill() {
   const closeBumpHeight = DesktopChatboxLayoutRuntime.getChatboxCloseBumpHeight();
   const chatSurfaceState = useChatStore(useShallow(selectLiveTurnSurfaceState));
   const {
-    messages,
-    currentTurnProjection,
     conversationView,
     pendingTurn,
   } = chatSurfaceState;
@@ -98,11 +101,10 @@ function MinimalChatPill() {
     wakewordSttEnabled,
   } = chatSurface;
   const devUiEnabled = isDevUiEnabled();
-  lifecycleTraceSnapshotRef.current = {
-    conversationRef: sessionInfo?.conversationRef || null,
-    turnRef: currentTurnProjection?.turnRef || null,
-    phase: currentTurnProjection?.phase || null,
-  };
+  lifecycleTraceSnapshotRef.current = buildChatPillLifecycleTraceSnapshot({
+    chatSurfaceState,
+    sessionConversationRef: sessionInfo?.conversationRef || null,
+  });
   const {
     attachmentInputRef,
     clipboardImages,
@@ -122,11 +124,11 @@ function MinimalChatPill() {
     isSubmitBlocked: loopInteractionLocked,
     onSendMessage: sendMessage,
     onBeforeSend: () => {
-      const conversationRef = sessionInfo?.conversationRef || null;
+      const previousSnapshot = lifecycleTraceSnapshotRef.current;
       logRendererChatPillResetTrace({
-        conversationRef,
-        previousTurnRef: currentTurnProjection?.turnRef || null,
-        previousPhase: currentTurnProjection?.phase || null,
+        conversationRef: previousSnapshot.conversationRef,
+        previousTurnRef: previousSnapshot.turnRef,
+        previousPhase: previousSnapshot.phase,
         attachmentCount: clipboardImages.length + selectedReadableFiles.length,
         includeQueryScreenshot,
       });
@@ -241,40 +243,24 @@ function MinimalChatPill() {
   }, []);
 
   useEffect(() => {
-    const nextPillStateSignature = JSON.stringify({
-      loopInteractionLocked,
+    const stateTraceSnapshot = buildChatPillStateTraceSnapshot({
+      busy: loopInteractionLocked,
+      chatSurfaceState,
       liveTurnPhase,
       liveTurnSource,
-      currentTurnPhase: currentTurnProjection?.phase || null,
-      currentTurnRef: currentTurnProjection?.turnRef || null,
-      viewTurnRef: conversationView?.liveTurn?.turnRef || null,
-      viewPillMode: conversationView?.surfaces?.pill?.mode || null,
-      viewCanStop: conversationView?.liveTurn?.canStop === true,
+      sessionConversationRef: sessionInfo?.conversationRef || null,
+      stopAvailable,
     });
-    if (lastLoggedPillStateRef.current === nextPillStateSignature) {
+    if (lastLoggedPillStateRef.current === stateTraceSnapshot.signature) {
       return;
     }
-    lastLoggedPillStateRef.current = nextPillStateSignature;
-    logRendererChatPillStateTrace({
-      conversationRef: sessionInfo?.conversationRef || null,
-      turnRef: currentTurnProjection?.turnRef || null,
-      currentTurnPhase: currentTurnProjection?.phase || null,
-      liveTurnPhase,
-      liveTurnSource,
-      busy: loopInteractionLocked,
-      stopAvailable,
-      messageCount: messages.length,
-    });
+    lastLoggedPillStateRef.current = stateTraceSnapshot.signature;
+    logRendererChatPillStateTrace(stateTraceSnapshot.trace);
   }, [
-    conversationView?.liveTurn?.canStop,
-    conversationView?.liveTurn?.turnRef,
-    conversationView?.surfaces?.pill?.mode,
-    currentTurnProjection?.phase,
-    currentTurnProjection?.turnRef,
+    chatSurfaceState,
     liveTurnPhase,
     liveTurnSource,
     loopInteractionLocked,
-    messages.length,
     sessionInfo?.conversationRef,
     stopAvailable,
   ]);

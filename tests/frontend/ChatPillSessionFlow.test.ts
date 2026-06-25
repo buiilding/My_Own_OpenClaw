@@ -6,6 +6,8 @@ import { DesktopChatPillSessionRuntime } from '../../frontend/src/renderer/app/r
 
 describe('desktopChatPillSessionRuntime', () => {
   const {
+    buildChatPillLifecycleTraceSnapshot,
+    buildChatPillStateTraceSnapshot,
     resolveChatPillSendLifecycle,
     resolveChatPillViewIntent,
   } = DesktopChatPillSessionRuntime;
@@ -199,6 +201,71 @@ describe('desktopChatPillSessionRuntime', () => {
       responseVisible: false,
       overlayLayoutMode: 'hidden',
       isVisible: false,
+    });
+  });
+
+  test('projects chat pill lifecycle trace identity from surface state', () => {
+    expect(buildChatPillLifecycleTraceSnapshot({
+      sessionConversationRef: ' conv-1 ',
+      chatSurfaceState: {
+        currentTurnProjection: {
+          turnRef: ' turn-1 ',
+          phase: ' streaming ',
+        },
+      },
+    })).toEqual({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+    });
+  });
+
+  test('projects chat pill state trace payload from surface state', () => {
+    const snapshot = buildChatPillStateTraceSnapshot({
+      busy: true,
+      chatSurfaceState: {
+        messages: [{ id: 'pending-row' }],
+        currentTurnProjection: {
+          turnRef: ' turn-current ',
+          phase: ' awaiting ',
+        },
+        conversationView: {
+          liveTurn: {
+            canStop: true,
+            turnRef: ' view-turn ',
+          },
+          surfaces: {
+            pill: {
+              mode: ' busy ',
+            },
+          },
+        },
+      },
+      liveTurnPhase: 'streaming',
+      liveTurnSource: 'conversation-view',
+      sessionConversationRef: 'conv-1',
+      stopAvailable: true,
+    });
+
+    expect(JSON.parse(snapshot.signature)).toEqual(expect.objectContaining({
+      busy: true,
+      currentTurnPhase: 'awaiting',
+      currentTurnRef: 'turn-current',
+      liveTurnPhase: 'streaming',
+      liveTurnSource: 'conversation-view',
+      viewCanStop: true,
+      viewPillMode: 'busy',
+      viewTurnRef: 'view-turn',
+    }));
+    expect(snapshot.trace).toEqual({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-current',
+      currentTurnPhase: 'awaiting',
+      liveTurnPhase: 'streaming',
+      liveTurnSource: 'conversation-view',
+      busy: true,
+      stopAvailable: true,
+      messageCount: 1,
     });
   });
 
