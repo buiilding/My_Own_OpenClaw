@@ -49,6 +49,11 @@ type PendingTurnWorkspaceMutation = {
   workspace: PendingTurnWorkspaceState;
 };
 
+type PendingTurnClearWorkspaceMutationInput = {
+  currentWorkspace: PendingTurnWorkspaceState;
+  input?: PendingTurnMatchInput;
+};
+
 const {
   buildPendingTurnUserMessage,
 } = DesktopPendingTurnBridgeRuntime;
@@ -226,8 +231,23 @@ function buildPendingTurnWorkspaceMutation({
   };
 }
 
+function buildPendingTurnClearWorkspaceMutation({
+  currentWorkspace,
+  input = null,
+}: PendingTurnClearWorkspaceMutationInput): PendingTurnWorkspaceState | null {
+  if (!doesPendingTurnMatch(currentWorkspace.pendingTurn, input)) {
+    return null;
+  }
+  return {
+    ...currentWorkspace,
+    pendingTurn: null,
+    isSending: false,
+  };
+}
+
 export const DesktopChatPendingTurnStateRuntime = Object.freeze({
   addSupersededTurnRef,
+  buildPendingTurnClearWorkspaceMutation,
   buildPendingTurnWorkspaceMutation,
   doesPendingTurnMatch,
   normalizePendingTurn,

@@ -8,6 +8,7 @@ import {
 
 const {
   addSupersededTurnRef,
+  buildPendingTurnClearWorkspaceMutation,
   buildPendingTurnWorkspaceMutation,
   doesPendingTurnMatch,
   normalizePendingTurn,
@@ -158,6 +159,47 @@ describe('DesktopChatPendingTurnStateRuntime', () => {
       currentWorkspace,
       pendingTurn,
       skipEchoedPendingTurn: true,
+    })).toBeNull();
+  });
+
+  test('clears matching pending-turn workspace state', () => {
+    const currentWorkspace = workspace({
+      isSending: true,
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'user-row-1',
+        text: 'hello',
+        timestamp: '2026-06-25T12:00:00.000Z',
+        attachmentFilenames: null,
+      },
+    });
+
+    expect(buildPendingTurnClearWorkspaceMutation({
+      currentWorkspace,
+      input: { conversationRef: ' conv-1 ', turnRef: ' turn-1 ' },
+    })).toEqual(expect.objectContaining({
+      isSending: false,
+      pendingTurn: null,
+    }));
+  });
+
+  test('does not clear non-matching pending-turn workspace state', () => {
+    const currentWorkspace = workspace({
+      isSending: true,
+      pendingTurn: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        userMessageId: 'user-row-1',
+        text: 'hello',
+        timestamp: '2026-06-25T12:00:00.000Z',
+        attachmentFilenames: null,
+      },
+    });
+
+    expect(buildPendingTurnClearWorkspaceMutation({
+      currentWorkspace,
+      input: { conversationRef: 'conv-other', turnRef: 'turn-1' },
     })).toBeNull();
   });
 });

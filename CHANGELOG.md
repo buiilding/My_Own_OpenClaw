@@ -29,6 +29,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat-store: move pending-turn normalization, matching, and
   superseded-turn map helpers behind an app-runtime state helper so
   `chatStore.ts` only applies workspace mutations. No migration required.
+- frontend/chat-store: move pending-turn clear matching and workspace mutation
+  behind the pending-turn state runtime so normal clear and broadcast clear
+  paths share one renderer runtime helper. No migration required.
 - frontend/projection: move SDK display attachment descriptor filtering behind
   an app-runtime projection helper so the display-row chat adapter stays focused
   on component message props. No migration required.

@@ -110,7 +110,10 @@ Message attachment fields used by current send/runtime paths include:
   target-row path. Replay uses the same app-runtime pending workspace mutation
   helper as normal sends.
 - `clearPendingTurn` clears only a pending turn matching the provided
-  `conversationRef`/`turnRef`; missing filters clear the active pending turn
+  `conversationRef`/`turnRef`; missing filters clear the active pending turn.
+  Pending-turn clear matching and workspace mutation live in
+  `desktopChatPendingTurnStateRuntime.ts`, including the pending-turn broadcast
+  clear path.
 - `acceptStoppedTurn` immediately clears local busy/thinking state, clears a
   matching pending turn, patches stream tracking to terminal `complete`, and
   terminalizes the matching SDK current-turn projection while preserving any

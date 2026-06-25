@@ -52,8 +52,8 @@ const {
   projectDesktopLiveTurnSurfaceState,
 } = DesktopChatSurfaceSelectorRuntime;
 const {
+  buildPendingTurnClearWorkspaceMutation,
   buildPendingTurnWorkspaceMutation,
-  doesPendingTurnMatch,
 } = DesktopChatPendingTurnStateRuntime;
 const {
   mergeTurnConversationRefs,
@@ -638,14 +638,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const conversationRef = normalizeConversationRef(input?.conversationRef);
       const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
       const currentWorkspace = readWorkspaceState(state, workspaceRef);
-      if (!doesPendingTurnMatch(currentWorkspace.pendingTurn, input)) {
+      const nextWorkspace = buildPendingTurnClearWorkspaceMutation({
+        currentWorkspace,
+        input,
+      });
+      if (!nextWorkspace) {
         return state;
       }
-      const nextWorkspace = {
-        ...currentWorkspace,
-        pendingTurn: null,
-        isSending: false,
-      };
       return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
     }),
 
@@ -682,14 +681,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
         const turnRef = action.turnRef;
         const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
         const currentWorkspace = readWorkspaceState(state, workspaceRef);
-        if (!doesPendingTurnMatch(currentWorkspace.pendingTurn, { conversationRef, turnRef })) {
+        const nextWorkspace = buildPendingTurnClearWorkspaceMutation({
+          currentWorkspace,
+          input: { conversationRef, turnRef },
+        });
+        if (!nextWorkspace) {
           return state;
         }
-        const nextWorkspace = {
-          ...currentWorkspace,
-          pendingTurn: null,
-          isSending: false,
-        };
         return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
       }
       const normalizedConversationRef = normalizeConversationRef(action.pendingTurn?.conversationRef);
