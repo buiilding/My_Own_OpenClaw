@@ -2962,6 +2962,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js'),
       'utf8',
     );
+    const pendingStateRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts'),
+      'utf8',
+    );
     const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
     expect(source).toContain('sourceEventType');
@@ -2977,6 +2981,15 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');
     expect(chatStoreSource).toContain('DesktopPendingTurnBridgeRuntime');
+    expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
+    expect(chatStoreSource).not.toContain('function normalizePendingTurn');
+    expect(chatStoreSource).not.toContain('function doesPendingTurnMatch');
+    expect(chatStoreSource).not.toContain('function addSupersededTurnRef');
+    expect(chatStoreSource).not.toContain('function removeSupersededTurnRef');
+    expect(pendingStateRuntimeSource).toContain('normalizePendingTurn');
+    expect(pendingStateRuntimeSource).toContain('doesPendingTurnMatch');
+    expect(pendingStateRuntimeSource).toContain('addSupersededTurnRef');
+    expect(pendingStateRuntimeSource).toContain('removeSupersededTurnRef');
     expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain('attachments: null');

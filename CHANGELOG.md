@@ -26,6 +26,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/send: stop carrying always-null screenshot ref fields through
   renderer send preparation; normal sends now pass typed SDK resources and
   filename metadata only. No migration required.
+- frontend/chat-store: move pending-turn normalization, matching, and
+  superseded-turn map helpers behind an app-runtime state helper so
+  `chatStore.ts` only applies workspace mutations. No migration required.
 - frontend/renderer: move pending-turn user-row construction out of
   `chatStore.ts` into an app-runtime pending bridge helper shared by normal
   sends and replay. The store now mutates workspace state without hard-coding

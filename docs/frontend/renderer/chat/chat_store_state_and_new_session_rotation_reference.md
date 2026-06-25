@@ -13,6 +13,7 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopActiveChatSessionRuntime.ts`
@@ -81,7 +82,9 @@ Message attachment fields used by current send/runtime paths include:
   IPC fan-out cannot repaint the existing user bubble. Pending turns preserve
   only identity, text, timestamp, and filename chips; visual attachment
   descriptors belong to SDK display rows. The pending user-row shape is built
-  by `desktopPendingTurnBridgeRuntime.js`, not hard-coded in the store.
+  by `desktopPendingTurnBridgeRuntime.js`, and pending-turn normalization,
+  matching, and superseded-turn map updates live in
+  `desktopChatPendingTurnStateRuntime.ts`, not hard-coded in the store.
 - `acceptReplayPendingTurn` stores the retained replay prefix and
   renderer-local pending turn in one workspace mutation before awaiting the SDK
   retry/edit command, so edit/resend never publishes a prefix-only frame before

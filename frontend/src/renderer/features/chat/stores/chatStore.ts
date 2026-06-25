@@ -36,6 +36,9 @@ import {
 import {
   DesktopPendingTurnBridgeRuntime,
 } from '../../../app/runtime/desktopPendingTurnBridgeRuntime';
+import {
+  DesktopChatPendingTurnStateRuntime,
+} from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
@@ -52,6 +55,12 @@ const {
 const {
   buildPendingTurnUserMessage,
 } = DesktopPendingTurnBridgeRuntime;
+const {
+  addSupersededTurnRef,
+  doesPendingTurnMatch,
+  normalizePendingTurn,
+  removeSupersededTurnRef,
+} = DesktopChatPendingTurnStateRuntime;
 
 export type { ChatMessage, TokenCounts };
 
@@ -256,32 +265,6 @@ function normalizeTurnRef(turnRef?: string | null): string | null {
   return normalizedTurnRef.length > 0 ? normalizedTurnRef : null;
 }
 
-function addSupersededTurnRef(
-  current: Record<string, true>,
-  turnRef?: string | null,
-): Record<string, true> {
-  const normalizedTurnRef = normalizeTurnRef(turnRef);
-  if (!normalizedTurnRef || current[normalizedTurnRef]) {
-    return current;
-  }
-  return {
-    ...current,
-    [normalizedTurnRef]: true,
-  };
-}
-
-function removeSupersededTurnRef(
-  current: Record<string, true>,
-  turnRef?: string | null,
-): Record<string, true> {
-  const normalizedTurnRef = normalizeTurnRef(turnRef);
-  if (!normalizedTurnRef || !current[normalizedTurnRef]) {
-    return current;
-  }
-  const { [normalizedTurnRef]: _removed, ...next } = current;
-  return next;
-}
-
 function mergeTurnConversationRefs(
   currentTurnConversationRefs: Record<string, string>,
   messages: ChatMessage[],
@@ -303,58 +286,6 @@ function mergeTurnConversationRefs(
     nextTurnConversationRefs[turnRef] = conversationRef;
   }
   return nextTurnConversationRefs;
-}
-
-function doesPendingTurnMatch(
-  pendingTurn: PendingTurn | null,
-  input?: { conversationRef?: string | null; turnRef?: string | null } | null,
-): boolean {
-  if (!pendingTurn) {
-    return false;
-  }
-  if (!input) {
-    return true;
-  }
-  const conversationRef = normalizeConversationRef(input.conversationRef);
-  const turnRef = normalizeTurnRef(input.turnRef);
-  return (
-    (!conversationRef || pendingTurn.conversationRef === conversationRef)
-    && (!turnRef || pendingTurn.turnRef === turnRef)
-  );
-}
-
-function normalizePendingTurn(value: unknown): PendingTurn | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return null;
-  }
-  const source = value as Record<string, unknown>;
-  const conversationRef = normalizeConversationRef(source.conversationRef as string | null | undefined);
-  const turnRef = normalizeTurnRef(source.turnRef as string | null | undefined);
-  const userMessageId = typeof source.userMessageId === 'string' && source.userMessageId.trim()
-    ? source.userMessageId.trim()
-    : null;
-  const text = typeof source.text === 'string' ? source.text : null;
-  const timestamp = typeof source.timestamp === 'string' && source.timestamp.trim()
-    ? source.timestamp
-    : null;
-  if (!conversationRef || !turnRef || !userMessageId || text === null || !timestamp) {
-    return null;
-  }
-  const attachmentFilenames = Array.isArray(source.attachmentFilenames)
-    ? source.attachmentFilenames.filter((entry): entry is string => (
-      typeof entry === 'string' && entry.trim().length > 0
-    ))
-    : null;
-  return {
-    conversationRef,
-    turnRef,
-    userMessageId,
-    text,
-    timestamp,
-    attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
-      ? attachmentFilenames
-      : null,
-  };
 }
 
 function doesCurrentTurnProjectionMatch(
