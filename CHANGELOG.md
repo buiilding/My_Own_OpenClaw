@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: keep `replayFallbackMessages` internal to
+  `DesktopChatInterfaceSelectorRuntime` when building `replayReadModel` so
+  `selectChatInterfaceState(...)` no longer exposes fallback rows to React. No
+  migration required.
 - frontend/replay: remove legacy raw `ConversationView` and
   `replayFallbackMessages` inputs from `useConversationReplayActions`; replay
   hooks now consume only the selector-owned `replayReadModel`. No migration

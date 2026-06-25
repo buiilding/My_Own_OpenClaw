@@ -167,12 +167,16 @@ function buildChatInterfaceSelectorState({
     messages: interfaceState.messages as ChatMessage[],
     pendingTurn,
   });
+  const {
+    replayFallbackMessages,
+    ...chatPresentationState
+  } = presentationState;
   return {
     ...interfaceState,
-    ...presentationState,
+    ...chatPresentationState,
     replayReadModel: selectStableReplayReadModel({
       conversationView,
-      messages: presentationState.replayFallbackMessages,
+      messages: replayFallbackMessages,
     }),
     stopTurnTarget: selectStableStopTurnTarget({
       conversationRef: activeConversationRef,

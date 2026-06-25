@@ -195,11 +195,11 @@ feature store internals.
 `selectChatInterfaceState` exposes active-workspace projection:
 
 - `messages`, `thinkingStatus`, `tokenCounts`
-- `renderedMessages`, `replayFallbackMessages`, `canEditMessages`,
-  `canRetryMessages`, and `activeRevisionId` from
+- `renderedMessages`, `canEditMessages`, `canRetryMessages`, and
+  `activeRevisionId` from
   `DesktopChatInterfacePresentationRuntime`
 - `replayReadModel`, a stable object carrying SDK `ConversationView` plus the
-  no-view fallback rows selected for replay commands
+  no-view fallback rows selected internally for replay commands
 - `stopTurnTarget` from `DesktopStopTurnRuntime.resolveStopTurnTarget(...)`,
   selected from SDK `ConversationView` first and the renderer pending bridge
   second

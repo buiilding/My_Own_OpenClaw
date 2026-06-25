@@ -241,7 +241,10 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
       currentTurnProjection: chatSurfaceState.currentTurnProjection,
       conversationView: state.conversationView,
       pendingTurn: state.pendingTurn,
-      ...presentationState,
+      renderedMessages: presentationState.renderedMessages,
+      canEditMessages: presentationState.canEditMessages,
+      canRetryMessages: presentationState.canRetryMessages,
+      activeRevisionId: presentationState.activeRevisionId,
       replayReadModel: {
         conversationView: state.conversationView,
         messages: presentationState.replayFallbackMessages,

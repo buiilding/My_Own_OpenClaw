@@ -147,7 +147,6 @@ describe('chatSelectors', () => {
       canEditMessages: true,
       canRetryMessages: true,
       renderedMessages: state.messages,
-      replayFallbackMessages: state.messages,
       replayReadModel: {
         conversationView: null,
         messages: state.messages,
@@ -191,7 +190,7 @@ describe('chatSelectors', () => {
 
     expect(chatInterface.messages).toBe(messages);
     expect(chatInterface.renderedMessages).toBe(messages);
-    expect(chatInterface.replayFallbackMessages).toBe(messages);
+    expect(chatInterface).not.toHaveProperty('replayFallbackMessages');
     expect(chatInterface.replayReadModel.messages).toBe(messages);
     expect(chatInterface.replayReadModel).toBe(nextChatInterface.replayReadModel);
     expect(chatInterface.tokenCounts).toBe(tokenCounts);
@@ -412,7 +411,7 @@ describe('chatSelectors', () => {
         text: 'view live answer',
       }),
     ]);
-    expect(selected.replayFallbackMessages).toEqual([]);
+    expect(selected).not.toHaveProperty('replayFallbackMessages');
     expect(selected.replayReadModel).toEqual({
       conversationView: view,
       messages: [],
@@ -450,7 +449,6 @@ describe('chatSelectors', () => {
       canEditMessages: true,
       canRetryMessages: true,
       renderedMessages: [],
-      replayFallbackMessages: [],
       replayReadModel: {
         conversationView: null,
         messages: [],
