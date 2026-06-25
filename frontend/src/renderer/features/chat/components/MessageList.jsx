@@ -32,9 +32,9 @@ function MessageList({
   enableAgentLoopAutoScroll = false,
   enableAssistantActions = false,
   enableUserActions = false,
-  disableAssistantActions = false,
   canRetryMessages = true,
   canEditMessages = true,
+  disableAssistantActions = false,
   onAssistantFeedbackChange,
   onAssistantTryAgain,
   onUserEdit,
@@ -155,7 +155,7 @@ function MessageList({
             userEditDraft={editingUserDraft}
             isUserEditSubmitting={submittingUserEdit}
             onUserEditDraftChange={setEditingUserDraft}
-            onStartUserEdit={handleStartUserEdit}
+            onStartUserEdit={canEditMessages ? handleStartUserEdit : null}
             onCancelUserEdit={handleCancelUserEdit}
             onSubmitUserEdit={handleSubmitUserEdit}
           />
@@ -191,9 +191,9 @@ function MessageList({
       awaitingDotTargetMessageId,
       enableAssistantActions,
       enableUserActions,
-      disableAssistantActions,
       canRetryMessages,
       canEditMessages,
+      disableAssistantActions,
       messageActionFlag,
       onAssistantFeedbackChange,
       onAssistantTryAgain,
@@ -316,9 +316,9 @@ MessageList.propTypes = {
   enableAgentLoopAutoScroll: PropTypes.bool,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
-  disableAssistantActions: PropTypes.bool,
   canRetryMessages: PropTypes.bool,
   canEditMessages: PropTypes.bool,
+  disableAssistantActions: PropTypes.bool,
   onAssistantFeedbackChange: PropTypes.func,
   onAssistantTryAgain: PropTypes.func,
   onUserEdit: PropTypes.func,

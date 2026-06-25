@@ -283,6 +283,7 @@ function MessageInput({
                   disabled={!canStopResponse}
                   aria-label="Stop response"
                   data-testid="stop-generating-btn"
+                  disabled={!canStopResponse}
                 >
                   <Square size={16} fill="currentColor" />
                 </button>
