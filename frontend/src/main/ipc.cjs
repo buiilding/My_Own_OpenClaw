@@ -37,6 +37,9 @@ const {
   createDesktopUiConfigStoreRuntime,
 } = require('./ipc/ipc_desktop_ui_config_store.cjs');
 const {
+  hydrateProviderApiKeySecretsForBackendSettings,
+} = require('./ipc/ipc_provider_credentials_store.cjs');
+const {
   createGlobalStopShortcutConfigRuntime,
 } = require('./ipc/ipc_global_stop_shortcut_config_runtime.cjs');
 const {
@@ -433,6 +436,7 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   isBackendRuntimeConnected,
   ensureBackendConnection,
   updateSettings: (payload) => updateSettingsThroughAgentSdkRuntime(payload),
+  hydrateProviderApiKeySecretsForBackendSettings,
   traceSettingsUpdate: (config, source, msgId) => electronMainTraceLogger.traceSettingsUpdate(
     config,
     source,

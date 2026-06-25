@@ -112,6 +112,8 @@ Tracks transient save state machine:
 File path:
 
 - `${app.getPath('userData')}/frontend-config.json`
+- `${app.getPath('userData')}/provider-credentials.json` for encrypted
+  provider API-key secrets
 
 Behavior:
 
@@ -119,6 +121,8 @@ Behavior:
 - save validates object payload
 - save redacts provider API keys and OAuth access/refresh tokens before writing
 - load redacts provider API keys and OAuth access/refresh tokens before returning
+- provider API keys are saved encrypted outside `frontend-config.json`; Electron
+  main rehydrates them only for backend-bound `update-settings` payloads
 - atomic write (`.tmp` then rename)
 
 ### Main-process store semantics (`ipc_desktop_ui_config_store.cjs`)
@@ -196,8 +200,9 @@ Key runtime state:
 2. Electron main routes that command through
    `ipc_agent_sdk_runtime_commands.cjs` into `sendSettingsUpdate(...)`
 3. `ipc_settings_sync_runtime.cjs` filters the backend settings payload,
-   ensures the Agent SDK runtime is connected, and sends backend websocket
-   `update-settings` through the active SDK runtime
+   rehydrates enabled redacted provider credentials from Electron main's
+   encrypted credential store, ensures the Agent SDK runtime is connected, and
+   sends backend websocket `update-settings` through the active SDK runtime
 4. main waits for ACK (`settings-updated`) or timeout
    (`SETTINGS_SYNC_TIMEOUT_MS = 2500`)
 

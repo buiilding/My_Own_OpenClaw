@@ -30,6 +30,12 @@ this page.
 
 ## Settings And Model Selection
 
+- Provider API keys remain redacted in renderer-visible config, localStorage,
+  `frontend-config.json`, and Electron main snapshots. Electron main must
+  rehydrate enabled redacted provider credentials from its encrypted credential
+  store only when building backend-bound `update-settings` payloads, so a
+  restarted app cannot send `enabled: true` with an empty UI-redacted key to
+  backend provider selection.
 - Agent settings edited in the renderer must update Electron main's redacted
   desktop UI config store before the next query attaches `agent_definition`;
   disk persistence is not allowed to be the live-turn gate, and partial renderer

@@ -8,6 +8,7 @@ describe('IPC provider credential persistence', () => {
   let userDataPath;
   let app;
   let safeStorage;
+  let hydrateProviderApiKeySecretsForBackendSettings;
   let loadDesktopUiConfigFromDisk;
   let saveDesktopUiConfigToDisk;
 
@@ -29,6 +30,9 @@ describe('IPC provider credential persistence', () => {
       loadDesktopUiConfigFromDisk,
       saveDesktopUiConfigToDisk,
     } = require('../../frontend/src/main/ipc/ipc_desktop_ui_config.cjs'));
+    ({
+      hydrateProviderApiKeySecretsForBackendSettings,
+    } = require('../../frontend/src/main/ipc/ipc_provider_credentials_store.cjs'));
   });
 
   afterEach(async () => {
@@ -117,5 +121,53 @@ describe('IPC provider credential persistence', () => {
         },
       },
     });
+  });
+
+  test('backend settings hydration keeps missing encrypted provider keys redacted', () => {
+    const log = jest.fn();
+    const config = {
+      provider_api_keys: {
+        anthropic: {
+          enabled: true,
+          api_key: '',
+        },
+      },
+    };
+
+    expect(hydrateProviderApiKeySecretsForBackendSettings(config, log)).toEqual(config);
+    expect(log).not.toHaveBeenCalled();
+  });
+
+  test('backend settings hydration keeps provider keys redacted when decrypt fails', async () => {
+    const log = jest.fn();
+    safeStorage.decryptString.mockImplementationOnce(() => {
+      throw new Error('decrypt failed');
+    });
+    await fs.promises.writeFile(
+      path.join(userDataPath, 'provider-credentials.json'),
+      JSON.stringify({
+        version: 1,
+        provider_api_keys: {
+          anthropic: {
+            encoding: 'electron-safe-storage-v1',
+            encrypted: Buffer.from('encrypted:sk-ant-secret', 'utf8').toString('base64'),
+          },
+        },
+      }),
+      'utf8',
+    );
+    const config = {
+      provider_api_keys: {
+        anthropic: {
+          enabled: true,
+          api_key: '',
+        },
+      },
+    };
+
+    expect(hydrateProviderApiKeySecretsForBackendSettings(config, log)).toEqual(config);
+    expect(log).toHaveBeenCalledWith(
+      "Failed to decrypt provider API key for 'anthropic': decrypt failed",
+    );
   });
 });
