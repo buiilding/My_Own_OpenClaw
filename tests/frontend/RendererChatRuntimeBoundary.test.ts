@@ -2018,11 +2018,14 @@ describe('renderer chat runtime boundary', () => {
     expect(senderHookSource).toContain('desktopChatSendPayloadRuntime');
     expect(senderHookSource).toContain('DesktopChatSendPreparationRuntime');
     expect(senderHookSource).toContain('selectChatInterfaceState');
+    expect(senderHookSource).toContain('getSendReadModel: getChatSendReadModel');
     expect(senderHookSource).not.toContain('getState().conversationView');
     expect(senderHookSource).not.toContain('getState().messages');
     expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
     expect(sendPreparationSource).toContain('desktopChatSendStateRuntime');
-    expect(sendPreparationSource).toContain('getConversationView');
+    expect(sendPreparationSource).toContain('getSendReadModel');
+    expect(sendPreparationSource).not.toContain('getConversationView');
+    expect(sendPreparationSource).not.toContain('getMessages');
     expect(sendPreparationSource).toContain('hasPriorUserMessages');
     expect(sendPreparationSource).toContain('export const DesktopChatSendPreparationRuntime = Object.freeze');
     expect(sendPreparationSource).not.toContain('export async function prepareDesktopChatSend');

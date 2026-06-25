@@ -10,6 +10,9 @@ All notable changes to WindieOS will be documented in this file.
   instead of raw top-level `chatStore.messages` / `conversationView`, keeping
   first-user screenshot decisions on the same `ConversationView`-first read
   model as rendered chat. No migration required.
+- frontend/send: collapse send preparation's split message/view callbacks into
+  one selector-backed read-model dependency so callers cannot provide competing
+  chat authorities. No migration required.
 - frontend/chat-store: move active-workspace projection, generic workspace
   update assembly, and workspace mutation target resolution into
   `chatWorkspaceState.ts` so `chatStore.ts` applies mutations without owning

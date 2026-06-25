@@ -158,7 +158,10 @@ describe('pending-turn live surface integration', () => {
       dependencies: {
         acceptPendingTurn: (pendingTurn) => useChatStore.getState().acceptPendingTurn(pendingTurn),
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
-        getMessages: () => useChatStore.getState().messages,
+        getSendReadModel: () => ({
+          conversationView: useChatStore.getState().conversationView,
+          messages: useChatStore.getState().messages,
+        }),
         setChatActiveConversationRef: useChatStore.getState().setActiveConversationRef,
       },
       senderSurface: 'overlay-chatbox',

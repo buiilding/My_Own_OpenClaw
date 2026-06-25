@@ -79,8 +79,7 @@ export function useChatMessageSender(
       dependencies: {
         acceptPendingTurn: (pendingTurn) => useChatStore.getState().acceptPendingTurn(pendingTurn),
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
-        getConversationView: () => getChatSendReadModel().conversationView,
-        getMessages: () => getChatSendReadModel().messages,
+        getSendReadModel: getChatSendReadModel,
         setChatActiveConversationRef,
         stopPlayback,
       },

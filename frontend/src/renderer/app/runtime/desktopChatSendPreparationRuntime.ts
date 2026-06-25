@@ -62,6 +62,11 @@ type ChatSendConversationViewSnapshot = {
   }> | null;
 } | null | undefined;
 
+type ChatSendReadModel = {
+  conversationView: ChatSendConversationViewSnapshot;
+  messages: ChatSendMessageSnapshot[];
+};
+
 type PendingDesktopChatTurn = {
   conversationRef: string;
   turnRef: string;
@@ -74,8 +79,7 @@ type PendingDesktopChatTurn = {
 type PrepareDesktopChatSendDependencies = {
   acceptPendingTurn: (pendingTurn: PendingDesktopChatTurn) => void;
   getActiveConversationRef: () => string | null | undefined;
-  getConversationView: () => ChatSendConversationViewSnapshot;
-  getMessages: () => ChatSendMessageSnapshot[];
+  getSendReadModel: () => ChatSendReadModel;
   setChatActiveConversationRef: (conversationRef: string | null) => void;
   stopPlayback?: () => void;
 };
@@ -266,10 +270,8 @@ async function prepareDesktopChatSend({
 
   dependencies.stopPlayback?.();
 
-  const hadUserMessages = hasPriorUserMessages({
-    conversationView: dependencies.getConversationView(),
-    messages: dependencies.getMessages(),
-  });
+  const sendReadModel = dependencies.getSendReadModel();
+  const hadUserMessages = hasPriorUserMessages(sendReadModel);
   const turnId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
   const conversationRef = await resolveImmediateConversationRef(dependencies);

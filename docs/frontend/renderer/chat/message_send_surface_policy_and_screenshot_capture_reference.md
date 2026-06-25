@@ -38,6 +38,9 @@ The hook reads send-history inputs through
 `selectChatInterfaceState(useChatStore.getState())` instead of raw top-level
 `chatStore.messages` / `chatStore.conversationView`, so send preparation sees
 the same `ConversationView`-first read model as the rendered chat surface.
+`DesktopChatSendPreparationRuntime.prepareDesktopChatSend(...)` accepts that
+state through one `getSendReadModel` dependency rather than split
+message/view callbacks.
 Retry and edit/resend replay actions also adapt their continuity-prepared
 turns into this same dispatch shape, with transcript recording disabled because
 continuity preparation has already rewritten the replay projection.
