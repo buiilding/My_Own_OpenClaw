@@ -131,11 +131,11 @@ describe('useChatMessageSender', () => {
     expect(call.text).toBe(text);
     expect(call.conversationRef).toBe(conversationRef);
     expect(call.turnRef).toBe('msg-1');
-    expect(call.screenshotRef ?? null).toBeNull();
-    expect(call.screenshotUrl ?? null).toBeNull();
-    expect(call.screenshotRefs ?? null).toBeNull();
-    expect(call.captureMeta ?? null).toBeNull();
-    expect(call.attachmentContext ?? null).toBeNull();
+    expect(call).not.toHaveProperty('screenshotRef');
+    expect(call).not.toHaveProperty('screenshotUrl');
+    expect(call).not.toHaveProperty('screenshotRefs');
+    expect(call).not.toHaveProperty('captureMeta');
+    expect(call).not.toHaveProperty('attachmentContext');
     if (expectedResources) {
       expect(call.resources).toEqual(expectedResources);
     }

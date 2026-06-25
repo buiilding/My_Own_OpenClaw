@@ -1961,6 +1961,9 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain("source: 'renderer-send'");
     expect(sendPreparationSource).not.toContain('turn_id');
     expect(sendPreparationSource).not.toContain('include_query_screenshot');
+    expect(sendPreparationSource).not.toContain('screenshotRef');
+    expect(sendPreparationSource).not.toContain('screenshotRefs');
+    expect(sendPreparationSource).not.toContain('screenshotUrl');
     expect(sendPreparationSource).not.toContain('{ attachmentFilenames, attachment_filenames');
     expect(sendPreparationSource).not.toContain('chatMessageSenderPayloads');
     expect(sendPreparationSource).not.toContain('chatMessageSenderUtils');

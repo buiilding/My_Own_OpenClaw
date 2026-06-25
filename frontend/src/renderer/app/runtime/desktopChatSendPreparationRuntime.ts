@@ -82,9 +82,6 @@ type PreparedDesktopChatTurn = {
   metadata: Record<string, unknown> | null;
   model: AgentModelSelection | null;
   resources: TurnInputResource[];
-  screenshotRef: string | null;
-  screenshotRefs: string[] | null;
-  screenshotUrl: string | null;
   sendLifecycle: SendLifecycle;
   sessionInfo: ReturnType<typeof DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo>;
   text: string;
@@ -329,9 +326,6 @@ async function prepareDesktopChatSend({
     metadata,
     model: null,
     resources,
-    screenshotRef: null,
-    screenshotRefs: null,
-    screenshotUrl: null,
     sendLifecycle,
     sessionInfo,
     text,
@@ -351,9 +345,6 @@ async function dispatchPreparedDesktopChatTurn(
   await DesktopLiveTurnRuntimeClient.sendQuery({
     text: preparedTurn.text,
     conversationRef: preparedTurn.conversationRef,
-    screenshotRef: preparedTurn.screenshotRef,
-    screenshotUrl: preparedTurn.screenshotUrl,
-    screenshotRefs: preparedTurn.screenshotRefs,
     attachmentFilenames: preparedTurn.attachmentFilenames,
     workspacePath: preparedTurn.workspacePath,
     resources: preparedTurn.resources,
