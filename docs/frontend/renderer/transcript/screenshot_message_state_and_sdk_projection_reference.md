@@ -1,8 +1,8 @@
 ---
-summary: "Legacy screenshot metadata and SDK typed attachment projection reference for explicit screenshotRef/screenshotUrl metadata, screenshot_refs replay input, typed attachments, and removed renderer whole-message screenshot display."
+summary: "Legacy screenshot metadata and SDK typed attachment projection reference for explicit screenshotRef/screenshotUrl metadata, screenshot_refs SDK replay input, typed attachments, and removed renderer whole-message screenshot display."
 read_when:
   - When changing `screenshotMessageState.js`, SDK display attachment projection, artifact image resolution, or replay screenshot metadata.
-  - When debugging missing renderer visual attachments, `screenshotRef`/`screenshotUrl` replay input, `screenshot_refs` multi-image projection, or stale screenshot artifact inference behavior.
+  - When debugging missing renderer visual attachments, SDK-owned `screenshotRef`/`screenshotUrl` replay input, `screenshot_refs` multi-image projection, or stale screenshot artifact inference behavior.
 title: "Screenshot Message State and SDK Projection Reference"
 ---
 
@@ -37,9 +37,11 @@ Do not reintroduce the retired compatibility path that treats a non-inline
 `screenshot` string as an artifact id. Remote screenshots require explicit
 `screenshotRef`, `screenshotUrl`, or `screenshot_refs` metadata.
 
-The only inference still allowed is URL-to-ref extraction from backend artifact
-URLs such as `/api/artifacts/<id>`. That lets replay preserve a canonical
-`screenshotRef` when a row carries a trusted artifact URL but no explicit ref.
+URL-to-ref extraction from backend artifact URLs such as `/api/artifacts/<id>`
+is allowed inside low-level screenshot metadata normalization and SDK/store
+compatibility adapters. Renderer replay actions must not perform that
+inference or forward inferred `screenshot_ref`/`screenshot_url` fields; replay
+resource preservation comes from the SDK target display row.
 
 ## Runtime Behavior
 
@@ -63,8 +65,9 @@ ready artifact-backed images with
 remote artifact path and avoid keeping duplicate inline bytes next to
 `screenshotRef`/`screenshotUrl`.
 
-`resolveReplayScreenshotState(...)` follows the same remote preference while
-preserving content type metadata for inline fallback rows.
+`resolveReplayScreenshotState(...)` follows the same remote preference for
+legacy metadata adapters. React replay actions do not call it when dispatching
+SDK retry/edit commands.
 
 ## SDK Display Projection
 

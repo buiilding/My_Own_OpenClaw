@@ -718,7 +718,7 @@ describe('useConversationReplayActions', () => {
     }));
   });
 
-  test('retry replay infers artifact refs from screenshot urls', async () => {
+  test('retry replay leaves screenshot URL refs to SDK target-row resolution', async () => {
     const messages = [
       {
         id: 'user-url',
@@ -748,11 +748,9 @@ describe('useConversationReplayActions', () => {
 
     expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
       messageId: 'assistant-url',
-      payload: expect.objectContaining({
-        screenshot_ref: 'artifact-99',
-        screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
-      }),
     }));
+    expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('screenshot_ref');
+    expect(mockRetryTurn.mock.calls[0][0].payload).not.toHaveProperty('screenshot_url');
   });
 
   test('retry replay leaves visible multi-image attachments to the SDK target row', async () => {

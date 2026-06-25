@@ -8,7 +8,6 @@ import { useChatStore } from '../stores/chatStore';
 import {
   DesktopRendererConfigRuntimeClient,
 } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
-import { DesktopArtifactRuntimeClient } from '../../../app/runtime/desktopArtifactRuntimeClient';
 import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
@@ -26,7 +25,6 @@ const {
   buildReplayMessagesWithPendingTurn,
   buildReplayPendingTurn,
   buildReplayContextMessages,
-  buildReplayPreparationPayload,
   findReplayEditableUserMessageIndex,
   resolveReplayRetryMessageIndexes,
 } = DesktopConversationReplayRuntime;
@@ -114,8 +112,6 @@ async function executeReplayAction({
   activeConversationRef,
   replayMessages,
   queryText,
-  screenshotRef,
-  screenshotUrl,
   errorPrefix,
   deferredQueryModelSelection,
   action,
@@ -143,11 +139,7 @@ async function executeReplayAction({
     targetUserMessageId,
   });
   try {
-    const replayPayload = {
-      ...buildReplayPreparationPayload({ screenshotRef, screenshotUrl }),
-    };
     const sdkReplayPayload = {
-      ...replayPayload,
       ...(workspaceBinding.workspacePath ? { workspace_path: workspaceBinding.workspacePath } : {}),
     };
     const replayStartedAt = new Date().toISOString();
@@ -299,18 +291,11 @@ export function useConversationReplayActions({
     const preservedMessages = messages.slice(0, userIndex);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-    const replayScreenshot = DesktopArtifactRuntimeClient.resolveReplayScreenshotState({
-      screenshotRef: editUserMessage.screenshotRef || null,
-      screenshotUrl: editUserMessage.screenshotUrl || null,
-      screenshotContentType: editUserMessage.screenshotContentType || null,
-    });
     return executeReplayAction({
       sessionInfo,
       activeConversationRef,
       replayMessages: replayContextMessages,
       queryText: normalizedEditedText,
-      screenshotRef: replayScreenshot.screenshotRef,
-      screenshotUrl: replayScreenshot.screenshotUrl,
       errorPrefix: 'Failed to edit user message',
       deferredQueryModelSelection,
       action: 'edit_resend',
@@ -336,18 +321,11 @@ export function useConversationReplayActions({
     const preservedMessages = messages.slice(0, userIndex);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-    const replayScreenshot = DesktopArtifactRuntimeClient.resolveReplayScreenshotState({
-      screenshotRef: retryUserMessage.screenshotRef || null,
-      screenshotUrl: retryUserMessage.screenshotUrl || null,
-      screenshotContentType: retryUserMessage.screenshotContentType || null,
-    });
     return executeReplayAction({
       sessionInfo,
       activeConversationRef,
       replayMessages: replayContextMessages,
       queryText: retryUserMessage.text,
-      screenshotRef: replayScreenshot.screenshotRef,
-      screenshotUrl: replayScreenshot.screenshotUrl,
       errorPrefix: 'Failed to retry assistant message',
       deferredQueryModelSelection,
       action: 'retry',

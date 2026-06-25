@@ -9,7 +9,6 @@ import {
 const {
   buildReplayPendingTurn,
   buildReplayContextMessages,
-  buildReplayPreparationPayload,
   findReplayEditableUserMessageIndex,
   resolveReplayRetryMessageIndexes,
 } = DesktopConversationReplayRuntime;
@@ -178,20 +177,6 @@ describe('desktopConversationReplayRuntime', () => {
       'm-3',
       'm-4',
     ]);
-  });
-
-  test('buildReplayPreparationPayload preserves only remote screenshot metadata', () => {
-    expect(buildReplayPreparationPayload({
-      screenshotRef: 'artifact-1',
-      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-1',
-    })).toEqual({
-      screenshot_ref: 'artifact-1',
-      screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-1',
-    });
-    expect(buildReplayPreparationPayload({
-      screenshotRef: null,
-      screenshotUrl: null,
-    })).toEqual({});
   });
 
   test('buildReplayPendingTurn keeps replay pending row identity stable', () => {

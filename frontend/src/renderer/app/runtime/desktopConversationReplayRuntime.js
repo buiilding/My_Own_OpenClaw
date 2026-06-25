@@ -167,20 +167,6 @@ function buildReplayContextMessages(messages) {
   });
 }
 
-function buildReplayPreparationPayload({
-  screenshotRef,
-  screenshotUrl,
-}) {
-  const payload = {};
-  if (screenshotRef) {
-    payload.screenshot_ref = screenshotRef;
-  }
-  if (screenshotUrl) {
-    payload.screenshot_url = screenshotUrl;
-  }
-  return payload;
-}
-
 function buildReplayPendingTurn({
   attachmentFilenames = null,
   conversationRef,
@@ -245,7 +231,6 @@ export const DesktopConversationReplayRuntime = Object.freeze({
   buildReplayMessagesWithPendingTurn,
   buildReplayPendingTurn,
   buildReplayContextMessages,
-  buildReplayPreparationPayload,
   findReplayEditableUserMessageIndex,
   resolveReplayRetryMessageIndexes,
 });

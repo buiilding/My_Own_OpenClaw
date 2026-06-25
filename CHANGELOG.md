@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop renderer retry/edit actions from resolving
+  `screenshotRef`/`screenshotUrl` aliases into SDK command payloads. Replay
+  resource preservation now comes only from the SDK target display row, with
+  renderer payloads limited to command intent, model, and workspace context. No
+  migration required.
 - frontend/sdk: narrow renderer pending-turn bridges to identity, text,
   timestamp, and filename chips only. Normal sends, replay pending rows, and
   pending-turn IPC no longer carry visual attachment descriptors, screenshots,

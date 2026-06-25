@@ -921,9 +921,9 @@ typed image attachment has a display-local id and a separate `screenshotRef`,
 replay uses the real screenshot/artifact ref for the backend payload and carries
 the typed attachment as SDK display metadata. Legacy display-row
 `screenshot_refs` and single screenshot refs still flow through replay
-screenshot resolution. Renderer replay payloads are preserve-by-default: absent
-or null attachment fields must not erase prior resolved resources without an
-explicit removal operation.
+screenshot resolution inside the SDK command. Renderer replay command payloads
+must not infer or forward screenshot aliases; absent renderer payload fields
+must not erase prior resolved resources without an explicit removal operation.
 
 The Electron renderer publishes the retained replay prefix and `pendingTurn`
 as one visible optimistic frame before awaiting the SDK revision command. If
