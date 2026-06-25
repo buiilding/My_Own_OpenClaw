@@ -36,6 +36,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Validate deployment configuration
         run: |
@@ -63,10 +65,45 @@ jobs:
 
       - name: Deploy backend checkout and restart service
         run: |
+          bundle_path="$RUNNER_TEMP/windie-backend-${GITHUB_SHA}.bundle"
+          remote_bundle="/tmp/windie-backend-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.bundle"
+          deploy_remote="deploy-bundle"
+
+          # The backend host does not need GitHub credentials. Package the
+          # already-checked-out commit and let the remote deploy script fetch
+          # from this temporary bundle remote.
+          git update-ref "refs/heads/${DEPLOY_BRANCH}" "$GITHUB_SHA"
+          git bundle create "$bundle_path" "refs/heads/${DEPLOY_BRANCH}"
+
+          cleanup_remote_bundle() {
+            ssh -i "$HOME/.ssh/windie_backend_deploy" \
+              -p "$SSH_PORT" \
+              -o IdentitiesOnly=yes \
+              -o StrictHostKeyChecking=yes \
+              "$SSH_USER@$SSH_HOST" \
+              "cd '$DEPLOY_REPO_ROOT' 2>/dev/null && git remote remove '$deploy_remote' 2>/dev/null || true; rm -f '$remote_bundle'" \
+              >/dev/null 2>&1 || true
+          }
+          trap cleanup_remote_bundle EXIT
+
+          scp -i "$HOME/.ssh/windie_backend_deploy" \
+            -P "$SSH_PORT" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "$bundle_path" \
+            "$SSH_USER@$SSH_HOST:$remote_bundle"
+
+          ssh -i "$HOME/.ssh/windie_backend_deploy" \
+            -p "$SSH_PORT" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" \
+            "cd '$DEPLOY_REPO_ROOT' && git remote remove '$deploy_remote' 2>/dev/null || true; git remote add '$deploy_remote' '$remote_bundle'"
+
           deploy_args=(
             --repo-root "$DEPLOY_REPO_ROOT"
             --branch "$DEPLOY_BRANCH"
-            --remote "$DEPLOY_REMOTE"
+            --remote "$deploy_remote"
             --strategy "$DEPLOY_UPDATE_STRATEGY"
             --service "$DEPLOY_SERVICE"
             --scope "$DEPLOY_SYSTEMD_SCOPE"

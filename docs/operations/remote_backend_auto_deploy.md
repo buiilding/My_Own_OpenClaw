@@ -10,9 +10,11 @@ title: "Remote Backend Auto Deploy"
 
 WindieOS can deploy the hosted backend automatically when `main` receives a
 push. The repo-owned workflow is `.github/workflows/deploy-remote-backend.yml`.
-It logs into the backend host over SSH, streams
-`<windie> backend deploy --host <host>` to the host, updates the remote checkout,
-restarts `windieos-backend.service`, then verifies systemd and HTTP health.
+It logs into the backend host over SSH, uploads a temporary git bundle for the
+already-checked-out commit, streams `<windie> backend deploy --host <host>` to
+the host with that bundle mounted as a temporary git remote, updates the remote
+checkout, restarts `windieos-backend.service`, then verifies systemd and HTTP
+health.
 
 This is intentionally outside the FastAPI backend. The backend should not expose
 a route that shells into its own checkout or restarts its own process.
@@ -28,11 +30,13 @@ Default values match the current hosted setup:
 - update strategy: `rebase`
 - health URL: `http://127.0.0.1:8765/api/embeddings/health`
 
-The remote checkout must already exist and have a working `origin` remote. The
-SSH deploy user needs:
+The remote checkout must already exist. The workflow deploys from an uploaded
+bundle remote, so the host itself does not need GitHub credentials for private
+repo fetches. The SSH deploy user needs:
 
 - read/write access to the checkout
-- permission to run `git fetch` and update the branch
+- permission to upload a temporary bundle under `/tmp`, run `git fetch` from
+  that bundle, and update the branch
 - permission to restart the backend service
 - passwordless `sudo systemctl restart windieos-backend.service` when using the
   default `system` scope as a non-root user
@@ -66,7 +70,7 @@ Optional repository variables:
 | --- | --- | --- |
 | `WINDIE_BACKEND_REPO_ROOT` | `/opt/windieos-live` | Remote checkout path. |
 | `WINDIE_BACKEND_DEPLOY_BRANCH` | `main` | Branch deployed by the workflow. |
-| `WINDIE_BACKEND_GIT_REMOTE` | `origin` | Git remote to fetch. |
+| `WINDIE_BACKEND_GIT_REMOTE` | `origin` | Legacy/default remote name for manual deploys that fetch from an existing host remote. The GitHub Actions workflow uses a temporary uploaded bundle remote instead. |
 | `WINDIE_BACKEND_SERVICE` | `windieos-backend.service` | systemd unit to restart. |
 | `WINDIE_BACKEND_SYSTEMD_SCOPE` | `system` | `system` or `user`. |
 | `WINDIE_BACKEND_UPDATE_STRATEGY` | `rebase` | `rebase` preserves production-only commits; `ff-only` requires the host branch to be directly fast-forwardable. |
@@ -80,6 +84,12 @@ Optional repository variables:
 
 `<windie> backend deploy --host <host>` refuses to deploy when the remote checkout
 has tracked or staged changes. Untracked files are left alone.
+
+GitHub Actions does not require the remote checkout's `origin` to be usable from
+the host. It creates a temporary bundle from the pushed commit, uploads it over
+the same SSH connection, adds a temporary `deploy-bundle` remote, and lets the
+normal deploy script fetch/rebase from that local bundle. The temporary remote
+and bundle file are removed after the job exits.
 
 `rebase` is the default because the hosted checkout has historically carried
 small production-only commits. If that is no longer true, prefer `ff-only` so a
