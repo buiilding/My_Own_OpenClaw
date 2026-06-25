@@ -1502,62 +1502,6 @@ describe('ChatInterface wiring', () => {
     expect(mockAcceptStoppedTurn).not.toHaveBeenCalled();
   });
 
-  test('dashboard loop state follows ConversationView dashboard mode over pill mode', () => {
-    mockChatState.streamTracking.phase = 'streaming';
-    mockChatState.currentTurnProjection = {
-      conversationRef: 'conv_existing',
-      turnRef: 'turn_stale_current',
-      phase: 'streaming',
-      assistantText: 'stale stream',
-      reasoningText: null,
-      toolEvents: [],
-      lastError: null,
-    };
-    mockChatState.conversationView = {
-      conversationRef: 'conv_existing',
-      revisionId: 'rev-view',
-      displayRows: [],
-      liveTurn: {
-        turnRef: 'turn_split_surface',
-        phase: 'streaming',
-        entries: [{ id: 'entry-live', text: 'live on another surface' }],
-        isBusy: true,
-        isTerminal: false,
-        canStop: false,
-        lastError: null,
-      },
-      surfaces: {
-        pill: {
-          mode: 'busy',
-        },
-        dashboard: {
-          mode: 'idle',
-        },
-        responseOverlay: {
-          mode: 'response',
-          visible: true,
-          guardRef: 'turn_split_surface',
-          ownerConversationRef: 'conv_existing',
-          turnRef: 'turn_split_surface',
-        },
-      },
-      actions: {
-        canEdit: true,
-        canRetry: true,
-        canFork: true,
-      },
-    };
-
-    render(<ChatInterface />);
-
-    const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
-    expect(lastInputProps.isLoopActive).toBe(false);
-    expect(lastInputProps.canStopResponse).toBe(false);
-    lastInputProps.onStopResponse();
-    expect(mockStopQuery).not.toHaveBeenCalled();
-    expect(mockAcceptStoppedTurn).not.toHaveBeenCalled();
-  });
-
   test('stop shortcut sends stop-query while stream is active', () => {
     mockChatState.streamTracking.phase = 'streaming';
     setMockCurrentTurnProjection('streaming', {

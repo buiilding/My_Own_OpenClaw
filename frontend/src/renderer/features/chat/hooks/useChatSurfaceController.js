@@ -39,7 +39,6 @@ export function useChatSurfaceController({
   messages,
   currentTurnProjection = null,
   conversationView = null,
-  conversationViewSurface = 'pill',
   pendingTurn = null,
   sessionInfo,
   setThinkingStatus,
@@ -76,12 +75,12 @@ export function useChatSurfaceController({
     visibleTurnLifecycle,
   );
   const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
-  const viewSurfaceMode = conversationView?.surfaces?.[conversationViewSurface]?.mode;
+  const viewPillMode = conversationView?.surfaces?.pill?.mode;
   const isLocalPending = liveTurnPresentationInput.useLocalPendingTurn === true;
   const isBusy = isLocalPending
     ? true
     : hasConversationView
-      ? viewSurfaceMode === 'busy'
+      ? viewPillMode === 'busy'
       : visibleTurnLifecycle.isBusy === true;
   const canStop = isLocalPending
     ? true

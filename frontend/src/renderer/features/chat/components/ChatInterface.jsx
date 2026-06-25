@@ -202,7 +202,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     messages,
     currentTurnProjection,
     conversationView,
-    conversationViewSurface: 'dashboard',
     pendingTurn,
     sessionInfo,
     setThinkingStatus,

@@ -230,17 +230,15 @@ The response overlay is migrated first: renderer adapters render
 `snapshot.view.surfaces.responseOverlay` before falling back to raw
 `snapshot.currentTurn.presentation.overlayIntent`.
 The minimal pill and dashboard control surfaces also consume the view for the
-busy/Stop contract: `snapshot.view.surfaces.pill.mode` drives the pill loop
-lock, `snapshot.view.surfaces.dashboard.mode` drives the dashboard composer
-loop lock, and `snapshot.view.liveTurn.canStop` drives Stop availability.
+Phase 2 busy/Stop contract: `snapshot.view.surfaces.pill.mode` drives the
+shared loop lock and `snapshot.view.liveTurn.canStop` drives Stop availability.
 Renderer pending-turn state remains a short pre-view bridge immediately after
 send acceptance; after a view is present, stale raw current-turn snapshots must
 not re-enable Stop or keep the pill/dashboard busy.
 For the Phase 3 transcript migration, Electron renderer projects dashboard
 messages from `snapshot.view.displayRows` when a current-turn payload includes
-the view, and dashboard busy state reads `snapshot.view.surfaces.dashboard.mode`.
-The separate `snapshot.displayRows`/display-rows stream remains a temporary
-fallback while non-view hosts and later dashboard loaders migrate.
+the view. The separate `snapshot.displayRows`/display-rows stream remains a
+temporary fallback while non-view hosts and later dashboard loaders migrate.
 
 For debugging, use:
 
