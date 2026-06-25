@@ -47,6 +47,13 @@ this page.
   adapter must translate the query Agent definition, screenshots, attachments,
   workspace state, resources, metadata, and model override into the runtime send
   shape before dispatch.
+- Normal renderer sends and SDK replay commands share Electron main's
+  runtime-turn context preparation before any SDK send reaches backend
+  inference. Replay may replace/supersede display rows and create revisions,
+  but it must not own separate Agent config assembly or fall back to startup
+  SDK session definitions; each replay turn attaches the current
+  Electron-generated `payload.agent_definition` from the live desktop UI config
+  store.
 - Selected chat models must be applied before inference starts: normal sends and
   manual compaction await the SDK settings ACK, while retry/edit replay carries
   the model through SDK replay commands into `ConversationRuntime.send()`, where

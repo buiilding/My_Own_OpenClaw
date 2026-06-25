@@ -155,6 +155,12 @@ Behavior:
   so edit/resend or replay payloads cannot resurrect stale prompts or client
   tool manifests while still preserving additive supplied prompt layers and
   runtime metadata
+- normal renderer sends and SDK replay commands use the same Electron-main
+  runtime-turn context helper before SDK dispatch. Replay remains responsible
+  for display row replacement, revision creation, and superseding old turns, but
+  it receives current `payload.agent_definition` from the live config store
+  through the shared helper instead of falling back to startup SDK session
+  defaults.
 - the direct wake-up adapter must translate Electron main's `AgentQueryInput`
   into `ConversationRuntime.send` input by placing the query-local
   `agent_definition`, screenshots, attachments, workspace state, resources,

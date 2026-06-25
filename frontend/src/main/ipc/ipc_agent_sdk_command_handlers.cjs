@@ -118,6 +118,45 @@ function appendRendererAppDiagnostic(payload = {}, deps = {}) {
   });
 }
 
+function buildReplayRuntimePayload({
+  conversationRef,
+  text,
+  payload,
+  deps,
+} = {}) {
+  const basePayload = cloneJsonObject(payload) || {};
+  const runtimePayload = {
+    ...basePayload,
+    conversation_ref: conversationRef,
+  };
+  if (typeof text === 'string' && text.trim()) {
+    runtimePayload.text = text.trim();
+  }
+  if (typeof deps.attachRuntimeTurnContextToPayload !== 'function') {
+    return runtimePayload;
+  }
+  return cloneJsonObject(deps.attachRuntimeTurnContextToPayload(runtimePayload)) || runtimePayload;
+}
+
+function traceReplayRuntimeSend({
+  conversationRef,
+  text,
+  turnRef,
+  payload,
+  deps,
+} = {}) {
+  if (typeof deps.traceRuntimeSend !== 'function') {
+    return;
+  }
+  deps.traceRuntimeSend({
+    conversationRef,
+    text: typeof text === 'string' ? text : '',
+    turnRef,
+    payload,
+    resources: Array.isArray(payload?.resources) ? payload.resources : [],
+  });
+}
+
 function buildAgentSdkCommandHandlers({
   event,
   handleRendererChatQuery,
@@ -373,6 +412,21 @@ function buildAgentSdkCommandHandlers({
     [SDK_RUNTIME_COMMANDS.CONVERSATION_EDIT_AND_RESEND]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
       const conversationRef = requireCommandConversationRef(payload);
+      const text = requireCommandString(payload, 'text', 'edited text');
+      const turnRef = normalizeOptionalString(payload.turnRef) ?? undefined;
+      const runtimePayload = buildReplayRuntimePayload({
+        conversationRef,
+        text,
+        payload: payload.payload,
+        deps,
+      });
+      traceReplayRuntimeSend({
+        conversationRef,
+        text,
+        turnRef,
+        payload: runtimePayload,
+        deps,
+      });
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.editAndResend',
         conversationRef,
@@ -380,15 +434,27 @@ function buildAgentSdkCommandHandlers({
       return runtimeRegistry.editAndResend({
         conversationRef,
         messageId: requireCommandString(payload, 'messageId', 'message id'),
-        text: requireCommandString(payload, 'text', 'edited text'),
-        turnRef: normalizeOptionalString(payload.turnRef) ?? undefined,
-        payload: cloneJsonObject(payload.payload),
+        text,
+        turnRef,
+        payload: runtimePayload,
         model: cloneJsonObject(payload.model),
       });
     },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_RETRY_TURN]: async (payload = {}) => {
       requireCommandUserId(payload, deps.getState().currentUserId);
       const conversationRef = requireCommandConversationRef(payload);
+      const turnRef = normalizeOptionalString(payload.turnRef) ?? undefined;
+      const runtimePayload = buildReplayRuntimePayload({
+        conversationRef,
+        payload: payload.payload,
+        deps,
+      });
+      traceReplayRuntimeSend({
+        conversationRef,
+        turnRef,
+        payload: runtimePayload,
+        deps,
+      });
       const runtimeRegistry = await deps.ensureAgent({
         reason: 'sdk-command:conversation.retryTurn',
         conversationRef,
@@ -396,8 +462,8 @@ function buildAgentSdkCommandHandlers({
       return runtimeRegistry.retryTurn({
         conversationRef,
         messageId: normalizeOptionalString(payload.messageId) ?? undefined,
-        turnRef: normalizeOptionalString(payload.turnRef) ?? undefined,
-        payload: cloneJsonObject(payload.payload),
+        turnRef,
+        payload: runtimePayload,
         model: cloneJsonObject(payload.model),
       });
     },

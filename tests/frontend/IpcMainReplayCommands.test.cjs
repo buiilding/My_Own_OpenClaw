@@ -5,6 +5,23 @@ const {
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/ipcMainBridgeHarness.cjs');
 
+const ALL_LOCAL_TOOL_NAMES = Object.freeze([
+  'mouse_control',
+  'keyboard_control',
+  'screenshot',
+  'scroll_control',
+  'switch_window',
+  'wait',
+  'get_open_windows',
+  'get_system_stats',
+  'open_app',
+  'run_shell_command',
+  'process',
+  'read_file',
+  'replace',
+  'browser',
+]);
+
 describe('ipc.cjs replay command handling', () => {
   registerBridgeSuiteLifecycleHooks();
 
@@ -104,6 +121,45 @@ describe('ipc.cjs replay command handling', () => {
     });
   }
 
+  function createDirectCommandRuntime({
+    runtimeRegistry,
+    attachRuntimeTurnContextToPayload,
+    traceRuntimeSend,
+  } = {}) {
+    const {
+      createAgentSdkInvokeHandlerRuntime,
+    } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
+    const handlers = {};
+    const ipcMain = {
+      handle: jest.fn((channel, handler) => {
+        handlers[channel] = handler;
+      }),
+    };
+    const deps = {
+      getState: jest.fn(() => ({ currentUserId: 'registered-user-1' })),
+      ensureAgent: jest.fn(async () => runtimeRegistry),
+      attachRuntimeTurnContextToPayload,
+      traceRuntimeSend,
+      appendAppDiagnostic: jest.fn(input => input),
+    };
+    const runtime = createAgentSdkInvokeHandlerRuntime({
+      invokeChannel: 'windie:invoke',
+      deps,
+    });
+    runtime.register({
+      ipcMain,
+      handleRendererChatQuery: jest.fn(),
+      handleRendererStopQuery: jest.fn(),
+    });
+    return {
+      deps,
+      invoke: (command, payload = {}) => handlers['windie:invoke']({ sender: null }, {
+        command,
+        payload,
+      }),
+    };
+  }
+
   afterEach(() => {
     jest.dontMock('../../packages/windie-sdk-js/cjs/runtime/AgentClient.js');
   });
@@ -200,15 +256,262 @@ describe('ipc.cjs replay command handling', () => {
       messageId: 'row-user',
       text: 'edited text',
       turnRef: 'turn-edit',
-      payload: { screenshot_refs: ['artifact-one'] },
+      payload: expect.objectContaining({
+        text: 'edited text',
+        conversation_ref: 'conv-ipc-display',
+        screenshot_refs: ['artifact-one'],
+        agent_definition: expect.any(Object),
+      }),
       model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
     });
     expect(sdk.runtime.retryTurn).toHaveBeenCalledWith({
       messageId: 'row-assistant',
       turnRef: 'turn-retry',
-      payload: { screenshot_ref: 'artifact-one' },
+      payload: expect.objectContaining({
+        conversation_ref: 'conv-ipc-display',
+        screenshot_ref: 'artifact-one',
+        agent_definition: expect.any(Object),
+      }),
       model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
     });
+  });
+
+  test('edit/resend and retry attach current agent definition context through the shared main helper', async () => {
+    const sdk = installMockAgentClient();
+    const bridge = initIpc();
+    const configPath = '/tmp/appdata/frontend-config.json';
+    const persistedAgentConfig = {
+      model_provider: 'scripted',
+      selected_model_id: 'scripted-runtime',
+      agent_custom_instructions: 'Current Agent prompt.',
+      agent_disabled_local_tools: ALL_LOCAL_TOOL_NAMES,
+      agent_disabled_remote_tools: ['web_search'],
+      agent_enabled_mcp_servers: [],
+    };
+    bridge.fs.existsSync.mockImplementation((targetPath) => targetPath === configPath);
+    bridge.fs.readFileSync.mockImplementation((targetPath) => {
+      if (targetPath === configPath) {
+        return JSON.stringify(persistedAgentConfig);
+      }
+      throw new Error(`unexpected readFileSync path: ${targetPath}`);
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.editAndResend',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        messageId: 'row-user',
+        text: 'edited text',
+        turnRef: 'turn-edit',
+        payload: {
+          screenshot_refs: ['artifact-one'],
+          workspace_path: '/tmp/replay-workspace',
+          resources: [{ kind: 'workspace', path: '/tmp/replay-workspace' }],
+          metadata: { source: 'edit' },
+          agent_definition: {
+            system_prompt: { mode: 'replace', content: 'Stale prompt.' },
+            tools: {
+              mode: 'default_plus_client',
+              client_manifest: {
+                version: 1,
+                tools: [
+                  {
+                    name: 'mouse_control',
+                    schema: { type: 'object', description: 'stale schema body' },
+                  },
+                ],
+              },
+              disabled_tools: [],
+              enabled_remote_tools: ['web_search'],
+            },
+          },
+        },
+        model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
+      },
+    )).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        turnRef: 'turn-edit',
+      }),
+    });
+
+    await expect(invokeAgentSdkCommandHandler(
+      bridge.handlers,
+      'conversation.retryTurn',
+      {
+        userId: 'registered-user-1',
+        conversationRef: 'conv-ipc-display',
+        messageId: 'row-assistant',
+        turnRef: 'turn-retry',
+        payload: {
+          screenshot_ref: 'artifact-one',
+          workspace_path: '/tmp/replay-workspace',
+          agent_definition: {
+            system_prompt: { mode: 'replace', content: 'Retry stale prompt.' },
+            tools: {
+              mode: 'default_plus_client',
+              client_manifest: {
+                version: 1,
+                tools: [
+                  {
+                    name: 'browser',
+                    schema: { type: 'object', description: 'retry stale schema body' },
+                  },
+                ],
+              },
+              disabled_tools: [],
+              enabled_remote_tools: ['web_search'],
+            },
+          },
+        },
+        model: { modelProvider: 'anthropic', modelId: 'claude-sonnet-4-5' },
+      },
+    )).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        turnRef: 'turn-retry',
+      }),
+    });
+
+    const editPayload = sdk.runtime.editAndResend.mock.calls[0][0].payload;
+    expect(editPayload).toMatchObject({
+      text: 'edited text',
+      conversation_ref: 'conv-ipc-display',
+      screenshot_refs: ['artifact-one'],
+      workspace_path: '/tmp/replay-workspace',
+      metadata: { source: 'edit' },
+      agent_definition: {
+        system_prompt: {
+          mode: 'replace',
+          content: 'Current Agent prompt.',
+        },
+        tools: {
+          client_manifest: {
+            version: 1,
+            tools: [],
+          },
+          disabled_tools: ALL_LOCAL_TOOL_NAMES.concat(['web_search']),
+          enabled_remote_tools: [],
+        },
+      },
+    });
+    expect(editPayload.resources).toEqual([{ kind: 'workspace', path: '/tmp/replay-workspace' }]);
+
+    const retryPayload = sdk.runtime.retryTurn.mock.calls[0][0].payload;
+    expect(retryPayload).toMatchObject({
+      conversation_ref: 'conv-ipc-display',
+      screenshot_ref: 'artifact-one',
+      workspace_path: '/tmp/replay-workspace',
+      agent_definition: {
+        system_prompt: {
+          mode: 'replace',
+          content: 'Current Agent prompt.',
+        },
+        tools: {
+          client_manifest: {
+            version: 1,
+            tools: [],
+          },
+          disabled_tools: ALL_LOCAL_TOOL_NAMES.concat(['web_search']),
+          enabled_remote_tools: [],
+        },
+      },
+    });
+  });
+
+  test('replay runtime-send trace records sanitized counts from enriched context', async () => {
+    const appendIpcBridgeDiagnostic = jest.fn();
+    const {
+      createElectronMainTraceLogger,
+    } = require('../../frontend/src/main/ipc/ipc_assistant_trace.cjs');
+    const tracer = createElectronMainTraceLogger({
+      appendIpcBridgeDiagnostic,
+      log: jest.fn(),
+      stdoutEnabled: false,
+    });
+    const runtimeRegistry = {
+      editAndResend: jest.fn(async input => ({
+        turnRef: input.turnRef,
+        queryMessageId: 'msg-edit',
+      })),
+    };
+    const enrichedAgentDefinition = {
+      mode: 'default_plus_overrides',
+      system_prompt: { mode: 'replace', content: 'Secret current prompt.' },
+      tools: {
+        mode: 'default_plus_client',
+        client_manifest: {
+          version: 1,
+          tools: [],
+        },
+        disabled_tools: ALL_LOCAL_TOOL_NAMES,
+        enabled_remote_tools: [],
+      },
+    };
+    const attachRuntimeTurnContextToPayload = jest.fn(payload => ({
+      ...payload,
+      agent_definition: enrichedAgentDefinition,
+    }));
+    const commandRuntime = createDirectCommandRuntime({
+      runtimeRegistry,
+      attachRuntimeTurnContextToPayload,
+      traceRuntimeSend: input => tracer.traceRuntimeSend(input),
+    });
+
+    await expect(commandRuntime.invoke('conversation.editAndResend', {
+      userId: 'registered-user-1',
+      conversationRef: 'conv-ipc-display',
+      messageId: 'row-user',
+      text: 'edited private text',
+      turnRef: 'turn-edit',
+      payload: {
+        workspace_path: '/tmp/replay-workspace',
+        agent_definition: {
+          system_prompt: { mode: 'replace', content: 'Stale secret prompt.' },
+          tools: {
+            client_manifest: {
+              version: 1,
+              tools: [
+                {
+                  name: 'stale_tool',
+                  schema: { description: 'Stale secret schema body.' },
+                },
+              ],
+            },
+          },
+        },
+      },
+    })).resolves.toEqual({
+      ok: true,
+      data: expect.objectContaining({
+        turnRef: 'turn-edit',
+      }),
+    });
+
+    expect(attachRuntimeTurnContextToPayload).toHaveBeenCalledWith(expect.objectContaining({
+      text: 'edited private text',
+      conversation_ref: 'conv-ipc-display',
+      workspace_path: '/tmp/replay-workspace',
+    }));
+    expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'runtime.send',
+      phase: 'sdk',
+      conversationRef: 'conv-ipc-display',
+      turnRef: 'turn-edit',
+      textLength: 'edited private text'.length,
+      hasAgentDefinition: true,
+      clientManifestToolCount: 0,
+      disabledToolCount: ALL_LOCAL_TOOL_NAMES.length,
+      enabledRemoteToolCount: 0,
+      systemPromptMode: 'replace',
+    }));
+    const serializedDiagnostics = JSON.stringify(appendIpcBridgeDiagnostic.mock.calls);
+    expect(serializedDiagnostics).not.toContain('edited private text');
+    expect(serializedDiagnostics).not.toContain('Secret current prompt.');
+    expect(serializedDiagnostics).not.toContain('Stale secret prompt.');
+    expect(serializedDiagnostics).not.toContain('Stale secret schema body.');
   });
 
   test('routes revision checkout and fork through the Agent SDK runtime adapter', async () => {

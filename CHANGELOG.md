@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: make SDK retry/edit replay use the same Electron-main
+  runtime-turn context helper as normal sends, so current Agent prompts and
+  local/remote tool policy are attached before replay dispatch instead of
+  falling back to stale SDK session defaults. No migration required.
 - frontend/sdk: converge retry/edit replay model selection on the SDK
   `ConversationRuntime.send()` gate, remove the stale prepared replay
   query-envelope helper, and add regressions proving replay applies the
