@@ -1690,6 +1690,11 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
       'utf8',
     );
+    const chatInterfaceSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatInterface.jsx'),
+      'utf8',
+    );
+    const normalizedChatInterfaceSource = chatInterfaceSource.replace(/\r\n/g, '\n');
     const replayRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js'),
       'utf8',
@@ -1743,6 +1748,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('messages: replayFallbackMessages');
     expect(source).not.toContain('      messages,\n      userMessageId');
     expect(source).not.toContain('      messages,\n      assistantMessageId');
+    expect(normalizedChatInterfaceSource).toContain(
+      'useConversationReplayActions({\n    conversationView,\n    messages,\n  })',
+    );
+    expect(normalizedChatInterfaceSource).not.toContain('useConversationReplayActions({\n    conversationView,\n    messages,\n    setMessages,');
+    expect(normalizedChatInterfaceSource).not.toContain('setThinkingSourceEventType,\n  })');
     expect(continuityServiceSource).not.toContain('loadForDisplay');
     expect(continuityServiceSource).not.toContain('loadDisplayRows');
     expect(replayRuntimeSource).toContain('buildPendingTurn');

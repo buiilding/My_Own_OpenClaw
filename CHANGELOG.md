@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop passing unused chat-store mutators from
+  `ChatInterface` into replay actions so the React replay boundary carries only
+  row intent inputs. No migration required.
 - frontend/replay: stop forwarding raw renderer messages as replay fallback
   input when `ConversationView` exists, keeping SDK display rows as the only
   normal replay read model. No migration required.

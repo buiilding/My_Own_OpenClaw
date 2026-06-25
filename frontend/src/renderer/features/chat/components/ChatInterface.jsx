@@ -106,7 +106,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     },
   }), [conversationView, currentTurnProjection, messages, pendingTurn]);
   const clearMessages = useChatStore((state) => state.clearMessages);
-  const setMessages = useChatStore((state) => state.setMessages);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const setConversationView = useChatStore((state) => state.setConversationView);
   const updateMessage = useChatStore((state) => state.updateMessage);
@@ -626,9 +625,6 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions({
     conversationView,
     messages,
-    setMessages,
-    setThinkingStatus,
-    setThinkingSourceEventType,
   });
 
   useChatInterfaceNewChatEvent(handleNewChat);
