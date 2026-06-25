@@ -223,7 +223,6 @@ function logReplayTimeline(chatStore, action, {
 
 async function executeReplayIntent({
   activeConversationRef,
-  addMessage,
   chatStore,
   deferredQueryModelSelection,
   failureMessages = {},
@@ -366,6 +365,7 @@ async function executeReplayIntent({
       errorKind: traceErrorKind(error),
       targetUserMessageId,
     });
+    const addMessage = chatStore.getState()?.addMessage;
     if (typeof addMessage === 'function') {
       const replayStep = error?.__desktopRuntimeReplayStep === 'send' ? 'send' : 'prepare';
       addMessage({
@@ -421,7 +421,6 @@ function resolveReplayReadModel({
 async function executeReplayAction({
   action,
   activeConversationRef,
-  addMessage,
   assistantMessageId = null,
   chatStore,
   conversationView = null,
@@ -445,9 +444,12 @@ async function executeReplayAction({
   }
   const resolvedSessionInfo = sessionInfo
     || DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
+  const storeState = chatStore && typeof chatStore.getState === 'function'
+    ? chatStore.getState()
+    : null;
+  const resolvedActiveConversationRef = activeConversationRef ?? storeState?.activeConversationRef ?? null;
   return executeReplayIntent({
-    activeConversationRef,
-    addMessage,
+    activeConversationRef: resolvedActiveConversationRef,
     chatStore,
     deferredQueryModelSelection,
     failureMessages,

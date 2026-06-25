@@ -1732,6 +1732,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('dispatchPreparedDesktopChatTurn');
     expect(source).toContain('executeReplayAction');
     expect(source).toContain('conversationView');
+    expect(source).not.toContain('useChatStore((state)');
+    expect(source).not.toContain('state.activeConversationRef');
+    expect(source).not.toContain('state.addMessage');
     expect(source).not.toContain('executeReplayIntent');
     expect(source).not.toContain('buildReplayPendingPublication');
     expect(source).not.toContain('buildReplayPendingTurn');

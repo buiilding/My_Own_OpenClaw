@@ -21,8 +21,6 @@ export function useConversationReplayActions({
   conversationView = null,
   replayFallbackMessages = [],
 }) {
-  const activeConversationRef = useChatStore((state) => state.activeConversationRef);
-  const addMessage = useChatStore((state) => state.addMessage);
   const { config } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
   const deferredQueryModelSelection = DesktopRendererConfigRuntimeClient
     .buildDeferredQueryModelSelection(config);
@@ -30,7 +28,6 @@ export function useConversationReplayActions({
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
     return executeReplayAction({
       action: 'edit_resend',
-      activeConversationRef,
       deferredQueryModelSelection,
       conversationView,
       messages: replayFallbackMessages,
@@ -41,11 +38,8 @@ export function useConversationReplayActions({
         replayPreparationFailureMessage: chatSkin.replayPreparationFailureMessage,
       },
       chatStore: useChatStore,
-      addMessage,
     });
   }, [
-    activeConversationRef,
-    addMessage,
     conversationView,
     deferredQueryModelSelection,
     replayFallbackMessages,
@@ -54,7 +48,6 @@ export function useConversationReplayActions({
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
     return executeReplayAction({
       action: 'retry',
-      activeConversationRef,
       deferredQueryModelSelection,
       conversationView,
       messages: replayFallbackMessages,
@@ -64,11 +57,8 @@ export function useConversationReplayActions({
         replayPreparationFailureMessage: chatSkin.replayPreparationFailureMessage,
       },
       chatStore: useChatStore,
-      addMessage,
     });
   }, [
-    activeConversationRef,
-    addMessage,
     conversationView,
     deferredQueryModelSelection,
     replayFallbackMessages,

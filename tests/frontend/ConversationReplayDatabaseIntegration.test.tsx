@@ -445,10 +445,7 @@ const BASE_MESSAGES = [
 function renderReplayHook(messages: Array<Record<string, unknown>>) {
   useChatStore.getState().setMessages(messages as never, 'conv-replay-db');
   return renderHook(() => useConversationReplayActions({
-    messages,
-    setMessages: useChatStore.getState().setMessages,
-    setThinkingStatus: useChatStore.getState().setThinkingStatus,
-    setThinkingSourceEventType: useChatStore.getState().setThinkingSourceEventType,
+    replayFallbackMessages: messages,
   }));
 }
 
@@ -640,9 +637,7 @@ describe('conversation replay database integration', () => {
       userId: 'user-replay-db',
       messageId: 'stored-user-2',
       text: 'edited second question',
-      payload: expect.objectContaining({
-        screenshot_ref: 'artifact-old',
-      }),
+      payload: {},
     }));
     expect(backendRehydrates).toEqual([]);
 
@@ -651,9 +646,9 @@ describe('conversation replay database integration', () => {
         conversation_ref: 'conv-replay-db',
         revision_id: expect.any(String),
         text: 'edited second question',
-        screenshot_ref: 'artifact-old',
       }),
     ]);
+    expect(sentQueries[0]).not.toHaveProperty('screenshot_ref');
 
     const storedRows = history.rows('conv-replay-db');
     const conversationRows = storedRows.filter(row => row.event_type !== 'trace_event');

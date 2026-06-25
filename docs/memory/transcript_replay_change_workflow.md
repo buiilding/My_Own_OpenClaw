@@ -132,9 +132,11 @@ flowchart LR
      retained visible-prefix construction, superseded-turn detection, pending
      bridge shaping, SDK command dispatch, and failure cleanup. Hooks call the
      runtime's single replay-action entrypoint with row ids/text plus UI
-     dependencies; that public facade exports only `executeReplayAction`, and
-     hooks do not call replay preparation helpers or replay SDK commands
-     directly. `ChatInterface` passes an explicit `replayFallbackMessages`
+     dependencies; active conversation state and failure-row publication are
+     resolved by the runtime from the store dependency instead of selected in
+     React. That public facade exports only `executeReplayAction`, and hooks do
+     not call replay preparation helpers or replay SDK commands directly.
+     `ChatInterface` passes an explicit `replayFallbackMessages`
      input; when a `ConversationView` exists that fallback must be empty so the
      runtime cannot choose raw `chatStore.messages` beside the SDK view.
    - Renderer app-runtime facades should not expose direct display timeline

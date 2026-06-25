@@ -302,6 +302,9 @@ and empties that fallback while a `ConversationView` exists, keeping raw
 renderer messages available only for the no-view bridge. The renderer's
 temporary replay bridge retains the already projected visible prefix as UI rows
 only; it does not filter tool pairs or reconstruct model context for replay.
+React replay hooks do not select store `activeConversationRef` or `addMessage`
+for replay orchestration; `desktopConversationReplayRuntime` resolves active
+conversation state and failure-row publication from its store dependency.
 SDK replay commands own the durable child revision and provider-safe
 replacement history.
 Thread presentation no longer accepts caller-built `currentTurnMessages` as an

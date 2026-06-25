@@ -80,6 +80,8 @@ function displayRowsFromMessages(messages, conversationRef = 'conv-replay', revi
 function createChatStore() {
   const state = {
     acceptReplayPendingTurn: jest.fn(),
+    activeConversationRef: 'conv-replay',
+    addMessage: jest.fn(),
     clearPendingTurn: jest.fn(),
     getWorkspaceState: jest.fn(() => ({
       messages: [],
@@ -100,8 +102,6 @@ function createChatStore() {
 function replayArgs(overrides = {}) {
   const { chatStore } = overrides.chatStoreBundle || createChatStore();
   return {
-    activeConversationRef: 'conv-replay',
-    addMessage: jest.fn(),
     chatStore,
     deferredQueryModelSelection: null,
     failureMessages: {
@@ -189,6 +189,34 @@ describe('desktopConversationReplayRuntime', () => {
     expect(DesktopPendingTurnRuntimeClient.setPending).toHaveBeenCalledWith(expect.objectContaining({
       turnRef: 'turn-replay',
       text: 'edited prompt',
+    }));
+  });
+
+  test('resolves active conversation ref from the store dependency', async () => {
+    const chatStoreBundle = createChatStore();
+    chatStoreBundle.state.activeConversationRef = 'conv-store-active';
+    DesktopTranscriptSessionRuntimeClient.getActiveConversationRef.mockReturnValue(null);
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'retry this', turnRef: 'turn-old' },
+      { id: 'assistant-1', sender: 'assistant', text: 'answer', turnRef: 'turn-old' },
+    ];
+
+    await expect(executeReplayAction(replayArgs({
+      activeConversationRef: undefined,
+      action: 'retry',
+      assistantMessageId: 'assistant-1',
+      chatStoreBundle,
+      messages,
+      sessionInfo: {
+        conversationRef: null,
+        userId: 'user-1',
+      },
+    }))).resolves.toBe(true);
+
+    expect(DesktopConversationContinuityService.retryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-store-active',
+      messageId: 'assistant-1',
+      userId: 'user-1',
     }));
   });
 

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/replay: stop `useConversationReplayActions` from selecting store
+  `activeConversationRef` or `addMessage`; `DesktopConversationReplayRuntime`
+  now resolves those replay orchestration details from the store dependency. No
+  migration required.
 - frontend/store: move `addMessage`, `updateMessage`, and `setMessages`
   workspace mutation construction behind `DesktopChatWorkspaceMessageRuntime`
   so `chatStore` no longer owns message-list replacement, missing-row no-op,
