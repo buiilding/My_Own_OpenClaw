@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/surface: move chat busy/stop surface authority resolution behind a
+  renderer app-runtime helper so React surface hooks no longer branch over
+  `ConversationView.surfaces`, SDK live-turn stop availability, and raw
+  current-turn refs directly. No migration required.
 - frontend/replay: centralize replay trace workspace summaries in the
   projection-stream runtime so replay intent code no longer reads raw
   current-turn, pending-turn, stream-tracking, or message-count fields for

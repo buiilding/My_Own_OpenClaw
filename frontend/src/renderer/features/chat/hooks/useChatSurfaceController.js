@@ -5,25 +5,16 @@
 import { useCallback, useMemo } from 'react';
 import { DesktopRendererConfigRuntimeClient } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopManualCompactionRuntime } from '../../../app/runtime/desktopManualCompactionRuntime';
-import { DesktopCurrentTurnPresentationRuntime } from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
-  DesktopLiveTurnSurfaceRuntime,
-} from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
-import { DesktopVisibleTurnLifecycleRuntime } from '../../../app/runtime/desktopVisibleTurnLifecycleRuntime';
+  DesktopChatSurfaceRuntime,
+} from '../../../app/runtime/desktopChatSurfaceRuntime';
 
-const {
-  applyVisibleTurnLifecycleToPresentationState,
-  resolveVisibleTurnLifecycle,
-} = DesktopVisibleTurnLifecycleRuntime;
-const {
-  resolveLiveTurnPresentationInput,
-} = DesktopLiveTurnSurfaceRuntime;
-const {
-  resolveCurrentTurnPresentationState,
-} = DesktopCurrentTurnPresentationRuntime;
 const {
   runManualCompaction: runManualCompactionCommand,
 } = DesktopManualCompactionRuntime;
+const {
+  buildChatSurfaceControllerState,
+} = DesktopChatSurfaceRuntime;
 
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {
@@ -48,46 +39,32 @@ export function useChatSurfaceController({
   warningContext = 'ChatSurface',
 }) {
   const { config, updateConfig } = DesktopRendererConfigRuntimeClient.useDesktopRendererConfigContext();
-  const visibleTurnLifecycle = resolveVisibleTurnLifecycle({
-    activeConversationRef: (
-      conversationView?.conversationRef
-      || currentTurnProjection?.conversationRef
-      || sessionInfo?.conversationRef
-      || null
-    ),
-    pendingTurn,
-    currentTurnProjection,
-    conversationView,
-    messages,
-  });
-  const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
-    currentTurnProjection,
-    conversationView,
-    pendingTurn,
-    messages,
-    visibleTurnLifecycle,
-  });
-  const currentTurnPresentationState = useMemo(
-    () => resolveCurrentTurnPresentationState({ messages }),
-    [messages],
+  const surfaceState = useMemo(
+    () => buildChatSurfaceControllerState({
+      messages,
+      currentTurnProjection,
+      conversationView,
+      conversationViewSurface,
+      pendingTurn,
+      sessionConversationRef: sessionInfo?.conversationRef || null,
+    }),
+    [
+      conversationView,
+      conversationViewSurface,
+      currentTurnProjection,
+      messages,
+      pendingTurn,
+      sessionInfo?.conversationRef,
+    ],
   );
-  const visibleLifecyclePresentationState = applyVisibleTurnLifecycleToPresentationState(
+  const {
+    canStop,
     currentTurnPresentationState,
+    isBusy,
+    liveTurnPhase,
+    liveTurnSource,
     visibleTurnLifecycle,
-  );
-  const hasConversationView = Boolean(conversationView && typeof conversationView === 'object');
-  const viewSurfaceMode = conversationView?.surfaces?.[conversationViewSurface]?.mode;
-  const isLocalPending = liveTurnPresentationInput.useLocalPendingTurn === true;
-  const isBusy = isLocalPending
-    ? true
-    : hasConversationView
-      ? viewSurfaceMode === 'busy'
-      : visibleTurnLifecycle.isBusy === true;
-  const canStop = isLocalPending
-    ? true
-    : hasConversationView
-      ? conversationView?.liveTurn?.canStop === true
-      : false;
+  } = surfaceState;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
@@ -133,12 +110,12 @@ export function useChatSurfaceController({
 
   return {
     config,
-    currentTurnPresentationState: visibleLifecyclePresentationState,
+    currentTurnPresentationState,
     includeQueryScreenshot,
     isBusy,
     canStop,
-    liveTurnPhase: liveTurnPresentationInput.phase,
-    liveTurnSource: liveTurnPresentationInput.source,
+    liveTurnPhase,
+    liveTurnSource,
     visibleTurnLifecycle,
     speechModeEnabled,
     toggleBooleanConfig,

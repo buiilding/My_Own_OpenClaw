@@ -121,6 +121,30 @@ describe('renderer chat runtime boundary', () => {
     }
   });
 
+  test('chat surface hook reads surface authority through app runtime facade', async () => {
+    const hookSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatSurfaceController.js'),
+      'utf8',
+    );
+    const surfaceRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatSurfaceRuntime.js'),
+      'utf8',
+    );
+
+    expect(hookSource).toContain('DesktopChatSurfaceRuntime');
+    expect(hookSource).toContain('buildChatSurfaceControllerState');
+    expect(hookSource).not.toContain('conversationView?.surfaces');
+    expect(hookSource).not.toContain('conversationView?.liveTurn?.canStop');
+    expect(hookSource).not.toContain('currentTurnProjection?.conversationRef');
+    expect(hookSource).not.toContain('resolveVisibleTurnLifecycle');
+    expect(hookSource).not.toContain('resolveLiveTurnPresentationInput');
+    expect(surfaceRuntimeSource).toContain('resolveVisibleTurnLifecycle');
+    expect(surfaceRuntimeSource).toContain('resolveLiveTurnPresentationInput');
+    expect(surfaceRuntimeSource).toContain('conversationView?.surfaces');
+    expect(surfaceRuntimeSource).toContain('conversationView?.liveTurn?.canStop');
+    expect(surfaceRuntimeSource).not.toContain('features/chat');
+  });
+
   test('chat runtime hooks read app config through renderer config runtime facade', async () => {
     const hookFiles = [
       'components/ChatInterface.jsx',

@@ -12,6 +12,7 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 
 - `frontend/src/renderer/app/runtime/desktopVisibleTurnLifecycleRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopChatSurfaceRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
 - `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`
@@ -162,13 +163,17 @@ presentation input before the visible lifecycle adapter stamps busy and typing
 fields, so the response overlay no longer consumes the SDK presentation
 lifecycle reducer.
 
-`useChatSurfaceController(...)` resolves
-`DesktopVisibleTurnLifecycleRuntime.resolveVisibleTurnLifecycle(...)` and uses
-that projection for dashboard/pill busy state, stop affordance gating,
-awaiting-dot visibility, and chatbox awaiting state. The controller builds the
-message-only presentation snapshot from `DesktopCurrentTurnPresentationRuntime`
-and passes the resolved lifecycle directly into presentation stamping; it no
-longer calls an SDK presentation reducer, and the response overlay uses
+`useChatSurfaceController(...)` delegates surface authority to
+`DesktopChatSurfaceRuntime.buildChatSurfaceControllerState(...)`, which
+composes `DesktopVisibleTurnLifecycleRuntime`,
+`DesktopLiveTurnSurfaceRuntime`, and
+`DesktopCurrentTurnPresentationRuntime`. That app-runtime helper reads
+`ConversationView.surfaces`, `ConversationView.liveTurn.canStop`, SDK
+current-turn projection, and the renderer pending bridge, then returns
+dashboard/pill busy state, stop affordance gating, awaiting-dot visibility, and
+chatbox awaiting state. The React hook owns config toggles and manual
+compaction callbacks only; it should not branch over SDK view/current-turn
+authorities directly. The response overlay uses
 `DesktopCurrentTurnPresentationRuntime.resolveSdkResponseOverlayPresentationState(...)`
 only for explicit SDK response-entry data plus overlay-intent metadata instead
 of merging a fallback presentation snapshot. Actual response visibility
