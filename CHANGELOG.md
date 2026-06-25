@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/anthropic: stream Anthropic normal and thinking deltas during
+  tool-enabled turns while buffering partial tool-use deltas until the completed
+  stream yields finalized normalized `tool_calls`. No migration required.
 - backend/observability: emit sanitized per-turn `[Turn Tool Counts]` backend
   logs and explicit trace fields for backend-received tools, final
   model-visible tools, MCP/plugin/client/backend-remote source counts, and skill

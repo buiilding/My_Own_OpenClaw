@@ -1,8 +1,8 @@
 ---
-summary: "Provider-specific runtime reference for online/local LLM providers: model-prefix rules, reasoning/thinking request flags, local model-listing endpoints, and shared Gemini/Kimi streaming tool-call assembly."
+summary: "Provider-specific runtime reference for online/local LLM providers: model-prefix rules, reasoning/thinking request flags, local model-listing endpoints, and shared Anthropic/Gemini/Kimi streaming tool-call assembly."
 read_when:
   - When adding/changing a concrete provider class under `backend/src/llm/providers/*`.
-  - When debugging provider-specific completion params, local provider model discovery, or Gemini/Kimi stream tool-call payloads.
+  - When debugging provider-specific completion params, local provider model discovery, or Anthropic/Gemini/Kimi stream tool-call payloads.
 title: "Provider-Specific Overrides and Local Runtime Reference"
 ---
 
@@ -76,11 +76,17 @@ Default `list_models()` returns empty list; online model catalogs are static in 
 - `provider_label = "Anthropic"`
 - `model_prefix = "anthropic"`
 - `stream_includes_thinking = True`
+- `supports_streaming_tool_turns(...)` returns `True`
 - for models listed in `ONLINE_THINKING_MODELS["anthropic"]`, adds provider-native thinking payload:
   - `thinking = {"type": "enabled", "budget_tokens": <resolved>}`
 - budget resolution:
   - default is `16384`
   - low/high Anthropic reasoning variants (for example `... Low`, `... High`) map to lower/higher budgets via model preset metadata
+- stream path reuses shared `StreamingToolCallAggregationMixin`, which emits
+  normal/thinking deltas live while buffering Anthropic `tool_use` blocks and
+  OpenAI-style `delta.tool_calls` until stream completion.
+- partial tool calls are not emitted as stream events or executed; only the
+  finalized normalized `tool_calls` payload is handed to the agent loop.
 
 ### GeminiProvider
 
