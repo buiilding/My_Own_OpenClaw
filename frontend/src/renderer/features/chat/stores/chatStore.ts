@@ -14,12 +14,16 @@ import type {
   TokenCounts,
 } from '../../../app/runtime/desktopChatMessageTypes';
 import {
+  buildActiveConversationWorkspaceUpdate,
+  buildWorkspaceUpdate,
   createInitialStreamTracking,
   createInitialWorkspaceRecord,
+  getProjectedWorkspaceFields,
+  isActiveWorkspaceRef,
   normalizeConversationRef,
   readWorkspaceState,
   resolveChatWorkspaceRef,
-  resolveWorkspaceConversationRef,
+  resolveWorkspaceMutationTarget,
   resolveWorkspaceKey,
   selectActiveWorkspaceState,
 } from './chatWorkspaceState';
@@ -199,77 +203,6 @@ interface ChatState {
   clearMessages: (conversationRef?: string | null) => void;
 }
 
-type ProjectedWorkspaceFields = Pick<
-ChatState,
-'messages'
-| 'isSending'
-| 'thinkingStatus'
-| 'thinkingSourceEventType'
-| 'compactionDebugInfo'
-| 'tokenCounts'
-| 'streamTracking'
-| 'currentTurnProjection'
-| 'conversationView'
-| 'pendingTurn'
-| 'supersededTurnRefs'
->;
-
-function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWorkspaceFields {
-  return {
-    messages: workspace.messages,
-    isSending: workspace.isSending,
-    thinkingStatus: workspace.thinkingStatus,
-    thinkingSourceEventType: workspace.thinkingSourceEventType,
-    compactionDebugInfo: workspace.compactionDebugInfo,
-    tokenCounts: workspace.tokenCounts,
-    streamTracking: workspace.streamTracking,
-    currentTurnProjection: workspace.currentTurnProjection,
-    conversationView: workspace.conversationView,
-    pendingTurn: workspace.pendingTurn,
-    supersededTurnRefs: workspace.supersededTurnRefs,
-  };
-}
-
-function isActiveWorkspaceRef(state: ChatState, workspaceRef: string): boolean {
-  return workspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
-}
-
-function buildWorkspaceUpdate(
-  state: ChatState,
-  workspaceRef: string,
-  workspace: ChatWorkspaceState,
-  extraState: Partial<ChatState> = {},
-): Partial<ChatState> {
-  return {
-    workspaces: {
-      ...state.workspaces,
-      [workspaceRef]: workspace,
-    },
-    ...extraState,
-    ...(isActiveWorkspaceRef(state, workspaceRef) ? getProjectedWorkspaceFields(workspace) : {}),
-  };
-}
-
-function resolveWorkspaceMutationTarget(
-  state: ChatState,
-  conversationRef?: string | null,
-): {
-  normalizedConversationRef: string | null;
-  workspaceRef: string;
-  workspace: ChatWorkspaceState;
-} {
-  const normalizedConversationRef = resolveWorkspaceConversationRef(
-    conversationRef,
-    state.activeConversationRef,
-  );
-  const workspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
-  return {
-    normalizedConversationRef,
-    workspaceRef,
-    workspace: readWorkspaceState(state, workspaceRef),
-  };
-}
-
 export function selectChatInterfaceState(state: ChatState) {
   return projectDesktopChatInterfaceState(selectActiveWorkspaceState(state));
 }
@@ -310,41 +243,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   setActiveConversationRef: (conversationRef) =>
-    set((state) => {
-      const normalizedConversationRef = normalizeConversationRef(conversationRef);
-      const nextWorkspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
-      const nextWorkspace = readWorkspaceState(state, nextWorkspaceRef);
-      const hasWorkspace = Boolean(state.workspaces[nextWorkspaceRef]);
-      if (
-        state.activeConversationRef === normalizedConversationRef
-        && hasWorkspace
-        && state.messages === nextWorkspace.messages
-        && state.isSending === nextWorkspace.isSending
-        && state.thinkingStatus === nextWorkspace.thinkingStatus
-        && state.thinkingSourceEventType === nextWorkspace.thinkingSourceEventType
-        && state.compactionDebugInfo === nextWorkspace.compactionDebugInfo
-        && state.tokenCounts === nextWorkspace.tokenCounts
-        && state.streamTracking === nextWorkspace.streamTracking
-        && state.currentTurnProjection === nextWorkspace.currentTurnProjection
-        && state.conversationView === nextWorkspace.conversationView
-        && state.pendingTurn === nextWorkspace.pendingTurn
-        && state.supersededTurnRefs === nextWorkspace.supersededTurnRefs
-      ) {
-        return state;
-      }
-
-      return {
-        activeConversationRef: normalizedConversationRef,
-        workspaces: hasWorkspace
-          ? state.workspaces
-          : {
-            ...state.workspaces,
-            [nextWorkspaceRef]: nextWorkspace,
-          },
-        latestConversationView: nextWorkspace.conversationView,
-        ...getProjectedWorkspaceFields(nextWorkspace),
-      };
-    }),
+    set((state) => buildActiveConversationWorkspaceUpdate(state, conversationRef)),
 
   registerTurnConversationRef: (turnRef, conversationRef) =>
     set((state) => {

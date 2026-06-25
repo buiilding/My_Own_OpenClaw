@@ -3039,6 +3039,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'stores/chatStore.ts'),
       'utf8',
     );
+    const chatWorkspaceStateSource = await fs.readFile(
+      path.join(chatRoot, 'stores/chatWorkspaceState.ts'),
+      'utf8',
+    );
     const pendingBridgeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js'),
       'utf8',
@@ -3125,6 +3129,12 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).toContain('desktopChatMessageTypes');
     expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
     expect(chatStoreSource).toContain('createInitialWorkspaceRecord');
+    expect(chatStoreSource).toContain('buildActiveConversationWorkspaceUpdate');
+    expect(chatStoreSource).toContain('buildWorkspaceUpdate');
+    expect(chatStoreSource).toContain('resolveWorkspaceMutationTarget');
+    expect(chatStoreSource).not.toContain('function getProjectedWorkspaceFields');
+    expect(chatStoreSource).not.toContain('function buildWorkspaceUpdate');
+    expect(chatStoreSource).not.toContain('function resolveWorkspaceMutationTarget');
     expect(chatStoreSource).toContain('DesktopChatPendingTurnStateRuntime');
     expect(chatStoreSource).toContain('DesktopResponseOverlayViewRuntime');
     expect(chatStoreSource).not.toContain('export function buildResponseOverlayDismissalKey');
@@ -3148,6 +3158,10 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('resolvePendingTurnForCurrentProjection');
     expect(chatStoreSource).not.toContain('shouldUpdateLatestView');
     expect(chatStoreSource).not.toContain('Object.keys(latestUpdate)');
+    expect(chatWorkspaceStateSource).toContain('buildActiveConversationWorkspaceUpdate');
+    expect(chatWorkspaceStateSource).toContain('getProjectedWorkspaceFields');
+    expect(chatWorkspaceStateSource).toContain('buildWorkspaceUpdate');
+    expect(chatWorkspaceStateSource).toContain('resolveWorkspaceMutationTarget');
     expect(conversationViewWorkspaceRuntimeSource).toContain('buildConversationViewWorkspaceMutation');
     expect(conversationViewWorkspaceRuntimeSource).toContain('hasLatestConversationViewUpdate');
     expect(conversationViewWorkspaceRuntimeSource).toContain('shouldClearPendingTurnForConversationView');

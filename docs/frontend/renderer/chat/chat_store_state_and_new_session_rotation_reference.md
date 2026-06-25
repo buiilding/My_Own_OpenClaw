@@ -130,7 +130,12 @@ Message attachment fields used by current send/runtime paths include:
   raw `currentTurnProjection` is not accepted as caller-supplied stop state.
 - `clearMessages` clears messages, clears raw send cleanup state, and resets
   `streamTracking` to initial idle shape
-- `setActiveConversationRef` switches the projected top-level state to that workspace snapshot
+- `setActiveConversationRef` switches the projected top-level state to that
+  workspace snapshot through
+  `chatWorkspaceState.buildActiveConversationWorkspaceUpdate(...)`.
+- active-workspace projected field mirroring, generic workspace update assembly,
+  and workspace mutation target resolution live in `chatWorkspaceState.ts`;
+  `chatStore.ts` calls those helpers instead of defining the boilerplate.
 - `registerTurnConversationRef` / `resolveConversationRefForTurn` bind
   app-runtime turn->conversation routing helpers for events that omit
   `conversation_ref`.

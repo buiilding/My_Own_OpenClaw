@@ -46,6 +46,7 @@ export interface ChatWorkspaceState {
 interface ChatWorkspaceStoreSnapshot {
   activeConversationRef: string | null;
   workspaces?: Record<string, ChatWorkspaceState>;
+  latestConversationView?: ConversationView | null;
   messages?: ChatMessage[];
   isSending?: boolean;
   thinkingStatus?: string | null;
@@ -188,6 +189,109 @@ export function readWorkspaceState(
   }
 
   return createInitialWorkspaceState();
+}
+
+export type ProjectedWorkspaceFields = Pick<
+ChatWorkspaceState,
+'messages'
+| 'isSending'
+| 'thinkingStatus'
+| 'thinkingSourceEventType'
+| 'compactionDebugInfo'
+| 'tokenCounts'
+| 'streamTracking'
+| 'currentTurnProjection'
+| 'conversationView'
+| 'pendingTurn'
+| 'supersededTurnRefs'
+>;
+
+export function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWorkspaceFields {
+  return {
+    messages: workspace.messages,
+    isSending: workspace.isSending,
+    thinkingStatus: workspace.thinkingStatus,
+    thinkingSourceEventType: workspace.thinkingSourceEventType,
+    compactionDebugInfo: workspace.compactionDebugInfo,
+    tokenCounts: workspace.tokenCounts,
+    streamTracking: workspace.streamTracking,
+    currentTurnProjection: workspace.currentTurnProjection,
+    conversationView: workspace.conversationView,
+    pendingTurn: workspace.pendingTurn,
+    supersededTurnRefs: workspace.supersededTurnRefs,
+  };
+}
+
+export function isActiveWorkspaceRef(
+  state: ChatWorkspaceStoreSnapshot,
+  workspaceRef: string,
+): boolean {
+  return workspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+}
+
+export function buildWorkspaceUpdate<TState extends ChatWorkspaceStoreSnapshot>(
+  state: TState,
+  workspaceRef: string,
+  workspace: ChatWorkspaceState,
+  extraState: Partial<TState> = {},
+): Partial<TState> {
+  return {
+    workspaces: {
+      ...state.workspaces,
+      [workspaceRef]: workspace,
+    },
+    ...extraState,
+    ...(isActiveWorkspaceRef(state, workspaceRef) ? getProjectedWorkspaceFields(workspace) : {}),
+  } as Partial<TState>;
+}
+
+export function resolveWorkspaceMutationTarget<TState extends ChatWorkspaceStoreSnapshot>(
+  state: TState,
+  conversationRef?: string | null,
+): {
+  normalizedConversationRef: string | null;
+  workspaceRef: string;
+  workspace: ChatWorkspaceState;
+} {
+  const normalizedConversationRef = resolveWorkspaceConversationRef(
+    conversationRef,
+    state.activeConversationRef,
+  );
+  const workspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
+  return {
+    normalizedConversationRef,
+    workspaceRef,
+    workspace: readWorkspaceState(state, workspaceRef),
+  };
+}
+
+export function buildActiveConversationWorkspaceUpdate<TState extends ChatWorkspaceStoreSnapshot>(
+  state: TState,
+  conversationRef: string | null,
+): TState | Partial<TState> {
+  const normalizedConversationRef = normalizeConversationRef(conversationRef);
+  const nextWorkspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
+  const nextWorkspace = readWorkspaceState(state, nextWorkspaceRef);
+  const hasWorkspace = Boolean(state.workspaces?.[nextWorkspaceRef]);
+  if (
+    state.activeConversationRef === normalizedConversationRef
+    && hasWorkspace
+    && doesWorkspaceMatch(nextWorkspace, buildActiveWorkspaceSnapshot(state))
+  ) {
+    return state;
+  }
+
+  return {
+    activeConversationRef: normalizedConversationRef,
+    workspaces: hasWorkspace
+      ? state.workspaces
+      : {
+        ...state.workspaces,
+        [nextWorkspaceRef]: nextWorkspace,
+      },
+    latestConversationView: nextWorkspace.conversationView,
+    ...getProjectedWorkspaceFields(nextWorkspace),
+  } as Partial<TState>;
 }
 
 export function selectActiveWorkspaceState(
