@@ -2989,6 +2989,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js'),
       'utf8',
     );
+    const turnConversationRefRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime.ts'),
+      'utf8',
+    );
     const displayAttachmentProjectionSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSdkDisplayAttachmentProjection.ts'),
       'utf8',
@@ -3028,6 +3032,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatStoreSource).not.toContain('function doesCurrentTurnProjectionMatch');
     expect(chatStoreSource).not.toContain('function addSupersededTurnRef');
     expect(chatStoreSource).not.toContain('function removeSupersededTurnRef');
+    expect(chatStoreSource).not.toContain('function normalizeTurnRef');
+    expect(chatStoreSource).not.toContain('function mergeTurnConversationRefs');
     expect(pendingStateRuntimeSource).toContain('normalizePendingTurn');
     expect(pendingStateRuntimeSource).toContain('doesPendingTurnMatch');
     expect(pendingStateRuntimeSource).toContain('buildPendingTurnWorkspaceMutation');
@@ -3036,6 +3042,11 @@ describe('renderer chat runtime boundary', () => {
     expect(pendingStateRuntimeSource).toContain('removeSupersededTurnRef');
     expect(stopTurnRuntimeSource).toContain('buildStoppedTurnWorkspaceMutation');
     expect(stopTurnRuntimeSource).not.toContain('features/chat');
+    expect(turnConversationRefRuntimeSource).toContain('normalizeTurnRef');
+    expect(turnConversationRefRuntimeSource).toContain('mergeTurnConversationRefs');
+    expect(turnConversationRefRuntimeSource).toContain('registerTurnConversationRef');
+    expect(turnConversationRefRuntimeSource).toContain('resolveConversationRefForTurn');
+    expect(turnConversationRefRuntimeSource).not.toContain('features/chat');
     expect(chatStoreSource).not.toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain("sourceEventType: 'renderer-compose'");
     expect(pendingBridgeSource).toContain('attachments: null');

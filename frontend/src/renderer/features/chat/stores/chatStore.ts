@@ -36,6 +36,9 @@ import {
 import {
   DesktopChatPendingTurnStateRuntime,
 } from '../../../app/runtime/desktopChatPendingTurnStateRuntime';
+import {
+  DesktopChatTurnConversationRefRuntime,
+} from '../../../app/runtime/desktopChatTurnConversationRefRuntime';
 import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const {
@@ -52,6 +55,12 @@ const {
   buildPendingTurnWorkspaceMutation,
   doesPendingTurnMatch,
 } = DesktopChatPendingTurnStateRuntime;
+const {
+  mergeTurnConversationRefs,
+  normalizeTurnRef,
+  registerTurnConversationRef,
+  resolveConversationRefForTurn,
+} = DesktopChatTurnConversationRefRuntime;
 export type { ChatMessage, TokenCounts };
 
 export type StreamPhase =
@@ -247,37 +256,6 @@ function buildWorkspaceUpdate(
   };
 }
 
-function normalizeTurnRef(turnRef?: string | null): string | null {
-  if (typeof turnRef !== 'string') {
-    return null;
-  }
-  const normalizedTurnRef = turnRef.trim();
-  return normalizedTurnRef.length > 0 ? normalizedTurnRef : null;
-}
-
-function mergeTurnConversationRefs(
-  currentTurnConversationRefs: Record<string, string>,
-  messages: ChatMessage[],
-  conversationRef: string | null,
-): Record<string, string> {
-  if (!conversationRef) {
-    return currentTurnConversationRefs;
-  }
-
-  let nextTurnConversationRefs = currentTurnConversationRefs;
-  for (const message of messages) {
-    const turnRef = normalizeTurnRef(message.turnRef);
-    if (!turnRef || nextTurnConversationRefs[turnRef] === conversationRef) {
-      continue;
-    }
-    if (nextTurnConversationRefs === currentTurnConversationRefs) {
-      nextTurnConversationRefs = { ...currentTurnConversationRefs };
-    }
-    nextTurnConversationRefs[turnRef] = conversationRef;
-  }
-  return nextTurnConversationRefs;
-}
-
 function resolveWorkspaceMutationTarget(
   state: ChatState,
   conversationRef?: string | null,
@@ -376,28 +354,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   registerTurnConversationRef: (turnRef, conversationRef) =>
     set((state) => {
-      const normalizedTurnRef = normalizeTurnRef(turnRef);
-      const normalizedConversationRef = normalizeConversationRef(conversationRef);
-      if (!normalizedTurnRef || !normalizedConversationRef) {
-        return state;
-      }
-      if (state.turnConversationRefs[normalizedTurnRef] === normalizedConversationRef) {
+      const nextTurnConversationRefs = registerTurnConversationRef(
+        state.turnConversationRefs,
+        turnRef,
+        conversationRef,
+      );
+      if (nextTurnConversationRefs === state.turnConversationRefs) {
         return state;
       }
       return {
-        turnConversationRefs: {
-          ...state.turnConversationRefs,
-          [normalizedTurnRef]: normalizedConversationRef,
-        },
+        turnConversationRefs: nextTurnConversationRefs,
       };
     }),
 
   resolveConversationRefForTurn: (turnRef) => {
-    const normalizedTurnRef = normalizeTurnRef(turnRef);
-    if (!normalizedTurnRef) {
-      return null;
-    }
-    return get().turnConversationRefs[normalizedTurnRef] || null;
+    return resolveConversationRefForTurn(get().turnConversationRefs, turnRef);
   },
 
   dismissResponseOverlayEntry: (input) =>

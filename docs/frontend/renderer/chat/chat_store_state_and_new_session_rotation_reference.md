@@ -14,6 +14,7 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnBridgeRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatPendingTurnStateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatTurnConversationRefRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
@@ -70,7 +71,9 @@ Message attachment fields used by current send/runtime paths include:
 - `setMessages` no-op when array reference unchanged; when hydrating a concrete
   conversation workspace, it indexes message `turnRef` values into
   `turnConversationRefs` so later turn-scoped stream events can route even when
-  `conversation_ref` is absent
+  `conversation_ref` is absent. Turn-ref normalization and map merge rules live
+  in `desktopChatTurnConversationRefRuntime.ts`; the store only binds the
+  resulting map update.
 - `setIsSending`, `setThinkingStatus`, `setTokenCounts` no-op when value/reference unchanged
 - `updateStreamTracking` always applies updater output
 - `setCurrentTurnProjection` updates the target workspace and clears a matching
@@ -107,7 +110,9 @@ Message attachment fields used by current send/runtime paths include:
 - `clearMessages` clears messages, clears raw send cleanup state, and resets
   `streamTracking` to initial idle shape
 - `setActiveConversationRef` switches the projected top-level state to that workspace snapshot
-- `registerTurnConversationRef` / `resolveConversationRefForTurn` maintain turn->conversation routing for events that omit `conversation_ref`
+- `registerTurnConversationRef` / `resolveConversationRefForTurn` bind
+  app-runtime turn->conversation routing helpers for events that omit
+  `conversation_ref`.
 
 No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 
