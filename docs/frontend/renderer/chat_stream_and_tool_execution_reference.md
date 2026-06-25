@@ -156,9 +156,9 @@ annotation, optimistic-row merge, stale replay display suppression, or
 current-turn side-effect semantics.
 
 Display-row stream projections are a no-`ConversationView` bridge. When the
-workspace already has an SDK `ConversationView`, the hook may still build the
-legacy message projection for trace data, but it must not write those messages
-back into `chatStore.messages`. Normal chat rendering should read
+workspace already has an SDK `ConversationView`, the runtime keeps the packet
+trace-only and does not build legacy renderer chat messages or merge renderer
+annotations from it. Normal chat rendering should read
 `ConversationView.displayRows`; `chatStore.messages` remains only the local
 pending/no-view fallback.
 

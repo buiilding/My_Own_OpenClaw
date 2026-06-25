@@ -1056,6 +1056,9 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionStreamRuntimeSource).toContain('buildDisplayRowsProjection');
     expect(projectionStreamRuntimeSource).toContain('shouldApplyMessages');
     expect(projectionStreamRuntimeSource).toContain('!workspace.conversationView');
+    expect(projectionStreamRuntimeSource).toContain('if (!shouldApplyMessages)');
+    expect(projectionStreamRuntimeSource).toContain('sdkMessages: []');
+    expect(projectionStreamRuntimeSource).toContain('mergedMessages: []');
     expect(projectionStreamRuntimeSource).toContain('withoutSupersededRows');
     expect(projectionStreamRuntimeSource).toContain('buildReplayProjectionTracePayload');
     expect(projectionStreamRuntimeSource).toContain('currentMatchesOldTurn');

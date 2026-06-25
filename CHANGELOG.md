@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/projection: stop building legacy renderer chat messages from
+  display-row stream packets once `ConversationView` exists; view-owned rows
+  now emit row-count trace metadata only. No migration required.
 - frontend/surface: guard `DesktopChatSurfaceRuntime` against stale renderer
   messages when `ConversationView` owns the surface, matching the selector's
   SDK-view-first projection. No migration required.

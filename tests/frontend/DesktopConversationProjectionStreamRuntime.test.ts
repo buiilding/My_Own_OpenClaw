@@ -118,7 +118,7 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
     expect(projection.shouldApplyMessages).toBe(true);
   });
 
-  test('keeps display-row projection as trace-only once ConversationView exists', () => {
+  test('keeps display-row projection as row-count trace only once ConversationView exists', () => {
     const projection = buildDisplayRowsProjection({
       rows: [{
         id: 'assistant-row',
@@ -143,12 +143,14 @@ describe('DesktopConversationProjectionStreamRuntime', () => {
     });
 
     expect(projection.shouldApplyMessages).toBe(false);
-    expect(projection.mergedMessages).toEqual([
-      expect.objectContaining({
-        id: 'assistant-row',
-        text: 'sdk row',
-      }),
-    ]);
+    expect(projection.sdkMessages).toEqual([]);
+    expect(projection.mergedMessages).toEqual([]);
+    expect(projection.traceSummary).toEqual(expect.objectContaining({
+      rowCount: 1,
+      sdkMessageCount: 0,
+      currentMessageCount: 0,
+      mergedMessageCount: 0,
+    }));
   });
 
   test('builds replay trace payloads from workspace state', () => {

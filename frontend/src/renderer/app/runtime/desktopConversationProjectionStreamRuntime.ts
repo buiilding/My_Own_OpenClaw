@@ -274,9 +274,21 @@ function buildDisplayRowsProjection({
   sdkMessages: ChatMessage[];
   traceSummary: Record<string, unknown>;
 } {
-  const currentMessages = Array.isArray(workspace.messages) ? workspace.messages : [];
   const shouldApplyMessages = !workspace.conversationView;
   const filteredRows = withoutSupersededRows(rows, workspace);
+  if (!shouldApplyMessages) {
+    return {
+      filteredRows,
+      mergedMessages: [],
+      shouldApplyMessages,
+      sdkMessages: [],
+      traceSummary: buildDisplayProjectionTraceSummary({
+        rows: filteredRows,
+      }),
+    };
+  }
+
+  const currentMessages = Array.isArray(workspace.messages) ? workspace.messages : [];
   const sdkMessages = buildChatMessagesFromSdkDisplayRows(filteredRows);
   const mergedMessages = mergeRendererAnnotationsIntoSdkMessages(
     sdkMessages,
