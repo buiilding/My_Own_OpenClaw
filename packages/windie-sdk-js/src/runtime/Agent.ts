@@ -1106,7 +1106,7 @@ export class Agent {
       conversationRef,
       revisionId,
       store: store ?? this.defaultConversationStore,
-    }).retry(input);
+    }).retryTurn(input);
   }
 
   async forkConversation(

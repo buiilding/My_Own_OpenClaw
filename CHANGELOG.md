@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: restore the conversation-view snapshot contract during the
+  main integration merge so direct wake-up, chat workspace selection, and SDK
+  CJS output all carry the same `ConversationView` envelope. No migration
+  required.
 - frontend/renderer: preserve `ConversationView` through chat workspace
   selection and main chat wiring so the dashboard no longer crashes on startup,
   and keep dashboard busy, Stop, edit, and retry affordances on the SDK view

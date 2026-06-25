@@ -720,7 +720,7 @@ export class LocalRuntimeConversationStore implements ConversationStore {
     const data = normalizeRecord(result.data) ?? {};
     const revisions = Array.isArray(data.revisions) ? data.revisions : [];
     return revisions
-      .map((entry) => {
+      .map((entry): ConversationRevision | null => {
         const revision = normalizeRecord(entry) ?? {};
         const revisionId = normalizeString(revision.revision_id) ?? normalizeString(revision.revisionId);
         if (!revisionId) {
@@ -752,7 +752,7 @@ export class LocalRuntimeConversationStore implements ConversationStore {
           active: typeof revision.active === 'boolean'
             ? revision.active
             : revision.active === 1,
-        } satisfies ConversationRevision;
+        };
       })
       .filter((entry): entry is ConversationRevision => Boolean(entry));
   }

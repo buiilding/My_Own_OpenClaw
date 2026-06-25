@@ -353,7 +353,14 @@ export type SdkDisplayRowMetadata = {
   raw?: JsonRecord | null;
 };
 
-export type SdkDisplayRow =
+export type SdkDisplayRowActions = {
+  canEdit?: boolean;
+  editTargetRowId?: string | null;
+  canRetry?: boolean;
+  retryTargetRowId?: string | null;
+};
+
+export type SdkDisplayRow = (
   | {
       id: string;
       conversationRef: string;
@@ -444,7 +451,10 @@ export type SdkDisplayRow =
       type: 'error';
       content: string;
       metadata?: SdkDisplayRowMetadata;
-    };
+    }
+) & {
+  actions?: SdkDisplayRowActions;
+};
 
 export type CurrentTurnProjectionPhase =
   | 'idle'
@@ -574,6 +584,76 @@ export type CurrentTurnProjection = {
   toolEvents: CurrentTurnToolEvent[];
   lastError: string | null;
   presentation: LiveTurnPresentation;
+};
+
+export type ConversationViewLiveTurnPhase =
+  | 'idle'
+  | 'awaiting'
+  | 'streaming'
+  | 'tool'
+  | 'complete'
+  | 'error';
+
+export type ConversationView = {
+  conversationRef: string;
+  revisionId: string | null;
+  displayRows: SdkDisplayRow[];
+  liveTurn: {
+    turnRef: string | null;
+    phase: ConversationViewLiveTurnPhase;
+    entries: LiveTurnPresentationEntry[];
+    isBusy: boolean;
+    isTerminal: boolean;
+    canStop: boolean;
+    lastError?: string | null;
+  };
+  surfaces: {
+    pill: {
+      mode: 'idle' | 'busy';
+    };
+    dashboard: {
+      mode: 'idle' | 'busy';
+    };
+    responseOverlay: {
+      mode: 'hidden' | 'typing' | 'response';
+      visible: boolean;
+      guardRef: string | null;
+      ownerConversationRef: string;
+      turnRef: string | null;
+    };
+  };
+  actions: {
+    canEdit: boolean;
+    canRetry: boolean;
+    canFork: boolean;
+  };
+};
+
+export type ConversationViewBuildDiagnostics = {
+  activeRevisionId: string | null;
+  displayRowCount: number;
+  liveTurnRef: string | null;
+  liveTurnPhase: ConversationViewLiveTurnPhase;
+  responseOverlayMode: ConversationView['surfaces']['responseOverlay']['mode'];
+  responseOverlayGuardRef: string | null;
+  pendingTurnRef: string | null;
+  supersededTurnCount: number;
+  filteredInternalLaneCount: number;
+  modelHistoryCheckpointId: string | null;
+  lastEventRef: string | null;
+  lastSdkEventRef: string | null;
+  lastBackendEventRef: string | null;
+};
+
+export type ConversationViewBuildInput = {
+  conversationRef?: string | null;
+  revisionId?: string | null;
+  state?: ConversationRuntimeState | null;
+  displayRows?: SdkDisplayRow[] | null;
+  currentTurn?: CurrentTurnProjection | null;
+  events?: ConversationEvent[] | null;
+  pendingTurnRef?: string | null;
+  modelHistoryCheckpoint?: Pick<ModelHistoryCheckpoint, 'checkpointId'> | null;
 };
 
 export type RehydrateSnapshot = {
