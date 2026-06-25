@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/stop: remove legacy raw `ConversationView`, `pendingTurn`, and
+  session-ref inputs from `useStopTurnHandler`; stop-target selection now stays
+  in `DesktopChatInterfaceSelectorRuntime` and the hook consumes only the
+  selected `stopTurnTarget`. No migration required.
 - frontend/store: move chat interface selector composition for presentation
   rows, replay read models, and stop targets behind
   `DesktopChatInterfaceSelectorRuntime` so `chatStore.ts` only binds active

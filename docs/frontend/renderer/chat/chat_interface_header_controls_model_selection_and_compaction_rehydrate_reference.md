@@ -70,6 +70,11 @@ Dashboard stop behavior is owned by `useStopTurnHandler(...)`:
 6. call `DesktopLiveTurnRuntimeClient.stop(...)` with the resolved
    conversation ref and turn ref
 
+The hook consumes the selected target only. Raw `ConversationView`, pending-turn,
+or session conversation refs stay in the selector runtime so React event
+handlers do not run a second stop-target authority beside the SDK view/pending
+bridge selection.
+
 `DesktopStopTurnRuntime.buildStoppedCurrentTurnProjection(...)` terminalizes
 the stopped SDK projection without restamping SDK `typingVisible` or
 `overlayVisible`; renderer visible lifecycle owns post-stop typing and response

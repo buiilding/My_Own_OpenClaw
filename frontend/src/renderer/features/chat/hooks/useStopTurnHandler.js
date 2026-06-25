@@ -12,14 +12,17 @@ import {
 
 const {
   isStopTurnTargetFromPendingTurn,
-  resolveStopTurnTarget,
 } = DesktopStopTurnRuntime;
+
+const IDLE_STOP_TURN_TARGET = Object.freeze({
+  source: 'idle',
+  conversationRef: null,
+  turnRef: null,
+  canStop: false,
+});
 
 export function useStopTurnHandler({
   enabled = true,
-  conversationView = null,
-  pendingTurn = null,
-  sessionConversationRef = null,
   stopTurnTarget = null,
   stopPlayback = null,
   warningContext = 'StopTurnHandler',
@@ -30,17 +33,8 @@ export function useStopTurnHandler({
     if (stopTurnTarget && typeof stopTurnTarget === 'object') {
       return stopTurnTarget;
     }
-    return resolveStopTurnTarget({
-      conversationView,
-      pendingTurn,
-      conversationRef: sessionConversationRef,
-    });
-  }, [
-    conversationView,
-    pendingTurn,
-    sessionConversationRef,
-    stopTurnTarget,
-  ]);
+    return IDLE_STOP_TURN_TARGET;
+  }, [stopTurnTarget]);
 
   const handleStopTurn = useCallback(() => {
     if (!enabled || !stopTarget.canStop) {

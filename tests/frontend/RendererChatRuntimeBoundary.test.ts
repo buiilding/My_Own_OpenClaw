@@ -2063,6 +2063,10 @@ describe('renderer chat runtime boundary', () => {
     expect(minimalPillSource).toContain('stopTurnTarget');
     expect(minimalPillSource).not.toContain('useStopTurnHandler({\n    enabled: stopAvailable,\n    conversationView,');
     expect(minimalPillSource).not.toContain('useStopTurnHandler({\n    enabled: stopAvailable,\n    pendingTurn,');
+    expect(stopHandlerSource).not.toContain('resolveStopTurnTarget');
+    expect(stopHandlerSource).not.toContain('conversationView = null');
+    expect(stopHandlerSource).not.toContain('pendingTurn = null');
+    expect(stopHandlerSource).not.toContain('sessionConversationRef');
     expect(stopHandlerSource).not.toContain('currentTurnProjection');
     expect(chatStoreSource).not.toContain('input?.currentTurnProjection');
     expect(stopHandlerSource).not.toContain('utils/state/stopQueryState');
